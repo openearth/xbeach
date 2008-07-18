@@ -1,0 +1,172 @@
+MODIFICATIONS ROBERT 30/6/08
+
+!
+! boundaryconditions.f90
+!
+Removed redundant passing of 'it' to boundaryconditions.f90
+
+!
+! flow_timestep.f90
+!
+In calculation loop of viscv changed to : nuh(i,j) = par%nuhv*par%nuh
+par%nuhv is now default 1.0 and can be increased to 20.0
+
+!
+! morphevolution.f90
+!
+The Shields limitation suggested by Diane Foster is implemented in Soulsby-Van Rijn. Default limitation
+is set to smax = huge(0.d0)
+
+!
+! params.f90
+!
+Default par%nuhv set to 1.0
+Set par%smax default to -1.0: if par%smax<0 then par%smax becomes huge(0.d0) therefore no limitation on sediment transport
+Set default par%lat to 0.d0 to remove Coriolis effect
+
+!
+! timestep.f90
+!
+Moved calculation of par%tnext to end of varoutput.f90 and moved calculation of 'it' from varoutput.f90
+to timestep.f90
+
+!
+! varoutput.f90
+!
+Major changes to output time steps: output times for global, mean and point variables now stored in 
+three vectors tpg, tpm and tpp. Output times can be regular using combination of tstart and tintg, tintm
+and tintp or irregular using output time series files. Runup gauges integrated into point output.
+Added keyword tsglobal, tsmean and tspoints to identify output time series files in params.txt
+
+Moved calculation of par%tnext to end of varoutput instead of timestep.f90
+
+!
+! xbeach.f90
+!
+Some small changes including calculating first par%tnext in initialize output and removing redundant
+passing of 'it' to boundaryconditions.f90
+
+
+
+MODIFICATIONS DANO,AP, JAAP,ROBERT 23/5/08, 
+INCLUDES SOME GENERAL BUGS AND IMPROVEMENTS
+VERSION ENTERED INTO SUBVERSION AND TAGGED AS V12-EPSILON
+WATCH OVERVIEW OF MODIFICATIONS BELOW
+!
+!params.f90
+!
+Introduced thetanaut keyword to allow to define computational grid in nautical convention (similar to SWAN)
+
+keyword form --> sedimnet transport options: 1 = 
+keyword carspan --> switch to use c instead of cg in instat=3
+keyword rugauge --> observation point settings: 0 = normal observation point, 1 = observation point as runup gage (follows the runup)
+keyword ting --> time interval output global variables
+keyword tinp --> time interval output point variables
+keyword tint --> min(tinp,ting)
+keyword struct --> to include/define hard revetments
+keyword A --> removed from params.txt
+keyword par%Tm01 --> keyword is replaced by par%Trep (in all routines!!!)
+keyword nspr--> no directional spreading in long waves0 
+repaired factor 2 error in latitude conversion
+keyword tintm for interval of writing time-averaged values (starts at tstart)
+keyword sprdthr to set spectral values less than sprdthr*Sfmax to zero
+keyword fcutoff to set hi-pass filter to filter out unrealistically low-frequency waves (e.g. in wave tanks)
+!
+!roelvink.f90
+!
+changed line 129
+Qb = exp(-(Hb/H)**2.); 
+into
+Qb = exp(-(Hb/max(H,0.00001d0))**2)
+!
+!s.f90
+!
+allowed x and y grid to be defined in terms of world coordinates. Detect if this is the case by checking if 
+difference between x(1,2) and x(1,1) is greater than 0.1 m; if so:
+- copy x and y to xw and yw
+- redefine xori, yori and alfa
+- compute x and y
+
+postponed conversion of theta0 until after this, because updated alfa is needed there.
+
+modified computation of thetamin, thetamax, theta for case where thetanaut==1
+!
+!varoutput.f90
+!
+- many differences between versiealpha and xbeach_v11_alpha
+
+- new difference: 
+if (outputindex(19)==.true.) write(119,rec=itg)270-(s%thetamean*(180/par%px))
+must be
+if (outputindex(19)==.true.) write(119,rec=it)270-((s%thetamean+s%alfa)*(180/par%px))
+Now output direction is degrees, nautical convention.
+Same for all output angles
+Added time-averaging 'on the fly' and outputting time-averages
+
+
+!
+!wave_stationary.f90
+!
+added at line 110:
+    thetamean(1,:)=(sum(ee(1,:,:)*thet(1,:,:),2)/size(ee(1,:,:),2)) &
+                  /(max(sum(ee(1,:,:),2),0.00001) /size(ee(1,:,:),2))
+otherwise thetamean is not set at seaward boundary
+
+removed tapering at approx. line 119
+
+line 242: if (par%roller==1) then
+
+changed (ascii/binary) format in reading/writing files to unformatted; direct acces
+
+included (new) wave current interaction from Ad
+
+changed expression for urms as was earlier done in wavetimestep.f90
+Added initialization of H(i,:) to H(i-1,:) to improve shallow water behaviour
+
+!!! TO DO reimplement wave current interaction into wave stationary, inside iteration loop !!!
+
+!
+!boundaryconditions.f90
+!
+changed (ascii/binary) format in reading/writing files to unformatted (which is also binary)
+
+changed default back boundary condition to back=2, so it's absorbing acc.to Van Dongeren and Svendsen 97
+
+fixed bug wrt writing timeseries
+
+!
+! waveparams.f90
+!
+changed (ascii/binary) format in reading/writing files to unformatted (which is also binary)
+
+took out "floor" statement in waveparams.f90 because it caused a bug for
+some tests.
+
+build in option to switch between random seed and seed value of zero.
+
+!
+! nonhydrostatic.f90
+!
+removed from code. This routine is not yet ready to be used and is under development
+
+!
+! output.f90
+!
+removed from code; this routine is replaced by varoutput.f90
+
+!
+! flowtimestep.f90
+!
+removed nonhydrostatic statements
+removed uv in variable declaration; uv is declared in s.f90
+repaired bug in Coriolis in momentum equation that made it timestep depending
+
+!
+! morphevolution.f90
+!
+add new options for sediment transport; these options are in development and should be used with care
+
+!
+! flowtimestep.f90
+!
+new way of computing timestep

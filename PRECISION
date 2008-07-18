@@ -1,0 +1,130 @@
+USAGE OF CONSTANTS IN FLOATING POINT EXPRESSIONS 
+     IN THE PROGRAM XBEACH
+
+Willem Vermin, SARA, 2008-07-09
+
+Here follow some remarks with regard to the use of constants
+in Fortran.
+ 
+The program xbeach uses everywhere double precision, and some
+coding practices are required to be sure that double precision
+is maintained.
+
+Examples:
+
+Below x and y are double precision (= real*8) variables,
+      n is integer. 
+
+The constant 1.3 is single precision. If used in an double 
+precision expression, this constant will be promoted to double,
+but the value will be different from the double precision
+constant 1.3d0.
+
+  Try the following program:
+
+  program a
+  implicit none
+  if (1.3 .eq. 1.3d0) then 
+    print *,'equal'
+  else
+    print *,'not equal, difference is',1.3-1.3d0
+  endif
+  end
+
+So, in general one should specify floating point constants as
+1.3d0.
+
+Also, one should code
+
+  y = max(x,1.3d0)
+and not
+  y = max(x,1.3)    ! not good
+
+Apart from the inaccuracy the latter construct involves, not
+all compilers have a MAX instrinsic with one argument
+double and the other argument single.
+
+In the following example:
+  y = x*atan(1.0)  ! wrong
+atan(1.0) gives a single precision result, because the single
+precision argument. This result will be promoted to double,
+but the precision is still that of a single precision floating
+point number.
+
+  y = x*atan(1.0d0)  ! ok
+gives the desired result.
+
+INTEGER CONSTANTS
+
+(in the atan(1.0) example, the constant 1.0 is not 'really' an integer,
+but 'integer by accident'. ATAN always expacts a floating point argument)
+
+In general, it is not necessary to specify integer constants
+as double, like:
+
+  y = 2.0d0 * x  ! is ok, but see later
+
+This code will yield the expected result, but a more readable
+code like
+
+  y = 2 * x   ! is ok
+
+will also give the desired result, and could be even more efficient.
+Promotion of a integer constant to double, if necessary, will
+be done at compile time. In the above example the compiler could
+decide to increase the exponent of x by one in stead of performing
+a floating point operation.
+
+Also in expressions like:
+
+  y = 0
+  y = x + 1
+  y = x / 4
+
+it is not necessary to specify double precision constants, especially
+in the case of a division. A floating point division is expensive. Using
+integer values for the divisor, the compiler can decide to subtract
+2 from the exponent in this case.
+
+Especially in expressions involving the ** operator, it is better
+to use 
+
+  y = x**2    ! ok
+in stead of
+  y = x**2.0d0   ! maybe inefficient
+
+In the latter case, the compiler could generate code to do a double
+precision exponentiation (involving the evaluation of a exp and a log),
+wheras a simple multiplication suffices. Since long, compilers know how
+to efficiently perform an exponentiation with an integer exponent.
+
+Of course, constructs like
+
+  n = 5
+  y = n/4 !wrong
+
+in general do not give the expected result: in this case y would
+get the value 1.0d0, and not 1.2d0. 
+
+somewhat better is
+  y = real(n)/4 ! better, but not good
+
+because the intrinsic REAL yields a single precision floating
+point value. Better is
+
+  y = dble(n)/4  ! ok
+
+This seems trivial, but also in expressions like
+
+  y = x*(n/4)   ! wrong
+
+n/4 is evaluated on its own, and the result is converted to double.
+Good is:
+  y = x*(dble(n)/4)   ! good
+or
+  y = x*n/4  ! also good
+  (n is promoted to double before the multiplication with x.
+or
+  y = x*dble(n)/4  ! the best
+
+

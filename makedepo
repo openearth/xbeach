@@ -1,0 +1,61 @@
+#!/usr/bin/gawk -f
+#
+# A simple dependency generator for fortran90 sources
+#  generates dependencies, based on .o files, source files and
+#  include files
+# Usage: makedepo sourcefiles 
+#
+BEGIN {
+      }
+function sortu (a,    i,x,u) {
+           split(a, x)
+           asort(x)
+           u = ""
+           for (i in x) {
+             if (x[i] != x[i-1]) {
+               if(u == "")
+                 u = x[i]
+               else
+		 u = u " " x[i]
+             }
+           }
+           return u
+         }
+function output (   f,r,rr,i,d) {
+    for (f in src) {
+      r = sortu(req[f])
+      split(r,rr)
+      d = ""
+      for (i in rr) {
+        d = d " " del[rr[i]]
+      }
+      print f ": " src[f] " " sortu(inc[f]) " " sortu(d) 
+    }
+  }
+  {  gsub("\r","",$2)
+     s  = tolower($2) 
+     $1 = tolower($1) 
+     if (FNR == 1) {
+       basename = gensub("[.][^.]*$", "", 1, FILENAME)
+       oname = basename ".o"
+       src[oname] = FILENAME
+       }
+   }
+$1 == "module" {
+     if ( s == "procedure" ) 
+       next
+     del[s ".mod"] = oname
+     next
+   }
+$1 == "use" {
+     req[oname] = req [oname]" " s ".mod"
+     next
+   }
+$1 == "include" {
+     gsub("['\"]", "", $2)
+     inc[oname] = inc[oname] " " $2
+     next
+   }
+END { 
+      output()
+    }

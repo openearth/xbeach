@@ -1,0 +1,21 @@
+general_mpi.o: general_mpi.F90  xmpi.o
+flow_timestep.o: flow_timestep.F90 s.ind s.inp params.o spaceparams.o xmpi.o
+wave_stationary.o: wave_stationary.F90 s.ind s.inp wave_timestep.o xmpi.o params.o roelvink.o spaceparams.o
+roelvink.o: roelvink.F90  params.o spaceparams.o
+readkey.o: readkey.F90  xmpi.o
+constants.o: constants.F90  
+wave_timestep.o: wave_timestep.F90 s.ind s.inp xmpi.o params.o roelvink.o spaceparams.o
+timestep.o: timestep.F90  params.o spaceparams.o
+math_tools.o: math_tools.F90  xmpi.o
+testgenmodule.o: testgenmodule.F90  general_mpi.o xmpi.o
+xbeach.o: xbeach.F90  morphevolution.o params.o readtide.o spaceparams.o timestep.o varoutput.o wave_stationary.o wave_timestep.o xmpi.o boundaryconditions.o flow_timestep.o initialize.o
+boundaryconditions.o: boundaryconditions.F90 s.ind s.inp wave_timestep.o waveparams.o xmpi.o interp.o params.o spaceparams.o
+morphevolution.o: morphevolution.F90 s.inp s.ind params.o spaceparams.o
+xmpi.o: xmpi.F90  
+readtide.o: readtide.F90 s.ind s.inp xmpi.o params.o readkey.o spaceparams.o
+interp.o: interp.F90  
+initialize.o: initialize.F90  spaceparams.o wave_timestep.o xmpi.o interp.o params.o readkey.o
+varoutput.o: varoutput.F90  params.o readkey.o spaceparams.o
+spaceparams.o: spaceparams.F90  xmpi.o general_mpi.o params.o readkey.o
+waveparams.o: waveparams.F90  readkey.o spaceparams.o xmpi.o interp.o math_tools.o params.o
+params.o: params.F90  readkey.o xmpi.o

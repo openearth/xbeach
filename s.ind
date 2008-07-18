@@ -1,0 +1,108 @@
+real*8,dimension(:,:),pointer :: x
+real*8,dimension(:,:),pointer :: y
+real*8               ,pointer :: dx
+real*8               ,pointer :: dy
+real*8,dimension(:)  ,pointer :: xz
+real*8,dimension(:)  ,pointer :: yz
+real*8,dimension(:)  ,pointer :: xu
+real*8,dimension(:)  ,pointer :: yv
+integer                   ,pointer :: nx
+integer                   ,pointer :: ny
+real*8,dimension(:,:),pointer :: zb
+real*8,dimension(:,:),pointer :: zb0
+real*8,dimension(:)  ,pointer :: theta
+integer                   ,pointer :: ntheta
+real*8                    ,pointer :: dtheta
+real*8                    ,pointer :: theta0
+real*8,dimension(:)  ,pointer :: cxsth
+real*8,dimension(:)  ,pointer :: sxnth
+real*8,dimension(:,:),pointer :: thetamean
+real*8,dimension(:,:),pointer :: Fx
+real*8,dimension(:,:),pointer :: Fy
+real*8,dimension(:,:),pointer :: Sxy
+real*8,dimension(:,:),pointer :: Syy
+real*8,dimension(:,:),pointer :: Sxx
+real*8,dimension(:,:),pointer :: n
+real*8,dimension(:,:),pointer :: H
+real*8,dimension(:,:,:),pointer :: cgx
+real*8,dimension(:,:,:),pointer :: cgy
+real*8,dimension(:,:,:),pointer :: cx
+real*8,dimension(:,:,:),pointer :: cy
+real*8,dimension(:,:,:),pointer :: ctheta
+real*8,dimension(:,:,:),pointer :: ee
+real*8,dimension(:,:,:),pointer :: rr
+real*8,dimension(:,:,:),pointer :: thet
+real*8,dimension(:,:,:),pointer :: costhet
+real*8,dimension(:,:,:),pointer :: sinthet
+real*8,dimension(:,:,:),pointer :: sigt
+real*8,dimension(:,:),pointer :: k
+real*8,dimension(:,:),pointer :: c
+real*8,dimension(:,:),pointer :: cg
+real*8,dimension(:,:),pointer :: sigm
+real*8,dimension(:,:),pointer :: hh
+real*8,dimension(:,:),pointer :: zs
+real*8,dimension(:,:),pointer :: zs0
+real*8,dimension(:)  ,pointer :: tideinpt
+real*8,dimension(:,:),pointer :: tideinpz
+real*8,dimension(:,:),pointer :: dzsdt
+real*8,dimension(:,:),pointer :: dzbdt
+real*8,dimension(:,:),pointer :: uu
+real*8,dimension(:,:),pointer :: vv
+real*8,dimension(:,:),pointer :: qx
+real*8,dimension(:,:),pointer :: qy
+real*8,dimension(:,:),pointer :: sedero
+real*8,dimension(:,:),pointer :: dcdx
+real*8,dimension(:,:),pointer :: dcdy
+real*8,dimension(:,:),pointer :: ui
+real*8,dimension(:,:),pointer :: E
+real*8,dimension(:,:),pointer :: R
+real*8,dimension(:,:),pointer :: urms
+real*8,dimension(:,:),pointer :: D
+real*8,dimension(:,:),pointer :: ust
+real*8,dimension(:,:),pointer :: tm
+real*8,dimension(:,:),pointer :: ueu
+real*8,dimension(:,:),pointer :: vev
+real*8,dimension(:,:),pointer :: vmagu
+real*8,dimension(:,:),pointer :: vmageu
+real*8,dimension(:,:),pointer :: vmagv
+real*8,dimension(:,:),pointer :: vmagev
+real*8,dimension(:,:),pointer :: u
+real*8,dimension(:,:),pointer :: v
+real*8,dimension(:,:),pointer :: ue
+real*8,dimension(:,:),pointer :: ve
+real*8,dimension(:,:),pointer :: hold
+integer,dimension(:,:),pointer :: wetu
+integer,dimension(:,:),pointer :: wetv
+integer,dimension(:,:),pointer :: wetz
+real*8,dimension(:,:),pointer :: hu
+real*8,dimension(:,:),pointer :: hv
+real*8,dimension(:,:),pointer :: hum
+real*8,dimension(:,:),pointer :: hvm
+real*8,dimension(:,:,:),pointer :: ceqg
+real*8,dimension(:,:),pointer :: vmag
+real*8,dimension(:,:,:),pointer :: Sug
+real*8,dimension(:,:,:),pointer :: Svg
+real*8,dimension(:,:,:),pointer :: Tsg
+real*8,dimension(:,:,:),pointer :: ccg
+real*8,dimension(:,:),pointer :: uwf
+real*8,dimension(:,:),pointer :: vwf
+real*8,dimension(:,:),pointer :: ustr
+real*8,dimension(:,:),pointer :: usd
+real*8,dimension(:)  ,pointer :: bi
+real*8,dimension(:,:),pointer :: DR 
+integer              ,pointer :: vardx
+real*8,dimension(:,:),pointer :: vu
+real*8,dimension(:,:),pointer :: uv
+real*8,dimension(:,:,:,:),pointer :: graindistr
+real*8,dimension(:)  ,pointer :: sedcal
+real*8,dimension(:)  ,pointer :: D50
+real*8,dimension(:)  ,pointer :: D90
+real*8,dimension(:,:),pointer :: BR
+real*8,dimension(:,:),pointer :: kb
+real*8,dimension(:,:),pointer :: Tbore
+real*8,dimension(:,:),pointer :: uon
+real*8,dimension(:,:),pointer :: uoff
+real*8,dimension(:,:),pointer :: ua
+real*8,dimension(:,:),pointer :: dzav
+real*8,dimension(:,:),pointer :: maxzs
+real*8,dimension(:,:),pointer :: minzs
