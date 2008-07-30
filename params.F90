@@ -417,6 +417,7 @@ call xmpi_bcast(par%carspan)
 call xmpi_bcast(par%nspr)
 call xmpi_bcast(par%thetanum)
 call xmpi_bcast(par%tsfac)
+call xmpi_bcast(par%scheme)
 end subroutine distribute_par
 #endif
 
@@ -547,6 +548,7 @@ subroutine printparams(par,str)
   write(f,*) 'printpar ',id,' ','nspr:',par%nspr
   write(f,*) 'printpar ',id,' ','thetanum:',par%thetanum
   write(f,*) 'printpar ',id,' ','tsfac:',par%tsfac
+  write(f,*) 'printpar ',id,' ','scheme:',par%scheme
 
 end subroutine printparams
 end module params
