@@ -168,6 +168,12 @@ elseif (par%instat==2 .or. par%instat==3) then
     par%Trep  = readkey_dbl    ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
     par%Trep  = readkey_dbl    ('params.txt','Trep',     par%Trep,   1.d0,    20.d0)
     par%omega    = 2.d0*par%px/par%Trep;
+elseif (par%instat==4 .or. par%instat==5 .or. par%instat==6) then
+	! Just a check .....
+	call readkey('params.txt','bcfile','')
+	call readkey('params.txt','rt','')
+	call readkey('params.txt','dtbc','')
+	call readkey('params.txt','dthetaS_XB','')
 elseif (par%instat > 8) then
     write(*,*)'Instat invalid option'
 #ifdef USEMPI

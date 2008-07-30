@@ -33,7 +33,7 @@ contains
 
 
 
-subroutine init_output(s,par)
+subroutine init_output(s,par,it)
 use params
 use spaceparams
 use readkey_module
@@ -43,7 +43,7 @@ IMPLICIT NONE
 type(spacepars)                     :: s
 type(parameters)                    :: par
 
-integer                                                 :: id,ic,icold,i,ii,index
+integer                                                 :: id,ic,icold,i,ii,index,it
 character(80)                                           :: line, keyword
 character(80)                                           :: var, fname
 integer, dimension(:,:),allocatable :: temparray
@@ -327,12 +327,24 @@ if (.not. allocated(tpm)) then  ! Need minimum two in this array
         tpm(2)=par%tstop+1.d0
 endif
 
+par%tintm=tpm(2)-tpm(1)
+stpm=size(tpm)
+
 tg1=minval(tpg,MASK=tpg .gt. par%t)
 tp1=minval(tpp,MASK=tpp .gt. par%t)
 tm1=minval(tpm,MASK=tpm .gt. par%t)
-par%tnext=par%t+min(tg1,tp1,tm1)
-par%tintm=tpm(2)-tpm(1)
-stpm=size(tpm)
+
+if (min(tg1,tp1,tm1)>0.d0) then    ! No output wanted at initialization
+	par%tnext=min(tg1,tp1,tm1)
+else
+	it=1
+	call var_output(it,s,par)
+	tg1=minval(tpg,MASK=tpg .gt. 0.d0)
+	tp1=minval(tpp,MASK=tpp .gt. 0.d0)
+	tm1=minval(tpm,MASK=tpm .gt. 0.d0)
+	par%tnext=min(tg1,tp1,tm1)
+endif
+
 end subroutine init_output
 
 

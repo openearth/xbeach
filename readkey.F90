@@ -99,15 +99,17 @@ integer                                     :: lun,i,ier,nlines,ic,ikey
 character*1                                 :: ch
 character(len=*)                            :: fname,key,value
 character*80, dimension(:),allocatable,save :: keyword,values
-character*80                                :: line
+character*80                                :: line,hulp
 logical, save                               :: first=.true.
 integer, save                               :: nkeys
 character*80, save                          :: fnameold='first_time.exe'
+integer, dimension(:),allocatable,save		:: readindex
 
 if (fname/=fnameold) then                   ! Open new file if fname changes
     if (fnameold/='first_time.exe') then    ! only if not the first time older versions
         deallocate(keyword)
         deallocate(values)
+		deallocate(readindex)
     end if
     first=.true.
     fnameold=fname
@@ -117,7 +119,7 @@ end if
 
 
 if (first) then
-   write(*,*)'readkey: Reading from ',fname,' ...........'
+   write(*,*)'readkey: Reading from ',trim(fname),' ...........'
    first=.false.
    lun=99
    i=0
@@ -145,6 +147,8 @@ if (first) then
    enddo
    nkeys=ikey
    close(lun)
+   allocate(readindex(nkeys))
+   readindex=0
 endif
 
 
@@ -153,8 +157,20 @@ value=''
 do ikey=1,nkeys
    if (key.eq.keyword(ikey)) then
       value=values(ikey)
+	  readindex(ikey)=1
    endif
 enddo
+
+
+! If required, do a check whether params are not used or unknown
+if (key .eq. 'checkparams') then
+	do ikey=1,nkeys
+		if (readindex(ikey)==0) then
+			write(*,*) 'Unknown, unused or multiple statements of parameter ',trim(keyword(ikey)),' in ',trim(fname)
+		endif
+	enddo
+endif
+
 
 end subroutine readkey
 

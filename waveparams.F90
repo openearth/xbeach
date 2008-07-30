@@ -185,6 +185,11 @@ gam                 = readkey_dbl (fname,'gammajsp',   3.3d0,       1.0d0,      
 scoeff              = readkey_dbl (fname,'s'       ,   10.0d0,      1.0d0,     1000.0d0)
 wp%mainang          = readkey_dbl (fname,'mainang' ,   270.0d0,     0.0d0,      360.0d0)
 
+if(xreader) then
+  call readkey(fname,'checkparams','')
+endif
+
+
 wp%Npy=s%ny+1
 
 !par%Trep=0.8345d0*(1/fp)                      ! approximation from Coastal Engineering: Processes, Theory and Design Practice
@@ -842,7 +847,6 @@ end do
 CALL RANDOM_SEED                        ! Call random seed
 !call random_number(P0)
 call random_number(randummy)
-open(555,file='tempout1')
 write(555,*)randummy
 close(555)
 P0=randummy(1:wp%K)

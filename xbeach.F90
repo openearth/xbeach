@@ -12,6 +12,7 @@ use readtide_module
 use wave_stationary_module
 use wave_timestep_module
 use timestep_module
+use readkey_module
 
 
 IMPLICIT NONE
@@ -51,6 +52,10 @@ endif
 ! the basic input routines, used by the following three subroutines
 ! are MPI-aware, no need to do something special here
 !
+
+par%t=0.d0
+it=0
+
 call wave_input(par)
 call flow_input(par)
 call sed_input(par)
@@ -77,10 +82,6 @@ if(par%tideloc>=1)then
    call readtide (s,par)  !Ap 15/10
 end if
 
-par%t=0.d0
-
-call init_output(s,par)
-
 if (xprinter) then
   write(*,*) 'Initializing .....'
 endif
@@ -92,6 +93,7 @@ call distribute_par(par)
 #endif
 call flow_init (s,par)  ! works only on master process
 call sed_init (s,par)       ! works on all processes
+call init_output(s,par,it)
 
 #ifdef USEMPI
 
@@ -101,12 +103,9 @@ call space_distribute_space(sglobal,slocal,par)
 
 #endif
 
-par%t=0.0d0
-par%tnext=par%tint
-it=0
-
 if (xprinter) then
-  write(*,*) 'Stepping into the time loop ....'   
+  call readkey('params.txt','checkparams','')
+  write(*,*) 'Stepping into the time loop ....'  
 endif
 
 #ifdef USEMPI
