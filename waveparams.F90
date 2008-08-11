@@ -990,11 +990,17 @@ do i=1,size(wp%theta0)
             Nbin(i)=Nbin(i)+1           ! To ensure binlow<=x<binhigh
     end if
 end do
-
+i=(maxval(Nbin))
 !! Change theta0 direction to middle of wave energy bin : Robert
 if (par%nspr==1) then
         do i=1,wp%K
-                wp%theta0(i)=s%theta(Nbin(i))
+                ! If component is outside wave distribution bins move to outer bins (so include energy)
+				if (Nbin(i)<=0) then 
+					Nbin(i)=1
+				elseif (Nbin(i)>Ns) then
+					Nbin(i)=Ns
+				endif
+				wp%theta0(i)=s%theta(Nbin(i))
         enddo
 endif
 
