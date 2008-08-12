@@ -113,6 +113,7 @@ call slope2D(v*par%wci,nx,ny,xz,yz,dvdx,dvdy)
 do j=1,ny+1
     do i=1,nx+1
         if(2.d0*hh(i,j)*k(i,j)>=3000.d0) then
+            write(*,*) 'wave_stationary has something to tell:'
 #ifdef USEMPI
             write(*,*) 'Process:', xmpi_rank ,i ,j, par%t, hh(i,j), k(i,j)
 #else
@@ -327,7 +328,7 @@ do i=2,nx
     H(i,:)=sqrt(E(i,:)/par%rhog8)
     Herr=maxval(abs(Hprev-H(i,:)))
   enddo
-  if(xreader) then
+  if(xmaster) then
     write(*,*)i,iter,Herr
   endif
 enddo

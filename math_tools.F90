@@ -168,6 +168,7 @@ MODULE math_tools
 
   FUNCTION fft1d(array, dim, inv, stat) RESULT(ft)
 ! wwvv not used: dim
+!  this whole function is not used, but I put dim in the fftn call
     !--- formal parameters
     COMPLEX(fftkind), DIMENSION(:), INTENT(IN)           :: array
     INTEGER,          DIMENSION(:), INTENT(IN),  OPTIONAL:: dim
@@ -177,9 +178,8 @@ MODULE math_tools
     COMPLEX(fftkind), DIMENSION(SIZE(array, 1)):: ft
     !--- intrinsics used
     INTRINSIC SIZE, SHAPE
-   ! if(lbound(dim,1) .gt. 1000000000) ft(1) = dim(1) ! wwvv to quiet the compiler
     ft = array
-    CALL fftn(ft, SHAPE(array), inv = inv,  stat = stat)
+    CALL fftn(ft, SHAPE(array), dim = dim, inv = inv,  stat = stat)
 
   END FUNCTION fft1d
 
@@ -1134,12 +1134,8 @@ temp3a=0
         end do
         x=temp3a
     else
-        print *, 'flip must be set to 1 or 2'
-#ifdef USEMPI
-        call xmpi_abort
-#else
-        stop
-#endif
+        write(*,*) 'Catastrophe in flipa: flip must be set to 1 or 2'
+        call halt_program
     end if
     
 deallocate(temp1a)

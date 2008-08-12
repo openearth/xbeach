@@ -1,0 +1,150 @@
+!* This serves as a template for the variables in spacepars
+!* from this, the declarations, string definitions and other stuff will
+!* be generated
+!* format:
+!*  type  ndim name dimensions(1..ndim) b/d
+!* type is type of variable, 
+!* ndim is number of dimensions, 
+!* name is name of variable
+!* dimensions are the dimensions, use constants or names that are
+!*   available in the program, for example s%nx+1
+!* b/d = b, if variable is to be broadcasted at start of program
+!* b/d = d, if variable is to be scattered at start of program
+!* b/d = 2d, if if variable has dimensions (2,:) and the second dimension is to
+!*           be scatterd
+!* b/d = 0   if nothing has to be done
+!*          makes no difference for scalars, these are always broadcasted
+!*
+!* NOTES: only one variable definition per line
+!*        each item a space-less word, for example
+!*
+!*  real*8 2 x s%nx+1 s%ny+1 d ! good
+!*  real*8 2 x s%nx +1 s%ny+1 d ! bad because of space after s%nx
+!*
+!* comment starts with !
+!* lines starting with !* will be ignored
+      real*8  2  x  s%nx+1 s%ny+1  d   ! [m]        x-coord. comp. grid (positive shoreward, perp. to coastline)
+      real*8  2  y  s%nx+1 s%ny+1  d   ! [m]        y-coord. comp. grid
+      real*8  1  xz s%nx+1 d   ! [m]        x-coord. comp. grid (positive shoreward, perp. to coastline)
+      real*8  1  yz s%ny+1 d   ! [m]        y-coord. comp. grid
+      real*8  1  xu s%nx+1  d   ! [m]        x-coord. in u points
+      real*8  1  yv s%ny+1  d   ! [m]        y-coord. in v points
+      real*8  2  xw s%nx+1 s%ny+1  d   ! [m]        world x-coordinates
+      real*8  2  yw s%nx+1 s%ny+1  d   ! [m]        world y-coordinates
+      real*8  0  dx   b   ! [m]        grid size x-direction
+      real*8  0  dy   b   ! [m]        grid size y-direction
+      real*8  0  xori b   ! [m]        x-origin of grid in world coordinates
+      real*8  0  yori b   ! [m]        y-origin of grid in world coordinates
+      real*8  0  alfa b   ! [rad]      (deg on input) angle of grid w.r.t. East
+      real*8  0  posdwn b ! [-]        depths defined positive downwards (1) or upwards(-1)
+      integer 0  nx     b ! [-]        local number of grid cells x-direction
+      integer 0  ny     b ! [-]        local number of grid cells y-direction
+      real*8  2  zb     s%nx+1 s%ny+1 d ! [m]        bed level
+      real*8  2  zb0    s%nx+1 s%ny+1 d ! [m]        initial bed level
+      real*8  1  theta  s%ntheta b ! [rad]      wave angles directional distribution
+                                                 !            w.r.t. comp. x-axis
+      integer 0  ntheta b ! [-]        number of wave direction bins
+      real*8  0  dtheta b ! [rad]      wave direction bin size
+      real*8  0  theta0 b ! [rad]      mean incident wave angle
+      real*8  1  cxsth  s%ntheta b ! [-]        cos(theta)
+      real*8  1  sxnth  s%ntheta b ! [-]        sin(theta)
+      real*8  2  thetamean s%nx+1 s%ny+1 d ! [rad]      mean wave angle
+      real*8  2  Fx     s%nx+1 s%ny+1 d ! [N/m2]     wave force x-direction
+      real*8  2  Fy     s%nx+1 s%ny+1 d ! [N/m2]     wave force y-direction
+      real*8  2  Sxy    s%nx+1 s%ny+1 d ! [N/m]      radiation stress
+      real*8  2  Syy    s%nx+1 s%ny+1 d ! [N/m]      radiation stress
+      real*8  2  Sxx    s%nx+1 s%ny+1 d ! [N/m]      radiation stress
+      real*8  2  n      s%nx+1 s%ny+1 d ! [-]        ratio group velocity/wave celerity
+      real*8  2  H      s%nx+1 s%ny+1 d ! [m]        wave height 
+      real*8  3  cgx    s%nx+1 s%ny+1 s%ntheta d ! [m/s]      group velocity x-direction
+
+
+      real*8  3  cgy    s%nx+1 s%ny+1 s%ntheta d ! [m/s]      group velocity y-direction
+      real*8  3  cx     s%nx+1 s%ny+1 s%ntheta d ! [m/s]      wave celerity x-direction
+      real*8  3  cy     s%nx+1 s%ny+1 s%ntheta d ! [m/s]      wave celerity y-direction
+      real*8  3  ctheta s%nx+1 s%ny+1 s%ntheta d ! [rad/s]    wave celerity theta-direction (refraction)
+      real*8  3  ee     s%nx+1 s%ny+1 s%ntheta d ! [J/m2/rad] directionally distributed wave energy
+      real*8  3  thet   s%nx+1 s%ny+1 s%ntheta d ! [rad]      wave angles  
+      real*8  3  costhet s%nx+1 s%ny+1 s%ntheta d  ! [-]        cos of wave angles  
+      real*8  3  sinthet s%nx+1 s%ny+1 s%ntheta d ! [-]        sin of wave angles  
+      real*8  3  sigt   s%nx+1 s%ny+1 s%ntheta d ! [rad/s]    relative frequency 
+      real*8  3  rr     s%nx+1 s%ny+1 s%ntheta d ! [J/m2/rad] directionally distributed roller energy
+      real*8  2  k      s%nx+1 s%ny+1 d ! [rad/m]    wave number
+      real*8  2  c      s%nx+1 s%ny+1 d ! [m/s]      wave celerity
+      real*8  2  cg     s%nx+1 s%ny+1 d ! [m/s]      group velocity
+      real*8  2  sigm   s%nx+1 s%ny+1 d ! [rad/s]    mean frequency
+      real*8  2  hh     s%nx+1 s%ny+1 d ! [m]        water depth
+      real*8  2  zs     s%nx+1 s%ny+1 d ! [m]        water level
+      real*8  2  zs0    s%nx+1 s%ny+1 d ! [m]        water level due to tide alone
+      real*8  1  tideinpt par%tidelen b ! [s]        input time of input tidal signal
+      real*8  2  tideinpz par%tidelen par%tideloc b ! [m]        input tidal signal
+      real*8  2  dzsdt  s%nx+1 s%ny+1 d ! [m/s]      rate of change water level
+      real*8  2  dzbdt  s%nx+1 s%ny+1 d ! [m/s]      rate of change bed level 
+      real*8  2  uu     s%nx+1 s%ny+1 d ! [m/s]      (GLM) x-velocity in u-points
+      real*8  2  vv     s%nx+1 s%ny+1 d ! [m/s]      (GLM) y-velocity in v-points
+      real*8  2  qx     s%nx+1 s%ny+1 d ! [m2/s]     x-discharge in u-points
+      real*8  2  qy     s%nx+1 s%ny+1 d ! [m2/s]     y-discharge in u-points
+      real*8  2  sedero s%nx+1 s%ny+1 d ! [m]        cum. sedimentation/erosion
+      real*8  2  dcdx   s%nx+1 s%ny+1 d ! [kg/m3/m]  concentration gradient x-dir.
+      real*8  2  dcdy   s%nx+1 s%ny+1 d ! [kg/m3/m]  concentration gradient y-dir.
+      real*8  2  ui     s%nx+1 s%ny+1 d ! [m/s]      incident bound wave velocity
+      real*8  2  E      s%nx+1 s%ny+1 d ! [Nm/m2]    wave energy
+      real*8  2  R      s%nx+1 s%ny+1 d ! [Nm/m2]    roller energy
+      real*8  2  urms   s%nx+1 s%ny+1 d ! [m/s]      orbital velocity
+      real*8  2  D      s%nx+1 s%ny+1 d ! [W/m2]     dissipation
+      real*8  2  ust    s%nx+1 s%ny+1 d ! [m/s]      Stokes drift
+      real*8  2  tm     s%nx+1 s%ny+1 d ! [rad]      mean wave direction
+      real*8  2  ueu    s%nx+1 s%ny+1 d ! [m/s]      Eulerian mean velocity x-dir.
+      real*8  2  vev    s%nx+1 s%ny+1 d ! [m/s]      Eulerian mean velocity y-dir.
+      real*8  2  vmagu  s%nx+1 s%ny+1 d ! [m/s]      (GLM) velocity magnitude u-points
+      real*8  2  vmageu s%nx+1 s%ny+1 d ! [m/s]      (GLM) velocity magnitude u-points
+      real*8  2  vmagv  s%nx+1 s%ny+1 d ! [m/s]      (GLM) velocity magnitude v-points
+      real*8  2  vmagev s%nx+1 s%ny+1 d ! [m/s]      (GLM) velocity magnitude v-points
+      real*8  2  u      s%nx+1 s%ny+1 d ! [m/s]      (GLM) x-velocity cell centre (for output)
+      real*8  2  v      s%nx+1 s%ny+1 d ! [m/s]      (GLM) y-velocity cell centre (for output)
+      real*8  2  ue     s%nx+1 s%ny+1 d ! [m/s]      Eulerian mean x-velocity cell centre (for output)
+      real*8  2  ve     s%nx+1 s%ny+1 d ! [m/s]      Eulerian mean y-velocity cell centre (for output)
+      real*8  2  hold   s%nx+1 s%ny+1 d ! [m]        water depth previous time step
+      integer 2  wetu   s%nx+1 s%ny+1 d ! [-]        mask wet/dry u-points
+      integer 2  wetv   s%nx+1 s%ny+1 d ! [-]        mask wet/dry v-points
+      integer 2  wetz   s%nx+1 s%ny+1 d ! [-]        mask wet/dry eta-points
+      real*8  2  hu     s%nx+1 s%ny+1 d ! [m]        water depth in u-points
+      real*8  2  hv     s%nx+1 s%ny+1 d ! [m]        water depth in v-points
+      real*8  2  hum    s%nx+1 s%ny+1 d ! [m]        water depth in u-points
+      real*8  2  hvm    s%nx+1 s%ny+1 d ! [m]        water depth in v-points
+!real*8 2  ceq    s%nx+1 s%ny+1 d ! [m3/m3]    depth-averaged equilibrium concentration
+      real*8  2  vmag   s%nx+1 s%ny+1 d ! [m/s]      velocity magnitude in cell centre
+!real*8 2  Su     d ! [m2/s]     sediment transport x-dir. (excluding pores)
+!real*8 2  Sv     d ! [m2/s]     sediment transport y-dir. (excluding pores)
+!real*8 2  Ts     d ! [s]        adaptation time scale
+!real*8 2  cc     d ! [m3/m3]    depth-averaged concentration
+      real*8  3  ccg    s%nx+1 s%ny+1 par%ngd d ! [m3/m3]    depth-averaged concentration for each sediment fraction
+      real*8  2  uwf    s%nx+1 s%ny+1 d ! [m/s]      x-comp. Stokes drift
+      real*8  2  vwf    s%nx+1 s%ny+1 d ! [m/s]      y-comp. Stokes drift
+      real*8  2  ustr   s%nx+1 s%ny+1 d ! [m/s]      return flow due to roller
+      real*8  2  usd    s%nx+1 s%ny+1 d ! [m/s]      return flow due to roller after breaker delay
+      real*8  1  bi     s%ny+1 d ! [m]        incoming bound long wave
+      real*8  2  DR     s%nx+1 s%ny+1 d ! [W/m2]     roller energy dissipation
+      real*8  2  umean  2 s%ny+1 2 ! [m/s]      longterm mean velocity at bnds
+      integer 0  vardx  b ! [-]        0 = uniform grid size, 1 = variable grid size
+      real*8  2  vu     s%nx+1 s%ny+1 d ! [m/s]      y velocity in u points          
+      real*8  2  uv     s%nx+1 s%ny+1 d ! [m/s]          x velocity in v points
+      real*8  4  graindistr s%nx+1 s%ny+1 par%nd par%ngd d ! [-]     fractional graindistribution for sediment classes
+      real*8  1  D50    par%ngd b ! [m]        D50 grain diameters for all sediment classses
+      real*8  1  D90    par%ngd b ! [m]        D90 grain diameters for all sediment classses
+      real*8  1  sedcal par%ngd b ! [-]        equilibrium sediment concentartion factor for each sediment class
+      real*8  3  Tsg    s%nx+1 s%ny+1 par%ngd d ! [s]        sediment response time for each sediment class
+      real*8  3  Sug    s%nx+1 s%ny+1 par%ngd d ! [m2/s]     sediment transport x-dir. for each sediment class (excluding pores)
+      real*8  3  Svg    s%nx+1 s%ny+1 par%ngd d ! [m2/s]     sediment transport y-dir. for each sediment class (excluding pores)
+      real*8  3  ceqg s%nx+1 s%ny+1 par%ngd d ! [m3/m3]    depth-averaged equilibrium concentration for each sediment class
+      real*8  2  ua     s%nx+1 s%ny+1 d ! [m/s]      time averaged flow velocity due to wave assymetry
+      real*8  2  BR     s%nx+1 s%ny+1 d ! [-]        maximum wave surface slope used in roller dissipation formulation
+      real*8  2  kb s%nx+1 s%ny+1 d ! [m^2/s^2]  near bed turbulence intensity due to depth induces breaking
+      real*8  2  Tbore s%nx+1 s%ny+1 d ! [s]        wave period interval associated with breaking induced turbulence
+      real*8  2  uon s%nx+1 s%ny+1 d ! [m/s]      onshore directed peak orbital velocity
+      real*8  2  uoff s%nx+1 s%ny+1 d ! [m/s]      offshore directed peak orbital velocity
+      real*8  2  dzav   s%nx+1 s%ny+1 d ! [m]        total bed level change due to avalanching
+      real*8  2  maxzs  s%nx+1 s%ny+1 d ! [m]        maximum elevation in simulation  
+      real*8  2  minzs  s%nx+1 s%ny+1 d ! [m]        minimum elevation in simulation 
+      real*8  2  L1     s%nx+1 s%ny+1 d ! for subroutine dispersion
+!* hints for vi vim: filetype=fortran : syntax=fortran

@@ -26,10 +26,8 @@ logical                         :: xmpi_istop   ! submatrix is at the top side
 logical                         :: xmpi_isbot   ! submatrix is at the bottom side
                                                 ! ie: shares first row with
                                                 ! global matrix
-logical                         :: xreader      ! .true. if this process reads
-                                                ! files
-logical                         :: xprinter     ! .true. if this process writes
-                                                ! files
+logical                         :: xmaster      ! .true. if this process reads
+                                                !  and writes files
 #ifdef USEMPE
 integer                         :: event_output_start 
 integer                         :: event_output_end 
@@ -41,10 +39,13 @@ integer                         :: event_coll_end
 
 #else
 implicit none
-integer                         :: xmpirank = 0
-integer                         :: xmpisize = 1
-logical                         :: xprinter = .true.
-logical                         :: xreader  = .true.
+integer, parameter              :: xmpirank     = 0
+integer, parameter              :: xmpisize     = 1
+logical, parameter              :: xmaster      = .true.
+logical, parameter              :: xmpi_isleft  = .true.
+logical, parameter              :: xmpi_isright = .true.
+logical, parameter              :: xmpi_istop   = .true.
+logical, parameter              :: xmpi_isbot   = .true.
 #endif
 #ifdef USEMPI
 interface xmpi_bcast
@@ -54,6 +55,7 @@ module procedure xmpi_bcast_logical
 module procedure xmpi_bcast_complex16
 module procedure xmpi_bcast_array_real8
 module procedure xmpi_bcast_array_integer
+module procedure xmpi_bcast_matrix_integer
 module procedure xmpi_bcast_matrix_real8
 module procedure xmpi_bcast_char
 end interface xmpi_bcast
@@ -61,9 +63,14 @@ end interface xmpi_bcast
 interface xmpi_allreduce
 module procedure xmpi_allreduce_real8
 end interface xmpi_allreduce
-
+#endif
 contains
+#ifdef USEMPI
 
+#define USE_BARRIER
+#ifdef USE_BARRIER
+#define BARRIER call MPI_Barrier(xmpi_comm,ierror)
+#endif
 subroutine xmpi_initialize
 ! initialize mpi environment
   implicit none
@@ -87,8 +94,7 @@ subroutine xmpi_initialize
   call MPI_Comm_rank(xmpi_comm,xmpi_rank,ierr)
   call MPI_Comm_size(xmpi_comm,xmpi_size,ierr)
   xmpi_master = 0
-  xprinter = (xmpi_rank .eq. xmpi_master)
-  xreader  = (xmpi_rank .eq. xmpi_master)
+  xmaster  = (xmpi_rank .eq. xmpi_master)
 end subroutine xmpi_initialize
 
 subroutine xmpi_finalize
@@ -179,94 +185,131 @@ implicit none
 end subroutine xmpi_determine_processor_grid
 
 subroutine xmpi_bcast_logical(x)
-implicit none
-logical, dimension(:) :: x
-integer ierror,l
-l = size(x)
-call MPI_Bcast(x, l, MPI_LOGICAL, xmpi_master, xmpi_comm, ierror)
+  implicit none
+  logical, dimension(:) :: x
+  integer ierror,l
+  l = size(x)
+  call MPI_Bcast(x, l, MPI_LOGICAL, xmpi_master, xmpi_comm, ierror)
+  BARRIER
 end subroutine xmpi_bcast_logical
 
 subroutine xmpi_bcast_array_real8(x)
-implicit none
-real*8, dimension(:) :: x
-integer ierror,l
-l = size(x)
-call MPI_Bcast(x, l, MPI_DOUBLE_PRECISION, xmpi_master, xmpi_comm, ierror)
+  implicit none
+  real*8, dimension(:) :: x
+  integer ierror,l
+  l = size(x)
+  call MPI_Bcast(x, l, MPI_DOUBLE_PRECISION, xmpi_master, xmpi_comm, ierror)
+  BARRIER
 end subroutine xmpi_bcast_array_real8
 
 subroutine xmpi_bcast_matrix_real8(x)
-implicit none
-real*8, dimension(:,:) :: x
-integer ierror,l
-l = size(x)
-call MPI_Bcast(x, l, MPI_DOUBLE_PRECISION, xmpi_master, xmpi_comm, ierror)
+  implicit none
+  real*8, dimension(:,:) :: x
+  integer ierror,l
+  l = size(x)
+  call MPI_Bcast(x, l, MPI_DOUBLE_PRECISION, xmpi_master, xmpi_comm, ierror)
+  BARRIER
 end subroutine xmpi_bcast_matrix_real8
 
+subroutine xmpi_bcast_matrix_integer(x)
+  implicit none
+  integer, dimension(:,:) :: x
+  integer ierror,l
+  l = size(x)
+  call MPI_Bcast(x, l, MPI_INTEGER, xmpi_master, xmpi_comm, ierror)
+  BARRIER
+end subroutine xmpi_bcast_matrix_integer
+
 subroutine xmpi_bcast_array_integer(x)
-implicit none
-integer, dimension(:) :: x
-integer ierror,l
-l = size(x)
-call MPI_Bcast(x, l, MPI_INTEGER, xmpi_master, xmpi_comm, ierror)
+  implicit none
+  integer, dimension(:) :: x
+  integer ierror,l
+  l = size(x)
+  call MPI_Bcast(x, l, MPI_INTEGER, xmpi_master, xmpi_comm, ierror)
+  BARRIER
 end subroutine xmpi_bcast_array_integer
 
 subroutine xmpi_bcast_real4(x)
-implicit none
-real*4 x
-integer ierror
-call MPI_Bcast(x, 1, MPI_REAL, xmpi_master, xmpi_comm, ierror)
+  implicit none
+  real*4 x
+  integer ierror
+  call MPI_Bcast(x, 1, MPI_REAL, xmpi_master, xmpi_comm, ierror)
+  BARRIER
 end subroutine xmpi_bcast_real4
 
 subroutine xmpi_bcast_real8(x)
-implicit none
-real*8 x
-integer ierror
-call MPI_Bcast(x, 1, MPI_DOUBLE_PRECISION, xmpi_master, xmpi_comm, ierror)
+  implicit none
+  real*8 x
+  integer ierror
+  call MPI_Bcast(x, 1, MPI_DOUBLE_PRECISION, xmpi_master, xmpi_comm, ierror)
+  BARRIER
 end subroutine xmpi_bcast_real8
 
 subroutine xmpi_bcast_int(x)
-implicit none
-integer x
-integer ierror
-call MPI_Bcast(x, 1, MPI_INTEGER, xmpi_master, xmpi_comm, ierror)
+  implicit none
+  integer x
+  integer ierror
+  call MPI_Bcast(x, 1, MPI_INTEGER, xmpi_master, xmpi_comm, ierror)
+  BARRIER
 end subroutine xmpi_bcast_int
 
 subroutine xmpi_bcast_int8(x)
-implicit none
-integer *8 x
-integer ierror
-call MPI_Bcast(x, 1, MPI_INTEGER8, xmpi_master, xmpi_comm, ierror)
+  implicit none
+  integer *8 x
+  integer ierror
+  call MPI_Bcast(x, 1, MPI_INTEGER8, xmpi_master, xmpi_comm, ierror)
+  BARRIER
 end subroutine xmpi_bcast_int8
 
 subroutine xmpi_bcast_complex16(x)
-implicit none
-complex*16 x
-integer ierror
-call MPI_Bcast(x, 1, MPI_DOUBLE_COMPLEX, xmpi_master, xmpi_comm, ierror)
+  implicit none
+  complex*16 x
+  integer ierror
+  call MPI_Bcast(x, 1, MPI_DOUBLE_COMPLEX, xmpi_master, xmpi_comm, ierror)
+  BARRIER
 end subroutine xmpi_bcast_complex16
 
 subroutine xmpi_bcast_char(x)
-implicit none
-character(len=*) :: x
-integer          :: ierror,l
+  implicit none
+  character(len=*) :: x
+  integer          :: ierror,l
 
-if (xmpi_rank .eq. xmpi_master) then
-  l = len(x)
-endif
-call xmpi_bcast(l)
-call MPI_Bcast(x, l, MPI_CHARACTER, xmpi_master, xmpi_comm, ierror)
+  if (xmpi_rank .eq. xmpi_master) then
+    l = len(x)
+  endif
+  call xmpi_bcast(l)
+  call MPI_Bcast(x, l, MPI_CHARACTER, xmpi_master, xmpi_comm, ierror)
+  BARRIER
 end subroutine xmpi_bcast_char
 
 subroutine xmpi_allreduce_real8(x,op)
-implicit none
-real*8 x
-integer op
+  implicit none
+  real*8 x
+  integer op
 
-real*8 y
-integer ierror
-y = x
-call MPI_Allreduce(y,x,1,MPI_DOUBLE_PRECISION,op,xmpi_comm,ierror)
+  real*8 y
+  integer ierror
+  y = x
+  if(xmpi_comm .ne. MPI_COMM_WORLD) then
+  100 continue
+  goto 100
+  endif
+  call MPI_Allreduce(y,x,1,MPI_DOUBLE_PRECISION,op,xmpi_comm,ierror)
+  BARRIER
 end subroutine xmpi_allreduce_real8
 
+subroutine xmpi_barrier
+  implicit none
+  integer ierror
+  call MPI_Barrier(xmpi_comm,ierror)
+end subroutine xmpi_barrier
+
 #endif
+subroutine halt_program
+#ifdef USEMPI
+  call xmpi_abort
+#else
+  stop
+#endif
+  end subroutine halt_program
 end module xmpi_module

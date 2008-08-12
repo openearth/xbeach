@@ -38,7 +38,7 @@ real*8            :: defval,mnval,mxval
 
 character*80   :: value
 real*8         :: value_dbl
-if (xreader) then
+if (xmaster) then
   call readkey(fname,key,value)
 
   if (value/=' ') then
@@ -52,7 +52,9 @@ if (xreader) then
      endif
   else
      value_dbl=defval
-     write(*,*)trim(key),' = ',value_dbl,' (no record found, default value used)'
+     if(xmaster) then
+       write(*,*)trim(key),' = ',value_dbl,' (no record found, default value used)'
+     endif
   endif
 endif
 
@@ -71,7 +73,7 @@ character*80   :: value
 integer*4      :: value_int
 integer*4      :: defval,mnval,mxval
 
-if (xreader) then
+if (xmaster) then
   call readkey(fname,key,value)
 
   if (value/=' ') then
@@ -85,7 +87,9 @@ if (xreader) then
      endif
   else
      value_int=defval
-     write(*,*)trim(key),' = ',value_int,' (no record found, default value used)'
+     if(xmaster) then
+       write(*,*)trim(key),' = ',value_int,' (no record found, default value used)'
+     endif
   endif
 endif
 #ifdef USEMPI
@@ -94,22 +98,27 @@ endif
 
 end function readkey_int
 
+!
+!  readkey is only to be called from master, ie:
+!  if(xmaster) then
+!    call readkey(....)
+!
 subroutine readkey(fname,key,value)
 integer                                     :: lun,i,ier,nlines,ic,ikey
 character*1                                 :: ch
 character(len=*)                            :: fname,key,value
 character*80, dimension(:),allocatable,save :: keyword,values
-character*80                                :: line,hulp
+character*80                                :: line
 logical, save                               :: first=.true.
 integer, save                               :: nkeys
 character*80, save                          :: fnameold='first_time.exe'
-integer, dimension(:),allocatable,save		:: readindex
+integer, dimension(:),allocatable,save          :: readindex
 
 if (fname/=fnameold) then                   ! Open new file if fname changes
     if (fnameold/='first_time.exe') then    ! only if not the first time older versions
         deallocate(keyword)
         deallocate(values)
-		deallocate(readindex)
+                deallocate(readindex)
     end if
     first=.true.
     fnameold=fname
@@ -151,24 +160,22 @@ if (first) then
    readindex=0
 endif
 
-
-
 value=''
 do ikey=1,nkeys
    if (key.eq.keyword(ikey)) then
       value=values(ikey)
-	  readindex(ikey)=1
+          readindex(ikey)=1
    endif
 enddo
 
 
 ! If required, do a check whether params are not used or unknown
 if (key .eq. 'checkparams') then
-	do ikey=1,nkeys
-		if (readindex(ikey)==0) then
-			write(*,*) 'Unknown, unused or multiple statements of parameter ',trim(keyword(ikey)),' in ',trim(fname)
-		endif
-	enddo
+        do ikey=1,nkeys
+                if (readindex(ikey)==0) then
+                        write(*,*) 'Unknown, unused or multiple statements of parameter ',trim(keyword(ikey)),' in ',trim(fname)
+                endif
+        enddo
 endif
 
 

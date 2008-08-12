@@ -106,3 +106,5 @@
  dzav       => s%dzav
  maxzs      => s%maxzs
  minzs      => s%minzs
+
+! vim: filetype=fortran : syntax=fortran

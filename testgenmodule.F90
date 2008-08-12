@@ -31,8 +31,8 @@ allocate (isright(xmpi_size))
 allocate (istop(xmpi_size))
 allocate (isbot(xmpi_size))
 
-if (xprinter) then
-  print *,'xmpi_size:',xmpi_size
+if (xmaster) then
+  write(*,*)'xmpi_size:',xmpi_size
   ! call flush
 endif
 call xmpi_determine_processor_grid
@@ -45,17 +45,17 @@ call MPI_Gather((/xmpi_top/),1,MPI_INTEGER,&
 call MPI_Gather((/xmpi_bot/),1,MPI_INTEGER,&
                 botn,1,MPI_INTEGER,xmpi_master,xmpi_comm,ierror)
 
-if(xprinter) then
-  print *,ma,na,xmpi_size,xmpi_m, xmpi_n
-  print *,'proc left right top bot'
+if(xmaster) then
+  write(*,*)ma,na,xmpi_size,xmpi_m, xmpi_n
+  write(*,*)'proc left right top bot'
   do i=1,xmpi_size
-    print *,i-1,leftn(i),rightn(i),topn(i),botn(i)
+    write(*,*)i-1,leftn(i),rightn(i),topn(i),botn(i)
   enddo
   ! call flush()
 endif
 
 if (xmpi_size .ne. xmpi_m*xmpi_n) then
-  print *,'xmpisize:',xmpi_size,' m:',xmpi_m,' n',xmpi_n
+  write(*,*)'xmpisize:',xmpi_size,' m:',xmpi_m,' n',xmpi_n
   call xmpi_finalize
   stop
 endif
@@ -66,10 +66,10 @@ if (xmpi_rank .eq. xmpi_master) then
 
   call det_submatrices(ma,na,xmpi_m,xmpi_n,is,lm,js,ln, &
                 isleft,isright,istop,isbot)
-  print *,'verdeling'
+  write(*,*)'verdeling'
   i=0
   j=1
-  print *,'    p    i    j   is   lm   js   ln left right  top  bot'
+  write(*,*)'    p    i    j   is   lm   js   ln left right  top  bot'
   do p=0,xmpi_size-1
     i=i+1
     if (i .gt. xmpi_m) then
@@ -77,7 +77,7 @@ if (xmpi_rank .eq. xmpi_master) then
       i=1
     endif
 
-    print "(' ',7i5,4l5)",p,i,j,is(p+1),lm(p+1),js(p+1),ln(p+1), &
+    write(*,"(' ',7i5,4l5)")p,i,j,is(p+1),lm(p+1),js(p+1),ln(p+1), &
           isleft(p+1),isright(p+1),istop(p+1),isbot(p+1)
     ! call flush()
   enddo
@@ -109,7 +109,7 @@ call MPI_Bcast(istop, xmpi_size, MPI_LOGICAL, xmpi_master, &
                xmpi_comm, ierror)
 call MPI_Bcast(isbot, xmpi_size, MPI_LOGICAL, xmpi_master, &
                xmpi_comm, ierror)
-print *,xmpi_rank,'mlocal,nlocal:',mlocal,nlocal
+write(*,*)xmpi_rank,'mlocal,nlocal:',mlocal,nlocal
 ! call flush()
 allocate(b(mlocal,nlocal),ib(mlocal,nlocal))
 
@@ -121,7 +121,7 @@ enddo
 call MPI_Barrier(xmpi_comm,ierror)
 t1 = MPI_Wtime()
 if (xmpi_master .eq. xmpi_rank) then
-   print *,'Time for real*8 scattering:',(t1-t0)/times
+   write(*,*)'Time for real*8 scattering:',(t1-t0)/times
 endif
 
 call MPI_Barrier(xmpi_comm,ierror)
@@ -132,7 +132,7 @@ enddo
 call MPI_Barrier(xmpi_comm,ierror)
 t1 = MPI_Wtime()
 if (xmpi_master .eq. xmpi_rank) then
-   print *,'Time for integer scattering:',(t1-t0)/times
+   write(*,*)'Time for integer scattering:',(t1-t0)/times
 endif
 
 call MPI_Bcast(is,xmpi_size,MPI_INTEGER,xmpi_master,xmpi_comm,ierror)
@@ -146,7 +146,7 @@ do j=1,nlocal
     jj = js(xmpi_rank+1)+j-1
     if (b(i,j) .ne. fill(ii,jj)) then
       errors = errors+1
-      print *,xmpi_rank,'scat real*8 error:', i,j,ii,jj,b(i,j),fill(ii,jj)
+      write(*,*)xmpi_rank,'scat real*8 error:', i,j,ii,jj,b(i,j),fill(ii,jj)
       ! call flush()
     endif
   enddo
@@ -154,8 +154,8 @@ enddo
 
 call MPI_Reduce(errors,total_errors,1,MPI_INTEGER,MPI_SUM,&
                 xmpi_master,xmpi_comm,ierror)
-if (xprinter) then
-  print *,'Number of real*8 scatter errors is ',total_errors
+if (xmaster) then
+  write(*,*)'Number of real*8 scatter errors is ',total_errors
   ! call flush()
 endif
 
@@ -166,7 +166,7 @@ do j=1,nlocal
     jj = js(xmpi_rank+1)+j-1
     if (ib(i,j) .ne. fill(ii,jj)) then
       errors = errors+1
-      print *,xmpi_rank,'scat integer error:', i,j,ii,jj,ib(i,j),fill(ii,jj)
+      write(*,*)xmpi_rank,'scat integer error:', i,j,ii,jj,ib(i,j),fill(ii,jj)
       ! call flush()
     endif
   enddo
@@ -174,8 +174,8 @@ enddo
 
 call MPI_Reduce(errors,total_errors,1,MPI_INTEGER,MPI_SUM,&
                 xmpi_master,xmpi_comm,ierror)
-if (xprinter) then
-  print *,'Number of integer scatter errors is ',total_errors
+if (xmaster) then
+  write(*,*)'Number of integer scatter errors is ',total_errors
   ! call flush()
 endif
 
@@ -215,27 +215,27 @@ call matrix_coll(a,b,is,lm,js,ln,isleft,isright,&
     istop,isbot,xmpi_master,xmpi_comm)
 enddo
 t1=MPI_Wtime()
-if(xprinter) then
+if(xmaster) then
 
-  print *,'Time for collecting:',(t1-t0)/times
+  write(*,*)'Time for collecting:',(t1-t0)/times
   ! call flush
   errors=0
   do j=1,na
     do i=1,ma
       if (fill(i,j).ne. a(i,j)) then
         errors=errors+1
-        print *,'coll error:',i,j,a(i,j),fill(i,j)
+        write(*,*)'coll error:',i,j,a(i,j),fill(i,j)
       endif
     enddo
   enddo
-  print *,'Number of collect errors is',errors
+  write(*,*)'Number of collect errors is',errors
   ! call flush()
 endif
 
 ! testing the test_borders subroutine
 
 ! fill again the global array a:
-if(xprinter) then
+if(xmaster) then
   do j=1,na
     do i=1,ma
       a(i,j) =  fill(i,j)
@@ -298,7 +298,7 @@ do j=1,nlocal
     jj = js(xmpi_rank+1)+j-1
     if (b(i,j) .ne. fill(ii,jj)) then
       errors = errors+1
-      print *,xmpi_rank,'shift error:', i,j,ii,jj,b(i,j),fill(ii,jj)
+      write(*,*)xmpi_rank,'shift error:', i,j,ii,jj,b(i,j),fill(ii,jj)
       ! call flush()
     endif
   enddo
@@ -306,8 +306,8 @@ enddo
 
 call MPI_Reduce(errors,total_errors,1,MPI_INTEGER,MPI_SUM,&
                 xmpi_master,xmpi_comm,ierror)
-if (xprinter) then
-  print *,'Number of shift errors is ',total_errors
+if (xmaster) then
+  write(*,*)'Number of shift errors is ',total_errors
   ! call flush()
 endif
 
@@ -334,14 +334,14 @@ errors=0
 do i=1, mlocal
   if (vr(i) .ne. fill1(is(xmpi_rank+1)+i-1)) then
     errors = errors+1
-    print *,xmpi_rank,': vector distribute error',i,fill(is(xmpi_rank+1)),vr(i)
+    write(*,*)xmpi_rank,': vector distribute error',i,fill(is(xmpi_rank+1)),vr(i)
   endif
 enddo
 
 call MPI_Reduce(errors,total_errors,1,MPI_INTEGER,MPI_SUM,&
                 xmpi_master,xmpi_comm,ierror)
-if (xprinter) then
-  print *,'Number of vector errors is ',total_errors
+if (xmaster) then
+  write(*,*)'Number of vector errors is ',total_errors
   ! call flush()
 endif
 
@@ -354,7 +354,7 @@ deallocate (vs,vr)
 goto 100
 100 continue
 if (xmpi_master .eq. xmpi_rank) then
-  print *,xmpi_rank,': calling xmpi_finalize:'
+  write(*,*)xmpi_rank,': calling xmpi_finalize:'
 endif
 call xmpi_finalize
 

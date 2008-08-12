@@ -1,0 +1,103 @@
+wv 2008-08-12
+
+Introduction
+============
+
+In spacepars more that 100 variables are defined. This makes
+it complicated to maintain varoutput.F90 and the parts of
+spaceparams.F90 that take care of distributing and collecting
+data. 
+
+In varoutput.F90 it is necessary to know in the program the names
+(mnemonics) of the variables and in spaceparams.F90 it is 
+necessary to make sure that all variables are distributed
+and that variables, of which the mnemonic is know, are 
+collected before output.
+
+The program makeincludes
+========================
+
+Therefore I wrote a program (makeincludes.F90) that writes
+files, containing fortran code, to be included in other
+.F90 files. The program makeincludes reads a template file
+(spaceparams.tmpl) that contains the information for the
+variables to be included in spacepars. From this template
+the following files can be generated:
+
+indextos.gen : 
+               contains code to convert from an index number
+               to pointers to variables is spacepars, and 
+               the rank, type (real or integer), and the 
+               way this item is to be distribute
+mnemonic.gen : 
+               creates variables of the form 
+               mnem_xz  = 'xz'
+               and an array with these mnemonics. The indices
+               of the mnemonics in this array are the same
+               as used in indextos.gen
+space_alloc_arrays.gen
+             : contains code to allocate the arrays, matrices,
+               3-d and 4-d blocks
+space_alloc_scalars.gen
+             : contains code to allocate the scalars in spacepars
+               In order to use the template mechanism, everything
+               has to be a pointer, also the scalars. The scalars
+               have to be instantiated first, because they are used
+               to allocate the arrays
+spacedecl.gen
+             : contains code to declare everything
+             
+
+So, now it is possible to refer to a variable, using its mnemonic
+(name) or its index:
+
+function   chartoindex in module mnemmodule (mnemmodule.mod)
+subroutine indextos in module spacepars (spacaparams.F90), the various
+           aspects of the variable are returned in type(arraytype)
+	   (see mnemonic.F90, module mnemmodule)
+
+Example code is available in demo.F90, compile with
+
+  make demo
+
+The program makeincludes takes on standard input the names of the
+includefiles that are to be generated. Example:
+
+  echo space_alloc_arrays.gen | makeincludes
+
+An empty standard input generates all includefiles:
+
+  cat /dev/null | makeincludes
+
+Note about variables used in the parallel version
+=================================================
+
+The arrays, needed for the parallel version are not defined
+in spaceparams.tmpl, but in the code itself. It is not expected
+that these will change much. Besides, they have nothing to do with
+the physics.
+
+Changing spacepars
+==================
+
+The Makefile 'knows' about these things, so
+when a modification is needed in spacepars, it suffices to edit
+spaceparams.tmpl to make sure that varoutput and the parallel
+code are updated automatically.
+
+Format of spaceparams.tmpl
+==========================
+
+In spaceparams.tmpl, you find at the top an explanation of the
+format of that file.
+
+Using non-make systems
+======================
+
+When 'make' is not available, one can generate the includefiles 
+with something like this:
+
+  f90 -o makeincludes makeincludes.F90
+
+and running 'makeincludes' with no input:
+  ./makeincludes

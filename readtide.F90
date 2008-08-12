@@ -49,16 +49,15 @@ allocate(tidedummy(par%tidelen,par%tideloc+1))
 allocate(s%tideinpt(par%tidelen))
 allocate(s%tideinpz(par%tidelen,par%tideloc))
 
-if (xreader) then
+if (xmaster) then
   write(*,*) 'tidelen=', par%tidelen , par%tideloc
 endif
 
-call readkey('params.txt','zs0file',fnamezs0)
-
-if (xreader) then
+if (xmaster) then
+  call readkey('params.txt','zs0file',fnamezs0)
   open(31,file=fnamezs0)
     do i=1,par%tidelen
-      if (xreader) then
+      if (xmaster) then
         read(31,*)(tidedummy(i,j),j=1,par%tideloc+1)
       endif
     end do

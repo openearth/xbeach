@@ -1,0 +1,191 @@
+wv 2008-08-12
+
+Willem Vermin
+willem@sara.nl
+
+A few remarks about the parallelization of xbeach
+=================================================
+
+First of all: as a side-effect I found it necessary to recode
+large parts of varoutput.F90. 
+
+This file contained long lists of not-so-easy to maintain numbers
+and texts, all meant to connect mnemonics to variables in the
+spacepars type. 
+
+I the parallel version, originally I coded long not-so-easy 
+to maintain lists in output.F90 and spaceparams.F90.
+
+I thought it would be good to get rid of these lists and, after
+some experimenting, I wrote a simple Fortran90 program
+(makeincludes.F90) that takes as input one template file,
+describing the names, types, dimensions and type of 
+distribution of the variables in spacepars.
+The output of the makeincludes program (5 files at this
+moment) are to be included in the appropriate places.
+This is described in more detail in README.includes.
+
+So, when some change is needed in spacepars, one only
+have to change the template file (spaceparams.tmpl) to be
+sure that varoutput and the parallel part of the program are,
+after recompilation, aware of the changes.
+
+I hope I did something useful, remarks and comments are appreciated.
+
+Installation
+============
+
+Use GNU-make as make program.
+
+In Makefile, gfortran is defined as the fortran compiler, mpif90
+as fortran compiler for mpi programs.
+
+
+  make clean      # removes *.o *.mod core and test and demo programs
+  make realclean  # removes everything, except the sources
+  
+  make            # make the program xbeach
+  make install    # install it in ../bin
+
+  make dep        # creates a new DEPENDENCIES file, needed when
+                  # something is changed with resepct to using module
+                  # files or icluding include files.
+
+If the environment variable USEMPI is defined,
+
+  export USEMPI=yes
+
+then, in stead of xbeach, the program xbeach.mpi, the parallel version
+of xbeach is made. 
+
+Between different USEMPI settings, it is necessary to do a
+
+  make clean
+
+Dependencies
+============
+
+It is important that the object files are compiled in correct order,
+and that care is taken for the dependencies based on source files,
+object files, module files and include files. The script 'makedepo',
+called in the Makefile, creates a DEPENDENCIES file. This script is
+not bullet-proof, but it seems to work quite well here.
+
+Tags generation
+===============
+
+For the people who are used to usning ctags 
+(http://ctags.sourceforge.net/): the script maketags creates
+the tags file.
+
+Coding conventions
+==================
+
+The macro USEMPI is set when compiling the parallel version. See the
+sourcecode for numerous examples.
+
+Most of the time, it is important that only the master node is 
+doing the I/O. (exceptions are debug statements) Also the method
+of halting a program is different in a serial program and a parallel
+program. There are some more details. Therefore, in module
+xmpi_module, the following definitions are available, in the
+parallel version and in the serial version:
+
+logical xmaster: parallel version: .true. if this is the master process.
+                 serial version:   .true. 
+                 So, every I/O statement should look like:
+                 if (xmaster) then
+                   write ...
+                   write ...
+                 endif
+
+                 The functions readkey_dbl and readkey_int are
+                 aware of the parallel environment. Subroutine
+                 readkey, however is not, so that one has to be
+                 called like:
+                 if(xmaster) then
+                   call readkey...
+                 endif
+
+subroutine halt_program: this subroutine is available in both versions,
+                         and should be called in stead of 'stop'
+
+integer xmpisize: parallel version: number of processes
+                  serial version:   1
+
+logical xmpi_isleft, xmpi_isright, xmpi_istop, xmpi_isbot: 
+                  serial version: .true.
+                  parallel version:
+                  define: a(m,n) = local submatrix
+                          A(M,N) = global matrix
+          xmpi_isleft : .true.: a(:,1) is subset of A(:,1)
+          xmpi_isright: .true.: a(:,n) is subset of A(:,N)
+          xmpi_istop:   .true.: a(1,:) is subset of A(1,:)
+          xmpi_isbot:   .true.: a(m,:) is subset of A(M,:)
+
+sglobal and slocal
+==================
+
+In the parallel version, two variables of type spacepars are used:
+sglobal:  the same as for the serial version, on the masternode
+          containing all information. 
+          sglobal is not filled in on de non-masternodes
+slocal:   contains the distributed arrays,matrices and blocks,
+          ie. nx and ny differ from nx and ny in sglobal.
+
+The arrays, describing the distribution of the arrays and matrices and
+blocks, are available in both sglobal and slocal.
+
+Allocation of arrays
+====================
+
+In a number of subroutines, some scratch arrays are declared save, 
+as in:
+
+  real*8, dimension(:,:), allocatable, save :: xyz
+  if ( .not. allocated(xyz)) allocate(xyz(nx+1,ny+1))
+
+In almost all cases, an automatic declaration would suffice, like
+
+  real*8, dimension(s%nx+1,s%ny+1) :: xyz
+
+However, I understand that some compilers/linkers have difficulties
+with large program stacks, so that explains the 'save' solution.
+
+This solution, however, is not good when one should define more than
+one spacepar variable (apart from sglobal and slocal). Then the size
+of the 'saved' matrices could be wrong.
+
+I suggest to simply allocate these scratch arrays:
+
+  real*8, dimension(:,:), allocatable :: xyz
+  allocate(xyz(s%nx+1,s%ny+1))
+
+According to the fortran95 standard, these allocated arrays are 
+automatically removed at the exit of the subroutine.
+
+Also it seems to me that the initializations of the arrays, directly
+after the allocation:
+
+  xyz = 0
+
+are superfluous, and can be ommited.
+
+
+Finally
+=======
+
+Going through the code, I stumbled over things I did not understand, or
+were superfluous or probably in error. These places are marked with the
+string wwvv. 
+
+I made some effort to get a clean compilation, without warnings, just
+to make sure that I didn't miss some important warning. For example:
+the Fortran standard does not allow tabs in the source code, so I
+replaced them with blanks (a trivial operation with my editor).
+Also I removed variables that are not used, or added a statement
+to comfort the compiler who suspects that maybe we are using
+an uninitialized variable. Normally, these warnings are to be taken
+seriously. 
+
+A comprehensive parallelization report will be available soon.

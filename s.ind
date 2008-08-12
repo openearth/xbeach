@@ -106,3 +106,4 @@ real*8,dimension(:,:),pointer :: ua
 real*8,dimension(:,:),pointer :: dzav
 real*8,dimension(:,:),pointer :: maxzs
 real*8,dimension(:,:),pointer :: minzs
+! vim: filetype=fortran : syntax=fortran

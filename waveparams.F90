@@ -2,12 +2,12 @@ module waveparams
 implicit none
 type waveparameters
 
-integer                                     :: K, Npy, Nr
+integer                                 :: K, Npy, Nr
 integer, dimension(:), pointer          :: index_vector
 
-real*8                                      :: mainang,dang
-real*8                                      :: hm0gew, df
-real*8                                      :: Ly, dt, rt
+real*8                                  :: mainang,dang
+real*8                                  :: hm0gew, df
+real*8                                  :: Ly, dt, rt
 real*8,dimension(:),pointer             :: S0, dthetafin, fgen, theta0
 real*8,dimension(:),pointer             :: Sf, Dd, f, theta, window
 real*8,dimension(:,:),pointer           :: S_array
@@ -49,7 +49,7 @@ makefile=.false.
 if (par%t==par%dt) then
     bcendtime=0
     par%listline=0
-    if(xreader) then
+    if(xmaster) then
       call readkey('params.txt','bcfile',fname)
       open(74,file=fname,form='formatted')
       read(74,*)testc
@@ -58,7 +58,7 @@ if (par%t==par%dt) then
     call xmpi_bcast(fname)
     call xmpi_bcast(testc)
 #endif
-    if(xreader) then
+    if(xmaster) then
       open(53,file='ebcflist.bcf',form='formatted',status='replace')  ! Make new files, don't add to existing files
       open(54,file='qbcflist.bcf',form='formatted',status='replace')
       close(53)
@@ -68,7 +68,7 @@ if (par%t==par%dt) then
         reuse=0
     else
         reuse=1                     ! Same file is reused
-        if(xreader) then
+        if(xmaster) then
           close(74)    ! only close if this is not the list of files
         endif
     end if
@@ -81,7 +81,7 @@ end if                              ! par%listline is not increased, therfore, f
 
 ! Lookup rt and dt for bcf-files and create names for E and q bcf-files
 if (reuse==0) then
-    if(xreader) then
+    if(xmaster) then
       read(74,*)wp%rt,wp%dt,fname
     endif
 #ifdef USEMPI
@@ -130,7 +130,7 @@ if (makefile) then
     endif
 end if
 
-if(xreader) then
+if(xmaster) then
   ! Keep index/list of bcf file names and time information (ebcflist.bcf and qbcflist.bcf).
   open(53,file='ebcflist.bcf',form='formatted',position='append')
   open(54,file='qbcflist.bcf',form='formatted',position='append')
@@ -164,14 +164,14 @@ type(waveparameters), INTENT(INOUT)     :: wp
 character(len=*), INTENT(IN)            :: fname
 
 ! Internal variables
-integer                                 :: i,ii,nang,nfreq
+integer                                 :: i=0,ii,nang,nfreq
 integer                                 :: firstp, lastp
 real*8,dimension(:),allocatable         :: temp, x, y
 real*8                                  :: t1, dfj, fnyq, fp
 real*8                                  :: gam, scoeff
 
 ! Start program
-if(xreader) then
+if(xmaster) then
   write(*,*)'waveparams: Reading from ',fname,' ...'
 endif
 ! Read JONSWAP file 
@@ -185,7 +185,7 @@ gam                 = readkey_dbl (fname,'gammajsp',   3.3d0,       1.0d0,      
 scoeff              = readkey_dbl (fname,'s'       ,   10.0d0,      1.0d0,     1000.0d0)
 wp%mainang          = readkey_dbl (fname,'mainang' ,   270.0d0,     0.0d0,      360.0d0)
 
-if(xreader) then
+if(xmaster) then
   call readkey(fname,'checkparams','')
 endif
 
@@ -291,7 +291,7 @@ flipped=0
 wp%Npy=s%ny+1
 
 switch = 0
-if(xreader) then
+if(xmaster) then
   write(*,*)'Reading from SWAN file ',fname,' ...'
   open(44,file=fname,form='formatted',status='old')
 
@@ -316,7 +316,7 @@ call xmpi_bcast(nfreq)
 call xmpi_bcast(switch)
 #endif
 allocate(wp%f(nfreq))
-if(xreader) then
+if(xmaster) then
   do i=1,nfreq
       read(44,*)wp%f(i)
   end do
@@ -335,7 +335,7 @@ end if
 
 ! Read CDIR or NDIR
 
-if(xreader) then
+if(xmaster) then
   read(44,'(a)')rtext
   if (rtext == 'NDIR  ') then
       switch = 1
@@ -359,7 +359,7 @@ call xmpi_bcast(ndir)
 #endif
 allocate(wp%theta(ndir))
 
-if(xreader) then
+if(xmaster) then
 do i=1,ndir
     read(44,*)wp%theta(i)
 end do
@@ -425,7 +425,7 @@ wp%theta=wp%theta*par%px/180
 wp%dang=wp%theta(2)-wp%theta(1)
 
 ! Skip Quant, next line, read VaDens or EnDens
-if(xreader) then
+if(xmaster) then
   read(44,'(a)')rtext
   read(44,'(a)')rtext
   read(44,'(a)')rtext
@@ -446,7 +446,7 @@ endif
 call xmpi_bcast(switch)
 #endif
 
-if(xreader) then
+if(xmaster) then
   read(44,'(a)')rtext
   read(44,*)exc
 endif
@@ -456,7 +456,7 @@ call xmpi_bcast(rtext)
 call xmpi_bcast(exc)
 #endif
 
-if(xreader) then
+if(xmaster) then
   i=0
   ! Find FACTOR keyword
   do while (i==0)
@@ -488,7 +488,7 @@ call xmpi_bcast(factor)
 ! Read S_array
 allocate(wp%S_array(nfreq,ndir))
 
-if(xreader) then
+if(xmaster) then
   do i=1,nfreq
       read(44,*)wp%S_array(i,:)
   end do
@@ -530,7 +530,7 @@ endif
 
 wp%S_array=wp%S_array*factor
 
-if(xreader) then
+if(xmaster) then
   close(44)                               ! Finished reading file
 endif
 
@@ -620,7 +620,7 @@ real*8, dimension(:),allocatable        :: temp, findline
 
 wp%Npy=s%ny+1
 
-if(xreader) then
+if(xmaster) then
   write(*,*)'Reading from VarDens file ',fname,' ...'
   open(44,file=fname,form='formatted',status='old')
 
@@ -631,7 +631,7 @@ call xmpi_bcast(nfreq)
 #endif
 allocate(wp%f(nfreq))
 
-if(xreader) then
+if(xmaster) then
   do i=1,nfreq
       read(44,*)wp%f(i)
   end do
@@ -644,7 +644,7 @@ call xmpi_bcast(ndir)
 #endif
 allocate(wp%theta(ndir))
 
-if(xreader) then
+if(xmaster) then
   do i=1,ndir
       read(44,*)wp%theta(i)
   end do
@@ -659,7 +659,7 @@ wp%dang=wp%theta(2)-wp%theta(1)
 ! Read S_array
 allocate(wp%S_array(nfreq,ndir))
 
-if(xreader) then
+if(xmaster) then
   do i=1,nfreq
       read(44,*)wp%S_array(i,:)
   end do
@@ -782,11 +782,13 @@ complex(fftkind),dimension(:),allocatable   :: Gn, Comptemp
 pp=maxval(wp%f)*2.d0
 if (wp%dt>(1.d0/pp)) then
     wp%dt=1.d0/pp
-    if (xreader) write(*,'(a,f6.4,a)')'Changing dt in wave boundary conditions to satisfy Nyquist condition. New dt = ',wp%dt,' s.'
+    if (xmaster) then
+       write(*,'(a,f6.4,a)')'Changing dt in wave boundary conditions to satisfy Nyquist condition. New dt = ',wp%dt,' s.'
+    endif
 endif
 
 ! Start program
-if(xreader) then
+if(xmaster) then
   write(*,*)'Calculating wave energy at boundary'
 endif
 
@@ -847,8 +849,13 @@ end do
 CALL RANDOM_SEED                        ! Call random seed
 !call random_number(P0)
 call random_number(randummy)
-write(555,*)randummy
-close(555)
+if (xmaster) then
+  open(555,file='tempout1')  ! wwvv todo: better to use the same unit number for
+                             ! short I/O sequences like this. 555 cab interfere
+                             ! with varoutput unit numbers
+  write(555,*)randummy
+  close(555)
+endif
 P0=randummy(1:wp%K)
 
 
@@ -995,12 +1002,12 @@ i=(maxval(Nbin))
 if (par%nspr==1) then
         do i=1,wp%K
                 ! If component is outside wave distribution bins move to outer bins (so include energy)
-				if (Nbin(i)<=0) then 
-					Nbin(i)=1
-				elseif (Nbin(i)>Ns) then
-					Nbin(i)=Ns
-				endif
-				wp%theta0(i)=s%theta(Nbin(i))
+                                if (Nbin(i)<=0) then 
+                                        Nbin(i)=1
+                                elseif (Nbin(i)>Ns) then
+                                        Nbin(i)=Ns
+                                endif
+                                wp%theta0(i)=s%theta(Nbin(i))
         enddo
 endif
 
@@ -1023,7 +1030,7 @@ Ampzeta=0
 
 ! Nr = time, wp%Npy = y-axis points, Ns= theta bins
 do ii=1,Ns
-    if(xreader) then
+    if(xmaster) then
       write(*,'(A,I0,A,I0)')'Calculating wave energy for theta bin ',ii,' of ',Ns
     endif
     do index2=1,wp%Npy
@@ -1078,7 +1085,7 @@ do ii=1,Ns
         
             Ampzeta(index2,:,ii)=abs(Comptemp)
             
-            if(xreader) then
+            if(xmaster) then
               if (F2/=0) then
                   write(*,'(A,I0,A,I0,A,I0)')'Y-point ',index2,' of ',wp%Npy,' done. Error code: ',F2
               else
@@ -1089,7 +1096,7 @@ do ii=1,Ns
             deallocate(Comptemp)
         
         else
-            if(xreader) then
+            if(xmaster) then
               write(*,'(A,I0,A)')'Theta bin ',ii,' empty at this point. Continuing to next point'
             endif
 
@@ -1104,7 +1111,7 @@ do ii=1,Ns
     end do
 end do
 
-if(xreader) then
+if(xmaster) then
   write(*,fmt='(a)')'writing wave energy to ',trim(Ebcfname),' ...'
 endif
 allocate(E_tdir(wp%Npy,wp%Nr,Ns))
@@ -1112,7 +1119,7 @@ E_tdir=0.0d0
 E_tdir= 0.5d0*(par%rho)*(par%g)*Ampzeta**2
 E_tdir=E_tdir/s%dtheta
 
-if(xreader) then
+if(xmaster) then
   open(12,file=Ebcfname,form='unformatted')
 !  open(12,file=Ebcfname,form='binary')
   do i=1,wp%Nr
@@ -1151,7 +1158,7 @@ real*8, INTENT(IN)                      :: h
 character(len=*), INTENT(IN)            :: qbcfname
 
 ! internal variables
-integer                                 :: K, m, index1, Npy, Nr, i, jj
+integer                                 :: K, m, index1, Npy, Nr, i=0, jj
 integer,dimension(:),allocatable        :: index2
 
 real*8                                  :: g
@@ -1172,7 +1179,7 @@ index1=wp%index_vector(1)
 Npy=wp%Npy
 Nr=wp%Nr
 
-if(xreader) then
+if(xmaster) then
   write(*,*) 'Calculating flux at boundary'
 endif
 
@@ -1298,7 +1305,7 @@ Gn(1,Nr/2+2:Nr)=Comptemp
 allocate(qx(Npy,Nr))
 qx=0.0d0
 allocate(Comptemp2(Nr)) 
-if(xreader) then
+if(xmaster) then
   write(*,'(A,I0)')'Flux 1 of ',Npy
 endif
 Comptemp2=fft(Gn(1,:),inv=.true.)
@@ -1316,7 +1323,7 @@ do jj=2,Npy
     call flipiv(Comptemp,Nr/2-1)
     Gn(jj,Nr/2+2:Nr) = Comptemp
 
-    if(xreader) then
+    if(xmaster) then
       write(*,'(A,I0,A,I0)')'Flux ',jj,' of ',Npy
     endif
     Comptemp2=fft(Gn(jj,:),inv=.true.)
@@ -1331,7 +1338,7 @@ deallocate(Ftemp)
 deallocate(Ftemp2)
 deallocate(index2)
 
-if(xreader) then
+if(xmaster) then
   write(*,fmt='(a)')'writing long wave mass flux to ',trim(qbcfname),' ...'
   open(21,file=qbcfname,form='unformatted')
 !  open(21,file=qbcfname,form='binary')
@@ -1417,7 +1424,7 @@ integer, intent(out)                    :: firstp, lastp
 
 real*8, dimension(:), intent(out)       :: findlineout
 real*8, dimension(:),allocatable        :: temp, findline
-integer                                 :: i
+integer                                 :: i = 0 
 
 allocate(findline(size(Sf)))
 findline=0*Sf                           ! find frequency range around peak
@@ -1499,10 +1506,10 @@ do j=1,4
     c    = q*thq-w2
     where (abs(a*c)<(b**2*1.0e-8))
         arg = -c/b
-	elsewhere
-		arg  = (b**2)-4.0d0*a*c
-		arg  = (-b + sqrt(arg))/(2.0d0*a)
-	endwhere
+        elsewhere
+                arg  = (b**2)-4.0d0*a*c
+                arg  = (-b + sqrt(arg))/(2.0d0*a)
+        endwhere
     q    = q+arg
 end do
 

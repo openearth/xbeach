@@ -169,18 +169,16 @@ elseif (par%instat==2 .or. par%instat==3) then
     par%Trep  = readkey_dbl    ('params.txt','Trep',     par%Trep,   1.d0,    20.d0)
     par%omega    = 2.d0*par%px/par%Trep;
 elseif (par%instat==4 .or. par%instat==5 .or. par%instat==6) then
-	! Just a check .....
-	call readkey('params.txt','bcfile','')
-	call readkey('params.txt','rt','')
-	call readkey('params.txt','dtbc','')
-	call readkey('params.txt','dthetaS_XB','')
+        ! Just a check .....
+        call readkey('params.txt','bcfile','')
+        call readkey('params.txt','rt','')
+        call readkey('params.txt','dtbc','')
+        call readkey('params.txt','dthetaS_XB','')
 elseif (par%instat > 8) then
-    write(*,*)'Instat invalid option'
-#ifdef USEMPI
-    call xmpi_abort
-#else
-    stop
-#endif
+    if(xmaster) then
+      write(*,*)'Instat invalid option'
+    endif
+    call halt_program
 end if
 !                         Input file  Keyword Default  Minimum  Maximum
 !par%dir0  = readkey_dbl    ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
@@ -303,9 +301,29 @@ end subroutine sed_input
 #ifdef USEMPI
 subroutine distribute_par(par)
 use xmpi_module
+implicit none
 type(parameters)        :: par
+integer                 :: parlen,w,ierror
+
 ! 
 ! distribute parameters 
+
+! new method: distribute at once
+
+inquire(iolength=parlen) par
+inquire(iolength=w) 1.0d0
+
+! convert parlen to number of bytes, assuming that 
+! 1.0d0 takes 8 bytes
+
+parlen = (8/w)*parlen
+
+call MPI_Bcast(par,parlen,MPI_BYTE,xmpi_master,xmpi_comm,ierror)
+return
+
+! so, the following code is NOT used anymore. I left this here
+! maybe method above does not work everywhere. wwvv
+
 ! For efficiency, this subroutine should use MPI_Pack and 
 ! MPI_Unpack. However, since this subroutine is only called a 
 ! few times, a more simple approach is used.
@@ -347,6 +365,9 @@ call xmpi_bcast(par%tnext)
 call xmpi_bcast(par%it)
 call xmpi_bcast(par%tstart)
 call xmpi_bcast(par%tint)
+call xmpi_bcast(par%tintp)
+call xmpi_bcast(par%tintg)
+call xmpi_bcast(par%tintm)
 call xmpi_bcast(par%tstop)
 call xmpi_bcast(par%ntout)
 call xmpi_bcast(par%C)
@@ -418,9 +439,12 @@ call xmpi_bcast(par%nspr)
 call xmpi_bcast(par%thetanum)
 call xmpi_bcast(par%tsfac)
 call xmpi_bcast(par%scheme)
+
 end subroutine distribute_par
 #endif
-
+!
+! printparams for debugging only
+!
 subroutine printparams(par,str)
 #ifdef USEMPI
   use xmpi_module

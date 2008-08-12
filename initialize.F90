@@ -18,7 +18,7 @@ integer                             :: itheta,indt
 
 real*8,dimension(:),allocatable     :: yzs0,szs0
 
-if (xreader) then
+if (xmaster) then
   allocate(s%thetamean(1:s%nx+1,1:s%ny+1))
   allocate(s%Fx(1:s%nx+1,1:s%ny+1))
   allocate(s%Fy(1:s%nx+1,1:s%ny+1))
@@ -267,7 +267,7 @@ IMPLICIT NONE
 type(spacepars)                     :: s
 type(parameters)                    :: par
 
-if(xreader) then
+if(xmaster) then
   allocate(s%zs(1:s%nx+1,1:s%ny+1))
   allocate(s%dzsdt(1:s%nx+1,1:s%ny+1))
   allocate(s%dzbdt(1:s%nx+1,1:s%ny+1))
@@ -338,6 +338,7 @@ subroutine sed_init (s,par)
 use params
 use spaceparams
 use readkey_module
+use xmpi_module
 
 IMPLICIT NONE
 
@@ -362,22 +363,24 @@ allocate(s%sedcal(1:par%ngd))
 !
 ! Specify Grain Distribution
 !
-if (par%ngd>1) then
-   call readkey('params.txt','gdist',fnameg)
-   open(34,file=fnameg)
-   do j = 2,s%ny
-      do m = 1,par%nd
-             read(34,*)(s%graindistr(i,j,m,1),i=1,s%nx+1)
-          enddo
-   enddo
-   close(34)
-   s%graindistr(:,1,:,:)      = s%graindistr(:,2,:,:)
-   s%graindistr(:,s%ny+1,:,:) = s%graindistr(:,s%ny,:,:)
-   s%graindistr(:,:,:,2) = abs(1.d0-s%graindistr(:,:,:,1))
-   s%graindistr(:,:,:,3) = 0.0d0
-else
-   s%graindistr = 1.0 
-endif
+if(xmaster) then
+  if (par%ngd>1) then
+     call readkey('params.txt','gdist',fnameg)
+     open(34,file=fnameg)
+     do j = 2,s%ny
+        do m = 1,par%nd
+               read(34,*)(s%graindistr(i,j,m,1),i=1,s%nx+1)
+            enddo
+     enddo
+     close(34)
+     s%graindistr(:,1,:,:)      = s%graindistr(:,2,:,:)
+     s%graindistr(:,s%ny+1,:,:) = s%graindistr(:,s%ny,:,:)
+     s%graindistr(:,:,:,2) = abs(1.d0-s%graindistr(:,:,:,1))
+     s%graindistr(:,:,:,3) = 0.0d0
+  else
+     s%graindistr = 1.0 
+  endif
+endif  ! xmaster
 
 s%D50(1)     = par%D501
 s%D90(1)     = par%D901

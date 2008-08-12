@@ -32,6 +32,8 @@ IMPLICIT NONE
 integer                         :: ntot,break
 real*8,dimension(ntot)          :: E,hh,D
 real*8                          :: fac,rho,g,delta,alpha,gamma,n,Trep
+
+
 real*8,dimension(:),allocatable,save :: H,Qb,hroelvink
 
 if (.not. allocated(H)) then
@@ -71,6 +73,9 @@ type(spacepars)                 :: s
 type(parameters)                :: par
 
 real*8                          :: fac
+
+
+
 real*8,dimension(:,:),allocatable,save :: H,Qb,hroelvink
 
 if (.not. allocated(H)) then
@@ -98,77 +103,79 @@ end if
 end subroutine roelvink
 
 subroutine baldock1(E,hh,k,Trep,alpha,gamma,rho,g,delta,D,ntot)
-IMPLICIT NONE
+  IMPLICIT NONE
 
-integer                         :: ntot
-real*8,dimension(ntot)          :: E,hh,D,k
-real*8                          :: fac,rho,g,delta,alpha,gamma,Trep
+  integer                         :: ntot
+  real*8,dimension(ntot)          :: E,hh,D,k
+  real*8                          :: fac,rho,g,delta,alpha,gamma,Trep
 
-real*8,dimension(:),allocatable,save :: H,Qb,Hb,kh,tkh,hbaldock
 
-if (.not. allocated(H)) then
-   allocate(H       (ntot))
-   allocate(Qb      (ntot))
-   allocate(Hb      (ntot))
-   allocate(kh      (ntot))
-   allocate(tkh     (ntot))
-   allocate(hbaldock(ntot))
-endif
+  real*8,dimension(:),allocatable,save :: H,Qb,Hb,kh,tkh,hbaldock
+  
+  if (.not. allocated(H)) then
+     allocate(H       (ntot))
+     allocate(Qb      (ntot))
+     allocate(Hb      (ntot))
+     allocate(kh      (ntot))
+     allocate(tkh     (ntot))
+     allocate(hbaldock(ntot))
+  endif
 
-! Dissipation acc. to Baldock et al. 1998
+  ! Dissipation acc. to Baldock et al. 1998
 
-fac=8.0d0/rho/g
-H=sqrt(fac*E)
+  fac=8.0d0/rho/g
+  H=sqrt(fac*E)
 
-hbaldock=hh+delta*H
+  hbaldock=hh+delta*H
 
-kh=k*hbaldock
-tkh=tanh(kh)
+  kh=k*hbaldock
+  ! tkh=tanh(kh)   ! tkh not used
 
-! Wave dissipation acc. to Baldock et al. 1998
-Hb = (0.88d0/k)*tanh(gamma*kh/0.88d0)
-Qb = exp(-(Hb/max(H,0.00001d0))**2)
-D = 0.25d0*alpha*Qb*rho*(1.0d0/Trep)*g*(Hb**2+H**2)
+  ! Wave dissipation acc. to Baldock et al. 1998
+  Hb = (0.88d0/k)*tanh(gamma*kh/0.88d0)
+  Qb = exp(-(Hb/max(H,0.00001d0))**2)
+  D = 0.25d0*alpha*Qb*rho*(1.0d0/Trep)*g*(Hb**2+H**2)
 
 end subroutine baldock1
 
 subroutine baldock(par,s)
-use params
-use spaceparams
+  use params
+  use spaceparams
 
-IMPLICIT NONE
+  IMPLICIT NONE
 
-type(spacepars)                 :: s
-type(parameters)                :: par
+  type(spacepars)                 :: s
+  type(parameters)                :: par
 
-real*8                          :: fac
-integer                         :: alpha
-real*8,dimension(:,:),allocatable,save :: H,Qb,Hb,kh,tkh,hbaldock
+  real*8                          :: fac
+  integer                         :: alpha
 
-if (.not. allocated(H)) then
-   allocate(H       (s%nx+1,s%ny+1))
-   allocate(Qb      (s%nx+1,s%ny+1))
-   allocate(Hb      (s%nx+1,s%ny+1))
-   allocate(kh      (s%nx+1,s%ny+1))
-   allocate(tkh     (s%nx+1,s%ny+1))
-   allocate(hbaldock(s%nx+1,s%ny+1))
-endif
 
-! Dissipation acc. to Baldock et al. 1998
+  real*8,dimension(:,:),allocatable,save :: H,Qb,Hb,kh,tkh,hbaldock
+  if (.not. allocated(H)) then
+     allocate(H       (s%nx+1,s%ny+1))
+     allocate(Qb      (s%nx+1,s%ny+1))
+     allocate(Hb      (s%nx+1,s%ny+1))
+     allocate(kh      (s%nx+1,s%ny+1))
+     allocate(tkh     (s%nx+1,s%ny+1))
+     allocate(hbaldock(s%nx+1,s%ny+1))
+  endif
 
-fac=8.d0/par%rho/par%g
-alpha=1
-hbaldock=s%hh+par%delta*s%H
+  ! Dissipation acc. to Baldock et al. 1998
 
-H=sqrt(fac*s%E)
+  fac=8.d0/par%rho/par%g
+  alpha=1
+  hbaldock=s%hh+par%delta*s%H
 
-kh=s%k*hbaldock
-tkh=tanh(kh)
+  H=sqrt(fac*s%E)
 
-! Wave dissipation acc. to Baldock et al. 1998
-Hb = (0.88d0/s%k)*tanh(par%gamma*kh/0.88d0)
-Qb = exp(-(Hb/max(H,0.00001d0))**2)
-s%D = 0.25d0*alpha*Qb*par%rho*(1.d0/par%Trep)*par%g*(Hb**2+H**2)
+  kh=s%k*hbaldock
+  !tkh=tanh(kh)     ! tkh not used
+
+  ! Wave dissipation acc. to Baldock et al. 1998
+  Hb = (0.88d0/s%k)*tanh(par%gamma*kh/0.88d0)
+  Qb = exp(-(Hb/max(H,0.00001d0))**2)
+  s%D = 0.25d0*alpha*Qb*par%rho*(1.d0/par%Trep)*par%g*(Hb**2+H**2)
 
 end subroutine baldock
 

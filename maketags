@@ -1,0 +1,5 @@
+#!/bin/bash
+# to make a tags file (see http://ctags.sourceforge.net/)
+make makeincludes
+cat /dev/null | ./makeincludes
+ctags --langmap=Fortran:+.gen.ind --Fortran-kinds=+Lv *

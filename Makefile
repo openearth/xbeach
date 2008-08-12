@@ -3,7 +3,7 @@ ifdef USEMPE
 USEMPI=yes
 endif
 
-LINKFLAGS = #-lefence
+LINKFLAGS = # -lefence
 
 ifdef USEMPI
   program = xbeach.mpi
@@ -35,7 +35,8 @@ OBJS:= boundaryconditions.o \
 	general_mpi.o \
 	varoutput.o \
 	timestep.o \
-	xbeach.o 
+	xbeach.o \
+        mnemonic.o
 
 SRCS = $(patsubst %.o,%.F90,$(OBJS))
 #	wave_dist.o \
@@ -48,6 +49,8 @@ testgenmoduleobjs = testgenmodule.o xmpi.o general_mpi.o
 
 testdetsubobjs = testdetsub.o general_mpi.o
 
+demoobjs = demo.o spaceparams.o xmpi.o mnemonic.o readkey.o
+
 # mpe_mpilog
 # mpe_mpitrace
 # mpe_mpianim
@@ -58,10 +61,12 @@ testgenmodule: $(testgenmoduleobjs)
 testdetsub: $(testdetsubobjs)
 	$(F90) $(F90FLAGS) -o $@ $(testdetsubobjs) $(LINKFLAGS)
 
+demo: $(demoobjs)
+	$(F90) $(F90FLAGS) -o $@ $(demoobjs) $(LINKFLAGS)
+
 install: all
 	mkdir -p ../bin
 	cp $(program) ../bin
-
 
 testje:
 	@echo OBJS: $(OBJS) 
@@ -71,28 +76,42 @@ testje:
 	@echo compiling $<
 	$(F90) -c $(F90FLAGS) $<
 
+%.gen: spaceparams.tmpl makeincludes
+	@echo $@ | ./makeincludes
+
 %.mod: 
 	@echo compiling $< to create $@
 	@$(F90) -c $(F90FLAGS) $<
 
 #
-# separate rule for math_tools: 
+# separate rule for math_tools and varoutput: 
 # -O2 and -Wall gives spurious warnings with gfortran
 #
 math_tools.o: math_tools.F90
 	@echo compiling $<
-	$(F90) -c $(filter-out -Wall,$(F90FLAGS)) math_tools.F90
+	$(F90) -c $(F90FLAGSNOWALL) math_tools.F90
 
 math_tools.mod:
 	@echo compiling $< to create $@
-	@$(F90) -c $(F90FLAGS) math_tools.F90
+	@$(F90) -c $(F90FLAGSNOWALL) math_tools.F90
+
+varoutput.o: varoutput.F90
+	@echo compiling $<
+	$(F90) -c $(F90FLAGSNOWALL) varoutput.F90
+
+outputmod.mod:
+	@echo compiling $< to create $@
+	@$(F90) -c $(F90FLAGSNOWALL) varoutput.F90
 
 DEPENDENCIES dep:
-	./makedepo $(SRCS) testgenmodule.F90 > DEPENDENCIES
+	awk -f ./makedepo $(SRCS) testgenmodule.F90 demo.F90 > DEPENDENCIES
 
 include DEPENDENCIES
 
-F90FLAGS+=-g -O2 -I. # -pg # -fprofile-arcs -ftest-coverage
+makeincludes: makeincludes.F90
+	$(F90) $(F90FLAGS) -o $@ makeincludes.F90
+	
+F90FLAGS+=-g -O3 -I. # -pg # -fprofile-arcs -ftest-coverage
 F90:=gfortran
 ifeq ($(F90),gfortran)
   F90FLAGS += -Wall
@@ -105,12 +124,21 @@ endif
   F90FLAGS +=  -DUSEMPI
 endif
 
-clean:
-	rm -f *.o *.mod $(program) core testgenmodule
+ifeq "$(filter -O3,$(F90FLAGS))" "-O3"
+  F90FLAGSNOWALL=$(filter-out -Wall,$(F90FLAGS))
+  else
+  F90FLAGSNOWALL=$(F90FLAGS)
+endif
 
-depclean: clean
-	rm -f DEPENDENCIES
+clean:
+	rm -f *.o *.mod core testgenmodule demo
+
+realclean: clean
+	rm -f DEPENDENCIES *.gen makeincludes xbeach xbeach.mpi tags
+
 show:
 	@echo F90: $(F90)
 	@echo F90FLAGS: $(F90FLAGS)
 	@echo USEMPI: $(USEMPI)
+	@echo F90FLAGSNOWALL :$(F90FLAGSNOWALL)
+

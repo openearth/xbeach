@@ -87,16 +87,16 @@ endif
 dtheta = par%dtheta*par%px/180
 startbcf=.false.
 if(par%t==par%dt) then
-    if (xreader) then
+    if (xmaster) then
       write(*,*)'Setting up boundary conditions'
     endif
     startbcf=.true.                     ! trigger read from bcf for instat 3,4,5,7
     bcendtime=huge(0.0d0)               ! initial assumption for instat 3,4,5,7
     if (par%instat==2) then
-       if(xreader) then
+       if(xmaster) then
          open( unit=7, file='bc\gen.ezs')
        endif
-       if (xreader) then
+       if (xmaster) then
 5        continue
          read(7,'(a)')bl
          if(bl.eq.'*') goto 5
@@ -108,7 +108,7 @@ if(par%t==par%dt) then
        allocate(dataE  (nt))
        allocate(tE     (nt))
        do i=1,nt
-          if(xreader) then
+          if(xmaster) then
             read(7,*) tE(i),dum,dataE(i)
           endif
 #ifdef USEMPI
@@ -116,15 +116,15 @@ if(par%t==par%dt) then
           call xmpi_bcast(dataE(i))
 #endif
        end do
-       if (xreader) then
+       if (xmaster) then
          close(7)
        endif
        par%Emean=sum(dataE)/nt
     elseif (par%instat==3) then
-       if (xreader) then
+       if (xmaster) then
          open( unit=7, file='bc\gen.ezs')
        endif
-       if (xreader) then
+       if (xmaster) then
 6        continue
          read(7,'(a)')bl
          if(bl.eq.'*') goto 6
@@ -137,7 +137,7 @@ if(par%t==par%dt) then
        allocate(databi (nt))
        allocate(tE     (nt))
        do i=1,nt
-          if(xreader) then
+          if(xmaster) then
             read(7,*) tE(i),databi(i),dataE(i)
           endif
 #ifdef USEMPI
@@ -146,7 +146,7 @@ if(par%t==par%dt) then
           call xmpi_bcast(dataE(i))
 #endif
        end do
-       if (xreader) then
+       if (xmaster) then
          close(7)
        endif
        par%Emean=sum(dataE)/nt
@@ -186,7 +186,9 @@ if(par%t==par%dt) then
         par%Llong=par%Tlong*cg(1,1)/sin(theta0)
 
     endif
+    if (xmaster) then
         write(*,*)'Boundary conditions complete, starting computation'
+    endif
 end if
 
 !write(*,*)'par%t =',par%t,'bcendtime = ',bcendtime
@@ -278,13 +280,13 @@ elseif (par%instat==3) then
 elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat==7)) then  
     ! open file if first time
     if (startbcf) then
-        if(xreader) then
+        if(xmaster) then
           open(53,file='ebcflist.bcf',form='formatted',position='rewind')
           open(54,file='qbcflist.bcf',form='formatted',position='rewind')
         endif
 !        write(*,*)'par%listline = ',par%listline
         do i=1,par%listline
-            if (xreader) then
+            if (xmaster) then
               read(53,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,ebcfname
               read(54,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,qbcfname
             endif  ! wwvv strange
@@ -297,7 +299,7 @@ elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat
             call xmpi_bcast(ebcfname)
 #endif
         end do
-        if (xreader) then
+        if (xmaster) then
           close(53)
           close(54)
         endif
@@ -310,7 +312,7 @@ elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat
         s%sigm = sum(s%sigt,3)/s%ntheta
         call dispersion(par,s)     
         ! End initialize
-        if (xreader) then
+        if (xmaster) then
           open(71,file=ebcfname,status='old',form='unformatted')
           open(72,file=qbcfname,status='old',form='unformatted')
         endif
@@ -319,7 +321,7 @@ elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat
 !
 ! masterprocess reads and distributes
 !
-        if (xreader) then
+        if (xmaster) then
           if (.not. allocated(gq1) ) then
               allocate(gq1(sg%ny+1),gq2(sg%ny+1),gq(sg%ny+1))
               allocate(gee1(sg%ny+1,ntheta),gee2(sg%ny+1,ntheta))
@@ -335,7 +337,7 @@ elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat
             allocate(q1(ny+1),q2(ny+1),q(ny+1))
             allocate(ee1(ny+1,ntheta),ee2(ny+1,ntheta))
         end if
-        if (xreader) then
+        if (xmaster) then
   !        write(*,*)'e1'
           read(71)gee1       ! Earlier in time
   !        write(*,*)'e2'
@@ -351,15 +353,15 @@ elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat
 ! would be cleaner if we had defined general subroutines 
 ! for this in spaceparams
 !
-        call space_distribute("y",sg,sl,gee1,ee1)
-        call space_distribute("y",sg,sl,gee2,ee2)
-        call space_distribute("y",sg,sl,gq1,q1)
-        call space_distribute("y",sg,sl,gq2,q2)
+        call space_distribute("y",sl,gee1,ee1)
+        call space_distribute("y",sl,gee2,ee2)
+        call space_distribute("y",sl,gq1,q1)
+        call space_distribute("y",sl,gq2,q2)
 #else
         ee1=gee1
-		ee2=gee2
-		q1=gq1
-		q2=gq2
+        ee2=gee2
+        q1=gq1
+        q2=gq2
 #endif
         old=floor((par%t/dtbcfile)+1.0d0)
     end if 
@@ -372,7 +374,7 @@ elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat
         ! Difference = new-old, but as the files jump 1 anyway,
         ! only do loop for difference-1 times
         do i=1,(new-old)-1
-             if(xreader) then
+             if(xmaster) then
   !            write(*,*)i,'qi'
               read(72)gq2
   !            write(*,*)i,'ei'
@@ -380,8 +382,8 @@ elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat
             endif
         end do
 #ifdef USEMPI
-        call space_distribute("y",sg,sl,gee2,ee2)
-        call space_distribute("y",sg,sl,gq2,q2)
+        call space_distribute("y",sl,gee2,ee2)
+        call space_distribute("y",sl,gq2,q2)
 #else  
         ee2=gee2
         q2=gq2
@@ -389,18 +391,18 @@ elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat
         ! Continue. Switch q2 to q1 and read new q2 
         q1=q2
         ee1=ee2
-        if (xreader) then
+        if (xmaster) then
   !        write(*,*)'read q'
           read(72)gq2
   !        write(*,*)'read e'
           read(71)gee2
         endif
 #ifdef USEMPI
-        call space_distribute("y",sg,sl,gee2,ee2)
-        call space_distribute("y",sg,sl,gq2,q2)
+        call space_distribute("y",sl,gee2,ee2)
+        call space_distribute("y",sl,gq2,q2)
 #else  
         ee2=gee2
-		q2=gq2
+        q2=gq2
 #endif
         old=new
     end if
@@ -413,7 +415,7 @@ elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat
     ui(1,:) = q/ht(1,:)*min(par%t/par%taper,1.0d0)
     ee(1,:,:)=ee(1,:,:)*min(par%t/par%taper,1.0d0)
 else
-   if (xreader) then
+   if (xmaster) then
      write(*,*)' instat = ',par%instat, ' invalid option'
    endif
 #ifdef USEMPI
@@ -421,8 +423,6 @@ else
 #endif
    stop
 endif
-
-
 
 if (par%t>0.0d0) then
     !
