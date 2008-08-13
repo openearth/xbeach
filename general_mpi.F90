@@ -55,7 +55,7 @@ module general_mpi_module
 ! openmpi.
 ! 
 
-#define USEBARRIERS
+! #define USEBARRIERS
 
 #ifdef USEBARRIERS
 #define BARRIER call MPI_Barrier(comm,ierror)
@@ -724,9 +724,9 @@ subroutine matrix_distr_sendmat_real8(a,b,is,lm,js,ln,&
 
     k = size(b)
     if (i .ne. k) then
-       print *,'process ',rank,' has a problem in matrix_distr_sendmat_real8: '
-       print *,'number of words to receive:',k
-       print *,'root expects:              ',i
+       write(*,*)'process ',rank,' has a problem in matrix_distr_sendmat_real8: '
+       write(*,*)'number of words to receive:',k
+       write(*,*)'root expects:              ',i
        call MPI_Abort(MPI_COMM_WORLD,1,ierror)
     endif
                

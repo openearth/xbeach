@@ -40,10 +40,10 @@ enddo
 
 ! and show that the values are there:
 
-print *,'nx:',s%nx
-print *,'nxz:',s%xz(1)
-print *,'x:',s%x(1,1)
-print *,'cx:',s%cx(1,1,1)
+write(*,*)'nx:',s%nx
+write(*,*)'nxz:',s%xz(1)
+write(*,*)'x:',s%x(1,1)
+write(*,*)'cx:',s%cx(1,1,1)
 
 end program demo
 
@@ -63,8 +63,8 @@ type (arraytype) :: t
 
 index = chartoindex(name)   !determine index from name
 call indextos(s,index,t)    !get info and pointer
-print *,'setting '//trim(name)//' to ',value
-print *,'some properties of '//trim(name)//':'
+write(*,*)'setting '//trim(name)//' to ',value
+write(*,*)'some properties of '//trim(name)//':'
 call printvar(t)
 !
 ! print some 

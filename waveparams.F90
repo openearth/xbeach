@@ -342,7 +342,7 @@ if(xmaster) then
   elseif (rtext == 'CDIR  ') then
       switch = 2
   else
-      print *, 'SWAN directional bins keyword not found'
+      write(*,*) 'SWAN directional bins keyword not found'
 #ifdef USEMPI
       call xmpi_abort
 #else
@@ -434,7 +434,7 @@ if(xmaster) then
   elseif (rtext == 'EnDens') then
       switch = 2
   else
-      print *, 'SWAN VaDens/EnDens keyword not found'
+      write(*,*) 'SWAN VaDens/EnDens keyword not found'
 #ifdef USEMPI
       call xmpi_abort
 #else
@@ -464,14 +464,14 @@ if(xmaster) then
       if (rtext == 'FACTOR') then
           i=1
       elseif (rtext == 'ZERO  ') then
-          print *, 'Zero energy density input for this point'
+          write(*,*) 'Zero energy density input for this point'
 #ifdef USEMPI
           call xmpi_abort
 #else
           stop
 #endif
       elseif (rtext == 'NODATA') then
-          print *, 'SWAN file has no data for this point'
+          write(*,*) 'SWAN file has no data for this point'
 #ifdef USEMPI
           call xmpi_abort
 #else

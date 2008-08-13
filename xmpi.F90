@@ -67,9 +67,12 @@ end interface xmpi_allreduce
 contains
 #ifdef USEMPI
 
-#define USE_BARRIER
+! barrier was for testing, it is better not to use barriers wwvv
+!  #define USE_BARRIER
 #ifdef USE_BARRIER
 #define BARRIER call MPI_Barrier(xmpi_comm,ierror)
+#else
+#define BARRIER ! no barrier
 #endif
 subroutine xmpi_initialize
 ! initialize mpi environment

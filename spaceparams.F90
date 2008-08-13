@@ -89,9 +89,6 @@ subroutine doeniets(sg,sl,par)
   ll=sl
   ppp=par
 
-  print *,'hallo'
-  print *,'hello'
-
 end subroutine doeniets
 
 subroutine indextos(s,index,t)
@@ -930,25 +927,25 @@ end subroutine printssums
 subroutine printssumso(s)
   type (spacepars), intent(in) :: s
 
-  print *,'Start of printssumso'
+  write(*,*)'Start of printssumso'
 
-  print *,'s%xw',sum(s%xw)
-  print *,'s%yw',sum(s%yw)
-  print *,'s%x',sum(s%x)
-  print *,'s%y',sum(s%y)
-  print *,'s%zs',sum(s%zs)
-  print *,'s%u',sum(s%u)
-  print *,'s%v',sum(s%v)
-  print *,'s%ue',sum(s%ue)
-  print *,'s%ve',sum(s%ve)
-  print *,'s%H',sum(s%H)
-  print *,'s%urms',sum(s%urms)
-  print *,'s%zb',sum(s%zb)
-  print *,'s%hh',sum(s%hh)
-  print *,'s%Fx',sum(s%Fx)
-  print *,'s%Fy',sum(s%Fy)
-  print *,'s%E',sum(s%E)
-  print *,'s%R',sum(s%R)
-  print *,'s%D',sum(s%D)
+  write(*,*)'s%xw',sum(s%xw)
+  write(*,*)'s%yw',sum(s%yw)
+  write(*,*)'s%x',sum(s%x)
+  write(*,*)'s%y',sum(s%y)
+  write(*,*)'s%zs',sum(s%zs)
+  write(*,*)'s%u',sum(s%u)
+  write(*,*)'s%v',sum(s%v)
+  write(*,*)'s%ue',sum(s%ue)
+  write(*,*)'s%ve',sum(s%ve)
+  write(*,*)'s%H',sum(s%H)
+  write(*,*)'s%urms',sum(s%urms)
+  write(*,*)'s%zb',sum(s%zb)
+  write(*,*)'s%hh',sum(s%hh)
+  write(*,*)'s%Fx',sum(s%Fx)
+  write(*,*)'s%Fy',sum(s%Fy)
+  write(*,*)'s%E',sum(s%E)
+  write(*,*)'s%R',sum(s%R)
+  write(*,*)'s%D',sum(s%D)
 end subroutine printssumso
 end module spaceparams

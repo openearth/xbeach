@@ -277,7 +277,7 @@ subroutine init_output(s,sl,par,it)
             index = chartoindex(trim(line))
             if (index/=-1) then
                 meanvec(i)=index
-                print '(a)',' meanvar: '//trim(mnemonics(index))
+                write(*,'(a)')' meanvar: '//trim(mnemonics(index))
             else
                 write(*,*)'Unknown time-average output type ',trim(line)
                 call halt_program
@@ -421,8 +421,8 @@ end subroutine init_output
   implicit none
   integer, intent(in)  :: number ! to add
   if (noutnumbers .ge. numvars) then
-    print *,'To many outnumbers asked, max is ',numvars
-    print *,'Program will stop'
+    write(*,*)'To many outnumbers asked, max is ',numvars
+    write(*,*)'Program will stop'
     call halt_program
   endif
 
@@ -438,13 +438,13 @@ subroutine add_outmnem(mnem)
   i = chartoindex(mnem)
   if (i .lt. 1 .or. i .gt. numvars) then
     if(xmaster) then
-      print *,'Warning: cannot locate variable "',mnem,'", no output for this one'
+      write(*,*)'Warning: cannot locate variable "',mnem,'", no output for this one'
     endif
     return
   endif
   call add_outnumber(i)
   if(xmaster) then
-    print *,'Will generate output for variable "',mnem,'"'
+    write(*,*)'Will generate output for variable "',mnem,'"'
   endif
   return
 end subroutine add_outmnem
@@ -526,19 +526,26 @@ subroutine var_output(it,s,sl,par)
       endif
 
       !       tpredicted=((par%tstop/par%tint)-it)*dtimestep
-      write(*,fmt='(a,f5.1,a)')'Simulation ',100.d0*par%t/par%tstop,' percent complete'
+      if(xmaster) then
+        write(*,fmt='(a,f5.1,a)')'Simulation ',100.d0*par%t/par%tstop,&
+           ' percent complete'
+      endif
 
       tpredicted=(par%tstop-par%t)/(par%tstop/500.d0)*dtimestep
-      if (dtimestep<1 .and. tpredicted<120) then 
+      if (dtimestep<1 .and. tpredicted<120 .or. .not. xmaster) then 
               ! Write nothing
       elseif (tpredicted>=3600) then 
-        write(*,fmt='(a,I3,a,I2,a)')'Time remaining ',floor(tpredicted/3600.0d0),' hours and ',&
-              nint((tpredicted-3600.0d0*floor(tpredicted/3600.0d0))/60.0d0),' minutes'
+          write(*,fmt='(a,I3,a,I2,a)')'Time remaining ',&
+            floor(tpredicted/3600.0d0),' hours and ',&
+            nint((tpredicted-3600.0d0*floor(tpredicted/3600.0d0))/60.0d0),&
+            ' minutes'
       elseif (tpredicted>=600) then
-        write(*,fmt='(a,I2,a)')'Time remaining ',floor(tpredicted/60.0d0),' minutes'
+          write(*,fmt='(a,I2,a)')'Time remaining ',&
+            floor(tpredicted/60.0d0),' minutes'
       elseif (tpredicted>=60) then
-        write(*,fmt='(a,I2,a,I2,a)')'Time remaining ',floor(tpredicted/60.0d0),' minutes and ',&
-                    nint((tpredicted-60.0d0*floor(tpredicted/60.0d0))),' seconds'
+          write(*,fmt='(a,I2,a,I2,a)')'Time remaining ',&
+            floor(tpredicted/60.0d0),' minutes and ',&
+            nint((tpredicted-60.0d0*floor(tpredicted/60.0d0))),' seconds'
       else
         write(*,fmt='(a,I2,a)')'Time remaining ',nint(tpredicted),' seconds'
       endif
