@@ -16,6 +16,8 @@
 ! SOURCE
 !
 ! wwvv never used
+!      this would be a nice place to hold things as pi, twopi
+!      and so on
 
 module constants
    implicit none

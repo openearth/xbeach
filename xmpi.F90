@@ -2,6 +2,9 @@ module xmpi_module
 #ifdef USEMPI
 use mpi
 implicit none
+#ifndef HAVE_MPI_WTIME
+real*8, external                :: MPI_Wtime
+#endif
 integer                         :: xmpi_rank    ! mpi rank of this process
 integer                         :: xmpi_size    ! number of mpi processes
 integer                         :: xmpi_comm    ! mpi communicator to use
@@ -10,6 +13,8 @@ integer                         :: xmpi_m       ! 1st dimension of processor
                                                 ! grid
 integer                         :: xmpi_n       ! 2nd dimension of processor
                                                 ! grid
+integer                         :: xmpi_pcol    ! my column in processor grid (starting at 1)
+integer                         :: xmpi_prow    ! my row    in processor grid (starting at 1)
 integer                         :: xmpi_left    ! left neighbour
 integer                         :: xmpi_right   ! right neighbour
 integer                         :: xmpi_bot     ! bottom neighbour
@@ -46,6 +51,8 @@ logical, parameter              :: xmpi_isleft  = .true.
 logical, parameter              :: xmpi_isright = .true.
 logical, parameter              :: xmpi_istop   = .true.
 logical, parameter              :: xmpi_isbot   = .true.
+integer, parameter              :: xmpi_pcol    = 1
+integer, parameter              :: xmpi_prow    = 1
 #endif
 #ifdef USEMPI
 interface xmpi_bcast
@@ -61,8 +68,29 @@ module procedure xmpi_bcast_char
 end interface xmpi_bcast
 
 interface xmpi_allreduce
-module procedure xmpi_allreduce_real8
+module procedure xmpi_allreduce_r0
 end interface xmpi_allreduce
+
+interface xmpi_reduce
+module procedure xmpi_reduce_r0
+module procedure xmpi_reduce_i0
+module procedure xmpi_reduce_r1
+module procedure xmpi_reduce_i1
+end interface xmpi_reduce
+
+interface xmpi_sendrecv
+module procedure xmpi_sendrecv_r1
+module procedure xmpi_sendrecv_r2
+module procedure xmpi_sendrecv_i1
+module procedure xmpi_sendrecv_i2
+end interface xmpi_sendrecv
+
+interface xmpi_shift
+module procedure xmpi_shift_r2
+module procedure xmpi_shift_i2
+module procedure xmpi_shift_r3
+end interface xmpi_shift
+
 #endif
 contains
 #ifdef USEMPI
@@ -136,6 +164,17 @@ implicit none
     enddo
   enddo
 
+! for testing: swap m and n
+!  i      = xmpi_m
+!  xmpi_m = xmpi_n
+!  xmpi_n = i
+
+! further testing: 
+!  xmpi_m = xmpi_size
+!  xmpi_n = 1
+!  xmpi_m = 1
+!  xmpi_n = xmpi_size
+
 ! The layout of the processors is as follows:
 ! example 12 processors, xmpi_m=3, xmpi_n=4:
 
@@ -184,6 +223,13 @@ implicit none
     xmpi_bot   = xmpi_rank + 1
     xmpi_isbot = .false.
   endif
+
+! my row and column (starting with 1,1)
+  
+  xmpi_pcol = xmpi_rank/xmpi_m
+  xmpi_prow = xmpi_rank - xmpi_pcol*xmpi_m
+  xmpi_pcol = xmpi_pcol+1
+  xmpi_prow = xmpi_prow+1
 
 end subroutine xmpi_determine_processor_grid
 
@@ -285,27 +331,287 @@ subroutine xmpi_bcast_char(x)
   BARRIER
 end subroutine xmpi_bcast_char
 
-subroutine xmpi_allreduce_real8(x,op)
+subroutine xmpi_sendrecv_r1(sendbuf,n,dest,recvbuf,source)
   implicit none
-  real*8 x
-  integer op
+  real*8, dimension(:), intent(in)  :: sendbuf
+  real*8, dimension(:), intent(out) :: recvbuf
+  integer, intent(in)               :: n           ! number of elements
+  integer, intent(in)               :: dest,source
 
-  real*8 y
-  integer ierror
+  integer                           :: ierror
+
+  call MPI_Sendrecv(sendbuf,n,MPI_DOUBLE_PRECISION,dest,100,   &
+                    recvbuf,n,MPI_DOUBLE_PRECISION,source,100, &
+                    xmpi_comm,MPI_STATUS_IGNORE,ierror)
+
+end subroutine xmpi_sendrecv_r1
+
+subroutine xmpi_sendrecv_r2(sendbuf,n,dest,recvbuf,source)
+  implicit none
+  real*8, dimension(:,:), intent(in)  :: sendbuf
+  real*8, dimension(:,:), intent(out) :: recvbuf
+  integer, intent(in)                 :: n           ! number of elements
+  integer, intent(in)                 :: dest,source
+
+  integer                             :: ierror
+
+  call MPI_Sendrecv(sendbuf,n,MPI_DOUBLE_PRECISION,dest,101,   &
+                    recvbuf,n,MPI_DOUBLE_PRECISION,source,101, &
+                    xmpi_comm,MPI_STATUS_IGNORE,ierror)
+
+end subroutine xmpi_sendrecv_r2
+
+subroutine xmpi_sendrecv_i1(sendbuf,n,dest,recvbuf,source)
+  implicit none
+  integer, dimension(:), intent(in)  :: sendbuf
+  integer, dimension(:), intent(out) :: recvbuf
+  integer, intent(in)                :: n           ! number of elements
+  integer, intent(in)                :: dest,source
+
+  integer                            :: ierror
+
+  call MPI_Sendrecv(sendbuf,n,MPI_INTEGER,dest,102,   &
+                    recvbuf,n,MPI_INTEGER,source,102, &
+                    xmpi_comm,MPI_STATUS_IGNORE,ierror)
+
+end subroutine xmpi_sendrecv_i1
+
+subroutine xmpi_sendrecv_i2(sendbuf,n,dest,recvbuf,source)
+  implicit none
+  integer, dimension(:,:), intent(in)  :: sendbuf
+  integer, dimension(:,:), intent(out) :: recvbuf
+  integer, intent(in)                  :: n           ! number of elements
+  integer, intent(in)                  :: dest,source
+
+  integer                              :: ierror
+
+  call MPI_Sendrecv(sendbuf,n,MPI_INTEGER,dest,103,   &
+                    recvbuf,n,MPI_INTEGER,source,103, &
+                    xmpi_comm,MPI_STATUS_IGNORE,ierror)
+
+end subroutine xmpi_sendrecv_i2
+
+subroutine xmpi_allreduce_r0(x,op)
+  implicit none
+  real*8  :: x
+  integer :: op
+
+  real*8  :: y
+  integer :: ierror
   y = x
-  if(xmpi_comm .ne. MPI_COMM_WORLD) then
-  100 continue
-  goto 100
-  endif
   call MPI_Allreduce(y,x,1,MPI_DOUBLE_PRECISION,op,xmpi_comm,ierror)
   BARRIER
-end subroutine xmpi_allreduce_real8
+end subroutine xmpi_allreduce_r0
+
+subroutine xmpi_reduce_r0(x,y,op)
+  implicit none
+  real*8  :: x,y
+  integer :: op
+
+  integer :: ierror
+  call MPI_Reduce(x,y,1,MPI_DOUBLE_PRECISION,op,xmpi_master,xmpi_comm,ierror)
+  BARRIER
+end subroutine xmpi_reduce_r0
+
+subroutine xmpi_reduce_r1(x,y,op)
+  implicit none
+  real*8,dimension(:)  :: x,y
+  integer              :: op
+
+  integer :: ierror
+  call MPI_Reduce(x,y,size(x),MPI_DOUBLE_PRECISION,op,xmpi_master,xmpi_comm,ierror)
+  BARRIER
+end subroutine xmpi_reduce_r1
+
+subroutine xmpi_reduce_i0(x,y,op)
+  implicit none
+  integer  :: x,y
+  integer  :: op
+
+  integer :: ierror
+  call MPI_Reduce(x,y,1,MPI_INTEGER,op,xmpi_master,xmpi_comm,ierror)
+  BARRIER
+end subroutine xmpi_reduce_i0
+
+subroutine xmpi_reduce_i1(x,y,op)
+  implicit none
+  integer,dimension(:)  :: x,y
+  integer               :: op
+
+  integer :: ierror
+  call MPI_Reduce(x,y,size(x),MPI_INTEGER,op,xmpi_master,xmpi_comm,ierror)
+  BARRIER
+end subroutine xmpi_reduce_i1
+
+! 
+! shift routines:  x(m,n) is the matrix in this process
+! direction = 'u': shift up,    send to top   x(2,:) ,  receive from bot   x(m,:)
+! direction = 'd': shift down,  send to bot   x(m-1,:), receive from top   x(1,:)
+! direction = 'l': shift left,  send to left  x(:,2),   receive from right x(:,n)
+! direction = 'r': shift right, send to right x(:,n-1), receive from left  x(:,1)
+!
+! also 'm:', '1:', ':n' and ':1' can be used, easier to remember:
+! 'm:' :  x(m,:) will be replaced, except for a far bottom process
+! '1:' :  x(1,:) will be replaced, except for a far top process
+! ':n' :  x(:,n) will be replaced, except for a far right process
+! ':1' :  x(:,1) will be replaced, except for a for left process
+
+subroutine xmpi_shift_r2(x,direction)
+  implicit none
+  real*8, dimension (:,:)   :: x
+  character(len=*)          :: direction
+
+  integer                   :: m,n
+
+  m = size(x,1)
+  n = size(x,2)
+
+  select case(direction)
+    case('u','m:')
+      call xmpi_sendrecv(x(2,:),n,xmpi_top,    x(m,:),xmpi_bot)
+    case('d','1:')
+      call xmpi_sendrecv(x(m-1,:),n,xmpi_bot,  x(1,:),xmpi_top)
+    case('l',':n')
+      call xmpi_sendrecv(x(:,2),m,xmpi_left,   x(:,n),xmpi_right)
+    case('r',':1')
+      call xmpi_sendrecv(x(:,n-1),m,xmpi_right,x(:,1),xmpi_left)
+    case default
+      if(xmaster) then
+        write (*,*) 'Invalid direction parameter for xmpi_shift_r2: "'// &
+                    direction//'"'
+        call halt_program
+      endif
+  end select
+  
+end subroutine xmpi_shift_r2
+
+subroutine xmpi_shift_i2(x,direction)
+  implicit none
+  integer, dimension (:,:)   :: x
+  character(len=*)          :: direction
+
+  integer                   :: m,n
+
+  m = size(x,1)
+  n = size(x,2)
+
+  select case(direction)
+    case('u','m:')
+      call xmpi_sendrecv(x(2,:),n,xmpi_top,    x(m,:),xmpi_bot)
+    case('d','1:')
+      call xmpi_sendrecv(x(m-1,:),n,xmpi_bot,  x(1,:),xmpi_top)
+    case('l',':n')
+      call xmpi_sendrecv(x(:,2),m,xmpi_left,   x(:,n),xmpi_right)
+    case('r',':1')
+      call xmpi_sendrecv(x(:,n-1),m,xmpi_right,x(:,1),xmpi_left)
+    case default
+      if(xmaster) then
+        write (*,*) 'Invalid direction parameter for xmpi_shift_r2: "'// &
+                    direction//'"'
+        call halt_program
+      endif
+  end select
+  
+end subroutine xmpi_shift_i2
+
+subroutine xmpi_shift_r3(x,direction)
+  implicit none
+  real*8, dimension (:,:,:)   :: x
+  character(len=*)           :: direction
+
+  integer                     :: m,n,l
+
+  m = size(x,1)
+  n = size(x,2)
+  l = size(x,3)
+
+  select case(direction)
+    case('u','m:')
+      call xmpi_sendrecv(x(2,:,:),  l*n,xmpi_top,    x(m,:,:),xmpi_bot)
+    case('d','1:')
+      call xmpi_sendrecv(x(m-1,:,:),l*n,xmpi_bot,  x(1,:,:),xmpi_top)
+    case('l',':n')
+      call xmpi_sendrecv(x(:,2,:),  l*m,xmpi_left,   x(:,n,:),xmpi_right)
+    case('r',':1')
+      call xmpi_sendrecv(x(:,n-1,:),l*m,xmpi_right,x(:,1,:),xmpi_left)
+    case default
+      if(xmaster) then
+        write (*,*) 'Invalid direction parameter for xmpi_shift_r2: "'// &
+                    direction//'"'
+        call halt_program
+      endif
+  end select
+  
+end subroutine xmpi_shift_r3
 
 subroutine xmpi_barrier
   implicit none
   integer ierror
   call MPI_Barrier(xmpi_comm,ierror)
 end subroutine xmpi_barrier
+!
+! get a row from a matrix in the same processor column
+!
+subroutine xmpi_getrow(a,n,l,prow,b)
+  implicit none
+  real*8, dimension(:,:), intent(in) :: a ! the matrix
+  integer, intent(in)                :: n ! number of elements in the row
+  character, intent(in)              :: l ! '1': get first row
+                                          ! 'm': get last row
+  integer, intent(in)                :: prow ! row number of process
+                                             ! to get the row from
+  real*8, dimension(:), intent(out)  :: b ! the row from process prow
+
+  ! Note: a and l are only needed at the sending process
+
+  integer                            :: row,ierror
+  integer                            :: ll,dest,source,tag,r
+  real*8, allocatable, dimension(:)  :: rowdata
+  integer, allocatable, dimension(:) :: requests
+
+  source = (xmpi_pcol-1)*xmpi_m + prow -1 ! Sending process
+  ll = 1
+
+  if (source .eq. xmpi_rank) then  ! the sending process
+    select case(l)
+    case('1')
+      ll = 1
+    case('m')
+      ll = size(a,1)
+    case default
+      write(*,*) 'Error in xmpi_getrow, l="'//l//'"'
+      call halt_program
+    end select
+
+    ! need a contiguous sendbuffer
+    allocate(rowdata(n))
+    rowdata = a(ll,:)
+    allocate(requests(xmpi_m-1))
+    dest = (xmpi_pcol-1)*xmpi_m    ! First receiving process
+    r = 0
+    do row = 1,xmpi_m
+      if (dest .eq. xmpi_rank) then       ! do no send to myself
+        b = rowdata                       ! but copy
+      else
+        r = r + 1
+        tag = dest
+        call MPI_Isend(rowdata(1), n, MPI_DOUBLE_PRECISION,  &
+          dest, tag, xmpi_comm, requests(r), ierror)
+      endif
+      dest = dest + 1                     ! next receiving process
+    enddo
+    call MPI_Waitall(r,requests,MPI_STATUSES_IGNORE,ierror)
+    deallocate(requests,rowdata)
+  else                                    ! receiving process
+    tag = xmpi_rank
+    call MPI_Recv(b, n, MPI_DOUBLE_PRECISION,  &
+       source, tag, xmpi_comm, MPI_STATUS_IGNORE, ierror)
+  endif
+
+  ! wwvv if this is needed often, than a neat subroutine, using
+  !  column communicators and MPI_Bcast would be appropriate 
+
+end subroutine xmpi_getrow
 
 #endif
 subroutine halt_program

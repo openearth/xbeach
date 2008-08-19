@@ -123,6 +123,13 @@ logical xmpi_isleft, xmpi_isright, xmpi_istop, xmpi_isbot:
           xmpi_istop:   .true.: a(1,:) is subset of A(1,:)
           xmpi_isbot:   .true.: a(m,:) is subset of A(M,:)
 
+integer xmpi_prow, xmpi_pcol:
+          serial version:    1, 1
+	  parallel version:
+
+	  xmpi_prow:  row number of this process in processor grid
+	  xmpi_pcol:  column number of this processor in processor grid
+
 sglobal and slocal
 ==================
 

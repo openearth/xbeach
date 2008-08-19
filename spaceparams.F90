@@ -58,6 +58,12 @@ interface space_collect
   module procedure space_collect_matrix_real8
 end interface space_collect
 
+interface compare
+  module procedure comparei2
+  module procedure comparer2
+  module procedure comparer3
+end interface compare
+
 #endif
 
 interface printsum
@@ -280,6 +286,341 @@ subroutine grid_bathy(s,par)
 end subroutine grid_bathy                         
 
 #ifdef USEMPI
+
+!
+! consistency check: in general, all distributed matrices and blocks
+! should have the following properties:
+!
+!  a  is distributed matrix in this process
+!  al is distributed matrix in left neighbour process
+!  ar is distributed matrix in right neighbour process
+!  at is distributed matrix in top neighbour process
+!  ab is distributed matrix in bottom neighbour process
+!
+!  a(:,2) = al(:,ny+1)
+!  a(2,:) = at(nx+1,:)
+!  except the first and last elements of these arrays
+!  
+!
+!  When all these checks are ok on every process, automatically care 
+! has been taken for the other neighbours
+
+!
+! constencycheck for mnem
+! if mnem = 'ALL' then all
+subroutine space_consistency(s,mnem)
+use mnemmodule
+implicit none
+type(spacepars)  :: s
+character(len=*) :: mnem
+integer          :: j,jmin,jmax
+type(arraytype)  :: t
+
+if(mnem .eq. 'ALL') then
+  jmin = 1
+  jmax = numvars
+else
+  jmin = chartoindex(mnem)
+  jmax = jmin
+endif
+do j=jmin,jmax
+  call indextos(s,j,t)
+  select case(t%type)
+    case('r')
+      select case (t%rank)
+        case(0)
+          !call compare(t%r0,t%name)
+        case(1)
+          !call compare(t%r1,t%name)
+        case(2)
+          call compare(t%r2,t%name)
+        case(3)
+          call compare(t%r3,t%name)
+        case(4)
+          !call compare(t%r4,t%name)
+      end select ! rank
+    case('i')
+      select case (t%rank)
+        case(0)
+          !call compare(t%i0,t%name)
+        case(1)
+          !call compare(t%i1,t%name)
+        case(2)
+          call compare(t%i2,t%name)
+        case(3)
+          !call compare(t%i3,t%name)
+        case(4)
+          !call compare(t%i4,t%name)
+      end select ! rank
+  end select ! type
+enddo
+
+end subroutine space_consistency
+
+subroutine comparer2(x,s)
+  use xmpi_module
+  use mnemmodule
+  implicit none
+  real*8, dimension(:,:) :: x
+  character(len=*)       :: s
+
+  real*8, parameter     :: eps=1.0d-60
+  integer               :: m
+  integer               :: n
+  real*8, dimension(:), allocatable :: c
+  real*8, dimension(:), allocatable :: r
+  real*8, dimension(2)  :: dif,difmax
+  character*100         :: warning
+
+  select case(s)
+    case (mnem_tideinpz)
+      return
+  end select
+  m=size(x,1)
+  n=size(x,2)
+  allocate(c(m))
+  allocate(r(n))
+  c = x(:,1)
+  call xmpi_shift(x,':1')
+
+  dif(1) = sum(abs(c(2:m-1)-x(2:m-1,1)))
+  dif(2) = sum(abs(c(1:m  )-x(1:m  ,1)))
+  x(:,1) = c
+
+  call xmpi_reduce(dif,difmax,MPI_SUM)
+
+  if(xmaster) then
+    warning=''
+    if (sum(difmax) .gt. eps) then
+      warning = '<===++++++++++++++++++++++'
+    endif
+    write (*,*) 'compare (:,1) '//trim(s)//': ',difmax,trim(warning)
+  endif
+
+  c = x(:,n)
+  call xmpi_shift(x,':n')
+
+  dif(1) = sum(abs(c(2:m-1)-x(2:m-1,n)))
+  dif(2) = sum(abs(c(1:m  )-x(1:m  ,n)))
+  x(:,n) = c
+
+  call xmpi_reduce(dif,difmax,MPI_SUM)
+
+  if(xmaster) then
+    warning=''
+    if (sum(difmax) .gt. eps) then
+      warning = '<===++++++++++++++++++++++'
+    endif
+    write (*,*) 'compare (:,n) '//trim(s)//': ',difmax,trim(warning)
+  endif
+  r = x(1,:)
+  call xmpi_shift(x,'1:')
+
+  dif(1) = sum(abs(r(2:n-1)-x(1,2:n-1)))
+  dif(2) = sum(abs(r(1:n  )-x(1,1:n  )))
+  x(1,:) = r
+
+  call xmpi_reduce(dif,difmax,MPI_SUM)
+
+  if(xmaster) then
+    warning=''
+    if (sum(difmax) .gt. eps) then
+      warning = '<===++++++++++++++++++++++'
+    endif
+    write (*,*) 'compare (1,:) '//trim(s)//': ',difmax,trim(warning)
+  endif
+
+  r = x(m,:)
+  call xmpi_shift(x,'m:')
+
+  dif(1) = sum(abs(r(2:n-1)-x(m,2:n-1)))
+  dif(2) = sum(abs(r(1:n  )-x(m,1:n  )))
+  x(m,:) = r
+
+  call xmpi_reduce(dif,difmax,MPI_SUM)
+
+  if(xmaster) then
+    warning=''
+    if (sum(difmax) .gt. eps) then
+      warning = '<===++++++++++++++++++++++'
+    endif
+    write (*,*) 'compare (m,:) '//trim(s)//': ',difmax,trim(warning)
+  endif
+end subroutine comparer2
+
+subroutine comparei2(x,s)
+  use xmpi_module
+  implicit none
+  integer, dimension(:,:) :: x
+  character(len=*)       :: s
+  integer, parameter    :: eps=0
+
+  integer               :: m
+  integer               :: n
+  integer, dimension(:), allocatable :: c
+  integer, dimension(:), allocatable :: r
+  integer, dimension(2) :: dif,difmax
+  character*100         :: warning
+
+  m=size(x,1)
+  n=size(x,2)
+  allocate(c(m))
+  allocate(r(n))
+  c = x(:,1)
+  call xmpi_shift(x,':1')
+
+  dif(1) = sum(abs(c(2:m-1)-x(2:m-1,1)))
+  dif(2) = sum(abs(c(1:m  )-x(1:m  ,1)))
+  x(:,1) = c
+
+  call xmpi_reduce(dif,difmax,MPI_SUM)
+
+  if(xmaster) then
+    warning=''
+    if (sum(difmax) .gt. eps) then
+      warning = '<===++++++++++++++++++++++'
+    endif
+    write (*,*) 'compare (:,1) '//trim(s)//': ',difmax,trim(warning)
+  endif
+
+  c = x(:,n)
+  call xmpi_shift(x,':n')
+
+  dif(1) = sum(abs(c(2:m-1)-x(2:m-1,n)))
+  dif(2) = sum(abs(c(1:m  )-x(1:m  ,n)))
+  x(:,n) = c
+
+  call xmpi_reduce(dif,difmax,MPI_SUM)
+
+  if(xmaster) then
+    warning=''
+    if (sum(difmax) .gt. eps) then
+      warning = '<===++++++++++++++++++++++'
+    endif
+    write (*,*) 'compare (:,n) '//trim(s)//': ',difmax,trim(warning)
+  endif
+  r = x(1,:)
+  call xmpi_shift(x,'1:')
+
+  dif(1) = sum(abs(r(2:n-1)-x(1,2:n-1)))
+  dif(2) = sum(abs(r(1:n  )-x(1,1:n  )))
+  x(1,:) = r
+
+  call xmpi_reduce(dif,difmax,MPI_SUM)
+
+  if(xmaster) then
+    warning=''
+    if (sum(difmax) .gt. eps) then
+      warning = '<===++++++++++++++++++++++'
+    endif
+    write (*,*) 'compare (1,:) '//trim(s)//': ',difmax,trim(warning)
+  endif
+
+  r = x(m,:)
+  call xmpi_shift(x,'m:')
+
+  dif(1) = sum(abs(r(2:n-1)-x(m,2:n-1)))
+  dif(2) = sum(abs(r(1:n  )-x(m,1:n  )))
+  x(m,:) = r
+
+  call xmpi_reduce(dif,difmax,MPI_SUM)
+
+  if(xmaster) then
+    warning=''
+    if (sum(difmax) .gt. eps) then
+      warning = '<===++++++++++++++++++++++'
+    endif
+    write (*,*) 'compare (m,:) '//trim(s)//': ',difmax,trim(warning)
+  endif
+end subroutine comparei2
+
+subroutine comparer3(x,s)
+use xmpi_module
+  implicit none
+  real*8, dimension(:,:,:) :: x
+  character(len=*)       :: s
+
+  real*8, parameter     :: eps=1.0d-60
+  integer               :: m,n,l
+  real*8, dimension(:,:), allocatable :: c
+  real*8, dimension(:,:), allocatable :: r
+  real*8, dimension(2)  :: dif,difmax
+  character*100         :: warning
+
+  m=size(x,1)
+  n=size(x,2)
+  l=size(x,3)
+
+  allocate(c(m,l))
+  allocate(r(n,l))
+  c = x(:,1,:)
+  call xmpi_shift(x,':1')
+
+  dif(1) = sum(abs(c(2:m-1,:)-x(2:m-1,1,:)))
+  dif(2) = sum(abs(c(1:m,:)  -x(1:m  ,1,:)))
+  x(:,1,:) = c
+
+  call xmpi_reduce(dif,difmax,MPI_SUM)
+
+  if(xmaster) then
+    warning=''
+    if (sum(difmax) .gt. eps) then
+      warning = '<===++++++++++++++++++++++'
+    endif
+    write (*,*) 'compare (:,1) '//trim(s)//': ',difmax,trim(warning)
+  endif
+
+  c = x(:,n,:)
+  call xmpi_shift(x,':n')
+
+  dif(1) = sum(abs(c(2:m-1,:)-x(2:m-1,n,:)))
+  dif(2) = sum(abs(c(1:m  ,:)-x(1:m  ,n,:)))
+  x(:,n,:) = c
+
+  call xmpi_reduce(dif,difmax,MPI_SUM)
+
+  if(xmaster) then
+    warning=''
+    if (sum(difmax) .gt. eps) then
+      warning = '<===++++++++++++++++++++++'
+    endif
+    write (*,*) 'compare (:,n) '//trim(s)//': ',difmax,trim(warning)
+  endif
+
+  r = x(1,:,:)
+  call xmpi_shift(x,'1:')
+
+  dif(1) = sum(abs(r(2:n-1,:)-x(1,2:n-1,:)))
+  dif(2) = sum(abs(r(1:n  ,:)-x(1,1:n  ,:)))
+  x(1,:,:) = r
+
+  call xmpi_reduce(dif,difmax,MPI_SUM)
+
+  if(xmaster) then
+    warning=''
+    if (sum(difmax) .gt. eps) then
+      warning = '<===++++++++++++++++++++++'
+    endif
+    write (*,*) 'compare (1,:) '//trim(s)//': ',difmax,trim(warning)
+  endif
+
+  r = x(m,:,:)
+  call xmpi_shift(x,'m:')
+
+  dif(1) = sum(abs(r(2:n-1,:)-x(m,2:n-1,:)))
+  dif(2) = sum(abs(r(1:n  ,:)-x(m,1:n  ,:)))
+  x(m,:,:) = r
+
+  call xmpi_reduce(dif,difmax,MPI_SUM)
+
+  if(xmaster) then
+    warning=''
+    if (sum(difmax) .gt. eps) then
+      warning = '<===++++++++++++++++++++++'
+    endif
+    write (*,*) 'compare (m,:) '//trim(s)//': ',difmax,trim(warning)
+  endif
+end subroutine comparer3
 
 ! copies scalars from sg to sl on xmaster, and distributes
 ! them 
@@ -681,6 +1022,15 @@ subroutine space_shift_borders_block_real8(a)
   enddo
 end subroutine space_shift_borders_block_real8
 
+!
+! wwvv a subtle point with the collect subroutines: the first
+! argument: the matrix wherein the submatrices are to be collected,
+! does not have to be available on the non-master processes, so
+! the dimensions are not defined. 
+! The second argument is always defined, on master and non-master
+! processes, so its dimensions (notably the 3rd in the block subroutines
+! are available
+! 
 subroutine space_collect_block_real8(s,a,b)
   use general_mpi_module
   use xmpi_module
@@ -690,7 +1040,7 @@ subroutine space_collect_block_real8(s,a,b)
   real*8, dimension(:,:,:), intent(in)   :: b
 
   integer i
-  do i = 1,size(a,3)
+  do i = 1,size(b,3)
     call matrix_coll(a(:,:,i),b(:,:,i),s%is,s%lm,s%js,s%ln, &
                    s%isleft,s%isright,s%istop,s%isbot, &
                    xmpi_master,xmpi_comm)
@@ -707,8 +1057,8 @@ subroutine space_collect_block4_real8(s,a,b)
   real*8, dimension(:,:,:,:), intent(in)   :: b
 
   integer i,j
-  do j = 1,size(a,4)
-    do i = 1,size(a,3)
+  do j = 1,size(b,4)
+    do i = 1,size(b,3)
       call matrix_coll(a(:,:,i,j),b(:,:,i,j),s%is,s%lm,s%js,s%ln, &
                    s%isleft,s%isright,s%istop,s%isbot, &
                    xmpi_master,xmpi_comm)

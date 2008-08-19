@@ -4,7 +4,7 @@ wave_stationary.o: wave_stationary.F90 s.ind s.inp wave_timestep.o xmpi.o params
 roelvink.o: roelvink.F90  params.o spaceparams.o
 readkey.o: readkey.F90  xmpi.o
 constants.o: constants.F90  
-wave_timestep.o: wave_timestep.F90 s.ind s.inp xmpi.o params.o roelvink.o spaceparams.o
+wave_timestep.o: wave_timestep.F90 s.ind s.inp spaceparams.o xmpi.o mnemonic.o params.o roelvink.o
 timestep.o: timestep.F90  params.o spaceparams.o xmpi.o
 math_tools.o: math_tools.F90  xmpi.o
 testgenmodule.o: testgenmodule.F90  general_mpi.o xmpi.o

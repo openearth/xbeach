@@ -30,9 +30,6 @@ subroutine flow_timestep(s,par)
 use params
 use spaceparams
 use xmpi_module
-#ifdef USEMPI
-use mpi
-#endif
 
 IMPLICIT NONE
 
@@ -49,6 +46,8 @@ real*8,dimension(:,:),allocatable,save  :: us,vs
 real*8,dimension(:,:),allocatable,save  :: nuh
 real*8                                  :: dudx1,dudx2,dudy1,dudy2
 real*8                                  :: dvdy1,dvdy2,dvdx1,dvdx2  !Jaap
+
+integer                                 :: imax
 
 include 's.ind'
 include 's.inp'
@@ -128,6 +127,16 @@ endif
                 dzsdy(i,j)=(zs(i,j+1)-zs(i,j))/(yz(j+1)-yz(j))    
         end do
     end do 
+
+    ! wwvv in the next lines
+    !  hu(i,j) is more or less a function of hh(i+1,j)
+    !  In the parallel case, this needs some action because
+    !  for processes not at the bottom, the last row of
+    !  hu (hu(nx+1,:)) has to be taken from the neighbour below
+    !  hu is used later on in this subroutine, so we have to insert
+    !  an mpi call.
+    !  The same for hum
+    ! Of course, no action is necessary if hu(nx+1:) is never used...
     do j=1,ny+1
         do i=1,nx+1 !Ap
             ! Water depth in u-points do momentum equation: mean
@@ -145,6 +154,13 @@ endif
             end if           
         end do 
     end do
+    ! wwvv here the mpi code to communicate a row of hu
+    ! we send to the neighbour above and receive from the neighbour
+    ! below:
+#ifdef USEMPI
+    call xmpi_shift(hu ,'m:')
+    call xmpi_shift(hum,'m:')
+#endif
     ! Wetting and drying criterion (only do momentum balance)
     do j=1,ny+1
         do i=1,nx+1
@@ -155,6 +171,11 @@ endif
             end if
         end do
     end do
+    ! wwvv about the same for hv, only in the left-right direction
+    ! hv(i,j) is more or less a function of hh(i,j+1)
+    ! so in the parallel case, hv(:,ny+1) has to be collected
+    ! from the right neighbour
+    ! the same for hvm
     do j=1,ny+1
         do i=1,nx+1
             ! Water depth in v-points do momentum equation: mean
@@ -170,6 +191,11 @@ endif
             end if           
         end do 
     end do
+    ! send to the left, read from the right
+#ifdef USEMPI
+    call xmpi_shift(hv ,':n')
+    call xmpi_shift(hvm,':n')
+#endif
     ! Wetting and drying criterion (only do momentum balance)
     do j=1,ny+1
         do i=1,nx+1
@@ -195,6 +221,13 @@ endif
             end if           
         end do 
     end do
+    ! wwvv fix border rows and columns of ududx
+#ifdef USEMPI
+    call xmpi_shift(ududx,'1:')
+    call xmpi_shift(ududx,'m:')
+    call xmpi_shift(ududx,':1')
+    call xmpi_shift(ududx,':n')
+#endif
     !do j=2,ny
     !    do i=1,nx
     !        ! Advection terms (momentum conserving method) --> not exactly as in Stelling and Duinmeijer
@@ -213,15 +246,29 @@ endif
             endif
         end do 
     end do
+    ! wwvv fix border rows and columns of vdudy
+#ifdef USEMPI
+    ! call xmpi_shift(vdudy,'1:') ! not necessary wwvv
+    call xmpi_shift(vdudy,'m:')
+    call xmpi_shift(vdudy,':1')
+    call xmpi_shift(vdudy,':n')
+#endif
     !
     do j=2,ny
         do i=2,nx
             nuh(i,j) = par%nuh + par%nuhfac*hh(i,j)*(DR(i,j)/par%rho)**(1.0d0/3.0d0) !Robert en Jaap; increase eddy viscosity by wave induced breaking as in Reniers 2004
             dudx1 = (uu(i+1,j)-uu(i,j))/(xu(i+1)-xu(i))
             dudx2 = (uu(i,j)-uu(i-1,j))/(xu(i)-xu(i-1)) 
-            viscu(i,j) = nuh(i,j)*( 2*(dudx1-dudx2)/(xu(i+1)-xu(i-1)) )*wetu(i+1,j)*wetu(i-1,j)  !Set viscu = 0.0 near water line            
+            viscu(i,j) = nuh(i,j)*( 2*(dudx1-dudx2)/(xu(i+1)-xu(i-1)) )*wetu(i+1,j)*wetu(i-1,j)  !Set viscu = 0.0 near water line   wwvv: viscu is overwritten in next loopnest before it is used
         end do 
     end do
+    ! wwvv fix border rows and columns of nuh viscu is not used, so not for viscu
+#ifdef USEMPI
+    ! call xmpi_shift(nuh,'1:') ! second thought: not needed, (2:nx,2:ny) are used
+    ! call xmpi_shift(nuh,'m:')
+    ! call xmpi_shift(nuh,':1')
+    ! call xmpi_shift(nuh,':n')
+#endif
     do j=2,ny
         do i=2,nx
             dudy1 = (uu(i,j+1)-uu(i,j))/(yz(j+1)-yz(j))
@@ -229,11 +276,26 @@ endif
             viscu(i,j) = viscu(i,j) + nuh(i,j)*( 2*(dudy1-dudy2)/(yz(j+1)-yz(j-1)) )*wetu(i,j+1)*wetu(i,j-1)
         end do 
     end do
+    ! wwvv fix border rows and columns of viscu
+#ifdef USEMPI
+    ! call xmpi_shift(viscu,'1:') ! second thought: not needed, (2:nx,2:ny) are used
+    ! call xmpi_shift(viscu,'m:')
+    ! call xmpi_shift(viscu,':1')
+    ! call xmpi_shift(viscu,':n')
+#endif
     !
     ! Explicit Euler step momentum u-direction
     !
     do j=2,ny
-        do i=2,nx-1
+        ! do i=2,nx-1   ! wwvv uu(nx,:) is never computed in this subroutine, is that ok?
+          if (xmpi_isbot) then
+            imax = nx-1
+          else
+            imax=nx
+          endif
+          do i=2,imax   ! wwvv with this modification, parallel and serial version
+                      ! give the same results. If this modification is not ok, then
+                      ! we have a problem
             if(wetu(i,j)==1) then
                 uu(i,j)=uu(i,j)-par%dt*(ududx(i,j)+vdudy(i,j)-viscu(i,j) & !Ap,Robert,Jaap 
                     + par%g*dzsdx(i,j) &
@@ -246,6 +308,16 @@ endif
             end if
         end do 
     end do
+! wwvv since the loops range from 2:nx-1 , 2:ny we have to do something in the
+!  parallel case
+#ifdef USEMPI
+    ! wwvv qx is used later on, also the first row, fix the first row
+    ! of uu first
+    call xmpi_shift(uu,'1:')
+    call xmpi_shift(uu,'m:')
+    call xmpi_shift(uu,':1')
+    call xmpi_shift(uu,':n')
+#endif
     ! Flux in u-point
     qx=uu*hu
     !
@@ -329,6 +401,8 @@ endif
         end do 
     end do
     ! Flux in v-points
+    ! first column of qy is used later, and it is defined in the loop above
+    ! no communication  necessary at this point
     qy=vv*hv
     !
         ! do non-hydrostatic pressure compensation to solve short waves
@@ -357,7 +431,7 @@ endif
     zs(1:nx+1,1)=zs(1:nx+1,2) - (zs0(:,ny+1)-zs0(:,1))/(yz(ny+1)-yz(1))*(yz(2)-yz(1))
     uu(1:nx+1,1)=uu(1:nx+1,2) !Jaap nx instead of nx+1
     if (par%right==1) then
-       vv(2:nx+1,1) = 0.d0
+      vv(2:nx+1,1) = 0.d0
     endif
     !
     ! Lateral boundary at y=ny*dy;
@@ -365,22 +439,68 @@ endif
     zs(1:nx+1,ny+1)=zs(1:nx+1,ny) + (zs0(:,ny+1)-zs0(:,1))/(yz(ny+1)-yz(1))*(yz(ny+1)-yz(ny))
     uu(1:nx+1,ny+1)=uu(1:nx+1,ny) !Jaap nx instead of nx+1
     if (par%left==1) then
-       vv(2:nx+1,ny) = 0.d0
+      vv(2:nx+1,ny) = 0.d0       ! wwvv for symmetry reasons: why not ny+1
     endif
+! wwvv zs, uu, vv have to be communicated now, because they are used later on
+#ifdef USEMPI
+    call xmpi_shift(uu,':1')
+    call xmpi_shift(uu,':n')
+    call xmpi_shift(uu,'1:')
+    call xmpi_shift(uu,'m:')
+    call xmpi_shift(vv,':1')
+    call xmpi_shift(vv,':n')
+    call xmpi_shift(vv,'1:')
+    call xmpi_shift(vv,'m:')
+    call xmpi_shift(zs,':1')
+    call xmpi_shift(zs,':n')
+    call xmpi_shift(zs,'1:')
+    call xmpi_shift(zs,'m:')
+    call xmpi_shift(dzsdt,':1')  ! wwvv dzsdt maybe not necessary because first and last columns are not used
+    call xmpi_shift(dzsdt,':n')
+    call xmpi_shift(dzsdt,'1:')
+    call xmpi_shift(dzsdt,'m:')
+    call xmpi_shift(qx,':1')  ! wwvv qx maybe not necessary because first and last columns are not used
+    call xmpi_shift(qx,':n')
+    call xmpi_shift(qx,'1:')
+    call xmpi_shift(qx,'m:')
+    call xmpi_shift(qy,':1')  
+    call xmpi_shift(qy,':n')
+    call xmpi_shift(qy,'1:')! wwvv qy maybe not necessary because first and last rows are not used
+    call xmpi_shift(qy,'m:')
+#endif
         ! offshore boundary
     !
     ! U and V in cell centre; do output and sediment stirring
     !
     u(2:nx,:)=0.5d0*(uu(1:nx-1,:)+uu(2:nx,:))
-    u(1,:)=uu(1,:)
+    if(xmpi_istop) then
+      u(1,:)=uu(1,:)
+    endif
     !Ap
-    u(nx+1,:)=u(nx,:)
+    if(xmpi_isbot) then
+      u(nx+1,:)=u(nx,:)
+    endif
+#ifdef USEMPI
+    call xmpi_shift(u,'1:')
+    call xmpi_shift(u,'m:')
+    call xmpi_shift(u,':1')
+    call xmpi_shift(u,':n')
+#endif
+
     v(:,2:ny)=0.5d0*(vv(:,1:ny-1)+vv(:,2:ny)) !Jaap: ny+1
     v(:,1)=vv(:,1)
     
     !Ap
-    v(nx+1,:)=v(nx,:)
-        ! Robert + Jaap: compute derivaties of u and v
+    v(nx+1,:)=v(nx,:)   ! wwvv symmetry: why not v(:,ny+1) = v(:,ny)
+
+#ifdef USEMPI
+    call xmpi_shift(v,':1')
+    call xmpi_shift(v,':n')
+    call xmpi_shift(v,'1:') 
+    call xmpi_shift(v,'m:') 
+#endif
+
+        ! Robert + Jaap: compute derivatives of u and v
         !
     ! V-velocities at u-points
     vu(1:nx,2:ny)= &                         
@@ -389,18 +509,37 @@ endif
     ! how about boundaries?
     vu(:,1) = vu(:,2)
     vu(:,ny+1) = vu(:,ny)
+    ! wwvv fill in vu(:1) and vu(:ny+1) for non-left and non-right processes
+    !  and vu(nx+1,:)
+#ifdef USEMPI
+    call xmpi_shift(vu,':1')
+    call xmpi_shift(vu,':n')
+    call xmpi_shift(vu,'m:')
+#endif
     vu=vu*wetu
     ! V-stokes velocities at U point
     vsu(1:nx,2:ny)=0.5d0*(ust(1:nx,2:ny)*sin(thetamean(1:nx,2:ny))+ &
         ust(2:nx+1,2:ny)*sin(thetamean(2:nx+1,2:ny)))
     vsu(:,1)=vsu(:,2)
     vsu(:,ny+1) = vsu(:,ny)
+    ! wwvv same for vsu
+#ifdef USEMPI
+    call xmpi_shift(vsu,':1')
+    call xmpi_shift(vsu,':n')
+    call xmpi_shift(vsu,'m:')
+#endif
     vsu = vsu*wetu
     ! U-stokes velocities at U point
     usu(1:nx,2:ny)=0.5d0*(ust(1:nx,2:ny)*cos(thetamean(1:nx,2:ny))+ &
         ust(2:nx+1,2:ny)*cos(thetamean(2:nx+1,2:ny)))
     usu(:,1)=usu(:,2)
     usu(:,ny+1)=usu(:,ny)
+    ! wwvv same for usu
+#ifdef USEMPI
+    call xmpi_shift(usu,':1')
+    call xmpi_shift(usu,':n')
+    call xmpi_shift(usu,'m:')
+#endif
     usu=usu*wetu
     
     ! V-euler velocities at u-point
@@ -417,19 +556,44 @@ endif
         .25d0*(uu(1:nx-1,1:ny)+uu(2:nx,1:ny)+ &
         uu(1:nx-1,2:ny+1)+uu(2:nx,2:ny+1))
     ! boundaries?
+    ! wwvv and what about uv(:,1) ?
     uv(:,ny+1) = uv(:,ny)
+    ! wwvv fix uv(:,ny+1) for non-right processes
+    ! uv(1,:) and uv(nx+1,:) need to be filled in for
+    ! non-bot or top processes
+#ifdef USEMPI
+    call xmpi_shift(uv,':n')
+    call xmpi_shift(uv,':1')
+    call xmpi_shift(uv,'1:')
+    call xmpi_shift(uv,'m:')
+#endif
     uv=uv*wetv
      ! V-stokes velocities at V point
     vsv(2:nx,1:ny)=0.5d0*(ust(2:nx,1:ny)*sin(thetamean(2:nx,1:ny))+&
         ust(2:nx,2:ny+1)*sin(thetamean(2:nx,2:ny+1)))
     vsv(:,1) = vsv(:,2)
     vsv(:,ny+1) = vsv(:,ny)
+    ! wwvv fix vsv(:,1) and vsv(:,ny+1) and vsv(1,:) and vsv(nx+1,:)
+#ifdef USEMPI
+    call xmpi_shift(vsv,':n')
+    call xmpi_shift(vsv,':1')
+    call xmpi_shift(vsv,'1:')
+    call xmpi_shift(vsv,'m:')
+#endif
+
     vsv=vsv*wetv
     ! U-stokes velocities at V point
     usv(2:nx,1:ny)=0.5d0*(ust(2:nx,1:ny)*cos(thetamean(2:nx,1:ny))+&
         ust(2:nx,2:ny+1)*cos(thetamean(2:nx,2:ny+1)))
     usv(:,1) = usv(:,2)
     usv(:,ny+1) = usv(:,ny)
+    ! wwvv fix usv(:,1) and usv(:,ny+1) and usv(1,:) and usv(nx+1,:)
+#ifdef USEMPI
+    call xmpi_shift(usv,':n')
+    call xmpi_shift(usv,':1')
+    call xmpi_shift(usv,'1:')
+    call xmpi_shift(usv,'m:')
+#endif
     usv=usv*wetv
 
     ! V-euler velocities at V-point
@@ -445,15 +609,30 @@ endif
     ! Ue and Ve in cell centre; do output and sediment stirring
     ue(2:nx,:)=0.5d0*(ueu(1:nx-1,:)+ueu(2:nx,:))
     ue(1,:)=ueu(1,:)
+    ! wwvv ue(nx+1,:) ?
+#ifdef USEMPI
+    call xmpi_shift(ue,':1')
+    call xmpi_shift(ue,':n')
+    call xmpi_shift(ue,'1:')
+    call xmpi_shift(ue,'m:')
+#endif
+
     ve(:,2:ny)=0.5d0*(vev(:,1:ny-1)+vev(:,2:ny)) !Jaap ny+1
     ve(:,1)=vev(:,1)
+    ! wwvv vev(nx+1,:) ?
+#ifdef USEMPI
+    call xmpi_shift(ve,':1')
+    call xmpi_shift(ve,':n')
+    call xmpi_shift(ve,'1:')
+    call xmpi_shift(ve,'m:')
+#endif
     !
-    hold =hh
+    hold =hh    ! wwvv ?  hold is never else used
     !
     hh=max(zs-zb,par%eps)
 
-        maxzs=max(zs,maxzs)
-        minzs=min(zs,minzs)
+    maxzs=max(zs,maxzs)
+    minzs=min(zs,minzs)
 
 end subroutine flow_timestep
 

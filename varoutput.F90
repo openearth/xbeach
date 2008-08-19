@@ -15,6 +15,7 @@ public init_output, var_output
 integer*4                           :: nglobalvar  ! number of global output variables
 integer*4                           :: npoints     ! number of output points
 integer*4                           :: nrugauge    ! number of runup gauges
+integer                             :: timings     ! 0: no timings, 1 timings output
 integer*4,dimension(:),allocatable  :: pointtype   ! 0 = point output, 1 = runup gauge
 integer*4,dimension(:),allocatable  :: xpoints     ! model x-coordinate of output points
 integer*4,dimension(:),allocatable  :: ypoints     ! model y-coordinate of output points
@@ -81,6 +82,8 @@ subroutine init_output(s,sl,par,it)
 
   npoints  = readkey_int ('params.txt','npoints',      0,       0,     50)
   nrugauge = readkey_int ('params.txt','nrugauge',     0,       0,     50)
+
+  timings  = readkey_int ('params.txt','timings',      1,       0,      1)
 
   if ((npoints+nrugauge)>0) then 
       allocate(pointtype(npoints+nrugauge))
@@ -526,30 +529,33 @@ subroutine var_output(it,s,sl,par)
       endif
 
       !       tpredicted=((par%tstop/par%tint)-it)*dtimestep
-      if(xmaster) then
-        write(*,fmt='(a,f5.1,a)')'Simulation ',100.d0*par%t/par%tstop,&
-           ' percent complete'
+      if(timings .ne. 0) then
+        if(xmaster) then
+          write(*,fmt='(a,f5.1,a)')'Simulation ',100.d0*par%t/par%tstop,&
+             ' percent complete'
+        endif
       endif
 
       tpredicted=(par%tstop-par%t)/(par%tstop/500.d0)*dtimestep
-      if (dtimestep<1 .and. tpredicted<120 .or. .not. xmaster) then 
-              ! Write nothing
-      elseif (tpredicted>=3600) then 
-          write(*,fmt='(a,I3,a,I2,a)')'Time remaining ',&
-            floor(tpredicted/3600.0d0),' hours and ',&
-            nint((tpredicted-3600.0d0*floor(tpredicted/3600.0d0))/60.0d0),&
-            ' minutes'
-      elseif (tpredicted>=600) then
-          write(*,fmt='(a,I2,a)')'Time remaining ',&
-            floor(tpredicted/60.0d0),' minutes'
-      elseif (tpredicted>=60) then
-          write(*,fmt='(a,I2,a,I2,a)')'Time remaining ',&
-            floor(tpredicted/60.0d0),' minutes and ',&
-            nint((tpredicted-60.0d0*floor(tpredicted/60.0d0))),' seconds'
-      else
-        write(*,fmt='(a,I2,a)')'Time remaining ',nint(tpredicted),' seconds'
+      if (timings .ne. 0) then
+        if (dtimestep<1 .and. tpredicted<120 .or. .not. xmaster) then 
+                ! Write nothing
+        elseif (tpredicted>=3600) then 
+            write(*,fmt='(a,I3,a,I2,a)')'Time remaining ',&
+              floor(tpredicted/3600.0d0),' hours and ',&
+              nint((tpredicted-3600.0d0*floor(tpredicted/3600.0d0))/60.0d0),&
+              ' minutes'
+        elseif (tpredicted>=600) then
+            write(*,fmt='(a,I2,a)')'Time remaining ',&
+              floor(tpredicted/60.0d0),' minutes'
+        elseif (tpredicted>=60) then
+            write(*,fmt='(a,I2,a,I2,a)')'Time remaining ',&
+              floor(tpredicted/60.0d0),' minutes and ',&
+              nint((tpredicted-60.0d0*floor(tpredicted/60.0d0))),' seconds'
+        else
+          write(*,fmt='(a,I2,a)')'Time remaining ',nint(tpredicted),' seconds'
+        endif
       endif
-
   endif
 
 
@@ -1082,8 +1088,6 @@ subroutine makeaveragenames(counter,name)
 end subroutine makeaveragenames
 
 subroutine outarray_r0(index,x)
-  use params
-  use spaceparams
   implicit none
   integer                       :: index
   real*8,intent(in)             :: x
@@ -1099,14 +1103,14 @@ subroutine outarray_r0(index,x)
 end subroutine outarray_r0
 
 subroutine outarray_r1(index,x)
-  use params
-  use spaceparams
   implicit none
   integer                       :: index
   real*8, dimension(:), pointer :: x
   integer                       :: unit,reclen,jtg
   character*20                  :: mnem
-  real*8, parameter             :: pi = 4*atan(1.0d0)
+  real*8                        :: pi
+
+  pi = 4*atan(1.0d0)
 
   if(xmaster) then
     inquire(iolength=reclen) x
@@ -1125,7 +1129,6 @@ subroutine outarray_r1(index,x)
 end subroutine outarray_r1
 
 subroutine outarray_r2(s,index,x)
-  use params
   use spaceparams
   implicit none
   type(spacepars),intent(in)    :: s
@@ -1133,7 +1136,9 @@ subroutine outarray_r2(s,index,x)
   real*8, dimension(:,:), pointer :: x
   integer                       :: unit,reclen,jtg
   character*20                  :: mnem
-  real*8, parameter             :: pi = 4*atan(1.0d0)
+  real*8                        :: pi
+
+  pi = 4*atan(1.0d0)
 
   inquire(iolength=reclen) x
   call checkfile(index,unit,reclen,jtg)
@@ -1166,7 +1171,6 @@ subroutine outarray_r2(s,index,x)
 end subroutine outarray_r2
 
 subroutine outarray_r3(s,index,x)
-  use params
   use spaceparams
   implicit none
   type(spacepars),intent(in)    :: s
@@ -1174,7 +1178,9 @@ subroutine outarray_r3(s,index,x)
   real*8, dimension(:,:,:), pointer :: x
   integer                       :: unit,reclen,jtg
   character*20                  :: mnem
-  real*8, parameter             :: pi=4*atan(1.0d0)
+  real*8                        :: pi
+
+  pi=4*atan(1.0d0)
 
   inquire(iolength=reclen) x
   call checkfile(index,unit,reclen,jtg)
@@ -1201,8 +1207,6 @@ subroutine outarray_r3(s,index,x)
 end subroutine outarray_r3
 
 subroutine outarray_r4(index,x)
-  use params
-  use spaceparams
   implicit none
   integer index
   real*8, dimension(:,:,:,:), pointer :: x
@@ -1214,8 +1218,6 @@ subroutine outarray_r4(index,x)
 end subroutine outarray_r4
 
 subroutine outarray_i0(index,x)
-  use params
-  use spaceparams
   implicit none
   integer                       :: index
   integer,intent(in)            :: x
@@ -1229,8 +1231,6 @@ subroutine outarray_i0(index,x)
 end subroutine outarray_i0
 
 subroutine outarray_i1(index,x)
-  use params
-  use spaceparams
   implicit none
   integer index
   integer, dimension(:), pointer :: x
@@ -1242,8 +1242,6 @@ subroutine outarray_i1(index,x)
 end subroutine outarray_i1
 
 subroutine outarray_i2(index,x)
-  use params
-  use spaceparams
   implicit none
   integer index
   integer, dimension(:,:), pointer :: x
@@ -1255,8 +1253,6 @@ subroutine outarray_i2(index,x)
 end subroutine outarray_i2
 
 subroutine outarray_i3(index,x)
-  use params
-  use spaceparams
   implicit none
   integer index
   integer, dimension(:,:,:), pointer :: x
@@ -1268,8 +1264,6 @@ subroutine outarray_i3(index,x)
 end subroutine outarray_i3
 
 subroutine outarray_i4(index,x)
-  use params
-  use spaceparams
   implicit none
   integer index
   integer, dimension(:,:,:,:), pointer :: x

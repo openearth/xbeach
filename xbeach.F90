@@ -14,7 +14,6 @@ use wave_timestep_module
 use timestep_module
 use readkey_module
 
-
 IMPLICIT NONE
 
 type(parameters)         :: par
@@ -101,7 +100,6 @@ call init_output(sglobal,slocal,par,it)
 call distribute_par(par)
 #endif
 
-call doeniets(sglobal,slocal,par)
 #ifdef USEMPI
 s => slocal
 !
@@ -112,9 +110,9 @@ s => slocal
 !  Note: slocal is available on all nodes, including master
 !
 call space_distribute_space(sglobal,slocal,par)
-
-call doeniets(sglobal,slocal,par)
+!call space_consistency(slocal,'ALL')
 #endif
+call printit(sglobal,slocal,par,it,'after space_distribute_space')
 
 if (xmaster) then
   call readkey('params.txt','checkparams','')
@@ -129,45 +127,33 @@ do while (par%t<par%tstop)
     call timestep(s,par,it)
     ! Wave boundary conditions
     call wave_bc (sglobal,slocal,par)
-#ifdef USEMPI
-    !DANO Communicate ee,rr
-    call space_shift_borders(s%ee)  
-    call space_shift_borders(s%rr)  
-    !WILLEM Communicate ui
-    !call space_shift_borders(s,s%ui)
-#endif
+    call printit(sglobal,slocal,par,it,'after wave_bc')
     ! Flow boundary conditions
     call flow_bc (s,par)
+
+    call printit(sglobal,slocal,par,it,'after flow_bc')
 #ifdef USEMPI
-    !DANO Communicate uu,vv,zs; hh uitzoeken
-    call space_shift_borders(s%uu)
-    call space_shift_borders(s%vv)
-    call space_shift_borders(s%zs)
-    call space_shift_borders(s%hh)
+    !call space_consistency(slocal,'ALL')
 #endif
     ! Wave timestep
     if (par%instat==0) then
        if (mod(par%t,real(par%wavint))==0) then
           call wave_stationary(s,par)
+          call printit(sglobal,slocal,par,it,'after wave_stationary')
        endif
     else
       call wave_timestep(s,par)
+          call printit(sglobal,slocal,par,it,'after wave_timestep')
     endif
     ! Flow timestep
     call flow_timestep (s,par)
+    call printit(sglobal,slocal,par,it,'after flow_timestep')
     ! Suspended transport
     call transus(s,par)
-#ifdef USEMPI
-    !DANO communicate cc
-    !wwvv cc does not exists anymore, communicate ccg instead
-    call space_shift_borders(s%ccg)
-#endif
+    call printit(sglobal,slocal,par,it,'after transus')
     ! Bed level update
     call bed_update(s,par)
-#ifdef USEMPI
-    !DANO communicate zb
-    call space_shift_borders(s%zb)
-#endif
+    call printit(sglobal,slocal,par,it,'after bed_update')
     ! Output
     call var_output(it,sglobal,slocal,par)
 #ifdef USEMPI
@@ -193,3 +179,49 @@ call xmpi_finalize
 #endif
 
 end program
+
+subroutine printit(sglobal,slocal,par,it,s)
+  use spaceparams
+  use params
+  use xmpi_module
+  IMPLICIT none
+  type(spacepars)          :: sglobal,slocal
+  type(parameters)         :: par
+  integer                  :: it
+  character(len=*)         :: s
+  integer,save             :: iter=0 
+  return
+  write(*,*) trim(s)
+  iter = iter+1
+#ifdef USEMPI
+  call space_collect(slocal,sglobal%H,slocal%H)
+  call space_collect(slocal,sglobal%zs,slocal%zs)
+  call space_collect(slocal,sglobal%zs0,slocal%zs0)
+  call space_collect(slocal,sglobal%u,slocal%u)
+  call space_collect(slocal,sglobal%uu,slocal%uu)
+  call space_collect(slocal,sglobal%ui,slocal%ui)
+  call space_collect(slocal,sglobal%hh,slocal%hh)
+  call space_collect(slocal,sglobal%vu,slocal%vu)
+  call space_collect(slocal,sglobal%v,slocal%v)
+  !call space_consistency(slocal,'ALL')
+#endif
+  if(xmaster) call printsum(6,'H',1000*it+iter,sglobal%H)
+  if(xmaster) call printsum(6,'zs',1000*it+iter,sglobal%zs)
+  if(xmaster) call printsum(6,'zs0',1000*it+iter,sglobal%zs0)
+  if(xmaster) call printsum(6,'u',1000*it+iter,sglobal%u)
+  if(xmaster) call printsum(6,'uu',1000*it+iter,sglobal%uu)
+  if(xmaster) call printsum(6,'ui',1000*it+iter,sglobal%ui)
+  if(xmaster) call printsum(6,'hh',1000*it+iter,sglobal%hh)
+  if(xmaster) call printsum(6,'vu',1000*it+iter,sglobal%vu)
+  if(xmaster) call printsum(6,'v',1000*it+iter,sglobal%v)
+
+  if(xmaster) print *,'par%t:',par%t
+  if(xmaster) print *,'par%zs01:',par%zs01
+#ifdef USEMPI
+  if(xmaster) print *,'s%tideinpt:',slocal%tideinpt
+  if(xmaster) print *,'s%tideinpz:',slocal%tideinpz(:,1)
+#else
+  if(xmaster) print *,'s%tideinpt:',sglobal%tideinpt
+  if(xmaster) print *,'s%tideinpz:',sglobal%tideinpz(:,1)
+#endif
+end subroutine printit

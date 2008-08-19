@@ -110,7 +110,6 @@ subroutine vector_distr_send(a,b,is,lm,root,comm)
 
   integer                             :: ierror,p,procs,rank,pp,mlocal
   integer, dimension(:), allocatable  :: req
-  integer, dimension(MPI_STATUS_SIZE) :: rstat
 
   call MPI_Comm_rank(comm, rank, ierror)
   call MPI_Comm_size(comm, procs, ierror)
@@ -133,7 +132,7 @@ subroutine vector_distr_send(a,b,is,lm,root,comm)
     call MPI_Waitall(pp,req,MPI_STATUSES_IGNORE,ierror)
   else
     call MPI_Recv(b, mlocal, MPI_DOUBLE_PRECISION, root, 11,&
-                  comm, rstat, ierror) 
+                  comm, MPI_STATUS_IGNORE, ierror) 
   endif
 
   deallocate(req)
@@ -456,11 +455,6 @@ subroutine matrix_distr_send_real8(a,b,is,lm,js,ln,root,comm)
     enddo
   endif
 
-  !do l=1,maxreq   ! wait until all requests are done
-  !  if (req(l) .ne. MPI_REQUEST_NULL) then
-  !    call MPI_Wait(req(l), MPI_STATUS_IGNORE, ierror)
-  !  endif
-  !enddo
   call MPI_Waitall(maxreq,req,MPI_STATUSES_IGNORE,ierror)
 
   deallocate(req)
@@ -1224,7 +1218,7 @@ subroutine matrix_coll_recv_real8(a,b,is,lm,js,ln,&
       endif
       
       call MPI_Recv(a(i,j),m,MPI_DOUBLE_PRECISION, &
-                    sender,tag,comm,mpistatus,ierror)
+                    sender,tag,comm,MPI_STATUS_IGNORE,ierror)
     enddo
     deallocate(col)
     deallocate(isleft, isright, istop, isbot)
@@ -1607,7 +1601,7 @@ subroutine decomp(n, numprocs, myid, s, e)
 
 end subroutine det_submatrices
 
-subroutine shift_borders_matrix_real8(a,left,right,top,bot,comm)
+subroutine shift_borders_matrix_real8_old(a,left,right,top,bot,comm)
   !
   ! shift borders to and from neighbours.
   ! 
@@ -1616,7 +1610,6 @@ subroutine shift_borders_matrix_real8(a,left,right,top,bot,comm)
   real*8, dimension(:,:), intent(inout)     :: a
   integer, intent(in)                       :: left,right,top,bot,comm
 
-  integer, dimension(MPI_STATUS_SIZE)       :: rstatus
   real*8, dimension(ubound(a,2))            :: recvrow, sendrow
 
   integer, parameter                        :: datatype = MPI_DOUBLE_PRECISION
@@ -1631,13 +1624,13 @@ subroutine shift_borders_matrix_real8(a,left,right,top,bot,comm)
                     left, 1,                              &
                     a(2,na), ma-2, datatype,              &
                     right, 1,                             &
-                    comm, rstatus, ierror)
+                    comm, MPI_STATUS_IGNORE, ierror)
   ! send to right, receive from left
   call MPI_Sendrecv(a(2,na-1), ma-2, datatype,             &
                     right, 2,                              &
                     a(2,1), ma-2, datatype,                &
                     left, 2,                               &
-                    comm, rstatus, ierror)
+                    comm, MPI_STATUS_IGNORE, ierror)
 
   ! send to bot, receive from top
   sendrow = a(ma-1,:)
@@ -1646,7 +1639,7 @@ subroutine shift_borders_matrix_real8(a,left,right,top,bot,comm)
                     bot, 3,                              &
                     recvrow, na, datatype,               &
                     top, 3,                              &
-                    comm, rstatus, ierror)
+                    comm, MPI_STATUS_IGNORE, ierror)
   a(1,:) = recvrow
   ! send to top, receive from bot
   sendrow = a(2,:)
@@ -1655,8 +1648,51 @@ subroutine shift_borders_matrix_real8(a,left,right,top,bot,comm)
                     top, 4,                              &
                     recvrow, na, datatype,               &
                     bot, 4,                              &
-                    comm, rstatus, ierror)
+                    comm, MPI_STATUS_IGNORE, ierror)
   a(ma,:) = recvrow
+
+  end subroutine shift_borders_matrix_real8_old
+
+subroutine shift_borders_matrix_real8(a,left,right,top,bot,comm)
+  !
+  ! shift borders to and from neighbours.
+  ! 
+  use mpi
+  implicit none
+  real*8, dimension(:,:), intent(inout) :: a
+  integer, intent(in)                   :: left,right,top,bot,comm
+
+  integer, parameter                    :: datatype = MPI_DOUBLE_PRECISION
+  integer ierror,ma,na
+
+  ma = ubound(a,1)
+  na = ubound(a,2)
+
+  ! send to left, receive from right
+  call MPI_Sendrecv(a(2:ma-1,2), ma-2, datatype,       &
+                    left, 1,                           &
+                    a(2:ma-1,na), ma-2, datatype,      &
+                    right, 1,                          &
+                    comm, MPI_STATUS_IGNORE, ierror)
+  ! send to right, receive from left
+  call MPI_Sendrecv(a(2:ma-1,na-1), ma-2, datatype,    &
+                    right, 2,                          &
+                    a(2:ma-1,1), ma-2, datatype,       &
+                    left, 2,                           &
+                    comm, MPI_STATUS_IGNORE, ierror)
+
+  ! send to bot, receive from top
+  call MPI_Sendrecv(a(ma-1,:), na, datatype,           &
+                    bot, 3,                            &
+                    a(1,:), na, datatype,              &
+                    top, 3,                            &
+                    comm, MPI_STATUS_IGNORE, ierror)
+  ! send to top, receive from bot
+  call MPI_Sendrecv(a(2,:), na, datatype,              &
+                    top, 4,                            &
+                    a(ma,:), na, datatype,             &
+                    bot, 4,                            &
+                    comm, MPI_STATUS_IGNORE, ierror)
 
   end subroutine shift_borders_matrix_real8
 

@@ -1,0 +1,15 @@
+added timings: 0: no timings, 1: timings output
+
+spaceparams.F90: in the block-collect subroutines, use 3rd dimension
+  of b, not of a
+
+Lots of changes, all in the parallel code.
+
+It was necessary to put many parallel code in the subroutines, 
+and I removed the calls to distribution routines between the
+subroutine calls.
+
+The most important parallel routines are now xmpi_shift and
+xmpi_getrow. The latter is only used in two occasions, but it
+is possible that the use of that subroutine is needed in more
+places. See xmpi.F90 for descriptions.

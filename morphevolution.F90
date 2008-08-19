@@ -29,6 +29,7 @@ subroutine transus(s,par)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 use params
 use spaceparams
+use xmpi_module
 
 IMPLICIT NONE
 
@@ -99,7 +100,15 @@ do jg = 1,par%ngd
          s%dcdx(i,j)=(cc(i+1,j)-cc(i,j))/(s%xz(i+1)-s%xz(i)) !Jaap
       enddo 
    enddo
+   ! wwvv dcdx(nx:1,:) is still untouched, correct this ofr the parallel case
+#ifdef USEMPI
+   call xmpi_shift(s%dcdx,'m:')
+#endif
    cu(s%nx+1,:) = cc(s%nx+1,:) !Robert
+   ! wwvv fix this in parallel case
+#ifdef USEMPI
+   call xmpi_shift(cu,'m:')
+#endif
    !
    ! Bed slope terms
    !
@@ -109,6 +118,12 @@ do jg = 1,par%ngd
            dzbx(i,j)=(s%zb(i+1,j)-s%zb(i,j))/(s%xz(i+1)-s%xz(i))
        enddo
    enddo
+   ! wwvv in parallel version, there will be a discrepancy between the values
+   ! of dzbx(nx+1,:).
+   !wwvv so fix that
+#ifdef USEMPI
+   call xmpi_shift(dzbx,'m:')
+#endif
    Su=(cu*s%ueu*s%hu-Dc*s%hu*s%dcdx-par%facsl*cu*s%vmagu*s%hu*dzbx)*s%wetu   !
    !
    ! Y-direction
@@ -127,6 +142,10 @@ do jg = 1,par%ngd
          s%dcdy(i,j)=(cc(i,j+1)-cc(i,j))/(s%yz(j+1)-s%yz(j)) !Jaap
       end do 
     end do
+    ! wwvv s%dcdy(:,ny+1) is not filled in, so in parallel case:
+#ifdef USEMPI
+    call xmpi_shift(s%dcdy,':n')
+#endif
     cv(:,s%ny+1) = cc(:,s%ny+1) !Robert
     !
     ! Bed slope terms
@@ -137,6 +156,12 @@ do jg = 1,par%ngd
             dzby(i,j)=(s%zb(i,j+1)-s%zb(i,j))/(s%yz(j+1)-s%yz(j))
         enddo
     enddo
+   ! wwvv in parallel version, there will be a discrepancy between the values
+   ! of dzby(:,ny+1).
+    ! wwvv so fix that
+#ifdef USEMPI
+    call xmpi_shift(dzby,':n')
+#endif
     Sv=(cv*s%vev*s%hv-Dc*s%hv*s%dcdy-par%facsl*cv*s%vmagv*s%hv*dzby)*s%wetv
     
     do j=2,s%ny+1
@@ -164,9 +189,17 @@ do jg = 1,par%ngd
     cc(:,1)=cc(:,2)
     cc(s%nx+1,:)=cc(s%nx+1-1,:)
     cc(:,s%ny+1)=cc(:,s%ny+1-1)
+    ! wwvv fix the first and last rows and columns of cc in parallel case
+#ifdef USEMPI
+    call xmpi_shift(cc,'1:')
+    call xmpi_shift(cc,'m:')
+    call xmpi_shift(cc,':1')
+    call xmpi_shift(cc,':n')
+#endif
     !Jaap
     cc=cc*s%wetz
     !
+    ! wwvv border columns and rows of ccg Svg and Sug have to be communicated
     s%ccg(:,:,jg) = cc
     s%Svg(:,:,jg) = Sv
     s%Sug(:,:,jg) = Su
@@ -501,6 +534,13 @@ do jg = 1,par%ngd
          end if
       end do
    end do
+   ! wwvv in parallel version, there will be a discrepancy between the values
+   ! of term2. term2(nx+1,:) is zero, while the corresponding row in the process
+   ! below term2(2,:) has some value, different from zero.
+   ! so we fix this:
+#ifdef USEMPI
+   call xmpi_shift(term2,'m:')
+#endif
    ceq =(Asb+Ass)*term2  
    ceq = min(ceq,0.2d0)       ! equilibrium concentration
    ceq = ceq/hloc

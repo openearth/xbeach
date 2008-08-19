@@ -32,6 +32,7 @@ subroutine wave_timestep(s,par)
     use spaceparams
     use roelvink_module
     use xmpi_module
+    use mnemmodule
 
     IMPLICIT NONE
 
@@ -86,7 +87,7 @@ subroutine wave_timestep(s,par)
        allocate(cgxm        (nx+1,ny+1))
        allocate(cgym        (nx+1,ny+1))
 
-! wwvv todo: I think all these iniailization are superfluous
+! wwvv todo: I think these iniailization are superfluous
        drr         = 0.d0
        wete        = 0.d0
        xadvec      = 0.d0
@@ -117,8 +118,8 @@ subroutine wave_timestep(s,par)
        dkmydy      = 0.d0
        cgxm        = 0.d0
        cgym        = 0.d0
-       Fx          = 0.d0
-       Fy          = 0.d0
+       Fx          = 0.d0 ! in spacepars
+       Fy          = 0.d0 ! in spacepars
     endif
 
     hh = max(hh,par%eps)
@@ -206,20 +207,20 @@ subroutine wave_timestep(s,par)
 
         kmx = kmx -par%dt*xwadvec -par%dt*cgym*(dkmydx-dkmxdy)
         ! wwvv the following has consequences for the // version todo
-        ! maybe a border test is appropriate
         ! 
-        if(xmpi_isright) then
-          kmx(:,ny+1) = kmx(:,ny)  ! lateral bc
-        endif
+        kmx(:,ny+1) = kmx(:,ny)  ! lateral bc
+#ifdef USEMPI
+        call xmpi_shift(kmx,'l')  ! get column kml(:ny+1) from right neighbour
+#endif
 
         call advecwy(wm,ywadvec,nx,ny,yz)   ! cjaap: yz or yv?
         kmy = kmy-par%dt*ywadvec + par%dt*cgxm*(dkmydx-dkmxdy)
         ! wwvv the following has consequences for the // version todo
-        ! maybe a border test is appropriate
         ! 
-        if(xmpi_isright) then
-          kmy(:,ny+1) = kmy(:,ny)   ! lateral bc
-        endif
+        kmy(:,ny+1) = kmy(:,ny)   ! lateral bc
+#ifdef USEMPI
+        call xmpi_shift(kmy,'l')
+#endif
 
         km = sqrt(kmx**2+kmy**2)
     endif
@@ -295,14 +296,20 @@ end do
 !
 ! Bay boundary Robert + Jaap
 ! 
-! wwvv todo 
+! wwvv 
 !  this has consequences for the parallel version, 
-!  so a test if
-!  this is a border process is adequate
-if(xmpi_isbot) then
-  ee(nx+1,:,:) =ee(nx,:,:)
-  rr(nx+1,:,:) =rr(nx,:,:)
-endif
+ee(nx+1,:,:) =ee(nx,:,:)
+rr(nx+1,:,:) =rr(nx,:,:)
+! wwvv but also, if we do  nothing, there are discrepancies
+! between ee and rr in the different processes. We need to
+! get valid values for ee(nx+1,:,:) and rr(nx+1,:,:) from
+! the neighbour below. We cannot postpone this until this
+! subroutine ends, because ee and rr are used in this subroutine
+#ifdef USEMPI
+call xmpi_shift(ee,'u')  ! fill in ee(nx+1,:,:)
+call xmpi_shift(rr,'u')  ! fill in rr(nx+1,:,:)
+#endif
+!
 !
 ! Compute mean wave direction
 !
@@ -344,19 +351,30 @@ do j=1,ny
                +par%rhoa*par%Cd*sin(par%windth)*par%windv**2
     enddo
 enddo
+! wwvv in the previous, Fx and Fy are computed. The missing elements
+!  elements are Fx(:,1), Fx(nx+1,:), Fx(:,ny+1)
+!               Fy(1,:), Fy(nx+1,:), Fy(:,ny+1)
 
 ! wwvv todo the following has consequences for // version
-if(xmpi_istop) then
   !Fx(1,:)=Fx(2,:)
-  Fy(1,:)=Fy(2,:)
-endif
-if(xmpi_isbot) then
-  Fx(nx+1,:) = 0.0d0
-  Fy(nx+1,:) = 0.0d0
-endif
-if(xmpi_isleft) then
-  Fx(:,1)=Fx(:,2)        
-endif
+Fy(1,:)=Fy(2,:)
+Fx(nx+1,:) = 0.0d0
+Fy(nx+1,:) = 0.0d0
+Fx(:,1)=Fx(:,2)        
+
+! wwvv so, Fx(:ny+1) and Fy(:ny+1) are left zero and Fx(nx+1,:) and Fy(nx+1,:)
+! are made zero.  In the parallel case, Fx(:,1) and Fy(1,:) don't get a 
+! value if the submatrices are not on suitable border. 
+! I guess that it is necessary to communicate with neighbours the values of these elements
+
+#ifdef USEMPI
+call xmpi_shift(Fx,'r')  ! shift in Fx(:,1)
+call xmpi_shift(Fx,'u')  ! shift in Fx(nx+1,:)
+call xmpi_shift(Fx,'l')  ! shift in Fx(:,ny+1)
+call xmpi_shift(Fy,'d')  ! shift in Fy(1,:)
+call xmpi_shift(Fy,'u')  ! shift in Fy(nx+1,:)
+call xmpi_shift(Fy,'l')  ! shift in Fy(:,ny+1)
+#endif
 
 urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*(hh+par%delta*H)))
 
@@ -373,21 +391,20 @@ ust=usd+ustw
 !where (E==1e-5*dtheta*ntheta) ust=0.
 !lateral boundaries
 ! wwvv todo the following has consequences for // version
-if(xmpi_istop) then
-  ust(1,:) = ust(2,:)
-endif
-if(xmpi_isleft) then
-  ust(:,1) = ust(:,2)
-endif
-if(xmpi_isright) then
-  ust(:,ny+1) = ust(:,ny)
-endif
+ust(1,:) = ust(2,:)
+ust(:,1) = ust(:,2)
+ust(:,ny+1) = ust(:,ny)
 
+#ifdef USEMPI
+call xmpi_shift(ust,'d')  ! get ust(1,:) from above
+call xmpi_shift(ust,'r')  ! get ust(:,1) from left
+call xmpi_shift(ust,'l')  ! get ust(:,ny+1) from right
+#endif
 end subroutine wave_timestep
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine slope2D(h,nx,ny,x,y,dhdx,dhdy)
-
+use xmpi_module
 IMPLICIT NONE
 
 integer                           :: i,j,nx,ny
@@ -395,18 +412,28 @@ real*8, dimension(nx+1,ny+1)      :: h,dhdx,dhdy
 real*8, dimension(nx+1)           :: x
 real*8, dimension(ny+1)           :: y
 
+
+! wwvv dhdx(2:nx,:) is computed, dhdx(1,:) and dhdx(nx+1,:) 
+! get boundary values, so in the parallel case, we need
+! to do something about that: get the boundaries from
+! upper and lower neighbours
+
 do j=1,ny+1
-    if(nx+1>=2)then   ! superfluous  wwvv
+    if(nx+1>=2)then
       do i=2,nx
           dhdx(i,j)=(h(i+1,j)-h(i-1,j))/(x(i+1)-x(i-1))
       end do  
       dhdx(1,j)=(h(2,j)-h(1,j))/(x(2)-x(1))
       dhdx(nx+1,j)=(h(nx+1,j)-h(nx,j))/(x(nx+1)-x(nx))
-      end if
+    end if
 end do
+#ifdef USEMPI
+call xmpi_shift(dhdx,'m:')  ! fill in dhdx(nx+1,:)
+call xmpi_shift(dhdx,'1:')  ! fill in dhdx(1,:)
+#endif
 
 do i=1,nx+1
-    if(ny+1>=2)then   ! superfluous wwvv
+    if(ny+1>=2)then
       do j=2,ny
           dhdy(i,j)=(h(i,j+1)-h(i,j-1))/(y(j+1)-y(j-1))
       end do
@@ -415,11 +442,16 @@ do i=1,nx+1
     end if
 end do
 
+#ifdef USEMPI
+call xmpi_shift(dhdy,'l')  !  fill in dhdy(:,ny+1)
+call xmpi_shift(dhdy,'r')  !  fill in dhdy(:,1)
+#endif
 end subroutine slope2D
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 subroutine advecx(arrin,xadvec,nx,ny,ntheta,xz)
+use xmpi_module
 
 IMPLICIT NONE
 
@@ -447,6 +479,12 @@ do itheta=1,ntheta
         end do
     end do
 end do
+! wwvv xadvec(1,:,:) and xadvec(nx+1,:,:) are not determined, in the parallel
+! case this is not desirable. We copy these rows from top and bot neighbours
+#ifdef USEMPI
+call xmpi_shift(xadvec,'u')  ! fill in xadvec(nx+1,:,:)
+call xmpi_shift(xadvec,'d')  ! fill in xadvec(1,:,:)
+#endif
 
 end subroutine advecx
 
@@ -454,6 +492,7 @@ end subroutine advecx
 
 subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,xz,dt,scheme)
 
+use xmpi_module
 IMPLICIT NONE
 
 integer                                         :: i,j,nx,ny,ntheta,scheme
@@ -529,6 +568,15 @@ case(2)
         end do
 end select
 
+! wwvv xadvec(1,:,:) and xadvec(nx+1,:,:) are not determined, in the parallel
+! case we shift these missing rows in:
+#ifdef USEMPI
+call xmpi_shift(xadvec,'u')  ! fill in xadvec(nx+1,:,:)
+call xmpi_shift(xadvec,'d')  ! fill in xadvec(1,:,:)
+call xmpi_shift(xadvec,'l')  ! fill in xadvec(:,ny+1,:)
+call xmpi_shift(xadvec,'r')  ! fill in xadvec(:,1,:)
+#endif
+
 end subroutine advecxho
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -536,6 +584,7 @@ end subroutine advecxho
 
 subroutine advecy(arrin,yadvec,nx,ny,ntheta,yz)
 
+use xmpi_module
 IMPLICIT NONE
 
 integer                                         :: i,j,nx,ny,ntheta
@@ -580,11 +629,20 @@ enddo
 !yadvec(:,1,:)=yadvec(:,2,:)             !Ap
 !yadvec(:,ny+1,:) = yadvec(:,ny,:)       !Ap
 
+! wwvv: I guess that in the parallel case the first and last columns of yadvec
+! have to be copied from neighbours
+
+#ifdef USEMPI
+call xmpi_shift(yadvec,'l')  ! fill in yadvec(:,nx+1,:)
+call xmpi_shift(yadvec,'r')  ! fill in yadvec(:,1,:)
+#endif
+
 end subroutine advecy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,yz,dt,scheme)
+use xmpi_module
 
 IMPLICIT NONE
 
@@ -673,6 +731,11 @@ do itheta=1,ntheta
         enddo
 enddo
                  
+! wwvv shift the first and last columns in in the parallel case
+#ifdef USEMPI
+call xmpi_shift(yadvec,'l')  ! fill in yadvec(:,ny+1,:)
+call xmpi_shift(yadvec,'r')  ! fill in yadvec(:,1,:)
+#endif
 end subroutine advecyho
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -708,6 +771,7 @@ end subroutine advectheta
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 subroutine advecwx(arrin2d,xwadvec,nx,ny,xz)
+use xmpi_module
 
 IMPLICIT NONE
 
@@ -730,12 +794,22 @@ do j=2,ny
     end do
 end do
 
+! wwvv here we miss the computations of the first and last columns and rows,
+!  in the parallel case we shift these in form neighbours
+#ifdef USEMPI
+call xmpi_shift(xwadvec,'u') ! fill in xwadvec(nx+1,:)
+call xmpi_shift(xwadvec,'d') ! fill in xwadvec(1,:)
+call xmpi_shift(xwadvec,'l') ! fill in xwadvec(:,ny+1)
+call xmpi_shift(xwadvec,'r') ! fill in xwadvec(:,1)
+#endif
+
 end subroutine advecwx
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 
 subroutine advecwy(arrin2d,ywadvec,nx,ny,yz)
+use xmpi_module
 use xmpi_module
 IMPLICIT NONE
 
@@ -759,14 +833,18 @@ do j=2,ny
 end do
 
 ! wwvv the following has consequences for the // version todo
-! maybe a border test is appropriate
 ! 
-if(xmpi_isleft) then
-  ywadvec(:,1)= ywadvec(:,2)          !Ap
-endif
-if(xmpi_isright) then
-  ywadvec(:,ny+1) = ywadvec(:,ny)     !Ap
-endif
+ywadvec(:,1)= ywadvec(:,2)          !Ap
+ywadvec(:,ny+1) = ywadvec(:,ny)     !Ap
+
+! wwvv the border tests can probably be removed, but the missing
+! values have to be shift in
+#ifdef USEMPI
+call xmpi_shift(ywadvec,'u') ! fill in yadvec(nx+1,:)
+call xmpi_shift(ywadvec,'d') ! fill in yadvec(1,:)
+call xmpi_shift(ywadvec,'l') ! fill in yadvec(:,ny+1)
+call xmpi_shift(ywadvec,'r') ! fill in yadvec(:,1)
+#endif
 
 end subroutine advecwy
 
@@ -791,10 +869,15 @@ real*8                              :: err,L2
 ! of the program L1 will be resized and distributed
 !
 integer                             :: i,j
-real*8, parameter                   :: phi    = (1.0d0 + sqrt(5.0d0))/2
-real*8, parameter                   :: aphi   = 1/(phi+1)
-real*8, parameter                   :: bphi   = phi/(phi+1)
-real*8, parameter                   :: twopi  = 8*atan(1.0d0)
+real*8                              :: phi
+real*8                              :: aphi
+real*8                              :: bphi
+real*8                              :: twopi
+
+phi    = (1.0d0 + sqrt(5.0d0))/2
+aphi   = 1/(phi+1)
+bphi   = phi/(phi+1)
+twopi  = 8*atan(1.0d0)
 !
 ! In the original code, phi, aphi, bphi are saved
 ! variables, and calculated once. I think this is
@@ -889,6 +972,7 @@ end subroutine dispersionold
 subroutine breakerdelay(par,s)
 use params
 use spaceparams
+use xmpi_module
 
 IMPLICIT NONE
 
@@ -906,8 +990,8 @@ include 's.inp'
 
 
 do jy = 2,ny
- usd(1,jy) = ustr(1,jy)
- do jx = 2,nx+1
+  usd(1,jy) = ustr(1,jy)
+  do jx = 2,nx+1
     nbr=0
     Lbr = sqrt(par%g*hh(jx,jy))*par%Trep
     i=jx-1
@@ -923,12 +1007,12 @@ do jy = 2,ny
             utemp(i) = ustr(tempxid,jy)
         enddo
         ! wwvv consequences for parallel version?
-        ! todo
+        ! todo, done: see later
         usd(jx,jy) = sum(ibr(1:nbr+1)*utemp(1:nbr+1))/sum(ibr(1:nbr+1)) 
     else
         usd(jx,jy) = ustr(jx,jy)
     end if
-end do
+  end do
 end do
 
 !lateral boundaries
@@ -936,6 +1020,15 @@ usd(1,:) = usd(2,:)
 usd(:,1) = usd(:,2)
 usd(:,ny+1) = usd(:,ny)
 usd(nx+1,:) = usd(nx,:)
+
+! wwvv for the parallel version, shift in the columns and rows
+#ifdef USEMPI
+call xmpi_shift(usd,'u')  ! fill in usd(nx+1,:)
+call xmpi_shift(usd,'d')  ! fill in usd(1,:)
+call xmpi_shift(usd,'l')  ! fill in usd(:,ny+1)
+call xmpi_shift(usd,'r')  ! fill in usd(:,1)
+
+#endif
 
 
 end subroutine breakerdelay 

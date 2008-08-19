@@ -8,14 +8,16 @@ integer, parameter :: ma=101
 integer, parameter :: na=501
 real *8, allocatable, dimension(:,:) :: a,b
 integer, allocatable, dimension(:,:) :: ia,ib
-real *8, allocatable, dimension(:) :: vs,vr
+real *8, allocatable, dimension(:) :: vs,vr,x
 integer, allocatable, dimension(:) :: is,js,lm,ln
-integer i,j,p,ii,jj,errors,total_errors,ierror
+integer i,j,p,ii,jj,errors,total_errors,ierror,k
 integer mlocal,nlocal
 integer, allocatable, dimension(:) :: leftn,rightn,topn,botn
 logical, allocatable, dimension(:) :: isleft,isright,istop,isbot
 real*8 t0,t1
 integer maal,times
+character, dimension(2)  :: rows
+real*8 MPI_Wtime
 
 times=1000
 
@@ -184,26 +186,26 @@ if (xmpi_master .eq. xmpi_rank) then
 endif
 
 
-  if ( .not. xmpi_isleft) then
-    do i=1,mlocal
-      b(i,1) = -1
-    enddo
-  endif
-  if (.not. xmpi_isright) then
-    do i=1,mlocal
-      b(i,nlocal) = -1
-    enddo
-  endif
-  if (.not. xmpi_istop) then
-    do j=1,nlocal
-      b(1,j) = -1
-    enddo
-  endif
-  if (.not. xmpi_isbot) then
-    do j=1,nlocal
-      b(mlocal,j) = -1
-    enddo
-  endif
+if ( .not. xmpi_isleft) then
+  do i=1,mlocal
+    b(i,1) = -1
+  enddo
+endif
+if (.not. xmpi_isright) then
+  do i=1,mlocal
+    b(i,nlocal) = -1
+  enddo
+endif
+if (.not. xmpi_istop) then
+  do j=1,nlocal
+    b(1,j) = -1
+  enddo
+endif
+if (.not. xmpi_isbot) then
+  do j=1,nlocal
+    b(mlocal,j) = -1
+  enddo
+endif
 
 call MPI_Barrier(xmpi_comm, ierror)
 t0=MPI_Wtime()
@@ -327,7 +329,7 @@ endif
 vr = -1
 
 do maal=1,times
-call vector_distr_send(vs,vr,is,lm,xmpi_master,xmpi_comm)
+  call vector_distr_send(vs,vr,is,lm,xmpi_master,xmpi_comm)
 enddo
 
 errors=0
@@ -345,12 +347,38 @@ if (xmaster) then
   ! call flush()
 endif
 
-deallocate(is,lm,js,ln,a,b)
+if(xmaster) write(*,*) 'testing xmpi_getrow'
+rows(1) = '1'
+rows(2) = 'm'
+allocate(x(nlocal))
+do i = 1,xmpi_m         !loop over source processes
+  do j = 1,2            !loop over top, bot
+    b = xmpi_prow
+    x=-1
+    call xmpi_getrow(b,nlocal,rows(j),i,x)
+    do k=1,nlocal
+      if (x(k) .ne. i) then
+        errors = errors+1
+        write(*,*) xmpi_rank,':error in getrow i,j,k,x(k)',i,j,k,x(k)
+      endif
+    enddo
+  enddo
+enddo
+
+call MPI_Reduce(errors,total_errors,1,MPI_INTEGER,MPI_SUM,&
+                xmpi_master,xmpi_comm,ierror)
+if (xmaster) then
+  write(*,*)'Number of getrow errors is ',total_errors
+  ! call flush()
+endif
+
+deallocate (is,lm,js,ln,a,b)
 deallocate (leftn)
 deallocate (rightn)
 deallocate (topn)
 deallocate (botn)
 deallocate (vs,vr)
+deallocate (x)
 goto 100
 100 continue
 if (xmpi_master .eq. xmpi_rank) then

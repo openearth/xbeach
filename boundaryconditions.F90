@@ -418,12 +418,15 @@ else
    if (xmaster) then
      write(*,*)' instat = ',par%instat, ' invalid option'
    endif
-#ifdef USEMPI
-   call xmpi_abort
-#endif
-   stop
+   call halt_program
 endif
-
+! wwvv need to communicate ui here, it is used later on in this
+! subroutine
+#ifdef USEMPI
+call xmpi_shift(ui,'1:')
+! wwvv also fill in ee(1,:,:)
+call xmpi_shift(ee,'1:')
+#endif
 if (par%t>0.0d0) then
     !
     ! Lateral boundary at y=0;
@@ -455,10 +458,18 @@ if (par%t>0.0d0) then
      do itheta=1,ntheta
 
            ee(2:nx+1,ny+1,itheta)= &
-           ee(1:nx+1-1,ny+1-1,itheta)*fac1+ee(2:nx+1,ny+1-1,itheta)*fac2
+             ee(1:nx+1-1,ny+1-1,itheta)*fac1+ee(2:nx+1,ny+1-1,itheta)*fac2
 
      end do
 end if
+! wwvv communicate ee(:,1,:)
+#ifdef USEMPI
+call xmpi_shift(ee,':1')
+! wwvv and ee(:,ny+1,:)
+call xmpi_shift(ee,':n')
+! wwv and ee(1,:,:) again
+call xmpi_shift(ee,'1:')
+#endif
 
 end subroutine wave_bc
 
@@ -472,6 +483,7 @@ subroutine flow_bc(s,par)
 use params
 use spaceparams
 use interp
+use xmpi_module
 
 IMPLICIT NONE
 
@@ -495,10 +507,10 @@ include 's.inp'
 if (.not. allocated(ht)) then
    allocate(ht      (2,ny+1))
    allocate(dhdx    (2,ny+1))
-   allocate(dhdy    (2,ny+1))
-   allocate(dvdx    (2,ny+1))
+   allocate(dhdy    (2,ny+1))   ! wwvv not used
+   allocate(dvdx    (2,ny+1))   ! wwvv not used
    allocate(dvdy    (2,ny+1))
-   allocate(dvudy   (1,ny+1))
+   allocate(dvudy   (1,ny+1))   ! wwvv not used
    allocate(inv_ht  (ny+1))
    allocate(dbetadx (2,ny+1))
    allocate(dbetady (2,ny+1))
@@ -506,7 +518,7 @@ if (.not. allocated(ht)) then
    allocate(bn      (ny+1))
    allocate(alpha2  (ny+1))
    allocate(betanp1 (1,ny+1))
-   allocate(zs0old(nx+1,ny+1))
+   allocate(zs0old(nx+1,ny+1))   ! wwvv not used
 endif
 
 allocate(szs0(1:2)) 
@@ -571,13 +583,34 @@ if (par%tideloc>0) then
     szs0(2)=par%zs04
     s%zs0(1,:)=par%zs01
     s%zs0(s%nx+1,:)=par%zs03
+! 
+! wwvv the following j-loop needs special care in the parallel case
+!      zs0(:,j) will get equal to one of
+!      -> zs0(1,j)
+!      -> zs0(nx+1)
+!      -> some interpolation function
+!      -> not changed
+!      The first two cases require, that the 'real' zs0(1,:)
+!      and zs0(nx+1,:) are present, otherwise the local
+!      values would be used.
+!      We fix this by first copying the first row of the
+!      top matrices to the first row of the local matrix
+!      and the last row of the bottom matrices to the last
+!      row of the local matrix.
+!      Then new values of zs0 are determined and afterwards
+!      the first and last rows are copied from top and lower neighbours
+
+#ifdef USEMPI
+    call xmpi_getrow(s%zs0,ny+1,'1',1,s%zs0(1,:))
+    call xmpi_getrow(s%zs0,ny+1,'m',1,s%zs0(nx+1,:))
+#endif
     do j = 1,s%ny+1 
         do i = 1,s%nx+1
-            if (s%zb(i,j).gt.s%zs0(1,j)+par%eps) goto 302
+            if (s%zb(i,j).gt.s%zs0(1,j)+par%eps) goto 302 ! wwvv can use exit here
             s%zs0(i,j) = s%zs0(1,j)
         enddo
 302     if (i.lt.s%nx+1) then
-            do ig=i+1,s%nx+1
+            do ig=i+1,s%nx+1      ! wwvv then s%zs0(i) is untouched, ok?
                 s%zs0(ig,j) = s%zs0(s%nx+1,j)   
             enddo
         else
@@ -604,12 +637,16 @@ if (par%tideloc>0) then
         call LINEAR_INTERP(yzs0, szs0, 2, s%yz(i), s%zs0(s%nx+1,i), indt)
     enddo
 
+! wwvv see above
+#ifdef USEMPI
+    call xmpi_getrow(s%zs0,ny+1,'1',1,s%zs0(1,:))
+    call xmpi_getrow(s%zs0,ny+1,'m',1,s%zs0(nx+1,:))
+#endif
     do j = 1,s%ny+1 
         do i = 1,s%nx+1
             if (s%zb(i,j).gt.s%zs0(1,j)+par%eps) goto 303
             s%zs0(i,j) = s%zs0(1,j)
         enddo
-        
 303     if (i.lt.s%nx+1) then
             do ig=i+1,s%nx+1
                 s%zs0(ig,j) = s%zs0(s%nx+1,j)   
@@ -621,131 +658,184 @@ if (par%tideloc>0) then
         endif
     enddo
   endif
+! wwvv in the parallel case, we need to get valid values for the top
+!  and bottom row 
+#ifdef USEMPI
+  call xmpi_shift(s%zs0,'1:')
+  call xmpi_shift(s%zs0,'m:')
+#endif
 
 endif
 !
 ! UPDATE (LONG) WAVES
 !
 if (par%instat<8)then
-if (par%front==0) then ! Ad's radiating boundary
-   uu(1,:)=2*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))
-   vv(1,:)=vv(2,:)
-elseif (par%front==1) then ! Van Dongeren (1997), weakly reflective boundary condition
-   ht(1:2,:)=s%zs0(1:2,:)-zb(1:2,:)
-   beta=uu(1:2,:)-2.*dsqrt(par%g*hum(1:2,:)) !cjaap : replace hh with hum
+! wwvv the following is probably only to do in the top processes, but take care for
+! the mpi_shift calls in horizontal directions
+  if(xmpi_istop) then
+    if (par%front==0) then ! Ad's radiating boundary
+       uu(1,:)=2*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))
+       vv(1,:)=vv(2,:)
+    elseif (par%front==1) then ! Van Dongeren (1997), weakly reflective boundary condition
+       ht(1:2,:)=s%zs0(1:2,:)-zb(1:2,:)
+       beta=uu(1:2,:)-2.*dsqrt(par%g*hum(1:2,:)) !cjaap : replace hh with hum
 
-   do j=2,ny
-        ! compute gradients in u-points....
-        dvdy(1,j)=(vu(1,min(j,ny)+1)-vu(1,max(j,2)-1))/(yz(min(j,ny)+1)-yz(max(j,2)-1))
-        dhdx(1,j)=(ht(2,j)-ht(1,j))/(xz(2)-xz(1))
-        dbetadx(1,j)=(beta(2,j)-beta(1,j))/(xu(2)-xu(1))
-        dbetady(1,j)=(beta(1,min(j,ny)+1)-beta(1,max(j,2)-1))/(yz(min(j,ny)+1)-yz(max(j,2)-1))
+       do j=2,ny
+            ! compute gradients in u-points....
+            dvdy(1,j)=(vu(1,min(j,ny)+1)-vu(1,max(j,2)-1))/(yz(min(j,ny)+1)-yz(max(j,2)-1))
+            dhdx(1,j)=(ht(2,j)-ht(1,j))/(xz(2)-xz(1))
+            dbetadx(1,j)=(beta(2,j)-beta(1,j))/(xu(2)-xu(1))
+            dbetady(1,j)=(beta(1,min(j,ny)+1)-beta(1,max(j,2)-1))/(yz(min(j,ny)+1)-yz(max(j,2)-1))
 
-        inv_ht(j) = 1.d0/hum(1,j)                                  !Jaap replaced hh with hum
+            inv_ht(j) = 1.d0/hum(1,j)                                  !Jaap replaced hh with hum
 
-        bn(j)=-(uu(1,j)-dsqrt(par%g*hum(1,j)))*dbetadx(1,j) &      !Jaap replaced hh with hum 
-              -vu(1,j)*dbetady(1,j)& !Ap vu
-              +dsqrt(par%g*hum(1,j))*dvdy(1,j)&                    !Jaap replaced hh with hum 
-              +Fx(1,j)*inv_ht(j)/par%rho-par%g/par%C**2.d0&        !Ap
-              *sqrt(uu(1,j)**2+vu(1,j)**2)*uu(1,j)/hum(1,j)&       !Jaap replaced hh with hum
-              +par%g*dhdx(1,j)
-   end do
+            bn(j)=-(uu(1,j)-dsqrt(par%g*hum(1,j)))*dbetadx(1,j) &      !Jaap replaced hh with hum 
+                  -vu(1,j)*dbetady(1,j)& !Ap vu
+                  +dsqrt(par%g*hum(1,j))*dvdy(1,j)&                    !Jaap replaced hh with hum 
+                  +Fx(1,j)*inv_ht(j)/par%rho-par%g/par%C**2.d0&        !Ap
+                  *sqrt(uu(1,j)**2+vu(1,j)**2)*uu(1,j)/hum(1,j)&       !Jaap replaced hh with hum
+                  +par%g*dhdx(1,j)
+       end do
 
-   do j=2,ny
-      betanp1(1,j) = beta(1,j)+ bn(j)*par%dt
-      alpha2(j)=-theta0
-      alphanew = 0.d0
-      s%umean(1,j) = (par%epsi*uu(1,j)+(1-par%epsi)*s%umean(1,j))  
-      do jj=1,50
-         !---------- Lower order bound. cond. ---
-         qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
-           *(0.5d0*(ht(1,j)+ht(2,j))*(betanp1(1,j)-s%umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))))&  !Jaap replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
-           -(ui(1,j)*hum(1,j))*(dcos(theta0)-1.d0)/dcos(theta0))   !Jaap replaced hh with hu
+       do j=2,ny
+          betanp1(1,j) = beta(1,j)+ bn(j)*par%dt
+          alpha2(j)=-theta0
+          alphanew = 0.d0
+          s%umean(1,j) = (par%epsi*uu(1,j)+(1-par%epsi)*s%umean(1,j))  
+          do jj=1,50
+             !---------- Lower order bound. cond. ---
+             qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
+               *(0.5d0*(ht(1,j)+ht(2,j))*(betanp1(1,j)-s%umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))))&  !Jaap replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
+               -(ui(1,j)*hum(1,j))*(dcos(theta0)-1.d0)/dcos(theta0))   !Jaap replaced hh with hu
 
-         !vert = velocity of the reflected wave = total-specified
-         vert = vu(1,j)-ui(1,j)*tan(theta0)
-         alphanew = datan(vert*hh(1,j)/(qxr+1.d-16))         
-         if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
-         if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
-         if(dabs(alphanew-alpha2(j)).lt.0.001d0) goto 1000
-         alpha2(j) = alphanew 
-      end do
-1000  continue
-      if (par%ARC==0) then
-         uu(1,j) = (par%order-1)*ui(1,j)
-         zs(1,j) = zs(2,j)
-      else
-         uu(1,j) = (par%order-1.d0)*ui(1,j)+2*qxr/(ht(1,j)+ht(2,j)) + s%umean(1,j) !Jaap: replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
-         !with a taylor expansion to get to the zs point at index 1 from uu(1) and uu(2)
-             zs(1,j) = 1.5d0*((betanp1(1,j)-uu(1,j))**2/4.d0/par%g+.5d0*(zb(1,j)+zb(2,j)))- &
-                       0.5d0*((beta(2,j)-uu(2,j))**2/4.d0/par%g+.5d0*(zb(2,j)+zb(3,j)))    
+             !vert = velocity of the reflected wave = total-specified
+             vert = vu(1,j)-ui(1,j)*tan(theta0)
+             alphanew = datan(vert*hh(1,j)/(qxr+1.d-16))                   ! wwvv can  use atan2 here
+             if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
+             if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
+             if(dabs(alphanew-alpha2(j)).lt.0.001d0) goto 1000     ! wwvv can use exit here
+             alpha2(j) = alphanew 
+          end do
+    1000  continue
+          if (par%ARC==0) then
+             uu(1,j) = (par%order-1)*ui(1,j)
+             zs(1,j) = zs(2,j)
+          else
+             uu(1,j) = (par%order-1.d0)*ui(1,j)+2*qxr/(ht(1,j)+ht(2,j)) + s%umean(1,j) !Jaap: replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
+             !with a taylor expansion to get to the zs point at index 1 from uu(1) and uu(2)
+                 zs(1,j) = 1.5d0*((betanp1(1,j)-uu(1,j))**2/4.d0/par%g+.5d0*(zb(1,j)+zb(2,j)))- &
+                           0.5d0*((beta(2,j)-uu(2,j))**2/4.d0/par%g+.5d0*(zb(2,j)+zb(3,j)))    
           end if
-   end do
-endif
-!
-! Radiating boundary at x=nx*dx
-!
-if (par%back==1) then !solve water level at nx+1 from continuity and set uu(nx+1,:)=0
-    uu(nx,:) = 0.d0
-    zs(nx+1,:) = zs(nx,:)
-    !zs(nx+1,2:ny) = zs(nx+1,2:ny) + par%dt*hh(nx,2:ny)*uu(nx,2:ny)/(xu(nx+1)-xu(nx)) -par%dt*(hv(nx+1,2:ny+1)*vv(nx+1,2:ny+1)-hv(nx+1,1:ny)*vv(nx+1,1:ny))/(yv(2:ny+1)-yv(1:ny))
-elseif (par%back==0) then
-    ! uu(nx+1,:)=sqrt(par%g/hh(nx+1,:))*(zs(nx+1,:)-max(zb(nx+1,:),s%zs0(nx+1,:))) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
-    ! uu(nx+1,:)=sqrt(par%g/(s%zs0(nx+1,:)-zb(nx+1,:)))*(zs(nx+1,:)-max(zb(nx+1,:),s%zs0(nx+1,:)))
-    s%umean(2,:) = par%epsi*uu(nx,:)+(1-par%epsi)*s%umean(2,:)    !Ap
-    zs(nx+1,:)=max(s%zs0(nx+1,:),s%zb(nx+1,:))+(uu(nx,:)-s%umean(2,:))*sqrt(max((s%zs0(nx+1,:)-zb(nx+1,:)),par%eps)/par%g)    !Ap
-elseif (par%back==2) then
-    ht(1:2,:)=s%zs0(s%nx:s%nx+1,:)-zb(s%nx:s%nx+1,:)
-    beta=uu(s%nx-1:s%nx,:)+2.*dsqrt(par%g*hum(s%nx-1:s%nx,:)) !cjaap : replace hh with hum
+       end do
+    endif ! par%front
+    ! uu, zs and umean shift horizontally in two directions (loop was 2..ny)
+#ifdef USEMPI
+    call xmpi_shift(s%umean,':1')
+    call xmpi_shift(s%umean,':n')
+    call xmpi_shift(uu,':1')
+    call xmpi_shift(uu,':n')
+    call xmpi_shift(zs,':1')
+    call xmpi_shift(zs,':n')
+#endif
+  endif  ! xmpi_istop
+  ! wwvv uu and zs and vv need to be communicated vertically 
+#ifdef USEMPI
+  call xmpi_shift(uu,'1:')
+  call xmpi_shift(zs,'1:')
+  call xmpi_shift(vv,'1:')
+#endif
+  !
+  ! Radiating boundary at x=nx*dx
+  !
+  if (par%back==1) then !solve water level at nx+1 from continuity and set uu(nx+1,:)=0
+      if (xmpi_isbot) then
+        uu(nx,:) = 0.d0   !wwvv this is NOT consistent with comment above
+        zs(nx+1,:) = zs(nx,:)
+      endif
+      !zs(nx+1,2:ny) = zs(nx+1,2:ny) + par%dt*hh(nx,2:ny)*uu(nx,2:ny)/(xu(nx+1)-xu(nx)) -par%dt*(hv(nx+1,2:ny+1)*vv(nx+1,2:ny+1)-hv(nx+1,1:ny)*vv(nx+1,1:ny))/(yv(2:ny+1)-yv(1:ny))
+! wwvv zs need to be communicated
+#ifdef USEMPI
+      call xmpi_shift(zs,'m:')
+#endif
+  elseif (par%back==0) then
+      ! uu(nx+1,:)=sqrt(par%g/hh(nx+1,:))*(zs(nx+1,:)-max(zb(nx+1,:),s%zs0(nx+1,:))) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
+      ! uu(nx+1,:)=sqrt(par%g/(s%zs0(nx+1,:)-zb(nx+1,:)))*(zs(nx+1,:)-max(zb(nx+1,:),s%zs0(nx+1,:)))
 
-   do j=2,ny
-      if (wetu(s%nx,j)==1) then   ! Robert: dry back boundary points
-        ! compute gradients in u-points....
-        dvdy(2,j)=(vu(s%nx,min(j,ny)+1)-vu(s%nx,max(j,2)-1))/(yz(min(j,ny)+1)-yz(max(j,2)-1))
-        dhdx(2,j)=(ht(2,j)-ht(1,j))/(xz(s%nx+1)-xz(s%nx))
-        dbetadx(2,j)=(beta(2,j)-beta(1,j))/(xu(s%nx)-xu(s%nx-1))
-        dbetady(2,j)=(beta(1,min(j,ny)+1)-beta(1,max(j,2)-1))/(yz(min(j,ny)+1)-yz(max(j,2)-1))
+      if (xmpi_isbot) then  ! wwvv only meaningful in bottom processes
+        s%umean(2,:) = par%epsi*uu(nx,:)+(1-par%epsi)*s%umean(2,:)    !Ap
+        zs(nx+1,:)=max(s%zs0(nx+1,:),s%zb(nx+1,:))+(uu(nx,:)-s%umean(2,:))*sqrt(max((s%zs0(nx+1,:)-zb(nx+1,:)),par%eps)/par%g)    !Ap
+      endif
 
-        inv_ht(j) = 1.d0/hum(s%nx,j)                                           !Jaap replaced hh with hum
+#ifdef USEMPI
+      call xmpi_shift(zs,'m:')
+#endif
+  elseif (par%back==2) then
+    if (xmpi_isbot) then  ! wwvv following makes only sense at the bottom processes
+        ht(1:2,:)=s%zs0(s%nx:s%nx+1,:)-zb(s%nx:s%nx+1,:)
+        beta=uu(s%nx-1:s%nx,:)+2.*dsqrt(par%g*hum(s%nx-1:s%nx,:)) !cjaap : replace hh with hum
 
-        bn(j)=-(uu(s%nx,j)+dsqrt(par%g*hum(s%nx,j)))*dbetadx(2,j) &            !Ap says plus  !Jaap replaced hh with hum 
-              -vu(s%nx,j)*dbetady(2,j)& !Ap vu
-              -dsqrt(par%g*hum(s%nx,j))*dvdy(2,j)&                             !Jaap replaced hh with hum 
-              +Fx(s%nx,j)*inv_ht(j)/par%rho-par%g/par%C**2.d0&                 !Ap
-              *sqrt(uu(s%nx,j)**2+vu(s%nx,j)**2)*uu(s%nx,j)/hum(s%nx,j)&       !Jaap replaced hh with hum
-              +par%g*dhdx(2,j)
-      endif   ! Robert: dry back boundary points
-   enddo
+       do j=2,ny
+          if (wetu(s%nx,j)==1) then   ! Robert: dry back boundary points
+            ! Compute gradients in u-points....
+            dvdy(2,j)=(vu(s%nx,min(j,ny)+1)-vu(s%nx,max(j,2)-1))/(yz(min(j,ny)+1)-yz(max(j,2)-1))
+            dhdx(2,j)=(ht(2,j)-ht(1,j))/(xz(s%nx+1)-xz(s%nx))
+            dbetadx(2,j)=(beta(2,j)-beta(1,j))/(xu(s%nx)-xu(s%nx-1))
+            dbetady(2,j)=(beta(1,min(j,ny)+1)-beta(1,max(j,2)-1))/(yz(min(j,ny)+1)-yz(max(j,2)-1))
 
-   do j=2,ny
-     if (wetu(s%nx,j)==1) then                                                   ! Robert: dry back boundary points
-      betanp1(1,j) = beta(2,j)+ bn(j)*par%dt                                   !Ap toch?
-      alpha2(j)= theta0
-      alphanew = 0.d0
-      s%umean(2,j) = (par%epsi*uu(s%nx,j)+(1-par%epsi)*s%umean(2,j))           !Ap 
-      do jj=1,50
-         !---------- Lower order bound. cond. ---
-         qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&  
-           *(0.5*(ht(1,j)+ht(2,j))*(betanp1(1,j)-s%umean(2,j)-2.d0*DSQRT(par%g*0.5*(ht(1,j)+ht(2,j))))) 
+            inv_ht(j) = 1.d0/hum(s%nx,j)                                           !Jaap replaced hh with hum
 
-         !vert = velocity of the reflected wave = total-specified
-         vert = vu(s%nx,j)
-         alphanew = datan(vert*hh(s%nx+1,j)/(qxr+1.d-16))                      !Ap
-         if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
-         if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
-         if(dabs(alphanew-alpha2(j)).lt.0.001) goto 2000
-         alpha2(j) = alphanew 
-      end do
-2000  continue
+            bn(j)=-(uu(s%nx,j)+dsqrt(par%g*hum(s%nx,j)))*dbetadx(2,j) &            !Ap says plus  !Jaap replaced hh with hum 
+                  -vu(s%nx,j)*dbetady(2,j)& !Ap vu
+                  -dsqrt(par%g*hum(s%nx,j))*dvdy(2,j)&                             !Jaap replaced hh with hum 
+                  +Fx(s%nx,j)*inv_ht(j)/par%rho-par%g/par%C**2.d0&                 !Ap
+                  *sqrt(uu(s%nx,j)**2+vu(s%nx,j)**2)*uu(s%nx,j)/hum(s%nx,j)&       !Jaap replaced hh with hum
+                  +par%g*dhdx(2,j)
+          endif   ! Robert: dry back boundary points
+       enddo
+
+       do j=2,ny
+         if (wetu(s%nx,j)==1) then                                                   ! Robert: dry back boundary points
+          betanp1(1,j) = beta(2,j)+ bn(j)*par%dt                                   !Ap toch?
+          alpha2(j)= theta0
+          alphanew = 0.d0
+          s%umean(2,j) = (par%epsi*uu(s%nx,j)+(1-par%epsi)*s%umean(2,j))           !Ap 
+          do jj=1,50
+             !---------- Lower order bound. cond. ---
+             qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&  
+               *(0.5*(ht(1,j)+ht(2,j))*(betanp1(1,j)-s%umean(2,j)-2.d0*DSQRT(par%g*0.5*(ht(1,j)+ht(2,j))))) 
+
+             !vert = velocity of the reflected wave = total-specified
+             vert = vu(s%nx,j)
+             alphanew = datan(vert*hh(s%nx+1,j)/(qxr+1.d-16))                      !Ap  ! wwvv maybe better atan2
+             if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
+             if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
+             if(dabs(alphanew-alpha2(j)).lt.0.001) goto 2000    ! wwvv can use exit here
+             alpha2(j) = alphanew 
+          end do
+    2000  continue
           uu(s%nx,j) = 2.*qxr/(ht(1,j)+ht(2,j)) + s%umean(2,j)                       !Jaap: replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
-          ! Ap replaced zs with extrapolation.
-      zs(s%nx+1,j) = 1.5*((betanp1(1,j)-uu(s%nx,j))**2.d0/4.d0/par%g+.5*(zb(s%nx,j)+zb(s%nx+1,j)))-&
-                                     0.5*((beta(1,j)-uu(s%nx-1,j))**2.d0/4.d0/par%g+.5*(zb(s%nx-1,j)+zb(s%nx,j)))
-  
-     endif   ! Robert: dry back boundary points
-   enddo
-endif
-endif 
+              ! Ap replaced zs with extrapolation.
+          zs(s%nx+1,j) = 1.5*((betanp1(1,j)-uu(s%nx,j))**2.d0/4.d0/par%g+.5*(zb(s%nx,j)+zb(s%nx+1,j)))-&
+                                         0.5*((beta(1,j)-uu(s%nx-1,j))**2.d0/4.d0/par%g+.5*(zb(s%nx-1,j)+zb(s%nx,j)))
+      
+         endif   ! Robert: dry back boundary points
+       enddo
+       ! fix first and last columns of s%umean and uu and zs
+#ifdef USEMPI
+       call xmpi_shift(s%umean,':1')
+       call xmpi_shift(s%umean,':n')
+       call xmpi_shift(uu,':1')
+       call xmpi_shift(uu,':n')
+       call xmpi_shift(zs,':1')
+       call xmpi_shift(zs,':n')
+#endif
+     endif  ! xmpi_isbot
+     ! wwvv fix the last row for the non-bot processes
+#ifdef USEMPI
+     call xmpi_shift(zs,'m:')
+#endif
+  endif    ! par%back
+endif   ! par%instat
 
 end subroutine flow_bc
 

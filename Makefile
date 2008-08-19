@@ -3,7 +3,7 @@ ifdef USEMPE
 USEMPI=yes
 endif
 
-LINKFLAGS = # -lefence
+LINKFLAGS =  #-lefence
 
 ifdef USEMPI
   program = xbeach.mpi
@@ -111,7 +111,18 @@ include DEPENDENCIES
 makeincludes: makeincludes.F90
 	$(F90) $(F90FLAGS) -o $@ makeincludes.F90
 	
-F90FLAGS+=-g -O3 -I. # -pg # -fprofile-arcs -ftest-coverage
+# some mpi.mod files have a definition of MPI_Wtime,
+# some don't. Comment next line if your mpi.mod 
+# has a definition
+
+# F90FLAGS += -DHAVE_MPI_WTIME
+
+ifdef TESTING
+  OPT=-O0
+else
+  OPT=-O3
+endif
+F90FLAGS+=-g $(OPT) -I.
 F90:=gfortran
 ifeq ($(F90),gfortran)
   F90FLAGS += -Wall
@@ -131,7 +142,7 @@ ifeq "$(filter -O3,$(F90FLAGS))" "-O3"
 endif
 
 clean:
-	rm -f *.o *.mod core testgenmodule demo
+	rm -f *.o *.mod core testgenmodule demo a.out
 
 realclean: clean
 	rm -f DEPENDENCIES *.gen makeincludes xbeach xbeach.mpi tags
