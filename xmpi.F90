@@ -89,6 +89,7 @@ interface xmpi_shift
 module procedure xmpi_shift_r2
 module procedure xmpi_shift_i2
 module procedure xmpi_shift_r3
+module procedure xmpi_shift_i3
 end interface xmpi_shift
 
 #endif
@@ -544,6 +545,35 @@ subroutine xmpi_shift_r3(x,direction)
   
 end subroutine xmpi_shift_r3
 
+subroutine xmpi_shift_i3(x,direction)
+  implicit none
+  integer, dimension (:,:,:) :: x
+  character(len=*)           :: direction
+
+  integer                    :: m,n,l
+
+  m = size(x,1)
+  n = size(x,2)
+  l = size(x,3)
+
+  select case(direction)
+    case('u','m:')
+      call xmpi_sendrecv(x(2,:,:),  l*n,xmpi_top,    x(m,:,:),xmpi_bot)
+    case('d','1:')
+      call xmpi_sendrecv(x(m-1,:,:),l*n,xmpi_bot,  x(1,:,:),xmpi_top)
+    case('l',':n')
+      call xmpi_sendrecv(x(:,2,:),  l*m,xmpi_left,   x(:,n,:),xmpi_right)
+    case('r',':1')
+      call xmpi_sendrecv(x(:,n-1,:),l*m,xmpi_right,x(:,1,:),xmpi_left)
+    case default
+      if(xmaster) then
+        write (*,*) 'Invalid direction parameter for xmpi_shift_r2: "'// &
+                    direction//'"'
+        call halt_program
+      endif
+  end select
+  
+end subroutine xmpi_shift_i3
 subroutine xmpi_barrier
   implicit none
   integer ierror

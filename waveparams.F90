@@ -169,6 +169,7 @@ integer                                 :: firstp, lastp
 real*8,dimension(:),allocatable         :: temp, x, y
 real*8                                  :: t1, dfj, fnyq, fp
 real*8                                  :: gam, scoeff
+character(len=80)                       :: dummystring
 
 ! Start program
 if(xmaster) then
@@ -186,7 +187,7 @@ scoeff              = readkey_dbl (fname,'s'       ,   10.0d0,      1.0d0,     1
 wp%mainang          = readkey_dbl (fname,'mainang' ,   270.0d0,     0.0d0,      360.0d0)
 
 if(xmaster) then
-  call readkey(fname,'checkparams','')
+  call readkey(fname,'checkparams',dummystring)
 endif
 
 

@@ -20,6 +20,7 @@ type(parameters)         :: par
 type(spacepars), pointer :: s
 type(spacepars), target  :: sglobal
 type(spacepars), target  :: slocal
+character(len=80)        :: dummystring
 
 integer                  :: it
 real*8                   :: tbegin,tend
@@ -115,7 +116,7 @@ call space_distribute_space(sglobal,slocal,par)
 call printit(sglobal,slocal,par,it,'after space_distribute_space')
 
 if (xmaster) then
-  call readkey('params.txt','checkparams','')
+  call readkey('params.txt','checkparams',dummystring) 
   write(*,*) 'Stepping into the time loop ....'  
 endif
 
@@ -137,7 +138,7 @@ do while (par%t<par%tstop)
 #endif
     ! Wave timestep
     if (par%instat==0) then
-       if (mod(par%t,real(par%wavint))==0) then
+       if (mod(par%t,dble(par%wavint))==0) then
           call wave_stationary(s,par)
           call printit(sglobal,slocal,par,it,'after wave_stationary')
        endif

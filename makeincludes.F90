@@ -35,8 +35,18 @@ contains
 subroutine getline
   implicit none
   character(slen) :: s
+  integer         :: i
   do
     read(infile,'(a)',end=100) line
+    ! some compilers don't think carriage return is white space.
+    ! we convert all cr, nl, tab into space
+    do i=1,len(line)
+    select case(ichar(line(i:i)))
+      case (9,10,13)
+        line(i:i) = ' '
+    end select
+    enddo
+
     s = adjustl(line)
     if (s(1:2) .ne. '!*') then
       exit

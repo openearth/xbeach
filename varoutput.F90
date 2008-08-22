@@ -111,7 +111,7 @@ subroutine init_output(s,sl,par,it)
 
           do i=1,npoints
               read(10,*) xpoints(i),ypoints(i),nassocvar(i),line
-              write(*,'(a,i3,a,i3)'),' xpoint:',xpoints(i),'ypoints:',ypoints(i)
+              write(*,'(a,i3,a,i3)') ' xpoint:',xpoints(i),'ypoints:',ypoints(i)
 
               icold=0
               do ii =1,nassocvar(i)

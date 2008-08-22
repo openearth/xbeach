@@ -7,6 +7,9 @@ use roelvink_module
 use wave_timestep_module
 use xmpi_module
 
+! wwvv in my testcase, this routine was not called, so it is not
+! tested. Nevertheless, I put in code for the parallel version.
+
 IMPLICIT NONE
 
 type(spacepars), target     :: s
@@ -108,6 +111,8 @@ call slope2D(hh+par%delta*H,nx,ny,xz,yz,dhdx,dhdy)
 call slope2D(u*par%wci,nx,ny,xz,yz,dudx,dudy)
 call slope2D(v*par%wci,nx,ny,xz,yz,dvdx,dvdy)
 
+! wwvv these slope routines are in wave_timestep, and are
+!   MPI-aware
 !
 ! Propagation speeds in x,y and theta space
 do j=1,ny+1
@@ -137,7 +142,12 @@ END DO
 
     thetamean(1,:)=(sum(ee(1,:,:)*thet(1,:,:),2)/size(ee(1,:,:),2)) &
                   /(max(sum(ee(1,:,:),2),0.00001d0) /size(ee(1,:,:),2))
- if (par%wci==1) then
+! wwvv
+!      need to correct first rows of thetamean 
+#ifdef USEMPI
+    call xmpi_shift(thetamean,'1:')
+#endif
+if (par%wci==1) then
     tm = (sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
     km = k
     kmx = km*cos(tm)
@@ -156,6 +166,11 @@ END DO
     call advecwy(wm,ywadvec,nx,ny,yz)   ! cjaap: yz or yv?
     kmy = kmy-par%dt*ywadvec + par%dt*cgxm*(dkmydx-dkmxdy)
     kmy(:,ny+1) = kmy(:,ny)   ! lateral bc
+    ! wwvv 
+#ifdef USEMPI
+    call xmpi_shift(kmx,':n')
+    call xmpi_shift(kmy,':n')
+#endif
     km = sqrt(kmx**2+kmy**2)
 else
      km = k
@@ -164,6 +179,12 @@ endif
     E(1,:)=sum(ee(1,:,:),2)*dtheta
     R(1,:)=max(sum(rr(1,:,:),2)*dtheta,0.0d0)
     H(1,:)=sqrt(E(1,:)/par%rhog8)
+    ! wwvv
+#ifdef USEMPI
+    call xmpi_shift(E,'1:')
+    call xmpi_shift(R,'1:')
+    call xmpi_shift(H,'1:')
+#endif
                    
 do i=2,nx
   dtw=.9*minval(xz(2:nx+1)-xz(1:nx))/sqrt(par%g*maxval(hh(i,:)))
@@ -203,7 +224,7 @@ do i=2,nx
     E(i,:)=sum(ee(i,:,:),2)*dtheta
     H(i,:)=sqrt(E(i,:)/par%rhog8)
     do itheta=1,ntheta
-       ee(i,:,itheta)=ee(i,:,itheta)/max(1.,(H(i,:)/(par%gammax*hh(i,:)))**2)
+       ee(i,:,itheta)=ee(i,:,itheta)/max(1.0d0,(H(i,:)/(par%gammax*hh(i,:)))**2)
     enddo
     H(i,:)=min(H(i,:),par%gammax*hh(i,:))
     E(i,:)=par%rhog8*H(i,:)**2
@@ -211,15 +232,15 @@ do i=2,nx
     
     !
     ! calculate change in intrinsic frequency
-    tm(i,:) = (sum(ee(i,:,:)*thet(i,:,:),2)/ntheta)/(max(sum(ee(i,:,:),2),0.00001)/ntheta)
+    tm(i,:) = (sum(ee(i,:,:)*thet(i,:,:),2)/ntheta)/(max(sum(ee(i,:,:),2),0.000010d0)/ntheta)
     if (par%wci/=1) then
-    km(i,:) = k(i,:)
+      km(i,:) = k(i,:)
     endif
 
     sigm(i,:) = sqrt(par%g*km(i,:)*tanh(km(i,:)*(hh(i,:)+par%delta*H(i,:))))
 
     DO itheta=1,ntheta
-         sigt(i,:,itheta) = max(sigm(i,:),0.01)
+         sigt(i,:,itheta) = max(sigm(i,:),0.010d0)
     END DO
     !
     ! Total dissipation
@@ -318,7 +339,7 @@ do i=2,nx
     ! Compute mean wave direction
     !
     thetamean(i,:)=(sum(ee(i,:,:)*thet(i,:,:),2)/size(ee(i,:,:),2)) &
-                  /(max(sum(ee(i,:,:),2),0.00001) /size(ee(i,:,:),2))
+                  /(max(sum(ee(i,:,:),2),0.000010d0) /size(ee(i,:,:),2))
     !
     ! Energy integrated over wave directions,Hrms
     !
@@ -332,6 +353,31 @@ do i=2,nx
     write(*,*)i,iter,Herr
   endif
 enddo
+! wwvv it seems that the second dimension needs no redistribution,
+! but the first does because of  do i=2,nx
+#ifdef USEMPI
+call xmpi_shift(tm,'1:')
+call xmpi_shift(tm,'m:')
+call xmpi_shift(sigm,'1:')
+call xmpi_shift(sigm,'m:')
+call xmpi_shift(sigt,'1:')
+call xmpi_shift(sigt,'m:')
+call xmpi_shift(ee,'1:')
+call xmpi_shift(ee,'m:')
+call xmpi_shift(rr,'1:')
+call xmpi_shift(rr,'m:')
+call xmpi_shift(thetamean,'1:')
+call xmpi_shift(thetamean,'m:')
+call xmpi_shift(E,'1:')
+call xmpi_shift(E,'m:')
+call xmpi_shift(R,'1:')
+call xmpi_shift(R,'m:')
+call xmpi_shift(DR,'1:')
+call xmpi_shift(DR,'m:')
+call xmpi_shift(H,'1:')
+call xmpi_shift(H,'m:')
+#endif
+
 !
 ! Radiation stresses and forcing terms
 !
@@ -366,6 +412,17 @@ Fx(:,ny+1)=Fx(:,ny+1-1)
 Fy(:,ny+1)=Fy(:,ny+1-1)
 Fx(1,:)=Fx(2,:)
 Fy(1,:)=Fy(2,:)
+! wwvv
+#ifdef USEMPI
+call xmpi_shift(Fx,':1')
+call xmpi_shift(Fy,':1')
+call xmpi_shift(Fx,':n')
+call xmpi_shift(Fy,':n')
+call xmpi_shift(Fx,'1:')
+call xmpi_shift(Fy,'1:')
+call xmpi_shift(Fx,':m')
+call xmpi_shift(Fy,':m')
+#endif
 urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*(hh+par%delta*H)))
 !ust=E*k/sigm/par%rho/max(hh,0.001)
 
@@ -383,6 +440,12 @@ ust=usd+ustw
 ust(1,:) = ust(2,:)
 ust(:,1) = ust(:,2)
 ust(:,ny+1) = ust(:,ny)
+! wwvv
+#ifdef USEMPI
+call xmpi_shift(ust,'1:')
+call xmpi_shift(ust,':1')
+call xmpi_shift(ust,':n')
+#endif
 D=2*par%g*par%beta*sum(rr/sqrt(cx**2+cy**2),3)*dtheta
 
 end subroutine wave_stationary

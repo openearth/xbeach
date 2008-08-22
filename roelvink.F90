@@ -48,7 +48,7 @@ fac=8.0d0/rho/g
 H=sqrt(fac*E)
 hroelvink=hh+delta*H
 
-Qb=min(1-exp(-(H/gamma/hroelvink)**n),1.)
+Qb=min(1-exp(-(H/gamma/hroelvink)**n),1.0d0)
 
 ! D=Qb*2.*alpha/Trep*E
 

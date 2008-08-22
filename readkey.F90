@@ -106,7 +106,8 @@ end function readkey_int
 subroutine readkey(fname,key,value)
 integer                                     :: lun,i,ier,nlines,ic,ikey
 character*1                                 :: ch
-character(len=*)                            :: fname,key,value
+character(len=*), intent(in)                :: fname,key
+character(len=*), intent(out)               :: value
 character*80, dimension(:),allocatable,save :: keyword,values
 character*80                                :: line
 logical, save                               :: first=.true.
@@ -160,7 +161,7 @@ if (first) then
    readindex=0
 endif
 
-value=''
+value=' '
 do ikey=1,nkeys
    if (key.eq.keyword(ikey)) then
       value=values(ikey)

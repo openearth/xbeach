@@ -141,6 +141,8 @@ use xmpi_module
 implicit none
 type(parameters)            :: par
 
+character(len=80)          :: dummystring
+
 par%px    = 3.14159265358979d0
 par%compi = (0.0d0,1.0d0)
 
@@ -170,10 +172,10 @@ elseif (par%instat==2 .or. par%instat==3) then
     par%omega    = 2.d0*par%px/par%Trep;
 elseif (par%instat==4 .or. par%instat==5 .or. par%instat==6) then
         ! Just a check .....
-        call readkey('params.txt','bcfile','')
-        call readkey('params.txt','rt','')
-        call readkey('params.txt','dtbc','')
-        call readkey('params.txt','dthetaS_XB','')
+        call readkey('params.txt','bcfile',dummystring)
+        call readkey('params.txt','rt',dummystring)
+        call readkey('params.txt','dtbc',dummystring)
+        call readkey('params.txt','dthetaS_XB',dummystring)
 elseif (par%instat > 8) then
     if(xmaster) then
       write(*,*)'Instat invalid option'

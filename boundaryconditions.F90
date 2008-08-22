@@ -231,7 +231,7 @@ end if
 ! instat = 7 => as instat = 4/5/6; reading from previously computed wave boundary condition file.
 if (par%instat==0) then
    do j=1,ny+1
-       ee(1,j,:)=e01*min(par%t/par%taper,1.)
+       ee(1,j,:)=e01*min(par%t/par%taper,1.0d0)
        bi(1) = 0.0d0
        ui(1,j) = 0.0d0
    end do
@@ -493,7 +493,7 @@ type(parameters)                            :: par
 integer                                     :: i,ig
 integer                                     :: j,jj,indt
 real*8                                      :: qxr,alphanew,vert
-real*8 , dimension(:)    ,allocatable       :: yzs0,szs0
+real*8 , dimension(2)                       :: yzs0,szs0
 real*8 , dimension(:,:)  ,allocatable,save  :: zs0old
 real*8 , dimension(:,:)  ,allocatable,save  :: ht,beta,betanp1
 real*8 , dimension(:)    ,allocatable,save  :: bn,alpha2
@@ -521,8 +521,8 @@ if (.not. allocated(ht)) then
    allocate(zs0old(nx+1,ny+1))   ! wwvv not used
 endif
 
-allocate(szs0(1:2)) 
-allocate(yzs0(1:2)) 
+!allocate(szs0(1:2))  ! wwvv changed this, now defined as an automatic array
+!allocate(yzs0(1:2)) 
 !
 ! Sea boundary at x=0;
 !

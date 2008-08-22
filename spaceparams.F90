@@ -390,7 +390,7 @@ subroutine comparer2(x,s)
   call xmpi_reduce(dif,difmax,MPI_SUM)
 
   if(xmaster) then
-    warning=''
+    warning=' '
     if (sum(difmax) .gt. eps) then
       warning = '<===++++++++++++++++++++++'
     endif
@@ -407,7 +407,7 @@ subroutine comparer2(x,s)
   call xmpi_reduce(dif,difmax,MPI_SUM)
 
   if(xmaster) then
-    warning=''
+    warning=' '
     if (sum(difmax) .gt. eps) then
       warning = '<===++++++++++++++++++++++'
     endif
@@ -423,7 +423,7 @@ subroutine comparer2(x,s)
   call xmpi_reduce(dif,difmax,MPI_SUM)
 
   if(xmaster) then
-    warning=''
+    warning=' '
     if (sum(difmax) .gt. eps) then
       warning = '<===++++++++++++++++++++++'
     endif
@@ -440,7 +440,7 @@ subroutine comparer2(x,s)
   call xmpi_reduce(dif,difmax,MPI_SUM)
 
   if(xmaster) then
-    warning=''
+    warning=' '
     if (sum(difmax) .gt. eps) then
       warning = '<===++++++++++++++++++++++'
     endif
@@ -476,7 +476,7 @@ subroutine comparei2(x,s)
   call xmpi_reduce(dif,difmax,MPI_SUM)
 
   if(xmaster) then
-    warning=''
+    warning=' '
     if (sum(difmax) .gt. eps) then
       warning = '<===++++++++++++++++++++++'
     endif
@@ -493,7 +493,7 @@ subroutine comparei2(x,s)
   call xmpi_reduce(dif,difmax,MPI_SUM)
 
   if(xmaster) then
-    warning=''
+    warning=' '
     if (sum(difmax) .gt. eps) then
       warning = '<===++++++++++++++++++++++'
     endif
@@ -509,7 +509,7 @@ subroutine comparei2(x,s)
   call xmpi_reduce(dif,difmax,MPI_SUM)
 
   if(xmaster) then
-    warning=''
+    warning=' '
     if (sum(difmax) .gt. eps) then
       warning = '<===++++++++++++++++++++++'
     endif
@@ -526,7 +526,7 @@ subroutine comparei2(x,s)
   call xmpi_reduce(dif,difmax,MPI_SUM)
 
   if(xmaster) then
-    warning=''
+    warning=' '
     if (sum(difmax) .gt. eps) then
       warning = '<===++++++++++++++++++++++'
     endif
@@ -563,7 +563,7 @@ use xmpi_module
   call xmpi_reduce(dif,difmax,MPI_SUM)
 
   if(xmaster) then
-    warning=''
+    warning=' '
     if (sum(difmax) .gt. eps) then
       warning = '<===++++++++++++++++++++++'
     endif
@@ -580,7 +580,7 @@ use xmpi_module
   call xmpi_reduce(dif,difmax,MPI_SUM)
 
   if(xmaster) then
-    warning=''
+    warning=' '
     if (sum(difmax) .gt. eps) then
       warning = '<===++++++++++++++++++++++'
     endif
@@ -597,7 +597,7 @@ use xmpi_module
   call xmpi_reduce(dif,difmax,MPI_SUM)
 
   if(xmaster) then
-    warning=''
+    warning=' '
     if (sum(difmax) .gt. eps) then
       warning = '<===++++++++++++++++++++++'
     endif
@@ -614,7 +614,7 @@ use xmpi_module
   call xmpi_reduce(dif,difmax,MPI_SUM)
 
   if(xmaster) then
-    warning=''
+    warning=' '
     if (sum(difmax) .gt. eps) then
       warning = '<===++++++++++++++++++++++'
     endif

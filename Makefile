@@ -1,4 +1,14 @@
 .SUFFIXES:
+# 
+# external variables that control the working of this makefile:
+# 
+# USEMPI:  if defined, make an MPI version of the program: xbeach.mpi
+#          else make a serial version: xbeach
+# USEXLF:  if defined: use xlf compiler (IBM)
+#          else use gfortran
+# TESTING: if defined: compile with -O3
+#          else compile with -O0
+# 
 ifdef USEMPE
 USEMPI=yes
 endif
@@ -109,13 +119,13 @@ DEPENDENCIES dep:
 include DEPENDENCIES
 
 makeincludes: makeincludes.F90
-	$(F90) $(F90FLAGS) -o $@ makeincludes.F90
+	$(F90_NO_MPI) $(F90FLAGS) -o $@ makeincludes.F90
 	
 # some mpi.mod files have a definition of MPI_Wtime,
-# some don't. Comment next line if your mpi.mod 
-# has a definition
+# some don't. Comment next line out if your mpi.mod 
+# lacks a definition
 
-# F90FLAGS += -DHAVE_MPI_WTIME
+F90FLAGS += -DHAVE_MPI_WTIME
 
 ifdef TESTING
   OPT=-O0
@@ -123,15 +133,21 @@ else
   OPT=-O3
 endif
 F90FLAGS+=-g $(OPT) -I.
-F90:=gfortran
+ifdef USEXLF
+  F90=xlf_r
+else
+  F90:=gfortran
+endif
+F90_NO_MPI := $(F90)
 ifeq ($(F90),gfortran)
   F90FLAGS += -Wall
 endif
 ifdef USEMPI
-  F90:=mpif90
-ifdef USETAU
-  F90:=tau_f90.sh
-endif
+  ifdef USEXLF
+    F90:=mpfort
+  else
+    F90:=mpif90
+  endif
   F90FLAGS +=  -DUSEMPI
 endif
 
@@ -139,6 +155,11 @@ ifeq "$(filter -O3,$(F90FLAGS))" "-O3"
   F90FLAGSNOWALL=$(filter-out -Wall,$(F90FLAGS))
   else
   F90FLAGSNOWALL=$(F90FLAGS)
+endif
+
+ifdef USEXLF
+  comma=,
+  F90FLAGS := $(subst -D,-WF$(comma)-D,$(F90FLAGSNOWALL)) -qfree=f90
 endif
 
 clean:

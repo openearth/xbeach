@@ -298,10 +298,10 @@ do jd = 1,par%nd-1
       if (jd == 1) then
          if (jg == 1) then
             s%graindistr(:,:,jd,jg) = dzbdtg(:,:,jg)/par%dzg + fact1*s%graindistr(:,:,jd,jg) + &
-            fact2*s%graindistr(:,:,jd+1,jg) + max(dzbdtg(:,:,jg+1)/par%dzg,0.)
+            fact2*s%graindistr(:,:,jd+1,jg) + max(dzbdtg(:,:,jg+1)/par%dzg,0.0d0)
          elseif (jg==2) then
             !s%graindistr(:,:,jd,jg) = dzbdtg(:,:,jg)/par%dzg + fact1*s%graindistr(:,:,jd,jg) + fact2*s%graindistr(:,:,jd+1,jg)
-            s%graindistr(:,:,jd,jg) = min(dzbdtg(:,:,jg)/par%dzg,0.) + fact1*s%graindistr(:,:,jd,jg) + &
+            s%graindistr(:,:,jd,jg) = min(dzbdtg(:,:,jg)/par%dzg,0.0d0) + fact1*s%graindistr(:,:,jd,jg) + &
             fact2*s%graindistr(:,:,jd+1,jg)
          else
             s%graindistr(:,:,jd,jg) = dzbdtg(:,:,jg)/par%dzg + fact1*s%graindistr(:,:,jd,jg) + fact2*s%graindistr(:,:,jd+1,jg) 
@@ -319,7 +319,7 @@ do jd = 1,par%nd
        graindistrm(:,:,jd) = graindistrm(:,:,jd) + s%graindistr(:,:,jd,jg)
     enddo
     do jg = 1,par%ngd
-       s%graindistr(:,:,jd,jg) = s%graindistr(:,:,jd,jg)/max(graindistrm(:,:,jd),.001)
+       s%graindistr(:,:,jd,jg) = s%graindistr(:,:,jd,jg)/max(graindistrm(:,:,jd),.0010d0)
     enddo
 enddo
 
@@ -701,7 +701,7 @@ do jg = 1,par%ngd
       end do
    end do
   
-   ceq = min(ceq,0.2)                 ! equilibrium concentration
+   ceq = min(ceq,0.20d0)                 ! equilibrium concentration
    ceq = ceq/hloc
    s%ceqg(:,:,jg) = ceq*s%sedcal(jg)
 enddo          
@@ -963,7 +963,7 @@ do jg = 1,par%ngd
       end do
    end do
   
-   ceq = min(ceq,0.2)                 ! equilibrium concentration
+   ceq = min(ceq,0.20d0)                 ! equilibrium concentration
    ceq = ceq/hloc
    s%ceqg(:,:,jg) = ceq*s%sedcal(jg)
 enddo                             ! end of grain size classes
