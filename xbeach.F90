@@ -156,7 +156,7 @@ do while (par%t<par%tstop)
     call bed_update(s,par)
     call printit(sglobal,slocal,par,it,'after bed_update')
     ! Output
-    call var_output(it,sglobal,slocal,par)
+    call var_output(it,sglobal,s,par)
 #ifdef USEMPI
 !   varoutput changed some in parameters, so:
     call distribute_par(par)

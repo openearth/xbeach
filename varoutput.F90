@@ -942,7 +942,7 @@ subroutine makeintpvector(par,s,intpvector,mg,ng)
               endif
             case(1)
               if (t%type .eq. 'i') then
-                write(*,*)'Wrong type in makeintp for variable',trim(t%name)
+                write(*,*)'Wrong type in makeintp for variable ',trim(t%name)
                 call halt_program
               endif
               if (t%name .eq. mnem_yz .or. t%name .eq. mnem_yv) then
@@ -957,7 +957,7 @@ subroutine makeintpvector(par,s,intpvector,mg,ng)
                 value = t%r2(m,n)
               endif
             case default
-              write(*,*)'Wrong rank in makeintpt: variable',trim(t%name)
+              write(*,*)'Wrong rank in makeintpt: variable ',trim(t%name)
               call halt_program
           end select
       end select
