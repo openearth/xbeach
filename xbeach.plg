@@ -3,82 +3,113 @@
 <pre>
 <h1>Build Log</h1>
 <h3>
---------------------Configuration: xbeach - Win32 Debug--------------------
+--------------------Configuration: makeincludes - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "e:\Temp\RSP2F.tmp" with contents
+Creating temporary file "e:\Temp\RSP28.tmp" with contents
 [
-/browser:"Debug/" /check:bounds /check:power /check:overflow /compile_only /dbglibs /debug:full /fltconsistency /fpconstant /fpe:0 /fpp /nologo /real_size:64 /traceback /warn:argument_checking /warn:nofileopt /module:"Debug/" /object:"Debug/" /pdbfile:"Debug/DF60.PDB" 
-"D:\sources\xbeach\trunk\xmpi.F90"
-"D:\sources\xbeach\trunk\readkey.f90"
-"D:\sources\xbeach\trunk\params.f90"
-"D:\sources\xbeach\trunk\mnemonic.F90"
-"D:\sources\xbeach\trunk\math_tools.f90"
-"D:\sources\xbeach\trunk\interp.f90"
-"D:\sources\xbeach\trunk\general_mpi.F90"
-"D:\sources\xbeach\trunk\spaceparams.F90"
-"D:\sources\xbeach\trunk\waveparams.f90"
-"D:\sources\xbeach\trunk\varoutput.f90"
-"D:\sources\xbeach\trunk\timestep.f90"
-"D:\sources\xbeach\trunk\roelvink.f90"
-"D:\sources\xbeach\trunk\wave_timestep.f90"
-"D:\sources\xbeach\trunk\wave_stationary.f90"
-"D:\sources\xbeach\trunk\readtide.f90"
-"D:\sources\xbeach\trunk\morphevolution.f90"
-"D:\sources\xbeach\trunk\initialize.f90"
-"D:\sources\xbeach\trunk\flow_timestep.f90"
-"D:\sources\xbeach\trunk\constants.f90"
-"D:\sources\xbeach\trunk\boundaryconditions.f90"
-"D:\sources\xbeach\trunk\xbeach.f90"
+/compile_only /nologo /warn:nofileopt /module:"Release/" /object:"Release/" 
+"D:\xbeach\makeincludes.F90"
 ]
-Creating temporary file "e:\Temp\RSP30.tmp" with contents
+Creating temporary file "e:\Temp\RSP29.tmp" with contents
 [
-kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /stack:0x3d0900 /subsystem:console /incremental:yes /pdb:"Debug/xbeach.pdb" /debug /machine:I386 /out:"Debug/xbeach.exe" /pdbtype:sept 
-.\Debug\boundaryconditions.obj
-.\Debug\constants.obj
-.\Debug\flow_timestep.obj
-.\Debug\general_mpi.obj
-.\Debug\initialize.obj
-.\Debug\interp.obj
-.\Debug\math_tools.obj
-.\Debug\mnemonic.obj
-.\Debug\morphevolution.obj
-.\Debug\params.obj
-.\Debug\readkey.obj
-.\Debug\readtide.obj
-.\Debug\roelvink.obj
-.\Debug\spaceparams.obj
-.\Debug\timestep.obj
-.\Debug\varoutput.obj
-.\Debug\wave_stationary.obj
-.\Debug\wave_timestep.obj
-.\Debug\waveparams.obj
-.\Debug\xbeach.obj
-.\Debug\xmpi.obj
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:no /pdb:"Release/makeincludes.pdb" /machine:I386 /out:"Release/makeincludes.exe" 
+.\Release\makeincludes.obj
 ]
-Creating command line "link.exe @e:\Temp\RSP30.tmp"
+Creating command line "link.exe @e:\Temp\RSP29.tmp"
 <h3>Output Window</h3>
 Compiling Fortran...
+D:\xbeach\makeincludes.F90
+Linking...
+Creating temporary file "e:\Temp\RSP2B.bat" with contents
+[
+@echo off
+.\Release\makeincludes < nul
+]
+Creating command line "e:\Temp\RSP2B.bat"
+
+ Making spacedecl.gen
+ Making mnemonic.gen
+ Making indextos.gen
+ Making space_alloc_scalars.gen
+ Making space_alloc_arrays.gen
+<h3>
+--------------------Configuration: xbeach - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "e:\Temp\RSP2C.tmp" with contents
+[
+/browser:"Release/" /check:bounds /check:power /check:overflow /compile_only /fpp /nologo /real_size:64 /traceback /warn:nofileopt /module:"Release/" /object:"Release/" 
+"D:\xbeach\constants.f90"
+"D:\xbeach\xmpi.F90"
+"D:\xbeach\mnemonic.F90"
+"D:\xbeach\readkey.f90"
+"D:\xbeach\params.f90"
+"D:\xbeach\general_mpi.F90"
+"D:\xbeach\spaceparams.F90"
+"D:\xbeach\roelvink.f90"
+"D:\xbeach\wave_timestep.f90"
+"D:\xbeach\interp.f90"
+"D:\xbeach\math_tools.f90"
+"D:\xbeach\waveparams.f90"
+"D:\xbeach\boundaryconditions.f90"
+"D:\xbeach\flow_timestep.f90"
+"D:\xbeach\initialize.f90"
+"D:\xbeach\morphevolution.f90"
+"D:\xbeach\readtide.f90"
+"D:\xbeach\timestep.f90"
+"D:\xbeach\varoutput.f90"
+"D:\xbeach\wave_stationary.f90"
+"D:\xbeach\xbeach.f90"
+]
+Creating temporary file "e:\Temp\RSP2D.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /stack:0x5f5e100 /subsystem:console /incremental:no /pdb:"Release/xbeach.pdb" /machine:I386 /out:"Release/xbeach.exe" 
+.\Release\boundaryconditions.obj
+.\Release\constants.obj
+.\Release\flow_timestep.obj
+.\Release\general_mpi.obj
+.\Release\initialize.obj
+.\Release\interp.obj
+.\Release\math_tools.obj
+.\Release\mnemonic.obj
+.\Release\morphevolution.obj
+.\Release\params.obj
+.\Release\readkey.obj
+.\Release\readtide.obj
+.\Release\roelvink.obj
+.\Release\spaceparams.obj
+.\Release\timestep.obj
+.\Release\varoutput.obj
+.\Release\wave_stationary.obj
+.\Release\wave_timestep.obj
+.\Release\waveparams.obj
+.\Release\xbeach.obj
+.\Release\xmpi.obj
+]
+Creating command line "link.exe @e:\Temp\RSP2D.tmp"
+<h3>Output Window</h3>
+Compiling Fortran...
+constants.i90
 xmpi.i90
+mnemonic.i90
 readkey.i90
 params.i90
-mnemonic.i90
-math_tools.i90
-interp.i90
 general_mpi.i90
 spaceparams.i90
-waveparams.i90
-varoutput.i90
-timestep.i90
 roelvink.i90
 wave_timestep.i90
-wave_stationary.i90
-readtide.i90
-morphevolution.i90
-initialize.i90
-flow_timestep.i90
-constants.i90
+interp.i90
+math_tools.i90
+waveparams.i90
 boundaryconditions.i90
+flow_timestep.i90
+initialize.i90
+morphevolution.i90
+readtide.i90
+timestep.i90
+varoutput.i90
+wave_stationary.i90
 xbeach.i90
 Linking...
 
