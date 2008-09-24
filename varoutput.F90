@@ -111,7 +111,7 @@ subroutine init_output(s,sl,par,it)
 
           do i=1,npoints
               read(10,*) xpoints(i),ypoints(i),nassocvar(i),line
-              write(*,'(a,i3,a,i3)') ' xpoint:',xpoints(i),'ypoints:',ypoints(i)
+              write(*,'(a,i3,a,i3)') ' xpoint: ',xpoints(i),' ypoint: ',ypoints(i)
 
               icold=0
               do ii =1,nassocvar(i)
@@ -900,18 +900,8 @@ subroutine makeintpvector(par,s,intpvector,mg,ng)
 #endif
     do j=1,numvars
       call indextos(s,j,t)
+      value = -999   ! default
       select case (t%name)
-        case(mnem_theta,    &
-          mnem_cxsth,       &
-          mnem_sxnth,       &
-          mnem_tideinpt,    &
-          mnem_tideinpz,    &
-          mnem_bi,          &
-          mnem_vardx,       &
-          mnem_D50,         &
-          mnem_D90,         &
-          mnem_sedcal)
-            value = -999.d0
         case(mnem_thetamean)
           value = 270-((s%thetamean(m,n)+s%alfa)*(180/par%px))  ! iwwvv thetamean: is that
                                                                 ! different on each
@@ -941,24 +931,24 @@ subroutine makeintpvector(par,s,intpvector,mg,ng)
                  value = t%r0
               endif
             case(1)
-              if (t%type .eq. 'i') then
-                write(*,*)'Wrong type in makeintp for variable ',trim(t%name)
-                call halt_program
-              endif
-              if (t%name .eq. mnem_yz .or. t%name .eq. mnem_yv) then
-                value = t%r1(n)
-              else
-                value = t%r1(m)
+              if (t%type .eq. 'r') then
+                select case(t%name)
+                  case (mnem_yz,mnem_yv)
+                    value = t%r1(n)
+                  case (mnem_xz,mnem_xu)
+                    value = t%r1(m)
+                end select
               endif
             case (2)
               if (t%type .eq. 'i') then
-                value = dble(t%i2(m,n))
+                if (m .le. size(t%i2,1) .and. n .le. size(t%i2,2)) then
+                  value = dble(t%i2(m,n))
+                endif
               else
-                value = t%r2(m,n)
+                if (m .le. size(t%r2,1) .and. n .le. size(t%r2,2)) then
+                  value = t%r2(m,n)
+                endif
               endif
-            case default
-              write(*,*)'Wrong rank in makeintpt: variable ',trim(t%name)
-              call halt_program
           end select
       end select
       intpvector(j) = value

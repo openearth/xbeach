@@ -19,6 +19,8 @@ character(len=slen), parameter :: mnemonicname = 'mnemonic.gen'
 character(len=slen), parameter :: indextosname = 'indextos.gen'
 character(len=slen), parameter :: space_alloc_scalarsname = 'space_alloc_scalars.gen'
 character(len=slen), parameter :: space_alloc_arraysname = 'space_alloc_arrays.gen'
+character(len=slen), parameter :: space_indname = 'space_ind.gen'
+character(len=slen), parameter :: space_inpname = 'space_inp.gen'
 integer                        :: numvars, maxnamelen, inumvars0, rnumvars0
 character(len=slen)            :: type, name, comment, line, broadcast
 integer                        :: rank
@@ -448,6 +450,61 @@ subroutine makespace_alloc_arrays
 
 end subroutine makespace_alloc_arrays
 
+subroutine makespaceind
+  implicit none
+  character(len=slen) rankstr
+  call openinfile
+  call openoutput
+  call warning
+  do
+    call getline
+    if (endfound) then
+      exit
+    endif
+    call getitems
+    if (varfound) then
+      select case(rank)
+        case(0)
+          rankstr = ',pointer                   '
+        case(1)
+          rankstr = ',dimension(:),      pointer'
+        case(2)
+          rankstr = ',dimension(:,:),    pointer'
+        case(3)
+          rankstr = ',dimension(:,:,:),  pointer'
+        case(4)
+          rankstr = ',dimension(:,:,:,:),pointer'
+        case default
+          rankstr = 'invalid number of dimensions'
+      end select
+      write(outfile,'(a)') sp//trim(type)//trim(rankstr)//' :: '//trim(name)
+    endif
+  enddo
+  call format_fortran
+  close (outfile)
+  close(infile)
+end subroutine makespaceind
+
+subroutine makespaceinp
+  implicit none
+  call openinfile
+  call openoutput
+  call warning
+  do
+    call getline
+    if (endfound) then
+      exit
+    endif
+    call getitems
+    if (varfound) then
+      write(outfile,'(a)') sp//trim(name)//' => '//'s%'//trim(name)
+    endif
+  enddo
+  call format_fortran
+  close (outfile)
+  close(infile)
+end subroutine makespaceinp
+
 end module makemodule
 
 program makeincludes
@@ -467,7 +524,9 @@ program makeincludes
                 trim(mnemonicname)//' '// &
                 trim(indextosname)//' '// &
                 trim(space_alloc_scalarsname)//' '// &
-                trim(space_alloc_arraysname)
+                trim(space_alloc_arraysname)//' '// &
+                trim(space_indname)//' '// &
+                trim(space_inpname)
   110 continue
    if (index(command,trim(spacedeclname)) .ne. 0) then
      write(*,*)'Making '//trim(spacedeclname)
@@ -498,5 +557,18 @@ program makeincludes
      outputfilename = space_alloc_arraysname
      call makespace_alloc_arrays
    endif
+
+   if (index(command,trim(space_indname)) .ne. 0) then
+     write(*,*)'Making '//trim(space_indname)
+     outputfilename = space_indname
+     call makespaceind
+   endif
+
+   if (index(command,trim(space_inpname)) .ne. 0) then
+     write(*,*)'Making '//trim(space_inpname)
+     outputfilename = space_inpname
+     call makespaceinp
+   endif
+
 end program makeincludes
 
