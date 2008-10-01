@@ -55,7 +55,7 @@ module general_mpi_module
 ! openmpi.
 ! 
 
-! #define USEBARRIERS
+!#define USEBARRIERS
 
 #ifdef USEBARRIERS
 #define BARRIER call MPI_Barrier(comm,ierror)
@@ -70,17 +70,17 @@ interface matrix_distr
 !  module procedure matrix_distr_scatter_integer
   module procedure matrix_distr_sendmat_real8
   module procedure matrix_distr_sendmat_integer
-end interface 
+end interface matrix_distr
 
 interface matrix_coll
 !  module procedure matrix_coll_gather_real8
 !  module procedure matrix_coll_recv_real8
   module procedure matrix_coll_recvmat_real8
-end interface
+end interface matrix_coll
 
 interface shift_borders
 module procedure shift_borders_matrix_real8
-end interface
+end interface shift_borders
 
 contains
 subroutine vector_distr_send(a,b,is,lm,root,comm)
@@ -101,6 +101,7 @@ subroutine vector_distr_send(a,b,is,lm,root,comm)
   !         made.
   !
   use mpi
+  implicit none
   real*8, dimension(:), intent(in)  :: a
   real*8, dimension(:), intent(out) :: b
   integer, dimension(:), intent(in) :: is
@@ -110,26 +111,30 @@ subroutine vector_distr_send(a,b,is,lm,root,comm)
 
   integer                             :: ierror,p,procs,rank,pp,mlocal
   integer, dimension(:), allocatable  :: req
+  real*8, dimension(:), allocatable   :: aa
 
   call MPI_Comm_rank(comm, rank, ierror)
   call MPI_Comm_size(comm, procs, ierror)
   allocate(req(procs-1))
 
-  ! call MPI_Scatter(lm, 1, MPI_INTEGER, mlocal, 1, MPI_INTEGER, root, comm, ierror)
   mlocal = lm(rank+1)
 
   pp=0
   if ( rank .eq. root ) then
+    allocate(aa(size(a)))
+    aa = a               ! must have contiguous memory for a because
+                         ! of mpi_isend
     do p = 1,procs
       if ( p-1 .eq. rank ) then
         b(1:lm(p)) = a(is(p) : is(p)+lm(p)-1)
       else
       pp = pp + 1
-      call MPI_Isend(a(is(p)), lm(p), MPI_DOUBLE_PRECISION, p-1, &
+      call MPI_Isend(aa(is(p)), lm(p), MPI_DOUBLE_PRECISION, p-1, &
                      11, comm, req(pp), ierror)
       endif
     enddo
     call MPI_Waitall(pp,req,MPI_STATUSES_IGNORE,ierror)
+    deallocate(aa)
   else
     call MPI_Recv(b, mlocal, MPI_DOUBLE_PRECISION, root, 11,&
                   comm, MPI_STATUS_IGNORE, ierror) 
@@ -177,12 +182,10 @@ subroutine matrix_distr_scatter_real8(a,b,is,lm,js,ln,root,comm)
   integer                              :: j,p,rank,ierror,procs,jj,ma,jmax
   integer                              :: nlocal,mlocal,rcnt
   integer, allocatable, dimension(:)   :: displs, cnts
+  real*8, allocatable, dimension(:,:)  :: aa
 
   call MPI_Comm_rank(comm, rank, ierror)
   call MPI_Comm_size(comm, procs, ierror)
-
-  !call MPI_Scatter(ln, 1, MPI_INTEGER, nlocal, 1, MPI_INTEGER, root, comm, ierror)
-  !call MPI_Scatter(lm, 1, MPI_INTEGER, mlocal, 1, MPI_INTEGER, root, comm, ierror)
 
   nlocal = ln(rank+1)
   mlocal = lm(rank+1)
@@ -190,10 +193,16 @@ subroutine matrix_distr_scatter_real8(a,b,is,lm,js,ln,root,comm)
   if (rank .eq. root) then
     ma = size(a,1)
     allocate(displs(procs), cnts(procs))
-  !  jmax = maxval(ln(1:procs))     ! number of scatters needed
+    ! because the counts and displacements are only valid for a 
+    ! contiguous matrix, we take care of that:
+
+    allocate(aa(size(a,1),size(a,2)))
+    aa = a
+
   else
     ma = 1                       ! to quiet the compiler
     allocate(displs(1), cnts(1)) ! these are not needed in non-root process, but
+    allocate(aa(1,1))
     displs(1) = 0
     cnts(1)   = 0
                                  ! it is safer to have valid addresses
@@ -223,13 +232,13 @@ subroutine matrix_distr_scatter_real8(a,b,is,lm,js,ln,root,comm)
       jj=1                     ! we are out of columns, give jj a valid number
       rcnt = 0                 ! and set the number of elements to receive to zero
     endif
-    
-    call MPI_Scatterv(a(1,1),  cnts(1), displs(1), MPI_DOUBLE_PRECISION,  &
-                      b(1,jj), rcnt,         MPI_DOUBLE_PRECISION,  &
+
+    call MPI_Scatterv(aa(1,1),  cnts(1), displs(1), MPI_DOUBLE_PRECISION,  &
+                      b(:,jj), rcnt,         MPI_DOUBLE_PRECISION,  &
                       root,    comm, ierror)
   enddo
 
-  deallocate(displs,cnts)
+  deallocate(displs,cnts,aa)
   BARRIER
 
 end subroutine matrix_distr_scatter_real8
@@ -270,14 +279,12 @@ subroutine matrix_distr_scatter_integer(a,b,is,lm,js,ln,root,comm)
   integer                              :: j,p,rank,ierror,procs,jj,ma,jmax
   integer                              :: nlocal,mlocal,rcnt
   integer, allocatable, dimension(:)   :: displs, cnts
+  integer, allocatable, dimension(:,:) :: aa
 
   integer, parameter                   :: tag = 1
 
   call MPI_Comm_rank(comm, rank, ierror)
   call MPI_Comm_size(comm, procs, ierror)
-
-  !call MPI_Scatter(ln, 1, MPI_INTEGER, nlocal, 1, MPI_INTEGER, root, comm, ierror)
-  !call MPI_Scatter(lm, 1, MPI_INTEGER, mlocal, 1, MPI_INTEGER, root, comm, ierror)
 
   nlocal = ln(rank+1)
   mlocal = lm(rank+1)
@@ -285,14 +292,15 @@ subroutine matrix_distr_scatter_integer(a,b,is,lm,js,ln,root,comm)
   if (rank .eq. root) then
     ma = size(a,1)
     allocate(displs(procs), cnts(procs))
-  !  jmax = maxval(ln(1:procs))     ! number of scatters needed
+    allocate(aa(size(a,1),size(a,2)))
+    aa = a
   else
     ma = 1                       ! to quiet the compiler
     allocate(displs(1), cnts(1)) ! these are not needed in non-root process, but
                                  ! it is safer to have valid addresses
+    allocate(aa(1,1))
   endif
 
-  !call MPI_Bcast(jmax, 1, MPI_INTEGER, root, comm, ierror)
   jmax = maxval(ln(1:procs))     ! number of scatters needed
 
   do j=1,jmax ! scatter all j'th columns 
@@ -318,12 +326,12 @@ subroutine matrix_distr_scatter_integer(a,b,is,lm,js,ln,root,comm)
       rcnt = 0                 ! and set the number of elements to receive to zero
     endif
     
-    call MPI_Scatterv(a(1,1),  cnts(1), displs(1), MPI_INTEGER,  &
-                      b(1,jj), rcnt,         MPI_INTEGER,  &
+    call MPI_Scatterv(aa(1,1),  cnts(1), displs(1), MPI_INTEGER,  &
+                      b(:,jj), rcnt,         MPI_INTEGER,  &
                       root,    comm, ierror)
   enddo
 
-  deallocate(displs,cnts)
+  deallocate(displs,cnts,aa)
   BARRIER
 
 end subroutine matrix_distr_scatter_integer
@@ -376,12 +384,10 @@ subroutine matrix_distr_send_real8(a,b,is,lm,js,ln,root,comm)
   integer, parameter                   :: tag = 1
 
   integer, parameter                   :: datatype = MPI_DOUBLE_PRECISION
+  real*8, allocatable, dimension(:,:)  :: aa,bb
 
   call MPI_Comm_rank(comm, rank, ierror)
   call MPI_Comm_size(comm, procs, ierror)
-
-  !call MPI_Scatter(ln, 1, MPI_INTEGER, nlocal, 1, MPI_INTEGER, root, comm, ierror)
-  !call MPI_Scatter(lm, 1, MPI_INTEGER, mlocal, 1, MPI_INTEGER, root, comm, ierror)
 
   nlocal = ln(rank+1)
   mlocal = lm(rank+1)
@@ -412,6 +418,11 @@ subroutine matrix_distr_send_real8(a,b,is,lm,js,ln,root,comm)
   req=MPI_REQUEST_NULL    ! initialize req with a null-value
 
   if ( rank .eq. root) then
+    ! we need a contiguous matrix a, because
+    !  we are going to use isend.
+    allocate(aa(size(a,1),size(a,2)))
+    aa = a
+
     sends=0
     l = 0
     j = 0
@@ -439,7 +450,7 @@ subroutine matrix_distr_send_real8(a,b,is,lm,js,ln,root,comm)
                 call MPI_Test(req(l),done,MPI_STATUS_IGNORE,ierror)
               endif
             enddo ! now we have a free request holder req(l)
-            call MPI_Isend(a(is(p + 1), j + js(p + 1) - 1), length, &
+            call MPI_Isend(aa(is(p + 1), j + js(p + 1) - 1), length, &
                  datatype, p, tag, comm, req(l), ierror)
           endif
           sends = sends + 1
@@ -449,13 +460,21 @@ subroutine matrix_distr_send_real8(a,b,is,lm,js,ln,root,comm)
         endif
       enddo
     enddo loop
+    deallocate(aa)
   else   ! below the code for non-root:
+    ! because of irecv, we must be sure that we have a contiguous matrix
+    allocate(bb(size(b,1),size(b,2)))
     do j=1,nlocal
-      call MPI_Irecv(b(1,j), mlocal, datatype, root, tag, comm, req(j), ierror)
+      call MPI_Irecv(bb(1,j), mlocal, datatype, root, tag, comm, req(j), ierror)
     enddo
   endif
 
   call MPI_Waitall(maxreq,req,MPI_STATUSES_IGNORE,ierror)
+
+  if (rank .ne. root) then
+    b = bb
+    deallocate(bb)
+  endif
 
   deallocate(req)
   BARRIER
@@ -510,13 +529,11 @@ subroutine matrix_distr_send_integer(a,b,is,lm,js,ln,root,comm)
   integer, parameter                   :: tag = 1
 
   integer, parameter                   :: datatype = MPI_INTEGER
+  integer, allocatable, dimension(:,:) :: aa,bb
 
 
   call MPI_Comm_rank(comm, rank, ierror)
   call MPI_Comm_size(comm, procs, ierror)
-
-  !call MPI_Scatter(ln, 1, MPI_INTEGER, nlocal, 1, MPI_INTEGER, root, comm, ierror)
-  !call MPI_Scatter(lm, 1, MPI_INTEGER, mlocal, 1, MPI_INTEGER, root, comm, ierror)
 
   nlocal = ln(rank+1)
   mlocal = lm(rank+1)
@@ -547,6 +564,8 @@ subroutine matrix_distr_send_integer(a,b,is,lm,js,ln,root,comm)
   req=MPI_REQUEST_NULL    ! initialize req with a null-value
 
   if ( rank .eq. root) then
+    allocate(aa(size(a,1),size(a,2)))
+    aa = a
     sends=0
     l = 0
     j = 0
@@ -574,7 +593,7 @@ subroutine matrix_distr_send_integer(a,b,is,lm,js,ln,root,comm)
                 call MPI_Test(req(l),done,MPI_STATUS_IGNORE,ierror)
               endif
             enddo ! now we have a free request holder req(l)
-            call MPI_Isend(a(is(p + 1), j + js(p + 1) - 1), length, &
+            call MPI_Isend(aa(is(p + 1), j + js(p + 1) - 1), length, &
                  datatype, p, tag, comm, req(l), ierror)
           endif
           sends = sends + 1
@@ -584,9 +603,11 @@ subroutine matrix_distr_send_integer(a,b,is,lm,js,ln,root,comm)
         endif
       enddo
     enddo loop
+    deallocate(aa)
   else   ! below the code for non-root:
+    allocate(bb(size(b,1),size(b,2)))
     do j=1,nlocal
-      call MPI_Irecv(b(1,j), mlocal, datatype, root, tag, comm, req(j), ierror)
+      call MPI_Irecv(bb(1,j), mlocal, datatype, root, tag, comm, req(j), ierror)
     enddo
   endif
 
@@ -595,6 +616,11 @@ subroutine matrix_distr_send_integer(a,b,is,lm,js,ln,root,comm)
       call MPI_Wait(req(l), MPI_STATUS_IGNORE, ierror)
     endif
   enddo
+
+  if (rank .ne. root) then
+    b = bb
+    deallocate(bb)
+  endif
 
   deallocate(req)
   BARRIER
@@ -633,11 +659,11 @@ subroutine matrix_distr_sendmat_real8(a,b,is,lm,js,ln,&
   integer, intent(in), dimension(:)    :: is, lm
   integer, intent(in), dimension(:)    :: js, ln
   integer, intent(in)                  :: root, comm
-  integer                              :: i, j, rank, ierror, procs, p
+
+  integer                              :: i, rank, ierror, procs, p
   integer                              :: mlocal, nlocal
-  real*8, allocatable, dimension(:)    :: c
   integer                              :: acolstart, acolend, arowstart, arowend
-  integer                              :: mp, np, k, rmax, ia, ja
+  integer                              :: mp, np, k, ia, ja
   integer, parameter                   :: tag1 = 125
   integer, parameter                   :: tag2 = 126
 
@@ -664,13 +690,6 @@ subroutine matrix_distr_sendmat_real8(a,b,is,lm,js,ln,&
     ! now, send to each non-root process 
     ! it's part of matrix a
 
-    ! define a send buffer, big enough to hold the largest
-    ! submatrix
-
-    rmax = maxval(ln*lm)
-
-    allocate (c(rmax))
-
     ploop: do p = 1, procs
       if ( p - 1 .eq. root ) then
         cycle ploop
@@ -691,22 +710,11 @@ subroutine matrix_distr_sendmat_real8(a,b,is,lm,js,ln,&
       call MPI_Send(mp*np, 1, MPI_INTEGER, p - 1, tag1, comm, ierror)
 
       ! send a submatrix to process p-1:
-      ! copy to c the appropriate part of a
-   
-      k = 0
-      do j = ja, ja + np - 1
-        do i = ia, ia + mp - 1
-          k    = k + 1
-          c(k) = a(i,j)
-        enddo
-      enddo
-
-      call MPI_Send(c, mp*np, MPI_DOUBLE_PRECISION, &
+      
+      call MPI_Send(a(ia:ia+mp-1,ja:ja+np-1), mp*np, MPI_DOUBLE_PRECISION, &
                     p - 1, tag2, comm, ierror)
 
     enddo  ploop ! loop over non-root processes
-
-    deallocate(c)
 
   else ! above is the root code, now the non-root code
     ! receive the short message from root, so I can start receiving b
@@ -762,11 +770,10 @@ subroutine matrix_distr_sendmat_integer(a,b,is,lm,js,ln,&
   integer, intent(in), dimension(:)    :: is, lm
   integer, intent(in), dimension(:)    :: js, ln
   integer, intent(in)                  :: root, comm
-  integer                              :: i, j, rank, ierror, procs, p
+  integer                              :: i, rank, ierror, procs, p
   integer                              :: mlocal, nlocal
-  integer, allocatable, dimension(:)   :: c
   integer                              :: acolstart, acolend, arowstart, arowend
-  integer                              :: mp, np, k, rmax, ia, ja
+  integer                              :: mp, np, k, ia, ja
   integer, parameter                   :: tag1 = 125
   integer, parameter                   :: tag2 = 126
 
@@ -793,13 +800,6 @@ subroutine matrix_distr_sendmat_integer(a,b,is,lm,js,ln,&
     ! now, send to each non-root process 
     ! it's part of matrix a
 
-    ! define a send buffer, big enough to hold the largest
-    ! submatrix
-
-    rmax = maxval(ln*lm)
-
-    allocate (c(rmax))
-
     ploop: do p = 1, procs
       if ( p - 1 .eq. root ) then
         cycle ploop
@@ -821,22 +821,11 @@ subroutine matrix_distr_sendmat_integer(a,b,is,lm,js,ln,&
       call MPI_Send(mp*np, 1, MPI_INTEGER, p - 1, tag1, comm, ierror)
 
       ! send a submatrix to process p-1
-      ! copy to c now to appropriate part of a
-   
-      k = 0
-      do j = ja, ja + np - 1
-        do i = ia, ia + mp - 1
-          k    = k + 1
-          c(k) = a(i,j)
-        enddo
-      enddo
 
-      call MPI_Send(c, mp*np, MPI_INTEGER, &
+      call MPI_Send(a(ia:ia+mp-1,ja:ja+np-1), mp*np, MPI_INTEGER, &
                     p - 1, tag2, comm, ierror)
 
     enddo  ploop ! loop over non-root processes
-
-    deallocate(c)
 
   else ! above is the root code, below the non-root code
 
@@ -862,7 +851,8 @@ subroutine matrix_distr_sendmat_integer(a,b,is,lm,js,ln,&
 
 end subroutine matrix_distr_sendmat_integer
 
-subroutine matrix_coll_gather_real8(a,b,is,lm,js,ln,isleftl,isrightl,istopl,isbotl,root,comm)
+subroutine matrix_coll_gather_real8(a,b,is,lm,js,ln, &
+                              isleft,isright,istop,isbot,root,comm)
   ! collect matrix on root process
   !
   ! parameters:
@@ -907,13 +897,14 @@ subroutine matrix_coll_gather_real8(a,b,is,lm,js,ln,isleftl,isrightl,istopl,isbo
   real*8, intent(in), dimension(:,:)   :: b
   integer, intent(in), dimension(:)    :: is,lm
   integer, intent(in), dimension(:)    :: js,ln
-  logical, intent(in)                  :: isleftl, isrightl, istopl, isbotl
+  logical, intent(in), dimension(:)    :: isleft, isright, istop, isbot
   integer, intent(in)                  :: root,comm
 
   integer                              :: j,p,rank,ierror,procs,jj,ma,jmax,k
   integer                              :: nlocal,mlocal,scnt
   integer, allocatable, dimension(:)   :: displs, cnts
-  logical, allocatable, dimension(:)   :: isleft,isright,istop,isbot
+  logical                              :: isleftl, isrightl, istopl, isbotl
+  real*8, allocatable, dimension(:,:)  :: aa
 
 #ifdef USEMPE
   call MPE_Log_event(event_coll_start,0,'cstart')
@@ -921,42 +912,31 @@ subroutine matrix_coll_gather_real8(a,b,is,lm,js,ln,isleftl,isrightl,istopl,isbo
   call MPI_Comm_rank(comm, rank, ierror)
   call MPI_Comm_size(comm, procs, ierror)
 
+  nlocal   = ln(rank+1)
+  mlocal   = lm(rank+1)
+  isleftl  = isleft(rank+1)
+  isrightl = isright(rank+1)
+  istopl   = istop(rank+1)
+  isbotl   = isbot(rank+1)
+
   ma = 1 ! to quiet the compiler
   if (rank .eq. root) then
     ma = size(a,1)
   endif
 
-  ! TODO: ma and na are only used on the root process,
-  ! why bother to broadcast them?
-  !call MPI_Bcast(ma, 1, MPI_INTEGER, root, comm, ierror)
-  !call MPI_Bcast(na, 1, MPI_INTEGER, root, comm, ierror)
-
   if (rank .eq. root) then
     allocate(displs(procs), cnts(procs))
-    allocate(isleft(procs), isright(procs), istop(procs), isbot(procs))
-  !  jmax = maxval(ln(1:procs))     ! number of gathers needed
+    ! need a contiguous matrix, otherwise the counts and 
+    ! displacements will be in error
+    allocate(aa(size(a,1),size(a,2)))
   else
     allocate(displs(1),cnts(1))    ! need valid addresses on non-root
+    allocate(aa(1,1))
   endif
-
-  ! TODO:
-  ! if lm and ln are present on all processes beforehand, 
-  ! then there is no need for scattering lm and ln
-  ! and broadcasting jmax
-  !call MPI_Scatter(ln,      1, MPI_INTEGER, nlocal,   1, MPI_INTEGER, root, comm, ierror)
-  !call MPI_Scatter(lm,      1, MPI_INTEGER, mlocal,   1, MPI_INTEGER, root, comm, ierror)
 
   nlocal = ln(rank+1)
   mlocal = lm(rank+1)
 
-  ! use array constructors, eg (/isleftl/) to get the proper type for openmpi
-  ! with strict parameter checking
-  call MPI_Gather( (/isleftl/),  1, MPI_LOGICAL, isleft,   1, MPI_LOGICAL, root, comm, ierror)
-  call MPI_Gather( (/isrightl/), 1, MPI_LOGICAL, isright,  1, MPI_LOGICAL, root, comm, ierror)
-  call MPI_Gather( (/istopl/),   1, MPI_LOGICAL, istop,    1, MPI_LOGICAL, root, comm, ierror)
-  call MPI_Gather( (/isbotl/),   1, MPI_LOGICAL, isbot,    1, MPI_LOGICAL, root, comm, ierror)
-
-  !call MPI_Bcast(jmax, 1, MPI_INTEGER, root, comm, ierror)
   jmax = maxval(ln(1:procs))     ! number of gathers needed
 
   do j=1,jmax
@@ -1046,21 +1026,22 @@ subroutine matrix_coll_gather_real8(a,b,is,lm,js,ln,isleftl,isrightl,istopl,isbo
       scnt = 0              ! and put number of elements to send to zero
     endif
     
-    call MPI_Gatherv(b(k,jj), scnt, MPI_DOUBLE_PRECISION,     &
-                      a(1,1), cnts, displs, MPI_DOUBLE_PRECISION,  &
+    call MPI_Gatherv(b(k:k+scnt-1,jj), scnt, MPI_DOUBLE_PRECISION,  &
+                      aa(1,1), cnts, displs, MPI_DOUBLE_PRECISION,  &
                       root, comm, ierror)
   enddo
 
-  deallocate(displs,cnts)
-  if (rank .eq. root) then
-    deallocate(isleft, isright, istop, isbot)
+  if(rank .eq. root) then
+    a = aa
   endif
+
+  deallocate(displs,cnts,aa)
 
   BARRIER
 end subroutine matrix_coll_gather_real8
 
-subroutine matrix_coll_recv_real8(a,b,is,lm,js,ln,&
-                      isleftl,isrightl,istopl,isbotl,root,comm)
+subroutine matrix_coll_recv_real8    (a,b,is,lm,js,ln,&
+                      isleft,isright,istop,isbot,root,comm)
   ! collect matrix on root process
   !
   ! parameters:
@@ -1104,7 +1085,7 @@ subroutine matrix_coll_recv_real8(a,b,is,lm,js,ln,&
   real*8, intent(in),  dimension(:,:)  :: b
   integer, intent(in), dimension(:)    :: is,lm
   integer, intent(in), dimension(:)    :: js,ln
-  logical, intent(in)                  :: isleftl, isrightl, istopl, isbotl
+  logical, intent(in), dimension(:)    :: isleft,isright,istop,isbot
   integer, intent(in)                  :: root,comm
 
   integer                              :: i,j,rank,ierror,l,procs,ii,jj
@@ -1112,31 +1093,24 @@ subroutine matrix_coll_recv_real8(a,b,is,lm,js,ln,&
 
   integer                              :: recvs, recvs_todo
   integer                              :: mlocal,nlocal,sender
+  logical                              :: isleftl, isrightl, istopl, isbotl
 
   integer, allocatable, dimension(:)   :: col
   integer, allocatable, dimension(:)   :: req
-  logical, allocatable, dimension(:)   :: isleft,isright,istop,isbot
 
   integer, parameter                   :: tag = 2
   integer, dimension(MPI_STATUS_SIZE)  :: mpistatus
+  real*8, allocatable, dimension(:,:)  :: bb
 
   call MPI_Comm_rank(comm, rank, ierror)
   call MPI_Comm_size(comm, procs, ierror)
 
-  if (rank .eq. root) then
-    allocate(isleft(procs), isright(procs), istop(procs), isbot(procs))
-  endif
-
-  !call MPI_Scatter(ln,      1, MPI_INTEGER, nlocal,   1, MPI_INTEGER, root, comm, ierror)
-  !call MPI_Scatter(lm,      1, MPI_INTEGER, mlocal,   1, MPI_INTEGER, root, comm, ierror)
-
-  nlocal = ln(rank+1)
-  mlocal = lm(rank+1)
-
-  call MPI_Gather( (/isleftl/),  1, MPI_LOGICAL, isleft,   1, MPI_LOGICAL, root, comm, ierror)
-  call MPI_Gather( (/isrightl/), 1, MPI_LOGICAL, isright,  1, MPI_LOGICAL, root, comm, ierror)
-  call MPI_Gather( (/istopl/),   1, MPI_LOGICAL, istop,    1, MPI_LOGICAL, root, comm, ierror)
-  call MPI_Gather( (/isbotl/),   1, MPI_LOGICAL, isbot,    1, MPI_LOGICAL, root, comm, ierror)
+  nlocal   = ln(rank+1)
+  mlocal   = lm(rank+1)
+  isleftl  = isleft(rank+1)
+  isrightl = isright(rank+1)
+  istopl   = istop(rank+1)
+  isbotl   = isbot(rank+1)
 
   if (rank .eq. root) then
   ! calculate total number of recvs to be done: that is equal to 
@@ -1145,7 +1119,10 @@ subroutine matrix_coll_recv_real8(a,b,is,lm,js,ln,&
 
     recvs_todo =  recvs_todo - nlocal  ! correct for columns local available
 
-    do p=2,procs                       ! correct for borders
+    do p=1,procs                       ! correct for borders
+      if (p .eq. root+1) then
+        cycle
+      endif
       if ( .not. isleft(p)) then
         recvs_todo = recvs_todo -1
       endif
@@ -1217,13 +1194,16 @@ subroutine matrix_coll_recv_real8(a,b,is,lm,js,ln,&
         m = m - 1
       endif
       
-      call MPI_Recv(a(i,j),m,MPI_DOUBLE_PRECISION, &
+      call MPI_Recv(a(i:i+m-1,j),m,MPI_DOUBLE_PRECISION, &
                     sender,tag,comm,MPI_STATUS_IGNORE,ierror)
     enddo
     deallocate(col)
-    deallocate(isleft, isright, istop, isbot)
+!    deallocate(isleft, isright, istop, isbot)
   else  ! non-root code
     allocate(req(nlocal))  ! for holding the requests
+    allocate(bb(size(b,1),size(b,2)))
+    bb = b     ! want to be sure that the matrix to send is
+               ! contiguous, because isend's are used
     req = MPI_REQUEST_NULL
 
     jstart = 1
@@ -1247,7 +1227,7 @@ subroutine matrix_coll_recv_real8(a,b,is,lm,js,ln,&
     endif
 
     do j = jstart, jend
-      call MPI_Isend(b(i,j), m, MPI_DOUBLE_PRECISION, root, tag, comm, req(j), ierror)
+      call MPI_Isend(bb(i,j), m, MPI_DOUBLE_PRECISION, root, tag, comm, req(j), ierror)
     enddo
 
     do l=1,nlocal ! wait until all requests have been handled
@@ -1255,7 +1235,7 @@ subroutine matrix_coll_recv_real8(a,b,is,lm,js,ln,&
         call MPI_Wait(req(l),MPI_STATUS_IGNORE,ierror)
       endif
     enddo
-    deallocate(req)
+    deallocate(req,bb)
   endif
 
   BARRIER
@@ -1309,7 +1289,7 @@ subroutine matrix_coll_recvmat_real8(a,b,is,lm,js,ln,&
   logical, intent(in), dimension(:)    :: isleft, isright, istop, isbot
   integer, intent(in)                  :: root, comm
 
-  integer                              :: i, j, rank, ierror, procs, p
+  integer                              :: i, rank, ierror, procs, p
 
   integer                              :: mlocal, nlocal
 
@@ -1317,10 +1297,9 @@ subroutine matrix_coll_recvmat_real8(a,b,is,lm,js,ln,&
 
   integer, parameter                   :: tag = 2
 
-  real*8, allocatable, dimension(:)    :: c
   integer                              :: acolstart, acolend, arowstart, arowend
   integer                              :: bcolstart, bcolend, browstart, browend
-  integer                              :: mp, np, k, rmax, ia, ja
+  integer                              :: mp, np, k, ia, ja
   integer, parameter                   :: tag1 = 123
   integer, parameter                   :: tag2 = 124
   logical                              :: isleftl, isrightl, istopl, isbotl
@@ -1329,21 +1308,12 @@ subroutine matrix_coll_recvmat_real8(a,b,is,lm,js,ln,&
   call MPI_Comm_rank(comm, rank, ierror)
   call MPI_Comm_size(comm, procs, ierror)
 
-  !if (rank .eq. root) then
-  !  allocate(isleft(procs), isright(procs), istop(procs), isbot(procs))
-  !endif
-
   nlocal   = ln(rank+1)
   mlocal   = lm(rank+1)
   isleftl  = isleft(rank+1)
   isrightl = isright(rank+1)
   istopl   = istop(rank+1)
   isbotl   = isbot(rank+1)
-
-  !call MPI_Gather((/isleftl/),  1, MPI_LOGICAL, isleft,   1, MPI_LOGICAL, root, comm, ierror)
-  !call MPI_Gather((/isrightl/), 1, MPI_LOGICAL, isright,  1, MPI_LOGICAL, root, comm, ierror)
-  !call MPI_Gather((/istopl/),   1, MPI_LOGICAL, istop,    1, MPI_LOGICAL, root, comm, ierror)
-  !call MPI_Gather((/isbotl/),   1, MPI_LOGICAL, isbot,    1, MPI_LOGICAL, root, comm, ierror)
 
   ! define start-end cols and rows for the general case:
   ! computations on arow.. and acol.. are only meaningful at root
@@ -1387,13 +1357,6 @@ subroutine matrix_coll_recvmat_real8(a,b,is,lm,js,ln,&
     ! now, collect from each non-root process 
     ! it's matrix b, and put it in the proper place in a
 
-    ! define a receive buffer, big enough to hold the largest
-    ! submatrix
-
-    rmax = maxval(ln*lm)
-
-    allocate (c(rmax))
-
     ploop: do p = 1, procs
       if ( p - 1 .eq. root ) then
         cycle ploop
@@ -1431,20 +1394,11 @@ subroutine matrix_coll_recvmat_real8(a,b,is,lm,js,ln,&
       call MPI_Send(mp*np, 1, MPI_INTEGER, p - 1, tag1, comm, ierror)
 
       ! receive a submatrix from process p-1
-      call MPI_Recv(c, mp*np, MPI_DOUBLE_PRECISION, &
+
+      call MPI_Recv(a(ia:ia+mp-1,ja:ja+np-1), mp*np, MPI_DOUBLE_PRECISION, &
                     p - 1, tag2, comm, MPI_STATUS_IGNORE, ierror)
 
-      ! copy c now to appropriate location in a
-   
-      k = 0
-      do j = ja, ja + np - 1
-        do i = ia, ia + mp - 1
-          k      = k + 1
-          a(i,j) = c(k)
-        enddo
-      enddo
     enddo  ploop ! loop over non-root processes
-    deallocate(c)
   else ! above is the root code, now the non-root code
     ! receive the short message fro root, so I can start sending b
     call MPI_Recv(i, 1, MPI_INTEGER,&
@@ -1600,58 +1554,6 @@ subroutine decomp(n, numprocs, myid, s, e)
     enddo
 
 end subroutine det_submatrices
-
-subroutine shift_borders_matrix_real8_old(a,left,right,top,bot,comm)
-  !
-  ! shift borders to and from neighbours.
-  ! 
-  use mpi
-  implicit none
-  real*8, dimension(:,:), intent(inout)     :: a
-  integer, intent(in)                       :: left,right,top,bot,comm
-
-  real*8, dimension(ubound(a,2))            :: recvrow, sendrow
-
-  integer, parameter                        :: datatype = MPI_DOUBLE_PRECISION
-
-  integer ierror,ma,na
-
-  ma = ubound(a,1)
-  na = ubound(a,2)
-
-  ! send to left, receive from right
-  call MPI_Sendrecv(a(2,2), ma-2, datatype,               &
-                    left, 1,                              &
-                    a(2,na), ma-2, datatype,              &
-                    right, 1,                             &
-                    comm, MPI_STATUS_IGNORE, ierror)
-  ! send to right, receive from left
-  call MPI_Sendrecv(a(2,na-1), ma-2, datatype,             &
-                    right, 2,                              &
-                    a(2,1), ma-2, datatype,                &
-                    left, 2,                               &
-                    comm, MPI_STATUS_IGNORE, ierror)
-
-  ! send to bot, receive from top
-  sendrow = a(ma-1,:)
-  recvrow = a(1,:)    ! needed for processes at the top
-  call MPI_Sendrecv(sendrow, na, datatype,               &
-                    bot, 3,                              &
-                    recvrow, na, datatype,               &
-                    top, 3,                              &
-                    comm, MPI_STATUS_IGNORE, ierror)
-  a(1,:) = recvrow
-  ! send to top, receive from bot
-  sendrow = a(2,:)
-  recvrow = a(ma,:)   ! needed for processes at the bottom
-  call MPI_Sendrecv(sendrow, na, datatype,               &
-                    top, 4,                              &
-                    recvrow, na, datatype,               &
-                    bot, 4,                              &
-                    comm, MPI_STATUS_IGNORE, ierror)
-  a(ma,:) = recvrow
-
-  end subroutine shift_borders_matrix_real8_old
 
 subroutine shift_borders_matrix_real8(a,left,right,top,bot,comm)
   !

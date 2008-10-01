@@ -114,11 +114,12 @@ outputmod.mod:
 	@$(F90) -c $(F90FLAGSNOWALL) varoutput.F90
 
 DEPENDENCIES dep:
-	awk -f ./makedepo $(SRCS) testgenmodule.F90 demo.F90 > DEPENDENCIES
+	gawk -f ./makedepo $(SRCS) testgenmodule.F90 demo.F90 > DEPENDENCIES
 
 s.ind: space_ind.gen
 
 s.inp: space_inp.gen
+
 
 include DEPENDENCIES
 

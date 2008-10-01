@@ -394,8 +394,8 @@ end subroutine xmpi_sendrecv_i2
 
 subroutine xmpi_allreduce_r0(x,op)
   implicit none
-  real*8  :: x
-  integer :: op
+  real*8,intent(inout)  :: x
+  integer,intent(in)    :: op
 
   real*8  :: y
   integer :: ierror
@@ -406,8 +406,9 @@ end subroutine xmpi_allreduce_r0
 
 subroutine xmpi_reduce_r0(x,y,op)
   implicit none
-  real*8  :: x,y
-  integer :: op
+  real*8, intent(in)   :: x
+  real*8, intent(out)  :: y
+  integer, intent(in)  :: op
 
   integer :: ierror
   call MPI_Reduce(x,y,1,MPI_DOUBLE_PRECISION,op,xmpi_master,xmpi_comm,ierror)
@@ -416,8 +417,9 @@ end subroutine xmpi_reduce_r0
 
 subroutine xmpi_reduce_r1(x,y,op)
   implicit none
-  real*8,dimension(:)  :: x,y
-  integer              :: op
+  real*8,dimension(:), intent(in)  :: x
+  real*8,dimension(:), intent(out) :: y
+  integer, intent(in)              :: op
 
   integer :: ierror
   call MPI_Reduce(x,y,size(x),MPI_DOUBLE_PRECISION,op,xmpi_master,xmpi_comm,ierror)
@@ -426,8 +428,9 @@ end subroutine xmpi_reduce_r1
 
 subroutine xmpi_reduce_i0(x,y,op)
   implicit none
-  integer  :: x,y
-  integer  :: op
+  integer, intent(in)   :: x
+  integer, intent(out)  :: y
+  integer, intent(in)   :: op
 
   integer :: ierror
   call MPI_Reduce(x,y,1,MPI_INTEGER,op,xmpi_master,xmpi_comm,ierror)
@@ -436,8 +439,9 @@ end subroutine xmpi_reduce_i0
 
 subroutine xmpi_reduce_i1(x,y,op)
   implicit none
-  integer,dimension(:)  :: x,y
-  integer               :: op
+  integer,dimension(:),intent(in)  :: x
+  integer,dimension(:),intent(out) :: y
+  integer,intent(in)               :: op
 
   integer :: ierror
   call MPI_Reduce(x,y,size(x),MPI_INTEGER,op,xmpi_master,xmpi_comm,ierror)
@@ -455,14 +459,14 @@ end subroutine xmpi_reduce_i1
 ! 'm:' :  x(m,:) will be replaced, except for a far bottom process
 ! '1:' :  x(1,:) will be replaced, except for a far top process
 ! ':n' :  x(:,n) will be replaced, except for a far right process
-! ':1' :  x(:,1) will be replaced, except for a for left process
+! ':1' :  x(:,1) will be replaced, except for a far left process
 
 subroutine xmpi_shift_r2(x,direction)
   implicit none
-  real*8, dimension (:,:)   :: x
-  character(len=*)          :: direction
+  real*8,dimension(:,:),intent(inout) :: x
+  character(len=*),intent(in)         :: direction
 
-  integer                   :: m,n
+  integer :: m,n
 
   m = size(x,1)
   n = size(x,2)
@@ -488,10 +492,10 @@ end subroutine xmpi_shift_r2
 
 subroutine xmpi_shift_i2(x,direction)
   implicit none
-  integer, dimension (:,:)   :: x
-  character(len=*)          :: direction
+  integer, dimension (:,:), intent(inout) :: x
+  character(len=*), intent(in)            :: direction
 
-  integer                   :: m,n
+  integer :: m,n
 
   m = size(x,1)
   n = size(x,2)
@@ -517,10 +521,10 @@ end subroutine xmpi_shift_i2
 
 subroutine xmpi_shift_r3(x,direction)
   implicit none
-  real*8, dimension (:,:,:)   :: x
-  character(len=*)           :: direction
+  real*8, dimension (:,:,:), intent(inout) :: x
+  character(len=*), intent(in)             :: direction
 
-  integer                     :: m,n,l
+  integer :: m,n,l
 
   m = size(x,1)
   n = size(x,2)
@@ -547,10 +551,10 @@ end subroutine xmpi_shift_r3
 
 subroutine xmpi_shift_i3(x,direction)
   implicit none
-  integer, dimension (:,:,:) :: x
-  character(len=*)           :: direction
+  integer, dimension (:,:,:), intent(inout) :: x
+  character(len=*), intent(in)              :: direction
 
-  integer                    :: m,n,l
+  integer :: m,n,l
 
   m = size(x,1)
   n = size(x,2)
@@ -574,29 +578,31 @@ subroutine xmpi_shift_i3(x,direction)
   end select
   
 end subroutine xmpi_shift_i3
+
 subroutine xmpi_barrier
   implicit none
   integer ierror
   call MPI_Barrier(xmpi_comm,ierror)
 end subroutine xmpi_barrier
+
 !
 ! get a row from a matrix in the same processor column
 !
 subroutine xmpi_getrow(a,n,l,prow,b)
   implicit none
-  real*8, dimension(:,:), intent(in) :: a ! the matrix
-  integer, intent(in)                :: n ! number of elements in the row
-  character, intent(in)              :: l ! '1': get first row
-                                          ! 'm': get last row
+  real*8, dimension(:,:), intent(in) :: a    ! the matrix
+  integer, intent(in)                :: n    ! number of elements in the row
+  character, intent(in)              :: l    ! '1': get first row
+                                             ! 'm': get last row
   integer, intent(in)                :: prow ! row number of process
                                              ! to get the row from
-  real*8, dimension(:), intent(out)  :: b ! the row from process prow
+  real*8, dimension(:), intent(out)  :: b    ! the row from process prow
 
   ! Note: a and l are only needed at the sending process
 
   integer                            :: row,ierror
   integer                            :: ll,dest,source,tag,r
-  real*8, allocatable, dimension(:)  :: rowdata
+  real*8, dimension(n)               :: rowdata
   integer, allocatable, dimension(:) :: requests
 
   source = (xmpi_pcol-1)*xmpi_m + prow -1 ! Sending process
@@ -613,8 +619,6 @@ subroutine xmpi_getrow(a,n,l,prow,b)
       call halt_program
     end select
 
-    ! need a contiguous sendbuffer
-    allocate(rowdata(n))
     rowdata = a(ll,:)
     allocate(requests(xmpi_m-1))
     dest = (xmpi_pcol-1)*xmpi_m    ! First receiving process
@@ -631,7 +635,7 @@ subroutine xmpi_getrow(a,n,l,prow,b)
       dest = dest + 1                     ! next receiving process
     enddo
     call MPI_Waitall(r,requests,MPI_STATUSES_IGNORE,ierror)
-    deallocate(requests,rowdata)
+    deallocate(requests)
   else                                    ! receiving process
     tag = xmpi_rank
     call MPI_Recv(b, n, MPI_DOUBLE_PRECISION,  &
@@ -642,6 +646,7 @@ subroutine xmpi_getrow(a,n,l,prow,b)
   !  column communicators and MPI_Bcast would be appropriate 
 
 end subroutine xmpi_getrow
+
 
 #endif
 subroutine halt_program

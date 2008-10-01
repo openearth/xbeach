@@ -205,6 +205,9 @@ subroutine printit(sglobal,slocal,par,it,s)
   call space_collect(slocal,sglobal%vu,slocal%vu)
   call space_collect(slocal,sglobal%v,slocal%v)
   !call space_consistency(slocal,'ALL')
+#else
+  slocal%nx = slocal%nx  ! to prevent compiler warning about
+                         ! unused slocal
 #endif
   if(xmaster) call printsum(6,'H',1000*it+iter,sglobal%H)
   if(xmaster) call printsum(6,'zs',1000*it+iter,sglobal%zs)
