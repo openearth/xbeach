@@ -29,16 +29,10 @@ integer function chartoindex(line)
   implicit none
 
   character(len=*), intent(in)  :: line
-  integer                       :: i
 
   chartoindex = -1
 
-  do i=1,numvars
-    if (mnemonics(i) .eq.line) then
-      chartoindex = i
-      return
-    endif
-  enddo
+include 'chartoindex.gen'
 
 end function chartoindex
 

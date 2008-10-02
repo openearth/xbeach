@@ -1,9 +1,12 @@
 ! this program makes includefiles from spaceparams.tmpl
 ! indextos.gen            is for spaceparams.F90
 ! mnemonic.gen            is for mnemonic.F90
+! chartoindex.gen         is for mnemonic.F90
 ! space_alloc_arrays.gen  is for spaceparams.F90
 ! space_alloc_scalars.gen is for spaceparams.F90
 ! spacedecl.gen           is for spaceparams.F90
+! space_ind.gen           is for s.ind
+! space_inp.gen           is for s.inp
 !
 ! see also README.includefiles
 !          spaceparams.tmpl
@@ -21,6 +24,7 @@ character(len=slen), parameter :: space_alloc_scalarsname = 'space_alloc_scalars
 character(len=slen), parameter :: space_alloc_arraysname = 'space_alloc_arrays.gen'
 character(len=slen), parameter :: space_indname = 'space_ind.gen'
 character(len=slen), parameter :: space_inpname = 'space_inp.gen'
+character(len=slen), parameter :: chartoindexname = 'chartoindex.gen'
 integer                        :: numvars, maxnamelen, inumvars0, rnumvars0
 character(len=slen)            :: type, name, comment, line, broadcast
 integer                        :: rank
@@ -332,6 +336,37 @@ subroutine makemnemonic
   close(infile)
 end subroutine makemnemonic
 !
+! construction of chartoindex.gen
+!
+subroutine makechartoindex
+  implicit none
+  integer :: j
+  call openinfile
+  call openoutput
+  call warning
+
+  write(outfile,'(a)') sp//'  select case(line)'
+  j = 0
+  do
+    call getline
+    if(endfound) then
+      exit
+    endif
+    call getitems
+    if (varfound) then
+      j = j+1
+      write(outfile,'(a)') sp//'    case(mnem_'//name(1:maxnamelen)//')'
+      write(outfile,'(a,i5)') sp//'             chartoindex =',j
+    endif
+  enddo
+
+  write(outfile,'(a)') sp//'  end select'
+
+  call format_fortran
+  close(outfile)
+  close(infile)
+end subroutine makechartoindex
+!
 !  construction of indextos.gen
 !
 subroutine makeindextos
@@ -568,6 +603,12 @@ program makeincludes
      write(*,*)'Making '//trim(space_inpname)
      outputfilename = space_inpname
      call makespaceinp
+   endif
+
+   if (index(command,trim(chartoindexname)) .ne. 0) then
+     write(*,*)'Making '//trim(chartoindexname)
+     outputfilename = chartoindexname
+     call makechartoindex
    endif
 
 end program makeincludes
