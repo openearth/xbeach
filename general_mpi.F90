@@ -55,13 +55,6 @@ module general_mpi_module
 ! openmpi.
 ! 
 
-!#define USEBARRIERS
-
-#ifdef USEBARRIERS
-#define BARRIER call MPI_Barrier(comm,ierror)
-#else
-#define BARRIER ! no barrier
-#endif
 
 interface matrix_distr
 !  module procedure matrix_distr_send_real8
@@ -142,7 +135,6 @@ subroutine vector_distr_send(a,b,is,lm,root,comm)
 
   deallocate(req)
 
-  BARRIER
 
 end subroutine vector_distr_send
 
@@ -239,7 +231,6 @@ subroutine matrix_distr_scatter_real8(a,b,is,lm,js,ln,root,comm)
   enddo
 
   deallocate(displs,cnts,aa)
-  BARRIER
 
 end subroutine matrix_distr_scatter_real8
 
@@ -332,7 +323,6 @@ subroutine matrix_distr_scatter_integer(a,b,is,lm,js,ln,root,comm)
   enddo
 
   deallocate(displs,cnts,aa)
-  BARRIER
 
 end subroutine matrix_distr_scatter_integer
 
@@ -477,7 +467,6 @@ subroutine matrix_distr_send_real8(a,b,is,lm,js,ln,root,comm)
   endif
 
   deallocate(req)
-  BARRIER
 
 end subroutine matrix_distr_send_real8
 
@@ -623,7 +612,6 @@ subroutine matrix_distr_send_integer(a,b,is,lm,js,ln,root,comm)
   endif
 
   deallocate(req)
-  BARRIER
 
 end subroutine matrix_distr_send_integer
 
@@ -1037,7 +1025,6 @@ subroutine matrix_coll_gather_real8(a,b,is,lm,js,ln, &
 
   deallocate(displs,cnts,aa)
 
-  BARRIER
 end subroutine matrix_coll_gather_real8
 
 subroutine matrix_coll_recv_real8    (a,b,is,lm,js,ln,&
@@ -1238,7 +1225,6 @@ subroutine matrix_coll_recv_real8    (a,b,is,lm,js,ln,&
     deallocate(req,bb)
   endif
 
-  BARRIER
 end subroutine matrix_coll_recv_real8
 
 subroutine matrix_coll_recvmat_real8(a,b,is,lm,js,ln,&

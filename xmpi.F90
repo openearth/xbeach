@@ -96,13 +96,6 @@ end interface xmpi_shift
 contains
 #ifdef USEMPI
 
-! barrier was for testing, it is better not to use barriers wwvv
-!  #define USE_BARRIER
-#ifdef USE_BARRIER
-#define BARRIER call MPI_Barrier(xmpi_comm,ierror)
-#else
-#define BARRIER ! no barrier
-#endif
 subroutine xmpi_initialize
 ! initialize mpi environment
   implicit none
@@ -240,7 +233,6 @@ subroutine xmpi_bcast_logical(x)
   integer ierror,l
   l = size(x)
   call MPI_Bcast(x, l, MPI_LOGICAL, xmpi_master, xmpi_comm, ierror)
-  BARRIER
 end subroutine xmpi_bcast_logical
 
 subroutine xmpi_bcast_array_real8(x)
@@ -249,7 +241,6 @@ subroutine xmpi_bcast_array_real8(x)
   integer ierror,l
   l = size(x)
   call MPI_Bcast(x, l, MPI_DOUBLE_PRECISION, xmpi_master, xmpi_comm, ierror)
-  BARRIER
 end subroutine xmpi_bcast_array_real8
 
 subroutine xmpi_bcast_matrix_real8(x)
@@ -258,7 +249,6 @@ subroutine xmpi_bcast_matrix_real8(x)
   integer ierror,l
   l = size(x)
   call MPI_Bcast(x, l, MPI_DOUBLE_PRECISION, xmpi_master, xmpi_comm, ierror)
-  BARRIER
 end subroutine xmpi_bcast_matrix_real8
 
 subroutine xmpi_bcast_matrix_integer(x)
@@ -267,7 +257,6 @@ subroutine xmpi_bcast_matrix_integer(x)
   integer ierror,l
   l = size(x)
   call MPI_Bcast(x, l, MPI_INTEGER, xmpi_master, xmpi_comm, ierror)
-  BARRIER
 end subroutine xmpi_bcast_matrix_integer
 
 subroutine xmpi_bcast_array_integer(x)
@@ -276,7 +265,6 @@ subroutine xmpi_bcast_array_integer(x)
   integer ierror,l
   l = size(x)
   call MPI_Bcast(x, l, MPI_INTEGER, xmpi_master, xmpi_comm, ierror)
-  BARRIER
 end subroutine xmpi_bcast_array_integer
 
 subroutine xmpi_bcast_real4(x)
@@ -284,7 +272,6 @@ subroutine xmpi_bcast_real4(x)
   real*4 x
   integer ierror
   call MPI_Bcast(x, 1, MPI_REAL, xmpi_master, xmpi_comm, ierror)
-  BARRIER
 end subroutine xmpi_bcast_real4
 
 subroutine xmpi_bcast_real8(x)
@@ -292,7 +279,6 @@ subroutine xmpi_bcast_real8(x)
   real*8 x
   integer ierror
   call MPI_Bcast(x, 1, MPI_DOUBLE_PRECISION, xmpi_master, xmpi_comm, ierror)
-  BARRIER
 end subroutine xmpi_bcast_real8
 
 subroutine xmpi_bcast_int(x)
@@ -300,7 +286,6 @@ subroutine xmpi_bcast_int(x)
   integer x
   integer ierror
   call MPI_Bcast(x, 1, MPI_INTEGER, xmpi_master, xmpi_comm, ierror)
-  BARRIER
 end subroutine xmpi_bcast_int
 
 subroutine xmpi_bcast_int8(x)
@@ -308,7 +293,6 @@ subroutine xmpi_bcast_int8(x)
   integer *8 x
   integer ierror
   call MPI_Bcast(x, 1, MPI_INTEGER8, xmpi_master, xmpi_comm, ierror)
-  BARRIER
 end subroutine xmpi_bcast_int8
 
 subroutine xmpi_bcast_complex16(x)
@@ -316,7 +300,6 @@ subroutine xmpi_bcast_complex16(x)
   complex*16 x
   integer ierror
   call MPI_Bcast(x, 1, MPI_DOUBLE_COMPLEX, xmpi_master, xmpi_comm, ierror)
-  BARRIER
 end subroutine xmpi_bcast_complex16
 
 subroutine xmpi_bcast_char(x)
@@ -329,7 +312,6 @@ subroutine xmpi_bcast_char(x)
   endif
   call xmpi_bcast(l)
   call MPI_Bcast(x, l, MPI_CHARACTER, xmpi_master, xmpi_comm, ierror)
-  BARRIER
 end subroutine xmpi_bcast_char
 
 subroutine xmpi_sendrecv_r1(sendbuf,n,dest,recvbuf,source)
@@ -401,7 +383,6 @@ subroutine xmpi_allreduce_r0(x,op)
   integer :: ierror
   y = x
   call MPI_Allreduce(y,x,1,MPI_DOUBLE_PRECISION,op,xmpi_comm,ierror)
-  BARRIER
 end subroutine xmpi_allreduce_r0
 
 subroutine xmpi_reduce_r0(x,y,op)
@@ -412,7 +393,6 @@ subroutine xmpi_reduce_r0(x,y,op)
 
   integer :: ierror
   call MPI_Reduce(x,y,1,MPI_DOUBLE_PRECISION,op,xmpi_master,xmpi_comm,ierror)
-  BARRIER
 end subroutine xmpi_reduce_r0
 
 subroutine xmpi_reduce_r1(x,y,op)
@@ -423,7 +403,6 @@ subroutine xmpi_reduce_r1(x,y,op)
 
   integer :: ierror
   call MPI_Reduce(x,y,size(x),MPI_DOUBLE_PRECISION,op,xmpi_master,xmpi_comm,ierror)
-  BARRIER
 end subroutine xmpi_reduce_r1
 
 subroutine xmpi_reduce_i0(x,y,op)
@@ -434,7 +413,6 @@ subroutine xmpi_reduce_i0(x,y,op)
 
   integer :: ierror
   call MPI_Reduce(x,y,1,MPI_INTEGER,op,xmpi_master,xmpi_comm,ierror)
-  BARRIER
 end subroutine xmpi_reduce_i0
 
 subroutine xmpi_reduce_i1(x,y,op)
@@ -445,7 +423,6 @@ subroutine xmpi_reduce_i1(x,y,op)
 
   integer :: ierror
   call MPI_Reduce(x,y,size(x),MPI_INTEGER,op,xmpi_master,xmpi_comm,ierror)
-  BARRIER
 end subroutine xmpi_reduce_i1
 
 ! 
