@@ -137,37 +137,29 @@ subroutine xmpi_abort
   call MPI_Abort(xmpi_comm,1,ierr)
 end subroutine xmpi_abort
 
-subroutine xmpi_determine_processor_grid
+subroutine xmpi_determine_processor_grid(m,n)
 implicit none
+integer, intent(in) :: m,n  ! the dimensions of the global domain
 
-! given the number of processes (xmpi_size), compute numbers
-! xmpi_n and xmpi_m such that 
-!   xmpi_n * xmpi_m = xmpi_size
-!   xmpi_n and xmpi_m are as equal as possible
-! Also, determine left, right upper and lower neighbours
-!   and set isleft etc accordingly
+integer mm,nn, borderlength, min_borderlength
 
-  xmpi_n = 0
-  xmpi_m = xmpi_size
-  do while (xmpi_n .lt. xmpi_m)
-    xmpi_n = xmpi_n + 1
-    xmpi_m = xmpi_size/xmpi_n
-    do while (xmpi_n * xmpi_m .ne. xmpi_size)
-      xmpi_n = xmpi_n + 1
-      xmpi_m  = xmpi_size/xmpi_n
-    enddo
+! determine the processor grid (xmpi_m ampi_n), such that 
+! - xmpi_m * xmpi_n = xmpi_size
+! - the total length of the internal borders is minimal
+
+  min_borderlength = 1000000000
+  do mm = 1,xmpi_size
+    nn = xmpi_size/mm
+    if (mm * nn .eq. xmpi_size) then
+      borderlength = (mm - 1)*n + (nn -1)*m
+      if (borderlength .lt. min_borderlength) then
+        xmpi_m = mm
+        xmpi_n = nn
+        min_borderlength = borderlength
+        print *,borderlength
+      endif
+    endif
   enddo
-
-! for testing: swap m and n
-!  i      = xmpi_m
-!  xmpi_m = xmpi_n
-!  xmpi_n = i
-
-! further testing: 
-!  xmpi_m = xmpi_size
-!  xmpi_n = 1
-!  xmpi_m = 1
-!  xmpi_n = xmpi_size
 
 ! The layout of the processors is as follows:
 ! example 12 processors, xmpi_m=3, xmpi_n=4:

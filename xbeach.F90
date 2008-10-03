@@ -32,13 +32,6 @@ real*8                   :: t0,t01,t1
 s=>slocal
 call xmpi_initialize
 t0 = MPI_Wtime()
-if(xmaster) then
-  write(*,*) 'MPI version, running on ',xmpi_size,'processes'
-endif
-call xmpi_determine_processor_grid
-if(xmaster) then
-  write(*,*) 'processor grid: ',xmpi_m,' X ',xmpi_n
-endif
 #endif
 
 call cpu_time(tbegin)
@@ -46,6 +39,11 @@ call cpu_time(tbegin)
 if (xmaster) then
   write(*,*) 'Welcome to Xbeach'
   write(*,*) 'General Input Module'
+#ifdef USEMPI
+  if(xmaster) then
+    write(*,*) 'MPI version, running on ',xmpi_size,'processes'
+  endif
+#endif
 endif
 
 ! General input per module
@@ -77,7 +75,13 @@ endif
 !
 call space_alloc_scalars(sglobal)
 s => sglobal
-call grid_bathy(s,par)
+call grid_bathy(s,par)  ! s%nx and s%ny are available now
+#ifdef USEMPI
+call xmpi_determine_processor_grid(s%nx,s%ny)
+if(xmaster) then
+  write(*,*) 'processor grid: ',xmpi_m,' X ',xmpi_n
+endif
+#endif
 
 ! Jump into subroutine readtide
 if(par%tideloc>=1)then 
@@ -104,8 +108,9 @@ call distribute_par(par)
 #ifdef USEMPI
 s => slocal
 !
+!  determine how to divide the submatrices on the processor grid
 !  distribute all values in sglobal to slocal
-!  nx and ny will be adjusted
+!  nx and ny will be adjusted in slocal
 !  arrays is,js,lm,ln (describing the distribution) will
 !  be filled in slocal
 !  Note: slocal is available on all nodes, including master
