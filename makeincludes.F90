@@ -561,6 +561,7 @@ program makeincludes
                 trim(space_alloc_scalarsname)//' '// &
                 trim(space_alloc_arraysname)//' '// &
                 trim(space_indname)//' '// &
+                trim(chartoindexname)//' '// &
                 trim(space_inpname)
   110 continue
    if (index(command,trim(spacedeclname)) .ne. 0) then
