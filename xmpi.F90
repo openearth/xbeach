@@ -156,7 +156,6 @@ integer mm,nn, borderlength, min_borderlength
         xmpi_m = mm
         xmpi_n = nn
         min_borderlength = borderlength
-        print *,borderlength
       endif
     endif
   enddo
