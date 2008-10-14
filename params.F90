@@ -172,10 +172,12 @@ elseif (par%instat==2 .or. par%instat==3) then
     par%omega    = 2.d0*par%px/par%Trep;
 elseif (par%instat==4 .or. par%instat==5 .or. par%instat==6) then
         ! Just a check .....
-        call readkey('params.txt','bcfile',dummystring)
-        call readkey('params.txt','rt',dummystring)
-        call readkey('params.txt','dtbc',dummystring)
-        call readkey('params.txt','dthetaS_XB',dummystring)
+        if (xmaster) then
+          call readkey('params.txt','bcfile',dummystring)
+          call readkey('params.txt','rt',dummystring)
+          call readkey('params.txt','dtbc',dummystring)
+          call readkey('params.txt','dthetaS_XB',dummystring)
+        endif
 elseif (par%instat > 8) then
     if(xmaster) then
       write(*,*)'Instat invalid option'

@@ -84,9 +84,7 @@ endif
 #endif
 
 ! Jump into subroutine readtide
-if(par%tideloc>=1)then 
-   call readtide (s,par)  !Ap 15/10
-end if
+call readtide (s,par)  !Ap 15/10 ! runs oonly on master wwvv
 
 if (xmaster) then
   write(*,*) 'Initializing .....'

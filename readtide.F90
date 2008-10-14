@@ -45,15 +45,17 @@ real*8,dimension(:,:),allocatable   :: tidedummy
 include 's.ind'
 include 's.inp'
 
-allocate(tidedummy(par%tidelen,par%tideloc+1))
-allocate(s%tideinpt(par%tidelen))
-allocate(s%tideinpz(par%tidelen,par%tideloc))
-
+! this must only work on master
 if (xmaster) then
+  allocate(tidedummy(par%tidelen,par%tideloc+1))
+  allocate(s%tideinpt(par%tidelen))
+  allocate(s%tideinpz(par%tidelen,par%tideloc))
+
+  if (par%tideloc .eq. 0) then
+    return
+  endif
+
   write(*,*) 'tidelen=', par%tidelen , par%tideloc
-endif
-
-if (xmaster) then
   call readkey('params.txt','zs0file',fnamezs0)
   open(31,file=fnamezs0)
     do i=1,par%tidelen
@@ -62,22 +64,18 @@ if (xmaster) then
       endif
     end do
   close(31)
+  do i=1,par%tidelen
+      s%tideinpt(i) = tidedummy(i,1)
+  end do
+
+  do j=1,par%tideloc
+      do i=1,par%tidelen
+          s%tideinpz(i,j) = tidedummy(i,j+1)
+      end do
+  end do
+
+  deallocate(tidedummy)
 endif
-
-#ifdef USEMPI
-call xmpi_bcast(tidedummy)
-#endif
-do i=1,par%tidelen
-    s%tideinpt(i) = tidedummy(i,1)
-end do
-
-do j=1,par%tideloc
-    do i=1,par%tidelen
-        s%tideinpz(i,j) = tidedummy(i,j+1)
-    end do
-end do
-
-deallocate(tidedummy)
 
 end subroutine readtide
 

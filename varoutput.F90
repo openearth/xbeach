@@ -131,9 +131,9 @@ subroutine init_output(s,sl,par,it)
               enddo
           enddo
           close(10)
-    endif ! (npoints+nrugauge)>0  
+        endif ! npoints>0  
 
-    if (nrugauge>0) then
+        if (nrugauge>0) then
           id=0
           ! Look for keyword nrugauge in params.txt
           open(10,file='params.txt')
@@ -168,7 +168,7 @@ subroutine init_output(s,sl,par,it)
               enddo
           enddo
           close(10)
-        endif  ! npoints > 0
+        endif  ! nrugauge > 0
       endif ! xmaster
 
 
@@ -184,7 +184,7 @@ subroutine init_output(s,sl,par,it)
       allocate(arrayassocvar(npoints+nrugauge,maxval(nassocvar)))
       arrayassocvar(:,:)=temparray(:,1:maxval(nassocvar))
       deallocate (temparray)
-  endif
+  endif ! npoints + nrugauge > 0
 
   !!!!! GLOBAL OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -468,7 +468,7 @@ subroutine var_output(it,s,sl,par)
   type(spacepars)                         :: s,sl
   type(parameters)                        :: par
 
-  integer                                 :: i,ii,tt
+  integer                                 :: i,ii,tt,k
   integer                                 :: it,i1,i2,i3
   integer                                 :: wordsize
   integer                                 :: reclen,reclen2,reclenp, idum
@@ -638,28 +638,48 @@ subroutine var_output(it,s,sl,par)
     if (npoints+nrugauge>0) then
         if (any(abs(par%t-tpp) .le. 0.000001d0)) then
             itp=itp+1
+            ! wwvv check if there is any pointtype.eq. 1
+            ! In that case, we need the values in wetz
+            ! Probably, this test can be coded somewhat smarter
+#ifdef USEMPI
+            do i=1,npoints+nrugauge
+              if (pointtype(i) .eq. 1) then
+                call space_collect(sl,s%wetz,sl%wetz)
+                exit
+              endif
+            enddo
+#endif
             do i=1,npoints+nrugauge
                 !!! Make vector of all s% values at n,m grid coordinate
                 if (pointtype(i)==1) then
-                    if (.not.allocated(temp)) allocate (temp(1:s%nx+1))
-                    temp=(/(i,i=1,s%nx+1)/)
-                    idum = maxval(maxloc(temp*s%wetz(1:s%nx+1,ypoints(i)))) ! Picks the last "1" in temp
+                    if (xmaster) then
+                      allocate (temp(1:s%nx+1))
+                      temp=(/(k,k=1,s%nx+1)/)
+                      ! wwvv wetz ok?, probably not
+                      idum = maxval(maxloc(temp*s%wetz(1:s%nx+1,ypoints(i)))) ! Picks the last "1" in temp
+                      deallocate(temp)
+                    endif
+#ifdef USEMPI
+                    call xmpi_bcast(idum)
+#endif
                     call makeintpvector(par,sl,intpvector,idum,ypoints(i))
                     ! need sl here, because of availability
                     ! of is,js,lm,ln
                 else
                     call makeintpvector(par,sl,intpvector,xpoints(i),ypoints(i))
                 endif
-                allocate(tempvectori(nassocvar(i)))
-                allocate(tempvectorr(nassocvar(i)+1))
-                tempvectori=arrayassocvar(i,1:nassocvar(i))
-                tempvectorr(1)=par%t
-                do ii=1,nassocvar(i)
-                        tempvectorr(ii+1)=intpvector(tempvectori(ii))
-                enddo
-                write(indextopointsunit(i),rec=itp)tempvectorr
-                deallocate(tempvectori)
-                deallocate(tempvectorr)
+                if (xmaster) then
+                  allocate(tempvectori(nassocvar(i)))
+                  allocate(tempvectorr(nassocvar(i)+1))
+                  tempvectori=arrayassocvar(i,1:nassocvar(i))
+                  tempvectorr(1)=par%t
+                  do ii=1,nassocvar(i)
+                          tempvectorr(ii+1)=intpvector(tempvectori(ii))
+                  enddo
+                  write(indextopointsunit(i),rec=itp)tempvectorr
+                  deallocate(tempvectori)
+                  deallocate(tempvectorr)
+                endif
             enddo
         endif
     endif
@@ -965,7 +985,8 @@ subroutine makeintpvector(par,s,intpvector,mg,ng)
     if (xmpi_rank .eq. p) then
       call MPI_Send(intpvector, numvars, MPI_DOUBLE_PRECISION, xmpi_master, &
                     311, xmpi_comm,                    ierr)
-    else
+    endif
+    if (xmaster) then
       call MPI_Recv(intpvector, numvars, MPI_DOUBLE_PRECISION, p, &
                     311, xmpi_comm, MPI_STATUS_IGNORE, ierr)
     endif

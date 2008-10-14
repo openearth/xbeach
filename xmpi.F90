@@ -294,15 +294,42 @@ subroutine xmpi_bcast_complex16(x)
 end subroutine xmpi_bcast_complex16
 
 subroutine xmpi_bcast_char(x)
+!
+! wwvv convert string to integer array, 
+!  broadcast integer array and convert back
+!  Not very efficient, but this routine is seldom called
+!  and now it works for every taste of fortran90
+!
   implicit none
-  character(len=*) :: x
-  integer          :: ierror,l
+  character(len=*)                   :: x
 
-  if (xmpi_rank .eq. xmpi_master) then
-    l = len(x)
+  integer                            :: l,i
+  integer, allocatable, dimension(:) :: sx
+
+  if (xmaster) then
+    l = len_trim(x)
   endif
+
   call xmpi_bcast(l)
-  call MPI_Bcast(x, l, MPI_CHARACTER, xmpi_master, xmpi_comm, ierror)
+  allocate(sx(l))
+
+  if (xmaster) then
+    do i = 1,l
+      sx(i) = ichar(x(i:i))
+    enddo
+  endif
+
+  call xmpi_bcast(sx)
+
+  if ( .not. xmaster) then
+    x = ' '
+    do i = 1,l
+      x(i:i) = char(sx(i))
+    enddo
+  endif
+
+  deallocate(sx)
+
 end subroutine xmpi_bcast_char
 
 subroutine xmpi_sendrecv_r1(sendbuf,n,dest,recvbuf,source)

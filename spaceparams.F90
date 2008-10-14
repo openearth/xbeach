@@ -56,6 +56,7 @@ interface space_collect
   module procedure space_collect_block_real8
   module procedure space_collect_block4_real8
   module procedure space_collect_matrix_real8
+  module procedure space_collect_matrix_integer
 end interface space_collect
 
 interface compare
@@ -1023,14 +1024,19 @@ subroutine space_shift_borders_block_real8(a)
 end subroutine space_shift_borders_block_real8
 
 !
-! wwvv a subtle point with the collect subroutines: the first
+! wwvv a subtle point with the collect subroutines: the second
 ! argument: the matrix wherein the submatrices are to be collected,
 ! does not have to be available on the non-master processes, so
 ! the dimensions are not defined. 
-! The second argument is always defined, on master and non-master
+! The third argument is always defined, on master and non-master
 ! processes, so its dimensions (notably the 3rd in the block subroutines
 ! are available
 ! 
+! parameters of the space_collect routines:
+! s: spacepars: LOCAL s 
+! a: output: in this matrix the submatrices are collected
+! b: input:  the local submatrix
+
 subroutine space_collect_block_real8(s,a,b)
   use general_mpi_module
   use xmpi_module
@@ -1080,6 +1086,50 @@ subroutine space_collect_matrix_real8(s,a,b)
                    xmpi_master,xmpi_comm)
 
 end subroutine space_collect_matrix_real8
+
+subroutine space_collect_matrix_integer(s,a,b)
+  use general_mpi_module
+  use xmpi_module
+  implicit none
+  type(spacepars), intent(in)           :: s
+  integer, dimension(:,:), intent(out)  :: a
+  integer, dimension(:,:), intent(in)   :: b
+
+  ! not used often, so we convert the integers to real*8,
+  ! collect and convert back. 
+  ! if this routine becomes heavily used, than a special
+  ! matrix_coll has to be made. (Now we understand why
+  ! C++ has templates)
+
+  real*8, dimension(:,:), allocatable :: ra,rb
+  integer                             :: m,n
+
+  m = size(b,1)
+  n = size(b,2)
+
+  allocate(rb(m,n))
+
+  if (xmaster) then
+    m = size(a,1)
+    n = size(a,2)
+    allocate(ra(m,n))
+  else
+    allocate(ra(1,1))
+  endif
+
+  rb = b
+
+  call matrix_coll(ra,rb,s%is,s%lm,s%js,s%ln, &
+                   s%isleft,s%isright,s%istop,s%isbot, &
+                   xmpi_master,xmpi_comm)
+
+  if (xmaster) then
+    a = ra
+  endif
+
+  deallocate(ra,rb)
+
+end subroutine space_collect_matrix_integer
 
 #endif
 
