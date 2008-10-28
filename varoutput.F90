@@ -245,6 +245,7 @@ subroutine init_output(s,sl,par,it)
             close(10)
           endif  ! xmaster
 #ifdef USEMPI
+          call xmpi_bcast(noutnumbers)
           call xmpi_bcast(outnumbers)
 #endif
 
@@ -419,7 +420,7 @@ subroutine init_output(s,sl,par,it)
 
 end subroutine init_output
 
-  subroutine add_outnumber(number)
+subroutine add_outnumber(number)
   use xmpi_module
   implicit none
   integer, intent(in)  :: number ! to add
