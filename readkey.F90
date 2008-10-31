@@ -59,7 +59,7 @@ if (xmaster) then
 endif
 
 #ifdef USEMPI
-  call xmpi_bcast(value_dbl)
+  if (xmpi_bckey) call xmpi_bcast(value_dbl)
 #endif
 
 readkey_dbl=value_dbl
@@ -93,7 +93,7 @@ if (xmaster) then
   endif
 endif
 #ifdef USEMPI
-  call xmpi_bcast(value_int)
+  if (xmpi_bckey) call xmpi_bcast(value_int)
 #endif
 
 end function readkey_int

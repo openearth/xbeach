@@ -123,9 +123,9 @@ if (xmaster) then
   write(*,*) 'Stepping into the time loop ....'  
 endif
 
-#ifdef USEMPI
-t01 = MPI_Wtime()
-#endif
+!#ifdef USEMPI
+!t01 = MPI_Wtime()
+!#endif
 do while (par%t<par%tstop)
     ! Calculate timestep
     call timestep(s,par,it)
@@ -134,7 +134,12 @@ do while (par%t<par%tstop)
     call printit(sglobal,slocal,par,it,'after wave_bc')
     ! Flow boundary conditions
     call flow_bc (s,par)
-
+    !Dano moved here, after (long) wave bc generation
+	if (it==1) then
+       #ifdef USEMPI
+       t01 = MPI_Wtime()
+       #endif
+    endif
     call printit(sglobal,slocal,par,it,'after flow_bc')
 #ifdef USEMPI
     !call space_consistency(slocal,'ALL')
@@ -195,7 +200,7 @@ subroutine printit(sglobal,slocal,par,it,s)
   character(len=*)         :: s
   integer,save             :: iter=0 
   return
-  write(*,*) trim(s)
+  write(*,*) par%t,xmpi_rank,trim(s)
   iter = iter+1
 #ifdef USEMPI
   call space_collect(slocal,sglobal%H,slocal%H)

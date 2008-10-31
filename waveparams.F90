@@ -44,7 +44,6 @@ integer,save                                :: reuse  ! = 0 used to be in code
 
 
 makefile=.false.
-
 ! First time tests
 if (par%t==par%dt) then
     bcendtime=0
@@ -54,10 +53,6 @@ if (par%t==par%dt) then
       open(74,file=fname,form='formatted')
       read(74,*)testc
     endif
-#ifdef USEMPI
-    call xmpi_bcast(fname)
-    call xmpi_bcast(testc)
-#endif
     if(xmaster) then
       open(53,file='ebcflist.bcf',form='formatted',status='replace')  ! Make new files, don't add to existing files
       open(54,file='qbcflist.bcf',form='formatted',status='replace')
@@ -85,15 +80,17 @@ if (reuse==0) then
       read(74,*)wp%rt,wp%dt,fname
     endif
 #ifdef USEMPI
-    call xmpi_bcast(wp%rt)
-    call xmpi_bcast(wp%dt)
-    call xmpi_bcast(fname)
+    !Dano call xmpi_bcast(wp%rt)
+    !Dano call xmpi_bcast(wp%dt)
+    !Dano call xmpi_bcast(fname)
 #endif
     Ebcfname='E_'//fname
     qbcfname='q_'//fname
 else 
+    xmpi_bckey= .false.
     wp%rt = readkey_dbl ('params.txt','rt'      , 3600.d0, 1200.d0,7200.d0)
     wp%dt = readkey_dbl ('params.txt','dtbc', 0.1d0,0.01d0,1.0d0)
+    xmpi_bckey= .true.
     Ebcfname='E_reuse.bcf'
     qbcfname='q_reuse.bcf'
 end if
@@ -178,6 +175,7 @@ endif
 ! Read JONSWAP file 
 !                             Input file  Keyword      Default       Minimum     Maximum   
         
+xmpi_bckey = .false.
 wp%hm0gew           = readkey_dbl (fname,'Hm0'     ,   0.0d0,       0.00d0,       5.0d0)
 fp                  = readkey_dbl (fname,'fp'      ,   0.08d0,      0.0625d0,     0.4d0)
 fnyq                = readkey_dbl (fname,'fnyq'    ,   0.3d0,       0.2d0,        1.0d0)
@@ -189,6 +187,7 @@ wp%mainang          = readkey_dbl (fname,'mainang' ,   270.0d0,     0.0d0,      
 if(xmaster) then
   call readkey(fname,'checkparams',dummystring)
 endif
+xmpi_bckey = .true.
 
 
 wp%Npy=s%ny+1
@@ -286,8 +285,10 @@ integer                                 :: firstp,lastp,nt,Ashift
 real*8, dimension(:),allocatable        :: temp, findline
 real*8, dimension(:,:),allocatable      :: tempA
 
-
+xmpi_bckey= .false.
 dthetaS_XB = readkey_dbl ('params.txt','dthetaS_XB', 0.0d0, -360.0d0, 360.0d0)
+xmpi_bckey= .true.
+
 flipped=0
 wp%Npy=s%ny+1
 
@@ -313,8 +314,8 @@ if(xmaster) then
   read(44,*)nfreq
 endif
 #ifdef USEMPI
-call xmpi_bcast(nfreq)
-call xmpi_bcast(switch)
+!Dano call xmpi_bcast(nfreq)
+!Dano call xmpi_bcast(switch)
 #endif
 allocate(wp%f(nfreq))
 if(xmaster) then
@@ -323,7 +324,7 @@ if(xmaster) then
   end do
 endif
 #ifdef USEMPI
-call xmpi_bcast(wp%f)
+!Dano call xmpi_bcast(wp%f)
 #endif
 
 ! Convert to absolute frequencies
@@ -356,7 +357,7 @@ if(xmaster) then
   read(44,*)ndir
 endif
 #ifdef USEMPI
-call xmpi_bcast(ndir)
+!Dano call xmpi_bcast(ndir)
 #endif
 allocate(wp%theta(ndir))
 
@@ -367,7 +368,7 @@ end do
 endif
 
 #ifdef USEMPI
-call xmpi_bcast(wp%theta)
+!Dano call xmpi_bcast(wp%theta)
 #endif
 
 ! Convert angles to XBeach angles and radians
@@ -444,7 +445,7 @@ if(xmaster) then
   end if
 endif
 #ifdef USEMPI
-call xmpi_bcast(switch)
+!Dano call xmpi_bcast(switch)
 #endif
 
 if(xmaster) then
@@ -453,8 +454,8 @@ if(xmaster) then
 endif
 
 #ifdef USEMPI
-call xmpi_bcast(rtext)
-call xmpi_bcast(exc)
+!Dano call xmpi_bcast(rtext)
+!Dano call xmpi_bcast(exc)
 #endif
 
 if(xmaster) then
@@ -484,7 +485,7 @@ if(xmaster) then
 endif
 
 #ifdef USEMPI
-call xmpi_bcast(factor)
+!Dano call xmpi_bcast(factor)
 #endif
 ! Read S_array
 allocate(wp%S_array(nfreq,ndir))
@@ -496,7 +497,7 @@ if(xmaster) then
 endif
 
 #ifdef USEMPI
-call xmpi_bcast(wp%S_array)
+!Dano call xmpi_bcast(wp%S_array)
 #endif
 
 where (wp%S_array == exc) wp%S_array =0
@@ -628,7 +629,7 @@ if(xmaster) then
   read(44,*)nfreq
 endif
 #ifdef USEMPI
-call xmpi_bcast(nfreq)
+!Dano call xmpi_bcast(nfreq)
 #endif
 allocate(wp%f(nfreq))
 
@@ -640,8 +641,8 @@ if(xmaster) then
   read(44,*)ndir
 endif
 #ifdef USEMPI
-call xmpi_bcast(wp%f)
-call xmpi_bcast(ndir)
+!Dano call xmpi_bcast(wp%f)
+!Dano call xmpi_bcast(ndir)
 #endif
 allocate(wp%theta(ndir))
 
@@ -651,7 +652,7 @@ if(xmaster) then
   end do
 endif
 #ifdef USEMPI
-call xmpi_bcast(wp%theta)
+!Dano call xmpi_bcast(wp%theta)
 #endif
 
 wp%theta=wp%theta*par%px/180
@@ -669,7 +670,7 @@ if(xmaster) then
 endif
 
 #ifdef USEMPI
-call xmpi_bcast(wp%S_array)
+!Dano call xmpi_bcast(wp%S_array)
 #endif
 
 ! Convert to m2/Hz/rad

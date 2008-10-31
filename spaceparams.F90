@@ -746,7 +746,6 @@ subroutine space_distribute_vector(xy,sl,a,b)
     ijs => sl%js
     lmn => sl%ln
   endif
-
   call vector_distr_send(a,b,ijs,lmn,xmpi_master,xmpi_comm)
 
 end subroutine space_distribute_vector

@@ -150,13 +150,13 @@ if(par%t==par%dt) then
          close(7)
        endif
        par%Emean=sum(dataE)/nt
-    elseif (par%instat==4) then
-       call makebcf(par,s,wp)
-    elseif (par%instat==5) then
-       call makebcf(par,s,wp)
-    elseif (par%instat==6) then
-       call makebcf(par,s,wp)
-    elseif (par%instat==7) then
+    elseif (par%instat==4.and.xmaster) then
+       call makebcf(par,sg,wp)
+    elseif (par%instat==5.and.xmaster) then
+       call makebcf(par,sg,wp)
+    elseif (par%instat==6.and.xmaster) then
+       call makebcf(par,sg,wp) 
+    elseif (par%instat==7.and.xmaster) then
        par%listline=1
     endif
     !
@@ -191,24 +191,23 @@ if(par%t==par%dt) then
     endif
 end if
 
-!write(*,*)'par%t =',par%t,'bcendtime = ',bcendtime
 if (par%t .ge. bcendtime) then  ! Recalculate bcf-file 
-    if (par%instat==4) then
+    if (par%instat==4.and.xmaster) then
         close(71)
         close(72)
-        call makebcf(par,s,wp)
+        call makebcf(par,sg,wp)
         startbcf=.true.
-    elseif (par%instat==5) then 
+    elseif (par%instat==5.and.xmaster) then 
         close(71)
         close(72)
-        call makebcf(par,s,wp)
+        call makebcf(par,sg,wp)
         startbcf=.true.
-    elseif (par%instat==6) then 
+    elseif (par%instat==6.and.xmaster) then 
         close(71)
         close(72)
-        call makebcf(par,s,wp)
+        call makebcf(par,sg,wp)
         startbcf=.true.
-    elseif (par%instat==7) then
+    elseif (par%instat==7.and.xmaster) then
         close(71)
         close(72)
         startbcf=.true.
@@ -284,12 +283,12 @@ elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat
           open(53,file='ebcflist.bcf',form='formatted',position='rewind')
           open(54,file='qbcflist.bcf',form='formatted',position='rewind')
         endif
-!        write(*,*)'par%listline = ',par%listline
-        do i=1,par%listline
-            if (xmaster) then
+        if (xmaster) then
+           do i=1,par%listline
               read(53,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,ebcfname
               read(54,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,qbcfname
-            endif  ! wwvv strange
+           enddo  ! wwvv strange
+        endif
 #ifdef USEMPI
             call xmpi_bcast(bcendtime)
             call xmpi_bcast(rt)
@@ -298,7 +297,6 @@ elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat
             call xmpi_bcast(s%theta0)
             call xmpi_bcast(ebcfname)
 #endif
-        end do
         if (xmaster) then
           close(53)
           close(54)
@@ -338,13 +336,9 @@ elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat
             allocate(ee1(ny+1,ntheta),ee2(ny+1,ntheta))
         end if
         if (xmaster) then
-  !        write(*,*)'e1'
           read(71)gee1       ! Earlier in time
-  !        write(*,*)'e2'
           read(71)gee2       ! Later in time
-  !        write(*,*)'q1'
           read(72)gq1        ! Earlier in time
-  !        write(*,*)'q2'
           read(72)gq2        ! Later in time
         endif
 #ifdef USEMPI
@@ -375,9 +369,7 @@ elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat
         ! only do loop for difference-1 times
         do i=1,(new-old)-1
              if(xmaster) then
-  !            write(*,*)i,'qi'
               read(72)gq2
-  !            write(*,*)i,'ei'
               read(71)gee2
             endif
         end do
@@ -392,9 +384,7 @@ elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat
         q1=q2
         ee1=ee2
         if (xmaster) then
-  !        write(*,*)'read q'
           read(72)gq2
-  !        write(*,*)'read e'
           read(71)gee2
         endif
 #ifdef USEMPI

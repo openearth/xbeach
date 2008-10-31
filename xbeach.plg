@@ -3,67 +3,17 @@
 <pre>
 <h1>Build Log</h1>
 <h3>
---------------------Configuration: makeincludes - Win32 Release--------------------
-</h3>
-<h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\dro\LOCALS~1\Temp\RSP3C.tmp" with contents
-[
-/compile_only /nologo /warn:nofileopt /module:"Release/" /object:"Release/" 
-"D:\data\dano\xbeach\makeincludes.F90"
-]
-Creating temporary file "C:\DOCUME~1\dro\LOCALS~1\Temp\RSP3D.tmp" with contents
-[
-kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:no /pdb:"Release/makeincludes.pdb" /machine:I386 /out:"Release/makeincludes.exe" 
-.\Release\makeincludes.obj
-]
-Creating command line "link.exe @C:\DOCUME~1\dro\LOCALS~1\Temp\RSP3D.tmp"
-<h3>Output Window</h3>
-Compiling Fortran...
-D:\data\dano\xbeach\makeincludes.F90
-Linking...
-Creating temporary file "C:\DOCUME~1\dro\LOCALS~1\Temp\RSP3F.bat" with contents
-[
-@echo off
-.\Release\makeincludes < nul
-]
-Creating command line "C:\DOCUME~1\dro\LOCALS~1\Temp\RSP3F.bat"
-
- Making spacedecl.gen
- Making mnemonic.gen
- Making indextos.gen
- Making space_alloc_scalars.gen
- Making space_alloc_arrays.gen
- Making space_ind.gen
- Making space_inp.gen
- Making chartoindex.gen
-<h3>
 --------------------Configuration: xbeach - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\dro\LOCALS~1\Temp\RSP40.tmp" with contents
+Creating temporary file "C:\DOCUME~1\dro\LOCALS~1\Temp\RSP67.tmp" with contents
 [
 /browser:"Release/" /check:bounds /check:power /check:overflow /compile_only /define:"BARRIER" /define:"USEMPI" /define:"HAVE_MPI_WTIME" /fpp /include:"c:\Program Files\MPICH2\include\\" /nologo /real_size:64 /traceback /warn:nofileopt /module:"Release/" /object:"Release/" 
-"D:\data\dano\xbeach\xmpi.F90"
-"D:\data\dano\xbeach\readkey.f90"
-"D:\data\dano\xbeach\params.f90"
-"D:\data\dano\xbeach\mnemonic.F90"
-"D:\data\dano\xbeach\math_tools.f90"
-"D:\data\dano\xbeach\general_mpi.F90"
-"D:\data\dano\xbeach\spaceparams.F90"
 "D:\data\dano\xbeach\waveparams.f90"
-"D:\data\dano\xbeach\varoutput.f90"
-"D:\data\dano\xbeach\timestep.f90"
-"D:\data\dano\xbeach\roelvink.f90"
-"D:\data\dano\xbeach\wave_timestep.f90"
-"D:\data\dano\xbeach\wave_stationary.f90"
-"D:\data\dano\xbeach\readtide.f90"
-"D:\data\dano\xbeach\morphevolution.f90"
-"D:\data\dano\xbeach\initialize.f90"
-"D:\data\dano\xbeach\flow_timestep.f90"
 "D:\data\dano\xbeach\boundaryconditions.f90"
 "D:\data\dano\xbeach\xbeach.f90"
 ]
-Creating temporary file "C:\DOCUME~1\dro\LOCALS~1\Temp\RSP41.tmp" with contents
+Creating temporary file "C:\DOCUME~1\dro\LOCALS~1\Temp\RSP68.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib fmpich2s.lib mpi.lib /nologo /stack:0x5f5e100 /subsystem:console /incremental:no /pdb:"Release/xbeach.pdb" /machine:I386 /out:"Release/xbeach.exe" /libpath:"c:\Program Files\MPICH2\lib\\" 
 .\Release\boundaryconditions.obj
@@ -88,29 +38,10 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 .\Release\xbeach.obj
 .\Release\xmpi.obj
 ]
-Creating command line "link.exe @C:\DOCUME~1\dro\LOCALS~1\Temp\RSP41.tmp"
+Creating command line "link.exe @C:\DOCUME~1\dro\LOCALS~1\Temp\RSP68.tmp"
 <h3>Output Window</h3>
 Compiling Fortran...
-xmpi.i90
-D:\data\dano\xbeach\xmpi.F90(314) : Warning: Routine MPI_BCAST called with different number and/or type of actual arguments in earlier call - C attribute required if intended.
-  call MPI_Bcast(x, l, MPI_CHARACTER, xmpi_master, xmpi_comm, ierror)
--------^
-readkey.i90
-params.i90
-mnemonic.i90
-math_tools.i90
-general_mpi.i90
-spaceparams.i90
 waveparams.i90
-varoutput.i90
-timestep.i90
-roelvink.i90
-wave_timestep.i90
-wave_stationary.i90
-readtide.i90
-morphevolution.i90
-initialize.i90
-flow_timestep.i90
 boundaryconditions.i90
 xbeach.i90
 Linking...
@@ -118,7 +49,7 @@ Linking...
 
 
 <h3>Results</h3>
-xbeach.exe - 0 error(s), 1 warning(s)
+xbeach.exe - 0 error(s), 0 warning(s)
 </pre>
 </body>
 </html>
