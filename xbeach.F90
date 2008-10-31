@@ -200,9 +200,9 @@ subroutine printit(sglobal,slocal,par,it,s)
   character(len=*)         :: s
   integer,save             :: iter=0 
   return
-  write(*,*) par%t,xmpi_rank,trim(s)
   iter = iter+1
 #ifdef USEMPI
+  write(*,*) par%t,xmpi_rank,trim(s)
   call space_collect(slocal,sglobal%H,slocal%H)
   call space_collect(slocal,sglobal%zs,slocal%zs)
   call space_collect(slocal,sglobal%zs0,slocal%zs0)
