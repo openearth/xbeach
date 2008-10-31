@@ -67,6 +67,9 @@ if (xmaster) then
   allocate(s%uoff(1:s%nx+1,1:s%ny+1))
   allocate(s%ua(1:s%nx+1,1:s%ny+1))  
   allocate(s%dzav(1:s%nx+1,1:s%ny+1))  
+  allocate(s%Sk(1:s%nx+1,1:s%ny+1))
+  allocate(s%As(1:s%nx+1,1:s%ny+1))
+  allocate(s%Fimpact(1:s%nx+1,1:s%ny+1))
 
   s%umean=0.
 
@@ -230,6 +233,9 @@ if (xmaster) then
   s%uoff      = 0.d0
   s%ua        = 0.d0
   s%dzav      = 0.d0
+  s%Sk        = 0.d0
+  s%As        = 0.d0
+  s%Fimpact   = 0.d0
 
 
   ! added for bound long wave bc Ad 27 march 2006
@@ -360,6 +366,21 @@ allocate(s%graindistr(1:s%nx+1,1:s%ny+1,1:par%nd,1:par%ngd))
 allocate(s%D50(1:par%ngd))
 allocate(s%D90(1:par%ngd))
 allocate(s%sedcal(1:par%ngd))
+allocate(s%dzlayer(1:s%nx+1,1:s%ny+1))
+!
+! Specify hard layer
+!
+s%dzlayer = 100.d0
+if (par%struct==1) then
+  if (xmaster) then
+   call readkey('params.txt','ne_layer',fnameg)
+   open(34,file=fnameg)
+   do j = 1,s%ny+1
+      read(34,*)(s%dzlayer(i,j),i=1,s%nx+1)
+   enddo
+   close(34)
+  endif
+endif
 !
 ! Specify Grain Distribution
 !

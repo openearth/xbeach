@@ -131,6 +131,24 @@ integer*4  :: nspr      = -123 ! Expert tool: nspr = 1 bin all wave components f
 real*8     :: thetanum  = -123 ! Coefficient determining whether upwind (1) or central scheme (0.5) is used.
 real*8     :: tsfac     = -123 ! Coefficient determining Ts = tsfac * h/ws in sediment source term
 integer*4  :: scheme    = -123 ! Numerical scheme for wave and roller energy : 1=upwind, 2=Lax-Wendroff
+integer*4  :: random    = -123 ! 1 = random seed, 0 = seed values are zero
+real*8     :: trepfac   = -123 ! compute mean wave period over energy band par%trepfac*maxval(Sf); converges to Tm01 for trepfac = 0.0 and to Tp for trepfac = 1.0 
+real*8     :: facua     = -123 ! calibration factor time averaged flows due to wave asymmetry
+real*8     :: dzmax     = -123 ! maximum bedlevel change due to avalanching [m/s/m]
+integer*4  :: turb      = -123 ! equlibrium sediment concentration is computed as function of:
+                               ! 0 = no turbulence, 1 = wave averaged turbulence, 2 = maximum turbulence
+integer*4  :: rfb      = -123  ! if rfb = 1 then maximum wave surface slope is feeded back in roller energy balance; else rfb = par%Beta
+integer*4  :: lwave    = -123  ! 1 = long waves, 0 = no long waves
+integer*4  :: swave    = -123  ! 1 = short waves, 0 = no short waves
+integer*4  :: sws      = -123  ! 1 = short wave & roller undertow, 0 = no short wave & roller undertow
+integer*4  :: ut       = -123  ! 1 = short wave up-stirring, 0 = no short wave up-stirring
+real*8     :: Tbfac    = -123  ! Calibration factor for bore interval Tbore: Tbore = Tbfac*Tbore
+real*8     :: Tsmin    = -123  ! Minimum adaptation time scale in advection diffusion equation sediment
+real*8     :: impact   = -123  ! Include Fisher Overton approach in avalanching
+real*8     :: CE       = -123  ! Dune face erosion coefficient for avalanching
+real*8     :: BRfac    = -123  ! calibration factor surface slope
+
+
 end type parameters
 
 contains
@@ -147,6 +165,8 @@ par%px    = 3.14159265358979d0
 par%compi = (0.0d0,1.0d0)
 
 par%instat   = readkey_int     ('params.txt','instat',    1,         0,        7)
+par%fcutoff  = readkey_dbl     ('params.txt','fcutoff',   0.d0,      0.d0,     40.d0)
+par%random   = readkey_int     ('params.txt','random',    0,         0,        1)
 if (par%instat == 0) then
     par%dir0  = readkey_dbl    ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
     par%Hrms  = readkey_dbl    ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
@@ -205,10 +225,18 @@ par%hwci  = readkey_dbl ('params.txt','hwci',   0.01d0,   0.001d0,      1.d0)
 par%break    = readkey_int ('params.txt','break',      3,        1,     3)
 par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
 par%beta     = readkey_dbl ('params.txt','beta',    0.15d0,     0.05d0,   0.3d0)
+par%rfb      = readkey_int ('params.txt','rfb',        1,        0,     1)
 par%taper    = readkey_dbl ('params.txt','taper',   100.d0,      0.0d0, 1000.d0)
 par%refl     = readkey_int ('params.txt','refl',       0,        0,     1) 
 par%nspr     = readkey_int ('params.txt','nspr',       0,        0,     1) 
-par%scheme   = readkey_int ('params.txt','scheme',     1,        1,     2) 
+par%scheme   = readkey_int ('params.txt','scheme',     1,        1,     2)
+par%trepfac  = readkey_dbl  ('params.txt','sprdthr', 0.8d0,       0.d0,  1.d0) 
+par%sprdthr  = readkey_dbl ('params.txt','sprdthr', 0.08d0,      0.d0,  1.d0) 
+par%lwave    = readkey_int ('params.txt','lwave',         1,        0,     1)
+par%swave    = readkey_int ('params.txt','swave',         1,        0,     1)
+par%sws      = readkey_int ('params.txt','sws',           1,        0,     1)
+par%ut       = readkey_int ('params.txt','ut',            1,        0,     1)
+par%BRfac    = readkey_dbl ('params.txt','BRfac',    1.0d0,       0.d0, 1.d0)
 end subroutine wave_input
 
 subroutine flow_input(par)
@@ -298,7 +326,13 @@ par%smax     = readkey_dbl ('params.txt','smax',   -1.d0,    0.d0,   3.d0)
 if (par%smax<0) par%smax=huge(0.d0)
 par%thetanum = readkey_dbl ('params.txt','thetanum',   1.d0,    0.5d0,   1.d0) 
 par%tsfac    = readkey_dbl ('params.txt','tsfac',   0.1d0,    0.01d0,   1.d0) 
-
+par%facua    = readkey_dbl ('params.txt','facua  ',0.00d0,    0.00d0,   1.0d0) 
+par%dzmax    = readkey_dbl ('params.txt','dzmax  ',0.05d0,    0.00d0,   1.0d0) 
+par%turb     = readkey_int ('params.txt','turb',   2,           0,            2)
+par%Tbfac    = readkey_dbl ('params.txt','Tbfac  ',1.0d0,     0.00d0,   1.0d0) 
+par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.2d0,     0.01d0,   10.d0) 
+par%impact   = readkey_int ('params.txt','impact ',0,           0,            1)  
+par%CE       = readkey_dbl ('params.txt','CE     ',0.2d0,     0.00d0,   100.d0) 
 
 end subroutine sed_input
 
@@ -443,7 +477,21 @@ call xmpi_bcast(par%nspr)
 call xmpi_bcast(par%thetanum)
 call xmpi_bcast(par%tsfac)
 call xmpi_bcast(par%scheme)
-
+call xmpi_bcast(par%random)
+call xmpi_bcast(par%trepfac)
+call xmpi_bcast(par%facua)
+call xmpi_bcast(par%dzmax)
+call xmpi_bcast(par%turb)
+call xmpi_bcast(par%rfb)
+call xmpi_bcast(par%lwave)
+call xmpi_bcast(par%swave)
+call xmpi_bcast(par%sws)
+call xmpi_bcast(par%ut)
+call xmpi_bcast(par%Tbfac)
+call xmpi_bcast(par%Tsmin)
+call xmpi_bcast(par%impact)
+call xmpi_bcast(par%CE)
+call xmpi_bcast(par%BRfac)
 end subroutine distribute_par
 #endif
 !
@@ -577,6 +625,21 @@ subroutine printparams(par,str)
   write(f,*) 'printpar ',id,' ','thetanum:',par%thetanum
   write(f,*) 'printpar ',id,' ','tsfac:',par%tsfac
   write(f,*) 'printpar ',id,' ','scheme:',par%scheme
-
+  write(f,*) 'printpar ',id,' ','random:',par%random
+  write(f,*) 'printpar ',id,' ','trepfac:',par%trepfac
+  write(f,*) 'printpar ',id,' ','facua:',par%facua
+  write(f,*) 'printpar ',id,' ','dzmax:',par%dzmax
+  write(f,*) 'printpar ',id,' ','turb:',par%turb
+  write(f,*) 'printpar ',id,' ','rfb:',par%rfb
+  write(f,*) 'printpar ',id,' ','lwave:',par%lwave
+  write(f,*) 'printpar ',id,' ','swave:',par%swave
+  write(f,*) 'printpar ',id,' ','sws:',par%sws
+  write(f,*) 'printpar ',id,' ','ut:',par%ut
+  write(f,*) 'printpar ',id,' ','Tbfac:',par%Tbfac
+  write(f,*) 'printpar ',id,' ','Tsmin:',par%Tsmin
+  write(f,*) 'printpar ',id,' ','impact:',par%impact
+  write(f,*) 'printpar ',id,' ','CE:',par%CE
+  write(f,*) 'printpar ',id,' ','BRfac:',par%BRfac
+  
 end subroutine printparams
 end module params

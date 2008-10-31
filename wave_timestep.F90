@@ -276,9 +276,9 @@ do itheta=1,ntheta
                            ee(i,j,itheta)=ee(i,j,itheta)-par%dt*dd(i,j,itheta)
                if(par%roller==1) then
                     rr(i,j,itheta)=rr(i,j,itheta)+par%dt*dd(i,j,itheta)           &
-                                  -par%dt*2.d0*par%g*par%beta*rr(i,j,itheta)        &
+                                  -par%dt*2.d0*par%g*BR(i,j)*rr(i,j,itheta)        &
                                   /sqrt(cx(i,j,itheta)**2+cy(i,j,itheta)**2)
-                    drr(i,j,itheta) = 2.d0*par%g*par%beta*max(rr(i,j,itheta),0.0d0)/           &
+                    drr(i,j,itheta) = 2.d0*par%g*BR(i,j)*max(rr(i,j,itheta),0.0d0)/           &
                                   sqrt(cx(i,j,itheta)**2 +cy(i,j,itheta)**2)
                 else if (par%roller==0) then
                     rr(i,j,itheta)= 0.0d0
@@ -378,11 +378,13 @@ call xmpi_shift(Fy,':n')  ! shift in Fy(:,ny+1)
 
 urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*(hh+par%delta*H)))
 
-ustw= E*k/sigm/par%rho/max(hh,par%hmin) !max(.001,E)
+!ustw= E*k/sigm/par%rho/max(hh,par%hmin) !max(.001,E)
+ustw= E/max(c,sqrt(H*par%g))/par%rho/max(hh,par%hmin); ! Jaap
 uwf = ustw*cos(tm)
 vwf = ustw*sin(tm)
 ! roller contribution
-ustr=2*R*k/sigm/par%rho/max(hh,par%hmin)
+! ustr=2*R*k/sigm/par%rho/max(hh,par%hmin)
+ustr=2.*R/max(c,sqrt(H*par%g))/par%rho/max(hh,par%hmin); ! Jaap
 ! introduce breaker delay
 
 call breakerdelay(par,s)

@@ -147,4 +147,10 @@
       real*8  2  maxzs  s%nx+1 s%ny+1 d ! [m]        maximum elevation in simulation  
       real*8  2  minzs  s%nx+1 s%ny+1 d ! [m]        minimum elevation in simulation 
       real*8  2  L1     s%nx+1 s%ny+1 d ! for subroutine dispersion
+      real*8  2  dzlayer s%nx+1 s%ny+1 d ! [m] initial thickness sand layer on top of hard layer
+!      real*8  2  uau s%nx+1 s%ny+1 d ! [m/s] advection velocity due to wave asymmetry (u-dir)
+!      real*8  2  uav s%nx+1 s%ny+1 d ! [m/s] advection velocity due to wave asymmetry (v-dir)
+      real*8  2  Sk s%nx+1 s%ny+1 d ! [-] skewness of short waves
+      real*8  2  As s%nx+1 s%ny+1 d ! [-] asymmetry of short waves
+      real*8  2  Fimpact s%nx+1 s%ny+1 d ! [N/m^2]    Force on dune face
 !* hints for vi vim: filetype=fortran : syntax=fortran

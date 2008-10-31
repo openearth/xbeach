@@ -515,6 +515,7 @@ endif
     call xmpi_shift(vu,':1')
     call xmpi_shift(vu,':n')
     call xmpi_shift(vu,'m:')
+	! Jaap: whu not vu,'1:' --> seesm to be necessary to compute vmagu that is used to compute Su
 #endif
     vu=vu*wetu
     ! V-stokes velocities at U point

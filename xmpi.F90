@@ -282,7 +282,7 @@ end subroutine xmpi_bcast_int
 
 subroutine xmpi_bcast_int8(x)
   implicit none
-  integer *8 x
+  integer*8 x
   integer ierror
   call MPI_Bcast(x, 1, MPI_INTEGER8, xmpi_master, xmpi_comm, ierror)
 end subroutine xmpi_bcast_int8
