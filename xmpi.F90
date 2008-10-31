@@ -33,6 +33,7 @@ logical                         :: xmpi_isbot   ! submatrix is at the bottom sid
                                                 ! global matrix
 logical                         :: xmaster      ! .true. if this process reads
                                                 !  and writes files
+logical                         :: xmpi_bckey=.true. ! true if parameter read in readkey has to be broadcast
 #ifdef USEMPE
 integer                         :: event_output_start 
 integer                         :: event_output_end 
