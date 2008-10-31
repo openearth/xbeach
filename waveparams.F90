@@ -51,7 +51,7 @@ if (par%t==par%dt) then
     if(xmaster) then
       call readkey('params.txt','bcfile',fname)
       open(74,file=fname,form='formatted')
-      read(74,*)testc
+      if (par%instat/=41) read(74,*)testc
     endif
     if(xmaster) then
       open(53,file='ebcflist.bcf',form='formatted',status='replace')  ! Make new files, don't add to existing files
@@ -59,7 +59,7 @@ if (par%t==par%dt) then
       close(53)
       close(54)
     endif
-    if (testc=='FILELIST') then     ! New BCF-files are made when needed
+    if (testc=='FILELIST' .or. par%instat==41) then     ! New BCF-files are made when needed
         reuse=0
     else
         reuse=1                     ! Same file is reused
@@ -77,7 +77,10 @@ end if                              ! par%listline is not increased, therfore, f
 ! Lookup rt and dt for bcf-files and create names for E and q bcf-files
 if (reuse==0) then
     if(xmaster) then
-      read(74,*)wp%rt,wp%dt,fname
+      if (par%instat/=41) then
+         read(74,*)wp%rt,wp%dt,fname
+		 wp%rt = wp%rt / max(par%morfac,1.d0)
+      endif
     endif
 #ifdef USEMPI
     !Dano call xmpi_bcast(wp%rt)
@@ -87,18 +90,12 @@ if (reuse==0) then
     Ebcfname='E_'//fname
     qbcfname='q_'//fname
 else 
-    xmpi_bckey= .false.
-    wp%rt = readkey_dbl ('params.txt','rt'      , 3600.d0, 1200.d0,7200.d0)
-    wp%dt = readkey_dbl ('params.txt','dtbc', 0.1d0,0.01d0,1.0d0)
-    xmpi_bckey= .true.
+    wp%rt = readkey_dbl ('params.txt','rt'      , 3600.d0, 1200.d0,7200.d0,bcast=.false.)
+    wp%rt = wp%rt / max(par%morfac,1.d0)
+    wp%dt = readkey_dbl ('params.txt','dtbc', 0.1d0,0.01d0,1.0d0,bcast=.false.)
     Ebcfname='E_reuse.bcf'
     qbcfname='q_reuse.bcf'
 end if
-
-! Keep track of which line in ebcflist.bcf and qbcflist.bcf should be read in boudaryconditions.f90
-! Calculate when boudaryconditions.f90 should start making new bcf-files
-par%listline=par%listline+1
-bcendtime=bcendtime+wp%rt
 
 ! Check to (re)make bcf files only if t=0 or (t>0 and reuse=0)
 if (par%t==par%dt) then
@@ -112,7 +109,7 @@ end if
 ! This code is used to generate bcf-files, only if makefile==.true.
 if (makefile) then
     h0t0=sum(s%hh(1,:))/(s%ny+1)
-    if (par%instat==4) then
+    if (par%instat==4.or.par%instat==41) then
         call build_jonswap(par,s,wp,fname)
         call build_etdir(par,s,wp,h0t0,Ebcfname)
         call build_boundw(par,s,wp,h0t0,qbcfname)
@@ -126,6 +123,11 @@ if (makefile) then
         call build_boundw(par,s,wp,h0t0,qbcfname)
     endif
 end if
+
+! Keep track of which line in ebcflist.bcf and qbcflist.bcf should be read in boudaryconditions.f90
+! Calculate when boudaryconditions.f90 should start making new bcf-files
+par%listline=par%listline+1
+bcendtime=bcendtime+wp%rt
 
 if(xmaster) then
   ! Keep index/list of bcf file names and time information (ebcflist.bcf and qbcflist.bcf).
@@ -158,10 +160,10 @@ IMPLICIT NONE
 type(parameters), INTENT(INout)         :: par
 type(spacepars), intent(IN)             :: s
 type(waveparameters), INTENT(INOUT)     :: wp
-character(len=*), INTENT(IN)            :: fname
+character(len=*)                        :: fname
 
 ! Internal variables
-integer                                 :: i=0,ii,nang,nfreq
+integer                                 :: i=0,ii,nang,nfreq,ier
 integer                                 :: firstp, lastp
 real*8,dimension(:),allocatable         :: temp, x, y
 real*8                                  :: t1, dfj, fnyq, fp
@@ -170,28 +172,36 @@ character(len=80)                       :: dummystring
 
 ! Start program
 if(xmaster) then
-  write(*,*)'waveparams: Reading from ',fname,' ...'
+  if (par%instat /= 41) then
+     write(*,*)'waveparams: Reading from ',fname,' ...'
+  else
+     call readkey('params.txt','bcfile',fname)
+     write(*,*)'waveparams: reading from table',fname,' ...'
+     read(74,*,iostat=ier)wp%hm0gew,fp,wp%mainang,gam,scoeff,wp%rt,wp%dt
+	 wp%rt = wp%rt/max(par%morfac,1.d0)
+	 fp=1.d0/fp
+	 fnyq = 3.d0*fp
+	 dfj= fp/20.d0
+  endif
 endif
 ! Read JONSWAP file 
 !                             Input file  Keyword      Default       Minimum     Maximum   
-        
-xmpi_bckey = .false.
-wp%hm0gew           = readkey_dbl (fname,'Hm0'     ,   0.0d0,       0.00d0,       5.0d0)
-fp                  = readkey_dbl (fname,'fp'      ,   0.08d0,      0.0625d0,     0.4d0)
-fnyq                = readkey_dbl (fname,'fnyq'    ,   0.3d0,       0.2d0,        1.0d0)
-dfj                 = readkey_dbl (fname,'dfj'     ,   fnyq/200,    fnyq/1000,  fnyq/20)
-gam                 = readkey_dbl (fname,'gammajsp',   3.3d0,       1.0d0,        5.0d0)
-scoeff              = readkey_dbl (fname,'s'       ,   10.0d0,      1.0d0,     1000.0d0)
-wp%mainang          = readkey_dbl (fname,'mainang' ,   270.0d0,     0.0d0,      360.0d0)
-
+if (par%instat/=41) then               
+   wp%hm0gew           = readkey_dbl (fname,'Hm0'     ,   0.0d0,       0.00d0,       5.0d0,bcast=.false.)
+   fp                  = readkey_dbl (fname,'fp'      ,   0.08d0,      0.0625d0,     0.4d0,bcast=.false.)
+   fnyq                = readkey_dbl (fname,'fnyq'    ,   0.3d0,       0.2d0,        1.0d0,bcast=.false.)
+   dfj                 = readkey_dbl (fname,'dfj'     ,   fnyq/200,    fnyq/1000,  fnyq/20,bcast=.false.)
+   gam                 = readkey_dbl (fname,'gammajsp',   3.3d0,       1.0d0,        5.0d0,bcast=.false.)
+   scoeff              = readkey_dbl (fname,'s'       ,   10.0d0,      1.0d0,     1000.0d0,bcast=.false.)
+   wp%mainang          = readkey_dbl (fname,'mainang' ,   270.0d0,     0.0d0,      360.0d0,bcast=.false.)
+endif
 if(xmaster) then
   call readkey(fname,'checkparams',dummystring)
 endif
-xmpi_bckey = .true.
 
 
 wp%Npy=s%ny+1
-
+write(*,*)'Hm0 = ',wp%hm0gew,'Tp = ',1.d0/fp,'dir = ',wp%mainang,'duration = ',wp%rt
 !par%Trep=0.8345d0*(1/fp)                      ! approximation from Coastal Engineering: Processes, Theory and Design Practice
                                             ! Dominic Reeve, Andrew Chadwick 2004
 allocate(temp(ceiling((fnyq-dfj)/dfj)))
@@ -285,9 +295,7 @@ integer                                 :: firstp,lastp,nt,Ashift
 real*8, dimension(:),allocatable        :: temp, findline
 real*8, dimension(:,:),allocatable      :: tempA
 
-xmpi_bckey= .false.
-dthetaS_XB = readkey_dbl ('params.txt','dthetaS_XB', 0.0d0, -360.0d0, 360.0d0)
-xmpi_bckey= .true.
+dthetaS_XB = readkey_dbl ('params.txt','dthetaS_XB', 0.0d0, -360.0d0, 360.0d0,bcast=.false.)
 
 flipped=0
 wp%Npy=s%ny+1
@@ -848,7 +856,7 @@ do i=1,size(wp%theta)
     P(i)=sum(Dmean(1:i))*wp%dang*pp     ! Cummulative normalized wave variance in directional space used as probability density function
 end do  
 
-CALL RANDOM_SEED                        ! Call random seed
+if (par%random==1) CALL RANDOM_SEED                        ! Call random seed
 !call random_number(P0)
 call random_number(randummy)
 if (xmaster) then

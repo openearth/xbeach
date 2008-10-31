@@ -198,7 +198,7 @@ elseif (par%instat==4 .or. par%instat==5 .or. par%instat==6) then
           call readkey('params.txt','dtbc',dummystring)
           call readkey('params.txt','dthetaS_XB',dummystring)
         endif
-elseif (par%instat > 8) then
+elseif (par%instat > 8.and. par%instat/=41) then
     if(xmaster) then
       write(*,*)'Instat invalid option'
     endif
@@ -261,6 +261,15 @@ par%tintp   = readkey_dbl ('params.txt','tintp',par%tintg,    .01d0, 100000.d0) 
 par%tintm   = readkey_dbl ('params.txt','tintm',par%tintg,    1.d0, par%tstop)   ! Robert
 par%tint    = min(par%tintg,par%tintp,par%tintm)                                 ! Robert                                                                                                ! Robert
 par%tstop   = readkey_dbl ('params.txt','tstop', 2000.d0,      1.d0,1000000.d0)
+! adapt flow times to morfac
+par%morfac   = readkey_dbl ('params.txt','morfac', 0.0d0,        0.d0,  1000.d0)
+par%tstart  = par%tstart / max(par%morfac,1.d0)
+par%tint    = par%tint   / max(par%morfac,1.d0)
+par%tintg   = par%tintg  / max(par%morfac,1.d0)
+par%tintp   = par%tintp  / max(par%morfac,1.d0)
+par%tintm   = par%tintm  / max(par%morfac,1.d0)
+par%tint    = par%tint   / max(par%morfac,1.d0)
+par%tstop   = par%tstop  / max(par%morfac,1.d0)
 par%fcutoff  = readkey_dbl ('params.txt','fcutoff', 0.d0,      0.d0,  40.d0)
 par%sprdthr = readkey_dbl ('params.txt','sprdthr', 0.08d0,      0.d0,  1.d0)
 par%carspan = readkey_int    ('params.txt','carspan',0,         0,      1)
@@ -314,6 +323,7 @@ par%sedcal3  = readkey_dbl ('params.txt','sedcal3', 1.0000d0,   0.0000d0, 10.00d
 par%rhos     = readkey_dbl ('params.txt','rhos',  2650d0,     2400.d0,  2800.d0)
 par%morfac   = readkey_dbl ('params.txt','morfac', 0.0d0,        0.d0,  1000.d0)
 par%morstart = readkey_dbl ('params.txt','morstart',120.d0,      0.d0, 10000.d0)
+par%morstart = par%morstart / max(par%morfac,1.d0)
 par%wetslp   = readkey_dbl ('params.txt','wetslp', 0.3d0,       0.1d0,     1.d0)
 par%dryslp   = readkey_dbl ('params.txt','dryslp', 1.0d0,       0.1d0,     2.d0)
 par%por      = readkey_dbl ('params.txt','por',    0.4d0,       0.3d0,    0.5d0)

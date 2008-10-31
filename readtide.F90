@@ -65,7 +65,7 @@ if (xmaster) then
     end do
   close(31)
   do i=1,par%tidelen
-      s%tideinpt(i) = tidedummy(i,1)
+    s%tideinpt(i) = tidedummy(i,1) / max(par%morfac,1.d0)
   end do
 
   do j=1,par%tideloc

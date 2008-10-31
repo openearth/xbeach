@@ -150,7 +150,7 @@ if(par%t==par%dt) then
          close(7)
        endif
        par%Emean=sum(dataE)/nt
-    elseif (par%instat==4.and.xmaster) then
+    elseif ((par%instat==4.or.par%instat==41).and.xmaster) then
        call makebcf(par,sg,wp)
     elseif (par%instat==5.and.xmaster) then
        call makebcf(par,sg,wp)
@@ -192,7 +192,7 @@ if(par%t==par%dt) then
 end if
 
 if (par%t .ge. bcendtime) then  ! Recalculate bcf-file 
-    if (par%instat==4.and.xmaster) then
+    if ((par%instat==4.or.par%instat==41).and.xmaster) then
         close(71)
         close(72)
         call makebcf(par,sg,wp)
@@ -215,6 +215,7 @@ if (par%t .ge. bcendtime) then  ! Recalculate bcf-file
             par%listline=par%listline+1
         end if
     end if
+	call xmpi_bcast(startbcf)
 end if  
 
 !
@@ -276,7 +277,7 @@ elseif (par%instat==3) then
         endif
 
     end do
-elseif ((par%instat==4).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat==7)) then  
+elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat==7)) then  
     ! open file if first time
     if (startbcf) then
         if(xmaster) then
@@ -659,7 +660,7 @@ endif
 !
 ! UPDATE (LONG) WAVES
 !
-if (par%instat<8)then
+if (par%instat<8.or.par%instat==41)then
 ! wwvv the following is probably only to do in the top processes, but take care for
 ! the mpi_shift calls in horizontal directions
   if(xmpi_istop) then

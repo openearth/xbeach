@@ -1,7 +1,7 @@
 module readkey_module
 
 contains
-real*8 function readkey_dbl(fname,key,defval,mnval,mxval)
+real*8 function readkey_dbl(fname,key,defval,mnval,mxval,bcast)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
 ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
@@ -35,65 +35,86 @@ use xmpi_module
 implicit none
 character(len=*)  :: fname,key
 real*8            :: defval,mnval,mxval
+logical, intent(in), optional :: bcast
 
 character*80   :: value
 real*8         :: value_dbl
-if (xmaster) then
-  call readkey(fname,key,value)
+logical        :: lbcast
 
-  if (value/=' ') then
-     read(value,'(f10.0)')value_dbl
-     if (value_dbl>mxval) then
-        write(*,*)'Warning: variable ',trim(key),value_dbl,' > recommended value of ',mxval 
-     elseif (value_dbl<mnval) then
-        write(*,*)'Warning: variable ',trim(key),value_dbl,' < recommended value of ',mnval 
-     else
-        write(*,*)trim(key),' = ',value_dbl
-     endif
-  else
-     value_dbl=defval
-     if(xmaster) then
-       write(*,*)trim(key),' = ',value_dbl,' (no record found, default value used)'
-     endif
-  endif
+if (present(bcast)) then
+ lbcast = bcast
+else
+ lbcast = .true.
+endif
+
+if (xmaster) then
+ call readkey(fname,key,value)
+
+ if (value/=' ') then
+    read(value,'(f10.0)')value_dbl
+    if (value_dbl>mxval) then
+       write(*,*)'Warning: variable ',trim(key),value_dbl,' > recommended value of ',mxval 
+    elseif (value_dbl<mnval) then
+       write(*,*)'Warning: variable ',trim(key),value_dbl,' < recommended value of ',mnval 
+    else
+       write(*,*)trim(key),' = ',value_dbl
+    endif
+ else
+    value_dbl=defval
+    if(xmaster) then
+      write(*,*)trim(key),' = ',value_dbl,' (no record found, default value used)'
+    endif
+ endif
 endif
 
 #ifdef USEMPI
-  if (xmpi_bckey) call xmpi_bcast(value_dbl)
+ if (lbcast) then
+   call xmpi_bcast(value_dbl)
+ endif
 #endif
 
 readkey_dbl=value_dbl
 end function readkey_dbl
 
-function readkey_int(fname,key,defval,mnval,mxval) result (value_int)
+function readkey_int(fname,key,defval,mnval,mxval,bcast) result (value_int)
 use xmpi_module
 implicit none
 character*(*)  :: fname,key
 character*80   :: value
 integer*4      :: value_int
 integer*4      :: defval,mnval,mxval
+logical, intent(in), optional :: bcast
+logical        :: lbcast
+
+if (present(bcast)) then
+ lbcast = bcast
+else
+ lbcast = .true.
+endif
 
 if (xmaster) then
-  call readkey(fname,key,value)
+ call readkey(fname,key,value)
 
-  if (value/=' ') then
-     read(value,'(i80)')value_int
-     if (value_int>mxval) then
-        write(*,*)'Warning: variable ',trim(key),value_int,' > recommended value of ',mxval 
-     elseif (value_int<mnval) then
-        write(*,*)'Warning: variable ',trim(key),value_int,' < recommended value of ',mnval 
-     else
-        write(*,*)trim(key),' = ',value_int
-     endif
-  else
-     value_int=defval
-     if(xmaster) then
-       write(*,*)trim(key),' = ',value_int,' (no record found, default value used)'
-     endif
-  endif
+ if (value/=' ') then
+    read(value,'(i80)')value_int
+    if (value_int>mxval) then
+       write(*,*)'Warning: variable ',trim(key),value_int,' > recommended value of ',mxval 
+    elseif (value_int<mnval) then
+       write(*,*)'Warning: variable ',trim(key),value_int,' < recommended value of ',mnval 
+    else
+       write(*,*)trim(key),' = ',value_int
+    endif
+ else
+    value_int=defval
+    if(xmaster) then
+      write(*,*)trim(key),' = ',value_int,' (no record found, default value used)'
+    endif
+ endif
 endif
 #ifdef USEMPI
-  if (xmpi_bckey) call xmpi_bcast(value_int)
+ if (lbcast) then
+   call xmpi_bcast(value_int)
+ endif
 #endif
 
 end function readkey_int
@@ -116,67 +137,67 @@ character*80, save                          :: fnameold='first_time.exe'
 integer, dimension(:),allocatable,save          :: readindex
 
 if (fname/=fnameold) then                   ! Open new file if fname changes
-    if (fnameold/='first_time.exe') then    ! only if not the first time older versions
-        deallocate(keyword)
-        deallocate(values)
-                deallocate(readindex)
-    end if
-    first=.true.
-    fnameold=fname
-    nkeys=0
-    ier=0
+   if (fnameold/='first_time.exe') then    ! only if not the first time older versions
+       deallocate(keyword)
+       deallocate(values)
+               deallocate(readindex)
+   end if
+   first=.true.
+   fnameold=fname
+   nkeys=0
+   ier=0
 end if
 
 
 if (first) then
-   write(*,*)'readkey: Reading from ',trim(fname),' ...........'
-   first=.false.
-   lun=99
-   i=0
-   open(lun,file=fname)
-   do while (ier==0)
-      read(lun,'(a)',iostat=ier)ch
-      if (ier==0)i=i+1
-   enddo
-   close(lun)
-   nlines=i
+  write(*,*)'readkey: Reading from ',trim(fname),' ...........'
+  first=.false.
+  lun=99
+  i=0
+  open(lun,file=fname)
+  do while (ier==0)
+     read(lun,'(a)',iostat=ier)ch
+     if (ier==0)i=i+1
+  enddo
+  close(lun)
+  nlines=i
 
-   allocate(keyword(nlines))
-   allocate(values(nlines))
+  allocate(keyword(nlines))
+  allocate(values(nlines))
 
-   open(lun,file=fname)
-   ikey=0
-   do i=1,nlines
-      read(lun,'(a)')line
-      ic=scan(line,'=')
-      if (ic>0) then
-         ikey=ikey+1
-         keyword(ikey)=adjustl(line(1:ic-1))
-         values(ikey)=adjustl(line(ic+1:80))
-      endif
-   enddo
-   nkeys=ikey
-   close(lun)
-   allocate(readindex(nkeys))
-   readindex=0
+  open(lun,file=fname)
+  ikey=0
+  do i=1,nlines
+     read(lun,'(a)')line
+     ic=scan(line,'=')
+     if (ic>0) then
+        ikey=ikey+1
+        keyword(ikey)=adjustl(line(1:ic-1))
+        values(ikey)=adjustl(line(ic+1:80))
+     endif
+  enddo
+  nkeys=ikey
+  close(lun)
+  allocate(readindex(nkeys))
+  readindex=0
 endif
 
 value=' '
 do ikey=1,nkeys
-   if (key.eq.keyword(ikey)) then
-      value=values(ikey)
-          readindex(ikey)=1
-   endif
+  if (key.eq.keyword(ikey)) then
+     value=values(ikey)
+         readindex(ikey)=1
+  endif
 enddo
 
 
 ! If required, do a check whether params are not used or unknown
 if (key .eq. 'checkparams') then
-        do ikey=1,nkeys
-                if (readindex(ikey)==0) then
-                        write(*,*) 'Unknown, unused or multiple statements of parameter ',trim(keyword(ikey)),' in ',trim(fname)
-                endif
-        enddo
+       do ikey=1,nkeys
+               if (readindex(ikey)==0) then
+                       write(*,*) 'Unknown, unused or multiple statements of parameter ',trim(keyword(ikey)),' in ',trim(fname)
+               endif
+       enddo
 endif
 
 

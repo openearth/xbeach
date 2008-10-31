@@ -54,11 +54,11 @@ logical, parameter              :: xmpi_isbot   = .true.
 integer, parameter              :: xmpi_pcol    = 1
 integer, parameter              :: xmpi_prow    = 1
 #endif
-logical                         :: xmpi_bckey=.true. ! true if parameter read in readkey has to be broadcast
 #ifdef USEMPI
 interface xmpi_bcast
 module procedure xmpi_bcast_int, xmpi_bcast_real8, xmpi_bcast_int8
 module procedure xmpi_bcast_real4
+module procedure xmpi_bcast_array_logical
 module procedure xmpi_bcast_logical
 module procedure xmpi_bcast_complex16
 module procedure xmpi_bcast_array_real8
@@ -219,12 +219,19 @@ integer mm,nn, borderlength, min_borderlength
 
 end subroutine xmpi_determine_processor_grid
 
-subroutine xmpi_bcast_logical(x)
+subroutine xmpi_bcast_array_logical(x)
   implicit none
   logical, dimension(:) :: x
   integer ierror,l
   l = size(x)
   call MPI_Bcast(x, l, MPI_LOGICAL, xmpi_master, xmpi_comm, ierror)
+end subroutine xmpi_bcast_array_logical
+
+subroutine xmpi_bcast_logical(x)
+  implicit none
+  logical x
+  integer ierror
+  call MPI_Bcast(x, 1, MPI_LOGICAL, xmpi_master, xmpi_comm, ierror)
 end subroutine xmpi_bcast_logical
 
 subroutine xmpi_bcast_array_real8(x)
