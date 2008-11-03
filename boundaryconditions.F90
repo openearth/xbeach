@@ -215,7 +215,9 @@ if (par%t .ge. bcendtime) then  ! Recalculate bcf-file
             par%listline=par%listline+1
         end if
     end if
-	call xmpi_bcast(startbcf)
+    #ifdef USEMPI
+       call xmpi_bcast(startbcf)
+	#endif
 end if  
 
 !
