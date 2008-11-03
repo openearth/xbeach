@@ -178,7 +178,7 @@ do jg = 1,par%ngd
     Sv=(cv*(vev+uav)*hv-Dc*hv*dcdy-par%facsl*cv*vmagv*hv*dzby)*wetv
     ! Jaap: compute remaining sediment thickness above hard layer
     dzremain = max(0.d0,dzlayer+sedero)
-    source = (1-par%por)*dzremain/par%dt/par%morfac
+    source = (1-par%por)*dzremain/par%dt/max(par%morfac,1.d0)
     ! Jaap: we now already how much sand is picked up from the bed
     dzbdt=0.0d0
     ! dzbdt = -1.d0/(1-par%por)*min(source,hold*(ceqg(:,:,jg)*graindistr(:,:,1,jg)-cc)/Tsg(:,:,jg))
@@ -258,7 +258,7 @@ dzbtot = 0.d0
 dzb=0.d0 !!!Ap
 dzbdt=0.0d0
 
-if (par%t>=par%morstart) then
+if (par%t>=par%morstart .and. par%morfac > .999d0) then
 
 do jg = 1,par%ngd
    ! Update bed level using continuity eq.
