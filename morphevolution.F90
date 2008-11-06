@@ -437,7 +437,7 @@ do ii=1,nint(par%morfac)
                sedero(i,j) = sedero(i,j)+dzb*(yv(j+1)-yv(j))/(yv(j)-yv(j-1))
                dzbtot(i,j) = dzbtot(i,j)+dzb*(yv(j+1)-yv(j))/(yv(j)-yv(j-1)) 
                zs(i,j)=zs(i,j)+dzb*(yv(j+1)-yv(j))/(yv(j)-yv(j-1))!
-			   dzav(i,j)= dzav(i,j)+dzb*(yv(j+1)-yv(j))/(yv(j)-yv(j-71))
+			   dzav(i,j)= dzav(i,j)+dzb*(yv(j+1)-yv(j))/(yv(j)-yv(j-1))
 			
 			   zb(i,j+1)=zb(i,j+1)-dzb
                sedero(i,j+1)=sedero(i,j+1)-dzb
