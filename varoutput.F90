@@ -425,7 +425,7 @@ subroutine add_outnumber(number)
   implicit none
   integer, intent(in)  :: number ! to add
   if (noutnumbers .ge. numvars) then
-    write(*,*)'To many outnumbers asked, max is ',numvars
+    write(*,*)'Too many outnumbers asked, max is ',numvars
     write(*,*)'Program will stop'
     call halt_program
   endif
@@ -560,7 +560,6 @@ subroutine var_output(it,s,sl,par)
   endif
 
 
-
   ! Determine if this is an output timestep
   if (it>itprev) then
           itprev=it
@@ -692,7 +691,7 @@ subroutine var_output(it,s,sl,par)
           if (any(abs(par%t-tpm(2:stpm)) .le. 0.000001d0)) then
               itm=itm+1
               do i=1,nmeanvar
-                  if (mnemonics(meanvec(i))=='Hrms') then                ! Hrms
+                  if (mnemonics(meanvec(i))=='H') then                ! Hrms changed to H
                       meanarrays(:,:,i)=sqrt(meanarrays(:,:,i))
                       write(indextomeanunit(i),rec=itm)meanarrays(:,:,i)
                   elseif (mnemonics(meanvec(i))=='urms') then    ! urms
@@ -712,7 +711,7 @@ subroutine var_output(it,s,sl,par)
     !!! Write global variables
     if (nglobalvar/=0) then
       if (any(abs(par%t-tpg) .le. 0.000001d0)) then
-          itg=itg+1          
+          itg=itg+1      
           do i = 1,noutnumbers
 #ifdef USEMPI
             call space_collect_index(s,sl,outnumbers(i))
@@ -1020,11 +1019,12 @@ subroutine makeaverage(s,sl,par)
   i=sl%nx
   
   mult = par%dt/par%tintm
-  if(xmaster) then
+!Dano  if(xmaster) then
     do i=1,nmeanvar
 #ifdef USEMPI
       call space_collect_index(s,sl,meanvec(i))
 #endif
+     if(xmaster) then
       call indextos(s,meanvec(i),t)
       select case(t%name)
         case (mnem_Fx)
@@ -1081,8 +1081,9 @@ subroutine makeaverage(s,sl,par)
               end select  ! rank
           end select  !type
       end select  ! name
-    enddo ! nmeanvar
-  endif !xmaster
+   endif ! xmaster
+   enddo ! nmeanvar
+ !Dano  endif ! xmaster
 
 end subroutine makeaverage
 
