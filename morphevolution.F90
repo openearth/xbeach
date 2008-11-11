@@ -675,7 +675,7 @@ twothird=2.d0/3.d0
 ! compute wave shape short waves (Rienecker and Fenton + Ruessink and van Rijn to estimate weighting of sine's and cosines)
 !
 ! read table at t=0;
-if (par%t==par%dt) then
+if (abs(par%t-par%dt)<1.d-6) then
    RF = RF*0.d0
    if (xmaster) then
       call readkey('params.txt','swtable',fnamet)

@@ -45,7 +45,7 @@ integer,save                                :: reuse  ! = 0 used to be in code
 
 makefile=.false.
 ! First time tests
-if (par%t==par%dt) then
+if (abs(par%t-par%dt)<1.d-6) then
     bcendtime=0
     par%listline=0
     if(xmaster) then
@@ -98,7 +98,7 @@ else
 end if
 
 ! Check to (re)make bcf files only if t=0 or (t>0 and reuse=0)
-if (par%t==par%dt) then
+if (abs(par%t-par%dt)<1.d-6) then
     makefile=.true.
 else
     if (reuse==0) then

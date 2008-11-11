@@ -492,7 +492,7 @@ subroutine var_output(it,s,sl,par)
   reclen2=wordsize*(s%nx+1)*(s%ny+1)*(par%ngd)*(par%nd)
 
   ! Do only at very first time step
-  if (par%t==par%dt) then
+  if (abs(par%t-par%dt)<1.d-6) then
       ndt=0
       tlast10=0.d0
       day=0

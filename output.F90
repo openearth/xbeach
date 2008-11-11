@@ -18,7 +18,7 @@ integer                                 :: reclen,reclen2
 reclen=wordsize*(s%nx+1)*(s%ny+1)
 reclen2=wordsize*(s%nx+1)*(s%ny+1)*(par%ngd)*(par%nd)
 
-if (par%t==par%dt) ndt=0
+if (abs(par%t-par%dt)<1.d-6) ndt=0
 ndt=ndt+1					! Number of time steps per second
 if (MODULO(par%t,par%tint)==0) then
     if(par%t>=par%tstart) then

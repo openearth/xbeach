@@ -86,7 +86,7 @@ endif
 ! added for bound long wave comp Ad 28 march 2006
 dtheta = par%dtheta*par%px/180
 startbcf=.false.
-if(par%t==par%dt) then
+if(abs(par%t-par%dt)<1.d-6) then
     if (xmaster) then
       write(*,*)'Setting up boundary conditions'
     endif
