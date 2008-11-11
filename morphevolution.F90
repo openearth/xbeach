@@ -686,11 +686,11 @@ if (par%t==par%dt) then
          enddo
       enddo
    endif
-   #ifdef USEMPI
+#ifdef USEMPI
    do i=1,18
       call xmpi_bcast(RF(i,:,:))
    enddo
-   #endif
+#endif
    dh = 0.03d0
    dt = 1.25d0
    nh = floor(0.99d0/dh);

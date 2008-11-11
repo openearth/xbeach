@@ -136,9 +136,9 @@ do while (par%t<par%tstop)
     call flow_bc (s,par)
     !Dano moved here, after (long) wave bc generation
 	if (it==1) then
-       #ifdef USEMPI
+#ifdef USEMPI
        t01 = MPI_Wtime()
-       #endif
+#endif
     endif
     call printit(sglobal,slocal,par,it,'after flow_bc')
 #ifdef USEMPI
