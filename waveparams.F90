@@ -194,9 +194,9 @@ if (par%instat/=41) then
    gam                 = readkey_dbl (fname,'gammajsp',   3.3d0,       1.0d0,        5.0d0,bcast=.false.)
    scoeff              = readkey_dbl (fname,'s'       ,   10.0d0,      1.0d0,     1000.0d0,bcast=.false.)
    wp%mainang          = readkey_dbl (fname,'mainang' ,   270.0d0,     0.0d0,      360.0d0,bcast=.false.)
-endif
-if(xmaster) then
-  call readkey(fname,'checkparams',dummystring)
+   if(xmaster) then
+     call readkey(fname,'checkparams',dummystring)
+   endif
 endif
 
 
