@@ -122,7 +122,8 @@ endif
                 dzsdx(i,j)=(zs(i+1,j)-zs(i,j))/(xz(i+1)-xz(i))  
         end do
     end do
-    do j=2,ny
+!    do j=2,ny
+    do j=1,ny ! Dano need to get correct slope on boundary y=0
         do i=1,nx+1
                 dzsdy(i,j)=(zs(i,j+1)-zs(i,j))/(yz(j+1)-yz(j))    
         end do

@@ -720,6 +720,7 @@ if (par%instat<8.or.par%instat==41)then
                            0.5d0*((beta(2,j)-uu(2,j))**2/4.d0/par%g+.5d0*(zb(2,j)+zb(3,j)))    
           end if
        end do
+       vv(1,:)=vv(2,:)
     endif ! par%front
     ! uu, zs and umean shift horizontally in two directions (loop was 2..ny)
 #ifdef USEMPI
