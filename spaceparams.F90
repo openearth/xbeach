@@ -166,6 +166,10 @@ subroutine grid_bathy(s,par)
   s%xori  = readkey_dbl('params.txt','xori',  0.d0,   -1d9,      1d9)
   s%yori  = readkey_dbl('params.txt','yori',  0.d0,   -1d9,      1d9)
   s%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   -360.d0,   360.d0)
+  if (s%alfa.lt.0) then 
+  s%alfa = 360.d0+s%alfa
+  endif
+
   s%alfa  = s%alfa*atan(1.0d0)/45.d0
   s%posdwn= readkey_dbl('params.txt','posdwn',1.d0,   -1.d0,     1.d0)
   s%vardx = readkey_int('params.txt','vardx',   0,      0,         1)     !Jaap
@@ -223,6 +227,7 @@ subroutine grid_bathy(s,par)
          ! Apparently input grid is at an angle, therefore defined in world coordinates
          ! Find out grid orientation
          s%alfa=atan2(s%y(2,1)-s%y(1,1),s%x(2,1)-s%x(1,1))
+
          s%xori=s%x(1,1)
          s%yori=s%y(1,1)
          s%xw=s%x
