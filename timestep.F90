@@ -23,30 +23,37 @@ if (par%t==0.0d0) then          ! conservative estimate
                           /(maxval(s%hh)*par%g)
 else
   par%dt=huge(0.0d0)      ! Seed dt
-  do itheta=1,s%ntheta
-    do j=2,s%ny
-      do i=2,s%nx     
-        ! u-points
-        mdx=0.5d0*(s%xz(i+1)-s%xz(i))
-        mdy=0.5d0*min((s%yz(j+1)-s%yz(j)),(s%yz(j)-s%yz(j-1)))
-        ! x-component
-        par%dt=min(par%dt,par%CFL*mdx/(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j))))
-        ! y-component
-        par%dt=min(par%dt,par%CFL*mdy/(sqrt(par%g*s%hu(i,j))+abs(s%vu(i,j))))
-        
-        ! v-points
-        mdx=0.5d0*min((s%xz(i+1)-s%xz(i)),(s%xz(i)-s%xz(i-1)))
-        mdy=0.5d0*(s%yz(j+1)-s%yz(j))
-        ! x-component
-        par%dt=min(par%dt,par%CFL*mdx/(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j))))
-        ! y-component
-        par%dt=min(par%dt,par%CFL*mdy/(sqrt(par%g*s%hv(i,j))+abs(s%vv(i,j))))
-
-        ! Theta points
-        par%dt=min(par%dt,par%CFL*s%dtheta/max(abs(s%ctheta(i,j,itheta)),tiny(0.0d0)))
-      end do
-    end do
-  end do
+  do j=2,s%ny
+    do i=2,s%nx     
+      ! u-points
+      mdx=(s%xz(i+1)-s%xz(i))
+      mdy=min((s%yz(j+1)-s%yz(j)),(s%yz(j)-s%yz(j-1)))
+      ! x-component
+      par%dt=min(par%dt,mdx/(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j))))
+      ! y-component
+      par%dt=min(par%dt,mdy/(sqrt(par%g*s%hu(i,j))+abs(s%vu(i,j))))
+      
+      ! v-points
+      mdx=min((s%xz(i+1)-s%xz(i)),(s%xz(i)-s%xz(i-1)))
+      mdy=(s%yz(j+1)-s%yz(j))
+      ! x-component
+      par%dt=min(par%dt,mdx/(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j))))
+      ! y-component
+      par%dt=min(par%dt,mdy/(sqrt(par%g*s%hv(i,j))+abs(s%vv(i,j))))
+    enddo
+  enddo
+  par%dt=par%dt*par%CFL*0.5d0
+  if (par%instat>0) then
+    par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(abs(s%ctheta))+tiny(0.0d0)) )
+    !do j=2,s%ny
+    !  do i=2,s%nx     
+    !    do itheta=1,s%ntheta
+    !      ! Theta points
+    !      par%dt=min(par%dt,par%CFL*s%dtheta/max(abs(s%ctheta(i,j,itheta)),tiny(0.0d0)))
+    !    end do
+    !  end do
+    !end do
+  end if
 end if
 ! wwvv: In the mpi version par%dt will be calculated different
 ! on different processes. So, we take the minimum of all dt's
@@ -59,6 +66,9 @@ if(par%t>=par%tnext) then
     par%dt=par%dt-(par%t-par%tnext)
     par%t=par%tnext
     it=it+1
+    write(*,*)'time (s) = ',par%t,' dt (s) = ',par%dt,' output step ',it
+else
+    write(*,*)'time (s) = ',par%t,' dt (s) = ',par%dt
 end if  
 
 end subroutine timestep

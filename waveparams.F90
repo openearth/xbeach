@@ -1069,7 +1069,6 @@ do ii=1,Ns
             
             Gn(int(temp2))=wp%CompFn(index2,int(temp2))
             deallocate(temp2)
-            deallocate(temp)
             
             allocate(Comptemp(size(Gn(wp%Nr/2+2:wp%Nr))))
             Comptemp = conjg(Gn(2:wp%Nr/2))
@@ -1112,12 +1111,8 @@ do ii=1,Ns
 
         end if
 
+        deallocate(temp)
         deallocate(Gn)
-
-        if (allocated(temp)) then
-            deallocate(temp)
-        end if
-
     end do
 end do
 
@@ -1141,6 +1136,8 @@ if(xmaster) then
   close(12)
   write(*,*)'file done'
 endif
+
+deallocate (D,t,zeta,Ampzeta,E_tdir)
 
 return
 
