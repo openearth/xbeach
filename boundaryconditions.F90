@@ -658,6 +658,9 @@ if (par%tideloc>0) then
   call xmpi_shift(s%zs0,'m:')
 #endif
 
+!endif
+else ! ie if tideloc=0
+s%zs0 = par%zs01
 endif
 !
 ! UPDATE (LONG) WAVES
