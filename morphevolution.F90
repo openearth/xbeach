@@ -563,15 +563,21 @@ do jg = 1,par%ngd
    Cd=(0.40d0/(log(max(hh,par%hmin)/z0)-1.0d0))**2 !Jaap
    !Cd = par%g/par%C**2;   ! consistent with flow modelling 
 
-   ! Diane Foster and Robert: limit Shields to par%smax -> vmag2 for transp. limited
-  ! vmag2=min(vmag2,par%smax*par%C**2*D50(jg)*delta)
-   vmag2=min(vmag2,par%smax*par%g/par%cf*D50(jg)*delta)       ! In terms of cf
-
+ 
    ! transport parameters
    Asb=0.005d0*hloc*(D50(jg)/hloc/(delta*par%g*D50(jg)))**1.2d0     ! bed load coefficent
    Ass=0.012d0*D50(jg)*dster**(-0.6d0)/(delta*par%g*D50(jg))**1.2d0 ! suspended load coeffient
-   term1=sqrt(vmag2+0.018d0/Cd*urms2)     ! nearbed-velocity
-      
+
+  ! Diane Foster and Robert: limit Shields to par%smax -> vmag2 for transp. limited
+  ! vmag2=min(vmag2,par%smax*par%C**2*D50(jg)*delta)
+
+!   vmag2=min(vmag2,par%smax*par%g/par%cf*D50(jg)*delta)       ! In terms of cf
+!   term1=sqrt(vmag2+0.018d0/Cd*urms2)     ! nearbed-velocity
+! the two above lines are comment out and replaced by a limit on total velocity u2+urms2, robert 1/9 and ap 28/11
+   term1=(vmag2+0.018/Cd*urms2)
+   term1=min(term1,par%smax*par%g/par%cf*s%D50(jg)*delta)
+   term1=term1**0.5      
+
    term2 = 0
    do j=1,ny+1
       do i=1,nx

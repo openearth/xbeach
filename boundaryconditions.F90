@@ -431,6 +431,11 @@ if (par%t>0.0d0) then
     end if
     fac1=min(fac1,1.d0)
     fac1=max(fac1,0.d0)
+
+	! the above approach causes a shoreline jet from outside to inside the domain
+	!and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
+    !so
+	fac1 = 0.d0 !Ap 28/11   
     fac2=1.d0-fac1
     do itheta=1,ntheta 
 
@@ -447,6 +452,11 @@ if (par%t>0.0d0) then
     end if
     fac1=min(fac1,1.d0)
     fac1=max(fac1,0.d0)
+    ! the above approach causes a shoreline jet from outside to inside the domain
+	!and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
+    ! so   
+	fac1=0.d0 !Ap 28/11
+
     fac2=1.d0-fac1
      do itheta=1,ntheta
 
