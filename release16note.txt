@@ -1,0 +1,53 @@
+
+new release via xbeach.org
+===========================
+
+version 16.106
+updated release note (this text)
+
+version 16.104
+
+- boundaryconditions.F90: 
+
+set fac1=0, because lateral wave boundary condition caused shoreline jet and mass gain
+- morphevolution.F90: 
+
+shields number limiter now applied to combination of u,v and urms iso only u and v.
+
+- params.F90: 
+
+set defaults differently: back=1 is wall bc, smax = 0.8, gamma = 0.55, n=10, gammax=2
+
+
+version 16.102
+
+- boundaryconditions.F90 
+fixed a missing part in case tideloc=0 then zs0 should be applied everywhere and be constant
+
+version 16.101
+
+preparing the visual studio 2005 and 2008 projects. 
+Will store them in seperate directories to keep main directory clean.
+
+
+earlier releases on xbeach.org
+==============================
+
+version 16.100
+
+Correction of theta0 if < -pi or >pi;
+optimized timestep routine
+modified and added deallocate statements in waveparams to release memory
+
+version 16.99
+
+update made: if in params.txt file the alfa<0 then alfa=alfa+360, 
+because code bombed on alfa<0 
+
+version 16.97
+
+Two bugs related to longshore tidal current removed. vv(1,:) was not set equal to vv(2,:) in case van Dongeren b.c.. 
+dzsdy was not computed for iy=1. Completely solves Elodie's problem
+
+
+
