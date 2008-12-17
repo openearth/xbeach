@@ -1565,7 +1565,7 @@ if (xmaster) then
 	rewind(741)    
 		
 	if (par%instat==4 .or. par%instat==5 .or. par%instat==6) then 
-		read(74,*)testc
+		read(741,*)testc
 		if (testc=='FILELIST') then
 			filetype = 1
 			nlines=nlines-1
@@ -1578,16 +1578,18 @@ if (xmaster) then
     
 	total=0.d0
 	select case (filetype)
+	    case(0)
+			total=2.d0*par%tstop*max(par%morfac,1.d0)
 		case(1)
-		do i=1,nlines
-			read(741,*)t,dt,dummy
-			total=total+t
-		enddo
+			do i=1,nlines
+				read(741,*)t,dt,dummy
+				total=total+t
+			enddo
 		case(2)
-		do i=1,nlines
-		    read(741,*)d1,d2,d3,d4,d5,t,dt
-			total=total+t
-		enddo
+			do i=1,nlines
+				read(741,*)d1,d2,d3,d4,d5,t,dt
+				total=total+t
+			enddo
 	end select
 	total=total/max(par%morfac,1.d0)
 	
