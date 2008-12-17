@@ -125,8 +125,11 @@ do jg = 1,par%ngd
    call xmpi_shift(dzbx,'m:')
 #endif
    ! Jaap: get ua in u points and split out in u and v direction
-   uau(1:nx,:) = 0.5*(ua(1:nx,:)*cos(theta0)+ua(2:nx+1,:)*cos(theta0))
-   uav(1:nx,:) = 0.5*(ua(1:nx,:)*sin(theta0)+ua(2:nx+1,:)*sin(theta0))
+ !  uau(1:nx,:) = 0.5*(ua(1:nx,:)*cos(theta0)+ua(2:nx+1,:)*cos(theta0))
+ !  uav(1:nx,:) = 0.5*(ua(1:nx,:)*sin(theta0)+ua(2:nx+1,:)*sin(theta0))
+! Jaap!! According to Robert and Ap you should use the space domain variable thetamean here
+   uau(1:nx,:) = 0.5*(ua(1:nx,:)*cos(thetamean(1:nx,:))+ua(2:nx+1,:)*cos(thetamean(1:nx,:)))
+   uav(1:nx,:) = 0.5*(ua(1:nx,:)*sin(thetamean(1:nx,:))+ua(2:nx+1,:)*sin(thetamean(1:nx,:)))
    ! Jaap: compute vmagu including ua
    vmagu = sqrt((uu+uau)**2+(vu+uav)**2)
    !
@@ -170,8 +173,11 @@ do jg = 1,par%ngd
     call xmpi_shift(dzby,':n')
 #endif
 	! Jaap: get ua in v points and split out in u and v direction
-	uau(:,1:ny) = 0.5*(ua(:,1:ny)*sin(theta0)+ua(:,2:ny+1)*sin(theta0))
-    uav(:,1:ny) = 0.5*(ua(:,1:ny)*cos(theta0)+ua(:,2:ny+1)*cos(theta0))
+!	uau(:,1:ny) = 0.5*(ua(:,1:ny)*sin(theta0)+ua(:,2:ny+1)*sin(theta0))
+!    uav(:,1:ny) = 0.5*(ua(:,1:ny)*cos(theta0)+ua(:,2:ny+1)*cos(theta0))
+! Jaap!! According to Robert and Ap you should use the space domain variable thetamean here
+    uau(:,1:ny) = 0.5*(ua(:,1:ny)*sin(thetamean(:,1:ny))+ua(:,2:ny+1)*sin(thetamean(:,1:ny)))
+    uav(:,1:ny) = 0.5*(ua(:,1:ny)*cos(thetamean(:,1:ny))+ua(:,2:ny+1)*cos(thetamean(:,1:ny)))
     ! Jaap: compute vmagu including ua
     vmagv = sqrt((uv+uau)**2+(vv+uav)**2)
     !
