@@ -118,6 +118,9 @@ call space_distribute_space(sglobal,slocal,par)
 #endif
 call printit(sglobal,slocal,par,it,'after space_distribute_space')
 
+! If wanted, produce output at t=0
+if (it==1) call var_output(it,sglobal,s,par)
+
 if (xmaster) then
   call readkey('params.txt','checkparams',dummystring) 
   write(*,*) 'Stepping into the time loop ....'  
@@ -145,7 +148,7 @@ do while (par%t<par%tstop)
     !call space_consistency(slocal,'ALL')
 #endif
     ! Wave timestep
-    if (par%instat==0) then
+    if (par%instat==0.or.par%instat==40) then
        if (mod(par%t,dble(par%wavint))==0) then
           call wave_stationary(s,par)
           call printit(sglobal,slocal,par,it,'after wave_stationary')

@@ -25,7 +25,7 @@ real*8,dimension(:,:,:), allocatable:: meanarrays  ! Keep time average variables
                                                    ! Only alive at xmaster
 integer*4                           :: nmeanvar    ! number of time-average variables
 integer*4,dimension(:),allocatable  :: meanvec     ! keep track of which mean variables are used
-real*8,dimension(:),allocatable     :: tpg,tpp,tpm ! output time points
+real*8,dimension(:),allocatable     :: tpg,tpp,tpm,tpw ! output time points
 integer*4                           :: stpm            ! size of tpm
 
 integer                             :: noutnumbers = 0  ! the number of outnumbers
@@ -71,10 +71,13 @@ subroutine init_output(s,sl,par,it)
   type(parameters)                    :: par
 
   integer                             :: id,ic,icold,i,ii,index,it
+  integer,dimension(2)				  :: minlocation
   character(80)                       :: line, keyword
   character(80)                       :: var, fname
   integer, dimension(:,:),allocatable :: temparray
-  real*8                              :: tg1,tp1,tm1
+  real*8,dimension(s%nx+1,s%ny+1)	  :: mindist
+  real*8                              :: tg1,tp1,tm1,tw1,dist
+  real*8,dimension(:),allocatable     :: xpointsw,ypointsw
 
 
   !!!!! OUTPUT POINTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -89,6 +92,8 @@ subroutine init_output(s,sl,par,it)
       allocate(pointtype(npoints+nrugauge))
       allocate(xpoints(npoints+nrugauge))
       allocate(ypoints(npoints+nrugauge))
+	  allocate(xpointsw(npoints+nrugauge))
+      allocate(ypointsw(npoints+nrugauge))
       allocate(nassocvar(npoints+nrugauge))
       allocate(temparray(npoints+nrugauge,99))
       pointtype(1:npoints)=0
@@ -110,8 +115,9 @@ subroutine init_output(s,sl,par,it)
           enddo
 
           do i=1,npoints
-              read(10,*) xpoints(i),ypoints(i),nassocvar(i),line
-              write(*,'(a,i3,a,i3)') ' xpoint: ',xpoints(i),' ypoint: ',ypoints(i)
+              read(10,*) xpointsw(i),ypointsw(i),nassocvar(i),line
+			  write(*,*) 'Output point'
+              write(*,'(a,f15.2,a,f15.2)') ' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i)
 
               icold=0
               do ii =1,nassocvar(i)
@@ -122,13 +128,19 @@ subroutine init_output(s,sl,par,it)
 
                   if (index/=-1) then
                       temparray(i,ii)=index
-                      write(*,*)'Point type: "'//trim(var)//'"'
+                      write(*,*)'Output type: "'//trim(var)//'"'
                   else
                       write(*,*)'Unknown point output type: "'//trim(var)//'"'
                       call halt_program
                   endif
                   icold=ic
               enddo
+			  ! Convert world coordinates of points to nearest (lsm) grid point
+			  mindist=(xpointsw(i)-s%xw)**2+(ypointsw(i)-s%yw)**2
+			  minlocation=minloc(mindist)
+			  xpoints(i)=minlocation(1)
+			  ypoints(i)=minlocation(2)
+			  write(*,'(a,f8.2,a)')'Distance output point to nearest grid point ',mindist(minlocation(1),minlocation(2)), ' meters'
           enddo
           close(10)
         endif ! npoints>0  
@@ -147,9 +159,9 @@ subroutine init_output(s,sl,par,it)
           enddo
 
           do i=1+npoints,nrugauge+npoints
-              xpoints(i)=1
-              read(10,*) ypoints(i),nassocvar(i),line
-              write(*,'(a,i3)')' ypoints: ',ypoints(i)
+              read(10,*) xpointsw(i),ypointsw(i),nassocvar(i),line
+			  write(*,*) 'Output runup gauge'
+              write(*,'(a,f15.2,a,f15.2)') ' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i)
               icold=0
               do ii =1,nassocvar(i)
                   ic=scan(line(icold+1:80),'#')
@@ -159,18 +171,34 @@ subroutine init_output(s,sl,par,it)
 
                   if (index/=-1) then
                       temparray(i,ii)=index
-                      write(*,*)'Point type:"'//trim(var)//'"'
+                      write(*,*)'Output type:"'//trim(var)//'"'
                   else
                       write(*,*)'Unknown point output type: "'//trim(var)//'"'
                       call halt_program
                   endif
                   icold=ic
               enddo
+			  ! Convert world coordinates of points to nearest (lsm) grid row
+			  mindist=(xpointsw(i)-s%xw)**2+(ypointsw(i)-s%yw)**2
+			  minlocation=minloc(mindist)
+			  xpoints(i)=1
+			  ypoints(i)=minlocation(2)
+			  ! Distance point to line = |Ax0+By0+C|/sqrt(A^2+B^2)
+			  ! where Ax+By+C=0 defines the line (world coordinates)
+			  ! and x0,y0 are the world coordinates of the point
+			  !
+			  ! Y=Ax+C (B=1)
+			  ! A = tan(alfa)
+			  ! C = y(1,ypoints(i))/cos(90-alfa)
+			  ! distance = |tan(alfa)*x0+xori+y0+y(1,ypoints(i))/sin(alfa)|/sqrt(tan(alfa)^2+1)
+			  dist = abs(dtan(s%alfa)*(xpointsw(i)-s%xori)+(ypointsw(i)-s%yori)+s%y(1,ypoints(i))/max(sind(s%alfa),par%eps))/sqrt(dtan(s%alfa)**2+1)
+			  write(*,'(a,f8.2,a)')'Distance output point to nearest grid row ',dist, ' meters'
           enddo
           close(10)
-        endif  ! nrugauge > 0
+        endif  ! nrugauge > 0	    
       endif ! xmaster
 
+	 
 
 #ifdef USEMPI
       call xmpi_bcast(nassocvar)
@@ -178,7 +206,7 @@ subroutine init_output(s,sl,par,it)
       call xmpi_bcast(xpoints)
       call xmpi_bcast(ypoints)
       call xmpi_bcast(nassocvar)
-      call xmpi_bcast(temparray)  
+      call xmpi_bcast(temparray)   
 #endif
       ! Tidy up information
       allocate(arrayassocvar(npoints+nrugauge,maxval(nassocvar)))
@@ -298,7 +326,23 @@ subroutine init_output(s,sl,par,it)
   endif ! nmeanvar > 0
 
   !!!!! OUTPUT TIME POINTS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+  ! If working in instat 0 or instat 40 we want time to coincide at wavint timesteps
+  if (par%instat==0 .or. par%instat==40) then
+	  if(xmaster) then
+	     ii=floor(par%tstop/par%wavint)
+	     allocate(tpw(ii))
+	     do i=1,ii
+	        tpw(i)=real(i)*par%wavint
+	     enddo
+      endif
+#ifdef USEMPI
+      call xmpi_bcast(ii)
+      if (.not.xmaster) then
+        allocate(tpw(ii))
+      endif
+      call xmpi_bcast(tpw)
+#endif
+  endif    
 
   ! If we want global output then
   if (nglobalvar/=0) then
@@ -387,6 +431,11 @@ subroutine init_output(s,sl,par,it)
   endif  ! nmeanvar > 0
 
   ! If tp series not defined, then no output wanted, so large timestep
+  if (.not. allocated(tpw)) then 
+      allocate(tpw(1))
+	  tpw=par%tstop
+  endif
+
   if (.not. allocated(tpg)) then
       allocate(tpg(1))
       tpg=par%tstop
@@ -401,22 +450,24 @@ subroutine init_output(s,sl,par,it)
       tpm(2)=par%tstop+1.d0
   endif
 
-  tg1=minval(tpg,MASK=tpg .gt. par%t)
-  tp1=minval(tpp,MASK=tpp .gt. par%t)
-  tm1=minval(tpm,MASK=tpm .gt. par%t)
+  tg1=minval(tpg)
+  tp1=minval(tpp)
+  tm1=minval(tpm)
+  tw1=minval(tpw)
   par%tintm=tpm(2)-tpm(1)
   stpm=size(tpm)
 
   if (min(tg1,tp1,tm1)>0.d0) then    ! No output wanted at initialization
-          par%tnext=min(tg1,tp1,tm1)
+          par%tnext=min(tg1,tp1,tm1,tw1)
   else
           it=1
-          call var_output(it,s,sl,par)
           tg1=minval(tpg,MASK=tpg .gt. 0.d0)
           tp1=minval(tpp,MASK=tpp .gt. 0.d0)
           tm1=minval(tpm,MASK=tpm .gt. 0.d0)
-          par%tnext=min(tg1,tp1,tm1)
+		  tw1=minval(tpw,MASK=tpw .gt. 0.d0)
+          par%tnext=min(tg1,tp1,tm1,tw1)
   endif
+
 
 end subroutine init_output
 
@@ -473,7 +524,7 @@ subroutine var_output(it,s,sl,par)
   integer                                 :: it,i1,i2,i3
   integer                                 :: wordsize
   integer                                 :: reclen,reclen2,reclenp, idum
-  real*8                                  :: dtimestep,tpredicted,tnow, t1,t2,t3
+  real*8                                  :: dtimestep,tpredicted,tnow, t1,t2,t3,t4
   character(12)                           :: fname
   character(99)                           :: fname2
   real*8,dimension(numvars)               :: intpvector
@@ -490,14 +541,17 @@ subroutine var_output(it,s,sl,par)
   inquire(iolength=wordsize) 1.d0
   reclen=wordsize*(s%nx+1)*(s%ny+1)
   reclen2=wordsize*(s%nx+1)*(s%ny+1)*(par%ngd)*(par%nd)
-
+  
+  ! Complicated check, so only carry out if it = 0 or it = 1
+  if (it<2) then 
   ! Do only at very first time step
-  if (abs(par%t-par%dt)<1.d-6) then
-      ndt=0
-      tlast10=0.d0
-      day=0
-      ot=0
-      itprev=0
+	  if ((abs(par%t-par%dt)<1.d-6.and.it==0).or.(par%t<1.d-6.and.it==1)) then
+		  ndt=0
+		  tlast10=0.d0
+		  day=0
+		  ot=0
+		  itprev=0
+	  endif
   endif
 
   ndt=ndt+1                                       ! Number of calculation time steps per output time step
@@ -767,7 +821,8 @@ subroutine var_output(it,s,sl,par)
     t1=minval(tpg,MASK=tpg .gt. par%t)
     t2=minval(tpp,MASK=tpp .gt. par%t)
     t3=minval(tpm,MASK=tpm .gt. par%t)
-    par%tnext=min(t1,t2,t3)
+	t4=minval(tpw,MASK=tpw .gt. par%t)
+    par%tnext=min(t1,t2,t3,t4)
   end if  ! it > itpref
 
   !!! Close files
