@@ -15,7 +15,7 @@ IMPLICIT NONE
 type(spacepars), target     :: s
 type(parameters)            :: par
 
-integer                     :: i
+integer                     :: i,impi
 integer                     :: j
 integer                     :: itheta,iter
 integer, dimension(:,:,:),allocatable,save  :: wete
@@ -23,7 +23,7 @@ real*8 , dimension(:,:)  ,allocatable,save  :: dhdx,dhdy,dudx,dudy,dvdx,dvdy,ust
 real*8 , dimension(:,:)  ,allocatable,save  :: km,kmx,kmy,wm,xwadvec,ywadvec,sinh2kh
 real*8 , dimension(:,:,:),allocatable,save  :: xadvec,yadvec,thetaadvec,dd,drr
 real*8 , dimension(:,:,:),allocatable,save  :: xradvec,yradvec,thetaradvec
-real*8 , dimension(:),allocatable,save      :: Hprev
+real*8 , dimension(:,:),allocatable,save      :: Hprev
 real*8                                      :: Herr,dtw
 real*8 , dimension(:,:)  ,allocatable,save  :: dkmxdx,dkmxdy,dkmydx,dkmydy,cgxm,cgym
 
@@ -54,7 +54,7 @@ if (.not. allocated(wete)) then
    allocate(xwadvec(nx+1,ny+1))
    allocate(ywadvec(nx+1,ny+1))
    allocate(sinh2kh(nx+1,ny+1))
-   allocate(Hprev(ny+1))
+   allocate(Hprev(nx+1,ny+1))
 
    allocate(dkmxdx  (nx+1,ny+1))
    allocate(dkmxdy  (nx+1,ny+1))
@@ -140,6 +140,18 @@ DO itheta=1,ntheta
     sxnth(itheta)*(sxnth(itheta)*dvdx - cxsth(itheta)*dvdy)
 END DO
 
+dtw=.9*minval(xz(2:nx+1)-xz(1:nx))/maxval(cgx)
+Herr=1.
+
+iter=0
+
+
+do while(Herr>1.d-5.and. iter<10)   
+  iter=iter+1
+  Hprev=H
+
+
+
     thetamean(1,:)=(sum(ee(1,:,:)*thet(1,:,:),2)/size(ee(1,:,:),2)) &
                   /(max(sum(ee(1,:,:),2),0.00001d0) /size(ee(1,:,:),2))
 ! wwvv
@@ -164,7 +176,7 @@ if (par%wci==1) then
     kmx(:,ny+1) = kmx(:,ny)  ! lateral bc
 
     call advecwy(wm,ywadvec,nx,ny,yz)   ! cjaap: yz or yv?
-    kmy = kmy-par%dt*ywadvec + par%dt*cgxm*(dkmydx-dkmxdy)
+    kmy = kmy-dtw*ywadvec + dtw*cgxm*(dkmydx-dkmxdy)
     kmy(:,ny+1) = kmy(:,ny)   ! lateral bc
     ! wwvv 
 #ifdef USEMPI
@@ -185,199 +197,172 @@ endif
     call xmpi_shift(R,'1:')
     call xmpi_shift(H,'1:')
 #endif
-                   
-do i=2,nx
-  dtw=.9*minval(xz(2:nx+1)-xz(1:nx))/sqrt(par%g*maxval(hh(i,:)))
-  Herr=1.
-  iter=0
-  H(i,:)=H(i-1,:)
-    ee(i,:,:)=ee(i-1,:,:)
-    ee(i+1,:,:)=ee(i,:,:)
 
-  do while(Herr>1.d-5.and. iter<10)
-    iter=iter+1
-    Hprev=H(i,:)
-    !
-    ! transform to wave action
-    !
-    ee(i-1:i+1,:,:) = ee(i-1:i+1,:,:)/sigt(i-1:i+1,:,:)
-    !
-    ! Upwind Euler timestep propagation
-    !
-    call advecx(ee(i-1:i+1,:,:)*cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),2,ny,ntheta,xz(i-1:i+1)) !Robert & Jaap
-    call advecy(ee(i,:,:)*cgy(i,:,:),yadvec(i,:,:),0,ny,ntheta,yz)                   !Robert & Jaap, nx and ny increased with 1 in advecy
-    call advectheta(ee(i,:,:)*ctheta(i,:,:),thetaadvec(i,:,:),0,ny,ntheta,dtheta)    !Robert & Jaap
+		do i=2,nx
+		  H(i,:)=H(i-1,:)
+			ee(i,:,:)=ee(i-1,:,:)
+			ee(i+1,:,:)=ee(i,:,:)
+
+		  
+			
+			!
+			! transform to wave action
+			!
+			ee(i-1:i+1,:,:) = ee(i-1:i+1,:,:)/sigt(i-1:i+1,:,:)
+			!
+			! Upwind Euler timestep propagation
+			!
+			call advecx(ee(i-1:i+1,:,:)*cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),2,ny,ntheta,xz(i-1:i+1)) !Robert & Jaap
+			call advecy(ee(i,:,:)*cgy(i,:,:),yadvec(i,:,:),0,ny,ntheta,yz)                   !Robert & Jaap, nx and ny increased with 1 in advecy
+			call advectheta(ee(i,:,:)*ctheta(i,:,:),thetaadvec(i,:,:),0,ny,ntheta,dtheta)    !Robert & Jaap
     
-    ee(i,:,:)=ee(i,:,:)-dtw*(xadvec(i,:,:) &
-                            +yadvec(i,:,:) &
-                            +thetaadvec(i,:,:))
-    !
-    ! transform back to wave energy
-    !
-    ee(i-1:i+1,:,:) = ee(i-1:i+1,:,:)*sigt(i-1:i+1,:,:)
-    ee(i,:,:)=max(ee(i,:,:),0.0d0)
+			ee(i,:,:)=ee(i,:,:)-dtw*(xadvec(i,:,:) &
+									+yadvec(i,:,:) &
+									+thetaadvec(i,:,:))
+			!
+			! transform back to wave energy
+			!
+			ee(i-1:i+1,:,:) = ee(i-1:i+1,:,:)*sigt(i-1:i+1,:,:)
+			ee(i,:,:)=max(ee(i,:,:),0.0d0)
 
         
-    !
-    ! Energy integrated over wave directions,Hrms
-    !
-    E(i,:)=sum(ee(i,:,:),2)*dtheta
-    H(i,:)=sqrt(E(i,:)/par%rhog8)
-    do itheta=1,ntheta
-       ee(i,:,itheta)=ee(i,:,itheta)/max(1.0d0,(H(i,:)/(par%gammax*hh(i,:)))**2)
-    enddo
-    H(i,:)=min(H(i,:),par%gammax*hh(i,:))
-    E(i,:)=par%rhog8*H(i,:)**2
-    !write(*,*) 'sqrt in wave_timestep after H (line 97)'
+			!
+			! Energy integrated over wave directions,Hrms
+			!
+			E(i,:)=sum(ee(i,:,:),2)*dtheta
+			H(i,:)=sqrt(E(i,:)/par%rhog8)
+			do itheta=1,ntheta
+			   ee(i,:,itheta)=ee(i,:,itheta)/max(1.0d0,(H(i,:)/(par%gammax*hh(i,:)))**2)
+			enddo
+			H(i,:)=min(H(i,:),par%gammax*hh(i,:))
+			E(i,:)=par%rhog8*H(i,:)**2
+			!write(*,*) 'sqrt in wave_timestep after H (line 97)'
     
-    !
-    ! calculate change in intrinsic frequency
-    tm(i,:) = (sum(ee(i,:,:)*thet(i,:,:),2)/ntheta)/(max(sum(ee(i,:,:),2),0.000010d0)/ntheta)
-    if (par%wci/=1) then
-      km(i,:) = k(i,:)
-    endif
+			!
+			! calculate change in intrinsic frequency
+			tm(i,:) = (sum(ee(i,:,:)*thet(i,:,:),2)/ntheta)/(max(sum(ee(i,:,:),2),0.000010d0)/ntheta)
+			if (par%wci/=1) then
+			  km(i,:) = k(i,:)
+			endif
 
-    sigm(i,:) = sqrt(par%g*km(i,:)*tanh(km(i,:)*(hh(i,:)+par%delta*H(i,:))))
+			sigm(i,:) = sqrt(par%g*km(i,:)*tanh(km(i,:)*(hh(i,:)+par%delta*H(i,:))))
 
-    DO itheta=1,ntheta
-         sigt(i,:,itheta) = max(sigm(i,:),0.010d0)
-    END DO
-    !
-    ! Total dissipation
-    if(par%break==1 .or. par%break==3) THEN
-        call roelvink1(E(i,:),hh(i,:), &
-                       par%Trep,par%alpha,par%gamma,par%n, &
-                       par%rho,par%g,par%delta,D(i,:),ny+1,par%break)
-    else if(par%break==2) THEN
-        call baldock1(E(i,:),hh(i,:),k(i,:), &
-                       par%Trep,par%alpha,par%gamma, &
-                       par%rho,par%g,par%delta,D(i,:),ny+1)
-    end if
-    !
-    ! Distribution of dissipation over directions and frequencies
-    !
-    do itheta=1,ntheta
-       dd(i,:,itheta)=ee(i,:,itheta)*D(i,:)/max(E(i,:),0.00001d0)
-    end do
-    do j=1,ny+1
-        ! cjaap: replaced par%hmin by par%eps
-        if(hh(i,j)+par%delta*H(i,j)>par%eps) then
-            wete(i,j,1:ntheta)=1
-        else
-            wete(i,j,1:ntheta)=0
-        end if
-    end do
-    !
-    ! Euler step dissipation
-    !
-    ! calculate roller energy balance
-    !
-    call advecx(rr(i-1:i+1,:,:)*cx(i-1:i+1,:,:),xradvec(i-1:i+1,:,:),2,ny,ntheta,xz(i-1:i+1)) !Robert & Jaap
-    call advecy(rr(i,:,:)*cy(i,:,:),yradvec(i,:,:),0,ny,ntheta,yz)                   !Robert & Jaap
-    call advectheta(rr(i,:,:)*ctheta(i,:,:),thetaradvec(i,:,:),0,ny,ntheta,dtheta)   !Robert & Jaap
+			DO itheta=1,ntheta
+				 sigt(i,:,itheta) = max(sigm(i,:),0.010d0)
+			END DO
+			!
+			! Total dissipation
+			if(par%break==1 .or. par%break==3) THEN
+				call roelvink1(E(i,:),hh(i,:), &
+							   par%Trep,par%alpha,par%gamma,par%n, &
+							   par%rho,par%g,par%delta,D(i,:),ny+1,par%break)
+			else if(par%break==2) THEN
+				call baldock1(E(i,:),hh(i,:),k(i,:), &
+							   par%Trep,par%alpha,par%gamma, &
+							   par%rho,par%g,par%delta,D(i,:),ny+1)
+			end if
+			!
+			! Distribution of dissipation over directions and frequencies
+			!
+			do itheta=1,ntheta
+			   dd(i,:,itheta)=ee(i,:,itheta)*D(i,:)/max(E(i,:),0.00001d0)
+			end do
+			do j=1,ny+1
+				! cjaap: replaced par%hmin by par%eps
+				if(hh(i,j)+par%delta*H(i,j)>par%eps) then
+					wete(i,j,1:ntheta)=1
+				else
+					wete(i,j,1:ntheta)=0
+				end if
+			end do
+			!
+			! Euler step dissipation
+			!
+			! calculate roller energy balance
+			!
+			call advecx(rr(i-1:i+1,:,:)*cx(i-1:i+1,:,:),xradvec(i-1:i+1,:,:),2,ny,ntheta,xz(i-1:i+1)) !Robert & Jaap
+			call advecy(rr(i,:,:)*cy(i,:,:),yradvec(i,:,:),0,ny,ntheta,yz)                   !Robert & Jaap
+			call advectheta(rr(i,:,:)*ctheta(i,:,:),thetaradvec(i,:,:),0,ny,ntheta,dtheta)   !Robert & Jaap
     
-    rr(i,:,:)=rr(i,:,:)-dtw*(xradvec(i,:,:) &
-                               +yradvec(i,:,:) &
-                               +thetaradvec(i,:,:))
-    rr(i,:,:)=max(rr(i,:,:),0.0d0)
-    !
-    ! euler step roller energy dissipation (source and sink function)
-     do j=1,ny+1
-        do itheta=1,ntheta
-!            if(wete(i,j,itheta)==1) then
-!                ee(i,j,itheta)=ee(i,j,itheta)-dtw*dd(i,j,itheta)
-!                rr(i,j,itheta)=rr(i,j,itheta)+dtw*dd(i,j,itheta)&
-!                              -dtw*2.*par%g*par%beta*rr(i,j,itheta)&
-!                              /sqrt(cx(i,j,itheta)**2.+cy(i,j,itheta)**2.);
-!                drr(i,j,itheta) = 2.*par%g*par%beta*max(rr(i,j,itheta),0.0d0)/           &
-!                                  sqrt(cx(i,j,itheta)**2 +cy(i,j,itheta)**2.);
-!            else if (par%roller==0) then
-!                rr(i,j,itheta)= 0.0
-!            end if
-!            ee(i,j,itheta)=max(ee(i,j,itheta),0.0d0)
-!            rr(i,j,itheta)=max(rr(i,j,itheta),0.0d0);
-!            if(wete(i,j,itheta)==0) then
-!                ee(i,j,itheta)=0.0d0
-!                rr(i,j,itheta)=0.0d0;
-!            end if
-                        
-              if(wete(i,j,itheta)==1) then
-                ee(i,j,itheta)=ee(i,j,itheta)-dtw*dd(i,j,itheta)
-                if (par%roller==1) then  !Christophe
-                rr(i,j,itheta)=rr(i,j,itheta)+dtw*dd(i,j,itheta)&
-                              -dtw*2.*par%g*par%beta*rr(i,j,itheta)&
-                              /sqrt(cx(i,j,itheta)**2+cy(i,j,itheta)**2)
-                drr(i,j,itheta) = 2*par%g*par%beta*max(rr(i,j,itheta),0.0d0)/           &
-                                  sqrt(cx(i,j,itheta)**2 +cy(i,j,itheta)**2)
-            else if (par%roller==0) then
-                rr(i,j,itheta)= 0.0d0
-                drr(i,j,itheta)= 0.0d0
-            end if
-            ee(i,j,itheta)=max(ee(i,j,itheta),0.0d0)
-            rr(i,j,itheta)=max(rr(i,j,itheta),0.0d0)
-            else if(wete(i,j,itheta)==0) then
-                ee(i,j,itheta)=0.0d0
-                rr(i,j,itheta)=0.0d0
-                drr(i,j,itheta)=0.0d0
-            end if
-        end do
-    end do
-    ! Lateral boundary condition
-    do itheta=1,ntheta 
-       if (theta(itheta)>=0.) then
-          ee(i,1,itheta)=ee(i,2,itheta)
-          rr(i,1,itheta)=rr(i,2,itheta)
-       endif
-       if (theta(itheta)<=0.) then
-          ee(i,ny+1,itheta)=ee(i,ny,itheta)
-          rr(i,ny+1,itheta)=rr(i,ny,itheta)
-       endif
-    end do
+			rr(i,:,:)=rr(i,:,:)-dtw*(xradvec(i,:,:) &
+									   +yradvec(i,:,:) &
+									   +thetaradvec(i,:,:))
+			rr(i,:,:)=max(rr(i,:,:),0.0d0)
+			!
+			! euler step roller energy dissipation (source and sink function)
+			 do j=1,ny+1
+				do itheta=1,ntheta                        
+					  if(wete(i,j,itheta)==1) then
+						ee(i,j,itheta)=ee(i,j,itheta)-dtw*dd(i,j,itheta)
+						if (par%roller==1) then  !Christophe
+						rr(i,j,itheta)=rr(i,j,itheta)+dtw*dd(i,j,itheta)&
+									  -dtw*2.*par%g*par%beta*rr(i,j,itheta)&
+									  /sqrt(cx(i,j,itheta)**2+cy(i,j,itheta)**2)
+						drr(i,j,itheta) = 2*par%g*par%beta*max(rr(i,j,itheta),0.0d0)/           &
+										  sqrt(cx(i,j,itheta)**2 +cy(i,j,itheta)**2)
+					else if (par%roller==0) then
+						rr(i,j,itheta)= 0.0d0
+						drr(i,j,itheta)= 0.0d0
+					end if
+					ee(i,j,itheta)=max(ee(i,j,itheta),0.0d0)
+					rr(i,j,itheta)=max(rr(i,j,itheta),0.0d0)
+					else if(wete(i,j,itheta)==0) then
+						ee(i,j,itheta)=0.0d0
+						rr(i,j,itheta)=0.0d0
+						drr(i,j,itheta)=0.0d0
+					end if
+				end do
+			end do
+			! Lateral boundary condition
+			do itheta=1,ntheta 
+			   if (theta(itheta)>=0.) then
+				  ee(i,1,itheta)=ee(i,2,itheta)
+				  rr(i,1,itheta)=rr(i,2,itheta)
+			   endif
+			   if (theta(itheta)<=0.) then
+				  ee(i,ny+1,itheta)=ee(i,ny,itheta)
+				  rr(i,ny+1,itheta)=rr(i,ny,itheta)
+			   endif
+			end do
     
     
-    !
-    ! Compute mean wave direction
-    !
-    thetamean(i,:)=(sum(ee(i,:,:)*thet(i,:,:),2)/size(ee(i,:,:),2)) &
-                  /(max(sum(ee(i,:,:),2),0.000010d0) /size(ee(i,:,:),2))
-    !
-    ! Energy integrated over wave directions,Hrms
-    !
-    E(i,:)=sum(ee(i,:,:),2)*dtheta
-    R(i,:)=sum(rr(i,:,:),2)*dtheta
-    DR(i,:)=sum(drr(i,:,:),2)*dtheta
-    H(i,:)=sqrt(E(i,:)/par%rhog8)
-    Herr=maxval(abs(Hprev-H(i,:)))
-  enddo
-  if(xmaster) then
-    write(*,*)i,iter,Herr
-  endif
-enddo
-! wwvv it seems that the second dimension needs no redistribution,
-! but the first does because of  do i=2,nx
+			!
+			! Compute mean wave direction
+			!
+			thetamean(i,:)=(sum(ee(i,:,:)*thet(i,:,:),2)/size(ee(i,:,:),2)) &
+						  /(max(sum(ee(i,:,:),2),0.000010d0) /size(ee(i,:,:),2))
+			!
+			! Energy integrated over wave directions,Hrms
+			!
+			E(i,:)=sum(ee(i,:,:),2)*dtheta
+			R(i,:)=sum(rr(i,:,:),2)*dtheta
+			DR(i,:)=sum(drr(i,:,:),2)*dtheta
+			H(i,:)=sqrt(E(i,:)/par%rhog8)
+		  enddo
+		  Herr=maxval(abs(Hprev-H))
+!		  if(xmaster) then
+!			write(*,*)i,iter,Herr,xmaster
+!		  endif
 #ifdef USEMPI
-call xmpi_shift(tm,'1:')
-call xmpi_shift(tm,'m:')
-call xmpi_shift(sigm,'1:')
-call xmpi_shift(sigm,'m:')
-call xmpi_shift(sigt,'1:')
-call xmpi_shift(sigt,'m:')
+         call xmpi_allreduce(Herr,MPI_MAX)
+		 
+#endif
+         if(xmaster) write(*,*)'Wave propagation iteration ',iter,', error: ',Herr
+		         
+#ifdef USEMPI
 call xmpi_shift(ee,'1:')
 call xmpi_shift(ee,'m:')
+call xmpi_shift(ee,':1')
+call xmpi_shift(ee,':n')
 call xmpi_shift(rr,'1:')
 call xmpi_shift(rr,'m:')
-call xmpi_shift(thetamean,'1:')
-call xmpi_shift(thetamean,'m:')
-call xmpi_shift(E,'1:')
-call xmpi_shift(E,'m:')
-call xmpi_shift(R,'1:')
-call xmpi_shift(R,'m:')
-call xmpi_shift(DR,'1:')
-call xmpi_shift(DR,'m:')
-call xmpi_shift(H,'1:')
-call xmpi_shift(H,'m:')
-#endif
+call xmpi_shift(rr,':1')
+call xmpi_shift(rr,':n')
 
+#endif 
+		
+
+enddo
 !
 ! Radiation stresses and forcing terms
 !
