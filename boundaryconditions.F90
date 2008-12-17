@@ -33,6 +33,7 @@ use spaceparams
 use interp
 use wave_timestep_module
 use xmpi_module
+use readkey_module
 
 IMPLICIT NONE
 
@@ -47,7 +48,7 @@ integer, save                               :: old
 integer                                     :: j
 integer                                     :: itheta
 integer                                     :: E_idx
-real*8                                      :: E1,ei,dum
+real*8                                      :: E1,ei,dum,Hm0, dum1, spreadpar, bcdur, dum2
 real*8, save                                :: dtbcfile,rt,bcendtime
 real*8                                      :: em,tshifted,tnew
 real*8,dimension(:)     ,allocatable,save   :: e01       ! [J/m2/rad] directional distribution of wave energy at boundary
@@ -59,8 +60,8 @@ real*8,dimension(:,:)   ,allocatable,save   :: ee1, ee2
 real*8,dimension(:)     ,allocatable,save   :: gq1,gq2,gq
 real*8,dimension(:,:)   ,allocatable,save   :: gee1, gee2
 character*1                                 :: bl
-character*80                                :: ebcfname,qbcfname
-real*8                                      :: degrad,E0
+character*80                                :: ebcfname,qbcfname,fname
+real*8                                      :: E0
 real*8,dimension(:),allocatable,save        :: dist,factor
 logical                                     :: startbcf
 
@@ -150,6 +151,30 @@ if(abs(par%t-par%dt)<1.d-6) then
          close(7)
        endif
        par%Emean=sum(dataE)/nt
+	elseif (par%instat==40) then
+       if (xmaster) then
+         call readkey('params.txt','bcfile',fname)
+	     open( unit=7, file=fname)
+!	     open( unit=7, file='jonswap1.txt')
+	     read(7,*) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcendtime, dum2
+	     par%Hrms = Hm0/sqrt(2.d0)
+	     par%m = 0.5d0*spreadpar
+         bcendtime=bcendtime/max(par%morfac,1.d0)
+	     s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0
+       endif
+#ifdef USEMPI
+	   call xmpi_bcast(bcendtime)
+	   call xmpi_bcast(par%Hrms)
+	   call xmpi_bcast(par%Trep)
+	   call xmpi_bcast(par%m)
+	   call xmpi_bcast(s%theta0)
+#endif  
+       do itheta=1,s%ntheta
+           s%sigt(:,:,itheta) = 2.d0*par%px/par%Trep
+       end do
+       s%sigm = sum(s%sigt,3)/s%ntheta
+       call dispersion(par,s)     
+	   
     elseif ((par%instat==4.or.par%instat==41).and.xmaster) then
        call makebcf(par,sg,wp)
     elseif (par%instat==5.and.xmaster) then
@@ -162,8 +187,7 @@ if(abs(par%t-par%dt)<1.d-6) then
     !
     ! Directional distribution
     !
-    if(par%instat==0 .or. par%instat==1 .or. par%instat==2 .or. par%instat==3)then
-        degrad=par%px/180.d0
+    if(par%instat==0 .or. par%instat==1 .or. par%instat==2 .or. par%instat==3 .or. par%instat==40)then
         dist=(cos(theta-theta0))**par%m
         do i=1,ntheta
             if(abs(theta(i)-theta0)>par%px/2) then
@@ -192,7 +216,48 @@ if(abs(par%t-par%dt)<1.d-6) then
 end if
 
 if (par%t .ge. bcendtime) then  ! Recalculate bcf-file 
-    if ((par%instat==4.or.par%instat==41).and.xmaster) then
+    if (par%instat==40) then
+       if (xmaster) then
+         write(*,*) 'Reading new wave conditions'
+	     read(7,*) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcdur, dum2
+         par%Hrms = Hm0/sqrt(2.d0)
+	     par%m = 0.5d0*spreadpar
+	     bcendtime=bcendtime+bcdur/max(par%morfac,1.d0)
+	     s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0
+       endif
+#ifdef USEMPI
+	   call xmpi_bcast(bcendtime)
+	   call xmpi_bcast(par%Hrms)
+	   call xmpi_bcast(par%Trep)
+	   call xmpi_bcast(par%m)
+	   call xmpi_bcast(s%theta0)
+#endif
+	          
+       do itheta=1,s%ntheta
+           s%sigt(:,:,itheta) = 2*par%px/par%Trep
+       end do
+       s%sigm = sum(s%sigt,3)/s%ntheta
+       call dispersion(par,s)
+	
+       dist=(cos(theta-theta0))**par%m
+       do i=1,ntheta
+           if(abs(theta(i)-theta0)>par%px/2.d0) then
+               dist(i)=0
+           end if
+       end do
+       E0=par%rhog8*par%Hrms**2
+    
+       ! energy density distribution
+
+       if (sum(dist)>0.d0) then 
+          factor = (dist/sum(dist))/dtheta
+       else
+          factor=0.d0
+       endif
+       e01    = factor*E0;
+       e01    = max(e01,0.0d0);
+    elseif ((par%instat==4.or.par%instat==41).and.xmaster) then
+!    if ((par%instat==4.or.par%instat==41).and.xmaster) then
         close(71)
         close(72)
         call makebcf(par,sg,wp)
@@ -223,15 +288,15 @@ end if
 !
 ! COMPUTE WAVE BOUNDARY CONDITIONS CURRENT TIMESTEP
 !
-! instat = 0 => stationary wave conditions
+! instat = 0 or 40 => stationary wave conditions
 ! instat = 1 => wave energy fluctuations associated with Tlong in params.txt; bound long wave from LHS 1962
 ! instat = 2 => wave energy time series from Gen.ezs; bound long wave from LHS 1962
 ! instat = 3 => wave energy time series and (bound) long waves from Gen.ezs
-! instat = 4 => directional wave energy time series for Jonswap spectrum from user specified file; bound long wave from van Dongeren, 19??
+! instat = 4 or 41 => directional wave energy time series for Jonswap spectrum from user specified file; bound long wave from van Dongeren, 19??
 ! instat = 5 => directional wave energy time series from SWAN 2D spectrum file; bound long wave from van Dongeren, 19??    
 ! instat = 6 => directional wave energy time series from spectrum file; bound long wave from van Dongeren, 19??
 ! instat = 7 => as instat = 4/5/6; reading from previously computed wave boundary condition file.
-if (par%instat==0) then
+if (par%instat==0 .or. par%instat==40) then
    do j=1,ny+1
        ee(1,j,:)=e01*min(par%t/par%taper,1.0d0)
        bi(1) = 0.0d0
@@ -305,8 +370,8 @@ elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat=
           close(54)
         endif
         ! Robert and Jaap : Initialize for new wave conditions
-        par%Trep = par%Trep
-        par%omega = 2*par%px/par%Trep            
+!        par%Trep = par%Trep
+!        par%omega = 2*par%px/par%Trep            
         do itheta=1,s%ntheta
             s%sigt(:,:,itheta) = 2*par%px/par%Trep
         end do
@@ -424,7 +489,7 @@ if (par%t>0.0d0) then
     !
     ! Lateral boundary at y=0;
     !
-    if(par%instat>0) then
+    if(par%instat>0 .and. par%instat/=40) then
         fac1=(y(2:nx+1,2)-y(2:nx+1,1))*abs(tan(thetamean(2:nx+1,2)))/(x(2:nx+1,2)-x(1:nx,2))
     else
         fac1=0
@@ -445,7 +510,7 @@ if (par%t>0.0d0) then
     !
     ! lateral; boundary at y=ny*dy
     !
-    if(par%instat>0) then
+    if(par%instat>0 .and. par%instat/=40) then
         fac1=(y(2:nx+1,ny+1)-y(2:nx+1,ny))*abs(tan(thetamean(2:nx+1,ny)))/(x(2:nx+1,ny)-x(1:nx,ny))
     else
         fac1=0.0d0
@@ -675,7 +740,7 @@ endif
 !
 ! UPDATE (LONG) WAVES
 !
-if (par%instat<8.or.par%instat==41)then
+if (par%instat/=8)then
 ! wwvv the following is probably only to do in the top processes, but take care for
 ! the mpi_shift calls in horizontal directions
   if(xmpi_istop) then
