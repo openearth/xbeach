@@ -17,7 +17,7 @@ real*8     :: delta     = -123 ! fraction of wave height to add to depth in comp
 real*8     :: rho       = -123 ! water density
 real*8     :: g         = -123 ! acceleration of gravity
 real*8     :: rhog8     = -123 ! 1/8*rho*g
-real*8     :: omega     = -123 ! angular wave frequency
+!real*8     :: omega     = -123 ! angular wave frequency		!!!! Not used anymore, remove ? Robert
 real*8     :: thetamin  = -123 ! lower directional limit (angle w.r.t computational x-axis)
 real*8     :: thetamax  = -123 ! upper directional limit (angle w.r.t computational x-axis)
 real*8     :: dtheta    = -123 ! directional resolution (deg)
@@ -174,7 +174,9 @@ if (par%instat == 0) then
     par%m     = readkey_int    ('params.txt','m',        10,         2,      128)
     par%Trep  = readkey_dbl    ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
     par%Trep  = readkey_dbl    ('params.txt','Trep',     par%Trep,   1.d0,    20.d0)
-    par%omega    = 2.d0*par%px/par%Trep;
+!    par%omega    = 2.d0*par%px/par%Trep;
+elseif (par%instat==40) then
+    par%wavint   = readkey_int ('params.txt','wavint',    1,         1,     3600)
 elseif (par%instat==1) then
     par%dir0  = readkey_dbl    ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
     par%Hrms  = readkey_dbl    ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
@@ -182,14 +184,14 @@ elseif (par%instat==1) then
     par%m     = readkey_int    ('params.txt','m',        10,         2,      128)
     par%Trep  = readkey_dbl    ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
     par%Trep  = readkey_dbl    ('params.txt','Trep',     par%Trep,   1.d0,    20.d0)
-    par%omega    = 2.d0*par%px/par%Trep;
+!    par%omega    = 2.d0*par%px/par%Trep;
 elseif (par%instat==2 .or. par%instat==3) then
     par%dir0  = readkey_dbl    ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
     par%Hrms  = readkey_dbl    ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
     par%m     = readkey_int    ('params.txt','m',        10,         2,      128)
     par%Trep  = readkey_dbl    ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
     par%Trep  = readkey_dbl    ('params.txt','Trep',     par%Trep,   1.d0,    20.d0)
-    par%omega    = 2.d0*par%px/par%Trep;
+!    par%omega    = 2.d0*par%px/par%Trep;
 elseif (par%instat==4 .or. par%instat==5 .or. par%instat==6) then
         ! Just a check .....
         if (xmaster) then
@@ -198,7 +200,7 @@ elseif (par%instat==4 .or. par%instat==5 .or. par%instat==6) then
           call readkey('params.txt','dtbc',dummystring)
           call readkey('params.txt','dthetaS_XB',dummystring)
         endif
-elseif (par%instat > 8.and. par%instat/=41) then
+elseif (par%instat > 8.and. (par%instat>41.or.par%instat<40)) then
     if(xmaster) then
       write(*,*)'Instat invalid option'
     endif
@@ -270,6 +272,7 @@ par%tintg   = par%tintg  / max(par%morfac,1.d0)
 par%tintp   = par%tintp  / max(par%morfac,1.d0)
 par%tintm   = par%tintm  / max(par%morfac,1.d0)
 par%tint    = par%tint   / max(par%morfac,1.d0)
+par%wavint  = par%wavint / max(par%morfac,1.d0)
 par%tstop   = par%tstop  / max(par%morfac,1.d0)
 par%fcutoff  = readkey_dbl ('params.txt','fcutoff', 0.d0,      0.d0,  40.d0)
 par%sprdthr = readkey_dbl ('params.txt','sprdthr', 0.08d0,      0.d0,  1.d0)
@@ -393,7 +396,7 @@ call xmpi_bcast(par%delta)
 call xmpi_bcast(par%rho)
 call xmpi_bcast(par%g)
 call xmpi_bcast(par%rhog8)
-call xmpi_bcast(par%omega)
+!call xmpi_bcast(par%omega)
 call xmpi_bcast(par%thetamin)
 call xmpi_bcast(par%thetamax)
 call xmpi_bcast(par%dtheta)
@@ -541,7 +544,7 @@ subroutine printparams(par,str)
   write(f,*) 'printpar ',id,' ','rho:',par%rho
   write(f,*) 'printpar ',id,' ','g:',par%g
   write(f,*) 'printpar ',id,' ','rhog8:',par%rhog8
-  write(f,*) 'printpar ',id,' ','omega:',par%omega
+!  write(f,*) 'printpar ',id,' ','omega:',par%omega
   write(f,*) 'printpar ',id,' ','thetamin:',par%thetamin
   write(f,*) 'printpar ',id,' ','thetamax:',par%thetamax
   write(f,*) 'printpar ',id,' ','dtheta:',par%dtheta
