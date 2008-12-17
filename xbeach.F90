@@ -21,6 +21,7 @@ type(spacepars), pointer :: s
 type(spacepars), target  :: sglobal
 type(spacepars), target  :: slocal
 character(len=80)        :: dummystring
+logical                  :: newstatbc
 
 integer                  :: it
 real*8                   :: tbegin,tend
@@ -54,6 +55,7 @@ endif
 
 par%t=0.d0
 it=0
+newstatbc=.true.
 
 call wave_input(par)
 call flow_input(par)
@@ -133,7 +135,7 @@ do while (par%t<par%tstop)
     ! Calculate timestep
     call timestep(s,par,it)
     ! Wave boundary conditions
-    call wave_bc (sglobal,slocal,par)
+    call wave_bc (sglobal,slocal,par,newstatbc)
     call printit(sglobal,slocal,par,it,'after wave_bc')
     ! Flow boundary conditions
     call flow_bc (s,par)
@@ -149,8 +151,9 @@ do while (par%t<par%tstop)
 #endif
     ! Wave timestep
     if (par%instat==0.or.par%instat==40) then
-       if (mod(par%t,dble(par%wavint))==0) then
+       if ((mod(par%t,dble(par%wavint))==0).or.newstatbc) then
           call wave_stationary(s,par)
+		  newstatbc=.false.
           call printit(sglobal,slocal,par,it,'after wave_stationary')
        endif
     else
