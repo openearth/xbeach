@@ -50,6 +50,7 @@ if (abs(par%t-par%dt)<1.d-6) then
     par%listline=0
     if(xmaster) then
       call readkey('params.txt','bcfile',fname)
+	  call checkbcfilelength(par,fname)
       open(74,file=fname,form='formatted')
       if (par%instat/=41) read(74,*)testc
     endif
@@ -1535,5 +1536,69 @@ where (k1==-1.0d0*huge(hu)) k1=0.0d0
 return
 
 end subroutine bc_disper
+
+
+
+subroutine checkbcfilelength(par,filename)
+
+use params
+use xmpi_module
+
+IMPLICIT NONE
+
+type(parameters), INTENT(IN)             :: par
+character*80      :: filename,dummy
+character*8       :: testc
+character*1       :: ch
+integer           :: i,ier,nlines,filetype
+real*8            :: t,dt,total,d1,d2,d3,d4,d5
+
+
+if (xmaster) then
+	open(741,file=filename)
+	i=0
+	do while (ier==0)
+	   read(741,'(a)',iostat=ier)ch
+	   if (ier==0)i=i+1
+	enddo
+	nlines=i
+	rewind(741)    
+		
+	if (par%instat==4 .or. par%instat==5 .or. par%instat==6) then 
+		read(74,*)testc
+		if (testc=='FILELIST') then
+			filetype = 1
+			nlines=nlines-1
+		else
+			filetype = 0
+		endif
+	elseif (par%instat==40 .or. par%instat==41) then
+        filetype = 2
+	endif
+    
+	total=0.d0
+	select case (filetype)
+		case(1)
+		do i=1,nlines
+			read(741,*)t,dt,dummy
+			total=total+t
+		enddo
+		case(2)
+		do i=1,nlines
+		    read(741,*)d1,d2,d3,d4,d5,t,dt
+			total=total+t
+		enddo
+	end select
+	total=total/max(par%morfac,1.d0)
+	
+	close(741)
+	if (total<par%tstop) then
+		write(*,*)'Error !!!! Wave boundary condition time series too short. Stopping calculation !!!!'
+		call halt_program
+	endif
+
+endif
+
+end subroutine checkbcfilelength
 
 end module waveparams
