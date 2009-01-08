@@ -28,7 +28,7 @@ real*8     :: dt        = -123 ! time step
 integer*4  :: break     = -123 ! option breaker model (1=roelvink, 2=baldock, 3=roelvink adapted)
 integer*4  :: instat    = -123 ! option time-varying wave b.c. 
                                ! (0=stationary, 1=regular wave groups, 3=long-crested random wave groups)
-integer*4  :: wavint    = -123 ! (only in stationary mode) interval between wave module calls in tint
+real*8     :: wavint    = -123 ! (only in stationary mode) interval between wave module calls in tint
 real*8     :: alpha     = -123 ! wave dissipation coefficient
 real*8     :: n         = -123 ! power in roelvink dissipation model
 integer*4  :: roller    = -123 ! option to turn off/on roller model (0/1) (not implemented yet)
@@ -170,13 +170,13 @@ par%random   = readkey_int     ('params.txt','random',    0,         0,        1
 if (par%instat == 0) then
     par%dir0  = readkey_dbl    ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
     par%Hrms  = readkey_dbl    ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
-    par%wavint   = readkey_int ('params.txt','wavint',    1,         1,     3600)
+    par%wavint   = readkey_dbl ('params.txt','wavint',    1.d0,      1.d0,  3600.d0)
     par%m     = readkey_int    ('params.txt','m',        10,         2,      128)
     par%Trep  = readkey_dbl    ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
     par%Trep  = readkey_dbl    ('params.txt','Trep',     par%Trep,   1.d0,    20.d0)
 !    par%omega    = 2.d0*par%px/par%Trep;
 elseif (par%instat==40) then
-    par%wavint   = readkey_int ('params.txt','wavint',    1,         1,     3600)
+    par%wavint   = readkey_dbl ('params.txt','wavint',    1.d0,      1.d0,  3600.d0)
 elseif (par%instat==1) then
     par%dir0  = readkey_dbl    ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
     par%Hrms  = readkey_dbl    ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)

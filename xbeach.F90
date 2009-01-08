@@ -151,7 +151,7 @@ do while (par%t<par%tstop)
 #endif
     ! Wave timestep
     if (par%instat==0.or.par%instat==40) then
-       if ((mod(par%t,dble(par%wavint))==0).or.newstatbc) then
+       if ((abs(mod(par%t,par%wavint))<0.000001d0).or.newstatbc) then
           call wave_stationary(s,par)
 		  newstatbc=.false.
           call printit(sglobal,slocal,par,it,'after wave_stationary')
