@@ -415,6 +415,10 @@ subroutine init_output(s,sl,par,it)
             close(10)
         else
             ii=floor((par%tstop-par%tstart)/par%tintm)+1
+			if (ii<=1) then
+				write(*,*)'Tintm is larger than output simulation time '
+				call halt_program
+			endif
             allocate(tpm(ii))
             do i=1,ii
                     tpm(i)=par%tstart+par%tintm*real(i-1)
@@ -811,6 +815,7 @@ subroutine var_output(it,s,sl,par)
       outputtimes(1:itg)=tpg(1:itg)
       outputtimes(itg+1:itg+itp)=tpp(1:itp)
       outputtimes(itg+itp+1:itg+itp+itm)=tpm(2:itm+1)                 ! mean output always shifted by 1
+	  outputtimes=outputtimes*max(par%morfac,1.d0)
       open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(7+size(outputtimes)))
                     write(999,rec=1)itg*1.d0,s%nx*1.d0,s%ny*1.d0,par%ngd*1.d0,par%nd*1.d0, &
                                         itp*1.d0,itm*1.d0,outputtimes
