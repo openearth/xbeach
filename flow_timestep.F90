@@ -257,7 +257,7 @@ endif
     !
     do j=2,ny
         do i=2,nx
-            nuh(i,j) = par%nuh + par%nuhfac*hh(i,j)*(DR(i,j)/par%rho)**(1.0d0/3.0d0) !Robert en Jaap; increase eddy viscosity by wave induced breaking as in Reniers 2004
+            nuh(i,j) = max(par%nuh,par%nuhfac*hh(i,j)*(DR(i,j)/par%rho)**(1.0d0/3.0d0)) ! Ad: change to max
             dudx1 = (uu(i+1,j)-uu(i,j))/(xu(i+1)-xu(i))
             dudx2 = (uu(i,j)-uu(i-1,j))/(xu(i)-xu(i-1)) 
             viscu(i,j) = nuh(i,j)*( 2*(dudx1-dudx2)/(xu(i+1)-xu(i-1)) )*wetu(i+1,j)*wetu(i-1,j)  !Set viscu = 0.0 near water line   wwvv: viscu is overwritten in next loopnest before it is used
