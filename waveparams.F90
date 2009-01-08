@@ -861,11 +861,11 @@ if (par%random==1) CALL RANDOM_SEED                        ! Call random seed
 !call random_number(P0)
 call random_number(randummy)
 if (xmaster) then
-  open(555,file='tempout1')  ! wwvv todo: better to use the same unit number for
-                             ! short I/O sequences like this. 555 cab interfere
-                             ! with varoutput unit numbers
-  write(555,*)randummy
-  close(555)
+!  open(555,file='tempout1')  ! wwvv todo: better to use the same unit number for
+!                             ! short I/O sequences like this. 555 cab interfere
+!                             ! with varoutput unit numbers
+!  write(555,*)randummy
+!  close(555)
 endif
 P0=randummy(1:wp%K)
 
