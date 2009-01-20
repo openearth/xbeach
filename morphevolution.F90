@@ -239,6 +239,7 @@ end subroutine transus
 subroutine bed_update(s,par)
 use params
 use spaceparams
+use xmpi_module
 
 IMPLICIT NONE
 
@@ -284,6 +285,7 @@ do jg = 1,par%ngd
        enddo
    enddo
 enddo
+
 
 fact0 = 0.d0
 fact1 = 0.d0
@@ -455,6 +457,15 @@ do ii=1,nint(par%morfac)
    end do
    if (.not.aval) exit
 end do
+
+! Robert: in parallel version bed update must take place on internal boundaries:
+#ifdef USEMPI
+    call xmpi_shift(zb,'1:')
+    call xmpi_shift(zb,'m:')
+    call xmpi_shift(zb,':1')
+    call xmpi_shift(zb,':n')
+#endif
+
 endif
 
 end subroutine bed_update
