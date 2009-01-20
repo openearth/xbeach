@@ -217,8 +217,8 @@ do jg = 1,par%ngd
 #ifdef USEMPI
     call xmpi_shift(cc,'1:')
     call xmpi_shift(cc,'m:')
-    call xmpi_shift(cc,':1')
-    call xmpi_shift(cc,':n')
+    call xmpi_shift(cc,':1')   ! Maybe not necessary as zb calculated from 1:ny+1, but just in case...
+    call xmpi_shift(cc,':n')   ! Dito
 #endif
     !Jaap
     cc=cc*wetz
