@@ -141,13 +141,18 @@ integer*4  :: rfb      = -123  ! if rfb = 1 then maximum wave surface slope is f
 integer*4  :: lwave    = -123  ! 1 = long waves, 0 = no long waves
 integer*4  :: swave    = -123  ! 1 = short waves, 0 = no short waves
 integer*4  :: sws      = -123  ! 1 = short wave & roller undertow, 0 = no short wave & roller undertow
+integer*4  :: lws      = -123  ! 1 = long wave stirring included in ceq, 0 = long wave stirring excluded in ceq
 integer*4  :: ut       = -123  ! 1 = short wave up-stirring, 0 = no short wave up-stirring
 real*8     :: Tbfac    = -123  ! Calibration factor for bore interval Tbore: Tbore = Tbfac*Tbore
 real*8     :: Tsmin    = -123  ! Minimum adaptation time scale in advection diffusion equation sediment
 real*8     :: impact   = -123  ! Include Fisher Overton approach in avalanching
 real*8     :: CE       = -123  ! Dune face erosion coefficient for avalanching
 real*8     :: BRfac    = -123  ! calibration factor surface slope
-
+integer*4  :: gwflow   = -123  ! Turn on (1) or off (0) groundwater flow module
+real*8     :: kx       = -123  ! Darcy-flow permeability coefficient in x-direction [m/s]
+real*8     :: ky       = -123  ! Darcy-flow permeability coefficient in y-direction [m/s]
+real*8     :: kz       = -123  ! Darcy-flow permeability coefficient in y-direction [m/s]
+real*8     :: dwetlayer  = -123  ! Thickness of the top soil layer interacting more freely with the surface water
 
 end type parameters
 
@@ -238,6 +243,7 @@ par%sprdthr  = readkey_dbl ('params.txt','sprdthr', 0.08d0,      0.d0,  1.d0)
 par%lwave    = readkey_int ('params.txt','lwave',         1,        0,     1)
 par%swave    = readkey_int ('params.txt','swave',         1,        0,     1)
 par%sws      = readkey_int ('params.txt','sws',           1,        0,     1)
+par%lws      = readkey_int ('params.txt','lws',           1,        0,     1)
 par%ut       = readkey_int ('params.txt','ut',            1,        0,     1)
 par%BRfac    = readkey_dbl ('params.txt','BRfac',    1.0d0,       0.d0, 1.d0)
 end subroutine wave_input
@@ -285,7 +291,7 @@ par%ARC     = readkey_int ('params.txt','ARC',         1,         0,      1)
 par%order   = readkey_dbl ('params.txt','order',       2.d0,         1.d0,      2.d0)
 par%left    = readkey_int ('params.txt','left',        0,         0,      1)
 par%right   = readkey_int ('params.txt','right',       0,         0,      1)
-par%back    = readkey_int ('params.txt','back',        1,         0,      2)  !default now wall
+par%back    = readkey_int ('params.txt','back',        2,         0,      2)
 par%nuh     = readkey_dbl ('params.txt','nuh',     0.5d0,     0.0d0,      1.0d0)
 par%nuhfac  = readkey_dbl ('params.txt','nuhfac',      0.0d0,     0.0d0,  1.0d0)
 par%rhoa    = readkey_dbl ('params.txt','rhoa',   1.25d0,     1.0d0,   2.0d0)
@@ -302,6 +308,15 @@ par%windth=(270.d0-par%windth)*par%px/180.d0
 par%lat = par%lat*par%px/180.d0
 par%wearth = par%px*par%wearth/1800.d0
 par%fc = 2.d0*par%wearth*sin(par%lat)
+
+! Ground water
+par%gwflow  = readkey_int ('params.txt','gwflow',         0,           0,       1)
+if (par%gwflow==1) then
+   par%kx         = readkey_dbl ('params.txt','kx'        , 0.0001d0 , 0.00001d0, 0.01d0)
+   par%ky         = readkey_dbl ('params.txt','ky'        , par%kx   , 0.00001d0, 0.01d0)
+   par%kz         = readkey_dbl ('params.txt','kz'        , par%kx   , 0.00001d0, 0.01d0)
+   par%dwetlayer  = readkey_dbl ('params.txt','dwetlayer' , 0.2d0    , 0.01d0     , 1.d0)
+endif
 
 end subroutine flow_input
 

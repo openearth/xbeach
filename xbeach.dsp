@@ -130,6 +130,7 @@ SOURCE=.\boundaryconditions.f90
 DEP_F90_BOUND=\
 	".\Release_NoMPI\interp.mod"\
 	".\Release_NoMPI\params.mod"\
+	".\Release_NoMPI\readkey_module.mod"\
 	".\Release_NoMPI\spaceparams.mod"\
 	".\Release_NoMPI\wave_timestep_module.mod"\
 	".\Release_NoMPI\waveparams.mod"\
@@ -166,6 +167,10 @@ DEP_F90_GENER=\
 NODEP_F90_GENER=\
 	".\Release_NoMPI\mpi.mod"\
 	
+# End Source File
+# Begin Source File
+
+SOURCE=.\groundwater.f90
 # End Source File
 # Begin Source File
 
@@ -332,6 +337,7 @@ SOURCE=.\xbeach.f90
 DEP_F90_XBEAC=\
 	".\Release_NoMPI\boundaryconditions.mod"\
 	".\Release_NoMPI\flow_timestep_module.mod"\
+	".\Release_NoMPI\groundwaterflow.mod"\
 	".\Release_NoMPI\initialize.mod"\
 	".\Release_NoMPI\morphevolution.mod"\
 	".\Release_NoMPI\outputmod.mod"\

@@ -373,8 +373,8 @@ elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat=
           close(54)
         endif
         ! Robert and Jaap : Initialize for new wave conditions
-!        par%Trep = par%Trep
-!        par%omega = 2*par%px/par%Trep            
+        ! par%Trep = par%Trep
+        ! par%omega = 2*par%px/par%Trep            
         do itheta=1,s%ntheta
             s%sigt(:,:,itheta) = 2*par%px/par%Trep
         end do
@@ -481,6 +481,10 @@ else
    endif
    call halt_program
 endif
+! Jaap: set incoming short wave energy to zero
+ee(1,:,:) = par%swave*ee(1,:,:)
+! Jaap set incoming long waves to zero
+ui = par%lwave*(par%order-1.d0)*ui
 ! wwvv need to communicate ui here, it is used later on in this
 ! subroutine
 #ifdef USEMPI
@@ -497,12 +501,11 @@ if (par%t>0.0d0) then
     else
         fac1=0
     end if
-    fac1=min(fac1,1.d0)
-    fac1=max(fac1,0.d0)
-
+    ! fac1=min(fac1,1.d0)
+    ! fac1=max(fac1,0.d0)\
 	! the above approach causes a shoreline jet from outside to inside the domain
-	!and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
-    !so
+	! and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
+    ! so
 	fac1 = 0.d0 !Ap 28/11   
     fac2=1.d0-fac1
     do itheta=1,ntheta 
@@ -518,10 +521,10 @@ if (par%t>0.0d0) then
     else
         fac1=0.0d0
     end if
-    fac1=min(fac1,1.d0)
-    fac1=max(fac1,0.d0)
+    ! fac1=min(fac1,1.d0)
+    ! fac1=max(fac1,0.d0)
     ! the above approach causes a shoreline jet from outside to inside the domain
-	!and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
+	! and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
     ! so   
 	fac1=0.d0 !Ap 28/11
 
@@ -751,7 +754,7 @@ if (par%instat/=8)then
        uu(1,:)=2*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))
        vv(1,:)=vv(2,:)
     elseif (par%front==1) then ! Van Dongeren (1997), weakly reflective boundary condition
-       ht(1:2,:)=s%zs0(1:2,:)-zb(1:2,:)
+       ht(1:2,:)=max(s%zs0(1:2,:)-zb(1:2,:),par%eps)
        beta=uu(1:2,:)-2.*dsqrt(par%g*hum(1:2,:)) !cjaap : replace hh with hum
 
        do j=2,ny
@@ -795,10 +798,18 @@ if (par%instat/=8)then
              uu(1,j) = (par%order-1)*ui(1,j)
              zs(1,j) = zs(2,j)
           else
-             uu(1,j) = (par%order-1.d0)*ui(1,j)+2*qxr/(ht(1,j)+ht(2,j)) + s%umean(1,j) !Jaap: replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
+		  	 ! jaap: to fix surge in 2DH case
+	         ! s%umean(1,j) = (par%epsi*2.d0*qxr/(ht(1,j)+ht(2,j))+(1-par%epsi)*s%umean(1,j))  
+			 !
+             uu(1,j) = (par%order-1.d0)*ui(1,j)+2.d0*qxr/(ht(1,j)+ht(2,j)) + s%umean(1,j)
              !with a taylor expansion to get to the zs point at index 1 from uu(1) and uu(2)
-                 zs(1,j) = 1.5d0*((betanp1(1,j)-uu(1,j))**2/4.d0/par%g+.5d0*(zb(1,j)+zb(2,j)))- &
-                           0.5d0*((beta(2,j)-uu(2,j))**2/4.d0/par%g+.5d0*(zb(2,j)+zb(3,j)))    
+             zs(1,j) = 1.5d0*((betanp1(1,j)-uu(1,j))**2/4.d0/par%g+.5d0*(zb(1,j)+zb(2,j)))- &
+                       0.5d0*((beta(2,j)-uu(2,j))**2/4.d0/par%g+.5d0*(zb(2,j)+zb(3,j)))
+					 ! Ad + Jaap: zs does indeed influence hydrodynamics at boundary --> do higher order taylor expansions to check influence
+		     ! zs(1,j) = 13.d0/8.d0*((betanp1(1,j)-uu(1,j))**2.d0/4.d0/par%g+.5d0*(zb(1,j)+zb(2,j))) - &
+		     !           0.75d0*((beta(2,j)-uu(2,j))**2.d0/4.d0/par%g+.5d0*(zb(2,j)+zb(3,j)))        + &
+		     !		     0.125d0*0.5d0*(zs(3,j)+zs(4,j))
+    
           end if
        end do
        vv(1,:)=vv(2,:)
@@ -822,32 +833,20 @@ if (par%instat/=8)then
   !
   ! Radiating boundary at x=nx*dx
   !
-  if (par%back==1) then !solve water level at nx+1 from continuity and set uu(nx+1,:)=0
-      if (xmpi_isbot) then
-        uu(nx,:) = 0.d0   !wwvv this is NOT consistent with comment above
+  if (xmpi_isbot) then
+     if (par%back==0) then ! set uu(nx+1,:)=0 
+        uu(nx,:) = 0.d0   
         zs(nx+1,:) = zs(nx,:)
-      endif
-      !zs(nx+1,2:ny) = zs(nx+1,2:ny) + par%dt*hh(nx,2:ny)*uu(nx,2:ny)/(xu(nx+1)-xu(nx)) -par%dt*(hv(nx+1,2:ny+1)*vv(nx+1,2:ny+1)-hv(nx+1,1:ny)*vv(nx+1,1:ny))/(yv(2:ny+1)-yv(1:ny))
-! wwvv zs need to be communicated
-#ifdef USEMPI
-      call xmpi_shift(zs,'m:')
-#endif
-  elseif (par%back==0) then
-      ! uu(nx+1,:)=sqrt(par%g/hh(nx+1,:))*(zs(nx+1,:)-max(zb(nx+1,:),s%zs0(nx+1,:))) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
-      ! uu(nx+1,:)=sqrt(par%g/(s%zs0(nx+1,:)-zb(nx+1,:)))*(zs(nx+1,:)-max(zb(nx+1,:),s%zs0(nx+1,:)))
-
-      if (xmpi_isbot) then  ! wwvv only meaningful in bottom processes
+		! zs(nx+1,2:ny) = zs(nx+1,2:ny) + par%dt*hh(nx,2:ny)*uu(nx,2:ny)/(xu(nx+1)-xu(nx)) -par%dt*(hv(nx+1,2:ny+1)*vv(nx+1,2:ny+1)-hv(nx+1,1:ny)*vv(nx+1,1:ny))/(yv(2:ny+1)-yv(1:ny))
+     elseif (par%back==1) then
+        ! uu(nx+1,:)=sqrt(par%g/hh(nx+1,:))*(zs(nx+1,:)-max(zb(nx+1,:),s%zs0(nx+1,:))) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
+        ! uu(nx+1,:)=sqrt(par%g/(s%zs0(nx+1,:)-zb(nx+1,:)))*(zs(nx+1,:)-max(zb(nx+1,:),s%zs0(nx+1,:)))
         s%umean(2,:) = par%epsi*uu(nx,:)+(1-par%epsi)*s%umean(2,:)    !Ap
         zs(nx+1,:)=max(s%zs0(nx+1,:),s%zb(nx+1,:))+(uu(nx,:)-s%umean(2,:))*sqrt(max((s%zs0(nx+1,:)-zb(nx+1,:)),par%eps)/par%g)    !Ap
-      endif
+     elseif (par%back==2) then
+	   ht(1:2,:)=max(s%zs0(s%nx:s%nx+1,:)-zb(s%nx:s%nx+1,:),par%eps) !cjaap; make sure ht is always larger than zero
 
-#ifdef USEMPI
-      call xmpi_shift(zs,'m:')
-#endif
-  elseif (par%back==2) then
-    if (xmpi_isbot) then  ! wwvv following makes only sense at the bottom processes
-        ht(1:2,:)=s%zs0(s%nx:s%nx+1,:)-zb(s%nx:s%nx+1,:)
-        beta=uu(s%nx-1:s%nx,:)+2.*dsqrt(par%g*hum(s%nx-1:s%nx,:)) !cjaap : replace hh with hum
+       beta=uu(s%nx-1:s%nx,:)+2.*dsqrt(par%g*hum(s%nx-1:s%nx,:)) !cjaap : replace hh with hum
 
        do j=2,ny
           if (wetu(s%nx,j)==1) then   ! Robert: dry back boundary points
@@ -895,21 +894,23 @@ if (par%instat/=8)then
       
          endif   ! Robert: dry back boundary points
        enddo
-       ! fix first and last columns of s%umean and uu and zs
+     endif  !par%back
+    ! fix first and last columns of s%umean and uu and zs
 #ifdef USEMPI
-       call xmpi_shift(s%umean,':1')
-       call xmpi_shift(s%umean,':n')
-       call xmpi_shift(uu,':1')
-       call xmpi_shift(uu,':n')
-       call xmpi_shift(zs,':1')
-       call xmpi_shift(zs,':n')
+    call xmpi_shift(s%umean,':1')
+    call xmpi_shift(s%umean,':n')
+    call xmpi_shift(uu,':1')
+    call xmpi_shift(uu,':n')
+    call xmpi_shift(zs,':1')
+    call xmpi_shift(zs,':n')
 #endif
-     endif  ! xmpi_isbot
-     ! wwvv fix the last row for the non-bot processes
+endif !xmpi_istop
 #ifdef USEMPI
-     call xmpi_shift(zs,'m:')
+  call xmpi_shift(uu,'m:')
+  call xmpi_shift(zs,'m:')
+  call xmpi_shift(vv,'m:')
 #endif
-  endif    ! par%back
+
 endif   ! par%instat
 
 end subroutine flow_bc

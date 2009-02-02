@@ -153,4 +153,14 @@
       real*8  2  Sk s%nx+1 s%ny+1 d ! [-] skewness of short waves
       real*8  2  As s%nx+1 s%ny+1 d ! [-] asymmetry of short waves
       real*8  2  Fimpact s%nx+1 s%ny+1 d ! [N/m^2]    Force on dune face
+      real*8  2  gwhead   s%nx+1 s%ny+1 d ! [m] groundwater head (differs from gwlevel)
+      real*8  2  gwlevel  s%nx+1 s%ny+1 d ! [m] groundwater table (min(zb,gwhead))
+      real*8  2  gwheight s%nx+1 s%ny+1 d ! [m] vertical size of aquifer through which groundwater can flow
+      real*8  2  gwbottom s%nx+1 s%ny+1 d ! [m] level of the bottom of the aquifer
+      real*8  2  gwu      s%nx+1 s%ny+1 d ! [m/s] groundwater flow in x-direction
+      real*8  2  gwv      s%nx+1 s%ny+1 d ! [m/s] groundwater flow in y-direction
+      real*8  2  gww      s%nx+1 s%ny+1 d ! [m/s] groundwater flow in z-direction (interaction between surface and ground water)
+      real*8  2  dinfil   s%nx+1 s%ny+1 d ! [m] Infiltration layer depth used in quasi-vertical flow model for groundwater
+      real*8  1  gw0back  s%ny+1 d        ! [m] boundary condition back boundary for groundwater head
+      
 !* hints for vi vim: filetype=fortran : syntax=fortran

@@ -41,7 +41,7 @@ integer                                  :: j,jg
 
 real*8,dimension(:,:),allocatable,save   :: vmag2,uau,uav
 real*8 , dimension(s%nx+1,s%ny+1)        :: dzbx,dzby,dzremain,source
-real*8,dimension(:,:),allocatable,save   :: cc,cu,cv,Su,Sv,Dc,termh
+real*8,dimension(:,:),allocatable,save   :: cc,cu,cv,Su,Sv,Dc,fract
 
 include 's.ind'
 include 's.inp'
@@ -56,42 +56,39 @@ if (.not. allocated(vmag2)) then
    allocate(Su (nx+1,ny+1))
    allocate(Sv (nx+1,ny+1))
    allocate(Dc (nx+1,ny+1))
-   allocate(termh (nx+1,ny+1))
+   allocate(fract (nx+1,ny+1))
 endif
 ! use eulerian velocities
 vmag2    = ue**2+ve**2
+cu       = 0.0d0  !Jaap
+cv       = 0.0d0  !Jaap		
 dcdx     = 0.0d0
 dcdy     = 0.0d0
 ! calculate equilibrium concentration
 if (par%form==1) then           ! soulsby van Rijn
-        call sb_vr(s,par)
+   call sb_vr(s,par)
 elseif (par%form==2) then       ! Van Thiel de Vries & Reniers 2008
-    call sednew(s,par)
+   call sednew(s,par)
 end if
 
 ! compute diffusion coefficient
 
 if (par%nuhfac==1) then
-   termh = hh/max(H,.01d0)
-   ! termh = max(hh(i,j)/2.d0,0.01d0)
-   termh = min(termh,10.d0);
-   ! Dc = 5*(DR/par%rho)**(1.d0/3.d0)*hh/(exp(termh)-1.d0)
    Dc = par%nuh+par%nuhfac*hh*(DR/par%rho)**(1.d0/3.d0)
-   ! Dc = par%dico
 else
    Dc = par%dico
 end if
 
 do jg = 1,par%ngd
    cc = ccg(:,:,jg)
-!   cc = ceqg(:,:,jg) ! Can be used to test total transport mode
+   ! cc = ceqg(:,:,jg) ! Can be used to test total transport mode
    !
    ! X-direction
    do j=1,ny+1
       do i=1,nx
          if(ueu(i,j)>0.d0) then
-   !test          cu(i,j)=cc(i,j)
-           cu(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(min(i+1,nx),j)
+            ! test cu(i,j)=cc(i,j)
+            cu(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(min(i+1,nx),j)
          elseif(ueu(i,j)<0.d0) then
             cu(i,j)=par%thetanum*cc(i+1,j)+(1.d0-par%thetanum)*cc(max(i,2),j)
          else
@@ -125,9 +122,6 @@ do jg = 1,par%ngd
    call xmpi_shift(dzbx,'m:')
 #endif
    ! Jaap: get ua in u points and split out in u and v direction
- !  uau(1:nx,:) = 0.5*(ua(1:nx,:)*cos(theta0)+ua(2:nx+1,:)*cos(theta0))
- !  uav(1:nx,:) = 0.5*(ua(1:nx,:)*sin(theta0)+ua(2:nx+1,:)*sin(theta0))
-! Jaap!! According to Robert and Ap you should use the space domain variable thetamean here
    uau(1:nx,:) = 0.5*(ua(1:nx,:)*cos(thetamean(1:nx,:))+ua(2:nx+1,:)*cos(thetamean(1:nx,:)))
    uav(1:nx,:) = 0.5*(ua(1:nx,:)*sin(thetamean(1:nx,:))+ua(2:nx+1,:)*sin(thetamean(1:nx,:)))
    ! Jaap: compute vmagu including ua
@@ -141,13 +135,13 @@ do jg = 1,par%ngd
    do j=1,ny
       do i=1,nx+1
          if(vev(i,j)>0) then
-        !   cv(i,j)=cc(i,j)
+            ! cv(i,j)=cc(i,j)
             cv(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(i,min(j+1,ny))
-          else if(vev(i,j)<0) then
-        !   cv(i,j)=cc(i,j+1)
+         else if(vev(i,j)<0) then
+            ! cv(i,j)=cc(i,j+1)
             cv(i,j)=par%thetanum*cc(i,j+1)+(1.d0-par%thetanum)*cc(i,max(j,2))
-        else
-         cv(i,j)=0.5d0*(cv(i,j)+cv(i,j+1))
+         else
+            cv(i,j)=0.5d0*(cv(i,j)+cv(i,j+1))
          end if
          dcdy(i,j)=(cc(i,j+1)-cc(i,j))/(yz(j+1)-yz(j)) !Jaap
       end do 
@@ -173,19 +167,21 @@ do jg = 1,par%ngd
     call xmpi_shift(dzby,':n')
 #endif
 	! Jaap: get ua in v points and split out in u and v direction
-!	uau(:,1:ny) = 0.5*(ua(:,1:ny)*sin(theta0)+ua(:,2:ny+1)*sin(theta0))
-!    uav(:,1:ny) = 0.5*(ua(:,1:ny)*cos(theta0)+ua(:,2:ny+1)*cos(theta0))
-! Jaap!! According to Robert and Ap you should use the space domain variable thetamean here
     uau(:,1:ny) = 0.5*(ua(:,1:ny)*sin(thetamean(:,1:ny))+ua(:,2:ny+1)*sin(thetamean(:,1:ny)))
     uav(:,1:ny) = 0.5*(ua(:,1:ny)*cos(thetamean(:,1:ny))+ua(:,2:ny+1)*cos(thetamean(:,1:ny)))
-    ! Jaap: compute vmagu including ua
+    ! Jaap: compute vmagv including ua
     vmagv = sqrt((uv+uau)**2+(vv+uav)**2)
     !
     Sv=(cv*(vev+uav)*hv-Dc*hv*dcdy-par%facsl*cv*vmagv*hv*dzby)*wetv
     ! Jaap: compute remaining sediment thickness above hard layer
-    dzremain = max(0.d0,dzlayer+sedero)
-    source = (1-par%por)*dzremain/par%dt/max(par%morfac,1.d0)
-    ! Jaap: we now already how much sand is picked up from the bed
+	dzremain = max(0.d0,dzlayer+sedero)
+	source = (1-par%por)*dzremain/par%dt/max(par%morfac,1.d0)
+	! Robert+Jaap
+	! compute available sand for entrainment at bed per fraction
+	source = min(source,(1-par%por)*par%dzg*graindistr(:,:,1,jg)/par%dt/max(par%morfac,1.d0)) 
+	! compute relative suspended fraction to compute entrainment / settling
+	fract = ccg(:,:,jg)/max(sum(ccg,3),1e-6) 
+    ! Jaap: we know already how much sand is picked up from the bed
     dzbdt=0.0d0
     ! dzbdt = -1.d0/(1-par%por)*min(source,hold*(ceqg(:,:,jg)*graindistr(:,:,1,jg)-cc)/Tsg(:,:,jg))
     ! Jaap: First compute cc before updating sediment transports...
@@ -194,21 +190,17 @@ do jg = 1,par%ngd
          cc(i,j) = hold(i,j)*cc(i,j)-par%dt*((Su(i,j)-Su(i-1,j))/(xu(i)-xu(i-1))+&
                                              (Sv(i,j)-Sv(i,j-1))/(yv(j)-yv(j-1))-&
 	  									     !hold(i,j)*(ceqg(i,j,jg)*graindistr(i,j,1,jg)-cc(i,j))/Tsg(i,j,jg))
-											 !Jaap: set source to zero in case of hard layer near surface...
-                                             min(source(i,j),hold(i,j)*(ceqg(i,j,jg)*graindistr(i,j,1,jg)-cc(i,j))/Tsg(i,j,jg)))
+											 !Jaap + Robert: 
+											 !- set source to zero in case of hard layer near surface or limited availability of a sediment fraction in the top layer
+											 !- use suspended fractions instead of bed fractions
+											 min(source(i,j),hold(i,j)*(ceqg(i,j,jg)*fract(i,j)-cc(i,j))/Tsg(i,j,jg)))
+                                             !min(source(i,j),hold(i,j)*(ceqg(i,j,jg)*graindistr(i,j,1,jg)-cc(i,j))/Tsg(i,j,jg)))
 
          cc(i,j)=max(cc(i,j),0.0d0)
       enddo
     enddo
-    do j=1,ny+1
-       do i=1,nx+1
-          if(hh(i,j)>=par%hmin) then 
-             cc(i,j)=cc(i,j)/hh(i,j)  
-          else
-             cc(i,j)=0.d0
-          end if
-       end do
-    end do
+    ! Jaap
+	cc = min(1.d0,cc/max(hh,0.01d0))
     cc(1,:)=cc(2,:)
     cc(:,1)=cc(:,2)
     cc(nx+1,:)=cc(nx+1-1,:)
@@ -268,6 +260,9 @@ dzbdt=0.0d0
 if (par%t>=par%morstart .and. par%morfac > .999d0) then
 
 do jg = 1,par%ngd
+
+   dzremain = max(0.d0,dzlayer+sedero)
+
    ! Update bed level using continuity eq.
    Su = Sug(:,:,jg)
    Sv = Svg(:,:,jg)
@@ -275,6 +270,16 @@ do jg = 1,par%ngd
    ! Ap and Jaap: Bottom update is morfac dependent....
    do j=2,ny !Jaap nx instead of ny+1
       do i=2,nx  !Jaap nx instead of nx+1
+	  	 ! Jaap make sure for no bed level changes where hard layer at surface
+		 ! Conservation of mass seems to be OK?
+		 if ((Su(i,j)-Su(i-1,j))/(xu(i)-xu(i-1))/(1.d0-par%por)*par%dt*par%morfac >= dzremain(i,j)) then
+			Su(i-1,j) = dzremain(i,j)*(xu(i)-xu(i-1))*(1.d0-par%por)/par%dt/par%morfac+Su(i,j)
+		 	dzremain(i,j) = 0.d0   !Jaap: all sand is used now; dzremain is set to zero at this location before doing y-direction
+		 elseif ((Sv(i,j)-Sv(i,j-1))/(yv(j)-yv(j-1))/(1.d0-par%por)*par%dt*par%morfac >= dzremain(i,j)) then
+		 	Sv(i,j-1) = dzremain(i,j)*(yv(j)-yv(j-1))*(1.d0-par%por)/par%dt/par%morfac+Sv(i,j)
+			dzremain(i,j) = 0.d0
+		 endif
+         !
          dzbdt(i,j)=1/(1-par%por)*        &
              (-(Su(i,j)-Su(i-1,j))/(xu(i)-xu(i-1)) &
               -(Sv(i,j)-Sv(i,j-1))/(yv(j)-yv(j-1)))
@@ -337,6 +342,10 @@ do jd = 1,par%nd-1
    enddo
 enddo
 
+! Robert
+graindistr=max(graindistr,0.d0)
+graindistr=min(graindistr,1.d0)
+
 ! ensure total fractions equal 1
 graindistrm = 0.d0
 do jd = 1,par%nd
@@ -396,9 +405,9 @@ do ii=1,nint(par%morfac)
 		    endif	
             ! Jaap: limit dzb with dz and with dzremain
 			if (dzb>=0) then
-			   dzb=min(dzb,dzremain(i+1,j),dz*par%dt*(xz(i+1)-xz(i)))
+			   dzb=min(dzb,dzremain(i+1,j),dz*par%dt/(xz(i+1)-xz(i)))
 			else
-               dzb=max(dzb,-1.d0*dzremain(i,j)*(xu(i)-xu(i-1))/(xu(i+1)-xu(i)),-1.d0*dz*par%dt*(xz(i+1)-xz(i)))
+               dzb=max(dzb,-1.d0*dzremain(i,j)*(xu(i)-xu(i-1))/(xu(i+1)-xu(i)),-1.d0*dz*par%dt/(xz(i+1)-xz(i)))
 			endif
             
 			zb(i,j)=zb(i,j)+dzb*(xu(i+1)-xu(i))/(xu(i)-xu(i-1)) !Jaap make sure there is continuity of sediment in non uniform grids;
@@ -433,12 +442,12 @@ do ii=1,nint(par%morfac)
             if(abs(dzby(i,j))>dzmax ) then 
                aval=.true. 
                dzb=sign(1.0d0,dzby(i,j))*(abs(dzby(i,j))-dzmax)*(yz(j+1)-yz(j));
-               dzb=sign(1.0d0,dzb)*min(abs(dzb),par%dzmax*par%dt*(yz(j+1)-yz(j))); !0.005d0
+               ! dzb=sign(1.0d0,dzb)*min(abs(dzb),par%dzmax*par%dt/(yz(j+1)-yz(j))); !0.005d0
                ! Jaap: limit dzb with dz and with dzremain
 			   if (dzb>=0) then
-			      dzb=min(dzb,dzremain(i,j+1),dz*par%dt*(yz(j+1)-yz(j)))
+			      dzb=min(dzb,dzremain(i,j+1),par%dzmax*par%dt/(yz(j+1)-yz(j)))
 			   else
-                  dzb=max(dzb,-1.d0*dzremain(i,j)*(yv(j)-yv(j-1))/(yv(j+1)-yv(j)),-1.d0*dz*par%dt*(yz(j+1)-yz(j)))
+                  dzb=max(dzb,-1.d0*dzremain(i,j)*(yv(j)-yv(j-1))/(yv(j+1)-yv(j)),-1.d0*par%dzmax*par%dt/(yz(j+1)-yz(j)))
 			   endif
 		    
 			   zb(i,j)=zb(i,j)+dzb*(yv(j+1)-yv(j))/(yv(j)-yv(j-1)) !Jaap make sure there is continuity of sediment in non uniform grids;
@@ -531,7 +540,7 @@ endif
 !   -------------------------
 !
 
-hloc   = max(hh,par%hmin) !Jaap par%hmin instead of par%eps
+hloc   = max(hh,0.1d0) !Jaap par%hmin instead of par%eps
 twothird=2.d0/3.d0
 delta = (par%rhos-par%rho)/par%rho
 ! use eulerian velocities
@@ -539,7 +548,7 @@ delta = (par%rhos-par%rho)/par%rho
 do j=1,ny+1 
     do i=1,nx+1
        kb(i,j) = (DR(i,j)/par%rho)**twothird/ &
-         (exp( min( hloc(i,j)/max(H(i,j),0.1d0) ,100.d0)) -1.d0)
+                 (exp( min( hloc(i,j)/max(H(i,j),0.1d0) ,100.d0)) -1.d0)
        vmag2(i,j) = ue(i,j)**2+ve(i,j)**2
     enddo
 enddo
@@ -558,9 +567,9 @@ do jg = 1,par%ngd
    wster = c1+c2*Sster
    par%w = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*D50(jg))
 
-   Ts       = par%tsfac*hh/par%w
+   Ts       = par%tsfac*hloc/par%w
    !Ts       = max(Ts,0.2d0)
-   Tsg(:,:,jg) = max(Ts,0.2d0) 
+   Tsg(:,:,jg) = max(Ts,par%Tsmin) 
 
    dster=25296*D50(jg)
    
@@ -577,7 +586,7 @@ do jg = 1,par%ngd
    end if
    ! drag coefficient
    z0 = par%z0
-   Cd=(0.40d0/(log(max(hh,par%hmin)/z0)-1.0d0))**2 !Jaap
+   Cd=(0.40d0/(log(hloc/z0)-1.0d0))**2 !Jaap
    !Cd = par%g/par%C**2;   ! consistent with flow modelling 
 
  
@@ -587,10 +596,9 @@ do jg = 1,par%ngd
 
   ! Diane Foster and Robert: limit Shields to par%smax -> vmag2 for transp. limited
   ! vmag2=min(vmag2,par%smax*par%C**2*D50(jg)*delta)
-
-!   vmag2=min(vmag2,par%smax*par%g/par%cf*D50(jg)*delta)       ! In terms of cf
-!   term1=sqrt(vmag2+0.018d0/Cd*urms2)     ! nearbed-velocity
-! the two above lines are comment out and replaced by a limit on total velocity u2+urms2, robert 1/9 and ap 28/11
+  ! vmag2=min(vmag2,par%smax*par%g/par%cf*D50(jg)*delta)            ! In terms of cf
+  ! term1=sqrt(vmag2+0.018d0/Cd*urms2)     ! nearbed-velocity
+  ! the two above lines are comment out and replaced by a limit on total velocity u2+urms2, robert 1/9 and ap 28/11
    term1=(vmag2+0.018/Cd*urms2)
    term1=min(term1,par%smax*par%g/par%cf*s%D50(jg)*delta)
    term1=term1**0.5      
@@ -599,8 +607,8 @@ do jg = 1,par%ngd
    do j=1,ny+1
       do i=1,nx
          if(term1(i,j)>Ucr(i,j) .and. hh(i,j)>par%eps) then
-            term2(i,j)=(term1(i,j)-Ucr(i,j))**2.4d0
-!           term2(i,j)=(term1(i,j)-Ucr(i,j))**(1.7-0.7*tanh((ue(i,j)/sqrt(par%g*hh(i,j))-0.5)*10))
+           term2(i,j)=(term1(i,j)-Ucr(i,j))**2.4d0
+           ! term2(i,j)=(term1(i,j)-Ucr(i,j))**(1.7-0.7*tanh((ue(i,j)/sqrt(par%g*hh(i,j))-0.5)*10))
          end if
       end do
    end do
@@ -657,13 +665,13 @@ type(parameters)                        :: par
 character*80                            :: fnamet
 integer                                 :: i,nw,ii
 integer                                 :: j,jg
-real*8                                  :: dster,onethird,twothird,Ass,dcf,ML
-real*8                                  :: Te,kvis,Sster,cc1,cc2,wster,z0
+real*8                                  :: dster,onethird,twothird,Ass,dcf,dcfin,ML,fac
+real*8                                  :: Te,kvis,Sster,cc1,cc2,wster,z0,delta,smax
 real*8                                  :: ih0,it0,ih1,it1,p,q,f0,f1,f2,f3,uad,duddtmax,dudtmax,siguref,t0fac,duddtmean,dudtmean
 real*8                               ,save     :: dh,dt,nh,nt
 real*8 , dimension(:,:),allocatable  ,save     :: vmg,Asb,Ts
 real*8 , dimension(:,:),allocatable  ,save     :: uorb,Ucr,Ucrc,Ucrw,term1,B2,Cd
-real*8 , dimension(:,:),allocatable  ,save     :: hloc,ceq,h0,t0,detadxmax,detadxmean
+real*8 , dimension(:,:),allocatable  ,save     :: hloc,ceq,h0,t0,detadxmax,detadxmean,dzsdx
 real*8 , dimension(:,:,:),allocatable,save     :: RF 
 
 include 's.ind'
@@ -687,13 +695,14 @@ if (.not. allocated(vmg)) then
    allocate (kb    (nx+1,ny+1))
    allocate (Ts    (nx+1,ny+1))
    allocate (ceq   (nx+1,ny+1))
+   allocate (dzsdx (nx+1,ny+1))
    allocate (RF    (18,33,40))
 endif
 
-hloc   = max(hh,par%hmin) !Jaap par%hmin instead of par%eps
+delta = (par%rhos-par%rho)/par%rho
+hloc   = max(hh,0.10d0) 
 onethird=1.d0/3.d0
 twothird=2.d0/3.d0
-
 !
 ! compute wave shape short waves (Rienecker and Fenton + Ruessink and van Rijn to estimate weighting of sine's and cosines)
 !
@@ -721,10 +730,8 @@ if (abs(par%t-par%dt)<1.d-6) then
 endif
 close(31)
 
-hloc   = max(hh,par%hmin)
-
 ! read us and duddtmax from table....
-h0 = min(nh*dh,max(dh,H/hloc))
+h0 = min(nh*dh,max(dh,min(H,hh)/hloc))  ! Jaap: try this
 t0 = min(nt*dt,max(dt,par%Trep*sqrt(par%g/hloc)))
 
 do j=1,ny+1
@@ -761,9 +768,7 @@ do j=1,ny+1
 	  detadxmax(i,j) = dudtmax*sinh(k(i,j)*hloc(i,j))/max(c(i,j),sqrt(H(i,j)*par%g))/sigm(i,j)
       
 	  uad = f0*RF(17,ih0,it0)+f1*RF(17,ih1,it0)+ f2*RF(17,ih0,it1)+f3*RF(17,ih1,it1)
-	  ! ua(i,j) = par%facua*uad*urms(i,j)/max(par%eps,siguref)
-	  ! Jaap: Dano's approach shoudl be the same....
-	  ua(i,j) = par%facua*Sk(i,j)*urms(i,j)
+	  ua(i,j) = par%sws*par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
 
       ! Jaap: use average slope over bore front in roller energy balance...
 	  duddtmean = f0*RF(18,ih0,it0)+f1*RF(18,ih1,it0)+ f2*RF(18,ih0,it1)+f3*RF(18,ih1,it1)
@@ -787,10 +792,10 @@ do j=1,ny+1
 	   ! ML = 2*R(i,j)*par%Trep/(par%rho*c(i,j)*max(H(i,j),par%eps))
 	   ML = dsqrt(2*R(i,j)*par%Trep/(par%rho*c(i,j)))
 	   ! ML = 0.9d0*H(i,j)
-	   ML = min(ML,hloc(i,j)+0.5d0*H(i,j));
+	   ML = min(ML,hloc(i,j));
 	   ! exponential decay turbulence over depth
-	   dcf = min(1.d0,1.d0/(exp(hloc(i,j)/max(ML,0.1d0)) -1.d0))
-	   ! dcf = min(1.d0,1.d0/(cosh(hloc(i,j)/max(ML,0.1d0)) -1.d0))
+	   dcfin = exp(min(100.d0,hloc(i,j)/max(ML,0.01d0)))
+	   dcf = min(1.d0,1.d0/(dcfin-1.d0))
 	   if (par%turb == 2) then
           kb(i,j) = (DR(i,j)/par%rho)**twothird*dcf*par%Trep/Tbore(i,j)
 	   elseif (par%turb == 1) then
@@ -801,7 +806,15 @@ do j=1,ny+1
     enddo
 enddo
 
-vmg  = dsqrt(ue**2+ve**2)
+! switch to include long wave stirring
+if (par%lws==1) then
+   vmg  = dsqrt(ue**2+ve**2)
+elseif (par%lws==0) then
+   ! vmg lags on actual mean flow; but long wave contribution to mean flow is included... 
+   fac = 1/par%Trep/20.d0 
+   vmg = (1-fac)*vmg + fac*dsqrt(ue**2+ve**2) 
+endif
+
 uorb = dsqrt(urms**2.d0+1.45d0*kb)
 
 do jg = 1,par%ngd
@@ -815,10 +828,7 @@ do jg = 1,par%ngd
    wster = cc1+cc2*Sster
    par%w = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*s%D50(jg))
    
-   !where (ceqg(:,:,jg)>ccg(:,:,jg))  Ts = hh/max(dsqrt(kb),par%w)
-   !where (ceqg(:,:,jg)<=ccg(:,:,jg)) Ts = hh/par%w
-   !Tsg(:,:,jg) = max(Ts,0.2d0)
-   Ts       = par%tsfac*hh/par%w
+   Ts       = par%tsfac*hloc/par%w
    Tsg(:,:,jg) = max(Ts,par%Tsmin) 
    
    dster=25296*s%D50(jg)
@@ -848,13 +858,13 @@ do jg = 1,par%ngd
    ! Try Soulsby van rijn approach...
    ! drag coefficient
    ! z0 = par%z0
-   ! Cd=(0.40/(log(max(hh,par%hmin)/z0)-1.0))**2 !Jaap
+   ! Cd=(0.40/(log(hloc/z0)-1.0))**2 !Jaap
    ! term1=(vmg**2+0.018/Cd*uorb**2)**0.5   
       
    ceq = 0*term1                                                                     !initialize ceq
    do j=1,ny+1
 	  do i=1,nx
-         if(term1(i,j)>Ucr(i,j) .and. hh(i,j)>par%eps) then
+         if(term1(i,j)>Ucr(i,j) .and. hloc(i,j)>par%eps) then
             ceq(i,j)=Asb(i,j)*(term1(i,j)-Ucr(i,j))**1.5 + Ass*(term1(i,j)-Ucr(i,j))**2.4
 		 end if
       end do

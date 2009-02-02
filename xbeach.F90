@@ -13,6 +13,8 @@ use wave_stationary_module
 use wave_timestep_module
 use timestep_module
 use readkey_module
+use groundwaterflow
+
 
 IMPLICIT NONE
 
@@ -98,6 +100,7 @@ call wave_init (s,par)  ! wave_init only works on master process
 call distribute_par(par)
 #endif
 call flow_init (s,par)  ! works only on master process
+call gwinit(par,s)      ! works only on master process
 call sed_init (s,par)   ! works only on master process
 call init_output(sglobal,slocal,par,it)
 #ifdef USEMPI
@@ -138,7 +141,8 @@ do while (par%t<par%tstop)
     call wave_bc (sglobal,slocal,par,newstatbc)
     call printit(sglobal,slocal,par,it,'after wave_bc')
     ! Flow boundary conditions
-    call flow_bc (s,par)
+	if (par%gwflow==1) call gwbc(par,s)
+	call flow_bc (s,par)
     !Dano moved here, after (long) wave bc generation
 	if (it==1) then
 #ifdef USEMPI
@@ -161,6 +165,7 @@ do while (par%t<par%tstop)
           call printit(sglobal,slocal,par,it,'after wave_timestep')
     endif
     ! Flow timestep
+	if (par%gwflow==1) call gwflow(par,s)
     call flow_timestep (s,par)
     call printit(sglobal,slocal,par,it,'after flow_timestep')
     ! Suspended transport

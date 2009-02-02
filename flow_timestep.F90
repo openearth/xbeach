@@ -301,9 +301,9 @@ endif
                 uu(i,j)=uu(i,j)-par%dt*(ududx(i,j)+vdudy(i,j)-viscu(i,j) & !Ap,Robert,Jaap 
                     + par%g*dzsdx(i,j) &
 !                   + par%g/par%C**2.d0/hu(i,j)*vmageu(i,j)*ueu(i,j) & 
-                                + par%cf/hu(i,j)*ueu(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmageu(i,j)**2) &    
-                    - Fx(i,j)/par%rho/hu(i,j) &
-                                        - par%fc*vu(i,j))
+                    + par%cf/hu(i,j)*ueu(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmageu(i,j)**2) &    
+                    - par%lwave*Fx(i,j)/par%rho/hu(i,j) &
+                    - par%fc*vu(i,j))
             else
                 uu(i,j)=0.0d0
             end if
@@ -328,12 +328,12 @@ endif
         do i=2,nx+1 !
             ! Advection terms (momentum conserving method)
             if (vv(i,j)>=0.d0) then
-                                if (j>1) then
+               if (j>1) then
                   vdvdy(i,j)=.5d0*(hv(i,j)*vv(i,j)+hv(i,j-1)*vv(i,j-1))/hvm(i,j)*(vv(i,j)-vv(i,j-1))&
                   /(yv(j)-yv(j-1))
-                                else
-                                                vdvdy(i,j) = 0.0d0
-                                endif
+               else
+                  vdvdy(i,j) = 0.0d0
+               endif
             else
                ! Dano no need to set vdvdy to 0 for v>0
                if (j<ny) then
@@ -392,10 +392,10 @@ endif
             if(wetv(i,j)==1) then
                 vv(i,j)=vv(i,j)-par%dt*(udvdx(i,j)+vdvdy(i,j)-viscv(i,j)& !Ap,Robert,Jaap 
                     + par%g*dzsdy(i,j)&
-!                                       + par%g/par%C**2/hv(i,j)*vmagev(i,j)*vev(i,j)&
-                                        + par%cf/hv(i,j)*vev(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmagev(i,j)**2) &   !Ruessink et al 2001
-                                        - Fy(i,j)/par%rho/hv(i,j) &
-                                        + par%fc*uv(i,j))
+                    ! + par%g/par%C**2/hv(i,j)*vmagev(i,j)*vev(i,j)&
+                    + par%cf/hv(i,j)*vev(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmagev(i,j)**2) &   !Ruessink et al 2001
+                    - par%lwave*Fy(i,j)/par%rho/hv(i,j) &
+                    + par%fc*uv(i,j))
             else
                 vv(i,j)=0.0d0
             end if
@@ -406,19 +406,20 @@ endif
     ! no communication  necessary at this point
     qy=vv*hv
     !
-        ! do non-hydrostatic pressure compensation to solve short waves
-        !if (par%nonh==1) then
-        !       call nhcorrection(s,par)
-    !    qx=uu*hu
-        !        qy=vv*hv
+    ! do non-hydrostatic pressure compensation to solve short waves
+    !if (par%nonh==1) then
+    !   call nhcorrection(s,par)
+    !   qx=uu*hu
+    !   qy=vv*hv
     !end if
-        !
+    !    
     ! Update water level using continuity eq.
     !
     do j=2,ny
         do i=2,nx
            dzsdt(i,j) = (-1.d0)*((qx(i,j)-qx(i-1,j))/(xu(i)-xu(i-1)) &
-                               +(qy(i,j)-qy(i,j-1))/(yv(j)-yv(j-1)))
+                               +(qy(i,j)-qy(i,j-1))/(yv(j)-yv(j-1))) &
+							   -s%gww(i,j)
          end do
     end do
     !
@@ -549,7 +550,7 @@ endif
     ! U-euler velocties at u-point
     ueu = uu - usu
     ! Velocity magnitude at u-points
-    vmagu=sqrt(uu**2+vu**2)
+    ! vmagu=sqrt(uu**2+vu**2)
     ! Eulerian velocity magnitude at u-points
     vmageu=sqrt(ueu**2+veu**2)
 
@@ -603,8 +604,8 @@ endif
     ! U-euler velocties at V-point
     uev = uv - usv
     ! Velocity magnitude at v-points
-    vmagv=sqrt(uv**2+vv**2)
-     ! Eulerian velocity magnitude at v-points
+    ! vmagv=sqrt(uv**2+vv**2)
+    ! Eulerian velocity magnitude at v-points
     vmagev=sqrt(uev**2+vev**2)
 
 

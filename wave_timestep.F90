@@ -379,12 +379,14 @@ call xmpi_shift(Fy,':n')  ! shift in Fy(:,ny+1)
 urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*(hh+par%delta*H)))
 
 !ustw= E*k/sigm/par%rho/max(hh,par%hmin) !max(.001,E)
-ustw= E/max(c,sqrt(H*par%g))/par%rho/max(hh,par%hmin); ! Jaap
+!ustw= E/max(c,sqrt(H*par%g))/par%rho/max(hh,par%hmin); ! Jaap
+ustw= E/max(c,sqrt(par%hmin*par%g))/par%rho/max(hh,par%hmin)   ! Jaap
 uwf = ustw*cos(tm)
 vwf = ustw*sin(tm)
 ! roller contribution
 ! ustr=2*R*k/sigm/par%rho/max(hh,par%hmin)
-ustr=2.*R/max(c,sqrt(H*par%g))/par%rho/max(hh,par%hmin); ! Jaap
+! ustr=2.*R/max(c,sqrt(H*par%g))/par%rho/max(hh,par%hmin); ! Jaap
+ustr=2.*R/max(c,sqrt(par%hmin*par%g))/par%rho/max(hh,par%hmin) ! Jaap
 ! introduce breaker delay
 
 call breakerdelay(par,s)
