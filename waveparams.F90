@@ -219,15 +219,15 @@ allocate(y(size(wp%f)))
 call jonswapgk(x,gam,y)
 
 
-y=(wp%hm0gew/(4*sqrt(sum(y)*dfj)))**2*y
+y=(wp%hm0gew/(4.d0*sqrt(sum(y)*dfj)))**2*y
 deallocate (x)
         
-t1=-(par%px)/2
+t1=-(par%px)/2.d0
 
 allocate(temp(101))
 allocate(wp%theta(101))
 temp=(/(i,i=0,100)/)
-wp%theta=temp*((par%px)/100)+t1
+wp%theta=temp*((par%px)/100.d0)+t1
 deallocate (temp)
 
 wp%dang=wp%theta(2)-wp%theta(1)
@@ -235,7 +235,12 @@ wp%dang=wp%theta(2)-wp%theta(1)
 
 allocate (wp%Dd(size(wp%theta)))
 wp%mainang=(1.5d0*par%px-s%alfa)-wp%mainang*atan(1.d0)/45.0d0
-wp%Dd = cos((wp%theta-wp%mainang)/2)**(2*scoeff)
+if (wp%mainang>2.d0*par%px) then
+    wp%mainang=wp%mainang-2.d0*par%px
+elseif (wp%mainang<-2.d0*par%px) then
+    wp%mainang=wp%mainang+2.d0*par%px
+endif
+wp%Dd = cos((wp%theta-wp%mainang)/2.d0)**(2.d0*scoeff)
 wp%Dd = wp%Dd / (sum(wp%Dd)*wp%dang)
 
 
