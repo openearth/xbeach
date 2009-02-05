@@ -33,6 +33,7 @@ OBJS:= boundaryconditions.o \
 	interp.o \
 	math_tools.o \
 	morphevolution.o \
+	groundwaterflow.o \
 	params.o \
 	readkey.o \
 	readtide.o \
@@ -125,7 +126,7 @@ include DEPENDENCIES
 
 makeincludes: makeincludes.F90
 	$(F90_NO_MPI) $(F90FLAGS) -o $@ makeincludes.F90
-	
+
 # some mpi.mod files have a definition of MPI_Wtime,
 # some don't. Comment next line out if your mpi.mod 
 # lacks a definition
