@@ -12,7 +12,7 @@
 				<Tool Name="VFPreLinkEventTool"/>
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool" CommandLine="pwd
-copy ..\s.in* .\$(ConfigurationName)
+copy ..\*.tmpl .
 .\$(ConfigurationName)\makeincludes &lt; nul"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|Win32">
