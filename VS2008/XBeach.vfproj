@@ -29,9 +29,9 @@
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
 		<File RelativePath="..\boundaryconditions.F90"/>
 		<File RelativePath="..\constants.F90"/>
-		<File RelativePath="..\demo.F90"/>
 		<File RelativePath="..\flow_timestep.F90"/>
 		<File RelativePath="..\general_mpi.F90"/>
+		<File RelativePath="..\groundwater.F90"/>
 		<File RelativePath="..\initialize.F90"/>
 		<File RelativePath="..\interp.F90"/>
 		<File RelativePath="..\math_tools.F90"/>
@@ -44,9 +44,7 @@
 		<File RelativePath="..\readtide.F90"/>
 		<File RelativePath="..\roelvink.F90"/>
 		<File RelativePath="..\spaceparams.F90"/>
-		<File RelativePath="..\testgenmodule.F90"/>
 		<File RelativePath="..\timestep.F90"/>
-		<File RelativePath="..\timestep_old.F90"/>
 		<File RelativePath="..\varoutput.F90"/>
 		<File RelativePath="..\wave_stationary.F90"/>
 		<File RelativePath="..\wave_timestep.F90"/>
