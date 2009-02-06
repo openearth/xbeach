@@ -127,6 +127,7 @@ call printit(sglobal,slocal,par,it,'after space_distribute_space')
 if (it==1) call var_output(it,sglobal,s,par)
 
 if (xmaster) then
+  ! Do check of params.txt to spot errors
   call readkey('params.txt','checkparams',dummystring) 
   write(*,*) 'Stepping into the time loop ....'  
 endif

@@ -140,7 +140,8 @@ subroutine init_output(s,sl,par,it)
 			  minlocation=minloc(mindist)
 			  xpoints(i)=minlocation(1)
 			  ypoints(i)=minlocation(2)
-			  write(*,'(a,f8.2,a)')'Distance output point to nearest grid point ',mindist(minlocation(1),minlocation(2)), ' meters'
+			  write(*,'(a,f8.2,a)')'Distance output point to nearest grid point '&
+			                        ,mindist(minlocation(1),minlocation(2)), ' meters'
           enddo
           close(10)
         endif ! npoints>0  
@@ -187,11 +188,12 @@ subroutine init_output(s,sl,par,it)
 			  ! where Ax+By+C=0 defines the line (world coordinates)
 			  ! and x0,y0 are the world coordinates of the point
 			  !
-			  ! Y=Ax+C (B=1)
+			  ! y=Ax+C (B=1)
 			  ! A = tan(alfa)
 			  ! C = y(1,ypoints(i))/cos(90-alfa)
 			  ! distance = |tan(alfa)*x0+xori+y0+y(1,ypoints(i))/sin(alfa)|/sqrt(tan(alfa)^2+1)
-			  dist = abs(dtan(s%alfa)*(xpointsw(i)-s%xori)+(ypointsw(i)-s%yori)+s%y(1,ypoints(i))/max(sind(s%alfa),par%eps))/sqrt(dtan(s%alfa)**2+1)
+			  dist = abs(tan(s%alfa)*(xpointsw(i)-s%xori)+(ypointsw(i)-s%yori)+s%y(1,ypoints(i))&
+			                                  /max(sin(s%alfa),par%eps))/sqrt(tan(s%alfa)**2+1.d0)
 			  write(*,'(a,f8.2,a)')'Distance output point to nearest grid row ',dist, ' meters'
           enddo
           close(10)

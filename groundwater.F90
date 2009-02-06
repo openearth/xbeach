@@ -57,40 +57,41 @@ if (xmaster) then
 	allocate (s%dinfil(s%nx+1,s%ny+1))
 	allocate (s%gw0back(2,s%ny+1))
 
+    if (par%gwflow==1) then
+		call readkey('params.txt','aquiferbotfile',fname)
+		if (fname=='') then     ! Not a filename
+		   temp = minval(s%zb)
+		   aquiferbot = readkey_dbl('params.txt','aquiferbot',temp-3.d0,-100.d0,100.d0,bcast=.false.)
+		   s%gwbottom=aquiferbot
+		else
+		  open(31,file=fname)
+		  do j=1,s%ny+1
+			  read(31,*)(s%gwbottom(i,j),i=1,s%nx+1)
+		  end do
+		  close(31)
+		endif
 
-    call readkey('params.txt','aquiferbotfile',fname)
-	if (fname=='') then     ! Not a filename
-	   temp = minval(s%zb)
-	   aquiferbot = readkey_dbl('params.txt','aquiferbot',temp-3.d0,-100.d0,100.d0,bcast=.false.)
-       s%gwbottom=aquiferbot
-	else
-	  open(31,file=fname)
-      do j=1,s%ny+1
-          read(31,*)(s%gwbottom(i,j),i=1,s%nx+1)
-      end do
-      close(31)
-    endif
+		call readkey('params.txt','gw0file',fname)
+		if (fname=='') then     ! Not a filename
+		   temp = readkey_dbl('params.txt','gw0',0.d0,-5.d0,5.d0,bcast=.false.)
+		   s%gwhead=temp
+		else
+		  open(31,file=fname)
+		  do j=1,s%ny+1
+			  read(31,*)(s%gwhead(i,j),i=1,s%nx+1)
+		  end do
+		  close(31)
+		endif
 
-    call readkey('params.txt','gw0file',fname)
-	if (fname=='') then     ! Not a filename
-	   temp = readkey_dbl('params.txt','gw0',0.d0,-5.d0,5.d0,bcast=.false.)
-       s%gwhead=temp
-	else
-	  open(31,file=fname)
-      do j=1,s%ny+1
-          read(31,*)(s%gwhead(i,j),i=1,s%nx+1)
-      end do
-      close(31)
-    endif
-
-	s%gw0back=s%gwhead(s%nx:s%nx+1,:)
-	s%gwlevel=min(s%zb,s%gwhead)
-    s%gwlevel=max(s%gwlevel,s%gwbottom+par%eps)
-	s%gwheight=s%gwlevel-s%gwbottom
-	s%gwu=0.d0
-	s%gwv=0.d0
-	s%gww=0.d0
-	s%dinfil=max(par%dwetlayer/3.d0,0.02)   ! Centroid of area influenced instantly by free surface level lies at dwetlayer/3
+		s%gw0back=s%gwhead(s%nx:s%nx+1,:)
+		s%gwlevel=min(s%zb,s%gwhead)
+		s%gwlevel=max(s%gwlevel,s%gwbottom+par%eps)
+		s%gwheight=s%gwlevel-s%gwbottom
+		s%gwu=0.d0
+		s%gwv=0.d0
+		s%gww=0.d0
+		s%dinfil=max(par%dwetlayer/3.d0,0.02)   ! Centroid of area influenced instantly by free surface level lies at dwetlayer/3
+	endif
 endif
 end subroutine
 
