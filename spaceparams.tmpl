@@ -161,6 +161,6 @@
       real*8  2  gwv      s%nx+1 s%ny+1 d ! [m/s] groundwater flow in y-direction
       real*8  2  gww      s%nx+1 s%ny+1 d ! [m/s] groundwater flow in z-direction (interaction between surface and ground water)
       real*8  2  dinfil   s%nx+1 s%ny+1 d ! [m] Infiltration layer depth used in quasi-vertical flow model for groundwater
-      real*8  1  gw0back  s%ny+1 d        ! [m] boundary condition back boundary for groundwater head
+      real*8  2  gw0back  2      s%ny+1 2 ! [m] boundary condition back boundary for groundwater head
       
 !* hints for vi vim: filetype=fortran : syntax=fortran

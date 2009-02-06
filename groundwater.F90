@@ -55,7 +55,7 @@ if (xmaster) then
 	allocate (s%gww(s%nx+1,s%ny+1))
     allocate (s%gwbottom(s%nx+1,s%ny+1))
 	allocate (s%dinfil(s%nx+1,s%ny+1))
-	allocate (s%gw0back(s%ny+1))
+	allocate (s%gw0back(2,s%ny+1))
 
 
     call readkey('params.txt','aquiferbotfile',fname)
@@ -83,7 +83,7 @@ if (xmaster) then
       close(31)
     endif
 
-	s%gw0back=s%gwhead(s%nx+1,:)
+	s%gw0back=s%gwhead(s%nx:s%nx+1,:)
 	s%gwlevel=min(s%zb,s%gwhead)
     s%gwlevel=max(s%gwlevel,s%gwbottom+par%eps)
 	s%gwheight=s%gwlevel-s%gwbottom
@@ -114,7 +114,7 @@ elseif (xmpi_isbot) then
    if (par%tideloc==4 .or. (par%tideloc==2 .and. par%paulrevere==0)) then
        s%gwhead(s%nx+1,:)=s%zs(s%nx+1,:)
    else
-      s%gwhead(s%nx+1,:)=s%gw0back
+      s%gwhead(s%nx+1,:)=s%gw0back(2,:)
    endif
 endif
 
