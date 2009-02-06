@@ -180,7 +180,7 @@ do jg = 1,par%ngd
 	! compute available sand for entrainment at bed per fraction
 	source = min(source,(1-par%por)*par%dzg*graindistr(:,:,1,jg)/par%dt/max(par%morfac,1.d0)) 
 	! compute relative suspended fraction to compute entrainment / settling
-	fract = ccg(:,:,jg)/max(sum(ccg,3),1e-6) 
+	fract = max(ccg(:,:,jg),1e-6)/max(sum(ccg,3),1e-6) 
     ! Jaap: we know already how much sand is picked up from the bed
     dzbdt=0.0d0
     ! dzbdt = -1.d0/(1-par%por)*min(source,hold*(ceqg(:,:,jg)*graindistr(:,:,1,jg)-cc)/Tsg(:,:,jg))
