@@ -57,6 +57,8 @@ if (xmaster) then
 	allocate (s%dinfil(s%nx+1,s%ny+1))
 	allocate (s%gw0back(2,s%ny+1))
 
+	s%gww=0.d0
+
     if (par%gwflow==1) then
 		call readkey('params.txt','aquiferbotfile',fname)
 		if (fname=='') then     ! Not a filename
