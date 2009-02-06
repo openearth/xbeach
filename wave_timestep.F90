@@ -239,6 +239,7 @@ end if
 ! Distribution of dissipation over directions and frequencies
 !
 do itheta=1,ntheta
+! Only calculate for E>0 FB
     dd(:,:,itheta)=ee(:,:,itheta)*D/max(E,0.00001d0)
 end do
 

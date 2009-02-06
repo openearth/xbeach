@@ -33,7 +33,7 @@ OBJS:= boundaryconditions.o \
 	interp.o \
 	math_tools.o \
 	morphevolution.o \
-	groundwaterflow.o \
+	groundwater.o \
 	params.o \
 	readkey.o \
 	readtide.o \
@@ -142,11 +142,13 @@ F90FLAGS+=-g $(OPT) -I.
 ifdef USEXLF
   F90=xlf_r
 else
-  F90:=gfortran
+	ifndef F90
+		F90:=gfortran
+	endif
 endif
 F90_NO_MPI := $(F90)
 ifeq ($(F90),gfortran)
-  F90FLAGS += -Wall
+  F90FLAGS += -Wall 
 endif
 ifdef USEMPI
   ifdef USEXLF
