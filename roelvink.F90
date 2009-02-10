@@ -46,9 +46,10 @@ endif
 
 fac=8.0d0/rho/g
 H=sqrt(fac*E)
-hroelvink=hh+delta*H
+hroelvink=hh+delta*H  !add breakerdelay here, to correct for waterdepth, and cancel subroutine breakerdelay
+					  !danojaaprobertap 10/2, also in baldock, roelvink
 
-Qb=min(1-exp(-(H/gamma/hroelvink)**n),1.0d0)
+Qb=min(1-exp(-(H/gamma/hroelvink)**n),1.0d0) !gebruik hier Hb = (0.88d0/k)*tanh(gamma*kh/0.88d0)
 
 ! D=Qb*2.*alpha/Trep*E
 

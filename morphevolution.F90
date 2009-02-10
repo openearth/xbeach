@@ -670,7 +670,7 @@ real*8                                  :: Te,kvis,Sster,cc1,cc2,wster,z0,delta,
 real*8                                  :: ih0,it0,ih1,it1,p,q,f0,f1,f2,f3,uad,duddtmax,dudtmax,siguref,t0fac,duddtmean,dudtmean
 real*8                               ,save     :: dh,dt,nh,nt
 real*8 , dimension(:,:),allocatable  ,save     :: vmg,Asb,Ts
-real*8 , dimension(:,:),allocatable  ,save     :: uorb,Ucr,Ucrc,Ucrw,term1,B2,Cd
+real*8 , dimension(:,:),allocatable  ,save     :: urmsturb,Ucr,Ucrc,Ucrw,term1,B2,Cd
 real*8 , dimension(:,:),allocatable  ,save     :: hloc,ceq,h0,t0,detadxmax,detadxmean,dzsdx
 real*8 , dimension(:,:,:),allocatable,save     :: RF 
 
@@ -690,7 +690,7 @@ if (.not. allocated(vmg)) then
    allocate (Ucr   (nx+1,ny+1))
    allocate (Ucrc  (nx+1,ny+1))
    allocate (Ucrw  (nx+1,ny+1))
-   allocate (uorb  (nx+1,ny+1))
+   allocate (urmsturb  (nx+1,ny+1))
    allocate (hloc  (nx+1,ny+1))
    allocate (kb    (nx+1,ny+1))
    allocate (Ts    (nx+1,ny+1))
@@ -815,7 +815,7 @@ elseif (par%lws==0) then
    vmg = (1-fac)*vmg + fac*dsqrt(ue**2+ve**2) 
 endif
 
-uorb = dsqrt(urms**2.d0+1.45d0*kb)
+urmsturb = dsqrt(urms**2.d0+1.45d0*kb)
 
 do jg = 1,par%ngd
 
@@ -844,7 +844,7 @@ do jg = 1,par%ngd
    else
      write(*,*) ' s%D50(jg) > 2mm, out of validity range'
    end if
-   B2 = vmg/max(vmg+uorb,par%eps)
+   B2 = vmg/max(vmg+urmsturb,par%eps)
    Ucr = B2*Ucrc + (1-B2)*Ucrw                                                       ! Van Rijn 2008 (Bed load transport paper)
 
    ! transport parameters
@@ -852,8 +852,8 @@ do jg = 1,par%ngd
    Ass=0.012d0*s%D50(jg)*dster**(-0.6d0)/(1.65d0*par%g*s%D50(jg))**1.2d0             !suspended load coeffient
    
    ! Jaap: par%sws to set short wave stirring to zero
-   ! Jaap: Van Rijn use Peak orbital flow velocity --> 0.64 correpsonds to 0.4 coefficient regular waves Van Rijn (2007)  
-   term1= dsqrt(vmg**2+0.64d0*par%sws*uorb**2)                                       
+   ! Jaap: Van Rijn use Peak orbital flow velocity --> 0.64 corresponds to 0.4 coefficient regular waves Van Rijn (2007)  
+   term1= dsqrt(vmg**2+0.64d0*par%sws*urmsturb**2)                                       
 
    ! Try Soulsby van rijn approach...
    ! drag coefficient
