@@ -153,6 +153,9 @@ real*8     :: kx       = -123  ! Darcy-flow permeability coefficient in x-direct
 real*8     :: ky       = -123  ! Darcy-flow permeability coefficient in y-direction [m/s]
 real*8     :: kz       = -123  ! Darcy-flow permeability coefficient in y-direction [m/s]
 real*8     :: dwetlayer  = -123  ! Thickness of the top soil layer interacting more freely with the surface water
+integer*4  :: maxiter  = -123  ! maximum number of iterations in wave stationary
+real*8     :: maxerror = -123  ! maximum wave height error in wave stationary iteration
+
 
 end type parameters
 
@@ -179,9 +182,13 @@ if (par%instat == 0) then
     par%m     = readkey_int    ('params.txt','m',        10,         2,      128)
     par%Trep  = readkey_dbl    ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
     par%Trep  = readkey_dbl    ('params.txt','Trep',     par%Trep,   1.d0,    20.d0)
+	 par%maxiter = readkey_int  ('params.txt','maxiter',  15,         2,      100)
+    par%maxerror= readkey_dbl  ('params.txt','maxerror', 0.0001d0, 0.00001d0, 0.01d0)
 !    par%omega    = 2.d0*par%px/par%Trep;
 elseif (par%instat==40) then
     par%wavint   = readkey_dbl ('params.txt','wavint',    1.d0,      1.d0,  3600.d0)
+	 par%maxiter = readkey_int  ('params.txt','maxiter',  15,         2,      100)
+    par%maxerror= readkey_dbl  ('params.txt','maxerror', 0.0001d0, 0.00001d0, 0.01d0)
 elseif (par%instat==1) then
     par%dir0  = readkey_dbl    ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
     par%Hrms  = readkey_dbl    ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
