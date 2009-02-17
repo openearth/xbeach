@@ -1,0 +1,99 @@
+grid input
+
+nx       = 178
+ny       = 2
+depfile  = h_T06x_41.dep
+vardx    = 0
+dx       = 1
+dy       = 5.0
+xori     = 41.
+yori     = 0.
+alfa     = 0.
+posdwn   = -1
+
+wave input
+
+break    = 3
+Hrms     = 1.02
+Trep     = 4.57
+dir0     = 270
+m        = 1024
+hmin     = 0.10
+gamma    = 0.50
+alpha    = 1.
+delta    = 0.0
+n        = 10.
+rho      = 1000
+g        = 9.81
+thetamin = -1.
+thetamax = 1.
+dtheta   = 2.
+wci      = 0
+instat   = 3
+nuh      = 0.1
+nuhfac   = 1.0
+roller   = 1
+beta     = 0.1
+carspan  = 0
+swtable  = RF_table.txt
+rfb      = 1
+
+flow input
+
+zs0      = -0.035 
+tideloc  = 0
+C        = 65.
+eps      = 0.0001
+umin     = 0.0
+tstart   = 100
+tint     = 1.
+tstop    = 2260
+CFL      = 0.9
+
+sed input
+
+D50      = 0.0002
+D90      = 0.0003
+rhos     = 2650
+morfac   = 10
+morstart = 100
+por      = 0.4
+dryslp   = 1.0
+wetslp   = 0.15
+hswitch  = 0.05
+dico     = 1.
+form     = 2
+facua    = 0.25
+dzmax    = 0.005
+turb     = 2
+
+
+output
+
+nglobalvar = 26
+zs
+zb
+E
+R
+c
+H
+hh
+u
+ue
+urms
+ccg
+ceqg
+dzav
+Su
+Fx
+D
+DR
+Tbore
+BR
+kb 
+uon
+uoff
+ua
+Sk
+As
+Ts
