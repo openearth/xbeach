@@ -201,7 +201,7 @@ do it=2,imax
 	Herr=1.
 	iter=0
 	stopiterate=.false.
-	do while (stopiterate==.false.)
+	do while (stopiterate .eqv. .false.)
 		iter=iter+1
 		Hprev=H(i,:)
 		! WCI
@@ -231,12 +231,12 @@ do it=2,imax
 			kmy(2,:) = kmy(2,:) -dtw*ywadvec + dtw*cgxm*(dkmydx-dkmxdy)
 			
 			! wwvv 
-			#ifdef USEMPI
+#ifdef USEMPI
 			call xmpi_shift(kmx,':n')
 			call xmpi_shift(kmy,':n')
 			call xmpi_shift(kmx,':1')
 			call xmpi_shift(kmy,':1')
-			#endif
+#endif
 
 			km(i,:) = sqrt(kmx(2,:)**2+kmy(2,:)**2)
 			km(i,:) = min(km(i,:),25.d0) ! limit to gravity waves
@@ -368,7 +368,7 @@ do it=2,imax
 			sigm(:,ny+1)=sigm(:,ny)
 		endif
 		! Pass internal boundaries
-		#ifdef USEMPI
+#ifdef USEMPI
 		call xmpi_shift(ee,':1')
 		call xmpi_shift(ee,':n')
 		call xmpi_shift(rr,':1')
@@ -377,7 +377,7 @@ do it=2,imax
 		call xmpi_shift(km,':n')
 		call xmpi_shift(sigm,':1')
 		call xmpi_shift(sigm,':n')
-		#endif
+#endif
 		!
 		! Compute mean wave direction
 		!
@@ -391,18 +391,18 @@ do it=2,imax
 		DR(i,:)=sum(drr(i,:,:),2)*dtheta
 		H(i,:)=sqrt(E(i,:)/par%rhog8)
 		Herr=maxval(abs(Hprev-H(i,:)))
-		#ifdef USEMPI
+#ifdef USEMPI
 		call xmpi_allreduce(Herr,MPI_MAX)	 
-		#endif
+#endif
 		! Stopping criteria
 		if (iter<par%maxiter) then
 			if (Herr<par%maxerror) then
 				stopiterate=.true.
-				if(xmaster) write(*,'(a,i,a,i)')'Wave propagation row ',it,', iteration ',iter
+				if(xmaster) write(*,'(a,i4,a,i4)')'Wave propagation row ',it,', iteration ',iter
 			endif
 		else
 			stopiterate=.true.
-			if(xmaster) write(*,'(a,i,a,i,a,f5.4)')'Wave propagation row ',it,', iteration ',iter,', error: ',Herr
+			if(xmaster) write(*,'(a,i4,a,i4,a,f5.4)')'Wave propagation row ',it,', iteration ',iter,', error: ',Herr
 		endif	
 	enddo ! End while loop
 enddo ! End do i=2:nx loop  

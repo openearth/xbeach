@@ -664,11 +664,12 @@ type(parameters)                        :: par
 
 character*80                            :: fnamet
 integer                                 :: i,nw,ii
+integer                                 :: ih0,it0,ih1,it1,nh,nt
 integer                                 :: j,jg
 real*8                                  :: dster,onethird,twothird,Ass,dcf,dcfin,ML,fac
 real*8                                  :: Te,kvis,Sster,cc1,cc2,wster,z0,delta,smax
-real*8                                  :: ih0,it0,ih1,it1,p,q,f0,f1,f2,f3,uad,duddtmax,dudtmax,siguref,t0fac,duddtmean,dudtmean
-real*8                               ,save     :: dh,dt,nh,nt
+real*8                                  :: p,q,f0,f1,f2,f3,uad,duddtmax,dudtmax,siguref,t0fac,duddtmean,dudtmean
+real*8                               ,save     :: dh,dt
 real*8 , dimension(:,:),allocatable  ,save     :: vmg,Asb,Ts
 real*8 , dimension(:,:),allocatable  ,save     :: urmsturb,Ucr,Ucrc,Ucrw,term1,B2,Cd
 real*8 , dimension(:,:),allocatable  ,save     :: hloc,ceq,h0,t0,detadxmax,detadxmean,dzsdx
@@ -824,7 +825,7 @@ do jg = 1,par%ngd
    kvis  = 4.d0/(20.d0+Te)*1d-5	! Van rijn, 1993 
    Sster = s%D50(jg)/(4*kvis)*sqrt((par%rhos/par%rho-1)*par%g*s%D50(jg))
    cc1   = 1.06d0*tanh(0.064d0*Sster*exp(-7.5d0/Sster**2))
-   cc2   = 0.22d0*tanh(2.34d0*Sster**-1.18d0*exp(-0.0064d0*Sster**2))
+   cc2   = 0.22d0*tanh(2.34d0*Sster**(-1.18d0*exp(-0.0064d0*Sster**2)))
    wster = cc1+cc2*Sster
    par%w = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*s%D50(jg))
    
