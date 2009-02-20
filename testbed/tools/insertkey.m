@@ -1,5 +1,6 @@
 function insertkey(fname,key_mod,value_mod)
-% replace 
+% replace key-value in file fname with value_mod;
+% add key_mod = value_mod if key_mod is not found in file
 fi=fopen(fname)
 l=[];i=0;found=0;
 while 1
