@@ -1,1 +1,1 @@
-d:\data\dano\xbeach\release_nompi\xbeach>out
+D:\data\dano\xbeach\VS2008\Release\xbeach>out

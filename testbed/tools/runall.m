@@ -23,7 +23,7 @@ cases ={ ...
         ['Zelt_Case1'],                  ... %12
         ['Zwin_T01'],                    ... %13
                                   }       
-todo= [2:8]
+todo= [9]
 for j=1:length(todo)
     i=todo(j);
     rundir=[testbankdir,filesep,runid,filesep,cases{i}]
