@@ -46,7 +46,7 @@ front = 0
 left  = 1
 right = 1
 back  = 1
-C=60.
+C=65.
 eps=0.005
 umin=0.0
 tstart=0
@@ -58,7 +58,6 @@ nuhfac=0.0
 
 sed input
 
-A        = 2.e-3
 dico     = 1.
 D50      = 0.0003
 D90      = 0.00045
@@ -66,5 +65,5 @@ rhos     = 2650
 morfac   = 1.0
 facsl    = 1.6
 wetslp = 0.3
-dryslp=0.6
+dryslp= 1
 tsfac = 0.1
