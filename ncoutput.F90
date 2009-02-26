@@ -8,6 +8,11 @@
 ! it will add dependencies on the netcdf fortran library (http://www.unidata.ucar.edu/software/netcdf/)
 ! 
 module ncoutputmod
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+
 implicit none
 private
 public init_output, var_output !what's this...
@@ -20,8 +25,11 @@ integer*4                           :: nmeanvar    ! number of time-average vari
 
 contains
 
+  
   ! Error handling of netcdf errors 
-  subroutine handle_err(status)
+  subroutine handle_err(status) 
+    use netcdf
+    
     integer, intent ( in) :: status
     
     if(status /= nf90_noerr) then
@@ -36,7 +44,7 @@ contains
 !!!!!!!!!!!!!!!!!!!   INITIALISE OUTPUT    !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-subroutine init_ncfile(s, par)
+subroutine init_output(s, sl, par, it)
   use params
   use spaceparams
   use readkey_module
@@ -45,9 +53,12 @@ subroutine init_ncfile(s, par)
   implicit NONE
   integer :: ncid, status ! file id and status returned from a file operation
 
-  use params  type(spacepars),intent(in)       :: s,sl ! why do we get 2 space params??
+  type(spacepars), intent(in)                  :: s,sl ! why do we get 2 space params??
   type(parameters), intent(in)                 :: par 
+  integer                                      :: it
   character(80)                                :: fname ! xy? h? zs?.... output.nc
+
+
 
   integer :: xdimid, ydimid, timedimid
   integer :: xvarid, yvarid, timevarid
@@ -68,11 +79,11 @@ subroutine init_ncfile(s, par)
   
   ! define space & time variables
   ! nf90_def_var(ncid, name, xtype, dimids, varid)
-  status = nf90_def_var(ncid, "x", NF90_DOUBLE, (/ xdimid /))
+  status = nf90_def_var(ncid, "x", NF90_DOUBLE, (/ xdimid /), xvarid)
   if (status /= nf90_noerr) call handle_err(status)
-  status = nf90_def_var(ncid, "y", NF90_DOUBLE, (/ ydimid /))
+  status = nf90_def_var(ncid, "y", NF90_DOUBLE, (/ ydimid /), yvarid)
   if (status /= nf90_noerr) call handle_err(status)
-  status = nf90_def_var(ncid, "time", nf90_unlimited, (/ timedimid /))
+  status = nf90_def_var(ncid, "time", nf90_unlimited, (/ timedimid /), timevarid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! variables are saved on nglobal??, meanvar (time averaged?) 
@@ -82,9 +93,18 @@ subroutine init_ncfile(s, par)
   !nassocvar =  ! point variables stored on point time, different variables can be stored per point? skip for now....
   
   
-end subroutine init_ncfile
+end subroutine init_output
 
+subroutine var_output(it,s,sl,par)
+  use params
+  use spaceparams
+  
+  IMPLICIT NONE
 
+  type(spacepars), intent(in)                         :: s,sl ! s-> spaceparams, what is isl?
+  type(parameters), intent(in)                        :: par
+  integer, intent(in)                                 :: it ! what is this
 
+end subroutine var_output
 
 end module ncoutputmod
