@@ -1,3 +1,21 @@
+gammax
+1
+gammax=2
+stop
+roughness
+1
+C=45
+bottomeffect
+5
+depfile=2E08.dep
+morfac=1
+rt=3180
+tstop=3180
+tint=1
+r07
+1
+hswitch=0.005
+stop
 r00
 0
 r01
@@ -19,4 +37,10 @@ D90=0.0003
 r06
 1
 tsfac=0.2
+noarc
+1
+ARC=0
+order2
+1
+order=2
 

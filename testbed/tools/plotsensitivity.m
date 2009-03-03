@@ -36,22 +36,25 @@ while 1
         rundir=[testbankdir,filesep,runid,filesep,cases{i}];
         mkdir (rundir);
         cd (rundir);
-        copyfile (['..',filesep,'..',filesep,'input', ...
-            filesep,cases{i},filesep,'*.*'],rundir,'f');
-        %% Change params.txt
-        l=fgetl(fi);
-        numpar=str2num(l);
-        for i=1:numpar;
+        input=['..',filesep,'..',filesep,'input', ...
+            filesep,cases{i},filesep,'*.*']
+        if ~isempty(dir(input))
+            copyfile (input,rundir,'f');
+            %% Change params.txt
             l=fgetl(fi);
-            key=deblank(strtok(l,'='));
-            value=deblank(fliplr(strtok(fliplr(l),'=')));
-            insertkey('params.txt',key,value);
+            numpar=str2num(l);
+            for i=1:numpar;
+                l=fgetl(fi);
+                key=deblank(strtok(l,'='));
+                value=deblank(fliplr(strtok(fliplr(l),'=')));
+                insertkey('params.txt',key,value);
+            end
+            %
+            %eval(['!',exe])
+            plotdata
+            %     post
+            %     showbank
         end
-        %
-        eval(['!',exe])
-        %plotdata
-        %     post
-        %     showbank
     end
     cd ([testbankdir,filesep,'tools']);
 end
