@@ -51,7 +51,7 @@ for idp = 1:length(plots)
                end
                xl=get(gca,'xlim');xtext=xl(1)+.1*(xl(2)-xl(1))
                yl=get(gca,'ylim');ytext=yl(1)+.1*(yl(2)-yl(1))
-               text(xtext,ytext,['r2=',round2(r2,2),'m=',round2(slope,2),'\epsilon=',round2(eps,2),'fontsize','8'])
+               text(xtext,ytext,['r^2=',round2(r2,2),' m=',round2(slope,2),' \epsilon=',round2(eps,2)],'fontsize',8)
             end
             
          case 'fs'
@@ -122,16 +122,16 @@ S4 = strs.STR4;
 S5 = strs.STR5;
 S6 = strs.STR6;
 
-%for idp = 1:length(plots)
+for idp = 1:length(plots)
 %   figure(idp)
 %   S1b = plots(idp).mainstr;
 %   S6 = plots(idp).figstr;
 %   md_paper('portrait',strvcat(S1a,S1b),S2,S3,S4,S5,S6);
 %   shh=get(0,'showhiddenhandles');
 %   set(0,'showhiddenhandles','on');
-%   pname = [testid '_' runid '_fig' num2str(idp) '.jpg'];
-%   eval(['print -djpeg ' pname]);
-%end
+   pname = [testid '_' runid '_fig' num2str(idp) '.jpg'];
+   eval(['print -djpeg ' pname]);
+end
 
 % winmngr
 %exit

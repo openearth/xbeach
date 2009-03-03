@@ -31,7 +31,7 @@ for i=1:nt;
     if i==1
         z0=zb;
     end
-
+    
     if mod(i,1)==0&i>300
         it=it+1;
         zbt(:,it)=zb(:,2);
@@ -46,9 +46,15 @@ fclose(fid)
 xm=x(:,2);
 zsm=mean(zst,2);
 Hrms_hi=sqrt(mean(hrmst.^2,2));
-Hrms_lo=sqrt(8)*(std(zst'))';
+t=[0:size(zbt,2)-1];nt=length(t);
+f_cutoff=0.1;df=1/t(end);av_yes=0;
+
+[wav_high , wav_low] = filterhjb(zst', f_cutoff , df , av_yes);
+Hrms_lo=sqrt(8)*(std(wav_low));
 Urms=sqrt(mean(urmst.^2,2));
-Urms_lo=(std(uet'))';
+%Urms_lo=(std(uet'))';
+[wav_high , wav_low] = filterhjb(uet', f_cutoff , df , av_yes);
+Urms_lo=(std(wav_low));
 uemean=(mean(uet'))';
 guls=3*mean(ut.*urmst.^2,2);
 out=zeros(180,2)
@@ -69,7 +75,6 @@ out(:,2)=uemean(1:180);
 tekal('write','u_m_e_a_n.tek',out);
 showbank
 plotpro
-t=[0:size(zbt,2)-1]/60;
 x1=x(:,2);
 figure(3);
 subplot(411);
