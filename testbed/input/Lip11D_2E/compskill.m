@@ -4,4 +4,4 @@ m=meas(:,2);
 r2=corrcoef(c,m);
 r2=r2(1,2);
 slope=mean(c)/mean(m);
-eps=std(c-m)/mean(m);
+eps=std(c-m)/abs(mean(m));
