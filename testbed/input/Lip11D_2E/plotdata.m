@@ -51,6 +51,7 @@ f_cutoff=0.1;df=1/t(end);av_yes=0;
 
 [wav_high , wav_low] = filterhjb(zst', f_cutoff , df , av_yes);
 Hrms_lo=sqrt(8)*(std(wav_low));
+Hrms_hi=sqrt(Hrms_hi.^2+8*(std(wav_high))'.^2);
 Urms=sqrt(mean(urmst.^2,2));
 %Urms_lo=(std(uet'))';
 [wav_high , wav_low] = filterhjb(uet', f_cutoff , df , av_yes);
