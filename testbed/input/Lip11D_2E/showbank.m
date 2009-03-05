@@ -29,11 +29,12 @@ for idp = 1:length(plots)
    for i = 1:size(plots(idp).params)
       switch lower(plots(idp).type)
          case {'fx','fz','ft'}
-            fname = [deblank(plots(idp).params(i,:)) '.tek']
-            comp = readTekFirstBlock(fname);
-            meas = readTekFirstBlock([datadir fname]);
+            varname=deblank(plots(idp).params(i,:));
+            fname = [varname '.tek']
+            comp = readTekFirstBlock(fname)
+            meas = readTekFirstBlock([datadir fname])
             if ( ~isempty(comp) & ~isempty(meas) )
-              [r2,slope,eps]=compskill(comp,meas);
+              [r2,slope,eps,bss]=compskill2(comp,meas,varname);
               count = count+1;
                subplot (plots(idp).size(1),plots(idp).size(2),count);
                switch deblank(plots(idp).type)
@@ -51,7 +52,7 @@ for idp = 1:length(plots)
                end
                xl=get(gca,'xlim');xtext=xl(1)+.1*(xl(2)-xl(1))
                yl=get(gca,'ylim');ytext=yl(1)+.1*(yl(2)-yl(1))
-               text(xtext,ytext,['r^2=',round2(r2,2),' m=',round2(slope,2),' \epsilon=',round2(eps,2)],'fontsize',8)
+               text(xtext,ytext,['r^2=',round2(r2,2),' m=',round2(slope,2),' \epsilon=',round2(eps,2),' bss=',round2(bss,2)],'fontsize',8)
             end
             
          case 'fs'
@@ -218,7 +219,7 @@ if exist(fname)
       
    % data = fscanf(fid, '%s',fliplr(BLsize));
    % data = data';
-   data(data(:,2)==0)=nan;
+   % data(data(:,2)==0)=nan;
    % fclose(fid);
 else
    data = [];

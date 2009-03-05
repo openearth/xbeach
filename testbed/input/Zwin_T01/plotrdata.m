@@ -12,9 +12,6 @@ fid=fopen('zb.dat','r');
 fiz=fopen('zs.dat','r');
 fiu=fopen('u.dat','r');
 fiv=fopen('v.dat','r');
-fic=fopen('cc.dat','r');
-fifx=fopen('Fx.dat','r');
-fify=fopen('Fy.dat','r');
 t=[1:nt]*0.5-0.5;
 first=1
 for i=1:nt;
@@ -23,28 +20,25 @@ for i=1:nt;
     z=fread(fiz,[nx+1,ny+1],'double');
     u=fread(fiu,[nx+1,ny+1],'double');
     v=fread(fiv,[nx+1,ny+1],'double');
-    cc=fread(fic,[nx+1,ny+1],'double');
-    fy=fread(fify,[nx+1,ny+1],'double');
     zst(:,i)=z(:,ny/2+1);
     zbt(:,i)=zb(:,ny/2+1);
     ut(:,i)=u(:,ny/2+1);
     vt(:,i)=v(:,ny/2+1);
-    cct(:,i)=cc(:,ny/2+1);
     if i>0&mod(i,1)==0
-        %          figure(2);
-        %             subplot(221);pcolor(x,y,zb);shading interp;axis ([xmin xmax ymin ymax]);title('H')
-        %             caxis([-4 4]);colorbar;
-        %             subplot(222);pcolor(x,y,z);shading interp;axis ([xmin xmax ymin ymax]);title('zs')
-        %             caxis([0.5 3]);colorbar;
-        %             subplot(223);pcolor(x,y,u);shading interp;axis ([xmin xmax ymin ymax]);title('u')
-        %             caxis([-5 5]);colorbar;
-        %             subplot(224);pcolor(x,y,v);shading interp;axis ([xmin xmax ymin ymax]);title('v');
-        %             caxis([-5 5]);colorbar;
-        % %     figure(1);plot(u(:,end-4:end));legend('end-4','end-3','end-2','end-1','end')
-        % %        title(num2str(i));
-        % %     drawnow;pause
-        % %     fname=strcat(num2str(1000+i),'.jpg')
-        % %     print('-djpeg',fname)
+%                  figure(2);
+%                     subplot(221);pcolor(x,y,zb);shading interp;axis ([xmin xmax ymin ymax]);title('H')
+%                     caxis([-4 4]);colorbar;
+%                     subplot(222);pcolor(x,y,z);shading interp;axis ([xmin xmax ymin ymax]);title('zs')
+%                     caxis([0.5 3]);colorbar;
+%                     subplot(223);pcolor(x,y,u);shading interp;axis ([xmin xmax ymin ymax]);title('u')
+%                     caxis([-5 5]);colorbar;
+%                     subplot(224);pcolor(x,y,v);shading interp;axis ([xmin xmax ymin ymax]);title('v');
+%                     caxis([-5 5]);colorbar;
+%         %     figure(1);plot(u(:,end-4:end));legend('end-4','end-3','end-2','end-1','end')
+        %        title(num2str(i));
+        %     drawnow;pause
+        %     fname=strcat(num2str(1000+i),'.jpg')
+        %     print('-djpeg',fname)
         z(z-zb<0.001)=zb(z-zb<0.001)-.001;
         if first
             figure(1);set(gcf,'color','w')

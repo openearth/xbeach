@@ -66,19 +66,19 @@ subplot(311)
 plot(t2,w2,'k.',t,zst(35,:),'k-',t4,w4,'r.',t,zst(103,:),'r-','linewidth',2)
 xlabel('time (min.');ylabel('water level (m)')
 legend('MS2 obs','MS2 comp','MS4 obs','MS4 comp','location','southeast')
-a=load([datadir 'fig2\ms2.xyz']);
+a=load([datadir 'fig2\ms2.xyz');
 t2=a(:,1)/1000;v2=a(:,2)/10000;
-a=load([datadir 'fig2\ms3.xyz']);
+a=load('..\data\fig2\ms3.xyz');
 t3=a(:,1)/1000;v3=a(:,2)/10000;
-a=load([datadir 'fig2\ms4.xyz']);
+a=load('..\data\fig2\ms4.xyz');
 t4=a(:,1)/1000;v4=a(:,2)/10000;
-a=load([datadir 'fig2\ms5.xyz']);
+a=load('..\data\fig2\ms5.xyz');
 t5=a(:,1)/1000;v5=a(:,2)/10000;
 subplot(312)
 plot(t4,v4,'r.',t,ut(103,:),'r-','linewidth',2)
 xlabel('time (min.');ylabel('velocity (m/s)')
 legend('MS4 obs','MS4 comp','location','northeast')
-Bmeas=load([datadir 'B.txt'])
+Bmeas=load('..\data\B.txt')
 subplot(313)
 plot(Bmeas(:,1),Bmeas(:,2),'.k',t,Bt,'k-','linewidth',2)
 xlabel('time (min.');ylabel('breach width (m)')

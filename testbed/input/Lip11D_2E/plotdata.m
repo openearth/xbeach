@@ -74,6 +74,9 @@ out(:,2)=guls(1:180);
 tekal('write','guls.tek',out);
 out(:,2)=uemean(1:180);
 tekal('write','u_m_e_a_n.tek',out);
+tek(:,1)=xm(:);
+tek(:,2)=zbt(:,nt)-zbt(:,1);
+tekal('write','sedero.tek',tek);
 showbank
 plotpro
 x1=x(:,2);
