@@ -29,8 +29,9 @@ while 1
         ['Yu&Slinn_WCI'],                ... %11
         ['Zelt_Case1'],                  ... %12
         ['Zwin_T01'],                    ... %13
+        ['Deltaflume2006_T04'],          ... %14
         }
-    todo= [9]
+    todo= [14]
     for j=1:length(todo)
         i=todo(j);
         rundir=[testbankdir,filesep,runid,filesep,cases{i}];
@@ -49,7 +50,7 @@ while 1
         end
         %
         eval(['!',exe])
-        %plotdata
+        plotdata
         %     post
         %     showbank
     end
