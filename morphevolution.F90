@@ -193,7 +193,7 @@ do jg = 1,par%ngd
 											 !Jaap + Robert: 
 											 !- set source to zero in case of hard layer near surface or limited availability of a sediment fraction in the top layer
 											 !- use suspended fractions instead of bed fractions
-											 min(source(i,j),hold(i,j)*(ceqg(i,j,jg)*fract(i,j)-cc(i,j))/Tsg(i,j,jg)))
+											 hold(i,j)*(ceqg(i,j,jg)*fract(i,j)-cc(i,j))/Tsg(i,j,jg))
                                              !min(source(i,j),hold(i,j)*(ceqg(i,j,jg)*graindistr(i,j,1,jg)-cc(i,j))/Tsg(i,j,jg)))
 
          cc(i,j)=max(cc(i,j),0.0d0)
