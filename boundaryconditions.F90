@@ -42,7 +42,7 @@ type(spacepars), pointer                    :: s
 type(parameters)                            :: par
 type(waveparameters)                        :: wp
 
-integer                                     :: nt
+integer, save                               :: nt
 integer                                     :: i,new
 integer, save                               :: old
 integer                                     :: j
@@ -209,7 +209,7 @@ if(abs(par%t-par%dt)<1.d-6) then
         e01    = max(e01,0.0d0);
 
         if (abs(theta0)<1.d-9) theta0=1.d-9
-        par%Llong=par%Tlong*cg(1,1)/sin(theta0)
+        par%Llong=par%Tlong*cg(1,1)
 
     endif
     if (xmaster) then
