@@ -540,7 +540,7 @@ endif
 !   -------------------------
 !
 
-hloc   = max(hh,0.1d0) !Jaap par%hmin instead of par%eps
+hloc   = max(hh,0.01d0) !Jaap par%hmin instead of par%eps
 twothird=2.d0/3.d0
 delta = (par%rhos-par%rho)/par%rho
 ! use eulerian velocities
@@ -664,7 +664,8 @@ type(parameters)                        :: par
 
 character*80                            :: fnamet
 integer                                 :: i,nw,ii
-integer                                 :: ih0,it0,ih1,it1,nh,nt
+integer                                 :: ih0,it0,ih1,it1
+integer, save                           :: nh,nt
 integer                                 :: j,jg
 real*8                                  :: dster,onethird,twothird,Ass,dcf,dcfin,ML,fac
 real*8                                  :: Te,kvis,Sster,cc1,cc2,wster,z0,delta,smax
@@ -701,7 +702,7 @@ if (.not. allocated(vmg)) then
 endif
 
 delta = (par%rhos-par%rho)/par%rho
-hloc   = max(hh,0.10d0) 
+hloc   = max(hh,0.01d0) 
 onethird=1.d0/3.d0
 twothird=2.d0/3.d0
 !
