@@ -2,7 +2,6 @@ function pwh(s,m,par,nt,nx,ny,xw,yw);
 
 % setup
 s.setup = mean(s.zs-max(0,s.zb),2);
-
 % long wave height
 h = s.zs-s.zb;
 windowSize = 60; % ten seconds window 
@@ -14,7 +13,7 @@ end
 zs = h-hm;
 
 s.Hrms_lfm = sqrt(8)*std(zs')';
-s.Hrms_hfm = sqrt(mean(s.Hrms.^2,2));
+s.Hrms_hfm = sqrt(mean(s.H.^2,2));
 s.Hrms_m = sqrt(s.Hrms_hfm.^2 + s.Hrms_lfm.^2);
 
 % Analysis long waves
@@ -39,7 +38,7 @@ s.RR = -mean(s.uin.*s.Fx,2);
 % correlation short and longh waves
 s.rho = []; s.pval = [];
 for i = 1:nx
-    Rt = corrcoef(detrend(s.zs(i,:))',s.Hrms(i,:).^2');
+    Rt = corrcoef(detrend(s.zs(i,:))',s.H(i,:).^2');
     s.rho(i) = Rt(1,2);
 end
 
@@ -47,7 +46,7 @@ end
 s.Skm = mean(s.Sk,2);
 s.Asm = mean(s.As,2);
 s.usR = mean(2*s.R./(par.rho.*max(h,0.1).*s.c),2);
-s.usW = mean(0.125*par.g*s.Hrms.^2./(max(h,0.1).*s.c),2);
+s.usW = mean(0.125*par.g*s.H.^2./(max(h,0.1).*s.c),2);
 Beta = atan(s.Asm./s.Skm); B = sqrt(s.Asm.^2+s.Skm.^2);
 BetaFW =atan(m.Asu./m.Sku); BFW = sqrt(m.Asu.^2+m.Sku.^2);
 BetaMF =atan(m.AsuMF./m.SkuMF); BMF = sqrt(m.AsuMF.^2+m.SkuMF.^2);
@@ -87,7 +86,8 @@ print nonlinearity&phase.png -dpng
 
 % incoming and outgoing waves
 figure(5); set(gca,'FontSize',16);
-plot(xw(:,2),s.Hrms_lfm,'k','LineWidth',1.5); hold on; plot(m.xhrms,m.Hrms_lf,'kv','LineWidth',1.5);
+plot(xw(:,2),s.Hrms_lfm,'k','LineWidth',1.5); hold on; plot(m.xhrms,m.Hrms_lf,'kv','LineWidth',1.5); 
+plot(m.xhrms(1),m.Hrms_in,'ks','LineWidth',1.5); plot(m.xhrms(1),m.Hrms_out,'ko','LineWidth',1.5);
 plot(xw(:,2),s.Hrms_lfm_in,'k--','LineWidth',1.5); 
 plot(xw(:,2),s.Hrms_lfm_out,'k-.','LineWidth',1.5);
 % plot(xw(:,2),sqrt(s.Hrms_lfm_in.^2+s.Hrms_lfm_out.^2),'r--','LineWidth',1.5);
@@ -99,7 +99,7 @@ print incoming&outgoingwaves.png -dpng
 
 % roller energy, wave dissiipation and roller dissipation
 figure(6); set(gca,'FontSize',16);
-% plot(xw(:,2),mean(0.125*par.rho*par.g*s.Hrms.^2,2),'k','LineWidth',1.5);
+% plot(xw(:,2),mean(0.125*par.rho*par.g*s.H.^2,2),'k','LineWidth',1.5);
 plot(xw(:,2),mean(s.R,2),'k--','LineWidth',1.5); hold on;
 plot(xw(:,2),mean(s.DR,2),'k-.','LineWidth',1.5);
 plot(xw(:,2),mean(s.D,2),'k-','LineWidth',1.5);

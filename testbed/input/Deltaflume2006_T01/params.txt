@@ -10,6 +10,7 @@ xori     = 41.
 yori     = 0.
 alfa     = 0.
 posdwn   = -1
+scheme   = 2
 
 wave input
 
@@ -18,7 +19,7 @@ Hrms     = 1.02
 Trep     = 4.57
 dir0     = 270
 m        = 1024
-hmin     = 0.10
+hmin     = 0.20
 gamma    = 0.50
 alpha    = 1.
 delta    = 0.0
@@ -37,6 +38,7 @@ beta     = 0.1
 carspan  = 0
 swtable  = RF_table.txt
 rfb      = 1
+gammax   = 5
 
 flow input
 
@@ -46,9 +48,18 @@ C        = 65.
 eps      = 0.0001
 umin     = 0.0
 tstart   = 100
-tint     = 1.
-tstop    = 2260
+tint     = 10
+tstop    = 21700
 CFL      = 0.9
+
+groundwater
+gwflow   = 0
+kx       = 0.0001
+ky       = 0.0001
+kz       = 0.0003
+dwetlayer  = 0.1
+gw0      = -0.035
+aquiferbot = -4.5
 
 sed input
 
@@ -59,13 +70,14 @@ morfac   = 10
 morstart = 100
 por      = 0.4
 dryslp   = 1.0
-wetslp   = 0.15
-hswitch  = 0.05
+wetslp   = 0.10
+hswitch  = 0.10
 dico     = 1.
 form     = 2
-facua    = 0.25
-dzmax    = 0.005
+facua    = 0.10
+dzmax    = 0.003
 turb     = 2
+Tsmin    = 1
 
 
 output
@@ -84,7 +96,7 @@ urms
 ccg
 ceqg
 dzav
-Su
+Sug
 Fx
 D
 DR
