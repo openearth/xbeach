@@ -1,3 +1,4 @@
+function plotdata()
 clear all
 [runid,testid,datadir]=testinfo
 %sdir=pwd;
