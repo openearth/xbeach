@@ -1,3 +1,4 @@
+function plotpro()
 [runid,testid,datadir]=testinfo
 fid=fopen('dims.dat','r');
 nt=fread(fid,[1],'double')
@@ -38,7 +39,7 @@ subplot(224)
 plot(xp,zp(:,1),'k-',x(:,2),z{nt},'b--',xp,zp(:,9),'b-','linewidth',2)
 legend('0 hr','8 hr comp.','8 hr meas.','location','northwest')
 xlabel('x (m)');ylabel('z_b (m)');axis([100 200 2 6])
-pname = [testid '_' runid '_fig' '2' '.jpg'];
+pname = ['..\..\report\' testid '_' runid '_fig' '2' '.jpg'];
 eval(['print -djpeg ' pname]);
 fclose(fid)
 fclose(fi2)

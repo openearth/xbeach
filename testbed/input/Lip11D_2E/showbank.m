@@ -34,8 +34,10 @@ for idp = 1:length(plots)
             comp = readTekFirstBlock(fname)
             meas = readTekFirstBlock([datadir fname])
             if ( ~isempty(comp) & ~isempty(meas) )
-              [r2,slope,eps,bss]=compskill2(comp,meas,varname);
-              count = count+1;
+              [r2,slope,eps,bss]=compskill3(comp,meas,runid,testid,varname);
+              command=['!type ',varname,'.err>>..\..\report\',varname,'.err']
+               eval(command)
+               count = count+1;
                subplot (plots(idp).size(1),plots(idp).size(2),count);
                switch deblank(plots(idp).type)
                   case 'FX', PO = [1 2];
@@ -130,7 +132,7 @@ for idp = 1:length(plots)
 %   md_paper('portrait',strvcat(S1a,S1b),S2,S3,S4,S5,S6);
 %   shh=get(0,'showhiddenhandles');
 %   set(0,'showhiddenhandles','on');
-   pname = [testid '_' runid '_fig' num2str(idp) '.jpg'];
+   pname = ['..\..\report\',testid '_' runid '_fig' num2str(idp) '.jpg'];
    eval(['print -djpeg ' pname]);
 end
 

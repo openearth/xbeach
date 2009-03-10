@@ -1,3 +1,4 @@
+function plotdata()
 close all
 fid=fopen('dims.dat','r');
 nt=fread(fid,[1],'double')
