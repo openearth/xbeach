@@ -1,3 +1,4 @@
+function plotdata()
 clear s m
 
 %% coefficients and settings
