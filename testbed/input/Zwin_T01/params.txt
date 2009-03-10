@@ -52,7 +52,7 @@ umin=0.0
 tstart=0
 tint=30.
 tstop=3900.
-CFL=.25
+CFL=.5
 nuh=1.
 nuhfac=0.0
 
@@ -67,3 +67,14 @@ facsl    = 1.6
 wetslp = 0.3
 dryslp= 1
 tsfac = 0.1
+
+nglobalvar = 9
+zb
+zs
+hh
+u
+v
+ccg
+ceqg
+Sug
+Svg

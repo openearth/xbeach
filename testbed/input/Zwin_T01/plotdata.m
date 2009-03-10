@@ -1,3 +1,4 @@
+function plotdata()
 PN = fliplr(pwd);
 [runid,R] = strtok(PN,'\'); runid = fliplr(runid);
 [testid,R] = strtok(R,'\'); testid = fliplr(testid);
@@ -18,7 +19,7 @@ fid=fopen('zb.dat','r');
 fiz=fopen('zs.dat','r');
 fiu=fopen('u.dat','r');
 fiv=fopen('v.dat','r');
-t=[1:nt]*0.5-0.5;
+t=[1:nt]*0.5-5.5;
 first=1
 for i=1:nt;
     i
@@ -31,7 +32,7 @@ for i=1:nt;
     ut(:,i)=u(:,ny/2+1);
     vt(:,i)=v(:,ny/2+1);
     Bt(i)=min(y(zb==3.3&abs(x)<20&y>0))-max(y(zb==3.3&abs(x)<20&y<0));
-    if i==1
+    if 0%i==1
         figure(3);
         subplot(2,1,1,'position',[.1 .6 .6 .3] )
         plot(x,y,'k');hold on;plot(x',y','k');axis equal
@@ -76,11 +77,17 @@ a=load([datadir 'fig2\ms5.xyz']);
 t5=a(:,1)/1000;v5=a(:,2)/10000;
 subplot(312)
 plot(t4,v4,'r.',t,ut(103,:),'r-','linewidth',2)
+meas(:,1)=t4;meas(:,2)=v4;comp(:,1)=t;comp(:,2)=ut(103,:);
+[r2,slope,eps,bss]=compskill2(comp,meas,'u');
 xlabel('time (min.');ylabel('velocity (m/s)')
 legend('MS4 obs','MS4 comp','location','northeast')
 Bmeas=load([datadir 'B.txt'])
 subplot(313)
 plot(Bmeas(:,1),Bmeas(:,2),'.k',t,Bt,'k-','linewidth',2)
+comp(:,1)=t;comp(:,2)=Bt;
+[r2,slope,eps,bss]=compskill2(comp,Bmeas,'B');
 xlabel('time (min.');ylabel('breach width (m)')
 legend('B obs','B comp','location','southeast')
-print('-dpng','visser.png')
+print('-dpng',['..\..\report\' testid '_' runid '_fig1.png'])
+!type B.err>>..\..\report\B.err
+!type u.err>>..\..\report\u.err
