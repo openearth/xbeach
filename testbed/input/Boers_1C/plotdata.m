@@ -1,3 +1,4 @@
+function plotdata()
 clear variables
 close all
 [runid,testid,datadir]=testinfo
@@ -118,6 +119,7 @@ Hrmsloin=load([datadir 'Hrms_inc_LF.asc']);
 plot(Hrmsloin(:,1),Hrmsloin(:,2)*sqrt(2),'c*');
 Hrmsloout=load([datadir 'Hrms_out_LF.asc']);
 plot(Hrmsloout(:,1),Hrmsloout(:,2)*sqrt(2),'k*');
+axis([0 30 -.05 .15])
 grid on
 fclose(fiz)
 fclose(fib)
