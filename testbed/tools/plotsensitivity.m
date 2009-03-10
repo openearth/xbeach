@@ -6,6 +6,14 @@ while 1
     l = fgetl(fi)
     if isempty(l)|strcmp(l,'stop'), break, end
     runid=deblank(l);
+        %% Read parameters to change
+        l=fgetl(fi);
+        numpar=str2num(l);
+        for ip=1:numpar;
+            l=fgetl(fi);
+            key{ip}=deblank(strtok(l,'='));
+            value{ip}=deblank(fliplr(strtok(fliplr(l),'=')));
+        end
     tag=''
     cd ..
     testbankdir=pwd;
@@ -14,7 +22,7 @@ while 1
     else
         release='Release\'
     end
-    exe=[pwd,filesep,'tools',filesep,'run.bat']
+    exe='D:\data\dano\xbeach\vs2008\Release\xbeach.exe>out'
     cases ={ ...
         ['Boers_1C']                     ... %1
         ['Delilah_199010131000'],        ... %2
@@ -31,31 +39,23 @@ while 1
         ['Zwin_T01'],                    ... %13
         ['Deltaflume2006_T04'],          ... %14
         }
-    todo= [14]
+    todo= [9]
     for j=1:length(todo)
         i=todo(j);
         rundir=[testbankdir,filesep,runid,filesep,cases{i}];
         mkdir (rundir);
         cd (rundir);
-        input=['..',filesep,'..',filesep,'input', ...
-            filesep,cases{i},filesep,'*.*']
-        if ~isempty(dir(input))
-            copyfile (input,rundir,'f');
-            %% Change params.txt
-            l=fgetl(fi);
-            numpar=str2num(l);
-            for i=1:numpar;
-                l=fgetl(fi);
-                key=deblank(strtok(l,'='));
-                value=deblank(fliplr(strtok(fliplr(l),'=')));
-                insertkey('params.txt',key,value);
-            end
-            %
-            %eval(['!',exe])
-            plotdata
-            %     post
-            %     showbank
+        copyfile (['..',filesep,'..',filesep,'input', ...
+            filesep,cases{i},filesep,'*.*'],rundir,'f');
+        %% Change params.txt
+        for ip=1:numpar;
+            insertkey('params.txt',key{ip},value{ip});
         end
+        %
+        %eval(['!',exe])
+        plotdata
+        %     post
+        %     showbank
     end
     cd ([testbankdir,filesep,'tools']);
 end
