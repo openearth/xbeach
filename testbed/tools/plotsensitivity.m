@@ -24,7 +24,7 @@ while 1
     end
     exe='D:\data\dano\xbeach\vs2008\Release\xbeach.exe>out'
     cases ={ ...
-        ['Boers_1C']                     ... %1
+        ['Boers_1C'],                    ... %1
         ['Delilah_199010131000'],        ... %2
         ['Deltaflume2006_T01'],          ... %3
         ['Duck_base'],                   ... %4
@@ -39,7 +39,7 @@ while 1
         ['Zwin_T01'],                    ... %13
         ['Deltaflume2006_T04'],          ... %14
         }
-    todo= [9]
+    todo= [1]
     for j=1:length(todo)
         i=todo(j);
         rundir=[testbankdir,filesep,runid,filesep,cases{i}];

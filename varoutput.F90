@@ -184,17 +184,7 @@ subroutine init_output(s,sl,par,it)
 			  minlocation=minloc(mindist)
 			  xpoints(i)=1
 			  ypoints(i)=minlocation(2)
-			  ! Distance point to line = |Ax0+By0+C|/sqrt(A^2+B^2)
-			  ! where Ax+By+C=0 defines the line (world coordinates)
-			  ! and x0,y0 are the world coordinates of the point
-			  !
-			  ! y=Ax+C (B=1)
-			  ! A = tan(alfa)
-			  ! C = y(1,ypoints(i))/cos(90-alfa)
-			  ! distance = |tan(alfa)*x0+xori+y0+y(1,ypoints(i))/sin(alfa)|/sqrt(tan(alfa)^2+1)
-			  dist = abs(tan(s%alfa)*(xpointsw(i)-s%xori)+(ypointsw(i)-s%yori)+s%y(1,ypoints(i))&
-			                                  /max(sin(s%alfa),par%eps))/sqrt(tan(s%alfa)**2+1.d0)
-			  write(*,'(a,f8.2,a)')'Distance output point to nearest grid row ',dist, ' meters'
+			  write(*,*)'Runup gauge at grid line iy=',ypoints(i)
           enddo
           close(10)
         endif  ! nrugauge > 0	    

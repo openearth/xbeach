@@ -123,3 +123,5 @@ axis([0 30 -.05 .15])
 grid on
 fclose(fiz)
 fclose(fib)
+pname = ['..\..\report\',testid '_' runid '_fig1' '.jpg'];
+eval(['print -djpeg ' pname]);

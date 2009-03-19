@@ -115,14 +115,13 @@ wetslp   = 0.10
 
 ---------------------------------------------------- 
 
-rugauge = 1
 Output options
-npoints = 5
-121 1   1 zs#
-127 16  1 zs#
-141 33  1 zs#
-156 49  1 zs#
-162 65  1 zs#
+nrugauge = 5
+15 0  1 zs#
+15 2  1 zs#
+15 4  1 zs#
+15 6  1 zs#
+15 8  1 zs#
 
 nglobalvar = 5
 zb

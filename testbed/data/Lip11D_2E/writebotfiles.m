@@ -32,3 +32,8 @@ for i=1:19;
         title(fname);
     end
 end
+out(:,1)=time;
+out(:,2)=vero;
+tekal('write','vol.tek',out);
+out(:,2)=R-R(1);
+tekal('write','R.tek',out);

@@ -34,7 +34,7 @@ for idp = 1:length(plots)
             comp = readTekFirstBlock(fname)
             meas = readTekFirstBlock([datadir fname])
             if ( ~isempty(comp) & ~isempty(meas) )
-              [r2,slope,eps,bss]=compskill3(comp,meas,runid,testid,varname);
+              [r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,varname);
               command=['!type ',varname,'.err>>..\..\report\',varname,'.err']
                eval(command)
                count = count+1;
@@ -52,9 +52,6 @@ for idp = 1:length(plots)
                if plots(idp).type == 'FT'
                   set(ph(2),'markersize',1,'linewidth',1);
                end
-               xl=get(gca,'xlim');xtext=xl(1)+.1*(xl(2)-xl(1))
-               yl=get(gca,'ylim');ytext=yl(1)+.1*(yl(2)-yl(1))
-               text(xtext,ytext,['r^2=',round2(r2,2),' m=',round2(slope,2),' \epsilon=',round2(eps,2),' bss=',round2(bss,2)],'fontsize',8)
             end
             
          case 'fs'
@@ -89,7 +86,10 @@ for idp = 1:length(plots)
          end
          set(gca,'ygrid','on') 
          th = title(deblank(plots(idp).params(i,:))); set(th,'fontsize',8);
-         
+         %xl=get(gca,'xlim');xtext=xl(1)+.1*(xl(2)-xl(1))
+         %yl=get(gca,'ylim');ytext=yl(1)+.1*(yl(2)-yl(1))
+         %text(xtext,ytext,['r^2=',round2(r2,2),' m=',round2(slope,2),' \epsilon=',round2(eps,2),' bss=',round2(bss,2)],'fontsize',8)
+         xlabel(['r^2=',round2(r2,2),' SCI=',round2(sci,2),' rel. bias=',round2(relbias,2),' bss=',round2(bss,2)],'fontsize',8)
    end
    
    if ~isempty(plots(idp).cluster)

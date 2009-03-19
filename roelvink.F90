@@ -74,14 +74,12 @@ type(spacepars)                 :: s
 type(parameters)                :: par
 
 real*8                          :: fac
+integer                         :: i,j
 
-
-
-real*8,dimension(:,:),allocatable,save :: H,Qb,hroelvink
+real*8,dimension(:,:),allocatable,save :: H,hroelvink
 
 if (.not. allocated(H)) then
    allocate(H       (s%nx+1,s%ny+1))
-   allocate(Qb      (s%nx+1,s%ny+1))
    allocate(hroelvink(s%nx+1,s%ny+1))
 endif
 
@@ -91,14 +89,24 @@ fac=8.0d0/par%rho/par%g
 hroelvink=s%hh+par%delta*s%H
 
 H=sqrt(fac*s%E)
-Qb=min(1-exp(-(H/par%gamma/hroelvink)**par%n),1.0d0)
+if (par%break<4) then
+   s%Qb=min(1-exp(-(H/par%gamma/hroelvink)**par%n),1.0d0)
+else
+   do j=1,s%ny+1
+      do i=1,s%nx+1
+         if (H(i,j)>par%gamma *hroelvink(i,j)) s%Qb(i,j)=1.d0
+         if (H(i,j)<par%gamma2*hroelvink(i,j)) s%Qb(i,j)=0.d0
+      enddo
+   enddo
+   s%Qb=max(s%Qb,0.d0)
+endif
 
 ! cjaap : two options:
 if (par%break==1) then
-   s%D=Qb*2*par%alpha/par%Trep*s%E
-elseif (par%break==3) then
-   ! s%D=Qb*2.*par%alpha/par%Trep*s%E*H/hroelvink; !breaker delay depth for dissipation in bore and fraction of breaking waves
-   s%D=Qb*2*par%alpha/par%Trep*s%E*H/s%hh        !breaker delay depth for fraction breaking waves and actual water depth for disipation in bore
+   s%D=s%Qb*2*par%alpha/par%Trep*s%E
+elseif (par%break>2) then
+   ! s%D=s%Qb*2.*par%alpha/par%Trep*s%E*H/hroelvink; !breaker delay depth for dissipation in bore and fraction of breaking waves
+   s%D=s%Qb*2*par%alpha/par%Trep*s%E*H/s%hh        !breaker delay depth for fraction breaking waves and actual water depth for disipation in bore
 end if
 
 end subroutine roelvink
@@ -111,12 +119,12 @@ subroutine baldock1(E,hh,k,Trep,alpha,gamma,rho,g,delta,D,ntot)
   real*8                          :: fac,rho,g,delta,alpha,gamma,Trep
 
 
-  real*8,dimension(:),allocatable,save :: H,Qb,Hb,kh,tkh,hbaldock
+  real*8,dimension(:),allocatable,save :: H,Hb,Qb,kh,tkh,hbaldock
   
   if (.not. allocated(H)) then
      allocate(H       (ntot))
-     allocate(Qb      (ntot))
      allocate(Hb      (ntot))
+     allocate(Qb      (ntot))
      allocate(kh      (ntot))
      allocate(tkh     (ntot))
      allocate(hbaldock(ntot))
@@ -152,11 +160,10 @@ subroutine baldock(par,s)
   integer                         :: alpha
 
 
-  real*8,dimension(:,:),allocatable,save :: H,Qb,Hb,kh,tkh,hbaldock
+  real*8,dimension(:,:),allocatable,save :: H,Hb,kh,tkh,hbaldock
   if (.not. allocated(H)) then
      allocate(H       (s%nx+1,s%ny+1))
-     allocate(Qb      (s%nx+1,s%ny+1))
-     allocate(Hb      (s%nx+1,s%ny+1))
+      allocate(Hb      (s%nx+1,s%ny+1))
      allocate(kh      (s%nx+1,s%ny+1))
      allocate(tkh     (s%nx+1,s%ny+1))
      allocate(hbaldock(s%nx+1,s%ny+1))
@@ -175,8 +182,8 @@ subroutine baldock(par,s)
 
   ! Wave dissipation acc. to Baldock et al. 1998
   Hb = (0.88d0/s%k)*tanh(par%gamma*kh/0.88d0)
-  Qb = exp(-(Hb/max(H,0.00001d0))**2)
-  s%D = 0.25d0*alpha*Qb*par%rho*(1.d0/par%Trep)*par%g*(Hb**2+H**2)
+  s%Qb = exp(-(Hb/max(H,0.00001d0))**2)
+  s%D = 0.25d0*alpha*s%Qb*par%rho*(1.d0/par%Trep)*par%g*(Hb**2+H**2)
 
 end subroutine baldock
 

@@ -16,6 +16,8 @@ fiurms=fopen('urms.dat','r');
 fiu=fopen('u.dat','r');
 fiue=fopen('ue.dat','r');
 it=0
+xm=x(:,2);
+level=4.6;
 zbt=zeros(nx+1,nt-300);
 zst=zeros(nx+1,nt-300);
 ut=zeros(nx+1,nt-300);
@@ -33,7 +35,7 @@ for i=1:nt;
         z0=zb;
     end
     
-    if mod(i,1)==0&i>300
+    if mod(i,1)==0&i>298
         it=it+1;
         zbt(:,it)=zb(:,2);
         zst(:,it)=zs(:,2);
@@ -41,10 +43,11 @@ for i=1:nt;
         uet(:,it)=ue(:,2);
         hrmst(:,it)=hrms(:,2);
         urmst(:,it)=urms(:,2);
+        [vsed(it),vero(it),R(it)]=profana(xm,min(zbt(:,1),5.8),zbt(:,it),level);
+        time(it)=(it-1)*10/3600;
     end
 end;
 fclose(fid)
-xm=x(:,2);
 zsm=mean(zst,2);
 Hrms_hi=sqrt(mean(hrmst.^2,2));
 t=[0:size(zbt,2)-1];nt=length(t);
@@ -78,6 +81,11 @@ tekal('write','u_m_e_a_n.tek',out);
 tek(:,1)=xm(:);
 tek(:,2)=zbt(:,nt)-zbt(:,1);
 tekal('write','sedero.tek',tek);
+out2(:,1)=time;
+out2(:,2)=vero;
+tekal('write','vol.tek',out2);
+out2(:,2)=R-R(1);
+tekal('write','R.tek',out2);
 showbank
 plotpro
 x1=x(:,2);

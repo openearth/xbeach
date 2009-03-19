@@ -48,6 +48,7 @@ if (xmaster) then
   allocate(s%R(1:s%nx+1,1:s%ny+1)) 
   allocate(s%urms(1:s%nx+1,1:s%ny+1)) 
   allocate(s%D(1:s%nx+1,1:s%ny+1)) 
+  allocate(s%Qb(1:s%nx+1,1:s%ny+1)) 
   allocate(s%ust(1:s%nx+1,1:s%ny+1)) 
   allocate(s%tm(1:s%nx+1,1:s%ny+1)) 
   allocate(s%uwf(1:s%nx+1,1:s%ny+1)) 
@@ -218,6 +219,7 @@ if (xmaster) then
   s%R         = 0.d0
   s%urms      = 0.d0
   s%D         = 0.d0
+  s%Qb        = 0.d0
   s%ust       = 0.d0
   s%tm        = 0.d0
   s%uwf       = 0.d0

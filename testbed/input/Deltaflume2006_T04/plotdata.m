@@ -1,3 +1,4 @@
+function plotdata()
 %% coefficients and settings
 [runid,testid,datadir]=testinfo
 fid = fopen([datadir 'datanam.txt']);

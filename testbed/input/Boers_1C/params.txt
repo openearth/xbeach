@@ -127,9 +127,10 @@ npoints = 5
 156 2 2 zs#H#
 162 2 2 zs#H#
 
-nglobalvar = 5
+nglobalvar = 6
 zb
 dims
 zs
 H
 u
+Qb

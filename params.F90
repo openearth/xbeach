@@ -13,6 +13,7 @@ real*8     :: gammax    = -123 ! maximum ratio Hrms/hh
 real*8     :: Tlong     = -123 ! wave group period for case instat=1
 real*8     :: Llong     = -123 ! alongshore wave group length for case instat=1
 real*8     :: gamma     = -123 ! breaker parameter in Baldock or Roelvink formulation
+real*8     :: gamma2    = -123 ! breaker parameter in new Roelvink formulation
 real*8     :: delta     = -123 ! fraction of wave height to add to depth in computation of celerity
 real*8     :: rho       = -123 ! water density
 real*8     :: g         = -123 ! acceleration of gravity
@@ -223,6 +224,7 @@ end if
 par%hmin  = readkey_dbl ('params.txt','hmin',   0.01d0,   0.001d0,      1.d0)
 par%gammax= readkey_dbl ('params.txt','gammax',   2.d0,      .4d0,      5.d0)    !changed 28/11
 par%gamma = readkey_dbl ('params.txt','gamma',   0.55d0,     0.4d0,     0.9d0)   !changed 28/11
+par%gamma2= readkey_dbl ('params.txt','gamma2',   0.3d0,     0.0d0,     0.5d0)   !added 16/3/09
 par%alpha = readkey_dbl ('params.txt','alpha',   1.0d0,     0.5d0,     2.0d0)
 par%delta = readkey_dbl ('params.txt','delta',   0.0d0,     0.0d0,     1.0d0)
 par%n    =  readkey_dbl ('params.txt','n',       10.0d0,     5.0d0,    20.0d0)   !changed 28/11

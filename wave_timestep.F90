@@ -234,6 +234,13 @@ if(par%break == 1 .or. par%break == 3)then
     call roelvink(par,s)
 else if(par%break == 2)then
     call baldock(par,s)
+else if (par%break == 4) then
+        cgxm = cg*cos(tm) 
+        cgym = cg*sin(tm)
+        call advecqx(cgxm,Qb,xwadvec,nx,ny,xz)
+        call advecqy(cgym,Qb,ywadvec,nx,ny,yz)
+        Qb=Qb-par%dt*(xwadvec+ywadvec)
+        call roelvink(par,s)        
 end if
 !
 ! Distribution of dissipation over directions and frequencies
@@ -899,6 +906,80 @@ call xmpi_shift(ywadvec,':1') !      fill in yadvec(:,1)
 #endif
 
 end subroutine advecwy
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+subroutine advecqx(c,arrin2d,xwadvec,nx,ny,xz)
+use xmpi_module
+
+IMPLICIT NONE
+
+integer                                         :: i,nx,ny
+integer                                         :: j
+real*8 , dimension(nx+1)                        :: xz
+real*8 , dimension(nx+1,ny+1)                   :: xwadvec,arrin2d,c
+
+xwadvec = 0.d0
+
+do j=2,ny
+    do i=2,nx   
+        if (c(i,j)>0) then
+           xwadvec(i,j)=c(i,j)*(arrin2d(i,j)-arrin2d(i-1,j))/(xz(i)-xz(i-1))
+        elseif (c(i,j)<0) then
+           xwadvec(i,j)=c(i,j)*(arrin2d(i+1,j)-arrin2d(i,j))/(xz(i+1)-xz(i))
+        else
+           xwadvec(i,j)=c(i,j)*(arrin2d(i+1,j)-arrin2d(i-1,j))/(xz(i+1)-xz(i-1))
+        endif
+    end do
+end do
+
+xwadvec(:,1)= xwadvec(:,2)          !Ap
+xwadvec(:,ny+1) = xwadvec(:,ny)     !Ap
+
+#ifdef USEMPI
+call xmpi_shift(xwadvec,'m:') ! fill in xwadvec(nx+1,:)
+call xmpi_shift(xwadvec,'1:') ! fill in xwadvec(1,:)
+call xmpi_shift(xwadvec,':n') ! fill in xwadvec(:,ny+1)
+call xmpi_shift(xwadvec,':1') ! fill in xwadvec(:,1)
+#endif
+
+end subroutine advecqx
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+
+subroutine advecqy(c,arrin2d,ywadvec,nx,ny,yz)
+use xmpi_module
+use xmpi_module
+IMPLICIT NONE
+
+integer                                         :: i,nx,ny
+integer                                         :: j
+real*8 , dimension(ny+1)                        :: yz
+real*8 , dimension(nx+1,ny+1)                   :: ywadvec,arrin2d,c
+
+ywadvec = 0.d0
+
+do j=2,ny
+    do i=2,nx
+        if (c(i,j)>0) then
+           ywadvec(i,j)=c(i,j)*(arrin2d(i,j)-arrin2d(i,j-1))/(yz(j)-yz(j-1))
+        elseif (c(i,j)<0) then
+           ywadvec(i,j)=c(i,j)*(arrin2d(i,j+1)-arrin2d(i,j))/(yz(j+1)-yz(j))
+        else
+           ywadvec(i,j)=c(i,j)*(arrin2d(i,j+1)-arrin2d(i,j-1))/(yz(j+1)-yz(j-1))
+        endif
+    end do
+end do
+
+#ifdef USEMPI
+call xmpi_shift(ywadvec,'m:') ! wwvv fill in yadvec(nx+1,:)
+call xmpi_shift(ywadvec,'1:') !      fill in yadvec(1,:)
+call xmpi_shift(ywadvec,':n') !      fill in yadvec(:,ny+1)
+call xmpi_shift(ywadvec,':1') !      fill in yadvec(:,1)
+#endif
+
+end subroutine advecqy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

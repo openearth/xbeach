@@ -8,28 +8,28 @@ nt=fread(fid,[1],'double')
 nx=fread(fid,[1],'double')
 ny=fread(fid,[1],'double')
 fclose(fid)
-fip=fopen('point001.dat');
-for i=1:nt*10
+fip=fopen('rugau001.dat');
+for i=1:(nt-1)*10+1
     data1(i,:)=fread(fip,[2 1],'double');
 end
 fclose(fip)
-fip=fopen('point002.dat');
-for i=1:nt*10
+fip=fopen('rugau002.dat');
+for i=1:(nt-1)*10+1
     data2(i,:)=fread(fip,[2 1],'double');
 end
 fclose(fip)
-fip=fopen('point003.dat');
-for i=1:nt*10
+fip=fopen('rugau003.dat');
+for i=1:(nt-1)*10+1
     data3(i,:)=fread(fip,[2 1],'double');
 end
 fclose(fip)
-fip=fopen('point004.dat');
-for i=1:nt*10
+fip=fopen('rugau004.dat');
+for i=1:(nt-1)*10+1
     data4(i,:)=fread(fip,[2 1],'double');
 end
 fclose(fip)
-fip=fopen('point005.dat');
-for i=1:nt*10
+fip=fopen('rugau005.dat');
+for i=1:(nt-1)*10+1
     data5(i,:)=fread(fip,[2 1],'double');
 end
 fclose(fip)
