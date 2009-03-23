@@ -457,7 +457,6 @@ call xmpi_bcast(par%zs04)
 call xmpi_bcast(par%tideloc)
 call xmpi_bcast(par%paulrevere)
 call xmpi_bcast(par%tidelen)
-call xmpi_bcast(par%A)
 call xmpi_bcast(par%dico)
 call xmpi_bcast(par%facsl)
 call xmpi_bcast(par%nuh)
@@ -605,7 +604,6 @@ subroutine printparams(par,str)
   write(f,*) 'printpar ',id,' ','tideloc:',par%tideloc
   write(f,*) 'printpar ',id,' ','paulrevere:',par%paulrevere
   write(f,*) 'printpar ',id,' ','tidelen:',par%tidelen
-  write(f,*) 'printpar ',id,' ','A:',par%A
   write(f,*) 'printpar ',id,' ','dico:',par%dico
   write(f,*) 'printpar ',id,' ','facsl:',par%facsl
   write(f,*) 'printpar ',id,' ','nuh:',par%nuh
