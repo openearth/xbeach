@@ -1,0 +1,9 @@
+T04data.mat
+7
+rhos   = 2650
+rho    = 1000
+g      = 9.81
+morfac = 1
+tint   = 1
+np     = 0.4
+Tp     = 7.35

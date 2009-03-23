@@ -1,0 +1,11 @@
+T01data.mat
+9
+rhos   = 2650
+rho    = 1000
+g      = 9.81
+morfac = 10
+tint   = 1
+np     = 0.4
+Tp     = 4.9
+hmin   = 0.2
+test   = T01

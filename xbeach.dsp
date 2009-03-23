@@ -291,10 +291,6 @@ DEP_F90_VAROU=\
 # End Source File
 # Begin Source File
 
-SOURCE=.\vsm_u.f90
-# End Source File
-# Begin Source File
-
 SOURCE=.\wave_stationary.f90
 DEP_F90_WAVE_=\
 	".\Release_NoMPI\params.mod"\

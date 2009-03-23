@@ -1,0 +1,127 @@
+----------------------------------------------------
+
+Grid input
+
+nx       = 120
+ny       = 106
+xori     = 0.
+yori     = 0.
+alfa     = 180.
+depfile  = z.dep
+vardx    = 1
+dx       = 5.
+dy       = 10.
+xfile    = x.grd
+yfile    = y.grd
+posdwn   = -1
+thetamin = -75. 
+thetamax = 45. 
+dtheta   = 15.
+
+----------------------------------------------------
+
+Numerics input
+CFL      = 0.5
+eps      = 0.01
+back = 1
+scheme = 2
+
+----------------------------------------------------
+
+Time input
+tstart   = 0
+tint     = 1.
+tstop    = 3600.
+taper    = 100
+nt       = 12000
+
+----------------------------------------------------
+
+General constants
+rho      = 1025 
+g        = 9.81 
+
+----------------------------------------------------
+
+Boundary condition options
+zs0file  = surge.txt
+tideloc  = 1
+zs0      = -0.20
+tidelen  = 12
+paulrevere = 1
+instat   = 6
+
+Required for instat 0,1,2,6
+dir0     = 270.
+
+Required for instat 0,1,2,6
+Hrms     = 0.5
+Tm01     = 3.5 
+m        = 1024
+
+Required for instat 0
+waveint    = 1
+
+Required for instat 1
+Tlong    = 24.5
+
+Required for instat 4 (if SWAN is carthesian)
+dthetaS_XB  = 0.
+
+Required for instat 3,4,5,7
+bcfile   = spectrum101310.txt
+
+if file is reused, else this information in file-list:
+rt       = 1800.
+dtbcfile = 0.5
+
+----------------------------------------------------
+
+Wave calculation options
+break    = 3
+wci      = 0
+roller   = 1
+beta     = 0.1
+gamma    = 0.45
+gammax   = 5.
+alpha    = 1.
+delta    = 0.0 
+n        = 15.
+
+----------------------------------------------------
+
+Flow calculation options
+nuh      = 0.1
+nuhv     = 0.0
+hmin     = 0.1
+C        = 65.
+umin     = 0.05
+
+----------------------------------------------------
+
+Sediment transport calculation options
+dico	 = 1. 
+D50      = 0.0002 
+D90      = 0.0003 
+rhos     = 2650
+z0       = 0.006
+
+----------------------------------------------------
+
+Morphological calculation options
+morfac   = 1
+morstart = 1000000
+por      = 0.4
+dryslp   = 1.0
+wetslp   = 0.10 
+
+---------------------------------------------------- 
+
+Output options
+nglobalvar = 6
+H
+zb
+dims
+zs
+ue
+ve

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VisualStudioProject ProjectCreator="Intel Fortran" Keyword="Console Application" Version="11.0" ProjectIdGuid="{72E3F77D-F93B-44E1-B765-F01069CE7394}">
+	<Platforms>
+		<Platform Name="Win32"/></Platforms>
+	<Configurations>
+		<Configuration Name="Debug|Win32">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" Interfaces="true" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Release|Win32">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" Traceback="true" BoundsCheck="true"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_Debug|Win32">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="C:\Program Files\MPICH2\include" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME" Interfaces="true" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" AdditionalLibraryDirectories="C:\Program Files\MPICH2\lib" GenerateDebugInformation="true" SubSystem="subSystemConsole" AdditionalDependencies="mpi.lib fmpich2.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_Release|Win32">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes" AdditionalIncludeDirectories="C:\Program Files\MPICH2\include" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" AdditionalLibraryDirectories="C:\Program Files\MPICH2\lib" SubSystem="subSystemConsole" AdditionalDependencies="mpi.lib fmpich2.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration></Configurations>
+	<Files>
+		<Filter Name="Header Files" Filter="fi;fd;gen"/>
+		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
+		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
+		<File RelativePath="..\boundaryconditions.F90"/>
+		<File RelativePath="..\constants.F90"/>
+		<File RelativePath="..\flow_timestep.F90"/>
+		<File RelativePath="..\general_mpi.F90"/>
+		<File RelativePath="..\groundwater.F90"/>
+		<File RelativePath="..\initialize.F90"/>
+		<File RelativePath="..\interp.F90"/>
+		<File RelativePath="..\math_tools.F90"/>
+		<File RelativePath="..\mnemonic.F90"/>
+		<File RelativePath="..\morphevolution.F90"/>
+		<File RelativePath="..\nonhydrostatic.F90"/>
+		<File RelativePath="..\output.F90"/>
+		<File RelativePath="..\params.F90"/>
+		<File RelativePath="..\readkey.F90"/>
+		<File RelativePath="..\readtide.F90"/>
+		<File RelativePath="..\roelvink.F90"/>
+		<File RelativePath="..\spaceparams.F90"/>
+		<File RelativePath="..\timestep.F90"/>
+		<File RelativePath="..\varoutput.F90"/>
+		<File RelativePath="..\wave_stationary.F90"/>
+		<File RelativePath="..\wave_timestep.F90"/>
+		<File RelativePath="..\waveparams.F90"/>
+		<File RelativePath="..\xbeach.F90"/>
+		<File RelativePath="..\xmpi.F90"/></Filter>
+		<File RelativePath=".\chartoindex.gen"/>
+		<File RelativePath=".\indextos.gen"/>
+		<File RelativePath=".\mnemonic.gen"/>
+		<File RelativePath="..\s.ind"/>
+		<File RelativePath="..\s.inp"/>
+		<File RelativePath=".\space_alloc_arrays.gen"/>
+		<File RelativePath=".\space_alloc_scalars.gen"/>
+		<File RelativePath=".\space_ind.gen"/>
+		<File RelativePath=".\space_inp.gen"/>
+		<File RelativePath=".\spacedecl.gen"/></Files>
+	<Globals/></VisualStudioProject>

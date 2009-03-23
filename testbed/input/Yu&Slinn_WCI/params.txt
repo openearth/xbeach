@@ -1,0 +1,59 @@
+grid input
+
+nx      = 70
+ny      = 50
+dx      = 10.
+dy      = 10.
+xori    = 0.
+yori    = 0.
+alfa    = 0.
+depfile = deprip
+posdwn  = -1
+
+wave input
+
+Hrms  = 1.
+Tm01  = 5.
+dir0  = 270.
+m     = 100
+nt    = 1000   
+hmin  = 0.01
+Tlong = 31.6228
+gamma = 0.45
+alpha = 1.
+delta = 0.0
+n    =  10.
+rho   = 1025
+g     = 9.81
+thetamin = -40.
+thetamax = 40.
+dtheta   = 5.
+wci      = 1
+break    = 1
+instat   = 0
+beta     = 0.1
+bcfile   = jonswap1.inp
+
+flow input
+
+zs0file  = zs0input.dat
+tideloc  = 1
+paulrevere = 0
+tidelen  = 2
+C=65.
+eps=0.01
+umin=0.1
+tstart=1
+tint= 10.
+tstop=1000
+CFL=0.1
+nuh=1.0
+
+sed input
+
+A        = 2.e-3
+dico     = 1.
+D50      = 0.00035
+D90      = 0.00050
+rhos     = 2650
+morfac   = 0.0

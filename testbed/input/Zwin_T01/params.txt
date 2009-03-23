@@ -1,0 +1,80 @@
+grid input
+
+nx      = 135
+ny      = 100
+dx      = 100
+dy      = 100
+xori    = 0.
+yori    = 0.
+alfa    = 0.
+depfile = zbnew
+xfile   = xnew
+yfile   = ynew
+posdwn  = -1
+vardx   = 1
+
+wave input
+
+Hrms  = 0.001
+Tm01  = 10.
+dir0  = 270.
+m     = 10
+nt    = 200000
+hmin  = 0.001
+Tlong = 80.
+gamma = 0.8
+alpha = 1.
+delta = 0.0
+n    =  10.
+rho   = 1025
+g     = 9.81
+thetamin = -90.
+thetamax = 90.
+dtheta   = 180.
+wci      = 0
+break    = 2
+instat   = 0
+wavint   = 200000
+
+flow input
+
+zs0file  = zs0input.dat
+tideloc  = 2
+paulrevere = 0
+tidelen  = 68
+front = 0
+left  = 1
+right = 1
+back  = 1
+C=65.
+eps=0.005
+umin=0.0
+tstart=0
+tint=30.
+tstop=3900.
+CFL=.5
+nuh=1.
+nuhfac=0.0
+
+sed input
+
+dico     = 1.
+D50      = 0.0003
+D90      = 0.00045
+rhos     = 2650
+morfac   = 1.0
+facsl    = 1.6
+wetslp = 0.3
+dryslp= 1
+tsfac = 0.1
+
+nglobalvar = 9
+zb
+zs
+hh
+u
+v
+ccg
+ceqg
+Sug
+Svg

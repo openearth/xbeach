@@ -1,0 +1,130 @@
+----------------------------------------------------
+
+Grid input
+
+nx       = 50
+ny       = 2
+dx       = 1
+dy       = 1
+xori     = 0.
+yori     = 0.
+alfa     = 0.
+posdwn   = -1
+depfile  = bed.dep
+vardx    = 0
+thetamin = -1. 
+thetamax = 1. 
+dtheta   = 2.
+
+----------------------------------------------------
+
+Numerics input
+CFL      = 0.9
+eps      = 0.01
+
+----------------------------------------------------
+
+Time input
+tstart   = 0
+tint     = 1.
+tstop    = 1000.
+taper	 = 1
+----------------------------------------------------
+
+General constants
+rho      = 1025 
+g        = 9.81 
+
+----------------------------------------------------
+
+Boundary condition options
+zs0file  = tideinput.dat
+tideloc  = 2
+zs0      = 0
+tidelen  = 2
+paulrevere = 0
+instat   = 1
+back     = 2
+epsi     = 1
+
+Required for instat 0,1,2,6
+dir0     = 270.
+
+Required for instat 0,1,2,6
+Hrms     = 0.5
+Tm01     = 5
+Tlong    = 35
+m        = 10
+
+----------------------------------------------------
+
+Wave calculation options
+break    = 3
+wci      = 0
+roller   = 1
+beta     = 0.1
+refl 	 = 0
+gamma    = 0.5
+alpha    = 1.0
+delta    = 0.0 
+n        = 10.
+gammax	 = 5.
+
+----------------------------------------------------
+
+Flow calculation options
+nuh      = 0.1
+hmin     = 0.1
+C        = 65.
+umin     = 0.0
+
+----------------------------------------------------
+
+Sediment transport calculation options
+rhos     = 2650
+dico	 = 1.0
+ngd      = 1
+nd       = 20
+dzg      = 0.2
+D50      = 0.0002
+D90      = 0.0003
+sedcal1  = 1
+D502     = 0.0002
+D902     = 0.0003
+sedcal2  = 0
+D503     = 0.0002
+D903     = 0.0003
+sedcal3  = 1
+gdist    = graindist.grd
+struct   = 1
+ne_layer = hardlayer.dep
+
+
+hswitch  = 0.1
+
+----------------------------------------------------
+
+Morphological calculation options
+morfac   = 10
+morstart = 1
+por      = 0.4
+dryslp   = 1.0
+wetslp   = 0.15 
+
+---------------------------------------------------- 
+
+Output options
+
+nglobalvar = 12
+dims
+H
+zb
+zs
+u
+v
+ue
+ve
+dzav
+cc
+Su
+ceq
