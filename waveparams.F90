@@ -261,6 +261,8 @@ wp%Sf = sum(wp%S_array, DIM = 2)*wp%dang
 
 call tpDcalc(wp%Sf,wp%f,par%Trep)
 par%Trep=1.d0/par%Trep
+! Jaap try Tm-1,0
+! par%Trep = 1/fp/1.1d0
 
 allocate(temp(size(wp%Sf)))
 temp=0.d0
@@ -388,7 +390,7 @@ endif
 ! Convert angles to XBeach angles and radians
 
 if (switch == 1) then
-    wp%theta = 270-s%alfa-wp%theta
+	wp%theta = 270-s%alfa/par%px*180.d0-wp%theta
 else
     wp%theta = wp%theta-dthetaS_XB                  ! dthetaS_XB is the angle in the degrees to rotate the x-axis in SWAN to the
                                                     ! x-axis in XBeach (in Cartesian terms) (Have Fun :-))
@@ -549,7 +551,6 @@ wp%S_array=wp%S_array*factor
 if(xmaster) then
   close(44)                               ! Finished reading file
 endif
-
 
 ! Convert to m2/Hz/rad
 
@@ -1478,6 +1479,7 @@ where (Sf>0.8*maxval(Sf))
 end where
 
 Trep=sum(temp*Sf*f)/sum(temp*Sf)
+
 
 end subroutine tpDcalc
 
