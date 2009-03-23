@@ -1,1 +1,1 @@
-D:\data\dano\xbeach\VS2008\Release\xbeach>out
+F:\subversion_xbeach\trunk\Release_NoMPI\xbeach.exe
