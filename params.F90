@@ -72,7 +72,7 @@ real*8     :: paulrevere= -123 ! if tideloc =>2, then this indicates where the t
                                !      NOTE:  clockwise from (1,1) corner 
 integer*4  :: tidelen   = -123 ! length of input tidal time series 
 real*8     :: A         = -123 ! obsolete
-real*8     :: dico      = -123 ! diffusion coefficient
+!real*8     :: dico      = -123 ! diffusion coefficient
 real*8     :: facsl     = -123 ! factor bedslope effect
 real*8     :: nuh       = -123 ! horizontal background viscosity 
 real*8     :: nuhfac    = -123 ! viscosity coefficient for roller induced turbulent horizontal viscosity
@@ -154,8 +154,13 @@ real*8     :: kx       = -123  ! Darcy-flow permeability coefficient in x-direct
 real*8     :: ky       = -123  ! Darcy-flow permeability coefficient in y-direction [m/s]
 real*8     :: kz       = -123  ! Darcy-flow permeability coefficient in y-direction [m/s]
 real*8     :: dwetlayer  = -123  ! Thickness of the top soil layer interacting more freely with the surface water
+<<<<<<< .mine
+real*8     :: vonkar   = -123  ! von Karman constant
+real*8     :: vicmol   = -123  ! molecular viscosity
+=======
 integer*4  :: maxiter  = -123  ! maximum number of iterations in wave stationary
 real*8     :: maxerror = -123  ! maximum wave height error in wave stationary iteration
+>>>>>>> .r198
 
 
 end type parameters
@@ -312,6 +317,8 @@ par%nonh    = readkey_int ('params.txt','nonh',        0,         0,      1)
 par%nuhv    = readkey_dbl ('params.txt','nuhv',     1.d0,      1.d0,    20.d0)
 par%lat     = readkey_dbl ('params.txt','lat',     0.d0,      0.d0,   90.d0)
 par%wearth  = readkey_dbl ('params.txt','omega',   1.d0/24.d0, 0.d0,    1.d0)
+par%vonkar  = readkey_dbl ('params.txt','vonkar',   0.4d0,     0.01d0,  1.d0)
+par%vicmol  = readkey_dbl ('params.txt','vicmol',   1e-6,   0.d0,    0.001d0)
 ! Convert from Nautical to cartesian convention
 par%windth=(270.d0-par%windth)*par%px/180.d0
 par%lat = par%lat*par%px/180.d0
@@ -335,7 +342,7 @@ implicit none
 type(parameters)            :: par
 
 
-par%dico     = readkey_dbl ('params.txt','dico',    1.d0,        0.d0,    10.d0)
+!par%dico     = readkey_dbl ('params.txt','dico',    1.d0,        0.d0,    10.d0)
 par%ngd      = readkey_int ('params.txt','ngd',        1,           1,        2)
 par%nd       = readkey_int ('params.txt','nd',        1,           1,        20)
 par%dzg      = readkey_dbl ('params.txt','dzg',    0.1d0,      0.01d0,     1.d0)
@@ -604,7 +611,7 @@ subroutine printparams(par,str)
   write(f,*) 'printpar ',id,' ','tideloc:',par%tideloc
   write(f,*) 'printpar ',id,' ','paulrevere:',par%paulrevere
   write(f,*) 'printpar ',id,' ','tidelen:',par%tidelen
-  write(f,*) 'printpar ',id,' ','dico:',par%dico
+!  write(f,*) 'printpar ',id,' ','dico:',par%dico
   write(f,*) 'printpar ',id,' ','facsl:',par%facsl
   write(f,*) 'printpar ',id,' ','nuh:',par%nuh
   write(f,*) 'printpar ',id,' ','nuhfac:',par%nuhfac
