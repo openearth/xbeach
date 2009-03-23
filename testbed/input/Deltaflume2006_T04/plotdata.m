@@ -106,24 +106,26 @@ s.rho = []; s.pval = [];
 %% figures;
 dxext = 0;
 % hydrodynamics
-figure(1);
-subplot(221);
+figure(1); 
+subplot(221); set(gca,'FontSize',12);
 plot(xw,s.Hrms_m,'k-','LineWidth',1.5); hold on; plot(xhrms+dxext,Hrms,'ks','LineWidth',1.5);
 plot(xw,s.Hrms_hfm,'k--','LineWidth',1.5); hold on; plot(xhrms+dxext,Hrms_hf,'k^','LineWidth',1.5);
 plot(xw,s.Hrms_lfm,'k-.','LineWidth',1.5); hold on; plot(xhrms+dxext,Hrms_lf,'kv','LineWidth',1.5);
 xlabel('x [m]'); ylabel('H_{rms} [m]'); axis([min(min(xw)) max(max(xw)) 0 1.25]);
-subplot(222);
-plot(xw,s.setup,'k-','LineWidth',1.5); hold on; plot(xsetup+dxext,setup,'ks','LineWidth',1.5);
-xlabel('x [m]'); ylabel('\eta_{mean} [m]'); axis([min(min(xw)) max(max(xw)) -0.1 0.3]);
-subplot(223);
+subplot(222); set(gca,'FontSize',12);
 plot(xw,s.Urms_m,'k-','LineWidth',1.5); hold on; plot(xurms+dxext,Urms,'ks','LineWidth',1.5);
 plot(xw,s.Urms_hfm,'k--','LineWidth',1.5); hold on; plot(xurms+dxext,Urms_hf,'k^','LineWidth',1.5);
 plot(xw,s.Urms_lfm,'k-.','LineWidth',1.5); hold on; plot(xurms+dxext, Urms_lf,'kv','LineWidth',1.5);
 xlabel('x [m]'); ylabel('U_{rms} [m]'); axis([min(min(xw)) max(max(xw)) 0 1.0]);
-subplot(224);
+subplot(223); set(gca,'FontSize',12);
 plot(xw,s.Um,'k-','LineWidth',1.5); hold on; plot(xum+dxext,Um,'ks','LineWidth',1.5);
 xlabel('x [m]'); ylabel('U_{mean} [m]'); axis([min(min(xw)) max(max(xw)) -0.5 0.1]);
 print('hydrodynamics.png','-dpng');
+
+% wave setup..
+% plot(xw,s.setup,'k-','LineWidth',1.5); hold on; plot(xsetup+dxext,setup,'ks','LineWidth',1.5);
+% xlabel('x [m]'); ylabel('\eta_{mean} [m]'); axis([min(min(xw)) max(max(xw)) -0.1 0.3]);
+
 
 % wave spectra
 % simulated wave spectra
@@ -143,16 +145,18 @@ f2 = df11/2:df11:df*round(n/2);
 vf2 = [];
 for ii = 1:floor(length(f2))
     vf2(:,ii) = mean(varf1(:,(ii-1)*fac+1:ii*fac),2);
+    Hrms_check(ii) = sqrt(8*sum(vf2*df11,2));
 end
 % figure; plot(f,zsf);
-figure(2);
-varmax = [2 2 2 1 1 1 0.5 0.5 0.5];
+figure(5); 
+varmax = [2 2 2 1 1 1 0.55 0.55 0.55];
 for i = 1:length(xhrms)
-    subplot(3,3,i);
+    subplot(3,3,i); set(gca,'FontSize',12);
     plot(fef{i},ef{i},'r'); hold on;
     plot(f2,vf2(i,:),'k','LineWidth',1.5);
     axis([0 0.5 0 varmax(i)]);
-    xlabel('f [Hz]'); ylabel('S\eta\eta [m^2/s]');
+    text(0.02,0.9*varmax(i),['x = ',num2str(round(xhrms(i))),' [m]'],'FontSize',9);set(gca,'fontsize',9);
+    xlabel('f [Hz]'); ylabel('S_{\eta\eta} [m^2/s]');
 end
 print variance_spectra.png -dpng
 
@@ -172,13 +176,15 @@ t = t(2:end);
 
 tstart = 15000 % 7400;
 tend =  15300 % 7700;
-figure;
+figure(6); set(gca,'FontSize',12);
+etamax = [1 1 1 1 1 1 0.75 0.75 0.75];
 for i = 1:length(xhrms);
     subplot(3,3,i);
-    plot(t,eta(i,:),'r'); hold on;
-    plot(ts,zs(ind(i),:),'k','LineWidth',1.5);
-    axis([tstart tend -1 1]);
-    xlabel('t [s]'); ylabel('eta [m]');
+    plot(t/60,eta(i,:),'r'); hold on;
+    plot(ts/60,zs(ind(i),:),'k','LineWidth',1.5);
+    axis([tstart/60 tend/60 -etamax(i) etamax(i)]);
+    text(250.1,-0.85*etamax(i),['x = ',num2str(round(xhrms(i))),' [m]'],'FontSize',9);set(gca,'fontsize',9);
+    xlabel('t [min]'); ylabel('\eta [m]');
 end
 print water_surface_elevations.png -dpng
 
@@ -193,7 +199,7 @@ print water_surface_elevations.png -dpng
 % print flow_velocities_elevations.png -dpng
 
 % morphodynamics
-figure(2);
+figure(7); set(gca,'FontSize',12);
 subplot(211);
 plot(xw,s.Cm*par.rhos,'k-','LineWidth',1.5); hold on; plot(xc+dxext,Cm,'ks','LineWidth',1.5);
 xlabel('x [m]'); ylabel('C_{mean} [g/l]'); axis([min(min(xw)) max(max(xw)) 0 20]);
@@ -202,8 +208,7 @@ plot(xw,s.Sdzb,'k--','LineWidth',1.5); hold on; plot(x+dxext,Sdzb,'k-','LineWidt
 xlabel('x [m]'); ylabel('S_{mean} [m^3/m/s]'); axis([min(min(xw)) max(max(xw)) -3E-4 1E-4]);
 print('transport.png','-dpng');
 
-
-figure(3)
+figure(8); set(gca,'FontSize',12);
 for i = 1:length(Tout)
     subplot(3,2,i)
     plot(xw,s.zb_interval(:,1),'k-',xw,s.zb_interval(:,i),'r--',x+dxext,z(i,:),'r-','LineWidth',1.5);
