@@ -1,6 +1,6 @@
 module roelvink_module
 contains
-subroutine roelvink1(E,hh,Trep,alpha,gamma,n,rho,g,delta,D,ntot,break)
+subroutine roelvink1(E,hh,hbd,Trep,alpha,gamma,n,rho,g,delta,D,ntot,break)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
 ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
@@ -30,7 +30,7 @@ subroutine roelvink1(E,hh,Trep,alpha,gamma,n,rho,g,delta,D,ntot,break)
 IMPLICIT NONE
 
 integer                         :: ntot,break
-real*8,dimension(ntot)          :: E,hh,D
+real*8,dimension(ntot)          :: E,hh,hbd,D
 real*8                          :: fac,rho,g,delta,alpha,gamma,n,Trep
 
 
@@ -46,10 +46,20 @@ endif
 
 fac=8.0d0/rho/g
 H=sqrt(fac*E)
+<<<<<<< .mine
+=======
 hroelvink=hh+delta*H  !add breakerdelay here, to correct for waterdepth, and cancel subroutine breakerdelay
 					  !danojaaprobertap 10/2, also in baldock, roelvink
+>>>>>>> .r198
 
+<<<<<<< .mine
+hroelvink=hbd+delta*H
+! hroelvink=hh+delta*H
+
+Qb=min(1-exp(-(H/gamma/hroelvink)**n),1.0d0)
+=======
 Qb=min(1-exp(-(H/gamma/hroelvink)**n),1.0d0) !gebruik hier Hb = (0.88d0/k)*tanh(gamma*kh/0.88d0)
+>>>>>>> .r198
 
 ! D=Qb*2.*alpha/Trep*E
 
@@ -57,8 +67,8 @@ Qb=min(1-exp(-(H/gamma/hroelvink)**n),1.0d0) !gebruik hier Hb = (0.88d0/k)*tanh(
 if (break==1) then
    D=Qb*2*alpha/Trep*E
 elseif (break==3) then
-   ! D=Qb*2.*alpha/Trep*E*H/hroelvink; !breaker delay depth for dissipation in bore and fraction of breaking waves
-   D=Qb*2*alpha/Trep*E*H/hh        !breaker delay depth for fraction breaking waves and actual water depth for disipation in bore
+   D=Qb*2.*alpha/Trep*E*H/hroelvink; !breaker delay depth for dissipation in bore and fraction of breaking waves
+   !D=Qb*2*alpha/Trep*E*H/hh        !breaker delay depth for fraction breaking waves and actual water depth for disipation in bore
 end if
 
 
@@ -86,7 +96,7 @@ endif
 ! Dissipation acc. to Roelvink (1993)
 
 fac=8.0d0/par%rho/par%g
-hroelvink=s%hh+par%delta*s%H
+hroelvink=s%hbd+par%delta*s%H
 
 H=sqrt(fac*s%E)
 if (par%break<4) then
@@ -103,10 +113,17 @@ endif
 
 ! cjaap : two options:
 if (par%break==1) then
+<<<<<<< .mine
+   s%D=Qb*2*par%alpha/par%Trep*s%E
+elseif (par%break==3) then
+   s%D=Qb*2*par%alpha/par%Trep*s%E*H/hroelvink; !breaker delay depth for dissipation in bore and fraction of breaking waves
+   !s%D=Qb*2*par%alpha/par%Trep*s%E*H/s%hh      !breaker delay depth for fraction breaking waves and actual water depth for disipation in bore
+=======
    s%D=s%Qb*2*par%alpha/par%Trep*s%E
 elseif (par%break>2) then
    ! s%D=s%Qb*2.*par%alpha/par%Trep*s%E*H/hroelvink; !breaker delay depth for dissipation in bore and fraction of breaking waves
    s%D=s%Qb*2*par%alpha/par%Trep*s%E*H/s%hh        !breaker delay depth for fraction breaking waves and actual water depth for disipation in bore
+>>>>>>> .r198
 end if
 
 end subroutine roelvink

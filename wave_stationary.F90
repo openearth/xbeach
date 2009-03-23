@@ -284,6 +284,22 @@ do it=2,imax
 		
 		thetamean(i,:) = (sum(ee(i,:,:)*thet(i,:,:),2)/ntheta)/(max(sum(ee(i,:,:),2),0.000010d0)/ntheta)
 
+<<<<<<< .mine
+			DO itheta=1,ntheta
+				 sigt(i,:,itheta) = max(sigm(i,:),0.010d0)
+			END DO
+			!
+			! Total dissipation
+			if(par%break==1 .or. par%break==3) THEN
+                call breakerdelay(par,s)
+				call roelvink1(E(i,:),hh(i,:),hbd(i,:), &
+							   par%Trep,par%alpha,par%gamma,par%n, &
+							   par%rho,par%g,par%delta,D(i,:),ny+1,par%break)
+			else if(par%break==2) THEN
+				call baldock1(E(i,:),hh(i,:),k(i,:), &
+							   par%Trep,par%alpha,par%gamma, &
+							   par%rho,par%g,par%delta,D(i,:),ny+1)
+=======
    	!
 		! Total dissipation
 		if(par%break==1 .or. par%break==3) THEN
@@ -307,6 +323,7 @@ do it=2,imax
 				wete(i,j,1:ntheta)=1
 			else
 				wete(i,j,1:ntheta)=0
+>>>>>>> .r198
 			end if
 		end do
 		!
@@ -468,9 +485,10 @@ vwf = ustw*sin(thetamean)
 ! roller contribution
 ustr=2.*R*k/sigm/par%rho/max(hh,.001d0)
 ! introduce breaker delay
-call breakerdelay(par,s)
+! call breakerdelay(par,s) Jaap
 !ust = usd
-ust=usd+ustw
+!ust=usd+ustw Jaap
+ust=ustr+ustw
 !lateral boundaries
 ust(1,:) = ust(2,:)
 ust(:,1) = ust(:,2)

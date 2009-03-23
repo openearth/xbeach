@@ -231,9 +231,16 @@ subroutine wave_timestep(s,par)
 !
 ! Total dissipation
 if(par%break == 1 .or. par%break == 3)then
+! Breaker delay
+    call breakerdelay(par,s)
     call roelvink(par,s)
 else if(par%break == 2)then
     call baldock(par,s)
+<<<<<<< .mine
+!Jaap: built in Roelvink_new
+!else if(par%break == 4)then    
+!    call roelvink_new(par,s)
+=======
 else if (par%break == 4) then
         cgxm = cg*cos(tm) 
         cgym = cg*sin(tm)
@@ -241,6 +248,7 @@ else if (par%break == 4) then
         call advecqy(cgym,Qb,ywadvec,nx,ny,yz)
         Qb=Qb-par%dt*(xwadvec+ywadvec)
         call roelvink(par,s)        
+>>>>>>> .r198
 end if
 !
 ! Distribution of dissipation over directions and frequencies
@@ -397,9 +405,9 @@ vwf = ustw*sin(tm)
 ustr=2.*R/max(c,sqrt(par%hmin*par%g))/par%rho/max(hh,par%hmin) ! Jaap
 ! introduce breaker delay
 
-call breakerdelay(par,s)
-ust=usd+ustw
-!ust=ustr+ustw     !Jaap give this a try
+! call breakerdelay(par,s)
+! ust=usd+ustw
+ust=ustr+ustw     !Jaap: breaker delay in roelvink.f90 following Roelvink, 1995 
 !where (E==1e-5*dtheta*ntheta) ust=0.
 !lateral boundaries
 ! wwvv todo the following has consequences for // version
@@ -1114,7 +1122,7 @@ type(parameters)                    :: par
 
 
 real*8                              :: Lbr
-real*8, dimension(s%nx+1)           :: utemp
+real*8, dimension(s%nx+1)           :: utemp,htemp
 integer                             :: jx,jy,i,nbr,tempxid
 integer, dimension(s%nx+1)          :: ibr
 
@@ -1123,7 +1131,7 @@ include 's.inp'
 
 
 do jy = 2,ny
-  usd(1,jy) = ustr(1,jy)
+  usd(1,jy) = ustr(1,jy) ! Jaap: in Reniers, (2004) we use ustr+ustw in breakeer delay function; why not here? 
   do jx = 2,nx+1
     nbr=0
     Lbr = sqrt(par%g*hh(jx,jy))*par%Trep
@@ -1138,12 +1146,15 @@ do jy = 2,ny
             ibr(i) = i
             tempxid = jx-nbr+i-1
             utemp(i) = ustr(tempxid,jy)
+			htemp(i) = hh(tempxid,jy)
         enddo
         ! wwvv consequences for parallel version?
         ! todo, done: see later
         usd(jx,jy) = sum(ibr(1:nbr+1)*utemp(1:nbr+1))/sum(ibr(1:nbr+1)) 
+		hbd(jx,jy) = sum(ibr(1:nbr+1)*htemp(1:nbr+1))/sum(ibr(1:nbr+1)) 
     else
         usd(jx,jy) = ustr(jx,jy)
+		hbd(jx,jy) = hh(jx,jy)
     end if
   end do
 end do
@@ -1153,6 +1164,10 @@ usd(1,:) = usd(2,:)
 usd(:,1) = usd(:,2)
 usd(:,ny+1) = usd(:,ny)
 usd(nx+1,:) = usd(nx,:)
+hbd(1,:) = hbd(2,:)
+hbd(:,1) = hbd(:,2)
+hbd(:,ny+1) = hbd(:,ny)
+hbd(nx+1,:) = hbd(nx,:)
 
 ! wwvv for the parallel version, shift in the columns and rows
 #ifdef USEMPI
@@ -1160,6 +1175,10 @@ call xmpi_shift(usd,'m:')  ! fill in usd(nx+1,:)
 call xmpi_shift(usd,'1:')  ! fill in usd(1,:)
 call xmpi_shift(usd,':n')  ! fill in usd(:,ny+1)
 call xmpi_shift(usd,':1')  ! fill in usd(:,1)
+call xmpi_shift(hbd,'m:')  ! fill in usd(nx+1,:)
+call xmpi_shift(hbd,'1:')  ! fill in usd(1,:)
+call xmpi_shift(hbd,':n')  ! fill in usd(:,ny+1)
+call xmpi_shift(hbd,':1')  ! fill in usd(:,1)
 
 #endif
 
