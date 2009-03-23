@@ -39,7 +39,6 @@
       real*8  0  posdwn b ! [-]        depths defined positive downwards (1) or upwards(-1)
       integer 0  nx     b ! [-]        local number of grid cells x-direction
       integer 0  ny     b ! [-]        local number of grid cells y-direction
-      integer 0  kmax   b ! [-]        local number of grid cells z-direction (in case q3d approach)
       real*8  2  zb     s%nx+1 s%ny+1 d ! [m]        bed level
       real*8  2  zb0    s%nx+1 s%ny+1 d ! [m]        initial bed level
       real*8  1  theta  s%ntheta b ! [rad]      wave angles directional distribution
@@ -125,7 +124,6 @@
       real*8  2  vwf    s%nx+1 s%ny+1 d ! [m/s]      y-comp. Stokes drift
       real*8  2  ustr   s%nx+1 s%ny+1 d ! [m/s]      return flow due to roller
       real*8  2  usd    s%nx+1 s%ny+1 d ! [m/s]      return flow due to roller after breaker delay
-      real*8  2  hbd    s%nx+1 s%ny+1 d ! [m/s]      breaking delay water depth in wave dissipation formulation
       real*8  1  bi     s%ny+1 d ! [m]        incoming bound long wave
       real*8  2  DR     s%nx+1 s%ny+1 d ! [W/m2]     roller energy dissipation
       real*8  2  umean  2 s%ny+1 2 ! [m/s]      longterm mean velocity at bnds
@@ -165,14 +163,5 @@
       real*8  2  gww      s%nx+1 s%ny+1 d ! [m/s] groundwater flow in z-direction (interaction between surface and ground water)
       real*8  2  dinfil   s%nx+1 s%ny+1 d ! [m] Infiltration layer depth used in quasi-vertical flow model for groundwater
       real*8  2  gw0back  2      s%ny+1 2 ! [m] boundary condition back boundary for groundwater head
-      real*8  2  ubedm    s%nx+1 s%ny+1 d ! [m/s] near bed flow velocity in x-direction from q3d flow
-      real*8  2  vbedm    s%nx+1 s%ny+1 d ! [m/s] near bed flow velocity in y-direction from q3d flow
-      real*8  3  sig      s%nx+1 s%ny+1 s%kmax d ! [-] non-dimensional vertical layers (sig = (hh+z)/hh with z positive upward)
-      real*8  4  veloc    s%nx+1 s%ny+1 s%kmax 3 d ! [m/s] [m/s] [m^2/s] 4D matrix with vertical structure of flow field in x-direction, flow field in y-direction and eddy viscosity.
-      real*8  3  cuq3d    s%nx+1 s%ny+1 s%kmax [-] concentration vertical in u-points
-      real*8  3  cvq3d    s%nx+1 s%ny+1 s%kmax [-] concentration vertical in v-points
-      real*8  2  urep     s%nx+1 s%ny+1  [m/s] representative flow velocitie for sediment advection and diffusion in x-direction
-      real*8  2  vrep     s%nx+1 s%ny+1  [m/s] representative flow velocitie for sediment advection and diffusion in y-direction
-      
       
 !* hints for vi vim: filetype=fortran : syntax=fortran

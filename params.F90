@@ -154,13 +154,11 @@ real*8     :: kx       = -123  ! Darcy-flow permeability coefficient in x-direct
 real*8     :: ky       = -123  ! Darcy-flow permeability coefficient in y-direction [m/s]
 real*8     :: kz       = -123  ! Darcy-flow permeability coefficient in y-direction [m/s]
 real*8     :: dwetlayer  = -123  ! Thickness of the top soil layer interacting more freely with the surface water
-<<<<<<< .mine
 real*8     :: vonkar   = -123  ! von Karman constant
 real*8     :: vicmol   = -123  ! molecular viscosity
-=======
 integer*4  :: maxiter  = -123  ! maximum number of iterations in wave stationary
 real*8     :: maxerror = -123  ! maximum wave height error in wave stationary iteration
->>>>>>> .r198
+real*8     :: dico     = -123  ! sediment diffusion coefficient
 
 
 end type parameters
@@ -378,6 +376,7 @@ par%Tbfac    = readkey_dbl ('params.txt','Tbfac  ',1.0d0,     0.00d0,   1.0d0)
 par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.2d0,     0.01d0,   10.d0) 
 par%impact   = readkey_int ('params.txt','impact ',0,           0,            1)  
 par%CE       = readkey_dbl ('params.txt','CE     ',0.2d0,     0.00d0,   100.d0) 
+par%dico     = readkey_dbl ('params.txt','dico   ',1.0d0,     0.00d0,   10.0d0) 
 
 end subroutine sed_input
 

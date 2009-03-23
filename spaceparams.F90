@@ -159,9 +159,8 @@ subroutine grid_bathy(s,par)
   real*8                              :: degrad,thetamin,thetamax
 
   !                     Input file  Keyword Default  Minimum  Maximum
-  s%nx    = readkey_int('params.txt','nx',      50,     2,     10000)
+  s%nx    = readkey_int('params.txt','nx',     50,      2,     10000)
   s%ny    = readkey_int('params.txt','ny',      2,      2,     10000)
-  s%kmax  = readkey_int('params.txt','kmax',    1,      1,     1000)
   s%dx    = readkey_dbl('params.txt','dx',    0.d0,   -1d9,      1d9)
   s%dy    = readkey_dbl('params.txt','dy',    0.d0,   -1d9,      1d9)
   s%xori  = readkey_dbl('params.txt','xori',  0.d0,   -1d9,      1d9)
