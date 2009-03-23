@@ -39,9 +39,13 @@ type(parameters)                         :: par
 integer                                  :: i
 integer                                  :: j,jg
 
-real*8,dimension(:,:),allocatable,save   :: vmag2,uau,uav
-real*8 , dimension(s%nx+1,s%ny+1)        :: dzbx,dzby,dzremain,source
+real*8                                   :: fv,fd,fwfac,ks,fac,dster
+real*8,dimension(s%nx+1,s%ny+1)          :: suq3d,svq3d,eswmax,eswbed,sigs,deltas
+real*8,dimension(s%nx+1,s%ny+1,s%kmax)   :: sdif
+real*8,dimension(:,:),allocatable,save   :: vmag2,uau,uav,um,vm
+real*8,dimension(:,:),allocatable,save   :: dzbx,dzby,dzremain,source,ccvt,dcdz,dsigt
 real*8,dimension(:,:),allocatable,save   :: cc,cu,cv,Su,Sv,Dc,fract
+real*8,dimension(:,:,:),allocatable,save :: dsig,ccv
 
 include 's.ind'
 include 's.inp'
@@ -56,7 +60,20 @@ if (.not. allocated(vmag2)) then
    allocate(Su (nx+1,ny+1))
    allocate(Sv (nx+1,ny+1))
    allocate(Dc (nx+1,ny+1))
+   allocate(dzbx (nx+1,ny+1))
+   allocate(dzby (nx+1,ny+1))
+   allocate(dzremain (nx+1,ny+1))
+   allocate(source (nx+1,ny+1))
+   allocate(ccvt (nx+1,ny+1))
+   allocate(dcdz (nx+1,ny+1))
+   allocate(dsigt (nx+1,ny+1))
    allocate(fract (nx+1,ny+1))
+   allocate(dsig(s%nx+1,s%ny+1,s%kmax))
+   allocate(ccv(s%nx+1,s%ny+1,s%kmax))
+   allocate(um (nx+1,ny+1))
+   allocate(vm (nx+1,ny+1))
+   um = 0.d0
+   vm = 0.d0
 endif
 ! use eulerian velocities
 vmag2    = ue**2+ve**2
@@ -73,11 +90,12 @@ end if
 
 ! compute diffusion coefficient
 
-if (par%nuhfac==1) then
+! Jaap: I think we should not longer use par%dico; if I set nuh = 0 and nuhfac = 0 then the model uses par%dico = 1 
+!if (par%nuhfac==1) then
    Dc = par%nuh+par%nuhfac*hh*(DR/par%rho)**(1.d0/3.d0)
-else
-   Dc = par%dico
-end if
+!else
+!   Dc = par%dico
+!end if
 
 do jg = 1,par%ngd
    cc = ccg(:,:,jg)
@@ -121,14 +139,6 @@ do jg = 1,par%ngd
 #ifdef USEMPI
    call xmpi_shift(dzbx,'m:')
 #endif
-   ! Jaap: get ua in u points and split out in u and v direction
-   uau(1:nx,:) = 0.5*(ua(1:nx,:)*cos(thetamean(1:nx,:))+ua(2:nx+1,:)*cos(thetamean(1:nx,:)))
-   uav(1:nx,:) = 0.5*(ua(1:nx,:)*sin(thetamean(1:nx,:))+ua(2:nx+1,:)*sin(thetamean(1:nx,:)))
-   ! Jaap: compute vmagu including ua
-   vmagu = sqrt((uu+uau)**2+(vu+uav)**2)
-   !
-   Su=(cu*(ueu+uau)*hu-Dc*hu*dcdx-par%facsl*cu*vmagu*hu*dzbx)*wetu   !
-
    !
    ! Y-direction
    !
@@ -166,13 +176,99 @@ do jg = 1,par%ngd
 #ifdef USEMPI
     call xmpi_shift(dzby,':n')
 #endif
+!
+! Q3D approach
+!
+if (kmax>1) then
+   ! we need to specify sigma layers
+   do i=1,kmax
+      sig(:,:,i)=0.01d0*(max(hh,0.01d0)/0.01d0)**(float(i-1)/float(kmax-1))/max(hh,0.01d0)
+   enddo
+   sig(:,:,kmax)=0.99999d0
+   sig = sig-1.d0
+   ! thickness sigma layers
+   dsig(:,:,2:kmax-1) = 0.5d0*(sig(:,:,3:kmax)-sig(:,:,1:kmax-2))
+   dsig(:,:,kmax)     = 0.5d0*(sig(:,:,kmax)-sig(:,:,kmax-1))-sig(:,:,kmax)
+   dsig(:,:,1)        = 0.5d0*(sig(:,:,2)-sig(:,:,1))+sig(:,:,1)+1.d0
+   dsigt = sum(dsig,3);
+   !
+   ! flows
+   !
+   ! calibration coeffiecients q3d model
+   fv   = 0.1d0 ! calibration coefficient for the depth averaged wave breaking induced turbulence  
+                ! Is fv consistent with computation of depth averaged DC??
+   fd   = 3.0d0 ! multiplication factor for bottom boundary layer thickness 
+                ! (3.0 for random waves and 1.0 for monochromatic waves)
+   ks   = 3.0d0*par%D901 ! Nikuradse roughness --> Jaap: wat in case of multiple sediment fractions
+   fwfac= 1.0d0 ! calibration coefficient for bottom friction dissipation
+   
+   ! um and vm are the time averaged Langrangian flows  
+   fac = 1.d0/20.d0/par%Trep*par%dt
+   um = fac*uu + (1-fac)*um 
+   vm = fac*vv + (1-fac)*vm
+
+   call vsmu(s,par,sig,fv,fd,ks,fwfac,um,vm)
+   !
+   ! sed. conc.
+   !
+   ! Leo's 1993 sediment diffusion coefficient page 8.41. Is not conistent with viscosity model since sediment is also advected by orbital flow
+   dster  = 25296*D50(1)  ! --> what in case of multiple sediment layers!!!
+   deltas = 0.3d0*dsqrt(sqrt(2.d0)*H/hh)
+   sigs   = deltas/hh
+   eswbed = 0.008d0*Dster*urms*deltas !Van Rijn uses Upeak
+   eswmax = 0.035*hh*H/par%Trep       !Van Rijn uses Hs and Tp
+
+   do i = 1,kmax
+      where (sig(:,:,i)<=sigs) 
+         sdif(:,:,i) = eswbed 
+      elsewhere (sig(:,:,i)>0.5d0) 
+         sdif(:,:,i) = eswmax
+      elsewhere (sig(:,:,i)>sigs .and. sig(:,:,i)<=0.5d0) 
+         sdif(:,:,i) = eswbed + (eswmax-eswbed)*(sig(:,:,i)-sigs)/(0.5-sigs)
+      endwhere
+   enddo
+    
+   ! sdif = max(par%Trep/Tbore*veloc(:,:,:,3),0.001d0)
+
+   ccvt = 0.d0
+   ! ccv(:,:,1) = 0.6
+   ccv(:,:,1) = (1.d0-par%por)-0.5d0*par%w/sdif(:,:,1)*(1.d0-par%por)*sig(:,:,1) ! sed conc in first sig-point
+   ccvt = ccv(:,:,1)*dsig(:,:,1)      
+   do i = 2,kmax
+      dcdz = -par%w/sdif(:,:,i-1)*ccv(:,:,i-1)                                   ! Jaap: also fix for multiple sediment fractions...
+      ccv(:,:,i) = max(0.d0,ccv(:,:,i-1)+dcdz*(sig(:,:,i)-sig(:,:,i-1)))         ! Jaap make sure ccv>0 --> negative concentrations do not exist
+	  ccvt = ccvt+ccv(:,:,i)*dsig(:,:,i)
+   enddo
+   suq3d = 0.d0
+   svq3d = 0.d0
+   do i = 1,kmax
+      cuq3d(:,:,i) = cu/ccvt*ccv(:,:,i)
+      cvq3d(:,:,i) = cv/ccvt*ccv(:,:,i)
+	  ! get urep from integrated sed. transp.
+      suq3d = suq3d + (veloc(:,:,i,1)+uu-um)*cuq3d(:,:,i)*dsig(:,:,i)
+      svq3d = svq3d + (veloc(:,:,i,2)+vv-vm)*cvq3d(:,:,i)*dsig(:,:,i)
+   enddo
+   urep = suq3d/max(cu,1e-6)
+   vrep = svq3d/max(cv,1e-6)
+else
+   urep = ueu
+   vrep = vev
+endif
+   
+    ! Jaap: get ua in u points and split out in u and v direction
+    uau(1:nx,:) = 0.5*(ua(1:nx,:)*cos(thetamean(1:nx,:))+ua(2:nx+1,:)*cos(thetamean(1:nx,:)))
+    uav(1:nx,:) = 0.5*(ua(1:nx,:)*sin(thetamean(1:nx,:))+ua(2:nx+1,:)*sin(thetamean(1:nx,:)))
+    ! Jaap: compute vmagu including ua
+    vmagu = sqrt((uu+uau)**2+(vu+uav)**2)
+    !
+    Su=(cu*(urep+uau)*hu-Dc*hu*dcdx-par%facsl*cu*vmagu*hu*dzbx)*wetu   !
 	! Jaap: get ua in v points and split out in u and v direction
     uau(:,1:ny) = 0.5*(ua(:,1:ny)*sin(thetamean(:,1:ny))+ua(:,2:ny+1)*sin(thetamean(:,1:ny)))
     uav(:,1:ny) = 0.5*(ua(:,1:ny)*cos(thetamean(:,1:ny))+ua(:,2:ny+1)*cos(thetamean(:,1:ny)))
     ! Jaap: compute vmagv including ua
     vmagv = sqrt((uv+uau)**2+(vv+uav)**2)
     !
-    Sv=(cv*(vev+uav)*hv-Dc*hv*dcdy-par%facsl*cv*vmagv*hv*dzby)*wetv
+    Sv=(cv*(vrep+uav)*hv-Dc*hv*dcdy-par%facsl*cv*vmagv*hv*dzby)*wetv
     ! Jaap: compute remaining sediment thickness above hard layer
 	dzremain = max(0.d0,dzlayer+sedero)
 	source = (1-par%por)*dzremain/par%dt/max(par%morfac,1.d0)
@@ -232,6 +328,7 @@ subroutine bed_update(s,par)
 use params
 use spaceparams
 use xmpi_module
+use readkey_module
 
 IMPLICIT NONE
 
@@ -485,29 +582,36 @@ end subroutine bed_update
 subroutine sb_vr(s,par)
 use params
 use spaceparams
+use readkey_module
 use xmpi_module
 
 IMPLICIT NONE
 
-type(spacepars),target              :: s
-type(parameters)                    :: par
+type(spacepars),target                  :: s
+type(parameters)                        :: par
 
-integer                             :: i
-integer                             :: j,jg
+character*80                        :: fnamet
+integer                             :: i,ii
+integer                             :: j,jg,ih0,it0,ih1,it1
 real*8                              :: dster,twothird
 real*8                              :: m1,m2,m3,m4,m5,m6
 real*8                              :: z0,Ass,delta
 real*8                              :: Te,kvis,Sster,c1,c2,wster
-
+real*8                              :: p,q,f0,f1,f2,f3
+real*8, save                        :: dh,dt
+integer,save                        :: nh,nt
 
 real*8 , dimension(:,:),allocatable,save   :: vmag2,Cd,Asb,dhdx,dhdy,Ts,Ur,Bm,B1
 real*8 , dimension(:,:),allocatable,save   :: urms2,Ucr,term1,term2
-real*8 , dimension(:,:),allocatable,save   :: uandv,b,fslope,hloc,ceq
+real*8 , dimension(:,:),allocatable,save   :: uandv,b,fslope,hloc,ceq,h0,t0
+real*8 , dimension(:,:,:),allocatable,save :: RF
 
 include 's.ind'
 include 's.inp'
 
 if (.not. allocated(vmag2)) then
+   allocate (h0    (nx+1,ny+1))
+   allocate (t0    (nx+1,ny+1))
    allocate (vmag2 (nx+1,ny+1))
    allocate (Cd    (nx+1,ny+1))
    allocate (Asb   (nx+1,ny+1))
@@ -527,6 +631,7 @@ if (.not. allocated(vmag2)) then
    allocate (Ur    (nx+1,ny+1))
    allocate (Bm    (nx+1,ny+1))
    allocate (B1    (nx+1,ny+1))
+   allocate (RF    (18,33,40))
 endif
 ! Soulsby van Rijn sediment transport formula
 ! Ad Reniers april 2006
@@ -543,6 +648,58 @@ endif
 hloc   = max(hh,0.01d0) !Jaap par%hmin instead of par%eps
 twothird=2.d0/3.d0
 delta = (par%rhos-par%rho)/par%rho
+!
+! compute wave shape short waves (Rienecker and Fenton + Ruessink and van Rijn to estimate weighting of sines and cosines)
+!
+! read table at t=0;
+if (abs(par%t-par%dt)<1.d-6) then
+   RF = RF*0.d0
+   if (xmaster) then
+      call readkey('params.txt','swtable',fnamet)
+      open(31,file=fnamet);
+      do i=1,18
+         do j=1,33
+            read(31,*)(RF(i,j,ii),ii=1,40)
+         enddo
+      enddo
+   endif
+#ifdef USEMPI
+   do i=1,18
+      call xmpi_bcast(RF(i,:,:))
+   enddo
+#endif
+   dh = 0.03d0
+   dt = 1.25d0
+   nh = floor(0.99d0/dh);
+   nt = floor(50.d0/dt);
+   close(31)
+endif
+
+! read us and duddtmax from table....
+h0 = min(nh*dh,max(dh,min(H,hh)/hloc))  ! Jaap: try this
+t0 = min(nt*dt,max(dt,par%Trep*sqrt(par%g/hloc)))
+
+do j=1,ny+1
+   do i=1,nx+1
+      ! interpolate table values....
+      ih0=floor(h0(i,j)/dh)
+      it0=floor(T0(i,j)/dt)
+      ih1=min(ih0+1,nh)
+      it1=min(it0+1,nt)
+      p=(h0(i,j)-ih0*dh)/dh
+      q=(T0(i,j)-it0*dt)/dt
+
+      f0=(1-p)*(1-q)
+      f1=p*(1-q)
+      f2=q*(1-p)
+      f3=p*q
+      
+      Sk(i,j) = f0*RF(13,ih0,it0)+f1*RF(13,ih1,it0)+ f2*RF(13,ih0,it1)+f3*RF(13,ih1,it1)
+	  As(i,j) = f0*RF(14,ih0,it0)+f1*RF(14,ih1,it0)+ f2*RF(14,ih0,it1)+f3*RF(14,ih1,it1)
+	  ua(i,j) = par%sws*par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
+   enddo
+enddo
+
 ! use eulerian velocities
 ! cjaap: add turbulence near bottom
 do j=1,ny+1 
@@ -588,7 +745,6 @@ do jg = 1,par%ngd
    z0 = par%z0
    Cd=(0.40d0/(log(hloc/z0)-1.0d0))**2 !Jaap
    !Cd = par%g/par%C**2;   ! consistent with flow modelling 
-
  
    ! transport parameters
    Asb=0.005d0*hloc*(D50(jg)/hloc/(delta*par%g*D50(jg)))**1.2d0     ! bed load coefficent
@@ -623,28 +779,8 @@ do jg = 1,par%ngd
    ceq = min(ceq,0.2d0)       ! equilibrium concentration
    ceq = ceq/hloc
    ceqg(:,:,jg) = ceq*sedcal(jg)
-enddo  ! end og grain size classes
+enddo  ! end of grain size classes
 
-m1 = 0;       ! a = 0
-m2 = 0.7939;  ! b = 0.79 +/- 0.023
-m3 = -0.6065; ! c = -0.61 +/- 0.041
-m4 = 0.3539;  ! d = -0.35 +/- 0.032 
-m5 = 0.6373;  ! e = 0.64 +/- 0.025
-m6 = 0.5995;  ! f = 0.60 +/- 0.043
-
-do j=1,ny+1     
-   do i=1,nx+1
-      if (k(i,j)*h(i,j)<par%px/2.d0 .and. H(i,j)>0.01d0) then
-         Ur(i,j) = 3.d0/8.d0*sqrt(2.d0)*H(i,j)*k(i,j)/(k(i,j)*hloc(i,j))**3.d0                       !Ursell number
-         Bm(i,j) = m1+(m2-m1)/(1.d0+exp((m3-log10(Ur(i,j)))/m4))                                     !Boltzmann sigmoid (eq 6) 
-         B1(i,j) = -90.d0+90.d0*tanh(m5/Ur(i,j)**m6)    
-         B1(i,j) = B1(i,j)*par%px/180.d0
-         Sk(i,j) = Bm(i,j)*cos(B1(i,j))                                                              !Skewness (eq 8)
-         As(i,j) = Bm(i,j)*sin(B1(i,j))                                                              !Skewness (eq 9)
-		 ua(i,j) = par%facua*Sk(i,j)*urms(i,j)
-	  endif
-   enddo
-enddo
 
 end subroutine sb_vr
 
@@ -664,13 +800,23 @@ type(parameters)                        :: par
 
 character*80                            :: fnamet
 integer                                 :: i,nw,ii
+<<<<<<< .mine
+integer                                 :: j,jg,ih0,it0,ih1,it1
+=======
 integer                                 :: ih0,it0,ih1,it1
 integer, save                           :: nh,nt
 integer                                 :: j,jg
+>>>>>>> .r190
 real*8                                  :: dster,onethird,twothird,Ass,dcf,dcfin,ML,fac
 real*8                                  :: Te,kvis,Sster,cc1,cc2,wster,z0,delta,smax
+<<<<<<< .mine
 real*8                                  :: p,q,f0,f1,f2,f3,uad,duddtmax,dudtmax,siguref,t0fac,duddtmean,dudtmean
 real*8                               ,save     :: dh,dt
+integer                              ,save     :: nh,nt
+=======
+real*8                                  :: p,q,f0,f1,f2,f3,uad,duddtmax,dudtmax,siguref,t0fac,duddtmean,dudtmean
+real*8                               ,save     :: dh,dt
+>>>>>>> .r190
 real*8 , dimension(:,:),allocatable  ,save     :: vmg,Asb,Ts
 real*8 , dimension(:,:),allocatable  ,save     :: urmsturb,Ucr,Ucrc,Ucrw,term1,B2,Cd
 real*8 , dimension(:,:),allocatable  ,save     :: hloc,ceq,h0,t0,detadxmax,detadxmean,dzsdx
@@ -729,8 +875,9 @@ if (abs(par%t-par%dt)<1.d-6) then
    dt = 1.25d0
    nh = floor(0.99d0/dh);
    nt = floor(50.d0/dt);
+   close(31)
 endif
-close(31)
+
 
 ! read us and duddtmax from table....
 h0 = min(nh*dh,max(dh,min(H,hh)/hloc))  ! Jaap: try this
@@ -813,7 +960,7 @@ if (par%lws==1) then
    vmg  = dsqrt(ue**2+ve**2)
 elseif (par%lws==0) then
    ! vmg lags on actual mean flow; but long wave contribution to mean flow is included... 
-   fac = 1/par%Trep/20.d0 
+   fac = 1.d0/par%Trep/20.d0 
    vmg = (1-fac)*vmg + fac*dsqrt(ue**2+ve**2) 
 endif
 
