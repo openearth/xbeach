@@ -39,7 +39,7 @@ while 1
         ['Zwin_T01'],                    ... %13
         ['Deltaflume2006_T04'],          ... %14
         }
-    todo= [1]
+    todo= [3]
     for j=1:length(todo)
         i=todo(j);
         rundir=[testbankdir,filesep,runid,filesep,cases{i}];
