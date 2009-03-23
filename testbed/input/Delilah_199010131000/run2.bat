@@ -1,1 +1,0 @@
-"C:\Program Files\MPICH2\bin\mpiexec.exe" -np 2 -localonly d:\data\dano\xbeach\release\xbeach.exe>out2

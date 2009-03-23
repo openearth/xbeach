@@ -1,1 +1,0 @@
-d:\data\dano\xbeach\release_nompi\xbeach>out
