@@ -59,6 +59,7 @@ wetslp   = 0.3
 hswitch  = 0.1
 dico	 = 1.0
 form     = 1
+facsl    = 0
 
 output
 
