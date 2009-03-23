@@ -55,6 +55,7 @@ if (xmaster) then
   allocate(s%vwf(1:s%nx+1,1:s%ny+1)) 
   allocate(s%ustr(1:s%nx+1,1:s%ny+1)) 
   allocate(s%usd(1:s%nx+1,1:s%ny+1))
+  allocate(s%hbd(1:s%nx+1,1:s%ny+1))
   allocate(s%zs0(1:s%nx+1,1:s%ny+1)) 
   allocate(szs0(1:2)) 
   allocate(yzs0(1:2)) 
@@ -226,6 +227,7 @@ if (xmaster) then
   s%vwf       = 0.d0
   s%ustr      = 0.d0
   s%usd       = 0.d0
+  s%hbd       = 0.d0
   s%bi        = 0.d0
   s%DR        = 0.d0
   s%BR        = par%Beta
@@ -306,6 +308,12 @@ if(xmaster) then
   allocate(s%uv(1:s%nx+1,1:s%ny+1))
   allocate(s%maxzs(1:s%nx+1,1:s%ny+1))
   allocate(s%minzs(1:s%nx+1,1:s%ny+1))
+  allocate(s%sig(1:s%nx+1,1:s%ny+1,1:s%kmax))
+  allocate(s%veloc(1:s%nx+1,1:s%ny+1,1:s%kmax,3))
+  allocate(s%cuq3d(1:s%nx+1,1:s%ny+1,1:s%kmax))
+  allocate(s%cvq3d(1:s%nx+1,1:s%ny+1,1:s%kmax))
+  allocate(s%urep(1:s%nx+1,1:s%ny+1))
+  allocate(s%vrep(1:s%nx+1,1:s%ny+1))
 
 
   ! cjaap: replaced par%hmin by par%eps
@@ -331,6 +339,12 @@ if(xmaster) then
   s%vmagev=0.d0
   s%maxzs=-999.d0
   s%minzs=999.d0
+  s%veloc=0.d0
+  s%sig=0.d0
+  s%cuq3d=0.d0
+  s%cvq3d=0.d0
+  s%urep=0.d0
+  s%vrep=0.d0
 
 endif
 
