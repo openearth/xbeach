@@ -1562,7 +1562,7 @@ character*1       :: ch
 integer           :: i,ier,nlines,filetype
 real*8            :: t,dt,total,d1,d2,d3,d4,d5
 
-
+ier = 0
 if (xmaster) then
 	open(741,file=filename)
 	i=0
@@ -1604,7 +1604,8 @@ if (xmaster) then
 	
 	close(741)
 	if (total<par%tstop) then
-		write(*,*)'Error !!!! Wave boundary condition time series too short. Stopping calculation !!!!'
+		write(*,*)'Error !!!! Wave boundary condition time series too short. Stopping calculation !!!'
+                write(*,*)'tstop', par%tstop, total
 		call halt_program
 	endif
 
