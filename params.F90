@@ -316,7 +316,7 @@ par%nuhv    = readkey_dbl ('params.txt','nuhv',     1.d0,      1.d0,    20.d0)
 par%lat     = readkey_dbl ('params.txt','lat',     0.d0,      0.d0,   90.d0)
 par%wearth  = readkey_dbl ('params.txt','omega',   1.d0/24.d0, 0.d0,    1.d0)
 par%vonkar  = readkey_dbl ('params.txt','vonkar',   0.4d0,     0.01d0,  1.d0)
-par%vicmol  = readkey_dbl ('params.txt','vicmol',   1e-6,   0.d0,    0.001d0)
+par%vicmol  = readkey_dbl ('params.txt','vicmol',   0.000001d0,   0.d0,    0.001d0)
 ! Convert from Nautical to cartesian convention
 par%windth=(270.d0-par%windth)*par%px/180.d0
 par%lat = par%lat*par%px/180.d0
