@@ -24,10 +24,11 @@ dtheta   = 360.
 wci      = 0
 break    = 1
 scheme   = 2
-instat   = 3
-Hrms     = 1.01
-Trep     = 4.2
+instat   = 4
 beta     = 0.1
+rt       = 31800
+dtbc     = 0.5
+sprdthr  = 0.01
 
 bcfile= jonswap.inp
 
