@@ -259,7 +259,7 @@ allocate(wp%Sf(size(wp%f)))
 wp%Sf = sum(wp%S_array, DIM = 2)*wp%dang 
                                         ! dimension [length f]
 
-call tpDcalc(wp%Sf,wp%f,par%Trep)
+call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac)
 par%Trep=1.d0/par%Trep
 ! Jaap try Tm-1,0
 ! par%Trep = 1/fp/1.1d0
@@ -588,7 +588,7 @@ deallocate (temp)
 wp%hm0gew=4*sqrt(m0)
 !par%Trep=1/(m1/m0)
 
-call tpDcalc(wp%Sf,wp%f,par%Trep)
+call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac)
 par%Trep=1.d0/par%Trep
 
 allocate(findline(size(wp%Sf)))
@@ -717,7 +717,7 @@ deallocate(temp)
 
 wp%hm0gew=4*sqrt(m0)
 !par%Trep=1/(m1/m0)
-call tpDcalc(wp%Sf,wp%f,par%Trep)
+call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac)
 par%Trep=1.d0/par%Trep
 !
 allocate(findline(size(wp%Sf)))
@@ -1463,22 +1463,24 @@ end subroutine frange
 ! -----------------------------------------------------------
 ! ----------- Small subroutine to determine tpD -------------
 ! ----(used by build_jonswap, swanreader, vardensreader)-----
-subroutine tpDcalc(Sf,f,Trep)
+subroutine tpDcalc(Sf,f,Trep,trepfac)
 
 implicit none
 
 real*8, dimension(:), intent(in)        :: Sf, f
 real*8, intent(out)                     :: Trep
+real*8, intent(in)                      :: trepfac
 
 real*8, dimension(:),allocatable        :: temp
 
 allocate(temp(size(Sf)))
 temp=0.d0
-where (Sf>0.8*maxval(Sf)) 
+where (Sf>=trepfac*maxval(Sf)) 
     temp=1.d0
 end where
 
-Trep=sum(temp*Sf*f)/sum(temp*Sf)
+! Trep=sum(temp*Sf*f)/sum(temp*Sf)
+Trep = sum(temp*Sf/f)/sum(temp*Sf)
 
 
 end subroutine tpDcalc
