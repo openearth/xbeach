@@ -128,7 +128,6 @@ do jg = 1,par%ngd
    vmagu = sqrt((uu+uau)**2+(vu+uav)**2)
    !
    Su=(cu*(ueu+uau)*hu-Dc*hu*dcdx-par%facsl*cu*vmagu*hu*dzbx)*wetu   !
-
    !
    ! Y-direction
    !
