@@ -260,7 +260,7 @@ wp%Sf = sum(wp%S_array, DIM = 2)*wp%dang
                                         ! dimension [length f]
 
 call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac)
-par%Trep=1.d0/par%Trep
+! par%Trep=1.d0/par%Trep
 ! Jaap try Tm-1,0
 ! par%Trep = 1/fp/1.1d0
 
@@ -589,7 +589,7 @@ wp%hm0gew=4*sqrt(m0)
 !par%Trep=1/(m1/m0)
 
 call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac)
-par%Trep=1.d0/par%Trep
+!par%Trep=1.d0/par%Trep
 
 allocate(findline(size(wp%Sf)))
 
@@ -718,7 +718,7 @@ deallocate(temp)
 wp%hm0gew=4*sqrt(m0)
 !par%Trep=1/(m1/m0)
 call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac)
-par%Trep=1.d0/par%Trep
+!par%Trep=1.d0/par%Trep
 !
 allocate(findline(size(wp%Sf)))
 firstp=0
