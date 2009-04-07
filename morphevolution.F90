@@ -166,8 +166,8 @@ do jg = 1,par%ngd
     call xmpi_shift(dzby,':n')
 #endif
 	! Jaap: get ua in v points and split out in u and v direction
-    uau(:,1:ny) = 0.5*(ua(:,1:ny)*sin(thetamean(:,1:ny))+ua(:,2:ny+1)*sin(thetamean(:,1:ny)))
-    uav(:,1:ny) = 0.5*(ua(:,1:ny)*cos(thetamean(:,1:ny))+ua(:,2:ny+1)*cos(thetamean(:,1:ny)))
+    uau(:,1:ny) = 0.5*(ua(:,1:ny)*cos(thetamean(:,1:ny))+ua(:,2:ny+1)*cos(thetamean(:,1:ny)))
+    uav(:,1:ny) = 0.5*(ua(:,1:ny)*sin(thetamean(:,1:ny))+ua(:,2:ny+1)*sin(thetamean(:,1:ny)))
     ! Jaap: compute vmagv including ua
     vmagv = sqrt((uv+uau)**2+(vv+uav)**2)
     !
