@@ -81,7 +81,9 @@ end if
 
 do jg = 1,par%ngd
    cc = ccg(:,:,jg)
-   ! cc = ceqg(:,:,jg) ! Can be used to test total transport mode
+   if (D50(jg)>0.002d0) then
+      cc = ceqg(:,:,jg) ! Can be used to test total transport mode
+   endif 
    !
    ! X-direction
    do j=1,ny+1
@@ -575,13 +577,13 @@ do jg = 1,par%ngd
    ! calculate treshold velocity Ucr
    if(D50(jg)<=0.0005d0) then
      Ucr=0.19d0*D50(jg)**0.1d0*log10(4*hloc/D90(jg))
-   else if(D50(jg)<0.002d0) then
+   else if(D50(jg)<0.05d0) then   !Dano see what happens with coarse material
      Ucr=8.5d0*D50(jg)**0.6d0*log10(4*hloc/D90(jg))
    else
 #ifdef USEMPI
      write(*,'(a,i4)') 'In process',xmpi_rank
 #endif
-     write(*,*) '  Remark from sb_vr: D50(jg) > 2mm, out of validity range'
+    ! write(*,*) '  Remark from sb_vr: D50(jg) > 2mm, out of validity range'
    end if
    ! drag coefficient
    z0 = par%z0
@@ -640,7 +642,8 @@ do j=1,ny+1
          B1(i,j) = B1(i,j)*par%px/180.d0
          Sk(i,j) = Bm(i,j)*cos(B1(i,j))                                                              !Skewness (eq 8)
          As(i,j) = Bm(i,j)*sin(B1(i,j))                                                              !Skewness (eq 9)
-		 ua(i,j) = par%facua*Sk(i,j)*urms(i,j)
+		!Dano ua(i,j) = par%facua*Sk(i,j)*urms(i,j)
+         ua(i,j) = par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
 	  endif
    enddo
 enddo
