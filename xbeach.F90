@@ -1,5 +1,10 @@
 program xbeach
 
+! config system
+#ifdef HAVE_CONFIG_H 
+#include "config.h"
+#endif
+
 use params
 use spaceparams
 use xmpi_module
@@ -7,7 +12,11 @@ use initialize
 use boundaryconditions
 use flow_timestep_module
 use morphevolution
+#ifdef HAVE_NETCDF
+use ncoutputmod
+#else
 use outputmod
+#endif
 use readtide_module
 use wave_stationary_module
 use wave_timestep_module
