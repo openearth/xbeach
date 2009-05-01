@@ -1586,18 +1586,21 @@ if (xmaster) then
 	endif
     
 	total=0.d0
+	i=0
 	select case (filetype)
 	    case(0)
 			total=2.d0*par%tstop*max(par%morfac,1.d0)
 		case(1)
-			do i=1,nlines
+			do while (total<par%tstop*max(par%morfac,1.d0) .and. i<nlines)
 				read(741,*)t,dt,dummy
 				total=total+t
+				i=i+1
 			enddo
 		case(2)
-			do i=1,nlines
+			do while (total<par%tstop*max(par%morfac,1.d0) .and. i<nlines)
 				read(741,*)d1,d2,d3,d4,d5,t,dt
 				total=total+t
+				i=i+1
 			enddo
 	end select
 	total=total/max(par%morfac,1.d0)
