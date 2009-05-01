@@ -347,6 +347,7 @@ subroutine init_output(s,sl,par,it)
             do i=1,ii
                     read(10,*)tpg(i)
             enddo
+				tpg=tpg/max(par%morfac,1.d0)
             close(10)
         else
             ii=floor((par%tstop-par%tstart)/par%tintg)+1
@@ -376,6 +377,7 @@ subroutine init_output(s,sl,par,it)
             do i=1,ii
                     read(10,*)tpp(i)
             enddo
+				tpp=tpp/max(par%morfac,1.d0)
             close(10)
         else
             ii=floor((par%tstop-par%tstart)/par%tintp)+1
@@ -404,6 +406,7 @@ subroutine init_output(s,sl,par,it)
             do i=1,ii
                     read(10,*)tpm(i)
             enddo
+				tpm=tpm/max(par%morfac,1.d0)
             close(10)
         else
             ii=floor((par%tstop-par%tstart)/par%tintm)+1
