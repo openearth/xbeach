@@ -41,6 +41,8 @@ character*80                                :: fname,Ebcfname,qbcfname
 character*8                                 :: testc
 logical                                     :: makefile
 integer,save                                :: reuse  ! = 0 used to be in code
+integer,save                                :: counter
+integer                                     :: i1,i2,i3
 
 
 makefile=.false.
@@ -48,6 +50,7 @@ makefile=.false.
 if (abs(par%t-par%dt)<1.d-6) then
     bcendtime=0
     par%listline=0
+	 counter=0
     if(xmaster) then
       call readkey('params.txt','bcfile',fname)
 	  call checkbcfilelength(par,fname)
@@ -65,13 +68,14 @@ if (abs(par%t-par%dt)<1.d-6) then
     else
         reuse=1                     ! Same file is reused
         if(xmaster) then
-          close(74)    ! only close if this is not the list of files
+!          close(74)    ! only close if this is not the list of files
         endif
     end if
 end if
 
 if (par%t>=(par%tstop-par%dt)) then
     return                          ! Hard code to prevent recalculation of bc for last timestep
+	 close(74)
 end if                              ! par%listline is not increased, therfore, first line of current bcf is used (i.e. all zeros)
 
 
@@ -88,8 +92,17 @@ if (reuse==0) then
     !Dano call xmpi_bcast(wp%dt)
     !Dano call xmpi_bcast(fname)
 #endif
-    Ebcfname='E_'//fname
-    qbcfname='q_'//fname
+    if (par%instat/=41) then 
+       Ebcfname='E_'//fname
+       qbcfname='q_'//fname
+	 else
+	    counter=counter+1
+	    i1=floor(real(counter)/100.d0)
+       i2=floor(real(counter-i1*100)/10.d0)
+       i3=counter-i1*100-i2*10
+		 Ebcfname='Ejonsw'//char(48+i1)//char(48+i2)//char(48+i3)//'.bcf'
+		 qbcfname='qjonsw'//char(48+i1)//char(48+i2)//char(48+i3)//'.bcf'
+	 endif
 else 
     wp%rt = readkey_dbl ('params.txt','rt'      , 3600.d0, 1200.d0,7200.d0,bcast=.false.)
     wp%rt = wp%rt / max(par%morfac,1.d0)
@@ -234,7 +247,7 @@ wp%dang=wp%theta(2)-wp%theta(1)
 
 
 allocate (wp%Dd(size(wp%theta)))
-wp%mainang=(1.5d0*par%px-s%alfa)-wp%mainang*atan(1.d0)/45.0d0
+wp%mainang=(1.5d0*par%px-s%alfa)-wp%mainang*par%px/180.d0
 if (wp%mainang>2.d0*par%px) then
     wp%mainang=wp%mainang-2.d0*par%px
 elseif (wp%mainang<-2.d0*par%px) then
