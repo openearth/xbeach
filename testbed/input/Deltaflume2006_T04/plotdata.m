@@ -122,10 +122,32 @@ plot(xw,s.Um,'k-','LineWidth',1.5); hold on; plot(xum+dxext,Um,'ks','LineWidth',
 xlabel('x [m]'); ylabel('U_{mean} [m]'); axis([min(min(xw)) max(max(xw)) -0.5 0.1]);
 print('hydrodynamics.png','-dpng');
 
+% compute skills:
+varname = 'Hrms';
+comp = [xw(:,2), s.Hrms_m]; meas = [xhrms+dxext; Hrms]';
+[r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,varname);
+varname = 'Hrms_hf';
+comp = [xw(:,2), s.Hrms_hfm]; meas = [xhrms+dxext; Hrms_hf]';
+[r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,varname);
+varname = 'Hrms_lf';
+comp = [xw(:,2), s.Hrms_lfm]; meas = [xhrms+dxext; Hrms_lf]';
+[r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,varname);
+varname = 'Urms';
+comp = [xw(:,2), s.Urms_m]; meas = [xurms+dxext; Urms]';
+[r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,varname);
+varname = 'Urms_hf';
+comp = [xw(:,2), s.Urms_hfm]; meas = [xurms+dxext; Urms_hf]';
+[r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,varname);
+varname = 'Urms_lf';
+comp = [xw(:,2), s.Urms_lfm]; meas = [xurms+dxext; Urms_lf]';
+[r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,varname);
+varname = 'Um';
+comp = [xw(:,2), s.Um]; meas = [xum+dxext; Um]';
+[r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,varname);
+
 % wave setup..
 % plot(xw,s.setup,'k-','LineWidth',1.5); hold on; plot(xsetup+dxext,setup,'ks','LineWidth',1.5);
 % xlabel('x [m]'); ylabel('\eta_{mean} [m]'); axis([min(min(xw)) max(max(xw)) -0.1 0.3]);
-
 
 % wave spectra
 % simulated wave spectra
@@ -145,7 +167,7 @@ f2 = df11/2:df11:df*round(n/2);
 vf2 = [];
 for ii = 1:floor(length(f2))
     vf2(:,ii) = mean(varf1(:,(ii-1)*fac+1:ii*fac),2);
-    Hrms_check(ii) = sqrt(8*sum(vf2*df11,2));
+    Hrms_check{ii} = sqrt(8*sum(vf2*df11,2));
 end
 % figure; plot(f,zsf);
 figure(5); 
@@ -162,9 +184,9 @@ print variance_spectra.png -dpng
 
 % water surface elevations
 load(['F:\TU_Delft_work\deltagoot\coastal_engineering\test8.mat']);
-eta = []; u = []; t = 0;
+eta = []; u = []; t = 0; dt = d(1).t(2)-d(1).t(1);
 for i = 1:length(d)
-    t = [t d(i).t'+t(end)];
+    t = [t d(i).t'+t(end)+dt];
     temp = []; 
     for ii = 1:length(xhrms)
         temp(ii,:) = m(i).eta{ii};
@@ -185,6 +207,16 @@ for i = 1:length(xhrms);
     axis([tstart/60 tend/60 -etamax(i) etamax(i)]);
     text(250.1,-0.85*etamax(i),['x = ',num2str(round(xhrms(i))),' [m]'],'FontSize',9);set(gca,'fontsize',9);
     xlabel('t [min]'); ylabel('\eta [m]');
+    
+    if i == length(xhrms)
+    keyboard
+    varname = 'eta_lf_x=205m';
+    comp = [ts/60; zs(ind(i),:)]'; meas = [t/60; eta(i,:)]'; %figure; plot(comp,meas,'.');
+    [r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,varname);
+    % meas2 = [ts/60; interp1(t/60,eta(i,:),ts/60)]';
+    % meas2(1,2)=comp(1,2);
+    % R = corrcoef(comp(:,2),meas2(:,2));
+    end
 end
 print water_surface_elevations.png -dpng
 
@@ -207,13 +239,24 @@ subplot(212);
 plot(xw,s.Sdzb,'k--','LineWidth',1.5); hold on; plot(x+dxext,Sdzb,'k-','LineWidth',1.5);
 xlabel('x [m]'); ylabel('S_{mean} [m^3/m/s]'); axis([min(min(xw)) max(max(xw)) -3E-4 1E-4]);
 print('transport.png','-dpng');
-
+    
+intv = {'A','B','C','D','E'};
 figure(8); set(gca,'FontSize',12);
 for i = 1:length(Tout)
     subplot(3,2,i)
     plot(xw,s.zb_interval(:,1),'k-',xw,s.zb_interval(:,i),'r--',x+dxext,z(i,:),'r-','LineWidth',1.5);
     xlabel('x [m]'); ylabel('z_{b} [m]'); axis([170+dxext 220+dxext -2. 2]);
     title([num2str(round(Tout(i)*par.morfac/3600*10)/10) ' hr'])
+    if i>1
+        varname = ['zb_I=',num2str(intv{i-1})];
+        ind1 = find(xw(:,2)==41);
+        ind2 = find(x+dxext==41);
+        comp = [xw(ind1:end,2), s.zb_interval(ind1:end,i)]; meas = [x(ind2:end)+dxext; z(i,ind2:end)]';
+        [r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,varname);
+        varname = ['dzb_I=',num2str(intv{i-1})];
+        comp = [xw(ind1:end,2), s.zb_interval(ind1:end,i)-s.zb_interval(ind1:end,1)]; meas = [x(ind2:end)+dxext; z(i,ind2:end)-z(1,ind2:end)]';
+        [r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,varname);
+    end
 end
 print('profile.png','-dpng');
 
