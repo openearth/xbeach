@@ -52,7 +52,7 @@ break    = 3
 roller   = 1
 beta     = 0.1
 rfb      = 1
-gamma    = 0.55
+gamma    = 0.50
 gammax   = 5.
 alpha    = 1.
 delta    = 0.0
@@ -72,11 +72,9 @@ hswitch  = 0.1
 ----------------------------------------------------
  
 Time input
-tstart   = 300
-tintg    = 2310
-tintp    = 2310
-tintm    = 2310
-tstop    = 69600
+tstart   = 0
+tintg    = 1
+tstop    = 69450
 taper    = 100
  
 ----------------------------------------------------
@@ -93,8 +91,8 @@ tsfac    = 0.1
  
 Morphological calculation options
 form     = 2
-morfac   = 1
-morstart = 150
+morfac   = 10
+morstart = 0
 por      = 0.4
 dryslp   = 1.0
 wetslp   = 0.10
@@ -118,10 +116,3 @@ gwhead
 Sxx
 Syy
 Sxy
-
------- output at t=tstart + n*tintm (n=1,....) average over previous tintm
-nmeanvar = 2
-ue
-H
-
-
