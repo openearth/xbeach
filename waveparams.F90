@@ -274,6 +274,7 @@ wp%Sf = sum(wp%S_array, DIM = 2)*wp%dang
 
 call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac)
 ! par%Trep=1.d0/par%Trep
+write(*,*)'Trep =',par%Trep
 ! Jaap try Tm-1,0
 ! par%Trep = 1/fp/1.1d0
 
@@ -1572,7 +1573,7 @@ type(parameters), INTENT(IN)             :: par
 character*80      :: filename,dummy
 character*8       :: testc
 character*1       :: ch
-integer           :: i,ier,nlines,filetype
+integer           :: i,ier=0,nlines,filetype
 real*8            :: t,dt,total,d1,d2,d3,d4,d5
 
 ier = 0
