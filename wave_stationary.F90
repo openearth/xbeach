@@ -165,7 +165,7 @@ km = k
 call xmpi_shift(km,'1:')
 #endif
 
-dtw=.9*minval(xz(2:nx+1)-xz(1:nx))/maxval(cgx)
+!dtw=.9*minval(xz(2:nx+1)-xz(1:nx))/maxval(cgx)
 
 #ifdef USEMPI
 do iimpi=1,xmpi_m    ! Start iteration for number of domains in x direction
@@ -197,7 +197,10 @@ do it=2,imax
 	else
 	   i=it+1-nx
 	endif
-
+    !Dano
+    dtw=.5*minval(xz(i:i+1)-xz(i-1:i))/maxval(cgx(i-1:i+1,:,:))
+    dtw=min(dtw,.5*minval(yz(2:ny+1)-yz(1:ny))/maxval(cgy(i,:,:)))
+    dtw=min(dtw,.5*dtheta/maxval(ctheta(i,:,:)))
 	Herr=1.
 	iter=0
 	stopiterate=.false.
@@ -258,7 +261,7 @@ do it=2,imax
 		! Upwind Euler timestep propagation
 		!
 		call advecx(ee(i-1:i+1,:,:)*cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),2,ny,ntheta,xz(i-1:i+1)) !Robert & Jaap
-		call advecy(ee(i,:,:)*cgy(i,:,:),yadvec(i,:,:),0,ny,ntheta,yz)                   !Robert & Jaap, nx and ny increased with 1 in advecy
+        call advecy(ee(i,:,:)*cgy(i,:,:),yadvec(i,:,:),0,ny,ntheta,yz)                   !Robert & Jaap, nx and ny increased with 1 in advecy
 		call advectheta(ee(i,:,:)*ctheta(i,:,:),thetaadvec(i,:,:),0,ny,ntheta,dtheta)    !Robert & Jaap
 
 		ee(i,:,:)=ee(i,:,:)-dtw*(xadvec(i,:,:) &
@@ -324,6 +327,13 @@ do it=2,imax
 		rr(i,:,:)=max(rr(i,:,:),0.0d0)
 		!
 		! euler step roller energy dissipation (source and sink function)
+		 do j=1,ny+1
+			do itheta=1,ntheta        
+			   if (dtw*dd(i,j,itheta)>ee(i,j,itheta)) then
+			      dtw=min(dtw,.5*ee(i,j,itheta)/dd(i,j,itheta))                
+			   endif
+            enddo
+         enddo
 		 do j=1,ny+1
 			do itheta=1,ntheta                        
 				  if(wete(i,j,itheta)==1) then
