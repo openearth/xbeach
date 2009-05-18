@@ -186,7 +186,7 @@ if (par%instat == 0) then
     par%m     = readkey_int    ('params.txt','m',        10,         2,      128)
     par%Trep  = readkey_dbl    ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
     par%Trep  = readkey_dbl    ('params.txt','Trep',     par%Trep,   1.d0,    20.d0)
-	 par%maxiter = readkey_int  ('params.txt','maxiter',  15,         2,      100)
+	 par%maxiter = readkey_int  ('params.txt','maxiter', 200,         2,      100)
     par%maxerror= readkey_dbl  ('params.txt','maxerror', 0.0001d0, 0.00001d0, 0.01d0)
 !    par%omega    = 2.d0*par%px/par%Trep;
 elseif (par%instat==40) then
