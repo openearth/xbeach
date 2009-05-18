@@ -68,7 +68,7 @@ if (abs(par%t-par%dt)<1.d-6) then
     else
         reuse=1                     ! Same file is reused
         if(xmaster) then
-!          close(74)    ! only close if this is not the list of files
+          close(74)    ! only close if this is not the list of files
         endif
     end if
 end if
