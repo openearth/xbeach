@@ -709,7 +709,10 @@ subroutine var_output(it,s,sl,par)
                       allocate (temp(1:s%nx+1))
                       temp=(/(k,k=1,s%nx+1)/)
                       ! wwvv wetz ok?, probably not
-                      idum = maxval(maxloc(temp*s%wetz(1:s%nx+1,ypoints(i)))) ! Picks the last "1" in temp
+!                      idum = maxval(minloc(temp*s%wetz(1:s%nx+1,ypoints(i)))) ! Picks the last "1" in temp
+                      idum = max(maxval(minloc(temp*(1-s%wetz(1:s%nx+1,ypoints(i)))))-1,1)  ! Pick first dry point and from there
+							                                                                       ! back one to the last wet point
+																												        ! attached to the offshore boundary
                       deallocate(temp)
                     endif
 #ifdef USEMPI
