@@ -254,14 +254,13 @@ elsewhere
 endwhere
 
 
+
 s%gww=0.d0						! w defined positive from sea to groundwater in volumes of surface water (no pores).
 s%gww=par%por*(&
               -( c1* (s%gwlevel-s%zb) / par%dt                                      )&
-              +( c2* ((1.d0-r)*(s%zb-s%gwlevel) / par%dt + r*(par%kz*fsh/s%dinfil)) )&
+              +( c2* ((1.d0-r)*(s%zb-s%gwlevel) / par%dt + r*(par%kz*(1.d0 + fsh/s%dinfil)) ) ) ) ! Jaap: add effect gravity for computing gww
 !             +(case2*((1.d0-r)*max((s%zb-s%gwhead),0.d0)+r*(fsh*gw%kper)))&
 !			  +(case3*fsh*gw%kper)&
-			  )
-
 
 ! ensure that water extracted from surface layer is not more than available
 where (s%gww*par%dt>s%hh)
