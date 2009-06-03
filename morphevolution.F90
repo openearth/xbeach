@@ -643,6 +643,8 @@ do j=1,ny+1
          Sk(i,j) = Bm(i,j)*cos(B1(i,j))                                                              !Skewness (eq 8)
          As(i,j) = Bm(i,j)*sin(B1(i,j))                                                              !Skewness (eq 9)
 		!Dano ua(i,j) = par%facua*Sk(i,j)*urms(i,j)
+		 ! Jaap: try variable facua
+		 par%facua = min(1.d0,max(0.d0,(H(i,j)/hh(i,j)-0.5d0*par%gamma)))
          ua(i,j) = par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
 	  endif
    enddo
@@ -669,7 +671,7 @@ integer                                 :: i,nw,ii
 integer                                 :: ih0,it0,ih1,it1
 integer, save                           :: nh,nt
 integer                                 :: j,jg
-real*8                                  :: dster,onethird,twothird,Ass,dcf,dcfin,ML,fac
+real*8                                  :: dster,onethird,twothird,Ass,dcf,dcfin,ML,fac,facua
 real*8                                  :: Te,kvis,Sster,cc1,cc2,wster,z0,delta,smax
 real*8                                  :: p,q,f0,f1,f2,f3,uad,duddtmax,dudtmax,siguref,t0fac,duddtmean,dudtmean
 real*8                               ,save     :: dh,dt
@@ -772,7 +774,9 @@ do j=1,ny+1
 	  detadxmax(i,j) = dudtmax*sinh(k(i,j)*hloc(i,j))/max(c(i,j),sqrt(H(i,j)*par%g))/sigm(i,j)
       
 	  uad = f0*RF(17,ih0,it0)+f1*RF(17,ih1,it0)+ f2*RF(17,ih0,it1)+f3*RF(17,ih1,it1)
-	  ua(i,j) = par%sws*par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
+	  ! Jaap: try variable facua
+	  facua = par%facua*max(0.d0,min(1.d0,H(i,j)/hh(i,j)-0.75d0))
+	  ua(i,j) = par%sws*facua*(Sk(i,j)-As(i,j))*urms(i,j)
 
       ! Jaap: use average slope over bore front in roller energy balance...
 	  duddtmean = f0*RF(18,ih0,it0)+f1*RF(18,ih1,it0)+ f2*RF(18,ih0,it1)+f3*RF(18,ih1,it1)

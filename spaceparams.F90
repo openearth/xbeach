@@ -172,6 +172,7 @@ subroutine grid_bathy(s,par)
 
   s%alfa  = s%alfa*atan(1.0d0)/45.d0
   s%posdwn= readkey_dbl('params.txt','posdwn',1.d0,   -1.d0,     1.d0)
+  s%posdwn = s%posdwn*sign(s%posdwn,1.d0)
   s%vardx = readkey_int('params.txt','vardx',   0,      0,         1)     !Jaap
 
   if (xmaster) then
