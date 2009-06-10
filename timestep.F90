@@ -44,15 +44,15 @@ else
   enddo
   par%dt=par%dt*par%CFL*0.5d0
   if (par%instat>0 .and. par%instat/=40) then
-    par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(abs(s%ctheta))+tiny(0.0d0)) )
-    !do j=2,s%ny
-    !  do i=2,s%nx     
-    !    do itheta=1,s%ntheta
-    !      ! Theta points
-    !      par%dt=min(par%dt,par%CFL*s%dtheta/max(abs(s%ctheta(i,j,itheta)),tiny(0.0d0)))
-    !    end do
-    !  end do
-    !end do
+    par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tiny(0.0d0)))
+!    !do j=2,s%ny
+!    !  do i=2,s%nx     
+!    !    do itheta=1,s%ntheta
+!    !      ! Theta points
+!    !      par%dt=min(par%dt,par%CFL*s%dtheta/max(abs(s%ctheta(i,j,itheta)),tiny(0.0d0)))
+!    !    end do
+!    !  end do
+!    !end do
   end if
 end if
 ! wwvv: In the mpi version par%dt will be calculated different
