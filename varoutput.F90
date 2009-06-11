@@ -706,14 +706,13 @@ subroutine var_output(it,s,sl,par)
                 !!! Make vector of all s% values at n,m grid coordinate
                 if (pointtype(i)==1) then
                     if (xmaster) then
-                      allocate (temp(1:s%nx+1))
-                      temp=(/(k,k=1,s%nx+1)/)
+                      !allocate (temp(1:s%nx+1))
+                      !temp=(/(k,k=1,s%nx+1)/)
                       ! wwvv wetz ok?, probably not
 !                      idum = maxval(minloc(temp*s%wetz(1:s%nx+1,ypoints(i)))) ! Picks the last "1" in temp
-                      idum = max(maxval(minloc(temp*(1-s%wetz(1:s%nx+1,ypoints(i)))))-1,1)  ! Pick first dry point and from there
-							                                                                       ! back one to the last wet point
-																												        ! attached to the offshore boundary
-                      deallocate(temp)
+                      !idum = max(maxval(minloc(temp*(1-s%wetz(1:s%nx+1,ypoints(i)))))-1,1)  ! Pick first dry point and from there! back one to the last wet point
+		      idum =  max(maxval(minloc(s%wetz(:,ypoints(i))))-1,1)																												        ! attached to the offshore boundary
+                      !deallocate(temp)
                     endif
 #ifdef USEMPI
                     call xmpi_bcast(idum)
