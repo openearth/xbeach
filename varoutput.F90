@@ -116,8 +116,16 @@ subroutine init_output(s,sl,par,it)
 
           do i=1,npoints
               read(10,*) xpointsw(i),ypointsw(i),nassocvar(i),line
-			  write(*,*) 'Output point'
-              write(*,'(a,f15.2,a,f15.2)') ' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i)
+			  write(*,'(a,i0)') 'Output point ',i
+              write(*,'(a,f0.2,a,f0.2)') ' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i)
+              ! Convert world coordinates of points to nearest (lsm) grid point
+			     mindist=sqrt((xpointsw(i)-s%xw)**2+(ypointsw(i)-s%yw)**2)
+			     minlocation=minloc(mindist)
+			     xpoints(i)=minlocation(1)
+			     ypoints(i)=minlocation(2)
+			     write(*,'(a,i0,a,i0,a,f0.2,a)')' Distance output point to nearest grid point ('&
+			                        ,minlocation(1),',',minlocation(2),') is '&
+			                        ,mindist(minlocation(1),minlocation(2)), ' meters'
 
               icold=0
               do ii =1,nassocvar(i)
@@ -135,13 +143,7 @@ subroutine init_output(s,sl,par,it)
                   endif
                   icold=ic
               enddo
-			  ! Convert world coordinates of points to nearest (lsm) grid point
-			  mindist=(xpointsw(i)-s%xw)**2+(ypointsw(i)-s%yw)**2
-			  minlocation=minloc(mindist)
-			  xpoints(i)=minlocation(1)
-			  ypoints(i)=minlocation(2)
-			  write(*,'(a,f8.2,a)')'Distance output point to nearest grid point '&
-			                        ,mindist(minlocation(1),minlocation(2)), ' meters'
+			 
           enddo
           close(10)
         endif ! npoints>0  
@@ -161,8 +163,14 @@ subroutine init_output(s,sl,par,it)
 
           do i=1+npoints,nrugauge+npoints
               read(10,*) xpointsw(i),ypointsw(i),nassocvar(i),line
-			  write(*,*) 'Output runup gauge'
-              write(*,'(a,f15.2,a,f15.2)') ' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i)
+			  write(*,'(a,i0)') 'Output runup gauge ',i-npoints
+              write(*,'(a,f0.2,a,f0.2)') ' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i)
+				  ! Convert world coordinates of points to nearest (lsm) grid row
+			     mindist=sqrt((xpointsw(i)-s%xw)**2+(ypointsw(i)-s%yw)**2)
+			     minlocation=minloc(mindist)
+			     xpoints(i)=1
+			     ypoints(i)=minlocation(2)
+			     write(*,'(a,i0)')'Runup gauge at grid line iy=',ypoints(i)
               icold=0
               do ii =1,nassocvar(i)
                   ic=scan(line(icold+1:80),'#')
@@ -179,12 +187,7 @@ subroutine init_output(s,sl,par,it)
                   endif
                   icold=ic
               enddo
-			  ! Convert world coordinates of points to nearest (lsm) grid row
-			  mindist=(xpointsw(i)-s%xw)**2+(ypointsw(i)-s%yw)**2
-			  minlocation=minloc(mindist)
-			  xpoints(i)=1
-			  ypoints(i)=minlocation(2)
-			  write(*,*)'Runup gauge at grid line iy=',ypoints(i)
+			  
           enddo
           close(10)
         endif  ! nrugauge > 0	    
@@ -475,7 +478,7 @@ subroutine add_outnumber(number)
   implicit none
   integer, intent(in)  :: number ! to add
   if (noutnumbers .ge. numvars) then
-    write(*,*)'Too many outnumbers asked, max is ',numvars
+    write(*,'(a,i0)')'Too many outnumbers asked, max is ',numvars
     write(*,*)'Program will stop'
     call halt_program
   endif
