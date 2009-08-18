@@ -1092,7 +1092,7 @@ subroutine makeaverage(s,sl,par)
             (s%Fx*cos(s%alfa) - s%Fy*sin(s%alfa))
         case (mnem_Fy)
           meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-            (s%Fx*sin(s%alfa) - s%Fy*cos(s%alfa))
+            (s%Fx*sin(s%alfa) + s%Fy*cos(s%alfa))
         case (mnem_H)
           meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
             s%H**2
@@ -1104,19 +1104,19 @@ subroutine makeaverage(s,sl,par)
           (s%u*cos(s%alfa) - s%v*sin(s%alfa))
         case (mnem_v)
           meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-          (s%u*sin(s%alfa) - s%v*cos(s%alfa))
+          (s%u*sin(s%alfa) + s%v*cos(s%alfa))
         case (mnem_ue)
           meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
           (s%ue*cos(s%alfa) - s%ve*sin(s%alfa))
         case (mnem_ve)
           meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-          (s%ue*sin(s%alfa) - s%ve*cos(s%alfa))
+          (s%ue*sin(s%alfa) + s%ve*cos(s%alfa))
         case (mnem_uwf)
           meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
           (s%uwf*cos(s%alfa) - s%vwf*sin(s%alfa))
         case (mnem_vwf)
           meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-          (s%uwf*sin(s%alfa) - s%vwf*cos(s%alfa))
+          (s%uwf*sin(s%alfa) + s%vwf*cos(s%alfa))
         case default
           select case (t%type)
             case ('i')
