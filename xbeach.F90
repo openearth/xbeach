@@ -5,6 +5,7 @@ use spaceparams
 use xmpi_module
 use initialize
 use boundaryconditions
+use drifter_module
 use flow_timestep_module
 use morphevolution
 use outputmod
@@ -168,6 +169,7 @@ do while (par%t<par%tstop)
     ! Flow timestep
 	if (par%gwflow==1) call gwflow(par,s)
     call flow_timestep (s,par)
+    call drifter (s,par)
     call printit(sglobal,slocal,par,it,'after flow_timestep')
     ! Suspended transport
     call transus(s,par)
