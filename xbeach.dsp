@@ -72,7 +72,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE F90 /check:bounds /compile_only /dbglibs /debug:full /nologo /traceback /warn:argument_checking /warn:nofileopt
-# ADD F90 /browser /check:bounds /check:power /check:overflow /compile_only /dbglibs /debug:full /fltconsistency /fpconstant /fpe:0 /fpp /nologo /real_size:64 /traceback /warn:argument_checking /warn:nofileopt
+# ADD F90 /browser /check:bounds /check:power /check:overflow /compile_only /dbglibs /debug:full /fltconsistency /fpconstant /fpe:0 /fpp /nologo /real_size:64 /traceback /warn:argument_checking /warn:declarations /warn:nofileopt /warn:unused
 # SUBTRACT F90 /check:underflow
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
 # ADD CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
@@ -128,13 +128,13 @@ LINK32=link.exe
 
 SOURCE=.\boundaryconditions.f90
 DEP_F90_BOUND=\
-	".\Release_NoMPI\interp.mod"\
-	".\Release_NoMPI\params.mod"\
-	".\Release_NoMPI\readkey_module.mod"\
-	".\Release_NoMPI\spaceparams.mod"\
-	".\Release_NoMPI\wave_timestep_module.mod"\
-	".\Release_NoMPI\waveparams.mod"\
-	".\Release_NoMPI\xmpi_module.mod"\
+	".\Debug\interp.mod"\
+	".\Debug\params.mod"\
+	".\Debug\readkey_module.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\wave_timestep_module.mod"\
+	".\Debug\waveparams.mod"\
+	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
@@ -147,11 +147,26 @@ SOURCE=.\constants.f90
 # End Source File
 # Begin Source File
 
+SOURCE=.\drifters.f90
+DEP_F90_DRIFT=\
+	".\Debug\mnemmodule.mod"\
+	".\Debug\params.mod"\
+	".\Debug\readkey_module.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\xmpi_module.mod"\
+	".\s.ind"\
+	".\s.inp"\
+	".\space_ind.gen"\
+	".\space_inp.gen"\
+	
+# End Source File
+# Begin Source File
+
 SOURCE=.\flow_timestep.f90
 DEP_F90_FLOW_=\
-	".\Release_NoMPI\params.mod"\
-	".\Release_NoMPI\spaceparams.mod"\
-	".\Release_NoMPI\xmpi_module.mod"\
+	".\Debug\params.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
@@ -161,27 +176,31 @@ DEP_F90_FLOW_=\
 # Begin Source File
 
 SOURCE=.\general_mpi.F90
-DEP_F90_GENER=\
-	".\Release_NoMPI\xmpi_module.mod"\
-	
 NODEP_F90_GENER=\
-	".\Release_NoMPI\mpi.mod"\
+	".\Debug\mpi.mod"\
+	".\Debug\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\groundwater.f90
+NODEP_F90_GROUN=\
+	".\Debug\params.mod"\
+	".\Debug\readkey_module.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\xmpi_module.mod"\
+	
 # End Source File
 # Begin Source File
 
 SOURCE=.\initialize.f90
-DEP_F90_INITI=\
-	".\Release_NoMPI\interp.mod"\
-	".\Release_NoMPI\params.mod"\
-	".\Release_NoMPI\readkey_module.mod"\
-	".\Release_NoMPI\spaceparams.mod"\
-	".\Release_NoMPI\wave_timestep_module.mod"\
-	".\Release_NoMPI\xmpi_module.mod"\
+NODEP_F90_INITI=\
+	".\Debug\interp.mod"\
+	".\Debug\params.mod"\
+	".\Debug\readkey_module.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\wave_timestep_module.mod"\
+	".\Debug\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
@@ -191,8 +210,8 @@ SOURCE=.\interp.f90
 # Begin Source File
 
 SOURCE=.\math_tools.f90
-DEP_F90_MATH_=\
-	".\Release_NoMPI\xmpi_module.mod"\
+NODEP_F90_MATH_=\
+	".\Debug\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
@@ -207,10 +226,10 @@ DEP_F90_MNEMO=\
 
 SOURCE=.\morphevolution.f90
 DEP_F90_MORPH=\
-	".\Release_NoMPI\params.mod"\
-	".\Release_NoMPI\readkey_module.mod"\
-	".\Release_NoMPI\spaceparams.mod"\
-	".\Release_NoMPI\xmpi_module.mod"\
+	".\Debug\params.mod"\
+	".\Debug\readkey_module.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
@@ -220,26 +239,26 @@ DEP_F90_MORPH=\
 # Begin Source File
 
 SOURCE=.\params.f90
-DEP_F90_PARAM=\
-	".\Release_NoMPI\readkey_module.mod"\
-	".\Release_NoMPI\xmpi_module.mod"\
+NODEP_F90_PARAM=\
+	".\Debug\readkey_module.mod"\
+	".\Debug\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\readkey.f90
-DEP_F90_READK=\
-	".\Release_NoMPI\xmpi_module.mod"\
+NODEP_F90_READK=\
+	".\Debug\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\readtide.f90
 DEP_F90_READT=\
-	".\Release_NoMPI\params.mod"\
-	".\Release_NoMPI\readkey_module.mod"\
-	".\Release_NoMPI\spaceparams.mod"\
-	".\Release_NoMPI\xmpi_module.mod"\
+	".\Debug\params.mod"\
+	".\Debug\readkey_module.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
@@ -249,21 +268,21 @@ DEP_F90_READT=\
 # Begin Source File
 
 SOURCE=.\roelvink.f90
-DEP_F90_ROELV=\
-	".\Release_NoMPI\params.mod"\
-	".\Release_NoMPI\spaceparams.mod"\
+NODEP_F90_ROELV=\
+	".\Debug\params.mod"\
+	".\Debug\spaceparams.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\spaceparams.F90
 DEP_F90_SPACE=\
+	".\Debug\general_mpi_module.mod"\
+	".\Debug\mnemmodule.mod"\
+	".\Debug\params.mod"\
+	".\Debug\readkey_module.mod"\
+	".\Debug\xmpi_module.mod"\
 	".\indextos.gen"\
-	".\Release_NoMPI\general_mpi_module.mod"\
-	".\Release_NoMPI\mnemmodule.mod"\
-	".\Release_NoMPI\params.mod"\
-	".\Release_NoMPI\readkey_module.mod"\
-	".\Release_NoMPI\xmpi_module.mod"\
 	".\space_alloc_arrays.gen"\
 	".\space_alloc_scalars.gen"\
 	".\spacedecl.gen"\
@@ -272,32 +291,32 @@ DEP_F90_SPACE=\
 # Begin Source File
 
 SOURCE=.\timestep.f90
-DEP_F90_TIMES=\
-	".\Release_NoMPI\params.mod"\
-	".\Release_NoMPI\spaceparams.mod"\
-	".\Release_NoMPI\xmpi_module.mod"\
+NODEP_F90_TIMES=\
+	".\Debug\params.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\varoutput.f90
-DEP_F90_VAROU=\
-	".\Release_NoMPI\mnemmodule.mod"\
-	".\Release_NoMPI\params.mod"\
-	".\Release_NoMPI\readkey_module.mod"\
-	".\Release_NoMPI\spaceparams.mod"\
-	".\Release_NoMPI\xmpi_module.mod"\
+NODEP_F90_VAROU=\
+	".\Debug\mnemmodule.mod"\
+	".\Debug\params.mod"\
+	".\Debug\readkey_module.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\wave_stationary.f90
 DEP_F90_WAVE_=\
-	".\Release_NoMPI\params.mod"\
-	".\Release_NoMPI\roelvink_module.mod"\
-	".\Release_NoMPI\spaceparams.mod"\
-	".\Release_NoMPI\wave_timestep_module.mod"\
-	".\Release_NoMPI\xmpi_module.mod"\
+	".\Debug\params.mod"\
+	".\Debug\roelvink_module.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\wave_timestep_module.mod"\
+	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
@@ -308,54 +327,57 @@ DEP_F90_WAVE_=\
 
 SOURCE=.\wave_timestep.f90
 DEP_F90_WAVE_T=\
-	".\Release_NoMPI\mnemmodule.mod"\
-	".\Release_NoMPI\params.mod"\
-	".\Release_NoMPI\roelvink_module.mod"\
-	".\Release_NoMPI\spaceparams.mod"\
-	".\Release_NoMPI\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
+NODEP_F90_WAVE_T=\
+	".\Debug\mnemmodule.mod"\
+	".\Debug\params.mod"\
+	".\Debug\roelvink_module.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\xmpi_module.mod"\
+	
 # End Source File
 # Begin Source File
 
 SOURCE=.\waveparams.f90
-DEP_F90_WAVEP=\
-	".\Release_NoMPI\interp.mod"\
-	".\Release_NoMPI\math_tools.mod"\
-	".\Release_NoMPI\params.mod"\
-	".\Release_NoMPI\readkey_module.mod"\
-	".\Release_NoMPI\spaceparams.mod"\
-	".\Release_NoMPI\xmpi_module.mod"\
+NODEP_F90_WAVEP=\
+	".\Debug\interp.mod"\
+	".\Debug\math_tools.mod"\
+	".\Debug\params.mod"\
+	".\Debug\readkey_module.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\xbeach.f90
-DEP_F90_XBEAC=\
-	".\Release_NoMPI\boundaryconditions.mod"\
-	".\Release_NoMPI\flow_timestep_module.mod"\
-	".\Release_NoMPI\groundwaterflow.mod"\
-	".\Release_NoMPI\initialize.mod"\
-	".\Release_NoMPI\morphevolution.mod"\
-	".\Release_NoMPI\outputmod.mod"\
-	".\Release_NoMPI\params.mod"\
-	".\Release_NoMPI\readkey_module.mod"\
-	".\Release_NoMPI\readtide_module.mod"\
-	".\Release_NoMPI\spaceparams.mod"\
-	".\Release_NoMPI\timestep_module.mod"\
-	".\Release_NoMPI\wave_stationary_module.mod"\
-	".\Release_NoMPI\wave_timestep_module.mod"\
-	".\Release_NoMPI\xmpi_module.mod"\
+NODEP_F90_XBEAC=\
+	".\Debug\boundaryconditions.mod"\
+	".\Debug\drifter_module.mod"\
+	".\Debug\flow_timestep_module.mod"\
+	".\Debug\groundwaterflow.mod"\
+	".\Debug\initialize.mod"\
+	".\Debug\morphevolution.mod"\
+	".\Debug\outputmod.mod"\
+	".\Debug\params.mod"\
+	".\Debug\readkey_module.mod"\
+	".\Debug\readtide_module.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\timestep_module.mod"\
+	".\Debug\wave_stationary_module.mod"\
+	".\Debug\wave_timestep_module.mod"\
+	".\Debug\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\xmpi.F90
 NODEP_F90_XMPI_=\
-	".\Release_NoMPI\mpi.mod"\
+	".\Debug\mpi.mod"\
 	
 # End Source File
 # End Target

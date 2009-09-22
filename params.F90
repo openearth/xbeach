@@ -159,6 +159,7 @@ real*8     :: vicmol   = -123  ! molecular viscosity
 integer*4  :: maxiter  = -123  ! maximum number of iterations in wave stationary
 real*8     :: maxerror = -123  ! maximum wave height error in wave stationary iteration
 real*8     :: dico     = -123  ! sediment diffusion coefficient
+real*8     :: wcits    = -123  ! wave-current interaction time scale (current averaging time in terms of mean wave periods)
 
 
 end type parameters
@@ -240,13 +241,14 @@ par%thetamax = readkey_dbl ('params.txt','thetamax',  80.d0,    -180.d0,  180.d0
 par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   20.d0)
 par%thetanaut= readkey_int ('params.txt','thetanaut',    0,        0,     1)
 par%wci      = readkey_int ('params.txt','wci',        0,        0,     1)
-par%hwci  = readkey_dbl ('params.txt','hwci',   0.01d0,   0.001d0,      1.d0)
+par%hwci     = readkey_dbl ('params.txt','hwci',   0.01d0,   0.001d0,      1.d0)
+par%wcits    = readkey_dbl ('params.txt','wcits',  10.d0,   5.d0,      50.d0)
 par%break    = readkey_int ('params.txt','break',      3,        1,     3)
 par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
 par%beta     = readkey_dbl ('params.txt','beta',    0.15d0,     0.05d0,   0.3d0)
 par%rfb      = readkey_int ('params.txt','rfb',        1,        0,     1)
 par%taper    = readkey_dbl ('params.txt','taper',   100.d0,      0.0d0, 1000.d0)
-par%taper=max(par%taper,1.d-6)
+par%taper    = max(par%taper,1.d-6)
 par%refl     = readkey_int ('params.txt','refl',       0,        0,     1) 
 par%nspr     = readkey_int ('params.txt','nspr',       0,        0,     1) 
 par%scheme   = readkey_int ('params.txt','scheme',     1,        1,     2)

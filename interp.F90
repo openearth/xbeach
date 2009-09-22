@@ -18,9 +18,9 @@
 module interp
 contains
      SUBROUTINE LINEAR_INTERP(X, Y, N, XX, YY, INDINT)
-     real*8, dimension(n), intent(in) :: x
-     real*8, dimension(n), intent(in) :: y
      integer,              intent(in) :: n
+	 real*8, dimension(n), intent(in) :: x
+     real*8, dimension(n), intent(in) :: y
      real*8, intent(in)               :: xx
      real*8, intent(out)              :: yy
      integer, intent(out), optional   :: indint
@@ -93,8 +93,8 @@ contains
 ! SOURCE
 !
      SUBROUTINE BINARY_SEARCH(XX, N, X, J)
-     real*8, dimension(N), intent(in) :: xx
      integer,              intent(in) :: N
+     real*8, dimension(N), intent(in) :: xx
      real*8, intent(in)               :: x
      integer, intent(out)             :: j
 !****
