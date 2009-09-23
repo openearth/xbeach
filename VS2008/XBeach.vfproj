@@ -59,10 +59,10 @@
 		<File RelativePath="..\mnemonic.F90"/>
 		<File RelativePath="..\morphevolution.F90"/>
 		<File RelativePath="..\nonhydrostatic.F90"/>
-		<File RelativePath="..\output.F90"/>
 		<File RelativePath="..\params.F90"/>
 		<File RelativePath="..\readkey.F90"/>
 		<File RelativePath="..\readtide.F90"/>
+		<File RelativePath="..\readwind.F90"/>
 		<File RelativePath="..\roelvink.F90"/>
 		<File RelativePath="..\spaceparams.F90"/>
 		<File RelativePath="..\timestep.F90"/>
