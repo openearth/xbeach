@@ -28,6 +28,7 @@ real*8 , dimension(:,:,:),allocatable,save  :: xradvec,yradvec,thetaradvec
 real*8 , dimension(:),allocatable,save      :: Hprev
 real*8                                      :: Herr,dtw
 real*8 , dimension(:)  ,allocatable,save    :: dkmxdx,dkmxdy,dkmydx,dkmydy,cgxm,cgym,arg,fac,xwadvec,ywadvec
+real*8 , dimension(:,:),allocatable,save  :: wcifacu,wcifacv
 logical                                     :: stopiterate
 
 include 's.ind'
@@ -67,6 +68,8 @@ if (.not. allocated(wete)) then
    allocate(cgym    (ny+1))
    allocate(arg     (ny+1))
    allocate(fac     (ny+1))
+   allocate(wcifacu     (nx+1,ny+1))
+   allocate(wcifacv     (nx+1,ny+1))
 
 endif
 
@@ -117,21 +120,12 @@ call slope2D(v*par%wci,nx,ny,xz,yz,dvdx,dvdy)
 ! wwvv these slope routines are in wave_timestep, and are
 !   MPI-aware
 !
-! Propagation speeds in x,y and theta space
-do j=1,ny+1
-    do i=1,nx+1
-        if(2.d0*hh(i,j)*k(i,j)>=3000.d0) then
-            write(*,*) 'wave_stationary has something to tell:'
-#ifdef USEMPI
-            write(*,*) 'Process:', xmpi_rank ,i ,j, par%t, hh(i,j), k(i,j)
-#else
-            write(*,*) i ,j, par%t, hh(i,j), k(i,j)
-#endif
-        endif
-        sinh2kh(i,j)=sinh(2*k(i,j)*(hh(i,j)+par%delta*H(i,j)))
-    end do
-end do
-
+! Calculate once sinh(2kh)
+where(k>0.01d0)
+   sinh2kh=sinh(min(2*k*(hh+par%delta*H),10.0d0))
+elsewhere
+   sinh2kh = 1000.d0
+endwhere
 
 call dispersion(par,s)   
 
@@ -147,16 +141,20 @@ thetamean=(sum(ee*thet,3)/size(ee,3))/(max(sum(ee,3),0.00001d0)/size(ee,3))
  call xmpi_shift(thetamean,'1:')
 #endif
 
+! Calculate once velocities used with and without wave current interaction
+wcifacu=u*par%wci*min(hh/par%hwci,1.d0)
+wcifacv=v*par%wci*min(hh/par%hwci,1.d0)
+
 DO itheta=1,ntheta
-    cgx(:,:,itheta)=cg*cxsth(itheta)+uu*par%wci*min(hh/par%hwci,1.d0)
-    cgy(:,:,itheta)=cg*sxnth(itheta)+vv*par%wci*min(hh/par%hwci,1.d0)
-    cx(:,:,itheta) =c*cxsth(itheta)+uu*par%wci*min(hh/par%hwci,1.d0)
-    cy(:,:,itheta) =c*sxnth(itheta)+vv*par%wci*min(hh/par%hwci,1.d0)
-    ctheta(:,:,itheta)= &
-    sigm/sinh2kh*(dhdx*&
-    sxnth(itheta)-dhdy*cxsth(itheta)) + &
-    cxsth(itheta)*(sxnth(itheta)*dudx - cxsth(itheta)*dudy) + &
-    sxnth(itheta)*(sxnth(itheta)*dvdx - cxsth(itheta)*dvdy)
+    cgx(:,:,itheta)= cg*cxsth(itheta)+wcifacu
+    cgy(:,:,itheta)= cg*sxnth(itheta)+wcifacv
+    cx(:,:,itheta) =  c*cxsth(itheta)+wcifacu
+    cy(:,:,itheta) =  c*sxnth(itheta)+wcifacv
+    ctheta(:,:,itheta)=  &
+         sigm/sinh2kh*(dhdx*sxnth(itheta)-dhdy*cxsth(itheta)) + &
+		 par%wci*(&
+         cxsth(itheta)*(sxnth(itheta)*dudx - cxsth(itheta)*dudy) + &
+         sxnth(itheta)*(sxnth(itheta)*dvdx - cxsth(itheta)*dvdy))
 END DO
 
 km = k
@@ -203,6 +201,9 @@ do it=2,imax
     dtw=min(dtw,.5*dtheta/maxval(ctheta(i,:,:)))
 	Herr=1.
 	iter=0
+    arg = min(100.0d0,km(i,:)*(hh(i,:)+par%delta*H(i,:)))
+	arg = max(arg,0.0001)
+	fac = ( 1.d0 + ((km(i,:)*H(i,:)/2.d0)**2))  ! use deep water correction instead of expression above (waves are short near blocking point anyway)
 	stopiterate=.false.
 	do while (stopiterate .eqv. .false.)
 		iter=iter+1
@@ -211,10 +212,21 @@ do it=2,imax
 		if (par%wci==1) then
 			kmx = km(i-1:i+1,:)*cos(thetamean(i-1:i+1,:))
 			kmy = km(i-1:i+1,:)*sin(thetamean(i-1:i+1,:))
-			wm = sigm(i-1:i+1,:)+kmx*uu(i-1:i+1,:)*par%wci*min(hh(i-1:i+1,:)/par%hwci,1.d0)&
-									  +kmy*vv(i-1:i+1,:)*par%wci*min(hh(i-1:i+1,:)/par%hwci,1.d0)
-			cgym = cg(i,:)*sin(thetamean(i,:)) + vv(i,:)*min(hh(i,:)/par%hwci,1.d0)
-			cgxm = cg(i,:)*cos(thetamean(i,:)) + uu(i,:)*min(hh(i,:)/par%hwci,1.d0)
+			wm = sigm(i-1:i+1,:)+kmx*wcifacu(i-1:i+1,:)&
+								+kmy*wcifacv(i-1:i+1,:)
+
+            where(km(i,:)>0.01d0)
+                 c(i,:)  = sigm(i,:)/km(i,:)
+		         cg(i,:) = c(i,:)*(0.5d0+arg/sinh(2*arg))*sqrt(fac)  
+                 n(i,:)  = 0.5d0+km(i,:)*hh(i,:)/sinh(2*max(km(i,:),0.00001d0)*hh(i,:))
+            elsewhere
+                 c(i,:)  = 0.01d0
+	             cg(i,:) = 0.01d0
+		         n(i,:)  = 1.d0
+            endwhere
+
+		    cgym = cg(i,:)*sin(thetamean(i,:)) + wcifacv(i,:)
+			cgxm = cg(i,:)*cos(thetamean(i,:)) + wcifacu(i,:)
 
 			dkmxdx       = (kmx(3,:)-kmx(1,:))/(xz(i+1)-xz(i-1))
 			dkmxdy(2:ny) = (kmx(2,3:ny+1)-kmx(2,1:ny-1))/(yz(3:ny+1)-yz(1:ny-1))
@@ -240,9 +252,9 @@ do it=2,imax
 			call xmpi_shift(kmx,':1')
 			call xmpi_shift(kmy,':1')
 #endif
-
-			km(i,:) = sqrt(kmx(2,:)**2+kmy(2,:)**2)
+            km(i,:) = sqrt(kmx(2,:)**2+kmy(2,:)**2)
 			km(i,:) = min(km(i,:),25.d0) ! limit to gravity waves
+			
 			!  non-linear dispersion
 			arg = min(100.0d0,km(i,:)*(hh(i,:)+par%delta*H(i,:)))
 			arg = max(arg,0.0001)
@@ -454,9 +466,10 @@ enddo
 Fx(:,1)=Fx(:,2)
 Fy(:,1)=Fy(:,2)
 Fx(:,ny+1)=Fx(:,ny+1-1)
-Fy(:,ny+1)=Fy(:,ny+1-1)
+Fy(:,ny+1)=Fy(:,ny)
 Fx(1,:)=Fx(2,:)
 Fy(1,:)=Fy(2,:)
+
 ! wwvv
 #ifdef USEMPI
 call xmpi_shift(Fx,':1')
