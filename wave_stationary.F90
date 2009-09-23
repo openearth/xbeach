@@ -258,7 +258,7 @@ do it=2,imax
 			!  non-linear dispersion
 			arg = min(100.0d0,km(i,:)*(hh(i,:)+par%delta*H(i,:)))
 			arg = max(arg,0.0001)
-			fac = ( 1.d0 + ((km(i,:)*H(i,:)/2.d0)**2))  ! use deep water correction instead of expression above (waves are short near blocking point anyway)
+			fac = ( 1.d0 + ((km(i,:)*H(i,:)/2.d0)**2)) 
 			sigm(i,:) = sqrt( par%g*km(i,:)*tanh(arg)*fac)
 			DO itheta=1,ntheta
 				sigt(i,:,itheta) = max(sigm(i,:),0.010d0)
