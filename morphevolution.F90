@@ -647,9 +647,6 @@ do j=1,ny+1
          B1(i,j) = B1(i,j)*par%px/180.d0
          Sk(i,j) = Bm(i,j)*cos(B1(i,j))                                                              !Skewness (eq 8)
          As(i,j) = Bm(i,j)*sin(B1(i,j))                                                              !Skewness (eq 9)
-		!Dano ua(i,j) = par%facua*Sk(i,j)*urms(i,j)
-		 ! Jaap: try variable facua
-		 par%facua = min(1.d0,max(0.d0,(H(i,j)/hh(i,j)-0.5d0*par%gamma)))
          ua(i,j) = par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
 	  endif
    enddo
@@ -779,8 +776,6 @@ do j=1,ny+1
 	  detadxmax(i,j) = dudtmax*sinh(k(i,j)*hloc(i,j))/max(c(i,j),sqrt(H(i,j)*par%g))/sigm(i,j)
       
 	  uad = f0*RF(17,ih0,it0)+f1*RF(17,ih1,it0)+ f2*RF(17,ih0,it1)+f3*RF(17,ih1,it1)
-	  ! Jaap: try variable facua
-	  facua = par%facua*max(0.d0,min(1.d0,H(i,j)/hh(i,j)-0.75d0))
 	  ua(i,j) = par%sws*facua*(Sk(i,j)-As(i,j))*urms(i,j)
 
       ! Jaap: use average slope over bore front in roller energy balance...
