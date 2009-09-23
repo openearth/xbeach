@@ -42,6 +42,7 @@ real*8     :: tint      = -123 ! time interval output
 real*8     :: tintp     = -123 ! time interval output points
 real*8     :: tintg     = -123 ! time interval output global variables
 real*8     :: tintm     = -123 ! time interval output mean global variables
+real*8     :: tintc     = -123 ! time interval output cross section profiles
 real*8     :: tstop     = -123 ! stop time simulation
 integer*4  :: ntout     = -123 ! number of output time steps
 real*8     :: C         = -123 ! Chezy value
@@ -298,8 +299,9 @@ par%tstart  = readkey_dbl ('params.txt','tstart',   1.d0,      0.d0,1000000.d0)
 par%tint    = readkey_dbl ('params.txt','tint',     1.d0,     .01d0, 100000.d0)  ! Robert
 par%tintg   = readkey_dbl ('params.txt','tintg', par%tint,     .01d0, 100000.d0)  ! Robert
 par%tintp   = readkey_dbl ('params.txt','tintp',par%tintg,    .01d0, 100000.d0)  ! Robert
-par%tintm   = readkey_dbl ('params.txt','tintm',par%tintg,    1.d0, par%tstop)   ! Robert
-par%tint    = min(par%tintg,par%tintp,par%tintm)                                 ! Robert                                                                                                ! Robert
+par%tintc   = readkey_dbl ('params.txt','tintc',par%tintg,    .01d0, 100000.d0)  ! Robert
+par%tintm   = readkey_dbl ('params.txt','tintm',par%tintg,     1.d0, par%tstop)  ! Robert
+par%tint    = min(par%tintg,par%tintp,par%tintm,par%tintc)                       ! Robert     
 par%tstop   = readkey_dbl ('params.txt','tstop', 2000.d0,      1.d0,1000000.d0)
 ! adapt flow times to morfac
 par%morfac   = readkey_dbl ('params.txt','morfac', 0.0d0,        0.d0,  1000.d0)
@@ -307,6 +309,7 @@ par%tstart  = par%tstart / max(par%morfac,1.d0)
 par%tint    = par%tint   / max(par%morfac,1.d0)
 par%tintg   = par%tintg  / max(par%morfac,1.d0)
 par%tintp   = par%tintp  / max(par%morfac,1.d0)
+par%tintc   = par%tintc  / max(par%morfac,1.d0)
 par%tintm   = par%tintm  / max(par%morfac,1.d0)
 par%tint    = par%tint   / max(par%morfac,1.d0)
 par%wavint  = par%wavint / max(par%morfac,1.d0)
@@ -355,7 +358,7 @@ use readkey_module
 use xmpi_module
 implicit none
 type(parameters)            :: par
-character(80)               :: dummystring
+character(len=80)           :: dummystring
 
 
 !par%dico     = readkey_dbl ('params.txt','dico',    1.d0,        0.d0,    10.d0)

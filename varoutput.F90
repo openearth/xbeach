@@ -15,24 +15,36 @@ public init_output, var_output
 integer*4                           :: nglobalvar  ! number of global output variables
 integer*4                           :: npoints     ! number of output points
 integer*4                           :: nrugauge    ! number of runup gauges
+integer*4                           :: ncross      ! number of cross section profiles
 integer                             :: timings     ! 0: no timings, 1 timings output
 integer*4,dimension(:),allocatable  :: pointtype   ! 0 = point output, 1 = runup gauge
+integer*4,dimension(:),allocatable  :: crosstype   ! 0 = cross shore (x), 1 = longshore (y)
 integer*4,dimension(:),allocatable  :: xpoints     ! model x-coordinate of output points
 integer*4,dimension(:),allocatable  :: ypoints     ! model y-coordinate of output points
-integer*4,dimension(:),allocatable  :: nassocvar   ! vector with number of output variable per output point
-integer*4,dimension(:,:),allocatable:: arrayassocvar ! Array with associated index of output variables per point
+integer*4,dimension(:),allocatable  :: xcross      ! model x-coordinate of output cross sections
+integer*4,dimension(:),allocatable  :: ycross      ! model y-coordinate of output cross sections
+integer*4,dimension(:),allocatable  :: nvarpoint   ! vector with number of output variable per output point
+integer*4,dimension(:),allocatable  :: nvarcross   ! vector with number of output variable per output cross section
+integer*4,dimension(:,:),allocatable:: Avarpoint   ! Array with associated index of output variables per point
+integer*4,dimension(:,:),allocatable:: Avarcross   ! Array with associated index of output variables per cross section
 real*8,dimension(:,:,:), allocatable:: meanarrays  ! Keep time average variables 
+real*8,dimension(:,:,:), allocatable:: variancearrays     ! Keep variance of variables
+real*8,dimension(:,:,:), allocatable:: variancecrossterm  ! Needed for variance calculation
+real*8,dimension(:,:,:), allocatable:: variancesquareterm ! Needed for variance calculation
+real*8,dimension(:,:,:), allocatable,target:: minarrays   ! Keep time min variables
+real*8,dimension(:,:,:), allocatable,target:: maxarrays   ! Keep time max variables
                                                    ! Only alive at xmaster
 integer*4                           :: nmeanvar    ! number of time-average variables
 integer*4,dimension(:),allocatable  :: meanvec     ! keep track of which mean variables are used
-real*8,dimension(:),allocatable     :: tpg,tpp,tpm,tpw ! output time points
-integer*4                           :: stpm            ! size of tpm
+real*8,dimension(:),allocatable     :: tpg,tpp,tpm,tpc,tpw ! output time points
+integer*4                           :: stpm        ! size of tpm
 
 integer                             :: noutnumbers = 0  ! the number of outnumbers
 
 integer, dimension(numvars)         :: outnumbers  ! numbers, corrsponding to mnemonics, which are to be output
-integer                             :: ndt,itg,itp,itm,day,ot,itprev
+integer                             :: ndt,itg,itp,itc,itm,day,ot,itprev
 real*8,dimension(10)                :: tlast10
+type(arraytype)                     :: At
 #ifdef USEMPI
 logical, dimension(numvars)         :: avail      ! .true.: this item is collected, used to
                                                   ! prevent double space_collect
@@ -54,6 +66,9 @@ interface outarray
 end interface outarray
 
 contains
+
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!   INITIALISE OUTPUT    !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -71,14 +86,16 @@ subroutine init_output(s,sl,par,it)
   type(parameters)                    :: par
 
   integer                             :: id,ic,icold,i,ii,index,it
-  integer,dimension(2)				  :: minlocation
+  integer,dimension(2)                :: minlocation
   character(80)                       :: line, keyword
   character(80)                       :: var, fname
   integer, dimension(:,:),allocatable :: temparray
   real*8,dimension(s%nx+1,s%ny+1)	  :: mindist
-  real*8                              :: tg1,tp1,tm1,tw1,dist
+  real*8                              :: tg1,tp1,tm1,tw1,tc1
   real*8,dimension(:),allocatable     :: xpointsw,ypointsw
-
+  real*8,dimension(:),allocatable     :: xcrossw,ycrossw
+  character(1)								  :: char
+  
 
   !!!!! OUTPUT POINTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -94,7 +111,7 @@ subroutine init_output(s,sl,par,it)
       allocate(ypoints(npoints+nrugauge))
 	  allocate(xpointsw(npoints+nrugauge))
       allocate(ypointsw(npoints+nrugauge))
-      allocate(nassocvar(npoints+nrugauge))
+      allocate(nvarpoint(npoints+nrugauge))
       allocate(temparray(npoints+nrugauge,99))
       pointtype(1:npoints)=0
       pointtype(npoints+1:npoints+nrugauge)=1
@@ -115,8 +132,8 @@ subroutine init_output(s,sl,par,it)
           enddo
 
           do i=1,npoints
-              read(10,*) xpointsw(i),ypointsw(i),nassocvar(i),line
-			  write(*,'(a,i0)') 'Output point ',i
+              read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
+			  write(*,'(a,i0)') ' Output point ',i
               write(*,'(a,f0.2,a,f0.2)') ' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i)
               ! Convert world coordinates of points to nearest (lsm) grid point
 			     mindist=sqrt((xpointsw(i)-s%xw)**2+(ypointsw(i)-s%yw)**2)
@@ -128,7 +145,7 @@ subroutine init_output(s,sl,par,it)
 			                        ,mindist(minlocation(1),minlocation(2)), ' meters'
 
               icold=0
-              do ii =1,nassocvar(i)
+              do ii =1,nvarpoint(i)
                   ic=scan(line(icold+1:80),'#')
                   ic=ic+icold
                   var=line(icold+1:ic-1)
@@ -136,9 +153,9 @@ subroutine init_output(s,sl,par,it)
 
                   if (index/=-1) then
                       temparray(i,ii)=index
-                      write(*,*)'Output type: "'//trim(var)//'"'
+                      write(*,*)' Output type: "'//trim(var)//'"'
                   else
-                      write(*,*)'Unknown point output type: "'//trim(var)//'"'
+                      write(*,*)' Unknown point output type: "'//trim(var)//'"'
                       call halt_program
                   endif
                   icold=ic
@@ -162,8 +179,8 @@ subroutine init_output(s,sl,par,it)
           enddo
 
           do i=1+npoints,nrugauge+npoints
-              read(10,*) xpointsw(i),ypointsw(i),nassocvar(i),line
-			  write(*,'(a,i0)') 'Output runup gauge ',i-npoints
+              read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
+			  write(*,'(a,i0)') ' Output runup gauge ',i-npoints
               write(*,'(a,f0.2,a,f0.2)') ' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i)
 				  ! Convert world coordinates of points to nearest (lsm) grid row
 			     mindist=sqrt((xpointsw(i)-s%xw)**2+(ypointsw(i)-s%yw)**2)
@@ -172,7 +189,7 @@ subroutine init_output(s,sl,par,it)
 			     ypoints(i)=minlocation(2)
 			     write(*,'(a,i0)')'Runup gauge at grid line iy=',ypoints(i)
               icold=0
-              do ii =1,nassocvar(i)
+              do ii =1,nvarpoint(i)
                   ic=scan(line(icold+1:80),'#')
                   ic=ic+icold
                   var=line(icold+1:ic-1)
@@ -180,9 +197,9 @@ subroutine init_output(s,sl,par,it)
 
                   if (index/=-1) then
                       temparray(i,ii)=index
-                      write(*,*)'Output type:"'//trim(var)//'"'
+                      write(*,*)' Output type:"'//trim(var)//'"'
                   else
-                      write(*,*)'Unknown point output type: "'//trim(var)//'"'
+                      write(*,*)' Unknown point output type: "'//trim(var)//'"'
                       call halt_program
                   endif
                   icold=ic
@@ -196,18 +213,110 @@ subroutine init_output(s,sl,par,it)
 	 
 
 #ifdef USEMPI
-      call xmpi_bcast(nassocvar)
+      call xmpi_bcast(nvarpoint)
       call xmpi_bcast(pointtype)
       call xmpi_bcast(xpoints)
       call xmpi_bcast(ypoints)
-      call xmpi_bcast(nassocvar)
+      call xmpi_bcast(nvarpoint)
       call xmpi_bcast(temparray)   
 #endif
       ! Tidy up information
-      allocate(arrayassocvar(npoints+nrugauge,maxval(nassocvar)))
-      arrayassocvar(:,:)=temparray(:,1:maxval(nassocvar))
+      allocate(Avarpoint(npoints+nrugauge,maxval(nvarpoint)))
+      Avarpoint(:,:)=temparray(:,1:maxval(nvarpoint))
       deallocate (temparray)
   endif ! npoints + nrugauge > 0
+
+
+  !!!!! CROSS SECTION OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ncross  = readkey_int ('params.txt','ncross',      0,       0,     50)
+
+  if (ncross>0) then
+     allocate(crosstype(ncross))
+     allocate(xcross(ncross))
+     allocate(ycross(ncross))
+	  allocate(xcrossw(ncross))
+     allocate(ycrossw(ncross))
+     allocate(nvarcross(ncross))
+     allocate(temparray(ncross,99))
+     temparray=-1
+
+	  if (xmaster) then
+	     id=0
+        ! Look for keyword ncross in params.txt
+        open(10,file='params.txt')
+        do while (id == 0)
+          read(10,'(a)')line
+          ic=scan(line,'=')
+          if (ic>0) then
+            keyword=adjustl(line(1:ic-1))
+            if (keyword == 'ncross') id=1
+          endif
+        enddo
+        
+		  do i=1,ncross
+!          read(10,*) xcrossw(i),ycrossw(i),crosstype(i),nvarcross(i),line
+          read(10,*) xcrossw(i),ycrossw(i),char,nvarcross(i),line
+			 write(*,'(a,i0)') ' Cross section ',i
+			 if(char=='x'.or.char=='X') then
+			    crosstype(i)=0
+			 elseif(char=='y'.or.char=='Y') then
+			    crosstype(i)=1
+			 else
+             write(*,*)' Unknown cross section type: ',char
+             call halt_program
+			 endif
+			 ! Convert world coordinates of points to nearest (lsm) grid row
+			 mindist=(xcrossw(i)-s%xw)**2+(ycrossw(i)-s%yw)**2
+			 minlocation=minloc(mindist)
+			 xcross(i)=minlocation(1)
+			 ycross(i)=minlocation(2)
+          write(*,'(a,f0.2,a,f0.2)') ' positioned at x-coordinate: ',xcrossw(i),&
+			                                  ' y-coordinate: ',ycrossw(i)			 
+			 if (crosstype(i)==0) then
+			   write(*,'(a,i0)')' placed in x-direction at row iy = ',ycross(i)
+			 else
+			   write(*,'(a,i0)')' placed in y-direction at column ix = ',xcross(i) 
+			 endif
+          icold=0
+          do ii =1,nvarcross(i)
+            ic=scan(line(icold+1:80),'#')
+            ic=ic+icold
+            var=line(icold+1:ic-1)
+            index = chartoindex(var)
+            if (index/=-1) then
+              temparray(i,ii)=index
+				  call indextos(s,index,At)
+		        if (At%rank.ne.2) then
+		          write(*,'(a,i0,a,a,a)')' Cross section output not designed for rank ',At%rank,' array "',trim(At%name),'"'
+			       call halt_program
+		        endif
+              write(*,*)' Output type: "'//trim(var)//'"'
+            else
+              write(*,*)' Unknown point output type: "'//trim(var)//'"'
+              call halt_program
+            endif
+            icold=ic
+          enddo
+        enddo
+        close(10)
+     endif !xmaster
+
+#ifdef USEMPI
+     call xmpi_bcast(nvarcross)
+     call xmpi_bcast(crosstype)
+     call xmpi_bcast(xcross)
+     call xmpi_bcast(ycross)
+     call xmpi_bcast(nvarcross)
+     call xmpi_bcast(temparray)   
+#endif     
+
+     ! Tidy up information
+     allocate(Avarcross(ncross,maxval(nvarcross)))
+     Avarcross(:,:)=temparray(:,1:maxval(nvarcross))
+     deallocate (temparray)
+  endif ! ncross > 0
+
+
 
   !!!!! GLOBAL OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -234,10 +343,11 @@ subroutine init_output(s,sl,par,it)
           call add_outmnem('urms')
           call add_outmnem('Fx')
           call add_outmnem('Fy')
-          call add_outmnem('cc')    ! todo wwvv: cc does not exist
-          call add_outmnem('ceq')
-          call add_outmnem('Su')
-          call add_outmnem('Sv')
+          call add_outmnem('ccg')    ! todo wwvv: cc does not exist
+          call add_outmnem('ceqsg')
+		  call add_outmnem('ceqbg')
+          call add_outmnem('Sug')
+          call add_outmnem('Svg')
           call add_outmnem('E')
           call add_outmnem('R')
           call add_outmnem('D')
@@ -275,13 +385,18 @@ subroutine init_output(s,sl,par,it)
   endif
 
 
-  !!!!! TIME-AVEARGE ARRAYS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!! TIME-AVEARGE, VARIANCE and MIN-MAX ARRAYS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
   nmeanvar = readkey_int ('params.txt','nmeanvar',0,0,15)
   if (nmeanvar>0) then
       if(xmaster) then
-        allocate(meanarrays(s%nx+1,s%ny+1,nmeanvar))
+        allocate(meanarrays(s%nx+1,s%ny+1,nmeanvar+2))   ! two extra needed for straight average of Hrms and urms
+		  allocate(variancearrays(s%nx+1,s%ny+1,nmeanvar))
+		  allocate(variancecrossterm(s%nx+1,s%ny+1,nmeanvar))
+		  allocate(variancesquareterm(s%nx+1,s%ny+1,nmeanvar))
+		  allocate(minarrays(s%nx+1,s%ny+1,nmeanvar))
+		  allocate(maxarrays(s%nx+1,s%ny+1,nmeanvar))
       endif
       allocate(meanvec(nmeanvar))
       id=0
@@ -303,10 +418,16 @@ subroutine init_output(s,sl,par,it)
             read(10,'(a)')line
             index = chartoindex(trim(line))
             if (index/=-1) then
+				    call indextos(s,index,At)
+		          if (At%rank.ne.2) then
+		            write(*,'(a,f2.0,a,a,a)')' Time-average output not designed for rank ',real(At%rank),&
+						                                       ' array "',trim(At%name),'"'
+			         call halt_program
+		          endif
                 meanvec(i)=index
-                write(*,'(a)')' meanvar: '//trim(mnemonics(index))
+                write(*,'(a)')' Will generate mean, min, max and variance output for variable: '//trim(mnemonics(index))
             else
-                write(*,*)'Unknown time-average output type ',trim(line)
+                write(*,*)' Unknown output type ',trim(line)
                 call halt_program
             endif
         end do
@@ -317,6 +438,11 @@ subroutine init_output(s,sl,par,it)
 #endif
     if(xmaster) then
       meanarrays = 0.d0
+		variancearrays = 0.d0
+		variancecrossterm = 0.d0
+		variancesquareterm = 0.d0
+      minarrays = huge(0.d0)
+		maxarrays = -1.d0*huge(0.d0)
     endif
   endif ! nmeanvar > 0
 
@@ -399,6 +525,36 @@ subroutine init_output(s,sl,par,it)
 #endif
   endif ! (npoints+nrugauge)>0 
 
+! If we want cross section output then
+  if ((ncross)>0) then 
+      if (xmaster) then
+        call readkey('params.txt','tscross',fname)
+        if (fname/=' ') then
+            open(10,file=fname)
+            read(10,*)ii
+            allocate(tpc(ii))
+            do i=1,ii
+               read(10,*)tpc(i)
+            enddo
+            close(10)
+        else
+            ii=floor((par%tstop-par%tstart)/par%tintc)+1
+            allocate(tpc(ii))
+            do i=1,ii
+               tpc(i)=par%tstart+par%tintc*real(i-1)
+            enddo
+        endif
+      endif    ! xmaster
+#ifdef USEMPI
+      call xmpi_bcast(ii)
+      if (.not.xmaster) then
+        allocate(tpc(ii))
+      endif
+      call xmpi_bcast(tpc)
+#endif
+  endif ! (ncross)>0 
+
+  ! If we want time-average output then
   if (nmeanvar>0) then
       if(xmaster) then
         call readkey('params.txt','tsmean',fname)
@@ -446,6 +602,10 @@ subroutine init_output(s,sl,par,it)
       allocate(tpp(1))
       tpp=par%tstop
   endif
+  if (.not. allocated(tpc)) then
+      allocate(tpc(1))
+      tpc=par%tstop
+  endif
   if (.not. allocated(tpm)) then  ! Need minimum two in this array
       allocate(tpm(2))
       tpm(1)=par%tstop
@@ -454,20 +614,22 @@ subroutine init_output(s,sl,par,it)
 
   tg1=minval(tpg)
   tp1=minval(tpp)
+  tc1=minval(tpc)
   tm1=minval(tpm)
   tw1=minval(tpw)
   par%tintm=tpm(2)-tpm(1)
   stpm=size(tpm)
 
-  if (min(tg1,tp1,tm1)>0.d0) then    ! No output wanted at initialization
-          par%tnext=min(tg1,tp1,tm1,tw1)
+  if (min(tg1,tp1,tm1,tc1)>0.d0) then    ! No output wanted at initialization
+      par%tnext=min(tg1,tp1,tm1,tc1,tw1)
   else
-          it=1
-          tg1=minval(tpg,MASK=tpg .gt. 0.d0)
-          tp1=minval(tpp,MASK=tpp .gt. 0.d0)
-          tm1=minval(tpm,MASK=tpm .gt. 0.d0)
-		  tw1=minval(tpw,MASK=tpw .gt. 0.d0)
-          par%tnext=min(tg1,tp1,tm1,tw1)
+      it=1
+      tg1=minval(tpg,MASK=tpg .gt. 0.d0)
+      tp1=minval(tpp,MASK=tpp .gt. 0.d0)
+		tc1=minval(tpc,MASK=tpc .gt. 0.d0)
+      tm1=minval(tpm,MASK=tpm .gt. 0.d0)
+		tw1=minval(tpw,MASK=tpw .gt. 0.d0)
+      par%tnext=min(tg1,tp1,tm1,tc1,tw1)
   endif
 
 
@@ -495,13 +657,13 @@ subroutine add_outmnem(mnem)
   i = chartoindex(mnem)
   if (i .lt. 1 .or. i .gt. numvars) then
     if(xmaster) then
-      write(*,*)'Warning: cannot locate variable "',mnem,'", no output for this one'
+      write(*,*)'Warning: cannot locate variable "',trim(mnem),'", no output for this one'
     endif
     return
   endif
   call add_outnumber(i)
   if(xmaster) then
-    write(*,*)'Will generate output for variable "',mnem,'"'
+    write(*,*)'Will generate global output for variable "',trim(mnem),'"'
   endif
   return
 end subroutine add_outmnem
@@ -524,17 +686,25 @@ subroutine var_output(it,s,sl,par)
 
   integer                                 :: i,ii,tt,k
   integer                                 :: it,i1,i2,i3
-  integer                                 :: wordsize
-  integer                                 :: reclen,reclen2,reclenp, idum
-  real*8                                  :: dtimestep,tpredicted,tnow, t1,t2,t3,t4
+  integer                                 :: wordsize, idum
+  integer                                 :: reclen,reclen2,reclenc,reclenp
+  real*8                                  :: dtimestep,tpredicted,tnow, t1,t2,t3,t4,t5
   character(12)                           :: fname
-  character(99)                           :: fname2
+  character(99)                           :: fnamemean,fnamevar,fnamemin,fnamemax
   real*8,dimension(numvars)               :: intpvector
+  real*8,dimension(numvars,s%nx+1)        :: crossvararray0
+  real*8,dimension(numvars,s%ny+1)        :: crossvararray1
   integer,dimension(:),allocatable        :: tempvectori
   real*8,dimension(:),allocatable         :: tempvectorr, temp
   integer,dimension(8)                    :: datetime
-  real*8,dimension(size(tpg)+size(tpp)+size(tpm)) :: outputtimes
+  real*8,dimension(size(tpg)+size(tpp)+size(tpc)+size(tpm)) :: outputtimes
   type(arraytype)                         :: t
+  real*8,dimension(:,:),pointer				:: MI,MA
+  
+
+
+  include 'version.def'
+  include 'version.dat'
 
 #ifdef USEMPI
   avail = .false.
@@ -559,7 +729,9 @@ subroutine var_output(it,s,sl,par)
   ndt=ndt+1                                       ! Number of calculation time steps per output time step
 
   if (nmeanvar/=0) then
-    if (par%t>=tpm(1) .and. par%t<=tpm(stpm)) call makeaverage(s,sl,par)       ! Make averages every flow timestep
+    if (par%t>tpm(1) .and. par%t<=tpm(stpm)) then
+	     call makeaverage(s,sl,par)                ! Make averages and min-max every flow timestep
+	 endif
   endif
 
 
@@ -644,7 +816,7 @@ subroutine var_output(it,s,sl,par)
                     fname(7:7)=char(48+i2)
                     fname(8:8)=char(48+i3)
                     fname(9:12)='.dat'
-                    reclenp=wordsize*(nassocvar(i)+1)*1
+                    reclenp=wordsize*(nvarpoint(i)+1)*1
                     open(indextopointsunit(i),file=fname,&
                         form='unformatted',access='direct',recl=reclenp)
                 enddo
@@ -652,14 +824,47 @@ subroutine var_output(it,s,sl,par)
           endif  ! xmaster
 
 
+          itc=0
+          if (xmaster) then
+            !! First time file opening for cross section output
+            if (ncross>0) then
+                do i=1,ncross
+                    fname(1:5)='cross'
+                    i1=floor(real(i)/100.d0)
+                    i2=floor(real(i-i1*100)/10.d0)
+                    i3=i-i1*100-i2*10
+                    fname(6:6)=char(48+i1)
+                    fname(7:7)=char(48+i2)
+                    fname(8:8)=char(48+i3)
+                    fname(9:12)='.dat'
+						  if (crosstype(i)==0) then
+						    reclenc=wordsize*(s%nx+1)*(nvarcross(i))
+                    else
+						    reclenc=wordsize*(s%ny+1)*(nvarcross(i))
+						  endif 
+                    open(indextocrossunit(i),file=fname,&
+                        form='unformatted',access='direct',recl=reclenc)
+                enddo
+            endif
+          endif  ! xmaster
+
           !! First time file opening for time-average output
           itm=0
           if(xmaster) then
             if (nmeanvar>0) then
                 do i=1,nmeanvar
-                    call makeaveragenames(meanvec(i),fname2)
-                    fname2=trim(fname2)
-                    open(indextomeanunit(i),file=fname2, &
+                    call makeaveragenames(meanvec(i),fnamemean,fnamevar,fnamemin,fnamemax)
+                    fnamemean=trim(fnamemean)
+						  fnamevar =trim(fnamevar)
+						  fnamemin =trim(fnamemin)
+						  fnamemax =trim(fnamemax)
+                    open(indextomeanunit(i),file=fnamemean, &
+                     form='unformatted',access='direct',recl=reclen)
+						  open(indextovarunit(i),file=fnamevar, &
+                     form='unformatted',access='direct',recl=reclen)
+						  open(indextominunit(i),file=fnamemin, &
+                     form='unformatted',access='direct',recl=reclen)
+						  open(indextomaxunit(i),file=fnamemax, &
                      form='unformatted',access='direct',recl=reclen)
                 enddo
             endif
@@ -692,7 +897,7 @@ subroutine var_output(it,s,sl,par)
     !!! Write point variables
     !!! Only write if it is output time for points
     if (npoints+nrugauge>0) then
-        if (any(abs(par%t-tpp) .le. 0.000001d0)) then
+        if (any(abs(par%t-tpp) .le. 0.0000001d0)) then
             itp=itp+1
             ! wwvv check if there is any pointtype.eq. 1
             ! In that case, we need the values in wetz
@@ -709,13 +914,12 @@ subroutine var_output(it,s,sl,par)
                 !!! Make vector of all s% values at n,m grid coordinate
                 if (pointtype(i)==1) then
                     if (xmaster) then
-                      !allocate (temp(1:s%nx+1))
-                      !temp=(/(k,k=1,s%nx+1)/)
+                      allocate (temp(1:s%nx+1))
+                      temp=(/(k,k=1,s%nx+1)/)
                       ! wwvv wetz ok?, probably not
-!                      idum = maxval(minloc(temp*s%wetz(1:s%nx+1,ypoints(i)))) ! Picks the last "1" in temp
-                      !idum = max(maxval(minloc(temp*(1-s%wetz(1:s%nx+1,ypoints(i)))))-1,1)  ! Pick first dry point and from there! back one to the last wet point
-		      idum =  max(maxval(minloc(s%wetz(:,ypoints(i))))-1,1)																												        ! attached to the offshore boundary
-                      !deallocate(temp)
+                      ! idum = maxval(maxloc(temp*s%wetz(1:s%nx+1,ypoints(i)))) ! Picks the last "1" in temp
+                      idum =  max(maxval(minloc(s%wetz(:,ypoints(i))))-1,1)
+                      deallocate(temp)
                     endif
 #ifdef USEMPI
                     call xmpi_bcast(idum)
@@ -727,11 +931,11 @@ subroutine var_output(it,s,sl,par)
                     call makeintpvector(par,sl,intpvector,xpoints(i),ypoints(i))
                 endif
                 if (xmaster) then
-                  allocate(tempvectori(nassocvar(i)))
-                  allocate(tempvectorr(nassocvar(i)+1))
-                  tempvectori=arrayassocvar(i,1:nassocvar(i))
-                  tempvectorr(1)=par%t
-                  do ii=1,nassocvar(i)
+                  allocate(tempvectori(nvarpoint(i)))
+                  allocate(tempvectorr(nvarpoint(i)+1))
+                  tempvectori=Avarpoint(i,1:nvarpoint(i))
+                  tempvectorr(1)=par%t*max(par%morfac,1.d0)
+                  do ii=1,nvarpoint(i)
                           tempvectorr(ii+1)=intpvector(tempvectori(ii))
                   enddo
                   write(indextopointsunit(i),rec=itp)tempvectorr
@@ -742,11 +946,30 @@ subroutine var_output(it,s,sl,par)
         endif
     endif
 
+    !!! Write cross section variables
+    !!! Only write if it is output time for cross sections
+    if (ncross>0) then
+        if (any(abs(par%t-tpc) .le. 0.0000001d0)) then
+            itc=itc+1
+            do i=1,ncross
+                !!! Make array of all s% values at n or m grid line
+					 if (crosstype(i)==0) then
+					   !    makecrossvector(par, s, local s, output array, no of variables, index of variables in output, m or n coordinate, cross section type) 
+                  call makecrossvector(s,sl,crossvararray0,nvarcross(i),Avarcross(i,1:nvarcross(i)),ycross(i),0)
+						if (xmaster) write(indextocrossunit(i),rec=itc)crossvararray0(1:nvarcross(i),:)
+					 else
+					   call makecrossvector(s,sl,crossvararray1,nvarcross(i),Avarcross(i,1:nvarcross(i)),xcross(i),1)
+						if (xmaster) write(indextocrossunit(i),rec=itc)crossvararray1(1:nvarcross(i),:)
+					 endif
+            enddo
+        endif
+    endif
+
     !!! Write average variables
     if(xmaster) then
       if (nmeanvar>0) then
           ! Not at the first in tpm as this is the start of averaging. Only output after second in tpm
-          if (any(abs(par%t-tpm(2:stpm)) .le. 0.000001d0)) then
+          if (any(abs(par%t-tpm(2:stpm)) .le. 0.0000001d0)) then
               itm=itm+1
               do i=1,nmeanvar
                   if (mnemonics(meanvec(i))=='H') then                ! Hrms changed to H
@@ -758,8 +981,24 @@ subroutine var_output(it,s,sl,par)
                   else                                                    ! non-rms variables
                       write(indextomeanunit(i),rec=itm)meanarrays(:,:,i)
                   endif
+						write(indextovarunit(i),rec=itm)variancearrays(:,:,i)
+						MI=>minarrays(:,:,i)
+						MA=>maxarrays(:,:,i)
+						where(MI>0.99d0*huge(0.d0))
+						    MI=-999.d0
+						endwhere
+						where(MA<-0.99d0*huge(0.d0))
+						    MA=-999.d0
+						endwhere
+						write(indextominunit(i),rec=itm)MI
+                  write(indextomaxunit(i),rec=itm)MA
               enddo
               meanarrays=0.0d0
+				  variancearrays=0.d0
+				  variancecrossterm=0.d0
+				  variancesquareterm=0.d0
+				  minarrays=huge(0.d0)
+				  maxarrays=-1.d0*huge(0.d0)
               par%tintm=tpm(min(itm+2,stpm))-tpm(itm+1)  ! Next averaging period (min to stop array out of bounds)
               par%tintm=max(par%tintm,tiny(0.d0))        ! to prevent par%tintm=0 after last output
           endif
@@ -814,12 +1053,33 @@ subroutine var_output(it,s,sl,par)
       outputtimes=-999.d0
       outputtimes(1:itg)=tpg(1:itg)
       outputtimes(itg+1:itg+itp)=tpp(1:itp)
-      outputtimes(itg+itp+1:itg+itp+itm)=tpm(2:itm+1)                 ! mean output always shifted by 1
-	  outputtimes=outputtimes*max(par%morfac,1.d0)
-      open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(7+size(outputtimes)))
-                    write(999,rec=1)itg*1.d0,s%nx*1.d0,s%ny*1.d0,par%ngd*1.d0,par%nd*1.d0, &
-                                        itp*1.d0,itm*1.d0,outputtimes
-      close(999)
+		outputtimes(itg+itp+1:itg+itp+itc)=tpc(1:itc)
+      outputtimes(itg+itp+itc+1:itg+itp+itc+itm)=tpm(2:itm+1)          ! mean output always shifted by 1
+	   outputtimes=outputtimes*max(par%morfac,1.d0)
+      open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(11+size(outputtimes)))
+      write(999,rec=1)		 itg*1.d0,&
+							 s%nx*1.d0,&
+							 s%ny*1.d0,&
+                             s%ntheta*1.d0,&
+                             par%kmax*1.d0,&
+							 par%ngd*1.d0,&
+							 par%nd*1.d0, &
+                             itp*1.d0,&
+							 itc*1.d0,&
+							 itm*1.d0,&
+							 Build_Revision,&
+							 outputtimes
+      ! Just output for MICORE for backwards compat
+!      open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(7+size(outputtimes)))
+!      write(999,rec=1)itg*1.d0,&
+!							 s%nx*1.d0,&
+!							 s%ny*1.d0,&
+!                      par%ngd*1.d0,&
+!							 par%nd*1.d0, &
+!                      itp*1.d0,&
+!							 itm*1.d0,&
+!							 outputtimes
+!		close(999)
     endif  !xmaster
 
     ! Determine next time step
@@ -827,7 +1087,8 @@ subroutine var_output(it,s,sl,par)
     t2=minval(tpp,MASK=tpp .gt. par%t)
     t3=minval(tpm,MASK=tpm .gt. par%t)
 	t4=minval(tpw,MASK=tpw .gt. par%t)
-    par%tnext=min(t1,t2,t3,t4)
+	t5=minval(tpc,MASK=tpc .gt. par%t)
+    par%tnext=min(t1,t2,t3,t4,t5)
   end if  ! it > itpref
 
   !!! Close files
@@ -840,6 +1101,9 @@ subroutine var_output(it,s,sl,par)
 
         do i=1,nmeanvar
           close(indextomeanunit(i))
+			 close(indextovarunit(i))
+          close(indextominunit(i))
+			 close(indextomaxunit(i))
         enddo
 
         do i=1,noutnumbers
@@ -1056,6 +1320,53 @@ subroutine makeintpvector(par,s,intpvector,mg,ng)
 #endif
 end subroutine makeintpvector
 
+
+subroutine makecrossvector(s,sl,crossvararray,nvar,varindexvec,mg,cstype)
+  use params
+  use spaceparams
+  use mnemmodule
+
+  IMPLICIT NONE
+
+  type(spacepars), intent(in)       :: s,sl    
+  real*8,dimension(:,:)             :: crossvararray
+  integer,intent(in)                :: mg,cstype,nvar
+  integer,dimension(nvar),intent(in):: varindexvec
+  type(arraytype)                   :: t
+
+  integer                           :: i
+
+  crossvararray=-999.d0
+  do i=1,nvar
+#ifdef USEMPI
+    call space_collect_index(s,sl,varindexvec(i))
+#endif  
+    if (xmaster) then
+	   call indextos(s,varindexvec(i),t)	       
+      select case(t%type)
+		  case('r')
+		    if(cstype==0) then
+			   crossvararray(i,:)=t%r2(:,mg)
+			 else
+			   crossvararray(i,:)=t%r2(mg,:)
+			 endif
+		  case('i')
+			 if(cstype==0) then
+			   crossvararray(i,:)=t%i2(:,mg)
+			 else
+			   crossvararray(i,:)=t%i2(mg,:)
+			 endif
+	   end select
+    endif
+  enddo
+#ifdef USEMPI
+  call xmpi_bcast(crossvararray)
+#endif 
+end subroutine makecrossvector
+
+
+
+
 !!!! Routine to calculate time-average variables
 
 subroutine makeaverage(s,sl,par)
@@ -1072,13 +1383,15 @@ subroutine makeaverage(s,sl,par)
   integer                         :: i
   real*8                          :: mult
   type(arraytype)                 :: t
+  real*8,dimension(:,:),pointer   :: MI,MA
+  real*8,dimension(s%nx+1,s%ny+1) :: oldmean,tvar
 
   ! wwvv this subroutine needs all of the arrays in question
 
   ! to comfort the compiler
   i=sl%nx
   
-  mult = par%dt/par%tintm
+  mult = max(par%dt/par%tintm,0.d0) ! Catch initialization at t=0
 !Dano  if(xmaster) then
     do i=1,nmeanvar
 #ifdef USEMPI
@@ -1086,57 +1399,220 @@ subroutine makeaverage(s,sl,par)
 #endif
      if(xmaster) then
       call indextos(s,meanvec(i),t)
+		MI=>minarrays(:,:,i)
+		MA=>maxarrays(:,:,i)
       select case(t%name)
         case (mnem_Fx)
-          meanarrays(:,:,i) = meanarrays(:,:,i) + mult* &
-            (s%Fx*cos(s%alfa) - s%Fy*sin(s%alfa))
+		      oldmean=meanarrays(:,:,i)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+            tvar=s%Fx*cos(s%alfa) - s%Fy*sin(s%alfa)
+				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,i)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+            MA = max(MA,tvar)
+			   MI = min(MI,tvar)
         case (mnem_Fy)
-          meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-            (s%Fx*sin(s%alfa) + s%Fy*cos(s%alfa))
+		      oldmean=meanarrays(:,:,i)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+            tvar=s%Fx*sin(s%alfa) + s%Fy*cos(s%alfa)
+				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,i)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+            MA = max(MA,tvar)
+			   MI = min(MI,tvar)       
         case (mnem_H)
-          meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-            s%H**2
+            meanarrays(:,:,i)=meanarrays(:,:,i) + mult*s%H**2
+				oldmean=meanarrays(:,:,nmeanvar+1)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+            tvar=s%H
+				meanarrays(:,:,nmeanvar+1) = meanarrays(:,:,nmeanvar+1) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,nmeanvar+1) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,nmeanvar+1)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,nmeanvar+1)**2
+				MA = max(MA,s%H)
+			   MI = min(MI,s%H)
         case (mnem_urms)
-          meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-            s%urms**2
+            meanarrays(:,:,i)=meanarrays(:,:,i) + mult*s%urms**2
+				oldmean=meanarrays(:,:,nmeanvar+2)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+            tvar=s%urms
+				meanarrays(:,:,nmeanvar+2) = meanarrays(:,:,nmeanvar+2) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,nmeanvar+2) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,nmeanvar+2)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,nmeanvar+2)**2
+			   MA = max(MA,s%urms)
+			   MI = min(MI,s%urms)
         case (mnem_u)
-          meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-          (s%u*cos(s%alfa) - s%v*sin(s%alfa))
+		      oldmean=meanarrays(:,:,i)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+            tvar=s%u*cos(s%alfa) - s%v*sin(s%alfa)
+				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,i)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+            MA = max(MA,tvar)
+			   MI = min(MI,tvar)
         case (mnem_v)
-          meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-          (s%u*sin(s%alfa) + s%v*cos(s%alfa))
+		      oldmean=meanarrays(:,:,i)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+            tvar=s%u*sin(s%alfa) + s%v*cos(s%alfa)
+				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,i)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+            MA = max(MA,tvar)
+			   MI = min(MI,tvar)
         case (mnem_ue)
-          meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-          (s%ue*cos(s%alfa) - s%ve*sin(s%alfa))
+		      oldmean=meanarrays(:,:,i)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+            tvar=s%ue*cos(s%alfa) - s%ve*sin(s%alfa)
+				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,i)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+            MA = max(MA,tvar)
+			   MI = min(MI,tvar)
         case (mnem_ve)
-          meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-          (s%ue*sin(s%alfa) + s%ve*cos(s%alfa))
+		      oldmean=meanarrays(:,:,i)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+            tvar=s%ue*sin(s%alfa) + s%ve*cos(s%alfa)
+				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,i)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+            MA = max(MA,tvar)
+			   MI = min(MI,tvar)
         case (mnem_uwf)
-          meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-          (s%uwf*cos(s%alfa) - s%vwf*sin(s%alfa))
+		      oldmean=meanarrays(:,:,i)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+            tvar=s%uwf*cos(s%alfa) - s%vwf*sin(s%alfa)
+				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,i)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+            MA = max(MA,tvar)
+			   MI = min(MI,tvar)
         case (mnem_vwf)
-          meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-          (s%uwf*sin(s%alfa) + s%vwf*cos(s%alfa))
+		      oldmean=meanarrays(:,:,i)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+            tvar=s%uwf*sin(s%alfa) + s%vwf*cos(s%alfa)
+				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,i)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+            MA = max(MA,tvar)
+			   MI = min(MI,tvar)
         case default
           select case (t%type)
             case ('i')
               select case(t%rank)
                 case(2)
-                  meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-                  t%i2;
+					   ! Variance = sum(X^2) - 2*sum(XXm) + sum((Xm)^2)
+						! X^2 needs previous instantanious value and current value
+						! 2*sum(XXm) must be updated by:
+						!     2*sum(XXm) = (2*sum(XXm))(n)/Xm(n)*Xm(n+1)+2*X(n+1)*Xm(n+1)
+						! sum((Xm)^2) is updated using Xm(n+1)
+                  oldmean=meanarrays(:,:,i)
+						! oldmean is initiated at 0, so:
+						where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+						   oldmean=tiny(0.d0)
+						elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+						   oldmean=-1.d0*tiny(0.d0)
+						endwhere
+                  meanarrays(:,:,i)=meanarrays(:,:,i) + mult*t%i2
+						variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+						                         mult*2.d0*t%i2*meanarrays(:,:,i)
+						variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(t%i2)**2
+						variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+		            MA = max(MA,real(t%i2))
+			         MI = min(MI,real(t%i2))
                 case default
                   write(*,*)'Error in makeaverage, variable"'//t%name// &
-                          '" is of wrong type'
+                          '" is of wrong rank'
                   call halt_program
               end select  ! rank
             case ('r')
               select case(t%rank)
                 case(2)
-                  meanarrays(:,:,i)=meanarrays(:,:,i) + mult* &
-                  t%r2;
+					   oldmean=meanarrays(:,:,i)
+						! oldmean is initiated at 0, so:
+						where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+						   oldmean=tiny(0.d0)
+						elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+						   oldmean=-1.d0*tiny(0.d0)
+						endwhere
+                  meanarrays(:,:,i)=meanarrays(:,:,i) + mult*t%r2
+                  variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+						                         mult*2.d0*t%r2*meanarrays(:,:,i)
+						variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(t%r2)**2
+						variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+		            MA = max(MA,t%r2)
+			         MI = min(MI,t%r2)
                 case default
                   write(*,*)'Error in makeaverage, variable"'//t%name// &
-                          '" is of wrong type'
+                          '" is of wrong rank'
                   call halt_program
               end select  ! rank
           end select  !type
@@ -1149,14 +1625,17 @@ end subroutine makeaverage
 
 ! Subroutine make time series file name
 
-subroutine makeaveragenames(counter,name)
+subroutine makeaveragenames(counter,fnamemean,fnamevar,fnamemin,fnamemax)
 
   implicit none
 
-  character(99)      :: name
+  character(99)      :: fnamemean,fnamevar,fnamemin,fnamemax
   integer            :: counter
 
-  name = trim(mnemonics(counter))//'_mean.dat'
+  fnamemean = trim(mnemonics(counter))//'_mean.dat'
+  fnamevar  = trim(mnemonics(counter))//'_var.dat'
+  fnamemin  = trim(mnemonics(counter))//'_min.dat'
+  fnamemax  = trim(mnemonics(counter))//'_max.dat'
 
 end subroutine makeaveragenames
 
@@ -1270,14 +1749,14 @@ subroutine outarray_r3(s,index,x)
       write(unit,rec=jtg)s%cx*sin(s%alfa)+x*cos(s%alfa)
     case(mnem_thet)
       write(unit,rec=jtg)270-((s%thet+s%alfa)*(180/pi))
-    case(mnem_Subg)
-      write(unit,rec=jtg)x*cos(s%alfa)-s%Svbg*sin(s%alfa)
-    case(mnem_Svbg)
-      write(unit,rec=jtg)s%Subg*sin(s%alfa)+x*cos(s%alfa)
-	case(mnem_Susg)
+    case(mnem_Susg)
       write(unit,rec=jtg)x*cos(s%alfa)-s%Svsg*sin(s%alfa)
     case(mnem_Svsg)
       write(unit,rec=jtg)s%Susg*sin(s%alfa)+x*cos(s%alfa)
+	case(mnem_Subg)
+      write(unit,rec=jtg)x*cos(s%alfa)-s%Svbg*sin(s%alfa)
+    case(mnem_Svbg)
+      write(unit,rec=jtg)s%Subg*sin(s%alfa)+x*cos(s%alfa)
     case default
       write(unit,rec=jtg) x
   end select
@@ -1383,7 +1862,31 @@ end function indextomeanunit
 integer function indextopointsunit(index)
   implicit none
   integer, intent(in) :: index
-  indextopointsunit = 100+2*numvars+index
+  indextopointsunit = 100+20*numvars+index
 end function indextopointsunit
+
+integer function indextocrossunit(index)
+  implicit none
+  integer, intent(in) :: index
+  indextocrossunit = 100+30*numvars+index
+end function indextocrossunit
+
+integer function indextominunit(index)
+  implicit none
+  integer, intent(in) :: index
+  indextominunit = 100+40*numvars+index
+end function indextominunit
+
+integer function indextomaxunit(index)
+  implicit none
+  integer, intent(in) :: index
+  indextomaxunit = 100+50*numvars+index
+end function indextomaxunit
+
+integer function indextovarunit(index)
+  implicit none
+  integer, intent(in) :: index
+  indextovarunit = 100+60*numvars+index
+end function indextovarunit
 
 end module outputmod

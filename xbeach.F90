@@ -33,6 +33,8 @@ real*8                   :: tbegin,tend
 real*8                   :: t0,t01,t1
 #endif
 
+include 'version.def'
+include 'version.dat'
 #ifdef USEMPI
 s=>slocal
 call xmpi_initialize
@@ -42,7 +44,19 @@ t0 = MPI_Wtime()
 call cpu_time(tbegin)
 
 if (xmaster) then
-  write(*,*) 'Welcome to Xbeach'
+  write(*,*)''
+  write(*,*)              '**********************************************************'
+  write(*,*)              '                   Welcome to XBeach                      '
+  write(*,*)              '                                                          '
+  write(*,'(a,i0,a,a)')   '             head revision: ',Build_Revision,'.',trim(Build_LocalMod)
+  write(*,'(a,a,a)')      '                      date: ',trim(Build_Date),' '
+!  write(*,'(a,a,a)')      '                build type: ',trim(Build_Type),' '
+  write(*,'(a,a,a)')      '            revision range: ',trim(Build_RevRange),' '
+  write(*,*)              '                                         '
+  write(*,*)              ' URL: ',trim(Build_URL),' '
+  write(*,*)              '                                                          '
+  write(*,*)              '**********************************************************'
+  write(*,*)              '                                                          '
   write(*,*) 'General Input Module'
 #ifdef USEMPI
   if(xmaster) then
