@@ -46,7 +46,6 @@ real*8                                      :: aquiferbot,temp
 integer										:: i,j
 
 
-if (xmaster) then
 	allocate (s%gwhead(s%nx+1,s%ny+1))
 	allocate (s%gwlevel(s%nx+1,s%ny+1))
 	allocate (s%gwheight(s%nx+1,s%ny+1))
@@ -94,7 +93,6 @@ if (xmaster) then
 		s%gww=0.d0
 		s%dinfil=max(par%dwetlayer/3.d0,0.02)   ! Centroid of area influenced instantly by free surface level lies at dwetlayer/3
 	endif
-endif
 end subroutine
 
 

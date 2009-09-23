@@ -65,11 +65,16 @@ cv       = 0.0d0  !Jaap
 dcdx     = 0.0d0
 dcdy     = 0.0d0
 ! calculate equilibrium concentration
-if (par%form==1) then           ! soulsby van Rijn
+if (par%form==1) then           ! Soulsby van Rijn
    call sb_vr(s,par)
 elseif (par%form==2) then       ! Van Thiel de Vries & Reniers 2008
    call sednew(s,par)
 end if
+
+! compute long wave turbulence due to breaking
+if (par%lwt==1) then
+   call longwaveturb(s,par)
+endif
 
 ! compute diffusion coefficient
 
@@ -555,7 +560,7 @@ do j=1,ny+1
 enddo
 
 vmag2  = ue**2+ve**2  ! wwvv todo just to be sure ?
-urms2  = urms**2+0.50d0*kb
+urms2  = urms**2+0.50d0*(kb+kturb)
 
 do jg = 1,par%ngd
 
@@ -823,7 +828,7 @@ elseif (par%lws==0) then
    vmg = (1-fac)*vmg + fac*dsqrt(ue**2+ve**2) 
 endif
 
-urmsturb = dsqrt(urms**2.d0+1.45d0*kb)
+urmsturb = dsqrt(urms**2.d0+1.45d0*(kb+kturb))
 
 do jg = 1,par%ngd
 
@@ -886,4 +891,128 @@ enddo                             ! end of grain size classes
 
 end subroutine sednew
 
+subroutine longwaveturb(s,par)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
+! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
+! Jaap van Thiel de Vries, Robert McCall                                  !       
+!                                                                         !
+! d.roelvink@unesco-ihe.org                                               !
+! UNESCO-IHE Institute for Water Education                                !
+! P.O. Box 3015                                                           !
+! 2601 DA Delft                                                           !
+! The Netherlands                                                         !
+!                                                                         !
+! This library is free software; you can redistribute it and/or           !
+! modify it under the terms of the GNU Lesser General Public              !
+! License as published by the Free Software Foundation; either            !
+! version 2.1 of the License, or (at your option) any later version.      !
+!                                                                         !
+! This library is distributed in the hope that it will be useful,         !
+! but WITHOUT ANY WARRANTY; without even the implied warranty of          !
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU        !
+! Lesser General Public License for more details.                         !
+!                                                                         !
+! You should have received a copy of the GNU Lesser General Public        !
+! License along with this library; if not, write to the Free Software     !
+! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307     !
+! USA                                                                     !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+use params
+use spaceparams
+use xmpi_module
+
+IMPLICIT NONE
+
+type(spacepars),target                   :: s
+type(parameters)                         :: par
+
+integer                                  :: i
+integer                                  :: j
+real                                     :: ksource
+real*8,dimension(:,:),allocatable,save   :: kturbu,kturbv,Sturbu,Sturbv,dzsdt_cr
+
+include 's.ind'
+include 's.inp'
+
+if (.not. allocated(kturbu)) then
+   allocate(kturbu (nx+1,ny+1))
+   allocate(kturbv (nx+1,ny+1))
+   allocate(Sturbu (nx+1,ny+1))
+   allocate(Sturbv (nx+1,ny+1))
+   allocate(dzsdt_cr (nx+1,ny+1))
+endif
+! use lagrangian velocities
+kturbu       = 0.0d0  !Jaap
+kturbv       = 0.0d0  !Jaap		
+dzsdt_cr=par%beta*c
+! Update roller thickness
+rolthick=rolthick+par%dt*(abs(dzsdt)-dzsdt_cr)
+rolthick=max(rolthick,0.d0)
+!
+!  X-direction
+do j=1,ny+1
+   do i=1,nx
+      if(uu(i,j)>0.d0) then
+         kturbu(i,j)=par%thetanum*kturb(i,j)+(1.d0-par%thetanum)*kturb(min(i+1,nx),j)
+      elseif(uu(i,j)<0.d0) then
+         kturbu(i,j)=par%thetanum*kturb(i+1,j)+(1.d0-par%thetanum)*kturb(max(i,2),j)
+      else
+         kturbu(i,j)=0.5d0*(kturb(i,j)+kturb(i+1,j))
+      endif
+   enddo 
+enddo
+kturbu(nx+1,:) = kturb(nx+1,:) !Robert
+! wwvv fix this in parallel case
+#ifdef USEMPI
+   call xmpi_shift(kturbu,'m:')
+#endif
+!
+Sturbu=kturbu*uu*hu*wetu   !
+!
+! Y-direction
+!
+do j=1,ny
+   do i=1,nx+1
+      if(vv(i,j)>0) then
+         kturbv(i,j)=par%thetanum*kturb(i,j)+(1.d0-par%thetanum)*kturb(i,min(j+1,ny))
+      else if(vev(i,j)<0) then
+         kturbv(i,j)=par%thetanum*kturb(i,j+1)+(1.d0-par%thetanum)*kturb(i,max(j,2))
+      else
+         kturbv(i,j)=0.5d0*(kturbv(i,j)+kturbv(i,j+1))
+      end if
+   end do 
+end do
+kturbv(:,ny+1) = kturb(:,ny+1) !Robert
+!
+Sturbv=kturbv*vv*hv*wetv
+do j=2,ny+1
+   do i=2,nx+1
+      ksource=par%g*rolthick(i,j)*par%beta*c(i,j)      !only important in shallow water, where c=sqrt(gh)  
+      kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*((Sturbu(i,j)-Sturbu(i-1,j))/(xu(i)-xu(i-1))+&
+                                          (Sturbv(i,j)-Sturbv(i,j-1))/(yv(j)-yv(j-1))-&
+								 (ksource-par%betad*kturb(i,j)**1.5d0))
+      kturb(i,j)=max(kturb(i,j),0.0d0)
+   enddo
+enddo
+! Jaap
+kturb = kturb/max(hh,0.01d0)
+kturb(1,:)=kturb(2,:)
+kturb(:,1)=kturb(:,2)
+kturb(nx+1,:)=kturb(nx+1-1,:)
+kturb(:,ny+1)=kturb(:,ny+1-1)
+! wwvv fix the first and last rows and columns of kturb in parallel case
+#ifdef USEMPI
+    call xmpi_shift(kturb,'1:')
+    call xmpi_shift(kturb,'m:')
+    call xmpi_shift(kturb,':1')   ! Maybe not necessary as zb calculated from 1:ny+1, but just in case...
+    call xmpi_shift(kturb,':n')   ! Dito
+#endif
+kturb=kturb*wetz
+!
+
+end subroutine longwaveturb
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 end module morphevolution

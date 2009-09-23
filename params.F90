@@ -159,6 +159,8 @@ real*8     :: vicmol   = -123  ! molecular viscosity
 integer*4  :: maxiter  = -123  ! maximum number of iterations in wave stationary
 real*8     :: maxerror = -123  ! maximum wave height error in wave stationary iteration
 real*8     :: dico     = -123  ! sediment diffusion coefficient
+real*8     :: betad    = -123  ! dissipation parameter long wave breaking turbulence
+integer*4  :: lwt      = -123  ! switch 0/1 long wave turbulence model
 real*8     :: wcits    = -123  ! wave-current interaction time scale (current averaging time in terms of mean wave periods)
 
 
@@ -174,7 +176,7 @@ type(parameters)            :: par
 
 character(len=80)          :: dummystring
 
-par%px    = 3.14159265358979d0
+par%px    = 4.d0*atan(1.d0)
 par%compi = (0.0d0,1.0d0)
 
 par%instat   = readkey_int     ('params.txt','instat',    1,         0,        7)
@@ -379,7 +381,8 @@ par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.2d0,     0.01d0,   10.d0)
 par%impact   = readkey_int ('params.txt','impact ',0,           0,            1)  
 par%CE       = readkey_dbl ('params.txt','CE     ',0.2d0,     0.00d0,   100.d0) 
 par%dico     = readkey_dbl ('params.txt','dico   ',1.0d0,     0.00d0,   10.0d0) 
-
+par%betad    = readkey_dbl ('params.txt','betad  ',1.0d0,     0.00d0,   10.0d0) 
+par%lwt      = readkey_int ('params.txt','lwt    ',0,           0,            1)  
 end subroutine sed_input
 
 #ifdef USEMPI
@@ -537,6 +540,8 @@ call xmpi_bcast(par%Tsmin)
 call xmpi_bcast(par%impact)
 call xmpi_bcast(par%CE)
 call xmpi_bcast(par%BRfac)
+call xmpi_bcast(par%betad)
+call xmpi_bcast(par%lwt)
 end subroutine distribute_par
 #endif
 !
@@ -684,6 +689,8 @@ subroutine printparams(par,str)
   write(f,*) 'printpar ',id,' ','impact:',par%impact
   write(f,*) 'printpar ',id,' ','CE:',par%CE
   write(f,*) 'printpar ',id,' ','BRfac:',par%BRfac
+  write(f,*) 'printpar ',id,' ','betad:',par%betad
+  write(f,*) 'printpar ',id,' ','lwt:',par%lwt
   
 end subroutine printparams
 end module params

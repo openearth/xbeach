@@ -49,6 +49,7 @@
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
 		<File RelativePath="..\boundaryconditions.F90"/>
 		<File RelativePath="..\constants.F90"/>
+		<File RelativePath="..\drifters.f90"/>
 		<File RelativePath="..\flow_timestep.F90"/>
 		<File RelativePath="..\general_mpi.F90"/>
 		<File RelativePath="..\groundwater.F90"/>

@@ -93,16 +93,18 @@ call readtide (s,par)  !Ap 15/10 ! runs oonly on master wwvv
 
 if (xmaster) then
   write(*,*) 'Initializing .....'
-endif
 ! Initialisations
-call wave_init (s,par)  ! wave_init only works on master process
+  call wave_init (s,par)  ! wave_init only works on master process
+endif
 #ifdef USEMPI
 ! some of par has been changed, so:
 call distribute_par(par)
 #endif
-call flow_init (s,par)  ! works only on master process
-call gwinit(par,s)      ! works only on master process
-call sed_init (s,par)   ! works only on master process
+if (xmaster) then
+   call flow_init (s,par)  ! works only on master process
+   call gwinit(par,s)      ! works only on master process
+   call sed_init (s,par)   ! works only on master process
+endif
 call init_output(sglobal,slocal,par,it)
 #ifdef USEMPI
 ! some par has changed, so:

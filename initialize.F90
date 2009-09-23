@@ -18,7 +18,6 @@ integer                             :: itheta,indt
 
 real*8,dimension(:),allocatable     :: yzs0,szs0
 
-if (xmaster) then
   allocate(s%thetamean(1:s%nx+1,1:s%ny+1))
   allocate(s%Fx(1:s%nx+1,1:s%ny+1))
   allocate(s%Fy(1:s%nx+1,1:s%ny+1))
@@ -61,16 +60,6 @@ if (xmaster) then
   allocate(s%bi(1:s%ny+1))
   allocate(s%DR(1:s%nx+1,1:s%ny+1)) 
   allocate(s%umean(2,1:s%ny+1))
-  allocate(s%BR(1:s%nx+1,1:s%ny+1))
-  allocate(s%kb(1:s%nx+1,1:s%ny+1))
-  allocate(s%Tbore(1:s%nx+1,1:s%ny+1))
-  allocate(s%uon(1:s%nx+1,1:s%ny+1))
-  allocate(s%uoff(1:s%nx+1,1:s%ny+1))
-  allocate(s%ua(1:s%nx+1,1:s%ny+1))  
-  allocate(s%dzav(1:s%nx+1,1:s%ny+1))  
-  allocate(s%Sk(1:s%nx+1,1:s%ny+1))
-  allocate(s%As(1:s%nx+1,1:s%ny+1))
-  allocate(s%Fimpact(1:s%nx+1,1:s%ny+1))
 
   s%umean=0.
 
@@ -257,7 +246,6 @@ if (xmaster) then
   s%sigm = sum(s%sigt,3)/s%ntheta
   call dispersion(par,s)
 
-endif
 
 end subroutine wave_init
 
@@ -275,7 +263,6 @@ IMPLICIT NONE
 type(spacepars)                     :: s
 type(parameters)                    :: par
 
-if(xmaster) then
   allocate(s%zs(1:s%nx+1,1:s%ny+1))
   allocate(s%dzsdt(1:s%nx+1,1:s%ny+1))
   allocate(s%dzbdt(1:s%nx+1,1:s%ny+1))
@@ -332,7 +319,6 @@ if(xmaster) then
   s%maxzs=-999.d0
   s%minzs=999.d0
 
-endif
 
 
 end subroutine flow_init
@@ -356,37 +342,46 @@ type(parameters)                    :: par
 integer                             :: i,j,m
 character*80                        :: fnameg
 
-allocate(s%ccg(1:s%nx+1,1:s%ny+1,par%ngd))
-allocate(s%dcdy(1:s%nx+1,1:s%ny+1))
-allocate(s%dcdx(1:s%nx+1,1:s%ny+1))
-allocate(s%Tsg(1:s%nx+1,1:s%ny+1,par%ngd)) 
-allocate(s%Sug(1:s%nx+1,1:s%ny+1,par%ngd)) 
-allocate(s%Svg(1:s%nx+1,1:s%ny+1,par%ngd)) 
-allocate(s%vmag(1:s%nx+1,1:s%ny+1)) 
-allocate(s%ceqg(1:s%nx+1,1:s%ny+1,par%ngd))
-allocate(s%graindistr(1:s%nx+1,1:s%ny+1,1:par%nd,1:par%ngd))
-allocate(s%D50(1:par%ngd))
-allocate(s%D90(1:par%ngd))
-allocate(s%sedcal(1:par%ngd))
-allocate(s%dzlayer(1:s%nx+1,1:s%ny+1))
+   allocate(s%ccg(1:s%nx+1,1:s%ny+1,par%ngd))
+   allocate(s%dcdy(1:s%nx+1,1:s%ny+1))
+   allocate(s%dcdx(1:s%nx+1,1:s%ny+1))
+   allocate(s%Tsg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+   allocate(s%Sug(1:s%nx+1,1:s%ny+1,par%ngd)) 
+   allocate(s%Svg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+   allocate(s%vmag(1:s%nx+1,1:s%ny+1)) 
+   allocate(s%ceqg(1:s%nx+1,1:s%ny+1,par%ngd))
+   allocate(s%graindistr(1:s%nx+1,1:s%ny+1,1:par%nd,1:par%ngd))
+   allocate(s%D50(1:par%ngd))  
+   allocate(s%D90(1:par%ngd))
+   allocate(s%sedcal(1:par%ngd))
+   allocate(s%dzlayer(1:s%nx+1,1:s%ny+1))
+   allocate(s%BR(1:s%nx+1,1:s%ny+1))
+   allocate(s%kb(1:s%nx+1,1:s%ny+1))
+   allocate(s%Tbore(1:s%nx+1,1:s%ny+1))
+   allocate(s%uon(1:s%nx+1,1:s%ny+1))
+   allocate(s%uoff(1:s%nx+1,1:s%ny+1))
+   allocate(s%ua(1:s%nx+1,1:s%ny+1))  
+   allocate(s%dzav(1:s%nx+1,1:s%ny+1))  
+   allocate(s%Sk(1:s%nx+1,1:s%ny+1))
+   allocate(s%As(1:s%nx+1,1:s%ny+1))
+   allocate(s%Fimpact(1:s%nx+1,1:s%ny+1))
+   allocate(s%kturb(1:s%nx+1,1:s%ny+1))
+   allocate(s%rolthick(1:s%nx+1,1:s%ny+1))
 !
 ! Specify hard layer
 !
 s%dzlayer = 100.d0
 if (par%struct==1) then
-  if (xmaster) then
    call readkey('params.txt','ne_layer',fnameg)
    open(34,file=fnameg)
    do j = 1,s%ny+1
       read(34,*)(s%dzlayer(i,j),i=1,s%nx+1)
    enddo
    close(34)
-  endif
 endif
 !
 ! Specify Grain Distribution
 !
-if(xmaster) then
   if (par%ngd>1) then
      call readkey('params.txt','gdist',fnameg)
      open(34,file=fnameg)
@@ -403,7 +398,6 @@ if(xmaster) then
   else
      s%graindistr = 1.0 
   endif
-endif  ! xmaster
 
 s%D50(1)     = par%D501
 s%D90(1)     = par%D901
@@ -423,6 +417,8 @@ s%Sug        = 0.d0
 s%Svg        = 0.d0
 s%dcdx       = 0.d0
 s%dcdy       = 0.d0
+s%kturb      = 0.d0
+s%rolthick   = 0.d0
 
 end subroutine sed_init
 
