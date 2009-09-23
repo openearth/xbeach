@@ -80,6 +80,11 @@
       real*8  2  zs0    s%nx+1 s%ny+1 d ! [m]        water level due to tide alone
       real*8  1  tideinpt par%tidelen b ! [s]        input time of input tidal signal
       real*8  2  tideinpz par%tidelen par%tideloc b ! [m]        input tidal signal
+      real*8  1  windinpt par%windlen b ! [s]        input time of input wind signal
+      real*8  1  windvel  par%windlen b ! [m/s]        input wind velocity
+      real*8  1  winddir  par%windlen b ! [deg nautical]        input wind direction
+      real*8  0  windvnow b             ! [m/s]      uniform wind velocity current time
+      real*8  0  winddirnow b           ! [m/s]      uniform wind direction current time
       real*8  2  dzsdt  s%nx+1 s%ny+1 d ! [m/s]      rate of change water level
       real*8  2  dzbdt  s%nx+1 s%ny+1 d ! [m/s]      rate of change bed level 
       real*8  2  uu     s%nx+1 s%ny+1 d ! [m/s]      (GLM) x-velocity in u-points

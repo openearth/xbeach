@@ -116,6 +116,7 @@ real*8     :: rhoa      = -123 ! air density
 real*8     :: Cd        = -123 ! wind drag coefficient
 real*8     :: windv     = -123 ! wind velocity
 real*8     :: windth    = -123 ! wind direction (nautical input)
+integer*4  :: windlen   = -123 ! length of input wind time series
 integer*4  :: nonh      = -123 ! 0 = NSWE, 1 = NSW + non-hydrostatic pressure compensation Stelling & Zijlema, 2003 
 real*8     :: nuhv      = -123 ! longshore viscosity enhancement factor
 real*8     :: wearth    = -123 ! angular velocity of earth for computing Coriolis forces
@@ -248,6 +249,18 @@ par%wci      = readkey_int ('params.txt','wci',        0,        0,     1)
 par%hwci     = readkey_dbl ('params.txt','hwci',   0.01d0,   0.001d0,      1.d0)
 par%cats     = readkey_dbl ('params.txt','cats',  10.d0,   5.d0,      50.d0)
 par%break    = readkey_int ('params.txt','break',      3,        1,     3)
+! Only allow Baldock in stationary mode and Roelvink in non-stationary
+if (par%instat==0) then
+   if (par%break .ne. 2) then
+        write(*,*)'Error !!!! Roelvink breaking criteria not allowed in stationary calculation, use Baldock formulation. Stopping calculation.  !!!'
+       	call halt_program
+   endif
+else
+   if (par%break==2) then 
+        write(*,*)'Error !!!! Baldock breaking criteria not allowed in non-stationary calculation, use Roelvink formulation. Stopping calculation.  !!!'
+       	call halt_program
+   endif
+endif
 par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
 par%beta     = readkey_dbl ('params.txt','beta',    0.15d0,     0.05d0,   0.3d0)
 par%rfb      = readkey_int ('params.txt','rfb',        1,        0,     1)
@@ -315,18 +328,14 @@ par%rightwave= readkey_int ('params.txt','rightwave',        0,         0,      
 par%back    = readkey_int ('params.txt','back',        2,         0,      2)
 par%nuh     = readkey_dbl ('params.txt','nuh',     0.5d0,     0.0d0,      1.0d0)
 par%nuhfac  = readkey_dbl ('params.txt','nuhfac',      0.0d0,     0.0d0,  1.0d0)
-par%rhoa    = readkey_dbl ('params.txt','rhoa',   1.25d0,     1.0d0,   2.0d0)
-par%Cd      = readkey_dbl ('params.txt','Cd',    0.002d0,  0.0001d0,  0.01d0)
-par%windv   = readkey_dbl ('params.txt','windv',   0.0d0,     0.0d0, 200.0d0)
-par%windth  = readkey_dbl ('params.txt','windth', 90.0d0,  -180.0d0, 180.0d0)
+
 par%nonh    = readkey_int ('params.txt','nonh',        0,         0,      1)
 par%nuhv    = readkey_dbl ('params.txt','nuhv',     1.d0,      1.d0,    20.d0)
 par%lat     = readkey_dbl ('params.txt','lat',     0.d0,      0.d0,   90.d0)
 par%wearth  = readkey_dbl ('params.txt','omega',   1.d0/24.d0, 0.d0,    1.d0)
 par%vonkar  = readkey_dbl ('params.txt','vonkar',   0.4d0,     0.01d0,  1.d0)
 par%vicmol  = readkey_dbl ('params.txt','vicmol',   0.000001d0,   0.d0,    0.001d0)
-! Convert from Nautical to cartesian convention
-par%windth=(270.d0-par%windth)*par%px/180.d0
+
 par%lat = par%lat*par%px/180.d0
 par%wearth = par%px*par%wearth/1800.d0
 par%fc = 2.d0*par%wearth*sin(par%lat)

@@ -64,7 +64,7 @@ end if
 
 end subroutine roelvink1
 
-subroutine roelvink(par,s)
+subroutine roelvink(par,s,km)
 use params
 use spaceparams
 
@@ -75,11 +75,13 @@ type(parameters)                :: par
 
 real*8                          :: fac
 integer                         :: i,j
-
-real*8,dimension(:,:),allocatable,save :: H,hroelvink
+real*8,dimension(s%nx+1,s%ny+1) :: km
+real*8,dimension(:,:),allocatable,save :: H,hroelvink,arg,kmr
 
 if (.not. allocated(H)) then
    allocate(H       (s%nx+1,s%ny+1))
+   allocate(arg     (s%nx+1,s%ny+1))
+   allocate(kmr     (s%nx+1,s%ny+1))
    allocate(hroelvink(s%nx+1,s%ny+1))
 endif
 
@@ -88,9 +90,23 @@ endif
 fac=8.0d0/par%rho/par%g
 hroelvink=s%hh+par%delta*s%H
 
+
+kmr=km
+where(km<0.01d0)
+   kmr=0.01d0
+elsewhere(km>100.d0)
+   kmr=100.d0
+endwhere
+
+
 H=sqrt(fac*s%E)
 if (par%break<4) then
-   s%Qb=min(1-exp(-(H/par%gamma/hroelvink)**par%n),1.0d0)
+   if (par%wci==1) then
+      arg = -(H/(par%gamma*tanh(min(max(km,0.01d0),100.d0)*hroelvink)/min(max(km,0.01d0),100.d0)))**par%n
+      s%Qb = min(1.d0-exp(max(arg,-100.d0)),1.d0)
+   else
+      s%Qb=min(1-exp(-(H/par%gamma/hroelvink)**par%n),1.0d0)
+   endif
 else
    do j=1,s%ny+1
       do i=1,s%nx+1
@@ -103,7 +119,12 @@ endif
 
 ! cjaap : two options:
 if (par%break==1) then
-   s%D=s%Qb*2*par%alpha/par%Trep*s%E
+   if (par%wci==1) then
+      s%D=s%Qb*2.d0*par%alpha*s%sigm*s%E/2.d0/par%px;
+!     s%D=Qb*par%alpha*km*s%E*H/par%px*sqrt(par%g*km/tanh(max(km,0.001)*hroelvink));  ! according to CK2002
+   else
+      s%D=s%Qb*2*par%alpha/par%Trep*s%E
+   endif
 elseif (par%break>2) then
    ! s%D=s%Qb*2.*par%alpha/par%Trep*s%E*H/hroelvink; !breaker delay depth for dissipation in bore and fraction of breaking waves
    s%D=s%Qb*2*par%alpha/par%Trep*s%E*H/s%hh        !breaker delay depth for fraction breaking waves and actual water depth for disipation in bore
@@ -115,7 +136,7 @@ subroutine baldock1(E,hh,k,Trep,alpha,gamma,rho,g,delta,D,ntot)
   IMPLICIT NONE
 
   integer                         :: ntot
-  real*8,dimension(ntot)          :: E,hh,D,k
+  real*8,dimension(ntot)          :: E,hh,D,k,arg
   real*8                          :: fac,rho,g,delta,alpha,gamma,Trep
 
 
@@ -142,12 +163,13 @@ subroutine baldock1(E,hh,k,Trep,alpha,gamma,rho,g,delta,D,ntot)
 
   ! Wave dissipation acc. to Baldock et al. 1998
   Hb = (0.88d0/k)*tanh(gamma*kh/0.88d0)
-  Qb = exp(-(Hb/max(H,0.00001d0))**2)
+  arg = -(Hb/max(H,0.00001d0))**2
+  Qb = exp(max(arg,-100.d0))
   D = 0.25d0*alpha*Qb*rho*(1.0d0/Trep)*g*(Hb**2+H**2)
 
 end subroutine baldock1
 
-subroutine baldock(par,s)
+subroutine baldock(par,s,km)
   use params
   use spaceparams
 
@@ -158,14 +180,14 @@ subroutine baldock(par,s)
 
   real*8                          :: fac
   integer                         :: alpha
+  real*8,dimension(s%nx+1,s%ny+1) :: km
 
-
-  real*8,dimension(:,:),allocatable,save :: H,Hb,kh,tkh,hbaldock
+  real*8,dimension(:,:),allocatable,save :: H,Hb,kh,hbaldock,arg
   if (.not. allocated(H)) then
      allocate(H       (s%nx+1,s%ny+1))
       allocate(Hb      (s%nx+1,s%ny+1))
      allocate(kh      (s%nx+1,s%ny+1))
-     allocate(tkh     (s%nx+1,s%ny+1))
+     allocate(arg      (s%nx+1,s%ny+1))
      allocate(hbaldock(s%nx+1,s%ny+1))
   endif
 
@@ -181,9 +203,16 @@ subroutine baldock(par,s)
   !tkh=tanh(kh)     ! tkh not used
 
   ! Wave dissipation acc. to Baldock et al. 1998
-  Hb = (0.88d0/s%k)*tanh(par%gamma*kh/0.88d0)
-  s%Qb = exp(-(Hb/max(H,0.00001d0))**2)
-  s%D = 0.25d0*alpha*s%Qb*par%rho*(1.d0/par%Trep)*par%g*(Hb**2+H**2)
+  arg = -(Hb/max(H,0.00001d0))**2
+  if (par%wci==1) then
+     Hb = (0.88d0/km)*tanh(par%gamma*kh/0.88d0)
+     s%Qb = exp(max(arg,-100.d0))
+     s%D = 0.25d0*alpha*s%Qb*par%rho*s%sigm*par%g*(Hb**2+H**2)/2.d0/par%px
+  else
+     Hb = (0.88d0/s%k)*tanh(par%gamma*kh/0.88d0)
+     s%Qb = exp(-(Hb/max(H,0.00001d0))**2)
+     s%D = 0.25d0*alpha*s%Qb*par%rho*(1.d0/par%Trep)*par%g*(Hb**2+H**2)
+  endif
 
 end subroutine baldock
 

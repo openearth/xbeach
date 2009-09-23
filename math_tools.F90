@@ -966,23 +966,6 @@ MODULE math_tools
 !
 
 !%HILBERT Hilbert transform.
-!%   HILBERT(X) is the Hilbert transform of the real part
-!%   of vector X.  The real part of the result is the original
-!%   real data; the imaginary part is the actual Hilbert
-!%   transform.  See also FFT and IFFT.
-!%
-!%   If X is a signal matrix, HILBERT(X) transforms the columns
-!%   of X independently.
-!
-!%   Author(s): C. Denham, 1-7-88
-!%         L. Shure, 11-19-88, 5-22-90 - revised
-!%         K. Creager, 3-19-92, modified to use power of 2 FFT
-!%         T. Krauss, 11-4-92, revised
-!%   Copyright (c) 1988-1999 The MathWorks, Inc. All Rights Reserved.
-!%   $Revision: 1.3 $  $Date: 1999/01/11 19:03:18 $
-!
-!%   Reference(s):
-!%     [1] Jon Claerbout, Introduction to Geophysical Data Analysis.
 
 subroutine hilbert(xi,m)
 

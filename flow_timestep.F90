@@ -303,7 +303,8 @@ endif
 !                   + par%g/par%C**2.d0/hu(i,j)*vmageu(i,j)*ueu(i,j) & 
                     + par%cf/hu(i,j)*ueu(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmageu(i,j)**2) &    
                     - par%lwave*Fx(i,j)/par%rho/hu(i,j) &
-                    - par%fc*vu(i,j))
+                    - par%fc*vu(i,j) &
+						  - par%rhoa*par%Cd*cos(s%winddirnow)*s%windvnow**2)
             else
                 uu(i,j)=0.0d0
             end if
@@ -395,7 +396,8 @@ endif
                     ! + par%g/par%C**2/hv(i,j)*vmagev(i,j)*vev(i,j)&
                     + par%cf/hv(i,j)*vev(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmagev(i,j)**2) &   !Ruessink et al 2001
                     - par%lwave*Fy(i,j)/par%rho/hv(i,j) &
-                    + par%fc*uv(i,j))
+                    + par%fc*uv(i,j) &
+						  - par%rhoa*par%Cd*sin(s%winddirnow)*s%windvnow**2)
             else
                 vv(i,j)=0.0d0
             end if

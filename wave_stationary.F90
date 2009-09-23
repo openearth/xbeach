@@ -465,7 +465,7 @@ enddo
 
 Fx(:,1)=Fx(:,2)
 Fy(:,1)=Fy(:,2)
-Fx(:,ny+1)=Fx(:,ny+1-1)
+Fx(:,ny+1)=Fx(:,ny)
 Fy(:,ny+1)=Fy(:,ny)
 Fx(1,:)=Fx(2,:)
 Fy(1,:)=Fy(2,:)

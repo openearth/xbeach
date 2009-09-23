@@ -10,6 +10,7 @@ use flow_timestep_module
 use morphevolution
 use outputmod
 use readtide_module
+use readwind_module
 use wave_stationary_module
 use wave_timestep_module
 use timestep_module
@@ -90,6 +91,7 @@ endif
 
 ! Jump into subroutine readtide
 call readtide (s,par)  !Ap 15/10 ! runs oonly on master wwvv
+call readwind (s,par)  !Robert 8/7/2009 only on master
 
 if (xmaster) then
   write(*,*) 'Initializing .....'

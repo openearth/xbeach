@@ -278,16 +278,16 @@ subroutine wave_timestep(s,par)
 
 ! Total dissipation
     if(par%break == 1 .or. par%break == 3)then
-        call roelvink(par,s)
+        call roelvink(par,s,km)
     else if(par%break == 2)then
-        call baldock(par,s)
+        call baldock(par,s,km)
     else if (par%break == 4) then
         cgxm = cg*cos(tm) 
         cgym = cg*sin(tm)
         call advecqx(cgxm,Qb,xwadvec,nx,ny,xz)
         call advecqy(cgym,Qb,ywadvec,nx,ny,yz)
         Qb=Qb-par%dt*(xwadvec+ywadvec)
-        call roelvink(par,s)        
+        call roelvink(par,s,km)        
     endif
 !
 ! Distribution of dissipation over directions and frequencies

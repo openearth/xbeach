@@ -128,6 +128,12 @@ LINK32=link.exe
 
 SOURCE=.\boundaryconditions.f90
 DEP_F90_BOUND=\
+	".\s.ind"\
+	".\s.inp"\
+	".\space_ind.gen"\
+	".\space_inp.gen"\
+	
+NODEP_F90_BOUND=\
 	".\Debug\interp.mod"\
 	".\Debug\params.mod"\
 	".\Debug\readkey_module.mod"\
@@ -135,10 +141,6 @@ DEP_F90_BOUND=\
 	".\Debug\wave_timestep_module.mod"\
 	".\Debug\waveparams.mod"\
 	".\Debug\xmpi_module.mod"\
-	".\s.ind"\
-	".\s.inp"\
-	".\space_ind.gen"\
-	".\space_inp.gen"\
 	
 # End Source File
 # Begin Source File
@@ -176,15 +178,17 @@ DEP_F90_FLOW_=\
 # Begin Source File
 
 SOURCE=.\general_mpi.F90
+DEP_F90_GENER=\
+	".\Debug\xmpi_module.mod"\
+	
 NODEP_F90_GENER=\
 	".\Debug\mpi.mod"\
-	".\Debug\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\groundwater.f90
-NODEP_F90_GROUN=\
+DEP_F90_GROUN=\
 	".\Debug\params.mod"\
 	".\Debug\readkey_module.mod"\
 	".\Debug\spaceparams.mod"\
@@ -194,7 +198,7 @@ NODEP_F90_GROUN=\
 # Begin Source File
 
 SOURCE=.\initialize.f90
-NODEP_F90_INITI=\
+DEP_F90_INITI=\
 	".\Debug\interp.mod"\
 	".\Debug\params.mod"\
 	".\Debug\readkey_module.mod"\
@@ -210,7 +214,7 @@ SOURCE=.\interp.f90
 # Begin Source File
 
 SOURCE=.\math_tools.f90
-NODEP_F90_MATH_=\
+DEP_F90_MATH_=\
 	".\Debug\xmpi_module.mod"\
 	
 # End Source File
@@ -247,7 +251,7 @@ NODEP_F90_PARAM=\
 # Begin Source File
 
 SOURCE=.\readkey.f90
-NODEP_F90_READK=\
+DEP_F90_READK=\
 	".\Debug\xmpi_module.mod"\
 	
 # End Source File
@@ -267,8 +271,12 @@ DEP_F90_READT=\
 # End Source File
 # Begin Source File
 
+SOURCE=.\readwind.F90
+# End Source File
+# Begin Source File
+
 SOURCE=.\roelvink.f90
-NODEP_F90_ROELV=\
+DEP_F90_ROELV=\
 	".\Debug\params.mod"\
 	".\Debug\spaceparams.mod"\
 	
@@ -291,7 +299,7 @@ DEP_F90_SPACE=\
 # Begin Source File
 
 SOURCE=.\timestep.f90
-NODEP_F90_TIMES=\
+DEP_F90_TIMES=\
 	".\Debug\params.mod"\
 	".\Debug\spaceparams.mod"\
 	".\Debug\xmpi_module.mod"\
@@ -300,7 +308,7 @@ NODEP_F90_TIMES=\
 # Begin Source File
 
 SOURCE=.\varoutput.f90
-NODEP_F90_VAROU=\
+DEP_F90_VAROU=\
 	".\Debug\mnemmodule.mod"\
 	".\Debug\params.mod"\
 	".\Debug\readkey_module.mod"\
@@ -327,17 +335,15 @@ DEP_F90_WAVE_=\
 
 SOURCE=.\wave_timestep.f90
 DEP_F90_WAVE_T=\
-	".\s.ind"\
-	".\s.inp"\
-	".\space_ind.gen"\
-	".\space_inp.gen"\
-	
-NODEP_F90_WAVE_T=\
 	".\Debug\mnemmodule.mod"\
 	".\Debug\params.mod"\
 	".\Debug\roelvink_module.mod"\
 	".\Debug\spaceparams.mod"\
 	".\Debug\xmpi_module.mod"\
+	".\s.ind"\
+	".\s.inp"\
+	".\space_ind.gen"\
+	".\space_inp.gen"\
 	
 # End Source File
 # Begin Source File

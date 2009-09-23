@@ -555,7 +555,7 @@ if (par%t>0.0d0) then
 			   ee(1:nx+1-1,ny+1-1,itheta)*fac1+ee(2:nx+1,ny+1-1,itheta)*fac2
 
 		 end do
-	elseif (par%rightwave==1) then
+	elseif (par%leftwave==1) then
 		wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
 		do itheta=1,ntheta
 		   do i=1,nx+1
@@ -944,6 +944,12 @@ endif !xmpi_istop
 #endif
 
 endif   ! par%instat
+
+
+!!! Wind boundary conditions
+
+call LINEAR_INTERP(s%windinpt,s%windvel,par%windlen,par%t,s%windvnow,indt)
+call LINEAR_INTERP(s%windinpt,s%winddir,par%windlen,par%t,s%winddirnow,indt)
 
 end subroutine flow_bc
 

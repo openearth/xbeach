@@ -42,6 +42,7 @@ interface space_distribute
   module procedure space_distribute_matrix_real8
   module procedure space_distribute_matrix_integer
   module procedure space_distribute_block_real8
+  module procedure space_distribute_block_integer
   module procedure space_distribute_block4_real8
   module procedure space_distribute_vector
   module procedure space_distribute_block_vector
@@ -54,6 +55,7 @@ end interface space_shift_borders
 
 interface space_collect
   module procedure space_collect_block_real8
+  module procedure space_collect_block_integer
   module procedure space_collect_block4_real8
   module procedure space_collect_matrix_real8
   module procedure space_collect_matrix_integer
@@ -156,7 +158,7 @@ subroutine grid_bathy(s,par)
   integer                             :: i
   integer                             :: j
   integer                             :: itheta
-  real*8                              :: degrad,thetamin,thetamax
+  real*8                              :: degrad
 
   !                     Input file  Keyword Default  Minimum  Maximum
   s%nx    = readkey_int('params.txt','nx',     50,      2,     10000)
@@ -264,29 +266,29 @@ subroutine grid_bathy(s,par)
     if (s%theta0> par%px) s%theta0=s%theta0-2.d0*par%px
     degrad=par%px/180.d0
     if (par%thetanaut==1) then  
-       thetamin=(270-par%thetamax)*degrad-s%alfa
-       thetamax=(270-par%thetamin)*degrad-s%alfa
-       if (thetamax>par%px) then
-          thetamax=thetamax-2*par%px
-          thetamin=thetamin-2*par%px
+       s%thetamin=(270-par%thetamax)*degrad-s%alfa
+       s%thetamax=(270-par%thetamin)*degrad-s%alfa
+       if (s%thetamax>par%px) then
+          s%thetamax=s%thetamax-2*par%px
+          s%thetamin=s%thetamin-2*par%px
        endif
-       if (thetamin<-par%px) then
-          thetamax=thetamax+2*par%px
-          thetamin=thetamin+2*par%px
+       if (s%thetamin<-par%px) then
+          s%thetamax=s%thetamax+2*par%px
+          s%thetamin=s%thetamin+2*par%px
        endif
     else
-    thetamin=par%thetamin*degrad
-    thetamax=par%thetamax*degrad
+    s%thetamin=par%thetamin*degrad
+    s%thetamax=par%thetamax*degrad
     endif
     s%dtheta=par%dtheta*degrad
-    s%ntheta=(thetamax-thetamin)/s%dtheta
+    s%ntheta=(s%thetamax-s%thetamin)/s%dtheta
 
     allocate(s%theta(1:s%ntheta))
     allocate(s%cxsth(1:s%ntheta))
     allocate(s%sxnth(1:s%ntheta))
 
     do itheta=1,s%ntheta
-        s%theta(itheta)=thetamin+s%dtheta/2+s%dtheta*(itheta-1)
+        s%theta(itheta)=s%thetamin+s%dtheta/2+s%dtheta*(itheta-1)
     end do
 
     s%cxsth=cos(s%theta)
@@ -718,6 +720,24 @@ subroutine space_distribute_block_real8(sl,a,b)
 
 end subroutine space_distribute_block_real8
 
+subroutine space_distribute_block_integer(sl,a,b)
+  use xmpi_module
+  use general_mpi_module
+  implicit none
+  type (spacepars), intent(inout)                :: sl
+  integer, dimension(:,:,:), intent(in)          :: a
+  integer, dimension(:,:,:), intent(out)         :: b
+
+  integer                                        :: i
+
+  do i=1,size(b,3)   ! assuming that b is allocated on all processes
+    call matrix_distr(a(:,:,i),b(:,:,i),sl%is,sl%lm,sl%js,sl%ln,xmpi_master,xmpi_comm)
+  enddo
+
+end subroutine space_distribute_block_integer
+
+
+
 subroutine space_distribute_block4_real8(sl,a,b)
   use xmpi_module
   use general_mpi_module
@@ -951,6 +971,8 @@ subroutine space_distribute_space(sg,sl,par)
             select case(tl%rank)
               case(2)
                 call space_distribute(sl,tg%i2,tl%i2)
+				  case(3)
+				    call space_distribute(sl,tg%i3,tl%i3)
               case default
                 goto 100
             end select  ! rank
@@ -1060,6 +1082,50 @@ subroutine space_collect_block_real8(s,a,b)
   enddo
 
 end subroutine space_collect_block_real8
+
+subroutine space_collect_block_integer(s,a,b)
+  use general_mpi_module
+  use xmpi_module
+  implicit none
+  type(spacepars), intent(in)            :: s
+  integer, dimension(:,:,:), intent(out)  :: a
+  integer, dimension(:,:,:), intent(in)   :: b
+
+  integer i
+
+  real*8, dimension(:,:,:), allocatable :: ra,rb
+  integer                             :: m,n,o
+
+  m = size(b,1)
+  n = size(b,2)
+  o = size(b,3)
+
+  allocate(rb(m,n,o))
+
+  if (xmaster) then
+    m = size(a,1)
+    n = size(a,2)
+	 o = size(a,3)
+    allocate(ra(m,n,o))
+  else
+    allocate(ra(1,1,1))
+  endif
+
+  rb = b
+
+  do i = 1,o
+    call matrix_coll(ra(:,:,i),rb(:,:,i),s%is,s%lm,s%js,s%ln, &
+                   s%isleft,s%isright,s%istop,s%isbot, &
+                   xmpi_master,xmpi_comm)
+  enddo
+
+  if (xmaster) then
+    a = ra
+  endif
+
+  deallocate(ra,rb)
+
+end subroutine space_collect_block_integer
 
 subroutine space_collect_block4_real8(s,a,b)
   use general_mpi_module

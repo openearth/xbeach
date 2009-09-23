@@ -38,43 +38,47 @@ type(spacepars),target                  :: s
 type(parameters)                        :: par
 
 character*80                        :: fnamezs0
-integer                             :: i
-integer                             :: j
-real*8,dimension(:,:),allocatable   :: tidedummy
+integer                             :: i,j
+integer                             :: io,ntide
+real*8,dimension(par%tideloc+1)     :: temp
 
 include 's.ind'
 include 's.inp'
 
 ! this must only work on master
 if (xmaster) then
-  allocate(tidedummy(par%tidelen,par%tideloc+1))
+  if (par%tideloc .eq. 0) then
+	 return
+  endif
+
+  io = 0
+  ntide = 0
+
+  call readkey('params.txt','zs0file',fnamezs0)
+  write(*,*)'readtide: reading tide time series from ',fnamezs0,' ...'
+  open(31,file=fnamezs0)
+  do while (io==0)
+     ntide=ntide+1
+     read(31,*,IOSTAT=io) temp
+  enddo
+  rewind(31)
+
+  par%tidelen=ntide-1
+
   allocate(s%tideinpt(par%tidelen))
   allocate(s%tideinpz(par%tidelen,par%tideloc))
 
-  if (par%tideloc .eq. 0) then
-    return
+  do i=1,par%tidelen
+     read(31,*)s%tideinpt(i),s%tideinpz(i,:)
+  end do
+  close(31)
+
+  s%tideinpt = s%tideinpt / max(par%morfac,1.d0)
+  if (s%tideinpt(par%tidelen)<par%tstop) then
+     write(*,*)'Error !!!! Tide condition time series too short. Stopping calculation !!!'
+     call halt_program
   endif
 
-  write(*,*) 'tidelen=', par%tidelen , par%tideloc
-  call readkey('params.txt','zs0file',fnamezs0)
-  open(31,file=fnamezs0)
-    do i=1,par%tidelen
-      if (xmaster) then
-        read(31,*)(tidedummy(i,j),j=1,par%tideloc+1)
-      endif
-    end do
-  close(31)
-  do i=1,par%tidelen
-    s%tideinpt(i) = tidedummy(i,1) / max(par%morfac,1.d0)
-  end do
-
-  do j=1,par%tideloc
-      do i=1,par%tidelen
-          s%tideinpz(i,j) = tidedummy(i,j+1)
-      end do
-  end do
-
-  deallocate(tidedummy)
 endif
 
 end subroutine readtide
