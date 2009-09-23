@@ -18,7 +18,6 @@ real*8     :: delta     = -123 ! fraction of wave height to add to depth in comp
 real*8     :: rho       = -123 ! water density
 real*8     :: g         = -123 ! acceleration of gravity
 real*8     :: rhog8     = -123 ! 1/8*rho*g
-!real*8     :: omega     = -123 ! angular wave frequency		!!!! Not used anymore, remove ? Robert
 real*8     :: thetamin  = -123 ! lower directional limit (angle w.r.t computational x-axis)
 real*8     :: thetamax  = -123 ! upper directional limit (angle w.r.t computational x-axis)
 real*8     :: dtheta    = -123 ! directional resolution (deg)
@@ -83,16 +82,9 @@ real*8     :: Emean     = -123 ! mean wave energy at boundary
 real*8     :: CFL       = -123 ! maximum courant number
 integer*4  :: ngd       = -123 ! number of sediment classes
 integer*4  :: nd        = -123 ! number of sediment class layers
-real*8     :: dzg       = -123 ! thickness of sediment class layers
-real*8     :: D501      = -123 ! D50 grain diameter second class of sediment
-real*8     :: D901      = -123 ! D90 grain diameter second class of sediment
-real*8     :: D502      = -123 ! D50 grain diameter second class of sediment
-real*8     :: D902      = -123 ! D90 grain diameter second class of sediment
-real*8     :: D503      = -123 ! D50 grain diameter third class of sediment
-real*8     :: D903      = -123 ! D90 grain diameter third class of sediment
-real*8     :: sedcal1   = -123 ! calibration factor for sediment class 1 
-real*8     :: sedcal2   = -123 ! calibration factor for sediment class 2 
-real*8     :: sedcal3   = -123 ! calibration factor for sediment class 2 
+real*8     :: dzg1      = -123 ! thickness of top sediment class layers
+real*8     :: dzg2      = -123 ! thickness of variable sediment class layer
+real*8     :: dzg3      = -123 ! thickness of bottom sediment class layers
 real*8     :: por       = -123 ! porosity
 real*8     :: wetslp    = -123 ! critical avalanching slope under water
 real*8     :: dryslp    = -123 ! critical avalanching slope above water
@@ -128,7 +120,6 @@ real*8     :: struct    = -123 ! 0 = no revetment, 1 = multiple sediment classes
 real*8     :: smax      = -123 ! Being tested: maximum Shields parameter for ceq   Diane Foster
 integer*4  :: form      = -123 ! equilibrium sed. conc. formulation: 1 = Soulsby van rijn, 1997, 2 = Van Rijn 2008
 integer*4  :: carspan   = -123 ! 0 = use cg (default); 1 = use sqrt(gh) in instat = 3 for c&g tests
-!integer*4  :: rugauge  = -123  ! 0 = normal obs. point (default) ; 1 = runupgauge obs. point moving with the shoreline.
 integer*4  :: nspr      = -123 ! Expert tool: nspr = 1 bin all wave components for generation of qin (instat 4+) in one direction
                                !              nspr = 0 regular long wave spreading (default)
 real*8     :: thetanum  = -123 ! Coefficient determining whether upwind (1) or central scheme (0.5) is used.
@@ -160,11 +151,19 @@ real*8     :: vonkar   = -123  ! von Karman constant
 real*8     :: vicmol   = -123  ! molecular viscosity
 integer*4  :: maxiter  = -123  ! maximum number of iterations in wave stationary
 real*8     :: maxerror = -123  ! maximum wave height error in wave stationary iteration
-real*8     :: dico     = -123  ! sediment diffusion coefficient
+! multiple sediment fraction settings
+real*8     :: frac_dz  = -123  ! reltive thickness to split time step for bed updating
+integer*4  :: nd_var   = -123  ! index of layer with variable thickness 
+real*8     :: split    = -123  ! split threshold for variable sediment layer
+real*8     :: merge    = -123  ! merge threshold for variable sediment layer
 real*8     :: betad    = -123  ! dissipation parameter long wave breaking turbulence
 integer*4  :: lwt      = -123  ! switch 0/1 long wave turbulence model
 real*8     :: cats     = -123  ! current averaging time scale (current averaging time in terms of mean wave periods)
+integer*4  :: kmax     = -123  ! number of sigma layers in Quasi-3D model; kmax = 1 (default) is without vertical structure of flow and suspensions
+real*8     :: sigfac   = -123  ! dsig scales with log(sigfac). Default = 1.3
 integer*4  :: oldwbc   = -123  ! (1) keep old definition of instat 4,5,6 generation. (2) use better definition
+integer*4  :: ns       = 0  ! number of specified structures
+integer*4  :: sourcesink = -123 ! Use source-sink terms to calculate bed level change (1) or sus transport gradients (0)
 
 
 end type parameters
@@ -353,23 +352,21 @@ end subroutine flow_input
 
 subroutine sed_input(par)
 use readkey_module
+use xmpi_module
 implicit none
 type(parameters)            :: par
+character(80)               :: dummystring
 
 
 !par%dico     = readkey_dbl ('params.txt','dico',    1.d0,        0.d0,    10.d0)
-par%ngd      = readkey_int ('params.txt','ngd',        1,           1,        2)
-par%nd       = readkey_int ('params.txt','nd',        1,           1,        20)
-par%dzg      = readkey_dbl ('params.txt','dzg',    0.1d0,      0.01d0,     1.d0)
-par%D501     = readkey_dbl ('params.txt','D50', 0.0002d0,   0.00005d0,  0.001d0)
-par%D901     = readkey_dbl ('params.txt','D90', 0.0003d0,   0.00005d0,  0.001d0)
-par%D502     = readkey_dbl ('params.txt','D502', 0.0000d0,   0.0000d0,  0.001d0)
-par%D902     = readkey_dbl ('params.txt','D902', 0.0000d0,   0.0000d0,  0.001d0)
-par%D503     = readkey_dbl ('params.txt','D503', 0.0000d0,   0.0000d0,  0.001d0)
-par%D903     = readkey_dbl ('params.txt','D903', 0.0000d0,   0.0000d0,  0.001d0)
-par%sedcal1  = readkey_dbl ('params.txt','sedcal1', 1.0000d0,   0.0000d0, 10.00d0)
-par%sedcal2  = readkey_dbl ('params.txt','sedcal2', 1.0000d0,   0.0000d0, 10.00d0)
-par%sedcal3  = readkey_dbl ('params.txt','sedcal3', 1.0000d0,   0.0000d0, 10.00d0)
+par%kmax     = readkey_int ('params.txt','kmax ',      1,           1,        1000)
+par%ngd      = readkey_int ('params.txt','ngd',        1,           1,        20)
+par%nd       = readkey_int ('params.txt','nd ',        1,           1,        1000)
+par%nd_var   = readkey_int ('params.txt','nd_var', min(par%nd,2),   1,        par%nd)
+par%dzg1     = readkey_dbl ('params.txt','dzg',    0.1d0,      0.01d0,     1.d0)
+par%dzg1     = readkey_dbl ('params.txt','dzg1', par%dzg1,     0.01d0,     1.d0)
+par%dzg2     = readkey_dbl ('params.txt','dzg2', par%dzg1,     0.01d0,     1.d0)
+par%dzg3     = readkey_dbl ('params.txt','dzg3', par%dzg1,     0.01d0,     1.d0)
 par%rhos     = readkey_dbl ('params.txt','rhos',  2650d0,     2400.d0,  2800.d0)
 par%morfac   = readkey_dbl ('params.txt','morfac', 0.0d0,        0.d0,  1000.d0)
 par%morstart = readkey_dbl ('params.txt','morstart',120.d0,      0.d0, 10000.d0)
@@ -393,9 +390,22 @@ par%Tbfac    = readkey_dbl ('params.txt','Tbfac  ',1.0d0,     0.00d0,   1.0d0)
 par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.2d0,     0.01d0,   10.d0) 
 par%impact   = readkey_int ('params.txt','impact ',0,           0,            1)  
 par%CE       = readkey_dbl ('params.txt','CE     ',0.2d0,     0.00d0,   100.d0) 
-par%dico     = readkey_dbl ('params.txt','dico   ',1.0d0,     0.00d0,   10.0d0) 
 par%betad    = readkey_dbl ('params.txt','betad  ',1.0d0,     0.00d0,   10.0d0) 
-par%lwt      = readkey_int ('params.txt','lwt    ',0,           0,            1)  
+par%lwt      = readkey_int ('params.txt','lwt    ',0,           0,            1)
+par%sigfac   = readkey_dbl ('params.txt','sigfac ',1.3d0,     0.00d0,   10.d0) 
+par%sourcesink      = readkey_int ('params.txt','sourcesink    ',0,           0,            1)
+if (par%morfac>1.d0) then
+   if (par%sourcesink==1) then
+       write(*,*)'Warning !!!! Using source-sink terms for bed level change with morfac can lead to loss of sediment mass conservation !!!'
+   endif
+endif
+! Just a check to see if they are there.....
+if (xmaster) then
+ call readkey('params.txt','D50',dummystring)
+ call readkey('params.txt','D90',dummystring)
+ call readkey('params.txt','sedcal',dummystring)
+ call readkey('params.txt','ucrcal',dummystring)
+endif
 end subroutine sed_input
 
 #ifdef USEMPI
@@ -492,16 +502,6 @@ call xmpi_bcast(par%Emean)
 call xmpi_bcast(par%CFL)
 call xmpi_bcast(par%ngd)
 call xmpi_bcast(par%nd)
-call xmpi_bcast(par%dzg)
-call xmpi_bcast(par%D501)
-call xmpi_bcast(par%D901)
-call xmpi_bcast(par%D502)
-call xmpi_bcast(par%D902)
-call xmpi_bcast(par%D503)
-call xmpi_bcast(par%D903)
-call xmpi_bcast(par%sedcal1)
-call xmpi_bcast(par%sedcal2)
-call xmpi_bcast(par%sedcal3)
 call xmpi_bcast(par%por)
 call xmpi_bcast(par%wetslp)
 call xmpi_bcast(par%dryslp)
@@ -529,7 +529,6 @@ call xmpi_bcast(par%lat)
 call xmpi_bcast(par%fc)
 call xmpi_bcast(par%fcutoff)
 call xmpi_bcast(par%sprdthr)
-call xmpi_bcast(par%struct)
 call xmpi_bcast(par%smax)
 call xmpi_bcast(par%form)
 call xmpi_bcast(par%carspan)
@@ -639,17 +638,6 @@ subroutine printparams(par,str)
   write(f,*) 'printpar ',id,' ','Emean:',par%Emean
   write(f,*) 'printpar ',id,' ','CFL:',par%CFL
   write(f,*) 'printpar ',id,' ','ngd:',par%ngd
-  write(f,*) 'printpar ',id,' ','nd:',par%nd
-  write(f,*) 'printpar ',id,' ','dzg:',par%dzg
-  write(f,*) 'printpar ',id,' ','D501:',par%D501
-  write(f,*) 'printpar ',id,' ','D901:',par%D901
-  write(f,*) 'printpar ',id,' ','D502:',par%D502
-  write(f,*) 'printpar ',id,' ','D902:',par%D902
-  write(f,*) 'printpar ',id,' ','D503:',par%D503
-  write(f,*) 'printpar ',id,' ','D903:',par%D903
-  write(f,*) 'printpar ',id,' ','sedcal1:',par%sedcal1
-  write(f,*) 'printpar ',id,' ','sedcal2:',par%sedcal2
-  write(f,*) 'printpar ',id,' ','sedcal3:',par%sedcal3
   write(f,*) 'printpar ',id,' ','por:',par%por
   write(f,*) 'printpar ',id,' ','wetslp:',par%wetslp
   write(f,*) 'printpar ',id,' ','dryslp:',par%dryslp
@@ -677,7 +665,7 @@ subroutine printparams(par,str)
   write(f,*) 'printpar ',id,' ','fc:',par%fc
   write(f,*) 'printpar ',id,' ','fcutoff:',par%fcutoff
   write(f,*) 'printpar ',id,' ','sprdthr:',par%sprdthr
-  write(f,*) 'printpar ',id,' ','struct:',par%struct
+
   write(f,*) 'printpar ',id,' ','smax:',par%smax
   write(f,*) 'printpar ',id,' ','form:',par%form
   write(f,*) 'printpar ',id,' ','carspan:',par%carspan

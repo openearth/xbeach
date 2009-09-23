@@ -672,7 +672,7 @@ subroutine matrix_distr_sendmat_real8(a,b,is,lm,js,ln,&
   if (rank .eq. root) then
 
     ! copy of the the relevant part of A to local submtrix B:
-
+   
     b(:,:) =  a(arowstart:arowend,acolstart:acolend)
 
     ! now, send to each non-root process 

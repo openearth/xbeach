@@ -39,7 +39,6 @@ type(parameters)                        :: par
 integer                                 :: i
 integer                                 :: j
 real*8,dimension(:,:),allocatable,save  :: vsu,usu,vsv,usv,veu,uev
-real*8,dimension(:,:),allocatable,save  :: dzsdx,dzsdy
 real*8,dimension(:,:),allocatable,save  :: ududx,vdvdy,udvdx,vdudy
 real*8,dimension(:,:),allocatable,save  :: viscu,viscv
 real*8,dimension(:,:),allocatable,save  :: us,vs  
@@ -59,8 +58,6 @@ if (.not. allocated(vsu) ) then
    allocate (   usv(s%nx+1,s%ny+1))
    allocate (   veu(s%nx+1,s%ny+1))
    allocate (   uev(s%nx+1,s%ny+1))
-   allocate ( dzsdx(s%nx+1,s%ny+1))
-   allocate ( dzsdy(s%nx+1,s%ny+1))
    allocate ( ududx(s%nx+1,s%ny+1))
    allocate ( vdvdy(s%nx+1,s%ny+1))
    allocate ( udvdx(s%nx+1,s%ny+1))
@@ -81,8 +78,6 @@ if (.not. allocated(vsu) ) then
     uev     =0.d0
     ueu     =0.d0
     vev     =0.d0
-    dzsdx   =0.d0
-    dzsdy   =0.d0
     ududx   =0.d0
     vdvdy   =0.d0
     udvdx   =0.d0
@@ -304,7 +299,7 @@ endif
                     + par%cf/hu(i,j)*ueu(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmageu(i,j)**2) &    
                     - par%lwave*Fx(i,j)/par%rho/hu(i,j) &
                     - par%fc*vu(i,j) &
-						  - par%rhoa*par%Cd*cos(s%winddirnow)*s%windvnow**2)
+					- par%rhoa*par%Cd*cos(s%winddirnow)*s%windvnow**2)
             else
                 uu(i,j)=0.0d0
             end if
@@ -397,7 +392,7 @@ endif
                     + par%cf/hv(i,j)*vev(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmagev(i,j)**2) &   !Ruessink et al 2001
                     - par%lwave*Fy(i,j)/par%rho/hv(i,j) &
                     + par%fc*uv(i,j) &
-						  - par%rhoa*par%Cd*sin(s%winddirnow)*s%windvnow**2)
+					- par%rhoa*par%Cd*sin(s%winddirnow)*s%windvnow**2)
             else
                 vv(i,j)=0.0d0
             end if

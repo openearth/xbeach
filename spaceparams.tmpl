@@ -59,8 +59,6 @@
       real*8  2  n      s%nx+1 s%ny+1 d ! [-]        ratio group velocity/wave celerity
       real*8  2  H      s%nx+1 s%ny+1 d ! [m]        wave height 
       real*8  3  cgx    s%nx+1 s%ny+1 s%ntheta d ! [m/s]      group velocity x-direction
-
-
       real*8  3  cgy    s%nx+1 s%ny+1 s%ntheta d ! [m/s]      group velocity y-direction
       real*8  3  cx     s%nx+1 s%ny+1 s%ntheta d ! [m/s]      wave celerity x-direction
       real*8  3  cy     s%nx+1 s%ny+1 s%ntheta d ! [m/s]      wave celerity y-direction
@@ -86,14 +84,20 @@
       real*8  0  windvnow b             ! [m/s]      uniform wind velocity current time
       real*8  0  winddirnow b           ! [m/s]      uniform wind direction current time
       real*8  2  dzsdt  s%nx+1 s%ny+1 d ! [m/s]      rate of change water level
+      real*8  2  dzsdx  s%nx+1 s%ny+1 d ! [m/s]      water surface gradient in x-direction
+      real*8  2  dzsdy  s%nx+1 s%ny+1 d ! [m/s]      water surface gradient in y-direction
+      real*8  2  dzbdx  s%nx+1 s%ny+1 d ! [-]        bed level gradient in x-direction
+      real*8  2  dzbdy  s%nx+1 s%ny+1 d ! [-]        bed level gradient in y-direction
       real*8  2  dzbdt  s%nx+1 s%ny+1 d ! [m/s]      rate of change bed level 
       real*8  2  uu     s%nx+1 s%ny+1 d ! [m/s]      (GLM) x-velocity in u-points
       real*8  2  vv     s%nx+1 s%ny+1 d ! [m/s]      (GLM) y-velocity in v-points
       real*8  2  qx     s%nx+1 s%ny+1 d ! [m2/s]     x-discharge in u-points
       real*8  2  qy     s%nx+1 s%ny+1 d ! [m2/s]     y-discharge in u-points
       real*8  2  sedero s%nx+1 s%ny+1 d ! [m]        cum. sedimentation/erosion
-      real*8  2  dcdx   s%nx+1 s%ny+1 d ! [kg/m3/m]  concentration gradient x-dir.
-      real*8  2  dcdy   s%nx+1 s%ny+1 d ! [kg/m3/m]  concentration gradient y-dir.
+      real*8  2  dcbdx   s%nx+1 s%ny+1 d ! [kg/m3/m]  bed concentration gradient x-dir.
+      real*8  2  dcbdy   s%nx+1 s%ny+1 d ! [kg/m3/m]  bed concentration gradient y-dir.
+      real*8  2  dcsdx   s%nx+1 s%ny+1 d ! [kg/m3/m]  suspended concentration gradient x-dir.
+      real*8  2  dcsdy   s%nx+1 s%ny+1 d ! [kg/m3/m]  suspended concentration gradient y-dir.
       real*8  2  ui     s%nx+1 s%ny+1 d ! [m/s]      incident bound wave velocity
       real*8  2  E      s%nx+1 s%ny+1 d ! [Nm/m2]    wave energy
       real*8  2  R      s%nx+1 s%ny+1 d ! [Nm/m2]    roller energy
@@ -120,12 +124,7 @@
       real*8  2  hv     s%nx+1 s%ny+1 d ! [m]        water depth in v-points
       real*8  2  hum    s%nx+1 s%ny+1 d ! [m]        water depth in u-points
       real*8  2  hvm    s%nx+1 s%ny+1 d ! [m]        water depth in v-points
-!real*8 2  ceq    s%nx+1 s%ny+1 d ! [m3/m3]    depth-averaged equilibrium concentration
       real*8  2  vmag   s%nx+1 s%ny+1 d ! [m/s]      velocity magnitude in cell centre
-!real*8 2  Su     d ! [m2/s]     sediment transport x-dir. (excluding pores)
-!real*8 2  Sv     d ! [m2/s]     sediment transport y-dir. (excluding pores)
-!real*8 2  Ts     d ! [s]        adaptation time scale
-!real*8 2  cc     d ! [m3/m3]    depth-averaged concentration
       real*8  3  ccg    s%nx+1 s%ny+1 par%ngd d ! [m3/m3]    depth-averaged concentration for each sediment fraction
       real*8  2  uwf    s%nx+1 s%ny+1 d ! [m/s]      x-comp. Stokes drift
       real*8  2  vwf    s%nx+1 s%ny+1 d ! [m/s]      y-comp. Stokes drift
@@ -137,14 +136,17 @@
       integer 0  vardx  b ! [-]        0 = uniform grid size, 1 = variable grid size
       real*8  2  vu     s%nx+1 s%ny+1 d ! [m/s]      y velocity in u points          
       real*8  2  uv     s%nx+1 s%ny+1 d ! [m/s]          x velocity in v points
-      real*8  4  graindistr s%nx+1 s%ny+1 par%nd par%ngd d ! [-]     fractional graindistribution for sediment classes
       real*8  1  D50    par%ngd b ! [m]        D50 grain diameters for all sediment classses
       real*8  1  D90    par%ngd b ! [m]        D90 grain diameters for all sediment classses
       real*8  1  sedcal par%ngd b ! [-]        equilibrium sediment concentartion factor for each sediment class
+      real*8  1  ucrcal par%ngd b ! [-]        calibration factor for u critical for each sediment class
       real*8  3  Tsg    s%nx+1 s%ny+1 par%ngd d ! [s]        sediment response time for each sediment class
-      real*8  3  Sug    s%nx+1 s%ny+1 par%ngd d ! [m2/s]     sediment transport x-dir. for each sediment class (excluding pores)
-      real*8  3  Svg    s%nx+1 s%ny+1 par%ngd d ! [m2/s]     sediment transport y-dir. for each sediment class (excluding pores)
-      real*8  3  ceqg s%nx+1 s%ny+1 par%ngd d ! [m3/m3]    depth-averaged equilibrium concentration for each sediment class
+      real*8  3  Susg    s%nx+1 s%ny+1 par%ngd d ! [m2/s]    suspended sediment transport x-dir. for each sediment class (excluding pores)
+      real*8  3  Svsg    s%nx+1 s%ny+1 par%ngd d ! [m2/s]    suspended sediment transport y-dir. for each sediment class (excluding pores)
+      real*8  3  Subg    s%nx+1 s%ny+1 par%ngd d ! [m2/s]    bed sediment transport x-dir. for each sediment class (excluding pores)
+      real*8  3  Svbg    s%nx+1 s%ny+1 par%ngd d ! [m2/s]    bed sediment transport y-dir. for each sediment class (excluding pores)
+      real*8  3  ceqbg s%nx+1 s%ny+1 par%ngd d ! [m3/m3]    depth-averaged bed equilibrium concentration for each sediment class
+      real*8  3  ceqsg s%nx+1 s%ny+1 par%ngd d ! [m3/m3]    depth-averaged suspended equilibrium concentration for each sediment class
       real*8  2  ua     s%nx+1 s%ny+1 d ! [m/s]      time averaged flow velocity due to wave assymetry
       real*8  2  BR     s%nx+1 s%ny+1 d ! [-]        maximum wave surface slope used in roller dissipation formulation
       real*8  2  kb s%nx+1 s%ny+1 d ! [m^2/s^2]  near bed turbulence intensity due to depth induces breaking
@@ -155,9 +157,7 @@
       real*8  2  maxzs  s%nx+1 s%ny+1 d ! [m]        maximum elevation in simulation  
       real*8  2  minzs  s%nx+1 s%ny+1 d ! [m]        minimum elevation in simulation 
       real*8  2  L1     s%nx+1 s%ny+1 d ! for subroutine dispersion
-      real*8  2  dzlayer s%nx+1 s%ny+1 d ! [m] initial thickness sand layer on top of hard layer
-!      real*8  2  uau s%nx+1 s%ny+1 d ! [m/s] advection velocity due to wave asymmetry (u-dir)
-!      real*8  2  uav s%nx+1 s%ny+1 d ! [m/s] advection velocity due to wave asymmetry (v-dir)
+
       real*8  2  Sk s%nx+1 s%ny+1 d ! [-] skewness of short waves
       real*8  2  As s%nx+1 s%ny+1 d ! [-] asymmetry of short waves
       real*8  2  Fimpact s%nx+1 s%ny+1 d ! [N/m^2]    Force on dune face
@@ -171,6 +171,17 @@
       real*8  2  dinfil   s%nx+1 s%ny+1 d ! [m] Infiltration layer depth used in quasi-vertical flow model for groundwater
       real*8  2  gw0back  2      s%ny+1 2 ! [m] boundary condition back boundary for groundwater head
       real*8  2  kturb    s%nx+1 s%ny+1 d ! [m^2/s^2]  depth averaged turbulence intensity due to long wave breaking
+      real*8  3  ero      s%nx+1 s%ny+1 par%ngd d ! [m/s] bed erosion rate per fraction
+      real*8  3  depo_im     s%nx+1 s%ny+1 par%ngd d ! [m/s] implicit bed deposition rate per fraction
+      real*8  3  depo_ex     s%nx+1 s%ny+1 par%ngd d ! [m/s] explicit bed deposition rate per fraction
+      integer 2  nd       s%nx+1 s%ny+1 d ! [-]  number of bed layers (can be difefrent for each computational cell)
+      real*8  4  pbbed    s%nx+1 s%ny+1 max(par%nd,2) par%ngd d ! 
+      real*8  3  dzbed    s%nx+1 s%ny+1 max(par%nd,2) d ! 
+      real*8  2  z0bed    s%nx+1 s%ny+1 d ! 
+      real*8  2  ureps     s%nx+1 s%ny+1 d [m/s] representative flow velocitie for sediment advection and diffusion in x-direction
+      real*8  2  vreps     s%nx+1 s%ny+1 d  [m/s] representative flow velocitie for sediment advection and diffusion in y-direction
+      real*8  2  urepb     s%nx+1 s%ny+1 d [m/s] representative flow velocitie for sediment advection and diffusion in x-direction
+      real*8  2  vrepb     s%nx+1 s%ny+1 d [m/s] representative flow velocitie for sediment advection and diffusion in y-direction
       real*8  2  umwci     s%nx+1 s%ny+1 d ! [N/m^2]    u-velocity (time-averaged) for wci
       real*8  2  rolthick s%nx+1 s%ny+1 d ! [m]  long wave roller thickness
       real*8  2  vmwci     s%nx+1 s%ny+1 d ! [N/m^2]    v-velocity (time-averaged) for wci

@@ -1270,10 +1270,14 @@ subroutine outarray_r3(s,index,x)
       write(unit,rec=jtg)s%cx*sin(s%alfa)+x*cos(s%alfa)
     case(mnem_thet)
       write(unit,rec=jtg)270-((s%thet+s%alfa)*(180/pi))
-    case(mnem_Sug)
-      write(unit,rec=jtg)x*cos(s%alfa)-s%Svg*sin(s%alfa)
-    case(mnem_Svg)
-      write(unit,rec=jtg)s%Sug*sin(s%alfa)+x*cos(s%alfa)
+    case(mnem_Subg)
+      write(unit,rec=jtg)x*cos(s%alfa)-s%Svbg*sin(s%alfa)
+    case(mnem_Svbg)
+      write(unit,rec=jtg)s%Subg*sin(s%alfa)+x*cos(s%alfa)
+	case(mnem_Susg)
+      write(unit,rec=jtg)x*cos(s%alfa)-s%Svsg*sin(s%alfa)
+    case(mnem_Svsg)
+      write(unit,rec=jtg)s%Susg*sin(s%alfa)+x*cos(s%alfa)
     case default
       write(unit,rec=jtg) x
   end select

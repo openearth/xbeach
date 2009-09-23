@@ -121,10 +121,10 @@ call slope2D(v*par%wci,nx,ny,xz,yz,dvdx,dvdy)
 !   MPI-aware
 !
 ! Calculate once sinh(2kh)
-where(k>0.01d0)
+where(2*hh*k<=3000.d0)
    sinh2kh=sinh(min(2*k*(hh+par%delta*H),10.0d0))
 elsewhere
-   sinh2kh = 1000.d0
+   sinh2kh = 3000.d0
 endwhere
 
 call dispersion(par,s)   

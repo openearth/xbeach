@@ -138,7 +138,7 @@ subroutine wave_timestep(s,par)
     wcifacv=v*par%wci*min(hh/par%hwci,1.d0)
 
 ! Dispersion relation
-    if (par%wci>0.d0) then
+    if (par%wci .ne. 0) then
        if (par%t==par%dt) then
           sigm = max((sum(sigt,3)/ntheta),0.01d0)
           call dispersion(par,s)
@@ -224,14 +224,14 @@ subroutine wave_timestep(s,par)
 
 ! Slopes of water depth
     call slope2D(hh+par%delta*H,nx,ny,xz,yz,dhdx,dhdy)
-    call slope2D(u*par%wci*min(hh/par%hwci,1.d0),nx,ny,xz,yz,dudx,dudy)
-    call slope2D(v*par%wci*min(hh/par%hwci,1.d0),nx,ny,xz,yz,dvdx,dvdy)
+    call slope2D(wcifacu,nx,ny,xz,yz,dudx,dudy)
+    call slope2D(wcifacv,nx,ny,xz,yz,dvdx,dvdy)
 !
 ! Calculate once sinh(2kh)
-    where(k>0.01d0)
+    where(2*hh*k<=3000.d0)
        sinh2kh=sinh(min(2*k*(hh+par%delta*H),10.0d0))
     elsewhere
-       sinh2kh = 1000.d0
+       sinh2kh = 3000.d0
     endwhere
 
     do itheta=1,ntheta
@@ -252,9 +252,7 @@ subroutine wave_timestep(s,par)
 !
 ! Upwind Euler timestep propagation
 !
-!call advecx(ee*cgx,xadvec,nx,ny,ntheta,xz)
     call advecxho(ee,cgx,xadvec,nx,ny,ntheta,xz,par%dt,par%scheme)
-!call advecy(ee*cgy,yadvec,nx,ny,ntheta,yz)
     call advecyho(ee,cgy,yadvec,nx,ny,ntheta,yz,par%dt,par%scheme)
     call advectheta(ee*ctheta,thetaadvec,nx,ny,ntheta,dtheta)
 !
@@ -1087,61 +1085,12 @@ s%c  = s%sigm/s%k
 !kh   = s%k*h
 ! Ad:
 kh   = min(s%k*h,10.0d0)
-s%cg = s%c*(0.5d0+kh/sinh(2*kh))
+s%n=0.5d0+kh/sinh(2*kh)
+s%cg=s%c*s%n
+!s%cg = s%c*(0.5d0+kh/sinh(2*kh))
 
 end subroutine dispersion
 
-subroutine dispersionold(par,s) ! obsolete, do not use wwvv
-use params
-use spaceparams
-
-! Robert: iteration along L=L0tanh(2pih/L)
-
-IMPLICIT NONE
-
-type(spacepars)                     :: s
-type(parameters)                    :: par
-
-
-real*8, dimension(s%nx+1,s%ny+1)    :: h,t,L0,n,kh
-real*8                              :: err,L2
-real*8,dimension(:,:),allocatable,save :: L1
-integer                             :: i,j
-real*8,save                         :: phi,aphi,bphi
-
-! cjaap: replaced par%hmin by par%eps
-h=max(s%hh+par%delta*s%H,par%eps)
-t=2*par%px/s%sigm
-
-L0=par%g*t**2/(2*par%px)
-if (par%t==0) then
-  if (.not. allocated(L1)) then
-        allocate(L1(s%nx+1,s%ny+1))
-        L1=L0
-        phi=(1.0d0+sqrt(5.0d0))/2
-        aphi=1/(phi+1)
-        bphi=phi/(phi+1)
-  end if
-endif
-
-do j=1,s%ny+1
-        do i=1,s%nx+1
-        err=huge(0.0)
-                do while (err > 0.00001d0)
-                L2=L0(i,j)*tanh(2*par%px*h(i,j)/L1(i,j))
-                err=abs(L2-L1(i,j))
-                L1(i,j)=(L1(i,j)*aphi+L2*bphi)          ! Golden ratio
-                end do
-        end do
-end do
-s%k=2*par%px/L1
-s%c=s%sigm/s%k
-! Ad:
-kh   = min(s%k*h,10.0d0)
-n=0.5d0+kh/sinh(2*kh)
-s%cg=s%c*n
-
-end subroutine dispersionold
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine breakerdelay(par,s)

@@ -258,9 +258,9 @@ subroutine grid_bathy(s,par)
     !
     ! Specify theta-grid
     !
-  !
-  ! from Nautical wave directions in degrees to Cartesian wave directions in radian !!!
-  !
+    !
+    ! from Nautical wave directions in degrees to Cartesian wave directions in radian !!!
+    !
     s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0 ! Updated in waveparams.f90 for instat 4,5,6,7
     if (s%theta0<-par%px) s%theta0=s%theta0+2.d0*par%px
     if (s%theta0> par%px) s%theta0=s%theta0-2.d0*par%px

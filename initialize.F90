@@ -3,6 +3,7 @@ contains
 subroutine wave_init (s,par)
 use params
 use spaceparams
+use readkey_module
 use xmpi_module
 use interp
 use wave_timestep_module
@@ -63,6 +64,7 @@ real*8,dimension(:),allocatable     :: yzs0,szs0
   allocate(s%umwci       (1:s%nx+1,1:s%ny+1))
   allocate(s%vmwci       (1:s%nx+1,1:s%ny+1))
   allocate(s%zswci       (1:s%nx+1,1:s%ny+1))
+  allocate(s%BR(1:s%nx+1,1:s%ny+1))
 
   s%umean=0.
 
@@ -268,6 +270,8 @@ type(parameters)                    :: par
 
   allocate(s%zs(1:s%nx+1,1:s%ny+1))
   allocate(s%dzsdt(1:s%nx+1,1:s%ny+1))
+  allocate(s%dzsdx(1:s%nx+1,1:s%ny+1))
+  allocate(s%dzsdy(1:s%nx+1,1:s%ny+1))
   allocate(s%dzbdt(1:s%nx+1,1:s%ny+1))
   allocate(s%uu(1:s%nx+1,1:s%ny+1))
   allocate(s%vv(1:s%nx+1,1:s%ny+1))
@@ -307,11 +311,15 @@ type(parameters)                    :: par
   s%zs=0.d0
   s%zs=max(s%zb,s%zs0)
   s%dzsdt=0.d0
+  s%dzsdx=0.d0
+  s%dzsdy=0.d0
   s%dzbdt=0.d0
   s%uu=0.d0
   s%u=0.d0
   s%vv=0.d0
+  s%v=0.d0
   s%vu=0.d0
+  s%uv=0.d0
   s%qx=0.d0
   s%qy=0.d0
   s%sedero=0.d0
@@ -342,84 +350,159 @@ IMPLICIT NONE
 type(spacepars)                     :: s
 type(parameters)                    :: par
 
-integer                             :: i,j,m
-character*80                        :: fnameg
+integer                             :: i,j,m,jg,start,rgd
+character*80                        :: fnameg,line
+character*4                         :: tempc
+real*8                              :: tempr
+
+
+
+   rgd = par%ngd
+
+
 
    allocate(s%ccg(1:s%nx+1,1:s%ny+1,par%ngd))
-   allocate(s%dcdy(1:s%nx+1,1:s%ny+1))
-   allocate(s%dcdx(1:s%nx+1,1:s%ny+1))
-   allocate(s%Tsg(1:s%nx+1,1:s%ny+1,par%ngd)) 
-   allocate(s%Sug(1:s%nx+1,1:s%ny+1,par%ngd)) 
-   allocate(s%Svg(1:s%nx+1,1:s%ny+1,par%ngd)) 
-   allocate(s%vmag(1:s%nx+1,1:s%ny+1)) 
-   allocate(s%ceqg(1:s%nx+1,1:s%ny+1,par%ngd))
-   allocate(s%graindistr(1:s%nx+1,1:s%ny+1,1:par%nd,1:par%ngd))
-   allocate(s%D50(1:par%ngd))  
-   allocate(s%D90(1:par%ngd))
-   allocate(s%sedcal(1:par%ngd))
-   allocate(s%dzlayer(1:s%nx+1,1:s%ny+1))
-   allocate(s%BR(1:s%nx+1,1:s%ny+1))
-   allocate(s%kb(1:s%nx+1,1:s%ny+1))
-   allocate(s%Tbore(1:s%nx+1,1:s%ny+1))
-   allocate(s%uon(1:s%nx+1,1:s%ny+1))
-   allocate(s%uoff(1:s%nx+1,1:s%ny+1))
-   allocate(s%ua(1:s%nx+1,1:s%ny+1))  
-   allocate(s%dzav(1:s%nx+1,1:s%ny+1))  
-   allocate(s%Sk(1:s%nx+1,1:s%ny+1))
-   allocate(s%As(1:s%nx+1,1:s%ny+1))
-   allocate(s%Fimpact(1:s%nx+1,1:s%ny+1))
-   allocate(s%kturb(1:s%nx+1,1:s%ny+1))
-   allocate(s%rolthick(1:s%nx+1,1:s%ny+1))
-!
-! Specify hard layer
-!
-s%dzlayer = 100.d0
-if (par%struct==1) then
-   call readkey('params.txt','ne_layer',fnameg)
-   open(34,file=fnameg)
-   do j = 1,s%ny+1
-      read(34,*)(s%dzlayer(i,j),i=1,s%nx+1)
+	allocate(s%dcbdy(1:s%nx+1,1:s%ny+1))
+	allocate(s%dcbdx(1:s%nx+1,1:s%ny+1))
+	allocate(s%dcsdy(1:s%nx+1,1:s%ny+1))
+	allocate(s%dcsdx(1:s%nx+1,1:s%ny+1))
+	allocate(s%Tsg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+	allocate(s%Susg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+	allocate(s%Svsg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+	allocate(s%Subg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+	allocate(s%Svbg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+	allocate(s%vmag(1:s%nx+1,1:s%ny+1)) 
+	allocate(s%ceqsg(1:s%nx+1,1:s%ny+1,par%ngd))
+	allocate(s%ceqbg(1:s%nx+1,1:s%ny+1,par%ngd))
+	allocate(s%ero(1:s%nx+1,1:s%ny+1,1:par%ngd))
+	allocate(s%depo_ex(1:s%nx+1,1:s%ny+1,1:par%ngd))
+	allocate(s%depo_im(1:s%nx+1,1:s%ny+1,1:par%ngd))
+	allocate(s%D50(1:par%ngd))
+	allocate(s%D90(1:par%ngd))
+	allocate(s%sedcal(1:par%ngd))
+	allocate(s%ucrcal(1:par%ngd))
+	allocate(s%nd(1:s%nx+1,1:s%ny+1))
+	allocate(s%dzbed(1:s%nx+1,1:s%ny+1,1:max(par%nd,2))) 
+	allocate(s%pbbed(1:s%nx+1,1:s%ny+1,1:max(par%nd,2),1:par%ngd)) 
+	allocate(s%z0bed(1:s%nx+1,1:s%ny+1))
+	allocate(s%ureps(1:s%nx+1,1:s%ny+1))
+	allocate(s%urepb(1:s%nx+1,1:s%ny+1))
+	allocate(s%vreps(1:s%nx+1,1:s%ny+1))
+	allocate(s%vrepb(1:s%nx+1,1:s%ny+1))
+	allocate(s%dzbdx(1:s%nx+1,1:s%ny+1))
+	allocate(s%dzbdy(1:s%nx+1,1:s%ny+1))
+    allocate(s%kb(1:s%nx+1,1:s%ny+1))
+    allocate(s%Tbore(1:s%nx+1,1:s%ny+1))
+    allocate(s%ua(1:s%nx+1,1:s%ny+1))  
+    allocate(s%dzav(1:s%nx+1,1:s%ny+1))  
+    allocate(s%Sk(1:s%nx+1,1:s%ny+1))
+    allocate(s%As(1:s%nx+1,1:s%ny+1))
+    allocate(s%kturb(1:s%nx+1,1:s%ny+1))
+    allocate(s%rolthick(1:s%nx+1,1:s%ny+1))
+
+
+  
+
+ !
+ ! Set grain size(s)
+ !
+ call readkey('params.txt','D50',line)
+ if (line=='') then
+    s%D50=0.0002d0   ! Default
+ else
+    read(line,*) s%D50(1:rgd)
+ endif
+ if (par%form<4 .and. maxval(s%D50)>0.002) write(*,*) 'D50 > 2mm, out of validity range'
+ call readkey('params.txt','D90',line)
+ if (line=='') then
+    s%D90=0.0003d0   ! Default
+ else
+    read(line,*) s%D90(1:rgd)
+ endif
+ call readkey('params.txt','sedcal',line)
+ if (line=='') then
+    s%sedcal=1.d0    ! Default
+ else
+    read(line,*) s%sedcal(1:rgd)
+ endif
+ call readkey('params.txt','ucrcal',line)
+ if (line=='') then
+    s%ucrcal=1.d0    ! Default
+ else
+    read(line,*) s%ucrcal(1:rgd)
+ endif
+
+if (rgd==1) then
+! No multi sediment, but we do need some data to keep the script running
+   s%pbbed=1.d0
+	if (par%nd==1) then
+	   par%nd_var=1
+		s%dzbed = 99999.d0
+	else
+	   par%nd_var=1
+		s%dzbed = par%dzg1
+	endif
+else
+   !
+   ! Fill s%pbed en s%dzbed
+   ! 
+   do jg=1,rgd
+	  write(tempc,'(i4)')jg
+      start=4-floor(log10(real(jg)))
+	  write(fnameg,'(a,a,a)')'gdist',tempc(start:4),'.inp'
+      open(31,file=fnameg)
+	  do m=1,par%nd
+        do j=1,s%ny+1
+	        read(31,*)(s%pbbed(i,j,m,jg),i=1,s%nx+1)
+		  enddo
+	  enddo
+	  close(31)
    enddo
-   close(34)
+   ! Rework pbbed so that sum fractions = 1
+   do m=1,par%nd
+	   do j=2,s%ny
+		   do i=2,s%nx
+		       
+			   tempr=sum(s%pbbed(i,j,m,:))
+			   if (abs(1.d0-tempr)>0.d0) then
+				   write(*,*)' Warning: Resetting sum of sediment fractions in point (',&
+					                     i,',',j,') layer ,',m,&
+												' to equal unity.'
+				   s%pbbed(i,j,m,:)=s%pbbed(i,j,m,:)/tempr
+				endif
+			enddo
+		enddo
+	enddo
+	! boundary neumann
+	s%pbbed(1,:,:,:)=s%pbbed(2,:,:,:)
+	s%pbbed(s%nx+1,:,:,:)=s%pbbed(s%nx,:,:,:)
+	s%pbbed(:,1,:,:)=s%pbbed(:,2,:,:)
+	s%pbbed(:,s%ny+1,:,:)=s%pbbed(:,s%ny,:,:)
+	! sediment thickness				   
+	s%dzbed(:,:,1:par%nd_var-1)       = par%dzg1
+	s%dzbed(:,:,par%nd_var)           = par%dzg2
+	s%dzbed(:,:,par%nd_var+1:par%nd)  = par%dzg3
 endif
-!
-! Specify Grain Distribution
-!
-  if (par%ngd>1) then
-     call readkey('params.txt','gdist',fnameg)
-     open(34,file=fnameg)
-     do j = 2,s%ny
-        do m = 1,par%nd
-               read(34,*)(s%graindistr(i,j,m,1),i=1,s%nx+1)
-            enddo
-     enddo
-     close(34)
-     s%graindistr(:,1,:,:)      = s%graindistr(:,2,:,:)
-     s%graindistr(:,s%ny+1,:,:) = s%graindistr(:,s%ny,:,:)
-     s%graindistr(:,:,:,2) = abs(1.d0-s%graindistr(:,:,:,1))
-     s%graindistr(:,:,:,3) = 0.0d0
-  else
-     s%graindistr = 1.0 
-  endif
 
-s%D50(1)     = par%D501
-s%D90(1)     = par%D901
-s%sedcal(1)  = par%sedcal1 
+! bottom of sediment model
+s%z0bed = s%zb - sum(s%dzbed,DIM=3)
 
-if (par%ngd>1) then
-   s%D50(2)     = par%D502
-   s%D90(2)     = par%D902
-   s%sedcal(2)  = par%sedcal2 
-   s%D50(3)     = par%D503
-   s%D90(3)     = par%D903
-   s%sedcal(3)  = par%sedcal3 
-endif
+s%nd = max(par%nd,2)
 
 s%ccg        = 0.d0
-s%Sug        = 0.d0
-s%Svg        = 0.d0
-s%dcdx       = 0.d0
-s%dcdy       = 0.d0
+s%ceqbg      = 0.d0
+s%ceqsg      = 0.d0
+s%Susg       = 0.d0
+s%Svsg       = 0.d0
+s%Subg       = 0.d0
+s%Svbg       = 0.d0
+s%dcsdx      = 0.d0
+s%dcsdy      = 0.d0
+s%dcbdx      = 0.d0
+s%dcbdy      = 0.d0
+s%ero        = 0.d0
+s%depo_im    = 0.d0
+s%depo_ex    = 0.d0
 s%kturb      = 0.d0
 s%rolthick   = 0.d0
 

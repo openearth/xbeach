@@ -1,4 +1,8 @@
-subroutine vsmu(s,par,sig,fv,fd,ks,fwfac,um,vm)
+module vsmumod
+
+contains 
+
+subroutine vsmu(s,par,sig,fv,fd,ks,um,vm)
 
 use params
 use spaceparams
@@ -10,8 +14,8 @@ type(spacepars),target                   :: s
 type(parameters)                         :: par
 
 integer  :: i,j,ii,itmax,kmx
-real*8   :: fv,fd,fwfac,ks
-real*8   :: fac,omega,dhdx,dhdy,uxmean,uymean,err,htemp,tbnw,nut1,nutda,sigmas,phis,phnub1,phinub
+real*8   :: fv,fd
+real*8   :: omega,dhdx,dhdy,uxmean,uymean,err,tbnw,nut1,nutda,sigmas,phis,phnub1,phinub
 real*8   :: sigs1,sigmat,sigma,vud,vvd
 real*8   :: facA,facA1,facG,facG1,facH,facH1,facCx,facCy,facBx,facBy,facC1x,facC1y,facB1x,facB1y
 real*8   :: fAS1,fBCS1x,fBCS1y,vut,vvt,facln1,facln2
@@ -42,7 +46,7 @@ if (par%Trep > 0.d0) then
    omega  = 2.d0*par%px/(par%Trep+par%eps)
    arms   = urms/omega
    delta  = 0.09d0*(arms/ks)**0.82d0*ks/hh                      ! Eq 15
-   fw     = min(1.39d0*(max(arms/z0,par%eps))**(-.52d0),0.3d0)  ! Eq 19
+   fw     = min(1.39d0*(max(arms/z0,par%eps))**(-.52d0),0.3d0)  ! Eq 19 (Soulsby, 1997)
    nutb   = fw*fw*urms*urms/omega/4.d0                          ! Eq 21 (Viscosity at bottom)
 else
    nutb   = 0.d0
@@ -53,7 +57,7 @@ delta  = fd*max(delta,exp(1.d0)*z0/hh)                          ! Eq 15
 delta  = min(delta,0.5d0)
 phiw   = 6.d0/delta/delta                                       ! Eq A6
 
-Df     = fwfac*0.283d0*par%rho*fw*urms**3                       ! Eq 18
+Df     = 0.283d0*par%rho*fw*urms**3                             ! Eq 18
 Dfx    = Df*cos(thetamean)
 Dfy    = Df*sin(thetamean)
 
@@ -82,7 +86,7 @@ nut3 = fv*H*(DR/par%rho)**(1.d0/3.d0)         ! Jaap: should we make this conssi
 
 nusur  = 1.5*sqrt(nut2*nut2+nut3*nut3)        ! Eq 12 Jaap: nut1 is computed below...
 nusur  = max(nusur,par%vicmol)
-sigma0 = z0/hh
+sigma0 = min(1.d0/2.71828d0,z0/hh)
 phnub2 = phiw*nutb                            ! part Eq A6
 rgh    = par%rho*par%g*hh
 logdelta     = log(1.d0/delta)
@@ -148,9 +152,10 @@ do j=1,ny+1
 
     ! Construct velocity profile for bottom layer (both sigma < sigmat and
     ! sigma > sigmat) and middle layer
-    do ii=1,kmax
+    do ii=1,par%kmax
 	 !JH 16-04-08 correction for velocity profile
-     sigma= (1.0 + sig(i,j,ii))  !Jaap: why + sigma0? +sigma0(i,j)
+     !sigma= (1.0 + sig(i,j,ii))  !RJ: sigma = sig
+	 sigma = sig(i,j,ii)
 	 
      if (sigma < sigmat) then
         veloc(i,j,ii,1) = (sigma/sigmat)*vut*wetu(i,j)
@@ -170,26 +175,17 @@ do j=1,ny+1
         veloc(i,j,ii,3) = phis*nutda*sigma*(sigmas-sigma)
      endif
    enddo
-
-   ! define bottom layer (consistent with dwnvel.f90)
-   !do ii = kmax, 1, -1
-   !   htemp  = (1.0 + sig(i,j,ii))*hh(i,j)
-   !   kmx = ii
-   !   if (htemp>delta(i,j) .and. htemp<=delta(i-1,j)) then ! Jaap: waarom 0.05*hh?
-   !      exit
-   !   endif         
-   !enddo
+   
    kmx = 1
 
-   ! uavg is depth averaged velocity
-   ! uavg = sqrt(meanux*meanux+meanuy*meanuy)
    ubedm  = veloc(:,:,kmx,1)
-   vbedm  = veloc(:,:,kmx,2)
-   ! umod   = (ubedm*ubedm+vbedm*vbedm)**0.5d0
-   ! zumod  = hh*(1.d0+sig(i,j,kmx))
+   vbedm  = veloc(:,:,kmx,2)   
+
   enddo
 enddo
 
 
-end
+end subroutine
+
+end module
    

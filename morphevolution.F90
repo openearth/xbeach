@@ -30,18 +30,27 @@ subroutine transus(s,par)
 use params
 use spaceparams
 use xmpi_module
+use interp
+! use vsmumod
 
 IMPLICIT NONE
 
 type(spacepars),target                   :: s
 type(parameters)                         :: par
 
-integer                                  :: i
+integer                                  :: i,isig
 integer                                  :: j,jg
+integer                                  :: dum
 
-real*8,dimension(:,:),allocatable,save   :: vmag2,uau,uav
-real*8 , dimension(s%nx+1,s%ny+1)        :: dzbx,dzby,dzremain,source
-real*8,dimension(:,:),allocatable,save   :: cc,cu,cv,Su,Sv,Dc,fract
+real*8                                   :: fv,fd,fwfac,fac,nummaxsig
+real*8                                   :: dster
+real*8,dimension(:),allocatable,save     :: chain,cumchain
+real*8,dimension(:,:),allocatable,save   :: vmag2,uau,uav,um,vm
+real*8,dimension(:,:),allocatable,save   :: ccvt,dcdz,dsigt,aref
+real*8,dimension(:,:),allocatable,save   :: cc,cu,cv,Sus,Svs,Dc
+real*8,dimension(:,:),allocatable,save   :: ccb,cub,cvb,Sub,Svb,pbbedu,pbbedv
+real*8,dimension(:,:),allocatable,save   :: suq3d,svq3d,eswmax,eswbed,sigs,deltas
+real*8,dimension(:,:,:),allocatable,save :: dsig,ccv,sdif,cuq3d,cvq3d
 
 include 's.ind'
 include 's.inp'
@@ -50,20 +59,65 @@ if (.not. allocated(vmag2)) then
    allocate(vmag2 (nx+1,ny+1))
    allocate(uau (nx+1,ny+1))
    allocate(uav (nx+1,ny+1))
-   allocate(cu (nx+1,ny+1))
-   allocate(cv (nx+1,ny+1))
-   allocate(cc (nx+1,ny+1))
-   allocate(Su (nx+1,ny+1))
-   allocate(Sv (nx+1,ny+1))
-   allocate(Dc (nx+1,ny+1))
-   allocate(fract (nx+1,ny+1))
+   allocate(cu  (nx+1,ny+1))
+   allocate(cv  (nx+1,ny+1))
+   allocate(cc  (nx+1,ny+1))
+   allocate(Sus (nx+1,ny+1))
+   allocate(Svs (nx+1,ny+1))
+   allocate(cub (nx+1,ny+1))
+   allocate(cvb (nx+1,ny+1))
+   allocate(ccb (nx+1,ny+1))
+   allocate(Sub (nx+1,ny+1))
+   allocate(Svb (nx+1,ny+1))
+   allocate(Dc  (nx+1,ny+1))
+   allocate(pbbedu (nx+1,ny+1))
+   allocate(pbbedv (nx+1,ny+1))
+   allocate(ccvt (nx+1,ny+1))
+   allocate(dcdz (nx+1,ny+1))
+   allocate(dsigt (nx+1,ny+1))
+   allocate(dsig(s%nx+1,s%ny+1,par%kmax))
+   allocate(ccv(s%nx+1,s%ny+1,par%kmax))
+   allocate(sdif(s%nx+1,s%ny+1,par%kmax))
+   allocate(um (nx+1,ny+1))
+   allocate(vm (nx+1,ny+1))
+   allocate(deltas(nx+1,ny+1))
+   allocate(sigs(nx+1,ny+1))
+   allocate(eswmax(nx+1,ny+1))
+   allocate(eswbed(nx+1,ny+1))
+   allocate(suq3d(nx+1,ny+1))
+   allocate(svq3d(nx+1,ny+1))
+   allocate(cuq3d(nx+1,ny+1,par%kmax))
+   allocate(cvq3d(nx+1,ny+1,par%kmax))
+   allocate(aref(nx+1,ny+1))
+   allocate(chain(par%kmax))
+   allocate(cumchain(par%kmax))
+  
+   um        = 0.d0
+   vm        = 0.d0
+   chain     = 0.0d0
+   cumchain  = 0.0d0
+   ! generate sigma grid shape...
+   do isig=2,par%kmax
+	  chain(isig) = par%sigfac**(isig-1)
+	  cumchain(isig) = cumchain(isig-1)+chain(isig)
+   enddo
 endif
 ! use eulerian velocities
-vmag2    = ue**2+ve**2
-cu       = 0.0d0  !Jaap
-cv       = 0.0d0  !Jaap		
-dcdx     = 0.0d0
-dcdy     = 0.0d0
+vmag2     = ue**2+ve**2
+cu        = 0.0d0
+cv        = 0.0d0
+cub       = 0.0d0
+cvb       = 0.0d0 	
+dcsdx     = 0.0d0
+dcsdy     = 0.0d0
+dcbdx     = 0.0d0
+dcbdy     = 0.0d0
+
+! compute long wave turbulence due to breaking
+if (par%lwt==1) then
+   call longwaveturb(s,par)
+endif
+
 ! calculate equilibrium concentration
 if (par%form==1) then           ! Soulsby van Rijn
    call sb_vr(s,par)
@@ -80,14 +134,15 @@ endif
 
 if (par%nuhfac==1) then
    Dc = par%nuh+par%nuhfac*hh*(DR/par%rho)**(1.d0/3.d0)
-else
-   Dc = par%dico
 end if
+
+dzbdt=0.0d0
 
 do jg = 1,par%ngd
    cc = ccg(:,:,jg)
    if (D50(jg)>0.002d0) then
-      cc = ceqg(:,:,jg) ! Can be used to test total transport mode
+      ! RJ: set ceqsg to zero for gravel.
+      cc = 0.d0 ! Can be used to test total transport mode
    endif 
    !
    ! X-direction
@@ -96,81 +151,97 @@ do jg = 1,par%ngd
          if(ueu(i,j)>0.d0) then
             ! test cu(i,j)=cc(i,j)
             cu(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(min(i+1,nx),j)
+			cub(i,j)=par%thetanum*ceqbg(i,j,jg)+(1.d0-par%thetanum)*ceqbg(min(i+1,nx),j,jg)
          elseif(ueu(i,j)<0.d0) then
             cu(i,j)=par%thetanum*cc(i+1,j)+(1.d0-par%thetanum)*cc(max(i,2),j)
+			cub(i,j)=par%thetanum*ceqbg(i+1,j,jg)+(1.d0-par%thetanum)*ceqbg(max(i,2),j,jg)
          else
             cu(i,j)=0.5d0*(cc(i,j)+cc(i+1,j))
+			cub(i,j)=0.5d0*(ceqbg(i,j,jg)+ceqbg(i+1,j,jg))
          endif
-         dcdx(i,j)=(cc(i+1,j)-cc(i,j))/(xz(i+1)-xz(i)) !Jaap
+         dcsdx(i,j)=(cc(i+1,j)-cc(i,j))/(xz(i+1)-xz(i))
+		 dcbdx(i,j)=(ceqbg(i+1,j,jg)-ceqbg(i,j,jg))/(xz(i+1)-xz(i))
       enddo 
    enddo
    ! wwvv dcdx(nx:1,:) is still untouched, correct this ofr the parallel case
 #ifdef USEMPI
-   call xmpi_shift(dcdx,'m:')
+   call xmpi_shift(dcsdx,'m:')
+   call xmpi_shift(dcbdx,'m:')
 #endif
    cu(nx+1,:) = cc(nx+1,:) !Robert
    ! wwvv fix this in parallel case
 #ifdef USEMPI
    call xmpi_shift(cu,'m:')
 #endif
-   !
-   ! Bed slope terms
-   !
-   dzbx=0.d0
-   do j=1,ny+1
-       do i=1,nx
-           dzbx(i,j)=(zb(i+1,j)-zb(i,j))/(xz(i+1)-xz(i))
-       enddo
-   enddo
    ! wwvv in parallel version, there will be a discrepancy between the values
-   ! of dzbx(nx+1,:).
+   ! of dzbdx(nx+1,:).
    !wwvv so fix that
 #ifdef USEMPI
-   call xmpi_shift(dzbx,'m:')
+   call xmpi_shift(dzbdx,'m:')
 #endif
-   ! Jaap: get ua in u points and split out in u and v direction
+   ! Get ua in u points and split out in u and v direction
    uau(1:nx,:) = 0.5*(ua(1:nx,:)*cos(thetamean(1:nx,:))+ua(2:nx+1,:)*cos(thetamean(1:nx,:)))
    uav(1:nx,:) = 0.5*(ua(1:nx,:)*sin(thetamean(1:nx,:))+ua(2:nx+1,:)*sin(thetamean(1:nx,:)))
-   ! Jaap: compute vmagu including ua
+   ! Compute vmagu including ua
    vmagu = sqrt((uu+uau)**2+(vu+uav)**2)
    !
-   Su=(cu*(ueu+uau)*hu-Dc*hu*dcdx-par%facsl*cu*vmagu*hu*dzbx)*wetu   !
+   ! Compute sedimnent transport in u-direction
    !
-   ! Y-direction
+   ureps = ueu
+   urepb = ueu   ! RJ maybe reduce this velocity?
+   !
+   Sus = 0.d0
+   Sub = 0.d0
+   ! suspended load
+   Sus=(cu*(ureps+par%facua*uau)*hu-Dc*hu*dcsdx)*wetu   !No bed slope term in suspended transport?
+   ! bed load
+   Sub=(cub*(urepb+uau)*hu-par%facsl*cub*vmagu*hu*dzbdx)*wetu 
+   ! 
+   do j=1,ny+1
+      do i=1,nx
+         if(Sub(i,j)>0.d0) then
+			pbbedu(i,j) = pbbed(i,j,1,jg)
+         elseif(Sub(i,j)<0.d0) then
+			pbbedu(i,j)= pbbed(i+1,j,1,jg)
+         else
+			pbbedu(i,j)=0.5d0*(pbbed(i,j,1,jg)+pbbed(i+1,j,1,jg))
+         endif
+      enddo 
+   enddo
+   !
+   Sub = pbbedu*Sub
+   !
+   ! Y-direction (2DH & Q3D)
    !
    do j=1,ny
       do i=1,nx+1
          if(vev(i,j)>0) then
             ! cv(i,j)=cc(i,j)
             cv(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(i,min(j+1,ny))
+			cvb(i,j)=par%thetanum*ceqbg(i,j,jg)+(1.d0-par%thetanum)*ceqbg(i,min(j+1,ny),jg)
          else if(vev(i,j)<0) then
             ! cv(i,j)=cc(i,j+1)
             cv(i,j)=par%thetanum*cc(i,j+1)+(1.d0-par%thetanum)*cc(i,max(j,2))
+			cvb(i,j)=par%thetanum*ceqbg(i,j+1,jg)+(1.d0-par%thetanum)*ceqbg(i,max(j,2),jg)
          else
-            cv(i,j)=0.5d0*(cv(i,j)+cv(i,j+1))
+            cv(i,j)=0.5d0*(cc(i,j)+cc(i,j+1)) !Jaap: cc instead of cv
+			cvb(i,j)=0.5d0*(ceqbg(i,j,jg)+ceqbg(i,j+1,jg))
          end if
-         dcdy(i,j)=(cc(i,j+1)-cc(i,j))/(yz(j+1)-yz(j)) !Jaap
+         dcsdy(i,j)=(cc(i,j+1)-cc(i,j))/(yz(j+1)-yz(j)) !Jaap
+		 dcbdy(i,j)=(ceqbg(i,j+1,jg)-ceqbg(i,j,jg))/(yz(j+1)-yz(j)) !Jaap
       end do 
     end do
     ! wwvv dcdy(:,ny+1) is not filled in, so in parallel case:
 #ifdef USEMPI
-    call xmpi_shift(dcdy,':n')
+    call xmpi_shift(dcsdy,':n')
+	call xmpi_shift(dcbdy,':n')
 #endif
     cv(:,ny+1) = cc(:,ny+1) !Robert
-    !
-    ! Bed slope terms
-    !
-    dzby=0.d0
-    do j=1,ny
-        do i=1,nx+1
-            dzby(i,j)=(zb(i,j+1)-zb(i,j))/(yz(j+1)-yz(j))
-        enddo
-    enddo
    ! wwvv in parallel version, there will be a discrepancy between the values
-   ! of dzby(:,ny+1).
-    ! wwvv so fix that
+   ! of dzbdy(:,ny+1).
+   ! wwvv so fix that
 #ifdef USEMPI
-    call xmpi_shift(dzby,':n')
+    call xmpi_shift(dzbdy,':n')
 #endif
 	! Jaap: get ua in v points and split out in u and v direction
     uau(:,1:ny) = 0.5*(ua(:,1:ny)*cos(thetamean(:,1:ny))+ua(:,2:ny+1)*cos(thetamean(:,1:ny)))
@@ -178,39 +249,64 @@ do jg = 1,par%ngd
     ! Jaap: compute vmagv including ua
     vmagv = sqrt((uv+uau)**2+(vv+uav)**2)
     !
-    Sv=(cv*(vev+uav)*hv-Dc*hv*dcdy-par%facsl*cv*vmagv*hv*dzby)*wetv
-    ! Jaap: compute remaining sediment thickness above hard layer
-	dzremain = max(0.d0,dzlayer+sedero)
-	source = (1-par%por)*dzremain/par%dt/max(par%morfac,1.d0)
-	! Robert+Jaap
-	! compute available sand for entrainment at bed per fraction
-	source = min(source,(1-par%por)*par%dzg*graindistr(:,:,1,jg)/par%dt/max(par%morfac,1.d0)) 
-	! compute relative suspended fraction to compute entrainment / settling
-	fract = max(ccg(:,:,jg),1e-6)/max(sum(ccg,3),1e-6) 
-    ! Jaap: we know already how much sand is picked up from the bed
-    dzbdt=0.0d0
-    ! dzbdt = -1.d0/(1-par%por)*min(source,hold*(ceqg(:,:,jg)*graindistr(:,:,1,jg)-cc)/Tsg(:,:,jg))
-    ! Jaap: First compute cc before updating sediment transports...
-    do j=2,ny+1
-      do i=2,nx+1
-         cc(i,j) = hold(i,j)*cc(i,j)-par%dt*((Su(i,j)-Su(i-1,j))/(xu(i)-xu(i-1))+&
-                                             (Sv(i,j)-Sv(i,j-1))/(yv(j)-yv(j-1))-&
-	  									     !hold(i,j)*(ceqg(i,j,jg)*graindistr(i,j,1,jg)-cc(i,j))/Tsg(i,j,jg))
-											 !Jaap + Robert: 
-											 !- set source to zero in case of hard layer near surface or limited availability of a sediment fraction in the top layer
-											 !- use suspended fractions instead of bed fractions
-											 hold(i,j)*(ceqg(i,j,jg)*fract(i,j)-cc(i,j))/Tsg(i,j,jg))
-                                             !min(source(i,j),hold(i,j)*(ceqg(i,j,jg)*graindistr(i,j,1,jg)-cc(i,j))/Tsg(i,j,jg)))
-
-         cc(i,j)=max(cc(i,j),0.0d0)
+    ! Compute sedimnent transport in v-direction
+    !
+    vreps = vev
+	vrepb = vev   ! RJ maybe reduce this velocity?
+    !
+    Svs = 0.d0
+    Svb = 0.d0
+    ! Suspended load
+    Svs=(cv*(vreps+par%facua*uav)*hv-Dc*hv*dcsdy)*wetv
+	! Bed load
+	Svb=(cvb*(vrepb+uav)*hv-par%facsl*cvb*vmagv*hv*dzbdy)*wetv
+	!
+	do j=1,ny
+      do i=1,nx+1
+         if(Svb(i,j)>0) then
+			pbbedv(i,j)=pbbed(i,j,1,jg)
+         else if(Svb(i,j)<0) then
+			pbbedv(i,j)=pbbed(i,j+1,1,jg)
+         else
+			pbbedv(i,j)=0.5d0*(pbbed(i,j,1,jg)+pbbed(i,j+1,1,jg))
+         end if
+      end do 
+    end do 
+	!
+	Svb = 0.d0
+	Svb = pbbedv*Svb
+    !
+    !BRJ: compute sources (sink must be computed after updating actual sed.conc.)
+    !    
+    do j=2,ny
+      do i=2,nx
+         ero(i,j,jg) = hh(i,j)*ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg)    ! Changed to hh from hold by RJ (13072009)
+         depo_ex(i,j,jg) = hh(i,j)*cc(i,j)/Tsg(i,j,jg)                      ! Changed to hh from hold by RJ (13072009)
+	     !BRJ: the volume in the water column is updated and not the volume concentration.
+		 !BRJ: implicit concentration update
+         cc(i,j) = (par%dt*Tsg(i,j,jg))/(par%dt+Tsg(i,j,jg))* &
+		                                      (hold(i,j)*cc(i,j)/par%dt -((Sus(i,j)-Sus(i-1,j))/(xu(i)-xu(i-1))+&
+                                                                          (Svs(i,j)-Svs(i,j-1))/(yv(j)-yv(j-1))-&
+											                              ero(i,j,jg)))															
+         ! cc(i,j)=max(cc(i,j),0.0d0)
       enddo
     enddo
-    ! Jaap
+
 	cc = min(1.d0,cc/max(hh,0.01d0))
+	! do lateral bounadries...
     cc(1,:)=cc(2,:)
     cc(:,1)=cc(:,2)
     cc(nx+1,:)=cc(nx+1-1,:)
     cc(:,ny+1)=cc(:,ny+1-1)
+	ero(1,:,jg)=ero(2,:,jg)
+	ero(:,1,jg)=ero(:,2,jg)
+	ero(nx+1,:,jg)=ero(nx,:,jg)
+	ero(:,ny+1,jg)=ero(:,ny,jg)
+    depo_ex(1,:,jg)=depo_ex(2,:,jg)
+	depo_ex(:,1,jg)=depo_ex(:,2,jg)
+	depo_ex(nx+1,:,jg)=depo_ex(nx,:,jg)
+	depo_ex(:,ny+1,jg)=depo_ex(:,ny,jg)
+
     ! wwvv fix the first and last rows and columns of cc in parallel case
 #ifdef USEMPI
     call xmpi_shift(cc,'1:')
@@ -223,9 +319,12 @@ do jg = 1,par%ngd
     !
     ! wwvv border columns and rows of ccg Svg and Sug have to be communicated
     ccg(:,:,jg) = cc
-    Svg(:,:,jg) = Sv
-    Sug(:,:,jg) = Su
-end do
+    Svsg(:,:,jg) = Svs
+    Susg(:,:,jg) = Sus
+	Svbg(:,:,jg) = Svb
+    Subg(:,:,jg) = Sub
+
+end do ! number of sediment fractions
 
 vmag=sqrt(max(vmag2,par%umin))
 
@@ -244,154 +343,83 @@ IMPLICIT NONE
 type(spacepars),target              :: s
 type(parameters)                    :: par
 
-integer                             :: i,ii
-integer                             :: j,jg,jd
-real*8                              :: dzb,dzmax,dz
-real*8 , dimension(s%nx+1,s%ny+1)   :: dzbx,dzby,Su,Sv,dzremain
-real*8 , dimension(s%nx+1,s%ny+1)   :: dzbtot,fact0,fact1,fact2,fact3,fact4,fact5
-real*8 , dimension(s%nx+1,s%ny+1,par%ngd) :: dzbdtg
-real*8 , dimension(s%nx+1,s%ny+1,par%nd)  :: graindistrm
-logical                                   :: aval
+integer                             :: i,j,ii,iii,jjj,jdz,ndz
+integer                             :: jg,jd,nt_e,nt_d,nt_sub,nt_sub_max
+real*8                              :: dzb,dzmax,dzt,zbold,zbold2,dzleft
+real*8 , dimension(:,:),allocatable,save :: dzbtot
+real*8 , dimension(par%ngd)         :: edg,edg1,edg2,dzg
+real*8 , dimension(:),pointer       :: dz
+real*8 , dimension(:,:),pointer     :: pb
+logical                             :: aval
 
 include 's.ind'
 include 's.inp'
 
-dzbdtg = 0.d0
-dzbtot = 0.d0
+if (.not. allocated(dzbtot)) allocate(dzbtot(s%nx+1,s%ny+1))
 
-! Update bed level using continuity eq.
-dzb=0.d0 !!!Ap
-dzbdt=0.0d0
+dzbtot = 0.d0
+dzbdt  = 0.d0
+dzb    = 0.d0
 
 if (par%t>=par%morstart .and. par%morfac > .999d0) then
-
-do jg = 1,par%ngd
-
-   dzremain = max(0.d0,dzlayer+sedero)
-
-   ! Update bed level using continuity eq.
-   Su = Sug(:,:,jg)
-   Sv = Svg(:,:,jg)
-
-   ! Ap and Jaap: Bottom update is morfac dependent....
-   do j=2,ny !Jaap nx instead of ny+1
-      do i=2,nx  !Jaap nx instead of nx+1
-	  	 ! Jaap make sure for no bed level changes where hard layer at surface
-		 ! Conservation of mass seems to be OK?
-		 if ((Su(i,j)-Su(i-1,j))/(xu(i)-xu(i-1))/(1.d0-par%por)*par%dt*par%morfac >= dzremain(i,j)) then
-			Su(i-1,j) = dzremain(i,j)*(xu(i)-xu(i-1))*(1.d0-par%por)/par%dt/par%morfac+Su(i,j)
-		 	dzremain(i,j) = 0.d0   !Jaap: all sand is used now; dzremain is set to zero at this location before doing y-direction
-		 elseif ((Sv(i,j)-Sv(i,j-1))/(yv(j)-yv(j-1))/(1.d0-par%por)*par%dt*par%morfac >= dzremain(i,j)) then
-		 	Sv(i,j-1) = dzremain(i,j)*(yv(j)-yv(j-1))*(1.d0-par%por)/par%dt/par%morfac+Sv(i,j)
-			dzremain(i,j) = 0.d0
-		 endif
-         !
-         dzbdt(i,j)=1/(1-par%por)*        &
-             (-(Su(i,j)-Su(i-1,j))/(xu(i)-xu(i-1)) &
-              -(Sv(i,j)-Sv(i,j-1))/(yv(j)-yv(j-1)))
-         zb(i,j)=zb(i,j)+dzbdt(i,j)*par%morfac*par%dt
-         sedero(i,j)=sedero(i,j)+dzbdt(i,j)*par%morfac*par%dt           ! total bed level changes for all sediment clases over all time steps so far
-         dzbdtg(i,j,jg) = dzbdtg(i,j,jg) + dzbdt(i,j)*par%morfac*par%dt ! total bed level change for each sediment class at this time step
-         dzbtot(i,j) = dzbtot(i,j) +  dzbdt(i,j)*par%morfac*par%dt      ! total bed level change for all sediment classes at this time step
-       enddo
-   enddo
-enddo
-
-
-fact0 = 0.d0
-fact1 = 0.d0
-fact2 = 0.d0
-fact3 = 0.d0
-fact4 = 0.d0
-fact5 = 0.d0
-
-! update sediment fractions in sediment layers
-! cjaap
-if (par%ngd>1) then
-
-do j=2,ny 
-   do i=2,nx  
-      if (dzbtot(i,j)<0.d0) then
-         fact0(i,j) = 0.d0      
-         fact1(i,j) = 1.d0
-         fact2(i,j) = -dzbtot(i,j)/par%dzg
-         fact3(i,j) = 0.d0
-         fact4(i,j) = (par%dzg+dzbtot(i,j))/par%dzg
-         fact5(i,j) = -dzbtot(i,j)/par%dzg
-      else
-         fact0(i,j) = 1.d0  ! only in case of vegetated layer 
-         fact1(i,j) = (par%dzg-dzbtot(i,j))/par%dzg
-         fact2(i,j) = 0.d0
-         fact3(i,j) = dzbtot(i,j)/par%dzg
-         fact4(i,j) = (par%dzg-dzbtot(i,j))/par%dzg
-         fact5(i,j) = 0.d0
-      endif
-   enddo
-enddo
-
-do jd = 1,par%nd-1
-   do jg = 1,par%ngd
-      if (jd == 1) then
-         if (jg == 1) then
-            graindistr(:,:,jd,jg) = dzbdtg(:,:,jg)/par%dzg + fact1*graindistr(:,:,jd,jg) + &
-            fact2*graindistr(:,:,jd+1,jg) + max(dzbdtg(:,:,jg+1)/par%dzg,0.0d0)
-         elseif (jg==2) then
-            !graindistr(:,:,jd,jg) = dzbdtg(:,:,jg)/par%dzg + fact1*graindistr(:,:,jd,jg) + fact2*graindistr(:,:,jd+1,jg)
-            graindistr(:,:,jd,jg) = min(dzbdtg(:,:,jg)/par%dzg,0.0d0) + fact1*graindistr(:,:,jd,jg) + &
-            fact2*graindistr(:,:,jd+1,jg)
-         else
-            graindistr(:,:,jd,jg) = dzbdtg(:,:,jg)/par%dzg + fact1*graindistr(:,:,jd,jg) + fact2*graindistr(:,:,jd+1,jg) 
-         endif
-      else
-         graindistr(:,:,jd,jg) = fact3*graindistr(:,:,jd-1,jg) + fact4*graindistr(:,:,jd,jg) + fact5*graindistr(:,:,jd+1,jg)
-      endif
-   enddo
-enddo
-
-! Robert
-graindistr=max(graindistr,0.d0)
-graindistr=min(graindistr,1.d0)
-
-! ensure total fractions equal 1
-graindistrm = 0.d0
-do jd = 1,par%nd
-    do jg = 1,par%ngd
-       graindistrm(:,:,jd) = graindistrm(:,:,jd) + graindistr(:,:,jd,jg)
-    enddo
-    do jg = 1,par%ngd
-       graindistr(:,:,jd,jg) = graindistr(:,:,jd,jg)/max(graindistrm(:,:,jd),.0010d0)
-    enddo
-enddo
-
-endif
 !
-! bed boundary conditions
-! 
-! Fix bed at back boundary, but allow sediment to pass though
-!zb(nx+1,:) = zb(nx+1,:)+dzbdt(nx,:)*par%dt  !Ap
-!zb(nx+1,:) = zb(nx+1,:)+dzbdt(nx,:)*par%dt  !Ap
-!sedero(nx+1,:) = sedero(nx,:) !Ap
-zb(:,1) = zb(:,2)
-sedero(:,1) = sedero(:,2)
-zb(:,ny+1) = zb(:,ny)
-sedero(:,ny+1) = sedero(:,ny)
+par%frac_dz = 0.7d0 ! relative thickness to split time step for bed updating
+par%split = 1.01d0
+par%merge = 0.01d0
+
+nt_sub=1
+nt_sub_max = nt_sub	
+!
+! bed_predict
+!
+do j=2,ny
+   do i=2,nx
+      dz=>dzbed(i,j,:)
+	  pb=>pbbed(i,j,:,:)
+	  ! bed level changes per fraction in this morphological time step in meters sand including pores
+	  dzg=par%morfac*par%dt/(1.d0-par%por)*( &
+	                                         ! Dano, dz from sus transport gradients
+	                                         (1-par%sourcesink)*&
+											     ((Susg(i,j,:)-Susg(i-1,j,:))/(xu(i)-xu(i-1))+&           
+		                                          (Svsg(i,j,:)-Svsg(i,j-1,:))/(yv(j)-yv(j-1)))+&
+											 ! BRJ, dz from source-sink terms
+	                                         par%sourcesink*(ero(i,j,:)-depo_ex(i,j,:))+&           	                                                                                                
+											 ! dz from bed load transport gradients
+                                             (Subg(i,j,:)-Subg(i-1,j,:))/(xu(i)-xu(i-1))+&           
+		                                     (Svbg(i,j,:)-Svbg(i,j-1,:))/(yv(j)-yv(j-1))    )        
+      
+      nt_e=max(1,ceiling(1.d0*maxval(dzg(:)/(par%frac_dz*dz(1)*max(pb(1,:),tiny(0.d0))) ) ) ) !Jaap: presumes top layer is thinnest
+
+      nt_d=max(1,ceiling(abs(sum(dzg))/par%frac_dz/minval(dz)))
+	  nt_sub=max(nt_e,nt_d)
+	  nt_sub_max = max(nt_sub_max,nt_sub)
+
+      !erosion/deposition rate of sand mass (m/s)
+	  !positive in case of erosion
+		 
+	  edg = dzg*(1.d0-par%por)/par%dt           
+   	 
+	  call update_fractions(par,s,i,j,nt_sub,dz,pb,edg,0.d0)
+ 
+   enddo ! nx+1
+enddo ! ny+1
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 ! Avalanching
 !
 do ii=1,nint(par%morfac)
-   ! Jaap; update dzremain before avalanching
-   dzremain = max(0.d0,dzlayer+sedero)
    
    aval=.false.
-   dzbx=0.d0
-   dzby=0.d0
+   dzbdx=0.d0
+   dzbdy=0.d0
    do j=1,ny+1
       do i=1,nx
-         dzbx(i,j)=(zb(i+1,j)-zb(i,j))/(xz(i+1)-xz(i))
+         dzbdx(i,j)=(zb(i+1,j)-zb(i,j))/(xz(i+1)-xz(i))
       enddo
    enddo
    !
-   Fimpact = 0.0d0
    do i=2,nx-1
       do j=1,ny+1
          if(max(hh(i,j),hh(i+1,j))>par%hswitch+par%eps) then
@@ -399,79 +427,114 @@ do ii=1,nint(par%morfac)
          else
             dzmax=par%dryslp;
          end if
-         if(abs(dzbx(i,j))>dzmax ) then
+         if(abs(dzbdx(i,j))>dzmax ) then
 		    aval=.true.     
-            dzb=sign(1.0d0,dzbx(i,j))*(abs(dzbx(i,j))-dzmax)*(xz(i+1)-xz(i));
-			! Jaap: compute dzmax using Overton and Fisher
-			if (par%impact==1) then
-			   Fimpact(i,j) = min(hu(i-1,j),max(0.d0,zb(i+1,j)-zb(i,j)))*par%rho*(uu(i-1,j)**2 + 0.125d0*(urms(i,j)+urms(i-1,j))**2)
-			   dz = min(par%dzmax,par%CE/((xz(i+1)-xz(i))**2*par%rhos*(1-par%por)*par%g)*Fimpact(i,j))
+            dzb=sign(1.0d0,dzbdx(i,j))*(abs(dzbdx(i,j))-dzmax)*(xz(i+1)-xz(i));
+			!
+			if (dzb >= 0.d0) then
+               iii = i+1                                      ! upwind erosion
+			   dzb=min(dzb,par%dzmax*par%dt/(xz(i+1)-xz(i)))
 			else
-			   dz = par%dzmax
-		    endif	
-            ! Jaap: limit dzb with dz and with dzremain
-			if (dzb>=0) then
-			   dzb=min(dzb,dzremain(i+1,j),dz*par%dt/(xz(i+1)-xz(i)))
-			else
-               dzb=max(dzb,-1.d0*dzremain(i,j)*(xu(i)-xu(i-1))/(xu(i+1)-xu(i)),-1.d0*dz*par%dt/(xz(i+1)-xz(i)))
+			   iii = i;                                       ! upwind deposition
+			   dzb=max(dzb,-par%dzmax*par%dt/(xz(i+1)-xz(i)))
 			endif
-            
-			zb(i,j)=zb(i,j)+dzb*(xu(i+1)-xu(i))/(xu(i)-xu(i-1)) !Jaap make sure there is continuity of sediment in non uniform grids;
-            sedero(i,j) = sedero(i,j)+dzb*(xu(i+1)-xu(i))/(xu(i)-xu(i-1))
-            dzbtot(i,j) = dzbtot(i,j)+dzb*(xu(i+1)-xu(i))/(xu(i)-xu(i-1))  
-            zs(i,j)=zs(i,j)+dzb*(xu(i+1)-xu(i))/(xu(i)-xu(i-1))
-			dzav(i,j)= dzav(i,j)+dzb*(xu(i+1)-xu(i))/(xu(i)-xu(i-1))
-			
-			zb(i+1,j)=zb(i+1,j)-dzb
-            sedero(i+1,j)=sedero(i+1,j)-dzb
-            dzbtot(i+1,j) = dzbtot(i+1,j)-dzb
-            zs(i+1,j)=zs(i+1,j)-dzb
-			dzav(i+1,j)= dzav(i+1,j)-dzb  !Jaap compute total bed level change due to avalanching
+            dz => dzbed(iii,j,:) 
+	 		pb => pbbed(iii,j,:,:)
+			dzleft = abs(dzb)
+			ndz = max(1,1+ceiling(max(dzleft-dz(1),0.d0)/dz(2))) ! check number of affected layers by avalanching
+			do jdz=1,ndz
+				dzt = min(dz(jdz),dzleft)
+			   dzleft = dzleft-dzt;
+               do jg=1,par%ngd ! erosion deposition per fraction for the eroding point (upwind or downwind); edg is positivi in case of erosion   
+			      edg2(jg) = sedcal(jg)*sign(1.d0,dzb)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt       
+			      edg1(jg) = -sedcal(jg)*edg2(jg)*(xu(i+1)-xu(i))/(xu(i)-xu(i-1))
+			   enddo
+			   nt_d=max(1,ceiling(abs(dzb)/par%frac_dz/minval(dzbed(iii-sign(1.d0,dzb),j,:)))) ! nt_d is not necessarily equal to nt_e (=ndz)
+			   nt_sub = max(1,nt_d)
+               
+			   dz=>dzbed(i+1,j,:)
+	           pb=>pbbed(i+1,j,:,:)
+               call update_fractions(par,s,i+1,j,nt_sub,dz,pb,edg2,-dzb) ! upwind point
+
+			   dz=>dzbed(i,j,:)
+	           pb=>pbbed(i,j,:,:)
+	   	       call update_fractions(par,s,i,j,nt_sub,dz,pb,edg1,dzb*(xu(i+1)-xu(i))/(xu(i)-xu(i-1)))    ! downwind point
+			enddo
+
 		 end if
       end do
    end do
-
    !JJ: update y slopes after avalanching in X-direction seems more appropriate
    do j=1,ny
       do i=1,nx+1
-         dzby(i,j)=(zb(i,j+1)-zb(i,j))/(yz(j+1)-yz(j))
+         dzbdy(i,j)=(zb(i,j+1)-zb(i,j))/(yz(j+1)-yz(j))
       enddo
    enddo
 
-   do j=2,ny-1;
+   do j=2,ny-1
         do i=1,nx+1
             if(max(hh(i,j),hh(i,j+1))>par%hswitch+par%eps) then
                 dzmax=par%wetslp
             else
                 dzmax=par%dryslp
             end if
-            if(abs(dzby(i,j))>dzmax ) then 
-               aval=.true. 
-               dzb=sign(1.0d0,dzby(i,j))*(abs(dzby(i,j))-dzmax)*(yz(j+1)-yz(j));
-               ! dzb=sign(1.0d0,dzb)*min(abs(dzb),par%dzmax*par%dt/(yz(j+1)-yz(j))); !0.005d0
-               ! Jaap: limit dzb with dz and with dzremain
-			   if (dzb>=0) then
-			      dzb=min(dzb,dzremain(i,j+1),par%dzmax*par%dt/(yz(j+1)-yz(j)))
-			   else
-                  dzb=max(dzb,-1.d0*dzremain(i,j)*(yv(j)-yv(j-1))/(yv(j+1)-yv(j)),-1.d0*par%dzmax*par%dt/(yz(j+1)-yz(j)))
-			   endif
-		    
-			   zb(i,j)=zb(i,j)+dzb*(yv(j+1)-yv(j))/(yv(j)-yv(j-1)) !Jaap make sure there is continuity of sediment in non uniform grids;
-               sedero(i,j) = sedero(i,j)+dzb*(yv(j+1)-yv(j))/(yv(j)-yv(j-1))
-               dzbtot(i,j) = dzbtot(i,j)+dzb*(yv(j+1)-yv(j))/(yv(j)-yv(j-1)) 
-               zs(i,j)=zs(i,j)+dzb*(yv(j+1)-yv(j))/(yv(j)-yv(j-1))!
-			   dzav(i,j)= dzav(i,j)+dzb*(yv(j+1)-yv(j))/(yv(j)-yv(j-1))
-			
-			   zb(i,j+1)=zb(i,j+1)-dzb
-               sedero(i,j+1)=sedero(i,j+1)-dzb
-               dzbtot(i,j+1) = dzbtot(i,j+1)-dzb
-               zs(i,j+1)=zs(i,j+1)-dzb!
-		       dzav(i,j+1)= dzav(i,j+1)-dzb  !Jaap compute total bed level change due to avalanching
-            end if
-        end do
+            if(abs(dzbdy(i,j))>dzmax ) then 
+		    aval=.true. 
+            dzb=sign(1.0d0,dzbdy(i,j))*(abs(dzbdy(i,j))-dzmax)*(yz(j+1)-yz(j));
+			!
+			if (dzb >= 0.d0) then
+               jjj = j+1
+			   dzb=min(dzb,par%dzmax*par%dt/(yz(j+1)-yz(j)))
+			else
+			   jjj = j;
+			   dzb=max(dzb,-par%dzmax*par%dt/(yz(j+1)-yz(j)))
+			endif
+            
+			dz => dzbed(i,jjj,:) 
+			pb => pbbed(i,jjj,:,:)
+
+			dzleft = abs(dzb)
+			ndz = max(1,1+ceiling(max(dzleft-dz(1),0.d0)/dz(2))) ! check number of affected layers by avalanching
+
+			do jdz=1,ndz
+			   dzt = min(dz(jdz),dzleft)
+			   dzleft = dzleft-dzt;
+               do jg=1,par%ngd ! erosion deposition per fraction for the eroding point (upwind or downwind)   
+			      edg2(jg) = sedcal(jg)*sign(1.d0,dzb)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt       ! upwind sand ends up in down wind point --> use pbbed(i+1)
+			      edg1(jg) = -sedcal(jg)*edg2(jg)*(yv(j+1)-yv(j))/(yv(j)-yv(j-1))
+			   enddo
+			   
+			   nt_d=max(1,ceiling(abs(dzb)/par%frac_dz/minval(dzbed(i,jjj-sign(1.d0,dzb),:)))) ! nt_d is not necessarily equal to nt_e (=ndz)
+			   nt_sub = max(1,nt_d)
+               
+			   dz=>dzbed(i,j+1,:)
+	           pb=>pbbed(i,j+1,:,:)
+
+               call update_fractions(par,s,i,j+1,nt_sub,dz,pb,edg2,-dzb) ! upwind point
+
+			   dz=>dzbed(i,j,:)
+	           pb=>pbbed(i,j,:,:)
+
+	   	       call update_fractions(par,s,i,j,nt_sub,dz,pb,edg1,dzb*(yv(j+1)-yv(j))/(yv(j)-yv(j-1)))    ! downwind point
+			enddo
+		 end if
+      end do
    end do
    if (.not.aval) exit
 end do
+!
+! bed boundary conditions
+! 
+zb(:,1) = zb(:,2)
+sedero(:,1) = sedero(:,2)
+zb(:,ny+1) = zb(:,ny)
+sedero(:,ny+1) = sedero(:,ny)
+pbbed(:,1,:,:)=pbbed(:,2,:,:)
+z0bed(:,1)=z0bed(:,2)
+dzbed(:,1,:)=dzbed(:,2,:)
+pbbed(:,ny+1,:,:)=pbbed(:,ny,:,:)
+z0bed(:,ny+1)=z0bed(:,ny)
+dzbed(:,ny+1,:)=dzbed(:,ny,:)
 
 ! Robert: in parallel version bed update must take place on internal boundaries:
 #ifdef USEMPI
@@ -481,9 +544,135 @@ end do
     call xmpi_shift(zb,':n')
 #endif
 
-endif
+endif ! if par%t>par%morstart
 
 end subroutine bed_update
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+subroutine update_fractions(par,s,i,j,nt_sub,dz,pb,edg,dzb)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     Copyright (C) 2009 Technische Universiteit Delft
+!        Bram van Prooijen
+!        b.c.vanprooijen@tudelft.nl
+!	   +31(0)15 2784070   
+!        Faculty of Civil Engineering and Geosciences
+!        department of Hydraulic Engineering
+!	   PO Box 5048
+!        2600 GA Delft
+!        The Netherlands
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+use params
+use spaceparams
+use xmpi_module
+
+
+IMPLICIT NONE
+
+type(spacepars),target                          :: s
+type(parameters)                                :: par
+
+integer                                         :: i,j,jg,jd,t_sub,nt_sub
+real*8                                          :: ED,zbold,dzb
+real*8 , dimension(par%ngd),intent(in)          :: edg
+real*8 , dimension(s%nd(i,j)),intent(inout)     :: dz
+real*8 , dimension(s%nd(i,j),par%ngd),intent(inout) :: pb
+
+real*8 , dimension(:),allocatable,save                :: Ap,b
+real*8 , dimension(:,:),allocatable,save              :: Sm,A
+
+if (.not. allocated(Ap)) then
+   allocate(Ap   (s%nd(1,1)))
+   allocate(b    (s%nd(1,1)))
+   allocate(Sm   (s%nd(1,1),par%ngd))
+   allocate(A    (s%nd(1,1),3))
+endif
+
+!!!initialize Sm
+
+ED = sum(edg)
+
+do t_sub=1,nt_sub  !loop over subtimesteps
+  do jg=1,par%ngd
+
+   A=0.
+   Ap=0.
+   b=0.
+
+   Sm(:,jg)=pb(:,jg)*dz*(1.d0-par%por)
+				
+   !!!build matrix A							
+   select case(par%nd_var)
+   case(1)
+   !in this case: A=0
+   case(2)
+     A (1,1:3)= (/0.d0           ,  min(ED,0.d0) ,  max(ED,0.d0) /)   
+     A (2,1:3)= (/-min(ED,0.d0)  , -max(ED,0.d0) ,  0.d0         /)
+   case(3:1000)
+     A (1,1:3)= (/0.d0           ,  min(ED,0.d0) ,  max(ED,0.d0) /)   
+
+     A (2:par%nd_var-1,1)=-min(ED,0.d0)
+     A (2:par%nd_var-1,2)=-abs(ED)
+     A (2:par%nd_var-1,3)=max(ED,0.d0)
+
+     A (par%nd_var,1:3)= (/-min(ED,0.d0) , -max(ED,0.d0) ,   0.d0    /)
+   end select
+
+   !!!determine RHS
+   Ap(1) = sum(A(1,2:3)*pb(1:2,jg))
+   do jd = 2,par%nd_var
+      Ap(jd) = sum(A (jd,:)*pb(jd-1:jd+1,jg))
+   enddo
+   Ap(par%nd_var+1) = sum(A(par%nd_var+1,1:2)*pb(par%nd_var:par%nd_var+1,jg))			
+
+   b(1) = -edg(jg)
+
+   !!!update S
+   Sm(1:par%nd_var+1,jg) = Sm(1:par%nd_var+1,jg) + par%dt/nt_sub*(Ap(1:par%nd_var+1)+b(1:par%nd_var+1))			
+
+  enddo !fractions
+
+  do jd=1,par%nd_var+1
+   pb(jd,:) = Sm(jd,:)/sum(Sm(jd,:))
+   dz(jd) = sum(Sm(jd,:))/(1.d0-par%por)
+  enddo
+
+  !!! modify grid
+  !merge two upper layers in case of erosion
+  if (dz(par%nd_var) .lt. par%merge*dz(par%nd_var+1)) then
+    forall (jg=1:par%ngd)
+      pb(par%nd_var,jg) = (dz(par%nd_var)*pb(par%nd_var,jg) + dz(par%nd_var+1)* &
+	                      pb(par%nd_var+1,jg))/(dz(par%nd_var)+dz(par%nd_var+1)) 
+	  pb(par%nd_var+1:s%nd(i,j)-1,jg) = pb(par%nd_var+2:s%nd(i,j),jg)
+	  pb(s%nd(i,j),jg) = pb(s%nd(i,j),jg)	
+    endforall
+    s%z0bed(i,j) = s%z0bed(i,j)-dz(par%nd_var+1)
+    dz(par%nd_var) = dz(par%nd_var+1)+dz(par%nd_var)   
+  endif
+  !split upper layer in case of sedimentation
+  if (dz(par%nd_var)>par%split*dz(par%nd_var+1)) then
+    pb(par%nd_var+1:s%nd(i,j),:) = pb(par%nd_var:s%nd(i,j)-1,:)
+    s%z0bed(i,j) = s%z0bed(i,j)+dz(par%nd_var+1)
+    dz(par%nd_var) = dz(par%nd_var)-dz(par%nd_var+1)  
+  endif
+enddo ! nt_sub
+
+pb = max(0.d0,min(pb,1.d0))
+
+zbold = s%zb(i,j)
+s%zb(i,j) = s%z0bed(i,j)+sum(dz)
+s%dzbdt(i,j) = s%dzbdt(i,j)+(s%zb(i,j)-zbold)
+s%sedero(i,j) = s%sedero(i,j)+s%dzbdt(i,j)
+if (abs(dzb)>0.d0) then 
+  s%zs(i,j)=s%zs(i,j)+(s%zb(i,j)-zbold)
+  s%dzav(i,j)=s%dzav(i,j)+dzb
+endif
+
+
+end subroutine update_fractions
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -508,7 +697,7 @@ real*8                              :: Te,kvis,Sster,c1,c2,wster
 
 real*8 , dimension(:,:),allocatable,save   :: vmag2,Cd,Asb,dhdx,dhdy,Ts,Ur,Bm,B1
 real*8 , dimension(:,:),allocatable,save   :: urms2,Ucr,term1,term2
-real*8 , dimension(:,:),allocatable,save   :: uandv,b,fslope,hloc,ceq
+real*8 , dimension(:,:),allocatable,save   :: uandv,b,fslope,hloc,ceqs,ceqb
 
 include 's.ind'
 include 's.inp'
@@ -529,7 +718,8 @@ if (.not. allocated(vmag2)) then
    allocate (hloc  (nx+1,ny+1))
    allocate (kb    (nx+1,ny+1))
    allocate (Ts    (nx+1,ny+1))
-   allocate (ceq   (nx+1,ny+1))
+   allocate (ceqs   (nx+1,ny+1))
+   allocate (ceqb   (nx+1,ny+1))
    allocate (Ur    (nx+1,ny+1))
    allocate (Bm    (nx+1,ny+1))
    allocate (B1    (nx+1,ny+1))
@@ -609,7 +799,7 @@ do jg = 1,par%ngd
    term1=min(term1,par%smax*par%g/par%cf*s%D50(jg)*delta)
    term1=term1**0.5      
 
-   term2 = 0
+   term2 = 0.d0
    do j=1,ny+1
       do i=1,nx
          if(term1(i,j)>Ucr(i,j) .and. hh(i,j)>par%eps) then
@@ -625,10 +815,15 @@ do jg = 1,par%ngd
 #ifdef USEMPI
    call xmpi_shift(term2,'m:')
 #endif
-   ceq =(Asb+Ass)*term2  
-   ceq = min(ceq,0.2d0)       ! equilibrium concentration
-   ceq = ceq/hloc
-   ceqg(:,:,jg) = ceq*sedcal(jg)
+   ceqb =Asb*term2                    ! equilibrium bed concentration
+   ceqb = min(ceqb,0.2d0)		      
+   ceqb = ceqb/hloc
+   ceqbg(:,:,jg) = ceqb*sedcal(jg)*wetz
+   ceqs =Ass*term2                    ! equilibrium suspended concentration
+   ceqs = min(ceqs,0.2d0)		      
+   ceqs = ceqs/hloc
+   ceqsg(:,:,jg) = ceqs*sedcal(jg)*wetz
+
 enddo  ! end og grain size classes
 
 m1 = 0;       ! a = 0
@@ -670,8 +865,8 @@ type(parameters)                        :: par
 
 character*80                            :: fnamet
 integer                                 :: i,nw,ii
+integer , save                          :: nh,nt    
 integer                                 :: ih0,it0,ih1,it1
-integer, save                           :: nh,nt
 integer                                 :: j,jg
 real*8                                  :: dster,onethird,twothird,Ass,dcf,dcfin,ML,fac
 real*8                                  :: Te,kvis,Sster,cc1,cc2,wster,z0,delta,smax
@@ -679,7 +874,7 @@ real*8                                  :: p,q,f0,f1,f2,f3,uad,duddtmax,dudtmax,
 real*8                               ,save     :: dh,dt
 real*8 , dimension(:,:),allocatable  ,save     :: vmg,Asb,Ts
 real*8 , dimension(:,:),allocatable  ,save     :: urmsturb,Ucr,Ucrc,Ucrw,term1,B2,Cd
-real*8 , dimension(:,:),allocatable  ,save     :: hloc,ceq,h0,t0,detadxmax,detadxmean,dzsdx
+real*8 , dimension(:,:),allocatable  ,save     :: hloc,ceqs,ceqb,h0,t0,detadxmax,detadxmean
 real*8 , dimension(:,:,:),allocatable,save     :: RF 
 
 include 's.ind'
@@ -702,8 +897,8 @@ if (.not. allocated(vmg)) then
    allocate (hloc  (nx+1,ny+1))
    allocate (kb    (nx+1,ny+1))
    allocate (Ts    (nx+1,ny+1))
-   allocate (ceq   (nx+1,ny+1))
-   allocate (dzsdx (nx+1,ny+1))
+   allocate (ceqs  (nx+1,ny+1))
+   allocate (ceqb  (nx+1,ny+1))
    allocate (RF    (18,33,40))
 endif
 
@@ -794,6 +989,7 @@ endif
 !
 ! compute near bed turbulence
 !
+! due to short waves
 do j=1,ny+1	
 	do i=1,nx+1
 	   ! compute mixing length
@@ -819,8 +1015,6 @@ if (par%lws==1) then
    vmg  = dsqrt(ue**2+ve**2)
 elseif (par%lws==0) then
    ! vmg lags on actual mean flow; but long wave contribution to mean flow is included... 
-!   fac = 1/par%Trep/20.d0 
-!   vmg = (1-fac)*vmg + fac*dsqrt(ue**2+ve**2) 
    vmg = (1.d0-1.d0/par%cats/par%Trep*par%dt)*vmg + (1.d0/par%cats/par%Trep*par%dt)*dsqrt(ue**2+ve**2) 
 endif
 
@@ -870,18 +1064,23 @@ do jg = 1,par%ngd
    ! Cd=(0.40/(log(hloc/z0)-1.0))**2 !Jaap
    ! term1=(vmg**2+0.018/Cd*uorb**2)**0.5   
       
-   ceq = 0*term1                                                                     !initialize ceq
+   ceqb = 0.d0*term1                                                                     !initialize ceqb
+   ceqs = 0.d0*term1                                                                     !initialize ceqs
    do j=1,ny+1
 	  do i=1,nx
          if(term1(i,j)>Ucr(i,j) .and. hloc(i,j)>par%eps) then
-            ceq(i,j)=Asb(i,j)*(term1(i,j)-Ucr(i,j))**1.5 + Ass*(term1(i,j)-Ucr(i,j))**2.4
+            ceqb(i,j)=Asb(i,j)*(term1(i,j)-Ucr(i,j))**1.5 
+			ceqs(i,j)=Ass*(term1(i,j)-Ucr(i,j))**2.4
 		 end if
       end do
    end do
   
-   ceq = min(ceq,0.05)		      ! equilibrium concentration
-   ceq = ceq/hloc
-   ceqg(:,:,jg) = ceq*sedcal(jg)*wetz
+   ceqb = min(ceqb,0.05)		      ! equilibrium bed concentration
+   ceqb = ceqb/hloc
+   ceqbg(:,:,jg) = ceqb*sedcal(jg)*wetz
+   ceqs = min(ceqs,0.05)		      ! equilibrium suspended concentration
+   ceqs = ceqs/hloc
+   ceqsg(:,:,jg) = ceqs*sedcal(jg)*wetz
 enddo                             ! end of grain size classes
                             ! end of grain size classes
 
