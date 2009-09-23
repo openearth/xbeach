@@ -43,11 +43,13 @@ type(parameters)                            :: par
 type(waveparameters)                        :: wp
 
 integer, save                               :: nt
-integer                                     :: i,new
+integer                                     :: i,new,reclen,wordsize
 integer, save                               :: old
+integer, save                               :: recpos
 integer                                     :: j
 integer                                     :: itheta
 integer                                     :: E_idx
+integer                                     :: dummy
 real*8                                      :: E1,ei,dum,Hm0, dum1, spreadpar, bcdur, dum2
 real*8, save                                :: dtbcfile,rt,bcendtime
 real*8                                      :: em,tshifted,tnew
@@ -56,6 +58,7 @@ real*8,dimension(:)     ,allocatable,save   :: fac1,fac2
 real*8,dimension(:)     ,allocatable,save   :: tE,dataE,databi
 real*8,dimension(:,:)   ,allocatable,save   :: ht
 real*8,dimension(:)     ,allocatable,save   :: q1,q2,q
+real*8,dimension(:)     ,allocatable,save   :: wcrestpos
 real*8,dimension(:,:)   ,allocatable,save   :: ee1, ee2
 real*8,dimension(:)     ,allocatable,save   :: gq1,gq2,gq
 real*8,dimension(:,:)   ,allocatable,save   :: gee1, gee2
@@ -80,6 +83,7 @@ if (.not. allocated(fac1)) then
    allocate(e01(1:ntheta))
    allocate(dist(1:ntheta))
    allocate(factor(1:ntheta))
+   allocate(wcrestpos(nx+1))
 endif
 !
 !  GENERATE AND READ-IN WAVE BOUNDARY CONDITIONS
@@ -209,7 +213,7 @@ if(abs(par%t-par%dt)<1.d-6) then
         e01    = max(e01,0.0d0);
 
         if (abs(theta0)<1.d-9) theta0=1.d-9
-        par%Llong=par%Tlong*cg(1,1)
+        par%Llong=par%Tlong*cg(1,1)*cos(theta0)
 
     endif
     if (xmaster) then
@@ -382,8 +386,11 @@ elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat=
         call dispersion(par,s)     
         ! End initialize
         if (xmaster) then
-          open(71,file=ebcfname,status='old',form='unformatted')
-          open(72,file=qbcfname,status='old',form='unformatted')
+		  inquire(iolength=wordsize) 1.d0
+          reclen=wordsize*(sg%ny+1)*(s%ntheta)
+          open(71,file=ebcfname,status='old',form='unformatted',access='direct',recl=reclen)
+          reclen=wordsize*(sg%ny+1)
+          open(72,file=qbcfname,status='old',form='unformatted',access='direct',recl=reclen)
         endif
 !
 ! wwvv note that we need the global value of ny here
@@ -407,10 +414,10 @@ elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat=
             allocate(ee1(ny+1,ntheta),ee2(ny+1,ntheta))
         end if
         if (xmaster) then
-          read(71)gee1       ! Earlier in time
-          read(71)gee2       ! Later in time
-          read(72)gq1        ! Earlier in time
-          read(72)gq2        ! Later in time
+          read(71,rec=1)gee1       ! Earlier in time
+          read(71,rec=2)gee2       ! Later in time
+          read(72,rec=1)gq1        ! Earlier in time
+          read(72,rec=2)gq2        ! Later in time
         endif
 #ifdef USEMPI
 !
@@ -428,22 +435,27 @@ elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat=
         q1=gq1
         q2=gq2
 #endif
-        old=floor((par%t/dtbcfile)+1.0d0)
+        old=floor((par%t/dtbcfile)+1)
+		recpos=1
     end if 
 
-    new=floor((par%t/dtbcfile)+1.0d0)
+    new=floor((par%t/dtbcfile)+1)
 
     ! Check for next level in boundary condition file
     if (new/=old) then
         ! Check for how many bcfile steps are jumped
         ! Difference = new-old, but as the files jump 1 anyway,
         ! only do loop for difference-1 times
-        do i=1,(new-old)-1
-             if(xmaster) then
-              read(72)gq2
-              read(71)gee2
-            endif
-        end do
+!        do i=1,(new-old)-1
+         recpos=new
+         if(xmaster) then
+           read(72,rec=recpos+1)gq2
+           read(71,rec=recpos+1)gee2
+           read(72,rec=recpos)gq1
+           read(71,rec=recpos)gee1
+         endif
+!        end do
+
 #ifdef USEMPI
         call space_distribute("y",sl,gee2,ee2)
         call space_distribute("y",sl,gq2,q2)
@@ -451,13 +463,7 @@ elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat=
         ee2=gee2
         q2=gq2
 #endif
-        ! Continue. Switch q2 to q1 and read new q2 
-        q1=q2
-        ee1=ee2
-        if (xmaster) then
-          read(72)gq2
-          read(71)gee2
-        endif
+ 
 #ifdef USEMPI
         call space_distribute("y",sl,gee2,ee2)
         call space_distribute("y",sl,gq2,q2)
@@ -468,7 +474,7 @@ elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat=
         old=new
     end if
     ht=s%zs0(1:2,:)-zb(1:2,:)
-    tnew = new*dtbcfile
+    tnew = dble(new)*dtbcfile
     ee(1,:,:) = (dtbcfile-(tnew-par%t))/dtbcfile*ee2 + & !Jaap
                 (tnew-par%t)/dtbcfile*ee1
     q = (dtbcfile-(tnew-par%t))/dtbcfile*q2 + &          !Jaap
@@ -493,48 +499,72 @@ call xmpi_shift(ui,'1:')
 call xmpi_shift(ee,'1:')
 #endif
 if (par%t>0.0d0) then
-    !
-    ! Lateral boundary at y=0;
-    !
-    if(par%instat>0 .and. par%instat/=40) then
-        fac1=(y(2:nx+1,2)-y(2:nx+1,1))*abs(tan(thetamean(2:nx+1,2)))/(x(2:nx+1,2)-x(1:nx,2))
-    else
-        fac1=0
-    end if
-    ! fac1=min(fac1,1.d0)
-    ! fac1=max(fac1,0.d0)\
-	! the above approach causes a shoreline jet from outside to inside the domain
-	! and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
-    ! so
-	fac1 = 0.d0 !Ap 28/11   
-    fac2=1.d0-fac1
-    do itheta=1,ntheta 
+    if (par%rightwave==0) then
+		
+		!
+		! Lateral boundary at y=0;
+		!
+		if(par%instat>0 .and. par%instat/=40) then
+			fac1=(y(2:nx+1,2)-y(2:nx+1,1))*abs(tan(thetamean(2:nx+1,2)))/(x(2:nx+1,2)-x(1:nx,2))
+		else
+			fac1=0
+		end if
+		! fac1=min(fac1,1.d0)
+		! fac1=max(fac1,0.d0)\
+		! the above approach causes a shoreline jet from outside to inside the domain
+		! and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
+		! so
+		fac1 = 0.d0 !Ap 28/11   
+		fac2=1.d0-fac1
+		do itheta=1,ntheta 
 
-          ee(2:nx+1,1,itheta)=ee(1:nx+1-1,2,itheta)*fac1+ee(2:nx+1,2,itheta)*fac2
+			  ee(2:nx+1,1,itheta)=ee(1:nx+1-1,2,itheta)*fac1+ee(2:nx+1,2,itheta)*fac2
 
-    end do
-    !
-    ! lateral; boundary at y=ny*dy
-    !
-    if(par%instat>0 .and. par%instat/=40) then
-        fac1=(y(2:nx+1,ny+1)-y(2:nx+1,ny))*abs(tan(thetamean(2:nx+1,ny)))/(x(2:nx+1,ny)-x(1:nx,ny))
-    else
-        fac1=0.0d0
-    end if
-    ! fac1=min(fac1,1.d0)
-    ! fac1=max(fac1,0.d0)
-    ! the above approach causes a shoreline jet from outside to inside the domain
-	! and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
-    ! so   
-	fac1=0.d0 !Ap 28/11
+		end do
+	elseif (par%rightwave==1) then
+		wcrestpos=xz+tan(thetamean(:,2))*(yz(2)-yz(1))
+		do itheta=1,ntheta
+		   do i=1,nx+1
+		      call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+			                     (/ee(1,2,itheta),ee(:,2,itheta),ee(nx+1,2,itheta)/),&
+								  nx+1,xz(i),ee(i,1,itheta),dummy)
+		   enddo
+	    enddo
+	endif
+	
+	if (par%leftwave==0) then
+		!
+		! lateral; boundary at y=ny*dy
+		!
+		if(par%instat>0 .and. par%instat/=40) then
+			fac1=(y(2:nx+1,ny+1)-y(2:nx+1,ny))*abs(tan(thetamean(2:nx+1,ny)))/(x(2:nx+1,ny)-x(1:nx,ny))
+		else
+			fac1=0.0d0
+		end if
+		! fac1=min(fac1,1.d0)
+		! fac1=max(fac1,0.d0)
+		! the above approach causes a shoreline jet from outside to inside the domain
+		! and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
+		! so   
+		fac1=0.d0 !Ap 28/11
 
-    fac2=1.d0-fac1
-     do itheta=1,ntheta
+		fac2=1.d0-fac1
+		 do itheta=1,ntheta
 
-           ee(2:nx+1,ny+1,itheta)= &
-             ee(1:nx+1-1,ny+1-1,itheta)*fac1+ee(2:nx+1,ny+1-1,itheta)*fac2
+			   ee(2:nx+1,ny+1,itheta)= &
+			   ee(1:nx+1-1,ny+1-1,itheta)*fac1+ee(2:nx+1,ny+1-1,itheta)*fac2
 
-     end do
+		 end do
+	elseif (par%rightwave==1) then
+		wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
+		do itheta=1,ntheta
+		   do i=1,nx+1
+		      call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+			                     (/ee(1,ny,itheta),ee(:,ny,itheta),ee(nx+1,ny,itheta)/),&
+								  nx+1,xz(i),ee(i,ny+1,itheta),dummy)
+		   enddo
+	    enddo
+	 endif
 end if
 ! wwvv communicate ee(:,1,:)
 #ifdef USEMPI
@@ -566,7 +596,7 @@ type(parameters)                            :: par
 
 integer                                     :: i,ig
 integer                                     :: j,jj,indt
-real*8                                      :: qxr,alphanew,vert
+real*8                                      :: qxr,alphanew,vert,factime
 real*8 , dimension(2)                       :: yzs0,szs0
 real*8 , dimension(:,:)  ,allocatable,save  :: zs0old
 real*8 , dimension(:,:)  ,allocatable,save  :: ht,beta,betanp1
@@ -594,6 +624,8 @@ if (.not. allocated(ht)) then
    allocate(betanp1 (1,ny+1))
    allocate(zs0old(nx+1,ny+1))   ! wwvv not used
 endif
+
+factime=1.d0/par%cats/par%Trep*par%dt
 
 !allocate(szs0(1:2))  ! wwvv changed this, now defined as an automatic array
 !allocate(yzs0(1:2)) 
@@ -778,7 +810,7 @@ if (par%instat/=8)then
           betanp1(1,j) = beta(1,j)+ bn(j)*par%dt
           alpha2(j)=-theta0
           alphanew = 0.d0
-          s%umean(1,j) = (par%epsi*uu(1,j)+(1-par%epsi)*s%umean(1,j))  
+          s%umean(1,j) = (factime*uu(1,j)+(1-factime)*s%umean(1,j))  
           do jj=1,50
              !---------- Lower order bound. cond. ---
              qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
@@ -841,7 +873,7 @@ if (par%instat/=8)then
      elseif (par%back==1) then
         ! uu(nx+1,:)=sqrt(par%g/hh(nx+1,:))*(zs(nx+1,:)-max(zb(nx+1,:),s%zs0(nx+1,:))) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
         ! uu(nx+1,:)=sqrt(par%g/(s%zs0(nx+1,:)-zb(nx+1,:)))*(zs(nx+1,:)-max(zb(nx+1,:),s%zs0(nx+1,:)))
-        s%umean(2,:) = par%epsi*uu(nx,:)+(1-par%epsi)*s%umean(2,:)    !Ap
+        s%umean(2,:) = factime*uu(nx,:)+(1-factime)*s%umean(2,:)    !Ap
         zs(nx+1,:)=max(s%zs0(nx+1,:),s%zb(nx+1,:))+(uu(nx,:)-s%umean(2,:))*sqrt(max((s%zs0(nx+1,:)-zb(nx+1,:)),par%eps)/par%g)    !Ap
      elseif (par%back==2) then
 	   ht(1:2,:)=max(s%zs0(s%nx:s%nx+1,:)-zb(s%nx:s%nx+1,:),par%eps) !cjaap; make sure ht is always larger than zero
@@ -872,7 +904,7 @@ if (par%instat/=8)then
           betanp1(1,j) = beta(2,j)+ bn(j)*par%dt                                   !Ap toch?
           alpha2(j)= theta0
           alphanew = 0.d0
-          s%umean(2,j) = (par%epsi*uu(s%nx,j)+(1-par%epsi)*s%umean(2,j))           !Ap 
+          s%umean(2,j) = (factime*uu(s%nx,j)+(1-factime)*s%umean(2,j))           !Ap 
           do jj=1,50
              !---------- Lower order bound. cond. ---
              qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&  

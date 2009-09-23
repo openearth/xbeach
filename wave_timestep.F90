@@ -93,6 +93,7 @@ subroutine wave_timestep(s,par)
 	   allocate(wcifacu     (nx+1,ny+1))
 	   allocate(wcifacv     (nx+1,ny+1))
 
+
 ! wwvv todo: I think these iniailization are superfluous
        drr         = 0.d0
        wete        = 0.d0
@@ -151,7 +152,7 @@ subroutine wave_timestep(s,par)
 #ifdef USEMPI
        call xmpi_shift(km,'1:')
 #endif
-       factime = 1.d0/par%wcits/par%Trep*par%dt
+       factime = 1.d0/par%cats/par%Trep*par%dt
        umwci   = factime*uu + (1-factime)*umwci
        vmwci   = factime*vv + (1-factime)*vmwci	
        zswci   = factime*zs + (1-factime)*zswci	

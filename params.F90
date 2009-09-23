@@ -103,6 +103,8 @@ real*4     :: order     = -123 ! switch for order of wave steering, 1 = first or
 ! wwvv: why is order real*4 and not integer?
 integer*4  :: left      = -123 ! switch for lateral boundary at left, 0 = vv computed from NSWE, 1 = reflective wall; vv=0
 integer*4  :: right     = -123 ! switch for lateral boundary at right, 0 = vv computed from NSWE, 1 = reflective wall; vv=0
+integer*4  :: leftwave  = -123 ! switch for lateral boundary at left, 0 = E Neumann, 1 = along wave front
+integer*4  :: rightwave = -123 ! switch for lateral boundary at right, 0 = E Neumann, 1 = along wave front
 integer*4  :: back      = -123 ! switch for boundary at bay side, 0 = radiating boundary (Ad), 1 = reflective boundary; uu=0
 integer*4  :: refl      = -123 ! 1 = compensate for reflected wave and roller massflux, 0 = no compensation
 real*8     :: hswitch   = -123 ! is the water depth at which is switched from wetslp to dryslp
@@ -114,7 +116,6 @@ real*8     :: rhoa      = -123 ! air density
 real*8     :: Cd        = -123 ! wind drag coefficient
 real*8     :: windv     = -123 ! wind velocity
 real*8     :: windth    = -123 ! wind direction (nautical input)
-real*8     :: epsi      = -123 ! weighting factor for actual flow in computing time avergaed flow at seawrd boundary 1>=epsi>=0
 integer*4  :: nonh      = -123 ! 0 = NSWE, 1 = NSW + non-hydrostatic pressure compensation Stelling & Zijlema, 2003 
 real*8     :: nuhv      = -123 ! longshore viscosity enhancement factor
 real*8     :: wearth    = -123 ! angular velocity of earth for computing Coriolis forces
@@ -161,7 +162,8 @@ real*8     :: maxerror = -123  ! maximum wave height error in wave stationary it
 real*8     :: dico     = -123  ! sediment diffusion coefficient
 real*8     :: betad    = -123  ! dissipation parameter long wave breaking turbulence
 integer*4  :: lwt      = -123  ! switch 0/1 long wave turbulence model
-real*8     :: wcits    = -123  ! wave-current interaction time scale (current averaging time in terms of mean wave periods)
+real*8     :: cats     = -123  ! current averaging time scale (current averaging time in terms of mean wave periods)
+integer*4  :: oldwbc   = -123  ! (1) keep old definition of instat 4,5,6 generation. (2) use better definition
 
 
 end type parameters
@@ -211,7 +213,7 @@ elseif (par%instat==2 .or. par%instat==3) then
     par%Trep  = readkey_dbl    ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
     par%Trep  = readkey_dbl    ('params.txt','Trep',     par%Trep,   1.d0,    20.d0)
 !    par%omega    = 2.d0*par%px/par%Trep;
-elseif (par%instat==4 .or. par%instat==5 .or. par%instat==6) then
+elseif (par%instat==4 .or. par%instat==41 .or. par%instat==5 .or. par%instat==6) then
         ! Just a check .....
         if (xmaster) then
           call readkey('params.txt','bcfile',dummystring)
@@ -244,7 +246,7 @@ par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   20.d0
 par%thetanaut= readkey_int ('params.txt','thetanaut',    0,        0,     1)
 par%wci      = readkey_int ('params.txt','wci',        0,        0,     1)
 par%hwci     = readkey_dbl ('params.txt','hwci',   0.01d0,   0.001d0,      1.d0)
-par%wcits    = readkey_dbl ('params.txt','wcits',  10.d0,   5.d0,      50.d0)
+par%cats     = readkey_dbl ('params.txt','cats',  10.d0,   5.d0,      50.d0)
 par%break    = readkey_int ('params.txt','break',      3,        1,     3)
 par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
 par%beta     = readkey_dbl ('params.txt','beta',    0.15d0,     0.05d0,   0.3d0)
@@ -262,6 +264,7 @@ par%sws      = readkey_int ('params.txt','sws',           1,        0,     1)
 par%lws      = readkey_int ('params.txt','lws',           1,        0,     1)
 par%ut       = readkey_int ('params.txt','ut',            1,        0,     1)
 par%BRfac    = readkey_dbl ('params.txt','BRfac',    1.0d0,       0.d0, 1.d0)
+par%oldwbc   = readkey_int ('params.txt','oldwbc',       0,        0,     1)
 end subroutine wave_input
 
 subroutine flow_input(par)
@@ -307,6 +310,8 @@ par%ARC     = readkey_int ('params.txt','ARC',         1,         0,      1)
 par%order   = readkey_dbl ('params.txt','order',       2.d0,         1.d0,      2.d0)
 par%left    = readkey_int ('params.txt','left',        0,         0,      1)
 par%right   = readkey_int ('params.txt','right',       0,         0,      1)
+par%leftwave= readkey_int ('params.txt','leftwave',        0,         0,      1)
+par%rightwave= readkey_int ('params.txt','rightwave',        0,         0,      1)
 par%back    = readkey_int ('params.txt','back',        2,         0,      2)
 par%nuh     = readkey_dbl ('params.txt','nuh',     0.5d0,     0.0d0,      1.0d0)
 par%nuhfac  = readkey_dbl ('params.txt','nuhfac',      0.0d0,     0.0d0,  1.0d0)
@@ -314,7 +319,6 @@ par%rhoa    = readkey_dbl ('params.txt','rhoa',   1.25d0,     1.0d0,   2.0d0)
 par%Cd      = readkey_dbl ('params.txt','Cd',    0.002d0,  0.0001d0,  0.01d0)
 par%windv   = readkey_dbl ('params.txt','windv',   0.0d0,     0.0d0, 200.0d0)
 par%windth  = readkey_dbl ('params.txt','windth', 90.0d0,  -180.0d0, 180.0d0)
-par%epsi    = readkey_dbl ('params.txt','epsi',     0.d0,      0.d0,    1.d0)
 par%nonh    = readkey_int ('params.txt','nonh',        0,         0,      1)
 par%nuhv    = readkey_dbl ('params.txt','nuhv',     1.d0,      1.d0,    20.d0)
 par%lat     = readkey_dbl ('params.txt','lat',     0.d0,      0.d0,   90.d0)
@@ -468,7 +472,7 @@ call xmpi_bcast(par%zs04)
 call xmpi_bcast(par%tideloc)
 call xmpi_bcast(par%paulrevere)
 call xmpi_bcast(par%tidelen)
-call xmpi_bcast(par%dico)
+
 call xmpi_bcast(par%facsl)
 call xmpi_bcast(par%nuh)
 call xmpi_bcast(par%nuhfac)
@@ -509,7 +513,6 @@ call xmpi_bcast(par%rhoa)
 call xmpi_bcast(par%Cd)
 call xmpi_bcast(par%windv)
 call xmpi_bcast(par%windth)
-call xmpi_bcast(par%epsi)
 call xmpi_bcast(par%nonh)
 call xmpi_bcast(par%nuhv)
 call xmpi_bcast(par%wearth)
@@ -658,7 +661,6 @@ subroutine printparams(par,str)
   write(f,*) 'printpar ',id,' ','Cd:',par%Cd
   write(f,*) 'printpar ',id,' ','windv:',par%windv
   write(f,*) 'printpar ',id,' ','windth:',par%windth
-  write(f,*) 'printpar ',id,' ','epsi:',par%epsi
   write(f,*) 'printpar ',id,' ','nonh:',par%nonh
   write(f,*) 'printpar ',id,' ','nuhv:',par%nuhv
   write(f,*) 'printpar ',id,' ','wearth:',par%wearth

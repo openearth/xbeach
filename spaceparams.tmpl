@@ -37,6 +37,8 @@
       real*8  0  yori b   ! [m]        y-origin of grid in world coordinates
       real*8  0  alfa b   ! [rad]      (deg on input) angle of grid w.r.t. East
       real*8  0  posdwn b ! [-]        depths defined positive downwards (1) or upwards(-1)
+      real*8  0  thetamin b ! [rad]      minimum angle of computational wave grid (carth. in rad)
+      real*8  0  thetamax b ! [rad]      minimum angle of computational wave grid (carth. in rad)
       integer 0  nx     b ! [-]        local number of grid cells x-direction
       integer 0  ny     b ! [-]        local number of grid cells y-direction
       real*8  2  zb     s%nx+1 s%ny+1 d ! [m]        bed level

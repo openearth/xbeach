@@ -778,6 +778,7 @@ character(len=*), INTENT(IN)            :: Ebcfname
 
 ! help integers
 integer                                 :: Ns ! Number of theta bins
+integer                                 :: reclen 
 
 ! counters
 integer                                 :: i, ii, iii, stepf, stepang, index2
@@ -790,6 +791,7 @@ real*8                                  :: pp
 ! help single variables with meaning
 real*8                                  :: TT, kmax
 real*8                                  :: hm0now, s1, s2, modf, modang
+real*8									:: stdeta,stdzeta
 
 ! help vectors
 integer, dimension(wp%K)                :: Nbin
@@ -803,7 +805,7 @@ real*8,dimension(1:401)                 :: ktemp, ftemp
 ! help arrays
 real*8,dimension(:,:), allocatable      :: D
 real*8,dimension(:,:,:), allocatable    :: zeta, Ampzeta, E_tdir
-
+real*8,dimension(:,:), allocatable      :: eta, Amp
 ! Complex help variables
 ! double complex                          :: ctemp
 ! wwvv double complex,dimension(:),allocatable  :: Gn, Comptemp
@@ -880,13 +882,7 @@ end do
 if (par%random==1) CALL RANDOM_SEED                        ! Call random seed
 !call random_number(P0)
 call random_number(randummy)
-if (xmaster) then
-!  open(555,file='tempout1')  ! wwvv todo: better to use the same unit number for
-!                             ! short I/O sequences like this. 555 cab interfere
-!                             ! with varoutput unit numbers
-!  write(555,*)randummy
-!  close(555)
-endif
+
 P0=randummy(1:wp%K)
 
 
@@ -1017,7 +1013,7 @@ temp=(/(i,i=0,Ns)/)
 ! ensure all theta=themamax is included
 temp(Ns+1)=temp(Ns+1)+epsilon(1.0)          
 allocate(Nbox(Ns+1))
-Nbox=(par%thetamin*par%px/180)+temp*(par%dtheta*par%px/180)
+Nbox=(s%thetamin)+temp*(par%dtheta*par%px/180.d0)
 deallocate (temp)
 
 ! Histc function on theta0 with Nbox edges
@@ -1058,6 +1054,11 @@ allocate(zeta(wp%Npy,wp%Nr,Ns))
 allocate(Ampzeta(wp%Npy,wp%Nr,Ns))
 zeta=0
 Ampzeta=0
+
+allocate(eta(wp%Npy,wp%Nr))
+allocate(Amp(wp%Npy,wp%Nr))
+eta=0
+Amp=0
 
 ! Nr = time, wp%Npy = y-axis points, Ns= theta bins
 do ii=1,Ns
@@ -1112,8 +1113,22 @@ do ii=1,Ns
             Comptemp=zeta(index2,:,ii)
 
             call hilbert(Comptemp,size(Comptemp))
-        
-            Ampzeta(index2,:,ii)=abs(Comptemp)
+			
+            if (par%oldwbc==1) then
+               Ampzeta(index2,:,ii)=abs(Comptemp)
+			else
+			   !Ap 25/8
+			   eta(index2,:) = sum(zeta(index2,:,:),2)
+			   Comptemp=eta(index2,:)
+			   call hilbert(Comptemp,size(Comptemp))
+			   Amp(index2,:)=abs(Comptemp)
+			   stdzeta = sqrt(sum(zeta(index2,:,ii)**2)/(size(zeta(index2,:,ii)-1)))
+			   stdeta = sqrt(sum(eta(index2,:)**2)/(size(eta(index2,:)-1)))
+			   Ampzeta(index2,:,ii)= Amp(index2,:)*stdzeta/stdeta    
+			endif
+			
+
+
             
             if(xmaster) then
               if (F2/=0) then
@@ -1146,19 +1161,18 @@ E_tdir= 0.5d0*(par%rho)*(par%g)*Ampzeta**2
 E_tdir=E_tdir/s%dtheta
 
 if(xmaster) then
-  open(12,file=Ebcfname,form='unformatted')
+inquire(iolength=reclen) 1.d0
+reclen=reclen*(wp%Npy)*(Ns)
+  open(12,file=Ebcfname,form='unformatted',access='direct',recl=reclen)
 !  open(12,file=Ebcfname,form='binary')
-  do i=1,wp%Nr
-      write(12)E_tdir(:,i,:)
-  end do
-  do i=1,4                ! Ensure the file is always full to the end
-      write(12)0.d0*E_tdir(:,1,:)
+  do i=1,wp%Nr+4
+      write(12,rec=i)E_tdir(:,min(i,wp%Nr),:)
   end do
   close(12)
   write(*,*)'file done'
 endif
 
-deallocate (D,t,zeta,Ampzeta,E_tdir)
+deallocate (D,t,zeta,Ampzeta,E_tdir, Amp, eta)
 
 return
 
@@ -1187,6 +1201,7 @@ character(len=*), INTENT(IN)            :: qbcfname
 
 ! internal variables
 integer                                 :: K, m, index1, Npy, Nr, i=0, jj
+integer                                 :: reclen
 integer,dimension(:),allocatable        :: index2
 
 real*8                                  :: g
@@ -1368,13 +1383,12 @@ deallocate(index2)
 
 if(xmaster) then
   write(*,fmt='(a)')'writing long wave mass flux to ',trim(qbcfname),' ...'
-  open(21,file=qbcfname,form='unformatted')
+  inquire(iolength=reclen) 1.d0
+  reclen=reclen*(Npy)
+  open(21,file=qbcfname,form='unformatted',access='direct',recl=reclen)
 !  open(21,file=qbcfname,form='binary')
-  do i=1,wp%Nr
-      write(21)qx(:,i)
-  end do
-  do i=1,4                ! Ensure the file is always full to the end
-      write(21)0.d0*qx(:,1)
+  do i=1,wp%Nr+4
+      write(21,rec=i)qx(:,min(i,wp%Nr))
   end do
   close(21)
   write(*,*)'file done'

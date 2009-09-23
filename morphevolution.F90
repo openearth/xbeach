@@ -673,7 +673,7 @@ integer                                 :: i,nw,ii
 integer                                 :: ih0,it0,ih1,it1
 integer, save                           :: nh,nt
 integer                                 :: j,jg
-real*8                                  :: dster,onethird,twothird,Ass,dcf,dcfin,ML,fac,facua
+real*8                                  :: dster,onethird,twothird,Ass,dcf,dcfin,ML,fac
 real*8                                  :: Te,kvis,Sster,cc1,cc2,wster,z0,delta,smax
 real*8                                  :: p,q,f0,f1,f2,f3,uad,duddtmax,dudtmax,siguref,t0fac,duddtmean,dudtmean
 real*8                               ,save     :: dh,dt
@@ -776,7 +776,7 @@ do j=1,ny+1
 	  detadxmax(i,j) = dudtmax*sinh(k(i,j)*hloc(i,j))/max(c(i,j),sqrt(H(i,j)*par%g))/sigm(i,j)
       
 	  uad = f0*RF(17,ih0,it0)+f1*RF(17,ih1,it0)+ f2*RF(17,ih0,it1)+f3*RF(17,ih1,it1)
-	  ua(i,j) = par%sws*facua*(Sk(i,j)-As(i,j))*urms(i,j)
+	  ua(i,j) = par%sws*par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
 
       ! Jaap: use average slope over bore front in roller energy balance...
 	  duddtmean = f0*RF(18,ih0,it0)+f1*RF(18,ih1,it0)+ f2*RF(18,ih0,it1)+f3*RF(18,ih1,it1)
@@ -819,8 +819,9 @@ if (par%lws==1) then
    vmg  = dsqrt(ue**2+ve**2)
 elseif (par%lws==0) then
    ! vmg lags on actual mean flow; but long wave contribution to mean flow is included... 
-   fac = 1/par%Trep/20.d0 
-   vmg = (1-fac)*vmg + fac*dsqrt(ue**2+ve**2) 
+!   fac = 1/par%Trep/20.d0 
+!   vmg = (1-fac)*vmg + fac*dsqrt(ue**2+ve**2) 
+   vmg = (1.d0-1.d0/par%cats/par%Trep*par%dt)*vmg + (1.d0/par%cats/par%Trep*par%dt)*dsqrt(ue**2+ve**2) 
 endif
 
 urmsturb = dsqrt(urms**2.d0+1.45d0*(kb+kturb))
