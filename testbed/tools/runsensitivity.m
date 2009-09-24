@@ -1,5 +1,5 @@
-testbeddir='d:\data\dano\xbeach\testbed'
-exe='D:\data\dano\xbeach\VS2008\Release\xbeach.exe>out'
+testbeddir='d:\data\dano\xbeach_id\testbed'
+exe='D:\data\dano\xbeach_id\VS2008\Release\xbeach.exe>out'
 cd([testbeddir '\tools']);
 addpath(pwd)
 fi=fopen('sensitivity.txt')
@@ -53,7 +53,7 @@ while 1
         end
         %
         eval(['!',exe])
-        plotdata
+        % plotdata
         %     post
         %     showbank
     end
