@@ -22,7 +22,7 @@ while 1
     else
         release='Release\'
     end
-    exe='D:\data\dano\xbeach\vs2008\Release\xbeach.exe>out'
+    exe='D:\data\dano\xbeach\VS2008\Release\xbeach.exe>out'
     cases ={ ...
         ['Boers_1C']                     ... %1
         ['Delilah_199010131000'],        ... %2
@@ -38,8 +38,13 @@ while 1
         ['Zelt_Case1'],                  ... %12
         ['Zwin_T01'],                    ... %13
         ['Deltaflume2006_T04'],          ... %14
+        ['CarrierGreenspan'],            ... %15
         }
+<<<<<<< .mine
+    todo= [9]
+=======
     todo= [3]
+>>>>>>> .r297
     for j=1:length(todo)
         i=todo(j);
         rundir=[testbankdir,filesep,runid,filesep,cases{i}];

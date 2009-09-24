@@ -78,14 +78,14 @@ t5=a(:,1)/1000;v5=a(:,2)/10000;
 subplot(312)
 plot(t4,v4,'r.',t,ut(103,:),'r-','linewidth',2)
 meas(:,1)=t4;meas(:,2)=v4;comp(:,1)=t;comp(:,2)=ut(103,:);
-[r2,slope,eps,bss]=compskill2(comp,meas,'u');
+[r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,'u');
 xlabel('time (min.');ylabel('velocity (m/s)')
 legend('MS4 obs','MS4 comp','location','northeast')
 Bmeas=load([datadir 'B.txt'])
 subplot(313)
 plot(Bmeas(:,1),Bmeas(:,2),'.k',t,Bt,'k-','linewidth',2)
 comp(:,1)=t;comp(:,2)=Bt;
-[r2,slope,eps,bss]=compskill2(comp,Bmeas,'B');
+[r2,sci,relbias,bss]=compskill4(comp,Bmeas,runid,testid,'B');
 xlabel('time (min.');ylabel('breach width (m)')
 legend('B obs','B comp','location','southeast')
 print('-dpng',['..\..\report\' testid '_' runid '_fig1.png'])

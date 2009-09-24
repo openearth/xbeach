@@ -29,6 +29,7 @@ beta     = 0.1
 rt       = 31800
 dtbc     = 0.5
 sprdthr  = 0.01
+trepfac  = 0
 
 bcfile= jonswap.inp
 
@@ -57,7 +58,7 @@ morstart = 3000
 wetslp   = 0.3
 dryslp   = 1.0
 
-nglobalvar = 16
+nglobalvar = 17
 zs
 zb
 E
@@ -74,3 +75,4 @@ Fx
 D
 DR 
 Qb
+cx
