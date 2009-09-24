@@ -24,10 +24,10 @@ while 1
         release='Release\'
     end
     cases ={ ...
-        ['Boers_1C'],                    ... %1
+        ['Boers_1C']                     ... %1
         ['Delilah_199010131000'],        ... %2
         ['Deltaflume2006_T01'],          ... %3
-        ['Duck_base'],                   ... %4
+        ['Deltaflume2006_T04'],          ... %4
         ['Ducktest_coarse'],             ... %5
         ['Hard_structures_flat_bottom'], ... %6
         ['Hard_structures_rif'],         ... %7
@@ -37,10 +37,9 @@ while 1
         ['Yu&Slinn_WCI'],                ... %11
         ['Zelt_Case1'],                  ... %12
         ['Zwin_T01'],                    ... %13
-        ['Deltaflume2006_T04'],          ... %14
-        ['CarrierGreenspan'],            ... %15
+        ['CarrierGreenspan']             ... %14
         }
-    todo= [9]
+    todo= [1:14]
     for j=1:length(todo)
         i=todo(j);
         rundir=[testbankdir,filesep,runid,filesep,cases{i}];
