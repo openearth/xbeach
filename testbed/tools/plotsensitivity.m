@@ -1,5 +1,5 @@
-testbeddir='d:\data\dano\xbeach\testbed'
-exe='D:\data\dano\xbeach\vs2008\Release\xbeach.exe>out'
+testbeddir='d:\data\dano\xbeach_id\testbed'
+exe='D:\data\dano\xbeach_id\vs2008\Release\xbeach.exe>out'
 cd([testbeddir '\tools']);
 addpath(pwd)
 fi=fopen('sensitivity.txt')
