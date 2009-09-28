@@ -27,7 +27,7 @@ htot=zeros(nt,nx+1);
 g=9.81;
 
 for i=1:nt;
-    i/nt
+    i/nt;
     z=fread(fiz,[nx+1,ny+1],'double');
     b=fread(fib,[nx+1,ny+1],'double');
     h=fread(fih,[nx+1,ny+1],'double');
