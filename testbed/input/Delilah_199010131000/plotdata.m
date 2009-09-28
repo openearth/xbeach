@@ -1,5 +1,5 @@
 function plotdata()
-clear all
+clear all;close all
 [runid,testid,datadir]=testinfo
 %sdir=pwd;
 %cd w:\postbox\mccall\duck1990\19901013\
@@ -306,4 +306,6 @@ if sfigs
    pname = [dataid '_' testid '_' runid '_hrmsinf.jpg'];
    eval(['print -djpeg ' pname]);
 end
+pname = ['..\..\report\',testid '_' runid '_Hrmslo' '.jpg'];
+eval(['print -djpeg ' pname]);
 
