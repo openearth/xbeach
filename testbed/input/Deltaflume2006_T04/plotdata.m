@@ -52,7 +52,7 @@ s.setup = mean(s.zs-max(0,s.zb),2);
 % long wave height
 h = s.zs-s.zb;
 windowSize = 60; % ten seconds window
-fs = fspecial('average',windowSize);
+fs = specialf('average',windowSize);
 hm = [];
 for i=1:length(xw)
     hm(i,:) = imfilter(h(i,:),fs,'symmetric');

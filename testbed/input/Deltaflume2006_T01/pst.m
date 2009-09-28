@@ -50,7 +50,7 @@ end
 tMF = m.tMF+seccor;
 % now link with simulations...
 windowSize = 90; % ten seconds window 
-fs = fspecial('average',windowSize);
+fs = specialf('average',windowSize);
 cma = [];
 for i=1:length(xw)
     cma(i,:) = imfilter(s.ccg(i,:),fs,'symmetric');
