@@ -1,5 +1,6 @@
 function plotdata()
-clear s
+clear s;close all
+[runid,testid,datadir]=testinfo
 
 %% simulation results
 nam = [{'zb'};{'H'};{'zs'};{'hh'};{'u'};{'ue'};{'ccg'};{'Sug'};{'ua'};];
@@ -54,7 +55,7 @@ movie = 1;
 if movie == 1
 
 figure;
-for i = 1:nt
+for i = nt
     if mod(i,10)==0
     plot(xw,s.zb(:,1),'k--'); hold on;
     plot(xw,s.zs(:,i),'b');
@@ -66,6 +67,8 @@ for i = 1:nt
 end
 
 end
+pname = ['..\..\report\',testid '_' runid '_fig1' '.jpg'];
+eval(['print -djpeg ' pname]);
 
 
 

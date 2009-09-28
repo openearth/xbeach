@@ -1,4 +1,6 @@
 function plotdata()
+clear all;close all
+[runid,testid,datadir]=testinfo
 %% simulation results
 nam = [{'zb'};{'zs'};{'u'};{'ue'};{'H'};]; %{'dzav'};
 
@@ -59,3 +61,5 @@ for i =nt:nt
 end
 
 print endprofile.png -dpng
+pname = ['..\..\report\',testid '_' runid '_fig1' '.jpg'];
+eval(['print -djpeg ' pname]);

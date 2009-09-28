@@ -1,4 +1,6 @@
 function plotdata()
+clear all;close all
+[runid,testid,datadir]=testinfo
 figure(3);
 fid=fopen('dims.dat','r');
 nt=fread(fid,[1],'double')
@@ -25,7 +27,7 @@ for i=1:nt;
         z0=z;
     end
     zs0t(i)=f(1,2);
-    if mod(i,10)==0&i>500
+    if i==nt;%mod(i,10)==0&i>500
         subplot(211);
         plot(x,f,'b-','linewidth',2);title(num2str(i));hold on;
         plot(x,z,'r-','linewidth',2);
@@ -47,3 +49,5 @@ for i=1:nt;
 end;
 fclose(fid)
 t0=[1:length(zs0t)]/120;
+pname = ['..\..\report\',testid '_' runid '_fig1' '.jpg'];
+eval(['print -djpeg ' pname]);

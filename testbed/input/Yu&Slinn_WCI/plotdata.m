@@ -1,4 +1,6 @@
 function plotdata()
+clear all;close all
+[runid,testid,datadir]=testinfo
 fid=fopen('dims.dat','r');
 nt=fread(fid,[1],'double')
 nx=fread(fid,[1],'double')
@@ -30,14 +32,9 @@ for i=1:nt;
         title('with wave current interaction');
         xlabel('X (m)','fontsize',14)
         ylabel('Y (m)','fontsize',14)
-	PN = fliplr(pwd);
-	[runid,R] = strtok(PN,'\'); runid = fliplr(runid);
-	[testid,R] = strtok(R,'\'); testid = fliplr(testid);
-	[dataid,R] = strtok(R,'\'); dataid = fliplr(dataid);
-	pname = [dataid '_' testid '_' runid '_fig' '1' '.jpg'];
-	eval(['print -djpeg ' pname]);
-    end
-
+        pname = ['..\..\report\',testid '_' runid '_fig1' '.jpg'];
+        eval(['print -djpeg ' pname]);    end
+    
 end;
 
 fclose(fid)

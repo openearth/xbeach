@@ -1,5 +1,6 @@
 function plotdata()
-clear all
+clear all;close all
+[runid,testid,datadir]=testinfo
 ix=65;iy=40
 fid=fopen('dims.dat','r');
 nt=fread(fid,[1],'double')
@@ -18,7 +19,7 @@ fiu=fopen('u.dat','r');
 fiv=fopen('v.dat','r');
 fify=fopen('Fy.dat','r');
 ii=0;
-for i=1:nt;
+for i=nt;
     zb=fread(fib,[nx+1,ny+1],'double');
     f=fread(fid,[nx+1,ny+1],'double');
     z=fread(fiz,[nx+1,ny+1],'double');
@@ -44,6 +45,9 @@ for i=1:nt;
     print('-djpeg',fname)
     end
 end;
+pname = ['..\..\report\',testid '_' runid '_fig1' '.jpg'];
+eval(['print -djpeg ' pname]);
+
 fclose(fib)
 fclose(fid)
 fclose(fiz)
@@ -60,3 +64,5 @@ subplot(422);plot(Hrmst(:,iy));
 subplot(424);plot(zst(:,iy));
 subplot(426);plot(ut(:,iy));
 subplot(428);plot(vt(:,iy));
+pname = ['..\..\report\',testid '_' runid '_fig2' '.jpg'];
+eval(['print -djpeg ' pname]);

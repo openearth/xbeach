@@ -138,10 +138,5 @@ plot([1:ny]/ny*2,zsmin/H)
 
 xlabel('y/L_y');
 ylabel('\zeta/H');
-PN = fliplr(pwd);
-[runid,R] = strtok(PN,'\'); runid = fliplr(runid);
-[testid,R] = strtok(R,'\'); testid = fliplr(testid);
-[dataid,R] = strtok(R,'\'); dataid = fliplr(dataid);
-pname = [dataid '_' testid '_' runid '_fig' '1' '.jpg'];
+pname = ['..\..\report\',testid '_' runid '_fig1' '.jpg'];
 eval(['print -djpeg ' pname]);
-

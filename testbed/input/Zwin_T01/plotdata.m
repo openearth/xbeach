@@ -1,9 +1,6 @@
 function plotdata()
-PN = fliplr(pwd);
-[runid,R] = strtok(PN,'\'); runid = fliplr(runid);
-[testid,R] = strtok(R,'\'); testid = fliplr(testid);
-%[dataid,R] = strtok(R,'\'); dataid = fliplr(dataid);
-datadir=['..\..\data\',runid,'\']
+clear all;close all
+[runid,testid,datadir]=testinfo
 
 xmin=-20;xmax=50;ymin=-20;ymax=20;
 fid=fopen('dims.dat','r');
@@ -88,6 +85,7 @@ comp(:,1)=t;comp(:,2)=Bt;
 [r2,sci,relbias,bss]=compskill4(comp,Bmeas,runid,testid,'B');
 xlabel('time (min.');ylabel('breach width (m)')
 legend('B obs','B comp','location','southeast')
-print('-dpng',['..\..\report\' testid '_' runid '_fig1.png'])
+pname = ['..\..\report\',testid '_' runid '_fig1' '.jpg'];
+eval(['print -djpeg ' pname]);
 !type B.err>>..\..\report\B.err
 !type u.err>>..\..\report\u.err
