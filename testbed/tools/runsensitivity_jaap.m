@@ -1,8 +1,7 @@
-testbeddir='d:\data\dano\xbeach_id\testbed'
-exe='D:\data\dano\xbeach_id\VS2008\Release\xbeach.exe>out'
+testbeddir='F:\subversion_xbeach\trunk\testbed'
 cd([testbeddir '\tools']);
-addpath(pwd)
-fi=fopen('sensitivity.txt')
+addpath(pwd);
+fi=fopen('sensitivity_jaap.txt');
 while 1
     l = fgetl(fi)
     if isempty(l)|strcmp(l,'stop'), break, end
@@ -23,11 +22,12 @@ while 1
     else
         release='Release\'
     end
+    exe='F:\subversion_xbeach\trunk\Release_NoMPI\xbeach.exe>out'
     cases ={ ...
         ['Boers_1C']                     ... %1
         ['Delilah_199010131000'],        ... %2
         ['Deltaflume2006_T01'],          ... %3
-        ['Deltaflume2006_T04'],          ... %4
+        ['Duck_base'],                   ... %4
         ['Ducktest_coarse'],             ... %5
         ['Hard_structures_flat_bottom'], ... %6
         ['Hard_structures_rif'],         ... %7
@@ -37,23 +37,25 @@ while 1
         ['Yu&Slinn_WCI'],                ... %11
         ['Zelt_Case1'],                  ... %12
         ['Zwin_T01'],                    ... %13
-        ['CarrierGreenspan']             ... %14
-        }
-    todo= [1:14]
+        ['Deltaflume2006_T04'],          ... %14
+        ['Deltaflume2006_T01_zebra']     ... %15
+        };
+    todo = [15];
     for j=1:length(todo)
         i=todo(j);
         rundir=[testbankdir,filesep,runid,filesep,cases{i}];
         mkdir (rundir);
         cd (rundir);
         copyfile (['..',filesep,'..',filesep,'input', ...
-            filesep,cases{i},filesep,'*.*'],rundir,'f');
+                        filesep,cases{i},filesep,'*.*'],rundir,'f');
+                    
         %% Change params.txt
         for ip=1:numpar;
             insertkey('params.txt',key{ip},value{ip});
         end
         %
         eval(['!',exe])
-        % plotdata
+        plotdata
         %     post
         %     showbank
     end
