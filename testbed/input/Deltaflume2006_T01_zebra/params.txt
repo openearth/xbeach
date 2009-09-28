@@ -74,7 +74,7 @@ morfac   = 10
 morstart = 0
 por      = 0.4
 dryslp   = 1.0
-wetslp   = 0.15
+wetslp   = 0.10
 hswitch  = 0.10
 dico     = 1.
 form     = 2
@@ -85,7 +85,7 @@ Tsmin    = 1
 
 output
 
-nglobalvar = 37
+nglobalvar = 35
 zs
 zb
 E
@@ -113,8 +113,6 @@ DR
 Tbore
 BR
 kb 
-uon
-uoff
 ua
 Sk
 As
