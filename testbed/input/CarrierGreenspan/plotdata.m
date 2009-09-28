@@ -1,3 +1,5 @@
+function plotdata()
+[runid,testid,datadir]=testinfo
 figure(1);
 fid=fopen('dims.dat','r');
 nt=fread(fid,[1],'double')
@@ -55,3 +57,5 @@ for i=1:nt;
     end
 end;
 fclose(fid)
+pname = ['..\..\report\',testid '_' runid '_fig1' '.jpg'];
+eval(['print -djpeg ' pname]);
