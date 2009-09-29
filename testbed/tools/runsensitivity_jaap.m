@@ -1,3 +1,5 @@
+close all; clear all; 
+
 testbeddir='F:\subversion_xbeach\trunk\testbed'
 cd([testbeddir '\tools']);
 addpath(pwd);
@@ -7,6 +9,7 @@ while 1
     if isempty(l)|strcmp(l,'stop'), break, end
     runid=deblank(l);
         %% Read parameters to change
+        params=fgetl(fi);
         l=fgetl(fi);
         numpar=str2num(l);
         for ip=1:numpar;
@@ -38,7 +41,8 @@ while 1
         ['Zelt_Case1'],                  ... %12
         ['Zwin_T01'],                    ... %13
         ['Deltaflume2006_T04'],          ... %14
-        ['Deltaflume2006_T01_zebra']     ... %15
+        ['Deltaflume2006_T01_zebra']     ... %15 
+        ['CarrierGreenspan']             ... %16
         };
     todo = [15];
     for j=1:length(todo)
@@ -48,7 +52,8 @@ while 1
         cd (rundir);
         copyfile (['..',filesep,'..',filesep,'input', ...
                         filesep,cases{i},filesep,'*.*'],rundir,'f');
-                    
+        % rename paramsfile to params.txt
+        copyfile(params,'params.txt');            
         %% Change params.txt
         for ip=1:numpar;
             insertkey('params.txt',key{ip},value{ip});
