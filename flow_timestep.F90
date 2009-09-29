@@ -94,12 +94,6 @@ if (.not. allocated(vsu) ) then
     ve      =0.d0 
     nuh     =0.d0
 endif
-
-
-    
-    ! Water depth
-    ! hh=zs-zb
-    ! hh=max(hh,par%eps)
     ! Jaap Wetting and drying criterion eta points
     do j=1,ny+1
         do i=1,nx+1
@@ -141,10 +135,8 @@ endif
             if (uu(i,j)>par%umin) then
                 hu(i,j)=hh(i,j)
             elseif (uu(i,j)<-par%umin) then
-                !Ap
                 hu(i,j)=hh(min(nx,i)+1,j)  
             else
-                !Ap
                 hu(i,j)=max(max(zs(i,j),zs(min(nx,i)+1,j))-max(zb(i,j),zb(min(nx,i)+1,j)),par%eps)
                 !hu(i,j) = (hh(i,j)+hh(min(nx,i)+1,j))/2
             end if           
@@ -206,15 +198,9 @@ endif
     ! X-direction
     !
     do j=2,ny ! Jaap 2,ny instead of 1,ny+1
-        do i=2,nx
-            ! Advection terms (momentum conserving method)
-            if (uu(i,j)>=0.d0) then
-               ududx(i,j)=.5d0*(hu(i,j)*uu(i,j)+hu(i-1,j)*uu(i-1,j))/&
-                          hum(i,j)*(uu(i,j)-uu(i-1,j))/(xu(i)-xu(i-1))
-            else
-               ududx(i,j)=.5d0*(hu(i,j)*uu(i,j)+hu(i+1,j)*uu(i+1,j))/&
-                          hum(i,j)*(uu(i+1,j)-uu(i,j))/(xu(i+1)-xu(i))
-            end if           
+        do i=2,nx         
+			ududx(i,j)=max(0.d0,.5d0*(hu(i,j)*uu(i,j)+hu(i-1,j)*uu(i-1,j)) ) / hum(i,j)*(uu(i,j  )-uu(i-1,j))/(xu(i  )-xu(i-1)) + &
+			           min(0.d0,.5d0*(hu(i,j)*uu(i,j)+hu(i+1,j)*uu(i+1,j)) ) / hum(i,j)*(uu(i+1,j)-uu(i,j  ))/(xu(i+1)-xu(i  ))
         end do 
     end do
     ! wwvv fix border rows and columns of ududx
@@ -224,22 +210,10 @@ endif
     call xmpi_shift(ududx,':1')
     call xmpi_shift(ududx,':n')
 #endif
-    !do j=2,ny
-    !    do i=1,nx
-    !        ! Advection terms (momentum conserving method) --> not exactly as in Stelling and Duinmeijer
-    !        vdudy(i,j)=vu(i,j)*(uu(i,j+1)-uu(i,j-1))/(yz(j+1)-yz(j-1))
-    !    end do 
-    !end do
-    ! Robert & Jaap: Let's do Stelling & Duinmeijer for all advection terms
     do j=2,ny
         do i=1,nx
-            if (vu(i,j)>=0.d0) then
-               vdudy(i,j)=.5d0*(hu(i,j)*vu(i,j)+hu(i,j-1)*vu(i,j-1))/&
-                          hum(i,j)*(uu(i,j)-uu(i,j-1))/(yz(j)-yz(j-1))
-            else
-               vdudy(i,j)=.5d0*(hu(i,j)*vu(i,j)+hu(i,j+1)*vu(i,j+1))/&
-                          hum(i,j)*(uu(i,j+1)-uu(i,j))/(yz(j+1)-yz(j))
-            endif
+            vdudy(i,j)=max(0.d0,.5d0*(hv(i,j-1)*vv(i,j-1)+hv(i+1,j-1)*vv(i+1,j-1)) ) / hum(i,j)*(uu(i,j  )-uu(i,j-1))/(yz(j  )-yz(j-1)) + &
+					   min(0.d0,.5d0*(hv(i,j  )*vv(i,j  )+hv(i+1,j  )*vv(i+1,j  )) ) / hum(i,j)*(uu(i,j+1)-uu(i,j  ))/(yz(j+1)-yz(j  ))
         end do 
     end do
     ! wwvv fix border rows and columns of vdudy
@@ -258,13 +232,6 @@ endif
             viscu(i,j) = nuh(i,j)*( 2*(dudx1-dudx2)/(xu(i+1)-xu(i-1)) )*wetu(i+1,j)*wetu(i-1,j)  !Set viscu = 0.0 near water line   wwvv: viscu is overwritten in next loopnest before it is used
         end do 
     end do
-    ! wwvv fix border rows and columns of nuh viscu is not used, so not for viscu
-#ifdef USEMPI
-    ! call xmpi_shift(nuh,'1:') ! second thought: not needed, (2:nx,2:ny) are used
-    ! call xmpi_shift(nuh,'m:')
-    ! call xmpi_shift(nuh,':1')
-    ! call xmpi_shift(nuh,':n')
-#endif
     do j=2,ny
         do i=2,nx
             dudy1 = (uu(i,j+1)-uu(i,j))/(yz(j+1)-yz(j))
@@ -272,13 +239,6 @@ endif
             viscu(i,j) = viscu(i,j) + nuh(i,j)*( 2*(dudy1-dudy2)/(yz(j+1)-yz(j-1)) )*wetu(i,j+1)*wetu(i,j-1)
         end do 
     end do
-    ! wwvv fix border rows and columns of viscu
-#ifdef USEMPI
-    ! call xmpi_shift(viscu,'1:') ! second thought: not needed, (2:nx,2:ny) are used
-    ! call xmpi_shift(viscu,'m:')
-    ! call xmpi_shift(viscu,':1')
-    ! call xmpi_shift(viscu,':n')
-#endif
     !
     ! Explicit Euler step momentum u-direction
     !
@@ -289,7 +249,7 @@ endif
           else
             imax=nx
           endif
-          do i=2,imax   ! wwvv with this modification, parallel and serial version
+          do i=2,imax ! wwvv with this modification, parallel and serial version
                       ! give the same results. If this modification is not ok, then
                       ! we have a problem
             if(wetu(i,j)==1) then
@@ -306,7 +266,7 @@ endif
         end do 
     end do
 ! wwvv since the loops range from 2:nx-1 , 2:ny we have to do something in the
-!  parallel case
+! parallel case
 #ifdef USEMPI
     ! wwvv qx is used later on, also the first row, fix the first row
     ! of uu first
@@ -315,48 +275,27 @@ endif
     call xmpi_shift(uu,':1')
     call xmpi_shift(uu,':n')
 #endif
-    ! Flux in u-point
-    qx=uu*hu
     !
     ! Y-direction
     !
     do j=1,ny
         do i=2,nx+1 !
             ! Advection terms (momentum conserving method)
-            if (vv(i,j)>=0.d0) then
-               if (j>1) then
-                  vdvdy(i,j)=.5d0*(hv(i,j)*vv(i,j)+hv(i,j-1)*vv(i,j-1))/hvm(i,j)*(vv(i,j)-vv(i,j-1))&
-                  /(yv(j)-yv(j-1))
-               else
-                  vdvdy(i,j) = 0.0d0
-               endif
-            else
-               ! Dano no need to set vdvdy to 0 for v>0
-               if (j<ny) then
-                  vdvdy(i,j)=.5d0*(hv(i,j)*vv(i,j)+hv(i,j+1)*vv(i,j+1))/hvm(i,j)*(vv(i,j+1)-vv(i,j))&
-                  /(yv(j+1)-yv(j))
-               else
-                  vdvdy(i,j)=0.d0
-               endif
-            end if           
+            if (j>1 .and. j<ny) then
+			   vdvdy(i,j)=max(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j-1)*vv(i,j-1)) ) / hvm(i,j)*(vv(i,j  )-vv(i,j-1))/(yv(j  )-yv(j-1)) + &
+                          min(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j+1)*vv(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j  ))/(yv(j+1)-yv(j  ))	          
+			elseif (j==1) then
+               vdvdy(i,j)=min(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j+1)*vv(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j  ))/(yv(j+1)-yv(j  ))	          
+			elseif (j==ny) then
+			   vdvdy(i,j)=max(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j-1)*vv(i,j-1)) ) / hvm(i,j)*(vv(i,j  )-vv(i,j-1))/(yv(j  )-yv(j-1))
+			endif
         end do 
     end do
-    !do j=1,ny !Jaap 1,ny instead of 1,ny+1 (v's at ny+1 are dummy's)
-    !    do i=2,nx
-    !        ! Advection terms (momentum conserving method) --> not exactly as in Stelling and Duinmeijer
-    !        udvdx(i,j)=uv(i,j)*(vv(i+1,j)-vv(i-1,j))/(xz(i+1)-xz(i-1))
-    !    end do 
-    !end do
     ! Robert & Jaap: Let's do Stelling & Duinmeijer for all advection terms
     do j=1,ny
         do i=2,nx
-            if (uv(i,j)>=0.d0) then
-               udvdx(i,j)=.5d0*(hv(i,j)*uv(i,j)+hv(i-1,j)*uv(i-1,j))/&
-                          hvm(i,j)*(vv(i,j)-vv(i-1,j))/(xz(i)-xz(i-1))
-            else
-               udvdx(i,j)=.5d0*(hv(i,j)*uv(i,j)+hv(i+1,j)*uv(i+1,j))/&
-                          hvm(i,j)*(vv(i+1,j)-vv(i,j))/(xz(i+1)-xz(i))
-            endif
+			udvdx(i,j)=max(0.d0,.5d0*(hu(i-1,j)*uu(i-1,j)+hu(i-1,j+1)*uu(i-1,j+1)) ) / hvm(i,j)*(vv(i  ,j)-vv(i-1,j))/(xz(i  )-xz(i-1)) + &
+			           min(0.d0,.5d0*(hu(i  ,j)*uu(i  ,j)+hu(i  ,j+1)*uu(i  ,j+1)) ) / hvm(i,j)*(vv(i+1,j)-vv(i  ,j))/(xz(i+1)-xz(i  ))
         end do 
     end do
     do j=2,ny
@@ -398,6 +337,37 @@ endif
             end if
         end do 
     end do
+
+    ! Pieter and Jaap: update hu en hv for continuity
+    do j=1,ny+1
+        do i=1,nx+1 !Ap
+            ! Water depth in u-points do continuity equation: upwind
+            if (uu(i,j)>par%umin) then
+                hu(i,j)=hh(i,j)
+            elseif (uu(i,j)<-par%umin) then
+                hu(i,j)=hh(min(nx,i)+1,j)  
+            else
+                hu(i,j)=max(max(zs(i,j),zs(min(nx,i)+1,j))-max(zb(i,j),zb(min(nx,i)+1,j)),par%eps)
+                !hu(i,j) = (hh(i,j)+hh(min(nx,i)+1,j))/2
+            end if
+			 
+			! Water depth in v-points do continuity equation: upwind
+            if (vv(i,j)>par%umin) then
+                hv(i,j)=hh(i,j)
+            elseif (vv(i,j)<-par%umin) then
+                hv(i,j)=hh(i,min(ny,j)+1)
+            else
+                hv(i,j)=max(max(zs(i,j),zs(i,min(ny,j)+1))-max(zb(i,j),zb(i,min(ny,j)+1)),par%eps)
+                !hv(i,j) = (hh(i,j)+hh(i,min(ny,j)+1))/2
+            end if           
+        end do 
+    end do
+#ifdef USEMPI
+    call xmpi_shift(hu ,'m:')
+	call xmpi_shift(hv ,':n')
+#endif
+    ! Flux in u-point
+    qx=uu*hu
     ! Flux in v-points
     ! first column of qy is used later, and it is defined in the loop above
     ! no communication  necessary at this point
@@ -414,9 +384,9 @@ endif
     !
     do j=2,ny
         do i=2,nx
-           dzsdt(i,j) = (-1.d0)*((qx(i,j)-qx(i-1,j))/(xu(i)-xu(i-1)) &
-                               +(qy(i,j)-qy(i,j-1))/(yv(j)-yv(j-1))) &
-							   -s%gww(i,j)
+           dzsdt(i,j) = (-1.d0)*((qx(i,j)-qx(i-1,j))/(xu(i)-xu(i-1))  &
+                               + (qy(i,j)-qy(i,j-1))/(yv(j)-yv(j-1))) &
+							   - s%gww(i,j)
          end do
     end do
     !
@@ -498,9 +468,8 @@ endif
     call xmpi_shift(v,'1:') 
     call xmpi_shift(v,'m:') 
 #endif
-
-        ! Robert + Jaap: compute derivatives of u and v
-        !
+    ! Robert + Jaap: compute derivatives of u and v
+    !
     ! V-velocities at u-points
     vu(1:nx,2:ny)= &                         
         0.25d0*(vv(1:nx,1:ny-1)+vv(1:nx,2:ny)+ &
