@@ -155,7 +155,7 @@ p12=  plot(xw,s.gwlevel(:,i),'y','LineWidth',1.5);
 %p9 =   plot(x,m.z(end,:),'k','LineWidth',1.5);
 axis([41 220 -4.5 2]);
 
-for i = 1:nt; %nt-500:nt
+for i = nt-100:nt
     temp = zeros(length(xw),nd+1);
     temp(:,2:end) = cumsum(s.dzbed(:,:,i),2);
     zlayer = repmat(s.zb(:,i),1,nd+1)-temp;
@@ -263,10 +263,10 @@ s.Hrms_lfm_out = sqrt(8)*std(s.etaout')';
 % phase averaged work on long waves (Battjes, 2004)
 s.RR = -mean(s.uin.*s.Fx,2);
 % correlation short and longh waves
-s.rho = []; s.pval = [];
-for i = 1:nx
-    [s.rho(i), s.pval(i)] = corr(detrend(s.zs(i,:))',s.Hrms(i,:).^2');
-end
+% s.rho = []; s.pval = [];
+% for i = 1:nx
+%     [s.rho(i), s.pval(i)] = corr(detrend(s.zs(i,:))',s.H(i,:).^2');
+% end
 %% figures;
 
 % hydrodynamics

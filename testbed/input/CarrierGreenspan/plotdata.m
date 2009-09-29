@@ -44,16 +44,17 @@ for i=1:nt;
         %plot(x,f+hrms/2,'g-','linewidth',2);
         %plot(x,f-hrms/2,'g-','linewidth',2);
         hold on
-%        axis([150 250 3 6]);
+        axis([50 150 4.75 5.25]);
         % axis([0 250 3 6]);
         drawnow;
         subplot(212)
         plot(x,u,'b-','linewidth',2);title(num2str(i));hold on;
         %plot(x,ue,'r-','linewidth',2);
         hold on
-%        axis([150 250 -2 2]);
-         %axis([0 250 -2 2]);
+        axis([50 150 -1.25 1.25]);
+        % axis([0 250 -2 2]);
         drawnow;
+        pause
     end
 end;
 fclose(fid)
