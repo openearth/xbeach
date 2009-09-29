@@ -92,6 +92,10 @@ if (.not. allocated(vmag2)) then
    allocate(chain(par%kmax))
    allocate(cumchain(par%kmax))
   
+   uau       = 0.d0
+   ccg       = 0.d0
+   uav       = 0.d0
+   Dc        = 0.d0
    um        = 0.d0
    vm        = 0.d0
    chain     = 0.0d0
