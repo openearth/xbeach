@@ -1011,9 +1011,9 @@ Ns=s%ntheta
 allocate(temp(Ns+1))
 temp=(/(i,i=0,Ns)/)
 ! ensure all theta=themamax is included
-temp(Ns+1)=temp(Ns+1)+epsilon(1.0)          
+temp(Ns+1)=temp(Ns+1)+epsilon(1.d0)          
 allocate(Nbox(Ns+1))
-Nbox=(s%thetamin)+temp*(par%dtheta*par%px/180.d0)
+Nbox=s%thetamin+temp*s%dtheta
 deallocate (temp)
 
 ! Histc function on theta0 with Nbox edges
@@ -1161,10 +1161,9 @@ E_tdir= 0.5d0*(par%rho)*(par%g)*Ampzeta**2
 E_tdir=E_tdir/s%dtheta
 
 if(xmaster) then
-inquire(iolength=reclen) 1.d0
-reclen=reclen*(wp%Npy)*(Ns)
+  inquire(iolength=reclen) 1.d0
+  reclen=reclen*(wp%Npy)*(Ns)
   open(12,file=Ebcfname,form='unformatted',access='direct',recl=reclen)
-!  open(12,file=Ebcfname,form='binary')
   do i=1,wp%Nr+4
       write(12,rec=i)E_tdir(:,min(i,wp%Nr),:)
   end do
