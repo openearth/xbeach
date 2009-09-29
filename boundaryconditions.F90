@@ -443,34 +443,42 @@ elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat=
 
     ! Check for next level in boundary condition file
     if (new/=old) then
-        ! Check for how many bcfile steps are jumped
-        ! Difference = new-old, but as the files jump 1 anyway,
-        ! only do loop for difference-1 times
-!        do i=1,(new-old)-1
-         recpos=new
-         if(xmaster) then
-           read(72,rec=recpos+1)gq2
-           read(71,rec=recpos+1)gee2
-           read(72,rec=recpos)gq1
-           read(71,rec=recpos)gee1
-         endif
-!        end do
+        recpos=recpos+(new-old)
+		! Check for how many bcfile steps are jumped
+        if (new-old>1) then  ! Many steps further in the bc file
+           if(xmaster) then
+              read(72,rec=recpos+1)gq2
+              read(71,rec=recpos+1)gee2
+              read(72,rec=recpos)gq1
+              read(71,rec=recpos)gee1
+           endif
 
 #ifdef USEMPI
-        call space_distribute("y",sl,gee2,ee2)
-        call space_distribute("y",sl,gq2,q2)
-#else  
-        ee2=gee2
-        q2=gq2
-#endif
- 
+           call space_distribute("y",sl,gee2,ee2)
+           call space_distribute("y",sl,gq2,q2)
+		   call space_distribute("y",sl,gee1,ee1)
+           call space_distribute("y",sl,gq1,q1)
+#else
+           ee1=gee1
+		   ee2=gee2
+		   q1=gq2
+           q2=gq2
+#endif 
+		else  ! Only one step further in the bc file
+		   ee1=ee2
+		   q1=q2
+		   if(xmaster) then
+		      read(72,rec=recpos+1)gq2
+              read(71,rec=recpos+1)gee2
+		   endif
 #ifdef USEMPI
-        call space_distribute("y",sl,gee2,ee2)
-        call space_distribute("y",sl,gq2,q2)
+           call space_distribute("y",sl,gee2,ee2)
+           call space_distribute("y",sl,gq2,q2)
 #else  
-        ee2=gee2
-        q2=gq2
+           ee2=gee2
+           q2=gq2
 #endif
+        endif
         old=new
     end if
     ht=s%zs0(1:2,:)-zb(1:2,:)
