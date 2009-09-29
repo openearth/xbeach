@@ -1067,7 +1067,7 @@ subroutine var_output(it,s,sl,par)
                              itp*1.d0,&
 							 itc*1.d0,&
 							 itm*1.d0,&
-							 Build_Revision,&
+							 -1.d0*Build_Revision,&
 							 outputtimes
       ! Just output for MICORE for backwards compat
 !      open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(7+size(outputtimes)))
