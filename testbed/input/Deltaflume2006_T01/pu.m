@@ -4,8 +4,6 @@ h = s.zs-s.zb;
 s.Urms_hfm = sqrt(mean(s.urms.^2,2));
 s.Urms_lfm = std(s.u')';
 s.Urms_m = sqrt(s.Urms_hfm.^2 + s.Urms_lfm.^2);
-s.Uon_m = 1/sqrt(2)*mean(s.uon,2);
-s.Uoff_m = 1/sqrt(2)*mean(s.uoff,2);
 s.Um = mean(s.ue,2);
 s.Ua = mean(s.ua,2);
 

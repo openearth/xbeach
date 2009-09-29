@@ -35,31 +35,23 @@ nuh      = 0.1
 nuhfac   = 1.0
 roller   = 1
 beta     = 0.1
-carspan  = 0
 swtable  = RF_table.txt
 rfb      = 1
 gammax   = 5
+left     = 1
+right    = 1
 
 flow input
 
 zs0      = -0.035 
 tideloc  = 0
 C        = 65.
-eps      = 0.0001
+eps      = 0.01
 umin     = 0.0
-tstart   = 100
-tint     = 10
-tstop    = 21700
+tstart   = 1000
+tintg    = 10
+tstop    = 22600
 CFL      = 0.9
-
-groundwater
-gwflow   = 0
-kx       = 0.0001
-ky       = 0.0001
-kz       = 0.0003
-dwetlayer  = 0.1
-gw0      = -0.035
-aquiferbot = -4.5
 
 sed input
 
@@ -67,7 +59,7 @@ D50      = 0.0002
 D90      = 0.0003
 rhos     = 2650
 morfac   = 10
-morstart = 100
+morstart = 1000
 por      = 0.4
 dryslp   = 1.0
 wetslp   = 0.10
@@ -94,17 +86,17 @@ u
 ue
 urms
 ccg
-ceqg
+ceqsg
+ceqbg
 dzav
-Sug
+Susg
+Subg
 Fx
 D
 DR
 Tbore
 BR
 kb 
-uon
-uoff
 ua
 Sk
 As

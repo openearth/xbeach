@@ -4,7 +4,8 @@ x = 0:1:230;
 
 h = s.zs-s.zb;
 s.Cm = mean(s.ccg,2);
-s.Ceqm = mean(s.ceqg,2);
+s.Ceqsm = mean(s.ceqsg,2);
+s.Ceqbm = mean(s.ceqbg,2);
 t = (0:1:nt-1)*par.tint*par.morfac/3600;
 Tsim = t(end)*3600;
 rhos  = 2650;
@@ -15,13 +16,18 @@ Lmix2 = sqrt(2*s.R.*par.Tp./max(0.01,(par.rho.*s.c)));
 Lmix2 = min(Lmix2,h+0.5*s.H);
 
 % transform Su to Sz
-Stemp = zeros(size(s.Sug));
-Stemp(1,:) = s.Sug(1,:);
-Stemp(2:end,:) = 0.5*(s.Sug(1:end-1,:)+s.Sug(2:end,:));
+Ssus = zeros(size(s.Susg));
+Ssus(1,:) = s.Susg(1,:);
+Ssus(2:end,:) = 0.5*(s.Susg(1:end-1,:)+s.Susg(2:end,:));
+Sbed = zeros(size(s.Subg));
+Sbed(1,:) = s.Subg(1,:);
+Sbed(2:end,:) = 0.5*(s.Subg(1:end-1,:)+s.Subg(2:end,:));
+
 dz = s.zb(:,end)-s.zb(:,1);
 s.Sdzbtot = (1-par.np)*flipud(cumsum(flipud(dz)))*(xw(2,2)-xw(1,2))/Tsim;
 s.Sdzavtot = (1-par.np)*flipud(cumsum(flipud(s.dzav(:,end))))*(xw(2,2)-xw(1,2))/Tsim;
-s.Scutot = mean(Stemp,2);
+s.Ssustot = mean(Ssus,2);
+s.Sbedtot = mean(Sbed,2);
 
 % sediment transports from undertow:
 s.ut  = s.ue-s.u;
@@ -79,7 +85,8 @@ xt = [170 175 180 185 190 195 200 205];
 for i = 1:length(xt)
     ind(i) = find(xw(:,2)==xt(i));
 end
-fact = nanmean(par.rhos*mean(s.ccg(ind,:),2)./m.Cm')
+
+% fact = nanmean(par.rhos*mean(s.ccg(ind,:),2)./m.Cm')
 
 if MF==1
 % scatter plot simulated and measured sediment concentrations
@@ -129,13 +136,13 @@ axis([41 max(max(xw)) -1 1]);
 % sediment transports
 figure(18); set(gca,'FontSize',16);
 plot(xw(:,2),s.Sdzbtot,'k-','LineWidth',2.5); hold on; plot(x,m.Sdzb,'k--','LineWidth',2.5);
-plot(xw(:,2),s.Sdzavtot,'k-.','LineWidth',1.5); plot(xw(:,2),s.Scutot,'k:','LineWidth',1.5); 
+plot(xw(:,2),s.Sdzavtot,'r-','LineWidth',1.5); plot(xw(:,2),s.Ssustot,'r--','LineWidth',1.5); plot(xw(:,2),s.Sbedtot,'r-.','LineWidth',1.5); 
 xlabel('x [m]'); ylabel('S [m^3/m/s]'); axis([41 max(max(xw)) 1.2*min(min(s.Sdzbtot),min(m.Sdzb)) 2*max(max(s.Sdzbtot),max(m.Sdzb))]);
 print sediment_transport.png -dpng
 
 % decompose flow-based sediment transports
 figure(19); set(gca,'FontSize',16);
-plot(xw(:,2),s.Scutot,'k-','LineWidth',2.5); hold on;
+plot(xw(:,2),s.Ssustot,'k-','LineWidth',2.5); hold on;
 plot(xw(:,2),mean(Slongwaves,2),'k--','LineWidth',1.5); plot(xw(:,2),mean(Sundertow,2),'k-.','LineWidth',1.5); plot(xw(:,2),mean(Swaveassym,2),'k:','LineWidth',1.5); 
 %plot(xw(:,2),mean(Slongwaves+Sundertow+Swaveassym,2),'k--','LineWidth',2.5); 
 xlabel('x [m]'); ylabel('S [m^3/m/s]'); axis([41 max(max(xw)) 1.2*min(min(s.Sdzbtot),min(m.Sdzb)) 1.2*max(max(mean(Swaveassym,2)),max(m.Sdzb))]);

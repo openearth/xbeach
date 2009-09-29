@@ -35,7 +35,7 @@ clear s;
 
 %% simulation results
 % nam = [{'zb'};{'H'};{'zs'};{'hh'};{'u'};{'ue'};{'urms'};{'ccg'};{'ceqg'};{'Sug'};{'Fx'};{'dzav'};{'Fx'};{'urep'};{'ua'};{'uon'};{'uoff'};{'As'};{'Sk'};{'BR'};{'Tbore'};{'R'};{'DR'};{'D'};{'kb'};{'c'};]; %
-nam = [{'zb'};{'H'};{'zs'};{'hh'};{'u'};{'ue'};{'urms'};{'ccg'};{'ceqg'};{'Sug'};{'Fx'};{'dzav'};{'Fx'};{'ua'};{'uon'};{'uoff'};{'As'};{'Sk'};{'BR'};{'Tbore'};{'R'};{'DR'};{'D'};{'kb'};{'c'};]; %
+nam = [{'zb'};{'H'};{'zs'};{'hh'};{'u'};{'ue'};{'urms'};{'ccg'};{'ceqbg'};{'ceqsg'};{'Subg'};{'Susg'};{'Fx'};{'dzav'};{'Fx'};{'ua'};{'As'};{'Sk'};{'BR'};{'Tbore'};{'R'};{'DR'};{'D'};{'kb'};{'c'};]; %
 % dimensions
 fid = fopen('dims.dat','r'); 
 temp = fread(fid,[4,1],'double'); 
@@ -149,4 +149,4 @@ end
 end
 %% use output for other stuff
 
-save([par.test,'.mat'],'par','s','m','xw');
+% save([par.test,'.mat'],'par','s','m','xw');
