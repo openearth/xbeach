@@ -91,7 +91,7 @@ s.Urms_hfm = sqrt(mean(s.urms.^2,2));
 s.Urms_lfm = std(s.u')';
 s.Urms_m = sqrt(s.Urms_hfm.^2 + s.Urms_lfm.^2);
 s.Um = mean(s.ue,2);
-s.Cm = mean(s.ccg,2);
+s.Cm = mean(squeeze(s.ccg),2);
 dz = s.zb(:,end)-s.zb(:,1);
 Tsim = nt*par.morfac*par.tint;
 s.Sdzb = (1-par.np)*flipud(cumsum(flipud(dz)))*(xw(2,2)-xw(1,2))/Tsim;
@@ -196,7 +196,7 @@ for i = 1:length(xhrms)
     plot(fef{i},ef{i},'r'); hold on;
     plot(f2,vf2(i,:),'k','LineWidth',1.5);
     axis([0 0.5 0 varmax(i)]);
-    text(0.02,0.9*varmax(i),['x = ',num2str(round(xhrms(i))),' [m]'],'FontSize',9);set(gca,'fontsize',9);
+    text(0.02,0.9*varmax(i),['x = ',num2str(round(xhrms(i))),' [m]'],'FontSize',9); set(gca,'fontsize',9);
     xlabel('f [Hz]'); ylabel('S_{\eta\eta} [m^2/s]');
 end
 print variance_spectra.png -dpng
@@ -228,13 +228,12 @@ for i = 1:length(xhrms);
     xlabel('t [min]'); ylabel('\eta [m]');
     
     if i == length(xhrms)
-    keyboard
-    varname = 'eta_lf_x=205m';
-    comp = [ts/60; zs(ind(i),:)]'; meas = [t/60; eta(i,:)]'; %figure; plot(comp,meas,'.');
-    [r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,varname);
-    % meas2 = [ts/60; interp1(t/60,eta(i,:),ts/60)]';
-    % meas2(1,2)=comp(1,2);
-    % R = corrcoef(comp(:,2),meas2(:,2));
+        varname = 'eta_lf_x=205m';
+        comp = [ts/60; zs(ind(i),:)]'; meas = [t/60; eta(i,:)]'; %figure; plot(comp,meas,'.');
+        [r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,varname);
+        % meas2 = [ts/60; interp1(t/60,eta(i,:),ts/60)]';
+        % meas2(1,2)=comp(1,2);
+        % R = corrcoef(comp(:,2),meas2(:,2));
     end
 end
 print water_surface_elevations.png -dpng
@@ -296,6 +295,6 @@ xlabel('x [m]'); ylabel('H_{rms} [m]'); axis([min(min(xw)) max(max(xw)) 0 0.75])
 % xlabel('x [m]'); ylabel('R [W/m^2]'); axis([min(min(xw)) max(max(xw)) -2 10]);
 % print('long_waves.png','-dpng');
 % 
-pause(1.0)
+% pause(1.0)
 
 %fclose all; %close all;
