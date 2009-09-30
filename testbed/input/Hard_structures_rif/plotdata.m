@@ -67,9 +67,6 @@ AA = A0-AE;
 title(['total erosion above max surge level = ',num2str(AA),' [m^3/m ']);
 print('profile_evolution.png','-dpng');
 
-movie = 1;
-if movie == 1
-
 figure;
 for i = 1:nt
     % if mod(i,10)==0
@@ -79,14 +76,11 @@ for i = 1:nt
     plot(xw,s.zb(:,i),'k');
     % plot(xw,s.ue(:,i)+max(s.zs(1,:)),'r');
     plot(xw,s.ccg(:,1,i)*2650+max(s.zs(1,:)),'g');
-    pause(0.01); hold off;
     axis([0 max(xw(:,2)) -20 s.zb(end,1)+2.5]);
-    end
+    pause(0.01); hold off;    
 end
 
-end
 pname = ['..\..\report\',testid '_' runid '_fig1' '.jpg'];
 eval(['print -djpeg ' pname]);
 
-
-
+end
