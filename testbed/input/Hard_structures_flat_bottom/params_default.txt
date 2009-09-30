@@ -26,8 +26,8 @@ eps      = 0.01
 
 Time input
 tstart   = 0
-tint     = 1.
-tstop    = 1000.
+tint     = 10.
+tstop    = 10000.
 taper	 = 1
 ----------------------------------------------------
 
@@ -38,11 +38,7 @@ g        = 9.81
 ----------------------------------------------------
 
 Boundary condition options
-zs0file  = tideinput.dat
-tideloc  = 2
 zs0      = 0
-tidelen  = 2
-paulrevere = 0
 instat   = 1
 back     = 2
 epsi     = 1
@@ -51,7 +47,7 @@ Required for instat 0,1,2,6
 dir0     = 270.
 
 Required for instat 0,1,2,6
-Hrms     = 0.5
+Hrms     = 1
 Tm01     = 5
 Tlong    = 35
 m        = 10
@@ -81,24 +77,14 @@ umin     = 0.0
 ----------------------------------------------------
 
 Sediment transport calculation options
-rhos     = 2650
-dico	 = 1.0
-ngd      = 1
+ngd      = 2
 nd       = 20
-dzg      = 0.2
-D50      = 0.0002
-D90      = 0.0003
-sedcal1  = 1
-D502     = 0.0002
-D902     = 0.0003
-sedcal2  = 0
-D503     = 0.0002
-D903     = 0.0003
-sedcal3  = 1
-gdist    = graindist.grd
-struct   = 1
-ne_layer = hardlayer.dep
-
+nd_var   = 1
+dzg      = 0.05
+D50      = 0.0002 0.0002
+D90      = 0.0003 0.0003
+sedcal   = 1.0 0.0
+rhos     = 2650
 
 hswitch  = 0.1
 
@@ -106,7 +92,7 @@ hswitch  = 0.1
 
 Morphological calculation options
 morfac   = 10
-morstart = 1
+morstart = 0
 por      = 0.4
 dryslp   = 1.0
 wetslp   = 0.15 

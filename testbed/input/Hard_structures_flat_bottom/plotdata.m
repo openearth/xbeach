@@ -41,15 +41,15 @@ end
 
 % load hard layer new approach...
 dzhl = load('hardlayer.dep');
-zhl = s.zb(:,1)-dzhl';
+zhl = s.zb(:,1)-dzhl(2,:)';
 
 %% movieplot
 figure;
-for i =nt:nt
+for i =1:nt
     plot(xw,s.zb(:,1),'k--'); hold on;
     plot(xw,zhl,'r','LineWidth',4);
     % plot(xgr,zgr.*bgr-3.8,'ro');%c{bgr+1});
-    plot(xw,s.zb(:,i),'k');
+    plot(xw,s.zb(:,i),'k','LineWidth',1.5);
     plot(xw,s.zs(:,i),'b');
     plot(xw,s.H(:,i),'r');
     %plot(xw,2650*s.Su(:,i),'g');
@@ -57,7 +57,7 @@ for i =nt:nt
     % plot(xw,2650*s.cc(:,i),'g');
     axis([0 50 -2 2]);
     title(num2str(i));
-    pause(0.1); hold off;
+    pause(0.01); hold off;
 end
 
 print endprofile.png -dpng
