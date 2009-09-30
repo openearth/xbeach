@@ -1,0 +1,102 @@
+grid input
+
+nx       = 210
+ny       = 2
+depfile  = h_1B.dep
+vardx    = 0
+dx       = 1
+dy       = 5.0
+xori     = 0.
+yori     = 0.
+alfa     = 0.
+posdwn   = -1
+scheme   = 2
+
+wave input
+
+break    = 3
+hmin     = 0.20
+gamma    = 0.40
+alpha    = 1.
+delta    = 0.0
+n        = 10.
+rho      = 1000
+g        = 9.81
+thetamin = -180.
+thetamax = 180.
+dtheta   = 360.
+wci      = 0
+instat   = 4
+bcfile   = jonswap.inp
+rt       = 3000
+nuh      = 0.1
+nuhfac   = 1.0
+roller   = 1
+beta     = 0.1
+carspan  = 0
+swtable  = RF_table.txt
+order    = 1
+rfb      = 1
+gammax   = 5
+
+flow input
+
+zs0      = -0.0534 
+tideloc  = 0
+C        = 65.
+eps      = 0.0001
+umin     = 0.0
+tstart   = 100
+tint     = 1.
+tstop    = 6580
+CFL      = 0.9
+
+sed input
+
+D50      = 0.000220
+D90      = 0.000330
+rhos     = 2650
+morfac   = 10
+morstart = 100
+por      = 0.4
+dryslp   = 1.0
+wetslp   = 0.10
+hswitch  = 0.10
+facua    = 0.30
+dico     = 1.
+form     = 3
+dzmax    = 0.0030
+turb     = 2
+Tsmin    = 1
+
+output
+
+nglobalvar = 26
+zs
+zb
+E
+R
+c
+H
+hh
+u
+ue
+urms
+cc
+ceq
+dzav
+Su
+Fx
+D
+DR
+Tbore
+Beta
+kb 
+uon
+uoff
+ua
+Sk
+As
+Ts
+
+
