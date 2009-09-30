@@ -1,4 +1,9 @@
 function plotdata()
+
+% jaap: we need to fix this for various platfroms...
+addpath c:\d3d\toolbox\
+wlsettings('c:\d3d\toolbox\');
+
 close all
 fid=fopen('dims.dat','r');
 nt=fread(fid,[1],'double')
