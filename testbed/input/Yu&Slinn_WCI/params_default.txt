@@ -33,6 +33,7 @@ break    = 2
 instat   = 0
 beta     = 0.1
 bcfile   = jonswap1.inp
+wavint   = 20
 
 flow input
 

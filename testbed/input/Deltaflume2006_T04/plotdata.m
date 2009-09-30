@@ -15,14 +15,19 @@ fclose(fid);
 load([datadir,Tnam]);
 
 %% simulation results
-nam = [{'zb'};{'H'};{'zs'};{'hh'};{'u'};{'ue'};{'urms'};{'ccg'};{'Sug'}; {'Fx'};];
+nam = [{'zb'};{'H'};{'zs'};{'hh'};{'u'};{'ue'};{'urms'};{'Fx'};];
+nam2 = [{'ccg'};{'Susg'};];
 
 % dimensions
-fid = fopen('dims.dat','r');
-temp = fread(fid,[3,1],'double');
+fid = fopen('dims.dat','r'); 
+temp = fread(fid,[7,1],'double'); 
 nt = temp(1);
 nx = temp(2)+1;
 ny = temp(3)+1;
+ntheta = temp(4);
+kmax = temp(5);
+ngd = temp(6);
+nd = temp(7);
 fclose(fid);
 
 % read grid coordinates
@@ -45,6 +50,20 @@ for j = 1:length(nam)
     s.(nam{j}) = zeros(nx,nt);
     s.(nam{j}) = squeeze(temp(:,2,:));
 end
+
+for j = 1:length(nam2)
+    temp = zeros(nx,ngd,nt);
+    fid = fopen([nam2{j},'.dat'],'r');
+    for i=1:nt
+        for ii=1:ngd
+            ttemp = fread(fid,[nx,ny],'double');
+            temp(:,ii,i) = ttemp(:,2);               
+        end
+    end
+    fclose(fid);
+    s.(nam2{j}) = temp;
+end
+
 
 % setup
 s.setup = mean(s.zs-max(0,s.zb),2);

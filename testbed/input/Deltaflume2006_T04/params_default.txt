@@ -63,7 +63,7 @@ facsl    = 0
 
 output
 
-nglobalvar = 15
+nglobalvar = 17
 zs
 zb
 E
@@ -73,9 +73,11 @@ u
 ue
 urms
 ccg
-ceqg
+ceqsg
+ceqbg
 dzav
-Sug
+Susg
+Subg
 Fx
 D
 DR 
