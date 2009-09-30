@@ -59,7 +59,7 @@ dryslp   = 1.0
 wetslp   = 0.10
 hswitch  = 0.12
 dico     = 1.
-form     = 3
+form     = 2
 facua    = 0.10
 dzmax    = 0.0036
 turb     = 2
@@ -69,7 +69,7 @@ ne_layer = hardlayer_T1.dep
 
 output
 
-nglobalvar = 10
+nglobalvar = 11
 zs
 zb
 H
@@ -77,9 +77,10 @@ hh
 u
 ue
 urms
-cc
+ccg
 dzav
-Su
+Susg
+Subg
 
 nmeanvae = 1
 E

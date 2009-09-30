@@ -64,7 +64,7 @@ wetslp   = 0.10
 hswitch  = 0.10
 facua    = 0.30
 dico     = 1.
-form     = 3
+form     = 2
 dzmax    = 0.0030
 turb     = 2
 Tsmin    = 1
@@ -82,18 +82,18 @@ hh
 u
 ue
 urms
-cc
-ceq
+ccg
+ceqs
+ceqb
 dzav
-Su
+Susg 
+Subg
 Fx
 D
 DR
 Tbore
 Beta
 kb 
-uon
-uoff
 ua
 Sk
 As

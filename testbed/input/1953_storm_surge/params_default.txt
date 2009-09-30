@@ -61,9 +61,9 @@ morstart = 0
 por      = 0.4
 dryslp   = 1.0
 wetslp   = 0.10
-hswitch  = 0.6
+hswitch  = 0.1
 dico     = 1.
-form     = 3
+form     = 2
 facua    = 0.10
 dzmax    = 0.0692
 turb     = 2
@@ -82,18 +82,18 @@ hh
 u
 ue
 urms
-cc
-ceq
+ccg
+ceqs
+ceqb
 dzav
-Su
+Susg
+Subg
 Fx
 D
 DR
 Tbore
 Beta
 kb 
-uon
-uoff
 ua
 Sk
 As
