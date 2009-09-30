@@ -1,0 +1,100 @@
+grid input
+
+nx       = 220
+ny       = 2
+vardx    = 0
+depfile  = bath.dep
+dx       = 4.56
+dy       = 2.5
+xori     = 0
+yori     = 0
+alfa     = 0
+posdwn   = -1
+scheme   = 2
+
+wave input
+
+break    = 3
+hmin     = 0.2 
+gamma    = 0.50
+alpha    = 1.
+delta    = 0.0
+n        = 10
+rho      = 1000
+g        = 9.81
+thetamin = -180
+thetamax = 180
+dtheta   = 360
+wci      = 0
+instat   = 4
+bcfile   = boundarylist_d.lst
+nuh      = 0.1
+nuhfac   = 1
+roller   = 1
+beta     = 0.1
+carspan  = 0
+swtable  = RF_table.txt
+rfb      = 1
+gammax   = 5
+
+
+flow input
+zs0file  = surge.dat
+tideloc  = 2
+tidelen  = 15
+paulrevere = 0
+C        = 65.
+eps      = 0.001
+umin     = 0.0
+tstart   = 0
+tint     = 10
+tstop    = 111170
+CFL      = 0.9
+
+sed input
+
+D50      = 0.00025
+D90      = 0.000375
+rhos     = 2650
+morfac   = 1
+morstart = 0
+por      = 0.4
+dryslp   = 1.0
+wetslp   = 0.10
+hswitch  = 0.6
+dico     = 1.
+form     = 3
+facua    = 0.10
+dzmax    = 0.0692
+turb     = 2
+Tsmin    = 1
+
+output
+
+nglobalvar = 26
+zs
+zb
+E
+R
+c
+H
+hh
+u
+ue
+urms
+cc
+ceq
+dzav
+Su
+Fx
+D
+DR
+Tbore
+Beta
+kb 
+uon
+uoff
+ua
+Sk
+As
+Ts
