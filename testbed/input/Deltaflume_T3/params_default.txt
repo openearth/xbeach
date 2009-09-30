@@ -1,0 +1,118 @@
+----------------------------------------------------
+ 
+Grid input
+nx      = 220
+ny      = 2
+dx      = 1
+dy      = 5
+xori    = 0.00
+yori    = 0.00
+alfa    = 0.00
+depfile = VarC-1.dep
+posdwn  = -1
+ 
+----------------------------------------------------
+ 
+General constants
+rho      = 1000
+g        = 9.81
+ 
+----------------------------------------------------
+ 
+Wave discretisation
+thetamin = -180.
+thetamax = 180.
+dtheta   = 360.
+ 
+----------------------------------------------------
+ 
+Numerics input
+CFL      = 0.9
+eps      = 0.001
+scheme   = 2
+ 
+----------------------------------------------------
+ 
+Boundary condition options
+order    = 2
+front    = 1 
+ 
+zs0file  = waterlevels.wls 
+tidelen  = 79 
+tideloc  = 1
+ 
+instat= 4
+Required for instat 3,4,5,7
+bcfile   = WaveBoundaryFilelist.bcw 
+ 
+----------------------------------------------------
+ 
+Wave calculation options
+break    = 3
+roller   = 1
+beta     = 0.1
+rfb      = 1
+gamma    = 0.50
+gammax   = 5.
+alpha    = 1.
+delta    = 0.0
+n        = 10.
+swtable  = RF_table.txt
+
+----------------------------------------------------
+ 
+Flow calculation options
+nuh      = 0.1
+nuhfac   = 1.0
+hmin     = 0.20
+C        = 65.
+umin     = 0.0
+hswitch  = 0.1
+ 
+----------------------------------------------------
+ 
+Time input
+tstart   = 0
+tintg    = 1
+tstop    = 69450
+taper    = 100
+ 
+----------------------------------------------------
+ 
+Sediment transport calculation options
+D50      = 0.000225
+D90      = 0.0003375
+rhos     = 2650
+z0       = 0.006
+facsl    = 1.6
+tsfac    = 0.1
+ 
+----------------------------------------------------
+ 
+Morphological calculation options
+form     = 2
+morfac   = 10
+morstart = 0
+por      = 0.4
+dryslp   = 1.0
+wetslp   = 0.10
+facua    = 0.1
+dzmax    = 0.0036
+turb     = 2
+Tsmin    = 1
+ 
+------ output at t=tstart + n*tintg (n=0,1,....)
+nglobalvar = 13
+zb
+zs
+H
+u
+v
+ue
+ve
+ua
+urms
+gwhead
+Sxx
+Syy
+Sxy
