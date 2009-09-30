@@ -1,0 +1,11 @@
+T03data.mat
+9
+rhos   = 2650
+rho    = 1000
+g      = 9.81
+morfac = 1
+tint   = 2
+np     = 0.4
+Tp     = 7.35
+hmin   = 0.2
+test   = T03
