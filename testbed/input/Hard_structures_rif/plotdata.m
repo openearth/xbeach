@@ -3,14 +3,17 @@ clear s;close all
 [runid,testid,datadir]=testinfo
 
 %% simulation results
-nam = [{'zb'};{'H'};{'zs'};{'hh'};{'u'};{'ue'};{'ccg'};{'Sug'};{'ua'};];
+nam = [{'zb'};{'H'};{'zs'};{'hh'};{'u'};{'ue'};{'ua'};];
+nam2 = [{'ccg'}];
 
 % dimensions
 fid = fopen('dims.dat','r'); 
-temp = fread(fid,[3,1],'double'); 
+temp = fread(fid,[7,1],'double'); 
 nt = temp(1);
 nx = temp(2)+1;
 ny = temp(3)+1;
+ngd = temp(6);
+nd = temp(7);
 fclose(fid);
 
 % read grid coordinates 
@@ -32,6 +35,19 @@ for j = 1:length(nam)
     s.(nam{j}) = squeeze(temp(:,2,:));
 end
 
+for j = 1:length(nam2)
+    temp = zeros(nx,ngd,nt);
+    fid = fopen([nam2{j},'.dat'],'r');
+    for i=1:nt
+        for ii=1:ngd
+            ttemp = fread(fid,[nx,ny],'double');
+            temp(:,ii,i) = ttemp(:,2);               
+        end
+    end
+    fclose(fid);
+    s.(nam2{j}) = temp;
+end
+
 %% figures;
 % load post storm profile
 
@@ -41,7 +57,7 @@ plot(xw,s.zb(:,end),'r','LineWidth',1.5);
 plot(xw,mean(s.H,2)+max(s.zs(1,:)),'b','LineWidth',1.5);
 plot(xw,mean(s.ue,2)+max(s.zs(1,:)),'r','LineWidth',1.5);
 plot(xw,mean(s.ua,2)+max(s.zs(1,:)),'r--','LineWidth',1.5);
-plot(xw,mean(s.ccg,2)*2650+max(s.zs(1,:)),'g','LineWidth',1.5);
+plot(xw,mean(squeeze(s.ccg(:,1,:)),2)*2650+max(s.zs(1,:)),'g','LineWidth',1.5);
 plot(xw,repmat(max(s.zs(1,:)),1,nx),'k:');
 axis([0 max(xw(:,2)) -20 s.zb(end,1)+2.5]);
 xlabel('x [m]'); ylabel('z_b [m]');
@@ -55,14 +71,16 @@ movie = 1;
 if movie == 1
 
 figure;
-for i = nt
-    if mod(i,10)==0
+for i = 1:nt
+    % if mod(i,10)==0
     plot(xw,s.zb(:,1),'k--'); hold on;
+    plot(xw,s.H(:,i)+max(s.zs(1,:)),'r');
     plot(xw,s.zs(:,i),'b');
     plot(xw,s.zb(:,i),'k');
-    plot(xw,s.ue(:,i)+max(s.zs(1,:)),'r');
-    plot(xw,s.ccg(:,i)*2650+max(s.zs(1,:)),'g');
-    pause(0.1); hold off;
+    % plot(xw,s.ue(:,i)+max(s.zs(1,:)),'r');
+    plot(xw,s.ccg(:,1,i)*2650+max(s.zs(1,:)),'g');
+    pause(0.01); hold off;
+    axis([0 max(xw(:,2)) -20 s.zb(end,1)+2.5]);
     end
 end
 

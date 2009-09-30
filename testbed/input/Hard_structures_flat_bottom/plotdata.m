@@ -6,10 +6,12 @@ nam = [{'zb'};{'zs'};{'u'};{'ue'};{'H'};]; %{'dzav'};
 
 % dimensions
 fid = fopen('dims.dat','r'); 
-temp = fread(fid,[3,1],'double'); 
+temp = fread(fid,[7,1],'double'); 
 nt = temp(1);
 nx = temp(2)+1;
 ny = temp(3)+1;
+ngd = temp(6);
+nd = temp(7);
 fclose(fid);
 
 % read grid coordinates 
