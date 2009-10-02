@@ -85,8 +85,8 @@ u
 ue
 urms
 ccg
-ceqs
-ceqb
+ceqsg
+ceqbg
 dzav
 Susg 
 Subg
@@ -94,7 +94,7 @@ Fx
 D
 DR
 Tbore
-Beta
+BR
 kb 
 ua
 Sk

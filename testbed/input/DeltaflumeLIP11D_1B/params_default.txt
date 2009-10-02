@@ -92,7 +92,7 @@ Fx
 D
 DR
 Tbore
-Beta
+BR
 kb 
 ua
 Sk

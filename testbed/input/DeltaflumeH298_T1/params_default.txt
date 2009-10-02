@@ -43,17 +43,22 @@ C        = 65.
 eps      = 0.001
 umin     = 0.0
 tstart   = 0
-tint     = 10
-tstop    = 3520
+tint     = 100
+tstop    = 35200
 CFL      = 0.9
 
 sed input
 
-D50      = 0.000225
-D90      = 0.000338
+ngd      = 2
+nd       = 20
+nd_var   = 1
+dzg      = 0.1
+D50      = 0.000225 0.000225
+D90      = 0.000338 0.000338
+sedcal   = 1.0 0.0
 rhos     = 2650
 morfac   = 10
-morstart = 100
+morstart = 1000
 por      = 0.4
 dryslp   = 1.0
 wetslp   = 0.10
@@ -63,8 +68,6 @@ form     = 2
 facua    = 0.10
 dzmax    = 0.0036
 turb     = 2
-struct   = 1
-ne_layer = hardlayer_T1.dep
 
 
 output
