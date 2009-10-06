@@ -225,8 +225,6 @@ real*8,dimension(:),allocatable     :: yzs0,szs0
   s%BR        = par%Beta
   s%kb        = 0.d0
   s%Tbore     = 0.d0
-  s%uon       = 0.d0
-  s%uoff      = 0.d0
   s%ua        = 0.d0
   s%dzav      = 0.d0
   s%Sk        = 0.d0
