@@ -99,7 +99,11 @@ if(abs(par%t-par%dt)<1.d-6) then
     bcendtime=huge(0.0d0)               ! initial assumption for instat 3,4,5,7
     if (par%instat==2) then
        if(xmaster) then
-         open( unit=7, file='bc\gen.ezs')
+		  call readkey('params.txt','bc_file',fname)
+          if (fname=='') then
+             fname = 'bc\gen.ezs'
+		  endif
+		  open( unit=7, file=fname)
        endif
        if (xmaster) then
 5        continue

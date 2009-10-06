@@ -277,7 +277,7 @@ par%sws      = readkey_int ('params.txt','sws',           1,        0,     1)
 par%lws      = readkey_int ('params.txt','lws',           1,        0,     1)
 par%ut       = readkey_int ('params.txt','ut',            1,        0,     1)
 par%BRfac    = readkey_dbl ('params.txt','BRfac',    1.0d0,       0.d0, 1.d0)
-par%oldwbc   = readkey_int ('params.txt','oldwbc',       0,        0,     1)
+par%oldwbc   = readkey_int ('params.txt','oldwbc',       1,        0,     1)
 end subroutine wave_input
 
 subroutine flow_input(par)

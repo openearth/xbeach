@@ -392,7 +392,7 @@ do j=2,ny
                                              (Subg(i,j,:)-Subg(i-1,j,:))/(xu(i)-xu(i-1))+&           
 		                                     (Svbg(i,j,:)-Svbg(i,j-1,:))/(yv(j)-yv(j-1))    )        
       
-      nt_e=max(1,ceiling(1.d0*maxval(dzg(:)/(par%frac_dz*dz(1)*max(pb(1,:),tiny(0.d0))) ) ) ) !Jaap: presumes top layer is thinnest
+      nt_e=max(1,ceiling(maxval(dzg(:)/(par%frac_dz*dz(1)*max(pb(1,:),0.001d0)) ) ) ) !Jaap: presumes top layer is thinnest
 
       nt_d=max(1,ceiling(abs(sum(dzg))/par%frac_dz/minval(dz)))
 	  nt_sub=max(nt_e,nt_d)
@@ -455,6 +455,9 @@ do ii=1,nint(par%morfac)
 			   enddo
 			   nt_d=max(1,ceiling(abs(dzb)/par%frac_dz/minval(dzbed(iii-sign(1.d0,dzb),j,:)))) ! nt_d is not necessarily equal to nt_e (=ndz)
 			   nt_sub = max(1,nt_d)
+
+			   ! jaap: update dzb
+			   dzb = sum(edg2)/(1.d0-par%por)*par%dt
                
 			   dz=>dzbed(i+1,j,:)
 	           pb=>pbbed(i+1,j,:,:)
@@ -511,6 +514,9 @@ do ii=1,nint(par%morfac)
 			   nt_d=max(1,ceiling(abs(dzb)/par%frac_dz/minval(dzbed(i,jjj-sign(1.d0,dzb),:)))) ! nt_d is not necessarily equal to nt_e (=ndz)
 			   nt_sub = max(1,nt_d)
                
+               ! jaap: update dzb
+			   dzb = sum(edg2)/(1.d0-par%por)*par%dt
+
 			   dz=>dzbed(i,j+1,:)
 	           pb=>pbbed(i,j+1,:,:)
 
@@ -907,7 +913,7 @@ if (.not. allocated(vmg)) then
 endif
 
 delta = (par%rhos-par%rho)/par%rho
-hloc   = max(hh,0.01d0) 
+hloc   = max(hh,0.01d0) ! Jaap 
 onethird=1.d0/3.d0
 twothird=2.d0/3.d0
 !
