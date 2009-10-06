@@ -212,8 +212,10 @@ endif
 #endif
     do j=2,ny
         do i=1,nx
-            vdudy(i,j)=max(0.d0,.5d0*(hv(i,j-1)*vv(i,j-1)+hv(i+1,j-1)*vv(i+1,j-1)) ) / hum(i,j)*(uu(i,j  )-uu(i,j-1))/(yz(j  )-yz(j-1)) + &
-					   min(0.d0,.5d0*(hv(i,j  )*vv(i,j  )+hv(i+1,j  )*vv(i+1,j  )) ) / hum(i,j)*(uu(i,j+1)-uu(i,j  ))/(yz(j+1)-yz(j  ))
+            vdudy(i,j)=max(0.d0,.5d0*(hv(i,j-1)*vv(i,j-1)+hv(i+1,j-1)*vv(i+1,j-1)) ) / &
+                 hum(i,j)*(uu(i,j  )-uu(i,j-1))/(yz(j  )-yz(j-1)) + &
+                 min(0.d0,.5d0*(hv(i,j  )*vv(i,j  )+hv(i+1,j  )*vv(i+1,j  )) )  / &
+                 hum(i,j)*(uu(i,j+1)-uu(i,j  ))/(yz(j+1)-yz(j  ))
         end do 
     end do
     ! wwvv fix border rows and columns of vdudy
@@ -282,20 +284,20 @@ endif
         do i=2,nx+1 !
             ! Advection terms (momentum conserving method)
             if (j>1 .and. j<ny) then
-			   vdvdy(i,j)=max(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j-1)*vv(i,j-1)) ) / hvm(i,j)*(vv(i,j  )-vv(i,j-1))/(yv(j  )-yv(j-1)) + &
-                          min(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j+1)*vv(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j  ))/(yv(j+1)-yv(j  ))	          
-			elseif (j==1) then
-               vdvdy(i,j)=min(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j+1)*vv(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j  ))/(yv(j+1)-yv(j  ))	          
-			elseif (j==ny) then
-			   vdvdy(i,j)=max(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j-1)*vv(i,j-1)) ) / hvm(i,j)*(vv(i,j  )-vv(i,j-1))/(yv(j  )-yv(j-1))
-			endif
-        end do 
+               vdvdy(i,j)=max(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j-1)*vv(i,j-1)) ) / hvm(i,j)*(vv(i,j)-vv(i,j-1))/(yv(j)-yv(j-1)) + &
+                    min(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j+1)*vv(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j))/(yv(j+1)-yv(j))	          
+            elseif (j==1) then
+               vdvdy(i,j)=min(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j+1)*vv(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j))/(yv(j+1)-yv(j))	          
+            elseif (j==ny) then
+               vdvdy(i,j)=max(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j-1)*vv(i,j-1)) ) / hvm(i,j)*(vv(i,j)-vv(i,j-1))/(yv(j)-yv(j-1))
+            endif
+         end do
     end do
     ! Robert & Jaap: Let's do Stelling & Duinmeijer for all advection terms
     do j=1,ny
         do i=2,nx
-			udvdx(i,j)=max(0.d0,.5d0*(hu(i-1,j)*uu(i-1,j)+hu(i-1,j+1)*uu(i-1,j+1)) ) / hvm(i,j)*(vv(i  ,j)-vv(i-1,j))/(xz(i  )-xz(i-1)) + &
-			           min(0.d0,.5d0*(hu(i  ,j)*uu(i  ,j)+hu(i  ,j+1)*uu(i  ,j+1)) ) / hvm(i,j)*(vv(i+1,j)-vv(i  ,j))/(xz(i+1)-xz(i  ))
+           udvdx(i,j)=max(0.d0,.5d0*(hu(i-1,j)*uu(i-1,j)+hu(i-1,j+1)*uu(i-1,j+1))) / hvm(i,j)*(vv(i,j)-vv(i-1,j))/(xz(i)-xz(i-1)) +&
+                min(0.d0,.5d0*(hu(i,j)*uu(i,j)+hu(i,j+1)*uu(i,j+1)) ) / hvm(i,j)*(vv(i+1,j)-vv(i  ,j))/(xz(i+1)-xz(i))
         end do 
     end do
     do j=2,ny

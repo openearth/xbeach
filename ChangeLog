@@ -1,0 +1,10 @@
+2008-05-22  Fedor Baart  <fedor.baart@deltares.nl>
+
+	* xbeach: setup the gnu autotools build
+	* xbeach: changed file saving from binary to unformatted. Saving
+	binary files is not supported using the gfortran compiler. 
+
+2008-05-21  Dano Roelvink  <dano.roelvink@deltares.nl>
+
+	* xbeach: initial version.
+

@@ -701,11 +701,6 @@ subroutine var_output(it,s,sl,par)
   type(arraytype)                         :: t
   real*8,dimension(:,:),pointer				:: MI,MA
   
-
-
-  include 'version.def'
-  include 'version.dat'
-
 #ifdef USEMPI
   avail = .false.
 #endif
@@ -1056,7 +1051,7 @@ subroutine var_output(it,s,sl,par)
 		outputtimes(itg+itp+1:itg+itp+itc)=tpc(1:itc)
       outputtimes(itg+itp+itc+1:itg+itp+itc+itm)=tpm(2:itm+1)          ! mean output always shifted by 1
 	   outputtimes=outputtimes*max(par%morfac,1.d0)
-      open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(11+size(outputtimes)))
+      open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(10+size(outputtimes)))
       write(999,rec=1)		 itg*1.d0,&
 							 s%nx*1.d0,&
 							 s%ny*1.d0,&
@@ -1067,7 +1062,6 @@ subroutine var_output(it,s,sl,par)
                              itp*1.d0,&
 							 itc*1.d0,&
 							 itm*1.d0,&
-							 -1.d0*Build_Revision,&
 							 outputtimes
       ! Just output for MICORE for backwards compat
 !      open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(7+size(outputtimes)))

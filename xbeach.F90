@@ -33,8 +33,15 @@ real*8                   :: tbegin,tend
 real*8                   :: t0,t01,t1
 #endif
 
-include 'version.def'
-include 'version.dat'
+! subversion information
+character(1024)       :: build_revision
+character(1024) :: build_date
+character(1024) :: build_url
+
+build_revision = '$Revision$'
+build_date = '$Date$'
+build_url = '$HeadURL$'
+
 #ifdef USEMPI
 s=>slocal
 call xmpi_initialize
@@ -48,10 +55,8 @@ if (xmaster) then
   write(*,*)              '**********************************************************'
   write(*,*)              '                   Welcome to XBeach                      '
   write(*,*)              '                                                          '
-  write(*,'(a,i0,a,a)')   '             head revision: ',Build_Revision,'.',trim(Build_LocalMod)
+  write(*,'(a,a)')   '             head revision: ',Build_Revision
   write(*,'(a,a,a)')      '                      date: ',trim(Build_Date),' '
-!  write(*,'(a,a,a)')      '                build type: ',trim(Build_Type),' '
-  write(*,'(a,a,a)')      '            revision range: ',trim(Build_RevRange),' '
   write(*,*)              '                                         '
   write(*,*)              ' URL: ',trim(Build_URL),' '
   write(*,*)              '                                                          '

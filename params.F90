@@ -252,12 +252,12 @@ par%break    = readkey_int ('params.txt','break',      3,        1,     3)
 ! Only allow Baldock in stationary mode and Roelvink in non-stationary
 if (par%instat==0) then
    if (par%break .ne. 2) then
-        write(*,*)'Error !!!! Roelvink breaking criteria not allowed in stationary calculation, use Baldock formulation. Stopping calculation.  !!!'
+        write(*,*)'Error: Roelvink formulation not allowed in stationary calculation, use Baldock formulation. Stopping.'
        	call halt_program
    endif
 else
    if (par%break==2) then 
-        write(*,*)'Error !!!! Baldock breaking criteria not allowed in non-stationary calculation, use Roelvink formulation. Stopping calculation.  !!!'
+        write(*,*)'Error: Baldock formulation not allowed in non-stationary calculation, use Roelvink formulation. Stopping.'
        	call halt_program
    endif
 endif
@@ -399,7 +399,7 @@ par%sigfac   = readkey_dbl ('params.txt','sigfac ',1.3d0,     0.00d0,   10.d0)
 par%sourcesink      = readkey_int ('params.txt','sourcesink    ',0,           0,            1)
 if (par%morfac>1.d0) then
    if (par%sourcesink==1) then
-       write(*,*)'Warning !!!! Using source-sink terms for bed level change with morfac can lead to loss of sediment mass conservation !!!'
+       write(*,*)'Warning: Using source-sink terms for bed level change with morfac can lead to loss of sediment mass conservation.'
    endif
 endif
 ! Just a check to see if they are there.....
