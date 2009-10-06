@@ -40,10 +40,7 @@ type(parameters)                         :: par
 
 integer                                  :: i,isig
 integer                                  :: j,jg
-integer                                  :: dum
 
-real*8                                   :: fv,fd,fwfac,fac,nummaxsig
-real*8                                   :: dster
 real*8,dimension(:),allocatable,save     :: chain,cumchain
 real*8,dimension(:,:),allocatable,save   :: vmag2,uau,uav,um,vm
 real*8,dimension(:,:),allocatable,save   :: ccvt,dcdz,dsigt,aref
@@ -348,8 +345,8 @@ type(spacepars),target              :: s
 type(parameters)                    :: par
 
 integer                             :: i,j,ii,iii,jjj,jdz,ndz
-integer                             :: jg,jd,nt_e,nt_d,nt_sub,nt_sub_max
-real*8                              :: dzb,dzmax,dzt,zbold,zbold2,dzleft
+integer                             :: jg,nt_e,nt_d,nt_sub,nt_sub_max
+real*8                              :: dzb,dzmax,dzt,dzleft
 real*8 , dimension(:,:),allocatable,save :: dzbtot
 real*8 , dimension(par%ngd)         :: edg,edg1,edg2,dzg
 real*8 , dimension(:),pointer       :: dz
@@ -874,12 +871,12 @@ type(spacepars),target                  :: s
 type(parameters)                        :: par
 
 character*80                            :: fnamet
-integer                                 :: i,nw,ii
+integer                                 :: i,ii
 integer , save                          :: nh,nt    
 integer                                 :: ih0,it0,ih1,it1
 integer                                 :: j,jg
-real*8                                  :: dster,onethird,twothird,Ass,dcf,dcfin,ML,fac
-real*8                                  :: Te,kvis,Sster,cc1,cc2,wster,z0,delta,smax
+real*8                                  :: dster,onethird,twothird,Ass,dcf,dcfin,ML
+real*8                                  :: Te,kvis,Sster,cc1,cc2,wster,delta
 real*8                                  :: p,q,f0,f1,f2,f3,uad,duddtmax,dudtmax,siguref,t0fac,duddtmean,dudtmean
 real*8                               ,save     :: dh,dt
 real*8 , dimension(:,:),allocatable  ,save     :: vmg,Asb,Ts

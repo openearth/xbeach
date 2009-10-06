@@ -13,7 +13,6 @@ type(parameters)                    :: par
 integer                     :: it
 integer                     :: i
 integer                     :: j
-integer                     :: itheta
 real*8                                          :: mdx,mdy
 
 ! Robert new time step criterion

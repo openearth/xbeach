@@ -38,7 +38,7 @@ type(spacepars),target                  :: s
 type(parameters)                        :: par
 
 character*80                        :: fnamezs0
-integer                             :: i,j
+integer                             :: i
 integer                             :: io,ntide
 real*8,dimension(par%tideloc+1)     :: temp
 
