@@ -108,11 +108,11 @@ if(xmaster) then
 endif
 #endif
 
-! Jump into subroutine readtide
-call readtide (s,par)  !Ap 15/10 ! runs oonly on master wwvv
-call readwind (s,par)  !Robert 8/7/2009 only on master
-
 if (xmaster) then
+  ! Jump into subroutine readtide
+  call readtide (s,par)  !Ap 15/10 ! runs oonly on master wwvv
+  call readwind (s,par)  !Robert 8/7/2009 only on master
+
   write(*,*) 'Initializing .....'
 ! Initialisations
   call wave_init (s,par)  ! wave_init only works on master process
