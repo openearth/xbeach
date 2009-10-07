@@ -42,6 +42,13 @@ build_revision = '$Revision$'
 build_date = '$Date$'
 build_url = '$HeadURL$'
 
+! autotools 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+
+
 #ifdef USEMPI
 s=>slocal
 call xmpi_initialize

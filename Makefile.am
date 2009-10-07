@@ -52,7 +52,9 @@ s.inp: space_inp.gen
 %.gen: spaceparams.tmpl makeincludes
 	echo $@ | ./makeincludes
 
-
+check_SCRIPTS= \
+	./testbed/tools/testT01.sh
+TESTS=./testbed/tools/testT01.sh
 # xbeach_mpi_SOURCES=$(xbeach_SOURCES)
 # xbeach_mpi_FCFLAGS=-DUSEMPI 
 # EXTRA_DIST=s.ind s.inp

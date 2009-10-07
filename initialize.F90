@@ -223,13 +223,6 @@ real*8,dimension(:),allocatable     :: yzs0,szs0
   s%bi        = 0.d0
   s%DR        = 0.d0
   s%BR        = par%Beta
-  s%kb        = 0.d0
-  s%Tbore     = 0.d0
-  s%ua        = 0.d0
-  s%dzav      = 0.d0
-  s%Sk        = 0.d0
-  s%As        = 0.d0
-  s%Fimpact   = 0.d0
 
 
   ! added for bound long wave bc Ad 27 march 2006
@@ -372,9 +365,6 @@ real*8                              :: tempr
 	allocate(s%vmag(1:s%nx+1,1:s%ny+1)) 
 	allocate(s%ceqsg(1:s%nx+1,1:s%ny+1,par%ngd))
 	allocate(s%ceqbg(1:s%nx+1,1:s%ny+1,par%ngd))
-	allocate(s%ero(1:s%nx+1,1:s%ny+1,1:par%ngd))
-	allocate(s%depo_ex(1:s%nx+1,1:s%ny+1,1:par%ngd))
-	allocate(s%depo_im(1:s%nx+1,1:s%ny+1,1:par%ngd))
 	allocate(s%D50(1:par%ngd))
 	allocate(s%D90(1:par%ngd))
 	allocate(s%sedcal(1:par%ngd))
@@ -389,6 +379,9 @@ real*8                              :: tempr
 	allocate(s%vrepb(1:s%nx+1,1:s%ny+1))
 	allocate(s%dzbdx(1:s%nx+1,1:s%ny+1))
 	allocate(s%dzbdy(1:s%nx+1,1:s%ny+1))
+	allocate(s%ero(1:s%nx+1,1:s%ny+1,1:par%ngd))
+	allocate(s%depo_ex(1:s%nx+1,1:s%ny+1,1:par%ngd))
+	allocate(s%depo_im(1:s%nx+1,1:s%ny+1,1:par%ngd))
     allocate(s%kb(1:s%nx+1,1:s%ny+1))
     allocate(s%Tbore(1:s%nx+1,1:s%ny+1))
     allocate(s%ua(1:s%nx+1,1:s%ny+1))  
@@ -501,8 +494,15 @@ s%dcbdy      = 0.d0
 s%ero        = 0.d0
 s%depo_im    = 0.d0
 s%depo_ex    = 0.d0
+s%kb        = 0.d0
+s%Tbore     = 0.d0
+s%ua        = 0.d0
+s%dzav      = 0.d0
+s%Sk        = 0.d0
+s%As        = 0.d0
 s%kturb      = 0.d0
 s%rolthick   = 0.d0
+
 
 end subroutine sed_init
 
