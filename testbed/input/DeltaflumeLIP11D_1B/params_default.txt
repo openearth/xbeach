@@ -46,9 +46,9 @@ tideloc  = 0
 C        = 65.
 eps      = 0.0001
 umin     = 0.0
-tstart   = 100
-tint     = 1.
-tstop    = 6580
+tstart   = 1000
+tint     = 10.
+tstop    = 65800
 CFL      = 0.9
 
 sed input
@@ -57,7 +57,7 @@ D50      = 0.000220
 D90      = 0.000330
 rhos     = 2650
 morfac   = 10
-morstart = 100
+morstart = 1000
 por      = 0.4
 dryslp   = 1.0
 wetslp   = 0.10
@@ -83,8 +83,8 @@ u
 ue
 urms
 ccg
-ceqs
-ceqb
+ceqsg
+ceqbg
 dzav
 Susg 
 Subg

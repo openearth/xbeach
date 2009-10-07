@@ -14,6 +14,7 @@ scheme   = 2
 
 wave input
 
+bc_file = F:\subversion_xbeach\trunk\testbed\input\Deltaflume2006_T01_zebra\bc\gen.ezs
 break    = 3
 Hrms     = 1.02
 Trep     = 4.57

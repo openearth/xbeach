@@ -139,7 +139,9 @@ xlabel('x [m]'); ylabel('U_{rms} [m]'); axis([min(min(xw)) max(max(xw)) 0 1.0]);
 subplot(223); set(gca,'FontSize',12);
 plot(xw,s.Um,'k-','LineWidth',1.5); hold on; plot(xum+dxext,Um,'ks','LineWidth',1.5);
 xlabel('x [m]'); ylabel('U_{mean} [m]'); axis([min(min(xw)) max(max(xw)) -0.5 0.1]);
-print('hydrodynamics.png','-dpng');
+% print file to report
+pname = ['..\..\report\',testid '_' runid '_hydrodynamics' '.jpg'];
+eval(['print -djpeg ' pname]);
 
 % compute skills:
 varname = 'Hrms';
@@ -199,7 +201,9 @@ for i = 1:length(xhrms)
     text(0.02,0.9*varmax(i),['x = ',num2str(round(xhrms(i))),' [m]'],'FontSize',9); set(gca,'fontsize',9);
     xlabel('f [Hz]'); ylabel('S_{\eta\eta} [m^2/s]');
 end
-print variance_spectra.png -dpng
+% print file to report
+pname = ['..\..\report\',testid '_' runid '_variance_spectra' '.jpg'];
+eval(['print -djpeg ' pname]);
 
 % water surface elevations
 load(['F:\TU_Delft_work\deltagoot\coastal_engineering\test8.mat']);
@@ -236,7 +240,9 @@ for i = 1:length(xhrms);
         % R = corrcoef(comp(:,2),meas2(:,2));
     end
 end
-print water_surface_elevations.png -dpng
+% print file to report
+pname = ['..\..\report\',testid '_' runid '_water_surface_elevations' '.jpg'];
+eval(['print -djpeg ' pname]);
 
 % figure;
 % for i = 1:length(xhrms);
@@ -256,7 +262,9 @@ xlabel('x [m]'); ylabel('C_{mean} [g/l]'); axis([min(min(xw)) max(max(xw)) 0 20]
 subplot(212);
 plot(xw,s.Sdzb,'k--','LineWidth',1.5); hold on; plot(x+dxext,Sdzb,'k-','LineWidth',1.5);
 xlabel('x [m]'); ylabel('S_{mean} [m^3/m/s]'); axis([min(min(xw)) max(max(xw)) -3E-4 1E-4]);
-print('transport.png','-dpng');
+% print file to report
+pname = ['..\..\report\',testid '_' runid '_transport' '.jpg'];
+eval(['print -djpeg ' pname]);
     
 intv = {'A','B','C','D','E'};
 figure(8); set(gca,'FontSize',12);
@@ -276,8 +284,9 @@ for i = 1:length(Tout)
         [r2,sci,relbias,bss]=compskill4(comp,meas,runid,testid,varname);
     end
 end
-print('profile.png','-dpng');
-
+% print file to report
+pname = ['..\..\report\',testid '_' runid '_profile' '.jpg'];
+eval(['print -djpeg ' pname]);
 
 % incoming versus outgoing long waves
 figure(4);
@@ -293,7 +302,9 @@ xlabel('x [m]'); ylabel('H_{rms} [m]'); axis([min(min(xw)) max(max(xw)) 0 0.75])
 % subplot(223);
 % plot(xw,s.R,'k','LineWidth',1.5);
 % xlabel('x [m]'); ylabel('R [W/m^2]'); axis([min(min(xw)) max(max(xw)) -2 10]);
-% print('long_waves.png','-dpng');
+% print file to report
+pname = ['..\..\report\',testid '_' runid '_long_waves' '.jpg'];
+eval(['print -djpeg ' pname]);
 % 
 % pause(1.0)
 

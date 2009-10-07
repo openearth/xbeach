@@ -184,7 +184,9 @@ for i = nt-100:nt
     title(num2str(i));
     pause(0.1); hold off;    
 end
-print final_profile.png -dpng
+% print file to report
+pname = ['..\..\report\',testid '_' runid 'final_profile' '.jpg'];
+eval(['print -djpeg ' pname]);
 
 %% Additional plots...
 % setup
@@ -290,7 +292,9 @@ plot(xw,s.Ua,'r-','LineWidth',1.5); plot(xhrms,0.25*mean(ua),'rs','LineWidth',1.
 plot(xw,s.Um+s.Ua,'b','LineWidth',1.5); 
 % plot(xw(:,2),s.usW,'g--','LineWidth',1.5); plot(xw(:,2),s.usR,'g-','LineWidth',1.5); plot(xw(:,2),-(s.usR+s.usW),'g-.','LineWidth',1.5);
 xlabel('x [m]'); ylabel('U_{mean} & U_{wave assymetry} [m/s]'); axis([min(min(xw)) max(max(xw)) -0.4 0.2]);
-print('hydrodynamics.png','-dpng');
+% print file to report
+pname = ['..\..\report\',testid '_' runid 'hydrodynamics' '.jpg'];
+eval(['print -djpeg ' pname]);
 
 % morphodynamics
 figure(2);
@@ -309,4 +313,8 @@ for i = 1:length(Tout)
     plot(xw(:,2),s.zb(:,Tout(i)),'r--','LineWidth',1.5); hold on; plot([0:1:230],z(i,:),'k','LineWidth',1.5);
 end
 xlabel('x [m]'); ylabel('z_{b} [m]'); axis([150 max(max(xw)) -2.5 2]);
-print('morphodynamics.png','-dpng');
+% print file to report
+pname = ['..\..\report\',testid '_' runid 'morphodynamics' '.jpg'];
+eval(['print -djpeg ' pname]);
+
+

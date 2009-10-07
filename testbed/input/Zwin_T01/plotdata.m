@@ -28,7 +28,8 @@ for i=1:nt;
     zbt(:,i)=zb(:,ny/2+1);
     ut(:,i)=u(:,ny/2+1);
     vt(:,i)=v(:,ny/2+1);
-    Bt(i)=min(y(zb==3.3&abs(x)<20&y>0))-max(y(zb==3.3&abs(x)<20&y<0));
+    Bt(i)=min(y(zb>3.29&abs(x)<20&y>=0))-max(y(zb>3.29&abs(x)<20&y<=0));
+    zbold = zb;
     if 0%i==1
         figure(3);
         subplot(2,1,1,'position',[.1 .6 .6 .3] )
@@ -72,6 +73,7 @@ a=load([datadir 'fig2\ms4.xyz']);
 t4=a(:,1)/1000;v4=a(:,2)/10000;
 a=load([datadir 'fig2\ms5.xyz']);
 t5=a(:,1)/1000;v5=a(:,2)/10000;
+axis([0 70 0 3]);
 subplot(312)
 plot(t4,v4,'r.',t,ut(103,:),'r-','linewidth',2)
 meas(:,1)=t4;meas(:,2)=v4;comp(:,1)=t;comp(:,2)=ut(103,:);
@@ -79,12 +81,14 @@ meas(:,1)=t4;meas(:,2)=v4;comp(:,1)=t;comp(:,2)=ut(103,:);
 xlabel('time (min.');ylabel('velocity (m/s)')
 legend('MS4 obs','MS4 comp','location','northeast')
 Bmeas=load([datadir 'B.txt'])
+axis([0 70 0 6]);
 subplot(313)
 plot(Bmeas(:,1),Bmeas(:,2),'.k',t,Bt,'k-','linewidth',2)
 comp(:,1)=t;comp(:,2)=Bt;
 [r2,sci,relbias,bss]=compskill4(comp,Bmeas,runid,testid,'B');
 xlabel('time (min.');ylabel('breach width (m)')
 legend('B obs','B comp','location','southeast')
+axis([0 70 0 60]);
 pname = ['..\..\report\',testid '_' runid '_fig1' '.jpg'];
 eval(['print -djpeg ' pname]);
 !type B.err>>..\..\report\B.err
