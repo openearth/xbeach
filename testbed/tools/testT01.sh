@@ -25,7 +25,8 @@ then
 else
     # cleanup
     cd $xbeachdir
-    rm -r run/$testname
+    rm -rf run/$testname
+    exit 0
 fi
     
 
