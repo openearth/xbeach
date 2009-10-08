@@ -450,7 +450,7 @@ do ii=1,nint(par%morfac)
 			      edg2(jg) = sedcal(jg)*sign(1.d0,dzb)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt       
 			      edg1(jg) = -sedcal(jg)*edg2(jg)*(xu(i+1)-xu(i))/(xu(i)-xu(i-1))
 			   enddo
-			   nt_d=max(1,ceiling(abs(dzb)/par%frac_dz/minval(dzbed(iii-sign(1.d0,dzb),j,:)))) ! nt_d is not necessarily equal to nt_e (=ndz)
+			   nt_d=max(1,ceiling(abs(dzb)/par%frac_dz/minval(dzbed(iii-sign(1,ceiling(dzb)),j,:)))) ! nt_d is not necessarily equal to nt_e (=ndz)
 			   nt_sub = max(1,nt_d)
 
 			   ! jaap: update dzb
@@ -508,7 +508,7 @@ do ii=1,nint(par%morfac)
 			      edg1(jg) = -sedcal(jg)*edg2(jg)*(yv(j+1)-yv(j))/(yv(j)-yv(j-1))
 			   enddo
 			   
-			   nt_d=max(1,ceiling(abs(dzb)/par%frac_dz/minval(dzbed(i,jjj-sign(1.d0,dzb),:)))) ! nt_d is not necessarily equal to nt_e (=ndz)
+			   nt_d=max(1,ceiling(abs(dzb)/par%frac_dz/minval(dzbed(i,jjj-sign(1,ceiling(dzb)),:)))) ! nt_d is not necessarily equal to nt_e (=ndz)
 			   nt_sub = max(1,nt_d)
                
                ! jaap: update dzb

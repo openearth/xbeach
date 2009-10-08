@@ -29,6 +29,7 @@ xbeach_SOURCES= \
 	initialize.F90 \
 	timestep.F90 \
 	flow_timestep.F90 \
+	varianceupdate.F90 \
 	varoutput.F90 \
 	$(extra_sources) \
 	xbeach.F90 

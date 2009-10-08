@@ -63,7 +63,8 @@ am_xbeach_OBJECTS = xmpi.$(OBJEXT) general_mpi.$(OBJEXT) \
 	boundaryconditions.$(OBJEXT) morphevolution.$(OBJEXT) \
 	groundwater.$(OBJEXT) drifters.$(OBJEXT) readtide.$(OBJEXT) \
 	readwind.$(OBJEXT) initialize.$(OBJEXT) timestep.$(OBJEXT) \
-	flow_timestep.$(OBJEXT) varoutput.$(OBJEXT) xbeach.$(OBJEXT)
+	flow_timestep.$(OBJEXT) varianceupdate.$(OBJEXT) \
+	varoutput.$(OBJEXT) xbeach.$(OBJEXT)
 xbeach_OBJECTS = $(am_xbeach_OBJECTS)
 xbeach_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -238,6 +239,7 @@ xbeach_SOURCES = \
 	initialize.F90 \
 	timestep.F90 \
 	flow_timestep.F90 \
+	varianceupdate.F90 \
 	varoutput.F90 \
 	$(extra_sources) \
 	xbeach.F90 
