@@ -287,7 +287,7 @@ endif
                vdvdy(i,j)=max(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j-1)*vv(i,j-1)) ) / hvm(i,j)*(vv(i,j)-vv(i,j-1))/(yv(j)-yv(j-1)) + &
                     min(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j+1)*vv(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j))/(yv(j+1)-yv(j))	          
             elseif (j==1) then
-               vdvdy(i,j)=min(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j+1)*vv(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j))/(yv(j+1)-yv(j))	          
+               vdvdy(i,j)=min(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j+1)*vv(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j))/(yv(j+1)-yv(j))
             elseif (j==ny) then
                vdvdy(i,j)=max(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j-1)*vv(i,j-1)) ) / hvm(i,j)*(vv(i,j)-vv(i,j-1))/(yv(j)-yv(j-1))
             endif
