@@ -130,23 +130,13 @@ endif
     do j=1,ny+1
         do i=1,nx+1 !Ap
             ! Water depth in u-points do momentum equation: mean
-            hum(i,j)=max(.5d0*(hh(i,j)+hh(min(nx,i)+1,j)),par%eps)
-            ! Water depth in u-points do continuity equation: upwind
-            if (uu(i,j)>par%umin) then
-                hu(i,j)=hh(i,j)
-            elseif (uu(i,j)<-par%umin) then
-                hu(i,j)=hh(min(nx,i)+1,j)  
-            else
-                hu(i,j)=max(max(zs(i,j),zs(min(nx,i)+1,j))-max(zb(i,j),zb(min(nx,i)+1,j)),par%eps)
-                !hu(i,j) = (hh(i,j)+hh(min(nx,i)+1,j))/2
-            end if           
+            hum(i,j)=max(.5d0*(hh(i,j)+hh(min(nx,i)+1,j)),par%eps)       
         end do 
     end do
     ! wwvv here the mpi code to communicate a row of hu
     ! we send to the neighbour above and receive from the neighbour
     ! below:
 #ifdef USEMPI
-    call xmpi_shift(hu ,'m:')
     call xmpi_shift(hum,'m:')
 #endif
     ! Wetting and drying criterion (only do momentum balance)
@@ -167,21 +157,11 @@ endif
     do j=1,ny+1
         do i=1,nx+1
             ! Water depth in v-points do momentum equation: mean
-            hvm(i,j)=max(.5d0*(hh(i,j)+hh(i,min(ny,j)+1)),par%eps)
-            ! Water depth in v-points do continuity equation: upwind
-            if (vv(i,j)>par%umin) then
-                hv(i,j)=hh(i,j)
-            elseif (vv(i,j)<-par%umin) then
-                hv(i,j)=hh(i,min(ny,j)+1)
-            else
-                hv(i,j)=max(max(zs(i,j),zs(i,min(ny,j)+1))-max(zb(i,j),zb(i,min(ny,j)+1)),par%eps)
-                !hv(i,j) = (hh(i,j)+hh(i,min(ny,j)+1))/2
-            end if           
+            hvm(i,j)=max(.5d0*(hh(i,j)+hh(i,min(ny,j)+1)),par%eps)     
         end do 
     end do
     ! send to the left, read from the right
 #ifdef USEMPI
-    call xmpi_shift(hv ,':n')
     call xmpi_shift(hvm,':n')
 #endif
     ! Wetting and drying criterion (only do momentum balance)
@@ -199,8 +179,8 @@ endif
     !
     do j=2,ny ! Jaap 2,ny instead of 1,ny+1
         do i=2,nx         
-			ududx(i,j)=max(0.d0,.5d0*(hu(i,j)*uu(i,j)+hu(i-1,j)*uu(i-1,j)) ) / hum(i,j)*(uu(i,j  )-uu(i-1,j))/(xu(i  )-xu(i-1)) + &
-			           min(0.d0,.5d0*(hu(i,j)*uu(i,j)+hu(i+1,j)*uu(i+1,j)) ) / hum(i,j)*(uu(i+1,j)-uu(i,j  ))/(xu(i+1)-xu(i  ))
+			ududx(i,j)=max(0.d0,.5d0*(qx(i,j)+qx(i-1,j)) ) / hum(i,j)*(uu(i,j  )-uu(i-1,j))/(xu(i  )-xu(i-1)) + &
+			           min(0.d0,.5d0*(qx(i,j)+qx(i+1,j)) ) / hum(i,j)*(uu(i+1,j)-uu(i,j  ))/(xu(i+1)-xu(i  ))
         end do 
     end do
     ! wwvv fix border rows and columns of ududx
@@ -212,10 +192,8 @@ endif
 #endif
     do j=2,ny
         do i=1,nx
-            vdudy(i,j)=max(0.d0,.5d0*(hv(i,j-1)*vv(i,j-1)+hv(i+1,j-1)*vv(i+1,j-1)) ) / &
-                 hum(i,j)*(uu(i,j  )-uu(i,j-1))/(yz(j  )-yz(j-1)) + &
-                 min(0.d0,.5d0*(hv(i,j  )*vv(i,j  )+hv(i+1,j  )*vv(i+1,j  )) )  / &
-                 hum(i,j)*(uu(i,j+1)-uu(i,j  ))/(yz(j+1)-yz(j  ))
+            vdudy(i,j)=max(0.d0,.5d0*(qy(i,j-1)+qy(i+1,j-1)) ) / hum(i,j)*(uu(i,j  )-uu(i,j-1))/(yz(j  )-yz(j-1)) + &
+                       min(0.d0,.5d0*(qy(i,j  )+qy(i+1,j  )) ) / hum(i,j)*(uu(i,j+1)-uu(i,j  ))/(yz(j+1)-yz(j  ))
         end do 
     end do
     ! wwvv fix border rows and columns of vdudy
@@ -284,20 +262,19 @@ endif
         do i=2,nx+1 !
             ! Advection terms (momentum conserving method)
             if (j>1 .and. j<ny) then
-               vdvdy(i,j)=max(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j-1)*vv(i,j-1)) ) / hvm(i,j)*(vv(i,j)-vv(i,j-1))/(yv(j)-yv(j-1)) + &
-                    min(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j+1)*vv(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j))/(yv(j+1)-yv(j))	          
+               vdvdy(i,j)=max(0.d0,.5d0*(qy(i,j)+qy(i,j-1)) ) / hvm(i,j)*(vv(i,j)-vv(i,j-1))/(yv(j)-yv(j-1)) + &
+                          min(0.d0,.5d0*(qy(i,j)+qy(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j))/(yv(j+1)-yv(j))	          
             elseif (j==1) then
-               vdvdy(i,j)=min(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j+1)*vv(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j))/(yv(j+1)-yv(j))
-            elseif (j==ny) then
-               vdvdy(i,j)=max(0.d0,.5d0*(hv(i,j)*vv(i,j)+hv(i,j-1)*vv(i,j-1)) ) / hvm(i,j)*(vv(i,j)-vv(i,j-1))/(yv(j)-yv(j-1))
+               vdvdy(i,j)=min(0.d0,.5d0*(qy(i,j)+qy(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j))/(yv(j+1)-yv(j))	                      elseif (j==ny) then
+               vdvdy(i,j)=max(0.d0,.5d0*(qy(i,j)+qy(i,j-1)) ) / hvm(i,j)*(vv(i,j)-vv(i,j-1))/(yv(j)-yv(j-1))
             endif
          end do
     end do
     ! Robert & Jaap: Let's do Stelling & Duinmeijer for all advection terms
     do j=1,ny
         do i=2,nx
-           udvdx(i,j)=max(0.d0,.5d0*(hu(i-1,j)*uu(i-1,j)+hu(i-1,j+1)*uu(i-1,j+1))) / hvm(i,j)*(vv(i,j)-vv(i-1,j))/(xz(i)-xz(i-1)) +&
-                min(0.d0,.5d0*(hu(i,j)*uu(i,j)+hu(i,j+1)*uu(i,j+1)) ) / hvm(i,j)*(vv(i+1,j)-vv(i  ,j))/(xz(i+1)-xz(i))
+           udvdx(i,j)=max(0.d0,.5d0*(qx(i-1,j)+qx(i-1,j+1)) ) / hvm(i,j)*(vv(i  ,j)-vv(i-1,j))/(xz(i)-xz(i-1)) +&
+                      min(0.d0,.5d0*(qx(i  ,j)+qx(i  ,j+1)) ) / hvm(i,j)*(vv(i+1,j)-vv(i  ,j))/(xz(i+1)-xz(i))
         end do 
     end do
     do j=2,ny
