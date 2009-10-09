@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.59)
 AC_INIT(xbeach, [v18], [d.roelvink@unesco-ihe.org])
-AC_REVISION([$Revision $])
+AC_REVISION([$Revision$])
 
 AC_CONFIG_SRCDIR([boundaryconditions.F90])
 AC_CONFIG_AUX_DIR(config)
