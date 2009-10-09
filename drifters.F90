@@ -19,7 +19,7 @@ subroutine drifter(s,par)
     integer, save               :: ndrifter
 
     integer, dimension(:)  ,allocatable,save  :: iudrift,judrift,ivdrift,jvdrift
-    real*8 , dimension(:)  ,allocatable,save  :: xdrift,ydrift,xwdrift,ywdrift,releasetime,retrievaltime
+    real*8 , dimension(:)  ,allocatable,save  :: xdrift,ydrift,xwdrift,ywdrift,releasetime,retrievaltime,buf
     logical, save                             :: first_drifter=.true.
     character*14                              :: fname
     character*78                              :: drifterfile
@@ -35,7 +35,7 @@ if (first_drifter) then
       ndrifter   = readkey_int     ('params.txt','ndrifter',    0,         0,        50)
    endif
 #ifdef USEMPI
-       call xmpi_bcast(nt)
+       call xmpi_bcast(ndrifter)
 #endif
    if (ndrifter>0) then
       allocate(iudrift(ndrifter))
@@ -44,6 +44,7 @@ if (first_drifter) then
       allocate(jvdrift(ndrifter))
       allocate(xdrift(ndrifter))
       allocate(ydrift(ndrifter))
+      allocate(buf(ndrifter)) 
       allocate(xwdrift(ndrifter))
       allocate(ywdrift(ndrifter))
       allocate(releasetime(ndrifter))
@@ -112,11 +113,12 @@ else
 #ifdef USEMPI
             else     ! In case of MPI set drifter coordinates to huge if outside domain
                      ! This allows the right coordinates to be communicated by allreduce
-               xdrift(i)=Huge
-               ydrift(i)=Huge  
+               xdrift(i)=huge(0.0d0)
+               ydrift(i)=huge(0.0d0)  
 #endif
             endif
 #ifdef USEMPI
+
                call xmpi_allreduce(xdrift,buf,MPI_MIN)
                call xmpi_allreduce(ydrift,buf,MPI_MIN)
 #endif            

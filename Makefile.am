@@ -1,5 +1,6 @@
-bin_PROGRAMS=makeincludes xbeach #xbeach.mpi
-ACLOCAL_AMFLAGS = -I config
+bin_PROGRAMS=makeincludes 
+bin_PROGRAMS+=xbeach #_mpi
+ACLOCAL_AMFLAGS = -I config -I m4
 makeincludes_SOURCES= \
 	makeincludes.F90
 makeincludes_LDFLAGS=
@@ -56,8 +57,13 @@ s.inp: space_inp.gen
 check_SCRIPTS= \
 	./testbed/tools/testT01.sh
 TESTS=./testbed/tools/testT01.sh
-# xbeach_mpi_SOURCES=$(xbeach_SOURCES)
-# xbeach_mpi_FCFLAGS=-DUSEMPI 
+
+# if mpi, TODO: make this conditional
+#FC=$(MPIFC)
+#LIBS+=$(MPILIBS)
+#xbeach_mpi_SOURCES=$(xbeach_SOURCES)
+#xbeach_mpi_FCFLAGS=-DUSEMPI -DHAVE_MPI_WTIME
+
 # EXTRA_DIST=s.ind s.inp
 EXTRA_DIST=spaceparams.tmpl
 SUBDIRS=doc

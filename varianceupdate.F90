@@ -6,6 +6,11 @@ real*8,dimension(:,:,:), allocatable:: variancecrossterm  ! Needed for variance 
 real*8,dimension(:,:,:), allocatable:: variancesquareterm ! Needed for variance calculation
 real*8,dimension(:,:,:), allocatable,target:: minarrays   ! Keep time min variables
 real*8,dimension(:,:,:), allocatable,target:: maxarrays   ! Keep time max variables
+
+
+
+
+
 !!!! Routine to calculate time-average variables
 contains
 subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
@@ -324,6 +329,88 @@ subroutine makecrossvector(s,sl,crossvararray,nvar,varindexvec,mg,cstype)
   call xmpi_bcast(crossvararray)
 #endif 
 end subroutine makecrossvector
+
+#ifdef USEMPI
+!
+!  collects data from processes in master
+!  using the index number of the variable to be
+!  collected
+!
+subroutine space_collect_index(sg,sl,index)
+  use spaceparams
+  use mnemmodule
+  type(spacepars)                 :: sg
+  type(spacepars), intent(in)     :: sl
+  integer, intent(in)             :: index
+
+  type(arraytype)                 :: tg,tl
+
+
+#ifdef USEMPI
+logical, dimension(numvars)         :: avail      ! .true.: this item is collected, used to
+                                                  ! prevent double space_collect
+                                                  ! calls for the same item
+                                                  ! 
+#endif
+
+#ifdef USEMPI
+  avail = .false.
+#endif
+
+
+#ifdef USEMPE
+  call MPE_Log_event(event_coll_start,0,'cstart')
+#endif
+
+  if(avail(index)) then
+    return
+  endif
+
+  call indextos(sl,index,tl)
+  if(xmaster) then
+    call indextos(sg,index,tg)
+  endif
+
+  select case(tl%type)
+    case('i')
+      select case(tl%rank)
+        case(0)             ! nothing to do
+        case default     ! case 1, 2, 3 and 4 are not handled
+          goto 100
+      end select   ! rank
+    case('r')
+      select case(tl%rank)
+        case(0)             ! nothing to do
+        case(2)
+          if (tl%name .eq. mnem_umean) then
+            goto 100
+          endif
+          call space_collect(sl,tg%r2,tl%r2)
+        case(3)
+          call space_collect(sl,tg%r3,tl%r3)
+        case(4)
+          call space_collect(sl,tg%r4,tl%r4)
+        case default
+      end select   ! rank
+    case default
+  end select   ! type
+
+  avail(index) = .true.
+
+#ifdef USEMPE
+  call MPE_Log_event(event_coll_start,0,'cend')
+#endif
+
+  return
+
+  100 continue
+  write(*,*)'Problem in space_collect_index with variable'//trim(tg%name )
+  write(*,*)"Don't know how to collect that on the masternode"
+  call printvar(tl)
+  call halt_program
+
+end subroutine space_collect_index
+#endif
 
 
 end module

@@ -41,12 +41,6 @@ integer, dimension(numvars)         :: outnumbers  ! numbers, corrsponding to mn
 integer                             :: ndt,itg,itp,itc,itm,day,ot,itprev
 real*8,dimension(10)                :: tlast10
 type(arraytype)                     :: At
-#ifdef USEMPI
-logical, dimension(numvars)         :: avail      ! .true.: this item is collected, used to
-                                                  ! prevent double space_collect
-                                                  ! calls for the same item
-                                                  ! 
-#endif
 
 interface outarray
   module procedure outarray_r0
@@ -697,10 +691,6 @@ subroutine var_output(it,s,sl,par)
   type(arraytype)                         :: t
   real*8,dimension(:,:),pointer				:: MI,MA
   
-#ifdef USEMPI
-  avail = .false.
-#endif
-
   inquire(iolength=wordsize) 1.d0
   reclen=wordsize*(s%nx+1)*(s%ny+1)
   reclen2=wordsize*(s%nx+1)*(s%ny+1)*(par%ngd)*(par%nd)
@@ -1103,75 +1093,6 @@ subroutine var_output(it,s,sl,par)
   endif
 
 end subroutine var_output
-
-#ifdef USEMPI
-!
-!  collects data from processes in master
-!  using the index number of the variable to be
-!  collected
-!
-subroutine space_collect_index(sg,sl,index)
-  use spaceparams
-  use mnemmodule
-  type(spacepars)                 :: sg
-  type(spacepars), intent(in)     :: sl
-  integer, intent(in)             :: index
-
-  type(arraytype)                 :: tg,tl
-
-#ifdef USEMPE
-  call MPE_Log_event(event_coll_start,0,'cstart')
-#endif
-
-  if(avail(index)) then
-    return
-  endif
-
-  call indextos(sl,index,tl)
-  if(xmaster) then
-    call indextos(sg,index,tg)
-  endif
-
-  select case(tl%type)
-    case('i')
-      select case(tl%rank)
-        case(0)             ! nothing to do
-        case default     ! case 1, 2, 3 and 4 are not handled
-          goto 100
-      end select   ! rank
-    case('r')
-      select case(tl%rank)
-        case(0)             ! nothing to do
-        case(2)
-          if (tl%name .eq. mnem_umean) then
-            goto 100
-          endif
-          call space_collect(sl,tg%r2,tl%r2)
-        case(3)
-          call space_collect(sl,tg%r3,tl%r3)
-        case(4)
-          call space_collect(sl,tg%r4,tl%r4)
-        case default
-      end select   ! rank
-    case default
-  end select   ! type
-
-  avail(index) = .true.
-
-#ifdef USEMPE
-  call MPE_Log_event(event_coll_start,0,'cend')
-#endif
-
-  return
-
-  100 continue
-  write(*,*)'Problem in space_collect_index with variable'//trim(tg%name )
-  write(*,*)"Don't know how to collect that on the masternode"
-  call printvar(tl)
-  call halt_program
-
-end subroutine space_collect_index
-#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!   INTERNAL SUBROUTINE   !!!!!!!!!!!!!!!!!!!!!!!!!!!

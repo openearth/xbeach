@@ -39,7 +39,8 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
 	config/install-sh config/missing config/texinfo.tex
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/acx_mpi.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -155,6 +156,8 @@ LIBS = @LIBS@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
+MPIFC = @MPIFC@
+MPILIBS = @MPILIBS@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
@@ -209,7 +212,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-ACLOCAL_AMFLAGS = -I config
+ACLOCAL_AMFLAGS = -I config -I m4
 makeincludes_SOURCES = \
 	makeincludes.F90
 
@@ -260,8 +263,13 @@ check_SCRIPTS = \
 	./testbed/tools/testT01.sh
 
 TESTS = ./testbed/tools/testT01.sh
-# xbeach_mpi_SOURCES=$(xbeach_SOURCES)
-# xbeach_mpi_FCFLAGS=-DUSEMPI 
+
+# if mpi, TODO: make this conditional
+#FC=$(MPIFC)
+#LIBS+=$(MPILIBS)
+#xbeach_mpi_SOURCES=$(xbeach_SOURCES)
+#xbeach_mpi_FCFLAGS=-DUSEMPI -DHAVE_MPI_WTIME
+
 # EXTRA_DIST=s.ind s.inp
 EXTRA_DIST = spaceparams.tmpl
 SUBDIRS = doc

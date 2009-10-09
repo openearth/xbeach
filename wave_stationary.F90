@@ -167,7 +167,7 @@ call xmpi_shift(km,'1:')
 
 #ifdef USEMPI
 do iimpi=1,xmpi_m    ! Start iteration for number of domains in x direction
-if (xmaster) write(*,'(a,i,a,i,a)') 'Starting wave propagation over ',iimpi,' of ',xmpi_m,' MPI rows'
+if (xmaster) write(*,'(a,i0,a,i0,a)') 'Starting wave propagation over ',iimpi,' of ',xmpi_m,' MPI rows'
 call xmpi_shift(ee,'1:')
 call xmpi_shift(rr,'1:')
 call xmpi_shift(km,'1:')

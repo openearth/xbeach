@@ -3,6 +3,8 @@
 
 AC_PREREQ(2.59)
 AC_INIT(xbeach, [v18], [d.roelvink@unesco-ihe.org])
+AC_REVISION([$Revision $])
+
 AC_CONFIG_SRCDIR([boundaryconditions.F90])
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE
@@ -15,7 +17,10 @@ AC_PROG_FC
 AC_PROG_F77
 AC_PROG_INSTALL
 # Checks for libraries.
+AC_LANG_PUSH(Fortran)
+ACX_MPI #([], [AC_MSG_ERROR(could not find mpi library for --with-mpi)])
 
+AC_LANG_POP
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
