@@ -344,7 +344,7 @@ IMPLICIT NONE
 type(spacepars),target              :: s
 type(parameters)                    :: par
 
-integer                             :: i,j,ii,iii,jjj,jdz,ndz
+integer                             :: i,j,ii,iii,jjj,jdz,ndz,ind
 integer                             :: jg,nt_e,nt_d,nt_sub,nt_sub_max
 real*8                              :: dzb,dzmax,dzt,dzleft
 real*8 , dimension(:,:),allocatable,save :: dzbtot
@@ -384,12 +384,13 @@ do j=2,ny
 											     ((Susg(i,j,:)-Susg(i-1,j,:))/(xu(i)-xu(i-1))+&           
 		                                          (Svsg(i,j,:)-Svsg(i,j-1,:))/(yv(j)-yv(j-1)))+&
 											 ! BRJ, dz from source-sink terms
-	                                         par%sourcesink*(ero(i,j,:)-depo_ex(i,j,:))+&           	                                                                                                
+	                                         par%sourcesink*(ero(i,j,:)-depo_ex(i,j,:)) +&           	                                                                                                
 											 ! dz from bed load transport gradients
                                              (Subg(i,j,:)-Subg(i-1,j,:))/(xu(i)-xu(i-1))+&           
 		                                     (Svbg(i,j,:)-Svbg(i,j-1,:))/(yv(j)-yv(j-1))    )        
       
-      nt_e=max(1,ceiling(maxval(dzg(:)/(par%frac_dz*dz(1)*max(pb(1,:),0.001d0)) ) ) ) !Jaap: presumes top layer is thinnest
+	  ind = minval(minloc(dz))
+      nt_e=max(1,ceiling(maxval(dzg(:)/(par%frac_dz*dz(ind)*max(pb(ind,:),0.001d0)) ) ) )
 
       nt_d=max(1,ceiling(abs(sum(dzg))/par%frac_dz/minval(dz)))
 	  nt_sub=max(nt_e,nt_d)
@@ -822,13 +823,13 @@ do jg = 1,par%ngd
 #ifdef USEMPI
    call xmpi_shift(term2,'m:')
 #endif
-   ceqb =Asb*term2                    ! equilibrium bed concentration
-   ceqb = min(ceqb,0.2d0)		      
+   ceqb =Asb*term2                    		      
    ceqb = ceqb/hloc
+   ceqb = min(ceqb,0.2d0)             ! maximum equilibrium bed concentration
    ceqbg(:,:,jg) = ceqb*sedcal(jg)*wetz
-   ceqs =Ass*term2                    ! equilibrium suspended concentration
-   ceqs = min(ceqs,0.2d0)		      
+   ceqs =Ass*term2                    
    ceqs = ceqs/hloc
+   ceqs = min(ceqs,0.2d0)             ! maximum equilibrium suspended concentration		      
    ceqsg(:,:,jg) = ceqs*sedcal(jg)*wetz
 
 enddo  ! end og grain size classes
@@ -1082,11 +1083,11 @@ do jg = 1,par%ngd
       end do
    end do
   
-   ceqb = min(ceqb,0.05)		      ! equilibrium bed concentration
    ceqb = ceqb/hloc
+   ceqb = min(ceqb,0.05)		      ! maximum equilibrium bed concentration
    ceqbg(:,:,jg) = ceqb*sedcal(jg)*wetz
-   ceqs = min(ceqs,0.05)		      ! equilibrium suspended concentration
    ceqs = ceqs/hloc
+   ceqs = min(ceqs,0.05)		      ! maximum equilibrium suspended concentration
    ceqsg(:,:,jg) = ceqs*sedcal(jg)*wetz
 enddo                             ! end of grain size classes
                             ! end of grain size classes
