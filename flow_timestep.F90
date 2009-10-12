@@ -349,7 +349,8 @@ endif
 #endif
     ! Flux in u-point
     qx=uu*hu
-    ! Flux in v-points
+    ! Dano in case of closed boundaries we need to set vv to 0 before computing qv,
+    ! to avoid mass errors
     if (par%right==1) then
       vv(2:nx+1,1) = 0.d0
     endif
