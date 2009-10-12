@@ -853,6 +853,9 @@ if (par%instat/=8)then
           end if
        end do
        vv(1,:)=vv(2,:)
+    else if (par%front==2) then
+       uu(1,:)=0.d0
+!      zs(1,:)=max(zs(2,:),zb(1,:))
     endif ! par%front
     ! uu, zs and umean shift horizontally in two directions (loop was 2..ny)
 #ifdef USEMPI
@@ -876,7 +879,7 @@ if (par%instat/=8)then
   if (xmpi_isbot) then
      if (par%back==0) then ! set uu(nx+1,:)=0 
         uu(nx,:) = 0.d0   
-        zs(nx+1,:) = zs(nx,:)
+   !    zs(nx+1,:) = zs(nx,:)
 		! zs(nx+1,2:ny) = zs(nx+1,2:ny) + par%dt*hh(nx,2:ny)*uu(nx,2:ny)/(xu(nx+1)-xu(nx)) -par%dt*(hv(nx+1,2:ny+1)*vv(nx+1,2:ny+1)-hv(nx+1,1:ny)*vv(nx+1,1:ny))/(yv(2:ny+1)-yv(1:ny))
      elseif (par%back==1) then
         ! uu(nx+1,:)=sqrt(par%g/hh(nx+1,:))*(zs(nx+1,:)-max(zb(nx+1,:),s%zs0(nx+1,:))) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
@@ -960,5 +963,191 @@ call LINEAR_INTERP(s%windinpt,s%windvel,par%windlen,par%t,s%windvnow,indt)
 call LINEAR_INTERP(s%windinpt,s%winddir,par%windlen,par%t,s%winddirnow,indt)
 
 end subroutine flow_bc
+
+subroutine discharge_boundary(s,par)
+use params
+use spaceparams
+use xmpi_module
+use readkey_module
+use interp
+
+IMPLICIT NONE
+
+type(spacepars),target                  :: s
+type(parameters)                        :: par
+
+character*80                            :: fname
+integer                                 :: i,j,idisch,ii=0,indx
+integer                                 :: ndisch=0,ntdisch=0,ndisch_cells=0,io=0
+logical, save                           :: firsttimedischarge=.true.
+real*8                                  :: temp,xdb,xde,ydb,yde
+real*8, dimension(:)  ,allocatable,save :: x_disch_begin,x_disch_end,length_disch
+real*8, dimension(:)  ,allocatable,save :: y_disch_begin,y_disch_end,dischnow
+real*8, dimension(:)  ,allocatable,save :: tdisch
+real*8, dimension(:,:),allocatable,save :: disch
+integer,dimension(:)  ,allocatable,save :: disch_i,disch_j,disch_no
+real*8, dimension(:)  ,allocatable,save :: disch_w
+real*8, save                            :: totvol
+include 's.ind'
+include 's.inp'
+
+io    = 0
+
+! first time
+if (firsttimedischarge) then
+   firsttimedischarge=.false.
+   allocate (disch_i(2*nx+2*ny))
+   allocate (disch_j(2*nx+2*ny))
+   allocate (disch_w(2*nx+2*ny))
+   allocate (disch_no(2*nx+2*ny))
+   ! read discharge information file
+   if (xmaster) then
+      call readkey('params.txt','disch_loc_file',fname)
+      if (fname=='') then
+         ndisch=0
+         ndisch_cells=0
+         return
+      endif
+      write(*,*)'discharge_boundary: reading discharge locations from ',fname,' ...'
+      open(31,file=fname)
+      do while (io==0)
+	     ndisch=ndisch+1
+         read(31,*,IOSTAT=io) temp
+      enddo
+      rewind(31)
+      ndisch=ndisch-1
+   endif
+#ifdef USEMPI
+   call xmpi_bcast(ndisch)
+#endif
+   allocate(x_disch_begin(ndisch))
+   allocate(y_disch_begin(ndisch))
+   allocate(x_disch_end  (ndisch))
+   allocate(y_disch_end  (ndisch))
+   allocate(length_disch (ndisch))
+   allocate(dischnow     (ndisch))
+   if (xmaster) then
+      do i=1,ndisch
+         read(31,*,IOSTAT=io) x_disch_begin(i),y_disch_begin(i),x_disch_end(i),y_disch_end(i)
+      enddo
+      close(31)
+   endif
+#ifdef USEMPI
+   call xmpi_bcast(x_disch_begin)
+   call xmpi_bcast(y_disch_begin)
+   call xmpi_bcast(x_disch_end)
+   call xmpi_bcast(y_disch_end
+#endif
+   if (xmaster) then
+      ! Read discharge timeseries
+      call readkey('params.txt','disch_timeseries_file',fname)
+      write(*,*)'discharge_boundary: reading discharge timeseries from ',fname,' ...'
+      open(31,file=fname)
+      io=0
+      do while (io==0)
+	     ntdisch=ntdisch+1
+         read(31,*,IOSTAT=io) temp
+      enddo
+      rewind(31)
+      ntdisch=ntdisch-1
+   endif
+#ifdef USEMPI
+   call xmpi_bcast(ntdisch)
+#endif
+   allocate(tdisch(ntdisch))
+   allocate(disch(ntdisch,ndisch))
+   if (xmaster) then
+      do i=1,ntdisch
+         read(31,*,IOSTAT=io) tdisch(i),(disch(i,j),j=1,ndisch)
+      enddo
+      close(31)
+   endif
+#ifdef USEMPI
+   call xmpi_bcast(tdisch)
+   call xmpi_bcast(disch)
+#endif
+   do idisch=1,ndisch
+      length_disch(idisch)=0.d0
+      xdb= cos(alfa)*(x_disch_begin(idisch)-xori)+sin(alfa)*(y_disch_begin(idisch)-yori)
+      ydb=-sin(alfa)*(x_disch_begin(idisch)-xori)+cos(alfa)*(y_disch_begin(idisch)-yori)
+      xde= cos(alfa)*(x_disch_end(idisch)-xori)+sin(alfa)*(y_disch_end(idisch)-yori)
+      yde=-sin(alfa)*(x_disch_end(idisch)-xori)+cos(alfa)*(y_disch_end(idisch)-yori)
+      if (abs(yde-ydb)>abs(xde-xdb)) then
+         ! line in y-direction
+         if (abs(xdb-x(1,1))<xu(2)-xu(1)) then
+            ! line at i=2
+            do j=2,ny
+               if (y(1,j)>min(ydb,yde).and.y(1,j)<max(ydb,yde)) then
+                  ii=ii+1
+                  disch_i(ii)=2
+                  disch_j(ii)=j
+                  disch_w(ii)=yv(j)-yv(j-1)
+                  disch_no(ii)=idisch
+                  length_disch(idisch)=length_disch(idisch)+yv(j)-yv(j-1)
+               endif
+            enddo
+         elseif (abs(xdb-x(nx+1,1))<xu(nx+1)-xu(nx)) then
+            ! line at i=nx
+            do j=2,ny
+               if (y(nx+1,j)>min(ydb,yde).and.y(nx+1,j)<max(ydb,yde)) then
+                  ii=ii+1
+                  disch_i(ii)=nx
+                  disch_j(ii)=j
+                  disch_w(ii)=yv(j)-yv(j-1)
+                  disch_no(ii)=idisch
+                  length_disch(idisch)=length_disch(idisch)+yv(j)-yv(j-1)
+               endif
+            enddo
+         endif
+      else
+         ! line in x-direction
+         if (abs(ydb-y(1,1))<yv(2)-yv(1)) then
+            ! line at j=2
+            do i=2,nx
+               if (x(i,1)>min(xdb,xde).and.x(i,1)<max(xdb,xde)) then
+                  ii=ii+1
+                  disch_i(ii)=i
+                  disch_j(ii)=2
+                  disch_w(ii)=xu(i)-xu(i-1)
+                  disch_no(ii)=idisch
+                  length_disch(idisch)=length_disch(idisch)+xu(i)-xu(i-1)
+               endif
+            enddo
+         elseif (abs(ydb-y(1,ny+1))<yv(ny+1)-yv(ny)) then
+            ! line at j=ny
+            do i=2,nx
+               if (x(i,ny+1)>min(xdb,xde).and.x(i+1,ny+1)<max(xdb,xde)) then
+                  ii=ii+1
+                  disch_i(ii)=i
+                  disch_j(ii)=ny
+                  disch_w(ii)=xu(i)-xu(i-1)
+                  disch_no(ii)=idisch
+                  length_disch(idisch)=length_disch(idisch)+xu(i)-xu(i-1)
+               endif
+            enddo
+         endif
+      endif
+      ndisch_cells=ii
+#ifdef USEMPI
+      call xmpi_allreduce(length_disch(idisch),MPI_SUM)
+#endif
+   enddo
+   do ii=1,ndisch_cells
+      disch_w(ii)=disch_w(ii)/length_disch(disch_no(ii))
+   enddo
+endif !end firsttimedischarge
+
+do idisch=1,ndisch
+   call linear_interp(tdisch,disch(:,idisch),ntdisch,par%t,dischnow(idisch),indx)
+enddo
+do ii=1,ndisch_cells
+   i=disch_i(ii)
+   j=disch_j(ii)
+   dzsdt(i,j)=dzsdt(i,j)+dischnow(disch_no(ii))*disch_w(ii) & 
+    &                    /((xu(i)-xu(i-1))*(yv(j)-yv(j-1)))
+    totvol=totvol+dischnow(disch_no(ii))*disch_w(ii)*par%dt
+enddo
+!write(*,*)par%t,totvol
+end subroutine discharge_boundary
 
 end module boundaryconditions
