@@ -30,6 +30,7 @@ subroutine flow_timestep(s,par)
 use params
 use spaceparams
 use xmpi_module
+use boundaryconditions
 
 IMPLICIT NONE
 
@@ -349,6 +350,13 @@ endif
     ! Flux in u-point
     qx=uu*hu
     ! Flux in v-points
+    if (par%right==1) then
+      vv(2:nx+1,1) = 0.d0
+    endif
+    if (par%left==1) then
+      vv(2:nx+1,ny) = 0.d0       ! wwvv for symmetry reasons: why not ny+1
+    endif
+    ! Flux in v-points
     ! first column of qy is used later, and it is defined in the loop above
     ! no communication  necessary at this point
     qy=vv*hv
@@ -369,6 +377,7 @@ endif
 							   - s%gww(i,j)
          end do
     end do
+    call discharge_boundary(s,par)
     !
     zs(2:nx,2:ny) = zs(2:nx,2:ny)+dzsdt(2:nx,2:ny)*par%dt !Jaap nx instead of nx+1
     !    
@@ -377,18 +386,20 @@ endif
     !
     ! Lateral boundary at y=0;
     !
-    zs(1:nx+1,1)=zs(1:nx+1,2) - (zs0(:,ny+1)-zs0(:,1))/(yz(ny+1)-yz(1))*(yz(2)-yz(1))
-    uu(1:nx+1,1)=uu(1:nx+1,2) !Jaap nx instead of nx+1
     if (par%right==1) then
       vv(2:nx+1,1) = 0.d0
+    else
+      zs(1:nx+1,1)=max(zs(1:nx+1,2) - (zs0(:,ny+1)-zs0(:,1))/(yz(ny+1)-yz(1))*(yz(2)-yz(1)),zb(1:nx+1,1))
+      uu(1:nx+1,1)=uu(1:nx+1,2) !Jaap nx instead of nx+1
     endif
     !
     ! Lateral boundary at y=ny*dy;
     !
-    zs(1:nx+1,ny+1)=zs(1:nx+1,ny) + (zs0(:,ny+1)-zs0(:,1))/(yz(ny+1)-yz(1))*(yz(ny+1)-yz(ny))
-    uu(1:nx+1,ny+1)=uu(1:nx+1,ny) !Jaap nx instead of nx+1
     if (par%left==1) then
       vv(2:nx+1,ny) = 0.d0       ! wwvv for symmetry reasons: why not ny+1
+    else
+      zs(1:nx+1,ny+1)=max(zs(1:nx+1,ny) + (zs0(:,ny+1)-zs0(:,1))/(yz(ny+1)-yz(1))*(yz(ny+1)-yz(ny)),zb(1:nx+1,ny))
+      uu(1:nx+1,ny+1)=uu(1:nx+1,ny) !Jaap nx instead of nx+1
     endif
 ! wwvv zs, uu, vv have to be communicated now, because they are used later on
 #ifdef USEMPI
