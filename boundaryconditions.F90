@@ -1036,7 +1036,7 @@ if (firsttimedischarge) then
    call xmpi_bcast(x_disch_begin)
    call xmpi_bcast(y_disch_begin)
    call xmpi_bcast(x_disch_end)
-   call xmpi_bcast(y_disch_end
+   call xmpi_bcast(y_disch_end)
 #endif
    if (xmaster) then
       ! Read discharge timeseries

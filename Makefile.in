@@ -266,9 +266,10 @@ BUILT_SOURCES = \
 	s.inp 
 
 check_SCRIPTS = \
-	./testbed/tools/testT01.sh
+	./testbed/tools/testT01.sh \
+	./testbed/tools/testrun01.sh
 
-TESTS = ./testbed/tools/testT01.sh
+TESTS = ./testbed/tools/testT01.sh ./testbed/tools/testrun01.sh
 @USEMPI_TRUE@xbeach_FCFLAGS = -DUSEMPI -DHAVE_MPI_WTIME
 
 # EXTRA_DIST=s.ind s.inp

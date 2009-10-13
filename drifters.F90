@@ -19,7 +19,7 @@ subroutine drifter(s,par)
     integer, save               :: ndrifter
 
     integer, dimension(:)  ,allocatable,save  :: iudrift,judrift,ivdrift,jvdrift
-    real*8 , dimension(:)  ,allocatable,save  :: xdrift,ydrift,xwdrift,ywdrift,releasetime,retrievaltime,buf
+    real*8 , dimension(:)  ,allocatable,save  :: xdrift,ydrift,xwdrift,ywdrift,releasetime,retrievaltime
     logical, save                             :: first_drifter=.true.
     character*14                              :: fname
     character*78                              :: drifterfile
@@ -44,7 +44,6 @@ if (first_drifter) then
       allocate(jvdrift(ndrifter))
       allocate(xdrift(ndrifter))
       allocate(ydrift(ndrifter))
-      allocate(buf(ndrifter)) 
       allocate(xwdrift(ndrifter))
       allocate(ywdrift(ndrifter))
       allocate(releasetime(ndrifter))
@@ -119,8 +118,8 @@ else
             endif
 #ifdef USEMPI
 
-               call xmpi_allreduce(xdrift,buf,MPI_MIN)
-               call xmpi_allreduce(ydrift,buf,MPI_MIN)
+               call xmpi_allreduce(xdrift,MPI_MIN)
+               call xmpi_allreduce(ydrift,MPI_MIN)
 #endif            
          endif
       enddo

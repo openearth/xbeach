@@ -412,15 +412,17 @@ subroutine xmpi_allreduce_r0(x,op)
   call MPI_Allreduce(y,x,1,MPI_DOUBLE_PRECISION,op,xmpi_comm,ierror)
 end subroutine xmpi_allreduce_r0
 
-subroutine xmpi_allreduce_r1(x,y,op)
+subroutine xmpi_allreduce_r1(x,op)
   implicit none
   real*8,dimension(:), intent(inout)  :: x
-  real*8,dimension(:), intent(out)    :: y
+  real*8,dimension(:), allocatable    :: y
   integer,intent(in)    :: op
 
   integer :: ierror
+  allocate(y(size(x)))
   y = x
   call MPI_Allreduce(y,x,size(x),MPI_DOUBLE_PRECISION,op,xmpi_comm,ierror)
+  deallocate(y)
 end subroutine xmpi_allreduce_r1
 
 subroutine xmpi_reduce_r0(x,y,op)

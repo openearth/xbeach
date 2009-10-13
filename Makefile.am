@@ -57,8 +57,9 @@ s.inp: space_inp.gen
 	echo $@ | ./makeincludes
 
 check_SCRIPTS= \
-	./testbed/tools/testT01.sh
-TESTS=./testbed/tools/testT01.sh
+	./testbed/tools/testT01.sh \
+	./testbed/tools/testrun01.sh
+TESTS=./testbed/tools/testT01.sh ./testbed/tools/testrun01.sh
 
 if USEMPI
 xbeach_FCFLAGS=-DUSEMPI -DHAVE_MPI_WTIME
