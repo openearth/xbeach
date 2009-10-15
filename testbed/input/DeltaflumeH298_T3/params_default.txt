@@ -46,6 +46,9 @@ tstart   = 0
 tint     = 100
 tstop    = 35200
 CFL      = 0.7
+left     = 1
+right    = 1
+back     = 0
 
 sed input
 
@@ -71,21 +74,26 @@ dzmax    = 0.0036
 turb     = 2
 
 
-
 output
 
-nglobalvar = 11
+nglobalvar = 17
 zs
 zb
 H
 hh
 u
 ue
+v
+ve
 urms
 ccg
 dzav
 Susg
 Subg
+ceqbg
+ceqsg
+dzbed
+pbbed
 
 nmeanvae = 1
 E
