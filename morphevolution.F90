@@ -282,18 +282,20 @@ do jg = 1,par%ngd
     do j=2,ny
       do i=2,nx
          ero(i,j,jg) = hh(i,j)*ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg)    ! Changed to hh from hold by RJ (13072009)
-         depo_ex(i,j,jg) = hh(i,j)*cc(i,j)/Tsg(i,j,jg)                      ! Changed to hh from hold by RJ (13072009)
+         ! depo_ex(i,j,jg) = max(hold(i,j),0.01d0)*cc(i,j)/Tsg(i,j,jg)                    
 	     !BRJ: the volume in the water column is updated and not the volume concentration.
 		 !BRJ: implicit concentration update
          cc(i,j) = (par%dt*Tsg(i,j,jg))/(par%dt+Tsg(i,j,jg))* &
 		                                      (hold(i,j)*cc(i,j)/par%dt -((Sus(i,j)-Sus(i-1,j))/(xu(i)-xu(i-1))+&
                                                                           (Svs(i,j)-Svs(i,j-1))/(yv(j)-yv(j-1))-&
-											                              ero(i,j,jg)))															
+		 									                              ero(i,j,jg)))	
+         depo_ex(i,j,jg) = cc(i,j)/Tsg(i,j,jg)                    																		  																	  													
          ! cc(i,j)=max(cc(i,j),0.0d0)
       enddo
     enddo
 
-	cc = min(1.d0,cc/max(hh,0.01d0))
+	! cc = min(1.d0,cc/max(hh,0.01d0))
+	cc = cc/hh
 	! do lateral bounadries...
     cc(1,:)=cc(2,:)
     cc(:,1)=cc(:,2)
@@ -315,8 +317,8 @@ do jg = 1,par%ngd
     call xmpi_shift(cc,':1')   ! Maybe not necessary as zb calculated from 1:ny+1, but just in case...
     call xmpi_shift(cc,':n')   ! Dito
 #endif
-    !Jaap
-    cc=cc*wetz
+    ! Jaap
+    ! cc=cc*wetz
     !
     ! wwvv border columns and rows of ccg Svg and Sug have to be communicated
     ccg(:,:,jg) = cc
@@ -744,7 +746,8 @@ endif
 !   -------------------------
 !
 
-hloc   = max(hh,0.01d0) !Jaap par%hmin instead of par%eps
+! hloc   = max(hh,0.01d0) !Jaap par%hmin instead of par%eps
+hloc = hh
 twothird=2.d0/3.d0
 delta = (par%rhos-par%rho)/par%rho
 ! use eulerian velocities
@@ -911,7 +914,8 @@ if (.not. allocated(vmg)) then
 endif
 
 delta = (par%rhos-par%rho)/par%rho
-hloc   = max(hh,0.01d0) ! Jaap 
+! hloc   = max(hh,0.01d0) ! Jaap 
+hloc = hh
 onethird=1.d0/3.d0
 twothird=2.d0/3.d0
 !
