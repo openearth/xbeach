@@ -380,18 +380,10 @@ subroutine init_output(s,sl,par,it)
 
   nmeanvar = readkey_int ('params.txt','nmeanvar',0,0,15)
   if (nmeanvar>0) then
-      if(xmaster) then
-        allocate(meanarrays(s%nx+1,s%ny+1,nmeanvar+2))   ! two extra needed for straight average of Hrms and urms
-		  allocate(variancearrays(s%nx+1,s%ny+1,nmeanvar))
-		  allocate(variancecrossterm(s%nx+1,s%ny+1,nmeanvar))
-		  allocate(variancesquareterm(s%nx+1,s%ny+1,nmeanvar))
-		  allocate(minarrays(s%nx+1,s%ny+1,nmeanvar))
-		  allocate(maxarrays(s%nx+1,s%ny+1,nmeanvar))
-      endif
       allocate(meanvec(nmeanvar))
       id=0
-      ! Look for keyword nmeanvar in params.txt
-      if(xmaster) then
+	  ! Look for keyword nmeanvar in params.txt
+	  if(xmaster) then
         open(10,file='params.txt')
         do while (id == 0)
           read(10,'(a)')line
@@ -401,19 +393,17 @@ subroutine init_output(s,sl,par,it)
              if (keyword == 'nmeanvar') id=1
           endif
         enddo
-
-        ! Read through the variables lines
-
+		! Read through the variables lines
         do i=1,nmeanvar
             read(10,'(a)')line
             index = chartoindex(trim(line))
             if (index/=-1) then
-				    call indextos(s,index,At)
-		          if (At%rank.ne.2) then
-		            write(*,'(a,f2.0,a,a,a)')' Time-average output not designed for rank ',real(At%rank),&
+				call indextos(s,index,At)
+		        if (At%rank.ne.2) then
+		           write(*,'(a,f2.0,a,a,a)')' Time-average output not designed for rank ',real(At%rank),&
 						                                       ' array "',trim(At%name),'"'
-			         call halt_program
-		          endif
+			        call halt_program
+		        endif
                 meanvec(i)=index
                 write(*,'(a)')' Will generate mean, min, max and variance output for variable: '//trim(mnemonics(index))
             else
@@ -422,18 +412,13 @@ subroutine init_output(s,sl,par,it)
             endif
         end do
         close(10)
+		call initialize_mean_arrays(s%nx,s%ny,nmeanvar)
       endif  ! xmaster
+
 #ifdef USEMPI
-          call xmpi_bcast(meanvec)
+      call xmpi_bcast(meanvec)
 #endif
-    if(xmaster) then
-      meanarrays = 0.d0
-		variancearrays = 0.d0
-		variancecrossterm = 0.d0
-		variancesquareterm = 0.d0
-      minarrays = huge(0.d0)
-		maxarrays = -1.d0*huge(0.d0)
-    endif
+
   endif ! nmeanvar > 0
 
   !!!!! OUTPUT TIME POINTS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

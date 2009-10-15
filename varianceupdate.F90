@@ -13,6 +13,29 @@ real*8,dimension(:,:,:), allocatable,target:: maxarrays   ! Keep time max variab
 
 !!!! Routine to calculate time-average variables
 contains
+
+subroutine initialize_mean_arrays(nx,ny,nmeanvar)
+  
+  Implicit none
+
+  integer, intent(in)             :: nx,ny,nmeanvar
+  
+  allocate(meanarrays(nx+1,ny+1,nmeanvar+2))   ! two extra needed for straight average of Hrms and urms
+  allocate(variancearrays(nx+1,ny+1,nmeanvar))
+  allocate(variancecrossterm(nx+1,ny+1,nmeanvar))
+  allocate(variancesquareterm(nx+1,ny+1,nmeanvar))
+  allocate(minarrays(nx+1,ny+1,nmeanvar))
+  allocate(maxarrays(nx+1,ny+1,nmeanvar))
+
+  meanarrays = 0.d0
+  variancearrays = 0.d0
+  variancecrossterm = 0.d0
+  variancesquareterm = 0.d0
+  minarrays = huge(0.d0)
+  maxarrays = -1.d0*huge(0.d0)
+end subroutine
+
+
 subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
 
   use params
@@ -234,7 +257,7 @@ subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
 						                         mult*2.d0*t%i2*meanarrays(:,:,i)
 						variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(t%i2)**2
 						variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-		            MA = max(MA,real(t%i2))
+		             MA = max(MA,real(t%i2))
 			         MI = min(MI,real(t%i2))
                 case default
                   write(*,*)'Error in makeaverage, variable"'//t%name// &
@@ -287,6 +310,7 @@ subroutine makeaveragenames(counter,fnamemean,fnamevar,fnamemin,fnamemax)
   fnamemax  = trim(mnemonics(counter))//'_max.dat'
 
 end subroutine makeaveragenames
+
 subroutine makecrossvector(s,sl,crossvararray,nvar,varindexvec,mg,cstype)
   use params
   use spaceparams
