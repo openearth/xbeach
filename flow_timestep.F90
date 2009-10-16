@@ -368,6 +368,7 @@ endif
     !   qx=uu*hu
     !   qy=vv*hv
     !end if
+    call discharge_boundary(s,par)
     !    
     ! Update water level using continuity eq.
     !
@@ -378,7 +379,7 @@ endif
 							   - s%gww(i,j)
          end do
     end do
-    call discharge_boundary(s,par)
+!    call discharge_boundary(s,par)
     !
     zs(2:nx,2:ny) = zs(2:nx,2:ny)+dzsdt(2:nx,2:ny)*par%dt !Jaap nx instead of nx+1
     !    
@@ -402,6 +403,8 @@ endif
       zs(1:nx+1,ny+1)=max(zs(1:nx+1,ny) + (zs0(:,ny+1)-zs0(:,1))/(yz(ny+1)-yz(1))*(yz(ny+1)-yz(ny)),zb(1:nx+1,ny))
       uu(1:nx+1,ny+1)=uu(1:nx+1,ny) !Jaap nx instead of nx+1
     endif
+    call discharge_boundary(s,par)
+    
 ! wwvv zs, uu, vv have to be communicated now, because they are used later on
 #ifdef USEMPI
     call xmpi_shift(uu,':1')
