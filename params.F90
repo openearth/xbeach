@@ -257,8 +257,8 @@ if (par%instat==0) then
    endif
 else
    if (par%break==2) then 
-        write(*,*)'Error: Baldock formulation not allowed in non-stationary calculation, use Roelvink formulation. Stopping.'
-       	call halt_program
+        write(*,*)'Warning: Baldock formulation not allowed in non-stationary calculation,'
+        write(*,*)' use Roelvink formulation if time-varying b.c..'
    endif
 endif
 par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
