@@ -1079,9 +1079,9 @@ if (firsttimedischarge) then
             do j=2,ny
                if (y(1,j)>min(ydb,yde).and.y(1,j)<max(ydb,yde)) then
                   ii=ii+1
-                  disch_i(ii)=2
+                  disch_i(ii)=1
                   disch_j(ii)=j
-                  disch_w(ii)=yv(j)-yv(j-1)
+                  disch_w(ii)=1.d0
                   disch_no(ii)=idisch
                   length_disch(idisch)=length_disch(idisch)+yv(j)-yv(j-1)
                endif
@@ -1093,7 +1093,7 @@ if (firsttimedischarge) then
                   ii=ii+1
                   disch_i(ii)=nx
                   disch_j(ii)=j
-                  disch_w(ii)=yv(j)-yv(j-1)
+                  disch_w(ii)=-1.d0
                   disch_no(ii)=idisch
                   length_disch(idisch)=length_disch(idisch)+yv(j)-yv(j-1)
                endif
@@ -1107,8 +1107,8 @@ if (firsttimedischarge) then
                if (x(i,1)>min(xdb,xde).and.x(i,1)<max(xdb,xde)) then
                   ii=ii+1
                   disch_i(ii)=i
-                  disch_j(ii)=2
-                  disch_w(ii)=xu(i)-xu(i-1)
+                  disch_j(ii)=1
+                  disch_w(ii)=1.d0
                   disch_no(ii)=idisch
                   length_disch(idisch)=length_disch(idisch)+xu(i)-xu(i-1)
                endif
@@ -1120,7 +1120,7 @@ if (firsttimedischarge) then
                   ii=ii+1
                   disch_i(ii)=i
                   disch_j(ii)=ny
-                  disch_w(ii)=xu(i)-xu(i-1)
+                  disch_w(ii)=-1.d0
                   disch_no(ii)=idisch
                   length_disch(idisch)=length_disch(idisch)+xu(i)-xu(i-1)
                endif
@@ -1143,9 +1143,23 @@ enddo
 do ii=1,ndisch_cells
    i=disch_i(ii)
    j=disch_j(ii)
-   dzsdt(i,j)=dzsdt(i,j)+dischnow(disch_no(ii))*disch_w(ii) & 
-    &                    /((xu(i)-xu(i-1))*(yv(j)-yv(j-1)))
-    totvol=totvol+dischnow(disch_no(ii))*disch_w(ii)*par%dt
+   if (i==1) then
+      qx(i,j)=dischnow(disch_no(ii))*disch_w(ii) 
+      hu(i,j)=hh(i+1,j)
+      uu(i,j)=qx(i,j)/max(hu(i,j),par%eps)
+   elseif (i==nx) then
+      qx(i,j)=dischnow(disch_no(ii))*disch_w(ii) 
+      hu(i,j)=hh(i,j)
+      uu(i,j)=qx(i,j)/max(hu(i,j),par%eps)
+   elseif (j==1) then
+      qy(i,j)=dischnow(disch_no(ii))*disch_w(ii) 
+      hv(i,j)=hh(i,j+1)
+      vv(i,j)=qy(i,j)/max(hv(i,j),par%eps)
+   elseif (j==ny) then
+      qy(i,j)=dischnow(disch_no(ii))*disch_w(ii) 
+      hv(i,j)=hh(i,j)
+      vv(i,j)=qy(i,j)/max(hv(i,j),par%eps)
+   endif
 enddo
 !write(*,*)par%t,totvol
 end subroutine discharge_boundary
