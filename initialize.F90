@@ -259,6 +259,8 @@ IMPLICIT NONE
 type(spacepars)                     :: s
 type(parameters)                    :: par
 
+integer*4,automatic                 :: i,j
+
   allocate(s%zs(1:s%nx+1,1:s%ny+1))
   allocate(s%dzsdt(1:s%nx+1,1:s%ny+1))
   allocate(s%dzsdx(1:s%nx+1,1:s%ny+1))
@@ -295,8 +297,22 @@ type(parameters)                    :: par
 
   ! cjaap: replaced par%hmin by par%eps
   s%hh=max(s%zs0-s%zb,par%eps)
-  s%hu = s%hh !Jaap
-  s%hv = s%hh !Jaap
+  
+  !Initialize hu correctly to prevent spurious initial flow (Pieter)
+  do j=1,s%ny+1
+    do i=1,s%nx
+      s%hu(i,j) = max(s%zs(i,j),s%zs(i+1,j))-max(s%zb(i,j),s%zb(i+1,j))
+    enddo
+  enddo
+  s%hu(s%nx+1,:)=s%hu(s%nx,:)
+
+  do j=1,s%ny
+    do i=1,s%nx+1
+      s%hv(i,j) = max(s%zs(i,j),s%zs(i,j+1))-max(s%zb(i,j),s%zb(i,j+1))
+    enddo
+  enddo
+  s%hv(:,s%ny+1)=s%hv(:,s%ny+1)
+
   s%hum(1:s%nx,:) = 0.5d0*(s%hh(1:s%nx,:)+s%hh(2:s%nx+1,:))
   s%hum(s%nx+1,:)=s%hh(s%nx+1,:)
   s%zs=0.d0
