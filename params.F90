@@ -165,7 +165,13 @@ real*8     :: sigfac   = -123  ! dsig scales with log(sigfac). Default = 1.3
 integer*4  :: oldwbc   = -123  ! (1) keep old definition of instat 4,5,6 generation. (2) use better definition
 integer*4  :: ns       = 0  ! number of specified structures
 integer*4  :: sourcesink = -123 ! Use source-sink terms to calculate bed level change (1) or sus transport gradients (0)
-
+integer*4  :: secorder = -123    ! Use second order corrections to advection/non-linear terms based on mcCormack scheme
+integer*4  :: solver_maxit =-123 ! Maximum number of iterations in the linear SIP solver
+real*8     :: solver_acc   =-123 ! accuracy with respect to the right-hand side used
+                                 ! in the following termination criterion:
+                                 !          ||b-Ax || < acc*||b||
+real*8     :: solver_alpha =-123 ! Underrelaxation parameter 
+integer*4  :: solver   = -123    ! Solver used to solve the linear system, 1=SIP, 2=TRIDIAG (only for 1d)
 
 end type parameters
 
@@ -337,6 +343,11 @@ par%lat     = readkey_dbl ('params.txt','lat',     0.d0,      0.d0,   90.d0)
 par%wearth  = readkey_dbl ('params.txt','omega',   1.d0/24.d0, 0.d0,    1.d0)
 par%vonkar  = readkey_dbl ('params.txt','vonkar',   0.4d0,     0.01d0,  1.d0)
 par%vicmol  = readkey_dbl ('params.txt','vicmol',   0.000001d0,   0.d0,    0.001d0)
+par%secorder     = readkey_int('params.txt','secorder' ,0,0,1)
+par%solver_maxit = readkey_int('params.txt','solver_maxit' ,30,1,1000)
+par%solver_acc   = readkey_dbl('params.txt','solver_acc' ,0.005d0,0.00001d0,0.1d0)  
+par%solver_alpha = readkey_dbl('params.txt','solver_urelax' ,0.94d0,0.5d0,0.99d0)
+par%solver       = readkey_int('params.txt','solver' ,1,0,2)
 
 par%lat = par%lat*par%px/180.d0
 par%wearth = par%px*par%wearth/1800.d0
