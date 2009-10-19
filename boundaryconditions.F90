@@ -189,6 +189,8 @@ if(abs(par%t-par%dt)<1.d-6) then
        call makebcf(par,sg,wp) 
     elseif (par%instat==7.and.xmaster) then
        par%listline=1
+    elseif (par%instat==8.and.xmaster) then   
+      call velocity_Boundary(ui(:,1),s%ny,par%t)   
     endif
     !
     ! Directional distribution
@@ -489,6 +491,8 @@ elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat=
         (tnew-par%t)/dtbcfile*q1
     ui(1,:) = q/ht(1,:)*min(par%t/par%taper,1.0d0)
     ee(1,:,:)=ee(1,:,:)*min(par%t/par%taper,1.0d0)
+elseif (par%instat==8.and.xmaster) then   
+    call velocity_Boundary(ui(:,1),s%ny,par%t)
 else
    if (xmaster) then
      write(*,*)' instat = ',par%instat, ' invalid option'
@@ -786,7 +790,7 @@ endif
 !
 ! UPDATE (LONG) WAVES
 !
-if (par%instat/=8)then
+if (par%instat/=9)then
 ! wwvv the following is probably only to do in the top processes, but take care for
 ! the mpi_shift calls in horizontal directions
   if(xmpi_istop) then
@@ -1163,5 +1167,185 @@ do ii=1,ndisch_cells
 enddo
 !write(*,*)par%t,totvol
 end subroutine discharge_boundary
+
+
+
+!
+!==============================================================================    
+subroutine velocity_Boundary(u,ny,t)
+!==============================================================================    
+!
+    
+!-------------------------------------------------------------------------------
+!                             DECLARATIONS
+!-------------------------------------------------------------------------------
+
+!
+!--------------------------        PURPOSE         ----------------------------
+!
+!   Reads boundary values for the velocity from a file. Used as forcing in the
+!   nonh module
+
+!--------------------------        METHOD         ----------------------------
+
+
+!--------------------------     DEPENDENCIES       ----------------------------
+    
+    use params
+    use xmpi_module, only: Halt_Program  
+    
+    implicit none
+    
+    include 'nh_pars.inc'               !Default precision etc.
+
+!--------------------------     ARGUMENTS          ----------------------------
+!
+    integer(kind=iKind)           ,intent(in)  :: ny
+    real(kind=rKind),dimension(ny),intent(out) :: u
+    real(kind=rKind)              ,intent(in)  :: t
+
+!
+
+!--------------------------     LOCAL VARIABLES    ----------------------------
+    character(len=iFileNameLen),save          :: filename_U
+    integer                    ,save          :: unit_U = iUnit_U       
+    integer                    ,save          :: ioStat    
+
+    logical,save                              :: lVarU = .false.
+    logical,save                              :: lIsEof = .false.
+    logical,save                              :: lNH_boun_U  = .false.
+    logical,save                              :: initialize  = .true.
+    logical                                   :: lExists
+    integer(kind=ikind)                       :: iAllocErr    
+
+    real(kind=rKind),allocatable,dimension(:),save :: u0 !
+    real(kind=rKind),allocatable,dimension(:),save :: u1 !
+
+    real(kind=rKind),save                          :: t0 = 0.
+    real(kind=rKind),save                          :: t1 = 0.
+
+!-------------------------------------------------------------------------------
+!                             IMPLEMENTATION
+!-------------------------------------------------------------------------------
+    
+    if (initialize) then
+      initialize = .false.        
+      !What is the filename of the file containing the series
+      filename_U = 'boun_U.bcf' !Default filename
+      
+      !Does the file exist?
+      inquire(file=trim(filename_U),EXIST=lExists)
+        
+      if (lExists) then
+        !If exists, open
+        open(unit_U,file=filename_U,access='SEQUENTIAL',action='READ',form='FORMATTED')
+        lNH_boun_U = .true.
+      else  
+        lNH_boun_U = .false.
+        return
+      endif
+      
+      !Allocate arrays at old and new timelevel
+      allocate(u0(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+      allocate(u1(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+      
+      !Read two first timelevels
+      call velocity_Boundary_read(t0,u0,Unit_U,lVaru,lIsEof)
+      if (lIsEof) then
+        t1=t0
+        u1=u0
+      else
+        call velocity_Boundary_read(t1,u1,Unit_U,lVaru,lIsEof)      
+      endif
+      return
+    endif
+
+  if (lNH_boun_U) then
+
+    if (.not. lIsEof) then
+      !If current time not located within interval read next line    
+      do while (.not. (t>=t0 .and. t<t1))
+        u0 = u1
+        t0 = t1
+        call velocity_Boundary_read(t1,u1,Unit_U,lVaru,lIsEof)
+        if (lIsEof) exit !Exit on end of file condition
+      end do
+      
+      if(lIsEof) then
+        u  = u1
+        return
+      else
+        !Linear interpolation of u in time
+        u  = u0 + (u1-u0)*(t-t0)/(t1-t0)
+      endif
+    else
+      !If end of file the last value which was available is used until the end of the computation
+      u = u1
+    endif
+  endif  
+end subroutine velocity_Boundary
+
+!==============================================================================  
+  subroutine velocity_Boundary_read(t,vector,iUnit,isvec,iseof)
+!==============================================================================    
+
+!--------------------------        PURPOSE         ----------------------------
+
+! Reads scalar/vector for timeseries
+
+!-------------------------------------------------------------------------------
+!                             DECLARATIONS
+!-------------------------------------------------------------------------------
+
+
+
+!                                - NONE -
+
+!--------------------------     DEPENDENCIES       ----------------------------
+
+  use xmpi_module, only: Halt_Program  
+  
+  implicit none
+
+  include 'nh_pars.inc'               !Default precision etc.
+!--------------------------     ARGUMENTS          ----------------------------
+
+  real(kind=rKind),intent(inout)              :: t
+  real(kind=rKind),intent(inout),dimension(:) :: vector
+  integer(kind=iKind),intent(in)              :: iUnit
+  logical            ,intent(in)              :: isvec
+  logical            ,intent(out)             :: iseof
+
+!--------------------------     LOCAL VARIABLES    ----------------------------
+ 
+  real(kind=rKind)                            :: scalar
+  integer(kind=iKind)                         :: ioStat
+  character(len=iFileNameLen)                 :: filename
+
+!-------------------------------------------------------------------------------
+!                             IMPLEMENTATION
+!-------------------------------------------------------------------------------   
+    if (eof(iUnit)) then
+      iseof = .true.
+      return
+    else
+      iseof = .false.
+    endif
+    
+    if (isvec) then
+      read(iUnit,ioStat=ioStat,fmt=*) t,vector      
+    else
+      read(iUnit,ioStat=ioStat,fmt=*) t,scalar
+      vector = scalar
+    endif
+    
+    if (iostat /= 0) then 
+       inquire(unit=iUnit,name=filename)
+       call halt_program
+    endif   
+  end subroutine velocity_Boundary_read 
+
+
+
 
 end module boundaryconditions
