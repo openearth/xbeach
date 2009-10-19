@@ -260,6 +260,8 @@ type(spacepars)                     :: s
 type(parameters)                    :: par
 
 integer*4,automatic                 :: i,j
+logical  ,automatic                 :: exists
+integer*4,automatic                 :: iUnit
 
   allocate(s%zs(1:s%nx+1,1:s%ny+1))
   allocate(s%dzsdt(1:s%nx+1,1:s%ny+1))
@@ -297,6 +299,33 @@ integer*4,automatic                 :: i,j
 
   ! cjaap: replaced par%hmin by par%eps
   s%hh=max(s%zs0-s%zb,par%eps)
+  s%zs=0.d0
+  s%zs=max(s%zb,s%zs0)
+  
+  !For certain tests I need to prescribe the initial water elevation (Pieter)
+  !Disabled in the case of mpi
+
+#ifndef USEMPI  
+  inquire(file=trim('zsfile.ini'),EXIST=exists)
+  if (exists) then
+    !
+    iUnit = 10000
+    !Check if unit is free
+    inquire(unit=iUnit,OPENED=exists)
+    if (.not. exists) then
+      open(iUnit,file='zsfile.ini')
+      do j=1,s%ny+1
+        !
+        read(iUnit,*)(s%zs(i,j),i=1,s%nx+1)
+        !
+      enddo
+      close(iUnit)
+      s%hh = max(s%zs-s%zb,par%eps)
+    endif  
+    !
+  endif
+#endif
+
   
   !Initialize hu correctly to prevent spurious initial flow (Pieter)
   do j=1,s%ny+1
@@ -315,8 +344,7 @@ integer*4,automatic                 :: i,j
 
   s%hum(1:s%nx,:) = 0.5d0*(s%hh(1:s%nx,:)+s%hh(2:s%nx+1,:))
   s%hum(s%nx+1,:)=s%hh(s%nx+1,:)
-  s%zs=0.d0
-  s%zs=max(s%zb,s%zs0)
+
   s%dzsdt=0.d0
   s%dzsdx=0.d0
   s%dzsdy=0.d0
