@@ -31,6 +31,12 @@ use params
 use spaceparams
 use xmpi_module
 use boundaryconditions
+use flow_secondorder_module
+
+#ifndef USEMPI
+use nonh_module
+#endif
+
 
 IMPLICIT NONE
 
@@ -39,6 +45,9 @@ type(parameters)                        :: par
 
 integer                                 :: i
 integer                                 :: j
+real*8,dimension(:,:),allocatable,save  :: vv_old                   !Velocity at previous timestep
+real*8,dimension(:,:),allocatable,save  :: uu_old                   !Velocity at previous timestep
+real*8,dimension(:,:),allocatable,save  :: zs_old  
 real*8,dimension(:,:),allocatable,save  :: vsu,usu,vsv,usv,veu,uev
 real*8,dimension(:,:),allocatable,save  :: ududx,vdvdy,udvdx,vdudy
 real*8,dimension(:,:),allocatable,save  :: viscu,viscv
@@ -69,6 +78,12 @@ if (.not. allocated(vsu) ) then
    allocate (    vs(s%nx+1,s%ny+1))
    allocate (   nuh(s%nx+1,s%ny+1))
 
+   if (par%secorder == 1) then
+      allocate(vv_old(s%nx+1,s%ny+1)); vv_old = s%vv
+      allocate(uu_old(s%nx+1,s%ny+1)); uu_old = s%uu
+      allocate(zs_old(s%nx+1,s%ny+1)); zs_old = s%zs
+   endif
+   
     vu      =0.d0
     vsu     =0.d0
     usu     =0.d0
@@ -319,34 +334,53 @@ endif
         end do 
     end do
 
+    if (par%secorder==1) then
+       !Call second order correction to the advection
+       call flow_secondorder_advUV(s,par,uu_old,vv_old)
+    end if
+	
     ! Pieter and Jaap: update hu en hv for continuity
     do j=1,ny+1
-        do i=1,nx+1 !Ap
-            ! Water depth in u-points do continuity equation: upwind
-            if (uu(i,j)>par%umin) then
-                hu(i,j)=hh(i,j)
-            elseif (uu(i,j)<-par%umin) then
-                hu(i,j)=hh(min(nx,i)+1,j)  
-            else
-                hu(i,j)=max(max(zs(i,j),zs(min(nx,i)+1,j))-max(zb(i,j),zb(min(nx,i)+1,j)),par%eps)
-                !hu(i,j) = (hh(i,j)+hh(min(nx,i)+1,j))/2
-            end if
-			 
+      do i=1,nx+1 !Ap
+        ! Water depth in u-points do continuity equation: upwind
+        if (uu(i,j)>par%umin) then
+          hu(i,j)=hh(i,j)
+		  !hu(i,j)=zs(i,j)-max(zb(i,j),zb(min(nx,i)+1,j))
+        elseif (uu(i,j)<-par%umin) then
+          hu(i,j)=hh(min(nx,i)+1,j)  
+		  !hu(i,j)=zs(min(nx,i)+1,j)-max(zb(i,j),zb(min(nx,i)+1,j))
+        else
+          hu(i,j)=max(max(zs(i,j),zs(min(nx,i)+1,j))-max(zb(i,j),zb(min(nx,i)+1,j)),par%eps)          
+        end if
+		  end do
+	  end do
+	
+    do j=1,ny+1
+      do i=1,nx+1			 
 			! Water depth in v-points do continuity equation: upwind
-            if (vv(i,j)>par%umin) then
-                hv(i,j)=hh(i,j)
-            elseif (vv(i,j)<-par%umin) then
-                hv(i,j)=hh(i,min(ny,j)+1)
-            else
-                hv(i,j)=max(max(zs(i,j),zs(i,min(ny,j)+1))-max(zb(i,j),zb(i,min(ny,j)+1)),par%eps)
-                !hv(i,j) = (hh(i,j)+hh(i,min(ny,j)+1))/2
-            end if           
-        end do 
+        if (vv(i,j)>par%umin) then
+          hv(i,j)=hh(i,j)
+		  !hv(i,j)=zs(i,j)-max(zb(i,j),zb(i,min(ny,j)+1))
+        elseif (vv(i,j)<-par%umin) then
+          hv(i,j)=hh(i,min(ny,j)+1)
+		  !hv(i,j)=zs(i,min(ny,j)+1)-max(zb(i,j),zb(i,min(ny,j)+1))
+        else
+          hv(i,j)=max(max(zs(i,j),zs(i,min(ny,j)+1))-max(zb(i,j),zb(i,min(ny,j)+1)),par%eps)
+        end if           
+      end do 
     end do
 #ifdef USEMPI
     call xmpi_shift(hu ,'m:')
 	call xmpi_shift(hv ,':n')
 #endif
+
+#ifndef USEMPI
+    if (par%nonh==1) then
+    ! do non-hydrostatic pressure compensation to solve short waves
+       call nonh_cor(s,par)
+    end if
+#endif
+	
     ! Flux in u-point
     qx=uu*hu
     ! Dano in case of closed boundaries we need to set vv to 0 before computing qv,
@@ -362,12 +396,7 @@ endif
     ! no communication  necessary at this point
     qy=vv*hv
     !
-    ! do non-hydrostatic pressure compensation to solve short waves
-    !if (par%nonh==1) then
-    !   call nhcorrection(s,par)
-    !   qx=uu*hu
-    !   qy=vv*hv
-    !end if
+
     call discharge_boundary(s,par)
     !    
     ! Update water level using continuity eq.
@@ -382,6 +411,12 @@ endif
 !    call discharge_boundary(s,par)
     !
     zs(2:nx,2:ny) = zs(2:nx,2:ny)+dzsdt(2:nx,2:ny)*par%dt !Jaap nx instead of nx+1
+
+	  if (par%secorder == 1) then
+      !Second order correction
+      call flow_secondorder_con(s,par,zs_old)
+    endif	
+	
     !    
     ! Output
     !
@@ -432,6 +467,13 @@ endif
     call xmpi_shift(qy,'1:')! wwvv qy maybe not necessary because first and last rows are not used
     call xmpi_shift(qy,'m:')
 #endif
+
+    if (par%secorder == 1) then
+      vv_old = s%vv
+      uu_old = s%uu
+      zs_old = s%zs
+    endif
+
         ! offshore boundary
     !
     ! U and V in cell centre; do output and sediment stirring
