@@ -194,7 +194,7 @@ do jg = 1,par%ngd
    Sus = 0.d0
    Sub = 0.d0
    ! suspended load
-   Sus=(cu*(ureps+par%facua*uau)*hu-Dc*hu*dcsdx)*wetu   !No bed slope term in suspended transport?
+   Sus=(cu*(ureps+uau)*hu-Dc*hu*dcsdx)*wetu   !No bed slope term in suspended transport?
    ! bed load
    Sub=(cub*(urepb+uau)*hu-par%facsl*cub*vmagu*hu*dzbdx)*wetu 
    ! 
@@ -258,7 +258,7 @@ do jg = 1,par%ngd
     Svs = 0.d0
     Svb = 0.d0
     ! Suspended load
-    Svs=(cv*(vreps+par%facua*uav)*hv-Dc*hv*dcsdy)*wetv
+    Svs=(cv*(vreps+uav)*hv-Dc*hv*dcsdy)*wetv
 	! Bed load
 	Svb=(cvb*(vrepb+uav)*hv-par%facsl*cvb*vmagv*hv*dzbdy)*wetv
 	!
