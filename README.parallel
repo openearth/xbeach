@@ -178,6 +178,33 @@ after the allocation:
 
 are superfluous, and can be ommited.
 
+Error finding MPI libraries
+===========================
+
+Compliling the MPI version under Windows requires MPICH2. Project settings
+expect MPICH2 to be located in the folder:
+
+C:\Program Files\MPICH2\
+
+If this is not the case, change the paths of the mpi libraries in the 
+project settings "Fortran" and "Link" tabs.
+
+Depending on your fortran compiler and configuration, Visual Fortran will 
+look for one of three MPI libraries:
+
+fmpich2.lib contains all caps cdecl: MPI_INIT
+fmpich2s.lib contains all caps stdcall: MPI_INIT@4
+fmpich2g.lib contains lowercase cdecl: mpi_init__
+
+Should the parallel version of XBeach give errors at runtime, looking for 
+missing MPI libraries, try changing the project settings to reference
+another MPI library. For instance changing:
+
+fmpich2s.lib and fmpich2s.dll file (or without .dll)
+
+to
+
+fmpich2.lib and fmpich2(.dll). 
 
 Finally
 =======
