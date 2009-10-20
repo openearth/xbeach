@@ -364,18 +364,18 @@ contains
                       +  dzdy*( s%vv(i,j)+s%vv(i  ,j-1) ) &
                       -  s%wb(i,j)
                       
-        dpdz(1,1,i,j)   = - 2.*par%dt/s%hh(i,j) - dpdz(1,0,i,j)
-        dpdz(2,1,i,j)   =                       - dpdz(2,0,i,j)
-        dpdz(3,1,i,j)   =                       - dpdz(3,0,i,j)
-        dpdz(4,1,i,j)   =                       - dpdz(4,0,i,j)
-        dpdz(5,1,i,j)   =                       - dpdz(5,0,i,j)
-        dpdzr(1,i,j)    =                       - dpdz(5,0,i,j)
+        dpdz(1,1,i,j)   = - 2.0_rKind*par%dt/s%hh(i,j) - dpdz(1,0,i,j)
+        dpdz(2,1,i,j)   =                              - dpdz(2,0,i,j)
+        dpdz(3,1,i,j)   =                              - dpdz(3,0,i,j)
+        dpdz(4,1,i,j)   =                              - dpdz(4,0,i,j)
+        dpdz(5,1,i,j)   =                              - dpdz(5,0,i,j)
+        dpdzr(1,i,j)    =                              - dpdzr(0,i,j)
     enddo
   enddo  
    
   do j=2,s%ny
     do i=2,s%nx
-      if (s%wetZ(i,j)) then     
+      if (s%wetZ(i,j)==1) then     
         aw(:,:,i,j) = - dpdz(:,:,i,j)
       else
         aw(:,:,i,j)  = 0.0_rKind
@@ -408,9 +408,10 @@ contains
     call flow_secondorder_advW(s%xu,s%yv,s%xz,s%yz,s%hh,s%qx,s%qy,s%zs,s%zb,s%wb,wb_old,s%nx,s%ny,par%eps,par%dt)    
   endif  
 
+
   do j=2,s%ny
     do i=2,s%nx
-      if (s%wetZ(i,j)) then
+      if (s%wetZ(i,j)==1) then
         awr(0,i,j) = s%wb(i,j) - dpdzr(0,i,j)
         awr(1,i,j) = s%ws(i,j) - dpdzr(1,i,j)
       else
@@ -419,7 +420,7 @@ contains
     enddo
   enddo
 
-
+ 
   
   !Substitute in the continuity equation
   !call timer_start(timer_flow_nonh_subs)
@@ -491,7 +492,7 @@ contains
   !call timer_start(timer_flow_nonh_corv)
   do j=2,s%ny-1
     do i=2,s%nx
-      s%vv(i,j) = avr(i,j) + av(1,i,j)*dp(i,j+1)+av(0,i,j)*dp(i,j)  
+     s%vv(i,j) = avr(i,j) + av(1,i,j)*dp(i,j+1)+av(0,i,j)*dp(i,j)  
     enddo
   enddo    
   !call timer_stop(timer_flow_nonh_corv)
@@ -508,10 +509,21 @@ contains
                              + dp(i  ,j-1)* aw(4,0,i,j) + dp(i  ,j+1) * aw(5,0,i,j)                                    
     enddo
   enddo    
+  
+  !write(*,*) maxval(abs(s%ws)),maxval(abs(s%wb)),maxval(abs(s%uu)),maxval(abs(s%vv))
+  
   !call timer_stop(timer_flow_nonh_corw)    
   
-  ws_old=s%ws
-  wb_old=s%wb
+  !Assign boundaries
+  s%ws(:,1)      = s%ws(:,2)
+  s%ws(:,s%ny+1) = s%ws(:,s%ny)
+  s%ws(1,:)      = s%ws(2,:)
+  s%ws(s%nx+1,:) = s%ws(s%nx,:)
+  
+  if (par%secorder==1) then
+    ws_old=s%ws
+    wb_old=s%wb
+  endif  
   !call timer_stop(timer_flow_nonh)
 end subroutine nonh_cor
 

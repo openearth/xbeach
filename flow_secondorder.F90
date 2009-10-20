@@ -193,9 +193,9 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
       do j=2,s%ny
         do i=2,s%nx-1
           if (s%wetu(i,j) == 1) then
-            s%uu(i,j) = s%uu(i,j) - par%dt/s%hum(i,j) * ( (s%zs(i+1,j)-s%zb(i  ,j)) * s%pres(i+1,j)   &
-                                                        - (s%zs(i  ,j)-s%zb(i+1,j)) * s%pres(i  ,j)  ) &
-                                                        / (s%xz(i+1)-s%xz(i))
+            s%uu(i,j) = s%uu(i,j) - 0.5_rKind*par%dt/s%hum(i,j) * ( (s%zs(i+1,j)-s%zb(i  ,j)) * s%pres(i+1,j)   &
+                                                                  - (s%zs(i  ,j)-s%zb(i+1,j)) * s%pres(i  ,j)  ) &
+                                                                  / (s%xz(i+1)-s%xz(i))
           endif
         enddo
       enddo
@@ -203,9 +203,9 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
       do j=2,s%ny-1
         do i=2,s%nx
           if (s%wetv(i,j) == 1) then        
-            s%vv(i,j) = s%vv(i,j) - par%dt/s%hvm(i,j) * ( (s%zs(i,j+1)-s%zb(i,j+1)) * s%pres(i,j  )   &
-                                                        - (s%zs(i,j  )-s%zb(i,j  )) * s%pres(i,j+1) ) &
-                                                        / (s%yz(j+1)-s%yz(j))
+            s%vv(i,j) = s%vv(i,j) - 0.5_rKind*par%dt/s%hvm(i,j) * ( (s%zs(i,j+1)-s%zb(i,j  )) * s%pres(i,j+1)   &
+                                                                  - (s%zs(i,j  )-s%zb(i,j+1)) * s%pres(i,j  ) ) &
+                                                                  / (s%yz(j+1)-s%yz(j))
           endif
         enddo
       enddo
@@ -498,7 +498,7 @@ subroutine flow_secondorder_con(s,par,zs_old)
       if (.not. initialized) then
         call flow_secondorder_init(s,0)
       endif  
-     
+
       !Correction to mass flux qx
       do j=2,s%ny
         do i=2,s%nx-1
@@ -608,7 +608,7 @@ real(kind=rKind) pure function minmod(delta1,delta2)
   if (delta1*delta2 <= 0.0_rKind) then   
     minmod = 0.0_rKind
     return
-  endif 
+  endif  
   
   if     (delta1 > 0.0_rKind) then
     minmod = min(delta1,delta2)

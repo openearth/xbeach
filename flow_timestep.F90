@@ -110,16 +110,7 @@ if (.not. allocated(vsu) ) then
     ve      =0.d0 
     nuh     =0.d0
 endif
-    ! Jaap Wetting and drying criterion eta points
-    do j=1,ny+1
-        do i=1,nx+1
-            if(hh(i,j)>par%eps) then
-                wetz(i,j)=1
-            else
-                wetz(i,j)=0
-            end if
-        end do
-    end do
+
     ! zs=zs*wetz
     ! Water level slopes
     do j=1,ny+1
@@ -190,6 +181,19 @@ endif
             end if
         end do
     end do
+    
+    ! Jaap Wetting and drying criterion eta points
+    do j=1,ny+1
+        do i=1,nx+1
+            !s%wetz(i,j) = min(1,s%wetu(max(i,2)-1,j)+s%wetu(i,j)+s%wetv(i,j)+s%wetv(i,max(j,2)-1))
+            if(hh(i,j)>par%eps) then
+                wetz(i,j)=1
+            else
+                wetz(i,j)=0
+            end if
+        end do
+    end do    
+    
     !
     ! X-direction
     !
@@ -374,15 +378,9 @@ endif
 	call xmpi_shift(hv ,':n')
 #endif
 
-#ifndef USEMPI
-    if (par%nonh==1) then
-    ! do non-hydrostatic pressure compensation to solve short waves
-       call nonh_cor(s,par)
-    end if
-#endif
+
 	
-    ! Flux in u-point
-    qx=uu*hu
+
     ! Dano in case of closed boundaries we need to set vv to 0 before computing qv,
     ! to avoid mass errors
     if (par%right==1) then
@@ -391,6 +389,16 @@ endif
     if (par%left==1) then
       vv(2:nx+1,ny) = 0.d0       ! wwvv for symmetry reasons: why not ny+1
     endif
+    
+#ifndef USEMPI
+    if (par%nonh==1) then
+    ! do non-hydrostatic pressure compensation to solve short waves
+       call nonh_cor(s,par)
+    end if
+#endif
+    
+    ! Flux in u-point
+    qx=uu*hu    
     ! Flux in v-points
     ! first column of qy is used later, and it is defined in the loop above
     ! no communication  necessary at this point
