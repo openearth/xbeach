@@ -439,7 +439,7 @@ do ii=1,nint(par%morfac)
                iii = i+1                                      ! upwind erosion
 			   dzb=min(dzb,par%dzmax*par%dt/(xz(i+1)-xz(i)))
 			else
-			   iii = i;                                       ! upwind deposition
+			   iii = i                                        ! upwind deposition
 			   dzb=max(dzb,-par%dzmax*par%dt/(xz(i+1)-xz(i)))
 			endif
             dz => dzbed(iii,j,:) 
@@ -449,7 +449,7 @@ do ii=1,nint(par%morfac)
 			do jdz=1,ndz
 				dzt = min(dz(jdz),dzleft)
 			   dzleft = dzleft-dzt;
-               do jg=1,par%ngd ! erosion deposition per fraction for the eroding point (upwind or downwind); edg is positivi in case of erosion   
+               do jg=1,par%ngd ! erosion deposition per fraction for the eroding point (upwind or downwind); edg is positive in case of erosion   
 			      edg2(jg) = sedcal(jg)*sign(1.d0,dzb)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt       
 			      edg1(jg) = -sedcal(jg)*edg2(jg)*(xu(i+1)-xu(i))/(xu(i)-xu(i-1))
 			   enddo
