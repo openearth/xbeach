@@ -1,177 +1,269 @@
 module params
+
 type parameters
-! for debugging, I found it very useful to initialize
-! the variables to something like -123   wwvv
-real*8     :: px        = -123 ! pi
-real*8     :: Hrms      = -123 ! Hrms wave height
-real*8     :: Trep      = -123 ! representative wave period 
-real*8     :: dir0      = -123 ! mean wave direction (Nautical convention)
-integer*4  :: m         = -123 ! power in cos^m directional distribution
-integer*4  :: nt        = -123 ! max. number of time steps
-real*8     :: hmin      = -123 ! threshold water depth 
-real*8     :: gammax    = -123 ! maximum ratio Hrms/hh
-real*8     :: Tlong     = -123 ! wave group period for case instat=1
-real*8     :: Llong     = -123 ! alongshore wave group length for case instat=1
-real*8     :: gamma     = -123 ! breaker parameter in Baldock or Roelvink formulation
-real*8     :: gamma2    = -123 ! breaker parameter in new Roelvink formulation
-real*8     :: delta     = -123 ! fraction of wave height to add to depth in computation of celerity
-real*8     :: rho       = -123 ! water density
-real*8     :: g         = -123 ! acceleration of gravity
-real*8     :: rhog8     = -123 ! 1/8*rho*g
-real*8     :: thetamin  = -123 ! lower directional limit (angle w.r.t computational x-axis)
-real*8     :: thetamax  = -123 ! upper directional limit (angle w.r.t computational x-axis)
-real*8     :: dtheta    = -123 ! directional resolution (deg)
-integer*4  :: thetanaut = -123 ! option to enter thetamin,thetamax in nautical convention
-real*8     :: wci       = -123 ! option wave/current interaction 0/1
-real*8     :: hwci      = -123 ! min depth fro wci
-real*8     :: dt        = -123 ! time step
-integer*4  :: break     = -123 ! option breaker model (1=roelvink, 2=baldock, 3=roelvink adapted)
-integer*4  :: instat    = -123 ! option time-varying wave b.c. 
-                               ! (0=stationary, 1=regular wave groups, 3=long-crested random wave groups)
-real*8     :: wavint    = -123 ! (only in stationary mode) interval between wave module calls in tint
-real*8     :: alpha     = -123 ! wave dissipation coefficient
-real*8     :: n         = -123 ! power in roelvink dissipation model
-integer*4  :: roller    = -123 ! option to turn off/on roller model (0/1) (not implemented yet)
-real*8     :: beta      = -123 ! breaker slope coefficient in roller model
-real*8     :: taper     = -123 ! time to spin up wave b.c. in case of stationary waves
-real*8     :: t         = -123 ! time (s)
-real*8     :: tnext     = -123 ! next time point for output
-integer*4  :: it        = -123 ! output time step number
-real*8     :: tstart    = -123 ! start time of simulation output
-real*8     :: tint      = -123 ! time interval output
-real*8     :: tintp     = -123 ! time interval output points
-real*8     :: tintg     = -123 ! time interval output global variables
-real*8     :: tintm     = -123 ! time interval output mean global variables
-real*8     :: tintc     = -123 ! time interval output cross section profiles
-real*8     :: tstop     = -123 ! stop time simulation
-integer*4  :: ntout     = -123 ! number of output time steps
-real*8     :: C         = -123 ! Chezy value
-real*8     :: cf        = -123 ! friction coefficient flow [-]
-real*8     :: eps       = -123 ! threshold depth
-real*8     :: umin      = -123 ! threshold velocity upwind scheme
-real*8     :: zs01      = -123 ! initial water level first sea boundary
-real*8     :: zs02      = -123 ! initial water level second sea boundary
-real*8     :: zs03      = -123 ! initial water level first land boundary
-real*8     :: zs04      = -123 ! initial water level second land boundary
-integer*4  :: tideloc   = -123 ! number of input tidal time series
-real*8     :: paulrevere= -123 ! if tideloc =>2, then this indicates where the time series are to be 
-                               ! applied. Input for tidal information to xbeach options (3):
-                               ! 1. one tidal record --> specify tidal record everywhere
-                               ! 2. two tidal records --> Need to specify keyword 'paulrevere'
-                               ! paulrevere==0 implies to apply one tidal record to
-                               ! both sea corners and one tidal record to both land corners
-                               ! paulrevere==1 implies to apply the first tidal record
-                               ! (column 2 in zs0input.dat) to the (x=1,y=1) sea corner and
-                               ! the second tidal record (third column) to the (x=1,y=N) sea corner
-                               ! 3. four tidal records --> Need to list tidal records in  
-                               ! zs0input.dat in order of:
-                               !      (x=1,y=1)
-                               !      (x=1,y=N)
-                               !      (x=N,y=N)
-                               !      (x=N,y=1)
-                               !      NOTE:  clockwise from (1,1) corner 
-integer*4  :: tidelen   = -123 ! length of input tidal time series 
-real*8     :: A         = -123 ! obsolete
-!real*8     :: dico      = -123 ! diffusion coefficient
-real*8     :: facsl     = -123 ! factor bedslope effect
-real*8     :: nuh       = -123 ! horizontal background viscosity 
-real*8     :: nuhfac    = -123 ! viscosity coefficient for roller induced turbulent horizontal viscosity
-real*8     :: rhos      = -123 ! sediment density
-real*8     :: morfac    = -123 ! morphological factor
-real*8     :: morstart  = -123 ! start time morphology
-real*8     :: Emean     = -123 ! mean wave energy at boundary
-real*8     :: CFL       = -123 ! maximum courant number
-integer*4  :: ngd       = -123 ! number of sediment classes
-integer*4  :: nd        = -123 ! number of sediment class layers
-real*8     :: dzg1      = -123 ! thickness of top sediment class layers
-real*8     :: dzg2      = -123 ! thickness of variable sediment class layer
-real*8     :: dzg3      = -123 ! thickness of bottom sediment class layers
-real*8     :: por       = -123 ! porosity
-real*8     :: wetslp    = -123 ! critical avalanching slope under water
-real*8     :: dryslp    = -123 ! critical avalanching slope above water
-integer*4  :: sw        = -123 ! short wave contribution: 0 = urms=0 & ust =0, 1 = default model, 2 = urms=1 and ust=0, 3 = urms=0 & ust=1 :: Not used
-integer*4  :: front     = -123 ! switch for seaward flow boundary: 0 = radiating boundary(Ad), 1 = Van Dongeren, 1997
-integer*4  :: ARC       = -123 ! switch for active reflection compensation at seaward boundary: 0 = reflective, 1 = weakly (non) reflective
-real*4     :: order     = -123 ! switch for order of wave steering, 1 = first order wave steering (short wave energy only), 2 = second oder wave steering (bound long wave corresponding to short wave forcing is added)
-! wwvv: why is order real*4 and not integer?
-integer*4  :: left      = -123 ! switch for lateral boundary at left, 0 = vv computed from NSWE, 1 = reflective wall; vv=0
-integer*4  :: right     = -123 ! switch for lateral boundary at right, 0 = vv computed from NSWE, 1 = reflective wall; vv=0
-integer*4  :: leftwave  = -123 ! switch for lateral boundary at left, 0 = E Neumann, 1 = along wave front
-integer*4  :: rightwave = -123 ! switch for lateral boundary at right, 0 = E Neumann, 1 = along wave front
-integer*4  :: back      = -123 ! switch for boundary at bay side, 0 = radiating boundary (Ad), 1 = reflective boundary; uu=0
-integer*4  :: refl      = -123 ! 1 = compensate for reflected wave and roller massflux, 0 = no compensation
-real*8     :: hswitch   = -123 ! is the water depth at which is switched from wetslp to dryslp
-real*8     :: z0        = -123 ! zero flow velocity level in Soulsby van Rijn (1997) sed.conc. expression
-real*8     :: w         = -123 ! fall velocity sediment
-complex(kind(0.0d0)):: compi = -123       ! complex i, sqrt(-1)
-integer*4  :: listline  = -123 ! keeps rack of the record line in bcf-files 
-real*8     :: rhoa      = -123 ! air density
-real*8     :: Cd        = -123 ! wind drag coefficient
-real*8     :: windv     = -123 ! wind velocity
-real*8     :: windth    = -123 ! wind direction (nautical input)
-integer*4  :: windlen   = -123 ! length of input wind time series
-integer*4  :: nonh      = -123 ! 0 = NSWE, 1 = NSW + non-hydrostatic pressure compensation Stelling & Zijlema, 2003 
-real*8     :: nuhv      = -123 ! longshore viscosity enhancement factor
-real*8     :: wearth    = -123 ! angular velocity of earth for computing Coriolis forces
-real*8     :: lat       = -123 ! estimated latitude at model location  for computing Coriolis
-real*8     :: fc        = -123 !
-real*8     :: fcutoff   = -123 ! lo freq cutoff frequency for boundary conditions
-real*8     :: sprdthr   = -123 ! threshold above which spec dens are read in (default 0.08*maxval)
-real*8     :: struct    = -123 ! 0 = no revetment, 1 = multiple sediment classes with non-erodable fractions
-real*8     :: smax      = -123 ! Being tested: maximum Shields parameter for ceq   Diane Foster
-integer*4  :: form      = -123 ! equilibrium sed. conc. formulation: 1 = Soulsby van rijn, 1997, 2 = Van Rijn 2008
-integer*4  :: carspan   = -123 ! 0 = use cg (default); 1 = use sqrt(gh) in instat = 3 for c&g tests
-integer*4  :: nspr      = -123 ! Expert tool: nspr = 1 bin all wave components for generation of qin (instat 4+) in one direction
-                               !              nspr = 0 regular long wave spreading (default)
-real*8     :: thetanum  = -123 ! Coefficient determining whether upwind (1) or central scheme (0.5) is used.
-real*8     :: tsfac     = -123 ! Coefficient determining Ts = tsfac * h/ws in sediment source term
-integer*4  :: scheme    = -123 ! Numerical scheme for wave and roller energy : 1=upwind, 2=Lax-Wendroff
-integer*4  :: random    = -123 ! 1 = random seed, 0 = seed values are zero
-real*8     :: trepfac   = -123 ! compute mean wave period over energy band par%trepfac*maxval(Sf); converges to Tm01 for trepfac = 0.0 and to Tp for trepfac = 1.0 
-real*8     :: facua     = -123 ! calibration factor time averaged flows due to wave asymmetry
-real*8     :: dzmax     = -123 ! maximum bedlevel change due to avalanching [m/s/m]
-integer*4  :: turb      = -123 ! equlibrium sediment concentration is computed as function of:
-                               ! 0 = no turbulence, 1 = wave averaged turbulence, 2 = maximum turbulence
-integer*4  :: rfb      = -123  ! if rfb = 1 then maximum wave surface slope is feeded back in roller energy balance; else rfb = par%Beta
-integer*4  :: lwave    = -123  ! 1 = long waves, 0 = no long waves
-integer*4  :: swave    = -123  ! 1 = short waves, 0 = no short waves
-integer*4  :: sws      = -123  ! 1 = short wave & roller undertow, 0 = no short wave & roller undertow
-integer*4  :: lws      = -123  ! 1 = long wave stirring included in ceq, 0 = long wave stirring excluded in ceq
-integer*4  :: ut       = -123  ! 1 = short wave up-stirring, 0 = no short wave up-stirring
-real*8     :: Tbfac    = -123  ! Calibration factor for bore interval Tbore: Tbore = Tbfac*Tbore
-real*8     :: Tsmin    = -123  ! Minimum adaptation time scale in advection diffusion equation sediment
-real*8     :: impact   = -123  ! Include Fisher Overton approach in avalanching
-real*8     :: CE       = -123  ! Dune face erosion coefficient for avalanching
-real*8     :: BRfac    = -123  ! calibration factor surface slope
-integer*4  :: gwflow   = -123  ! Turn on (1) or off (0) groundwater flow module
-real*8     :: kx       = -123  ! Darcy-flow permeability coefficient in x-direction [m/s]
-real*8     :: ky       = -123  ! Darcy-flow permeability coefficient in y-direction [m/s]
-real*8     :: kz       = -123  ! Darcy-flow permeability coefficient in y-direction [m/s]
-real*8     :: dwetlayer  = -123  ! Thickness of the top soil layer interacting more freely with the surface water
-real*8     :: vonkar   = -123  ! von Karman constant
-real*8     :: vicmol   = -123  ! molecular viscosity
-integer*4  :: maxiter  = -123  ! maximum number of iterations in wave stationary
-real*8     :: maxerror = -123  ! maximum wave height error in wave stationary iteration
-! multiple sediment fraction settings
-real*8     :: frac_dz  = -123  ! reltive thickness to split time step for bed updating
-integer*4  :: nd_var   = -123  ! index of layer with variable thickness 
-real*8     :: split    = -123  ! split threshold for variable sediment layer
-real*8     :: merge    = -123  ! merge threshold for variable sediment layer
-real*8     :: betad    = -123  ! dissipation parameter long wave breaking turbulence
-integer*4  :: lwt      = -123  ! switch 0/1 long wave turbulence model
-real*8     :: cats     = -123  ! current averaging time scale (current averaging time in terms of mean wave periods)
-integer*4  :: kmax     = -123  ! number of sigma layers in Quasi-3D model; kmax = 1 (default) is without vertical structure of flow and suspensions
-real*8     :: sigfac   = -123  ! dsig scales with log(sigfac). Default = 1.3
-integer*4  :: oldwbc   = -123  ! (1) keep old definition of instat 4,5,6 generation. (2) use better definition
-integer*4  :: ns       = 0  ! number of specified structures
-integer*4  :: sourcesink = -123 ! Use source-sink terms to calculate bed level change (1) or sus transport gradients (0)
-integer*4  :: secorder = -123    ! Use second order corrections to advection/non-linear terms based on mcCormack scheme
-integer*4  :: solver_maxit =-123 ! Maximum number of iterations in the linear SIP solver
-real*8     :: solver_acc   =-123 ! accuracy with respect to the right-hand side used
-                                 ! in the following termination criterion:
-                                 !          ||b-Ax || < acc*||b||
-real*8     :: solver_alpha =-123 ! Underrelaxation parameter 
-integer*4  :: solver   = -123    ! Solver used to solve the linear system, 1=SIP, 2=TRIDIAG (only for 1d)
+! These parameters are constants, variables read from params.txt, or are scalars derived directly from read input
+!
+
+   ! Grid parameters                                                                                                               
+!  Type             name                   initialize    !  [unit] description                                                                                                                 
+   character     :: depfile                    = 'abc'   !  [-] Name of the input bathymetry file
+   integer*4     :: posdwn                     = -123    !  [-] Bathymetry is specified positive down (1) or positive up (-1)
+   integer*4     :: nx                         = -123    !  [-] Number of computiation cell corners in x-direction
+   integer*4     :: ny                         = -123    !  [-] Number of computiation cell corners in y-direction
+   real*8        :: alfa                       = -123    !  [deg] Angle of x-axis from East
+   integer*4     :: vardx                      = -123    !  [-] Switch for variable grid spacing: 1 = irregular spacing, 0 = regular grid spacing
+   real*8        :: dx                         = -123    !  [m] Regular grid spacing in x-direction
+   real*8        :: dy                         = -123    !  [m] Regular grid spacing in y-direction
+   character(80) :: xfile                      = 'abc'   !  [name] Name of the file containing x-coordinates of the calculation grid
+   character(80) :: yfile                      = 'abc'   !  [name] Name of the file containing y-coordinates of the calculation grid
+   real*8        :: xori                       = -123    !  [m] X-coordinate of origin of axis
+   real*8        :: yori                       = -123    !  [m] Y-coordinate of origin of axis
+   real*8        :: thetamin                   = -123    !  [deg] Lower directional limit (angle w.r.t computational x-axis)
+   real*8        :: thetamax                   = -123    !  [deg] Higher directional limit (angle w.r.t computational x-axis)
+   real*8        :: dtheta                     = -123    !  [deg] Directional resolution
+   integer*4     :: thetanaut                  = -123    !  [-] Thetamin,thetamax in cartesian (0) or nautical convention (1)
+ 
+   ! Model time                                                                                                                    
+   real*8        :: tstop                      = -123    !  [s] Stop time of simulation, in morphological time
+   real*8        :: CFL                        = -123    !  [-] Maximum Courant-Friedrichs-Lewy number
+    
+   ! Physical constants                                                                                                            
+   real*8        :: g                          = -123    !  [ms^-2] Gravitational acceleration
+   real*8        :: rho                        = -123    !  [kgm^-3] Density of water
+ 
+   ! Physical processes                                                                                                            
+   integer*4     :: swave                      = -123    !  [-] Include short waves (1), exclude short waves (0)
+   integer*4     :: lwave                      = -123    !  [-] Include short wave forcing on NLSW equations and boundary conditions (1), or exclude (0)
+   integer*4     :: sedtrans                   = -123    !  [-] Include sediment transport (1) or exclude (0)
+   integer*4     :: morphology                 = -123    !  [-] Include morphology (1) or exclude (0)
+   integer*4     :: nonh                       = -123    !  [-] Non-hydrostatic pressure option: 0 = NSWE, 1 = NSW + non-hydrostatic pressure compensation Stelling & Zijlema, 2003 
+   integer*4     :: gwflow                     = -123    !  [-] Turn on (1) or off (0) groundwater flow module
+   integer*4     :: q3d                        = -123    !  [-] Turn on (1) or off (0) quasi-3D sediment transport module
+
+   ! Wave numerics parameters                                                                                                      
+   integer*4     :: scheme                     = -123    !  [-] Use first-order upwind (1) or Lax-Wendroff (2) for wave propagation
+   real*8        :: wavint                     = -123    !  [s] Interval between wave module calls (only in stationary wave mode)
+   real*8        :: maxerror                   = -123    !  [m] Maximum wave height error in wave stationary iteration
+   integer*4     :: maxiter                    = -123    !  [-] Maximum number of iterations in wave stationary
+ 
+   ! Flow numerics parameters                                                                                                      
+   real*8        :: eps                        = -123    !  [m] Threshold water depth above which cells are considered wet
+   real*8        :: hmin                       = -123    !  [m] Threshold water depth above which Stokes drift is included
+   real*8        :: umin                       = -123    !  [m/s] Threshold velocity for upwind velocity detection and for vmag2 in eq. sediment concentration
+
+   ! Sediment transport numerics parameters                                                                                  
+   real*8        :: thetanum                   = -123    !  [-] Coefficient determining whether upwind (1) or central scheme (0.5) is used.
+   integer*4     :: sourcesink                 = -123    !  [-] In suspended transport use source-sink terms to calculate bed level change (1) or sus transport gradients (0)
+    
+   ! Wave-current interaction parameters                                                                                           
+   integer*4     :: wci                        = -123    !  [-] Turns on (1) or off (0) wave-current interaction
+   real*8        :: hwci                       = -123    !  [m] Minimum depth until which wave-current interaction is used
+   real*8        :: cats                       = -123    !  [Trep] Current averaging time scale for wci, in terms of mean wave periods
+ 
+   ! Wave boundary condition parameters                                                                                            
+   integer*4     :: instat                     = -123    !  [-] Wave boundary condtion type
+   real*8        :: taper                      = -123    !  [s] Spin-up time of wave boundary conditions, in morphological time  
+   real*8        :: Hrms                       = -123    !  [-] Hrms wave height for instat = 0,1,2,3
+   real*8        :: Tm01                       = -123    !  [s] Old name for Trep
+   real*8        :: Trep                       = -123    !  [s] Representative wave period for instat = 0,1,2,3
+   real*8        :: Tlong                      = -123    !  [s] Wave group period for case instat = 1
+   real*8        :: dir0                       = -123    !  [deg] Mean wave direction (Nautical convention) for instat = 0,1,2,3
+   integer*4     :: m                          = -123    !  [-] Power in cos^m directional distribution for instat = 0,1,2,3
+   character(24) :: lateralwave                = 'neumann'   !  [name] Switch for lateral boundary at left, 'neumann' = E Neumann, 'wavefront' = along wave front
+   integer*4     :: leftwave                   = -123    !  [-] old name for lateralwave
+   integer*4     :: rightwave                  = -123    !  [-] old name for lateralwave
+
+   ! Wave-spectrum boundary condition parameters
+   character(80) :: bcfile                     = 'abc'   !  Note, will replace current lookup in boundary conditions [name] Name of spectrum file  
+   integer*4     :: random                     = -123    !  [-] Random seed on (1) or off (0) for instat = 4,5,6 boundary conditions
+   real*8        :: fcutoff                    = -123    !  [Hz] Low-freq cutoff frequency for instat = 4,5,6 boundary conditions
+   integer*4     :: nspr                       = -123    !  [-] nspr = 1 bin all wave components for generation of qin (instat 4,5,6) in one direction, nspr = 0 regular long wave spreadin
+   real*8        :: trepfac                    = -123    !  [-] Compute mean wave period over energy band: par%trepfac*maxval(Sf) for instat 4,5,6; converges to Tm01 for trepfac = 0.0 and
+   real*8        :: sprdthr                    = -123    !  [-] Threshold ratio to maxval of S above which spec dens are read in (default 0.08*maxval)
+   integer*4     :: oldwbc                     = -123    !  [-] (1) Use old version wave boundary conditions for instat 4,5,6
+   real*8        :: rt                         = -123    !  [s] Duration of wave spectrum at offshore boundary, in morphological time 
+   real*8        :: dtbc                       = -123    !  [s] Timestep used to describe time series of wave energy and long wave flux at offshore boundary (not affected by morfac)
+   real*8        :: dthetaS_XB                 = -123    !  [deg] If SWAN input is not in nautical degrees, dthetaS_XB is the angle from SWAN x-axis to XBeach x-axis in cathesian degrees
+      
+   ! Flow boundary condition parameters
+   integer*4     :: front                      = -123    !  [-] Switch for seaward flow boundary: 0 = radiating boundary(Ad), 1 = Van Dongeren, 1997
+   integer*4     :: left                       = -123    !  [name] Switch for lateral boundary at ny+1, 'neumann' = vv computed from NSWE, 'wall' = reflective wall; vv=0
+   integer*4     :: right                      = -123    !  [-] Switch for lateral boundary at right, 0 = vv computed from NSWE, 1 = reflective wall; vv=0 
+   integer*4     :: back                       = -123    !  [-] Switch for boundary at bay side, 0 = radiating boundary (Ad), 1 = reflective boundary; uu=0
+   integer*4     :: ARC                        = -123    !  [-] Switch for active reflection compensation at seaward boundary: 0 = reflective, 1 = weakly (non) reflective
+   real*4        :: order                      = -123    !  [-] Switch for order of wave steering, 1 = first order wave steering (short wave energy only), 2 = second oder wave steering (bound long wave corresponding to short wave forcing is added)
+   integer*4     :: carspan                    = -123    !  [-] Switch for Carrier-Greenspan test 0 = use cg (default); 1 = use sqrt(gh) in instat = 3 for c&g tests
+
+   ! Tide boundary conditions                                                                                                      
+   real*8        :: zs0                        = -123    !  [m] Inital water level
+   real*8        :: zs01                       = -123    !  [m] Initial water level first sea boundary
+   real*8        :: zs02                       = -123    !  [m] Initial water level second sea boundary
+   real*8        :: zs03                       = -123    !  [m] Initial water level first land boundary
+   real*8        :: zs04                       = -123    !  [m] Initial water level second land boundary
+   character(80) :: zs0file                    = 'abc'   !  Note, will replace lookup in readtide [name] Name of tide boundary condition series
+   integer*4     :: tideloc                    = -123    !  [-] Number of corner points on which a tide time series is specified
+   integer*4     :: paulrevere                 = -123    !  [-] Specifies tide on sea and land (0) or two sea points (1) if tideloc = 2
+                                                         !      if tideloc =>2, then this indicates where the time series are to be 
+                                                         !      applied. Input for tidal information to xbeach options (3):
+                                                         !      1. one tidal record --> specify tidal record everywhere
+                                                         !      2. two tidal records --> Need to specify keyword 'paulrevere'
+                                                         !      paulrevere==0 implies to apply one tidal record to
+                                                         !      both sea corners and one tidal record to both land corners
+                                                         !      paulrevere==1 implies to apply the first tidal record
+                                                         !      (column 2 in zs0input.dat) to the (x=1,y=1) sea corner and
+                                                         !      the second tidal record (third column) to the (x=1,y=N) sea corner
+                                                         !      3. four tidal records --> Need to list tidal records in  
+                                                         !      zs0input.dat in order of:
+                                                         !         (x=1,y=1)
+                                                         !         (x=1,y=N)
+                                                         !         (x=N,y=N)
+                                                         !         (x=N,y=1)
+                                                         !      NOTE:  clockwise from (1,1) corner
+   ! Discharge boundary conditions 
+   character(80) :: disch_loc_file             = 'abc'   !  Note: will replace lookup in boundary conditions [name] Name of discharge locations file
+   character(80) :: disch_timeseries_file      = 'abc'   !  Note: will replace lookup in boundary conditions [name] Name of discharge timeseries file
+
+   ! Wave breaking parameters                                                                                                      
+   integer*4     :: break                      = -123    !  [-] Type of breaker formulation (1=roelvink, 2=baldock, 3=roelvink adapted, 4=roelvink on/off breaking)
+   real*8        :: gamma                      = -123    !  [-] Breaker parameter in Baldock or Roelvink formulation
+   real*8        :: gamma2                     = -123    !  [-] End of breaking parameter in break = 4 formulation
+   real*8        :: alpha                      = -123    !  [-] Wave dissipation coefficient in Roelvink formulation
+   real*8        :: n                          = -123    !  [-] Power in Roelvink dissipation model
+   real*8        :: gammax                     = -123    !  [-] Maximum ratio wave height to water depth
+   real*8        :: delta                      = -123    !  [-] Fraction of wave height to add to water depth
+ 
+   ! Roller parameters                                                                                                             
+   integer*4     :: roller                     = -123    !  [-] Turn on (1) or off(0) roller model
+   real*8        :: beta                       = -123    !  [-] Breaker slope coefficient in roller model
+   integer*4     :: rfb                        = -123    !  [-] If rfb = 1 then maximum wave surface slope is feeded back in roller energy balance; else rfb = par%Beta
+ 
+   ! Flow parameters                                                                                                               
+   real*8        :: C                          = -123    !  [m^0.5s^-1] Chezy coefficient
+   real*8        :: cf                         = -123    !  [-] Friction coefficient flow
+   real*8        :: nuh                        = -123    !  [m^2s^-1] Horizontal background viscosity 
+   real*8        :: nuhfac                     = -123    !  [-] Viscosity switch for roller induced turbulent horizontal viscosity
+   real*8        :: nuhv                       = -123    !  [-] Longshore viscosity enhancement factor, following Svendsen (?)
+   
+   ! Coriolis force parameters
+   real*8        :: wearth                     = -123    !  [hour^-1] Angular velocity of earth calculated as: 1/rotation_time (in hours), later changed in calculation code to rad/s
+   real*8        :: lat                        = -123    !  [deg] Latitude at model location  for computing Coriolis
+   
+   ! Wind parameters
+   real*8        :: rhoa                       = -123    !  [kgm^-3] Air density
+   real*8        :: Cd                         = -123    !  [-] Wind drag coefficient
+   real*8        :: windv                      = -123    !  [ms^-1] Wind velocity, in case of stationary wind
+   real*8        :: windth                     = -123    !  [deg] Nautical wind direction, in case of stationary wind
+   character(80) :: windfile                   = 'abc'   !  Note, will replace lookup in readwind [name] Name of file with non-stationary wind data
+   
+   ! Groundwater parameters 
+   real*8        :: kx                         = -123    !  [ms^-1] Darcy-flow permeability coefficient in x-direction [m/s]
+   real*8        :: ky                         = -123    !  [ms^-1] Darcy-flow permeability coefficient in y-direction [m/s]
+   real*8        :: kz                         = -123    !  [ms^-1] Darcy-flow permeability coefficient in z-direction [m/s]
+   real*8        :: dwetlayer                  = -123    !  [m] Thickness of the top soil layer interacting more freely with the surface water
+   real*8        :: aquiferbot                 = -123    !  Note, will replace lookup in groundwater module [m] Level of uniform aquifer bottom
+   character(80) :: aquiferbotfile             = 'abc'   !  Note, will replace lookup in groundwater module [name] Name of the aquifer bottom file
+   real*8        :: gw0                        = -123    !  Note, will replace lookup in groundwater module [m] Level initial groundwater level
+   character(80) :: gw0file                    = 'abc'   !  Note, will replace lookup in groundwater module [name] Name of initial groundwater level file
+
+   
+   ! Q3D sediment transport parameters
+   real*8        :: vonkar                     = -123    !   von Karman constant
+   real*8        :: vicmol                     = -123    !   molecular viscosity
+   integer*4     :: kmax                       = -123    !  [-] Number of sigma layers in Quasi-3D model; kmax = 1 (default) is without vertical structure of flow and suspensions
+   real*8        :: sigfac                     = -123    !  [-] dsig scales with log(sigfac). Default = 1.3
+   
+   ! Non-hydrostatic correction parameters
+   integer*4     :: secorder                   = -123    ! [-] Use second order corrections to advection/non-linear terms based on mcCormack scheme
+   integer*4     :: solver_maxit               = -123    ! [-] Maximum number of iterations in the linear SIP solver
+   real*8        :: solver_acc                 = -123    ! [?] accuracy with respect to the right-hand side used
+                                                         !     in the following termination criterion:
+                                                         !         ||b-Ax || < acc*||b||
+   real*8        :: solver_alpha               = -123    ! [?] Underrelaxation parameter 
+   integer*4     :: solver                     = -123    ! [-] Solver used to solve the linear system, 1=SIP, 2=TRIDIAG (only for 1d)
+   
+   ! Bed composition parameters
+   real*8        :: rhos                       = -123    !  [kgm^-3] Solid sediment density (no pores)
+   integer*4     :: ngd                        = -123    !  [-] Number of sediment classes
+   integer*4     :: nd                         = -123    !  [-] Number of computational layers in the bed
+   real*8        :: dzg1                       = -123    !  [m] Thickness of top sediment class layers
+   real*8        :: dzg2                       = -123    !  [m] Nominal thickness of variable sediment class layer
+   real*8        :: dzg3                       = -123    !  [m] Thickness of bottom sediment class layers
+   real*8        :: por                        = -123    !  [-] Porosity
+   real*8,dimension(10)  :: D50               !  Note, will replace lookup in initialize [m] D50 grain size per grain type
+   real*8,dimension(10)  :: D90               !  Note, will replace lookup in initialize [m] D90 grain size per grain type
+   real*8,dimension(10)  :: sedcal            !  Note, will replace lookup in initialize [-] Sediment transport calibration coefficient per grain type
+   real*8,dimension(10)  :: ucrcal            !  Note, will replace lookup in initialize [-] Critical velocity calibration coefficient per grain type
+
+   ! Bed update numerics parameters
+   real*8        :: frac_dz                    = -123    !  [-] Relative thickness to split time step for bed updating
+   integer*4     :: nd_var                     = -123    !  [-] Index of layer with variable thickness 
+   real*8        :: split                      = -123    !  [-] Split threshold for variable sediment layer (ratio to nominal thickness)
+   real*8        :: merge                      = -123    !  [-] Merge threshold for variable sediment layer (ratio to nominal thickness)
+
+
+   ! Sediment transport parameters                                                                                                 
+   integer*4     :: form                       = -123    !  [-] Equilibrium sed. conc. formulation: 1 = Soulsby van Rijn, 1997, 2 = Van Rijn 2008 with modifications by Van Thiel
+   integer*4     :: sws                        = -123    !  [-] 1 = short wave & roller stirring and undertow, 0 = no short wave & roller stirring and undertow
+   integer*4     :: lws                        = -123    !  [-] 1 = long wave stirring, 0 = no long wave stirring
+   real*8        :: BRfac                      = -123    !  [-] Calibration factor surface slope
+   real*8        :: facsl                      = -123    !  [-] Factor bedslope effect
+   real*8        :: z0                         = -123    !  [m] Zero flow velocity level in Soulsby van Rijn (1997) sed.conc. expression
+   real*8        :: smax                       = -123    !  [-] Being tested: maximum Shields parameter for ceq Diane Foster
+   real*8        :: tsfac                      = -123    !  [-] Coefficient determining Ts = tsfac * h/ws in sediment source term
+   real*8        :: facua                      = -123    !  [-] Calibration factor time averaged flows due to wave asymmetry
+   integer*4     :: turb                       = -123    !  [-] Equlibrium sediment concentration is computed as function of:
+   real*8        :: Tbfac                      = -123    !  [-] Calibration factor for bore interval Tbore: Tbore = Tbfac*Tbore
+   real*8        :: Tsmin                      = -123    !  [s] Minimum adaptation time scale in advection diffusion equation sediment                                                      !      0 = no turbulence, 1 = wave averaged turbulence, 2 = maximum turbulence
+   integer*4     :: lwt                        = -123    !  [-] Switch 0/1 long wave turbulence model
+   real*8        :: betad                      = -123    !  [-] Dissipation parameter long wave breaking turbulence
+
+   ! Morphology parameters                                                                                                         
+   real*8        :: morfac                     = -123    !  [-] Morphological acceleration factor
+   real*8        :: morstart                   = -123    !  [s] Start time morphology, in morphological time
+   real*8        :: wetslp                     = -123    !  [-] Critical avalanching slope under water (dz/dx and dz/dy)
+   real*8        :: dryslp                     = -123    !  [-] Critical avalanching slope above water (dz/dx and dz/dy)
+   real*8        :: hswitch                    = -123    !  [m] Water depth at which is switched from wetslp to dryslp
+   real*8        :: dzmax                      = -123    !  [m/s/m] Maximum bedlevel change due to avalanching
+ 
+   ! Output variables                                                                                                              
+   integer*4     :: timings                    = -123    !  [-] Switch to turn on (1) or off (0) progress output to screen
+   real*8        :: tstart                     = -123    !  [s] Start time of output, in morphological time
+   real*8        :: tint                       = -123    !  [s] Interval time of global output (replaced by tintg)
+   real*8        :: tintg                      = -123    !  [s] Interval time of global output
+   real*8        :: tintp                      = -123    !  [s] Interval time of point and runup gauge output
+   real*8        :: tintc                      = -123    !  [s] Interval time of cross section output
+   real*8        :: tintm                      = -123    !  [s] Interval time of mean,var,max,min output
+   character(80) :: tsglobal                   = 'abc'   !  [name] Name of file containing timings of global output
+   character(80) :: tspoints                   = 'abc'   !  [name] Name of file containing timings of point output
+   character(80) :: tscross                    = 'abc'   !  [name] Name of file containing timings of cross section output
+   character(80) :: tsmean                     = 'abc'   !  [name] Name of file containing timings of mean, max, min and var output
+   integer*4     :: nglobalvar                 = -123    !  [-] Number of global output variables
+   integer*4     :: nmeanvar                   = -123    !  [-] Number of mean,min,max,var output variables
+   integer*4     :: npoints                    = -123    !  [-] Number of output point locations
+   integer*4     :: nrugauge                   = -123    !  [-] Number of output runup gauge locations
+   integer*4     :: ncross                     = -123    !  [-] Number of output cross sections
+  
+   ! Drifters parameters
+   integer*4     :: ndrifter                   = -123    !  Note: will replace lookup in drifters module [-] Number of drifers
+   character(80) :: drifterfile                = 'abc'   !  Note: will replace lookup in drifters module [name] Name of drifter data file
+  
+   ! Constants, not read in params.txt
+   real*8               :: px                  = -123    !  [-] Pi
+   complex(kind(0.0d0)) :: compi               = -123    !  [-] Imaginary unit
+   real*8               :: rhog8               = -123    !  [Nm^-3] 1/8*rho*g
+
+   ! Variables, not read in params.txt
+   real*8               :: dt                  = -123    !  [s] Computational time step, in hydrodynamic time
+   real*8               :: t                   = -123    !  [s] Computational time, in hydrodynamic time
+   real*8               :: tnext               = -123    !  [s] Next time point for output or wave stationary calculation, in hydrodynamic time
+   real*8               :: Emean               = -123    !  Note: can be made local [Jm^-2] Mean wave energy at boundary
+   real*8               :: w                   = -123    !  Note: can be made local [ms^-1] Fall velocity sediment
+   integer*4            :: listline            = -123    !  Note: can be made local [-] Keeps rack of the record line in bcf-files in case of instat 4,5,6
+   real*8               :: fc                  = -123    !  Note: can be made local [s^-1] Coriolis forcing parameter
+   integer*4            :: tidelen             = -123    !  [-] Length of input tidal time series 
+   integer*4            :: windlen             = -123    !  [-] Length of input wind time series 
+   real*8               :: Llong               = -123    !  Note: can be made local [m] Alongshore wave group length for case instat=1
+
 
 end type parameters
 
@@ -263,8 +355,8 @@ if (par%instat==0) then
    endif
 else
    if (par%break==2) then 
-        write(*,*)'Warning: Baldock formulation not allowed in non-stationary calculation,'
-        write(*,*)' use Roelvink formulation if time-varying b.c..'
+        write(*,*)'Error: Baldock formulation not allowed in non-stationary calculation, use Roelvink formulation. Stopping.'
+       	call halt_program
    endif
 endif
 par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
@@ -272,7 +364,7 @@ par%beta     = readkey_dbl ('params.txt','beta',    0.15d0,     0.05d0,   0.3d0)
 par%rfb      = readkey_int ('params.txt','rfb',        1,        0,     1)
 par%taper    = readkey_dbl ('params.txt','taper',   100.d0,      0.0d0, 1000.d0)
 par%taper    = max(par%taper,1.d-6)
-par%refl     = readkey_int ('params.txt','refl',       0,        0,     1) 
+!par%refl     = readkey_int ('params.txt','refl',       0,        0,     1) 
 par%nspr     = readkey_int ('params.txt','nspr',       0,        0,     1) 
 par%scheme   = readkey_int ('params.txt','scheme',     1,        1,     2)
 par%trepfac  = readkey_dbl  ('params.txt','trepfac', 0.8d0,       0.d0,  1.d0) 
@@ -281,7 +373,7 @@ par%lwave    = readkey_int ('params.txt','lwave',         1,        0,     1)
 par%swave    = readkey_int ('params.txt','swave',         1,        0,     1)
 par%sws      = readkey_int ('params.txt','sws',           1,        0,     1)
 par%lws      = readkey_int ('params.txt','lws',           1,        0,     1)
-par%ut       = readkey_int ('params.txt','ut',            1,        0,     1)
+!par%ut       = readkey_int ('params.txt','ut',            1,        0,     1)
 par%BRfac    = readkey_dbl ('params.txt','BRfac',    1.0d0,       0.d0, 1.d0)
 par%oldwbc   = readkey_int ('params.txt','oldwbc',       1,        0,     1)
 end subroutine wave_input
@@ -343,11 +435,6 @@ par%lat     = readkey_dbl ('params.txt','lat',     0.d0,      0.d0,   90.d0)
 par%wearth  = readkey_dbl ('params.txt','omega',   1.d0/24.d0, 0.d0,    1.d0)
 par%vonkar  = readkey_dbl ('params.txt','vonkar',   0.4d0,     0.01d0,  1.d0)
 par%vicmol  = readkey_dbl ('params.txt','vicmol',   0.000001d0,   0.d0,    0.001d0)
-par%secorder     = readkey_int('params.txt','secorder' ,0,0,1)
-par%solver_maxit = readkey_int('params.txt','solver_maxit' ,30,1,1000)
-par%solver_acc   = readkey_dbl('params.txt','solver_acc' ,0.005d0,0.00001d0,0.1d0)  
-par%solver_alpha = readkey_dbl('params.txt','solver_urelax' ,0.94d0,0.5d0,0.99d0)
-par%solver       = readkey_int('params.txt','solver' ,1,0,2)
 
 par%lat = par%lat*par%px/180.d0
 par%wearth = par%px*par%wearth/1800.d0
@@ -361,6 +448,14 @@ if (par%gwflow==1) then
    par%kz         = readkey_dbl ('params.txt','kz'        , par%kx   , 0.00001d0, 0.01d0)
    par%dwetlayer  = readkey_dbl ('params.txt','dwetlayer' , 0.2d0    , 0.01d0     , 1.d0)
 endif
+
+par%secorder     = readkey_int('params.txt','secorder' ,0,0,1)
+par%solver_maxit = readkey_int('params.txt','solver_maxit' ,30,1,1000)
+par%solver_acc   = readkey_dbl('params.txt','solver_acc' ,0.005d0,0.00001d0,0.1d0)  
+par%solver_alpha = readkey_dbl('params.txt','solver_urelax' ,0.94d0,0.5d0,0.99d0)
+par%solver       = readkey_int('params.txt','solver' ,1,0,2)
+
+
 
 end subroutine flow_input
 
@@ -391,7 +486,7 @@ par%por      = readkey_dbl ('params.txt','por',    0.4d0,       0.3d0,    0.5d0)
 par%hswitch  = readkey_dbl ('params.txt','hswitch',0.1d0,      0.01d0,    1.0d0)  
 par%z0       = readkey_dbl ('params.txt','z0     ',0.006d0,    0.0001d0,   0.05d0)  
 par%facsl    = readkey_dbl ('params.txt','facsl  ',0.00d0,    0.00d0,   1.6d0)  
-par%struct   = readkey_int ('params.txt','struct ',0,           0,            1) 
+!par%struct   = readkey_int ('params.txt','struct ',0,           0,            1) 
 par%form     = readkey_int ('params.txt','form',   1,           1,            3)
 par%smax     = readkey_dbl ('params.txt','smax',   -1.d0,    -1.d0,   3.d0)       !changed 28/11 and back 10/2
 if (par%smax<0) par%smax=huge(0.d0)
@@ -402,8 +497,8 @@ par%dzmax    = readkey_dbl ('params.txt','dzmax  ',0.05d0,    0.00d0,   1.0d0)
 par%turb     = readkey_int ('params.txt','turb',   2,           0,            2)
 par%Tbfac    = readkey_dbl ('params.txt','Tbfac  ',1.0d0,     0.00d0,   1.0d0) 
 par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.2d0,     0.01d0,   10.d0) 
-par%impact   = readkey_int ('params.txt','impact ',0,           0,            1)  
-par%CE       = readkey_dbl ('params.txt','CE     ',0.2d0,     0.00d0,   100.d0) 
+!par%impact   = readkey_int ('params.txt','impact ',0,           0,            1)  
+!par%CE       = readkey_dbl ('params.txt','CE     ',0.2d0,     0.00d0,   100.d0) 
 par%betad    = readkey_dbl ('params.txt','betad  ',1.0d0,     0.00d0,   10.0d0) 
 par%lwt      = readkey_int ('params.txt','lwt    ',0,           0,            1)
 par%sigfac   = readkey_dbl ('params.txt','sigfac ',1.3d0,     0.00d0,   10.d0) 
@@ -453,120 +548,120 @@ return
 ! few times, a more simple approach is used.
 !
 
-call xmpi_bcast(par%px)
-call xmpi_bcast(par%Hrms)
-call xmpi_bcast(par%Trep)
-call xmpi_bcast(par%dir0)
-call xmpi_bcast(par%m)
-call xmpi_bcast(par%nt)
-call xmpi_bcast(par%hmin)
-call xmpi_bcast(par%gammax)
-call xmpi_bcast(par%Tlong)
-call xmpi_bcast(par%Llong)
-call xmpi_bcast(par%gamma)
-call xmpi_bcast(par%delta)
-call xmpi_bcast(par%rho)
-call xmpi_bcast(par%g)
-call xmpi_bcast(par%rhog8)
-!call xmpi_bcast(par%omega)
-call xmpi_bcast(par%thetamin)
-call xmpi_bcast(par%thetamax)
-call xmpi_bcast(par%dtheta)
-call xmpi_bcast(par%thetanaut)
-call xmpi_bcast(par%wci)
-call xmpi_bcast(par%hwci)
-call xmpi_bcast(par%dt)
-call xmpi_bcast(par%break)
-call xmpi_bcast(par%instat)
-call xmpi_bcast(par%wavint)
-call xmpi_bcast(par%alpha)
-call xmpi_bcast(par%n)
-call xmpi_bcast(par%roller)
-call xmpi_bcast(par%beta)
-call xmpi_bcast(par%taper)
-call xmpi_bcast(par%t)
-call xmpi_bcast(par%tnext)
-call xmpi_bcast(par%it)
-call xmpi_bcast(par%tstart)
-call xmpi_bcast(par%tint)
-call xmpi_bcast(par%tintp)
-call xmpi_bcast(par%tintg)
-call xmpi_bcast(par%tintm)
-call xmpi_bcast(par%tstop)
-call xmpi_bcast(par%ntout)
-call xmpi_bcast(par%C)
-call xmpi_bcast(par%cf)
-call xmpi_bcast(par%eps)
-call xmpi_bcast(par%umin)
-call xmpi_bcast(par%zs01)
-call xmpi_bcast(par%zs02)
-call xmpi_bcast(par%zs03)
-call xmpi_bcast(par%zs04)
-call xmpi_bcast(par%tideloc)
-call xmpi_bcast(par%paulrevere)
-call xmpi_bcast(par%tidelen)
-
-call xmpi_bcast(par%facsl)
-call xmpi_bcast(par%nuh)
-call xmpi_bcast(par%nuhfac)
-call xmpi_bcast(par%rhos)
-call xmpi_bcast(par%morfac)
-call xmpi_bcast(par%morstart)
-call xmpi_bcast(par%Emean)
-call xmpi_bcast(par%CFL)
-call xmpi_bcast(par%ngd)
-call xmpi_bcast(par%nd)
-call xmpi_bcast(par%por)
-call xmpi_bcast(par%wetslp)
-call xmpi_bcast(par%dryslp)
-call xmpi_bcast(par%sw)
-call xmpi_bcast(par%front)
-call xmpi_bcast(par%ARC)
-call xmpi_bcast(par%order)
-call xmpi_bcast(par%left)
-call xmpi_bcast(par%right)
-call xmpi_bcast(par%back)
-call xmpi_bcast(par%refl)
-call xmpi_bcast(par%hswitch)
-call xmpi_bcast(par%z0)
-call xmpi_bcast(par%w)
-call xmpi_bcast(par%compi)
-call xmpi_bcast(par%listline)
-call xmpi_bcast(par%rhoa)
-call xmpi_bcast(par%Cd)
-call xmpi_bcast(par%windv)
-call xmpi_bcast(par%windth)
-call xmpi_bcast(par%nonh)
-call xmpi_bcast(par%nuhv)
-call xmpi_bcast(par%wearth)
-call xmpi_bcast(par%lat)
-call xmpi_bcast(par%fc)
-call xmpi_bcast(par%fcutoff)
-call xmpi_bcast(par%sprdthr)
-call xmpi_bcast(par%smax)
-call xmpi_bcast(par%form)
-call xmpi_bcast(par%carspan)
-call xmpi_bcast(par%nspr)
-call xmpi_bcast(par%thetanum)
-call xmpi_bcast(par%tsfac)
-call xmpi_bcast(par%scheme)
-call xmpi_bcast(par%random)
-call xmpi_bcast(par%trepfac)
-call xmpi_bcast(par%facua)
-call xmpi_bcast(par%dzmax)
-call xmpi_bcast(par%turb)
-call xmpi_bcast(par%rfb)
-call xmpi_bcast(par%lwave)
-call xmpi_bcast(par%swave)
-call xmpi_bcast(par%sws)
-call xmpi_bcast(par%ut)
-call xmpi_bcast(par%Tbfac)
-call xmpi_bcast(par%Tsmin)
-call xmpi_bcast(par%impact)
-call xmpi_bcast(par%CE)
-call xmpi_bcast(par%BRfac)
-call xmpi_bcast(par%betad)
-call xmpi_bcast(par%lwt)
+!call xmpi_bcast(par%px)
+!call xmpi_bcast(par%Hrms)
+!call xmpi_bcast(par%Trep)
+!call xmpi_bcast(par%dir0)
+!call xmpi_bcast(par%m)
+!call xmpi_bcast(par%nt)
+!call xmpi_bcast(par%hmin)
+!call xmpi_bcast(par%gammax)
+!call xmpi_bcast(par%Tlong)
+!call xmpi_bcast(par%Llong)
+!call xmpi_bcast(par%gamma)
+!call xmpi_bcast(par%delta)
+!call xmpi_bcast(par%rho)
+!call xmpi_bcast(par%g)
+!call xmpi_bcast(par%rhog8)
+!!call xmpi_bcast(par%omega)
+!call xmpi_bcast(par%thetamin)
+!call xmpi_bcast(par%thetamax)
+!call xmpi_bcast(par%dtheta)
+!call xmpi_bcast(par%thetanaut)
+!call xmpi_bcast(par%wci)
+!call xmpi_bcast(par%hwci)
+!call xmpi_bcast(par%dt)
+!call xmpi_bcast(par%break)
+!call xmpi_bcast(par%instat)
+!call xmpi_bcast(par%wavint)
+!call xmpi_bcast(par%alpha)
+!call xmpi_bcast(par%n)
+!call xmpi_bcast(par%roller)
+!call xmpi_bcast(par%beta)
+!call xmpi_bcast(par%taper)
+!call xmpi_bcast(par%t)
+!call xmpi_bcast(par%tnext)
+!call xmpi_bcast(par%it)
+!call xmpi_bcast(par%tstart)
+!call xmpi_bcast(par%tint)
+!call xmpi_bcast(par%tintp)
+!call xmpi_bcast(par%tintg)
+!call xmpi_bcast(par%tintm)
+!call xmpi_bcast(par%tstop)
+!call xmpi_bcast(par%ntout)
+!call xmpi_bcast(par%C)
+!call xmpi_bcast(par%cf)
+!call xmpi_bcast(par%eps)
+!call xmpi_bcast(par%umin)
+!call xmpi_bcast(par%zs01)
+!call xmpi_bcast(par%zs02)
+!call xmpi_bcast(par%zs03)
+!call xmpi_bcast(par%zs04)
+!call xmpi_bcast(par%tideloc)
+!call xmpi_bcast(par%paulrevere)
+!call xmpi_bcast(par%tidelen)
+!
+!call xmpi_bcast(par%facsl)
+!call xmpi_bcast(par%nuh)
+!call xmpi_bcast(par%nuhfac)
+!call xmpi_bcast(par%rhos)
+!call xmpi_bcast(par%morfac)
+!call xmpi_bcast(par%morstart)
+!call xmpi_bcast(par%Emean)
+!call xmpi_bcast(par%CFL)
+!call xmpi_bcast(par%ngd)
+!call xmpi_bcast(par%nd)
+!call xmpi_bcast(par%por)
+!call xmpi_bcast(par%wetslp)
+!call xmpi_bcast(par%dryslp)
+!call xmpi_bcast(par%sw)
+!call xmpi_bcast(par%front)
+!call xmpi_bcast(par%ARC)
+!call xmpi_bcast(par%order)
+!call xmpi_bcast(par%left)
+!call xmpi_bcast(par%right)
+!call xmpi_bcast(par%back)
+!call xmpi_bcast(par%refl)
+!call xmpi_bcast(par%hswitch)
+!call xmpi_bcast(par%z0)
+!call xmpi_bcast(par%w)
+!call xmpi_bcast(par%compi)
+!call xmpi_bcast(par%listline)
+!call xmpi_bcast(par%rhoa)
+!call xmpi_bcast(par%Cd)
+!call xmpi_bcast(par%windv)
+!call xmpi_bcast(par%windth)
+!call xmpi_bcast(par%nonh)
+!call xmpi_bcast(par%nuhv)
+!call xmpi_bcast(par%wearth)
+!call xmpi_bcast(par%lat)
+!call xmpi_bcast(par%fc)
+!call xmpi_bcast(par%fcutoff)
+!call xmpi_bcast(par%sprdthr)
+!call xmpi_bcast(par%smax)
+!call xmpi_bcast(par%form)
+!call xmpi_bcast(par%carspan)
+!call xmpi_bcast(par%nspr)
+!call xmpi_bcast(par%thetanum)
+!call xmpi_bcast(par%tsfac)
+!call xmpi_bcast(par%scheme)
+!call xmpi_bcast(par%random)
+!call xmpi_bcast(par%trepfac)
+!call xmpi_bcast(par%facua)
+!call xmpi_bcast(par%dzmax)
+!call xmpi_bcast(par%turb)
+!call xmpi_bcast(par%rfb)
+!call xmpi_bcast(par%lwave)
+!call xmpi_bcast(par%swave)
+!call xmpi_bcast(par%sws)
+!call xmpi_bcast(par%ut)
+!call xmpi_bcast(par%Tbfac)
+!call xmpi_bcast(par%Tsmin)
+!call xmpi_bcast(par%impact)
+!call xmpi_bcast(par%CE)
+!call xmpi_bcast(par%BRfac)
+!call xmpi_bcast(par%betad)
+!call xmpi_bcast(par%lwt)
 end subroutine distribute_par
 #endif
 !
@@ -589,121 +684,121 @@ subroutine printparams(par,str)
     return
   endif
 
-  write(f,*) 'printparams ', id, ' ', str
-  write(f,*) 'printpar ',id,' ','px:',par%px
-  write(f,*) 'printpar ',id,' ','Hrms:',par%Hrms
-  write(f,*) 'printpar ',id,' ','Trep:',par%Trep
-  write(f,*) 'printpar ',id,' ','dir0:',par%dir0
-  write(f,*) 'printpar ',id,' ','m:',par%m
-  write(f,*) 'printpar ',id,' ','nt:',par%nt
-  write(f,*) 'printpar ',id,' ','hmin:',par%hmin
-  write(f,*) 'printpar ',id,' ','gammax:',par%gammax
-  write(f,*) 'printpar ',id,' ','Tlong:',par%Tlong
-  write(f,*) 'printpar ',id,' ','Llong:',par%Llong
-  write(f,*) 'printpar ',id,' ','gamma:',par%gamma
-  write(f,*) 'printpar ',id,' ','delta:',par%delta
-  write(f,*) 'printpar ',id,' ','rho:',par%rho
-  write(f,*) 'printpar ',id,' ','g:',par%g
-  write(f,*) 'printpar ',id,' ','rhog8:',par%rhog8
-!  write(f,*) 'printpar ',id,' ','omega:',par%omega
-  write(f,*) 'printpar ',id,' ','thetamin:',par%thetamin
-  write(f,*) 'printpar ',id,' ','thetamax:',par%thetamax
-  write(f,*) 'printpar ',id,' ','dtheta:',par%dtheta
-  write(f,*) 'printpar ',id,' ','thetanaut:',par%thetanaut
-  write(f,*) 'printpar ',id,' ','wci:',par%wci
-  write(f,*) 'printpar ',id,' ','hwci:',par%hwci
-  write(f,*) 'printpar ',id,' ','dt:',par%dt
-  write(f,*) 'printpar ',id,' ','break:',par%break
-  write(f,*) 'printpar ',id,' ','instat:',par%instat
-  write(f,*) 'printpar ',id,' ','wavint:',par%wavint
-  write(f,*) 'printpar ',id,' ','alpha:',par%alpha
-  write(f,*) 'printpar ',id,' ','n:',par%n
-  write(f,*) 'printpar ',id,' ','roller:',par%roller
-  write(f,*) 'printpar ',id,' ','beta:',par%beta
-  write(f,*) 'printpar ',id,' ','taper:',par%taper
-  write(f,*) 'printpar ',id,' ','t:',par%t
-  write(f,*) 'printpar ',id,' ','tnext:',par%tnext
-  write(f,*) 'printpar ',id,' ','it:',par%it
-  write(f,*) 'printpar ',id,' ','tstart:',par%tstart
-  write(f,*) 'printpar ',id,' ','tint:',par%tint
-  write(f,*) 'printpar ',id,' ','tintp:',par%tintp
-  write(f,*) 'printpar ',id,' ','tintg:',par%tintg
-  write(f,*) 'printpar ',id,' ','tintm:',par%tintm
-  write(f,*) 'printpar ',id,' ','tstop:',par%tstop
-  write(f,*) 'printpar ',id,' ','ntout:',par%ntout
-  write(f,*) 'printpar ',id,' ','C:',par%C
-  write(f,*) 'printpar ',id,' ','cf:',par%cf
-  write(f,*) 'printpar ',id,' ','eps:',par%eps
-  write(f,*) 'printpar ',id,' ','umin:',par%umin
-  write(f,*) 'printpar ',id,' ','zs01:',par%zs01
-  write(f,*) 'printpar ',id,' ','zs02:',par%zs02
-  write(f,*) 'printpar ',id,' ','zs03:',par%zs03
-  write(f,*) 'printpar ',id,' ','zs04:',par%zs04
-  write(f,*) 'printpar ',id,' ','tideloc:',par%tideloc
-  write(f,*) 'printpar ',id,' ','paulrevere:',par%paulrevere
-  write(f,*) 'printpar ',id,' ','tidelen:',par%tidelen
-!  write(f,*) 'printpar ',id,' ','dico:',par%dico
-  write(f,*) 'printpar ',id,' ','facsl:',par%facsl
-  write(f,*) 'printpar ',id,' ','nuh:',par%nuh
-  write(f,*) 'printpar ',id,' ','nuhfac:',par%nuhfac
-  write(f,*) 'printpar ',id,' ','rhos:',par%rhos
-  write(f,*) 'printpar ',id,' ','morfac:',par%morfac
-  write(f,*) 'printpar ',id,' ','morstart:',par%morstart
-  write(f,*) 'printpar ',id,' ','Emean:',par%Emean
-  write(f,*) 'printpar ',id,' ','CFL:',par%CFL
-  write(f,*) 'printpar ',id,' ','ngd:',par%ngd
-  write(f,*) 'printpar ',id,' ','por:',par%por
-  write(f,*) 'printpar ',id,' ','wetslp:',par%wetslp
-  write(f,*) 'printpar ',id,' ','dryslp:',par%dryslp
-  write(f,*) 'printpar ',id,' ','sw:',par%sw
-  write(f,*) 'printpar ',id,' ','front:',par%front
-  write(f,*) 'printpar ',id,' ','ARC:',par%ARC
-  write(f,*) 'printpar ',id,' ','order:',par%order
-  write(f,*) 'printpar ',id,' ','left:',par%left
-  write(f,*) 'printpar ',id,' ','right:',par%right
-  write(f,*) 'printpar ',id,' ','back:',par%back
-  write(f,*) 'printpar ',id,' ','refl:',par%refl
-  write(f,*) 'printpar ',id,' ','hswitch:',par%hswitch
-  write(f,*) 'printpar ',id,' ','z0:',par%z0
-  write(f,*) 'printpar ',id,' ','w:',par%w
-  write(f,*) 'printpar ',id,' ','compi:',par%compi
-  write(f,*) 'printpar ',id,' ','listline:',par%listline
-  write(f,*) 'printpar ',id,' ','rhoa:',par%rhoa
-  write(f,*) 'printpar ',id,' ','Cd:',par%Cd
-  write(f,*) 'printpar ',id,' ','windv:',par%windv
-  write(f,*) 'printpar ',id,' ','windth:',par%windth
-  write(f,*) 'printpar ',id,' ','nonh:',par%nonh
-  write(f,*) 'printpar ',id,' ','nuhv:',par%nuhv
-  write(f,*) 'printpar ',id,' ','wearth:',par%wearth
-  write(f,*) 'printpar ',id,' ','lat:',par%lat
-  write(f,*) 'printpar ',id,' ','fc:',par%fc
-  write(f,*) 'printpar ',id,' ','fcutoff:',par%fcutoff
-  write(f,*) 'printpar ',id,' ','sprdthr:',par%sprdthr
-
-  write(f,*) 'printpar ',id,' ','smax:',par%smax
-  write(f,*) 'printpar ',id,' ','form:',par%form
-  write(f,*) 'printpar ',id,' ','carspan:',par%carspan
-  write(f,*) 'printpar ',id,' ','nspr:',par%nspr
-  write(f,*) 'printpar ',id,' ','thetanum:',par%thetanum
-  write(f,*) 'printpar ',id,' ','tsfac:',par%tsfac
-  write(f,*) 'printpar ',id,' ','scheme:',par%scheme
-  write(f,*) 'printpar ',id,' ','random:',par%random
-  write(f,*) 'printpar ',id,' ','trepfac:',par%trepfac
-  write(f,*) 'printpar ',id,' ','facua:',par%facua
-  write(f,*) 'printpar ',id,' ','dzmax:',par%dzmax
-  write(f,*) 'printpar ',id,' ','turb:',par%turb
-  write(f,*) 'printpar ',id,' ','rfb:',par%rfb
-  write(f,*) 'printpar ',id,' ','lwave:',par%lwave
-  write(f,*) 'printpar ',id,' ','swave:',par%swave
-  write(f,*) 'printpar ',id,' ','sws:',par%sws
-  write(f,*) 'printpar ',id,' ','ut:',par%ut
-  write(f,*) 'printpar ',id,' ','Tbfac:',par%Tbfac
-  write(f,*) 'printpar ',id,' ','Tsmin:',par%Tsmin
-  write(f,*) 'printpar ',id,' ','impact:',par%impact
-  write(f,*) 'printpar ',id,' ','CE:',par%CE
-  write(f,*) 'printpar ',id,' ','BRfac:',par%BRfac
-  write(f,*) 'printpar ',id,' ','betad:',par%betad
-  write(f,*) 'printpar ',id,' ','lwt:',par%lwt
+!  write(f,*) 'printparams ', id, ' ', str
+!  write(f,*) 'printpar ',id,' ','px:',par%px
+!  write(f,*) 'printpar ',id,' ','Hrms:',par%Hrms
+!  write(f,*) 'printpar ',id,' ','Trep:',par%Trep
+!  write(f,*) 'printpar ',id,' ','dir0:',par%dir0
+!  write(f,*) 'printpar ',id,' ','m:',par%m
+!!  write(f,*) 'printpar ',id,' ','nt:',par%nt
+!  write(f,*) 'printpar ',id,' ','hmin:',par%hmin
+!  write(f,*) 'printpar ',id,' ','gammax:',par%gammax
+!  write(f,*) 'printpar ',id,' ','Tlong:',par%Tlong
+!  write(f,*) 'printpar ',id,' ','Llong:',par%Llong
+!  write(f,*) 'printpar ',id,' ','gamma:',par%gamma
+!  write(f,*) 'printpar ',id,' ','delta:',par%delta
+!  write(f,*) 'printpar ',id,' ','rho:',par%rho
+!  write(f,*) 'printpar ',id,' ','g:',par%g
+!  write(f,*) 'printpar ',id,' ','rhog8:',par%rhog8
+!!  write(f,*) 'printpar ',id,' ','omega:',par%omega
+!  write(f,*) 'printpar ',id,' ','thetamin:',par%thetamin
+!  write(f,*) 'printpar ',id,' ','thetamax:',par%thetamax
+!  write(f,*) 'printpar ',id,' ','dtheta:',par%dtheta
+!  write(f,*) 'printpar ',id,' ','thetanaut:',par%thetanaut
+!  write(f,*) 'printpar ',id,' ','wci:',par%wci
+!  write(f,*) 'printpar ',id,' ','hwci:',par%hwci
+!  write(f,*) 'printpar ',id,' ','dt:',par%dt
+!  write(f,*) 'printpar ',id,' ','break:',par%break
+!  write(f,*) 'printpar ',id,' ','instat:',par%instat
+!  write(f,*) 'printpar ',id,' ','wavint:',par%wavint
+!  write(f,*) 'printpar ',id,' ','alpha:',par%alpha
+!  write(f,*) 'printpar ',id,' ','n:',par%n
+!  write(f,*) 'printpar ',id,' ','roller:',par%roller
+!  write(f,*) 'printpar ',id,' ','beta:',par%beta
+!  write(f,*) 'printpar ',id,' ','taper:',par%taper
+!  write(f,*) 'printpar ',id,' ','t:',par%t
+!  write(f,*) 'printpar ',id,' ','tnext:',par%tnext
+!!  write(f,*) 'printpar ',id,' ','it:',par%it
+!  write(f,*) 'printpar ',id,' ','tstart:',par%tstart
+!  write(f,*) 'printpar ',id,' ','tint:',par%tint
+!  write(f,*) 'printpar ',id,' ','tintp:',par%tintp
+!  write(f,*) 'printpar ',id,' ','tintg:',par%tintg
+!  write(f,*) 'printpar ',id,' ','tintm:',par%tintm
+!  write(f,*) 'printpar ',id,' ','tstop:',par%tstop
+!!  write(f,*) 'printpar ',id,' ','ntout:',par%ntout
+!  write(f,*) 'printpar ',id,' ','C:',par%C
+!  write(f,*) 'printpar ',id,' ','cf:',par%cf
+!  write(f,*) 'printpar ',id,' ','eps:',par%eps
+!  write(f,*) 'printpar ',id,' ','umin:',par%umin
+!  write(f,*) 'printpar ',id,' ','zs01:',par%zs01
+!  write(f,*) 'printpar ',id,' ','zs02:',par%zs02
+!  write(f,*) 'printpar ',id,' ','zs03:',par%zs03
+!  write(f,*) 'printpar ',id,' ','zs04:',par%zs04
+!  write(f,*) 'printpar ',id,' ','tideloc:',par%tideloc
+!  write(f,*) 'printpar ',id,' ','paulrevere:',par%paulrevere
+!  write(f,*) 'printpar ',id,' ','tidelen:',par%tidelen
+!!  write(f,*) 'printpar ',id,' ','dico:',par%dico
+!  write(f,*) 'printpar ',id,' ','facsl:',par%facsl
+!  write(f,*) 'printpar ',id,' ','nuh:',par%nuh
+!  write(f,*) 'printpar ',id,' ','nuhfac:',par%nuhfac
+!  write(f,*) 'printpar ',id,' ','rhos:',par%rhos
+!  write(f,*) 'printpar ',id,' ','morfac:',par%morfac
+!  write(f,*) 'printpar ',id,' ','morstart:',par%morstart
+!  write(f,*) 'printpar ',id,' ','Emean:',par%Emean
+!  write(f,*) 'printpar ',id,' ','CFL:',par%CFL
+!  write(f,*) 'printpar ',id,' ','ngd:',par%ngd
+!  write(f,*) 'printpar ',id,' ','por:',par%por
+!  write(f,*) 'printpar ',id,' ','wetslp:',par%wetslp
+!  write(f,*) 'printpar ',id,' ','dryslp:',par%dryslp
+!!  write(f,*) 'printpar ',id,' ','sw:',par%sw
+!  write(f,*) 'printpar ',id,' ','front:',par%front
+!  write(f,*) 'printpar ',id,' ','ARC:',par%ARC
+!  write(f,*) 'printpar ',id,' ','order:',par%order
+!  write(f,*) 'printpar ',id,' ','left:',par%left
+!  write(f,*) 'printpar ',id,' ','right:',par%right
+!  write(f,*) 'printpar ',id,' ','back:',par%back
+!!  write(f,*) 'printpar ',id,' ','refl:',par%refl
+!  write(f,*) 'printpar ',id,' ','hswitch:',par%hswitch
+!  write(f,*) 'printpar ',id,' ','z0:',par%z0
+!  write(f,*) 'printpar ',id,' ','w:',par%w
+!  write(f,*) 'printpar ',id,' ','compi:',par%compi
+!  write(f,*) 'printpar ',id,' ','listline:',par%listline
+!  write(f,*) 'printpar ',id,' ','rhoa:',par%rhoa
+!  write(f,*) 'printpar ',id,' ','Cd:',par%Cd
+!  write(f,*) 'printpar ',id,' ','windv:',par%windv
+!  write(f,*) 'printpar ',id,' ','windth:',par%windth
+!  write(f,*) 'printpar ',id,' ','nonh:',par%nonh
+!  write(f,*) 'printpar ',id,' ','nuhv:',par%nuhv
+!  write(f,*) 'printpar ',id,' ','wearth:',par%wearth
+!  write(f,*) 'printpar ',id,' ','lat:',par%lat
+!  write(f,*) 'printpar ',id,' ','fc:',par%fc
+!  write(f,*) 'printpar ',id,' ','fcutoff:',par%fcutoff
+!  write(f,*) 'printpar ',id,' ','sprdthr:',par%sprdthr
+!
+!  write(f,*) 'printpar ',id,' ','smax:',par%smax
+!  write(f,*) 'printpar ',id,' ','form:',par%form
+!  write(f,*) 'printpar ',id,' ','carspan:',par%carspan
+!  write(f,*) 'printpar ',id,' ','nspr:',par%nspr
+!  write(f,*) 'printpar ',id,' ','thetanum:',par%thetanum
+!  write(f,*) 'printpar ',id,' ','tsfac:',par%tsfac
+!  write(f,*) 'printpar ',id,' ','scheme:',par%scheme
+!  write(f,*) 'printpar ',id,' ','random:',par%random
+!  write(f,*) 'printpar ',id,' ','trepfac:',par%trepfac
+!  write(f,*) 'printpar ',id,' ','facua:',par%facua
+!  write(f,*) 'printpar ',id,' ','dzmax:',par%dzmax
+!  write(f,*) 'printpar ',id,' ','turb:',par%turb
+!  write(f,*) 'printpar ',id,' ','rfb:',par%rfb
+!  write(f,*) 'printpar ',id,' ','lwave:',par%lwave
+!  write(f,*) 'printpar ',id,' ','swave:',par%swave
+!  write(f,*) 'printpar ',id,' ','sws:',par%sws
+!!  write(f,*) 'printpar ',id,' ','ut:',par%ut
+!  write(f,*) 'printpar ',id,' ','Tbfac:',par%Tbfac
+!  write(f,*) 'printpar ',id,' ','Tsmin:',par%Tsmin
+!!  write(f,*) 'printpar ',id,' ','impact:',par%impact
+!!  write(f,*) 'printpar ',id,' ','CE:',par%CE
+!  write(f,*) 'printpar ',id,' ','BRfac:',par%BRfac
+!  write(f,*) 'printpar ',id,' ','betad:',par%betad
+!  write(f,*) 'printpar ',id,' ','lwt:',par%lwt
   
 end subroutine printparams
 end module params
