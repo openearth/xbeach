@@ -376,19 +376,30 @@ endif
 #ifdef USEMPI
     call xmpi_shift(hu ,'m:')
 	call xmpi_shift(hv ,':n')
-#endif
-
-
-	
-
+#endif	
+    ! 
     ! Dano in case of closed boundaries we need to set vv to 0 before computing qv,
     ! to avoid mass errors
+	! Lateral boundary at y=0
     if (par%right==1) then
       vv(2:nx+1,1) = 0.d0
+	else
+	  vv(2:nx+1,1) = vv(2:nx+1,2) ! RJ: 
     endif
+	uu(1:nx+1,1)=uu(1:nx+1,2) ! RJ: can also be done after continuity but more appropriate here
+	! Lateral boundary at y=ny*dy 
     if (par%left==1) then
-      vv(2:nx+1,ny) = 0.d0       ! wwvv for symmetry reasons: why not ny+1
+      vv(2:nx+1,ny) = 0.d0       
+	else
+	  vv(2:nx+1,ny) = vv(2:nx+1,ny-1) ! RJ
     endif
+	uu(1:nx+1,ny+1)=uu(1:nx+1,ny)
+    ! Flux in u-point
+    qx=uu*hu
+    ! Flux in v-points
+    ! first column of qy is used later, and it is defined in the loop above
+    ! no communication  necessary at this point
+    qy=vv*hv
     
 #ifndef USEMPI
     if (par%nonh==1) then
@@ -424,29 +435,17 @@ endif
       !Second order correction
       call flow_secondorder_con(s,par,zs_old)
     endif	
-	
     !    
     ! Output
     !
-    !
-    ! Lateral boundary at y=0;
-    !
-    if (par%right==1) then
-      vv(2:nx+1,1) = 0.d0
-    else
-      zs(1:nx+1,1)=max(zs(1:nx+1,2) - (zs0(:,ny+1)-zs0(:,1))/(yz(ny+1)-yz(1))*(yz(2)-yz(1)),zb(1:nx+1,1))
-      uu(1:nx+1,1)=uu(1:nx+1,2) !Jaap nx instead of nx+1
-    endif
-    !
-    ! Lateral boundary at y=ny*dy;
-    !
-    if (par%left==1) then
-      vv(2:nx+1,ny) = 0.d0       ! wwvv for symmetry reasons: why not ny+1
-    else
-      zs(1:nx+1,ny+1)=max(zs(1:nx+1,ny) + (zs0(:,ny+1)-zs0(:,1))/(yz(ny+1)-yz(1))*(yz(ny+1)-yz(ny)),zb(1:nx+1,ny))
-      uu(1:nx+1,ny+1)=uu(1:nx+1,ny) !Jaap nx instead of nx+1
-    endif
-    call discharge_boundary(s,par)
+	! RJ: Neumann water levels in case of right = 1 or right = 0
+    ! Lateral boundary at y=0
+    zs(1:nx+1,1)=max(zs(1:nx+1,2) - (zs0(:,ny+1)-zs0(:,1))/(yz(ny+1)-yz(1))*(yz(2)-yz(1)),zb(1:nx+1,1))
+    ! Lateral boundary at y=ny*dy
+    zs(1:nx+1,ny+1)=max(zs(1:nx+1,ny) + (zs0(:,ny+1)-zs0(:,1))/(yz(ny+1)-yz(1))*(yz(ny+1)-yz(ny)),zb(1:nx+1,ny))
+   
+	! Jaap I do nu understand why we need to call this routine two times?
+	! call discharge_boundary(s,par)
     
 ! wwvv zs, uu, vv have to be communicated now, because they are used later on
 #ifdef USEMPI
