@@ -289,8 +289,9 @@ do jg = 1,par%ngd
 		                                      (hold(i,j)*cc(i,j)/par%dt -((Sus(i,j)-Sus(i-1,j))/(xu(i)-xu(i-1))+&
                                                                           (Svs(i,j)-Svs(i,j-1))/(yv(j)-yv(j-1))-&
 		 									                              ero(i,j,jg)))	
-         depo_ex(i,j,jg) = cc(i,j)/Tsg(i,j,jg)                    																		  																	  													
-         ! cc(i,j)=max(cc(i,j),0.0d0)
+
+         cc(i,j)=max(cc(i,j),0.0d0) ! Jaap: negative cc's are possible...
+		 depo_ex(i,j,jg) = cc(i,j)/Tsg(i,j,jg)                    																		  																	  													
       enddo
     enddo
 
@@ -933,7 +934,6 @@ if (abs(par%t-par%dt)<1.d-6) then
          enddo
       enddo
    endif
-!   include 'RFtable.inp'
 #ifdef USEMPI
    do i=1,18
       call xmpi_bcast(RF(i,:,:))
