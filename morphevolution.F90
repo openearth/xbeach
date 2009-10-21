@@ -933,6 +933,7 @@ if (abs(par%t-par%dt)<1.d-6) then
          enddo
       enddo
    endif
+!   include 'RFtable.inp'
 #ifdef USEMPI
    do i=1,18
       call xmpi_bcast(RF(i,:,:))
