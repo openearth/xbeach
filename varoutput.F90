@@ -252,8 +252,8 @@ subroutine init_output(s,sl,par,it)
 			 elseif(char=='y'.or.char=='Y') then
 			    crosstype(i)=1
 			 else
-             write(*,*)' Unknown cross section type: ',char
-             call halt_program
+                write(*,*)' Unknown cross section type: ',char
+                call halt_program
 			 endif
 			 ! Convert world coordinates of points to nearest (lsm) grid row
 			 mindist=(xcrossw(i)-s%xw)**2+(ycrossw(i)-s%yw)**2
