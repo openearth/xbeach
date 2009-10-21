@@ -28,7 +28,7 @@ else
       mdx=(s%xz(i+1)-s%xz(i))
       mdy=min((s%yz(j+1)-s%yz(j)),(s%yz(j)-s%yz(j-1)))
       ! x-component
-      par%dt=min(par%dt,mdx/max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j))),abs(ureps))
+      par%dt=min(par%dt,mdx/max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j)),abs(s%ureps(i,j)))) !Jaap: include sediment adevction velocities
       ! y-component
       par%dt=min(par%dt,mdy/(sqrt(par%g*s%hu(i,j))+abs(s%vu(i,j))))
       
@@ -38,7 +38,7 @@ else
       ! x-component
       par%dt=min(par%dt,mdx/(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j))))
       ! y-component
-      par%dt=min(par%dt,mdy/max(sqrt(par%g*s%hv(i,j))+abs(s%vv(i,j))),abs(vreps))
+      par%dt=min(par%dt,mdy/max(sqrt(par%g*s%hv(i,j))+abs(s%vv(i,j)),abs(s%vreps(i,j)))) !Jaap: include sediment adevction velocities
     enddo
   enddo
   par%dt=par%dt*par%CFL*0.5d0
