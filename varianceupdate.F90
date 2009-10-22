@@ -245,20 +245,20 @@ subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
 						! 2*sum(XXm) must be updated by:
 						!     2*sum(XXm) = (2*sum(XXm))(n)/Xm(n)*Xm(n+1)+2*X(n+1)*Xm(n+1)
 						! sum((Xm)^2) is updated using Xm(n+1)
-                  oldmean=meanarrays(:,:,i)
+                        oldmean=meanarrays(:,:,i)
 						! oldmean is initiated at 0, so:
 						where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
 						   oldmean=tiny(0.d0)
 						elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
 						   oldmean=-1.d0*tiny(0.d0)
 						endwhere
-                  meanarrays(:,:,i)=meanarrays(:,:,i) + mult*t%i2
+                        meanarrays(:,:,i)=meanarrays(:,:,i) + mult*dble(t%i2)
 						variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
-						                         mult*2.d0*t%i2*meanarrays(:,:,i)
-						variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(t%i2)**2
+						                         mult*2.d0*dble(t%i2)*meanarrays(:,:,i)
+						variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*dble(t%i2)**2
 						variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-		             MA = max(MA,real(t%i2))
-			         MI = min(MI,real(t%i2))
+		                MA = max(MA,dble(t%i2))
+			            MI = min(MI,dble(t%i2))
                 case default
                   write(*,*)'Error in makeaverage, variable"'//t%name// &
                           '" is of wrong rank'
@@ -274,13 +274,13 @@ subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
 						elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
 						   oldmean=-1.d0*tiny(0.d0)
 						endwhere
-                  meanarrays(:,:,i)=meanarrays(:,:,i) + mult*t%r2
-                  variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+                        meanarrays(:,:,i)=meanarrays(:,:,i) + mult*t%r2
+                        variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
 						                         mult*2.d0*t%r2*meanarrays(:,:,i)
 						variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(t%r2)**2
 						variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-		            MA = max(MA,t%r2)
-			         MI = min(MI,t%r2)
+		                MA = max(MA,t%r2)
+			            MI = min(MI,t%r2)
                 case default
                   write(*,*)'Error in makeaverage, variable"'//t%name// &
                           '" is of wrong rank'
