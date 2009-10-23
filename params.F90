@@ -6,8 +6,8 @@ type parameters
 
    ! Grid parameters                                                                                                               
 !  Type             name                   initialize    !  [unit] description                                                                                                                 
-   character     :: depfile                    = 'abc'   !  [-] Name of the input bathymetry file
-   integer*4     :: posdwn                     = -123    !  [-] Bathymetry is specified positive down (1) or positive up (-1)
+   character(80) :: depfile                    = 'abc'   !  [-] Name of the input bathymetry file
+   real*8        :: posdwn                     = -123    !  [-] Bathymetry is specified positive down (1) or positive up (-1)
    integer*4     :: nx                         = -123    !  [-] Number of computiation cell corners in x-direction
    integer*4     :: ny                         = -123    !  [-] Number of computiation cell corners in y-direction
    real*8        :: alfa                       = -123    !  [deg] Angle of x-axis from East
@@ -269,6 +269,81 @@ end type parameters
 
 contains
 
+subroutine all_input(par)
+
+use readkey_module
+use xmpi_module
+use general_fileio
+implicit none
+type(parameters)            :: par
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!        Grid parameters       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+par%xori  = readkey_dbl('params.txt','xori',  0.d0,   -1d9,      1d9)
+par%yori  = readkey_dbl('params.txt','yori',  0.d0,   -1d9,      1d9)
+par%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   -360.d0,   360.d0)
+par%nx    = readkey_int('params.txt','nx',     50,      2,     10000)
+par%ny    = readkey_int('params.txt','ny',      2,      2,     10000)
+par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
+call readkey('params.txt','depfile',par%depfile)  ! Bathymetry file name
+call check_file_exist(par%depfile)
+call check_file_length(par%depfile,par%nx+1,par%ny+1)
+par%vardx = readkey_int('params.txt','vardx',   0,      0,         1) 
+if (par%vardx==0) then
+  par%dx    = readkey_dbl('params.txt','dx',    0.d0,   -1d9,      1d9)
+  par%dy    = readkey_dbl('params.txt','dy',    0.d0,   -1d9,      1d9)
+else
+  call readkey('params.txt','xfile',par%xfile)    ! X-grid file
+  call check_file_exist(par%xfile)
+  call check_file_length(par%xfile,par%nx+1,par%ny+1)
+  call readkey('params.txt','xfile',par%xfile)    ! Y-grid file
+  call check_file_exist(par%xfile)
+  call check_file_length(par%xfile,par%nx+1,par%ny+1)
+endif
+par%thetamin = readkey_dbl ('params.txt','thetamin', -80.d0,    -180.d0,  180.d0)
+par%thetamax = readkey_dbl ('params.txt','thetamax',  80.d0,    -180.d0,  180.d0)
+par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   20.d0)
+par%thetanaut= readkey_int ('params.txt','thetanaut',    0,        0,     1)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!        Model time parameters       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+par%CFL     = readkey_dbl ('params.txt','CFL',     0.2d0,     0.1d0,      0.9d0)
+par%tstop   = readkey_dbl ('params.txt','tstop', 2000.d0,      1.d0, 1000000.d0)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!        Physical constants       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+par%rho   = readkey_dbl ('params.txt','rho',  1025.0d0,  1000.0d0,  1040.0d0)
+par%g     = readkey_dbl ('params.txt','g',      9.81d0,     9.7d0,     9.9d0)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!        Physical processes       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+par%swave      = readkey_int ('params.txt','swave',         1,        0,     1)
+par%lwave      = readkey_int ('params.txt','lwave',         1,        0,     1)
+par%sedtrans   = readkey_int ('params.txt','nonh',          0,        0,     1)
+par%morphology = readkey_int ('params.txt','sedtrans',      1,        0,     1)
+par%nonh       = readkey_int ('params.txt','morphology',    1,        0,     1)
+par%gwflow     = readkey_int ('params.txt','gwflow',        0,        0,     1)
+par%q3d        = readkey_int ('params.txt','q3d',           0,        0,     1)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!        Post-input processing      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+if (par%alfa.lt.0) then 
+   par%alfa = 360.d0+par%alfa
+endif
+par%alfa  = par%alfa*atan(1.0d0)/45.d0   ! All input converted directly to cathesian XBeach grid direction
+
+if (par%posdwn<0.1d0) then 
+   par%posdwn=-1.d0  ! Backward compatibility, now posdwn = 0 also works in input (i.e. posdwn = false)
+endif
+
+! All input time frames converted to XBeach hydrodynamic time
+par%tstop   = par%tstop  / max(par%morfac,1.d0)
+
+
+end subroutine all_input
+
+
 subroutine wave_input(par)
 use readkey_module
 use xmpi_module
@@ -394,13 +469,13 @@ par%tideloc = readkey_int ('params.txt','tideloc', 0,             0,      4)
 par%paulrevere = readkey_int ('params.txt','paulrevere', 0,       0,      1)
 par%tidelen = readkey_int ('params.txt','tidelen',       0,       0,      1000000)
 par%tstart  = readkey_dbl ('params.txt','tstart',   1.d0,      0.d0,1000000.d0)
+par%tstop   = readkey_dbl ('params.txt','tstop', 2000.d0,      1.d0,1000000.d0)
 par%tint    = readkey_dbl ('params.txt','tint',     1.d0,     .01d0, 100000.d0)  ! Robert
 par%tintg   = readkey_dbl ('params.txt','tintg', par%tint,     .01d0, 100000.d0)  ! Robert
 par%tintp   = readkey_dbl ('params.txt','tintp',par%tintg,    .01d0, 100000.d0)  ! Robert
 par%tintc   = readkey_dbl ('params.txt','tintc',par%tintg,    .01d0, 100000.d0)  ! Robert
 par%tintm   = readkey_dbl ('params.txt','tintm',par%tintg,     1.d0, par%tstop)  ! Robert
 par%tint    = min(par%tintg,par%tintp,par%tintm,par%tintc)                       ! Robert     
-par%tstop   = readkey_dbl ('params.txt','tstop', 2000.d0,      1.d0,1000000.d0)
 ! adapt flow times to morfac
 par%morfac   = readkey_dbl ('params.txt','morfac', 0.0d0,        0.d0,  1000.d0)
 par%tstart  = par%tstart / max(par%morfac,1.d0)
@@ -801,4 +876,6 @@ subroutine printparams(par,str)
 !  write(f,*) 'printpar ',id,' ','lwt:',par%lwt
   
 end subroutine printparams
+
+
 end module params
