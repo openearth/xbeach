@@ -241,7 +241,7 @@ contains
       s%ws(i,j) = s%ws(i,j) -   par%dt*( ddxu(i-1)*max(s%qx(i-1,j  ),0.0_rKind)*(s%ws(i  ,j  )-s%ws(i-1,j  ))/s%hh(i,j) &
                                        + ddxu(i)  *min(s%qx(i  ,j  ),0.0_rKind)*(s%ws(i+1,j  )-s%ws(i  ,j  ))/s%hh(i,j) &
                                        + ddyv(j-1)*max(s%qy(i  ,j-1),0.0_rKind)*(s%ws(i  ,j  )-s%ws(i  ,j-1))/s%hh(i,j) &
-                                       + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(s%ws(i  ,j+1)-s%ws(i  ,j  ))/s%hh(i,j) )                                      
+                                       + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(s%ws(i  ,j+1)-s%ws(i  ,j  ))/s%hh(i,j) )
     enddo
   enddo
 
@@ -251,7 +251,7 @@ contains
       s%wb(i,j) = s%wb(i,j) -   par%dt*( ddxu(i-1)*max(s%qx(i-1,j  ),0.0_rKind)*(s%wb(i  ,j  )-s%wb(i-1,j  ))/s%hh(i,j) &
                                        + ddxu(i)  *min(s%qx(i  ,j  ),0.0_rKind)*(s%wb(i+1,j  )-s%wb(i  ,j  ))/s%hh(i,j) &
                                        + ddyv(j-1)*max(s%qy(i  ,j-1),0.0_rKind)*(s%wb(i  ,j  )-s%wb(i  ,j-1))/s%hh(i,j) &
-                                       + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(s%wb(i  ,j+1)-s%wb(i  ,j  ))/s%hh(i,j) )                                      
+                                       + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(s%wb(i  ,j+1)-s%wb(i  ,j  ))/s%hh(i,j) )
     enddo
   enddo
     
