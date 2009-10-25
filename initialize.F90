@@ -259,9 +259,9 @@ IMPLICIT NONE
 type(spacepars)                     :: s
 type(parameters)                    :: par
 
-integer*4,automatic                 :: i,j
-logical  ,automatic                 :: exists
-integer*4,automatic                 :: iUnit
+integer*4                           :: i,j
+logical                             :: exists
+integer*4                           :: iUnit
 
   allocate(s%zs(1:s%nx+1,1:s%ny+1))
   allocate(s%dzsdt(1:s%nx+1,1:s%ny+1))

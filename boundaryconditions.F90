@@ -1325,24 +1325,23 @@ end subroutine velocity_Boundary
 !-------------------------------------------------------------------------------
 !                             IMPLEMENTATION
 !-------------------------------------------------------------------------------   
-    if (eof(iUnit)) then
-      iseof = .true.
-      return
-    else
-      iseof = .false.
-    endif
-    
-    if (isvec) then
-      read(iUnit,ioStat=ioStat,fmt=*) t,vector      
-    else
-      read(iUnit,ioStat=ioStat,fmt=*) t,scalar
-      vector = scalar
-    endif
-    
-    if (iostat /= 0) then 
-       inquire(unit=iUnit,name=filename)
-       call halt_program
-    endif   
+
+  
+  iseof = .false.
+  
+  if (isvec) then
+     read(iUnit,ioStat=ioStat,fmt=*,end=9000) t,vector      
+  else
+     read(iUnit,ioStat=ioStat,fmt=*,end=9000) t,scalar
+     vector = scalar
+  endif
+  
+  if (iostat /= 0) then 
+     inquire(unit=iUnit,name=filename)
+     call halt_program
+  endif
+9000 iseof = .true.
+
   end subroutine velocity_Boundary_read 
 
 

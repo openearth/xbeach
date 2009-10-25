@@ -30,6 +30,8 @@ xbeach_SOURCES= \
 	readwind.F90 \
 	initialize.F90 \
 	timestep.F90 \
+	flow_secondorder.F90 \
+	nonh.F90 \
 	flow_timestep.F90 \
 	varianceupdate.F90 \
 	varoutput.F90 \

@@ -101,7 +101,7 @@ subroutine flow_secondorder_init(s,iUnit)
     else 
       iWriteUnit = iScreen
     endif
-    write(iWriteUnit,'("Could not allocate array in flow_secondorder_init, error code returned: ",i)') iAllocErr
+    write(iWriteUnit,'(a,i8)') 'Could not allocate array in flow_secondorder_init, error code returned: ', iAllocErr
     call Halt_program
   endif
   initialized = .true.
@@ -143,8 +143,8 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
   type(spacepars)  ,intent(inout)  :: s
   type(parameters) ,intent(in)     :: par
   
-  real,dimension(s%nx+1,s%ny+1),intent(in) :: vv_old  !"Old" v-velocity
-  real,dimension(s%nx+1,s%ny+1),intent(in) :: uu_old  !"Old" u-velocity
+  real*8,dimension(s%nx+1,s%ny+1),intent(in) :: vv_old  !"Old" v-velocity
+  real*8,dimension(s%nx+1,s%ny+1),intent(in) :: uu_old  !"Old" u-velocity
 !
 
 !--------------------------     LOCAL VARIABLES    ----------------------------

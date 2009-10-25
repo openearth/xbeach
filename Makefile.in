@@ -67,7 +67,8 @@ am_xbeach_OBJECTS = xbeach-xmpi.$(OBJEXT) xbeach-general_mpi.$(OBJEXT) \
 	xbeach-morphevolution.$(OBJEXT) xbeach-groundwater.$(OBJEXT) \
 	xbeach-drifters.$(OBJEXT) xbeach-readtide.$(OBJEXT) \
 	xbeach-readwind.$(OBJEXT) xbeach-initialize.$(OBJEXT) \
-	xbeach-timestep.$(OBJEXT) xbeach-flow_timestep.$(OBJEXT) \
+	xbeach-timestep.$(OBJEXT) xbeach-flow_secondorder.$(OBJEXT) \
+	xbeach-nonh.$(OBJEXT) xbeach-flow_timestep.$(OBJEXT) \
 	xbeach-varianceupdate.$(OBJEXT) xbeach-varoutput.$(OBJEXT) \
 	xbeach-xbeach.$(OBJEXT)
 xbeach_OBJECTS = $(am_xbeach_OBJECTS)
@@ -247,6 +248,8 @@ xbeach_SOURCES = \
 	readwind.F90 \
 	initialize.F90 \
 	timestep.F90 \
+	flow_secondorder.F90 \
+	nonh.F90 \
 	flow_timestep.F90 \
 	varianceupdate.F90 \
 	varoutput.F90 \
@@ -512,6 +515,18 @@ xbeach-timestep.o: timestep.F90
 
 xbeach-timestep.obj: timestep.F90
 	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-timestep.obj `if test -f 'timestep.F90'; then $(CYGPATH_W) 'timestep.F90'; else $(CYGPATH_W) '$(srcdir)/timestep.F90'; fi`
+
+xbeach-flow_secondorder.o: flow_secondorder.F90
+	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-flow_secondorder.o `test -f 'flow_secondorder.F90' || echo '$(srcdir)/'`flow_secondorder.F90
+
+xbeach-flow_secondorder.obj: flow_secondorder.F90
+	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-flow_secondorder.obj `if test -f 'flow_secondorder.F90'; then $(CYGPATH_W) 'flow_secondorder.F90'; else $(CYGPATH_W) '$(srcdir)/flow_secondorder.F90'; fi`
+
+xbeach-nonh.o: nonh.F90
+	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-nonh.o `test -f 'nonh.F90' || echo '$(srcdir)/'`nonh.F90
+
+xbeach-nonh.obj: nonh.F90
+	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-nonh.obj `if test -f 'nonh.F90'; then $(CYGPATH_W) 'nonh.F90'; else $(CYGPATH_W) '$(srcdir)/nonh.F90'; fi`
 
 xbeach-flow_timestep.o: flow_timestep.F90
 	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-flow_timestep.o `test -f 'flow_timestep.F90' || echo '$(srcdir)/'`flow_timestep.F90
