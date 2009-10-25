@@ -10,6 +10,7 @@ module solver_module
 implicit none
 
 #ifndef USEMPI
+#else
 
 ! If mpi is defined, the non-hydrostatic module is NOT included in the compilation
 ! to avoid unwanted side effects.  
@@ -426,7 +427,7 @@ contains
     enddo
     acc = rnorm/bnorm
   end subroutine solver_sip  
-  
-#endif !USEMPI, see start of file  
+!USEMPI, see start of file  
+#endif 
   
 end module solver_module

@@ -31,6 +31,7 @@ xbeach_SOURCES= \
 	initialize.F90 \
 	timestep.F90 \
 	flow_secondorder.F90 \
+	solver.F90 \
 	nonh.F90 \
 	flow_timestep.F90 \
 	varianceupdate.F90 \
