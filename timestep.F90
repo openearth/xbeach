@@ -13,6 +13,7 @@ type(parameters)                    :: par
 integer                     :: it
 integer                     :: i
 integer                     :: j
+integer                     :: n
 real*8                                          :: mdx,mdy
 
 ! Robert new time step criterion
@@ -54,11 +55,20 @@ else
 !    !end do
   end if
 end if
+
+!To avoid large timestep differences due to output, which can cause instabities
+!in the hanssen (leapfrog) scheme, we smooth the timestep.
+!
+n = ceiling((par%tnext-par%t)/par%dt)
+par%dt = (par%tnext-par%t)/n
+
 ! wwvv: In the mpi version par%dt will be calculated different
 ! on different processes. So, we take the minimum of all dt's
 #ifdef USEMPI
     call xmpi_allreduce(par%dt,MPI_MIN)
 #endif
+
+
 
 par%t=par%t+par%dt
 if(par%t>=par%tnext) then
