@@ -102,16 +102,16 @@ use xmpi_module
 
 end subroutine check_file_exist
 
-integer function create_new_fid 
+integer function create_new_fid()
 use xmpi_module
    integer    :: tryunit = 98
    logical    :: fileopen
    
    fileopen = .true.    
-   do while (fileopen==.true.)
+   do while (fileopen)
       if (xmaster) then
 	     inquire(tryunit,OPENED=fileopen)
-	     if (fileopen==.true.) then
+	     if (fileopen) then
 	        tryunit=tryunit-1
 	     endif
 	     if (tryunit<=10) then 

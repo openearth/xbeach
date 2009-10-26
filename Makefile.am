@@ -15,6 +15,7 @@ xbeach_SOURCES= \
 	mnemonic.F90 \
 	interp.F90 \
 	math_tools.F90 \
+	general_fileio.F90 \
 	params.F90 \
 	spaceparams.F90 \
 	waveparams.F90 \
@@ -72,5 +73,5 @@ endif
 # EXTRA_DIST=s.ind s.inp
 EXTRA_DIST=spaceparams.tmpl
 SUBDIRS=doc
-
+CLEANFILES=*.mod
 

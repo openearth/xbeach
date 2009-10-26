@@ -59,9 +59,10 @@ makeincludes_LINK = $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) \
 am_xbeach_OBJECTS = xbeach-xmpi.$(OBJEXT) xbeach-general_mpi.$(OBJEXT) \
 	xbeach-readkey.$(OBJEXT) xbeach-mnemonic.$(OBJEXT) \
 	xbeach-interp.$(OBJEXT) xbeach-math_tools.$(OBJEXT) \
-	xbeach-params.$(OBJEXT) xbeach-spaceparams.$(OBJEXT) \
-	xbeach-waveparams.$(OBJEXT) xbeach-constants.$(OBJEXT) \
-	xbeach-roelvink.$(OBJEXT) xbeach-wave_timestep.$(OBJEXT) \
+	xbeach-general_fileio.$(OBJEXT) xbeach-params.$(OBJEXT) \
+	xbeach-spaceparams.$(OBJEXT) xbeach-waveparams.$(OBJEXT) \
+	xbeach-constants.$(OBJEXT) xbeach-roelvink.$(OBJEXT) \
+	xbeach-wave_timestep.$(OBJEXT) \
 	xbeach-wave_stationary.$(OBJEXT) \
 	xbeach-boundaryconditions.$(OBJEXT) \
 	xbeach-morphevolution.$(OBJEXT) xbeach-groundwater.$(OBJEXT) \
@@ -233,6 +234,7 @@ xbeach_SOURCES = \
 	mnemonic.F90 \
 	interp.F90 \
 	math_tools.F90 \
+	general_fileio.F90 \
 	params.F90 \
 	spaceparams.F90 \
 	waveparams.F90 \
@@ -279,6 +281,7 @@ TESTS = ./testbed/tools/testT01.sh ./testbed/tools/testrun01.sh
 # EXTRA_DIST=s.ind s.inp
 EXTRA_DIST = spaceparams.tmpl
 SUBDIRS = doc
+CLEANFILES = *.mod
 all: $(BUILT_SOURCES) config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -426,6 +429,12 @@ xbeach-math_tools.o: math_tools.F90
 
 xbeach-math_tools.obj: math_tools.F90
 	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-math_tools.obj `if test -f 'math_tools.F90'; then $(CYGPATH_W) 'math_tools.F90'; else $(CYGPATH_W) '$(srcdir)/math_tools.F90'; fi`
+
+xbeach-general_fileio.o: general_fileio.F90
+	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-general_fileio.o `test -f 'general_fileio.F90' || echo '$(srcdir)/'`general_fileio.F90
+
+xbeach-general_fileio.obj: general_fileio.F90
+	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-general_fileio.obj `if test -f 'general_fileio.F90'; then $(CYGPATH_W) 'general_fileio.F90'; else $(CYGPATH_W) '$(srcdir)/general_fileio.F90'; fi`
 
 xbeach-params.o: params.F90
 	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-params.o `test -f 'params.F90' || echo '$(srcdir)/'`params.F90
@@ -989,6 +998,7 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
