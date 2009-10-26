@@ -190,7 +190,7 @@ if(abs(par%t-par%dt)<1.d-6) then
     elseif (par%instat==7.and.xmaster) then
        par%listline=1
     elseif (par%instat==8.and.xmaster) then   
-      call velocity_Boundary(ui(:,1),s%ny,par%t)   
+      call velocity_Boundary(ui(1,:),s%ny,par%t)   
     endif
     !
     ! Directional distribution
@@ -492,7 +492,7 @@ elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat=
     ui(1,:) = q/ht(1,:)*min(par%t/par%taper,1.0d0)
     ee(1,:,:)=ee(1,:,:)*min(par%t/par%taper,1.0d0)
 elseif (par%instat==8.and.xmaster) then   
-    call velocity_Boundary(ui(:,1),s%ny,par%t)
+    call velocity_Boundary(ui(1,:),s%ny,par%t)
 else
    if (xmaster) then
      write(*,*)' instat = ',par%instat, ' invalid option'
@@ -1201,7 +1201,7 @@ subroutine velocity_Boundary(u,ny,t)
 !--------------------------     ARGUMENTS          ----------------------------
 !
     integer(kind=iKind)           ,intent(in)  :: ny
-    real(kind=rKind),dimension(ny),intent(out) :: u
+    real(kind=rKind),dimension(ny+1),intent(out) :: u
     real(kind=rKind)              ,intent(in)  :: t
 
 !
@@ -1216,10 +1216,19 @@ subroutine velocity_Boundary(u,ny,t)
     logical,save                              :: lNH_boun_U  = .false.
     logical,save                              :: initialize  = .true.
     logical                                   :: lExists
-    integer(kind=ikind)                       :: iAllocErr    
+    character(len=6)                          :: string
+    character(len=2),allocatable,dimension(:) :: header
+    integer(kind=ikind)                       :: iAllocErr   
+    integer(kind=ikind)                       :: nvar 
 
     real(kind=rKind),allocatable,dimension(:),save :: u0 !
     real(kind=rKind),allocatable,dimension(:),save :: u1 !
+    
+    real(kind=rKind),allocatable,dimension(:),save :: z0 !
+    real(kind=rKind),allocatable,dimension(:),save :: z1 !    
+    
+    real(kind=rKind),allocatable,dimension(:),save :: w0 !
+    real(kind=rKind),allocatable,dimension(:),save :: w1 !        
 
     real(kind=rKind),save                          :: t0 = 0.
     real(kind=rKind),save                          :: t1 = 0.
@@ -1245,9 +1254,35 @@ subroutine velocity_Boundary(u,ny,t)
         return
       endif
       
-      !Allocate arrays at old and new timelevel
+
+      
+      !SCALAR OR VECTOR INPUT?
+      read(unit_U,fmt=*) string
+      if   (string == 'SCALAR') then
+        lVaru = .false.
+      elseif (string == 'VECTOR') then
+        lVaru = .true.
+      else 
+      
+      endif
+      
+     !Allocate arrays at old and new timelevel
       allocate(u0(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
       allocate(u1(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+      
+      read(unit_U,fmt=*) nvar
+      if (nvar > 2) then
+        allocate(z0(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+        allocate(z1(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program      
+      endif
+
+      if (nvar > 3) then
+        allocate(w0(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+        allocate(w1(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program      
+      endif
+      
+      allocate(header(nvar))
+      read(unit_U,fmt=*) header
       
       !Read two first timelevels
       call velocity_Boundary_read(t0,u0,Unit_U,lVaru,lIsEof)
@@ -1282,7 +1317,8 @@ subroutine velocity_Boundary(u,ny,t)
       !If end of file the last value which was available is used until the end of the computation
       u = u1
     endif
-  endif  
+  endif
+
 end subroutine velocity_Boundary
 
 !==============================================================================  
@@ -1336,11 +1372,12 @@ end subroutine velocity_Boundary
      vector = scalar
   endif
   
-  if (iostat /= 0) then 
-     inquire(unit=iUnit,name=filename)
+  if (iostat /= 0) then
      call halt_program
   endif
-9000 iseof = .true.
+  
+  return
+  9000 iseof = .true.
 
   end subroutine velocity_Boundary_read 
 
