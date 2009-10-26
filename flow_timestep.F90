@@ -185,6 +185,7 @@ endif
     ! Jaap Wetting and drying criterion eta points
     do j=1,ny+1
         do i=1,nx+1
+            !A eta point is wet if any of the surrounding velocity points is wet...
             !s%wetz(i,j) = min(1,s%wetu(max(i,2)-1,j)+s%wetu(i,j)+s%wetv(i,j)+s%wetv(i,max(j,2)-1))
             if(hh(i,j)>par%eps) then
                 wetz(i,j)=1
@@ -394,12 +395,8 @@ endif
 	  vv(2:nx+1,ny) = vv(2:nx+1,ny-1) ! RJ
     endif
 	uu(1:nx+1,ny+1)=uu(1:nx+1,ny)
-    ! Flux in u-point
-    qx=uu*hu
-    ! Flux in v-points
-    ! first column of qy is used later, and it is defined in the loop above
-    ! no communication  necessary at this point
-    qy=vv*hv
+
+
     
 #ifndef USEMPI
     if (par%nonh==1) then
