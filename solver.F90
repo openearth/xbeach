@@ -106,7 +106,9 @@ contains
     if     (par%solver == 1) then   !Solver is SIP     
 
     elseif (par%solver == 2) then   !Solver is TRI-DIAG, check if possible
-      call Halt_program !Halt program if maxerror < 2    
+      if (ny > 2) then
+        call Halt_program !Halt program if maxerror < 2    
+      endif  
     endif
 
     !If sol. met. ok -> allocate resources
@@ -172,7 +174,6 @@ contains
 !--------------------------     LOCAL VARIABLES    ----------------------------
  
     integer(kind=iKind)                                   :: it   
-    real(kind=rKind)                                      :: acc
 
 !-------------------------------------------------------------------------------
 !                             IMPLEMENTATION
@@ -426,7 +427,8 @@ contains
     enddo
     acc = rnorm/bnorm
   end subroutine solver_sip  
-!USEMPI, see start of file  
-#endif 
+  
+!USEMPI, see start of file   
+#endif  
   
 end module solver_module
