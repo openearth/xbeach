@@ -858,7 +858,7 @@ if (par%instat/=9)then
        end do
        vv(1,:)=vv(2,:)
     else if (par%front==2) then
-       uu(1,:)=0.d0
+!       uu(1,:)=0.d0
 !      zs(1,:)=max(zs(2,:),zb(1,:))
     endif ! par%front
     ! uu, zs and umean shift horizontally in two directions (loop was 2..ny)
@@ -1150,6 +1150,7 @@ do ii=1,ndisch_cells
    if (i==1) then
       qx(i,j)=dischnow(disch_no(ii))*disch_w(ii) 
       hu(i,j)=hh(i+1,j)
+      hh(i,j)=hh(i+1,j)
       uu(i,j)=qx(i,j)/max(hu(i,j),par%eps)
    elseif (i==nx) then
       qx(i,j)=dischnow(disch_no(ii))*disch_w(ii) 
