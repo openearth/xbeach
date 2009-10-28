@@ -25,6 +25,7 @@ type(spacepars), pointer :: s
 type(spacepars), target  :: sglobal
 type(spacepars), target  :: slocal
 character(len=80)        :: dummystring
+character(len=10)        :: date,time,zone
 logical                  :: newstatbc
 
 integer                  :: it
@@ -34,13 +35,16 @@ real*8                   :: t0,t01,t1
 #endif
 
 ! subversion information
-character(1024)       :: build_revision
-character(1024) :: build_date
-character(1024) :: build_url
+include 'version.def'
+include 'version.dat'
 
-build_revision = '$Revision$'
-build_date = '$Date$'
-build_url = '$HeadURL$'
+!character(1024)       :: build_revision
+!character(1024) :: build_date
+!character(1024) :: build_url
+!
+!build_revision = '$Revision$'
+!build_date = '$Date$'
+!build_url = '$HeadURL$'
 
 ! autotools 
 #ifdef HAVE_CONFIG_H
@@ -56,20 +60,23 @@ t0 = MPI_Wtime()
 #endif
 
 call cpu_time(tbegin)
+call DATE_AND_TIME(DATE=date, TIME=time, ZONE=zone)
 
 if (xmaster) then
-  write(*,*)''
-  write(*,*)              '**********************************************************'
-  write(*,*)              '                   Welcome to XBeach                      '
-  write(*,*)              '                                                          '
-  write(*,'(a,a)')   '             head revision: ',Build_Revision
-  write(*,'(a,a,a)')      '                      date: ',trim(Build_Date),' '
-  write(*,*)              '                                         '
-  write(*,*)              ' URL: ',trim(Build_URL),' '
-  write(*,*)              '                                                          '
-  write(*,*)              '**********************************************************'
-  write(*,*)              '                                                          '
-  write(*,*) 'General Input Module'
+  write(*,*)'**********************************************************'
+  write(*,*)'                   Welcome to XBeach                      '
+  write(*,*)'                                                          '
+  write(*,'(a,i0,a,a)')'             head revision: ',Build_Revision,'.',trim(Build_LocalMod)
+  write(*,'(a,a)')'                build date: ',trim(Build_Date)
+  write(*,*)'            revision range: ',trim(Build_RevRange)
+  write(*,*)'                                                          '
+  write(*,*)' URL: ',trim(Build_URL)
+  write(*,*)'**********************************************************'
+  write(*,*)'                                                          '
+  write(*,*)'Simulation started: YYYYMMDD    hh:mm:ss     time zone (UTC)'
+  write(*,*)'                    ',date(1:10),'  ',time(1:2),':',time(3:4),':',time(5:6),'     ',zone(1:5)
+  write(*,*)'                                                          '
+  write(*,*)'General Input Module'
 #ifdef USEMPI
   if(xmaster) then
     write(*,*) 'MPI version, running on ',xmpi_size,'processes'
