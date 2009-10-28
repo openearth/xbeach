@@ -982,7 +982,8 @@ type(parameters)                        :: par
 
 character*80                            :: fname
 integer                                 :: i,j,idisch,ii=0,indx
-integer                                 :: ndisch=0,ntdisch=0,ndisch_cells=0,io=0
+integer,save                            :: ndisch=0,ntdisch=0,ndisch_cells=0
+integer                                 :: io
 logical, save                           :: firsttimedischarge=.true.
 real*8                                  :: temp,xdb,xde,ydb,yde
 real*8, dimension(:)  ,allocatable,save :: x_disch_begin,x_disch_end,length_disch
@@ -1007,19 +1008,21 @@ if (firsttimedischarge) then
    ! read discharge information file
    if (xmaster) then
       call readkey('params.txt','disch_loc_file',fname)
-      if (fname=='') then
+      if (fname==' ') then
          ndisch=0
          ndisch_cells=0
-         return
-      endif
-      write(*,*)'discharge_boundary: reading discharge locations from ',fname,' ...'
-      open(31,file=fname)
-      do while (io==0)
-	     ndisch=ndisch+1
-         read(31,*,IOSTAT=io) temp
-      enddo
-      rewind(31)
-      ndisch=ndisch-1
+!         return   !!!! This is incompatable with MPI. Process must continue until equal with other processes !!!! Robert
+!      endif
+      else
+         write(*,*)'discharge_boundary: reading discharge locations from ',fname,' ...'
+         open(31,file=fname)
+         do while (io==0)
+	        ndisch=ndisch+1
+            read(31,*,IOSTAT=io) temp
+         enddo
+         rewind(31)
+         ndisch=ndisch-1
+	  endif
    endif
 #ifdef USEMPI
    call xmpi_bcast(ndisch)
@@ -1044,16 +1047,20 @@ if (firsttimedischarge) then
 #endif
    if (xmaster) then
       ! Read discharge timeseries
-      call readkey('params.txt','disch_timeseries_file',fname)
-      write(*,*)'discharge_boundary: reading discharge timeseries from ',fname,' ...'
-      open(31,file=fname)
-      io=0
-      do while (io==0)
-	     ntdisch=ntdisch+1
-         read(31,*,IOSTAT=io) temp
-      enddo
-      rewind(31)
-      ntdisch=ntdisch-1
+      if (ndisch==0) then          !!! Same modification as above to make compatible with MPI  (Robert)
+	     ntdisch=0
+	  else
+         call readkey('params.txt','disch_timeseries_file',fname)
+		 write(*,*)'discharge_boundary: reading discharge timeseries from ',fname,' ...'
+         open(31,file=fname)
+         io=0
+         do while (io==0)
+	        ntdisch=ntdisch+1
+            read(31,*,IOSTAT=io) temp
+         enddo
+         rewind(31)
+         ntdisch=ntdisch-1
+	  endif
    endif
 #ifdef USEMPI
    call xmpi_bcast(ntdisch)
@@ -1150,7 +1157,6 @@ do ii=1,ndisch_cells
    if (i==1) then
       qx(i,j)=dischnow(disch_no(ii))*disch_w(ii) 
       hu(i,j)=hh(i+1,j)
-      hh(i,j)=hh(i+1,j)
       uu(i,j)=qx(i,j)/max(hu(i,j),par%eps)
    elseif (i==nx) then
       qx(i,j)=dischnow(disch_no(ii))*disch_w(ii) 

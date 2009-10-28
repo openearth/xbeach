@@ -296,14 +296,15 @@ integer*4                           :: iUnit
   allocate(s%maxzs(1:s%nx+1,1:s%ny+1))
   allocate(s%minzs(1:s%nx+1,1:s%ny+1))
   
-  if (par%nonh==1) then
+!  if (par%nonh==1) then   
+! Robert: required to stop MPI crash
     allocate(s%ws(1:s%nx+1,1:s%ny+1))
     allocate(s%wb(1:s%nx+1,1:s%ny+1))
     allocate(s%pres(1:s%nx+1,1:s%ny+1))
     s%ws   = 0.0d0
     s%wb   = 0.0d0
     s%pres = 0.0d0
-  endif
+!  endif
 
   ! cjaap: replaced par%hmin by par%eps
   s%hh=max(s%zs0-s%zb,par%eps)

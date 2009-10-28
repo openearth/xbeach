@@ -207,7 +207,6 @@ subroutine init_output(s,sl,par,it)
       call xmpi_bcast(pointtype)
       call xmpi_bcast(xpoints)
       call xmpi_bcast(ypoints)
-      call xmpi_bcast(nvarpoint)
       call xmpi_bcast(temparray)   
 #endif
       ! Tidy up information
@@ -296,7 +295,6 @@ subroutine init_output(s,sl,par,it)
      call xmpi_bcast(crosstype)
      call xmpi_bcast(xcross)
      call xmpi_bcast(ycross)
-     call xmpi_bcast(nvarcross)
      call xmpi_bcast(temparray)   
 #endif     
 
@@ -880,12 +878,12 @@ subroutine var_output(it,s,sl,par)
                 !!! Make vector of all s% values at n,m grid coordinate
                 if (pointtype(i)==1) then
                     if (xmaster) then
-                      allocate (temp(1:s%nx+1))
-                      temp=(/(k,k=1,s%nx+1)/)
+!                      allocate (temp(1:s%nx+1))
+!                      temp=(/(k,k=1,s%nx+1)/)
                       ! wwvv wetz ok?, probably not
                       ! idum = maxval(maxloc(temp*s%wetz(1:s%nx+1,ypoints(i)))) ! Picks the last "1" in temp
                       idum =  max(maxval(minloc(s%wetz(:,ypoints(i))))-1,1)
-                      deallocate(temp)
+!                      deallocate(temp)
                     endif
 #ifdef USEMPI
                     call xmpi_bcast(idum)

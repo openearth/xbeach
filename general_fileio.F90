@@ -108,18 +108,18 @@ use xmpi_module
    logical    :: fileopen
    
    fileopen = .true.    
-   do while (fileopen)
-      if (xmaster) then
-	     inquire(tryunit,OPENED=fileopen)
-	     if (fileopen) then
+   if (xmaster) then
+      do while (fileopen==.true.)
+         inquire(tryunit,OPENED=fileopen)
+	     if (fileopen==.true.) then
 	        tryunit=tryunit-1
 	     endif
 	     if (tryunit<=10) then 
-	          write(*,*)'Serious problem: not enough free unit ids to create new file'
-		      call halt_program
+	       write(*,*)'Serious problem: not enough free unit ids to create new file'
+	       call halt_program
 	     endif	      
-	  endif
-   enddo
+      enddo
+   endif
    create_new_fid = tryunit   
 end function create_new_fid
 

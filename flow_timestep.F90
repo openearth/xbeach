@@ -395,6 +395,17 @@ endif
 	  vv(2:nx+1,ny) = vv(2:nx+1,ny-1) ! RJ
     endif
 	uu(1:nx+1,ny+1)=uu(1:nx+1,ny)
+#ifdef USEMPI
+    call xmpi_shift(uu,':1')
+    call xmpi_shift(uu,':n')
+    call xmpi_shift(uu,'1:')
+    call xmpi_shift(uu,'m:')
+    call xmpi_shift(vv,':1')
+    call xmpi_shift(vv,':n')
+    call xmpi_shift(vv,'1:')
+    call xmpi_shift(vv,'m:')
+#endif
+
 
 
     
@@ -446,14 +457,14 @@ endif
     
 ! wwvv zs, uu, vv have to be communicated now, because they are used later on
 #ifdef USEMPI
-    call xmpi_shift(uu,':1')
-    call xmpi_shift(uu,':n')
-    call xmpi_shift(uu,'1:')
-    call xmpi_shift(uu,'m:')
-    call xmpi_shift(vv,':1')
-    call xmpi_shift(vv,':n')
-    call xmpi_shift(vv,'1:')
-    call xmpi_shift(vv,'m:')
+!    call xmpi_shift(uu,':1')
+!    call xmpi_shift(uu,':n')
+!    call xmpi_shift(uu,'1:')
+!    call xmpi_shift(uu,'m:')
+!    call xmpi_shift(vv,':1')
+!    call xmpi_shift(vv,':n')
+!    call xmpi_shift(vv,'1:')
+!    call xmpi_shift(vv,'m:')
     call xmpi_shift(zs,':1')
     call xmpi_shift(zs,':n')
     call xmpi_shift(zs,'1:')

@@ -31,12 +31,9 @@ subroutine drifter(s,par)
 if (first_drifter) then
    first_drifter=.false.
    ! check how many drifters are present
-   if (xmaster) then
+!   if (xmaster) then                               !!! Do not broadcast in xmaster mode!  Robert
       ndrifter   = readkey_int     ('params.txt','ndrifter',    0,         0,        50)
-   endif
-#ifdef USEMPI
-       call xmpi_bcast(ndrifter)
-#endif
+!	endif
    if (ndrifter>0) then
       allocate(iudrift(ndrifter))
       allocate(judrift(ndrifter))
@@ -79,7 +76,6 @@ if (first_drifter) then
    endif
 else
    if (ndrifter>0) then
-
       do i=1,ndrifter
          if (par%t>releasetime(i).and.par%t<retrievaltime(i)) then
 !        
@@ -143,13 +139,6 @@ endif
 
 
 end subroutine drifter
-
-
-
-
-
-
-
 
 
 
