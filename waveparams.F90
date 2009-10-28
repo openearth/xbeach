@@ -122,7 +122,7 @@ end if
 
 ! This code is used to generate bcf-files, only if makefile==.true.
 if (makefile) then
-    h0t0=sum(s%hh(1,:))/(s%ny+1)
+    h0t0=sum(s%hh(1,2:s%ny)*(s%yv(2:s%ny)-s%yv(1:s%ny-1)))/(s%yv(s%ny)-s%yv(1))  ! Average water depth at offshore boundary
     if (par%instat==4.or.par%instat==41) then
         call build_jonswap(par,s,wp,fname)
         call build_etdir(par,s,wp,h0t0,Ebcfname)
@@ -955,7 +955,7 @@ do i=1,size(wp%fgen)
     s2=(1.d0-modang)*wp%S_array(stepf+1,stepang)+modang*wp%S_array(stepf+1,stepang+1)
     
     ! Linear interpolation between s1 and s2
-    wp%S0(i)=max(tiny(0.d0),(1.d0-modf)*s1+modf*s2)                     ! Robert, in case no energy is drawn
+    wp%S0(i)=max(tiny(0.d0),0.00000001d0,(1.d0-modf)*s1+modf*s2)                     ! Robert, in case no energy is drawn
 !       wp%S0(i)=(1.d0-modf)*s1+modf*s2
 end do
 
@@ -970,8 +970,8 @@ hm0now = 4*sqrt(sum(Sf0)*wp%df)         ! not S0!!!
 
 Sf0org = Sf0
 S0org=wp%S0
-!!!wp%S0 = (wp%hm0gew/hm0now)**2*wp%S0
-!!!!Sf0 = (wp%hm0gew/hm0now)**2*Sf0
+!!! wp%S0 = (wp%hm0gew/hm0now)**2*wp%S0   ! Back on: Robert ?
+!!! Sf0 = (wp%hm0gew/hm0now)**2*Sf0       ! Back on: Robert ?
 
 allocate(wp%dthetafin(wp%K))
 wp%dthetafin = Sf0/wp%S0                ! is chosen such that the spreading function is one.                                                  
@@ -1321,8 +1321,13 @@ do m=1,K-1
 
 end do
 
-allocate(theta3(K-1,K))
-theta3 = atan(KKy/(KKx+0.0001d0))        ! angle of longwave
+allocate(theta3(K-1,K))                   ! angle of long wave
+where (abs(KKx)>0.00001d0)
+   theta3 = atan(KKy/KKx)        
+elsewhere
+   theta3 = atan(KKy/sign(0.00001d0,KKx))
+endwhere
+!theta3 = atan(KKy/(KKx+0.0001d0))        ! angle of longwave
 
 allocate(Gn(Npy,Nr))
 allocate(Abnd(K-1,K))
