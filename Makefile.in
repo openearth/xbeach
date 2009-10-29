@@ -269,7 +269,8 @@ BUILT_SOURCES = \
 	space_inp.gen \
 	chartoindex.gen \
 	s.ind \
-	s.inp 
+	s.inp \
+	version.dat
 
 check_SCRIPTS = \
 	./testbed/tools/testT01.sh \
@@ -281,7 +282,7 @@ TESTS = ./testbed/tools/testT01.sh ./testbed/tools/testrun01.sh
 # EXTRA_DIST=s.ind s.inp
 EXTRA_DIST = spaceparams.tmpl
 SUBDIRS = doc
-CLEANFILES = *.mod
+CLEANFILES = *.mod version.dat
 all: $(BUILT_SOURCES) config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -1100,6 +1101,8 @@ uninstall-am: uninstall-binPROGRAMS
 	uninstall uninstall-am uninstall-binPROGRAMS
 
 
+version.dat: 
+	echo "Build_Revision = '`svnversion`'" > version.dat
 s.ind: space_ind.gen
 s.inp: space_inp.gen
 # this is not a proper way

@@ -1,6 +1,1 @@
-integer*4       :: Build_Revision
-character(1024) :: Build_Date
-character(1024) :: Build_RevRange
-character(1024) :: Build_Mixed
-character(1024) :: Build_URL
-character(1024) :: Build_LocalMod
+character(1024) :: Build_Revision

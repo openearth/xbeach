@@ -109,9 +109,9 @@ use xmpi_module
    
    fileopen = .true.    
    if (xmaster) then
-      do while (fileopen==.true.)
+      do while (fileopen)
          inquire(tryunit,OPENED=fileopen)
-	     if (fileopen==.true.) then
+	     if (fileopen) then
 	        tryunit=tryunit-1
 	     endif
 	     if (tryunit<=10) then 

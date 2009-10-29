@@ -38,9 +38,6 @@ real*8                   :: t0,t01,t1
 include 'version.def'
 include 'version.dat'
 
-!character(1024)       :: build_revision
-!character(1024) :: build_date
-!character(1024) :: build_url
 !
 !build_revision = '$Revision$'
 !build_date = '$Date$'
@@ -66,11 +63,9 @@ if (xmaster) then
   write(*,*)'**********************************************************'
   write(*,*)'                   Welcome to XBeach                      '
   write(*,*)'                                                          '
-  write(*,'(a,i0,a,a)')'             head revision: ',Build_Revision,'.',trim(Build_LocalMod)
-  write(*,'(a,a)')'                build date: ',trim(Build_Date)
-  write(*,*)'            revision range: ',trim(Build_RevRange)
-  write(*,*)'                                                          '
-  write(*,*)' URL: ',trim(Build_URL)
+  write(*,*)'            revision ',trim(Build_Revision)
+  write(*,*)'            date $Date$'
+  write(*,*)' URL: $HeadURL$ '
   write(*,*)'**********************************************************'
   write(*,*)'                                                          '
   write(*,*)'Simulation started: YYYYMMDD    hh:mm:ss     time zone (UTC)'

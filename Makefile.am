@@ -52,8 +52,11 @@ BUILT_SOURCES= \
 	space_inp.gen \
 	chartoindex.gen \
 	s.ind \
-	s.inp 
+	s.inp \
+	version.dat
 
+version.dat: 
+	echo "Build_Revision = '`svnversion`'" > version.dat
 s.ind: space_ind.gen
 s.inp: space_inp.gen
 # this is not a proper way
@@ -73,5 +76,5 @@ endif
 # EXTRA_DIST=s.ind s.inp
 EXTRA_DIST=spaceparams.tmpl
 SUBDIRS=doc
-CLEANFILES=*.mod
+CLEANFILES=*.mod version.dat
 
