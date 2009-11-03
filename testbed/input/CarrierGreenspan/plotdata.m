@@ -54,7 +54,7 @@ for i=1:nt;
         axis([50 150 -1.25 1.25]);
         % axis([0 250 -2 2]);
         drawnow;
-        pause
+        pause(1.0)
     end
 end;
 fclose(fid)
