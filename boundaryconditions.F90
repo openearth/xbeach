@@ -190,7 +190,7 @@ if(abs(par%t-par%dt)<1.d-6) then
     elseif (par%instat==7.and.xmaster) then
        par%listline=1
     elseif (par%instat==8.and.xmaster) then   
-      call velocity_Boundary(ui(1,:),s%ny,par%t)   
+      call velocity_Boundary(ui(1,:),ui(2,:),s%ws(1,:),s%ny,par%t)   
     endif
     !
     ! Directional distribution
@@ -492,7 +492,7 @@ elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat=
     ui(1,:) = q/ht(1,:)*min(par%t/par%taper,1.0d0)
     ee(1,:,:)=ee(1,:,:)*min(par%t/par%taper,1.0d0)
 elseif (par%instat==8.and.xmaster) then   
-    call velocity_Boundary(ui(1,:),s%ny,par%t)
+    call velocity_Boundary(ui(1,:),ui(2,:),s%ws(1,:),s%ny,par%t)
 else
    if (xmaster) then
      write(*,*)' instat = ',par%instat, ' invalid option'
@@ -795,7 +795,7 @@ if (par%instat/=9)then
 ! the mpi_shift calls in horizontal directions
   if(xmpi_istop) then
     if (par%front==0) then ! Ad's radiating boundary
-       uu(1,:)=2*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))
+       uu(1,:)=2.0d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))
        vv(1,:)=vv(2,:)
     elseif (par%front==1) then ! Van Dongeren (1997), weakly reflective boundary condition
        ht(1:2,:)=max(s%zs0(1:2,:)-zb(1:2,:),par%eps)
@@ -1179,7 +1179,7 @@ end subroutine discharge_boundary
 
 !
 !==============================================================================    
-subroutine velocity_Boundary(u,ny,t)
+subroutine velocity_Boundary(u,z,w,ny,t)
 !==============================================================================    
 !
     
@@ -1209,6 +1209,8 @@ subroutine velocity_Boundary(u,ny,t)
 !
     integer(kind=iKind)           ,intent(in)  :: ny
     real(kind=rKind),dimension(ny+1),intent(out) :: u
+    real(kind=rKind),dimension(ny+1),intent(inout) :: z
+    real(kind=rKind),dimension(ny+1),intent(inout) :: w
     real(kind=rKind)              ,intent(in)  :: t
 
 !
@@ -1224,10 +1226,12 @@ subroutine velocity_Boundary(u,ny,t)
     logical,save                              :: initialize  = .true.
     logical                                   :: lExists
     character(len=6)                          :: string
-    character(len=2),allocatable,dimension(:) :: header
+    character(len=2),allocatable,dimension(:),save :: header
     integer(kind=ikind)                       :: iAllocErr   
     integer(kind=ikind)                       :: nvar 
-
+    
+    real(kind=rKind),allocatable,dimension(:,:)    :: tmp
+    
     real(kind=rKind),allocatable,dimension(:),save :: u0 !
     real(kind=rKind),allocatable,dimension(:),save :: u1 !
     
@@ -1280,56 +1284,77 @@ subroutine velocity_Boundary(u,ny,t)
       read(unit_U,fmt=*) nvar
       if (nvar > 2) then
         allocate(z0(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
-        allocate(z1(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program      
+        allocate(z1(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+        z0 = 0.0d0
+        z1 = 0.0d0
       endif
 
       if (nvar > 3) then
         allocate(w0(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
         allocate(w1(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program      
+        z0 = 0.0d0
+        z1 = 0.0d0        
       endif
       
       allocate(header(nvar))
       read(unit_U,fmt=*) header
+      allocate(tmp(ny+1,nvar-1))
       
       !Read two first timelevels
-      call velocity_Boundary_read(t0,u0,Unit_U,lVaru,lIsEof)
+      call velocity_Boundary_read(t0,tmp,Unit_U,lVaru,lIsEof,nvar)
+      u0 = tmp(:,1)
+      if (nvar >2) z0 = tmp(:,2)
+      if (nvar >3) w0 = tmp(:,3)
       if (lIsEof) then
         t1=t0
         u1=u0
       else
-        call velocity_Boundary_read(t1,u1,Unit_U,lVaru,lIsEof)      
+        call velocity_Boundary_read(t1,tmp,Unit_U,lVaru,lIsEof,nvar)
+        u1 = tmp(:,1)
+        if (nvar >2) z1 = tmp(:,2)
+        if (nvar >3) w1 = tmp(:,3)
       endif
       return
+      deallocate(tmp)
     endif
 
   if (lNH_boun_U) then
-
+    allocate(tmp(ny+1,nvar-1))
     if (.not. lIsEof) then
       !If current time not located within interval read next line    
       do while (.not. (t>=t0 .and. t<t1))
         u0 = u1
         t0 = t1
-        call velocity_Boundary_read(t1,u1,Unit_U,lVaru,lIsEof)
+        call velocity_Boundary_read(t1,tmp,Unit_U,lVaru,lIsEof,nvar)
+        u1 = tmp(:,1)
+        if (nvar >2) z1 = tmp(:,2)
+        if (nvar >3) w1 = tmp(:,3)        
         if (lIsEof) exit !Exit on end of file condition
       end do
       
       if(lIsEof) then
         u  = u1
+        if (nvar >2) z = z1
+        if (nvar >3) w = w1
+        deallocate(tmp)
         return
       else
         !Linear interpolation of u in time
         u  = u0 + (u1-u0)*(t-t0)/(t1-t0)
+        if (nvar >2) z = z0 + (z1-z0)*(t-t0)/(t1-t0)
+        if (nvar >3) w = w0 + (w1-w0)*(t-t0)/(t1-t0)
       endif
     else
       !If end of file the last value which was available is used until the end of the computation
       u = u1
     endif
+    deallocate(tmp)
   endif
 
 end subroutine velocity_Boundary
 
 !==============================================================================  
-  subroutine velocity_Boundary_read(t,vector,iUnit,isvec,iseof)
+  subroutine velocity_Boundary_read(t,vector,iUnit,isvec,iseof,nvar)
 !==============================================================================    
 
 !--------------------------        PURPOSE         ----------------------------
@@ -1353,15 +1378,17 @@ end subroutine velocity_Boundary
   include 'nh_pars.inc'               !Default precision etc.
 !--------------------------     ARGUMENTS          ----------------------------
 
-  real(kind=rKind),intent(inout)              :: t
-  real(kind=rKind),intent(inout),dimension(:) :: vector
-  integer(kind=iKind),intent(in)              :: iUnit
-  logical            ,intent(in)              :: isvec
-  logical            ,intent(out)             :: iseof
+  real(kind=rKind),intent(inout)                   :: t
+  real(kind=rKind),intent(inout),dimension(:,:)    :: vector
+  integer(kind=iKind),intent(in)                   :: iUnit
+  integer(kind=iKind),intent(in)                   :: nvar
+  logical            ,intent(in)                   :: isvec
+  logical            ,intent(out)                  :: iseof
 
 !--------------------------     LOCAL VARIABLES    ----------------------------
  
-  real(kind=rKind)                            :: scalar
+  real(kind=rKind)                            :: scalar(nvar-1)    
+  integer(kind=iKind)                         :: i
   integer(kind=iKind)                         :: ioStat
   character(len=iFileNameLen)                 :: filename
 
@@ -1373,10 +1400,12 @@ end subroutine velocity_Boundary
   iseof = .false.
   
   if (isvec) then
-     read(iUnit,ioStat=ioStat,fmt=*,end=9000) t,vector      
+     read(iUnit,ioStat=ioStat,fmt=*,end=9000) t,vector
   else
      read(iUnit,ioStat=ioStat,fmt=*,end=9000) t,scalar
-     vector = scalar
+     do i=1,nvar-1
+       vector(:,i) = scalar(i)
+     enddo  
   endif
   
   if (iostat /= 0) then
