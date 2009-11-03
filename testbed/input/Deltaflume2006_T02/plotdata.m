@@ -297,3 +297,20 @@ for i = 1:length(interval);
 end
 pname = ['..\..\report\',testid '_' runid '_intervals' '.jpg'];
 eval(['print -djpeg ' pname]);
+
+% movieplot
+figure;
+for i = 1690:nt
+    plot(xw,s.zb(:,1),'k--'); hold on;
+    plot(xw,s.zb(:,i),'k-');
+    plot(xw,s.ccg(:,i),'c-.');
+    plot(xw,s.zs(:,i),'b');
+    plot(xw,s.H(:,i),'g');
+    plot(xw,s.ue(:,i),'r');
+    axis([170 230 -4.5 4.5]);
+    title(num2str(i));
+    pause(); hold off;
+end
+
+
+
