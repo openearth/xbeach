@@ -10,7 +10,7 @@
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool"/>
-				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="..\makeversiondat.bat"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|Win32">
@@ -20,7 +20,7 @@
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool"/>
-				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="..\makeversiondat.bat"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_Debug|Win32">
@@ -30,7 +30,7 @@
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool"/>
-				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="..\makeversiondat.bat"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_Release|Win32">
@@ -40,7 +40,7 @@
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool"/>
-				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="..\makeversiondat.bat"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration></Configurations>
 	<Files>
@@ -50,7 +50,9 @@
 		<File RelativePath="..\boundaryconditions.F90"/>
 		<File RelativePath="..\constants.F90"/>
 		<File RelativePath="..\drifters.f90"/>
+		<File RelativePath="..\flow_secondorder.F90"/>
 		<File RelativePath="..\flow_timestep.F90"/>
+		<File RelativePath="..\general_fileio.F90"/>
 		<File RelativePath="..\general_mpi.F90"/>
 		<File RelativePath="..\groundwater.F90"/>
 		<File RelativePath="..\initialize.F90"/>
@@ -58,14 +60,17 @@
 		<File RelativePath="..\math_tools.F90"/>
 		<File RelativePath="..\mnemonic.F90"/>
 		<File RelativePath="..\morphevolution.F90"/>
+		<File RelativePath="..\nonh.F90"/>
 		<File RelativePath="..\nonhydrostatic.F90"/>
 		<File RelativePath="..\params.F90"/>
 		<File RelativePath="..\readkey.F90"/>
 		<File RelativePath="..\readtide.F90"/>
 		<File RelativePath="..\readwind.F90"/>
 		<File RelativePath="..\roelvink.F90"/>
+		<File RelativePath="..\solver.F90"/>
 		<File RelativePath="..\spaceparams.F90"/>
 		<File RelativePath="..\timestep.F90"/>
+		<File RelativePath="..\varianceupdate.F90"/>
 		<File RelativePath="..\varoutput.F90"/>
 		<File RelativePath="..\wave_stationary.F90"/>
 		<File RelativePath="..\wave_timestep.F90"/>
