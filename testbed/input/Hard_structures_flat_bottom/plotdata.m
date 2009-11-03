@@ -33,17 +33,13 @@ for j = 1:length(nam)
     s.(nam{j}) = squeeze(temp(:,2,:));
 end
 
-% get hard layer...
-% bgr = load('graindist.grd');
-% zgr = zeros(size(bgr));
-% for i =1:20;
-%     zgr(i,:) = s.zb(:,1)+(i-1 )*0.2;
-% end  
-% xgr = repmat(xw(:,2),1,20)';
-
 % load hard layer new approach...
-dzhl = load('hardlayer.dep');
-zhl = s.zb(:,1)-dzhl(2,:)';
+dzg = 0.05;
+load('gdist1.inp');
+gds = gdist1(2:3:end-1,:);
+dz = sum(gds,1)*dzg;
+
+zhl = s.zb(:,1)-dz';
 
 %% movieplot
 figure;
@@ -59,6 +55,8 @@ for i =1:nt
     % plot(xw,2650*s.cc(:,i),'g');
     axis([0 50 -2 2]);
     title(num2str(i));
+    name = ['avi\hard_',num2str(i,'%04.0f'),'.png'];
+    print('-dpng','-r300',name);
     pause(0.01); hold off;
 end
 
