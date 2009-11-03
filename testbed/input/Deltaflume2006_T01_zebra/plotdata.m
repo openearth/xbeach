@@ -1,8 +1,10 @@
+function plotdata()
+
 clear s m
 
 %% coefficients and settings
-dir = ['F:\subversion_xbeach\trunk\testbed\data\Deltaflume2006_T01_zebra\'];
-fid = fopen([dir,'datanam.txt']);
+[runid,testid,datadir]=testinfo
+fid = fopen([datadir'datanam.txt']);
 Tnam = fgetl(fid);
 nvar = str2num(fgetl(fid));
 for i = 1:nvar
@@ -13,7 +15,7 @@ for i = 1:nvar
 end
 fclose(fid);
 %% measurements
-load([dir,Tnam]);
+load([datadir,Tnam]);
 
 %% simulation results..
 
@@ -120,6 +122,7 @@ end
 %
 
 %% movieplot
+
 figure;
 ca=[-0.2 1.2];
 cmap=colormap;
@@ -155,7 +158,10 @@ p12=  plot(xw,s.gwlevel(:,i),'y','LineWidth',1.5);
 %p9 =   plot(x,m.z(end,:),'k','LineWidth',1.5);
 axis([41 220 -4.5 2]);
 
-for i = nt-100:nt
+% fname = 'zebra.avi';
+% mov = avifile(fname,'fps',4,'quality',99);
+
+for i = 1:nt
     temp = zeros(length(xw),nd+1);
     temp(:,2:end) = cumsum(s.dzbed(:,:,i),2);
     zlayer = repmat(s.zb(:,i),1,nd+1)-temp;
@@ -182,8 +188,14 @@ for i = nt-100:nt
     end
     set(p12,'ydata',s.gwlevel(:,i));
     title(num2str(i));
-    pause(0.1); hold off;    
+    name = ['avi\zebra_',num2str(i,'%04.0f'),'.png'];
+    print('-dpng','-r300',name);
+    pause(0.1); 
+    % F=getframe(gcf);
+    % mov = addframe(mov,F);
+    hold off;   
 end
+% mov=close(mov);
 % print file to report
 pname = ['..\..\report\',testid '_' runid 'final_profile' '.jpg'];
 eval(['print -djpeg ' pname]);
@@ -317,4 +329,4 @@ xlabel('x [m]'); ylabel('z_{b} [m]'); axis([150 max(max(xw)) -2.5 2]);
 pname = ['..\..\report\',testid '_' runid 'morphodynamics' '.jpg'];
 eval(['print -djpeg ' pname]);
 
-
+end
