@@ -110,7 +110,7 @@ contains
 
 !--------------------------     LOCAL VARIABLES    ----------------------------
  
-    integer(kind=iKind)        :: iw,i,ie,jn,j,js
+    integer(kind=iKind)        :: iw,i,ie,jn,j,js,iww,iee
 !-------------------------------------------------------------------------------
 !                             IMPLEMENTATION
 !-------------------------------------------------------------------------------
@@ -213,14 +213,15 @@ contains
 !--------------------------     LOCAL VARIABLES    ----------------------------
  
     !Indices
-    integer(kind=iKind)                     :: i               !Index variables
+    integer(kind=iKind)                     :: i,ie,iee,iw,iww               !Index variables
     integer(kind=iKind)                     :: j               !Index variables
     
     !Work
-    real(kind=rKind)                        :: dzdx,dzdy
+    real(kind=rKind)                        :: dzdx,dzdy,delta1,delta2
     real(kind=rKind)                        :: dzsu,dzsv    
     real(kind=rKind)                        :: dzbu,dzbv
     real(kind=rKind)                        :: vol    
+    real(kind=rKind)                        :: mindepth
    
 
 !
@@ -241,7 +242,7 @@ contains
       s%ws(i,j) = s%ws(i,j) -   par%dt*( ddxu(i-1)*max(s%qx(i-1,j  ),0.0_rKind)*(s%ws(i  ,j  )-s%ws(i-1,j  ))/s%hh(i,j) &
                                        + ddxu(i)  *min(s%qx(i  ,j  ),0.0_rKind)*(s%ws(i+1,j  )-s%ws(i  ,j  ))/s%hh(i,j) &
                                        + ddyv(j-1)*max(s%qy(i  ,j-1),0.0_rKind)*(s%ws(i  ,j  )-s%ws(i  ,j-1))/s%hh(i,j) &
-                                       + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(s%ws(i  ,j+1)-s%ws(i  ,j  ))/s%hh(i,j) )
+                                       + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(s%ws(i  ,j+1)-s%ws(i  ,j  ))/s%hh(i,j) )                                      
     enddo
   enddo
 
@@ -251,26 +252,11 @@ contains
       s%wb(i,j) = s%wb(i,j) -   par%dt*( ddxu(i-1)*max(s%qx(i-1,j  ),0.0_rKind)*(s%wb(i  ,j  )-s%wb(i-1,j  ))/s%hh(i,j) &
                                        + ddxu(i)  *min(s%qx(i  ,j  ),0.0_rKind)*(s%wb(i+1,j  )-s%wb(i  ,j  ))/s%hh(i,j) &
                                        + ddyv(j-1)*max(s%qy(i  ,j-1),0.0_rKind)*(s%wb(i  ,j  )-s%wb(i  ,j-1))/s%hh(i,j) &
-                                       + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(s%wb(i  ,j+1)-s%wb(i  ,j  ))/s%hh(i,j) )
+                                       + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(s%wb(i  ,j+1)-s%wb(i  ,j  ))/s%hh(i,j) )                                      
     enddo
   enddo
     
-  !Bottom location in U point
-  do j=1,s%ny+1
-    do i=1,s%nx
-      zbu(i,j) = max(s%zb(i,j),s%zb(i+1,j))
-    enddo
-  enddo
-  zbu(s%nx+1,:) = s%zb(s%nx+1,:)
-
-  !Bottom location in V point  
-  do j=1,s%ny
-    do i=1,s%nx+1
-      zbv(i,j) = max(s%zb(i,j),s%zb(i,j+1))
-    enddo
-  enddo  
-  zbv(:,s%ny+1) = s%zb(:,s%ny+1)
-  
+ 
   !Free surface location in u-point
   do j=1,s%ny+1
     do i=1,s%nx
@@ -282,7 +268,7 @@ contains
         zsu(i,j) = max(s%zs(i  ,j),s%zs(i+1,j))
       endif
     enddo
-  enddo
+  enddo  
 
   !Free surface location in v-point
   do j=1,s%ny
@@ -297,7 +283,48 @@ contains
     enddo
   enddo
 
-  
+  !Bottom location in U point
+  do j=1,s%ny+1
+    do i=1,s%nx
+      zbu(i,j) = zsu(i,j)-s%hu(i,j)
+    enddo
+  enddo
+  zbu(s%nx+1,:) = s%zb(s%nx+1,:)
+
+  !Bottom location in V point  
+  do j=1,s%ny
+    do i=1,s%nx+1
+      zbv(i,j) = zsv(i,j)-s%hv(i,j)
+    enddo
+  enddo  
+  zbv(:,s%ny+1) = s%zb(:,s%ny+1)
+
+
+!  if (par%secorder == 1) then
+!    do j=2,s%ny
+!      do i=2,s%nx       
+!        ie   = min(i+1,s%nx)
+!        iee  = min(i+2,s%nx)
+!        iw   = max(i-1,1)
+!        iww  = max(i-2,1)
+!        mindepth = minval(s%zs(iww:iee,j))-maxval(s%zb(iww:iee,j))
+!        if (mindepth > par%eps) then
+!          if   (s%uu(i,j) > 0.d0 .and. (i>2))    then
+!            delta1    = (s%zs(ie,j) -s%zs(i ,j)) / (s%xz(ie) -s%xz(i))
+!            delta2    = (s%zs(i ,j)-s%zs(iw ,j)) / (s%xz(i) -s%xz(iw))
+!            zsu(i,j)  = zsu(i,j)+(s%xu(i)-s%xz(i))  *minmod(delta1,delta2)
+!          elseif (s%uu(i,j) < 0.d0 .and. (i<s%nx-1)) then
+!            delta1    = (s%zs(ie,j) -s%zs(i ,j)) / (s%xz(ie) -s%xz(i))
+!            delta2    = (s%zs(iee,j)-s%zs(ie,j))   / (s%xz(iee)-s%xz(ie))
+!            zsu(i,j)  = zsu(i,j) -(s%xz(ie)-s%xu(i))*minmod(delta1,delta2)
+!          endif
+!        endif
+!      enddo
+!    enddo
+!  endif
+!
+!  s%hu = zsu-zbu
+
   !call timer_start(timer_flow_nonh_mat)
   
   !Built pressure coefficients U  
@@ -350,28 +377,56 @@ contains
   do j=2,s%ny
     do i=2,s%nx
         !Bottom gradients
-        dzdx = .5_rKind*(  zbu(i,  j) - zbu(i-1,j) )  /dxz(i)
-        dzdy = .5_rKind*(  zbv(i,  j) - zbv(i  ,j-1) )/dyz(j)
+        dzdx = .5_rKind*(  zbu(i,  j) - zbu(i-1,j) )  *ddxz(i)
+        dzdy = .5_rKind*(  zbv(i,  j) - zbv(i  ,j-1) )*ddyz(j)
      
-        dpdz(1,0,i,j) =  dzdx *( au(0,i  ,j  )+au(1,i-1,j  ) ) &           !main diagonal
-                      +  dzdy *( av(0,i  ,j  )+av(1,i  ,j-1) )
-        dpdz(2,0,i,j) =  dzdx *  au(0,i-1,j  )                             !west
-        dpdz(3,0,i,j) =  dzdx *  au(1,i+1,j  )                             !east
-        dpdz(4,0,i,j) =  dzdy *  av(0,i  ,j-1)                             !south
-        dpdz(5,0,i,j) =  dzdy *  av(1,i  ,j+1)                             !north
+        dpdz(1,0,i,j) = - dzdx *( au(0,i  ,j  )+au(1,i-1,j  ) ) &           !main diagonal
+                        - dzdy *( av(0,i  ,j  )+av(1,i  ,j-1) )
+        dpdz(2,0,i,j) = - dzdx *  au(0,i-1,j  )                             !west
+        dpdz(3,0,i,j) = - dzdx *  au(1,i  ,j  )                             !east
+        dpdz(4,0,i,j) = - dzdy *  av(0,i  ,j-1)                             !south
+        dpdz(5,0,i,j) = - dzdy *  av(1,i  ,j  )                             !north
 
-        dpdzr(0,i,j)  =  dzdx*( s%uu(i,j)+s%uu(i-1,j  ) ) &
-                      +  dzdy*( s%vv(i,j)+s%vv(i  ,j-1) ) &
-                      -  s%wb(i,j)
+        dpdzr(0,i,j)  = - dzdx*( s%uu(i,j)+s%uu(i-1,j  ) ) &
+                        - dzdy*( s%vv(i,j)+s%vv(i  ,j-1) ) &
+                        + s%wb(i,j)
                       
         dpdz(1,1,i,j)   = - 2.0_rKind*par%dt/s%hh(i,j) - dpdz(1,0,i,j)
         dpdz(2,1,i,j)   =                              - dpdz(2,0,i,j)
         dpdz(3,1,i,j)   =                              - dpdz(3,0,i,j)
         dpdz(4,1,i,j)   =                              - dpdz(4,0,i,j)
         dpdz(5,1,i,j)   =                              - dpdz(5,0,i,j)
-        dpdzr(1,i,j)    =                              - dpdzr(0,i,j)
+        dpdzr(1,i,j)    =  - dpdzr(0,i,j)
     enddo
   enddo  
+   
+
+  if (par%secorder == 1) then
+    !Include non-hydrostatic pressure explicitly
+    do j=2,s%ny
+      do i=2,s%nx
+        s%ws(i,j) = s%ws(i,j)  - dpdzr(1,i,j)+ 2.0_rKind*par%dt/s%hh(i,j)*s%pres(i,j)
+      enddo
+    enddo
+  else  
+    do j=2,s%ny
+      do i=2,s%nx
+        s%ws(i,j) = s%ws(i,j)  - dpdzr(1,i,j)
+      enddo
+    enddo  
+  endif  
+
+  do j=2,s%ny
+    do i=2,s%nx
+      s%wb(i,j) = s%wb(i,j)  - dpdzr(0,i,j)      
+    enddo
+  enddo
+
+    
+  if (par%secorder == 1) then    
+    call flow_secondorder_advW(s,par,s%ws,ws_old)
+    call flow_secondorder_advW(s,par,s%wb,wb_old)    
+  endif   
    
   do j=2,s%ny
     do i=2,s%nx
@@ -384,44 +439,17 @@ contains
   enddo
   !call timer_stop(timer_flow_nonh_aw)  
 
-
-
-
-  if (par%secorder == 1) then
-    !Include non-hydrostatic pressure explicitly
-    do j=2,s%ny
-      do i=2,s%nx
-        s%ws(i,j) = s%ws(i,j)     + s%pres(i , j)  * aw(1,1,i,j)                                 &
-                                  + s%pres(i-1,j)  * aw(2,1,i,j) + s%pres(i+1,j  ) * aw(3,1,i,j) &
-                                  + s%pres(i  ,j-1)* aw(4,1,i,j) + s%pres(i  ,j+1) * aw(5,1,i,j)
-      enddo
-    enddo
-    call flow_secondorder_advW(s%xu,s%yv,s%xz,s%yz,s%hh,s%qx,s%qy,s%zs,s%zb,s%ws,ws_old,s%nx,s%ny,par%eps,par%dt)
-    
-    do j=2,s%ny
-      do i=2,s%nx
-        s%wb(i,j) = s%wb(i,j)     + s%pres(i , j)  * aw(1,0,i,j)                                 &
-                                  + s%pres(i-1,j)  * aw(2,0,i,j) + s%pres(i+1,j  ) * aw(3,0,i,j) &
-                                  + s%pres(i  ,j-1)* aw(4,0,i,j) + s%pres(i  ,j+1) * aw(5,0,i,j)
-      enddo
-    enddo
-    call flow_secondorder_advW(s%xu,s%yv,s%xz,s%yz,s%hh,s%qx,s%qy,s%zs,s%zb,s%wb,wb_old,s%nx,s%ny,par%eps,par%dt)    
-  endif  
-
-
   do j=2,s%ny
     do i=2,s%nx
       if (s%wetZ(i,j)==1) then
-        awr(0,i,j) = s%wb(i,j) - dpdzr(0,i,j)
-        awr(1,i,j) = s%ws(i,j) - dpdzr(1,i,j)
+        awr(0,i,j) = s%wb(i,j) !- dpdzr(0,i,j)
+        awr(1,i,j) = s%ws(i,j) !- dpdzr(1,i,j)
       else
         awr(:,i,j) = 0.0_rKind
       endif
     enddo
   enddo
-
  
-  
   !Substitute in the continuity equation
   !call timer_start(timer_flow_nonh_subs)
   do j=2,s%ny
@@ -509,9 +537,7 @@ contains
                              + dp(i  ,j-1)* aw(4,0,i,j) + dp(i  ,j+1) * aw(5,0,i,j)                                    
     enddo
   enddo    
-  
-  !write(*,*) maxval(abs(s%ws)),maxval(abs(s%wb)),maxval(abs(s%uu)),maxval(abs(s%vv))
-  
+
   !call timer_stop(timer_flow_nonh_corw)    
   
   !Assign boundaries
