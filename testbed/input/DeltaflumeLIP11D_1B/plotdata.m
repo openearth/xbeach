@@ -186,9 +186,12 @@ plot(xw(:,2),s.Sdzavtot,'r--','LineWidth',1.5); plot(xw(:,2),s.Subtot,'r:','Line
 xlabel('x [m]'); ylabel('S_{mean} [m^3/m/s]'); axis([100 max(max(xw)) -1E-4 1E-4]);
 legend('S_{\Deltaz,simulated}','S_{\Deltaz,measured}','S_{Avalanching}','S_{bed}','S_{suspended}','S_{total,simulated}',2);
 subplot(2,2,3:4);
-for i = 1:length(Tout)
-    plot(xw(:,2),s.zb(:,Tout(i)),'r--','LineWidth',1.5); hold on; plot(m.x{i},m.z{i},'k','LineWidth',1.5);
-end
+% for i = 1:length(Tout)
+%     plot(xw(:,2),s.zb(:,Tout(i)),'r--','LineWidth',0.5); hold on; plot(m.x{i},m.z{i},'k--','LineWidth',1.5);
+% end
+plot(m.x{1},m.z{1},'k--','LineWidth',1.5); hold on; 
+plot(m.x{length(Tout)},m.z{length(Tout)},'k','LineWidth',1.5);
+plot(xw(:,2),s.zb(:,Tout(end)),'r-','LineWidth',1.5);
 xlabel('x [m]'); ylabel('z_{b} [m]'); axis([100 max(max(xw)) -2.5 2]);
 pname = ['..\..\report\',testid '_' runid '_morphodynamics' '.jpg'];
 eval(['print -djpeg ' pname]);
