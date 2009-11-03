@@ -35,7 +35,7 @@ module flow_secondorder_module
   public flow_secondorder_advUV
   public flow_secondorder_advW  
   public flow_secondorder_con
-
+  public minmod
 !
 !******************************************************************************
 !                             SUBROUTINES/FUNCTIONS
@@ -143,8 +143,8 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
   type(spacepars)  ,intent(inout)  :: s
   type(parameters) ,intent(in)     :: par
   
-  real*8,dimension(s%nx+1,s%ny+1),intent(in) :: vv_old  !"Old" v-velocity
-  real*8,dimension(s%nx+1,s%ny+1),intent(in) :: uu_old  !"Old" u-velocity
+  real(kind=rkind),dimension(s%nx+1,s%ny+1),intent(in) :: vv_old  !"Old" v-velocity
+  real(kind=rkind),dimension(s%nx+1,s%ny+1),intent(in) :: uu_old  !"Old" u-velocity
 !
 
 !--------------------------     LOCAL VARIABLES    ----------------------------
@@ -211,7 +211,7 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
       enddo
     endif
 #endif
-
+    !return
     !-- calculate du in z-points --
     do j=2,s%ny
       do i=2,s%nx
@@ -330,11 +330,35 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
                                                 +  (qs*wrk1(i,j+1)- qn*wrk1(i  ,j))/(s%yz(j+1)-s%yz(j  ))  )
       enddo
     enddo
+    
+!        if (par%nonh == 1) then
+!      !Include explicit approximation for pressure in s%uu and s%vv
+!    
+!      do j=2,s%ny
+!        do i=2,s%nx-1
+!          if (s%wetu(i,j) == 1) then
+!            s%uu(i,j) = s%uu(i,j) - 0.5_rKind*par%dt/s%hum(i,j) * ( (s%zs(i+1,j)-s%zb(i  ,j)) * s%pres(i+1,j)   &
+!                                                                  - (s%zs(i  ,j)-s%zb(i+1,j)) * s%pres(i  ,j)  ) &
+!                                                                  / (s%xz(i+1)-s%xz(i))
+!          endif
+!        enddo
+!      enddo
+!
+!      do j=2,s%ny-1
+!        do i=2,s%nx
+!          if (s%wetv(i,j) == 1) then        
+!            s%vv(i,j) = s%vv(i,j) - 0.5_rKind*par%dt/s%hvm(i,j) * ( (s%zs(i,j+1)-s%zb(i,j  )) * s%pres(i,j+1)   &
+!                                                                  - (s%zs(i,j  )-s%zb(i,j+1)) * s%pres(i,j  ) ) &
+!                                                                  / (s%yz(j+1)-s%yz(j))
+!          endif
+!        enddo
+!      enddo
+!    endif
 end subroutine flow_secondorder_advUV
 
 !
 !==============================================================================
-subroutine flow_secondorder_advW(xu,yv,xz,yz,hh,qx,qy,zs,zb,w,w_old,nx,ny,eps,dt)
+subroutine flow_secondorder_advW(s,par,w,w_old)
 !==============================================================================
 !
 
@@ -348,25 +372,23 @@ subroutine flow_secondorder_advW(xu,yv,xz,yz,hh,qx,qy,zs,zb,w,w_old,nx,ny,eps,dt
 !   Calculates second order correction to the advection terms for W. Only used
 !   in combination WITH the non-hydrostatic module
 
+!--------------------------     DEPENDENCIES       ----------------------------
+!
+
+! -- MODULES --
+  use spaceparams
+  use params 
+  use xmpi_module, only: Halt_Program 
+
+
 !--------------------------     ARGUMENTS          ----------------------------
 ! 
-    integer(kind=iKind)                  ,intent(in)    :: nx
-    integer(kind=iKind)                  ,intent(in)    :: ny 
-    real(kind=rKind),dimension(nx+1)     ,intent(in)    :: xz
-    real(kind=rKind),dimension(nx+1)     ,intent(in)    :: xu
-    real(kind=rKind),dimension(ny+1)     ,intent(in)    :: yz
-    real(kind=rKind),dimension(ny+1)     ,intent(in)    :: yv    
-    real(kind=rKind),dimension(nx+1,ny+1),intent(in)    :: qx
-    real(kind=rKind),dimension(nx+1,ny+1),intent(in)    :: qy    
-    real(kind=rKind),dimension(nx+1,ny+1),intent(in)    :: hh
-    real(kind=rKind),dimension(nx+1,ny+1),intent(in)    :: zs    
-    real(kind=rKind),dimension(nx+1,ny+1),intent(in)    :: zb    
-    real(kind=rKind),dimension(nx+1,ny+1),intent(inout) :: w
-    real(kind=rKind),dimension(nx+1,ny+1),intent(in)    :: w_old
-    
 
-    real(kind=rKind)                     ,intent(in)    :: eps
-    real(kind=rKind)                     ,intent(in)    :: dt    
+    type(spacepars)  ,intent(inout)  :: s
+    type(parameters) ,intent(in)     :: par
+        
+    real(kind=rKind),dimension(s%nx+1,s%ny+1),intent(inout) :: w
+    real(kind=rKind),dimension(s%nx+1,s%ny+1),intent(in)    :: w_old    
 
 !
 !--------------------------     LOCAL VARIABLES    ----------------------------
@@ -390,59 +412,64 @@ subroutine flow_secondorder_advW(xu,yv,xz,yz,hh,qx,qy,zs,zb,w,w_old,nx,ny,eps,dt
 
 
    !== SECOND ORDER EXPLICIT CORRECTION TO W ==
-    do j=2,ny
-      do i=2,nx-1
-        wrk1(i,j) = 0.  
-        ie   = min(i+1,nx)
-        iee  = min(i+2,nx)
+    do j=2,s%ny
+      do i=2,s%nx-1
+        wrk1(i,j) = 0.0_rKind
+        ie   = min(i+1,s%nx)
+        iee  = min(i+2,s%nx)
         iw   = max(i-1,1)
-        mindepth = minval(zs(iw:iee,j))-maxval(zb(iw:iee,j))
-        if (mindepth > eps) then
-          if   (qx(i,j) > 0.0_rKind  .and. i>2) then
-            delta1    = (w(ie,j ) - w_old(i  ,j )) / (xz(ie )-xz(i ))
-            delta2    = (w(i,j )  - w_old(iw ,j )) / (xz(i)  -xz(iw))
-            wrk1(i,j)   = (xu(i)-xz(i))*minmod(delta1,delta2)
-          elseif (qx(i,j) < 0.0_rKind .and. i<nx-1) then
-            delta1    = (w_old(ie ,j)  - w(i ,j )) / (xz(ie ) -xz(i ))
-            delta2    = (w_old(iee,j ) - w(ie,j )) / (xz(iee) -xz(ie))
-            wrk1(i,j)   = -(xz(ie)-xu(i))*minmod(delta1,delta2)
+        mindepth = minval(s%zs(iw:iee,j))-maxval(s%zb(iw:iee,j))
+        if (mindepth > par%eps) then
+          if   (s%qx(i,j) > 0.0_rKind  .and. i>2) then
+            delta1    = (w(ie,j ) - w_old(i  ,j )) / (s%xz(ie )-s%xz(i ))
+            delta2    = (w(i,j )  - w_old(iw ,j )) / (s%xz(i)  -s%xz(iw))
+            wrk1(i,j)   = (s%xu(i)-s%xz(i))*minmod(delta1,delta2)
+          elseif (s%qx(i,j) < 0.0_rKind .and. i<s%nx-1) then
+            delta1    = (w_old(ie ,j)  - w(i ,j )) / (s%xz(ie ) -s%xz(i ))
+            delta2    = (w_old(iee,j ) - w(ie,j )) / (s%xz(iee) -s%xz(ie))
+            wrk1(i,j)   = -(s%xz(ie)-s%xu(i))*minmod(delta1,delta2)
           endif
         endif
       enddo
     enddo
-    wrk1(1 ,:) = 0.0_rKind
-    wrk1(nx,:) = 0.0_rKind    
+    wrk1(: ,1) = 0.0_rKind
+    wrk1(:,s%ny+1) = 0.0_rKind
+    wrk1(1,:)  = 0.0_rKind
+    wrk1(s%nx,:) = 0.0_rKind
      
-    do j=2,ny-1
-      do i=2,nx-1      
-        wrk2(i,j) = 0.0d0
-        js   = min(j+1,ny)
-        jss  = min(j+2,ny)
+    do j=2,s%ny-1
+      do i=2,s%nx-1      
+        wrk2(i,j) = 0.0_rKind
+        js   = min(j+1,s%ny)
+        jss  = min(j+2,s%ny)
         jn   = max(j-1,1)
-        mindepth = minval(zs(i,jn:jss))-maxval(zb(i,jn:jss))
-        if (mindepth > eps) then
-          if   (qy(i,j) > 0.0_rKind .and. j>2) then
-            delta1    = (w(i,js ) - w_old(i  ,j )) / (yz(js)-yz(j ))
-            delta2    = (w(i,j  ) - w_old(i  ,jn)) / (yz(j )-yz(jn))
-            wrk2(i,j) = (yv(j)-yz(j))*minmod(delta1,delta2)
-          elseif (qy(i,j) < 0.0_rKind .and. j<ny-1) then
-            delta1    = (w_old(i,js)   - w(i ,j )) / (yz(js ) -yz(j ))
-            delta2    = (w_old(i,jss ) - w(i ,js)) / (yz(jss) -yz(js))
-            wrk2(i,j) = -(yz(js)-yv(j))*minmod(delta1,delta2)
+        mindepth = minval(s%zs(i,jn:jss))-maxval(s%zb(i,jn:jss))
+        if (mindepth > par%eps) then
+          if   (s%qy(i,j) > 0.0_rKind .and. j>2) then
+            delta1    = (w(i,js ) - w_old(i  ,j )) / (s%yz(js)-s%yz(j ))
+            delta2    = (w(i,j  ) - w_old(i  ,jn)) / (s%yz(j )-s%yz(jn))
+            wrk2(i,j) = (s%yv(j)-s%yz(j))*minmod(delta1,delta2)
+          elseif (s%qy(i,j) < 0.0_rKind .and. j<s%ny-1) then
+            delta1    = (w_old(i,js)   - w(i ,j )) / (s%yz(js ) -s%yz(j ))
+            delta2    = (w_old(i,jss ) - w(i ,js)) / (s%yz(jss) -s%yz(js))
+            wrk2(i,j) = -(s%yz(js)-s%yv(j))*minmod(delta1,delta2)
           endif
         endif        
       enddo
     enddo    
-    wrk2(:,1)    = 0.0_rKind
-    wrk2(:,ny) = 0.0_rKind
+    wrk2(:,1)      = 0.0_rKind
+    wrk2(:,s%ny)   = 0.0_rKind
     
+   ! write(*,*) maxval(abs(wrk1))
+ 
     !CORRECTION TO W
-    do j=2,ny-1
-      do i=2,nx
-        w(i,j) = w(i,j)-dt/hh(i,j)*(  (qx(i,j)*wrk1(i,j)- qx(i-1,j)*wrk1(i-1,j))/(xu(i  )-xu(i-1))  &
-                                   +  (qy(i,j)*wrk2(i,j)- qy(i,j-1)*wrk2(i,j-1))/(yv(j)  -yv(j-1))  )
+    do j=2,s%ny
+      do i=2,s%nx
+        w(i,j) = w(i,j)-par%dt/s%hh(i,j)*(  (s%qx(i,j)*wrk1(i,j)- s%qx(i-1,j)*wrk1(i-1,j))/(s%xu(i  )-s%xu(i-1))  &
+                                         +  (s%qy(i,j)*wrk2(i,j)- s%qy(i,j-1)*wrk2(i,j-1))/(s%yv(j)  -s%yv(j-1))  )
       enddo
     enddo
+
 end subroutine flow_secondorder_advW
 
 !
@@ -498,21 +525,21 @@ subroutine flow_secondorder_con(s,par,zs_old)
       if (.not. initialized) then
         call flow_secondorder_init(s,0)
       endif  
-
-      !Correction to mass flux qx
+      !return
+      !correction to mass flux qx
       do j=2,s%ny
         do i=2,s%nx-1
-          wrk1(i,j) = 0.
+          wrk1(i,j) = 0.0_rkind
           ie  = min(i+1,s%nx)
           iee = min(i+2,s%nx)
           iw  = max(i-1,2)
           mindepth = minval(s%zs(iw:iee,j))-maxval(s%zb(iw:iee,j))
           if (mindepth>par%eps) then
-            if     (s%uu(i,j) >  par%Umin .and. i>2     ) then
+            if     (s%uu(i,j) >  par%umin .and. i>2     ) then
               delta1    =  (s%zs(ie,j)- zs_old(i,j ))/(s%xz(i+1)-s%xz(i))
               delta2    =  (s%zs(i,j) - zs_old(iw,j))/(s%xz(i)  -s%xz(i-1))
               wrk1(i,j)  =   s%uu(i,j)*(s%xu(i)-s%xz(i))*minmod(delta1,delta2)
-            elseif (s%uu(i,j) < -par%Umin .and. i<s%nx-1) then
+            elseif (s%uu(i,j) < -par%umin .and. i<s%nx-1) then
               delta1    =  (zs_old(iee,j) - s%zs(ie,j)) / (s%xz(i+2)-s%xz(i+1))
               delta2    =  (zs_old(ie ,j) - s%zs(i ,j)) / (s%xz(i+1)-s%xz(i))
               wrk1(i,j)  = - s%uu(i,j)*(s%xz(ie)-s%xu(i))*minmod(delta1,delta2)
@@ -520,13 +547,39 @@ subroutine flow_secondorder_con(s,par,zs_old)
           endif
         enddo
       enddo
-      wrk1(1   ,:) = 0.0_rKind
-      wrk1(s%nx,:) = 0.0_rKind
+      wrk1(1   ,:) = 0.0_rkind
+      wrk1(s%nx,:) = 0.0_rkind
+
+      
+      
+!      do j=2,s%ny
+!        do i=2,s%nx-1
+!          wrk1(i,j) = 0.0_rKind
+!          ie  = min(i+1,s%nx)
+!          iee = min(i+2,s%nx)
+!          iw  = max(i-1,2)
+!          mindepth = minval(s%zs(iw:iee,j))-maxval(s%zb(iw:iee,j))
+!          if (mindepth>par%eps) then
+!            if     (s%uu(i,j) >  par%Umin .and. i>2     ) then
+!              delta1    =  (s%zs(ie,j)- zs_old(i,j ))/(s%xz(i+1)-s%xz(i))
+!              delta2    =  (s%zs(i,j) - zs_old(iw,j))/(s%xz(i)  -s%xz(i-1))
+!              wrk1(i,j)  = s%uu(i,j)*(.5d0*(s%zs(i,j)+(s%xu(i)-s%xz(i))*minmod(delta1,delta2)-s%zb(i,j))-.5d0*s%hu(i,j))
+!            elseif (s%uu(i,j) < -par%Umin .and. i<s%nx-1) then
+!              delta1    =  (zs_old(iee,j) - s%zs(ie,j)) / (s%xz(i+2)-s%xz(i+1))
+!              delta2    =  (zs_old(ie ,j) - s%zs(i ,j)) / (s%xz(i+1)-s%xz(i))
+!              wrk1(i,j)  = s%uu(i,j)* (.5d0*(s%zs(ie,j)-(s%xz(ie)-s%xu(i))*minmod(delta1,delta2)-s%zb(ie,j))-.5d0*s%hu(i,j))
+!            endif          
+!          endif
+!        enddo
+!      enddo
+!      wrk1(1   ,:) = 0.0_rKind
+!      wrk1(s%nx,:) = 0.0_rKind
+
 
       !Correction to mass flux qy
       do j=2,s%ny-1
         do i=2,s%nx
-          wrk2(i,j) = 0.  
+          wrk2(i,j) = 0.0_rKind
           js  = min(j+1,s%ny)
           jss = min(j+2,s%ny)
           jn  = max(j-1,2)
@@ -618,5 +671,6 @@ real(kind=rKind) pure function minmod(delta1,delta2)
     minmod = 0.0_rKind
   endif
 end function minmod
+
 
 end module flow_secondorder_module
