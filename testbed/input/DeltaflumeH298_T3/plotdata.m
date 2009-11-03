@@ -189,23 +189,23 @@ plot(ts,DVbound/Vstart/0.6,'g--');
 plot(ts,(DVbed-Vsuscorr-DVbound')/Vstart,'k','LineWidth',1.5);
 
 %%
-figure;
-borders = [0 100 150 221];
-subplot(311); pcolor(squeeze(s.ccg(:,1,:))); axis(borders); caxis([0 0.01]); colorbar;
-subplot(312); pcolor(squeeze(s.ceqsg(:,1,:))); axis(borders); caxis([0 0.01]); colorbar;
-subplot(313); pcolor(squeeze(s.ceqbg(:,1,:))); axis(borders); caxis([0 0.01]); colorbar;
-
-figure;
-subplot(211); pcolor(squeeze(s.ue)); axis(borders); caxis([-4 4]); colorbar;
-subplot(212); pcolor(squeeze(s.ve)); axis(borders); caxis([-4 4]); colorbar;
-
-figure;
-subplot(211); pcolor(squeeze(s.u)); axis(borders); caxis([-6 6]); colorbar;
-subplot(212); pcolor(squeeze(s.v)); axis(borders); caxis([-4 4]); colorbar;
-
-figure
-DZ = diff(s.zb');
-pcolor(DZ'); caxis([-1 1]); colorbar; axis(borders); %
+% figure;
+% borders = [0 100 150 221];
+% subplot(311); pcolor(squeeze(s.ccg(:,1,:))); axis(borders); caxis([0 0.01]); colorbar;
+% subplot(312); pcolor(squeeze(s.ceqsg(:,1,:))); axis(borders); caxis([0 0.01]); colorbar;
+% subplot(313); pcolor(squeeze(s.ceqbg(:,1,:))); axis(borders); caxis([0 0.01]); colorbar;
+% 
+% figure;
+% subplot(211); pcolor(squeeze(s.ue)); axis(borders); caxis([-4 4]); colorbar;
+% subplot(212); pcolor(squeeze(s.ve)); axis(borders); caxis([-4 4]); colorbar;
+% 
+% figure;
+% subplot(211); pcolor(squeeze(s.u)); axis(borders); caxis([-6 6]); colorbar;
+% subplot(212); pcolor(squeeze(s.v)); axis(borders); caxis([-4 4]); colorbar;
+% 
+% figure
+% DZ = diff(s.zb');
+% pcolor(DZ'); caxis([-1 1]); colorbar; axis(borders); %
 
 
 %% profile evolution
