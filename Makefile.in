@@ -272,15 +272,19 @@ BUILT_SOURCES = \
 	s.inp \
 	version.dat
 
-check_SCRIPTS = \
-	./testbed/tools/testT01.sh \
-	./testbed/tools/testrun01.sh
+testdir = ./testbed/tools/autotest
+@USEMPI_FALSE@check_SCRIPTS = \
+@USEMPI_FALSE@	${testdir}/test_*
 
-TESTS = ./testbed/tools/testT01.sh ./testbed/tools/testrun01.sh
+@USEMPI_TRUE@check_SCRIPTS = \
+@USEMPI_TRUE@	${testdir}/mpi_test_*
+
+@USEMPI_FALSE@TESTS = ${testdir}/test_*
+@USEMPI_TRUE@TESTS = ${testdir}/mpi_test_*
 @USEMPI_TRUE@xbeach_FCFLAGS = -DUSEMPI -DHAVE_MPI_WTIME
 
 # EXTRA_DIST=s.ind s.inp
-EXTRA_DIST = spaceparams.tmpl
+EXTRA_DIST = spaceparams.tmpl s.ind s.inp nh_pars.inc version.def
 SUBDIRS = doc
 CLEANFILES = *.mod version.dat
 all: $(BUILT_SOURCES) config.h
@@ -1108,6 +1112,19 @@ s.inp: space_inp.gen
 # this is not a proper way
 %.gen: spaceparams.tmpl makeincludes
 	echo $@ | ./makeincludes
+
+# for testing we need the testbed
+check: testbed
+
+# Link the testbed to the current directory, autotools will not look below it's root. So we link it in. 
+# Look for it in the two directories above (trunk/.. and branches/foo/../..
+testbed:
+	if [ -d ../testbed ]; \
+	 then ln -s ../testbed testbed; \
+	elif [ -d ../../testbed ]; \
+	 then ln -s ../../testbed testbed; \
+	else echo "Could not find testbed in .. or ../.. relative to `pwd`. The testbed can be found at https://repos.deltares.nl/repos/XBeach/testbed"; \
+	fi
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

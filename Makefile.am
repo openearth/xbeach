@@ -63,10 +63,28 @@ s.inp: space_inp.gen
 %.gen: spaceparams.tmpl makeincludes
 	echo $@ | ./makeincludes
 
+# for testing we need the testbed
+check: testbed
+
+# Link the testbed to the current directory, autotools will not look below it's root. So we link it in. 
+# Look for it in the two directories above (trunk/.. and branches/foo/../..
+testbed:
+	if [ -d ../testbed ]; \
+	 then ln -s ../testbed testbed; \
+	elif [ -d ../../testbed ]; \
+	 then ln -s ../../testbed testbed; \
+	else echo "Could not find testbed in .. or ../.. relative to `pwd`. The testbed can be found at https://repos.deltares.nl/repos/XBeach/testbed"; \
+	fi
+testdir=./testbed/tools/autotest
+if USEMPI
 check_SCRIPTS= \
-	./testbed/tools/testT01.sh \
-	./testbed/tools/testrun01.sh
-TESTS=./testbed/tools/testT01.sh ./testbed/tools/testrun01.sh
+	${testdir}/mpi_test_*
+TESTS=${testdir}/mpi_test_*
+else
+check_SCRIPTS= \
+	${testdir}/test_*
+TESTS=${testdir}/test_*
+endif
 
 if USEMPI
 xbeach_FCFLAGS=-DUSEMPI -DHAVE_MPI_WTIME
@@ -74,7 +92,7 @@ endif
 
 
 # EXTRA_DIST=s.ind s.inp
-EXTRA_DIST=spaceparams.tmpl
+EXTRA_DIST=spaceparams.tmpl s.ind s.inp nh_pars.inc version.def
 SUBDIRS=doc
 CLEANFILES=*.mod version.dat
 
