@@ -217,6 +217,8 @@ contains
     integer(kind=iKind)                     :: j               !Index variables
     
     !Work
+    real(kind=rKind)                        :: dwdx1,dwdx2
+    real(kind=rKind)                        :: dwdy1,dwdy2    
     real(kind=rKind)                        :: dzdx,dzdy,delta1,delta2
     real(kind=rKind)                        :: dzsu,dzsv    
     real(kind=rKind)                        :: dzbu,dzbv
@@ -239,12 +241,26 @@ contains
   !Calculate explicit part vertical momentum (advection)
   do j=2,s%ny
     do i=2,s%nx
-      s%ws(i,j) = s%ws(i,j) -   par%dt*( ddxu(i-1)*max(s%qx(i-1,j  ),0.0_rKind)*(s%ws(i  ,j  )-s%ws(i-1,j  ))/s%hh(i,j) &
-                                       + ddxu(i)  *min(s%qx(i  ,j  ),0.0_rKind)*(s%ws(i+1,j  )-s%ws(i  ,j  ))/s%hh(i,j) &
-                                       + ddyv(j-1)*max(s%qy(i  ,j-1),0.0_rKind)*(s%ws(i  ,j  )-s%ws(i  ,j-1))/s%hh(i,j) &
-                                       + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(s%ws(i  ,j+1)-s%ws(i  ,j  ))/s%hh(i,j) )                                      
+      s%ws(i,j) = s%ws(i,j) -   par%dt*( ddxu(i-1)*max(s%qx(i-1,j  ),0.0_rKind)*(ws_old(i  ,j  )-ws_old(i-1,j  ))/s%hh(i,j)   &
+                                       + ddxu(i)  *min(s%qx(i  ,j  ),0.0_rKind)*(ws_old(i+1,j  )-ws_old(i  ,j  ))/s%hh(i,j)   &
+                                       + ddyv(j-1)*max(s%qy(i  ,j-1),0.0_rKind)*(ws_old(i  ,j  )-ws_old(i  ,j-1))/s%hh(i,j)   &
+                                       + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(ws_old(i  ,j+1)-ws_old(i  ,j  ))/s%hh(i,j) )
     enddo
   enddo
+
+  !Calculate explicit part vertical viscocity
+  do j=2,s%ny
+    do i=2,s%nx
+      dwdx1 = (ws_old(i  ,j  )-ws_old(i-1,j  ))*ddxu(i-1)
+      dwdx2 = (ws_old(i+1,j  )-ws_old(i  ,j  ))*ddxu(i)
+      dwdy1 = (ws_old(i  ,j  )-ws_old(i  ,j-1))*ddyv(j-1)
+      dwdy2 = (ws_old(i  ,j+1)-ws_old(i  ,j  ))*ddyv(j)
+      s%ws(i,j) = s%ws(i,j)   + par%dt*par%nuh*(dwdx2-dwdx1)*ddxz(i)*real(s%wetu(i,j)*s%wetu(i-1,j),rKind) &
+                              + par%dt*par%nuh*(dwdy2-dwdy1)*ddyz(j)*real(s%wetv(i,j)*s%wetv(i,j-1),rKind)
+    enddo
+  enddo
+
+
 
   !Calculate explicit part vertical momentum (advection)
   do j=2,s%ny
@@ -256,6 +272,19 @@ contains
     enddo
   enddo
     
+ !Calculate explicit part vertical viscocity
+  do j=2,s%ny
+    do i=2,s%nx
+      dwdx1 = (wb_old(i  ,j  )-wb_old(i-1,j  ))*ddxu(i-1)
+      dwdx2 = (wb_old(i+1,j  )-wb_old(i  ,j  ))*ddxu(i)
+      dwdy1 = (wb_old(i  ,j  )-wb_old(i  ,j-1))*ddyv(j-1)
+      dwdy2 = (wb_old(i  ,j+1)-wb_old(i  ,j  ))*ddyv(j)
+      s%wb(i,j) = s%wb(i,j)   + par%dt*par%nuh*(dwdx2-dwdx1)*ddxz(i)*real(s%wetu(i,j)*s%wetu(i-1,j),rKind) &
+                              + par%dt*par%nuh*(dwdy2-dwdy1)*ddyz(j)*real(s%wetv(i,j)*s%wetv(i,j-1),rKind)
+    enddo
+  enddo
+ 
+ 
  
   !Free surface location in u-point
   do j=1,s%ny+1
@@ -299,32 +328,6 @@ contains
   enddo  
   zbv(:,s%ny+1) = s%zb(:,s%ny+1)
 
-
-!  if (par%secorder == 1) then
-!    do j=2,s%ny
-!      do i=2,s%nx       
-!        ie   = min(i+1,s%nx)
-!        iee  = min(i+2,s%nx)
-!        iw   = max(i-1,1)
-!        iww  = max(i-2,1)
-!        mindepth = minval(s%zs(iww:iee,j))-maxval(s%zb(iww:iee,j))
-!        if (mindepth > par%eps) then
-!          if   (s%uu(i,j) > 0.d0 .and. (i>2))    then
-!            delta1    = (s%zs(ie,j) -s%zs(i ,j)) / (s%xz(ie) -s%xz(i))
-!            delta2    = (s%zs(i ,j)-s%zs(iw ,j)) / (s%xz(i) -s%xz(iw))
-!            zsu(i,j)  = zsu(i,j)+(s%xu(i)-s%xz(i))  *minmod(delta1,delta2)
-!          elseif (s%uu(i,j) < 0.d0 .and. (i<s%nx-1)) then
-!            delta1    = (s%zs(ie,j) -s%zs(i ,j)) / (s%xz(ie) -s%xz(i))
-!            delta2    = (s%zs(iee,j)-s%zs(ie,j))   / (s%xz(iee)-s%xz(ie))
-!            zsu(i,j)  = zsu(i,j) -(s%xz(ie)-s%xu(i))*minmod(delta1,delta2)
-!          endif
-!        endif
-!      enddo
-!    enddo
-!  endif
-!
-!  s%hu = zsu-zbu
-
   !call timer_start(timer_flow_nonh_mat)
   
   !Built pressure coefficients U  
@@ -332,7 +335,7 @@ contains
   do j=2,s%ny
     do i=2,s%nx
       if (s%wetU(i,j)==1) then
-        vol       = par%dt/((s%hh(i+1,j)+s%hh(i,j))*dxu(i))      
+        vol       = 0.5_rKind*par%dt/(s%hum(i,j)*dxu(i))      
         au(1,i,j) = - (s%zs(i+1,j) - s%zb(i  ,j))*vol
         au(0,i,j) = + (s%zs(i  ,j) - s%zb(i+1,j))*vol
         aur(i,j)  = s%uu(i,j)
@@ -353,7 +356,7 @@ contains
   !call timer_start(timer_flow_nonh_av)    
   do j=2,s%ny
     do i=2,s%nx
-      vol       = par%dt/((s%hh(i,j+1)+s%hh(i,j))*dyv(j))
+      vol       = 0.5_rKind*par%dt/(s%hvm(i,j)*dyv(j))
       if (s%wetV(i,j)==1)then
         av(1,i,j)  = -(s%zs(i  ,j+1) - s%zb(i  ,j  ))*vol
         av(0,i,j)  = +(s%zs(i  ,j  ) - s%zb(i  ,j+1))*vol
@@ -494,12 +497,13 @@ contains
       endif     
     enddo
   enddo
-  !call timer_stop(timer_flow_nonh_subs)  
+  !call timer_stop(timer_flow_nonh_subs)
   
   !call timer_stop(timer_flow_nonh_mat)
   
   !Solve matrix
   !call timer_start(timer_flow_nonh_solv)
+  dp = 0.0_rKind
   call solver_solvemat( mat  , rhs   , dp , s%nx, s%ny,par)
   !call timer_stop(timer_flow_nonh_solv)
   
@@ -546,10 +550,8 @@ contains
   s%ws(1,:)      = s%ws(2,:)
   s%ws(s%nx+1,:) = s%ws(s%nx,:)
   
-  if (par%secorder==1) then
-    ws_old=s%ws
-    wb_old=s%wb
-  endif  
+  ws_old=s%ws
+  wb_old=s%wb
   !call timer_stop(timer_flow_nonh)
 end subroutine nonh_cor
 
