@@ -429,9 +429,22 @@ do it=2,imax
 	enddo ! End while loop
 enddo ! End do i=2:nx loop  
 
+
 #ifdef USEMPI
 enddo      ! End loop through mpi grids		 
 #endif
+
+ee(nx+1,:,:) = ee(nx,:,:)
+rr(nx+1,:,:) = rr(nx,:,:)
+E(nx+1,:)    = E(nx,:)
+R(nx+1,:)    = R(nx,:)
+DR(nx+1,:)   = DR(nx,:)
+H(nx+1,:)    = H(nx,:)
+km(nx+1,:)   = km(nx,:)
+sigm(nx+1,:) = sigm(nx,:)
+cg(nx+1,:)   = cg(nx,:)
+c(nx+1,:)    = c(nx,:)
+thet(nx+1,:,:) = thet(nx,:,:)
 
 
 k=km
