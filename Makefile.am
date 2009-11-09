@@ -59,8 +59,23 @@ version.dat:
 	echo "Build_Revision = '`svnversion`'" > version.dat
 s.ind: space_ind.gen
 s.inp: space_inp.gen
-# this is not a proper way
-%.gen: spaceparams.tmpl makeincludes
+
+
+spacedecl.gen: makeincludes$(EXEEXT)
+	echo $@ | ./makeincludes
+mnemonic.gen: makeincludes$(EXEEXT)
+	echo $@ | ./makeincludes
+indextos.gen: makeincludes$(EXEEXT)
+	echo $@ | ./makeincludes
+space_alloc_scalars.gen: makeincludes$(EXEEXT)
+	echo $@ | ./makeincludes
+space_alloc_arrays.gen: makeincludes$(EXEEXT)
+	echo $@ | ./makeincludes
+space_ind.gen: makeincludes$(EXEEXT)
+	echo $@ | ./makeincludes
+space_inp.gen: makeincludes$(EXEEXT)
+	echo $@ | ./makeincludes
+chartoindex.gen: makeincludes$(EXEEXT)
 	echo $@ | ./makeincludes
 
 # for testing we need the testbed
@@ -98,7 +113,8 @@ endif
 
 
 # EXTRA_DIST=s.ind s.inp
-EXTRA_DIST=spaceparams.tmpl s.ind s.inp nh_pars.inc version.def
+EXTRA_DIST=spaceparams.tmpl s.ind s.inp nh_pars.inc version.def VS2008 VS2005 xbeach.dsp xbeach.dsw
 SUBDIRS=doc
-CLEANFILES=*.mod version.dat
+CLEANFILES=*.mod *.MOD *.gen version.dat 
+
 
