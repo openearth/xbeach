@@ -1124,7 +1124,13 @@ testbed:
 	elif [ -d ../../testbed ]; \
 	 then ln -s ../../testbed testbed; \
 	else echo "Could not find testbed in .. or ../.. relative to `pwd`. The testbed can be found at https://repos.deltares.nl/repos/XBeach/testbed"; \
-	fi
+	fi; \
+	for i in `ls testbed/input`; \
+	do \
+	 echo "adding $$i"; \
+	 ln -sf ../test.sh  testbed/tools/autotest/test_$$i ; \
+	 ln -sf ../test.sh  testbed/tools/autotest/mpi_test_$$i ; \
+	done
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -74,7 +74,13 @@ testbed:
 	elif [ -d ../../testbed ]; \
 	 then ln -s ../../testbed testbed; \
 	else echo "Could not find testbed in .. or ../.. relative to `pwd`. The testbed can be found at https://repos.deltares.nl/repos/XBeach/testbed"; \
-	fi
+	fi; \
+	for i in `ls testbed/input`; \
+	do \
+	 echo "adding $$i"; \
+	 ln -sf ../test.sh  testbed/tools/autotest/test_$$i ; \
+	 ln -sf ../test.sh  testbed/tools/autotest/mpi_test_$$i ; \
+	done
 testdir=./testbed/tools/autotest
 if USEMPI
 check_SCRIPTS= \
