@@ -272,15 +272,15 @@ BUILT_SOURCES = \
 	s.inp \
 	version.dat
 
-testdir = ./testbed/tools/autotest
+testdir = ./testbed/tools/autotests
 @USEMPI_FALSE@check_SCRIPTS = \
-@USEMPI_FALSE@	${testdir}/test_*
+@USEMPI_FALSE@	${testdir}/autotest_*
 
 @USEMPI_TRUE@check_SCRIPTS = \
-@USEMPI_TRUE@	${testdir}/mpi_test_*
+@USEMPI_TRUE@	${testdir}/mpi_autotest_*
 
-@USEMPI_FALSE@TESTS = ${testdir}/test_*
-@USEMPI_TRUE@TESTS = ${testdir}/mpi_test_*
+@USEMPI_FALSE@TESTS = ${testdir}/autotest_*
+@USEMPI_TRUE@TESTS = ${testdir}/mpi_autotest_*
 @USEMPI_TRUE@xbeach_FCFLAGS = -DUSEMPI -DHAVE_MPI_WTIME
 
 # EXTRA_DIST=s.ind s.inp

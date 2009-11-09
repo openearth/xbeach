@@ -96,15 +96,15 @@ testbed:
 	 ln -sf ../test.sh  testbed/tools/autotests/autotest_$$i ; \
 	 ln -sf ../test.sh  testbed/tools/autotests/mpi_autotest_$$i ; \
 	done
-testdir=./testbed/tools/autotest
+testdir=./testbed/tools/autotests
 if USEMPI
 check_SCRIPTS= \
-	${testdir}/mpi_test_*
-TESTS=${testdir}/mpi_test_*
+	${testdir}/mpi_autotest_*
+TESTS=${testdir}/mpi_autotest_*
 else
 check_SCRIPTS= \
-	${testdir}/test_*
-TESTS=${testdir}/test_*
+	${testdir}/autotest_*
+TESTS=${testdir}/autotest_*
 endif
 
 if USEMPI
