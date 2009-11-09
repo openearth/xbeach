@@ -34,6 +34,13 @@ real*8                   :: tbegin,tend
 real*8                   :: t0,t01,t1
 #endif
 
+
+! autotools 
+#ifdef HAVE_CONFIG_H
+character(len=255)       :: cwd ! for printing the working dir
+#include "config.h"
+#endif
+
 ! subversion information
 include 'version.def'
 include 'version.dat'
@@ -43,13 +50,6 @@ include 'version.dat'
 !build_date = '$Date$'
 !build_url = '$HeadURL$'
 
-! autotools 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-
-
 #ifdef USEMPI
 s=>slocal
 call xmpi_initialize
@@ -58,6 +58,11 @@ t0 = MPI_Wtime()
 
 call cpu_time(tbegin)
 call DATE_AND_TIME(DATE=date, TIME=time, ZONE=zone)
+
+! only run this on linux
+#ifdef HAVE_CONFIG_H
+call getcwd(cwd)
+#endif 
 
 if (xmaster) then
   write(*,*)'**********************************************************'
@@ -71,6 +76,9 @@ if (xmaster) then
   write(*,*)'Simulation started: YYYYMMDD    hh:mm:ss     time zone (UTC)'
   write(*,*)'                    ',date(1:10),'  ',time(1:2),':',time(3:4),':',time(5:6),'     ',zone(1:5)
   write(*,*)'                                                          '
+#ifdef HAVE_CONFIG_H
+  write(*,*)' running in: ',cwd 
+#endif
   write(*,*)'General Input Module'
 #ifdef USEMPI
   if(xmaster) then
