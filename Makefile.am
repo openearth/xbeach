@@ -93,8 +93,8 @@ testbed:
 	for i in `ls testbed/input`; \
 	do \
 	 echo "adding $$i"; \
-	 ln -sf ../test.sh  testbed/tools/autotest/test_$$i ; \
-	 ln -sf ../test.sh  testbed/tools/autotest/mpi_test_$$i ; \
+	 ln -sf ../test.sh  testbed/tools/autotests/autotest_$$i ; \
+	 ln -sf ../test.sh  testbed/tools/autotests/mpi_autotest_$$i ; \
 	done
 testdir=./testbed/tools/autotest
 if USEMPI
