@@ -113,7 +113,7 @@ endif
 
 
 # EXTRA_DIST=s.ind s.inp
-EXTRA_DIST=spaceparams.tmpl s.ind s.inp nh_pars.inc version.def VS2008 VS2005 xbeach.dsp xbeach.dsw
+EXTRA_DIST=spaceparams.tmpl s.ind s.inp nh_pars.inc version.def VS2008 xbeach.dsp xbeach.dsw
 SUBDIRS=doc
 CLEANFILES=*.mod *.MOD *.gen version.dat 
 
