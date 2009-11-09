@@ -19,9 +19,9 @@ echo "##teamcity[progressMessage 'configuring mpi version']"
 ./configure --with-mpi
 echo "##teamcity[progressMessage 'building xbeach mpi version']"
 make
-echo "##teamcity[testSuiteStarted name='nompi']"
+echo "##teamcity[testSuiteStarted name='mpi']"
 make check
-echo "##teamcity[testSuiteFinished name='nompi']"
+echo "##teamcity[testSuiteFinished name='mpi']"
 mkdir mpi
 mv ./xbeach nompi
 echo "##teamcity[progressMessage 'cleaning']"
