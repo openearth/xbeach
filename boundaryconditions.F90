@@ -795,8 +795,10 @@ if (par%instat/=9)then
 ! the mpi_shift calls in horizontal directions
   if(xmpi_istop) then
     if (par%front==0) then ! Ad's radiating boundary
-       uu(1,:)=2.0d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))
+       umean(1,:)=(1.d0-factime)*umean(1,:)+factime*uu(1,:)
+       uu(1,:)=2.0d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))+umean(1,:)
        vv(1,:)=vv(2,:)
+       zs(1,:)=zs(2,:)
     elseif (par%front==1) then ! Van Dongeren (1997), weakly reflective boundary condition
        ht(1:2,:)=max(s%zs0(1:2,:)-zb(1:2,:),par%eps)
        beta=uu(1:2,:)-2.*dsqrt(par%g*hum(1:2,:)) !cjaap : replace hh with hum
@@ -860,6 +862,8 @@ if (par%instat/=9)then
     else if (par%front==2) then
 !       uu(1,:)=0.d0
 !      zs(1,:)=max(zs(2,:),zb(1,:))
+    else if (par%front==3) then
+       zs(1,:)=s%zs0(1,:)
     endif ! par%front
     ! uu, zs and umean shift horizontally in two directions (loop was 2..ny)
 #ifdef USEMPI
@@ -881,15 +885,17 @@ if (par%instat/=9)then
   ! Radiating boundary at x=nx*dx
   !
   if (xmpi_isbot) then
-     if (par%back==0) then ! set uu(nx+1,:)=0 
-        uu(nx,:) = 0.d0   
+     if (par%back==0) then ! leave uu(nx+1,:)=0 
+      !  uu(nx,:) = 0.d0   
    !    zs(nx+1,:) = zs(nx,:)
 		! zs(nx+1,2:ny) = zs(nx+1,2:ny) + par%dt*hh(nx,2:ny)*uu(nx,2:ny)/(xu(nx+1)-xu(nx)) -par%dt*(hv(nx+1,2:ny+1)*vv(nx+1,2:ny+1)-hv(nx+1,1:ny)*vv(nx+1,1:ny))/(yv(2:ny+1)-yv(1:ny))
      elseif (par%back==1) then
-        ! uu(nx+1,:)=sqrt(par%g/hh(nx+1,:))*(zs(nx+1,:)-max(zb(nx+1,:),s%zs0(nx+1,:))) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
-        ! uu(nx+1,:)=sqrt(par%g/(s%zs0(nx+1,:)-zb(nx+1,:)))*(zs(nx+1,:)-max(zb(nx+1,:),s%zs0(nx+1,:)))
-        s%umean(2,:) = factime*uu(nx,:)+(1-factime)*s%umean(2,:)    !Ap
-        zs(nx+1,:)=max(s%zs0(nx+1,:),s%zb(nx+1,:))+(uu(nx,:)-s%umean(2,:))*sqrt(max((s%zs0(nx+1,:)-zb(nx+1,:)),par%eps)/par%g)    !Ap
+        umean(2,:) = factime*uu(nx,:)+(1.d0-factime)*s%umean(2,:)   
+        uu(nx,:)=sqrt(par%g/hh(nx,:))*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))+umean(2,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
+        !uu(nx,:)=sqrt(par%g/(s%zs0(nx,:)-zb(nx,:)))*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))
+        !s%umean(2,:) = factime*uu(nx,:)+(1-factime)*s%umean(2,:)    !Ap
+        !zs(nx+1,:)=max(s%zs0(nx+1,:),s%zb(nx+1,:))+(uu(nx,:)-s%umean(2,:))*sqrt(max((s%zs0(nx+1,:)-zb(nx+1,:)),par%eps)/par%g)    !Ap
+        zs(nx+1,:)=zs(nx,:)
      elseif (par%back==2) then
 	   ht(1:2,:)=max(s%zs0(s%nx:s%nx+1,:)-zb(s%nx:s%nx+1,:),par%eps) !cjaap; make sure ht is always larger than zero
 
@@ -941,6 +947,8 @@ if (par%instat/=9)then
       
          endif   ! Robert: dry back boundary points
        enddo
+     elseif (par%back==3) then
+        zs(nx+1,:)=s%zs0(nx+1,:)
      endif  !par%back
     ! fix first and last columns of s%umean and uu and zs
 #ifdef USEMPI
