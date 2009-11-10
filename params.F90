@@ -180,6 +180,7 @@ type parameters
                                                          !         ||b-Ax || < acc*||b||
    real*8        :: solver_alpha               = -123    ! [?] Underrelaxation parameter 
    integer*4     :: solver                     = -123    ! [-] Solver used to solve the linear system, 1=SIP, 2=TRIDIAG (only for 1d)
+   real*8        :: kdmin                      = -123    ! Minimum value of kd ( pi/dx > minkd )
    
    ! Bed composition parameters
    real*8        :: rhos                       = -123    !  [kgm^-3] Solid sediment density (no pores)
@@ -525,6 +526,7 @@ endif
 
 par%secorder     = readkey_int('params.txt','secorder' ,0,0,1)
 par%solver_maxit = readkey_int('params.txt','solver_maxit' ,30,1,1000)
+par%kdmin        = readkey_dbl('params.txt','kdmin' ,0.0d0,0.0d0,0.05d0)  
 par%solver_acc   = readkey_dbl('params.txt','solver_acc' ,0.005d0,0.00001d0,0.1d0)  
 par%solver_alpha = readkey_dbl('params.txt','solver_urelax' ,0.94d0,0.5d0,0.99d0)
 par%solver       = readkey_int('params.txt','solver' ,1,0,2)
