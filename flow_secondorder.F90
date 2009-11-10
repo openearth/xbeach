@@ -184,34 +184,6 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
       call flow_secondorder_init(s,0)
     endif  
     
-    
-    !
-#ifndef USEMPI
-    if (par%nonh == 1) then
-      !Include explicit approximation for pressure in s%uu and s%vv
-    
-      do j=2,s%ny
-        do i=2,s%nx-1
-          if (s%wetu(i,j) == 1) then
-            s%uu(i,j) = s%uu(i,j) - 0.5_rKind*par%dt/s%hum(i,j) * ( (s%zs(i+1,j)-s%zb(i  ,j)) * s%pres(i+1,j)   &
-                                                                  - (s%zs(i  ,j)-s%zb(i+1,j)) * s%pres(i  ,j)  ) &
-                                                                  / (s%xz(i+1)-s%xz(i))
-          endif
-        enddo
-      enddo
-
-      do j=2,s%ny-1
-        do i=2,s%nx
-          if (s%wetv(i,j) == 1) then        
-            s%vv(i,j) = s%vv(i,j) - 0.5_rKind*par%dt/s%hvm(i,j) * ( (s%zs(i,j+1)-s%zb(i,j  )) * s%pres(i,j+1)   &
-                                                                  - (s%zs(i,j  )-s%zb(i,j+1)) * s%pres(i,j  ) ) &
-                                                                  / (s%yz(j+1)-s%yz(j))
-          endif
-        enddo
-      enddo
-    endif
-#endif
-    !return
     !-- calculate du in z-points --
     do j=2,s%ny
       do i=2,s%nx
@@ -409,7 +381,10 @@ subroutine flow_secondorder_advW(s,par,w,w_old)
 !-------------------------------------------------------------------------------
 !                             IMPLEMENTATION
 !-------------------------------------------------------------------------------
-
+    !Initialize/allocate arrays on first entry
+    if (.not. initialized) then
+      call flow_secondorder_init(s,0)
+    endif  
 
    !== SECOND ORDER EXPLICIT CORRECTION TO W ==
     do j=2,s%ny
