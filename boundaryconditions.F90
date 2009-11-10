@@ -824,15 +824,16 @@ if (par%instat/=9)then
           betanp1(1,j) = beta(1,j)+ bn(j)*par%dt
           alpha2(j)=-theta0
           alphanew = 0.d0
-          s%umean(1,j) = (factime*uu(1,j)+(1-factime)*s%umean(1,j))  
+          umean(1,j) = (factime*uu(1,j)+(1-factime)*umean(1,j))  
+		  vmean(1,j) = (factime*vu(1,j)+(1-factime)*vmean(1,j))  
           do jj=1,50
              !---------- Lower order bound. cond. ---
              qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
-               *(0.5d0*(ht(1,j)+ht(2,j))*(betanp1(1,j)-s%umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))))&  !Jaap replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
+               *(0.5d0*(ht(1,j)+ht(2,j))*(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))))&  !Jaap replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
                -(ui(1,j)*hum(1,j))*(dcos(theta0)-1.d0)/dcos(theta0))   !Jaap replaced hh with hu
 
              !vert = velocity of the reflected wave = total-specified
-             vert = vu(1,j)-ui(1,j)*tan(theta0)
+             vert = vu(1,j)-vmean(1,j)-ui(1,j)*tan(theta0)
              alphanew = datan(vert*hh(1,j)/(qxr+1.d-16))                   ! wwvv can  use atan2 here
              if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
              if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
@@ -845,9 +846,9 @@ if (par%instat/=9)then
              zs(1,j) = zs(2,j)
           else
 		  	 ! jaap: to fix surge in 2DH case
-	         ! s%umean(1,j) = (par%epsi*2.d0*qxr/(ht(1,j)+ht(2,j))+(1-par%epsi)*s%umean(1,j))  
+	         ! umean(1,j) = (par%epsi*2.d0*qxr/(ht(1,j)+ht(2,j))+(1-par%epsi)*umean(1,j))  
 			 !
-             uu(1,j) = (par%order-1.d0)*ui(1,j)+2.d0*qxr/(ht(1,j)+ht(2,j)) + s%umean(1,j)
+             uu(1,j) = (par%order-1.d0)*ui(1,j)+2.d0*qxr/(ht(1,j)+ht(2,j)) + umean(1,j)
              !with a taylor expansion to get to the zs point at index 1 from uu(1) and uu(2)
              zs(1,j) = 1.5d0*((betanp1(1,j)-uu(1,j))**2/4.d0/par%g+.5d0*(zb(1,j)+zb(2,j)))- &
                        0.5d0*((beta(2,j)-uu(2,j))**2/4.d0/par%g+.5d0*(zb(2,j)+zb(3,j)))
@@ -867,8 +868,10 @@ if (par%instat/=9)then
     endif ! par%front
     ! uu, zs and umean shift horizontally in two directions (loop was 2..ny)
 #ifdef USEMPI
-    call xmpi_shift(s%umean,':1')
-    call xmpi_shift(s%umean,':n')
+    call xmpi_shift(umean,':1')
+    call xmpi_shift(umean,':n')
+	call xmpi_shift(vmean,':1')
+    call xmpi_shift(vmean,':n')
     call xmpi_shift(uu,':1')
     call xmpi_shift(uu,':n')
     call xmpi_shift(zs,':1')
@@ -890,11 +893,11 @@ if (par%instat/=9)then
    !    zs(nx+1,:) = zs(nx,:)
 		! zs(nx+1,2:ny) = zs(nx+1,2:ny) + par%dt*hh(nx,2:ny)*uu(nx,2:ny)/(xu(nx+1)-xu(nx)) -par%dt*(hv(nx+1,2:ny+1)*vv(nx+1,2:ny+1)-hv(nx+1,1:ny)*vv(nx+1,1:ny))/(yv(2:ny+1)-yv(1:ny))
      elseif (par%back==1) then
-        umean(2,:) = factime*uu(nx,:)+(1.d0-factime)*s%umean(2,:)   
+        umean(2,:) = factime*uu(nx,:)+(1.d0-factime)*umean(2,:)   
         uu(nx,:)=sqrt(par%g/hh(nx,:))*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))+umean(2,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
         !uu(nx,:)=sqrt(par%g/(s%zs0(nx,:)-zb(nx,:)))*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))
-        !s%umean(2,:) = factime*uu(nx,:)+(1-factime)*s%umean(2,:)    !Ap
-        !zs(nx+1,:)=max(s%zs0(nx+1,:),s%zb(nx+1,:))+(uu(nx,:)-s%umean(2,:))*sqrt(max((s%zs0(nx+1,:)-zb(nx+1,:)),par%eps)/par%g)    !Ap
+        !umean(2,:) = factime*uu(nx,:)+(1-factime)*umean(2,:)    !Ap
+        !zs(nx+1,:)=max(s%zs0(nx+1,:),s%zb(nx+1,:))+(uu(nx,:)-umean(2,:))*sqrt(max((s%zs0(nx+1,:)-zb(nx+1,:)),par%eps)/par%g)    !Ap
         zs(nx+1,:)=zs(nx,:)
      elseif (par%back==2) then
 	   ht(1:2,:)=max(s%zs0(s%nx:s%nx+1,:)-zb(s%nx:s%nx+1,:),par%eps) !cjaap; make sure ht is always larger than zero
@@ -925,11 +928,11 @@ if (par%instat/=9)then
           betanp1(1,j) = beta(2,j)+ bn(j)*par%dt                                   !Ap toch?
           alpha2(j)= theta0
           alphanew = 0.d0
-          s%umean(2,j) = (factime*uu(s%nx,j)+(1-factime)*s%umean(2,j))           !Ap 
+          umean(2,j) = (factime*uu(s%nx,j)+(1-factime)*umean(2,j))           !Ap 
           do jj=1,50
              !---------- Lower order bound. cond. ---
              qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&  
-               *(0.5*(ht(1,j)+ht(2,j))*(betanp1(1,j)-s%umean(2,j)-2.d0*DSQRT(par%g*0.5*(ht(1,j)+ht(2,j))))) 
+               *(0.5*(ht(1,j)+ht(2,j))*(betanp1(1,j)-umean(2,j)-2.d0*DSQRT(par%g*0.5*(ht(1,j)+ht(2,j))))) 
 
              !vert = velocity of the reflected wave = total-specified
              vert = vu(s%nx,j)
@@ -940,7 +943,7 @@ if (par%instat/=9)then
              alpha2(j) = alphanew 
           end do
     2000  continue
-          uu(s%nx,j) = 2.*qxr/(ht(1,j)+ht(2,j)) + s%umean(2,j)                       !Jaap: replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
+          uu(s%nx,j) = 2.*qxr/(ht(1,j)+ht(2,j)) + umean(2,j)                       !Jaap: replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
               ! Ap replaced zs with extrapolation.
           zs(s%nx+1,j) = 1.5*((betanp1(1,j)-uu(s%nx,j))**2.d0/4.d0/par%g+.5*(zb(s%nx,j)+zb(s%nx+1,j)))-&
                                          0.5*((beta(1,j)-uu(s%nx-1,j))**2.d0/4.d0/par%g+.5*(zb(s%nx-1,j)+zb(s%nx,j)))
@@ -950,10 +953,10 @@ if (par%instat/=9)then
      elseif (par%back==3) then
         zs(nx+1,:)=s%zs0(nx+1,:)
      endif  !par%back
-    ! fix first and last columns of s%umean and uu and zs
+    ! fix first and last columns of umean and uu and zs
 #ifdef USEMPI
-    call xmpi_shift(s%umean,':1')
-    call xmpi_shift(s%umean,':n')
+    call xmpi_shift(umean,':1')
+    call xmpi_shift(umean,':n')
     call xmpi_shift(uu,':1')
     call xmpi_shift(uu,':n')
     call xmpi_shift(zs,':1')

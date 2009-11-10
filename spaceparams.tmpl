@@ -132,7 +132,8 @@
       real*8  2  usd    s%nx+1 s%ny+1 d ! [m/s]      return flow due to roller after breaker delay
       real*8  1  bi     s%ny+1 d ! [m]        incoming bound long wave
       real*8  2  DR     s%nx+1 s%ny+1 d ! [W/m2]     roller energy dissipation
-      real*8  2  umean  2 s%ny+1 2 ! [m/s]      longterm mean velocity at bnds
+      real*8  2  umean  2 s%ny+1 2 ! [m/s]      longterm mean velocity at bnds in x-direction
+      real*8  2  vmean  2 s%ny+1 2 ! [m/s]      longterm mean velocity at bnds in y-direction
       integer 0  vardx  b ! [-]        0 = uniform grid size, 1 = variable grid size
       real*8  2  vu     s%nx+1 s%ny+1 d ! [m/s]      y velocity in u points          
       real*8  2  uv     s%nx+1 s%ny+1 d ! [m/s]          x velocity in v points

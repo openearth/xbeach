@@ -61,12 +61,14 @@ real*8,dimension(:),allocatable     :: yzs0,szs0
   allocate(s%bi(1:s%ny+1))
   allocate(s%DR(1:s%nx+1,1:s%ny+1)) 
   allocate(s%umean(2,1:s%ny+1))
+  allocate(s%vmean(2,1:s%ny+1))
   allocate(s%umwci       (1:s%nx+1,1:s%ny+1))
   allocate(s%vmwci       (1:s%nx+1,1:s%ny+1))
   allocate(s%zswci       (1:s%nx+1,1:s%ny+1))
   allocate(s%BR(1:s%nx+1,1:s%ny+1))
 
   s%umean=0.
+  s%vmean=0.
 
   if (par%tideloc>0) then
 
