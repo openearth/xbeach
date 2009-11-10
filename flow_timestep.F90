@@ -186,7 +186,7 @@ endif
     do j=1,ny+1
         do i=1,nx+1
             !A eta point is wet if any of the surrounding velocity points is wet...
-            !s%wetz(i,j) = min(1,s%wetu(max(i,2)-1,j)+s%wetu(i,j)+s%wetv(i,j)+s%wetv(i,max(j,2)-1))
+!            s%wetz(i,j) = min(1,s%wetu(max(i,2)-1,j)+s%wetu(i,j)+s%wetv(i,j)+s%wetv(i,max(j,2)-1))
             if(hh(i,j)>par%eps) then
                 wetz(i,j)=1
             else
@@ -339,6 +339,11 @@ endif
         end do 
     end do
 
+    if (par%nonh==1) then
+       !Do explicit predictor step with pressure
+       call nonh_explicit(s,par)
+    end if
+
     if (par%secorder==1) then
        !Call second order correction to the advection
        call flow_secondorder_advUV(s,par,uu_old,vv_old)
@@ -350,10 +355,10 @@ endif
         ! Water depth in u-points do continuity equation: upwind
         if (uu(i,j)>par%umin) then
           hu(i,j)=hh(i,j)
-		  !hu(i,j)=zs(i,j)-max(zb(i,j),zb(min(nx,i)+1,j))
+		     ! hu(i,j)=zs(i,j)-max(zb(i,j),zb(min(nx,i)+1,j))
         elseif (uu(i,j)<-par%umin) then
           hu(i,j)=hh(min(nx,i)+1,j)  
-		  !hu(i,j)=zs(min(nx,i)+1,j)-max(zb(i,j),zb(min(nx,i)+1,j))
+		      !hu(i,j)=zs(min(nx,i)+1,j)-max(zb(i,j),zb(min(nx,i)+1,j))
         else
           hu(i,j)=max(max(zs(i,j),zs(min(nx,i)+1,j))-max(zb(i,j),zb(min(nx,i)+1,j)),par%eps)          
         end if
@@ -378,13 +383,14 @@ endif
     call xmpi_shift(hu ,'m:')
 	call xmpi_shift(hv ,':n')
 #endif	
+
     ! 
     ! Dano in case of closed boundaries we need to set vv to 0 before computing qv,
     ! to avoid mass errors
 	! Lateral boundary at y=0
     if (par%right==1) then
       vv(2:nx+1,1) = 0.d0
-	else
+	  else
 	  vv(2:nx+1,1) = vv(2:nx+1,2) ! RJ: 
     endif
 	uu(1:nx+1,1)=uu(1:nx+1,2) ! RJ: can also be done after continuity but more appropriate here
