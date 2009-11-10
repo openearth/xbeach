@@ -37,13 +37,14 @@ module nonh_module
 
   real (kind=rKind), allocatable, dimension(:,:,:)   :: au     !Pressure coeficients for u(i,j)
   real (kind=rKind), allocatable, dimension(:,:,:)   :: av     !Pressure coeficients for v(i,j)
-  real (kind=rKind), allocatable, dimension(:,:,:,:) :: aw     !Pressure coeficients for w(k,i,j)
+  real (kind=rKind), allocatable, dimension(:,:,:)   :: aws    !Pressure coeficients for ws(k,i,j)
+  real (kind=rKind), allocatable, dimension(:,:,:)   :: awb    !Pressure coeficients for wb(k,i,j)
+
   
   real (kind=rKind), allocatable, dimension(:,:)     :: aur    !RHS for u(i,j)
   real (kind=rKind), allocatable, dimension(:,:)     :: avr    !RHS for v(i,j)
-  real (kind=rKind), allocatable, dimension(:,:,:)   :: awr    !RHS for w(k,i,j)
-  real (kind=rKind), allocatable, dimension(:,:,:,:) :: dpdz   !RHS for w(k,i,j)
-  real (kind=rKind), allocatable, dimension(:,:,:)   :: dpdzr   !RHS for w(k,i,j)  
+  real (kind=rKind), allocatable, dimension(:,:)     :: awbr   !Pressure coeficients for wb(k,i,j)  
+  real (kind=rKind), allocatable, dimension(:,:)     :: awsr   !Pressure coeficients for ws(k,i,j)
     
   real (kind=rKind), allocatable, dimension(:,:,:)   :: mat   !Pressure matrix
   real (kind=rKind), allocatable, dimension(:,:)     :: rhs   !RHS of the pressure matrix
@@ -54,24 +55,29 @@ module nonh_module
   real (kind=rKind), allocatable, dimension(:,:)     :: zbu    !free surface/bottom in velocity points
   real (kind=rKind), allocatable, dimension(:,:)     :: zbv    !free surface/bottom in velocity points
   
-  real (kind=rKind), allocatable, dimension(:,:)     :: dp    !free surface/bottom in velocity points  
+  real (kind=rKind), allocatable, dimension(:,:)     :: dp     !Change in pressure
     
-  real (kind=rKind), allocatable, dimension(:)       ::  dxz    !free surface/bottom in velocity points
-  real (kind=rKind), allocatable, dimension(:)       ::  dyz    !free surface/bottom in velocity points  
-  real (kind=rKind), allocatable, dimension(:)       ::  dxu    !free surface/bottom in velocity points
-  real (kind=rKind), allocatable, dimension(:)       ::  dyv    !free surface/bottom in velocity points  
-  real (kind=rKind), allocatable, dimension(:)       ::  ddxz    !free surface/bottom in velocity points
-  real (kind=rKind), allocatable, dimension(:)       ::  ddyz    !free surface/bottom in velocity points  
-  real (kind=rKind), allocatable, dimension(:)       ::  ddxu    !free surface/bottom in velocity points
-  real (kind=rKind), allocatable, dimension(:)       ::  ddyv    !free surface/bottom in velocity points  
+  real (kind=rKind), allocatable, dimension(:)       ::  dxz   
+  real (kind=rKind), allocatable, dimension(:)       ::  dyz   
+  real (kind=rKind), allocatable, dimension(:)       ::  dxu   
+  real (kind=rKind), allocatable, dimension(:)       ::  dyv   
+  real (kind=rKind), allocatable, dimension(:)       ::  ddxz  
+  real (kind=rKind), allocatable, dimension(:)       ::  ddyz   
+  real (kind=rKind), allocatable, dimension(:)       ::  ddxu  
+  real (kind=rKind), allocatable, dimension(:)       ::  ddyv   
   
-  real (kind=rKind), allocatable, dimension(:,:)     :: ws_old    !Velocity at the old time level  
-  real (kind=rKind), allocatable, dimension(:,:)     :: wb_old    !Velocity at the old time level    
+  real (kind=rKind), allocatable, dimension(:,:)     :: Wm
+  real (kind=rKind), allocatable, dimension(:,:)     :: Wm_old
+  
+  integer(kind=iKind),allocatable,dimension(:,:)     :: nonhU
+  integer(kind=iKind),allocatable,dimension(:,:)     :: nonhV
+  integer(kind=iKind),allocatable,dimension(:,:)     :: nonhZ
 
   !--- PUBLIC SUBROUTINES ---
   public nonh_init
   public nonh_cor
   public nonh_free
+  public nonh_explicit
   
   !--- PRIVATE SUBROUTINES
   
@@ -120,11 +126,13 @@ contains
     allocate(au (0:1,s%nx+1,s%ny+1)); au = 0.0_rKind
     allocate(av (0:1,s%nx+1,s%ny+1)); av = 0.0_rKind
     
-    allocate(aw (5,0:1,s%nx+1,s%ny+1)); aw = 0.0_rKind
+    allocate(aws (5,s%nx+1,s%ny+1)); aws = 0.0_rKind
+    allocate(awb (5,s%nx+1,s%ny+1)); awb = 0.0_rKind    
     
     allocate(aur(   s%nx+1,s%ny+1)); aur = 0.0_rKind
     allocate(avr(   s%nx+1,s%ny+1)); avr = 0.0_rKind
-    allocate(awr(0:1,s%nx+1,s%ny+1)); awr = 0.0_rKind
+    allocate(awsr(s%nx+1,s%ny+1)); awsr = 0.0_rKind
+    allocate(awbr(s%nx+1,s%ny+1)); awbr = 0.0_rKind    
     
     allocate(mat(5,s%nx+1,s%ny+1));  mat = 0.0_rKind
     allocate(rhs(  s%nx+1,s%ny+1));  rhs = 0.0_rKind
@@ -143,18 +151,23 @@ contains
     allocate(ddxu (  s%nx+1));  ddxu  = 0.0_rKind
     allocate(ddyv (  s%ny+1));  ddyv  = 0.0_rKind      
     
-    allocate(ws_old(s%nx+1,s%ny+1)); ws_old = 0.0_rKind
-    allocate(wb_old(s%nx+1,s%ny+1)); wb_old = 0.0_rKind      
-    allocate(dp(s%nx+1,s%ny+1)); dp = 0.      
-    allocate(dpdz(5,0:1,s%nx+1,s%ny+1)); dpdz = 0.
-    allocate(dpdzr(0:1,s%nx+1,s%ny+1)); dpdzr = 0.        
+    allocate(nonhU(  s%nx+1,s%ny+1)); nonhU = 1
+    allocate(nonhV(  s%nx+1,s%ny+1)); nonhV = 1
+    allocate(nonhZ(  s%nx+1,s%ny+1)); nonhZ = 1
+    
+    allocate(dp(s%nx+1,s%ny+1)); dp = 0.0_rKind
+
+    allocate(Wm(s%nx+1,s%ny+1));Wm     = 0.0_rKind
+    allocate(Wm_old(s%nx+1,s%ny+1));Wm_old = 0.0_rKind
     
     if (.not. associated(s%pres)) then   
       allocate(s%pres(s%nx+1,s%ny+1)); s%pres = 0.0_rKind   
       allocate(s%ws(s%nx+1,s%ny+1)); s%ws = 0.0_rKind
       allocate(s%wb(s%nx+1,s%ny+1)); s%wb = 0.0_rKind
     endif  
-       
+    
+    
+    !Initialize grid variables
     do j=1,s%ny+1
       js = min(j+1,s%ny+1)
       jn = max(j-1,1     )      
@@ -204,7 +217,6 @@ contains
     use params
     !use timer_module
     use solver_module
-    use flow_secondorder_module
 !--------------------------     ARGUMENTS          ----------------------------
 
     type(spacepars) ,intent(inout)                       :: s
@@ -217,11 +229,14 @@ contains
     integer(kind=iKind)                     :: j               !Index variables
     
     !Work
-    real(kind=rKind)                        :: dwdx1,dwdx2
-    real(kind=rKind)                        :: dwdy1,dwdy2    
-    real(kind=rKind)                        :: dzdx,dzdy,delta1,delta2
+    real(kind=rKind)                        :: dzbdx1
+    real(kind=rKind)                        :: dzbdx2       
+    real(kind=rKind)                        :: dzbdy1
+    real(kind=rKind)                        :: dzbdy2
+    real(kind=rKind)                        :: delta1,delta2
     real(kind=rKind)                        :: dzsu,dzsv    
-    real(kind=rKind)                        :: dzbu,dzbv
+    real(kind=rKind)                        :: dzbu1,dzbv1
+    real(kind=rKind)                        :: dzbu2,dzbv2   
     real(kind=rKind)                        :: vol    
     real(kind=rKind)                        :: mindepth
    
@@ -232,60 +247,10 @@ contains
 !-------------------------------------------------------------------------------   
 !
   !call timer_start(timer_flow_nonh)
-  
   if (.not. initialized) then
     call nonh_init(s)
-  endif  
-  
-  
-  !Calculate explicit part vertical momentum (advection)
-  do j=2,s%ny
-    do i=2,s%nx
-      s%ws(i,j) = s%ws(i,j) -   par%dt*( ddxu(i-1)*max(s%qx(i-1,j  ),0.0_rKind)*(ws_old(i  ,j  )-ws_old(i-1,j  ))/s%hh(i,j)   &
-                                       + ddxu(i)  *min(s%qx(i  ,j  ),0.0_rKind)*(ws_old(i+1,j  )-ws_old(i  ,j  ))/s%hh(i,j)   &
-                                       + ddyv(j-1)*max(s%qy(i  ,j-1),0.0_rKind)*(ws_old(i  ,j  )-ws_old(i  ,j-1))/s%hh(i,j)   &
-                                       + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(ws_old(i  ,j+1)-ws_old(i  ,j  ))/s%hh(i,j) )
-    enddo
-  enddo
+  endif    
 
-  !Calculate explicit part vertical viscocity
-  do j=2,s%ny
-    do i=2,s%nx
-      dwdx1 = (ws_old(i  ,j  )-ws_old(i-1,j  ))*ddxu(i-1)
-      dwdx2 = (ws_old(i+1,j  )-ws_old(i  ,j  ))*ddxu(i)
-      dwdy1 = (ws_old(i  ,j  )-ws_old(i  ,j-1))*ddyv(j-1)
-      dwdy2 = (ws_old(i  ,j+1)-ws_old(i  ,j  ))*ddyv(j)
-      s%ws(i,j) = s%ws(i,j)   + par%dt*par%nuh*(dwdx2-dwdx1)*ddxz(i)*real(s%wetu(i,j)*s%wetu(i-1,j),rKind) &
-                              + par%dt*par%nuh*(dwdy2-dwdy1)*ddyz(j)*real(s%wetv(i,j)*s%wetv(i,j-1),rKind)
-    enddo
-  enddo
-
-
-
-  !Calculate explicit part vertical momentum (advection)
-  do j=2,s%ny
-    do i=2,s%nx
-      s%wb(i,j) = s%wb(i,j) -   par%dt*( ddxu(i-1)*max(s%qx(i-1,j  ),0.0_rKind)*(s%wb(i  ,j  )-s%wb(i-1,j  ))/s%hh(i,j) &
-                                       + ddxu(i)  *min(s%qx(i  ,j  ),0.0_rKind)*(s%wb(i+1,j  )-s%wb(i  ,j  ))/s%hh(i,j) &
-                                       + ddyv(j-1)*max(s%qy(i  ,j-1),0.0_rKind)*(s%wb(i  ,j  )-s%wb(i  ,j-1))/s%hh(i,j) &
-                                       + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(s%wb(i  ,j+1)-s%wb(i  ,j  ))/s%hh(i,j) )                                      
-    enddo
-  enddo
-    
- !Calculate explicit part vertical viscocity
-  do j=2,s%ny
-    do i=2,s%nx
-      dwdx1 = (wb_old(i  ,j  )-wb_old(i-1,j  ))*ddxu(i-1)
-      dwdx2 = (wb_old(i+1,j  )-wb_old(i  ,j  ))*ddxu(i)
-      dwdy1 = (wb_old(i  ,j  )-wb_old(i  ,j-1))*ddyv(j-1)
-      dwdy2 = (wb_old(i  ,j+1)-wb_old(i  ,j  ))*ddyv(j)
-      s%wb(i,j) = s%wb(i,j)   + par%dt*par%nuh*(dwdx2-dwdx1)*ddxz(i)*real(s%wetu(i,j)*s%wetu(i-1,j),rKind) &
-                              + par%dt*par%nuh*(dwdy2-dwdy1)*ddyz(j)*real(s%wetv(i,j)*s%wetv(i,j-1),rKind)
-    enddo
-  enddo
- 
- 
- 
   !Free surface location in u-point
   do j=1,s%ny+1
     do i=1,s%nx
@@ -327,14 +292,13 @@ contains
     enddo
   enddo  
   zbv(:,s%ny+1) = s%zb(:,s%ny+1)
-
   !call timer_start(timer_flow_nonh_mat)
   
   !Built pressure coefficients U  
   !call timer_start(timer_flow_nonh_au)  
   do j=2,s%ny
     do i=2,s%nx
-      if (s%wetU(i,j)==1) then
+      if (nonhU(i,j)==1) then
         vol       = 0.5_rKind*par%dt/(s%hum(i,j)*dxu(i))      
         au(1,i,j) = - (s%zs(i+1,j) - s%zb(i  ,j))*vol
         au(0,i,j) = + (s%zs(i  ,j) - s%zb(i+1,j))*vol
@@ -342,9 +306,9 @@ contains
       else
         au(1,i,j) =  0.0_rKind
         au(0,i,j) =  0.0_rKind
-        aur(i,j)  =  0.0_rKind
-      endif  
-    enddo    
+        aur(i,j)  =  s%uu(i,j)
+      endif
+    enddo
   enddo
   au(:,1,:)      = 0.0_rKind
   au(:,s%nx,:)   = 0.0_rKind
@@ -356,15 +320,15 @@ contains
   !call timer_start(timer_flow_nonh_av)    
   do j=2,s%ny
     do i=2,s%nx
-      vol       = 0.5_rKind*par%dt/(s%hvm(i,j)*dyv(j))
-      if (s%wetV(i,j)==1)then
+      if (nonhV(i,j)==1)then
+        vol       = 0.5_rKind*par%dt/(s%hvm(i,j)*dyv(j))      
         av(1,i,j)  = -(s%zs(i  ,j+1) - s%zb(i  ,j  ))*vol
         av(0,i,j)  = +(s%zs(i  ,j  ) - s%zb(i  ,j+1))*vol
         avr(i,j)   = s%vv(i,j)
       else
         av(1,i,j) =  0.0_rKind
         av(0,i,j) =  0.0_rKind
-        avr(i,j)  =  0.0_rKind
+        avr(i,j)  =  s%vv(i,j)
       endif  
     enddo    
   enddo
@@ -377,124 +341,91 @@ contains
   !Built pressure coefficients for W
   !call timer_start(timer_flow_nonh_aw)    
   
+  !AW Bottom
   do j=2,s%ny
     do i=2,s%nx
-        !Bottom gradients
-        dzdx = .5_rKind*(  zbu(i,  j) - zbu(i-1,j) )  *ddxz(i)
-        dzdy = .5_rKind*(  zbv(i,  j) - zbv(i  ,j-1) )*ddyz(j)
+      if (nonhZ(i,j) == 1) then
+        !Kinematic boundary condition bottom
+        dzbdx1 = min((zbu(i,j)-zbu(i-1,j))*ddxz(i),0.0_rKind) !(   zbu(i,  j) - s%zb(i,j) )   *ddxz(i)
+        dzbdx2 = max((zbu(i,j)-zbu(i-1,j))*ddxz(i),0.0_rKind) !(  s%zb(i,  j) - zbu(i-1,j) )  *ddxz(i)
+        dzbdy1 = min((zbv(i,j)-zbv(i,j-1))*ddyz(j),0.0_rKind) !(  zbv(i,  j) -  s%zb(i  ,j) ) *ddyz(j)
+        dzbdy2 = max((zbv(i,j)-zbv(i,j-1))*ddyz(j),0.0_rKind) !(  s%zb(i,  j) - zbv(i  ,j) )  *ddyz(j)        
      
-        dpdz(1,0,i,j) = - dzdx *( au(0,i  ,j  )+au(1,i-1,j  ) ) &           !main diagonal
-                        - dzdy *( av(0,i  ,j  )+av(1,i  ,j-1) )
-        dpdz(2,0,i,j) = - dzdx *  au(0,i-1,j  )                             !west
-        dpdz(3,0,i,j) = - dzdx *  au(1,i  ,j  )                             !east
-        dpdz(4,0,i,j) = - dzdy *  av(0,i  ,j-1)                             !south
-        dpdz(5,0,i,j) = - dzdy *  av(1,i  ,j  )                             !north
+        awb(1,i,j) =  dzbdx1 * au(0,i  ,j  )+dzbdx2*au(1,i-1,j  )  &           !main diagonal
+                   +  dzbdy1 * av(0,i  ,j  )+dzbdy2*av(1,i  ,j-1) 
+        awb(2,i,j) =  dzbdx2 *  au(0,i-1,j  )                             !west
+        awb(3,i,j) =  dzbdx1 *  au(1,i  ,j  )                             !east
+        awb(4,i,j) =  dzbdy2 *  av(0,i  ,j-1)                             !south
+        awb(5,i,j) =  dzbdy1 *  av(1,i  ,j  )                             !north
 
-        dpdzr(0,i,j)  = - dzdx*( s%uu(i,j)+s%uu(i-1,j  ) ) &
-                        - dzdy*( s%vv(i,j)+s%vv(i  ,j-1) ) &
-                        + s%wb(i,j)
-                      
-        dpdz(1,1,i,j)   = - 2.0_rKind*par%dt/s%hh(i,j) - dpdz(1,0,i,j)
-        dpdz(2,1,i,j)   =                              - dpdz(2,0,i,j)
-        dpdz(3,1,i,j)   =                              - dpdz(3,0,i,j)
-        dpdz(4,1,i,j)   =                              - dpdz(4,0,i,j)
-        dpdz(5,1,i,j)   =                              - dpdz(5,0,i,j)
-        dpdzr(1,i,j)    =  - dpdzr(0,i,j)
-    enddo
-  enddo  
-   
-
-  if (par%secorder == 1) then
-    !Include non-hydrostatic pressure explicitly
-    do j=2,s%ny
-      do i=2,s%nx
-        s%ws(i,j) = s%ws(i,j)  - dpdzr(1,i,j)+ 2.0_rKind*par%dt/s%hh(i,j)*s%pres(i,j)
-      enddo
-    enddo
-  else  
-    do j=2,s%ny
-      do i=2,s%nx
-        s%ws(i,j) = s%ws(i,j)  - dpdzr(1,i,j)
-      enddo
-    enddo  
-  endif  
-
-  do j=2,s%ny
-    do i=2,s%nx
-      s%wb(i,j) = s%wb(i,j)  - dpdzr(0,i,j)      
+        awbr(i,j)  =  dzbdx1*s%uu(i,j)+dzbdx2*s%uu(i-1,j  ) &
+                   +  dzbdy1*s%vv(i,j)+dzbdy2*s%vv(i  ,j-1)
+      else
+        awb(:,i,j) = 0.0_rKind
+        awbr(i,j) = 0.0_rKind        
+      endif             
     enddo
   enddo
-
-    
-  if (par%secorder == 1) then    
-    call flow_secondorder_advW(s,par,s%ws,ws_old)
-    call flow_secondorder_advW(s,par,s%wb,wb_old)    
-  endif   
-   
+  
   do j=2,s%ny
     do i=2,s%nx
-      if (s%wetZ(i,j)==1) then     
-        aw(:,:,i,j) = - dpdz(:,:,i,j)
+      if (nonhZ(i,j) == 1) then
+        aws(1,i,j)   =  par%dt*2.0_rKind/s%hh(i,j)-awb(1,i,j)
+        aws(2:5,i,j) =  -awb(2:5,i,j)
+        awsr(i,j)    =  2.0_rKind * Wm(i,j)-awbr(i,j)
       else
-        aw(:,:,i,j)  = 0.0_rKind
-      endif        
-    enddo
-  enddo
-  !call timer_stop(timer_flow_nonh_aw)  
-
-  do j=2,s%ny
-    do i=2,s%nx
-      if (s%wetZ(i,j)==1) then
-        awr(0,i,j) = s%wb(i,j) !- dpdzr(0,i,j)
-        awr(1,i,j) = s%ws(i,j) !- dpdzr(1,i,j)
-      else
-        awr(:,i,j) = 0.0_rKind
+        aws(:,i,j)   =  0.0_rKind
+        awsr(i,j)    =  0.0_rKind
       endif
     enddo
   enddo
- 
+
+  !call timer_stop(timer_flow_nonh_aw)
+
   !Substitute in the continuity equation
   !call timer_start(timer_flow_nonh_subs)
   do j=2,s%ny
     do i=2,s%nx
-      if (s%wetZ(i,j)==1) then
+      if (nonhZ(i,j)==1) then
         dzsu = .5*dyz(j)*(zsu(i,j)-zsu(i-1,j))
         dzsv = .5*dxz(i)*(zsv(i,j)-zsv(i,j-1))
-        dzbu = .5*dyz(j)*(zbu(i,j)-zbu(i-1,j))
-        dzbv = .5*dxz(i)*(zbv(i,j)-zbv(i,j-1))
-    
+        dzbu1 = min((zbu(i,j)-zbu(i-1,j))*dyz(j),0.0_rKind) !dyz(j)*(zbu(i,j)-s%zb(i,j))
+        dzbu2 = max((zbu(i,j)-zbu(i-1,j))*dyz(j),0.0_rKind) !dyz(j)*(s%zb(i,j)-zbu(i-1,j))
+        dzbv1 = min((zbv(i,j)-zbv(i,j-1))*dxz(i),0.0_rKind) !dxz(i)*(zbv(i,j)-s%zb(i,j))
+        dzbv2 = max((zbv(i,j)-zbv(i,j-1))*dxz(i),0.0_rKind) !dxz(i)*(zbv(i,j)-zbv(i,j-1))
+
         mat(1,i,j) =    dyz(j)*( s%hu(i,j)*au(0,i,j) - s%hu(i-1,j  )*au(1,i-1,  j) )  & !subs U left/right face
                    +    dxz(i)*( s%hv(i,j)*av(0,i,j) - s%hv(i  ,j-1)*av(1,i  ,j-1) )  & !subs V left/rigth face
                    -    dzsu*(au(0,i,j) + au(1,i-1,j)) - dzsv*(av(0,i,j) + av(1,i-1,j)) & !kin. boun. top
-                   +    dzbu*(au(0,i,j) + au(1,i-1,j)) + dzbv*(av(0,i,j) + av(1,i-1,j)) & !kin. boun. bot V
-                   +    dxz(i)*dyz(j)*(aw(1,1,i,j)-aw(1,0,i,j))                       !Vert velocity top/bottom face
+                   +    dzbu1*au(0,i,j) + dzbu2*au(1,i-1,j) + dzbv1*av(0,i,j) + dzbv1*av(1,i-1,j) & !kin. boun. bot V
+                   +    dxz(i)*dyz(j)*(aws(1,i,j)-awb(1,i,j))                       !Vert velocity top/bottom face
 
         mat(2,i,j) = -  dyz(j)*s%hu(i-1,j)*au(0,i-1,  j)                              &
-                    -   dzsu*au(0,i-1,j) +    dzbu*au(0,i-1,j)                          & !kin. boun. top/bot U
-                    +   dxz(i)*dyz(j)*(aw(2,1,i,j)-aw(2,0,i,j))                       !Vert velocity top/bottom face
+                    -   dzsu*au(0,i-1,j) +    dzbu2*au(0,i-1,j)                        & !kin. boun. top/bot U
+                    +   dxz(i)*dyz(j)*(aws(2,i,j)-awb(2,i,j))                       !Vert velocity top/bottom face
                   
         mat(3,i,j) =    dyz(j)*s%hu(i,j)  *au(1,i,  j)                                &
-                   -    dzsu*au(1,i  ,j) +  dzbu*au(1,i,j)                              & !kin. boun. top/bot U
-                   +    dxz(i)*dyz(j)*(aw(3,1,i,j)-aw(3,0,i,j))                       !Vert velocity top/bottom face                  
+                   -    dzsu*au(1,i  ,j) +  dzbu1*au(1,i,j)                              & !kin. boun. top/bot U
+                   +    dxz(i)*dyz(j)*(aws(3,i,j)-awb(3,i,j))                       !Vert velocity top/bottom face                  
                   
         mat(4,i,j) = -  dxz(i)*s%hv(i,j-1)  *av(0,i,j-1)                              &
-                   -    dzsv*av(0,i,j-1) + dzbv*av(0,i,j-1)                             & !kin. boun. top/bot U
-                   +    dxz(i)*dyz(j)*(aw(4,1,i,j)-aw(4,0,i,j))
+                   -    dzsv*av(0,i,j-1) + dzbv2*av(0,i,j-1)                             & !kin. boun. top/bot U
+                   +    dxz(i)*dyz(j)*(aws(4,i,j)-awb(4,i,j))
 
         mat(5,i,j) =    dxz(i)*s%hv(i,j)  *av(1,i,j)                                  &
-                   -    dzsv*av(1,i,j) + dzbv*av(1,i,j)                                 & !kin. boun. top/bot U
-                   +    dxz(i)*dyz(j)*(aw(5,1,i,j)-aw(5,0,i,j))
+                   -    dzsv*av(1,i,j) + dzbv1*av(1,i,j)                                 & !kin. boun. top/bot U
+                   +    dxz(i)*dyz(j)*(aws(5,i,j)-awb(5,i,j))
        
         rhs(i,j)   = -  dyz(j)*( s%hu(i,j)*aur(i,j) - s%hu(i-1,j  )*aur(i-1,  j) )    & !subs U left/right face
                    -    dxz(i)*( s%hv(i,j)*avr(i,j) - s%hv(i  ,j-1)*avr(i  ,j-1) )    & !subs V left/rigth face
                    +    dzsu*(aur(i,j) + aur(i-1,j))  + dzsv*(avr(i,j) + avr(i,j-1))    & !kin. boun. top
-                   -    dzbu*(aur(i,j) + aur(i-1,j))  - dzbv*(avr(i,j) + avr(i,j-1))    & !kin. boun. bot
-                   -    dxz(i)*dyz(j)*(awr(1,i,j)-awr(0,i,j))                         !Vert velocity top/bottom face
+                   -    dzbu1*aur(i,j) + dzbu2*aur(i-1,j)  - dzbv1*avr(i,j) + dzbv1*avr(i,j-1)    & !kin. boun. bot
+                   -    dxz(i)*dyz(j)*(awsr(i,j)-awbr(i,j))                         !Vert velocity top/bottom face
       else
         mat(1  ,i,j) = 1.0_rKind
         mat(2:5,i,j) = 0.0_rKind
         rhs(i,j)     = 0.0_rKind
-      endif     
+      endif
     enddo
   enddo
   !call timer_stop(timer_flow_nonh_subs)
@@ -506,6 +437,7 @@ contains
   dp = 0.0_rKind
   call solver_solvemat( mat  , rhs   , dp , s%nx, s%ny,par)
   !call timer_stop(timer_flow_nonh_solv)
+
   
   s%pres = s%pres + dp
   
@@ -533,16 +465,24 @@ contains
   !call timer_start(timer_flow_nonh_corw)
   do j=2,s%ny
     do i=2,s%nx
-      s%ws(i,j) = awr(1,i,j) + dp(i , j)  * aw(1,1,i,j)                             &
-                             + dp(i-1,j)  * aw(2,1,i,j) + dp(i+1,j  ) * aw(3,1,i,j) &
-                             + dp(i  ,j-1)* aw(4,1,i,j) + dp(i  ,j+1) * aw(5,1,i,j)
-      s%wb(i,j) = awr(0,i,j) + dp(i , j)  * aw(1,0,i,j)                             &
-                             + dp(i-1,j)  * aw(2,0,i,j) + dp(i+1,j  ) * aw(3,0,i,j) &
-                             + dp(i  ,j-1)* aw(4,0,i,j) + dp(i  ,j+1) * aw(5,0,i,j)                                    
+      !if (s%wetz(i,j) == 1) then
+      s%ws(i,j) = awsr(i,j) + dp(i , j)  * aws(1,i,j)                            &
+                            + dp(i-1,j)  * aws(2,i,j) + dp(i+1,j  ) * aws(3,i,j) &
+                            + dp(i  ,j-1)* aws(4,i,j) + dp(i  ,j+1) * aws(5,i,j)
+      !else
+      !  s%ws(i,j) = 0.0_rKInd
+     ! endif                            
     enddo
-  enddo    
+  enddo
+  do j=2,s%ny
+    do i=2,s%nx
+      s%wb(i,j) = awbr(i,j) + dp(i , j)  * awb(1,i,j)                             &
+                            + dp(i-1,j)  * awb(2,i,j) + dp(i+1,j  ) * awb(3,i,j) &
+                            + dp(i  ,j-1)* awb(4,i,j) + dp(i  ,j+1) * awb(5,i,j)
+    enddo
+  enddo
 
-  !call timer_stop(timer_flow_nonh_corw)    
+  !call timer_stop(timer_flow_nonh_corw)
   
   !Assign boundaries
   s%ws(:,1)      = s%ws(:,2)
@@ -550,12 +490,146 @@ contains
   s%ws(1,:)      = s%ws(2,:)
   s%ws(s%nx+1,:) = s%ws(s%nx,:)
   
-  ws_old=s%ws
-  wb_old=s%wb
+  Wm_old = .5_rKind*(s%ws+s%wb)
   !call timer_stop(timer_flow_nonh)
 end subroutine nonh_cor
 
+subroutine nonh_explicit(s,par)
+!==============================================================================
+!
 
+!-------------------------------------------------------------------------------
+!                             DECLARATIONS
+!-------------------------------------------------------------------------------
+
+!--------------------------        PURPOSE         ----------------------------
+
+!  Releases resources
+
+!--------------------------     DEPENDENCIES       ----------------------------  
+    use spaceparams
+    use params
+    use flow_secondorder_module
+!--------------------------     ARGUMENTS          ----------------------------
+
+    type(spacepars) ,intent(inout)                       :: s
+    type(parameters),intent(in)                          :: par 
+
+!--------------------------     LOCAL VARIABLES    ----------------------------
+ 
+    !Indices
+    integer(kind=iKind)                     :: i,ie,iee,iw,iww               !Index variables
+    integer(kind=iKind)                     :: j,js,jn       
+    
+    real(kind=rKind)                        :: dwdx1,dwdx2
+    real(kind=rKind)                        :: dwdy1,dwdy2        
+
+  if (.not. initialized) then
+    call nonh_init(s)
+  endif      
+   
+
+
+  do j=1,s%ny+1
+    do i=1,s%nx+1
+      ie = min(s%nx,i+1)
+      if (  (s%wetU(i,j)==1                                      )  & 
+      .and. (0.5_rKind*(s%zs(i,j) + s%zs(ie,j))    > zbu(i,j)    )  & 
+      .and. ( (s%xz(ie)-s%xz(i))*par%kdmin/par%px  < s%hum(i,j)  )  ) then
+        nonhU(i,j) = 1
+      else
+        nonhU(i,j) = 0      
+      endif
+    enddo
+  enddo
+
+  do j=1,s%ny+1
+    js = min(s%ny,j+1)
+    do i=1,s%nx+1
+      if (  (s%wetV(i,j)==1                                      )  &
+      .and. (0.5_rKind*(s%zs(i,j) + s%zs(i,js))    > zbv(i,j)    )  & 
+      .and. ( (s%yz(js)-s%yz(j))*par%kdmin/par%px  < s%hvm(i,j)  )  ) then
+        nonhV(i,j) = 1
+      else
+        nonhV(i,j) = 0
+      endif
+    enddo
+  enddo
+
+  do j=2,s%ny
+    do i=2,s%nx
+      if (max(nonhV(i,j),nonhV(i,j-1),nonhU(i,j),nonhU(i-1,j)) > 0) then
+        nonhZ(i,j) = 1
+      else
+        nonhZ(i,j) = 0      
+      endif
+    enddo
+  enddo
+ 
+  !Calculate explicit part vertical momentum (advection)
+  do j=2,s%ny
+    do i=2,s%nx
+      if (nonhZ(i,j) == 1) then
+       Wm(i,j) = Wm_old(i,j) - par%dt*( ddxu(i-1)*max(s%qx(i-1,j  ),0.0_rKind)*(Wm_old(i  ,j  )-Wm_old(i-1,j  ))/s%hh(i,j)   &
+                                      + ddxu(i)  *min(s%qx(i  ,j  ),0.0_rKind)*(Wm_old(i+1,j  )-Wm_old(i  ,j  ))/s%hh(i,j)   &
+                                      + ddyv(j-1)*max(s%qy(i  ,j-1),0.0_rKind)*(Wm_old(i  ,j  )-Wm_old(i  ,j-1))/s%hh(i,j)   &
+                                      + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(Wm_old(i  ,j+1)-Wm_old(i  ,j  ))/s%hh(i,j) )
+      else
+        Wm(i,j) = 0.0_rKind
+        Wm_old(i,j) = 0.0_rKind
+        s%ws(i,j)   = 0.0_rKind
+        s%wb(i,j)   = 0.0_rKind
+        s%pres(i,j) = 0.0_rKind
+      endif
+    enddo
+  enddo
+
+  !Calculate explicit part vertical viscocity
+  do j=2,s%ny
+    do i=2,s%nx
+      dwdx1 = (Wm_old(i  ,j  )-Wm_old(i-1,j  ))*ddxu(i-1)
+      dwdx2 = (Wm_old(i+1,j  )-Wm_old(i  ,j  ))*ddxu(i)
+      dwdy1 = (Wm_old(i  ,j  )-Wm_old(i  ,j-1))*ddyv(j-1)
+      dwdy2 = (Wm_old(i  ,j+1)-Wm_old(i  ,j  ))*ddyv(j)
+      Wm(i,j) = Wm(i,j)   + par%dt*par%nuh*(dwdx2-dwdx1)*ddxz(i)*real(s%wetu(i,j)*s%wetu(i-1,j),rKind) &
+                          + par%dt*par%nuh*(dwdy2-dwdy1)*ddyz(j)*real(s%wetv(i,j)*s%wetv(i,j-1),rKind)
+    enddo
+  enddo 
+ 
+      
+ !Include explicit approximation for pressure in s%uu and s%vv   and Wm
+  if (par%secorder == 1) then 
+    do j=2,s%ny
+      do i=2,s%nx-1
+        if (nonhU(i,j) == 1) then
+          s%uu(i,j) = s%uu(i,j) - 0.5_rKind*par%dt/s%hum(i,j) * ( (s%zs(i+1,j)-s%zb(i  ,j)) * s%pres(i+1,j)   &
+                                                                - (s%zs(i  ,j)-s%zb(i+1,j)) * s%pres(i  ,j)  ) &
+                                                                / (s%xz(i+1)-s%xz(i))
+        endif
+      enddo
+    enddo
+
+    do j=2,s%ny-1
+      do i=2,s%nx
+        if (nonhV(i,j) == 1) then        
+          s%vv(i,j) = s%vv(i,j) - 0.5_rKind*par%dt/s%hvm(i,j) * ( (s%zs(i,j+1)-s%zb(i,j  )) * s%pres(i,j+1)   &
+                                                                - (s%zs(i,j  )-s%zb(i,j+1)) * s%pres(i,j  ) ) &
+                                                                / (s%yz(j+1)-s%yz(j))
+        endif
+      enddo
+    enddo
+    
+    do j=2,s%ny
+      do i=2,s%nx
+        if (nonhZ(i,j) == 1) then
+          Wm(i,j) = Wm(i,j)   + par%dt * s%pres(i,j)/s%hh(i,j)
+        endif  
+      enddo
+    enddo
+    call flow_secondorder_advW(s,par,Wm,Wm_old)
+  endif
+
+end subroutine nonh_explicit
 
 
 
@@ -587,12 +661,16 @@ end subroutine nonh_cor
 !                             IMPLEMENTATION
 !-------------------------------------------------------------------------------   
 
+    if (allocated(Wm_old  )) deallocate(Wm_old)
+    if (allocated(Wm  )) deallocate(Wm)
     if (allocated(au  )) deallocate(au)
     if (allocated(av  )) deallocate(av)
-    if (allocated(aw  )) deallocate(aw)
+    if (allocated(aws  )) deallocate(aws)
+    if (allocated(awb  )) deallocate(awb)    
+    if (allocated(awsr  )) deallocate(awsr)
+    if (allocated(awbr  )) deallocate(awbr)        
     if (allocated(aur )) deallocate(aur)
     if (allocated(avr )) deallocate(avr)
-    if (allocated(awr )) deallocate(awr)
     if (allocated(mat))  deallocate(mat)
     if (allocated(rhs))  deallocate(rhs)
     if (allocated(dp))  deallocate(dp)           
