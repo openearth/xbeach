@@ -31,10 +31,10 @@ use params
 use spaceparams
 use xmpi_module
 use boundaryconditions
-use flow_secondorder_module
 
 #ifndef USEMPI
-use nonh_module
+   use flow_secondorder_module
+   use nonh_module
 #endif
 
 
@@ -339,6 +339,7 @@ endif
         end do 
     end do
 
+#ifndef USEMPI
     if (par%nonh==1) then
        !Do explicit predictor step with pressure
        call nonh_explicit(s,par)
@@ -348,7 +349,8 @@ endif
        !Call second order correction to the advection
        call flow_secondorder_advUV(s,par,uu_old,vv_old)
     end if
-	
+#endif
+
     ! Pieter and Jaap: update hu en hv for continuity
     do j=1,ny+1
       do i=1,nx+1 !Ap
@@ -444,11 +446,13 @@ endif
 !    call discharge_boundary(s,par)
     !
     zs(2:nx,2:ny) = zs(2:nx,2:ny)+dzsdt(2:nx,2:ny)*par%dt !Jaap nx instead of nx+1
-
-	  if (par%secorder == 1) then
+    
+#ifndef USEMPI
+	if (par%secorder == 1) then
       !Second order correction
       call flow_secondorder_con(s,par,zs_old)
     endif	
+#endif
     !    
     ! Output
     !
