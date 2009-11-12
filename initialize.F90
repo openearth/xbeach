@@ -535,6 +535,8 @@ s%z0bed = s%zb - sum(s%dzbed,DIM=3)
 
 s%nd = max(par%nd,2)
 
+s%ureps      = 0.d0
+s%vreps      = 0.d0
 s%ccg        = 0.d0
 s%ceqbg      = 0.d0
 s%ceqsg      = 0.d0
