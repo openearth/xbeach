@@ -181,11 +181,14 @@
       real*8  2  vreps     s%nx+1 s%ny+1 d  [m/s] representative flow velocitie for sediment advection and diffusion in y-direction
       real*8  2  urepb     s%nx+1 s%ny+1 d [m/s] representative flow velocitie for sediment advection and diffusion in x-direction
       real*8  2  vrepb     s%nx+1 s%ny+1 d [m/s] representative flow velocitie for sediment advection and diffusion in y-direction
-      real*8  2  umwci     s%nx+1 s%ny+1 d ! [N/m^2]    u-velocity (time-averaged) for wci
+      real*8  2  umwci     s%nx+1 s%ny+1 d ! [m/s]    u-velocity (time-averaged) for wci
       real*8  2  rolthick s%nx+1 s%ny+1 d ! [m]  long wave roller thickness
-      real*8  2  vmwci     s%nx+1 s%ny+1 d ! [N/m^2]    v-velocity (time-averaged) for wci
-      real*8  2  zswci     s%nx+1 s%ny+1 d ! [N/m^2]    waterlevel (time-averaged) for wci
+      real*8  2  vmwci     s%nx+1 s%ny+1 d ! [m/s]    v-velocity (time-averaged) for wci
+      real*8  2  zswci     s%nx+1 s%ny+1 d ! [m]    waterlevel (time-averaged) for wci
       real*8  2  pres      s%nx+1 s%ny+1 d ! [m^2/s^2] normalized dynamic pressure
       real*8  2  wb        s%nx+1 s%ny+1 d ! [m/s]     vertical velocity at the bottom
       real*8  2  ws        s%nx+1 s%ny+1 d ! [m/s]     vertical velocity at the free surface
+      real*8  2  taubx     s%nx+1 s%ny+1 d ! [N/m^2]   x-component of bed shear stress
+      real*8  2  tauby     s%nx+1 s%ny+1 d ! [N/m^2]   y-component of bed shear stress
+      real*8  2  Df        s%nx+1 s%ny+1 d ! [W/m^2]   dissipation rate due to bed friction
 !* hints for vi vim: filetype=fortran : syntax=fortran
