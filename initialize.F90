@@ -16,6 +16,7 @@ type(parameters)                    :: par
 integer                             :: i
 integer                             :: j,ig
 integer                             :: itheta,indt
+logical                             :: exists
 
 real*8,dimension(:),allocatable     :: yzs0,szs0
 
@@ -48,6 +49,7 @@ real*8,dimension(:),allocatable     :: yzs0,szs0
   allocate(s%R(1:s%nx+1,1:s%ny+1)) 
   allocate(s%urms(1:s%nx+1,1:s%ny+1)) 
   allocate(s%D(1:s%nx+1,1:s%ny+1)) 
+  allocate(s%Df(1:s%nx+1,1:s%ny+1)) 
   allocate(s%Qb(1:s%nx+1,1:s%ny+1)) 
   allocate(s%ust(1:s%nx+1,1:s%ny+1)) 
   allocate(s%tm(1:s%nx+1,1:s%ny+1)) 
@@ -175,7 +177,14 @@ real*8,dimension(:),allocatable     :: yzs0,szs0
      s%zs0 = par%zs01
 
   endif
-
+  inquire(file=par%zsinitfile,exist=exists)
+  if (exists) then
+     open(723,file=par%zsinitfile)
+        do j=1,s%ny+1
+           read(723,*)(s%zs0(i,j),i=1,s%nx+1)
+        enddo
+     close(723)
+  endif
   s%zs0 = max(s%zs0,s%zb)
   !Dano s%hh = max(s%zs0-s%zb,par%eps);
   s%hh = s%zs0-s%zb
@@ -297,6 +306,8 @@ integer*4                           :: iUnit
   allocate(s%uv(1:s%nx+1,1:s%ny+1))
   allocate(s%maxzs(1:s%nx+1,1:s%ny+1))
   allocate(s%minzs(1:s%nx+1,1:s%ny+1))
+  allocate(s%taubx(1:s%nx+1,1:s%ny+1))
+  allocate(s%tauby(1:s%nx+1,1:s%ny+1))
   
 !  if (par%nonh==1) then   
 ! Robert: required to stop MPI crash
@@ -373,6 +384,8 @@ integer*4                           :: iUnit
   s%vmagv=0.d0
   s%vmageu=0.d0
   s%vmagev=0.d0
+  s%taubx=0.d0
+  s%tauby=0.d0
   s%maxzs=-999.d0
   s%minzs=999.d0
 
