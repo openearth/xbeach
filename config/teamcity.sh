@@ -13,17 +13,3 @@ make check
 echo "##teamcity[testSuiteFinished name='nompi']"
 mkdir nompi
 mv ./xbeach nompi
-echo "##teamcity[progressMessage 'cleaning']"
-make clean
-echo "##teamcity[progressMessage 'configuring mpi version']"
-./configure --with-mpi
-echo "##teamcity[progressMessage 'building xbeach mpi version']"
-make
-echo "##teamcity[testSuiteStarted name='mpi']"
-make check
-echo "##teamcity[testSuiteFinished name='mpi']"
-mkdir mpi
-mv ./xbeach nompi
-echo "##teamcity[progressMessage 'cleaning']"
-make clean
-echo "##teamcity[progressMessage 'done']"
