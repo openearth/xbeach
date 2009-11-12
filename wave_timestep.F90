@@ -51,7 +51,7 @@ subroutine wave_timestep(s,par)
     real*8 , dimension(:,:,:),allocatable,save  :: xadvec,yadvec,thetaadvec,dd,drr
     real*8 , dimension(:,:,:),allocatable,save  :: xradvec,yradvec,thetaradvec
 	real*8 , dimension(:,:)  ,allocatable,save  :: dkmxdx,dkmxdy,dkmydx,dkmydy,cgxm,cgym,arg,fac
-	real*8 , dimension(:,:)  ,allocatable,save  :: wcifacu,wcifacv
+	real*8 , dimension(:,:)  ,allocatable,save  :: wcifacu,wcifacv,hrmsold,uorb
 	real*8                                      :: factime
 
     include 's.ind'
@@ -92,6 +92,8 @@ subroutine wave_timestep(s,par)
 	   allocate(fac         (nx+1,ny+1))
 	   allocate(wcifacu     (nx+1,ny+1))
 	   allocate(wcifacv     (nx+1,ny+1))
+	   allocate(hrmsold     (nx+1,ny+1))
+	   allocate(uorb        (nx+1,ny+1))
 
 
 ! wwvv todo: I think these iniailization are superfluous
@@ -127,12 +129,13 @@ subroutine wave_timestep(s,par)
        cgym        = 0.d0
 	   arg         = 0.d0
        fac         = 0.d0
+       uorb        = 0.d0
        Fx          = 0.d0 ! in spacepars
        Fy          = 0.d0 ! in spacepars
     endif
 
     hh = max(hh,par%eps)
-
+    hrmsold=H
 ! Calculate once velocities used with and without wave current interaction
     wcifacu=u*par%wci*min(hh/par%hwci,1.d0)
     wcifacv=v*par%wci*min(hh/par%hwci,1.d0)
@@ -280,19 +283,22 @@ subroutine wave_timestep(s,par)
     else if(par%break == 2)then
         call baldock(par,s,km)
     else if (par%break == 4) then
-        cgxm = cg*cos(tm) 
-        cgym = cg*sin(tm)
+        cgxm = c*cos(tm) 
+        cgym = c*sin(tm)
         call advecqx(cgxm,Qb,xwadvec,nx,ny,xz)
         call advecqy(cgym,Qb,ywadvec,nx,ny,yz)
         Qb=Qb-par%dt*(xwadvec+ywadvec)
         call roelvink(par,s,km)        
     endif
+! Dissipation by bed friction
+    uorb=par%px*H/par%Trep/sinh(min(max(k,0.01d0)*(hh+par%delta*H),10.0d0))
+    Df=0.6666666d0/par%px*par%rho*par%fw*uorb**3   
 !
 ! Distribution of dissipation over directions and frequencies
 !
     do itheta=1,ntheta
 ! Only calculate for E>0 FB
-        dd(:,:,itheta)=ee(:,:,itheta)*D/max(E,0.00001d0)
+        dd(:,:,itheta)=ee(:,:,itheta)*(D+Df)/max(E,0.00001d0)
     enddo
 
     do j=1,ny+1
@@ -372,6 +378,8 @@ subroutine wave_timestep(s,par)
     R  = sum(rr,3)*dtheta
     DR = sum(drr,3)*dtheta
     H  = sqrt(E/par%rhog8)
+    par%waverr=sum(abs(H-hrmsold))/((nx+1)*(ny+1))
+!    write(*,*)'waverr=',par%waverr,'t = ',par%t
 !
 ! Radiation stresses and forcing terms
 !
@@ -426,7 +434,8 @@ subroutine wave_timestep(s,par)
 #endif
 
 ! Ad
-    urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(min(max(k,0.01d0)*(hh+par%delta*H),10.0d0)))
+!    urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(min(max(k,0.01d0)*(hh+par%delta*H),10.0d0)))
+    urms=uorb/sqrt(2.d0)
 !   urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*(hh+par%delta*H)))
 
     ustw= E/max(c,sqrt(par%hmin*par%g))/par%rho/max(hh,par%hmin)   ! Jaap
