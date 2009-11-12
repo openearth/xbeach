@@ -254,11 +254,11 @@ endif
                       ! give the same results. If this modification is not ok, then
                       ! we have a problem
             if(wetu(i,j)==1) then
+                taubx(i,j)=par%cf*par%rho*ueu(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmageu(i,j)**2)
                 uu(i,j)=uu(i,j)-par%dt*(ududx(i,j)+vdudy(i,j)-viscu(i,j) & !Ap,Robert,Jaap 
                     + par%g*dzsdx(i,j) &
 !                   + par%g/par%C**2.d0/hu(i,j)*vmageu(i,j)*ueu(i,j) & 
-                    + par%cf/hu(i,j)*ueu(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmageu(i,j)**2) &    
-                    - par%lwave*Fx(i,j)/par%rho/hu(i,j) &
+                    + (taubx(i,j) - par%lwave*Fx(i,j))/(par%rho*hu(i,j)) &
                     - par%fc*vu(i,j) &
 					- par%rhoa*par%Cd*cos(s%winddirnow)*s%windvnow**2)
             else
@@ -326,13 +326,14 @@ endif
     do j=1,ny
         do i=2,nx !jaap instead of nx+1        
             if(wetv(i,j)==1) then
+                tauby(i,j)=par%cf*par%rho*vev(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmagev(i,j)**2) !Ruessink et al, 2001
                 vv(i,j)=vv(i,j)-par%dt*(udvdx(i,j)+vdvdy(i,j)-viscv(i,j)& !Ap,Robert,Jaap 
                     + par%g*dzsdy(i,j)&
                     ! + par%g/par%C**2/hv(i,j)*vmagev(i,j)*vev(i,j)&
-                    + par%cf/hv(i,j)*vev(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmagev(i,j)**2) &   !Ruessink et al 2001
-                    - par%lwave*Fy(i,j)/par%rho/hv(i,j) &
+                    + (tauby(i,j)- par%lwave*Fy(i,j))/(par%rho*hv(i,j)) &
                     + par%fc*uv(i,j) &
 					- par%rhoa*par%Cd*sin(s%winddirnow)*s%windvnow**2)
+
             else
                 vv(i,j)=0.0d0
             end if
@@ -443,7 +444,7 @@ endif
 							   - s%gww(i,j)
          end do
     end do
-!    call discharge_boundary(s,par)
+    ! call discharge_boundary(s,par)
     !
     zs(2:nx,2:ny) = zs(2:nx,2:ny)+dzsdt(2:nx,2:ny)*par%dt !Jaap nx instead of nx+1
     
