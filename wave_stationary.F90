@@ -197,8 +197,8 @@ do it=2,imax
 	endif
     !Dano
     dtw=.5*minval(xz(i:i+1)-xz(i-1:i))/maxval(cgx(i-1:i+1,:,:))
-    dtw=min(dtw,.5*minval(yz(2:ny+1)-yz(1:ny))/maxval(cgy(i,:,:)))
-    dtw=min(dtw,.5*dtheta/maxval(ctheta(i,:,:)))
+    dtw=min(dtw,.5*minval(yz(2:ny+1)-yz(1:ny))/maxval(abs(cgy(i,:,:))))
+    dtw=min(dtw,.5*dtheta/maxval(abs(ctheta(i,:,:))))
 	Herr=1.
 	iter=0
     arg = min(100.0d0,km(i,:)*(hh(i,:)+par%delta*H(i,:)))
