@@ -75,8 +75,8 @@ if(par%t>=par%tnext) then
     par%dt=par%dt-(par%t-par%tnext)
     par%t=par%tnext
     it=it+1
-!    write(*,*)'time (s) = ',par%t,' dt (s) = ',par%dt,' output step ',it
-!else
+    write(*,*)'time (s) = ',par%t,' dt (s) = ',par%dt,' output step ',it
+else
 !    write(*,*)'time (s) = ',par%t,' dt (s) = ',par%dt
 end if  
 
