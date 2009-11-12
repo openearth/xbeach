@@ -55,15 +55,15 @@ subroutine flow_secondorder_init(s,iUnit)
 !
 !   Initializes the resources needed for the second order mcCormack scheme
 !
-
+!
 !--------------------------     DEPENDENCIES       ----------------------------
 !
-
+!
 ! -- MODULES --
   use spaceparams
   use params 
   use xmpi_module, only: Halt_Program 
-
+!
 !
 !--------------------------     ARGUMENTS          ----------------------------
 !
@@ -86,7 +86,7 @@ subroutine flow_secondorder_init(s,iUnit)
   
  
   
-   if (iAllocErr /= 0) call Halt_program
+  if (iAllocErr /= 0) call Halt_program
   
   !Allocate resources
   allocate (  wrk1(s%nx+1,s%ny+1),stat=iAllocErr);   if (iAllocErr /= 0) goto 10
@@ -303,29 +303,7 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
       enddo
     enddo
     
-!        if (par%nonh == 1) then
-!      !Include explicit approximation for pressure in s%uu and s%vv
-!    
-!      do j=2,s%ny
-!        do i=2,s%nx-1
-!          if (s%wetu(i,j) == 1) then
-!            s%uu(i,j) = s%uu(i,j) - 0.5_rKind*par%dt/s%hum(i,j) * ( (s%zs(i+1,j)-s%zb(i  ,j)) * s%pres(i+1,j)   &
-!                                                                  - (s%zs(i  ,j)-s%zb(i+1,j)) * s%pres(i  ,j)  ) &
-!                                                                  / (s%xz(i+1)-s%xz(i))
-!          endif
-!        enddo
-!      enddo
-!
-!      do j=2,s%ny-1
-!        do i=2,s%nx
-!          if (s%wetv(i,j) == 1) then        
-!            s%vv(i,j) = s%vv(i,j) - 0.5_rKind*par%dt/s%hvm(i,j) * ( (s%zs(i,j+1)-s%zb(i,j  )) * s%pres(i,j+1)   &
-!                                                                  - (s%zs(i,j  )-s%zb(i,j+1)) * s%pres(i,j  ) ) &
-!                                                                  / (s%yz(j+1)-s%yz(j))
-!          endif
-!        enddo
-!      enddo
-!    endif
+
 end subroutine flow_secondorder_advUV
 
 !
@@ -434,9 +412,7 @@ subroutine flow_secondorder_advW(s,par,w,w_old)
     enddo    
     wrk2(:,1)      = 0.0_rKind
     wrk2(:,s%ny)   = 0.0_rKind
-    
-   ! write(*,*) maxval(abs(wrk1))
- 
+
     !CORRECTION TO W
     do j=2,s%ny
       do i=2,s%nx
@@ -525,32 +501,6 @@ subroutine flow_secondorder_con(s,par,zs_old)
       wrk1(1   ,:) = 0.0_rkind
       wrk1(s%nx,:) = 0.0_rkind
 
-      
-      
-!      do j=2,s%ny
-!        do i=2,s%nx-1
-!          wrk1(i,j) = 0.0_rKind
-!          ie  = min(i+1,s%nx)
-!          iee = min(i+2,s%nx)
-!          iw  = max(i-1,2)
-!          mindepth = minval(s%zs(iw:iee,j))-maxval(s%zb(iw:iee,j))
-!          if (mindepth>par%eps) then
-!            if     (s%uu(i,j) >  par%Umin .and. i>2     ) then
-!              delta1    =  (s%zs(ie,j)- zs_old(i,j ))/(s%xz(i+1)-s%xz(i))
-!              delta2    =  (s%zs(i,j) - zs_old(iw,j))/(s%xz(i)  -s%xz(i-1))
-!              wrk1(i,j)  = s%uu(i,j)*(.5d0*(s%zs(i,j)+(s%xu(i)-s%xz(i))*minmod(delta1,delta2)-s%zb(i,j))-.5d0*s%hu(i,j))
-!            elseif (s%uu(i,j) < -par%Umin .and. i<s%nx-1) then
-!              delta1    =  (zs_old(iee,j) - s%zs(ie,j)) / (s%xz(i+2)-s%xz(i+1))
-!              delta2    =  (zs_old(ie ,j) - s%zs(i ,j)) / (s%xz(i+1)-s%xz(i))
-!              wrk1(i,j)  = s%uu(i,j)* (.5d0*(s%zs(ie,j)-(s%xz(ie)-s%xu(i))*minmod(delta1,delta2)-s%zb(ie,j))-.5d0*s%hu(i,j))
-!            endif          
-!          endif
-!        enddo
-!      enddo
-!      wrk1(1   ,:) = 0.0_rKind
-!      wrk1(s%nx,:) = 0.0_rKind
-
-
       !Correction to mass flux qy
       do j=2,s%ny-1
         do i=2,s%nx
@@ -609,8 +559,8 @@ real(kind=rKind) pure function minmod(delta1,delta2)
 !
 ! - MINMOD LIMITER -
 !
-! The minmod slope limiter essentially essentially corrects the first order upwind 
-! estimate for hu/uz/yz with either a second order upwind or central approximation.
+! The minmod slope limiter essentiallycorrects the first order upwind 
+! estimate for hu/u/v with a second order upwind or central approximation.
 ! If the succesive gradients are opposite in sign the correction is set to zero to
 ! avoid unwanted oscillations.
 !
