@@ -93,6 +93,7 @@ type parameters
    integer*4     :: ARC                        = -123    !  [-] Switch for active reflection compensation at seaward boundary: 0 = reflective, 1 = weakly (non) reflective
    real*4        :: order                      = -123    !  [-] Switch for order of wave steering, 1 = first order wave steering (short wave energy only), 2 = second oder wave steering (bound long wave corresponding to short wave forcing is added)
    integer*4     :: carspan                    = -123    !  [-] Switch for Carrier-Greenspan test 0 = use cg (default); 1 = use sqrt(gh) in instat = 3 for c&g tests
+   character(80) :: zsinitfile                 = 'abc'   !  [name] Name of inital condition file zs
 
    ! Tide boundary conditions                                                                                                      
    real*8        :: zs0                        = -123    !  [m] Inital water level
@@ -131,6 +132,8 @@ type parameters
    real*8        :: n                          = -123    !  [-] Power in Roelvink dissipation model
    real*8        :: gammax                     = -123    !  [-] Maximum ratio wave height to water depth
    real*8        :: delta                      = -123    !  [-] Fraction of wave height to add to water depth
+   real*8        :: waverr                     = -123    !  [-] max. absolute wave height difference between time steps
+   real*8        :: fw                         = -123    !  [-] Bed friction factor
  
    ! Roller parameters                                                                                                             
    integer*4     :: roller                     = -123    !  [-] Turn on (1) or off(0) roller model
@@ -422,6 +425,7 @@ par%thetanaut= readkey_int ('params.txt','thetanaut',    0,        0,     1)
 par%wci      = readkey_int ('params.txt','wci',        0,        0,     1)
 par%hwci     = readkey_dbl ('params.txt','hwci',   0.01d0,   0.001d0,      1.d0)
 par%cats     = readkey_dbl ('params.txt','cats',  10.d0,   5.d0,      50.d0)
+par%fw       = readkey_dbl ('params.txt','fw',  0.d0,   0d0,      0.3d0)
 par%break    = readkey_int ('params.txt','break',      3,        1,     3)
 ! Only allow Baldock in stationary mode and Roelvink in non-stationary
 if (par%instat==0) then
@@ -431,8 +435,7 @@ if (par%instat==0) then
    endif
 else
    if (par%break==2) then 
-        write(*,*)'Error: Baldock formulation not allowed in non-stationary calculation, use Roelvink formulation. Stopping.'
-       	call halt_program
+        write(*,*)'Warning: Baldock formulation not allowed in non-stationary calculation, use Roelvink formulation. Stopping.'
    endif
 endif
 par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
@@ -456,6 +459,7 @@ end subroutine wave_input
 
 subroutine flow_input(par)
 use readkey_module
+use xmpi_module
 implicit none
 type(parameters)            :: par
 
@@ -522,6 +526,11 @@ if (par%gwflow==1) then
    par%ky         = readkey_dbl ('params.txt','ky'        , par%kx   , 0.00001d0, 0.01d0)
    par%kz         = readkey_dbl ('params.txt','kz'        , par%kx   , 0.00001d0, 0.01d0)
    par%dwetlayer  = readkey_dbl ('params.txt','dwetlayer' , 0.2d0    , 0.01d0     , 1.d0)
+endif
+
+! Initial condition water level from file
+if (xmaster) then
+   call readkey('params.txt','zsinitfile',par%zsinitfile)
 endif
 
 par%secorder     = readkey_int('params.txt','secorder' ,0,0,1)
