@@ -277,8 +277,8 @@ subroutine grid_bathy(s,par)
           s%thetamin=s%thetamin+2*par%px
        endif
     else
-    s%thetamin=par%thetamin*degrad
-    s%thetamax=par%thetamax*degrad
+       s%thetamin=par%thetamin*degrad
+       s%thetamax=par%thetamax*degrad
     endif
     s%dtheta=par%dtheta*degrad
     s%ntheta=(s%thetamax-s%thetamin)/s%dtheta
