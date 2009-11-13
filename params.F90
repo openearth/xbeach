@@ -223,6 +223,7 @@ type parameters
 
    ! Morphology parameters                                                                                                         
    real*8        :: morfac                     = -123    !  [-] Morphological acceleration factor
+   integer*4     :: morfacopt                  = -123    !  [-] Option indicating whether times should be adjusted (1) or not(0) for morfac
    real*8        :: morstart                   = -123    !  [s] Start time morphology, in morphological time
    real*8        :: wetslp                     = -123    !  [-] Critical avalanching slope under water (dz/dx and dz/dy)
    real*8        :: dryslp                     = -123    !  [-] Critical avalanching slope above water (dz/dx and dz/dy)
@@ -342,7 +343,7 @@ if (par%posdwn<0.1d0) then
 endif
 
 ! All input time frames converted to XBeach hydrodynamic time
-par%tstop   = par%tstop  / max(par%morfac,1.d0)
+if (par%morfacopt==1) par%tstop   = par%tstop  / max(par%morfac,1.d0)
 
 
 end subroutine all_input
@@ -481,16 +482,19 @@ par%tintp   = readkey_dbl ('params.txt','tintp',par%tintg,    .01d0, 100000.d0) 
 par%tintc   = readkey_dbl ('params.txt','tintc',par%tintg,    .01d0, 100000.d0)  ! Robert
 par%tintm   = readkey_dbl ('params.txt','tintm',par%tintg,     1.d0, par%tstop)  ! Robert
 par%tint    = min(par%tintg,par%tintp,par%tintm,par%tintc)                       ! Robert     
-! adapt flow times to morfac
+! adapt flow times to morfac if par%morfacopt=1
 par%morfac   = readkey_dbl ('params.txt','morfac', 0.0d0,        0.d0,  1000.d0)
-par%tstart  = par%tstart / max(par%morfac,1.d0)
-par%tint    = par%tint   / max(par%morfac,1.d0)
-par%tintg   = par%tintg  / max(par%morfac,1.d0)
-par%tintp   = par%tintp  / max(par%morfac,1.d0)
-par%tintc   = par%tintc  / max(par%morfac,1.d0)
-par%tintm   = par%tintm  / max(par%morfac,1.d0)
-par%wavint  = par%wavint / max(par%morfac,1.d0)
-par%tstop   = par%tstop  / max(par%morfac,1.d0)
+par%morfacopt= readkey_int ('params.txt','morfacopt', 1,        0,        1)
+if (par%morfacopt==1) then
+   par%tstart  = par%tstart / max(par%morfac,1.d0)
+   par%tint    = par%tint   / max(par%morfac,1.d0)
+   par%tintg   = par%tintg  / max(par%morfac,1.d0)
+   par%tintp   = par%tintp  / max(par%morfac,1.d0)
+   par%tintc   = par%tintc  / max(par%morfac,1.d0)
+   par%tintm   = par%tintm  / max(par%morfac,1.d0)
+   par%wavint  = par%wavint / max(par%morfac,1.d0)
+   par%tstop   = par%tstop  / max(par%morfac,1.d0)
+endif
 par%fcutoff  = readkey_dbl ('params.txt','fcutoff', 0.d0,      0.d0,  40.d0)
 par%sprdthr = readkey_dbl ('params.txt','sprdthr', 0.08d0,      0.d0,  1.d0)
 par%carspan = readkey_int    ('params.txt','carspan',0,         0,      1)
@@ -563,8 +567,9 @@ par%dzg2     = readkey_dbl ('params.txt','dzg2', par%dzg1,     0.01d0,     1.d0)
 par%dzg3     = readkey_dbl ('params.txt','dzg3', par%dzg1,     0.01d0,     1.d0)
 par%rhos     = readkey_dbl ('params.txt','rhos',  2650d0,     2400.d0,  2800.d0)
 par%morfac   = readkey_dbl ('params.txt','morfac', 0.0d0,        0.d0,  1000.d0)
+par%morfacopt= readkey_int ('params.txt','morfacopt', 1,        0,        1)
 par%morstart = readkey_dbl ('params.txt','morstart',120.d0,      0.d0, 10000.d0)
-par%morstart = par%morstart / max(par%morfac,1.d0)
+if (par%morfacopt==1) par%morstart = par%morstart / max(par%morfac,1.d0)
 par%wetslp   = readkey_dbl ('params.txt','wetslp', 0.3d0,       0.1d0,     1.d0)
 par%dryslp   = readkey_dbl ('params.txt','dryslp', 1.0d0,       0.1d0,     2.d0)
 par%por      = readkey_dbl ('params.txt','por',    0.4d0,       0.3d0,    0.5d0)

@@ -73,7 +73,7 @@ if (xmaster) then
   end do
   close(31)
 
-  s%tideinpt = s%tideinpt / max(par%morfac,1.d0)
+  if (par%morfacopt==1) s%tideinpt = s%tideinpt / max(par%morfac,1.d0)
   if (s%tideinpt(par%tidelen)<par%tstop) then
      write(*,*)'Error !!!! Tide condition time series too short. Stopping calculation !!!'
      call halt_program

@@ -164,7 +164,7 @@ if(abs(par%t-par%dt)<1.d-6) then
 	     read(7,*) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcendtime, dum2
 	     par%Hrms = Hm0/sqrt(2.d0)
 	     par%m = 0.5d0*spreadpar
-         bcendtime=bcendtime/max(par%morfac,1.d0)
+         if (par%morfacopt==1) bcendtime=bcendtime/max(par%morfac,1.d0)
 	     s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0
        endif
 	   newstatbc=.true.
@@ -230,7 +230,11 @@ if (par%t .ge. bcendtime) then  ! Recalculate bcf-file
 	     read(7,*) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcdur, dum2
          par%Hrms = Hm0/sqrt(2.d0)
 	     par%m = 0.5d0*spreadpar
-	     bcendtime=bcendtime+bcdur/max(par%morfac,1.d0)
+	     if (par%morfacopt==1) then
+	        bcendtime=bcendtime+bcdur/max(par%morfac,1.d0)
+	     else
+	        bcendtime=bcendtime+bcdur
+	     endif
 	     s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0
        endif
 	   newstatbc=.true.

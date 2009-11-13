@@ -449,7 +449,7 @@ subroutine init_output(s,sl,par,it)
             do i=1,ii
                     read(10,*)tpg(i)
             enddo
-				tpg=tpg/max(par%morfac,1.d0)
+				if (par%morfacopt==1) tpg=tpg/max(par%morfac,1.d0)
             close(10)
         else
             ii=floor((par%tstop-par%tstart)/par%tintg)+1
@@ -479,7 +479,7 @@ subroutine init_output(s,sl,par,it)
             do i=1,ii
                     read(10,*)tpp(i)
             enddo
-				tpp=tpp/max(par%morfac,1.d0)
+		    if (par%morfacopt==1) tpp=tpp/max(par%morfac,1.d0)
             close(10)
         else
             ii=floor((par%tstop-par%tstart)/par%tintp)+1
@@ -538,7 +538,7 @@ subroutine init_output(s,sl,par,it)
             do i=1,ii
                     read(10,*)tpm(i)
             enddo
-				tpm=tpm/max(par%morfac,1.d0)
+			if (par%morfacopt==1) tpm=tpm/max(par%morfac,1.d0)
             close(10)
         else
             ii=floor((par%tstop-par%tstart)/par%tintm)+1
@@ -898,7 +898,11 @@ subroutine var_output(it,s,sl,par)
                   allocate(tempvectori(nvarpoint(i)))
                   allocate(tempvectorr(nvarpoint(i)+1))
                   tempvectori=Avarpoint(i,1:nvarpoint(i))
-                  tempvectorr(1)=par%t*max(par%morfac,1.d0)
+                  if (par%morfacopt==1) then
+                     tempvectorr(1)=par%t*max(par%morfac,1.d0)
+                  else
+                     tempvectorr(1)=par%t
+                  endif
                   do ii=1,nvarpoint(i)
                           tempvectorr(ii+1)=intpvector(tempvectori(ii))
                   enddo
@@ -1019,7 +1023,7 @@ subroutine var_output(it,s,sl,par)
       outputtimes(itg+1:itg+itp)=tpp(1:itp)
 		outputtimes(itg+itp+1:itg+itp+itc)=tpc(1:itc)
       outputtimes(itg+itp+itc+1:itg+itp+itc+itm)=tpm(2:itm+1)          ! mean output always shifted by 1
-	   outputtimes=outputtimes*max(par%morfac,1.d0)
+	  if (par%morfacopt==1) outputtimes=outputtimes*max(par%morfac,1.d0)
       open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(10+size(outputtimes)))
       write(999,rec=1)		 itg*1.d0,&
 							 s%nx*1.d0,&

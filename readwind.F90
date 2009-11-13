@@ -85,7 +85,7 @@ if (xmaster) then
        read(31,*,IOSTAT=io) s%windinpt(i),s%windvel(i),s%winddir(i)
      enddo
      close(31)
-	  s%windinpt = s%windinpt / max(par%morfac,1.d0)
+	  if (par%morfacopt==1) s%windinpt = s%windinpt / max(par%morfac,1.d0)
 	  if (s%windinpt(par%windlen)<par%tstop) then
 	      write(*,*)'Error !!!! Wind condition time series too short. Stopping calculation !!!'
          call halt_program

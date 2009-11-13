@@ -84,7 +84,7 @@ if (reuse==0) then
     if(xmaster) then
       if (par%instat/=41) then
          read(74,*)wp%rt,wp%dt,fname
-		 wp%rt = wp%rt / max(par%morfac,1.d0)
+		 if (par%morfacopt==1) wp%rt = wp%rt / max(par%morfac,1.d0)
       endif
     endif
 #ifdef USEMPI
@@ -105,7 +105,7 @@ if (reuse==0) then
 	 endif
 else 
     wp%rt = readkey_dbl ('params.txt','rt'      , 3600.d0, 1200.d0,7200.d0,bcast=.false.)
-    wp%rt = wp%rt / max(par%morfac,1.d0)
+    if (par%morfacopt==1) wp%rt = wp%rt / max(par%morfac,1.d0)
     wp%dt = readkey_dbl ('params.txt','dtbc', 0.1d0,0.01d0,1.0d0,bcast=.false.)
     Ebcfname='E_reuse.bcf'
     qbcfname='q_reuse.bcf'
@@ -192,7 +192,7 @@ if(xmaster) then
      call readkey('params.txt','bcfile',fname)
      write(*,*)'waveparams: reading from table',fname,' ...'
      read(74,*,iostat=ier)wp%hm0gew,fp,wp%mainang,gam,scoeff,wp%rt,wp%dt
-	 wp%rt = wp%rt/max(par%morfac,1.d0)
+	 if (par%morfacopt==1) wp%rt = wp%rt/max(par%morfac,1.d0)
 	 fp=1.d0/fp
 	 fnyq = 3.d0*fp
 	 dfj= fp/20.d0
@@ -1621,21 +1621,41 @@ if (xmaster) then
 	i=0
 	select case (filetype)
 	    case(0)
-			total=2.d0*par%tstop*max(par%morfac,1.d0)
+			if (par%morfacopt==1) then
+			   total=2.d0*par%tstop*max(par%morfac,1.d0)
+			else
+			   total=2.d0*par%tstop
+            endif
 		case(1)
-			do while (total<par%tstop*max(par%morfac,1.d0) .and. i<nlines)
-				read(741,*)t,dt,dummy
-				total=total+t
-				i=i+1
-			enddo
+		    if (par%morfacopt==1) then
+			   do while (total<par%tstop*max(par%morfac,1.d0) .and. i<nlines)
+			      read(741,*)t,dt,dummy
+				  total=total+t
+				  i=i+1
+			   enddo
+			else
+			   do while (total<par%tstop .and. i<nlines)
+			      read(741,*)t,dt,dummy
+				  total=total+t
+				  i=i+1
+			   enddo
+            endif
 		case(2)
-			do while (total<par%tstop*max(par%morfac,1.d0) .and. i<nlines)
-				read(741,*)d1,d2,d3,d4,d5,t,dt
-				total=total+t
-				i=i+1
-			enddo
+		    if (par%morfacopt==1) then
+			   do while (total<par%tstop*max(par%morfac,1.d0) .and. i<nlines)
+				  read(741,*)d1,d2,d3,d4,d5,t,dt
+				  total=total+t
+				  i=i+1
+			   enddo
+			else
+			   do while (total<par%tstop .and. i<nlines)
+				  read(741,*)d1,d2,d3,d4,d5,t,dt
+				  total=total+t
+				  i=i+1
+			   enddo
+            endif
 	end select
-	total=total/max(par%morfac,1.d0)
+	if (par%morfacopt==1) total=total/max(par%morfac,1.d0)
 	
 	close(741)
 	if (total<par%tstop) then
