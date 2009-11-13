@@ -4,6 +4,8 @@ export TEAMCITY=yes
 #autoreconf
 echo "##teamcity[progressMessage 'configuring nompi version']"
 ./configure --without-mpi
+echo "##teamcity[progressMessage 'cleaning up']"
+make clean
 echo "##teamcity[progressMessage 'building source distribution']"
 make dist
 echo "##teamcity[progressMessage 'building xbeach']"

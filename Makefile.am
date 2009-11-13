@@ -112,6 +112,12 @@ xbeach_FCFLAGS=-DUSEMPI -DHAVE_MPI_WTIME
 endif
 
 
+clean-local: clean-local-check
+.PHONY: clean-local-check
+clean-local-check:
+	rm -rf testbed; \
+	rm -rf run
+
 # EXTRA_DIST=s.ind s.inp
 EXTRA_DIST=spaceparams.tmpl s.ind s.inp nh_pars.inc version.def VS2008 xbeach.dsp xbeach.dsw
 SUBDIRS=doc

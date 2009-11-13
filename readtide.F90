@@ -48,7 +48,9 @@ include 's.inp'
 ! this must only work on master
 if (xmaster) then
   if (par%tideloc .eq. 0) then
-	 return
+     allocate(s%tideinpt(par%tidelen))
+     allocate(s%tideinpz(par%tidelen,par%tideloc))
+     return
   endif
 
   io = 0
