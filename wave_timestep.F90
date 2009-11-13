@@ -292,7 +292,7 @@ subroutine wave_timestep(s,par)
     endif
 ! Dissipation by bed friction
     uorb=par%px*H/par%Trep/sinh(min(max(k,0.01d0)*(hh+par%delta*H),10.0d0))
-    s%Df=0.6666666d0/par%px*par%rho*par%fw*uorb**3   
+    Df=0.6666666d0/par%px*par%rho*par%fw*uorb**3   
 !
 ! Distribution of dissipation over directions and frequencies
 !
