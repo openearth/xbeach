@@ -1067,6 +1067,8 @@ do jg = 1,par%ngd
    Asb=0.015d0*hloc*(s%D50(jg)/hloc)**1.2d0/(1.65d0*par%g*s%D50(jg))**0.75d0         !bed load coefficent
    Ass=0.012d0*s%D50(jg)*dster**(-0.6d0)/(1.65d0*par%g*s%D50(jg))**1.2d0             !suspended load coeffient
    
+   ! Jaap: Gravel test:
+
    ! Jaap: par%sws to set short wave stirring to zero
    ! Jaap: Van Rijn use Peak orbital flow velocity --> 0.64 corresponds to 0.4 coefficient regular waves Van Rijn (2007)  
    term1= dsqrt(vmg**2+0.64d0*par%sws*urmsturb**2)                                       
