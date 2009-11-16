@@ -1,4 +1,4 @@
-!
+ !
 ! demonstration how to use the mnemonics stuff
 !
 program demo
