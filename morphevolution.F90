@@ -381,16 +381,20 @@ do j=2,ny
       dz=>dzbed(i,j,:)
 	  pb=>pbbed(i,j,:,:)
 	  ! bed level changes per fraction in this morphological time step in meters sand including pores
-	  dzg=par%morfac*par%dt/(1.d0-par%por)*( &
-	                                         ! Dano, dz from sus transport gradients
-	                                         (1-par%sourcesink)*&
-											     ((Susg(i,j,:)-Susg(i-1,j,:))/(xu(i)-xu(i-1))+&           
-		                                          (Svsg(i,j,:)-Svsg(i,j-1,:))/(yv(j)-yv(j-1)))+&
-											 ! BRJ, dz from source-sink terms
-	                                         par%sourcesink*(ero(i,j,:)-depo_ex(i,j,:)) +&           	                                                                                                
+	  if (par%sourcesink==0) then
+	  dzg=par%morfac*par%dt/(1.d0-par%por)*( & ! Dano, dz from sus transport gradients      
+											 (Susg(i,j,:)-Susg(i-1,j,:))/(xu(i)-xu(i-1)) +&           
+		                                     (Svsg(i,j,:)-Svsg(i,j-1,:))/(yv(j)-yv(j-1)) +&        	                                                                                                
 											 ! dz from bed load transport gradients
-                                             (Subg(i,j,:)-Subg(i-1,j,:))/(xu(i)-xu(i-1))+&           
+                                             (Subg(i,j,:)-Subg(i-1,j,:))/(xu(i)-xu(i-1)) +&           
 		                                     (Svbg(i,j,:)-Svbg(i,j-1,:))/(yv(j)-yv(j-1))    )        
+      elseif (par%sourcesink==1) then
+	  dzg=par%morfac*par%dt/(1.d0-par%por)*( & ! BRJ, dz from source-sink terms
+	                                         ero(i,j,:)-depo_ex(i,j,:)                   +&        	                                                                                                
+											 ! dz from bed load transport gradients
+                                             (Subg(i,j,:)-Subg(i-1,j,:))/(xu(i)-xu(i-1)) +&           
+		                                     (Svbg(i,j,:)-Svbg(i,j-1,:))/(yv(j)-yv(j-1))    )      
+	  endif
       
 	  ind = minval(minloc(dz))
       nt_e=max(1,ceiling(maxval(dzg(:)/(par%frac_dz*dz(ind)*max(pb(ind,:),0.001d0)) ) ) )
