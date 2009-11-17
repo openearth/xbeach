@@ -124,41 +124,33 @@ contains
     open(unit=PrintFileUnit,file=trim(PrintFileName))
         
     allocate(au (0:1,s%nx+1,s%ny+1)); au = 0.0_rKind
-    allocate(av (0:1,s%nx+1,s%ny+1)); av = 0.0_rKind
-    
-    allocate(aws (5,s%nx+1,s%ny+1)); aws = 0.0_rKind
-    allocate(awb (5,s%nx+1,s%ny+1)); awb = 0.0_rKind    
-    
-    allocate(aur(   s%nx+1,s%ny+1)); aur = 0.0_rKind
-    allocate(avr(   s%nx+1,s%ny+1)); avr = 0.0_rKind
-    allocate(awsr(s%nx+1,s%ny+1)); awsr = 0.0_rKind
-    allocate(awbr(s%nx+1,s%ny+1)); awbr = 0.0_rKind    
-    
-    allocate(mat(5,s%nx+1,s%ny+1));  mat = 0.0_rKind
-    allocate(rhs(  s%nx+1,s%ny+1));  rhs = 0.0_rKind
-    
-    allocate(zbu(  s%nx+1,s%ny+1));  zbu = 0.0_rKind
-    allocate(zbv(  s%nx+1,s%ny+1));  zbv = 0.0_rKind
-    allocate(zsu(  s%nx+1,s%ny+1));  zsu = 0.0_rKind
-    allocate(zsv(  s%nx+1,s%ny+1));  zsv = 0.0_rKind
-        
-    allocate(dxz (  s%nx+1));  dxz  = 0.0_rKind
-    allocate(dyz (  s%ny+1));  dyz  = 0.0_rKind
-    allocate(dxu (  s%nx+1));  dxu  = 0.0_rKind
-    allocate(dyv (  s%ny+1));  dyv  = 0.0_rKind
-    allocate(ddxz (  s%nx+1));  ddxz  = 0.0_rKind
-    allocate(ddyz (  s%ny+1));  ddyz  = 0.0_rKind
-    allocate(ddxu (  s%nx+1));  ddxu  = 0.0_rKind
-    allocate(ddyv (  s%ny+1));  ddyv  = 0.0_rKind      
-    
+    allocate(av (0:1,s%nx+1,s%ny+1)); av = 0.0_rKind  
+    allocate(aws (5,s%nx+1,s%ny+1)) ; aws = 0.0_rKind
+    allocate(awb (5,s%nx+1,s%ny+1)) ; awb = 0.0_rKind        
+    allocate(aur(   s%nx+1,s%ny+1)) ; aur = 0.0_rKind
+    allocate(avr(   s%nx+1,s%ny+1)) ; avr = 0.0_rKind
+    allocate(awsr(s%nx+1,s%ny+1))   ; awsr = 0.0_rKind
+    allocate(awbr(s%nx+1,s%ny+1))   ; awbr = 0.0_rKind        
+    allocate(mat(5,s%nx+1,s%ny+1))  ;  mat = 0.0_rKind
+    allocate(rhs(  s%nx+1,s%ny+1))  ;  rhs = 0.0_rKind    
+    allocate(zbu(  s%nx+1,s%ny+1))  ;  zbu = 0.0_rKind
+    allocate(zbv(  s%nx+1,s%ny+1))  ;  zbv = 0.0_rKind
+    allocate(zsu(  s%nx+1,s%ny+1))  ;  zsu = 0.0_rKind
+    allocate(zsv(  s%nx+1,s%ny+1))  ;  zsv = 0.0_rKind        
+    allocate(dxz (  s%nx+1))        ;  dxz  = 0.0_rKind
+    allocate(dyz (  s%ny+1))        ;  dyz  = 0.0_rKind
+    allocate(dxu (  s%nx+1))        ;  dxu  = 0.0_rKind
+    allocate(dyv (  s%ny+1))        ;  dyv  = 0.0_rKind
+    allocate(ddxz (  s%nx+1))       ;  ddxz  = 0.0_rKind
+    allocate(ddyz (  s%ny+1))       ;  ddyz  = 0.0_rKind
+    allocate(ddxu (  s%nx+1))       ;  ddxu  = 0.0_rKind
+    allocate(ddyv (  s%ny+1))       ;  ddyv  = 0.0_rKind          
     allocate(nonhU(  s%nx+1,s%ny+1)); nonhU = 1
     allocate(nonhV(  s%nx+1,s%ny+1)); nonhV = 1
-    allocate(nonhZ(  s%nx+1,s%ny+1)); nonhZ = 1
-    
-    allocate(dp(s%nx+1,s%ny+1)); dp = 0.0_rKind
-
-    allocate(Wm(s%nx+1,s%ny+1));Wm     = 0.0_rKind
-    allocate(Wm_old(s%nx+1,s%ny+1));Wm_old = 0.0_rKind
+    allocate(nonhZ(  s%nx+1,s%ny+1)); nonhZ = 1    
+    allocate(dp(s%nx+1,s%ny+1))     ; dp = 0.0_rKind
+    allocate(Wm(s%nx+1,s%ny+1))     ;Wm     = 0.0_rKind
+    allocate(Wm_old(s%nx+1,s%ny+1)) ;Wm_old = 0.0_rKind
     
     if (.not. associated(s%pres)) then   
       allocate(s%pres(s%nx+1,s%ny+1)); s%pres = 0.0_rKind   
@@ -297,17 +289,16 @@ contains
   
   !Built pressure coefficients U  
   !call timer_start(timer_flow_nonh_au)  
+  aur  = s%uu
   do j=2,s%ny
     do i=2,s%nx
       if (nonhU(i,j)==1) then
         vol       = 0.5_rKind*par%dt/(s%hum(i,j)*dxu(i))      
         au(1,i,j) = - (s%zs(i+1,j) - s%zb(i  ,j))*vol
         au(0,i,j) = + (s%zs(i  ,j) - s%zb(i+1,j))*vol
-        aur(i,j)  = s%uu(i,j)
       else
         au(1,i,j) =  0.0_rKind
         au(0,i,j) =  0.0_rKind
-        aur(i,j)  =  s%uu(i,j)
       endif
     enddo
   enddo
@@ -494,13 +485,9 @@ contains
   !call timer_start(timer_flow_nonh_corw)
   do j=2,s%ny
     do i=2,s%nx
-      !if (s%wetz(i,j) == 1) then
       s%ws(i,j) = awsr(i,j) + dp(i , j)  * aws(1,i,j)                            &
                             + dp(i-1,j)  * aws(2,i,j) + dp(i+1,j  ) * aws(3,i,j) &
-                            + dp(i  ,j-1)* aws(4,i,j) + dp(i  ,j+1) * aws(5,i,j)
-      !else
-      !  s%ws(i,j) = 0.0_rKInd
-     ! endif                            
+                            + dp(i  ,j-1)* aws(4,i,j) + dp(i  ,j+1) * aws(5,i,j)                      
     enddo
   enddo
   do j=2,s%ny
