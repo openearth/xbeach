@@ -6,7 +6,7 @@ type parameters
 
    ! Grid parameters                                                                                                               
 !  Type             name                   initialize    !  [unit] description                                                                                                                 
-   character(80) :: depfile                    = 'abc'   !  [-] Name of the input bathymetry file
+   character(256):: depfile                    = 'abc'   !  [-] Name of the input bathymetry file
    real*8        :: posdwn                     = -123    !  [-] Bathymetry is specified positive down (1) or positive up (-1)
    integer*4     :: nx                         = -123    !  [-] Number of computiation cell corners in x-direction
    integer*4     :: ny                         = -123    !  [-] Number of computiation cell corners in y-direction
@@ -14,8 +14,8 @@ type parameters
    integer*4     :: vardx                      = -123    !  [-] Switch for variable grid spacing: 1 = irregular spacing, 0 = regular grid spacing
    real*8        :: dx                         = -123    !  [m] Regular grid spacing in x-direction
    real*8        :: dy                         = -123    !  [m] Regular grid spacing in y-direction
-   character(80) :: xfile                      = 'abc'   !  [name] Name of the file containing x-coordinates of the calculation grid
-   character(80) :: yfile                      = 'abc'   !  [name] Name of the file containing y-coordinates of the calculation grid
+   character(256) :: xfile                      = 'abc'   !  [name] Name of the file containing x-coordinates of the calculation grid
+   character(256) :: yfile                      = 'abc'   !  [name] Name of the file containing y-coordinates of the calculation grid
    real*8        :: xori                       = -123    !  [m] X-coordinate of origin of axis
    real*8        :: yori                       = -123    !  [m] Y-coordinate of origin of axis
    real*8        :: thetamin                   = -123    !  [deg] Lower directional limit (angle w.r.t computational x-axis)
@@ -74,7 +74,7 @@ type parameters
    integer*4     :: rightwave                  = -123    !  [-] old name for lateralwave
 
    ! Wave-spectrum boundary condition parameters
-   character(80) :: bcfile                     = 'abc'   !  Note, will replace current lookup in boundary conditions [name] Name of spectrum file  
+   character(256):: bcfile                     = 'abc'   !  Note, will replace current lookup in boundary conditions [name] Name of spectrum file  
    integer*4     :: random                     = -123    !  [-] Random seed on (1) or off (0) for instat = 4,5,6 boundary conditions
    real*8        :: fcutoff                    = -123    !  [Hz] Low-freq cutoff frequency for instat = 4,5,6 boundary conditions
    integer*4     :: nspr                       = -123    !  [-] nspr = 1 bin all wave components for generation of qin (instat 4,5,6) in one direction, nspr = 0 regular long wave spreadin
@@ -93,7 +93,7 @@ type parameters
    integer*4     :: ARC                        = -123    !  [-] Switch for active reflection compensation at seaward boundary: 0 = reflective, 1 = weakly (non) reflective
    real*4        :: order                      = -123    !  [-] Switch for order of wave steering, 1 = first order wave steering (short wave energy only), 2 = second oder wave steering (bound long wave corresponding to short wave forcing is added)
    integer*4     :: carspan                    = -123    !  [-] Switch for Carrier-Greenspan test 0 = use cg (default); 1 = use sqrt(gh) in instat = 3 for c&g tests
-   character(80) :: zsinitfile                 = 'abc'   !  [name] Name of inital condition file zs
+   character(256):: zsinitfile                 = 'abc'   !  [name] Name of inital condition file zs
 
    ! Tide boundary conditions                                                                                                      
    real*8        :: zs0                        = -123    !  [m] Inital water level
@@ -101,7 +101,7 @@ type parameters
    real*8        :: zs02                       = -123    !  [m] Initial water level second sea boundary
    real*8        :: zs03                       = -123    !  [m] Initial water level first land boundary
    real*8        :: zs04                       = -123    !  [m] Initial water level second land boundary
-   character(80) :: zs0file                    = 'abc'   !  Note, will replace lookup in readtide [name] Name of tide boundary condition series
+   character(256):: zs0file                    = 'abc'   !  Note, will replace lookup in readtide [name] Name of tide boundary condition series
    integer*4     :: tideloc                    = -123    !  [-] Number of corner points on which a tide time series is specified
    integer*4     :: paulrevere                 = -123    !  [-] Specifies tide on sea and land (0) or two sea points (1) if tideloc = 2
                                                          !      if tideloc =>2, then this indicates where the time series are to be 
@@ -121,8 +121,8 @@ type parameters
                                                          !         (x=N,y=1)
                                                          !      NOTE:  clockwise from (1,1) corner
    ! Discharge boundary conditions 
-   character(80) :: disch_loc_file             = 'abc'   !  Note: will replace lookup in boundary conditions [name] Name of discharge locations file
-   character(80) :: disch_timeseries_file      = 'abc'   !  Note: will replace lookup in boundary conditions [name] Name of discharge timeseries file
+   character(256):: disch_loc_file             = 'abc'   !  Note: will replace lookup in boundary conditions [name] Name of discharge locations file
+   character(256):: disch_timeseries_file      = 'abc'   !  Note: will replace lookup in boundary conditions [name] Name of discharge timeseries file
 
    ! Wave breaking parameters                                                                                                      
    integer*4     :: break                      = -123    !  [-] Type of breaker formulation (1=roelvink, 2=baldock, 3=roelvink adapted, 4=roelvink on/off breaking)
@@ -156,7 +156,7 @@ type parameters
    real*8        :: Cd                         = -123    !  [-] Wind drag coefficient
    real*8        :: windv                      = -123    !  [ms^-1] Wind velocity, in case of stationary wind
    real*8        :: windth                     = -123    !  [deg] Nautical wind direction, in case of stationary wind
-   character(80) :: windfile                   = 'abc'   !  Note, will replace lookup in readwind [name] Name of file with non-stationary wind data
+   character(256) :: windfile                   = 'abc'   !  Note, will replace lookup in readwind [name] Name of file with non-stationary wind data
    
    ! Groundwater parameters 
    real*8        :: kx                         = -123    !  [ms^-1] Darcy-flow permeability coefficient in x-direction [m/s]
@@ -164,9 +164,9 @@ type parameters
    real*8        :: kz                         = -123    !  [ms^-1] Darcy-flow permeability coefficient in z-direction [m/s]
    real*8        :: dwetlayer                  = -123    !  [m] Thickness of the top soil layer interacting more freely with the surface water
    real*8        :: aquiferbot                 = -123    !  Note, will replace lookup in groundwater module [m] Level of uniform aquifer bottom
-   character(80) :: aquiferbotfile             = 'abc'   !  Note, will replace lookup in groundwater module [name] Name of the aquifer bottom file
+   character(256):: aquiferbotfile             = 'abc'   !  Note, will replace lookup in groundwater module [name] Name of the aquifer bottom file
    real*8        :: gw0                        = -123    !  Note, will replace lookup in groundwater module [m] Level initial groundwater level
-   character(80) :: gw0file                    = 'abc'   !  Note, will replace lookup in groundwater module [name] Name of initial groundwater level file
+   character(256):: gw0file                    = 'abc'   !  Note, will replace lookup in groundwater module [name] Name of initial groundwater level file
 
    
    ! Q3D sediment transport parameters
@@ -229,6 +229,8 @@ type parameters
    real*8        :: dryslp                     = -123    !  [-] Critical avalanching slope above water (dz/dx and dz/dy)
    real*8        :: hswitch                    = -123    !  [m] Water depth at which is switched from wetslp to dryslp
    real*8        :: dzmax                      = -123    !  [m/s/m] Maximum bedlevel change due to avalanching
+   integer*4     :: struct                     = -123    !  [-] Switch for hard structures
+   character(256):: ne_layer                   = 'abc'   !  [name] Name of file containing depth of hard structure
  
    ! Output variables                                                                                                              
    integer*4     :: timings                    = -123    !  [-] Switch to turn on (1) or off (0) progress output to screen
@@ -238,10 +240,10 @@ type parameters
    real*8        :: tintp                      = -123    !  [s] Interval time of point and runup gauge output
    real*8        :: tintc                      = -123    !  [s] Interval time of cross section output
    real*8        :: tintm                      = -123    !  [s] Interval time of mean,var,max,min output
-   character(80) :: tsglobal                   = 'abc'   !  [name] Name of file containing timings of global output
-   character(80) :: tspoints                   = 'abc'   !  [name] Name of file containing timings of point output
-   character(80) :: tscross                    = 'abc'   !  [name] Name of file containing timings of cross section output
-   character(80) :: tsmean                     = 'abc'   !  [name] Name of file containing timings of mean, max, min and var output
+   character(256):: tsglobal                   = 'abc'   !  [name] Name of file containing timings of global output
+   character(256):: tspoints                   = 'abc'   !  [name] Name of file containing timings of point output
+   character(256):: tscross                    = 'abc'   !  [name] Name of file containing timings of cross section output
+   character(256):: tsmean                     = 'abc'   !  [name] Name of file containing timings of mean, max, min and var output
    integer*4     :: nglobalvar                 = -123    !  [-] Number of global output variables
    integer*4     :: nmeanvar                   = -123    !  [-] Number of mean,min,max,var output variables
    integer*4     :: npoints                    = -123    !  [-] Number of output point locations
@@ -250,7 +252,7 @@ type parameters
   
    ! Drifters parameters
    integer*4     :: ndrifter                   = -123    !  Note: will replace lookup in drifters module [-] Number of drifers
-   character(80) :: drifterfile                = 'abc'   !  Note: will replace lookup in drifters module [name] Name of drifter data file
+   character(256) :: drifterfile                = 'abc'   !  Note: will replace lookup in drifters module [name] Name of drifter data file
   
    ! Constants, not read in params.txt
    real*8               :: px                  = -123    !  [-] Pi
@@ -551,6 +553,7 @@ end subroutine flow_input
 subroutine sed_input(par)
 use readkey_module
 use xmpi_module
+use general_fileio
 implicit none
 type(parameters)            :: par
 character(len=80)           :: dummystring
@@ -598,6 +601,14 @@ if (par%morfac>1.d0) then
        write(*,*)'Warning: Using source-sink terms for bed level change with morfac can lead to loss of sediment mass conservation.'
    endif
 endif
+par%struct   = readkey_int ('params.txt','struct ',0    ,      0,             1)
+if (par%struct==1) then
+   call readkey('params.txt','ne_layer',par%ne_layer)  ! Bathymetry file name
+   call check_file_exist(par%ne_layer)
+   call check_file_length(par%ne_layer,par%nx+1,par%ny+1)
+endif
+
+
 ! Just a check to see if they are there.....
 if (xmaster) then
  call readkey('params.txt','D50',dummystring)

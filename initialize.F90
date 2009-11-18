@@ -413,54 +413,69 @@ integer                             :: i,j,m,jg,start,rgd
 character*80                        :: fnameg,line
 character*4                         :: tempc
 real*8                              :: tempr
+real*8,dimension(:,:),allocatable   :: structdepth
+real*8,dimension(:),allocatable     :: layerdepth
+real*8                              :: remain
 
 
+rgd = par%ngd
 
-   rgd = par%ngd
+if (par%struct==1) then   ! If hard structure specified then add one sediment type (non-mobile)
+   par%ngd = par%ngd+1
+   write(*,*) 'Adding one sediment fraction to account for unerodable layer'
+   if (par%nd==1) then
+      par%nd=50
+	  write(*,*)'Bed layers included to support hard structure calculation'
+      par%dzg1=0.05d0
+      par%dzg2=0.05d0
+	  par%dzg3=0.10d0
+      write(*,*)'Setting bed layer thickness to support hard structure calculation'
+	  write(*,*) 'dzg1,dzg2 = 5cm. dzg3 = 10cm.'
+   endif
+endif
 
-
-
-   allocate(s%ccg(1:s%nx+1,1:s%ny+1,par%ngd))
-	allocate(s%dcbdy(1:s%nx+1,1:s%ny+1))
-	allocate(s%dcbdx(1:s%nx+1,1:s%ny+1))
-	allocate(s%dcsdy(1:s%nx+1,1:s%ny+1))
-	allocate(s%dcsdx(1:s%nx+1,1:s%ny+1))
-	allocate(s%Tsg(1:s%nx+1,1:s%ny+1,par%ngd)) 
-	allocate(s%Susg(1:s%nx+1,1:s%ny+1,par%ngd)) 
-	allocate(s%Svsg(1:s%nx+1,1:s%ny+1,par%ngd)) 
-	allocate(s%Subg(1:s%nx+1,1:s%ny+1,par%ngd)) 
-	allocate(s%Svbg(1:s%nx+1,1:s%ny+1,par%ngd)) 
-	allocate(s%vmag(1:s%nx+1,1:s%ny+1)) 
-	allocate(s%ceqsg(1:s%nx+1,1:s%ny+1,par%ngd))
-	allocate(s%ceqbg(1:s%nx+1,1:s%ny+1,par%ngd))
-	allocate(s%D50(1:par%ngd))
-	allocate(s%D90(1:par%ngd))
-	allocate(s%sedcal(1:par%ngd))
-	allocate(s%ucrcal(1:par%ngd))
-	allocate(s%nd(1:s%nx+1,1:s%ny+1))
-	allocate(s%dzbed(1:s%nx+1,1:s%ny+1,1:max(par%nd,2))) 
-	allocate(s%pbbed(1:s%nx+1,1:s%ny+1,1:max(par%nd,2),1:par%ngd)) 
-	allocate(s%z0bed(1:s%nx+1,1:s%ny+1))
-	allocate(s%ureps(1:s%nx+1,1:s%ny+1))
-	allocate(s%urepb(1:s%nx+1,1:s%ny+1))
-	allocate(s%vreps(1:s%nx+1,1:s%ny+1))
-	allocate(s%vrepb(1:s%nx+1,1:s%ny+1))
-	allocate(s%dzbdx(1:s%nx+1,1:s%ny+1))
-	allocate(s%dzbdy(1:s%nx+1,1:s%ny+1))
-	allocate(s%ero(1:s%nx+1,1:s%ny+1,1:par%ngd))
-	allocate(s%depo_ex(1:s%nx+1,1:s%ny+1,1:par%ngd))
-	allocate(s%depo_im(1:s%nx+1,1:s%ny+1,1:par%ngd))
-    allocate(s%kb(1:s%nx+1,1:s%ny+1))
-    allocate(s%Tbore(1:s%nx+1,1:s%ny+1))
-    allocate(s%ua(1:s%nx+1,1:s%ny+1))  
-    allocate(s%dzav(1:s%nx+1,1:s%ny+1))  
-    allocate(s%Sk(1:s%nx+1,1:s%ny+1))
-    allocate(s%As(1:s%nx+1,1:s%ny+1))
-    allocate(s%kturb(1:s%nx+1,1:s%ny+1))
-    allocate(s%rolthick(1:s%nx+1,1:s%ny+1))
-
-
+allocate(s%ccg(1:s%nx+1,1:s%ny+1,par%ngd))
+allocate(s%dcbdy(1:s%nx+1,1:s%ny+1))
+allocate(s%dcbdx(1:s%nx+1,1:s%ny+1))
+allocate(s%dcsdy(1:s%nx+1,1:s%ny+1))
+allocate(s%dcsdx(1:s%nx+1,1:s%ny+1))
+allocate(s%Tsg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+allocate(s%Susg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+allocate(s%Svsg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+allocate(s%Subg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+allocate(s%Svbg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+allocate(s%vmag(1:s%nx+1,1:s%ny+1)) 
+allocate(s%ceqsg(1:s%nx+1,1:s%ny+1,par%ngd))
+allocate(s%ceqbg(1:s%nx+1,1:s%ny+1,par%ngd))
+allocate(s%D50(1:par%ngd))
+allocate(s%D90(1:par%ngd))
+allocate(s%sedcal(1:par%ngd))
+allocate(s%ucrcal(1:par%ngd))
+allocate(s%nd(1:s%nx+1,1:s%ny+1))
+allocate(s%dzbed(1:s%nx+1,1:s%ny+1,1:max(par%nd,2))) 
+allocate(s%pbbed(1:s%nx+1,1:s%ny+1,1:max(par%nd,2),1:par%ngd)) 
+allocate(s%z0bed(1:s%nx+1,1:s%ny+1))
+allocate(s%ureps(1:s%nx+1,1:s%ny+1))
+allocate(s%urepb(1:s%nx+1,1:s%ny+1))
+allocate(s%vreps(1:s%nx+1,1:s%ny+1))
+allocate(s%vrepb(1:s%nx+1,1:s%ny+1))
+allocate(s%dzbdx(1:s%nx+1,1:s%ny+1))
+allocate(s%dzbdy(1:s%nx+1,1:s%ny+1))
+allocate(s%ero(1:s%nx+1,1:s%ny+1,1:par%ngd))
+allocate(s%depo_ex(1:s%nx+1,1:s%ny+1,1:par%ngd))
+allocate(s%depo_im(1:s%nx+1,1:s%ny+1,1:par%ngd))
+allocate(s%kb(1:s%nx+1,1:s%ny+1))
+allocate(s%Tbore(1:s%nx+1,1:s%ny+1))
+allocate(s%ua(1:s%nx+1,1:s%ny+1))  
+allocate(s%dzav(1:s%nx+1,1:s%ny+1))  
+allocate(s%Sk(1:s%nx+1,1:s%ny+1))
+allocate(s%As(1:s%nx+1,1:s%ny+1))
+allocate(s%kturb(1:s%nx+1,1:s%ny+1))
+allocate(s%rolthick(1:s%nx+1,1:s%ny+1))
   
+! Initialize so structures can be implemented more easily
+s%pbbed = 0.d0
+
 
  !
  ! Set grain size(s)
@@ -493,13 +508,14 @@ real*8                              :: tempr
 
 if (rgd==1) then
 ! No multi sediment, but we do need some data to keep the script running
-   s%pbbed=1.d0
+    s%pbbed(:,:,:,rgd)=1.d0   ! set sand fraction everywhere, not structure fraction (if exist) which is still 0.d0
+	par%nd_var=1
 	if (par%nd==1) then
-	   par%nd_var=1
 		s%dzbed = 99999.d0
 	else
-	   par%nd_var=1
-		s%dzbed = par%dzg1
+	   s%dzbed(:,:,1:par%nd_var-1)       = par%dzg1
+       s%dzbed(:,:,par%nd_var)           = par%dzg2
+	   s%dzbed(:,:,par%nd_var+1:par%nd)  = par%dzg3
 	endif
 else
    !
@@ -522,12 +538,17 @@ else
 	   do j=2,s%ny
 		   do i=2,s%nx
 		       
-			   tempr=sum(s%pbbed(i,j,m,:))
+			   tempr=sum(s%pbbed(i,j,m,1:rgd))
 			   if (abs(1.d0-tempr)>0.d0) then
+			       ! Maybe fix this warning if in combination with structures
 				   write(*,*)' Warning: Resetting sum of sediment fractions in point (',&
 					                     i,',',j,') layer ,',m,&
 												' to equal unity.'
-				   s%pbbed(i,j,m,:)=s%pbbed(i,j,m,:)/tempr
+				   if (tempr<=tiny(0.d0)) then    ! In case cell has zero sediment (i.e. only hard structure)
+                      s%pbbed(i,j,m,:)=1.d0/dble(rgd) 
+				   else
+				      s%pbbed(i,j,m,:)=s%pbbed(i,j,m,:)/tempr
+				   endif
 				endif
 			enddo
 		enddo
@@ -542,6 +563,43 @@ else
 	s%dzbed(:,:,par%nd_var)           = par%dzg2
 	s%dzbed(:,:,par%nd_var+1:par%nd)  = par%dzg3
 endif
+
+! 
+! Set non-erodable layer
+!
+if (par%struct==1) then
+   s%D50(rgd+1) = 0.0002d0  ! Dummy
+   s%D90(rgd+1) = 0.0003d0  ! Dummy
+   s%sedcal(rgd+1) = 0.d0   ! Fully non-erodable
+   s%ucrcal(rgd+1) = 1.d0   ! Dummy
+   allocate(structdepth(s%nx+1,s%ny+1))
+   open(31,file=par%ne_layer)
+   do j=1,s%ny+1
+       read(31,*)(structdepth(i,j),i=1,s%nx+1)
+   end do
+   close(31)
+   allocate(layerdepth(par%nd+1))
+   layerdepth(1)=0.d0
+   do m=2,par%nd+1
+      layerdepth(m)=sum(s%dzbed(1,1,1:m-1))
+   enddo
+   do j=2,s%ny
+      do i=2,s%nx
+	     do m=1,par%nd
+		    if (layerdepth(m)>=structdepth(i,j)) then
+               s%pbbed(i,j,m,1:rgd)=0.d0
+			   s%pbbed(i,j,m,rgd+1)=1.d0
+			elseif(layerdepth(m+1)>structdepth(i,j)) then
+			   remain=(layerdepth(m+1)-structdepth(i,j))/s%dzbed(i,j,m)
+               s%pbbed(i,j,m,rgd+1)=remain
+               s%pbbed(i,j,m,1:rgd)=s%pbbed(i,j,m,1:rgd)*(1.d0-remain)
+			endif
+		 enddo
+	  enddo
+  enddo
+endif
+
+
 
 ! bottom of sediment model
 s%z0bed = s%zb - sum(s%dzbed,DIM=3)
