@@ -133,9 +133,9 @@ endif
 
 ! compute diffusion coefficient
 
-if (par%nuhfac==1) then
+!if (par%nuhfac==1) then
    Dc = par%nuh+par%nuhfac*hh*(DR/par%rho)**(1.d0/3.d0)
-end if
+!end if
 
 dzbdt=0.0d0
 
