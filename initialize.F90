@@ -424,7 +424,7 @@ if (par%struct==1) then   ! If hard structure specified then add one sediment ty
    par%ngd = par%ngd+1
    write(*,*) 'Adding one sediment fraction to account for unerodable layer'
    if (par%nd==1) then
-      par%nd=50
+      par%nd=100
 	  write(*,*)'Bed layers included to support hard structure calculation'
       par%dzg1=0.05d0
       par%dzg2=0.05d0
