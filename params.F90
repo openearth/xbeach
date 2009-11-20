@@ -426,8 +426,8 @@ par%thetamax = readkey_dbl ('params.txt','thetamax',  80.d0,    -180.d0,  180.d0
 par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   20.d0)
 par%thetanaut= readkey_int ('params.txt','thetanaut',    0,        0,     1)
 par%wci      = readkey_int ('params.txt','wci',        0,        0,     1)
-par%hwci     = readkey_dbl ('params.txt','hwci',   0.01d0,   0.001d0,      1.d0)
-par%cats     = readkey_dbl ('params.txt','cats',  10.d0,   5.d0,      50.d0)
+par%hwci     = readkey_dbl ('params.txt','hwci',   0.1d0,   0.001d0,      1.d0)
+par%cats     = readkey_dbl ('params.txt','cats',  7.d0,   1.d0,      50.d0)
 par%fw       = readkey_dbl ('params.txt','fw',  0.d0,   0d0,      0.3d0)
 par%break    = readkey_int ('params.txt','break',      3,        1,     3)
 ! Only allow Baldock in stationary mode and Roelvink in non-stationary
