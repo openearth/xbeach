@@ -228,16 +228,16 @@ endif
     do j=2,ny
         do i=2,nx
             nuh(i,j) = max(par%nuh,par%nuhfac*hh(i,j)*(DR(i,j)/par%rho)**(1.0d0/3.0d0)) ! Ad: change to max
-            dudx1 = (uu(i+1,j)-uu(i,j))/(xu(i+1)-xu(i))
-            dudx2 = (uu(i,j)-uu(i-1,j))/(xu(i)-xu(i-1)) 
-            viscu(i,j) = nuh(i,j)*( 2*(dudx1-dudx2)/(xu(i+1)-xu(i-1)) )*wetu(i+1,j)*wetu(i-1,j)  !Set viscu = 0.0 near water line   wwvv: viscu is overwritten in next loopnest before it is used
+            dudx1 = s%hh(i+1,j)*(uu(i+1,j)-uu(i,j))/(xu(i+1)-xu(i))
+            dudx2 = s%hh(i  ,j)*(uu(i,j)-uu(i-1,j))/(xu(i)-xu(i-1)) 
+            viscu(i,j) = (1.0d0/s%hum(i,j))*nuh(i,j)*( 2*(dudx1-dudx2)/(xu(i+1)-xu(i-1)) )*wetu(i+1,j)*wetu(i-1,j)  !Set viscu = 0.0 near water line   wwvv: viscu is overwritten in next loopnest before it is used
         end do 
     end do
     do j=2,ny
         do i=2,nx
-            dudy1 = (uu(i,j+1)-uu(i,j))/(yz(j+1)-yz(j))
-            dudy2 = (uu(i,j)-uu(i,j-1))/(yz(j)-yz(j-1))
-            viscu(i,j) = viscu(i,j) + nuh(i,j)*( 2*(dudy1-dudy2)/(yz(j+1)-yz(j-1)) )*wetu(i,j+1)*wetu(i,j-1)
+            dudy1 = .5d0*(s%hvm(i,j  )+s%hvm(i+1,j  ))*(uu(i,j+1)-uu(i,j))/(yz(j+1)-yz(j))
+            dudy2 = .5d0*(s%hvm(i,j-1)+s%hvm(i+1,j-1))*(uu(i,j)-uu(i,j-1))/(yz(j)-yz(j-1))
+            viscu(i,j) = viscu(i,j) + (1.0d0/s%hum(i,j))*nuh(i,j)*( 2*(dudy1-dudy2)/(yz(j+1)-yz(j-1)) )*wetu(i,j+1)*wetu(i,j-1)
         end do 
     end do
     !
@@ -301,17 +301,17 @@ endif
     end do
     do j=2,ny
         do i=2,nx
-          dvdy1 = (vv(i,j+1)-vv(i,j))/(yv(j+1)-yv(j))
-          dvdy2 = (vv(i,j)-vv(i,j-1))/(yv(j)-yv(j-1))
-          viscv(i,j) = nuh(i,j)*( 2*(dvdy1-dvdy2)/(yv(j+1)-yv(j-1)) )*wetv(i,j+1)*wetv(i,j-1)
+          dvdy1 = s%hh(i,j+1)*(vv(i,j+1)-vv(i,j))/(yv(j+1)-yv(j))
+          dvdy2 = s%hh(i,j  )*(vv(i,j)-vv(i,j-1))/(yv(j)-yv(j-1))
+          viscv(i,j) = (1.0d0/s%hvm(i,j))*nuh(i,j)*( 2*(dvdy1-dvdy2)/(yv(j+1)-yv(j-1)) )*wetv(i,j+1)*wetv(i,j-1)
         end do 
     end do
     do j=2,ny
         do i=2,nx
             nuh(i,j) = par%nuhv*nuh(i,j)         !Robert en Ap: increase nuh interaction in d2v/dx2
-            dvdx1 = (vv(i+1,j)-vv(i,j))/(xz(i+1)-xz(i))
-            dvdx2 = (vv(i,j)-vv(i-1,j))/(xz(i)-xz(i-1))
-            viscv(i,j) = viscv(i,j) + nuh(i,j)*( 2*(dvdx1-dvdx2)/(xz(i+1)-xz(i-1)) )*wetv(i+1,j)*wetv(i-1,j)
+			dvdx1 = .5d0*(s%hum(i  ,j)+s%hum(i  ,j+1))*(vv(i+1,j)-vv(i,j))/(xz(i+1)-xz(i))
+            dvdx2 = .5d0*(s%hum(i-1,j)+s%hum(i-1,j+1))*(vv(i,j)-vv(i-1,j))/(xz(i)-xz(i-1))
+            viscv(i,j) = viscv(i,j) + (1.0d0/s%hvm(i,j))*nuh(i,j)*( 2*(dvdx1-dvdx2)/(xz(i+1)-xz(i-1)) )*wetv(i+1,j)*wetv(i-1,j)
         end do 
     end do  
 
@@ -358,10 +358,10 @@ endif
         ! Water depth in u-points do continuity equation: upwind
         if (uu(i,j)>par%umin) then
           hu(i,j)=hh(i,j)
-		     ! hu(i,j)=zs(i,j)-max(zb(i,j),zb(min(nx,i)+1,j))
+		 !     hu(i,j)=zs(i,j)-max(zb(i,j),zb(min(nx,i)+1,j))
         elseif (uu(i,j)<-par%umin) then
           hu(i,j)=hh(min(nx,i)+1,j)  
-		      !hu(i,j)=zs(min(nx,i)+1,j)-max(zb(i,j),zb(min(nx,i)+1,j))
+		  !    hu(i,j)=zs(min(nx,i)+1,j)-max(zb(i,j),zb(min(nx,i)+1,j))
         else
           hu(i,j)=max(max(zs(i,j),zs(min(nx,i)+1,j))-max(zb(i,j),zb(min(nx,i)+1,j)),par%eps)          
         end if
