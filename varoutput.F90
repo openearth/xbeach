@@ -975,7 +975,7 @@ subroutine var_output(it,s,sl,par)
 
     !!! Write global variables
     if (nglobalvar/=0) then
-      if (any(abs(par%t-tpg) .le. 0.000001d0)) then
+      if (any(abs(par%t-tpg) .le. 0.0000001d0)) then
           itg=itg+1      
           do i = 1,noutnumbers
 #ifdef USEMPI
@@ -1050,11 +1050,11 @@ subroutine var_output(it,s,sl,par)
     endif  !xmaster
 
     ! Determine next time step
-    t1=minval(tpg,MASK=tpg .gt. par%t)
-    t2=minval(tpp,MASK=tpp .gt. par%t)
-    t3=minval(tpm,MASK=tpm .gt. par%t)
-	t4=minval(tpw,MASK=tpw .gt. par%t)
-	t5=minval(tpc,MASK=tpc .gt. par%t)
+    t1=minval(tpg,MASK=tpg .gt. par%t+0.0000001d0)
+    t2=minval(tpp,MASK=tpp .gt. par%t+0.0000001d0)
+    t3=minval(tpm,MASK=tpm .gt. par%t+0.0000001d0)
+	t4=minval(tpw,MASK=tpw .gt. par%t+0.0000001d0)
+	t5=minval(tpc,MASK=tpc .gt. par%t+0.0000001d0)
     par%tnext=min(t1,t2,t3,t4,t5)
   end if  ! it > itpref
 
