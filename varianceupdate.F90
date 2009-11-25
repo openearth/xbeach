@@ -147,7 +147,7 @@ subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
 				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
 				   oldmean=-1.d0*tiny(0.d0)
 				endwhere
-            tvar=s%u*cos(s%alfa) - s%v*sin(s%alfa)
+                tvar=s%u*cos(s%alfa) - s%v*sin(s%alfa)
 				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
 				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
 				                         mult*2.d0*tvar*meanarrays(:,:,i)
@@ -155,22 +155,54 @@ subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
 				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
             MA = max(MA,tvar)
 			   MI = min(MI,tvar)
-        case (mnem_v)
-		      oldmean=meanarrays(:,:,i)
+	    case (mnem_gwu)
+		        oldmean=meanarrays(:,:,i)
 				! oldmean is initiated at 0, so:
 				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
 				   oldmean=tiny(0.d0)
 				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
 				   oldmean=-1.d0*tiny(0.d0)
 				endwhere
-            tvar=s%u*sin(s%alfa) + s%v*cos(s%alfa)
+                tvar=s%gwu*cos(s%alfa) - s%gwv*sin(s%alfa)
 				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
 				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
 				                         mult*2.d0*tvar*meanarrays(:,:,i)
 				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
 				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-            MA = max(MA,tvar)
+               MA = max(MA,tvar)
 			   MI = min(MI,tvar)
+        case (mnem_v)
+		        oldmean=meanarrays(:,:,i)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+                tvar=s%u*sin(s%alfa) + s%v*cos(s%alfa)
+				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,i)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+                MA = max(MA,tvar)
+			    MI = min(MI,tvar)
+        case (mnem_gwv)
+		        oldmean=meanarrays(:,:,i)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+                tvar=s%gwu*sin(s%alfa) + s%gwv*cos(s%alfa)
+				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,i)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+                MA = max(MA,tvar)
+			    MI = min(MI,tvar)
         case (mnem_ue)
 		      oldmean=meanarrays(:,:,i)
 				! oldmean is initiated at 0, so:
