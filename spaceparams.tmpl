@@ -191,4 +191,6 @@
       real*8  2  taubx     s%nx+1 s%ny+1 d ! [N/m^2]   x-component of bed shear stress
       real*8  2  tauby     s%nx+1 s%ny+1 d ! [N/m^2]   y-component of bed shear stress
       real*8  2  Df        s%nx+1 s%ny+1 d ! [W/m^2]   dissipation rate due to bed friction
+      real*8  1  wi        s%ny+1 d ! [m/s]   ! Vertical velocity at boundary due to (short) waves
+      real*8  1  zi        s%ny+1 d ! [m]     ! Surface elevation at boundary due to (short) waves
 !* hints for vi vim: filetype=fortran : syntax=fortran
