@@ -47,7 +47,7 @@ subroutine wave_timestep(s,par)
 
     integer, dimension(:,:,:),allocatable,save  :: wete
     real*8 , dimension(:,:)  ,allocatable,save  :: dhdx,dhdy,dudx,dudy,dvdx,dvdy,ustw,Erfl
-    real*8 , dimension(:,:)  ,allocatable,save  :: km,kmx,kmy,wm,xwadvec,ywadvec,sinh2kh
+    real*8 , dimension(:,:)  ,allocatable,save  :: km,kmx,kmy,xwadvec,ywadvec,sinh2kh !,wm
     real*8 , dimension(:,:,:),allocatable,save  :: xadvec,yadvec,thetaadvec,dd,drr
     real*8 , dimension(:,:,:),allocatable,save  :: xradvec,yradvec,thetaradvec
 	real*8 , dimension(:,:)  ,allocatable,save  :: dkmxdx,dkmxdy,dkmydx,dkmydy,cgxm,cgym,arg,fac
@@ -76,7 +76,7 @@ subroutine wave_timestep(s,par)
        allocate(km          (nx+1,ny+1))
        allocate(kmx         (nx+1,ny+1))
        allocate(kmy         (nx+1,ny+1))
-       allocate(wm          (nx+1,ny+1))
+!       allocate(wm          (nx+1,ny+1))
        allocate(ustw        (nx+1,ny+1))
        allocate(Erfl        (nx+1,ny+1)) ! wwvv not used
        allocate(xwadvec     (nx+1,ny+1))
@@ -115,7 +115,7 @@ subroutine wave_timestep(s,par)
        km          = 0.d0
        kmx         = 0.d0
        kmy         = 0.d0
-       wm          = 0.d0
+  !     wm          = 0.d0
        ustw        = 0.d0
        Erfl        = 0.d0
        xwadvec     = 0.d0

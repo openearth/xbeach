@@ -22,7 +22,7 @@ integer                     :: itheta,iter,iimpi
 integer, dimension(:,:,:),allocatable,save  :: wete
 real*8 , dimension(:,:)  ,allocatable,save  :: dhdx,dhdy,dudx,dudy,dvdx,dvdy,ustw
 real*8 , dimension(:,:)  ,allocatable,save  :: km
-real*8 , dimension(:,:)  ,allocatable,save  :: kmx,kmy,wm,sinh2kh
+real*8 , dimension(:,:)  ,allocatable,save  :: kmx,kmy,sinh2kh ! ,wm
 real*8 , dimension(:,:,:),allocatable,save  :: xadvec,yadvec,thetaadvec,dd,drr
 real*8 , dimension(:,:,:),allocatable,save  :: xradvec,yradvec,thetaradvec
 real*8 , dimension(:),allocatable,save      :: Hprev
@@ -53,7 +53,7 @@ if (.not. allocated(wete)) then
    allocate(km  (nx+1,ny+1))
    allocate(kmx (3,ny+1))
    allocate(kmy (3,ny+1))
-   allocate(wm  (3,ny+1))
+!   allocate(wm  (3,ny+1))
    allocate(ustw(nx+1,ny+1))
    allocate(xwadvec(ny+1))
    allocate(ywadvec(ny+1))
@@ -91,7 +91,7 @@ dvdy        = 0.0d0
 km          = 0.0d0
 kmx         = 0.0d0
 kmy         = 0.0d0
-wm          = 0.0d0
+!wm          = 0.0d0
 ustw        = 0.0d0
 xwadvec     = 0.0d0
 ywadvec     = 0.0d0
@@ -212,7 +212,7 @@ do it=2,imax
 		if (par%wci==1) then
 			kmx = km(i-1:i+1,:)*cos(thetamean(i-1:i+1,:))
 			kmy = km(i-1:i+1,:)*sin(thetamean(i-1:i+1,:))
-			wm = sigm(i-1:i+1,:)+kmx*wcifacu(i-1:i+1,:)&
+			wm(i-1:i+1,:) = sigm(i-1:i+1,:)+kmx*wcifacu(i-1:i+1,:)&
 								+kmy*wcifacv(i-1:i+1,:)
 
             where(km(i,:)>0.01d0)
@@ -237,10 +237,10 @@ do it=2,imax
 			dkmydy(1)    = dkmydy(2)
 			dkmydy(ny+1) = dkmydy(ny)
 
-			xwadvec  = (wm(2,:)-wm(1,:))/(xz(i)-xz(i-1))
+			xwadvec  = (wm(i,:)-wm(i-1,:))/(xz(i)-xz(i-1))
 			kmx(2,:) = kmx(2,:) -dtw*xwadvec -dtw*cgym*(dkmydx-dkmxdy)
 			
-			ywadvec(2:ny) = (wm(2,3:ny+1)-wm(2,1:ny-1))/(yz(3:ny+1)-yz(1:ny-1))
+			ywadvec(2:ny) = (wm(i,3:ny+1)-wm(i,1:ny-1))/(yz(3:ny+1)-yz(1:ny-1))
 			ywadvec(1)=ywadvec(2)
 			ywadvec(ny+1)=ywadvec(ny)
 			kmy(2,:) = kmy(2,:) -dtw*ywadvec + dtw*cgxm*(dkmydx-dkmxdy)
