@@ -256,7 +256,7 @@ endwhere
 s%gww=0.d0						! w defined positive from sea to groundwater in volumes of surface water (no pores).
 s%gww=par%por*(&
               -( c1* (s%gwlevel-s%zb) / par%dt                                      )&
-              +( c2* ((1.d0-r)*(s%zb-s%gwlevel) / par%dt + r*(par%kz*(1.d0 + fsh/s%dinfil)) ) ) ) ! Jaap: add effect gravity for computing gww
+              +( c2* ((1.d0-r)*(s%zb-s%gwlevel) / par%dt + r*(par%kz*(1.d0 + fsh/s%dinfil))/par%por ) ) ) ! Jaap: add effect gravity for computing gww
 !             +(case2*((1.d0-r)*max((s%zb-s%gwhead),0.d0)+r*(fsh*gw%kper)))&
 !			  +(case3*fsh*gw%kper)&
 
@@ -269,8 +269,8 @@ dleveldt=0.d0
 ! Mass balance
 do j=2,s%ny
     do i=2,s%nx
-	    dleveldt(i,j)=-1.d0*(gwqx(i,j)-gwqx(i-1,j))/(s%xu(i)-s%xu(i-1)) &
-		              -1.d0*(gwqy(i,j)-gwqy(i,j-1))/(s%yv(j)-s%yv(j-1)) &
+	    dleveldt(i,j)=-1.d0*(gwqx(i,j)-gwqx(i-1,j))/(s%xu(i)-s%xu(i-1))/par%por &
+		              -1.d0*(gwqy(i,j)-gwqy(i,j-1))/(s%yv(j)-s%yv(j-1))/par%por &
 				      +1.d0*s%gww(i,j)/par%por
     enddo
 enddo
