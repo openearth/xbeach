@@ -290,42 +290,14 @@ contains
   !Built pressure coefficients U  
   !call timer_start(timer_flow_nonh_au)  
   aur  = s%uu
-  do j=2,s%ny
-    do i=2,s%nx
-      if (nonhU(i,j)==1) then
-        vol       = 0.5_rKind*par%dt/(s%hum(i,j)*dxu(i))      
-        au(1,i,j) = - (s%zs(i+1,j) - s%zb(i  ,j))*vol
-        au(0,i,j) = + (s%zs(i  ,j) - s%zb(i+1,j))*vol
-      else
-        au(1,i,j) =  0.0_rKind
-        au(0,i,j) =  0.0_rKind
-      endif
-    enddo
-  enddo
-  au(:,1,:)      = 0.0_rKind
-  au(:,s%nx,:)   = 0.0_rKind
+  avr  = s%vv
+    
+
   aur(1,:)       = s%uu(1,:)
   aur(s%nx,:)    = s%uu(s%nx,:)
   !call timer_stop(timer_flow_nonh_au)
   
-  !Built pressure coefficients V
-  !call timer_start(timer_flow_nonh_av)    
-  do j=2,s%ny
-    do i=2,s%nx
-      if (nonhV(i,j)==1)then
-        vol       = 0.5_rKind*par%dt/(s%hvm(i,j)*dyv(j))      
-        av(1,i,j)  = -(s%zs(i  ,j+1) - s%zb(i  ,j  ))*vol
-        av(0,i,j)  = +(s%zs(i  ,j  ) - s%zb(i  ,j+1))*vol
-        avr(i,j)   = s%vv(i,j)
-      else
-        av(1,i,j) =  0.0_rKind
-        av(0,i,j) =  0.0_rKind
-        avr(i,j)  =  s%vv(i,j)
-      endif  
-    enddo    
-  enddo
-  av(:,:,1)     = 0.0_rKind
-  av(:,:,s%ny)  = 0.0_rKind
+
   avr(:,1)      = s%vv(:,1)
   avr(:,s%ny)   = s%vv(:,s%ny)
   !call timer_stop(timer_flow_nonh_av)
@@ -490,6 +462,7 @@ contains
                             + dp(i  ,j-1)* aws(4,i,j) + dp(i  ,j+1) * aws(5,i,j)                      
     enddo
   enddo
+  
   do j=2,s%ny
     do i=2,s%nx
       s%wb(i,j) = awbr(i,j) + dp(i , j)  * awb(1,i,j)                            &
@@ -503,8 +476,13 @@ contains
   !Assign boundaries
   s%ws(:,1)      = s%ws(:,2)
   s%ws(:,s%ny+1) = s%ws(:,s%ny)
-  s%ws(1,:)      = s%ws(2,:)
+  !s%ws(1,:)      = s%ws(2,:)
   s%ws(s%nx+1,:) = s%ws(s%nx,:)
+  
+  s%wb(:,1)      = s%wb(:,2)
+  s%wb(:,s%ny+1) = s%wb(:,s%ny)
+  s%wb(1,:)      = s%wb(2,:)
+  s%wb(s%nx+1,:) = s%wb(s%nx,:)  
   
   Wm_old = .5_rKind*(s%ws+s%wb)
   !call timer_stop(timer_flow_nonh)
@@ -540,7 +518,8 @@ subroutine nonh_explicit(s,par)
     real(kind=rKind)                        :: dwdx1    !Gradient of vertical velocity in x-dir at i+1/2,j
     real(kind=rKind)                        :: dwdx2    !Gradient of vertical velocity in x-dir at i-1/2,j
     real(kind=rKind)                        :: dwdy1    !Gradient of vertical velocity in x-dir at i    ,j+1/2
-    real(kind=rKind)                        :: dwdy2    !Gradient of vertical velocity in x-dir at i    ,j-1/2    
+    real(kind=rKind)                        :: dwdy2    !Gradient of vertical velocity in x-dir at i    ,j-1/2   
+    real(kind=rKind)                        :: Vol    
 
   if (.not. initialized) then
     call nonh_init(s)
@@ -553,9 +532,13 @@ subroutine nonh_explicit(s,par)
 ! (2)  The relative wave length kd of the smallest possible wave (L=2dx) is smaller than kdmin 
 ! (3)  The interpolated waterlevel zs is below the bottom (steep cliffs with overwash situations)
 
+
   do j=1,s%ny+1
     do i=1,s%nx+1
+      iw = max(i,i-1)
       ie = min(s%nx,i+1)
+      iee = min(s%nx,i+2)
+
       if (  (s%wetU(i,j)==1                                      )  & 
       .and. (0.5_rKind*(s%zs(i,j) + s%zs(ie,j))    > zbu(i,j)    )  & 
       .and. ( (s%xz(ie)-s%xz(i))*par%kdmin/par%px  < s%hum(i,j)  )  ) then
@@ -621,27 +604,51 @@ subroutine nonh_explicit(s,par)
                           + (1.0_rKind/s%hh(i,j))*par%dt*par%nuh*(dwdy2-dwdy1)*ddyz(j)*real(s%wetv(i,j)*s%wetv(i,j-1),rKind)
     enddo
   enddo 
- 
-      
+
+  do j=2,s%ny
+    do i=2,s%nx
+      if (nonhU(i,j)==1) then
+        vol       = 0.5_rKind*par%dt/(s%hum(i,j)*dxu(i))      
+        au(1,i,j) = - (s%zs(i+1,j) - s%zb(i  ,j))*vol
+        au(0,i,j) = + (s%zs(i  ,j) - s%zb(i+1,j))*vol
+      else
+        au(1,i,j) =  0.0_rKind
+        au(0,i,j) =  0.0_rKind
+      endif
+    enddo
+  enddo
+  au(:,1,:)      = 0.0_rKind
+  au(:,s%nx,:)   = 0.0_rKind
+
+  !Built pressure coefficients V
+  !call timer_start(timer_flow_nonh_av)    
+  do j=2,s%ny
+    do i=2,s%nx
+      if (nonhV(i,j)==1)then
+        vol       = 0.5_rKind*par%dt/(s%hvm(i,j)*dyv(j))      
+        av(1,i,j)  = -(s%zs(i  ,j+1) - s%zb(i  ,j  ))*vol
+        av(0,i,j)  = +(s%zs(i  ,j  ) - s%zb(i  ,j+1))*vol
+        avr(i,j)   = s%vv(i,j)
+      else
+        av(1,i,j) =  0.0_rKind
+        av(0,i,j) =  0.0_rKind
+      endif  
+    enddo    
+  enddo
+  av(:,:,1)     = 0.0_rKind
+  av(:,:,s%ny)  = 0.0_rKind
+       
  !Include explicit approximation for pressure in s%uu and s%vv   and Wm
   if (par%secorder == 1) then 
     do j=2,s%ny
       do i=2,s%nx-1
-        if (nonhU(i,j) == 1) then
-          s%uu(i,j) = s%uu(i,j) - 0.5_rKind*par%dt/s%hum(i,j) * ( (s%zs(i+1,j)-s%zb(i  ,j)) * s%pres(i+1,j)   &
-                                                                - (s%zs(i  ,j)-s%zb(i+1,j)) * s%pres(i  ,j)  ) &
-                                                                / (s%xz(i+1)-s%xz(i))
-        endif
+        s%uu(i,j) = s%uu(i,j) + au(1,i,j) * s%pres(i+1,j) + au(0,i,j) * s%pres(i  ,j)  
       enddo
     enddo
 
     do j=2,s%ny-1
       do i=2,s%nx
-        if (nonhV(i,j) == 1) then        
-          s%vv(i,j) = s%vv(i,j) - 0.5_rKind*par%dt/s%hvm(i,j) * ( (s%zs(i,j+1)-s%zb(i,j  )) * s%pres(i,j+1)   &
-                                                                - (s%zs(i,j  )-s%zb(i,j+1)) * s%pres(i,j  ) ) &
-                                                                / (s%yz(j+1)-s%yz(j))
-        endif
+        s%vv(i,j) = s%vv(i,j) + av(1,i,j) * s%pres(i,j+1) + av(0,i,j) * s%pres(i,j  )
       enddo
     enddo
     
