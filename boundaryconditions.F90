@@ -190,7 +190,7 @@ if(abs(par%t-par%dt)<1.d-6) then
     elseif (par%instat==7.and.xmaster) then
        par%listline=1
     elseif (par%instat==8.and.xmaster) then   
-      call velocity_Boundary(ui(1,:),ui(2,:),s%ws(1,:),s%ny,par%t)   
+      call velocity_Boundary(ui(1,:),zi,wi,s%nx,s%ny,par%t,s%zs,s%ws)  
     endif
     !
     ! Directional distribution
@@ -496,7 +496,7 @@ elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat=
     ui(1,:) = q/ht(1,:)*min(par%t/par%taper,1.0d0)
     ee(1,:,:)=ee(1,:,:)*min(par%t/par%taper,1.0d0)
 elseif (par%instat==8.and.xmaster) then   
-    call velocity_Boundary(ui(1,:),ui(2,:),s%ws(1,:),s%ny,par%t)
+    call velocity_Boundary(ui(1,:),zi,wi,s%nx,s%ny,par%t,s%zs,s%ws)
 else
    if (xmaster) then
      write(*,*)' instat = ',par%instat, ' invalid option'
@@ -869,6 +869,18 @@ if (par%instat/=9)then
 !      zs(1,:)=max(zs(2,:),zb(1,:))
     else if (par%front==3) then
        zs(1,:)=s%zs0(1,:)
+    else if (par%front==4) then
+       !Timeseries Boundary for nonh, only use in combination with instat=8       
+       if (par%ARC==0) then
+         s%uu(1,:) = s%ui(1,:)
+         s%zs(1,:) = s%zi
+         s%ws(1,:) = s%wi
+       else
+         !Radiating boundary for short waves:
+         s%uu(1,:) = s%ui(1,:)-sqrt(par%g/s%hh(2,:))*(s%zs(2,:)-s%zi(:)-s%zs0(2,:))
+         s%zs(1,:) = s%zs(2,:)
+         s%ws(1,:) = s%ws(2,:)
+       endif
     endif ! par%front
     ! uu, zs and umean shift horizontally in two directions (loop was 2..ny)
 #ifdef USEMPI
@@ -1194,7 +1206,7 @@ end subroutine discharge_boundary
 
 !
 !==============================================================================    
-subroutine velocity_Boundary(u,z,w,ny,t)
+subroutine velocity_Boundary(u,z,w,nx,ny,t,zs,ws)
 !==============================================================================    
 !
     
@@ -1222,11 +1234,14 @@ subroutine velocity_Boundary(u,z,w,ny,t)
 
 !--------------------------     ARGUMENTS          ----------------------------
 !
+    integer(kind=iKind)           ,intent(in)  :: nx
     integer(kind=iKind)           ,intent(in)  :: ny
     real(kind=rKind),dimension(ny+1),intent(out) :: u
     real(kind=rKind),dimension(ny+1),intent(inout) :: z
     real(kind=rKind),dimension(ny+1),intent(inout) :: w
-    real(kind=rKind)              ,intent(in)  :: t
+    real(kind=rKind),dimension(nx+1,ny+1),intent(in) :: zs
+    real(kind=rKind),dimension(nx+1,ny+1),intent(in) :: ws       
+    real(kind=rKind)                ,intent(in)  :: t
 
 !
 
@@ -1243,7 +1258,14 @@ subroutine velocity_Boundary(u,z,w,ny,t)
     character(len=6)                          :: string
     character(len=2),allocatable,dimension(:),save :: header
     integer(kind=ikind)                       :: iAllocErr   
-    integer(kind=ikind)                       :: nvar 
+    integer(kind=ikind),save                  :: nvar 
+    
+    integer(kind=ikind),save                  :: iZ = 0
+    integer(kind=ikind),save                  :: iU = 0
+    integer(kind=ikind),save                  :: iW = 0
+    integer(kind=ikind),save                  :: iT = 0
+    integer(kind=ikind)                       :: i    
+    
     
     real(kind=rKind),allocatable,dimension(:,:)    :: tmp
     
@@ -1292,78 +1314,115 @@ subroutine velocity_Boundary(u,z,w,ny,t)
       
       endif
       
-     !Allocate arrays at old and new timelevel
-      allocate(u0(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
-      allocate(u1(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
-      
+      !READ NUMBER OF VARIABLES
       read(unit_U,fmt=*) nvar
-      if (nvar > 2) then
+      
+      !READ HEADER LINES
+      allocate(header(nvar))
+      read(unit_U,fmt=*) header
+            
+      do i=1,nvar
+        if (header(i) == 'Zs' .or. header(i) == 'ZS' .or. header(i) == 'zS' .or. header(i) == 'zs') then
+          iZ = i;
+        elseif (header(i) == 't' .or. header(i) == 'T') then
+          iT = i;
+        elseif (header(i) == 'u' .or. header(i) == 'U') then
+          iU = i;
+        elseif (header(i) == 'w' .or. header(i) == 'W') then
+          iW = i;
+        endif
+      enddo
+      
+      
+     !Allocate arrays at old and new timelevel
+      if (iU > 0) then     
+        allocate(u0(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+        allocate(u1(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+        u0 = 0.0d0
+        u1 = 0.0d0
+      endif
+      
+      
+      if (iZ > 0) then
         allocate(z0(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
         allocate(z1(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
         z0 = 0.0d0
         z1 = 0.0d0
       endif
 
-      if (nvar > 3) then
+      if (iW > 0) then
         allocate(w0(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
         allocate(w1(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program      
-        z0 = 0.0d0
-        z1 = 0.0d0        
+        w0 = 0.0d0
+        w1 = 0.0d0
       endif
       
-      allocate(header(nvar))
-      read(unit_U,fmt=*) header
       allocate(tmp(ny+1,nvar-1))
-      
       !Read two first timelevels
       call velocity_Boundary_read(t0,tmp,Unit_U,lVaru,lIsEof,nvar)
-      u0 = tmp(:,1)
-      if (nvar >2) z0 = tmp(:,2)
-      if (nvar >3) w0 = tmp(:,3)
+      if (iU >0) u0 = tmp(:,iU-1)
+      if (iZ >0) z0 = tmp(:,iZ-1)
+      if (iW >0) w0 = tmp(:,iW-1)
       if (lIsEof) then
         t1=t0
-        u1=u0
+        if (iU >0) u1=u0
+        if (iZ >0) z1=z0
+        if (iW >0) w1=w0        
       else
         call velocity_Boundary_read(t1,tmp,Unit_U,lVaru,lIsEof,nvar)
-        u1 = tmp(:,1)
-        if (nvar >2) z1 = tmp(:,2)
-        if (nvar >3) w1 = tmp(:,3)
+        if (iU >0) u1 = tmp(:,iU-1)
+        if (iZ >0) z1 = tmp(:,iZ-1)
+        if (iW >0) w1 = tmp(:,iW-1)
       endif
+      deallocate(tmp)      
       return
-      deallocate(tmp)
     endif
 
   if (lNH_boun_U) then
-    allocate(tmp(ny+1,nvar-1))
     if (.not. lIsEof) then
+      allocate(tmp(ny+1,nvar-1))    
       !If current time not located within interval read next line    
       do while (.not. (t>=t0 .and. t<t1))
         u0 = u1
         t0 = t1
+        z0 = z1
+        w0 = w1
         call velocity_Boundary_read(t1,tmp,Unit_U,lVaru,lIsEof,nvar)
-        u1 = tmp(:,1)
-        if (nvar >2) z1 = tmp(:,2)
-        if (nvar >3) w1 = tmp(:,3)        
+        if (iU >0) u1 = tmp(:,iU-1)
+        if (iZ >0) z1 = tmp(:,iZ-1)
+        if (iW >0) w1 = tmp(:,iW-1)
         if (lIsEof) exit !Exit on end of file condition
       end do
+      deallocate(tmp)
       
       if(lIsEof) then
-        u  = u1
-        if (nvar >2) z = z1
-        if (nvar >3) w = w1
-        deallocate(tmp)
+        if (iU >0) u = u1
+        if (iZ >0) z = z1
+        if (iW >0) w = w1
         return
       else
         !Linear interpolation of u in time
-        u  = u0 + (u1-u0)*(t-t0)/(t1-t0)
-        if (nvar >2) z = z0 + (z1-z0)*(t-t0)/(t1-t0)
-        if (nvar >3) w = w0 + (w1-w0)*(t-t0)/(t1-t0)
+        if (iU > 0) then
+          u  = u0 + (u1-u0)*(t-t0)/(t1-t0)
+        else
+          u = 0
+        endif        
+
+        if (iZ > 0) then
+          z = z0 + (z1-z0)*(t-t0)/(t1-t0)
+        else
+          z = zs(2,:)
+        endif
+        if (iW > 0) then
+          w = w0 + (w1-w0)*(t-t0)/(t1-t0)
+        else
+          w = ws(2,:)
+        endif
       endif
     else
       !If end of file the last value which was available is used until the end of the computation
       u = u1
     endif
-    deallocate(tmp)
   endif
 
 end subroutine velocity_Boundary
