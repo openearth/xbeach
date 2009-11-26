@@ -421,7 +421,7 @@ Ashift = 0
 ! Make sure that all angles are in -180 to 180 degrees
 if(minval(wp%theta)<-180)then
   allocate (temp(ndir))
-  Ashift=-1
+  Ashift=-1.d0
   temp=0
   do i=1,ndir
       if (wp%theta(i)<-180) then
@@ -431,8 +431,10 @@ if(minval(wp%theta)<-180)then
   enddo
   !temp(1:ndir-nt) = wp%theta(nt+1:ndir)
   !temp(ndir-nt+1:ndir) = wp%theta(1:nt)
-  temp(1:nt) = wp%theta(ndir-nt+1:ndir)
-  temp(nt+1:ndir) = wp%theta(1:ndir-nt)
+!  temp(1:nt) = wp%theta(ndir-nt+1:ndir)
+!  temp(nt+1:ndir) = wp%theta(1:ndir-nt)
+  temp(1:ndir-nt)=wp%theta(nt+1:ndir)
+  temp(ndir-nt+1:ndir)=wp%theta(1:nt)
   wp%theta=temp
   deallocate(temp)
 elseif(maxval(wp%theta)>180.0d0)then
@@ -447,8 +449,10 @@ elseif(maxval(wp%theta)>180.0d0)then
   enddo
   !temp(1:ndir-nt) = wp%theta(nt+1:ndir)
   !temp(ndir-nt+1:ndir) = wp%theta(1:nt)
-  temp(1:nt) = wp%theta(ndir-nt+1:ndir)
-  temp(nt+1:ndir) = wp%theta(1:ndir-nt)
+  !temp(1:nt) = wp%theta(ndir-nt+1:ndir)
+  !temp(nt+1:ndir) = wp%theta(1:ndir-nt)
+  temp(nt+1:ndir)=wp%theta(1:ndir-nt)
+  temp(ndir-nt+1:ndir)=wp%theta(1:nt)
   wp%theta=temp
   deallocate(temp)
 endif
@@ -545,8 +549,10 @@ if(Ashift==-1)then
     tempA=0
 !   tempA(:,ndir-nt+1:ndir) = wp%S_array(:,1:nt)
 !   tempA(:,1:ndir-nt) = wp%S_array(:,nt+1:ndir)
-    tempA(:,1:nt) = wp%S_array(:,ndir-nt+1:ndir)
-    tempA(:,nt+1:ndir) = wp%S_array(:,1:ndir-nt)
+!    tempA(:,1:nt) = wp%S_array(:,ndir-nt+1:ndir)
+!    tempA(:,nt+1:ndir) = wp%S_array(:,1:ndir-nt)
+    tempA(:,1:ndir-nt)=wp%S_array(:,nt+1:ndir)
+    tempA(:,ndir-nt+1:ndir)=wp%S_array(:,1:nt)
     wp%S_array=tempA
     deallocate(tempA)
 elseif (Ashift==1) then
@@ -554,8 +560,10 @@ elseif (Ashift==1) then
     tempA=0
 !   tempA(:,ndir-nt+1:ndir) = wp%S_array(:,1:nt)
 !   tempA(:,1:ndir-nt) = wp%S_array(:,nt+1:ndir)
-    tempA(:,1:nt) = wp%S_array(:,ndir-nt+1:ndir)
-    tempA(:,nt+1:ndir) = wp%S_array(:,1:ndir-nt)
+!    tempA(:,1:nt) = wp%S_array(:,ndir-nt+1:ndir)
+!    tempA(:,nt+1:ndir) = wp%S_array(:,1:ndir-nt)
+	tempA(:,nt+1:ndir)=wp%S_array(:,1:ndir-nt)
+    tempA(:,ndir-nt+1:ndir)=wp%S_array(:,1:nt)
     wp%S_array=tempA
     deallocate(tempA)
 endif
