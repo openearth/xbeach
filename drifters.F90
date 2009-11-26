@@ -73,6 +73,10 @@ if (first_drifter) then
             open(700+i,file=fname,form='unformatted',access='direct',recl=reclen)
          enddo
       endif
+#ifdef USEMPI
+      call xmpi_bcast(xdrift)
+      call xmpi_bcast(ydrift)
+#endif
    endif
 else
    if (ndrifter>0) then
@@ -113,9 +117,8 @@ else
 #endif
             endif
 #ifdef USEMPI
-
-               call xmpi_allreduce(xdrift,MPI_MIN)
-               call xmpi_allreduce(ydrift,MPI_MIN)
+               call xmpi_allreduce(xdrift(i),MPI_MIN)
+               call xmpi_allreduce(ydrift(i),MPI_MIN)
 #endif            
          endif
       enddo

@@ -56,7 +56,7 @@ real*8,dimension(:,:),allocatable,save  :: nuh
 real*8                                  :: dudx1,dudx2,dudy1,dudy2
 real*8                                  :: dvdy1,dvdy2,dvdx1,dvdx2  !Jaap
 
-integer                                 :: imax
+integer                                 :: imax,jmax
 
 include 's.ind'
 include 's.inp'
@@ -339,7 +339,6 @@ endif
             end if
         end do 
     end do
-
 #ifndef USEMPI
     if (par%nonh==1) then
        !Do explicit predictor step with pressure
@@ -391,19 +390,24 @@ endif
     ! Dano in case of closed boundaries we need to set vv to 0 before computing qv,
     ! to avoid mass errors
 	! Lateral boundary at y=0
-    if (par%right==1) then
-      vv(2:nx+1,1) = 0.d0
-	  else
-	  vv(2:nx+1,1) = vv(2:nx+1,2) ! RJ: 
+    if (xmpi_isleft) then !Dano/Robert only on outer boundary
+       if (par%right==1) then
+         vv(2:nx+1,1) = 0.d0
+	   else
+	     vv(2:nx+1,1) = vv(2:nx+1,2) ! RJ: 
+       endif
+       uu(1:nx+1,1)=uu(1:nx+1,2) ! RJ: can also be done after continuity but more appropriate here
     endif
-	uu(1:nx+1,1)=uu(1:nx+1,2) ! RJ: can also be done after continuity but more appropriate here
 	! Lateral boundary at y=ny*dy 
-    if (par%left==1) then
-      vv(2:nx+1,ny) = 0.d0       
-	else
-	  vv(2:nx+1,ny) = vv(2:nx+1,ny-1) ! RJ
-    endif
-	uu(1:nx+1,ny+1)=uu(1:nx+1,ny)
+	if (xmpi_isright) then !Dano/Robert only at outer boundary
+       if (par%left==1) then
+         vv(2:nx+1,ny) = 0.d0       
+       else
+	     vv(2:nx+1,ny) = vv(2:nx+1,ny-1) ! RJ
+       endif
+	   uu(1:nx+1,ny+1)=uu(1:nx+1,ny)
+	endif
+	
 #ifdef USEMPI
     call xmpi_shift(uu,':1')
     call xmpi_shift(uu,':n')
@@ -437,8 +441,18 @@ endif
     !    
     ! Update water level using continuity eq.
     !
-    do j=2,ny
-        do i=2,nx
+    if (xmpi_isright) then
+       jmax=ny
+    else
+       jmax=ny+1
+    endif
+    if (xmpi_isbot) then
+       imax=nx
+    else
+       imax=nx+1
+    endif
+    do j=2,jmax
+        do i=2,imax
            dzsdt(i,j) = (-1.d0)*((qx(i,j)-qx(i-1,j))/(xu(i)-xu(i-1))  &
                                + (qy(i,j)-qy(i,j-1))/(yv(j)-yv(j-1))) &
 							   - s%gww(i,j)

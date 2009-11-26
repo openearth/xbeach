@@ -53,7 +53,7 @@ makeversiondat.bat"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
 		<File RelativePath="..\boundaryconditions.F90"/>
 		<File RelativePath="..\constants.F90"/>
-		<File RelativePath="..\drifters.f90"/>
+		<File RelativePath="..\drifters.F90"/>
 		<File RelativePath="..\flow_secondorder.F90"/>
 		<File RelativePath="..\flow_timestep.F90"/>
 		<File RelativePath="..\general_fileio.F90"/>

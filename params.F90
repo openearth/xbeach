@@ -193,10 +193,10 @@ type parameters
    real*8        :: dzg2                       = -123    !  [m] Nominal thickness of variable sediment class layer
    real*8        :: dzg3                       = -123    !  [m] Thickness of bottom sediment class layers
    real*8        :: por                        = -123    !  [-] Porosity
-   real*8,dimension(:),allocatable  :: D50               !  Note, will replace lookup in initialize [m] D50 grain size per grain type
-   real*8,dimension(:),allocatable  :: D90               !  Note, will replace lookup in initialize [m] D90 grain size per grain type
-   real*8,dimension(:),allocatable  :: sedcal            !  Note, will replace lookup in initialize [-] Sediment transport calibration coefficient per grain type
-   real*8,dimension(:),allocatable  :: ucrcal            !  Note, will replace lookup in initialize [-] Critical velocity calibration coefficient per grain type
+   !real*8,dimension(:),allocatable  :: D50               !  Note, will replace lookup in initialize [m] D50 grain size per grain type
+   !real*8,dimension(:),allocatable  :: D90               !  Note, will replace lookup in initialize [m] D90 grain size per grain type
+   !real*8,dimension(:),allocatable  :: sedcal            !  Note, will replace lookup in initialize [-] Sediment transport calibration coefficient per grain type
+   !real*8,dimension(:),allocatable  :: ucrcal            !  Note, will replace lookup in initialize [-] Critical velocity calibration coefficient per grain type
 
    ! Bed update numerics parameters
    real*8        :: frac_dz                    = -123    !  [-] Relative thickness to split time step for bed updating
