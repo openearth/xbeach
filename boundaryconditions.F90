@@ -190,7 +190,7 @@ if(abs(par%t-par%dt)<1.d-6) then
     elseif (par%instat==7.and.xmaster) then
        par%listline=1
     elseif (par%instat==8.and.xmaster) then   
-      call velocity_Boundary(ui(1,:),zi,wi,s%nx,s%ny,par%t,s%zs,s%ws)  
+    !  call velocity_Boundary(ui(1,:),zi,wi,s%nx,s%ny,par%t,s%zs,s%ws)  
     endif
     !
     ! Directional distribution
@@ -496,7 +496,7 @@ elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat=
     ui(1,:) = q/ht(1,:)*min(par%t/par%taper,1.0d0)
     ee(1,:,:)=ee(1,:,:)*min(par%t/par%taper,1.0d0)
 elseif (par%instat==8.and.xmaster) then   
-    call velocity_Boundary(ui(1,:),zi,wi,s%nx,s%ny,par%t,s%zs,s%ws)
+!    call velocity_Boundary(ui(1,:),zi,wi,s%nx,s%ny,par%t,s%zs,s%ws)
 else
    if (xmaster) then
      write(*,*)' instat = ',par%instat, ' invalid option'
@@ -873,11 +873,11 @@ if (par%instat/=9)then
        !Timeseries Boundary for nonh, only use in combination with instat=8       
        if (par%ARC==0) then
          s%uu(1,:) = s%ui(1,:)
-         s%zs(1,:) = s%zi
-         s%ws(1,:) = s%wi
+!         s%zs(1,:) = s%zi
+!         s%ws(1,:) = s%wi
        else
          !Radiating boundary for short waves:
-         s%uu(1,:) = s%ui(1,:)-sqrt(par%g/s%hh(2,:))*(s%zs(2,:)-s%zi(:)-s%zs0(2,:))
+!         s%uu(1,:) = s%ui(1,:)-sqrt(par%g/s%hh(2,:))*(s%zs(2,:)-s%zi(:)-s%zs0(2,:))
          s%zs(1,:) = s%zs(2,:)
          s%ws(1,:) = s%ws(2,:)
        endif

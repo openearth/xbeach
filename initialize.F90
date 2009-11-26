@@ -310,18 +310,18 @@ integer*4                           :: iUnit
   allocate(s%taubx(1:s%nx+1,1:s%ny+1))
   allocate(s%tauby(1:s%nx+1,1:s%ny+1))
   
-!  if (par%nonh==1) then   
+ ! if (par%nonh==1) then   
 ! Robert: required to stop MPI crash
     allocate(s%ws(1:s%nx+1,1:s%ny+1))
     allocate(s%wb(1:s%nx+1,1:s%ny+1))
     allocate(s%pres(1:s%nx+1,1:s%ny+1))
-    allocate(s%wi(1:s%ny+1))
-    allocate(s%zi(1:s%ny+1))
+!    allocate(s%wi(1:s%ny+1))
+ !   allocate(s%zi(1:s%ny+1))
     s%ws   = 0.0d0
     s%wb   = 0.0d0
     s%pres = 0.0d0
-    s%zi   = 0.0d0
-    s%wi   = 0.0d0
+  !  s%zi   = 0.0d0
+  !  s%wi   = 0.0d0
 !  endif
 
   ! cjaap: replaced par%hmin by par%eps
