@@ -309,50 +309,22 @@ integer*4                           :: iUnit
   allocate(s%minzs(1:s%nx+1,1:s%ny+1))
   allocate(s%taubx(1:s%nx+1,1:s%ny+1))
   allocate(s%tauby(1:s%nx+1,1:s%ny+1))
-  
- ! if (par%nonh==1) then   
-! Robert: required to stop MPI crash
-    allocate(s%ws(1:s%nx+1,1:s%ny+1))
-    allocate(s%wb(1:s%nx+1,1:s%ny+1))
-    allocate(s%pres(1:s%nx+1,1:s%ny+1))
+  allocate(s%ws(1:s%nx+1,1:s%ny+1))
+  allocate(s%wb(1:s%nx+1,1:s%ny+1))
+  allocate(s%pres(1:s%nx+1,1:s%ny+1))
 !    allocate(s%wi(1:s%ny+1))
- !   allocate(s%zi(1:s%ny+1))
-    s%ws   = 0.0d0
-    s%wb   = 0.0d0
-    s%pres = 0.0d0
-  !  s%zi   = 0.0d0
-  !  s%wi   = 0.0d0
+!    allocate(s%zi(1:s%ny+1))
+  s%ws   = 0.0d0
+  s%wb   = 0.0d0
+  s%pres = 0.0d0
+!    s%zi   = 0.0d0
+!    s%wi   = 0.0d0
 !  endif
 
   ! cjaap: replaced par%hmin by par%eps
   s%hh=max(s%zs0-s%zb,par%eps)
   s%zs=0.d0
   s%zs=max(s%zb,s%zs0)
-  
-  !For certain tests I need to prescribe the initial water elevation (Pieter)
-  !Disabled in the case of mpi
-
-#ifndef USEMPI  
-  inquire(file=trim('zsfile.ini'),EXIST=exists)
-  if (exists) then
-    !
-    iUnit = 10000
-    !Check if unit is free
-    inquire(unit=iUnit,OPENED=exists)
-    if (.not. exists) then
-      open(iUnit,file='zsfile.ini')
-      do j=1,s%ny+1
-        !
-        read(iUnit,*)(s%zs(i,j),i=1,s%nx+1)
-        !
-      enddo
-      close(iUnit)
-      s%hh = max(s%zs-s%zb,par%eps)
-    endif  
-    !
-  endif
-#endif
-
   
   !Initialize hu correctly to prevent spurious initial flow (Pieter)
   do j=1,s%ny+1
