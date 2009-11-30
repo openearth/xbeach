@@ -401,13 +401,15 @@ if (par%struct==1) then   ! If hard structure specified then add one sediment ty
    par%ngd = par%ngd+1
    write(*,*) 'Adding one sediment fraction to account for unerodable layer'
    if (par%nd==1) then
-      par%nd=100
+      par%nd=32
+	  !par%nd=1
+	  !par%nd_var=1
 	  write(*,*)'Bed layers included to support hard structure calculation'
       par%dzg1=0.05d0
       par%dzg2=0.05d0
-	  par%dzg3=0.10d0
+	  par%dzg3=0.25d0
       write(*,*)'Setting bed layer thickness to support hard structure calculation'
-	  write(*,*) 'dzg1,dzg2 = 5cm. dzg3 = 10cm.'
+	  write(*,*) 'dzg1,dzg2 = 5cm. dzg3 = 25cm.'
    endif
 endif
 
@@ -608,6 +610,21 @@ s%As         = 0.d0
 s%kturb      = 0.d0
 s%rolthick   = 0.d0
 
+! Initialize dzbdx, dzbdy
+do j=1,s%ny+1
+   do i=1,s%nx
+      s%dzbdx(i,j)=(s%zb(i+1,j)-s%zb(i,j))/(s%xz(i+1)-s%xz(i))
+   enddo
+enddo
+! dummy, needed to keep compiler happy
+s%dzbdx(s%nx+1,:)=s%dzbdx(s%nx,:)
+
+do j=1,s%ny
+   do i=1,s%nx+1
+      s%dzbdy(i,j)=(s%zb(i,j+1)-s%zb(i,j))/(s%yz(j+1)-s%yz(j))
+   enddo
+enddo
+s%dzbdy(:,s%ny+1)=s%dzbdy(:,s%ny)
 
 end subroutine sed_init
 
