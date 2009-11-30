@@ -410,15 +410,6 @@ subroutine wave_timestep(s,par)
 !  elements are Fx(:,1), Fx(nx+1,:), Fx(:,ny+1)
 !               Fy(1,:), Fy(nx+1,:), Fy(:,ny+1)
 
-! wwvv todo the following has consequences for // version
-    Fy(1,:)=Fy(2,:)
-    Fx(nx+1,:) = 0.0d0
-    Fy(nx+1,:) = 0.0d0
-    Fx(:,1)=Fx(:,2)     
-! Robert: Fix Neumann assumption for wave forcing on boudary, even if ee not Neumanned
-    Fy(:,1)=Fy(:,2)
-    Fy(:,ny+1)=Fy(:,ny)   
-
 ! wwvv so, Fx(:ny+1) and Fy(:ny+1) are left zero and Fx(nx+1,:) and Fy(nx+1,:)
 ! are made zero.  In the parallel case, Fx(:,1) and Fy(1,:) don't get a 
 ! value if the submatrices are not on suitable border. 
@@ -432,6 +423,25 @@ subroutine wave_timestep(s,par)
     call xmpi_shift(Fy,'m:')  ! shift in Fy(nx+1,:)
     call xmpi_shift(Fy,':n')  ! shift in Fy(:,ny+1)
 #endif
+
+! wwvv todo the following has consequences for // version
+if(xmpi_istop) then
+    Fy(1,:)=Fy(2,:)
+endif
+if(xmpi_isbot) then 
+    Fx(nx+1,:) = 0.0d0
+    Fy(nx+1,:) = 0.0d0
+endif
+if(xmpi_isleft) then 
+    ! Robert: Fix Neumann assumption for wave forcing on boudary, even if ee not Neumanned
+    Fx(:,1)=Fx(:,2)     
+    Fy(:,1)=Fy(:,2)
+    where (Fy(:,1)>0.d0) Fy(:,1)=0.d0;
+endif
+if (xmpi_isright) then
+    Fy(:,ny+1)=Fy(:,ny)   ! only a dummy point in non mpi
+	where (Fy(:,ny+1)<0.d0) Fy(:,ny+1)=0.d0;
+endif
 
 ! Ad
 !    urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(min(max(k,0.01d0)*(hh+par%delta*H),10.0d0)))

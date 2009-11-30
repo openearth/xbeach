@@ -202,6 +202,9 @@ subroutine grid_bathy(s,par)
       end do
       close(31)
       s%zb=-s%zb*s%posdwn
+	  ! Make sure that at the lateral boundaries the bathymetry is alongshore uniform
+	  s%zb(:,1) = s%zb(:,2)
+	  s%zb(:,s%ny+1) = s%zb(:,s%ny)
       do j=1,s%ny+1
          do i=1,s%nx+1
            s%x(i,j)=(i-1)*s%dx
@@ -239,6 +242,9 @@ subroutine grid_bathy(s,par)
          s%y=-sin(s%alfa)*(s%xw-s%xori)+cos(s%alfa)*(s%yw-s%yori)
       endif
     s%zb=-s%zb*s%posdwn
+	! Make sure that at the lateral boundaries the bathymetry is alongshore uniform
+	s%zb(:,1) = s%zb(:,2)
+	s%zb(:,s%ny+1) = s%zb(:,s%ny)
     endif
 
   endif
