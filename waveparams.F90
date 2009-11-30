@@ -248,12 +248,14 @@ wp%dang=wp%theta(2)-wp%theta(1)
 
 allocate (wp%Dd(size(wp%theta)))
 wp%mainang=(1.5d0*par%px-s%alfa)-wp%mainang*par%px/180.d0
-if (wp%mainang>2.d0*par%px) then
-    wp%mainang=wp%mainang-2.d0*par%px
-elseif (wp%mainang<-2.d0*par%px) then
-    wp%mainang=wp%mainang+2.d0*par%px
-endif
-wp%Dd = cos((wp%theta-wp%mainang)/2.d0)**(2.d0*scoeff)
+do while (wp%mainang>2*par%px .or. wp%mainang<0.d0)
+   if (wp%mainang>2*par%px) then
+      wp%mainang=wp%mainang-2*par%px
+   elseif (wp%mainang<0.d0*par%px) then
+      wp%mainang=wp%mainang+2*par%px
+   endif
+enddo
+wp%Dd = cos((wp%theta-wp%mainang)/2.d0)**(2*scoeff)
 wp%Dd = wp%Dd / (sum(wp%Dd)*wp%dang)
 
 
