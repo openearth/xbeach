@@ -612,7 +612,7 @@ type(parameters)                            :: par
 
 integer                                     :: i,ig
 integer                                     :: j,jj,indt
-real*8                                      :: qxr,alphanew,vert,factime
+real*8                                      :: qxr,ur,alphanew,vert,factime
 real*8 , dimension(2)                       :: yzs0,szs0
 real*8 , dimension(:,:)  ,allocatable,save  :: zs0old
 real*8 , dimension(:,:)  ,allocatable,save  :: ht,beta,betanp1
@@ -832,13 +832,17 @@ if (par%instat/=9)then
 		  vmean(1,j) = (factime*vu(1,j)+(1-factime)*vmean(1,j))  
           do jj=1,50
              !---------- Lower order bound. cond. ---
-             qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
-               *(0.5d0*(ht(1,j)+ht(2,j))*(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))))&  !Jaap replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
-               -(ui(1,j)*hum(1,j))*(dcos(theta0)-1.d0)/dcos(theta0))   !Jaap replaced hh with hu
+             !qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
+             !  *(0.5d0*(ht(1,j)+ht(2,j))*(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))))&  !Jaap replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
+             !  -(ui(1,j)*hum(1,j))*(dcos(theta0)-1.d0)/dcos(theta0))   !Jaap replaced hh with hu
+
+             ur = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
+               *(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j)))&  !Jaap replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
+               -ui(1,j)*(dcos(theta0)-1.d0)/dcos(theta0))   !Jaap replaced hh with hu
 
              !vert = velocity of the reflected wave = total-specified
              vert = vu(1,j)-vmean(1,j)-ui(1,j)*tan(theta0)
-             alphanew = datan(vert*hh(1,j)/(qxr+1.d-16))                   ! wwvv can  use atan2 here
+             alphanew = datan(vert/(ur+1.d-16))                   ! wwvv can  use atan2 here
              if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
              if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
              if(dabs(alphanew-alpha2(j)).lt.0.001d0) goto 1000     ! wwvv can use exit here
@@ -852,8 +856,9 @@ if (par%instat/=9)then
 		  	 ! jaap: to fix surge in 2DH case
 	         ! umean(1,j) = (par%epsi*2.d0*qxr/(ht(1,j)+ht(2,j))+(1-par%epsi)*umean(1,j))  
 			 !
-             uu(1,j) = (par%order-1.d0)*ui(1,j)+2.d0*qxr/(ht(1,j)+ht(2,j)) + umean(1,j)
-             !with a taylor expansion to get to the zs point at index 1 from uu(1) and uu(2)
+             uu(1,j) = (par%order-1.d0)*ui(1,j) + ur + umean(1,j)
+			 ! zs(1,:) is dummy variable
+             ! with a taylor expansion to get to the zs point at index 1 from uu(1) and uu(2)
              zs(1,j) = 1.5d0*((betanp1(1,j)-uu(1,j))**2/4.d0/par%g+.5d0*(zb(1,j)+zb(2,j)))- &
                        0.5d0*((beta(2,j)-uu(2,j))**2/4.d0/par%g+.5d0*(zb(2,j)+zb(3,j)))
 					 ! Ad + Jaap: zs does indeed influence hydrodynamics at boundary --> do higher order taylor expansions to check influence
@@ -947,19 +952,22 @@ if (par%instat/=9)then
           umean(2,j) = (factime*uu(s%nx,j)+(1-factime)*umean(2,j))           !Ap 
           do jj=1,50
              !---------- Lower order bound. cond. ---
-             qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&  
-               *(0.5*(ht(1,j)+ht(2,j))*(betanp1(1,j)-umean(2,j)-2.d0*DSQRT(par%g*0.5*(ht(1,j)+ht(2,j))))) 
+             !qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&  
+             !  *(0.5*(ht(1,j)+ht(2,j))*(betanp1(1,j)-umean(2,j)-2.d0*DSQRT(par%g*0.5*(ht(1,j)+ht(2,j)))))
+			 
+			 ur = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&  
+               *((betanp1(1,j)-umean(2,j)-2.d0*DSQRT(par%g*0.5*(ht(1,j)+ht(2,j))))) 
 
              !vert = velocity of the reflected wave = total-specified
              vert = vu(s%nx,j)
-             alphanew = datan(vert*hh(s%nx+1,j)/(qxr+1.d-16))                      !Ap  ! wwvv maybe better atan2
+             alphanew = datan(vert/(ur+1.d-16))                      !Ap  ! wwvv maybe better atan2
              if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
              if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
              if(dabs(alphanew-alpha2(j)).lt.0.001) goto 2000    ! wwvv can use exit here
              alpha2(j) = alphanew 
           end do
     2000  continue
-          uu(s%nx,j) = 2.*qxr/(ht(1,j)+ht(2,j)) + umean(2,j)                       !Jaap: replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
+          uu(s%nx,j) = ur + umean(2,j)                       !Jaap: replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
               ! Ap replaced zs with extrapolation.
           zs(s%nx+1,j) = 1.5*((betanp1(1,j)-uu(s%nx,j))**2.d0/4.d0/par%g+.5*(zb(s%nx,j)+zb(s%nx+1,j)))-&
                                          0.5*((beta(1,j)-uu(s%nx-1,j))**2.d0/4.d0/par%g+.5*(zb(s%nx-1,j)+zb(s%nx,j)))
