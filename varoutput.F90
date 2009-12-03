@@ -1308,8 +1308,14 @@ subroutine outarray_r2(s,index,x)
         write(unit,rec=jtg)x*cos(s%alfa)-s%vwf*sin(s%alfa)
       case(mnem_vwf)
         write(unit,rec=jtg)s%uwf*sin(s%alfa)+x*cos(s%alfa)
-      case default
-    write(unit,rec=jtg) x
+      case(mnem_Sutot)
+        write(unit,rec=jtg)(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*cos(s%alfa) - (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*sin(s%alfa)
+      case(mnem_Svtot)
+	    write(unit,rec=jtg)(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*sin(s%alfa) + (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*cos(s%alfa)
+	  case(mnem_cctot)
+	    write(unit,rec=jtg)sum(s%ccg,DIM=3)
+	  case default
+        write(unit,rec=jtg) x
   end select
 
 end subroutine outarray_r2

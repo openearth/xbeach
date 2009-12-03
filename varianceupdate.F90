@@ -51,7 +51,7 @@ subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
   integer*4,dimension(:),allocatable, intent(IN)  :: meanvec     ! keep track of which mean variables are used
 
 
-  integer                         :: i
+  integer                         :: i,rdims
   real*8                          :: mult
   type(arraytype)                 :: t
   real*8,dimension(:,:),pointer   :: MI,MA
@@ -267,6 +267,54 @@ subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
 				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
             MA = max(MA,tvar)
 			   MI = min(MI,tvar)
+		case (mnem_Sutot)
+		        oldmean=meanarrays(:,:,i)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+                tvar=(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*cos(s%alfa) - (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*sin(s%alfa)
+				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,i)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+                MA = max(MA,tvar)
+			    MI = min(MI,tvar)
+		 case (mnem_Svtot)
+		        oldmean=meanarrays(:,:,i)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+                tvar=(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*sin(s%alfa) + (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*cos(s%alfa)
+				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,i)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+                MA = max(MA,tvar)
+			    MI = min(MI,tvar)
+		 case (mnem_cctot)
+		      oldmean=meanarrays(:,:,i)
+				! oldmean is initiated at 0, so:
+				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
+				   oldmean=tiny(0.d0)
+				elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
+				   oldmean=-1.d0*tiny(0.d0)
+				endwhere
+                tvar=sum(s%ccg,DIM=3)
+				meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,i) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,i)
+				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
+                MA = max(MA,tvar)
+			    MI = min(MI,tvar)
         case default
           select case (t%type)
             case ('i')
@@ -290,7 +338,7 @@ subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
 						variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*dble(t%i2)**2
 						variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
 		                MA = max(MA,dble(t%i2))
-			            MI = min(MI,dble(t%i2))
+			            MI = min(MI,dble(t%i2))                        
                 case default
                   write(*,*)'Error in makeaverage, variable"'//t%name// &
                           '" is of wrong rank'

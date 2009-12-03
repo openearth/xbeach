@@ -451,6 +451,9 @@ allocate(s%Sk(1:s%nx+1,1:s%ny+1))
 allocate(s%As(1:s%nx+1,1:s%ny+1))
 allocate(s%kturb(1:s%nx+1,1:s%ny+1))
 allocate(s%rolthick(1:s%nx+1,1:s%ny+1))
+allocate(s%Sutot(1:s%nx+1,1:s%ny+1))     ! Only really for easy output 
+allocate(s%Svtot(1:s%nx+1,1:s%ny+1))     ! Only really for easy output
+allocate(s%cctot(1:s%nx+1,1:s%ny+1))     ! Only really for easy output
   
 ! Initialize so structures can be implemented more easily
 s%pbbed = 0.d0
@@ -609,6 +612,9 @@ s%Sk         = 0.d0
 s%As         = 0.d0
 s%kturb      = 0.d0
 s%rolthick   = 0.d0
+s%Sutot      = 0.d0
+s%Svtot      = 0.d0
+s%cctot      = 0.d0
 
 ! Initialize dzbdx, dzbdy
 do j=1,s%ny+1
