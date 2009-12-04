@@ -544,8 +544,12 @@ endif
         0.25d0*(vv(1:nx,1:ny-1)+vv(1:nx,2:ny)+ &
         vv(2:nx+1,1:ny-1)+vv(2:nx+1,2:ny))
     ! how about boundaries?
+if(xmpi_isleft) then
     vu(:,1) = vu(:,2)
+endif
+if(xmpi_isright) then
     vu(:,ny+1) = vu(:,ny)
+endif
     ! wwvv fill in vu(:1) and vu(:ny+1) for non-left and non-right processes
     !  and vu(nx+1,:)
 #ifdef USEMPI
@@ -558,9 +562,13 @@ endif
     ! V-stokes velocities at U point
     vsu(1:nx,2:ny)=0.5d0*(ust(1:nx,2:ny)*sin(thetamean(1:nx,2:ny))+ &
         ust(2:nx+1,2:ny)*sin(thetamean(2:nx+1,2:ny)))
+if(xmpi_isleft) then
     vsu(:,1)=vsu(:,2)
+endif
+if(xmpi_isright) then
     vsu(:,ny+1) = vsu(:,ny)
     ! wwvv same for vsu
+endif
 #ifdef USEMPI
     call xmpi_shift(vsu,':1')
     call xmpi_shift(vsu,':n')
@@ -570,8 +578,12 @@ endif
     ! U-stokes velocities at U point
     usu(1:nx,2:ny)=0.5d0*(ust(1:nx,2:ny)*cos(thetamean(1:nx,2:ny))+ &
         ust(2:nx+1,2:ny)*cos(thetamean(2:nx+1,2:ny)))
+if(xmpi_isleft) then
     usu(:,1)=usu(:,2)
+endif
+if(xmpi_isright) then
     usu(:,ny+1)=usu(:,ny)
+endif
     ! wwvv same for usu
 #ifdef USEMPI
     call xmpi_shift(usu,':1')
@@ -595,7 +607,9 @@ endif
         uu(1:nx-1,2:ny+1)+uu(2:nx,2:ny+1))
     ! boundaries?
     ! wwvv and what about uv(:,1) ?
+if(xmpi_isright) then
     uv(:,ny+1) = uv(:,ny)
+endif
     ! wwvv fix uv(:,ny+1) for non-right processes
     ! uv(1,:) and uv(nx+1,:) need to be filled in for
     ! non-bot or top processes
@@ -609,8 +623,12 @@ endif
      ! V-stokes velocities at V point
     vsv(2:nx,1:ny)=0.5d0*(ust(2:nx,1:ny)*sin(thetamean(2:nx,1:ny))+&
         ust(2:nx,2:ny+1)*sin(thetamean(2:nx,2:ny+1)))
+if(xmpi_isleft) then
     vsv(:,1) = vsv(:,2)
+endif
+if(xmpi_isright) then
     vsv(:,ny+1) = vsv(:,ny)
+endif
     ! wwvv fix vsv(:,1) and vsv(:,ny+1) and vsv(1,:) and vsv(nx+1,:)
 #ifdef USEMPI
     call xmpi_shift(vsv,':n')
@@ -623,8 +641,12 @@ endif
     ! U-stokes velocities at V point
     usv(2:nx,1:ny)=0.5d0*(ust(2:nx,1:ny)*cos(thetamean(2:nx,1:ny))+&
         ust(2:nx,2:ny+1)*cos(thetamean(2:nx,2:ny+1)))
+if(xmpi_isleft) then
     usv(:,1) = usv(:,2)
+endif
+if(xmpi_isleft) then
     usv(:,ny+1) = usv(:,ny)
+endif
     ! wwvv fix usv(:,1) and usv(:,ny+1) and usv(1,:) and usv(nx+1,:)
 #ifdef USEMPI
     call xmpi_shift(usv,':n')

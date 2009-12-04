@@ -897,9 +897,6 @@ if (par%instat/=9)then
     call xmpi_shift(uu,':n')
     call xmpi_shift(zs,':1')
     call xmpi_shift(zs,':n')
-	! need to shift beta to compute dbetady
-	call xmpi_shift(beta,':1')
-	call xmpi_shift(beta,':n')
 #endif
   endif  ! xmpi_istop
   ! wwvv uu and zs and vv need to be communicated vertically 
