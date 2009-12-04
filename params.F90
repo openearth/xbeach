@@ -120,6 +120,12 @@ type parameters
                                                          !         (x=N,y=N)
                                                          !         (x=N,y=1)
                                                          !      NOTE:  clockwise from (1,1) corner
+
+   real*8,dimension(2) :: xyzs01               = -123    ! global xy coordinates of corner (x=1,y=1) 
+   real*8,dimension(2) :: xyzs02               = -123    ! global xy coordinates of corner (x=1,y=N)
+   real*8,dimension(2) :: xyzs03               = -123    ! global xy coordinates of corner (x=N,y=N)
+   real*8,dimension(2) :: xyzs04               = -123    ! global xy coordinates of corner (x=N,y=1)
+
    ! Discharge boundary conditions 
    character(256):: disch_loc_file             = 'abc'   !  Note: will replace lookup in boundary conditions [name] Name of discharge locations file
    character(256):: disch_timeseries_file      = 'abc'   !  Note: will replace lookup in boundary conditions [name] Name of discharge timeseries file

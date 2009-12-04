@@ -184,7 +184,7 @@ do while (par%t<par%tstop)
     call printit(sglobal,slocal,par,it,'after wave_bc')
     ! Flow boundary conditions
 	if (par%gwflow==1) call gwbc(par,s)
-	call flow_bc (s,par,sglobal)
+	call flow_bc (s,par)
     !Dano moved here, after (long) wave bc generation
 	if (it==1) then
 #ifdef USEMPI

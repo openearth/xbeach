@@ -96,6 +96,17 @@ real*8,dimension(:),allocatable     :: yzs0,szs0
           par%zs03=s%tideinpz(1,3)
           par%zs04=s%tideinpz(1,4)
     endif
+    
+    ! jaap for MPI
+    par%xyzs01(1) = s%x(1,1)
+	par%xyzs01(2) = s%y(1,1)
+	par%xyzs02(1) = s%x(1,s%ny+1)
+	par%xyzs02(2) = s%y(1,s%ny+1)
+	par%xyzs03(1) = s%x(s%nx+1,s%ny+1)
+	par%xyzs03(2) = s%y(s%nx+1,s%ny+1)
+	par%xyzs04(1) = s%x(s%nx+1,1)
+	par%xyzs04(2) = s%y(s%nx+1,1)
+	! Jaap
 
     if(par%tideloc.eq.1) s%zs0 = s%x*0.0d0 + par%zs01
 
@@ -104,6 +115,7 @@ real*8,dimension(:),allocatable     :: yzs0,szs0
           yzs0(2)=s%y(1,s%ny+1)
           szs0(1)=par%zs01
           szs0(2)=par%zs02
+		 
           do i = 1,s%ny+1
                   call LINEAR_INTERP(yzs0, szs0, 2, s%y(1,i), s%zs0(1,i), indt)
           enddo

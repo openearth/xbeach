@@ -599,7 +599,7 @@ end subroutine wave_bc
 !
 ! FLOW BOUNDARY CONDITIONS
 !
-subroutine flow_bc(s,par,sg)
+subroutine flow_bc(s,par)
 use params
 use spaceparams
 use interp
@@ -608,7 +608,6 @@ use xmpi_module
 IMPLICIT NONE
 
 type(spacepars), target                     :: s
-type(spacepars), intent(in)                 :: sg
 type(parameters)                            :: par
 
 integer                                     :: i,ig
@@ -688,10 +687,10 @@ if (par%tideloc>0) then
     yzs0(1)=s%yz(1)
     yzs0(2)=s%yz(s%ny+1)
     ! Jaap
-    dzs0dy = (par%zs02-par%zs01)/(sg%yz(2)-sg%yz(1));
+    dzs0dy = (par%zs02-par%zs01)/(par%xyzs02(2)-par%xyzs01(2));
 
-	szs0(1)=par%zs01-dzs0dy*(yzs0(1)-sg%yz(1))
-    szs0(2)=par%zs02-dzs0dy*(yzs0(2)-sg%yz(1))
+	szs0(1)=par%zs01-dzs0dy*(yzs0(1)-par%xyzs01(2))
+    szs0(2)=par%zs02-dzs0dy*(yzs0(2)-par%xyzs01(2))
      
     ! end Jaap
     do i = 1,s%ny+1
