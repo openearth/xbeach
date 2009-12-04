@@ -119,7 +119,7 @@ call space_alloc_scalars(sglobal)
 s => sglobal
 call grid_bathy(s,par)  ! s%nx and s%ny are available now
 #ifdef USEMPI
-call xmpi_determine_processor_grid(s%nx,s%ny)
+call xmpi_determine_processor_grid(s%nx,s%ny,par%mpiboundary)
 if(xmaster) then
   write(*,*) 'processor grid: ',xmpi_m,' X ',xmpi_n
 endif

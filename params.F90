@@ -253,6 +253,9 @@ type parameters
    ! Drifters parameters
    integer*4     :: ndrifter                   = -123    !  Note: will replace lookup in drifters module [-] Number of drifers
    character(256) :: drifterfile                = 'abc'   !  Note: will replace lookup in drifters module [name] Name of drifter data file
+
+   ! MPI parameters
+   character(4)   :: mpiboundary               = 'abc'   ! Fix mpi boundaries along y-lines ('y'), x-lines ('x'), or find shortest boundary ('auto')
   
    ! Constants, not read in params.txt
    real*8               :: px                  = -123    !  [-] Pi
@@ -458,6 +461,10 @@ par%lws      = readkey_int ('params.txt','lws',           1,        0,     1)
 !par%ut       = readkey_int ('params.txt','ut',            1,        0,     1)
 par%BRfac    = readkey_dbl ('params.txt','BRfac',    1.0d0,       0.d0, 1.d0)
 par%oldwbc   = readkey_int ('params.txt','oldwbc',       1,        0,     1)
+
+if (xmaster) call readkey('params.txt','mpiboundary',par%mpiboundary)    ! X-grid file
+if (par%mpiboundary==' ') par%mpiboundary='auto'   ! Default
+
 end subroutine wave_input
 
 subroutine flow_input(par)

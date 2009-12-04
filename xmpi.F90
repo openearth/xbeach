@@ -139,9 +139,10 @@ subroutine xmpi_abort
   call MPI_Abort(xmpi_comm,1,ierr)
 end subroutine xmpi_abort
 
-subroutine xmpi_determine_processor_grid(m,n)
+subroutine xmpi_determine_processor_grid(m,n,divtype)
 implicit none
 integer, intent(in) :: m,n  ! the dimensions of the global domain
+character(4),intent(in) :: divtype
 
 integer mm,nn, borderlength, min_borderlength
 
@@ -150,17 +151,28 @@ integer mm,nn, borderlength, min_borderlength
 ! - the total length of the internal borders is minimal
 
   min_borderlength = 1000000000
-  do mm = 1,xmpi_size
-    nn = xmpi_size/mm
-    if (mm * nn .eq. xmpi_size) then
-      borderlength = (mm - 1)*n + (nn -1)*m
-      if (borderlength .lt. min_borderlength) then
-        xmpi_m = mm
-        xmpi_n = nn
-        min_borderlength = borderlength
-      endif
-    endif
-  enddo
+  if (trim(divtype)=='y') then   ! Force all subdivisions to run along y-lines
+     xmpi_m=xmpi_size
+	 xmpi_n=1
+  elseif (trim(divtype)=='x') then ! Force all subdivisions to run along x-lines
+     xmpi_m=1
+	 xmpi_n=xmpi_size
+  elseif (trim(divtype)=='auto') then
+     do mm = 1,xmpi_size
+       nn = xmpi_size/mm
+       if (mm * nn .eq. xmpi_size) then
+         borderlength = (mm - 1)*n + (nn -1)*m
+         if (borderlength .lt. min_borderlength) then
+           xmpi_m = mm
+           xmpi_n = nn
+           min_borderlength = borderlength
+         endif
+       endif
+     enddo
+  else
+     write(*,*) 'Unknown mpi division ',divtype
+	 call halt_program
+  endif
 
 ! The layout of the processors is as follows:
 ! example 12 processors, xmpi_m=3, xmpi_n=4:
