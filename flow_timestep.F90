@@ -482,14 +482,6 @@ endif
     
 ! wwvv zs, uu, vv have to be communicated now, because they are used later on
 #ifdef USEMPI
-!    call xmpi_shift(uu,':1')
-!    call xmpi_shift(uu,':n')
-!    call xmpi_shift(uu,'1:')
-!    call xmpi_shift(uu,'m:')
-!    call xmpi_shift(vv,':1')
-!    call xmpi_shift(vv,':n')
-!    call xmpi_shift(vv,'1:')
-!    call xmpi_shift(vv,'m:')
     call xmpi_shift(zs,':1')
     call xmpi_shift(zs,':n')
     call xmpi_shift(zs,'1:')
