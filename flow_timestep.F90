@@ -473,12 +473,14 @@ endif
     !
 	! RJ: Neumann water levels in case of right = 1 or right = 0
     ! Lateral boundary at y=0
+
+if(xmpi_isleft) then
     zs(1:nx+1,1)=max(zs(1:nx+1,2) - (zs0(:,ny+1)-zs0(:,1))/(yz(ny+1)-yz(1))*(yz(2)-yz(1)),zb(1:nx+1,1))
+endif
+if(xmpi_isright) then
     ! Lateral boundary at y=ny*dy
     zs(1:nx+1,ny+1)=max(zs(1:nx+1,ny) + (zs0(:,ny+1)-zs0(:,1))/(yz(ny+1)-yz(1))*(yz(ny+1)-yz(ny)),zb(1:nx+1,ny))
-   
-	! Jaap I do nu understand why we need to call this routine two times?
-	! call discharge_boundary(s,par)
+endif
     
 ! wwvv zs, uu, vv have to be communicated now, because they are used later on
 #ifdef USEMPI
@@ -511,13 +513,13 @@ endif
     ! U and V in cell centre; do output and sediment stirring
     !
     u(2:nx,:)=0.5d0*(uu(1:nx-1,:)+uu(2:nx,:))
-    if(xmpi_istop) then
+if(xmpi_istop) then
       u(1,:)=uu(1,:)
-    endif
+endif
     !Ap
-    if(xmpi_isbot) then
+if(xmpi_isbot) then
       u(nx+1,:)=u(nx,:)
-    endif
+endif
 #ifdef USEMPI
     call xmpi_shift(u,'1:')
     call xmpi_shift(u,'m:')

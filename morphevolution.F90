@@ -540,16 +540,21 @@ end do
 !
 ! bed boundary conditions
 ! 
-zb(:,1) = zb(:,2)
-sedero(:,1) = sedero(:,2)
-zb(:,ny+1) = zb(:,ny)
-sedero(:,ny+1) = sedero(:,ny)
-pbbed(:,1,:,:)=pbbed(:,2,:,:)
-z0bed(:,1)=z0bed(:,2)
-dzbed(:,1,:)=dzbed(:,2,:)
-pbbed(:,ny+1,:,:)=pbbed(:,ny,:,:)
-z0bed(:,ny+1)=z0bed(:,ny)
-dzbed(:,ny+1,:)=dzbed(:,ny,:)
+if(xmpi_isleft) then
+   zb(:,1) = zb(:,2)
+   sedero(:,1) = sedero(:,2)
+   pbbed(:,1,:,:)=pbbed(:,2,:,:)
+   z0bed(:,1)=z0bed(:,2)
+   dzbed(:,1,:)=dzbed(:,2,:)
+endif
+
+if(xmpi_isright) then
+   zb(:,ny+1) = zb(:,ny)
+   sedero(:,ny+1) = sedero(:,ny)
+   pbbed(:,ny+1,:,:)=pbbed(:,ny,:,:)
+   z0bed(:,ny+1)=z0bed(:,ny)
+   dzbed(:,ny+1,:)=dzbed(:,ny,:)
+endif
 
 ! Robert: in parallel version bed update must take place on internal boundaries:
 #ifdef USEMPI
