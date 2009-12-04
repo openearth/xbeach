@@ -689,8 +689,8 @@ if (par%tideloc>0) then
     ! Jaap
     dzs0dy = (par%zs02-par%zs01)/(par%xyzs02(2)-par%xyzs01(2));
 
-	szs0(1)=par%zs01-dzs0dy*(yzs0(1)-par%xyzs01(2))
-    szs0(2)=par%zs01-dzs0dy*(yzs0(2)-par%xyzs01(2))
+	szs0(1)=par%zs01+dzs0dy*(yzs0(1)-par%xyzs01(2))
+    szs0(2)=par%zs01+dzs0dy*(yzs0(2)-par%xyzs01(2))
      
     ! end Jaap
     do i = 1,s%ny+1
