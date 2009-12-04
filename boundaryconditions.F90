@@ -515,8 +515,8 @@ call xmpi_shift(ui,'1:')
 call xmpi_shift(ee,'1:')
 #endif
 if (par%t>0.0d0) then
-    if (par%rightwave==0) then
-		
+  if (xmpi_isleft)then ! Jaap
+    if (par%rightwave==0) then		
 		!
 		! Lateral boundary at y=0;
 		!
@@ -546,9 +546,10 @@ if (par%t>0.0d0) then
 								  nx+1,xz(i),ee(i,1,itheta),dummy)
 		   enddo
 	    enddo
-	endif
-	
-	if (par%leftwave==0) then
+ 	 endif
+   endif
+   if (xmpi_isright)then
+	 if (par%leftwave==0) then
 		!
 		! lateral; boundary at y=ny*dy
 		!
@@ -581,7 +582,8 @@ if (par%t>0.0d0) then
 		   enddo
 	    enddo
 	 endif
-end if
+   endif
+endif
 ! wwvv communicate ee(:,1,:)
 #ifdef USEMPI
 call xmpi_shift(ee,':1')
@@ -686,7 +688,7 @@ if (par%tideloc>0) then
   if(par%tideloc.eq.2 .and. par%paulrevere.eq.1) then
     yzs0(1)=s%yz(1)
     yzs0(2)=s%yz(s%ny+1)
-    ! Jaap
+    ! Jaap: for MPI!
     dzs0dy = (par%zs02-par%zs01)/(par%xyzs02(2)-par%xyzs01(2));
 
 	szs0(1)=par%zs01+dzs0dy*(yzs0(1)-par%xyzs01(2))
