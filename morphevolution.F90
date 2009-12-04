@@ -298,19 +298,27 @@ do jg = 1,par%ngd
 	! cc = min(1.d0,cc/max(hh,0.01d0))
 	cc = cc/hh
 	! do lateral bounadries...
+if(xmpi_istop)then
     cc(1,:)=cc(2,:)
-    cc(:,1)=cc(:,2)
-    cc(nx+1,:)=cc(nx+1-1,:)
-    cc(:,ny+1)=cc(:,ny+1-1)
 	ero(1,:,jg)=ero(2,:,jg)
-	ero(:,1,jg)=ero(:,2,jg)
-	ero(nx+1,:,jg)=ero(nx,:,jg)
-	ero(:,ny+1,jg)=ero(:,ny,jg)
     depo_ex(1,:,jg)=depo_ex(2,:,jg)
-	depo_ex(:,1,jg)=depo_ex(:,2,jg)
-	depo_ex(nx+1,:,jg)=depo_ex(nx,:,jg)
-	depo_ex(:,ny+1,jg)=depo_ex(:,ny,jg)
-
+endif
+if(xmpi_isleft)then
+	cc(:,1)=cc(:,2)
+    ero(:,1,jg)=ero(:,2,jg)
+    depo_ex(:,1,jg)=depo_ex(:,2,jg)
+endif
+if(xmpi_istop)then
+	cc(nx+1,:)=cc(nx+1-1,:)
+    ero(nx+1,:,jg)=ero(nx,:,jg)
+    depo_ex(nx+1,:,jg)=depo_ex(nx,:,jg)
+endif
+if(xmpi_isright)then
+	cc(:,ny+1)=cc(:,ny+1-1)
+	ero(:,ny+1,jg)=ero(:,ny,jg)
+    depo_ex(:,ny+1,jg)=depo_ex(:,ny,jg)
+endif
+	
     ! wwvv fix the first and last rows and columns of cc in parallel case
 #ifdef USEMPI
     call xmpi_shift(cc,'1:')
