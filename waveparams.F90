@@ -454,7 +454,7 @@ elseif(maxval(wp%theta)>180.0d0)then
   !temp(1:nt) = wp%theta(ndir-nt+1:ndir)
   !temp(nt+1:ndir) = wp%theta(1:ndir-nt)
   temp(nt+1:ndir)=wp%theta(1:ndir-nt)
-  temp(ndir-nt+1:ndir)=wp%theta(1:nt)
+  temp(1:nt)=wp%theta(ndir-nt+1:ndir)
   wp%theta=temp
   deallocate(temp)
 endif
@@ -564,8 +564,10 @@ elseif (Ashift==1) then
 !   tempA(:,1:ndir-nt) = wp%S_array(:,nt+1:ndir)
 !    tempA(:,1:nt) = wp%S_array(:,ndir-nt+1:ndir)
 !    tempA(:,nt+1:ndir) = wp%S_array(:,1:ndir-nt)
+!	tempA(:,nt+1:ndir)=wp%S_array(:,1:ndir-nt)
+!    tempA(:,ndir-nt+1:ndir)=wp%S_array(:,1:nt)
 	tempA(:,nt+1:ndir)=wp%S_array(:,1:ndir-nt)
-    tempA(:,ndir-nt+1:ndir)=wp%S_array(:,1:nt)
+    tempA(:,1:nt)=wp%S_array(:,ndir-nt+1:ndir)
     wp%S_array=tempA
     deallocate(tempA)
 endif
