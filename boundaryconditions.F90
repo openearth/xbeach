@@ -599,7 +599,7 @@ end subroutine wave_bc
 !
 ! FLOW BOUNDARY CONDITIONS
 !
-subroutine flow_bc(s,par)
+subroutine flow_bc(s,par,sg)
 use params
 use spaceparams
 use interp
@@ -607,12 +607,12 @@ use xmpi_module
 
 IMPLICIT NONE
 
-type(spacepars), target                     :: s
+type(spacepars), target                     :: s,sg
 type(parameters)                            :: par
 
 integer                                     :: i,ig
 integer                                     :: j,jj,indt
-real*8                                      :: qxr,ur,alphanew,vert,factime
+real*8                                      :: qxr,ur,alphanew,vert,factime,dzs0dy
 real*8 , dimension(2)                       :: yzs0,szs0
 real*8 , dimension(:,:)  ,allocatable,save  :: zs0old
 real*8 , dimension(:,:)  ,allocatable,save  :: ht,beta,betanp1
@@ -686,8 +686,13 @@ if (par%tideloc>0) then
   if(par%tideloc.eq.2 .and. par%paulrevere.eq.1) then
     yzs0(1)=s%yz(1)
     yzs0(2)=s%yz(s%ny+1)
-    szs0(1)=par%zs01
-    szs0(2)=par%zs02
+    ! Jaap
+    dzs0dy = (par%zs02-par%zs01)/(sg%yz(2)-sg%yz(1));
+
+	szs0(1)=par%zs01-dzs0dy*(yzs0(1)-sg%yz(1))
+    szs0(2)=par%zs02-dzs0dy*(yzs0(2)-sg%yz(1))
+     
+    ! end Jaap
     do i = 1,s%ny+1
         call LINEAR_INTERP(yzs0, szs0, 2, s%yz(i), s%zs0(1,i), indt)
     enddo
