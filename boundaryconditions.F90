@@ -607,7 +607,8 @@ use xmpi_module
 
 IMPLICIT NONE
 
-type(spacepars), target                     :: s,sg
+type(spacepars), target                     :: s
+type(spacepars), intent(in)                 :: sg
 type(parameters)                            :: par
 
 integer                                     :: i,ig
