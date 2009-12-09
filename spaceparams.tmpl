@@ -195,6 +195,6 @@
       real*8  2  Sutot     s%nx+1 s%ny+1 d ! [m2/s]   Sediment transport integrated over bed load and suspended and for all sediment grains
       real*8  2  Svtot     s%nx+1 s%ny+1 d ! [m2/s]   Sediment transport integrated over bed load and suspended and for all sediment grains
       real*8  2  cctot     s%nx+1 s%ny+1 d ! [m3/m3]   Sediment concentration integrated over bed load and suspended and for all sediment grains
- !     real*8  1  wi        s%ny+1 b ! [m/s]   ! Vertical velocity at boundary due to (short) waves
- !     real*8  1  zi        s%ny+1 b ! [m]     ! Surface elevation at boundary due to (short) waves
+      real*8  2  wi        2      s%ny+1 2 ! [m/s]   ! Vertical velocity at boundary due to (short) waves2
+      real*8  2  zi        2      s%ny+1 2 ! [m]     ! Surface elevation at boundary due to (short) waves
 !* hints for vi vim: filetype=fortran : syntax=fortran
