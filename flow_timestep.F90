@@ -228,11 +228,17 @@ endif
     do j=2,ny
         do i=2,nx
             nuh(i,j) = max(par%nuh,par%nuhfac*hh(i,j)*(DR(i,j)/par%rho)**(1.0d0/3.0d0)) ! Ad: change to max
+        end do 
+    end do
+
+    do j=2,ny
+        do i=2,nx
             dudx1 = nuh(i+1,j)*s%hh(i+1,j)*(uu(i+1,j)-uu(i,j))/(xu(i+1)-xu(i))
             dudx2 = nuh(i,j)  *s%hh(i  ,j)*(uu(i,j)-uu(i-1,j))/(xu(i)-xu(i-1)) 
             viscu(i,j) = (1.0d0/s%hum(i,j))*( 2*(dudx1-dudx2)/(xu(i+1)-xu(i-1)) )*wetu(i+1,j)*wetu(i-1,j)  !Set viscu = 0.0 near water line   wwvv: viscu is overwritten in next loopnest before it is used
         end do 
     end do
+
     do j=2,ny
         do i=2,nx
             dudy1 = nuh(i,j+1)*.5d0*(s%hvm(i,j  )+s%hvm(i+1,j  ))*(uu(i,j+1)-uu(i,j))/(yz(j+1)-yz(j))
