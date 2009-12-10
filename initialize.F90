@@ -323,6 +323,7 @@ integer*4                           :: iUnit
   allocate(s%tauby(1:s%nx+1,1:s%ny+1))
   allocate(s%ws(1:s%nx+1,1:s%ny+1))
   allocate(s%wb(1:s%nx+1,1:s%ny+1))
+  allocate(s%nuh(1:s%nx+1,1:s%ny+1))  
   allocate(s%pres(1:s%nx+1,1:s%ny+1))
   allocate(s%wi(2,1:s%ny+1))
   allocate(s%zi(2,1:s%ny+1))
@@ -331,7 +332,7 @@ integer*4                           :: iUnit
   s%pres = 0.0d0
   s%zi   = 0.0d0
   s%wi   = 0.0d0
-
+  s%nuh  = 0.0d0
 
   ! cjaap: replaced par%hmin by par%eps
   s%hh=max(s%zs0-s%zb,par%eps)
