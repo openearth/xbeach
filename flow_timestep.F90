@@ -51,8 +51,8 @@ real*8,dimension(:,:),allocatable,save  :: zs_old
 real*8,dimension(:,:),allocatable,save  :: vsu,usu,vsv,usv,veu,uev
 real*8,dimension(:,:),allocatable,save  :: ududx,vdvdy,udvdx,vdudy
 real*8,dimension(:,:),allocatable,save  :: viscu,viscv
-real*8,dimension(:,:),allocatable,save  :: us,vs  
-real*8,dimension(:,:),allocatable,save  :: nuh
+real*8,dimension(:,:),allocatable,save  :: us,vs
+real*8                                  :: nuh1,nuh2
 real*8                                  :: dudx1,dudx2,dudy1,dudy2
 real*8                                  :: dvdy1,dvdy2,dvdx1,dvdx2  !Jaap
 
@@ -76,7 +76,6 @@ if (.not. allocated(vsu) ) then
    allocate ( viscv(s%nx+1,s%ny+1))
    allocate (    us(s%nx+1,s%ny+1))
    allocate (    vs(s%nx+1,s%ny+1))
-   allocate (   nuh(s%nx+1,s%ny+1))
 
    if (par%secorder == 1) then
       allocate(vv_old(s%nx+1,s%ny+1)); vv_old = s%vv
@@ -108,7 +107,6 @@ if (.not. allocated(vsu) ) then
     v       =0.d0
     ue      =0.d0
     ve      =0.d0 
-    nuh     =0.d0
 endif
 
     ! zs=zs*wetz
@@ -225,11 +223,22 @@ endif
     call xmpi_shift(vdudy,':n')
 #endif
     !
-    do j=2,ny
-        do i=2,nx
-            nuh(i,j) = max(par%nuh,par%nuhfac*hh(i,j)*(DR(i,j)/par%rho)**(1.0d0/3.0d0)) ! Ad: change to max
-        end do 
-    end do
+    
+#ifndef USEMPI    
+    if (par%smag == 1) then
+      !Use smagorinsky subgrid model
+      call visc_smagorinsky(s,par)    
+    else
+#endif    
+      do j=2,ny
+          do i=2,nx
+              nuh(i,j) = max(par%nuh,par%nuhfac*hh(i,j)*(DR(i,j)/par%rho)**(1.0d0/3.0d0)) ! Ad: change to max
+          end do 
+      end do
+#ifndef USEMPI      
+    endif  
+#endif
+
 
     do j=2,ny
         do i=2,nx
@@ -241,8 +250,12 @@ endif
 
     do j=2,ny
         do i=2,nx
-            dudy1 = nuh(i,j+1)*.5d0*(s%hvm(i,j  )+s%hvm(i+1,j  ))*(uu(i,j+1)-uu(i,j))/(yz(j+1)-yz(j))
-            dudy2 = nuh(i,j)  *.5d0*(s%hvm(i,j-1)+s%hvm(i+1,j-1))*(uu(i,j)-uu(i,j-1))/(yz(j)-yz(j-1))
+            !Nuh is defined at eta points, interpolate from four surrounding points
+            nuh1  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,j+1)+nuh(i,j+1))
+            nuh2  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,j-1)+nuh(i,j-1))
+            
+            dudy1 = nuh1 *.5d0*(s%hvm(i,j  )+s%hvm(i+1,j  ))*(uu(i,j+1)-uu(i,j))/(yz(j+1)-yz(j))
+            dudy2 = nuh2 *.5d0*(s%hvm(i,j-1)+s%hvm(i+1,j-1))*(uu(i,j)-uu(i,j-1))/(yz(j)-yz(j-1))
             viscu(i,j) = viscu(i,j) + (1.0d0/s%hum(i,j))*( 2*(dudy1-dudy2)/(yz(j+1)-yz(j-1)) )*wetu(i,j+1)*wetu(i,j-1)
         end do 
     end do
@@ -312,14 +325,19 @@ endif
           viscv(i,j) = (1.0d0/s%hvm(i,j))*( 2*(dvdy1-dvdy2)/(yv(j+1)-yv(j-1)) )*wetv(i,j+1)*wetv(i,j-1)
         end do 
     end do
+    
+    nuh = par%nuhv*nuh !Robert en Ap: increase nuh interaction in d2v/dx2
     do j=2,ny
-        do i=2,nx
-            nuh(i,j) = par%nuhv*nuh(i,j)         !Robert en Ap: increase nuh interaction in d2v/dx2
-			dvdx1 = nuh(i+1,j)*.5d0*(s%hum(i  ,j)+s%hum(i  ,j+1))*(vv(i+1,j)-vv(i,j))/(xz(i+1)-xz(i))
+        do i=2,nx   
+            !Nuh is defined at eta points, interpolate from four surrounding points
+            nuh1  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,j+1)+nuh(i,j+1))
+            nuh2  = .25d0*(nuh(i,j)+nuh(i-1,j)+nuh(i-1,j+1)+nuh(i,j+1))            
+            
+			      dvdx1 = nuh(i+1,j)*.5d0*(s%hum(i  ,j)+s%hum(i  ,j+1))*(vv(i+1,j)-vv(i,j))/(xz(i+1)-xz(i))
             dvdx2 = nuh(i,j)  *.5d0*(s%hum(i-1,j)+s%hum(i-1,j+1))*(vv(i,j)-vv(i-1,j))/(xz(i)-xz(i-1))
             viscv(i,j) = viscv(i,j) + (1.0d0/s%hvm(i,j))*( 2*(dvdx1-dvdx2)/(xz(i+1)-xz(i-1)) )*wetv(i+1,j)*wetv(i-1,j)
         end do 
-    end do  
+    end do
 
     udvdx(nx+1,:)=0.0d0       !Jaap udvdx(nx+1,:) is not defined but is used to compute vv(nx+1,:)
     viscv(nx+1,:)=viscv(nx,:) !Jaap viscv(nx+1,:) is not defined but is used to compute vv(nx+1,:)
@@ -348,7 +366,7 @@ endif
 #ifndef USEMPI
     if (par%nonh==1) then
        !Do explicit predictor step with pressure
-       call nonh_explicit(s,par)
+       call nonh_explicit(s,par,nuh)
     end if
 
     if (par%secorder==1) then
@@ -704,4 +722,79 @@ endif
 
 end subroutine flow_timestep
 
+#ifndef USEMPI
+
+subroutine visc_smagorinsky(s,par)
+  use params
+  use spaceparams
+
+  IMPLICIT NONE
+
+!-------------------------------------------------------------------------------
+!                             DECLARATIONS
+!-------------------------------------------------------------------------------
+
+!--------------------------        PURPOSE         ----------------------------
+!
+!  Calculates the turbulent viscocity coefficient nuh according to the smagorinsky
+!  subgrid model.
+!
+!--------------------------        METHOD          ----------------------------
+!
+! The turbulent viscocity is given as:
+!
+! nuh = C*dx*dy*Tau
+!              
+! Tau = [ (du/dx)^2 + (dv/dy)^2 + 1/2 * (du/dy + dv/dx)^2 ] ^ (1/2)
+!
+! Where
+!  
+! dx,dy : grid size
+! C     : Constant ~0.15 (set by par%nuh)
+! Tau   : Measure for the magnitude of the turbulent stresses
+!
+!--------------------------     ARGUMENTS          ----------------------------
+
+  type(spacepars),target                   ,intent(inout) :: s
+  type(parameters)                         ,intent(in)    :: par
+
+!--------------------------     LOCAL VARIABLES    ----------------------------
+ 
+  real*8                                                  :: dudx !U Velocity gradient in x-dir
+  real*8                                                  :: dudy !U Velocity gradient in y-dir
+  real*8                                                  :: dvdx !V Velocity gradient in x-dir
+  real*8                                                  :: dvdy !V Velocity gradient in y-dir   
+  real*8                                                  :: Tau  !Measure for magnitude viscous stresses
+  real*8                                                  :: dx   !Local gridsize in x-dir
+  real*8                                                  :: dy   !Local gridsize in y-dir
+  
+  integer                                                 :: i    !Index variable
+  integer                                                 :: j    !Index variable
+
+!-------------------------------------------------------------------------------
+!                             IMPLEMENTATION
+!-------------------------------------------------------------------------------      
+      
+  !MPI WARNING -> Check loop indices
+  do j=2,s%ny
+    do i=2,s%nx     
+      dx   = (s%xu(i)-s%xu(i-1))
+      dy   = (s%yv(j)-s%yv(j-1))
+      dudx = (s%uu(i,j)-s%uu(i-1,j))/dx
+      dudy = .5d0*(s%uu(i,j+1) - s%uu(i,j-1) + s%uu(i-1,j+1) - s%uu(i-1,j-1))/(s%yz(j+1)-s%yz(j))
+      dvdx = .5d0*(s%vv(i+1,j) - s%vv(i-1,j) + s%vv(i+1,j-1) - s%vv(i-1,j-1))/(s%xz(i+1)-s%xz(i))
+      Tau  = sqrt(dudx**2+dvdy**2+0.5d0*(dvdx+dudy)**2)
+      dvdy = (s%vv(i,j)-s%vv(i,j-1))/dy
+      
+      s%nuh(i,j) = par%nuh * dx * dy * Tau * real(s%wetu(i,j)*s%wetu(i-1,j)*s%wetv(i,j)*s%wetv(i,j-1),kind=8)
+    enddo
+  enddo
+  
+  s%nuh(1,:)      = 0.0d0
+  s%nuh(:,s%ny+1) = 0.0d0
+  s%nuh(:,1)      = 0.0d0
+  s%nuh(s%nx+1,:) = 0.0d0
+end subroutine visc_smagorinsky
+
+#endif
 end module flow_timestep_module
