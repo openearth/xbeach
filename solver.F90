@@ -185,7 +185,7 @@ contains
       !    
       itcal = itcal+1        !Number of times the solver procedure is called
       residual = 0.
-      call solver_sip  ( amat  , rhs   , x     , residual   , work  , it ,nx, ny,reps)
+      call solver_sip  ( amat  , rhs   , x     , residual   , work  , it ,nx, ny) !,reps)
       ittot  = ittot+it      !Total number of iterations
       itmin  = min(it,itmin) !Minimum number of iterations 
       itmax  = max(it,itmax) !Maximum number of iterations
@@ -266,7 +266,7 @@ contains
 
 !
 !==============================================================================
-     subroutine solver_sip  ( amat  , rhs   , x     , res   , cmat  , it ,nx, ny , acc)
+     subroutine solver_sip  ( amat  , rhs   , x     , res   , cmat  , it ,nx, ny) !, acc)
 !==============================================================================    
 !
 !     programmer  Marcel Zijlema
@@ -290,7 +290,7 @@ contains
       
       
       integer(kind=iKind)                    ,intent(out)   :: it   !iteration count
-      real(kind=rKind)                       ,intent(out)   :: acc  !iteration count      
+     ! real(kind=rKind)                       ,intent(out)   :: acc  !iteration count      
       integer, intent(in)                                   :: nx   !Number of x-meshes
       integer, intent(in)                                   :: ny   !Number of y-meshes      
           
@@ -425,7 +425,7 @@ contains
       
       if ( rnorm < epslin ) iconv = .true.
     enddo
-    acc = rnorm/bnorm
+    !acc = rnorm/bnorm
   end subroutine solver_sip  
   
 !USEMPI, see start of file   
