@@ -1398,10 +1398,10 @@ subroutine velocity_Boundary(u,z,w,nx,ny,t,zs,ws)
       allocate(tmp(ny+1,nvar-1))    
       !If current time not located within interval read next line    
       do while (.not. (t>=t0 .and. t<t1))
-        u0 = u1
         t0 = t1
-        z0 = z1
-        w0 = w1
+        if (iU >0) u0 = u1
+        if (iZ >0) z0 = z1
+        if (iW >0) w0 = w1
         call velocity_Boundary_read(t1,tmp,Unit_U,lVaru,lIsEof,nvar)
         if (iU >0) u1 = tmp(:,iU-1)
         if (iZ >0) z1 = tmp(:,iZ-1)
