@@ -40,6 +40,10 @@ else
       par%dt=min(par%dt,mdx/(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j))))
       ! y-component
       par%dt=min(par%dt,mdy/max(sqrt(par%g*s%hv(i,j))+abs(s%vv(i,j)),abs(s%vreps(i,j)))) !Jaap: include sediment adevction velocities
+      
+      mdx = min(s%xz(i+1)-s%xz(i),s%xu(i)-s%xu(i-1))**2
+      mdy = min(s%yz(j+1)-s%yz(j),s%yv(j)-s%yv(j-1))**2
+      par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
     enddo
   enddo
   par%dt=par%dt*par%CFL*0.5d0
@@ -71,6 +75,7 @@ par%dt = (par%tnext-par%t)/n
 
 
 par%t=par%t+par%dt
+
 if(par%t>=par%tnext) then
     par%dt=par%dt-(par%t-par%tnext)
     par%t=par%tnext
@@ -79,6 +84,5 @@ if(par%t>=par%tnext) then
 else
 !    write(*,*)'time (s) = ',par%t,' dt (s) = ',par%dt
 end if  
-
 end subroutine timestep
 end module timestep_module
