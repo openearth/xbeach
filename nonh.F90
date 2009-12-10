@@ -66,6 +66,8 @@ module nonh_module
   real (kind=rKind), allocatable, dimension(:)       ::  ddxu  
   real (kind=rKind), allocatable, dimension(:)       ::  ddyv   
   
+  real (kind=rKind), allocatable, dimension(:,:)     :: wcoef
+  
   real (kind=rKind), allocatable, dimension(:,:)     :: Wm
   real (kind=rKind), allocatable, dimension(:,:)     :: Wm_old
   
@@ -91,7 +93,7 @@ contains
 
 !
 !==============================================================================
-  subroutine nonh_init(s)
+  subroutine nonh_init(s,par)
 !==============================================================================    
 !
 
@@ -104,19 +106,22 @@ contains
 !
 !   Initializes nh subroutines
 !
-
 !--------------------------     DEPENDENCIES       ----------------------------
            
     use spaceparams
+    use params    
+    use wave_timestep_module, only: dispersion
 
 !--------------------------     ARGUMENTS          ----------------------------
 !
     type(spacepars) ,intent(inout) :: s
+    type(parameters),intent(in)    :: par     
 !
 
 !--------------------------     LOCAL VARIABLES    ----------------------------
  
     integer(kind=iKind)        :: iw,i,ie,jn,j,js,iww,iee
+    real   (kind=rKind)        :: d,sigma,k
 !-------------------------------------------------------------------------------
 !                             IMPLEMENTATION
 !-------------------------------------------------------------------------------
@@ -151,6 +156,7 @@ contains
     allocate(dp(s%nx+1,s%ny+1))     ; dp = 0.0_rKind
     allocate(Wm(s%nx+1,s%ny+1))     ;Wm     = 0.0_rKind
     allocate(Wm_old(s%nx+1,s%ny+1)) ;Wm_old = 0.0_rKind
+    allocate(Wcoef(s%nx+1,s%ny+1))  ;Wcoef = 1.0d0
     
     if (.not. associated(s%pres)) then   
       allocate(s%pres(s%nx+1,s%ny+1)); s%pres = 0.0_rKind   
@@ -188,6 +194,33 @@ contains
     mat(1,:,s%ny+1) = 1.0_rKind
     
     initialized   = .true. 
+    
+    sigma = 2.0_rkind*par%px/par%Topt
+    if (par%dispc <= 0.0_rKind) then
+      !Calculate the optimum value of the dispersion coeficiant.
+      do j=1,s%ny+1
+        do i=1,s%nx+1      
+          d          = par%zs0-s%zb(i,j)
+          k = disper(sigma,d,par%g,2.0_rKind*par%px,0.0001_rKind)
+          if (d>0.0_rKind) then          
+            wcoef(i,j) = 1.0_rKind / (  4.0_rKind*par%g / (d*sigma**2) - 4.0_rKind / ((k*d)**2)  )
+          else
+            wcoef(i,j) = par%dispc
+          endif  
+        enddo
+      enddo
+    endif
+
+   ! write(*,*) 'w:',sigma
+   ! write(*,*) 'k:',k
+   ! write(*,*) 'd:',d
+  !  write(*,*) 'kd',k*d
+  !  write(*,*) 'wcoef:',wcoef(2,2)
+  !  read(*,*)
+    
+    !Initialize levels at u/v points (zu,zbu etc.)
+    call zuzv(s)
+
   end subroutine nonh_init
 
 !
@@ -241,51 +274,12 @@ contains
 !
   !call timer_start(timer_flow_nonh)
   if (.not. initialized) then
-    call nonh_init(s)
+    call nonh_init(s,par)
   endif    
 
-  !Free surface location in u-point
-  do j=1,s%ny+1
-    do i=1,s%nx
-      if     (s%qx(i,j) > 0.0_rKind) then
-        zsu(i,j) = s%zs(i  ,j)      
-      elseif (s%uu(i,j) < 0.0_rKind) then
-        zsu(i,j) = s%zs(i+1,j)
-      else
-        zsu(i,j) = max(s%zs(i  ,j),s%zs(i+1,j))
-      endif
-    enddo
-  enddo  
 
-  !Free surface location in v-point
-  do j=1,s%ny
-    do i=1,s%nx+1
-      if     (s%qy(i,j) > 0.0_rKind) then
-        zsv(i,j) = s%zs(i  ,j)      
-      elseif (s%vv(i,j) < 0.0_rKind) then
-        zsv(i,j) = s%zs(i,j+1)
-      else
-        zsv(i,j) = max(s%zs(i  ,j),s%zs(i,j+1))
-      endif
-    enddo
-  enddo
-
-  !Bottom location in U point
-  do j=1,s%ny+1
-    do i=1,s%nx
-      zbu(i,j) = zsu(i,j)-s%hu(i,j)
-    enddo
-  enddo
-  zbu(s%nx+1,:) = s%zb(s%nx+1,:)
-
-  !Bottom location in V point  
-  do j=1,s%ny
-    do i=1,s%nx+1
-      zbv(i,j) = zsv(i,j)-s%hv(i,j)
-    enddo
-  enddo  
-  zbv(:,s%ny+1) = s%zb(:,s%ny+1)
   !call timer_start(timer_flow_nonh_mat)
+  call zuzv(s)   
   
   !Built pressure coefficients U  
   !call timer_start(timer_flow_nonh_au)  
@@ -350,7 +344,7 @@ contains
   do j=2,s%ny
     do i=2,s%nx
       if (nonhZ(i,j) == 1) then
-        aws(1,i,j)   =  par%dt*2.0_rKind/s%hh(i,j)-awb(1,i,j)
+        aws(1,i,j)   =  wcoef(i,j)*par%dt*2.0_rKind/s%hh(i,j)-awb(1,i,j)
         aws(2:5,i,j) =  -awb(2:5,i,j)
         awsr(i,j)    =  2.0_rKind * Wm(i,j)-awbr(i,j)
       else
@@ -454,20 +448,91 @@ contains
   !call timer_stop(timer_flow_nonh_corv)
   
   !W
-  !call timer_start(timer_flow_nonh_corw)
+  !Calculate the vertical velocities
   do j=2,s%ny
     do i=2,s%nx
-      s%ws(i,j) = awsr(i,j) + dp(i , j)  * aws(1,i,j)                            &
-                            + dp(i-1,j)  * aws(2,i,j) + dp(i+1,j  ) * aws(3,i,j) &
-                            + dp(i  ,j-1)* aws(4,i,j) + dp(i  ,j+1) * aws(5,i,j)                      
+      if    (nonhZ(i,j) == 1) then
+        s%ws(i,j) = awsr(i,j) + dp(i , j)  * aws(1,i,j)                            &
+                              + dp(i-1,j)  * aws(2,i,j) + dp(i+1,j  ) * aws(3,i,j) &
+                              + dp(i  ,j-1)* aws(4,i,j) + dp(i  ,j+1) * aws(5,i,j)
+     
+      else
+        !If the point is excluded in nh then get ws from the kinematic boundary condition
+        if     (s%wetU(i,j)*s%wetU(i-1,j) == 1) then
+          dzs_e = .5_rKind*(zsu(i,j)-zsu(i-1,j))*ddxz(i)
+          dzs_w = dzs_e
+        elseif (s%wetU(i  ,j) == 0) then
+          dzs_e = .0_rKind
+          dzs_w = .5_rKind*(s%zs(i,j)-zsu(i-1,j))*ddxz(i)
+        elseif (s%wetU(i-1,j) == 0) then
+          dzs_e = .5_rKind*(zsu(i,j)-s%zs(i,j))  *ddxz(i)
+          dzs_w = .0_rKind
+        else  
+          dzs_e = .0_rKind        
+          dzs_w = .0_rKind        
+        endif
+        
+        if     (s%wetV(i,j)*s%wetV(i,j-1) == 1) then
+          dzs_s = .5_rKind*(zsv(i,j)-zsv(i,j-1))*ddyz(j)
+          dzs_n = dzb_s
+        elseif (s%wetV(i  ,j  ) == 0) then
+          dzs_s = .0_rKind
+          dzs_n = .5_rKind*(s%zs(i,j)-zsv(i,j-1))*ddyz(j)
+        elseif (s%wetV(i  ,j-1) == 0) then
+          dzs_s = .5_rKind*(zsv(i,j)-s%zs(i,j))  *ddyz(j)
+          dzs_n = .0_rKind
+        else  
+          dzs_e = .0_rKind        
+          dzs_w = .0_rKind        
+        endif
+        
+        s%ws(i,j) = - (s%hu(i,j)*s%uu(i,j)-s%hu(i-1,j  )*s%uu(i-1,j  ))*ddxz(i) &
+                    - (s%hv(i,j)*s%vv(i,j)-s%hv(i  ,j-1)*s%vv(i  ,j-1))*ddyz(j) &
+                    + dzs_e*s%uu(i,j)+dzs_w*s%uu(i-1,j)                         &
+                    + dzs_s*s%vv(i,j)+dzs_n*s%vv(i,j-1)
+   !     endif       
+      endif
     enddo
   enddo
   
   do j=2,s%ny
     do i=2,s%nx
-      s%wb(i,j) = awbr(i,j) + dp(i , j)  * awb(1,i,j)                            &
-                            + dp(i-1,j)  * awb(2,i,j) + dp(i+1,j  ) * awb(3,i,j) &
-                            + dp(i  ,j-1)* awb(4,i,j) + dp(i  ,j+1) * awb(5,i,j)
+      if (nonhZ(i,j) == 1) then
+        s%wb(i,j) = awbr(i,j) + dp(i , j)  * awb(1,i,j)                            &
+                              + dp(i-1,j)  * awb(2,i,j) + dp(i+1,j  ) * awb(3,i,j) &
+                              + dp(i  ,j-1)* awb(4,i,j) + dp(i  ,j+1) * awb(5,i,j)
+      else
+        if     (s%wetU(i,j)*s%wetU(i-1,j) == 1) then
+          dzb_e = .5_rKind*(zbu(i,j)-zbu(i-1,j))*ddxz(i)
+          dzb_w = dzs_e
+        elseif (s%wetU(i  ,j) == 0) then
+          dzb_e = .0_rKind
+          dzb_w = .5_rKind*(s%zb(i,j)-zbu(i-1,j))*ddxz(i)
+        elseif (s%wetU(i-1,j) == 0) then
+          dzb_e = .5_rKind*(zbu(i,j)-s%zb(i,j))  *ddxz(i)
+          dzb_w = .0_rKind
+        else  
+          dzb_e = .0_rKind        
+          dzb_w = .0_rKind        
+        endif
+        
+        if     (s%wetV(i,j)*s%wetV(i,j-1) == 1) then
+          dzb_s = .5_rKind*(zbv(i,j)-zbv(i,j-1))*ddyz(j)
+          dzb_n = dzb_s
+        elseif (s%wetV(i  ,j  ) == 0) then
+          dzb_s = .0_rKind
+          dzb_n = .5_rKind*(s%zb(i,j)-zbv(i,j-1))*ddyz(j)
+        elseif (s%wetV(i  ,j-1) == 0) then
+          dzb_s = .5_rKind*(zbv(i,j)-s%zb(i,j))  *ddyz(j)
+          dzb_n = .0_rKind
+        else  
+          dzb_e = .0_rKind        
+          dzb_w = .0_rKind        
+        endif
+        
+        s%wb(i,j) = + dzb_e*s%uu(i,j)+dzb_w*s%uu(i-1,j) &
+                    + dzb_s*s%vv(i,j)+dzb_n*s%vv(i,j-1)
+      endif
     enddo
   enddo
 
@@ -485,10 +550,11 @@ contains
   s%wb(s%nx+1,:) = s%wb(s%nx,:)  
   
   Wm_old = .5_rKind*(s%ws+s%wb)
+
   !call timer_stop(timer_flow_nonh)
 end subroutine nonh_cor
 
-subroutine nonh_explicit(s,par)
+subroutine nonh_explicit(s,par,nuh)
 !==============================================================================
 !
 
@@ -498,7 +564,7 @@ subroutine nonh_explicit(s,par)
 
 !--------------------------        PURPOSE         ----------------------------
 !
-!
+! Include the pressure explicitly in the predictor step
 !
 !--------------------------     DEPENDENCIES       ----------------------------  
     use spaceparams
@@ -508,6 +574,8 @@ subroutine nonh_explicit(s,par)
 
     type(spacepars) ,intent(inout)                       :: s
     type(parameters),intent(in)                          :: par 
+    
+    real(kind=rKind),dimension(s%nx+1,s%ny+1)            :: nuh
 
 !--------------------------     LOCAL VARIABLES    ----------------------------
  
@@ -522,7 +590,7 @@ subroutine nonh_explicit(s,par)
     real(kind=rKind)                        :: Vol    
 
   if (.not. initialized) then
-    call nonh_init(s)
+    call nonh_init(s,par)
   endif      
    
 !
@@ -548,19 +616,23 @@ subroutine nonh_explicit(s,par)
       endif
     enddo
   enddo
-
-  do j=1,s%ny+1
-    js = min(s%ny,j+1)
-    do i=1,s%nx+1
-      if (  (s%wetV(i,j)==1                                      )  &
-      .and. (0.5_rKind*(s%zs(i,j) + s%zs(i,js))    > zbv(i,j)    )  & 
-      .and. ( (s%yz(js)-s%yz(j))*par%kdmin/par%px  < s%hvm(i,j)  )  ) then
-        nonhV(i,j) = 1
-      else
-        nonhV(i,j) = 0
-      endif
+  
+  if (s%ny>2) then
+    do j=1,s%ny+1
+      js = min(s%ny,j+1)
+      do i=1,s%nx+1
+        if (  (s%wetV(i,j)==1                                      )  &
+        .and. (0.5_rKind*(s%zs(i,j) + s%zs(i,js))    > zbv(i,j)    )  & 
+        .and. ( (s%yz(js)-s%yz(j))*par%kdmin/par%px  < s%hvm(i,j)  )  ) then
+          nonhV(i,j) = 1
+        else
+          nonhV(i,j) = 0
+        endif
+      enddo
     enddo
-  enddo
+  else
+    nonhV = 0  
+  endif
 !
 ! Determine if a velocity point will be included in the nonh pressure matrix, include if
 ! any of the surrounding velocity points is included.
@@ -574,6 +646,8 @@ subroutine nonh_explicit(s,par)
       endif
     enddo
   enddo
+
+
  
  !Calculate explicit part average vertical momentum (advection)
   do j=2,s%ny
@@ -596,12 +670,12 @@ subroutine nonh_explicit(s,par)
   !Calculate explicit part vertical viscocity
   do j=2,s%ny
     do i=2,s%nx
-      dwdx1 = s%hu(i-1,j  )*(Wm_old(i  ,j  )-Wm_old(i-1,j  ))*ddxu(i-1)
-      dwdx2 = s%hu(i  ,j  )*(Wm_old(i+1,j  )-Wm_old(i  ,j  ))*ddxu(i)
-      dwdy1 = s%hu(i  ,j-1)*(Wm_old(i  ,j  )-Wm_old(i  ,j-1))*ddyv(j-1)
-      dwdy2 = s%hu(i  ,j  )*(Wm_old(i  ,j+1)-Wm_old(i  ,j  ))*ddyv(j)
-      Wm(i,j) = Wm(i,j)   + (1.0_rKind/s%hh(i,j))*par%dt*par%nuh*(dwdx2-dwdx1)*ddxz(i)*real(s%wetu(i,j)*s%wetu(i-1,j),rKind) &
-                          + (1.0_rKind/s%hh(i,j))*par%dt*par%nuh*(dwdy2-dwdy1)*ddyz(j)*real(s%wetv(i,j)*s%wetv(i,j-1),rKind)
+      dwdx1 = .5d0*(nuh(i-1,j  )+nuh(i,j  ))*s%hu(i-1,j  )*(Wm_old(i  ,j  )-Wm_old(i-1,j  ))*ddxu(i-1)
+      dwdx2 = .5d0*(nuh(i+1,j  )+nuh(i,j  ))*s%hu(i  ,j  )*(Wm_old(i+1,j  )-Wm_old(i  ,j  ))*ddxu(i)
+      dwdy1 = nuh(i  ,j-1)*s%hu(i  ,j-1)*(Wm_old(i  ,j  )-Wm_old(i  ,j-1))*ddyv(j-1)
+      dwdy2 = nuh(i  ,j  )*s%hu(i  ,j  )*(Wm_old(i  ,j+1)-Wm_old(i  ,j  ))*ddyv(j)
+      Wm(i,j) = Wm(i,j)   + (1.0_rKind/s%hh(i,j))*par%dt*(dwdx2-dwdx1)*ddxz(i)*real(s%wetu(i,j)*s%wetu(i-1,j),rKind) &
+                          + (1.0_rKind/s%hh(i,j))*par%dt*(dwdy2-dwdy1)*ddyz(j)*real(s%wetv(i,j)*s%wetv(i,j-1),rKind)
     enddo
   enddo 
 
@@ -621,22 +695,24 @@ subroutine nonh_explicit(s,par)
   au(:,s%nx,:)   = 0.0_rKind
 
   !Built pressure coefficients V
-  !call timer_start(timer_flow_nonh_av)    
-  do j=2,s%ny
-    do i=2,s%nx
-      if (nonhV(i,j)==1)then
-        vol       = 0.5_rKind*par%dt/(s%hvm(i,j)*dyv(j))      
-        av(1,i,j)  = -(s%zs(i  ,j+1) - s%zb(i  ,j  ))*vol
-        av(0,i,j)  = +(s%zs(i  ,j  ) - s%zb(i  ,j+1))*vol
-        avr(i,j)   = s%vv(i,j)
-      else
-        av(1,i,j) =  0.0_rKind
-        av(0,i,j) =  0.0_rKind
-      endif  
-    enddo    
-  enddo
-  av(:,:,1)     = 0.0_rKind
-  av(:,:,s%ny)  = 0.0_rKind
+  !call timer_start(timer_flow_nonh_av)
+  if (s%ny>2) then    
+    do j=2,s%ny
+      do i=2,s%nx
+        if (nonhV(i,j)==1)then
+          vol       = 0.5_rKind*par%dt/(s%hvm(i,j)*dyv(j))      
+          av(1,i,j)  = -(s%zs(i  ,j+1) - s%zb(i  ,j  ))*vol
+          av(0,i,j)  = +(s%zs(i  ,j  ) - s%zb(i  ,j+1))*vol
+          avr(i,j)   = s%vv(i,j)
+        else
+          av(1,i,j) =  0.0_rKind
+          av(0,i,j) =  0.0_rKind
+        endif  
+      enddo    
+    enddo
+    av(:,:,1)     = 0.0_rKind
+    av(:,:,s%ny)  = 0.0_rKind
+  endif  
        
  !Include explicit approximation for pressure in s%uu and s%vv   and Wm
   if (par%secorder == 1) then 
@@ -655,7 +731,7 @@ subroutine nonh_explicit(s,par)
     do j=2,s%ny
       do i=2,s%nx
         if (nonhZ(i,j) == 1) then
-          Wm(i,j) = Wm(i,j)   + par%dt * s%pres(i,j)/s%hh(i,j)
+          Wm(i,j) = Wm(i,j)   + Wcoef(i,j)*par%dt * s%pres(i,j)/s%hh(i,j)
         endif  
       enddo
     enddo
@@ -663,6 +739,138 @@ subroutine nonh_explicit(s,par)
   endif
 
 end subroutine nonh_explicit
+
+subroutine zuzv(s)
+!==============================================================================
+!
+
+!------------------------------------------------------------------------------
+!                             DECLARATIONS
+!------------------------------------------------------------------------------
+
+!--------------------------        PURPOSE         ----------------------------
+! 
+!   Interpolate bottom and free surface location to u/v points
+!
+!--------------------------     DEPENDENCIES       ----------------------------  
+    use spaceparams
+!--------------------------     ARGUMENTS          ----------------------------
+
+    type(spacepars) ,intent(inout)                       :: s
+!--------------------------     LOCAL VARIABLES    ----------------------------
+ 
+    integer(kind=iKind)                                  :: i
+    integer(kind=iKind)                                  :: j    
+
+!-------------------------------------------------------------------------------
+!                             IMPLEMENTATION
+!-------------------------------------------------------------------------------      
+    !Free surface location in u-point
+    do j=1,s%ny+1
+      do i=1,s%nx
+        if     (s%uu(i,j) > 0.0_rKind) then
+          zsu(i,j) = s%zs(i  ,j)      
+        elseif (s%uu(i,j) < 0.0_rKind) then
+          zsu(i,j) = s%zs(i+1,j)
+        else
+          zsu(i,j) = max(s%zs(i  ,j),s%zs(i+1,j))
+        endif
+      enddo
+    enddo  
+
+    !Free surface location in v-point
+    if (s%ny>2) then
+      do j=1,s%ny
+        do i=1,s%nx+1
+          if     (s%vv(i,j) > 0.0_rKind) then
+            zsv(i,j) = s%zs(i  ,j)      
+          elseif (s%vv(i,j) < 0.0_rKind) then
+            zsv(i,j) = s%zs(i,j+1)
+          else
+            zsv(i,j) = max(s%zs(i  ,j),s%zs(i,j+1))
+          endif
+        enddo
+      enddo
+    else
+      zsv(:,1) = s%zs(:,2)
+      zsv(:,2) = s%zs(:,2)
+      zsv(:,3) = s%zs(:,2)
+    endif
+
+    !Bottom location in U point
+    do j=1,s%ny+1
+      do i=1,s%nx
+        zbu(i,j) = zsu(i,j)-s%hu(i,j)
+      enddo
+    enddo
+    zbu(s%nx+1,:) = s%zb(s%nx+1,:)
+
+    !Bottom location in V point  
+    if (s%ny>2) then
+      do j=1,s%ny
+        do i=1,s%nx+1
+          zbv(i,j) = zsv(i,j)-s%hv(i,j)
+        enddo
+      enddo  
+      zbv(:,s%ny+1) = s%zb(:,s%ny+1)    
+    else
+      zbv = s%zb
+    endif  
+  end subroutine zuzv
+
+!
+!==============================================================================
+  real(kind=rKind) function disper(w,d,g,pi2,accuracy)
+!==============================================================================    
+!
+  
+  
+!-------------------------------------------------------------------------------
+!                             DECLARATIONS
+!-------------------------------------------------------------------------------
+
+!--------------------------        PURPOSE         ----------------------------
+
+!  Calculate k for a given intrinsic frequency w and depth d. First use the fenton
+!  approximation and then iterate for better accuracy (when necessary)
+
+
+!--------------------------     ARGUMENTS          ----------------------------
+
+    real(kind=rKind),intent(in) :: w
+    real(kind=rKind),intent(in) :: d
+    real(kind=rKind),intent(in) :: g
+    real(kind=rKind),intent(in) :: pi2    
+    real(kind=rKind),intent(in) :: accuracy    
+
+!--------------------------     LOCAL VARIABLES    ----------------------------
+ 
+    real(kind=rKind) :: k
+    real(kind=rKind) :: alpha
+    real(kind=rKind) :: k0,k1,L,Ldeep,pi2d,w2
+    real(kind=rKind) :: error
+
+!-------------------------------------------------------------------------------
+!                             IMPLEMENTATION
+!-------------------------------------------------------------------------------     
+    w2    = w**2
+    alpha = d*w2/g
+    k     = alpha*(1.0_rKind/sqrt(tanh(alpha)))/d   
+    L    = pi2/k
+    Ldeep = g*pi2/(w2)
+    pi2d     = pi2*d
+
+    error = abs(g*k*tanh(k*d)-w2)/w2
+    do while (error > accuracy)       
+      L    = Ldeep*tanh(pi2d/L)
+      k     = pi2/L
+      error = abs(g*k*tanh(k*d)-w2)/w2
+    enddo
+
+    disper = k
+  end function disper
+
+
 
 
 
