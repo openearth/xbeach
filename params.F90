@@ -152,6 +152,7 @@ type parameters
    real*8        :: nuh                        = -123    !  [m^2s^-1] Horizontal background viscosity 
    real*8        :: nuhfac                     = -123    !  [-] Viscosity switch for roller induced turbulent horizontal viscosity
    real*8        :: nuhv                       = -123    !  [-] Longshore viscosity enhancement factor, following Svendsen (?)
+   integer*4     :: smag                       = -123    !  [-] (=1) Use smagorinsky subgrid model for viscocity
    
    ! Coriolis force parameters
    real*8        :: wearth                     = -123    !  [hour^-1] Angular velocity of earth calculated as: 1/rotation_time (in hours), later changed in calculation code to rad/s
@@ -190,6 +191,8 @@ type parameters
    real*8        :: solver_alpha               = -123    ! [?] Underrelaxation parameter 
    integer*4     :: solver                     = -123    ! [-] Solver used to solve the linear system, 1=SIP, 2=TRIDIAG (only for 1d)
    real*8        :: kdmin                      = -123    ! Minimum value of kd ( pi/dx > minkd )
+   real*8        :: dispc                      = -123    ! Coefficient in front of the vertical pressure gradient, Default = 1.
+   real*8        :: Topt                       = -123    ! Absolute period to optimize coefficient
    
    ! Bed composition parameters
    real*8        :: rhos                       = -123    !  [kgm^-3] Solid sediment density (no pores)
@@ -411,6 +414,9 @@ elseif (par%instat==4 .or. par%instat==41 .or. par%instat==5 .or. par%instat==6)
           call readkey('params.txt','dtbc',dummystring)
           call readkey('params.txt','dthetaS_XB',dummystring)
         endif
+elseif (par%instat == 8) then        
+    par%Topt  = readkey_dbl    ('params.txt','Topt',     10.d0,      1.d0,    20.d0)
+    par%zs0   = readkey_dbl    ('params.txt','zs0',     0.0d0,      -100.0d0,    100.0d0)             		
 elseif (par%instat > 8.and. (par%instat>41.or.par%instat<40)) then
     if(xmaster) then
       write(*,*)'Instat invalid option'
@@ -528,6 +534,7 @@ par%nuh     = readkey_dbl ('params.txt','nuh',     0.5d0,     0.0d0,      1.0d0)
 par%nuhfac  = readkey_dbl ('params.txt','nuhfac',      0.0d0,     0.0d0,  1.0d0)
 
 par%nonh    = readkey_int ('params.txt','nonh',        0,         0,      1)
+par%smag    = readkey_int ('params.txt','smag',        0,         0,      1)
 par%nuhv    = readkey_dbl ('params.txt','nuhv',     1.d0,      1.d0,    20.d0)
 par%lat     = readkey_dbl ('params.txt','lat',     0.d0,      0.d0,   90.d0)
 par%wearth  = readkey_dbl ('params.txt','omega',   1.d0/24.d0, 0.d0,    1.d0)
@@ -555,8 +562,9 @@ endif
 par%secorder     = readkey_int('params.txt','secorder' ,0,0,1)
 par%solver_maxit = readkey_int('params.txt','solver_maxit' ,30,1,1000)
 par%kdmin        = readkey_dbl('params.txt','kdmin' ,0.0d0,0.0d0,0.05d0)  
+par%dispc        = readkey_dbl('params.txt','dispc' ,1.0d0,0.1d0,2.0d0)  
 par%solver_acc   = readkey_dbl('params.txt','solver_acc' ,0.005d0,0.00001d0,0.1d0)  
-par%solver_alpha = readkey_dbl('params.txt','solver_urelax' ,0.94d0,0.5d0,0.99d0)
+par%solver_alpha = readkey_dbl('params.txt','solver_urelax' ,0.92d0,0.5d0,0.99d0)
 par%solver       = readkey_int('params.txt','solver' ,1,0,2)
 
 
