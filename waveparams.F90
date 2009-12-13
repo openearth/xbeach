@@ -891,7 +891,7 @@ do i=1,size(wp%theta)
     P(i)=sum(Dmean(1:i))*wp%dang*pp     ! Cummulative normalized wave variance in directional space used as probability density function
 end do  
 
-if (par%random==1) CALL RANDOM_SEED                        ! Call random seed
+if (par%random==1) CALL init_seed ! Call random seed
 !call random_number(P0)
 call random_number(randummy)
 
@@ -1680,4 +1680,25 @@ endif
 
 end subroutine checkbcfilelength
 
+subroutine init_seed
+  INTEGER :: i, n, clock
+  INTEGER, DIMENSION(:), ALLOCATABLE :: seed
+  ! RANDOM_SEED does not result in a random seed for each compiler, so we better make sure that we have a pseudo random seed.
+  ! I am not sure what is a good n
+  n = 40
+  ! not sure what size means here
+  ! first call with size
+  CALL RANDOM_SEED(size = n)
+  ! define a seed array of size n
+  ALLOCATE(seed(n))
+  ! what time is it
+  CALL SYSTEM_CLOCK(COUNT=clock)
+  ! define the seed vector based on a prime, the clock and the set of integers
+  seed = clock + 37 * (/ (i - 1, i = 1, n) /) 
+  ! if mpi do we need a different seed on each node or the same???
+  ! if we do need different seeds on each node
+  ! seed *= some big prime * rank ?
+  ! now use the seed
+  CALL RANDOM_SEED(PUT = seed)
+end subroutine init_seed
 end module waveparams
