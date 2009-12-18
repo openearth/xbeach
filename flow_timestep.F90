@@ -225,7 +225,7 @@ endif
     !
     
 #ifndef USEMPI    
-    if (par%smag == 1) then
+    if (par%smag == 1) then ! Jaap: do we need another keyword for this option or can we simply use par%nonh --> smag=1 is only interesting when nonh=1?
       !Use smagorinsky subgrid model
       call visc_smagorinsky(s,par)    
     else
