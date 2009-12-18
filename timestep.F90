@@ -10,17 +10,19 @@ IMPLICIT NONE
 type(spacepars)                     :: s
 type(parameters)                    :: par
 
-integer                     :: it
-integer                     :: i
-integer                     :: j
-integer                     :: n
-real*8                                          :: mdx,mdy
+integer                             :: it
+integer                             :: i
+integer                             :: j
+integer                             :: n
+real*8                              :: mdx,mdy
+real*8,save                         :: dtref
 
 ! Robert new time step criterion
 if (par%t==0.0d0) then          ! conservative estimate
   par%dt    = par%CFL*min(minval(s%xz(2:s%nx+1)-s%xz(1:s%nx)),   &
                           minval(s%yz(2:s%ny+1)-s%yz(1:s%ny)))   &
                           /(maxval(s%hh)*par%g)
+  dtref = 0.d0
 else
   par%dt=huge(0.0d0)      ! Seed dt
   do j=2,s%ny
@@ -43,7 +45,8 @@ else
       
       mdx = min(s%xz(i+1)-s%xz(i),s%xu(i)-s%xu(i-1))**2
       mdy = min(s%yz(j+1)-s%yz(j),s%yv(j)-s%yv(j-1))**2
-      par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
+
+	  par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
     enddo
   enddo
   par%dt=par%dt*par%CFL*0.5d0
@@ -60,6 +63,15 @@ else
   end if
 end if
 
+if (par%t==par%dt) then
+   dtref = par%dt
+endif 
+
+if (dtref/par%dt>50.d0) then
+   write(*,*)'Quit XBeach since computational time explodes'
+   call halt_program
+endif
+
 !To avoid large timestep differences due to output, which can cause instabities
 !in the hanssen (leapfrog) scheme, we smooth the timestep.
 !
@@ -71,8 +83,6 @@ par%dt = (par%tnext-par%t)/n
 #ifdef USEMPI
     call xmpi_allreduce(par%dt,MPI_MIN)
 #endif
-
-
 
 par%t=par%t+par%dt
 

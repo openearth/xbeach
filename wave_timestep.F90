@@ -1057,7 +1057,7 @@ real*8                              :: err,L2
 ! wwvv moved L1 to spaceparams, in the parallel version
 ! of the program L1 will be resized and distributed
 !
-integer                             :: i,j
+integer                             :: i,j,it
 real*8                              :: phi
 real*8                              :: aphi
 real*8                              :: bphi
@@ -1091,11 +1091,16 @@ endif
 do j = 1,s%ny+1
   do i = 1,s%nx+1
     err = huge(0.0d0)
-    do while (err > 0.00001d0)
+	it = 0
+    do while (err > 0.00001d0 .and. it<100)
+	  it        = it+1
       L2        = L0(i,j)*tanh(2*par%px*h(i,j)/s%L1(i,j))
       err       = abs(L2 - s%L1(i,j))
       s%L1(i,j) = (s%L1(i,j)*aphi + L2*bphi)          ! Golden ratio
     end do
+	if (it==100) then
+      write(*,*)'no convergence in dispersion relation itteration'
+	endif
   end do
 end do
 
