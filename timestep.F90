@@ -18,7 +18,7 @@ real*8                              :: mdx,mdy
 real*8,save                         :: dtref
 
 ! Robert new time step criterion
-if (par%t==0.0d0) then          ! conservative estimate
+if (par%t<=0.0d0) then          ! conservative estimate
   par%dt    = par%CFL*min(minval(s%xz(2:s%nx+1)-s%xz(1:s%nx)),   &
                           minval(s%yz(2:s%ny+1)-s%yz(1:s%ny)))   &
                           /(maxval(s%hh)*par%g)
@@ -61,6 +61,8 @@ else
 !    !  end do
 !    !end do
   end if
+  n = ceiling((par%tnext-par%t)/par%dt)
+  par%dt = (par%tnext-par%t)/n
 end if
 
 if (par%t==par%dt) then
@@ -75,8 +77,7 @@ endif
 !To avoid large timestep differences due to output, which can cause instabities
 !in the hanssen (leapfrog) scheme, we smooth the timestep.
 !
-n = ceiling((par%tnext-par%t)/par%dt)
-par%dt = (par%tnext-par%t)/n
+
 
 ! wwvv: In the mpi version par%dt will be calculated different
 ! on different processes. So, we take the minimum of all dt's

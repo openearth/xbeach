@@ -93,13 +93,13 @@ endif
 ! are MPI-aware, no need to do something special here
 !
 
-par%t=0.d0
-it=0
-newstatbc=.true.
-
 call wave_input(par)
 call flow_input(par)
 call sed_input(par)
+
+par%t=0.d0
+it=0
+newstatbc=.true.
 
 #ifdef USEMPI
 call distribute_par(par)

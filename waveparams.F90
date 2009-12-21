@@ -255,7 +255,18 @@ do while (wp%mainang>2*par%px .or. wp%mainang<0.d0)
       wp%mainang=wp%mainang+2*par%px
    endif
 enddo
-wp%Dd = cos((wp%theta-wp%mainang)/2.d0)**(2*scoeff)
+allocate(temp(size(wp%theta)))
+temp = (wp%theta-wp%mainang)/2.d0
+do while (any(temp>2*par%px) .or. any(temp<0.d0))
+   where (temp>2*par%px)
+      temp=temp-2*par%px
+   elsewhere (temp<0.d0*par%px)
+      temp=temp+2*par%px
+   endwhere
+enddo
+wp%Dd = cos(temp)**(2*nint(scoeff))         ! Robert: strange, but apparantly nint is needed here, else MATH domain error
+deallocate(temp)
+!wp%Dd = cos((wp%theta-wp%mainang)/2.d0)**(2*nint(scoeff))
 wp%Dd = wp%Dd / (sum(wp%Dd)*wp%dang)
 
 

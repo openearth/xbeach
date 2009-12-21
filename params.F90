@@ -516,6 +516,10 @@ if (par%morfacopt==1) then
    par%wavint  = par%wavint / max(par%morfac,1.d0)
    par%tstop   = par%tstop  / max(par%morfac,1.d0)
 endif
+if (min(par%tintg,par%tintm,par%tintp,par%tintc)<=0.d0) then
+   write(*,*)'Error: Output time steps of 0 or less are not allowed.'
+   call halt_program
+endif
 par%fcutoff  = readkey_dbl ('params.txt','fcutoff', 0.d0,      0.d0,  40.d0)
 par%sprdthr = readkey_dbl ('params.txt','sprdthr', 0.08d0,      0.d0,  1.d0)
 par%carspan = readkey_int    ('params.txt','carspan',0,         0,      1)
