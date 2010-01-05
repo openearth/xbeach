@@ -31,6 +31,7 @@ use params
 use spaceparams
 use xmpi_module
 use interp
+use timestep_module
 ! use vsmumod
 
 IMPLICIT NONE
@@ -39,7 +40,7 @@ type(spacepars),target                   :: s
 type(parameters)                         :: par
 
 integer                                  :: i,isig
-integer                                  :: j,jg
+integer                                  :: j,jg,rgd
 
 real*8,dimension(:),allocatable,save     :: chain,cumchain
 real*8,dimension(:,:),allocatable,save   :: vmag2,uau,uav,um,vm
@@ -120,11 +121,13 @@ if (par%lwt==1) then
 endif
 
 ! calculate equilibrium concentration
+call reg_time('start',times(12,:))
 if (par%form==1) then           ! Soulsby van Rijn
    call sb_vr(s,par)
 elseif (par%form==2) then       ! Van Thiel de Vries & Reniers 2008
    call sednew(s,par)
 end if
+call reg_time('stop',times(12,:))
 
 ! compute long wave turbulence due to breaking
 if (par%lwt==1) then
@@ -139,7 +142,13 @@ endif
 
 dzbdt=0.0d0
 
-do jg = 1,par%ngd
+if (par%struct==1) then
+   rgd=par%ngd-1
+else
+   rgd=par%ngd
+endif
+
+do jg = 1,rgd
    cc = ccg(:,:,jg)
    if (D50(jg)>0.002d0) then
       ! RJ: set ceqsg to zero for gravel.
@@ -709,6 +718,7 @@ subroutine sb_vr(s,par)
 use params
 use spaceparams
 use xmpi_module
+use timestep_module
 
 IMPLICIT NONE
 
@@ -718,14 +728,16 @@ type(parameters)                    :: par
 integer                             :: i
 integer                             :: j,jg
 real*8                              :: dster,twothird
-real*8                              :: m1,m2,m3,m4,m5,m6
 real*8                              :: z0,Ass,delta
 real*8                              :: Te,kvis,Sster,c1,c2,wster
+real*8,save                         :: m1,m2,m3,m4,m5,m6
+real*8,save                         :: alpha,beta
 
 
 real*8 , dimension(:,:),allocatable,save   :: vmag2,Cd,Asb,dhdx,dhdy,Ts,Ur,Bm,B1
 real*8 , dimension(:,:),allocatable,save   :: urms2,Ucr,term1,term2
-real*8 , dimension(:,:),allocatable,save   :: uandv,b,fslope,hloc,ceqs,ceqb
+real*8 , dimension(:,:),allocatable,save   :: uandv,b,fslope,ceqs,ceqb   ! ,hloc
+real*8 , dimension(:,:),pointer            :: hloc
 
 include 's.ind'
 include 's.inp'
@@ -751,6 +763,25 @@ if (.not. allocated(vmag2)) then
    allocate (Ur    (nx+1,ny+1))
    allocate (Bm    (nx+1,ny+1))
    allocate (B1    (nx+1,ny+1))
+   m1 = 0;       ! a = 0
+   m2 = 0.7939;  ! b = 0.79 +/- 0.023
+   m3 = -0.6065; ! c = -0.61 +/- 0.041
+   m4 = 0.3539;  ! d = -0.35 +/- 0.032 
+   m5 = 0.6373;  ! e = 0.64 +/- 0.025
+   m6 = 0.5995;  ! f = 0.60 +/- 0.043
+   alpha = -log10(exp(1.d0))/m4
+   beta  = exp(m3/m4)
+   ! Robert: do only once, not necessary every time step
+   do jg=1,par%ngd
+      ! cjaap: compute fall velocity with simple expression from Ahrens (2000)
+      Te    = 20.d0
+      kvis  = 4.d0/(20.d0+Te)*1d-5 ! Van rijn, 1993 
+      Sster = D50(jg)/(4*kvis)*sqrt((par%rhos/par%rho-1)*par%g*D50(jg))
+      c1    = 1.06d0*tanh(0.064d0*Sster*exp(-7.5d0/Sster**2))
+      c2    = 0.22d0*tanh(2.34d0*Sster**(-1.18d0)*exp(-0.0064d0*Sster**2))
+      wster = c1+c2*Sster
+      par%w = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*D50(jg))
+   enddo
 endif
 ! Soulsby van Rijn sediment transport formula
 ! Ad Reniers april 2006
@@ -765,7 +796,7 @@ endif
 !
 
 ! hloc   = max(hh,0.01d0) !Jaap par%hmin instead of par%eps
-hloc = hh
+hloc => hh
 twothird=2.d0/3.d0
 delta = (par%rhos-par%rho)/par%rho
 ! use eulerian velocities
@@ -782,15 +813,6 @@ vmag2  = ue**2+ve**2  ! wwvv todo just to be sure ?
 urms2  = urms**2+0.50d0*(kb+kturb)
 
 do jg = 1,par%ngd
-
-   ! cjaap: compute fall velocity with simple expression from Ahrens (2000)
-   Te    = 20.d0
-   kvis  = 4.d0/(20.d0+Te)*1d-5 ! Van rijn, 1993 
-   Sster = D50(jg)/(4*kvis)*sqrt((par%rhos/par%rho-1)*par%g*D50(jg))
-   c1    = 1.06d0*tanh(0.064d0*Sster*exp(-7.5d0/Sster**2))
-   c2    = 0.22d0*tanh(2.34d0*Sster**(-1.18d0)*exp(-0.0064d0*Sster**2))
-   wster = c1+c2*Sster
-   par%w = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*D50(jg))
 
    Ts       = par%tsfac*hloc/par%w
    !Ts       = max(Ts,0.2d0)
@@ -826,17 +848,19 @@ do jg = 1,par%ngd
   ! the two above lines are comment out and replaced by a limit on total velocity u2+urms2, robert 1/9 and ap 28/11
    term1=(vmag2+0.018/Cd*urms2)
    term1=min(term1,par%smax*par%g/par%cf*s%D50(jg)*delta)
-   term1=term1**0.5      
-
+   term1=sqrt(term1)      
+   
+   call reg_time('start',times(15,:))
    term2 = 0.d0
    do j=1,ny+1
       do i=1,nx
-         if(term1(i,j)>Ucr(i,j) .and. hh(i,j)>par%eps) then
-           term2(i,j)=(term1(i,j)-Ucr(i,j))**2.4d0
+	     if(term1(i,j)>Ucr(i,j) .and. hh(i,j)>par%eps) then
+		   term2(i,j)=(term1(i,j)-Ucr(i,j))**2.4d0
            ! term2(i,j)=(term1(i,j)-Ucr(i,j))**(1.7-0.7*tanh((ue(i,j)/sqrt(par%g*hh(i,j))-0.5)*10))
          end if
       end do
    end do
+   call reg_time('stop',times(15,:))
    ! wwvv in parallel version, there will be a discrepancy between the values
    ! of term2. term2(nx+1,:) is zero, while the corresponding row in the process
    ! below term2(2,:) has some value, different from zero.
@@ -855,26 +879,17 @@ do jg = 1,par%ngd
 
 enddo  ! end og grain size classes
 
-m1 = 0;       ! a = 0
-m2 = 0.7939;  ! b = 0.79 +/- 0.023
-m3 = -0.6065; ! c = -0.61 +/- 0.041
-m4 = 0.3539;  ! d = -0.35 +/- 0.032 
-m5 = 0.6373;  ! e = 0.64 +/- 0.025
-m6 = 0.5995;  ! f = 0.60 +/- 0.043
-
-do j=1,ny+1     
-   do i=1,nx+1
-      if (k(i,j)*h(i,j)<par%px/2.d0 .and. H(i,j)>0.01d0) then
-         Ur(i,j) = 3.d0/8.d0*sqrt(2.d0)*H(i,j)*k(i,j)/(k(i,j)*hloc(i,j))**3.d0                       !Ursell number
-         Bm(i,j) = m1+(m2-m1)/(1.d0+exp((m3-log10(Ur(i,j)))/m4))                                     !Boltzmann sigmoid (eq 6) 
-         B1(i,j) = -90.d0+90.d0*tanh(m5/Ur(i,j)**m6)    
-         B1(i,j) = B1(i,j)*par%px/180.d0
-         Sk(i,j) = Bm(i,j)*cos(B1(i,j))                                                              !Skewness (eq 8)
-         As(i,j) = Bm(i,j)*sin(B1(i,j))                                                              !Skewness (eq 9)
-         ua(i,j) = par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
-	  endif
-   enddo
-enddo
+call reg_time('start',times(13,:))
+if (abs(par%facua)>tiny(0.d0)) then     ! Robert: Very slow loop, so only do if necessary 
+   Ur = 3.d0/8.d0*sqrt(2.d0)*H*k/(k*hloc)**3 
+   Ur = max(Ur,0.000000000001d0)
+   Bm = m1 + (m2-m1)/(1.d0+beta*Ur**alpha)
+   B1 = (-90.d0+90.d0*tanh(m5/Ur**m6))*par%px/180.d0
+   Sk = Bm*cos(B1)
+   As = Bm*sin(B1)
+   ui = par%facua*(Sk-As)*urms
+endif
+call reg_time('stop',times(13,:))
 
 end subroutine sb_vr
 
@@ -929,6 +944,17 @@ if (.not. allocated(vmg)) then
    allocate (ceqs  (nx+1,ny+1))
    allocate (ceqb  (nx+1,ny+1))
    allocate (RF    (18,33,40))
+   ! Robert: do only once, not necessary every time step
+   do jg=1,par%ngd
+      ! cjaap: compute fall velocity with simple expression from Ahrens (2000)
+     Te    = 20.d0
+   kvis  = 4.d0/(20.d0+Te)*1d-5	! Van rijn, 1993 
+   Sster = s%D50(jg)/(4*kvis)*sqrt((par%rhos/par%rho-1)*par%g*s%D50(jg))
+   cc1   = 1.06d0*tanh(0.064d0*Sster*exp(-7.5d0/Sster**2))
+   cc2   = 0.22d0*tanh(2.34d0*Sster**(-1.18d0*exp(-0.0064d0*Sster**2)))
+   wster = cc1+cc2*Sster
+   par%w = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*s%D50(jg))
+   enddo
 endif
 
 delta = (par%rhos-par%rho)/par%rho
@@ -1051,15 +1077,6 @@ endif
 urmsturb = dsqrt(urms**2.d0+1.45d0*(kb+kturb))
 
 do jg = 1,par%ngd
-
-   ! Jaap: compute fall velocity with simple expression from Ahrens (2000)
-   Te    = 20.d0
-   kvis  = 4.d0/(20.d0+Te)*1d-5	! Van rijn, 1993 
-   Sster = s%D50(jg)/(4*kvis)*sqrt((par%rhos/par%rho-1)*par%g*s%D50(jg))
-   cc1   = 1.06d0*tanh(0.064d0*Sster*exp(-7.5d0/Sster**2))
-   cc2   = 0.22d0*tanh(2.34d0*Sster**(-1.18d0*exp(-0.0064d0*Sster**2)))
-   wster = cc1+cc2*Sster
-   par%w = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*s%D50(jg))
    
    Ts       = par%tsfac*hloc/par%w
    Tsg(:,:,jg) = max(Ts,par%Tsmin) 
