@@ -123,4 +123,159 @@ use xmpi_module
    create_new_fid = tryunit   
 end function create_new_fid
 
+function s_eqi ( s1, s2 )
+!
+!*******************************************************************************
+!
+!! S_EQI is a case insensitive comparison of two strings for equality.
+!
+!
+!  Examples:
+!
+!    S_EQI ( 'Anjana', 'ANJANA' ) is .TRUE.
+!
+!  Modified:
+!
+!    14 April 1999
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, character ( len = * ) S1, S2, the strings to compare.
+!
+!    Output, logical S_EQI, the result of the comparison.
+!
+  implicit none
+!
+  character c1
+  character c2
+  integer i
+  integer len1
+  integer len2
+  integer lenc
+  logical s_eqi
+  character ( len = * ) s1
+  character ( len = * ) s2
+!
+  len1 = len ( s1 )
+  len2 = len ( s2 )
+  lenc = min ( len1, len2 )
+
+  s_eqi = .false.
+
+  do i = 1, lenc
+
+    c1 = s1(i:i)
+    c2 = s2(i:i)
+    call ch_cap ( c1 )
+    call ch_cap ( c2 )
+
+    if ( c1 /= c2 ) then
+      return
+    end if
+
+  end do
+
+  do i = lenc + 1, len1
+    if ( s1(i:i) /= ' ' ) then
+      return
+    end if
+  end do
+
+  do i = lenc + 1, len2
+    if ( s2(i:i) /= ' ' ) then
+      return
+    end if
+  end do
+
+  s_eqi = .true.
+
+  return
+end function s_eqi
+
+function ch_eqi ( c1, c2 )
+!
+!*******************************************************************************
+!
+!! CH_EQI is a case insensitive comparison of two characters for equality.
+!
+!
+!  Examples:
+!
+!    CH_EQI ( 'A', 'a' ) is .TRUE.
+!
+!  Modified:
+!
+!    28 July 2000
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, character C1, C2, the characters to compare.
+!
+!    Output, logical CH_EQI, the result of the comparison.
+!
+  implicit none
+!
+  logical ch_eqi
+  character c1
+  character c1_cap
+  character c2
+  character c2_cap
+!
+  c1_cap = c1
+  c2_cap = c2
+
+  call ch_cap ( c1_cap )
+  call ch_cap ( c2_cap )
+
+  if ( c1_cap == c2_cap ) then
+    ch_eqi = .true.
+  else
+    ch_eqi = .false.
+  end if
+
+  return
+end function ch_eqi
+
+
+subroutine ch_cap ( c )
+!
+!*******************************************************************************
+!
+!! CH_CAP capitalizes a single character.
+!
+!
+!  Modified:
+!
+!    30 November 1998
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input/output, character C, the character to capitalize.
+!
+  implicit none
+!
+  character c
+  integer itemp
+!
+  itemp = ichar ( c )
+
+  if ( 97 <= itemp .and. itemp <= 122 ) then
+    c = char ( itemp - 32 )
+  end if
+
+  return
+end subroutine ch_cap
+
 end module general_fileio
