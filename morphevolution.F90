@@ -31,7 +31,6 @@ use params
 use spaceparams
 use xmpi_module
 use interp
-use timestep_module
 ! use vsmumod
 
 IMPLICIT NONE
@@ -40,7 +39,7 @@ type(spacepars),target                   :: s
 type(parameters)                         :: par
 
 integer                                  :: i,isig
-integer                                  :: j,jg,rgd
+integer                                  :: j,jg
 
 real*8,dimension(:),allocatable,save     :: chain,cumchain
 real*8,dimension(:,:),allocatable,save   :: vmag2,uau,uav,um,vm
@@ -121,13 +120,11 @@ if (par%lwt==1) then
 endif
 
 ! calculate equilibrium concentration
-call reg_time('start',times(12,:))
 if (par%form==1) then           ! Soulsby van Rijn
    call sb_vr(s,par)
 elseif (par%form==2) then       ! Van Thiel de Vries & Reniers 2008
    call sednew(s,par)
 end if
-call reg_time('stop',times(12,:))
 
 ! compute long wave turbulence due to breaking
 if (par%lwt==1) then
@@ -142,13 +139,7 @@ endif
 
 dzbdt=0.0d0
 
-if (par%struct==1) then
-   rgd=par%ngd-1
-else
-   rgd=par%ngd
-endif
-
-do jg = 1,rgd
+do jg = 1,par%ngd
    cc = ccg(:,:,jg)
    if (D50(jg)>0.002d0) then
       ! RJ: set ceqsg to zero for gravel.
@@ -718,7 +709,6 @@ subroutine sb_vr(s,par)
 use params
 use spaceparams
 use xmpi_module
-use timestep_module
 
 IMPLICIT NONE
 
@@ -736,8 +726,7 @@ real*8,save                         :: alpha,beta
 
 real*8 , dimension(:,:),allocatable,save   :: vmag2,Cd,Asb,dhdx,dhdy,Ts,Ur,Bm,B1
 real*8 , dimension(:,:),allocatable,save   :: urms2,Ucr,term1,term2
-real*8 , dimension(:,:),allocatable,save   :: uandv,b,fslope,ceqs,ceqb   ! ,hloc
-real*8 , dimension(:,:),pointer            :: hloc
+real*8 , dimension(:,:),allocatable,save   :: uandv,b,fslope,hloc,ceqs,ceqb
 
 include 's.ind'
 include 's.inp'
@@ -796,7 +785,7 @@ endif
 !
 
 ! hloc   = max(hh,0.01d0) !Jaap par%hmin instead of par%eps
-hloc => hh
+hloc = hh
 twothird=2.d0/3.d0
 delta = (par%rhos-par%rho)/par%rho
 ! use eulerian velocities
@@ -850,7 +839,6 @@ do jg = 1,par%ngd
    term1=min(term1,par%smax*par%g/par%cf*s%D50(jg)*delta)
    term1=sqrt(term1)      
    
-   call reg_time('start',times(15,:))
    term2 = 0.d0
    do j=1,ny+1
       do i=1,nx
@@ -860,7 +848,6 @@ do jg = 1,par%ngd
          end if
       end do
    end do
-   call reg_time('stop',times(15,:))
    ! wwvv in parallel version, there will be a discrepancy between the values
    ! of term2. term2(nx+1,:) is zero, while the corresponding row in the process
    ! below term2(2,:) has some value, different from zero.
@@ -879,7 +866,32 @@ do jg = 1,par%ngd
 
 enddo  ! end og grain size classes
 
-call reg_time('start',times(13,:))
+! Robert + Pieter: this is slow calculation
+! m1 = 0;       ! a = 0
+! m2 = 0.7939;  ! b = 0.79 +/- 0.023
+! m3 = -0.6065; ! c = -0.61 +/- 0.041
+! m4 = 0.3539;  ! d = -0.35 +/- 0.032 
+! m5 = 0.6373;  ! e = 0.64 +/- 0.025
+! m6 = 0.5995;  ! f = 0.60 +/- 0.043
+! 
+! do j=1,ny+1     
+!    do i=1,nx+1
+!       if (k(i,j)*h(i,j)<par%px/2.d0 .and. H(i,j)>0.01d0) then
+!          Ur(i,j) = 3.d0/8.d0*sqrt(2.d0)*H(i,j)*k(i,j)/(k(i,j)*hloc(i,j))**3.d0                       !Ursell number
+!          Bm(i,j) = m1+(m2-m1)/(1.d0+exp((m3-log10(Ur(i,j)))/m4))                                     !Boltzmann sigmoid (eq 6) 
+!          B1(i,j) = -90.d0+90.d0*tanh(m5/Ur(i,j)**m6)    
+!          B1(i,j) = B1(i,j)*par%px/180.d0
+!          Sk(i,j) = Bm(i,j)*cos(B1(i,j))                                                              !Skewness (eq 8)
+!          As(i,j) = Bm(i,j)*sin(B1(i,j))                                                              !Skewness (eq 9)
+! 		!Dano ua(i,j) = par%facua*Sk(i,j)*urms(i,j)
+! 		 ! Jaap: try variable facua
+! 		 par%facua = min(1.d0,max(0.d0,(H(i,j)/hh(i,j)-0.5d0*par%gamma)))
+!          ua(i,j) = par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
+! 	  endif
+!    enddo
+! enddo
+
+! Robert + Pieter : should be faster
 if (abs(par%facua)>tiny(0.d0)) then     ! Robert: Very slow loop, so only do if necessary 
    Ur = 3.d0/8.d0*sqrt(2.d0)*H*k/(k*hloc)**3 
    Ur = max(Ur,0.000000000001d0)
@@ -889,7 +901,6 @@ if (abs(par%facua)>tiny(0.d0)) then     ! Robert: Very slow loop, so only do if 
    As = Bm*sin(B1)
    ui = par%facua*(Sk-As)*urms
 endif
-call reg_time('stop',times(13,:))
 
 end subroutine sb_vr
 
