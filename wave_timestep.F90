@@ -1098,7 +1098,7 @@ do j = 1,s%ny+1
       err       = abs(L2 - s%L1(i,j))
       s%L1(i,j) = (s%L1(i,j)*aphi + L2*bphi)          ! Golden ratio
     end do
-	if (it==100) then
+	if (it==100) then !jaap check if there is convergence
       write(*,*)'no convergence in dispersion relation itteration'
 	endif
   end do

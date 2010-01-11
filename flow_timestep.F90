@@ -108,18 +108,22 @@ if (.not. allocated(vsu) ) then
     ue      =0.d0
     ve      =0.d0 
 endif
+    ! update bedfriction coefficient cf
+	if (par%cf < 0.d0) then
+	   s%cf = par%g/(18.d0*log10(4.*s%hh/min(s%hh,s%D90top)))**2 ! cf = g/C^2 where C = 18*log(4*hh/D90) 
+    endif
 
     ! zs=zs*wetz
     ! Water level slopes
     do j=1,ny+1
         do i=2,nx
-                dzsdx(i,j)=(zs(i+1,j)-zs(i,j))/(xz(i+1)-xz(i))  
+           dzsdx(i,j)=(zs(i+1,j)-zs(i,j))/(xz(i+1)-xz(i))  
         end do
     end do
 !    do j=2,ny
     do j=1,ny ! Dano need to get correct slope on boundary y=0
         do i=1,nx+1
-                dzsdy(i,j)=(zs(i,j+1)-zs(i,j))/(yz(j+1)-yz(j))    
+           dzsdy(i,j)=(zs(i,j+1)-zs(i,j))/(yz(j+1)-yz(j))    
         end do
     end do 
 
@@ -223,22 +227,24 @@ endif
     call xmpi_shift(vdudy,':n')
 #endif
     !
-    
+
+! Jaap: Slightly changes approach; 1) background viscosity is user defined or obtained from Smagorinsky, 2) nuh = max(nuh,roller induced viscosity)
 #ifndef USEMPI    
-    if (par%smag == 1) then ! Jaap: do we need another keyword for this option or can we simply use par%nonh --> smag=1 is only interesting when nonh=1?
+    if (par%smag == 1) then 
       !Use smagorinsky subgrid model
       call visc_smagorinsky(s,par)    
     else
 #endif    
-      do j=2,ny
-          do i=2,nx
-              nuh(i,j) = max(par%nuh,par%nuhfac*hh(i,j)*(DR(i,j)/par%rho)**(1.0d0/3.0d0)) ! Ad: change to max
-          end do 
-      end do
+      s%nuh = par%nuh
 #ifndef USEMPI      
     endif  
 #endif
 
+    do j=2,ny
+       do i=2,nx
+          nuh(i,j) = max(s%nuh(i,j),par%nuhfac*hh(i,j)*(DR(i,j)/par%rho)**(1.0d0/3.0d0)) ! Ad: change to max
+       end do 
+    end do
 
     do j=2,ny
         do i=2,nx
@@ -273,7 +279,7 @@ endif
                       ! give the same results. If this modification is not ok, then
                       ! we have a problem
             if(wetu(i,j)==1) then
-                taubx(i,j)=par%cf*par%rho*ueu(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmageu(i,j)**2)
+                taubx(i,j)=s%cf(i,j)*par%rho*ueu(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmageu(i,j)**2)
                 uu(i,j)=uu(i,j)-par%dt*(ududx(i,j)+vdudy(i,j)-viscu(i,j) & !Ap,Robert,Jaap 
                     + par%g*dzsdx(i,j) &
 !                   + par%g/par%C**2.d0/hu(i,j)*vmageu(i,j)*ueu(i,j) & 
@@ -333,7 +339,7 @@ endif
             nuh1  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,j+1)+nuh(i,j+1))
             nuh2  = .25d0*(nuh(i,j)+nuh(i-1,j)+nuh(i-1,j+1)+nuh(i,j+1))            
             
-			      dvdx1 = nuh(i+1,j)*.5d0*(s%hum(i  ,j)+s%hum(i  ,j+1))*(vv(i+1,j)-vv(i,j))/(xz(i+1)-xz(i))
+			dvdx1 = nuh(i+1,j)*.5d0*(s%hum(i  ,j)+s%hum(i  ,j+1))*(vv(i+1,j)-vv(i,j))/(xz(i+1)-xz(i))
             dvdx2 = nuh(i,j)  *.5d0*(s%hum(i-1,j)+s%hum(i-1,j+1))*(vv(i,j)-vv(i-1,j))/(xz(i)-xz(i-1))
             viscv(i,j) = viscv(i,j) + (1.0d0/s%hvm(i,j))*( 2*(dvdx1-dvdx2)/(xz(i+1)-xz(i-1)) )*wetv(i+1,j)*wetv(i-1,j)
         end do 
@@ -350,7 +356,7 @@ endif
     do j=1,ny
         do i=2,nx !jaap instead of nx+1        
             if(wetv(i,j)==1) then
-                tauby(i,j)=par%cf*par%rho*vev(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmagev(i,j)**2) !Ruessink et al, 2001
+                tauby(i,j)=s%cf(i,j)*par%rho*vev(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmagev(i,j)**2) !Ruessink et al, 2001
                 vv(i,j)=vv(i,j)-par%dt*(udvdx(i,j)+vdvdy(i,j)-viscv(i,j)& !Ap,Robert,Jaap 
                     + par%g*dzsdy(i,j)&
                     ! + par%g/par%C**2/hv(i,j)*vmagev(i,j)*vev(i,j)&

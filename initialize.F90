@@ -327,12 +327,14 @@ integer*4                           :: iUnit
   allocate(s%pres(1:s%nx+1,1:s%ny+1))
   allocate(s%wi(2,1:s%ny+1))
   allocate(s%zi(2,1:s%ny+1))
+  allocate(s%cf(1:s%nx+1,1:s%ny+1))
   s%ws   = 0.0d0
   s%wb   = 0.0d0
   s%pres = 0.0d0
   s%zi   = 0.0d0
   s%wi   = 0.0d0
   s%nuh  = 0.0d0
+  s%cf   = par%cf
 
   ! cjaap: replaced par%hmin by par%eps
   s%hh=max(s%zs0-s%zb,par%eps)
@@ -441,6 +443,8 @@ allocate(s%ceqsg(1:s%nx+1,1:s%ny+1,par%ngd))
 allocate(s%ceqbg(1:s%nx+1,1:s%ny+1,par%ngd))
 allocate(s%D50(1:par%ngd))
 allocate(s%D90(1:par%ngd))
+allocate(s%D50top(1:s%nx+1,1:s%ny+1))
+allocate(s%D90top(1:s%nx+1,1:s%ny+1))
 allocate(s%sedcal(1:par%ngd))
 allocate(s%ucrcal(1:par%ngd))
 allocate(s%nd(1:s%nx+1,1:s%ny+1))
@@ -559,6 +563,13 @@ else
 	s%dzbed(:,:,par%nd_var+1:par%nd)  = par%dzg3
 endif
 
+! Initialize representative sed.diameter at the bed for flow friction and output
+do j=2,s%ny
+   do i=2,s%nx
+      s%D50top =  sum(s%pbbed(i,j,1,:)*s%D50)
+      s%D90top =  sum(s%pbbed(i,j,1,:)*s%D90)
+   enddo
+enddo
 ! 
 ! Set non-erodable layer
 !

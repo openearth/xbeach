@@ -572,6 +572,16 @@ endif
     call xmpi_shift(zb,':n')
 #endif
 
+! Update representative sed.diameter at the bed for flow friction and output
+if (par%ngd>1) then
+   do j=2,s%ny
+      do i=2,s%nx
+         s%D50top =  sum(s%pbbed(i,j,1,:)*s%D50)
+         s%D90top =  sum(s%pbbed(i,j,1,:)*s%D90)
+      enddo
+   enddo
+endif
+
 endif ! if par%t>par%morstart
 
 end subroutine bed_update

@@ -486,9 +486,9 @@ implicit none
 type(parameters)            :: par
 
 
-par%cf      = readkey_dbl ('params.txt','cf',      3.d-3,     0.d0,     0.1d0)
-par%C       = readkey_dbl ('params.txt','C',       sqrt(par%g/par%cf),     20.d0,    100.d0)
-par%cf      = par%g/par%C**2
+par%cf      = readkey_dbl ('params.txt','cf',      -1.d0,     0.d0,     0.1d0)
+par%C       = readkey_dbl ('params.txt','C',       sign(1.d0,par%cf)*sqrt(par%g/abs(par%cf)),  20.d0,    100.d0)
+par%cf      = sign(1.d0,par%C)*par%g/par%C**2 ! Remark: case cf < 0 White Colebrook is used with ks = 3*D90 in upper layer; see flowtimestep
 par%eps     = readkey_dbl ('params.txt','eps',     0.1d0,   0.001d0,      1.d0)
 par%umin    = readkey_dbl ('params.txt','umin',    0.1d0,   0.001d0,      5.d0)
 par%zs01    = readkey_dbl ('params.txt','zs0',     0.0d0,     -5.d0,      5.d0)
@@ -535,7 +535,7 @@ par%leftwave= readkey_int ('params.txt','leftwave',        0,         0,      1)
 par%rightwave= readkey_int ('params.txt','rightwave',        0,         0,      1)
 par%back    = readkey_int ('params.txt','back',        2,         0,      2)
 par%nuh     = readkey_dbl ('params.txt','nuh',     0.5d0,     0.0d0,      1.0d0)
-par%nuhfac  = readkey_dbl ('params.txt','nuhfac',      0.0d0,     0.0d0,  1.0d0)
+par%nuhfac  = readkey_dbl ('params.txt','nuhfac',      1.0d0,     0.0d0,  1.0d0)
 
 par%nonh    = readkey_int ('params.txt','nonh',        0,         0,      1)
 par%smag    = readkey_int ('params.txt','smag',        0,         0,      1)
