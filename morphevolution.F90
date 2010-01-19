@@ -909,7 +909,7 @@ if (abs(par%facua)>tiny(0.d0)) then     ! Robert: Very slow loop, so only do if 
    B1 = (-90.d0+90.d0*tanh(m5/Ur**m6))*par%px/180.d0
    Sk = Bm*cos(B1)
    As = Bm*sin(B1)
-   ui = par%facua*(Sk-As)*urms
+   ua = par%facua*(Sk-As)*urms
 endif
 
 end subroutine sb_vr
