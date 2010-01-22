@@ -734,15 +734,15 @@ real*8,save                         :: m1,m2,m3,m4,m5,m6
 real*8,save                         :: alpha,beta
 
 
-real*8 , dimension(:,:),allocatable,save   :: vmag2,Cd,Asb,dhdx,dhdy,Ts,Ur,Bm,B1
+real*8 , dimension(:,:),allocatable,save   :: vmg,Cd,Asb,dhdx,dhdy,Ts,Ur,Bm,B1
 real*8 , dimension(:,:),allocatable,save   :: urms2,Ucr,term1,term2
 real*8 , dimension(:,:),allocatable,save   :: uandv,b,fslope,hloc,ceqs,ceqb
 
 include 's.ind'
 include 's.inp'
 
-if (.not. allocated(vmag2)) then
-   allocate (vmag2 (nx+1,ny+1))
+if (.not. allocated(vmg)) then
+   allocate (vmg   (nx+1,ny+1))
    allocate (Cd    (nx+1,ny+1))
    allocate (Asb   (nx+1,ny+1))
    allocate (dhdx  (nx+1,ny+1))   ! not used wwvv
@@ -762,6 +762,7 @@ if (.not. allocated(vmag2)) then
    allocate (Ur    (nx+1,ny+1))
    allocate (Bm    (nx+1,ny+1))
    allocate (B1    (nx+1,ny+1))
+   vmg = 0.d0
    m1 = 0;       ! a = 0
    m2 = 0.7939;  ! b = 0.79 +/- 0.023
    m3 = -0.6065; ! c = -0.61 +/- 0.041
@@ -795,7 +796,7 @@ endif
 !
 
 ! hloc   = max(hh,0.01d0) !Jaap par%hmin instead of par%eps
-hloc = max(hh,0.01)
+hloc = hh
 twothird=2.d0/3.d0
 delta = (par%rhos-par%rho)/par%rho
 ! use eulerian velocities
@@ -809,7 +810,13 @@ do j=1,ny+1
     enddo
 enddo
 
-vmag2  = ue**2+ve**2  ! wwvv todo just to be sure ?
+if (par%lws==1) then
+   vmg  = dsqrt(ue**2+ve**2)
+elseif (par%lws==0) then
+   ! vmg lags on actual mean flow; but long wave contribution to mean flow is included... 
+   vmg = (1.d0-1.d0/par%cats/par%Trep*par%dt)*vmg + (1.d0/par%cats/par%Trep*par%dt)*dsqrt(ue**2+ve**2) 
+endif
+
 urms2  = urms**2+0.50d0*(kb+kturb)
 
 do jg = 1,par%ngd
@@ -821,7 +828,7 @@ do jg = 1,par%ngd
    
    ! calculate treshold velocity Ucr
    if(D50(jg)<=0.0005d0) then
-     Ucr=0.19d0*D50(jg)**0.1d0*log10(4*hloc/D90(jg))
+     Ucr=0.19d0*D50(jg)**0.1d0*log10(4.d0*hloc/D90(jg))
    else if(D50(jg)<0.05d0) then   !Dano see what happens with coarse material
      Ucr=8.5d0*D50(jg)**0.6d0*log10(4*hloc/D90(jg))
    else
@@ -843,7 +850,7 @@ do jg = 1,par%ngd
   ! term1=sqrt(vmag2+0.018d0/Cd*urms2)     ! nearbed-velocity
   ! the two above lines are comment out and replaced by a limit on total velocity u2+urms2, robert 1/9 and ap 28/11
 
-   term1=(vmag2+0.018/Cd*urms2) ! Make 0.018/Cd is always smaller than the flow friction coefficient 
+   term1=(vmg+0.018/Cd*urms2) ! Make 0.018/Cd is always smaller than the flow friction coefficient 
 
    term1=min(term1,par%smax*par%g/par%cf*s%D50(jg)*delta)
    term1=sqrt(term1)      
@@ -864,10 +871,10 @@ do jg = 1,par%ngd
 #ifdef USEMPI
    call xmpi_shift(term2,'m:')
 #endif
-   ceqb =Asb*term2                    		      
+   ceqb = Asb*term2                    		      
    ceqb = min(ceqb/hloc,0.05d0)             ! maximum equilibrium bed concentration
    ceqbg(:,:,jg) = ceqb*sedcal(jg)*wetz
-   ceqs =Ass*term2                    
+   ceqs = Ass*term2                    
    ceqs = min(ceqs/hloc,0.05d0)             ! maximum equilibrium suspended concentration		      
    ceqsg(:,:,jg) = ceqs*sedcal(jg)*wetz
 
@@ -879,15 +886,9 @@ if (abs(par%facua)>tiny(0.d0)) then     ! Robert: Very slow loop, so only do if 
    Ur = max(Ur,0.000000000001d0)
    Bm = m1 + (m2-m1)/(1.d0+beta*Ur**alpha)                    !Boltzmann sigmoid (eq 6)         
    B1 = (-90.d0+90.d0*tanh(m5/Ur**m6))*par%px/180.d0
-<<<<<<< .mine
    Sk = Bm*cos(B1)                                            !Skewness (eq 8)
    As = Bm*sin(B1)                                            !Asymmetry(eq 9)
    ua = par%facua*(Sk-As)*urms
-=======
-   Sk = Bm*cos(B1)
-   As = Bm*sin(B1)
-   ua = par%facua*(Sk-As)*urms
->>>>>>> .r711
 endif
 
 end subroutine sb_vr
@@ -943,6 +944,7 @@ if (.not. allocated(vmg)) then
    allocate (ceqs  (nx+1,ny+1))
    allocate (ceqb  (nx+1,ny+1))
    allocate (RF    (18,33,40))
+   vmg = 0.d0
    ! Robert: do only once, not necessary every time step
    do jg=1,par%ngd
       ! cjaap: compute fall velocity with simple expression from Ahrens (2000)
@@ -1085,20 +1087,20 @@ do jg = 1,par%ngd
    ! calculate treshold velocity Ucr
    !
    if(s%D50(jg)<=0.0005) then
-     Ucrc=0.19d0*s%D50(jg)**0.1d0*log10(4.d0*hloc/s%D90(jg)) 
-	 Ucrw=0.24d0*(1.65d0*par%g)**0.66d0*s%D50(jg)**0.33d0*par%Trep**0.33d0 
+     Ucrc=0.19d0*D50(jg)**0.1d0*log10(4.d0*hloc/D90(jg)) 
+	 Ucrw=0.24d0*(delta*par%g)**0.66d0*s%D50(jg)**0.33d0*par%Trep**0.33d0 
    else if(s%D50(jg)<0.002) then
-     Ucrc=8.5d0*s%D50(jg)**0.6d0*log10(4.d0*hloc/s%D90(jg))                          !Shields
-	 Ucrw=0.95d0*(1.65d0*par%g)**0.57d0*s%D50(jg)**0.43*par%Trep**0.14               !Komar and Miller (1975)
+     Ucrc=8.5d0*D50(jg)**0.6d0*log10(4.d0*hloc/D90(jg))                            !Shields
+	 Ucrw=0.95d0*(delta*par%g)**0.57d0*D50(jg)**0.43*par%Trep**0.14               !Komar and Miller (1975)
    else
-     write(*,*) ' s%D50(jg) > 2mm, out of validity range'
+     write(*,*) ' D50(jg) > 2mm, out of validity range'
    end if
    B2 = vmg/max(vmg+urmsturb,par%eps)
    Ucr = B2*Ucrc + (1-B2)*Ucrw                                                       ! Van Rijn 2008 (Bed load transport paper)
 
    ! transport parameters
-   Asb=0.015d0*hloc*(s%D50(jg)/hloc)**1.2d0/(1.65d0*par%g*s%D50(jg))**0.75d0         !bed load coefficent
-   Ass=0.012d0*s%D50(jg)*dster**(-0.6d0)/(1.65d0*par%g*s%D50(jg))**1.2d0             !suspended load coeffient
+   Asb=0.015d0*hloc*(s%D50(jg)/hloc)**1.2d0/(delta*par%g*s%D50(jg))**0.75d0         !bed load coefficent
+   Ass=0.012d0*s%D50(jg)*dster**(-0.6d0)/(delta*par%g*s%D50(jg))**1.2d0             !suspended load coeffient
    
    ! Jaap: Gravel test:
 
