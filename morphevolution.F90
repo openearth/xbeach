@@ -728,7 +728,7 @@ type(parameters)                    :: par
 integer                             :: i
 integer                             :: j,jg
 real*8                              :: dster,twothird
-real*8                              :: z0,Ass,delta
+real*8                              :: z0,Ass,delta,dcf,dcfin
 real*8                              :: Te,kvis,Sster,c1,c2,wster
 real*8,save                         :: m1,m2,m3,m4,m5,m6
 real*8,save                         :: alpha,beta
@@ -795,16 +795,17 @@ endif
 !
 
 ! hloc   = max(hh,0.01d0) !Jaap par%hmin instead of par%eps
-hloc = hh
+hloc = max(hh,0.01)
 twothird=2.d0/3.d0
 delta = (par%rhos-par%rho)/par%rho
 ! use eulerian velocities
 ! cjaap: add turbulence near bottom
 do j=1,ny+1 
     do i=1,nx+1
-       kb(i,j) = (DR(i,j)/par%rho)**twothird/ &
-                 (exp( min( hloc(i,j)/max(H(i,j),0.1d0) ,100.d0)) -1.d0)
-       vmag2(i,j) = ue(i,j)**2+ve(i,j)**2
+	   ! exponential decay turbulence over depth
+	   dcfin = exp(min(100.d0,hloc(i,j)/max(H(i,j),0.1d0)))
+	   dcf = min(1.d0,1.d0/(dcfin-1.d0))
+       kb(i,j) = (DR(i,j)/par%rho)**twothird*dcf
     enddo
 enddo
 
@@ -814,7 +815,6 @@ urms2  = urms**2+0.50d0*(kb+kturb)
 do jg = 1,par%ngd
 
    Ts       = par%tsfac*hloc/par%w
-   !Ts       = max(Ts,0.2d0)
    Tsg(:,:,jg) = max(Ts,par%Tsmin) 
 
    dster=25296*D50(jg)
@@ -828,14 +828,11 @@ do jg = 1,par%ngd
 #ifdef USEMPI
      write(*,'(a,i4)') 'In process',xmpi_rank
 #endif
-    ! write(*,*) '  Remark from sb_vr: D50(jg) > 2mm, out of validity range'
    end if
    ! drag coefficient
    z0 = par%z0
-   Cd=(0.40d0/(log(hloc/z0)-1.0d0))**2 !Jaap
-   !Cd = par%g/par%C**2;   ! consistent with flow modelling 
+   Cd=(0.40d0/(log(max(hloc,10.d0*z0)/z0)-1.0d0))**2 !Jaap: max(hloc,10.d0*z0) 
 
- 
    ! transport parameters
    Asb=0.005d0*hloc*(D50(jg)/hloc/(delta*par%g*D50(jg)))**1.2d0     ! bed load coefficent
    Ass=0.012d0*D50(jg)*dster**(-0.6d0)/(delta*par%g*D50(jg))**1.2d0 ! suspended load coeffient
@@ -845,14 +842,16 @@ do jg = 1,par%ngd
   ! vmag2=min(vmag2,par%smax*par%g/par%cf*D50(jg)*delta)            ! In terms of cf
   ! term1=sqrt(vmag2+0.018d0/Cd*urms2)     ! nearbed-velocity
   ! the two above lines are comment out and replaced by a limit on total velocity u2+urms2, robert 1/9 and ap 28/11
-   term1=(vmag2+0.018/Cd*urms2)
+
+   term1=(vmag2+0.018/Cd*urms2) ! Make 0.018/Cd is always smaller than the flow friction coefficient 
+
    term1=min(term1,par%smax*par%g/par%cf*s%D50(jg)*delta)
    term1=sqrt(term1)      
    
    term2 = 0.d0
    do j=1,ny+1
       do i=1,nx
-	     if(term1(i,j)>Ucr(i,j) .and. hh(i,j)>par%eps) then
+	     if(term1(i,j)>Ucr(i,j) .and. hloc(i,j)>par%eps) then
 		   term2(i,j)=(term1(i,j)-Ucr(i,j))**2.4d0
            ! term2(i,j)=(term1(i,j)-Ucr(i,j))**(1.7-0.7*tanh((ue(i,j)/sqrt(par%g*hh(i,j))-0.5)*10))
          end if
@@ -866,50 +865,29 @@ do jg = 1,par%ngd
    call xmpi_shift(term2,'m:')
 #endif
    ceqb =Asb*term2                    		      
-   ceqb = ceqb/hloc
-   ceqb = min(ceqb,0.2d0)             ! maximum equilibrium bed concentration
+   ceqb = min(ceqb/hloc,0.05d0)             ! maximum equilibrium bed concentration
    ceqbg(:,:,jg) = ceqb*sedcal(jg)*wetz
    ceqs =Ass*term2                    
-   ceqs = ceqs/hloc
-   ceqs = min(ceqs,0.2d0)             ! maximum equilibrium suspended concentration		      
+   ceqs = min(ceqs/hloc,0.05d0)             ! maximum equilibrium suspended concentration		      
    ceqsg(:,:,jg) = ceqs*sedcal(jg)*wetz
 
 enddo  ! end og grain size classes
 
-! Robert + Pieter: this is slow calculation
-! m1 = 0;       ! a = 0
-! m2 = 0.7939;  ! b = 0.79 +/- 0.023
-! m3 = -0.6065; ! c = -0.61 +/- 0.041
-! m4 = 0.3539;  ! d = -0.35 +/- 0.032 
-! m5 = 0.6373;  ! e = 0.64 +/- 0.025
-! m6 = 0.5995;  ! f = 0.60 +/- 0.043
-! 
-! do j=1,ny+1     
-!    do i=1,nx+1
-!       if (k(i,j)*h(i,j)<par%px/2.d0 .and. H(i,j)>0.01d0) then
-!          Ur(i,j) = 3.d0/8.d0*sqrt(2.d0)*H(i,j)*k(i,j)/(k(i,j)*hloc(i,j))**3.d0                       !Ursell number
-!          Bm(i,j) = m1+(m2-m1)/(1.d0+exp((m3-log10(Ur(i,j)))/m4))                                     !Boltzmann sigmoid (eq 6) 
-!          B1(i,j) = -90.d0+90.d0*tanh(m5/Ur(i,j)**m6)    
-!          B1(i,j) = B1(i,j)*par%px/180.d0
-!          Sk(i,j) = Bm(i,j)*cos(B1(i,j))                                                              !Skewness (eq 8)
-!          As(i,j) = Bm(i,j)*sin(B1(i,j))                                                              !Skewness (eq 9)
-! 		!Dano ua(i,j) = par%facua*Sk(i,j)*urms(i,j)
-! 		 ! Jaap: try variable facua
-! 		 par%facua = min(1.d0,max(0.d0,(H(i,j)/hh(i,j)-0.5d0*par%gamma)))
-!          ua(i,j) = par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
-! 	  endif
-!    enddo
-! enddo
-
 ! Robert + Pieter : should be faster
 if (abs(par%facua)>tiny(0.d0)) then     ! Robert: Very slow loop, so only do if necessary 
-   Ur = 3.d0/8.d0*sqrt(2.d0)*H*k/(k*hloc)**3 
+   Ur = 3.d0/8.d0*sqrt(2.d0)*H*k/(k*hloc)**3                  !Ursell number
    Ur = max(Ur,0.000000000001d0)
-   Bm = m1 + (m2-m1)/(1.d0+beta*Ur**alpha)
+   Bm = m1 + (m2-m1)/(1.d0+beta*Ur**alpha)                    !Boltzmann sigmoid (eq 6)         
    B1 = (-90.d0+90.d0*tanh(m5/Ur**m6))*par%px/180.d0
+<<<<<<< .mine
+   Sk = Bm*cos(B1)                                            !Skewness (eq 8)
+   As = Bm*sin(B1)                                            !Asymmetry(eq 9)
+   ua = par%facua*(Sk-As)*urms
+=======
    Sk = Bm*cos(B1)
    As = Bm*sin(B1)
    ua = par%facua*(Sk-As)*urms
+>>>>>>> .r711
 endif
 
 end subroutine sb_vr
@@ -968,13 +946,13 @@ if (.not. allocated(vmg)) then
    ! Robert: do only once, not necessary every time step
    do jg=1,par%ngd
       ! cjaap: compute fall velocity with simple expression from Ahrens (2000)
-     Te    = 20.d0
-   kvis  = 4.d0/(20.d0+Te)*1d-5	! Van rijn, 1993 
-   Sster = s%D50(jg)/(4*kvis)*sqrt((par%rhos/par%rho-1)*par%g*s%D50(jg))
-   cc1   = 1.06d0*tanh(0.064d0*Sster*exp(-7.5d0/Sster**2))
-   cc2   = 0.22d0*tanh(2.34d0*Sster**(-1.18d0*exp(-0.0064d0*Sster**2)))
-   wster = cc1+cc2*Sster
-   par%w = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*s%D50(jg))
+      Te    = 20.d0
+      kvis  = 4.d0/(20.d0+Te)*1d-5	! Van rijn, 1993 
+      Sster = s%D50(jg)/(4*kvis)*sqrt((par%rhos/par%rho-1)*par%g*s%D50(jg))
+      cc1   = 1.06d0*tanh(0.064d0*Sster*exp(-7.5d0/Sster**2))
+      cc2   = 0.22d0*tanh(2.34d0*Sster**(-1.18d0*exp(-0.0064d0*Sster**2)))
+      wster = cc1+cc2*Sster
+      par%w = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*s%D50(jg))
    enddo
 endif
 
@@ -1011,7 +989,7 @@ endif
 close(31)
 
 ! read us and duddtmax from table....
-h0 = min(nh*dh,max(dh,min(H,hh)/hloc))  ! Jaap: try this
+h0 = min(nh*dh,max(dh,min(H,hloc)/hloc))  ! Jaap: try this
 t0 = min(nt*dt,max(dt,par%Trep*sqrt(par%g/hloc)))
 
 do j=1,ny+1
@@ -1145,13 +1123,11 @@ do jg = 1,par%ngd
       end do
    end do
   
-   ceqb = ceqb/hloc
-   ceqb = min(ceqb,0.05)		      ! maximum equilibrium bed concentration
+   ceqb = min(ceqb/hloc,0.05)		      ! maximum equilibrium bed concentration
    ceqbg(:,:,jg) = ceqb*sedcal(jg)*wetz
-   ceqs = ceqs/hloc
-   ceqs = min(ceqs,0.05)		      ! maximum equilibrium suspended concentration
+   ceqs = min(ceqs/hloc,0.05)		      ! maximum equilibrium suspended concentration
    ceqsg(:,:,jg) = ceqs*sedcal(jg)*wetz
-enddo                             ! end of grain size classes
+enddo                                 ! end of grain size classes
                             ! end of grain size classes
 
 end subroutine sednew
