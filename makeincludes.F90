@@ -26,7 +26,7 @@ character(len=slen), parameter :: space_indname = 'space_ind.gen'
 character(len=slen), parameter :: space_inpname = 'space_inp.gen'
 character(len=slen), parameter :: chartoindexname = 'chartoindex.gen'
 integer                        :: numvars, maxnamelen, inumvars0, rnumvars0
-character(len=slen)            :: type, name, comment, line, broadcast
+character(len=slen)            :: type, name, comment, line, broadcast, description, units
 integer                        :: rank
 logical                        :: varfound
 logical                        :: endfound
@@ -90,7 +90,10 @@ subroutine getitems
   l=1
   type = ''
   name = ''
+  units = ''
+  description = ''
   comment = ''
+  
   call getnext(line,l,type)
   if (len(trim(type)) .eq. 0) then
     varfound = .false.
@@ -117,10 +120,22 @@ subroutine getitems
 
   call getnext(line,l,broadcast)
 
+  call getnext(line,l,units)
+
+  ! Get the first word of the description
+  call getnext(line,l,description)
+
+  ! search for a comment
   j = scan(line,'!')
   if (j .ne. 0) then
-    comment = line(j:)
+     comment = line(j:)
+     ! store the line up to comment
+     description = trim(description) // trim(line(l:j-1))
+  else
+     ! store the rest of the line in the description
+     description = trim(description) // trim(line(l:))
   endif
+
 
 end subroutine getitems
 !
@@ -427,8 +442,18 @@ subroutine makeindextos
         write(outfile,'(a)')      sp//'    '//trim(rankstr)//'  => s%'//trim(name)
         write(outfile,'(a,i3)')   sp//'    t%rank = ',rank
         write(outfile,'(a)')      sp//"    t%type = '"//ctype//"'"
-        write(outfile,'(a)')      sp//"    t%name = '"//name(1:maxnamelen)//"'"
+        write(outfile,'(a)')      sp//"    t%name = '"//trim(name(1:maxnamelen))//"'"
         write(outfile,'(a)')      sp//"    t%btype = '"//broadcast(1:1)//"'"
+        ! remove the [ ] around the units, this should be easier....
+        units = trim(units) // '' ! make sure we trim spaces first
+        if (units(1:1) .eq. '[') then
+           units=units(2:) // '' ! avoid length issues
+        endif
+        if (index(units,']') > 0) then
+           units=units(1:index(units,']')-1) // '' ! make sure we add an extra ''
+        endif
+        write(outfile,'(a)')      sp//"    t%units= '"//trim(units)//"'"
+        write(outfile,'(a)')      sp//"    t%description= '"//trim(description)//"'"
         j = j + 1
     endif
   enddo

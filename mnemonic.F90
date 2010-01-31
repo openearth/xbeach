@@ -7,6 +7,8 @@ type arraytype
                          !                 distribute umean
   integer rank           ! 0,1,2,3,4
   character(len=maxnamelen) :: name     ! 'v','ve', .....
+  character(len=20) :: units     ! m, following udunits convention
+  character(len=1024) :: description
 
   real*8, pointer             :: r0  ! pointer to real8 scalar
   real*8, dimension(:), pointer :: r1  ! pointer to real8 (:)
