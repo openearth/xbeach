@@ -439,7 +439,7 @@ do ii=1,nint(par%morfac)
    !
    do i=2,nx-1
       do j=1,ny+1
-         if(max(hh(i,j),hh(i+1,j))>par%hswitch+par%eps) then
+         if(max(hh(i,j)+par%delta*H(i,j),hh(i+1,j)+par%delta*H(i+1,j))>par%hswitch+par%eps) then
             dzmax=par%wetslp;
          else
             dzmax=par%dryslp;
@@ -794,8 +794,6 @@ endif
 !   Var. I/O  Type Dimensions
 !   -------------------------
 !
-
-! hloc   = max(hh,0.01d0) !Jaap par%hmin instead of par%eps
 hloc = hh
 twothird=2.d0/3.d0
 delta = (par%rhos-par%rho)/par%rho
@@ -806,7 +804,7 @@ do j=1,ny+1
 	   ! exponential decay turbulence over depth
 	   dcfin = exp(min(100.d0,hloc(i,j)/max(H(i,j),0.1d0)))
 	   dcf = min(1.d0,1.d0/(dcfin-1.d0))
-       kb(i,j) = (DR(i,j)/par%rho)**twothird*dcf
+       kb(i,j) = par%nuhfac*(DR(i,j)/par%rho)**twothird*dcf
     enddo
 enddo
 
@@ -818,6 +816,7 @@ elseif (par%lws==0) then
 endif
 
 urms2  = urms**2+0.50d0*(kb+kturb)
+
 
 do jg = 1,par%ngd
 
@@ -850,7 +849,7 @@ do jg = 1,par%ngd
   ! term1=sqrt(vmag2+0.018d0/Cd*urms2)     ! nearbed-velocity
   ! the two above lines are comment out and replaced by a limit on total velocity u2+urms2, robert 1/9 and ap 28/11
 
-   term1=(vmg+0.018/Cd*urms2) ! Make 0.018/Cd is always smaller than the flow friction coefficient 
+   term1=(vmg**2+0.018/Cd*par%sws*urms2) ! Make 0.018/Cd is always smaller than the flow friction coefficient 
 
    term1=min(term1,par%smax*par%g/par%cf*s%D50(jg)*delta)
    term1=sqrt(term1)      
@@ -1058,9 +1057,9 @@ do j=1,ny+1
 	   dcfin = exp(min(100.d0,hloc(i,j)/max(ML,0.01d0)))
 	   dcf = min(1.d0,1.d0/(dcfin-1.d0))
 	   if (par%turb == 2) then
-          kb(i,j) = (DR(i,j)/par%rho)**twothird*dcf*par%Trep/Tbore(i,j)
+          kb(i,j) = par%nuhfac*(DR(i,j)/par%rho)**twothird*dcf*par%Trep/Tbore(i,j)
 	   elseif (par%turb == 1) then
-	      kb(i,j) = (DR(i,j)/par%rho)**twothird*dcf
+	      kb(i,j) = par%nuhfac*(DR(i,j)/par%rho)**twothird*dcf
 	   elseif (par%turb == 0) then
 	      kb(i,j) = 0.0d0
 	   endif
@@ -1233,8 +1232,8 @@ do j=2,ny+1
    do i=2,nx+1
       ksource=par%g*rolthick(i,j)*par%beta*c(i,j)      !only important in shallow water, where c=sqrt(gh)  
       kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*((Sturbu(i,j)-Sturbu(i-1,j))/(xu(i)-xu(i-1))+&
-                                          (Sturbv(i,j)-Sturbv(i,j-1))/(yv(j)-yv(j-1))-&
-								 (ksource-par%betad*kturb(i,j)**1.5d0))
+                                                (Sturbv(i,j)-Sturbv(i,j-1))/(yv(j)-yv(j-1))-&
+								                (ksource-par%betad*kturb(i,j)**1.5d0))
       kturb(i,j)=max(kturb(i,j),0.0d0)
    enddo
 enddo
