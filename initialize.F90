@@ -50,6 +50,7 @@ real*8,dimension(:),allocatable     :: yzs0,szs0
   allocate(s%urms(1:s%nx+1,1:s%ny+1)) 
   allocate(s%D(1:s%nx+1,1:s%ny+1)) 
   allocate(s%Df(1:s%nx+1,1:s%ny+1)) 
+  allocate(s%Dp(1:s%nx+1,1:s%ny+1)) 
   allocate(s%Qb(1:s%nx+1,1:s%ny+1)) 
   allocate(s%ust(1:s%nx+1,1:s%ny+1)) 
   allocate(s%tm(1:s%nx+1,1:s%ny+1)) 
