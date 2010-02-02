@@ -7,6 +7,23 @@ Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004, 2005,
    This file is free documentation; the Free Software Foundation gives
 unlimited permission to copy, distribute and modify it.
 
+Windows (tm) users
+==================
+
+   This document describes how to build XBeach with the autotools
+environment. If you use Visual Studio (tm) with the Intel Fortran
+Compiler (tm) you want to use the solution file located in the folder
+VS2008. If you use the Compaq Visual Fortran (tm) compiler you can use
+the xbeach.dsw file to compile your system. 
+   If you want to build the mpi version make sure you install it first
+because it is not part of the default Windows (tm) distribution. Also
+make sure the path in the project file references the correct version
+of the mpi library.
+   If you are using Windows (tm) and want to use a free compiler
+you can use the cygwin or mingw environment. They both support the
+autotools environment. If you use GNU/Linux, OS X, cygwin or mingw
+then this document is for you.
+
 Basic Installation
 ==================
 
