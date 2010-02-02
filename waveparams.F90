@@ -271,7 +271,7 @@ write(*,*)'Hm0 = ',wp%hm0gew,'Tp = ',1.d0/fp,'dir = ',wp%mainang,'duration = ',w
 ! discarding the input parameter dfj. The base frequency now perfectly fits the
 ! given time record and the calculation of the number of wave components will
 ! result in an integer value.
-dfj = 1/wp%rt
+! dfj = 1/wp%rt
 
 ! Define number of frequency bins by defining an array of the necessary length
 ! using the Nyquist frequency and frequency step size
@@ -1026,14 +1026,14 @@ if (par%random==1) CALL init_seed
 ! Define random number between 0.025 and 0975 for each wave component
 call random_number(randummy)
 P0=randummy(1:wp%K)
-!P0=0.95*P0+0.05/2                                                             ! Bas: do not crop pdf, only needed in Matlab to ensure monotonicity
+!P0=0.95*P0+0.05/2                                                             ! Bas: do not crop cdf, only needed in Matlab to ensure monotonicity
 
 ! Define direction for each wave component based on random number and linear
 ! interpolation of the probability density function
 allocate(wp%theta0(wp%K))
 do i=1,size(P0)
     !call LINEAR_INTERP(P(1:size(P)-1),wp%theta(1:size(P)-1),size(P)-1,P0(i),pp,F2)
-    call LINEAR_INTERP(P(1:size(P)),wp%theta(1:size(P)),size(P),P0(i),pp,F2)   ! Bas: do not crop pdf, only needed in Matlab to ensure monotonicity
+    call LINEAR_INTERP(P(1:size(P)),wp%theta(1:size(P)),size(P),P0(i),pp,F2)   ! Bas: do not crop cdf, only needed in Matlab to ensure monotonicity
     wp%theta0(i)=pp
 end do
 
@@ -1134,15 +1134,15 @@ end do
     
 ! Determine significant wave height using Hm0 = 4*sqrt(m0) using the
 ! one-dimensional non-directional variance density spectrum
-hm0now = 4*sqrt(sum(Sf0)*wp%df)                                                ! Bas: not used
+hm0now = 4*sqrt(sum(Sf0)*wp%df)
 
 ! Backup original spectra just calculated
-Sf0org=Sf0                                                                     ! Bas: not used
-S0org=wp%S0                                                                    ! Bas: not used
+Sf0org=Sf0
+S0org=wp%S0
 
 ! Correct spectra for wave height
-! wp%S0 = (wp%hm0gew/hm0now)**2*wp%S0                                          ! Robert: back on ?
-! Sf0 = (wp%hm0gew/hm0now)**2*Sf0                                              ! Robert: back on ?
+wp%S0 = (wp%hm0gew/hm0now)**2*wp%S0                                            ! Robert: back on ?
+Sf0 = (wp%hm0gew/hm0now)**2*Sf0                                                ! Robert: back on ?
 
 ! Determine directional step size
 allocate(wp%dthetafin(wp%K))
@@ -1153,8 +1153,8 @@ wp%dthetafin = Sf0/wp%S0
 A = sqrt(2*wp%S0*wp%df*wp%dthetafin)    
 
 ! Restore original spectra just calculated
-Sf0=Sf0org                                                                     ! Bas: not used
-wp%S0=S0org                                                                    ! Bas: not used
+Sf0=Sf0org
+wp%S0=S0org
 
 ! Allocate Fourier coefficients for each y-position at the seaside border and
 ! each time step
@@ -1234,12 +1234,12 @@ deallocate(Nbox)
 ! Define time window that gradually increases and decreases energy input over
 ! the wave time record according to tanh(fc*t/max(t))^2*tanh(fc*(1-t/max(t)))^2
 allocate(wp%window(size(t)))
-!allocate(temp(size(t)))
-!temp=t
-!where (t>wp%rt) temp=0                                                         ! Bas: skip time steps that exceed wp%rt, might not be necessary when wp%Nr, F2 and t are defined well, see above
+allocate(temp(size(t)))
+temp=t
+where (t>wp%rt) temp=0                                                         ! Bas: skip time steps that exceed wp%rt, might not be necessary when wp%Nr, F2 and t are defined well, see above
 wp%window=1
-!wp%window=wp%window*(tanh(192.d0*temp/maxval(temp))**2)*(tanh(192.d0*(1.d0-temp/maxval(temp)))**2)
-wp%window=wp%window*(tanh(192.d0*t/maxval(t))**2)*(tanh(192.d0*(1.d0-t/maxval(t)))**2)      ! Bas: array t matches wp%rt, so truncating via temp is not necessary anymore
+wp%window=wp%window*(tanh(192.d0*temp/maxval(temp))**2)*(tanh(192.d0*(1.d0-temp/maxval(temp)))**2)
+!wp%window=wp%window*(tanh(192.d0*t/maxval(t))**2)*(tanh(192.d0*(1.d0-t/maxval(t)))**2)      ! Bas: array t matches wp%rt, so truncating via temp is not necessary anymore
 !deallocate(temp)
 
 ! Allocate variables for water level exitation and amplitude with and without
