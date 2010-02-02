@@ -1240,7 +1240,7 @@ where (t>wp%rt) temp=0                                                         !
 wp%window=1
 wp%window=wp%window*(tanh(192.d0*temp/maxval(temp))**2)*(tanh(192.d0*(1.d0-temp/maxval(temp)))**2)
 !wp%window=wp%window*(tanh(192.d0*t/maxval(t))**2)*(tanh(192.d0*(1.d0-t/maxval(t)))**2)      ! Bas: array t matches wp%rt, so truncating via temp is not necessary anymore
-!deallocate(temp)
+deallocate(temp)
 
 ! Allocate variables for water level exitation and amplitude with and without
 ! directional spreading dependent envelope
