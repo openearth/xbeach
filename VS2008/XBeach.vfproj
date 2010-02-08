@@ -21,7 +21,8 @@ makeversiondat.bat"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool"/>
-				<Tool Name="VFPreBuildEventTool" CommandLine="..\makeversiondat.bat"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="cd ..
+makeversiondat.bat"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_Debug|Win32">
