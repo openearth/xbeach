@@ -1,1 +1,1 @@
- "C:\Program Files\Microsoft Visual Studio 9.0\Common7\IDE\devenv.exe" /rebuild Release VS2008\XBeach.sln 
+ "%VS90COMNTOOLS%..\IDE\devenv.exe" /rebuild "Release|Win32" VS2008\XBeach.sln
