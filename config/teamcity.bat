@@ -1,1 +1,1 @@
-echo "Hello World"
+ devenv /rebuild Release trunk\VS2008\XBeach.sln 
