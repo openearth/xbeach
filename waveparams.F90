@@ -246,7 +246,7 @@ if (par%instat/=41) then
 !                                      Input file   Keyword     Default     Minimum     Maximum   
     wp%hm0gew           = readkey_dbl (fname,       'Hm0',      0.0d0,      0.00d0,     5.0d0,      bcast=.false. )
     fp                  = readkey_dbl (fname,       'fp',       0.08d0,     0.0625d0,   0.4d0,      bcast=.false. )
-    fnyq                = readkey_dbl (fname,       'fnyq',     5.d0*fp,    0.2d0,      1.0d0,      bcast=.false. )
+    fnyq                = readkey_dbl (fname,       'fnyq',     max(0.3d0,5.d0*fp),    0.2d0,      1.0d0,      bcast=.false. )
     dfj                 = readkey_dbl (fname,       'dfj',      fnyq/200,   fnyq/1000,  fnyq/20,    bcast=.false. )
     gam                 = readkey_dbl (fname,       'gammajsp', 3.3d0,      1.0d0,      5.0d0,      bcast=.false. )
     scoeff              = readkey_dbl (fname,       's',        10.0d0,     1.0d0,      1000.0d0,   bcast=.false. )
