@@ -843,10 +843,16 @@ if (par%instat/=9)then
              !  *(0.5d0*(ht(1,j)+ht(2,j))*(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))))&  !Jaap replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
              !  -(ui(1,j)*hum(1,j))*(dcos(theta0)-1.d0)/dcos(theta0))   !Jaap replaced hh with hu
 
-             ur = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
-               *(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j)))&  !Jaap replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
-               -ui(1,j)*(dcos(theta0)-1.d0)/dcos(theta0))   !Jaap replaced hh with hu
-
+             if (par%carspan==1) then ! assuming incoming long wave propagates at sqrt(g*h)
+			    ur = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
+                     *(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j)))&  !Jaap replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
+                     -ui(1,j)*(dcos(theta0)-1.d0)/dcos(theta0))   !Jaap replaced hh with hu
+             else                     ! assuming incoming long wave propagates at cg
+			    ur = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
+                     *(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j)))&  
+                     -ui(1,j)*(cg(1,j)*dcos(theta0)- DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))) )/(cg(1,j)*dcos(theta0))) 
+             endif
+             
              !vert = velocity of the reflected wave = total-specified
              vert = vu(1,j)-vmean(1,j)-ui(1,j)*tan(theta0)
              alphanew = datan(vert/(ur+1.d-16))                   ! wwvv can  use atan2 here

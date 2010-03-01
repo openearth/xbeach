@@ -727,13 +727,13 @@ type(parameters)                    :: par
 
 integer                             :: i
 integer                             :: j,jg
-real*8                              :: dster,twothird
-real*8                              :: z0,Ass,delta,dcf,dcfin
+real*8                              :: onethird,twothird
+real*8                              :: z0,Ass,dcf,dcfin
 real*8                              :: Te,kvis,Sster,c1,c2,wster
 real*8,save                         :: m1,m2,m3,m4,m5,m6
-real*8,save                         :: alpha,beta
+real*8,save                         :: alpha,beta,delta
 
-
+real*8 , dimension(:)  ,allocatable,save   :: w,dster
 real*8 , dimension(:,:),allocatable,save   :: vmg,Cd,Asb,dhdx,dhdy,Ts,Ur,Bm,B1
 real*8 , dimension(:,:),allocatable,save   :: urms2,Ucr,term1,term2
 real*8 , dimension(:,:),allocatable,save   :: uandv,b,fslope,hloc,ceqs,ceqb
@@ -762,6 +762,8 @@ if (.not. allocated(vmg)) then
    allocate (Ur    (nx+1,ny+1))
    allocate (Bm    (nx+1,ny+1))
    allocate (B1    (nx+1,ny+1))
+   allocate (w     (par%ngd))
+   allocate (dster (par%ngd))
    vmg = 0.d0
    m1 = 0;       ! a = 0
    m2 = 0.7939;  ! b = 0.79 +/- 0.023
@@ -771,6 +773,7 @@ if (.not. allocated(vmg)) then
    m6 = 0.5995;  ! f = 0.60 +/- 0.043
    alpha = -log10(exp(1.d0))/m4
    beta  = exp(m3/m4)
+   onethird=1.d0/3.d0
    ! Robert: do only once, not necessary every time step
    do jg=1,par%ngd
       ! cjaap: compute fall velocity with simple expression from Ahrens (2000)
@@ -780,7 +783,10 @@ if (.not. allocated(vmg)) then
       c1    = 1.06d0*tanh(0.064d0*Sster*exp(-7.5d0/Sster**2))
       c2    = 0.22d0*tanh(2.34d0*Sster**(-1.18d0)*exp(-0.0064d0*Sster**2))
       wster = c1+c2*Sster
-      par%w = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*D50(jg))
+      w(jg) = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*D50(jg))
+	  ! RJ: for modeling gravel
+	  delta = (par%rhos-par%rho)/par%rho
+      dster(jg)=(delta*par%g/1.d-12)**onethird*s%D50(jg) 
    enddo
 endif
 ! Soulsby van Rijn sediment transport formula
@@ -796,7 +802,6 @@ endif
 !
 hloc = hh
 twothird=2.d0/3.d0
-delta = (par%rhos-par%rho)/par%rho
 ! use eulerian velocities
 ! cjaap: add turbulence near bottom
 do j=1,ny+1 
@@ -820,10 +825,8 @@ urms2  = urms**2+0.50d0*(kb+kturb)
 
 do jg = 1,par%ngd
 
-   Ts       = par%tsfac*hloc/par%w
+   Ts       = par%tsfac*hloc/w(jg)
    Tsg(:,:,jg) = max(Ts,par%Tsmin) 
-
-   dster=25296*D50(jg)
    
    ! calculate treshold velocity Ucr
    if(D50(jg)<=0.0005d0) then
@@ -841,7 +844,7 @@ do jg = 1,par%ngd
 
    ! transport parameters
    Asb=0.005d0*hloc*(D50(jg)/hloc/(delta*par%g*D50(jg)))**1.2d0     ! bed load coefficent
-   Ass=0.012d0*D50(jg)*dster**(-0.6d0)/(delta*par%g*D50(jg))**1.2d0 ! suspended load coeffient
+   Ass=0.012d0*D50(jg)*dster(jg)**(-0.6d0)/(delta*par%g*D50(jg))**1.2d0 ! suspended load coeffient
 
   ! Diane Foster and Robert: limit Shields to par%smax -> vmag2 for transp. limited
   ! vmag2=min(vmag2,par%smax*par%C**2*D50(jg)*delta)
@@ -911,10 +914,13 @@ integer                                 :: i,ii
 integer , save                          :: nh,nt    
 integer                                 :: ih0,it0,ih1,it1
 integer                                 :: j,jg
-real*8                                  :: dster,onethird,twothird,Ass,dcf,dcfin,ML
-real*8                                  :: Te,kvis,Sster,cc1,cc2,wster,delta
+real*8                                  :: onethird,twothird,Ass,dcf,dcfin,ML
+real*8                                  :: Te,kvis,Sster,cc1,cc2,wster
 real*8                                  :: p,q,f0,f1,f2,f3,uad,duddtmax,dudtmax,siguref,t0fac,duddtmean,dudtmean
-real*8                               ,save     :: dh,dt
+real*8 , save                           :: dh,dt,delta
+real*8 , save                           :: m1,m2,m3,m4,m5,m6
+real*8 , save                           :: alpha,beta,Ur,Bm,B1
+real*8 , dimension(:),allocatable    ,save     :: w,dster  
 real*8 , dimension(:,:),allocatable  ,save     :: vmg,Asb,Ts
 real*8 , dimension(:,:),allocatable  ,save     :: urmsturb,Ucr,Ucrc,Ucrw,term1,B2,Cd
 real*8 , dimension(:,:),allocatable  ,save     :: hloc,ceqs,ceqb,h0,t0,detadxmax,detadxmean
@@ -942,8 +948,21 @@ if (.not. allocated(vmg)) then
    allocate (Ts    (nx+1,ny+1))
    allocate (ceqs  (nx+1,ny+1))
    allocate (ceqb  (nx+1,ny+1))
+   allocate (w     (par%ngd))
+   allocate (dster (par%ngd))
    allocate (RF    (18,33,40))
    vmg = 0.d0
+   onethird=1.d0/3.d0
+   if (par%waveform==1)then
+      m1 = 0;       ! a = 0
+      m2 = 0.7939;  ! b = 0.79 +/- 0.023
+      m3 = -0.6065; ! c = -0.61 +/- 0.041
+      m4 = 0.3539;  ! d = -0.35 +/- 0.032 
+      m5 = 0.6373;  ! e = 0.64 +/- 0.025
+      m6 = 0.5995;  ! f = 0.60 +/- 0.043
+      alpha = -log10(exp(1.d0))/m4
+      beta  = exp(m3/m4)
+   endif
    ! Robert: do only once, not necessary every time step
    do jg=1,par%ngd
       ! cjaap: compute fall velocity with simple expression from Ahrens (2000)
@@ -953,11 +972,13 @@ if (.not. allocated(vmg)) then
       cc1   = 1.06d0*tanh(0.064d0*Sster*exp(-7.5d0/Sster**2))
       cc2   = 0.22d0*tanh(2.34d0*Sster**(-1.18d0*exp(-0.0064d0*Sster**2)))
       wster = cc1+cc2*Sster
-      par%w = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*s%D50(jg))
+      w(jg) = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*s%D50(jg))
+	  ! RJ: for modeling gravel
+	  delta = (par%rhos-par%rho)/par%rho
+      dster(jg)=(delta*par%g/1.d-12)**onethird*s%D50(jg)
    enddo
 endif
 
-delta = (par%rhos-par%rho)/par%rho
 ! hloc   = max(hh,0.01d0) ! Jaap 
 hloc = hh
 onethird=1.d0/3.d0
@@ -1008,8 +1029,18 @@ do j=1,ny+1
       f2=q*(1-p);
       f3=p*q;
       
-      Sk(i,j) = f0*RF(13,ih0,it0)+f1*RF(13,ih1,it0)+ f2*RF(13,ih0,it1)+f3*RF(13,ih1,it1)
-	  As(i,j) = f0*RF(14,ih0,it0)+f1*RF(14,ih1,it0)+ f2*RF(14,ih0,it1)+f3*RF(14,ih1,it1)
+      if (par%waveform==1) then
+         Ur = 3.d0/8.d0*sqrt(2.d0)*H(i,j)*k(i,j)/(k(i,j)*hloc(i,j))**3   !Ursell number
+         Ur = max(Ur,0.000000000001d0)
+         Bm = m1 + (m2-m1)/(1.d0+beta*Ur**alpha)                         !Boltzmann sigmoid (eq 6)         
+         B1 = (-90.d0+90.d0*tanh(m5/Ur**m6))*par%px/180.d0
+         Sk(i,j) = Bm*cos(B1)                                            !Skewness (eq 8)
+         As(i,j) = Bm*sin(B1)                                            !Asymmetry(eq 9)
+	  elseif (par%waveform==2) then
+         Sk(i,j) = f0*RF(13,ih0,it0)+f1*RF(13,ih1,it0)+ f2*RF(13,ih0,it1)+f3*RF(13,ih1,it1)
+	     As(i,j) = f0*RF(14,ih0,it0)+f1*RF(14,ih1,it0)+ f2*RF(14,ih0,it1)+f3*RF(14,ih1,it1)
+      endif
+
       duddtmax = f0*RF(15,ih0,it0)+f1*RF(15,ih1,it0)+ f2*RF(15,ih0,it1)+f3*RF(15,ih1,it1)
 	  siguref = f0*RF(16,ih0,it0)+f1*RF(16,ih1,it0)+ f2*RF(16,ih0,it1)+f3*RF(16,ih1,it1)
 	  
@@ -1027,6 +1058,7 @@ do j=1,ny+1
 	  detadxmax(i,j) = dudtmax*sinh(k(i,j)*hloc(i,j))/max(c(i,j),sqrt(H(i,j)*par%g))/sigm(i,j)
       
 	  uad = f0*RF(17,ih0,it0)+f1*RF(17,ih1,it0)+ f2*RF(17,ih0,it1)+f3*RF(17,ih1,it1)
+	  
 	  ua(i,j) = par%sws*par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
 
       ! Jaap: use average slope over bore front in roller energy balance...
@@ -1078,28 +1110,27 @@ urmsturb = dsqrt(urms**2.d0+1.45d0*(kb+kturb))
 
 do jg = 1,par%ngd
    
-   Ts       = par%tsfac*hloc/par%w
+   Ts       = par%tsfac*hloc/w(jg)
    Tsg(:,:,jg) = max(Ts,par%Tsmin) 
-   
-   dster=25296*s%D50(jg)
    !
    ! calculate treshold velocity Ucr
    !
    if(s%D50(jg)<=0.0005) then
-     Ucrc=0.19d0*D50(jg)**0.1d0*log10(4.d0*hloc/D90(jg)) 
-	 Ucrw=0.24d0*(delta*par%g)**0.66d0*s%D50(jg)**0.33d0*par%Trep**0.33d0 
+     Ucrc=0.19d0*D50(jg)**0.1d0*log10(4.d0*hloc/D90(jg))                           !Shields
+	 Ucrw=0.24d0*(delta*par%g)**0.66d0*s%D50(jg)**0.33d0*par%Trep**0.33d0          !Komar and Miller (1975)
    else if(s%D50(jg)<0.002) then
      Ucrc=8.5d0*D50(jg)**0.6d0*log10(4.d0*hloc/D90(jg))                            !Shields
-	 Ucrw=0.95d0*(delta*par%g)**0.57d0*D50(jg)**0.43*par%Trep**0.14               !Komar and Miller (1975)
-   else
-     write(*,*) ' D50(jg) > 2mm, out of validity range'
+	 Ucrw=0.95d0*(delta*par%g)**0.57d0*D50(jg)**0.43*par%Trep**0.14                !Komar and Miller (1975)
+   else if(s%D50(jg)>0.002) then
+     Ucrc=1.3d0*sqrt(delta*par%g*D50(jg))*(hloc/D50(jg))**(0.5d0*onethird)         !Maynord (1978) --> also Neill (1968) where 1.3d0 = 1.4d0
+	 Ucrw=0.95d0*(delta*par%g)**0.57d0*D50(jg)**0.43*par%Trep**0.14                !Komar and Miller (1975)
    end if
    B2 = vmg/max(vmg+urmsturb,par%eps)
-   Ucr = B2*Ucrc + (1-B2)*Ucrw                                                       ! Van Rijn 2008 (Bed load transport paper)
+   Ucr = B2*Ucrc + (1-B2)*Ucrw                                                     !Van Rijn 2007 (Bed load transport paper)
 
    ! transport parameters
-   Asb=0.015d0*hloc*(s%D50(jg)/hloc)**1.2d0/(delta*par%g*s%D50(jg))**0.75d0         !bed load coefficent
-   Ass=0.012d0*s%D50(jg)*dster**(-0.6d0)/(delta*par%g*s%D50(jg))**1.2d0             !suspended load coeffient
+   Asb=0.015d0*hloc*(s%D50(jg)/hloc)**1.2d0/(delta*par%g*s%D50(jg))**0.75d0        !bed load coefficent
+   Ass=0.012d0*s%D50(jg)*dster(jg)**(-0.6d0)/(delta*par%g*s%D50(jg))**1.2d0        !suspended load coeffient
    
    ! Jaap: Gravel test:
 

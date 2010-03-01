@@ -214,7 +214,8 @@ type parameters
    real*8        :: merge                      = -123    !  [-] Merge threshold for variable sediment layer (ratio to nominal thickness)
 
 
-   ! Sediment transport parameters                                                                                                 
+   ! Sediment transport parameters                                                                                    
+   integer*4     :: waveform                   = -123    !  [-] Option for waveshape model: 1 = Ruessink & Van Rijn, 2 = Van Thiel de Vries, 2009             
    integer*4     :: form                       = -123    !  [-] Equilibrium sed. conc. formulation: 1 = Soulsby van Rijn, 1997, 2 = Van Rijn 2008 with modifications by Van Thiel
    integer*4     :: sws                        = -123    !  [-] 1 = short wave & roller stirring and undertow, 0 = no short wave & roller stirring and undertow
    integer*4     :: lws                        = -123    !  [-] 1 = long wave stirring, 0 = no long wave stirring
@@ -621,6 +622,7 @@ par%betad    = readkey_dbl ('params.txt','betad  ',1.0d0,     0.00d0,   10.0d0)
 par%lwt      = readkey_int ('params.txt','lwt    ',0,           0,            1)
 par%sigfac   = readkey_dbl ('params.txt','sigfac ',1.3d0,     0.00d0,   10.d0) 
 par%sourcesink      = readkey_int ('params.txt','sourcesink    ',0,           0,            1)
+par%waveform        = readkey_int ('params.txt','waveform      ',1,           1,            2)
 if (par%morfac>1.d0) then
    if (par%sourcesink==1) then
        write(*,*)'Warning: Using source-sink terms for bed level change with morfac can lead to loss of sediment mass conservation.'
