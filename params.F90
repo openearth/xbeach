@@ -259,6 +259,7 @@ type parameters
    integer*4     :: npoints                    = -123    !  [-] Number of output point locations
    integer*4     :: nrugauge                   = -123    !  [-] Number of output runup gauge locations
    integer*4     :: ncross                     = -123    !  [-] Number of output cross sections
+   character(256):: outputformat               = 'fortran' !  [name] Choice of output file format: 'netcdf', 'fortran', or 'debug'
   
    ! Drifters parameters
    integer*4     :: ndrifter                   = -123    !  Note: will replace lookup in drifters module [-] Number of drifers

@@ -16,6 +16,10 @@ use wave_timestep_module
 use timestep_module
 use readkey_module
 use groundwaterflow
+! IFDEF used in case netcdf support is not compiled, f.i. Windows (non-Cygwin)
+#ifdef USENETCDF
+use ncoutputmod
+#endif
 
 
 IMPLICIT NONE
@@ -173,6 +177,9 @@ if (xmaster) then
   write(*,*) 'Stepping into the time loop ....'  
 endif
 
+
+par%outputformat='debug'
+
 !#ifdef USEMPI
 !t01 = MPI_Wtime()
 !#endif
@@ -218,7 +225,18 @@ do while (par%t<par%tstop)
     call bed_update(s,par)
     call printit(sglobal,slocal,par,it,'after bed_update')
     ! Output
-    call var_output(it,sglobal,s,par)
+	if (par%outputformat=='fortran') then
+        call var_output(it,sglobal,s,par)
+	elseif (par%outputformat=='netcdf') then
+#ifdef USEMPI
+	    call nc_output(it,sglobal,s,par)
+#endif
+	elseif (par%outputformat=='debug') then
+#ifdef USEMPI
+	    call nc_output(it,sglobal,s,par)
+#endif
+		call var_output(it,sglobal,s,par)
+	endif
 #ifdef USEMPI
 !   varoutput changed some in parameters, so:
     call distribute_par(par)

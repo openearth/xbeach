@@ -36,7 +36,7 @@ bin_PROGRAMS = makeincludes$(EXEEXT) xbeach$(EXEEXT)
 
 # if mpi, then add some flags
 @USEMPI_TRUE@am__append_1 = -DUSEMPI -DHAVE_MPI_WTIME
-@USENETCDF_TRUE@am__append_2 = ${NETCDF_CFLAGS}
+@USENETCDF_TRUE@am__append_2 = -DUSENETCDF ${NETCDF_CFLAGS}
 @USENETCDF_TRUE@am__append_3 = ${NETCDF_LIBS}
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \

@@ -8,6 +8,8 @@
 ! it will add dependencies on the netcdf fortran library (http://www.unidata.ucar.edu/software/netcdf/)
 ! 
 module ncoutputmod
+#ifdef USENETCDF
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -107,4 +109,6 @@ subroutine var_output(it,s,sl,par)
 
 end subroutine var_output
 
+
+#endif USENETCDF
 end module ncoutputmod
