@@ -6,6 +6,10 @@ makeincludes_SOURCES= \
 	makeincludes.F90
 makeincludes_LDFLAGS=
 
+if USENETCDF
+extra_xbeach_sources=ncoutput.F90
+endif
+
 xbeach_SOURCES= \
 	s.ind \
 	s.inp \
@@ -37,8 +41,8 @@ xbeach_SOURCES= \
 	flow_timestep.F90 \
 	varianceupdate.F90 \
 	varoutput.F90 \
-	$(extra_sources) \
-	xbeach.F90 
+	${extra_xbeach_sources} \
+	xbeach.F90
 
 
 
@@ -107,8 +111,16 @@ check_SCRIPTS= \
 TESTS=${testdir}/autotest_*
 endif
 
+# Set flags off by default
+xbeach_FCFLAGS=
+
+# if mpi, then add some flags
 if USEMPI
-xbeach_FCFLAGS=-DUSEMPI -DHAVE_MPI_WTIME
+xbeach_FCFLAGS+=-DUSEMPI -DHAVE_MPI_WTIME
+endif
+if USENETCDF
+xbeach_FCFLAGS+=${NETCDF_CFLAGS}
+LIBS+=${NETCDF_LIBS}
 endif
 
 

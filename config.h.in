@@ -3,6 +3,9 @@
 /* Define if you have the MPI library. */
 #undef HAVE_MPI
 
+/* Defined if you have NETCDF library. */
+#undef HAVE_NETCDF
+
 /* Name of package */
 #undef PACKAGE
 

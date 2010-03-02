@@ -14,21 +14,48 @@ AC_CONFIG_HEADERS([config.h])
 
 
 # Checks for programs.
-AC_PROG_FC
-AC_PROG_F77
+# use doxygen
+dnl DX_INIT_DOXYGEN(XBeach, Doxyfile, [doc])
+dnl DX_DOXYGEN_FEATURE(ON)
+dnl DX_DOT_FEATURE(ON)
+dnl DX_HTML_FEATURE(ON)
+dnl DX_CHM_FEATURE(OFF)
+dnl DX_CHI_FEATURE(OFF)
+dnl DX_MAN_FEATURE(OFF)
+dnl DX_RTF_FEATURE(OFF)
+dnl DX_XML_FEATURE(OFF)
+dnl DX_PDF_FEATURE(ON)
+dnl DX_PS_FEATURE(OFF) 
+
+# prefer compilers we tested
+AC_PROG_FC([gfortran-mp-4.4 gfortran-mp-4.3 gfortran ifort ifc g95 xlf95 f95 fort  efc pgf95 lf95 ftn xlf90 f90 pgf90 pghpf epcf90 g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77])
 AC_PROG_INSTALL
 # Checks for libraries.
 
-AC_ARG_WITH(mpi, [AS_HELP_STRING([--with-mpi],[Build with mpi support @<:@default=check@:>@])], [],[])
+AC_ARG_WITH(mpi, [AS_HELP_STRING([--with-mpi],[Build with mpi support @<:@default=no@:>@])], [],[with_mpi=no])
 AS_IF([test "x$with_mpi" != xno],
-	    [AC_LANG_PUSH(Fortran)
-	    ACX_MPI
-	    AC_LANG_POP
-	    FC=$MPIFC],
-	    [])
+ 	    [AC_LANG_PUSH(Fortran)
+ 	    ACX_MPI
+ 	    AC_LANG_POP
+ 	    FC=$MPIFC],
+ 	    [])
 # define usempi (same as HAVE_MPI)
 AM_CONDITIONAL(USEMPI, test "x$with_mpi" != "xno")
 
+#AC_SUBST(with_netcdf)
+
+dnl not prefered, but added for compatibility 
+AC_PATH_PROG(PKG_CONFIG,pkg-config)
+dnl prefer to use this one:
+dnl PKG_PROG_PKG_CONFIG
+AC_ARG_WITH(netcdf,[AS_HELP_STRING([--with-netcdf],[Build with netcdf support @<:@default=no@:>@])], [],[with_netcdf=no])
+AS_IF([test "x$with_netcdf" != "xno"],
+	[
+	PKG_CHECK_MODULES(NETCDF, netcdf >= 4)
+        AC_DEFINE(HAVE_NETCDF,1,[Defined if you have NETCDF library.])
+	],
+	[])
+AM_CONDITIONAL(USENETCDF, test "x$with_netcdf" != "xno")
 
 # Checks for header files.
 
