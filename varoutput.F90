@@ -10,15 +10,15 @@ use varianceupdate_module
 
 implicit none
 private
-public init_output, var_output
+public output_init, var_output
 
 ! Robert: Add choice of output variables
 !logical,dimension(999)              :: outputindex ! [-]      tracks which  global variables are to be outputted.
-integer*4                           :: nglobalvar  ! number of global output variables
+
 integer*4                           :: npoints     ! number of output points
 integer*4                           :: nrugauge    ! number of runup gauges
 integer*4                           :: ncross      ! number of cross section profiles
-integer                             :: timings     ! 0: no timings, 1 timings output
+
 integer*4,dimension(:),allocatable  :: pointtype   ! 0 = point output, 1 = runup gauge
 integer*4,dimension(:),allocatable  :: crosstype   ! 0 = cross shore (x), 1 = longshore (y)
 integer*4,dimension(:),allocatable  :: xpoints     ! model x-coordinate of output points
@@ -30,15 +30,13 @@ integer*4,dimension(:),allocatable  :: nvarcross   ! vector with number of outpu
 integer*4,dimension(:,:),allocatable:: Avarpoint   ! Array with associated index of output variables per point
 integer*4,dimension(:,:),allocatable:: Avarcross   ! Array with associated index of output variables per cross section
                                                    ! Only alive at xmaster
-integer*4                           :: nmeanvar    ! number of time-average variables
 integer*4,dimension(:),allocatable  :: meanvec     ! keep track of which mean variables are used
-real*8,dimension(:),allocatable     :: tpg,tpp,tpm,tpc,tpw ! output time points
 integer*4                           :: stpm        ! size of tpm
 
 integer                             :: noutnumbers = 0  ! the number of outnumbers
 
 integer, dimension(numvars)         :: outnumbers  ! numbers, corrsponding to mnemonics, which are to be output
-integer                             :: ndt,itg,itp,itc,itm,day,ot,itprev
+integer                             :: ndt,itg,itp,itc,itm,day,ot
 real*8,dimension(10)                :: tlast10
 type(arraytype)                     :: At
 
@@ -65,50 +63,80 @@ contains
 
 
 
-subroutine init_output(s,sl,par,it)
+subroutine output_init(s,sl,par,tpar)
   use params
   use spaceparams
   use readkey_module
+  use timestep_module
 
   IMPLICIT NONE
 
   type(spacepars),intent(inout)       :: s,sl
   type(parameters)                    :: par
+  type(timepars)                    :: tpar
 
-  integer                             :: id,ic,icold,i,ii,index,it
+  integer                             :: id,ic,icold,i,ii,index
+  integer                             :: i1,i2,i3
+  integer                             :: reclen,reclenc,reclenp,wordsize
   integer,dimension(2)                :: minlocation
   character(80)                       :: line, keyword
-  character(80)                       :: var, fname
+  character(80)                       :: var
   integer, dimension(:,:),allocatable :: temparray
   real*8,dimension(s%nx+1,s%ny+1)	  :: mindist
   real*8                              :: tg1,tp1,tm1,tw1,tc1
   real*8,dimension(:),allocatable     :: xpointsw,ypointsw
   real*8,dimension(:),allocatable     :: xcrossw,ycrossw
-  character(1)								  :: char
+  character(1)						  :: singlechar
+  character(99)                       :: fname,fnamemean,fnamevar,fnamemin,fnamemax
   
+  
+
+  ! Initialize places in output files
+  itg = 0
+  itm = 0
+  itp = 0
+  itc = 0
+
+  ! Record size for global and mean output
+  inquire(iolength=wordsize) 1.d0
+  reclen=wordsize*(s%nx+1)*(s%ny+1)
+
+  !!!!! XY.DAT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+  if (xmaster) then
+     open(100,file='xy.dat',form='unformatted',access='direct',recl=reclen)
+     write(100,rec=1)s%xw
+     write(100,rec=2)s%yw
+     write(100,rec=3)s%x
+     write(100,rec=4)s%y
+     close(100)
+  endif
 
   !!!!! OUTPUT POINTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
   npoints  = readkey_int ('params.txt','npoints',      0,       0,     50)
   nrugauge = readkey_int ('params.txt','nrugauge',     0,       0,     50)
-
-  timings  = readkey_int ('params.txt','timings',      1,       0,      1)
-
-  if ((npoints+nrugauge)>0) then 
-      allocate(pointtype(npoints+nrugauge))
-      allocate(xpoints(npoints+nrugauge))
-      allocate(ypoints(npoints+nrugauge))
-	  allocate(xpointsw(npoints+nrugauge))
-      allocate(ypointsw(npoints+nrugauge))
-      allocate(nvarpoint(npoints+nrugauge))
-      allocate(temparray(npoints+nrugauge,99))
-      pointtype(1:npoints)=0
-      pointtype(npoints+1:npoints+nrugauge)=1
+  ! Fedor + Robert : temporary, will be changed once point output updated for netcdf
+  par%npoints=npoints
+  par%nrugauge=nrugauge
+  
+  if ((par%npoints+par%nrugauge)>0) then 
+      allocate(pointtype(par%npoints+par%nrugauge))
+      allocate(xpoints(par%npoints+par%nrugauge))
+      allocate(ypoints(par%npoints+par%nrugauge))
+	  allocate(xpointsw(par%npoints+par%nrugauge))
+      allocate(ypointsw(par%npoints+par%nrugauge))
+      allocate(nvarpoint(par%npoints+par%nrugauge))
+      allocate(temparray(par%npoints+par%nrugauge,99))
+      pointtype(1:par%npoints)=0
+      pointtype(par%npoints+1:par%npoints+par%nrugauge)=1
       temparray=-1
 
       if (xmaster) then
-        if (npoints>0) then
+        if (par%npoints>0) then
           id=0
           ! Look for keyword npoints in params.txt
           open(10,file='params.txt')
@@ -121,7 +149,7 @@ subroutine init_output(s,sl,par,it)
             endif
           enddo
 
-          do i=1,npoints
+          do i=1,par%npoints
               read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
 			  write(*,'(a,i0)') ' Output point ',i
               write(*,'(a,f0.2,a,f0.2)') ' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i)
@@ -153,9 +181,9 @@ subroutine init_output(s,sl,par,it)
 			 
           enddo
           close(10)
-        endif ! npoints>0  
+        endif ! par%npoints>0  
 
-        if (nrugauge>0) then
+        if (par%nrugauge>0) then
           id=0
           ! Look for keyword nrugauge in params.txt
           open(10,file='params.txt')
@@ -168,9 +196,9 @@ subroutine init_output(s,sl,par,it)
             endif
           enddo
 
-          do i=1+npoints,nrugauge+npoints
+          do i=1+par%npoints,par%nrugauge+par%npoints
               read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
-			  write(*,'(a,i0)') ' Output runup gauge ',i-npoints
+			  write(*,'(a,i0)') ' Output runup gauge ',i-par%npoints
               write(*,'(a,f0.2,a,f0.2)') ' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i)
 				  ! Convert world coordinates of points to nearest (lsm) grid row
 			     mindist=sqrt((xpointsw(i)-s%xw)**2+(ypointsw(i)-s%yw)**2)
@@ -197,7 +225,7 @@ subroutine init_output(s,sl,par,it)
 			  
           enddo
           close(10)
-        endif  ! nrugauge > 0	    
+        endif  ! par%nrugauge > 0	    
       endif ! xmaster
 
 	 
@@ -210,24 +238,48 @@ subroutine init_output(s,sl,par,it)
       call xmpi_bcast(temparray)   
 #endif
       ! Tidy up information
-      allocate(Avarpoint(npoints+nrugauge,maxval(nvarpoint)))
+      allocate(Avarpoint(par%npoints+par%nrugauge,maxval(nvarpoint)))
       Avarpoint(:,:)=temparray(:,1:maxval(nvarpoint))
       deallocate (temparray)
-  endif ! npoints + nrugauge > 0
+
+	  !! First time file opening for point output
+      if (xmaster) then
+         do i=1,par%npoints+par%nrugauge
+            if (pointtype(i)==0) then
+                fname(1:5)='point'
+                i1=floor(real(i)/100.d0)
+                i2=floor(real(i-i1*100)/10.d0)
+                i3=i-i1*100-i2*10
+            else
+                fname(1:5)='rugau'
+                i1=floor(real(i-par%npoints)/100.d0)
+                i2=floor(real((i-par%npoints)-i1*100)/10.d0)
+                i3=(i-par%npoints)-i1*100-i2*10
+            endif
+            fname(6:6)=char(48+i1)
+            fname(7:7)=char(48+i2)
+            fname(8:8)=char(48+i3)
+            fname(9:12)='.dat'
+            reclenp=wordsize*(nvarpoint(i)+1)*1
+            open(indextopointsunit(i),file=fname,&
+            form='unformatted',access='direct',recl=reclenp)
+         enddo
+      endif
+  endif ! par%npoints + par%nrugauge > 0
 
 
   !!!!! CROSS SECTION OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ncross  = readkey_int ('params.txt','ncross',      0,       0,     50)
-
-  if (ncross>0) then
-     allocate(crosstype(ncross))
-     allocate(xcross(ncross))
-     allocate(ycross(ncross))
-	  allocate(xcrossw(ncross))
-     allocate(ycrossw(ncross))
-     allocate(nvarcross(ncross))
-     allocate(temparray(ncross,99))
-     temparray=-1
+  ! Fedor +  Robert : will be changed once cross section ready for netcdf
+  if (par%ncross>0) then
+     allocate(crosstype(par%ncross))
+     allocate(xcross(par%ncross))
+     allocate(ycross(par%ncross))
+	  allocate(xcrossw(par%ncross))
+     allocate(ycrossw(par%ncross))
+     allocate(nvarcross(par%ncross))
+     allocate(temparray(par%ncross,99))
+      temparray=-1
 
 	  if (xmaster) then
 	     id=0
@@ -242,16 +294,16 @@ subroutine init_output(s,sl,par,it)
           endif
         enddo
         
-		  do i=1,ncross
+		  do i=1,par%ncross
 !          read(10,*) xcrossw(i),ycrossw(i),crosstype(i),nvarcross(i),line
-          read(10,*) xcrossw(i),ycrossw(i),char,nvarcross(i),line
+          read(10,*) xcrossw(i),ycrossw(i),singlechar,nvarcross(i),line
 			 write(*,'(a,i0)') ' Cross section ',i
-			 if(char=='x'.or.char=='X') then
+			 if(singlechar=='x'.or.singlechar=='X') then
 			    crosstype(i)=0
-			 elseif(char=='y'.or.char=='Y') then
+			 elseif(singlechar=='y'.or.singlechar=='Y') then
 			    crosstype(i)=1
 			 else
-                write(*,*)' Unknown cross section type: ',char
+                write(*,*)' Unknown cross section type: ',singlechar
                 call halt_program
 			 endif
 			 ! Convert world coordinates of points to nearest (lsm) grid row
@@ -299,10 +351,30 @@ subroutine init_output(s,sl,par,it)
 #endif     
 
      ! Tidy up information
-     allocate(Avarcross(ncross,maxval(nvarcross)))
+     allocate(Avarcross(par%ncross,maxval(nvarcross)))
      Avarcross(:,:)=temparray(:,1:maxval(nvarcross))
      deallocate (temparray)
-  endif ! ncross > 0
+
+     !! First time file opening for cross section output
+     if (xmaster) then
+        do i=1,par%ncross
+            fname(1:5)='cross'
+            i1=floor(real(i)/100.d0)
+            i2=floor(real(i-i1*100)/10.d0)
+            i3=i-i1*100-i2*10
+            fname(6:6)=char(48+i1)
+            fname(7:7)=char(48+i2)
+            fname(8:8)=char(48+i3)
+            fname(9:12)='.dat'
+            if (crosstype(i)==0) then
+			   reclenc=wordsize*(s%nx+1)*(nvarcross(i))
+            else
+			   reclenc=wordsize*(s%ny+1)*(nvarcross(i))
+			endif 
+            open(indextocrossunit(i),file=fname,form='unformatted',access='direct',recl=reclenc)
+        enddo
+     endif
+  endif ! par%ncross > 0
 
 
 
@@ -312,13 +384,12 @@ subroutine init_output(s,sl,par,it)
   ! Default choice = H,zs,zb,u,v,cc,Su,Sv, dims
   ! dims is given number 999 !!!!!
 
-  nglobalvar  = readkey_int ('params.txt','nglobalvar',   -1,       -1,     20)
-
   !outputindex = .false.
 
   !if (nglobalvar == 0) then                       ! User wants no output
   !        outputindex = .false.
-  if (nglobalvar == -1)       then    ! Default output
+
+  if (par%nglobalvar == -1)       then    ! Default output
           call add_outmnem('H')
           call add_outmnem('zs')
           call add_outmnem('zs0')
@@ -340,7 +411,7 @@ subroutine init_output(s,sl,par,it)
           call add_outmnem('R')
           call add_outmnem('D')
           call add_outmnem('DR')
-  elseif (nglobalvar == 999) then ! Output all
+  elseif (par%nglobalvar == 999) then ! Output all
           do i=1,numvars
             call add_outnumber(i)
           enddo
@@ -357,8 +428,8 @@ subroutine init_output(s,sl,par,it)
                 if (keyword == 'nglobalvar') id=1
               endif
             enddo
-          ! Read through the variables lines
-            do i=1,nglobalvar
+          ! Read through the variables lines, TODO: this should go to params.F90
+            do i=1,par%nglobalvar
                     read(10,'(a)')line
                     line=trim(line)        ! useless   wwvv
                     call add_outmnem(line)
@@ -376,9 +447,9 @@ subroutine init_output(s,sl,par,it)
   !!!!! TIME-AVEARGE, VARIANCE and MIN-MAX ARRAYS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-  nmeanvar = readkey_int ('params.txt','nmeanvar',0,0,15)
-  if (nmeanvar>0) then
-      allocate(meanvec(nmeanvar))
+
+  if (par%nmeanvar>0) then
+      allocate(meanvec(par%nmeanvar))
       id=0
 	  ! Look for keyword nmeanvar in params.txt
 	  if(xmaster) then
@@ -392,7 +463,7 @@ subroutine init_output(s,sl,par,it)
           endif
         enddo
 		! Read through the variables lines
-        do i=1,nmeanvar
+        do i=1,par%nmeanvar
             read(10,'(a)')line
             index = chartoindex(trim(line))
             if (index/=-1) then
@@ -410,203 +481,30 @@ subroutine init_output(s,sl,par,it)
             endif
         end do
         close(10)
-		call initialize_mean_arrays(s%nx,s%ny,nmeanvar)
+		call initialize_mean_arrays(s%nx,s%ny,par%nmeanvar)
       endif  ! xmaster
 
 #ifdef USEMPI
       call xmpi_bcast(meanvec)
 #endif
-
-  endif ! nmeanvar > 0
-
-  !!!!! OUTPUT TIME POINTS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  ! If working in instat 0 or instat 40 we want time to coincide at wavint timesteps
-  if (par%instat==0 .or. par%instat==40) then
-	  if(xmaster) then
-	     ii=floor(par%tstop/par%wavint)
-	     allocate(tpw(ii))
-	     do i=1,ii
-	        tpw(i)=real(i)*par%wavint
-	     enddo
-      endif
-#ifdef USEMPI
-      call xmpi_bcast(ii)
-      if (.not.xmaster) then
-        allocate(tpw(ii))
-      endif
-      call xmpi_bcast(tpw)
-#endif
-  endif    
-
-  ! If we want global output then
-  if (nglobalvar/=0) then
+      itm=0
+      !! First time file opening for time-average output
       if(xmaster) then
-        call readkey('params.txt','tsglobal',fname)
-        if (fname/=' ') then
-            open(10,file=fname)
-            read(10,*)ii
-            allocate(tpg(ii))
-            do i=1,ii
-                    read(10,*)tpg(i)
-            enddo
-				if (par%morfacopt==1) tpg=tpg/max(par%morfac,1.d0)
-            close(10)
-        else
-            ii=floor((par%tstop-par%tstart)/par%tintg)+1
-            allocate(tpg(ii))
-            do i=1,ii
-                    tpg(i)=par%tstart+par%tintg*real(i-1)
-            enddo
-        endif
-      endif  !xmaster
-#ifdef USEMPI
-      call xmpi_bcast(ii)
-      if (.not.xmaster) then
-        allocate(tpg(ii))
+         do i=1,par%nmeanvar
+            call makeaveragenames(meanvec(i),fnamemean,fnamevar,fnamemin,fnamemax)
+            fnamemean=trim(fnamemean)
+            fnamevar =trim(fnamevar)
+		    fnamemin =trim(fnamemin)
+		    fnamemax =trim(fnamemax)
+            open(indextomeanunit(i),file=fnamemean,form='unformatted',access='direct',recl=reclen)
+            open(indextovarunit(i) ,file=fnamevar ,form='unformatted',access='direct',recl=reclen)
+            open(indextominunit(i) ,file=fnamemin ,form='unformatted',access='direct',recl=reclen)
+	        open(indextomaxunit(i),file=fnamemax,  form='unformatted',access='direct',recl=reclen)
+         enddo
       endif
-      call xmpi_bcast(tpg)
-#endif
-  endif ! nglobalvar /=0
+  endif ! par%nmeanvar > 0
 
-  ! If we want point output then
-  if ((npoints+nrugauge)>0) then 
-      if (xmaster) then
-        call readkey('params.txt','tspoints',fname)
-        if (fname/=' ') then
-            open(10,file=fname)
-            read(10,*)ii
-            allocate(tpp(ii))
-            do i=1,ii
-                    read(10,*)tpp(i)
-            enddo
-		    if (par%morfacopt==1) tpp=tpp/max(par%morfac,1.d0)
-            close(10)
-        else
-            ii=floor((par%tstop-par%tstart)/par%tintp)+1
-            allocate(tpp(ii))
-            do i=1,ii
-                    tpp(i)=par%tstart+par%tintp*real(i-1)
-            enddo
-        endif
-      endif    ! xmaster
-#ifdef USEMPI
-      call xmpi_bcast(ii)
-      if (.not.xmaster) then
-        allocate(tpp(ii))
-      endif
-      call xmpi_bcast(tpp)
-#endif
-  endif ! (npoints+nrugauge)>0 
-
-! If we want cross section output then
-  if ((ncross)>0) then 
-      if (xmaster) then
-        call readkey('params.txt','tscross',fname)
-        if (fname/=' ') then
-            open(10,file=fname)
-            read(10,*)ii
-            allocate(tpc(ii))
-            do i=1,ii
-               read(10,*)tpc(i)
-            enddo
-            close(10)
-        else
-            ii=floor((par%tstop-par%tstart)/par%tintc)+1
-            allocate(tpc(ii))
-            do i=1,ii
-               tpc(i)=par%tstart+par%tintc*real(i-1)
-            enddo
-        endif
-      endif    ! xmaster
-#ifdef USEMPI
-      call xmpi_bcast(ii)
-      if (.not.xmaster) then
-        allocate(tpc(ii))
-      endif
-      call xmpi_bcast(tpc)
-#endif
-  endif ! (ncross)>0 
-
-  ! If we want time-average output then
-  if (nmeanvar>0) then
-      if(xmaster) then
-        call readkey('params.txt','tsmean',fname)
-        if (fname/=' ') then
-            open(10,file=fname)
-            read(10,*)ii
-            allocate(tpm(ii))
-            do i=1,ii
-                    read(10,*)tpm(i)
-            enddo
-			if (par%morfacopt==1) tpm=tpm/max(par%morfac,1.d0)
-            close(10)
-        else
-            ii=floor((par%tstop-par%tstart)/par%tintm)+1
-			if (ii<=1) then
-				write(*,*)'Tintm is larger than output simulation time '
-				call halt_program
-			endif
-            allocate(tpm(ii))
-            do i=1,ii
-                    tpm(i)=par%tstart+par%tintm*real(i-1)
-            enddo
-        endif
-      endif
-#ifdef USEMPI
-      call xmpi_bcast(ii)
-      if (.not.xmaster) then
-        allocate(tpm(ii))
-      endif
-      call xmpi_bcast(tpm)
-#endif
-  endif  ! nmeanvar > 0
-
-  ! If tp series not defined, then no output wanted, so large timestep
-  if (.not. allocated(tpw)) then 
-      allocate(tpw(1))
-	  tpw=par%tstop
-  endif
-
-  if (.not. allocated(tpg)) then
-      allocate(tpg(1))
-      tpg=par%tstop
-  endif
-  if (.not. allocated(tpp)) then
-      allocate(tpp(1))
-      tpp=par%tstop
-  endif
-  if (.not. allocated(tpc)) then
-      allocate(tpc(1))
-      tpc=par%tstop
-  endif
-  if (.not. allocated(tpm)) then  ! Need minimum two in this array
-      allocate(tpm(2))
-      tpm(1)=par%tstop
-      tpm(2)=par%tstop+1.d0
-  endif
-
-  tg1=minval(tpg)
-  tp1=minval(tpp)
-  tc1=minval(tpc)
-  tm1=minval(tpm)
-  tw1=minval(tpw)
-  par%tintm=tpm(2)-tpm(1)
-  stpm=size(tpm)
-
-  if (min(tg1,tp1,tm1,tc1)>0.d0) then    ! No output wanted at initialization
-      par%tnext=min(tg1,tp1,tm1,tc1,tw1)
-  else
-      it=1
-      tg1=minval(tpg,MASK=tpg .gt. 0.d0)
-      tp1=minval(tpp,MASK=tpp .gt. 0.d0)
-		tc1=minval(tpc,MASK=tpc .gt. 0.d0)
-      tm1=minval(tpm,MASK=tpm .gt. 0.d0)
-		tw1=minval(tpw,MASK=tpw .gt. 0.d0)
-      par%tnext=min(tg1,tp1,tm1,tc1,tw1)
-  endif
-
-
-end subroutine init_output
+end subroutine output_init
 
 subroutine add_outnumber(number)
   use xmpi_module
@@ -648,53 +546,53 @@ end subroutine add_outmnem
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-subroutine var_output(it,s,sl,par)
+subroutine var_output(it,s,sl,par,tpar)
   use params
   use spaceparams
+  use timestep_module
 
   IMPLICIT NONE
 
   type(spacepars)                         :: s,sl
   type(parameters)                        :: par
-
+  type(timepars),intent(in)               :: tpar
   integer                                 :: i,ii,tt,k
-  integer                                 :: it,i1,i2,i3
+  integer, intent(in)                     :: it
+!  integer                                 :: i1,i2,i3
   integer                                 :: wordsize, idum
-  integer                                 :: reclen,reclen2,reclenc,reclenp
-  real*8                                  :: dtimestep,tpredicted,tnow, t1,t2,t3,t4,t5
-  character(12)                           :: fname
-  character(99)                           :: fnamemean,fnamevar,fnamemin,fnamemax
+!  integer                                 :: reclen,reclen2,reclenc,reclenp
+  real*8                                  :: dtimestep,tpredicted,tnow
+!  character(12)                           :: fname
   real*8,dimension(numvars)               :: intpvector
   real*8,dimension(numvars,s%nx+1)        :: crossvararray0
   real*8,dimension(numvars,s%ny+1)        :: crossvararray1
   integer,dimension(:),allocatable        :: tempvectori
   real*8,dimension(:),allocatable         :: tempvectorr, temp
   integer,dimension(8)                    :: datetime
-  real*8,dimension(size(tpg)+size(tpp)+size(tpc)+size(tpm)) :: outputtimes
+  real*8,dimension(size(tpar%tpg)+size(tpar%tpp)+size(tpar%tpc)+size(tpar%tpm)) :: outputtimes
   type(arraytype)                         :: t
   real*8,dimension(:,:),pointer				:: MI,MA
   
   inquire(iolength=wordsize) 1.d0
-  reclen=wordsize*(s%nx+1)*(s%ny+1)
-  reclen2=wordsize*(s%nx+1)*(s%ny+1)*(par%ngd)*(par%nd)
+!  reclen=wordsize*(s%nx+1)*(s%ny+1)
+!  reclen2=wordsize*(s%nx+1)*(s%ny+1)*(par%ngd)*(par%nd)
   
-  ! Complicated check, so only carry out if it = 0 or it = 1
-  if (it<2) then 
+  ! Complicated check, so only carry out if it = 0 
+  if (it==0) then 
   ! Do only at very first time step
-	  if ((abs(par%t-par%dt)<1.d-6.and.it==0).or.(par%t<1.d-6.and.it==1)) then
+	  if ((abs(par%t-par%dt)<1.d-6.and.it==0)) then !.or.(par%t<1.d-6.and.it==1)) then
 		  ndt=0
 		  tlast10=0.d0
 		  day=0
 		  ot=0
-		  itprev=0
 	  endif
   endif
 
   ndt=ndt+1                                       ! Number of calculation time steps per output time step
 
-  if (nmeanvar/=0) then
-    if (par%t>tpm(1) .and. par%t<=tpm(stpm)) then
-	     call makeaverage(s,sl,par,meanvec, nmeanvar)                ! Make averages and min-max every flow timestep
+  if (par%nmeanvar/=0) then
+    if (par%t>tpar%tpm(1) .and. par%t<=tpar%tpm(stpm)) then
+	     call makeaverage(s,sl,par,meanvec)                ! Make averages and min-max every flow timestep
 	 endif
   endif
 
@@ -722,7 +620,7 @@ subroutine var_output(it,s,sl,par)
       endif
 
       !       tpredicted=((par%tstop/par%tint)-it)*dtimestep
-      if(timings .ne. 0) then
+      if(par%timings .ne. 0) then
         if(xmaster) then
           write(*,fmt='(a,f5.1,a)')'Simulation ',100.d0*par%t/par%tstop,&
              ' percent complete'
@@ -730,7 +628,7 @@ subroutine var_output(it,s,sl,par)
       endif
 
       tpredicted=(par%tstop-par%t)/(par%tstop/500.d0)*dtimestep
-      if (timings .ne. 0) then
+      if (par%timings .ne. 0) then
         if (dtimestep<1 .and. tpredicted<120 .or. .not. xmaster) then 
                 ! Write nothing
         elseif (tpredicted>=3600) then 
@@ -753,128 +651,26 @@ subroutine var_output(it,s,sl,par)
 
 
   ! Determine if this is an output timestep
-  if (it>itprev) then
-          itprev=it
-
-     !!!!!!! Start writing output
-
-     if (it==1) then   !!! Only first time round: initialisation of files
-
-          itp=0
-          if (xmaster) then
-            !! First time file opening for point output
-            if (npoints+nrugauge>0) then
-                do i=1,npoints+nrugauge
-                    if (pointtype(i)==0) then
-                        fname(1:5)='point'
-                        i1=floor(real(i)/100.d0)
-                        i2=floor(real(i-i1*100)/10.d0)
-                        i3=i-i1*100-i2*10
-                    else
-                        fname(1:5)='rugau'
-                        i1=floor(real(i-npoints)/100.d0)
-                        i2=floor(real((i-npoints)-i1*100)/10.d0)
-                        i3=(i-npoints)-i1*100-i2*10
-                    endif
-                    fname(6:6)=char(48+i1)
-                    fname(7:7)=char(48+i2)
-                    fname(8:8)=char(48+i3)
-                    fname(9:12)='.dat'
-                    reclenp=wordsize*(nvarpoint(i)+1)*1
-                    open(indextopointsunit(i),file=fname,&
-                        form='unformatted',access='direct',recl=reclenp)
-                enddo
-            endif
-          endif  ! xmaster
-
-
-          itc=0
-          if (xmaster) then
-            !! First time file opening for cross section output
-            if (ncross>0) then
-                do i=1,ncross
-                    fname(1:5)='cross'
-                    i1=floor(real(i)/100.d0)
-                    i2=floor(real(i-i1*100)/10.d0)
-                    i3=i-i1*100-i2*10
-                    fname(6:6)=char(48+i1)
-                    fname(7:7)=char(48+i2)
-                    fname(8:8)=char(48+i3)
-                    fname(9:12)='.dat'
-						  if (crosstype(i)==0) then
-						    reclenc=wordsize*(s%nx+1)*(nvarcross(i))
-                    else
-						    reclenc=wordsize*(s%ny+1)*(nvarcross(i))
-						  endif 
-                    open(indextocrossunit(i),file=fname,&
-                        form='unformatted',access='direct',recl=reclenc)
-                enddo
-            endif
-          endif  ! xmaster
-
-          !! First time file opening for time-average output
-          itm=0
-          if(xmaster) then
-            if (nmeanvar>0) then
-                do i=1,nmeanvar
-                    call makeaveragenames(meanvec(i),fnamemean,fnamevar,fnamemin,fnamemax)
-                    fnamemean=trim(fnamemean)
-						  fnamevar =trim(fnamevar)
-						  fnamemin =trim(fnamemin)
-						  fnamemax =trim(fnamemax)
-                    open(indextomeanunit(i),file=fnamemean, &
-                     form='unformatted',access='direct',recl=reclen)
-						  open(indextovarunit(i),file=fnamevar, &
-                     form='unformatted',access='direct',recl=reclen)
-						  open(indextominunit(i),file=fnamemin, &
-                     form='unformatted',access='direct',recl=reclen)
-						  open(indextomaxunit(i),file=fnamemax, &
-                     form='unformatted',access='direct',recl=reclen)
-                enddo
-            endif
-          endif ! xmaster
-
-
-          !! First time file opening for global output
-          itg=0
-          if (xmaster) then
-            if (nglobalvar/=0) then
-                open(100,file='xy.dat',form='unformatted',access='direct',recl=reclen)
-                write(100,rec=1)s%xw
-                write(100,rec=2)s%yw
-                write(100,rec=3)s%x
-                write(100,rec=4)s%y
-                close(100)
-            endif
-          endif
-
-!                do i=1,noutnumbers
-!                  j = outnumbers(i)
-!                  open (indextoglobalunit(j),file=mnemonics(i)//'.dat',form='unformatted',access='direct',recl=reclen) 
-!                enddo
-     endif                !! End first time opening
-
-
+  if (tpar%output) then
     !!! Write at every output timestep
-
 
     !!! Write point variables
     !!! Only write if it is output time for points
-    if (npoints+nrugauge>0) then
-        if (any(abs(par%t-tpp) .le. 0.0000001d0)) then
+    if (par%npoints+par%nrugauge>0) then
+        if (tpar%outputp) then
             itp=itp+1
             ! wwvv check if there is any pointtype.eq. 1
             ! In that case, we need the values in wetz
             ! Probably, this test can be coded somewhat smarter
 #ifdef USEMPI
-            do i=1,npoints+nrugauge
+            do i=1,par%npoints+par%nrugauge
               if (pointtype(i) .eq. 1) then
                 call space_collect(sl,s%wetz,sl%wetz)
                 exit
               endif
             enddo
 #endif
-            do i=1,npoints+nrugauge
+            do i=1,par%npoints+par%nrugauge
                 !!! Make vector of all s% values at n,m grid coordinate
                 if (pointtype(i)==1) then
                     if (xmaster) then
@@ -916,10 +712,10 @@ subroutine var_output(it,s,sl,par)
 
     !!! Write cross section variables
     !!! Only write if it is output time for cross sections
-    if (ncross>0) then
-        if (any(abs(par%t-tpc) .le. 0.0000001d0)) then
+    if (par%ncross>0) then
+        if (tpar%outputc) then
             itc=itc+1
-            do i=1,ncross
+            do i=1,par%ncross
                 !!! Make array of all s% values at n or m grid line
 					 if (crosstype(i)==0) then
 					   !    makecrossvector(par, s, local s, output array, no of variables, index of variables in output, m or n coordinate, cross section type) 
@@ -935,11 +731,11 @@ subroutine var_output(it,s,sl,par)
 
     !!! Write average variables
     if(xmaster) then
-      if (nmeanvar>0) then
+      if (par%nmeanvar>0) then
           ! Not at the first in tpm as this is the start of averaging. Only output after second in tpm
-          if (any(abs(par%t-tpm(2:stpm)) .le. 0.0000001d0)) then
-              itm=itm+1
-              do i=1,nmeanvar
+          if (tpar%outputm .and. tpar%itm>1) then
+              itm=itm+1  ! Note, this is a local counter, used to position in output file
+              do i=1,par%nmeanvar
                   if (mnemonics(meanvec(i))=='H') then                ! Hrms changed to H
                       meanarrays(:,:,i)=sqrt(meanarrays(:,:,i))
                       write(indextomeanunit(i),rec=itm)meanarrays(:,:,i)
@@ -967,15 +763,15 @@ subroutine var_output(it,s,sl,par)
 				  variancesquareterm=0.d0
 				  minarrays=huge(0.d0)
 				  maxarrays=-1.d0*huge(0.d0)
-              par%tintm=tpm(min(itm+2,stpm))-tpm(itm+1)  ! Next averaging period (min to stop array out of bounds)
+              par%tintm=tpar%tpm(min(itm+2,stpm))-tpar%tpm(itm+1)  ! Next averaging period (min to stop array out of bounds)
               par%tintm=max(par%tintm,tiny(0.d0))        ! to prevent par%tintm=0 after last output
           endif
       endif
     endif ! xmaster
 
     !!! Write global variables
-    if (nglobalvar/=0) then
-      if (any(abs(par%t-tpg) .le. 0.0000001d0)) then
+    if (par%nglobalvar/=0) then
+      if (tpar%outputg) then
           itg=itg+1      
           do i = 1,noutnumbers
 #ifdef USEMPI
@@ -1019,10 +815,10 @@ subroutine var_output(it,s,sl,par)
 
     if(xmaster) then
       outputtimes=-999.d0
-      outputtimes(1:itg)=tpg(1:itg)
-      outputtimes(itg+1:itg+itp)=tpp(1:itp)
-		outputtimes(itg+itp+1:itg+itp+itc)=tpc(1:itc)
-      outputtimes(itg+itp+itc+1:itg+itp+itc+itm)=tpm(2:itm+1)          ! mean output always shifted by 1
+      outputtimes(1:itg)=tpar%tpg(1:itg)
+      outputtimes(itg+1:itg+itp)=tpar%tpp(1:itp)
+		outputtimes(itg+itp+1:itg+itp+itc)=tpar%tpc(1:itc)
+      outputtimes(itg+itp+itc+1:itg+itp+itc+itm)=tpar%tpm(2:itm+1)          ! mean output always shifted by 1
 	  if (par%morfacopt==1) outputtimes=outputtimes*max(par%morfac,1.d0)
       open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(10+size(outputtimes)))
       write(999,rec=1)		 itg*1.d0,&
@@ -1049,24 +845,17 @@ subroutine var_output(it,s,sl,par)
 !		close(999)
     endif  !xmaster
 
-    ! Determine next time step
-    t1=minval(tpg,MASK=tpg .gt. par%t+0.0000001d0)
-    t2=minval(tpp,MASK=tpp .gt. par%t+0.0000001d0)
-    t3=minval(tpm,MASK=tpm .gt. par%t+0.0000001d0)
-	t4=minval(tpw,MASK=tpw .gt. par%t+0.0000001d0)
-	t5=minval(tpc,MASK=tpc .gt. par%t+0.0000001d0)
-    par%tnext=min(t1,t2,t3,t4,t5)
-  end if  ! it > itpref
+  end if  ! 
 
   !!! Close files
 
   if(xmaster) then
     if(par%t>=par%tstop) then
-        do i=1,npoints+nrugauge
+        do i=1,par%npoints+par%nrugauge
           close(indextopointsunit(i))
         enddo
 
-        do i=1,nmeanvar
+        do i=1,par%nmeanvar
           close(indextomeanunit(i))
 			 close(indextovarunit(i))
           close(indextominunit(i))

@@ -26,6 +26,7 @@ type parameters
    ! Model time                                                                                                                    
    real*8        :: tstop                      = -123    !  [s] Stop time of simulation, in morphological time
    real*8        :: CFL                        = -123    !  [-] Maximum Courant-Friedrichs-Lewy number
+   character*80  :: tunits                     = 's'     !  Units can be defined in udunits format (seconds since 1970-01-01 00:00:00.00 +1:00)
     
    ! Physical constants                                                                                                            
    real*8        :: g                          = -123    !  [ms^-2] Gravitational acceleration
@@ -645,6 +646,29 @@ if (xmaster) then
  call readkey('params.txt','ucrcal',dummystring)
 endif
 end subroutine sed_input
+
+
+subroutine output_input(par)
+  use readkey_module
+  use xmpi_module
+  use mnemmodule ! can we avoid this? 
+  implicit none
+  type(parameters), intent(inout)            :: par
+  character(len=80)          :: dummystring
+
+ ! par%npoints  = readkey_int ('params.txt','npoints',      0,       0,     50)
+ ! par%nrugauge = readkey_int ('params.txt','nrugauge',     0,       0,     50)
+  par%timings  = readkey_int ('params.txt','timings',      1,       0,      1)
+ ! par%ncross  = readkey_int ('params.txt','ncross',      0,       0,     50)
+  par%nglobalvar  = readkey_int ('params.txt','nglobalvar',   -1,       -1,     20)
+  par%nmeanvar = readkey_int ('params.txt','nmeanvar',0,0,15)
+  call readkey('params.txt','tunits',dummystring)
+  if (len(trim(dummystring)) .gt. 0) par%tunits = trim(dummystring)
+
+
+
+end subroutine
+
 
 #ifdef USEMPI
 subroutine distribute_par(par)

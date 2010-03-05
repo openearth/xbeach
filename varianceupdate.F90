@@ -36,7 +36,7 @@ subroutine initialize_mean_arrays(nx,ny,nmeanvar)
 end subroutine
 
 
-subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
+subroutine makeaverage(s,sl,par, meanvec)
 
   use params
   use spaceparams
@@ -47,7 +47,6 @@ subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
   type(parameters), intent(IN)    :: par
   type(spacepars), intent(IN)     :: s
   type(spacepars), intent(IN)     :: sl
-  integer*4, intent(IN)           :: nmeanvar    ! number of time-average variables
   integer*4,dimension(:),allocatable, intent(IN)  :: meanvec     ! keep track of which mean variables are used
 
 
@@ -64,7 +63,7 @@ subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
   
   mult = max(par%dt/par%tintm,0.d0) ! Catch initialization at t=0
 !Dano  if(xmaster) then
-    do i=1,nmeanvar
+    do i=1,par%nmeanvar
 #ifdef USEMPI
       call space_collect_index(s,sl,meanvec(i))
 #endif
@@ -107,7 +106,7 @@ subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
 			   MI = min(MI,tvar)       
         case (mnem_H)
             meanarrays(:,:,i)=meanarrays(:,:,i) + mult*s%H**2
-				oldmean=meanarrays(:,:,nmeanvar+1)
+				oldmean=meanarrays(:,:,par%nmeanvar+1)
 				! oldmean is initiated at 0, so:
 				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
 				   oldmean=tiny(0.d0)
@@ -115,16 +114,16 @@ subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
 				   oldmean=-1.d0*tiny(0.d0)
 				endwhere
             tvar=s%H
-				meanarrays(:,:,nmeanvar+1) = meanarrays(:,:,nmeanvar+1) + mult*tvar
-				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,nmeanvar+1) + &
-				                         mult*2.d0*tvar*meanarrays(:,:,nmeanvar+1)
+				meanarrays(:,:,par%nmeanvar+1) = meanarrays(:,:,par%nmeanvar+1) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,par%nmeanvar+1) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,par%nmeanvar+1)
 				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
-				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,nmeanvar+1)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,par%nmeanvar+1)**2
 				MA = max(MA,s%H)
 			   MI = min(MI,s%H)
         case (mnem_urms)
             meanarrays(:,:,i)=meanarrays(:,:,i) + mult*s%urms**2
-				oldmean=meanarrays(:,:,nmeanvar+2)
+				oldmean=meanarrays(:,:,par%nmeanvar+2)
 				! oldmean is initiated at 0, so:
 				where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
 				   oldmean=tiny(0.d0)
@@ -132,11 +131,11 @@ subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
 				   oldmean=-1.d0*tiny(0.d0)
 				endwhere
             tvar=s%urms
-				meanarrays(:,:,nmeanvar+2) = meanarrays(:,:,nmeanvar+2) + mult*tvar
-				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,nmeanvar+2) + &
-				                         mult*2.d0*tvar*meanarrays(:,:,nmeanvar+2)
+				meanarrays(:,:,par%nmeanvar+2) = meanarrays(:,:,par%nmeanvar+2) + mult*tvar
+				variancecrossterm(:,:,i)=variancecrossterm(:,:,i)/oldmean*meanarrays(:,:,par%nmeanvar+2) + &
+				                         mult*2.d0*tvar*meanarrays(:,:,par%nmeanvar+2)
 				variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult*(tvar)**2
-				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,nmeanvar+2)**2
+				variancearrays(:,:,i)=variancesquareterm(:,:,i)-variancecrossterm(:,:,i)+meanarrays(:,:,par%nmeanvar+2)**2
 			   MA = max(MA,s%urms)
 			   MI = min(MI,s%urms)
         case (mnem_u)
@@ -369,7 +368,7 @@ subroutine makeaverage(s,sl,par, meanvec, nmeanvar)
           end select  !type
       end select  ! name
    endif ! xmaster
-   enddo ! nmeanvar
+   enddo ! par%nmeanvar
  !Dano  endif ! xmaster
 
 end subroutine makeaverage

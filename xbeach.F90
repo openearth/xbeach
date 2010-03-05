@@ -18,13 +18,14 @@ use readkey_module
 use groundwaterflow
 ! IFDEF used in case netcdf support is not compiled, f.i. Windows (non-Cygwin)
 #ifdef USENETCDF
-use ncoutputmod
+use ncoutput_module
 #endif
 
 
 IMPLICIT NONE
 
 type(parameters)         :: par
+type(timepars)           :: tpar
 type(spacepars), pointer :: s
 type(spacepars), target  :: sglobal
 type(spacepars), target  :: slocal
@@ -97,13 +98,19 @@ endif
 ! are MPI-aware, no need to do something special here
 !
 
+it=0
+newstatbc=.true.
+
+! Robert+Fedor : temporary for tests
+par%outputformat='debug'
+
 call wave_input(par)
 call flow_input(par)
 call sed_input(par)
+! read parameters which are used for output
+call output_input(par) 
 
-par%t=0.d0
-it=0
-newstatbc=.true.
+
 
 #ifdef USEMPI
 call distribute_par(par)
@@ -129,6 +136,9 @@ if(xmaster) then
 endif
 #endif
 
+! initialize timesteps
+call timestep_init(par, tpar)
+
 if (xmaster) then
   ! Jump into subroutine readtide
   call readtide (s,par)  !Ap 15/10 ! runs oonly on master wwvv
@@ -147,7 +157,12 @@ if (xmaster) then
    call gwinit(par,s)      ! works only on master process
    call sed_init (s,par)   ! works only on master process
 endif
-call init_output(sglobal,slocal,par,it)
+call output_init(sglobal,slocal,par,tpar)
+! for testing purposes we output both varoutput and ncoutput
+#ifdef USENETCDF
+call ncoutput_init(sglobal,slocal,par,tpar)
+#endif
+
 #ifdef USEMPI
 ! some par has changed, so:
 call distribute_par(par)
@@ -168,9 +183,12 @@ call space_distribute_space(sglobal,slocal,par)
 #endif
 call printit(sglobal,slocal,par,it,'after space_distribute_space')
 
-! If wanted, produce output at t=0
-if (it==1) call var_output(it,sglobal,s,par)
-
+! update times at which we need output
+call outputtimes_update(par, tpar)
+call var_output(it,sglobal,s,par, tpar)
+#ifdef USENETCDF
+call nc_output(sglobal,s,par, tpar)
+#endif
 if (xmaster) then
   ! Do check of params.txt to spot errors
   call readkey('params.txt','checkparams',dummystring) 
@@ -178,14 +196,14 @@ if (xmaster) then
 endif
 
 
-par%outputformat='debug'
+
 
 !#ifdef USEMPI
 !t01 = MPI_Wtime()
 !#endif
 do while (par%t<par%tstop)
     ! Calculate timestep
-    call timestep(s,par,it)
+    call timestep(s,par,tpar, it)
     ! Wave boundary conditions
     call wave_bc (sglobal,slocal,par,newstatbc)
     call printit(sglobal,slocal,par,it,'after wave_bc')
@@ -193,7 +211,7 @@ do while (par%t<par%tstop)
 	if (par%gwflow==1) call gwbc(par,s)
 	call flow_bc (s,par)
     !Dano moved here, after (long) wave bc generation
-	if (it==1) then
+	if (it==0) then
 #ifdef USEMPI
        t01 = MPI_Wtime()
 #endif
@@ -224,9 +242,11 @@ do while (par%t<par%tstop)
     ! Bed level update
     call bed_update(s,par)
     call printit(sglobal,slocal,par,it,'after bed_update')
-    ! Output
+    ! Calculate new output times, so we know when to stop
+    call outputtimes_update(par, tpar)
+	! Output
 	if (par%outputformat=='fortran') then
-        call var_output(it,sglobal,s,par)
+        call var_output(it,sglobal,s,par,tpar)
 	elseif (par%outputformat=='netcdf') then
 #ifdef USEMPI
 	    call nc_output(it,sglobal,s,par)
@@ -235,7 +255,7 @@ do while (par%t<par%tstop)
 #ifdef USEMPI
 	    call nc_output(it,sglobal,s,par)
 #endif
-		call var_output(it,sglobal,s,par)
+		call var_output(it,sglobal,s,par,tpar)
 	endif
 #ifdef USEMPI
 !   varoutput changed some in parameters, so:
@@ -265,7 +285,7 @@ subroutine printit(sglobal,slocal,par,it,s)
   use spaceparams
   use params
   use xmpi_module
-  IMPLICIT none
+  implicit none
   type(spacepars)          :: sglobal,slocal
   type(parameters)         :: par
   integer                  :: it
