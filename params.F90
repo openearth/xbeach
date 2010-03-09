@@ -3,9 +3,8 @@ module params
 type parameters
 ! These parameters are constants, variables read from params.txt, or are scalars derived directly from read input
 !
-
-   ! Grid parameters                                                                                                               
-!  Type             name                   initialize    !  [unit] description                                                                                                                 
+!  Type             name                   initialize    !  [unit] description    
+   ! Grid parameters                                                                                                                                                                                                                          
    character(256):: depfile                    = 'abc'   !  [-] Name of the input bathymetry file
    real*8        :: posdwn                     = -123    !  [-] Bathymetry is specified positive down (1) or positive up (-1)
    integer*4     :: nx                         = -123    !  [-] Number of computiation cell corners in x-direction
@@ -122,10 +121,10 @@ type parameters
                                                          !         (x=N,y=1)
                                                          !      NOTE:  clockwise from (1,1) corner
 
-   real*8,dimension(2) :: xyzs01               = -123    ! global xy coordinates of corner (x=1,y=1) 
-   real*8,dimension(2) :: xyzs02               = -123    ! global xy coordinates of corner (x=1,y=N)
-   real*8,dimension(2) :: xyzs03               = -123    ! global xy coordinates of corner (x=N,y=N)
-   real*8,dimension(2) :: xyzs04               = -123    ! global xy coordinates of corner (x=N,y=1)
+   real*8,dimension(2) :: xyzs01               = -123    ! model xy coordinates of global corner (x=1,y=1) 
+   real*8,dimension(2) :: xyzs02               = -123    ! model xy coordinates of global corner (x=1,y=N)
+   real*8,dimension(2) :: xyzs03               = -123    ! model xy coordinates of global corner (x=N,y=N)
+   real*8,dimension(2) :: xyzs04               = -123    ! model xy coordinates of global corner (x=N,y=1)
 
    ! Discharge boundary conditions 
    character(256):: disch_loc_file             = 'abc'   !  Note: will replace lookup in boundary conditions [name] Name of discharge locations file
