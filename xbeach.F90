@@ -248,11 +248,11 @@ do while (par%t<par%tstop)
 	if (par%outputformat=='fortran') then
         call var_output(it,sglobal,s,par,tpar)
 	elseif (par%outputformat=='netcdf') then
-#ifdef USEMPI
+#ifdef USENETCDF
 	    call nc_output(it,sglobal,s,par)
 #endif
 	elseif (par%outputformat=='debug') then
-#ifdef USEMPI
+#ifdef USENETCDF
 	    call nc_output(it,sglobal,s,par)
 #endif
 		call var_output(it,sglobal,s,par,tpar)
