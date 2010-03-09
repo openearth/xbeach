@@ -561,7 +561,7 @@ subroutine var_output(it,s,sl,par,tpar)
 !  integer                                 :: i1,i2,i3
   integer                                 :: wordsize, idum
 !  integer                                 :: reclen,reclen2,reclenc,reclenp
-  real*8                                  :: dtimestep,tpredicted,tnow
+  real*8                                  :: dtimestep,tpredicted,tnow, percnow
 !  character(12)                           :: fname
   real*8,dimension(numvars)               :: intpvector
   real*8,dimension(numvars,s%nx+1)        :: crossvararray0
@@ -572,6 +572,7 @@ subroutine var_output(it,s,sl,par,tpar)
   real*8,dimension(size(tpar%tpg)+size(tpar%tpp)+size(tpar%tpc)+size(tpar%tpm)) :: outputtimes
   type(arraytype)                         :: t
   real*8,dimension(:,:),pointer				:: MI,MA
+  real*8, save                            :: tprev, percprev
   
   inquire(iolength=wordsize) 1.d0
 !  reclen=wordsize*(s%nx+1)*(s%ny+1)
@@ -585,6 +586,9 @@ subroutine var_output(it,s,sl,par,tpar)
 		  tlast10=0.d0
 		  day=0
 		  ot=0
+		  call date_and_time(VALUES=datetime)
+		  tprev = day*24.d0*3600.d0+datetime(5)*3600.d0+60.d0*datetime(6)+1.d0*datetime(7)+0.001d0*datetime(8)
+		  percprev = 0.d0
 	  endif
   endif
 
@@ -596,58 +600,92 @@ subroutine var_output(it,s,sl,par,tpar)
 	 endif
   endif
 
+  if (par%timings .ne. 0) then
+     call date_and_time(VALUES=datetime)
+     tnow=day*24.d0*3600.d0+datetime(5)*3600.d0+60.d0*datetime(6)+1.d0*datetime(7)+0.001d0*datetime(8)
 
-  if (par%t>=(dble(ot)*par%tstop/500.d0)) then
-      ot=ot+1
-      ! Predicted time
-      !call cpu_time(tnow)
-      call date_and_time(VALUES=datetime)
-      tnow=day*24.d0*3600.d0+datetime(5)*3600.d0+60.d0*datetime(6)+1.d0*datetime(7)+0.001d0*datetime(8)
-
-      if (tnow<minval(tlast10)) then
-          day=day+1
-          tnow=day*24.d0*3600.d0+datetime(5)*3600.d0+60.d0*datetime(6)+1.d0*datetime(7)+0.001d0*datetime(8)
-      endif
-
-      tlast10(minloc(tlast10))=tnow
-      if (ot==1) then
-          dtimestep=0.d0
-      elseif (ot<=9) then
-          tt=count(tlast10 .gt. 0.d0)
-          dtimestep=(maxval(tlast10)-minval(tlast10,MASK=tlast10 .gt. (0.d0)))/real(max(1,tt-1))
-      else
-          dtimestep=(maxval(tlast10)-minval(tlast10))/9.d0
-      endif
-
-      !       tpredicted=((par%tstop/par%tint)-it)*dtimestep
-      if(par%timings .ne. 0) then
+     if (tnow>=tprev+5.d0) then
+	    percnow = 100.d0*par%t/par%tstop
+		tpredicted = 100.d0*(1.d0-par%t/par%tstop)/(max(percnow-percprev,0.01d0)/(tnow-tprev))
         if(xmaster) then
-          write(*,fmt='(a,f5.1,a)')'Simulation ',100.d0*par%t/par%tstop,&
-             ' percent complete'
-        endif
-      endif
-
-      tpredicted=(par%tstop-par%t)/(par%tstop/500.d0)*dtimestep
-      if (par%timings .ne. 0) then
-        if (dtimestep<1 .and. tpredicted<120 .or. .not. xmaster) then 
-                ! Write nothing
-        elseif (tpredicted>=3600) then 
-            write(*,fmt='(a,I3,a,I2,a)')'Time remaining ',&
+           write(*,fmt='(a,f5.1,a)')'Simulation ',percnow,' percent complete'
+           if (tpredicted>=3600) then 
+              write(*,fmt='(a,I3,a,I2,a)')'Time remaining ',&
               floor(tpredicted/3600.0d0),' hours and ',&
               nint((tpredicted-3600.0d0*floor(tpredicted/3600.0d0))/60.0d0),&
               ' minutes'
-        elseif (tpredicted>=600) then
-            write(*,fmt='(a,I2,a)')'Time remaining ',&
+           elseif (tpredicted>=600) then
+              write(*,fmt='(a,I2,a)')'Time remaining ',&
               floor(tpredicted/60.0d0),' minutes'
-        elseif (tpredicted>=60) then
-            write(*,fmt='(a,I2,a,I2,a)')'Time remaining ',&
+           elseif (tpredicted>=60) then
+              write(*,fmt='(a,I2,a,I2,a)')'Time remaining ',&
               floor(tpredicted/60.0d0),' minutes and ',&
               nint((tpredicted-60.0d0*floor(tpredicted/60.0d0))),' seconds'
-        else
-          write(*,fmt='(a,I2,a)')'Time remaining ',nint(tpredicted),' seconds'
+           else
+              write(*,fmt='(a,I2,a)')'Time remaining ',nint(tpredicted),' seconds'
+           endif
         endif
-      endif
+		tprev=tnow
+        percprev=percnow
+     elseif (tnow<tprev-60.d0) then  ! It's probably the next day 
+        day=day+1
+     endif
   endif
+
+
+!  if (par%t>=(dble(ot)*par%tstop/500.d0)) then
+!      ot=ot+1
+!      ! Predicted time
+!      !call cpu_time(tnow)
+!      call date_and_time(VALUES=datetime)
+!      tnow=day*24.d0*3600.d0+datetime(5)*3600.d0+60.d0*datetime(6)+1.d0*datetime(7)+0.001d0*datetime(8)
+!
+!      if (tnow<minval(tlast10)) then
+!          day=day+1
+!          tnow=day*24.d0*3600.d0+datetime(5)*3600.d0+60.d0*datetime(6)+1.d0*datetime(7)+0.001d0*datetime(8)
+!      endif
+!
+!      tlast10(minloc(tlast10))=tnow
+!      if (ot==1) then
+!          dtimestep=0.d0
+!      elseif (ot<=9) then
+!          tt=count(tlast10 .gt. 0.d0)
+!          dtimestep=(maxval(tlast10)-minval(tlast10,MASK=tlast10 .gt. (0.d0)))/real(max(1,tt-1))
+!      else
+!          dtimestep=(maxval(tlast10)-minval(tlast10))/9.d0
+!      endif
+!
+!      !       tpredicted=((par%tstop/par%tint)-it)*dtimestep
+!      if(timings .ne. 0) then
+!        if(xmaster) then
+!          write(*,fmt='(a,f5.1,a)')'Simulation ',100.d0*par%t/par%tstop,&
+!             ' percent complete'
+!        endif
+!      endif
+!
+!      tpredicted=(par%tstop-par%t)/(par%tstop/500.d0)*dtimestep
+!      if (timings .ne. 0) then
+!        if (dtimestep<1 .and. tpredicted<120 .or. .not. xmaster) then 
+!                ! Write nothing
+!        elseif (tpredicted>=3600) then 
+!            write(*,fmt='(a,I3,a,I2,a)')'Time remaining ',&
+!              floor(tpredicted/3600.0d0),' hours and ',&
+!              nint((tpredicted-3600.0d0*floor(tpredicted/3600.0d0))/60.0d0),&
+!              ' minutes'
+!        elseif (tpredicted>=600) then
+!            write(*,fmt='(a,I2,a)')'Time remaining ',&
+!              floor(tpredicted/60.0d0),' minutes'
+!        elseif (tpredicted>=60) then
+!            write(*,fmt='(a,I2,a,I2,a)')'Time remaining ',&
+!              floor(tpredicted/60.0d0),' minutes and ',&
+!              nint((tpredicted-60.0d0*floor(tpredicted/60.0d0))),' seconds'
+!        else
+!          write(*,fmt='(a,I2,a)')'Time remaining ',nint(tpredicted),' seconds'
+!        endif
+!      endif
+!  endif
+
+   
 
 
   ! Determine if this is an output timestep
