@@ -127,9 +127,7 @@ if(abs(par%t-par%dt)<1.d-6) then
        par%Emean=sum(dataE)/nt
     elseif (par%instat==3) then
        if (xmaster) then
-		  open( unit=7, file='bc/gen.ezs')
-       endif
-       if (xmaster) then
+         open( unit=7, file='bc/gen.ezs')
 6        continue
          read(7,'(a)')bl
          if(bl.eq.'*') goto 6
@@ -317,7 +315,7 @@ if (par%instat==0 .or. par%instat==40) then
    end do
 elseif (par%instat==1) then
    do j=1,ny+1
-       ee(1,j,:)=e01*0.5d0*(1.d0+cos(2*par%px*(par%t/par%Tlong-sin(theta0)*y(1,j)/par%Llong))) *min(par%t/par%taper,1.d0)
+       ee(1,j,:)=e01*0.5d0*(1.d0+cos(2*par%px*(par%t/par%Tlong-sin(theta0)*s%y(1,j)/par%Llong))) *min(par%t/par%taper,1.d0)
        em = (sum(0.5d0*e01))*dtheta *min(par%t/par%taper,1.d0)
        ei =  sum(ee(1,j,1:ntheta))*dtheta
        bi(1) = -(2*cg(1,j)/c(1,j)-0.5d0)*(em-ei)/(cg(1,j)**2-par%g*hh(1,j))/par%rho
@@ -329,7 +327,7 @@ elseif (par%instat==2) then
       if (abs(theta0)<1e-3) then
          call linear_interp(tE,dataE,nt,par%t,E1,E_idx)
       else
-         tshifted=max(par%t-(y(1,j)-y(1,1))*sin(theta0)/cg(1,1),0.d0)
+         tshifted=max(par%t-s%y(1,j)*sin(theta0)/s%cg(1,1),0.d0)
          call linear_interp(tE,dataE,nt,tshifted,E1,E_idx) 
       endif
       ee(1,j,:)=e01*E1/max(par%Emean,0.000001d0)*min(par%t/par%taper,1.d0)
@@ -346,7 +344,7 @@ elseif (par%instat==3) then
            call linear_interp(tE,dataE,nt,par%t,E1,E_idx) 
            call linear_interp(tE,databi,nt,par%t,bi(1),E_idx)
         else
-           tshifted=max(par%t-(y(1,j)-y(1,1))*sin(theta0)/cg(1,1),0.d0)
+           tshifted=max(par%t-s%y(1,j)*sin(theta0)/s%cg(1,1),0.d0)
            call linear_interp(tE,dataE,nt,tshifted,E1,E_idx) 
            call linear_interp(tE,databi,nt,tshifted,bi(1),E_idx)
         endif
