@@ -21,6 +21,13 @@ contains
 ! --------------------------------------------------------------
 ! ------------- Sorting for calling functions ------------------
 ! --------------------------------------------------------------
+
+!> Creates energy and flux boundary condition files (*.bcf).
+!! @param   par struct with values from params.txt
+!! @param   s   struct with grid information
+!! @param   wp  struct with wave information
+!! @return  void
+!! @todo    clean up
 subroutine makebcf(par,s,wp)
 
 use params
@@ -1017,7 +1024,7 @@ pp=1/(sum(Dmean)*wp%dang)
 ! Determine normalized wave variance for each directional bin to be used as
 ! probability density function, so surface is equal to unity
 do i=1,size(wp%theta)
-    P(i)=sum(Dmean(1:i))*wp%dang*pp                                            ! Bas: this is equal to P(i)=sum(Dmean(1:i))/sum(Dmean)
+    P(i)=(sum(Dmean(1:i))-Dmean(i)/2)*wp%dang*pp                                            ! Bas: this is equal to P(i)=sum(Dmean(1:i))/sum(Dmean)
 end do  
 
 ! Update random seed, if requested
