@@ -970,7 +970,7 @@ if (.not. allocated(vmg)) then
       kvis  = 4.d0/(20.d0+Te)*1d-5	! Van rijn, 1993 
       Sster = s%D50(jg)/(4*kvis)*sqrt((par%rhos/par%rho-1)*par%g*s%D50(jg))
       cc1   = 1.06d0*tanh(0.064d0*Sster*exp(-7.5d0/Sster**2))
-      cc2   = 0.22d0*tanh(2.34d0*Sster**(-1.18d0*exp(-0.0064d0*Sster**2)))
+	  cc2    = 0.22d0*tanh(2.34d0*Sster**(-1.18d0)*exp(-0.0064d0*Sster**2))
       wster = cc1+cc2*Sster
       w(jg) = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*s%D50(jg))
 	  ! RJ: for modeling gravel
