@@ -63,7 +63,7 @@ type parameters
    ! Wave boundary condition parameters                                                                                            
    integer*4     :: instat                     = -123    !  [-] Wave boundary condtion type
    real*8        :: taper                      = -123    !  [s] Spin-up time of wave boundary conditions, in morphological time  
-   real*8        :: Hrms                       = -123    !  [-] Hrms wave height for instat = 0,1,2,3
+   real*8        :: Hrms                       = -123    !  [m] Hrms wave height for instat = 0,1,2,3
    real*8        :: Tm01                       = -123    !  [s] Old name for Trep
    real*8        :: Trep                       = -123    !  [s] Representative wave period for instat = 0,1,2,3
    real*8        :: Tlong                      = -123    !  [s] Wave group period for case instat = 1
@@ -279,7 +279,7 @@ type parameters
    real*8               :: tnext               = -123    !  [s] Next time point for output or wave stationary calculation, in hydrodynamic time
    real*8               :: Emean               = -123    !  Note: can be made local [Jm^-2] Mean wave energy at boundary
    real*8               :: w                   = -123    !  Note: can be made local [ms^-1] Fall velocity sediment
-   integer*4            :: listline            = -123    !  Note: can be made local [-] Keeps rack of the record line in bcf-files in case of instat 4,5,6
+   integer*4            :: listline            = -123    !  Note: can be made local [-] Keeps track of the record line in bcf-files in case of instat 4,5,6
    real*8               :: fc                  = -123    !  Note: can be made local [s^-1] Coriolis forcing parameter
    integer*4            :: tidelen             = -123    !  [-] Length of input tidal time series 
    integer*4            :: windlen             = -123    !  [-] Length of input wind time series 
