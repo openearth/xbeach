@@ -96,6 +96,7 @@ subroutine output_init(s,sl,par,tpar)
   itm = 0
   itp = 0
   itc = 0
+  stpm = size(tpar%tpm)
 
   ! Record size for global and mean output
   inquire(iolength=wordsize) 1.d0
