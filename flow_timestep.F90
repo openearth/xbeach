@@ -789,8 +789,8 @@ subroutine visc_smagorinsky(s,par)
       dudx = (s%uu(i,j)-s%uu(i-1,j))/dx
       dudy = .5d0*(s%uu(i,j+1) - s%uu(i,j-1) + s%uu(i-1,j+1) - s%uu(i-1,j-1))/(s%yz(j+1)-s%yz(j))
       dvdx = .5d0*(s%vv(i+1,j) - s%vv(i-1,j) + s%vv(i+1,j-1) - s%vv(i-1,j-1))/(s%xz(i+1)-s%xz(i))
-      Tau  = sqrt(dudx**2+dvdy**2+0.5d0*(dvdx+dudy)**2)
       dvdy = (s%vv(i,j)-s%vv(i,j-1))/dy
+      Tau  = sqrt(dudx**2+dvdy**2+0.5d0*(dvdx+dudy)**2)	  
       
       s%nuh(i,j) = par%nuh * dx * dy * Tau * real(s%wetu(i,j)*s%wetu(i-1,j)*s%wetv(i,j)*s%wetv(i,j-1),kind=8)
     enddo
