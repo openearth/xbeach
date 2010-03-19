@@ -567,8 +567,8 @@ endif
 ! Initialize representative sed.diameter at the bed for flow friction and output
 do j=2,s%ny
    do i=2,s%nx
-      s%D50top =  sum(s%pbbed(i,j,1,:)*s%D50)
-      s%D90top =  sum(s%pbbed(i,j,1,:)*s%D90)
+      s%D50top(i,j) =  sum(s%pbbed(i,j,1,:)*s%D50)
+      s%D90top(i,j) =  sum(s%pbbed(i,j,1,:)*s%D90)
    enddo
 enddo
 ! 
