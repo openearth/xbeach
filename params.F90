@@ -623,7 +623,7 @@ par%betad    = readkey_dbl ('params.txt','betad  ',1.0d0,     0.00d0,   10.0d0)
 par%lwt      = readkey_int ('params.txt','lwt    ',0,           0,            1)
 par%sigfac   = readkey_dbl ('params.txt','sigfac ',1.3d0,     0.00d0,   10.d0) 
 par%sourcesink      = readkey_int ('params.txt','sourcesink    ',0,           0,            1)
-par%waveform        = readkey_int ('params.txt','waveform      ',1,           1,            2)
+par%waveform        = readkey_int ('params.txt','waveform      ',2,           1,            2)
 if (par%morfac>1.d0) then
    if (par%sourcesink==1) then
        write(*,*)'Warning: Using source-sink terms for bed level change with morfac can lead to loss of sediment mass conservation.'
