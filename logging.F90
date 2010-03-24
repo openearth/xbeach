@@ -22,6 +22,8 @@ integer,save     :: errorfileid
 interface writelog
    module procedure writelog_a
    module procedure writelog_aa
+   module procedure writelog_aaa
+   module procedure writelog_aaaa
    module procedure writelog_aai
    module procedure writelog_aaai
    module procedure writelog_aaia
@@ -30,6 +32,7 @@ interface writelog
    module procedure writelog_aiai
    module procedure writelog_aaaiai
    module procedure writelog_aaf
+   module procedure writelog_afaf
    module procedure writelog_aaaf
    module procedure writelog_aafa
    module procedure writelog_aafaf
@@ -38,14 +41,25 @@ end interface writelog
 
 CONTAINS
 
-subroutine start_logfiles
+subroutine start_logfiles(error)
 use general_fileio
    implicit none
-   logfileid = create_new_fid()
+   integer    :: error
+
+   error = 0
+   logfileid = create_new_fid_generic()
+   if (logfileid<0) then
+      error = 1
+	  return
+   endif
    if (xmaster) then
       open(logfileid,file='XBlog.txt',status='replace')
    endif
-   errorfileid = create_new_fid()
+   errorfileid = create_new_fid_generic()
+   if (logfileid<0) then
+      error = 1
+	  return
+   endif
    if (xmaster) then
       open(errorfileid,file='XBerror.txt',status='replace')
    endif
@@ -88,6 +102,45 @@ subroutine writelog_aa(destination,form,message_char1,message_char2)
       if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
    endif
 end subroutine writelog_aa
+
+subroutine writelog_aaa(destination,form,message_char1,message_char2,message_char3)
+   implicit none
+   character(*),intent(in)    ::  form,message_char1,message_char2,message_char3
+   character(*),intent(in)       ::  destination
+   character(256)             ::  display
+   
+   if (form=='') then
+      write(display,*)message_char1,message_char2,message_char3
+   else
+      write(display,form)message_char1,message_char2,message_char3
+   endif
+
+   if (xmaster) then 
+      if (scan(destination,'s')>0) write(*,*)trim(display)
+      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
+      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
+   endif
+end subroutine writelog_aaa
+
+subroutine writelog_aaaa(destination,form,message_char1,message_char2,message_char3,message_char4)
+   implicit none
+   character(*),intent(in)    ::  form,message_char1,message_char2,message_char3,message_char4
+   character(*),intent(in)       ::  destination
+   character(256)             ::  display
+   
+   if (form=='') then
+      write(display,*)message_char1,message_char2,message_char3,message_char4
+   else
+      write(display,form)message_char1,message_char2,message_char3,message_char4
+   endif
+
+   if (xmaster) then 
+      if (scan(destination,'s')>0) write(*,*)trim(display)
+      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
+      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
+   endif
+end subroutine writelog_aaaa
+
 
 subroutine writelog_aai(destination,form,message_char1,message_char2,message_int)
    implicit none
@@ -248,6 +301,26 @@ subroutine writelog_aaf(destination,form,message_char1,message_char2,message_f1)
       if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
    endif
 end subroutine writelog_aaf
+
+subroutine writelog_afaf(destination,form,message_char1,message_f1,message_char2,message_f2)
+   implicit none
+   character(*),intent(in)    ::  form,message_char1,message_char2
+   character(*),intent(in)       ::  destination
+   real*8,intent(in)          ::  message_f1,message_f2
+   character(256)             ::  display
+ 
+   if (form=='') then
+      write(display,*)message_char1,message_f1,message_char2,message_f2
+   else
+      write(display,form)message_char1,message_f1,message_char2,message_f2
+   endif
+
+   if (xmaster) then 
+      if (scan(destination,'s')>0) write(*,*)trim(display)
+      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
+      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
+   endif
+end subroutine writelog_afaf
 
 
 subroutine writelog_aaaf(destination,form,message_char1,message_char2,message_char3,message_f1)
