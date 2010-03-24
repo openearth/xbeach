@@ -117,13 +117,13 @@ endif
     ! Water level slopes
     do j=1,ny+1
         do i=2,nx
-           dzsdx(i,j)=(zs(i+1,j)-zs(i,j))/(xz(i+1)-xz(i))  
+                dzsdx(i,j)=(zs(i+1,j)-zs(i,j))/(xz(i+1)-xz(i))  
         end do
     end do
 !    do j=2,ny
     do j=1,ny ! Dano need to get correct slope on boundary y=0
         do i=1,nx+1
-           dzsdy(i,j)=(zs(i,j+1)-zs(i,j))/(yz(j+1)-yz(j))    
+                dzsdy(i,j)=(zs(i,j+1)-zs(i,j))/(yz(j+1)-yz(j))    
         end do
     end do 
 
@@ -227,10 +227,10 @@ endif
     call xmpi_shift(vdudy,':n')
 #endif
     !
-
-! Jaap: Slightly changes approach; 1) background viscosity is user defined or obtained from Smagorinsky, 2) nuh = max(nuh,roller induced viscosity)
+ 
+! Jaap: Slightly changes approach; 1) background viscosity is user defined or obtained from Smagorinsky, 2) nuh = max(nuh,roller induced viscosity) 
 #ifndef USEMPI    
-    if (par%smag == 1) then 
+    if (par%smag == 1) then
       !Use smagorinsky subgrid model
       call visc_smagorinsky(s,par)    
     else
@@ -253,7 +253,29 @@ endif
             viscu(i,j) = (1.0d0/s%hum(i,j))*( 2*(dudx1-dudx2)/(xu(i+1)-xu(i-1)) )*wetu(i+1,j)*wetu(i-1,j)  !Set viscu = 0.0 near water line   wwvv: viscu is overwritten in next loopnest before it is used
         end do 
     end do
-
+    
+#ifndef USEMPI    
+    if (par%smag == 1) then
+!
+!   For non constant eddy viscosity the stress terms read:
+!
+!   d           d           d      d         d
+!   -- [ 2* mu -- (U) ]  + --[ mu --(U) +mu --(V) ]
+!   dx         dx          dy     dy        dx
+!
+!                d         d
+!   Only when   -- [mu] = --[mu] = 0 we have (for incompressible flow)
+!               dx        dy
+!
+!         2            2
+!        d            d     
+!    mu --2 [U] + mu --2 [U]
+!       dx           dy     
+!           
+      viscu = 2.0d0*viscu
+    endif
+#endif        
+    
     do j=2,ny
         do i=2,nx
             !Nuh is defined at eta points, interpolate from four surrounding points
@@ -262,9 +284,27 @@ endif
             
             dudy1 = nuh1 *.5d0*(s%hvm(i,j  )+s%hvm(i+1,j  ))*(uu(i,j+1)-uu(i,j))/(yz(j+1)-yz(j))
             dudy2 = nuh2 *.5d0*(s%hvm(i,j-1)+s%hvm(i+1,j-1))*(uu(i,j)-uu(i,j-1))/(yz(j)-yz(j-1))
-            viscu(i,j) = viscu(i,j) + (1.0d0/s%hum(i,j))*( 2*(dudy1-dudy2)/(yz(j+1)-yz(j-1)) )*wetu(i,j+1)*wetu(i,j-1)
+            viscu(i,j) = viscu(i,j) + (1.0d0/s%hum(i,j))*( 2.0d0*(dudy1-dudy2)/(yz(j+1)-yz(j-1)) )*wetu(i,j+1)*wetu(i,j-1)
         end do 
     end do
+    
+#ifndef USEMPI    
+  if (par%smag == 1) then
+    do j=2,ny
+        do i=2,nx
+            !Nuh is defined at eta points, interpolate from four surrounding points
+            nuh1  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,j+1)+nuh(i,j+1))
+            nuh2  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,j-1)+nuh(i,j-1))
+            
+            dvdx1 = nuh1*.5d0*(s%hvm(i,j  )+s%hvm(i+1,j  ))*(s%vv(i+1,j  )-s%vv(i,j  ))/(s%xz(i+1)-s%xz(i))
+            dvdx2 = nuh1*.5d0*(s%hvm(i,j-1)+s%hvm(i+1,j-1))*(s%vv(i+1,j-1)-s%vv(i,j-1))/(s%xz(i+1)-s%xz(i))
+            viscu(i,j) = viscu(i,j) + (1.d0/s%hum(i,j))*(dvdx1-dvdx2)/(s%yv(j)-s%yv(j-1))*real(wetv(i+1,j)*wetv(i,j)*wetv(i+1,j-1)*wetv(i,j-1),8)
+        enddo
+    enddo    
+  endif  
+#endif      
+    
+    
     !
     ! Explicit Euler step momentum u-direction
     !
@@ -279,7 +319,7 @@ endif
                       ! give the same results. If this modification is not ok, then
                       ! we have a problem
             if(wetu(i,j)==1) then
-                taubx(i,j)=s%cf(i,j)*par%rho*ueu(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmageu(i,j)**2)
+			    taubx(i,j)=s%cf(i,j)*par%rho*ueu(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmageu(i,j)**2)
                 uu(i,j)=uu(i,j)-par%dt*(ududx(i,j)+vdudy(i,j)-viscu(i,j) & !Ap,Robert,Jaap 
                     + par%g*dzsdx(i,j) &
 !                   + par%g/par%C**2.d0/hu(i,j)*vmageu(i,j)*ueu(i,j) & 
@@ -312,7 +352,7 @@ endif
                           min(0.d0,.5d0*(qy(i,j)+qy(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j))/(yv(j+1)-yv(j))	          
             elseif (j==1) then
                vdvdy(i,j)=min(0.d0,.5d0*(qy(i,j)+qy(i,j+1)) ) / hvm(i,j)*(vv(i,j+1)-vv(i,j))/(yv(j+1)-yv(j))	                      
-			elseif (j==ny) then
+		      	elseif (j==ny) then
                vdvdy(i,j)=max(0.d0,.5d0*(qy(i,j)+qy(i,j-1)) ) / hvm(i,j)*(vv(i,j)-vv(i,j-1))/(yv(j)-yv(j-1))
             endif
          end do
@@ -332,6 +372,12 @@ endif
         end do 
     end do
     
+#ifndef USEMPI    
+    if (par%smag == 1) then
+      viscv = 2.0d0*viscv
+    endif    
+#endif      
+    
     nuh = par%nuhv*nuh !Robert en Ap: increase nuh interaction in d2v/dx2
     do j=2,ny
         do i=2,nx   
@@ -339,11 +385,27 @@ endif
             nuh1  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,j+1)+nuh(i,j+1))
             nuh2  = .25d0*(nuh(i,j)+nuh(i-1,j)+nuh(i-1,j+1)+nuh(i,j+1))            
             
-			dvdx1 = nuh(i+1,j)*.5d0*(s%hum(i  ,j)+s%hum(i  ,j+1))*(vv(i+1,j)-vv(i,j))/(xz(i+1)-xz(i))
-            dvdx2 = nuh(i,j)  *.5d0*(s%hum(i-1,j)+s%hum(i-1,j+1))*(vv(i,j)-vv(i-1,j))/(xz(i)-xz(i-1))
+			      dvdx1 = nuh1*.5d0*(s%hum(i  ,j)+s%hum(i  ,j+1))*(vv(i+1,j)-vv(i,j))/(xz(i+1)-xz(i))
+            dvdx2 = nuh2*.5d0*(s%hum(i-1,j)+s%hum(i-1,j+1))*(vv(i,j)-vv(i-1,j))/(xz(i)-xz(i-1))
             viscv(i,j) = viscv(i,j) + (1.0d0/s%hvm(i,j))*( 2*(dvdx1-dvdx2)/(xz(i+1)-xz(i-1)) )*wetv(i+1,j)*wetv(i-1,j)
         end do 
     end do
+    
+#ifndef USEMPI    
+    if (par%smag == 1) then
+      do j=2,ny
+          do i=2,nx
+              !Nuh is defined at eta points, interpolate from four surrounding points
+              nuh1  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,j+1)+nuh(i,j+1))
+              nuh2  = .25d0*(nuh(i,j)+nuh(i-1,j)+nuh(i-1,j+1)+nuh(i,j+1)) 
+              
+              dudy1 = nuh1 *.5d0*(s%hum(i  ,j)+s%hum(i  ,j+1))*(s%uu(i,j+1  )-s%uu(i,j  ))/(s%yz(j+1)-s%yz(j))
+              dudy2 = nuh2 *.5d0*(s%hum(i-1,j)+s%hum(i-1,j+1))*(s%uu(i-1,j+1)-s%uu(i-1,j))/(s%yz(j+1)-s%yz(j))
+              viscv(i,j) = viscv(i,j) + (1.d0/s%hvm(i,j))*(dudy1-dudy2)/(s%xu(i)-s%xu(i-1))*real(wetu(i,j+1)*wetu(i,j)*wetu(i-1,j+1)*wetv(i-1,j),8)
+          enddo
+      enddo    
+    endif  
+#endif       
 
     udvdx(nx+1,:)=0.0d0       !Jaap udvdx(nx+1,:) is not defined but is used to compute vv(nx+1,:)
     viscv(nx+1,:)=viscv(nx,:) !Jaap viscv(nx+1,:) is not defined but is used to compute vv(nx+1,:)
@@ -358,11 +420,11 @@ endif
             if(wetv(i,j)==1) then
                 tauby(i,j)=s%cf(i,j)*par%rho*vev(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmagev(i,j)**2) !Ruessink et al, 2001
                 vv(i,j)=vv(i,j)-par%dt*(udvdx(i,j)+vdvdy(i,j)-viscv(i,j)& !Ap,Robert,Jaap 
-                    + par%g*dzsdy(i,j)&
-                    ! + par%g/par%C**2/hv(i,j)*vmagev(i,j)*vev(i,j)&
-                    + (tauby(i,j)- par%lwave*Fy(i,j))/(par%rho*hv(i,j)) &
-                    + par%fc*uv(i,j) &
-					- par%rhoa*par%Cd*sin(s%winddirnow)*s%windvnow**2)
+                       + par%g*dzsdy(i,j)&
+                      ! + par%g/par%C**2/hv(i,j)*vmagev(i,j)*vev(i,j)&
+                       + (tauby(i,j)- par%lwave*Fy(i,j))/(par%rho*hv(i,j)) &
+                       + par%fc*uv(i,j) &
+					             - par%rhoa*par%Cd*sin(s%winddirnow)*s%windvnow**2)
 
             else
                 vv(i,j)=0.0d0
@@ -381,16 +443,17 @@ endif
     end if
 #endif
 
+    
     ! Pieter and Jaap: update hu en hv for continuity
     do j=1,ny+1
       do i=1,nx+1 !Ap
         ! Water depth in u-points do continuity equation: upwind
         if (uu(i,j)>par%umin) then
-          hu(i,j)=hh(i,j)
-		 !     hu(i,j)=zs(i,j)-max(zb(i,j),zb(min(nx,i)+1,j))
+       !   hu(i,j)=hh(i,j)
+		      hu(i,j)=zs(i,j)-max(zb(i,j),zb(min(nx,i)+1,j))
         elseif (uu(i,j)<-par%umin) then
-          hu(i,j)=hh(min(nx,i)+1,j)  
-		  !    hu(i,j)=zs(min(nx,i)+1,j)-max(zb(i,j),zb(min(nx,i)+1,j))
+      !    hu(i,j)=hh(min(nx,i)+1,j)  
+		       hu(i,j)=zs(min(nx,i)+1,j)-max(zb(i,j),zb(min(nx,i)+1,j))
         else
           hu(i,j)=max(max(zs(i,j),zs(min(nx,i)+1,j))-max(zb(i,j),zb(min(nx,i)+1,j)),par%eps)          
         end if
@@ -401,11 +464,11 @@ endif
       do i=1,nx+1			 
 			! Water depth in v-points do continuity equation: upwind
         if (vv(i,j)>par%umin) then
-          hv(i,j)=hh(i,j)
-		  !hv(i,j)=zs(i,j)-max(zb(i,j),zb(i,min(ny,j)+1))
+          !hv(i,j)=hh(i,j)
+		      hv(i,j)=zs(i,j)-max(zb(i,j),zb(i,min(ny,j)+1))
         elseif (vv(i,j)<-par%umin) then
-          hv(i,j)=hh(i,min(ny,j)+1)
-		  !hv(i,j)=zs(i,min(ny,j)+1)-max(zb(i,j),zb(i,min(ny,j)+1))
+          !hv(i,j)=hh(i,min(ny,j)+1)
+		      hv(i,j)=zs(i,min(ny,j)+1)-max(zb(i,j),zb(i,min(ny,j)+1))
         else
           hv(i,j)=max(max(zs(i,j),zs(i,min(ny,j)+1))-max(zb(i,j),zb(i,min(ny,j)+1)),par%eps)
         end if           
@@ -512,6 +575,7 @@ if(xmpi_isright) then
     zs(1:nx+1,ny+1)=max(zs(1:nx+1,ny) + (zs0(:,ny+1)-zs0(:,1))/(yz(ny+1)-yz(1))*(yz(ny+1)-yz(ny)),zb(1:nx+1,ny))
 endif
     
+   
 ! wwvv zs, uu, vv have to be communicated now, because they are used later on
 #ifdef USEMPI
     call xmpi_shift(zs,':1')
@@ -736,6 +800,11 @@ subroutine visc_smagorinsky(s,par)
 
   IMPLICIT NONE
 
+! DATE               AUTHOR               CHANGES        
+!
+! December 2010       Pieter Bart Smit     New Subroutine
+! March    2010       Pieter Bart Smit     Changed formulation to standard smag. model
+
 !-------------------------------------------------------------------------------
 !                             DECLARATIONS
 !-------------------------------------------------------------------------------
@@ -749,9 +818,9 @@ subroutine visc_smagorinsky(s,par)
 !
 ! The turbulent viscocity is given as:
 !
-! nuh = C*dx*dy*Tau
+! nuh = C^2*dx*dy*Tau
 !              
-! Tau = [ (du/dx)^2 + (dv/dy)^2 + 1/2 * (du/dy + dv/dx)^2 ] ^ (1/2)
+! Tau =2^(1/2) *  [ (du/dx)^2 + (dv/dy)^2 + 1/2 * (du/dy + dv/dx)^2 ] ^ (1/2)
 !
 ! Where
 !  
@@ -769,11 +838,11 @@ subroutine visc_smagorinsky(s,par)
   real*8                                                  :: dudx !U Velocity gradient in x-dir
   real*8                                                  :: dudy !U Velocity gradient in y-dir
   real*8                                                  :: dvdx !V Velocity gradient in x-dir
-  real*8                                                  :: dvdy !V Velocity gradient in y-dir   
+  real*8                                                  :: dvdy !V Velocity gradient in y-dir 
   real*8                                                  :: Tau  !Measure for magnitude viscous stresses
   real*8                                                  :: dx   !Local gridsize in x-dir
   real*8                                                  :: dy   !Local gridsize in y-dir
-  
+  real*8                                                  :: l   !Local gridsize in y-dir  
   integer                                                 :: i    !Index variable
   integer                                                 :: j    !Index variable
 
@@ -787,12 +856,12 @@ subroutine visc_smagorinsky(s,par)
       dx   = (s%xu(i)-s%xu(i-1))
       dy   = (s%yv(j)-s%yv(j-1))
       dudx = (s%uu(i,j)-s%uu(i-1,j))/dx
-      dudy = .5d0*(s%uu(i,j+1) - s%uu(i,j-1) + s%uu(i-1,j+1) - s%uu(i-1,j-1))/(s%yz(j+1)-s%yz(j))
-      dvdx = .5d0*(s%vv(i+1,j) - s%vv(i-1,j) + s%vv(i+1,j-1) - s%vv(i-1,j-1))/(s%xz(i+1)-s%xz(i))
+      dudy = .5d0*(s%uu(i,j+1) - s%uu(i,j-1) + s%uu(i-1,j+1) - s%uu(i-1,j-1))/(s%yz(j+1)-s%yz(j-1))
+      dvdx = .5d0*(s%vv(i+1,j) - s%vv(i-1,j) + s%vv(i+1,j-1) - s%vv(i-1,j-1))/(s%xz(i+1)-s%xz(i-1))
       dvdy = (s%vv(i,j)-s%vv(i,j-1))/dy
-      Tau  = sqrt(dudx**2+dvdy**2+0.5d0*(dvdx+dudy)**2)	  
-      
-      s%nuh(i,j) = par%nuh * dx * dy * Tau * real(s%wetu(i,j)*s%wetu(i-1,j)*s%wetv(i,j)*s%wetv(i,j-1),kind=8)
+      Tau  = sqrt(2.0d0 * dudx**2+2.0d0 * dvdy**2 + (dvdx+dudy)**2)      
+      l    = dx * dy
+      s%nuh(i,j) = par%nuh**2 * l * Tau * real(s%wetu(i,j)*s%wetu(i-1,j)*s%wetv(i,j)*s%wetv(i,j-1),kind=8)
     enddo
   enddo
   
