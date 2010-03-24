@@ -2,6 +2,11 @@
 !                               MODULE NH_MAIN                        
 !==============================================================================
 
+! DATE               AUTHOR               CHANGES        
+!
+! october 2009       Pieter Bart Smit     New module
+
+
 module nonh_module
 
 
@@ -96,6 +101,10 @@ contains
   subroutine nonh_init(s,par)
 !==============================================================================    
 !
+
+! DATE               AUTHOR               CHANGES        
+!
+! October 2010       Pieter Bart Smit     New Subroutine
 
 !-------------------------------------------------------------------------------
 !                             DECLARATIONS
@@ -210,14 +219,7 @@ contains
         enddo
       enddo
     endif
-
-   ! write(*,*) 'w:',sigma
-   ! write(*,*) 'k:',k
-   ! write(*,*) 'd:',d
-  !  write(*,*) 'kd',k*d
-  !  write(*,*) 'wcoef:',wcoef(2,2)
-  !  read(*,*)
-    
+   
     !Initialize levels at u/v points (zu,zbu etc.)
     call zuzv(s)
 
@@ -228,6 +230,11 @@ contains
   subroutine nonh_cor(s,par)
 !==============================================================================
 !
+
+! DATE               AUTHOR               CHANGES        
+!
+! October 2010       Pieter Bart Smit     New Subroutine
+! November  2010     Pieter Bart Smit     Added explicit prediction for 2nd order scheme
 
 !-------------------------------------------------------------------------------
 !                             DECLARATIONS
@@ -240,7 +247,6 @@ contains
 !--------------------------     DEPENDENCIES       ----------------------------  
     use spaceparams
     use params
-    !use timer_module
     use solver_module
 !--------------------------     ARGUMENTS          ----------------------------
 
@@ -277,27 +283,20 @@ contains
     call nonh_init(s,par)
   endif    
 
-
-  !call timer_start(timer_flow_nonh_mat)
   call zuzv(s)   
   
   !Built pressure coefficients U  
-  !call timer_start(timer_flow_nonh_au)  
   aur  = s%uu
   avr  = s%vv
     
 
   aur(1,:)       = s%uu(1,:)
   aur(s%nx,:)    = s%uu(s%nx,:)
-  !call timer_stop(timer_flow_nonh_au)
-  
 
   avr(:,1)      = s%vv(:,1)
   avr(:,s%ny)   = s%vv(:,s%ny)
-  !call timer_stop(timer_flow_nonh_av)
 
   !Built pressure coefficients for W
-  !call timer_start(timer_flow_nonh_aw)    
   
   !AW Bottom
   do j=2,s%ny
@@ -354,10 +353,7 @@ contains
     enddo
   enddo
 
-  !call timer_stop(timer_flow_nonh_aw)
-
   !Substitute in the continuity equation
-  !call timer_start(timer_flow_nonh_subs)
   do j=2,s%ny
     do i=2,s%nx
       if (nonhZ(i,j)==1) then
@@ -414,9 +410,6 @@ contains
       endif
     enddo
   enddo
-  !call timer_stop(timer_flow_nonh_subs)
-  
-  !call timer_stop(timer_flow_nonh_mat)
   
   !Solve matrix
   !call timer_start(timer_flow_nonh_solv)
@@ -430,25 +423,20 @@ contains
   !Correct u/v/w
 
   !U
-  !call timer_start(timer_flow_nonh_coru)
   do j=2,s%ny
     do i=2,s%nx-1
       s%uu(i,j) = aur(i,j) + au(1,i,j)*dp(i+1,j)+au(0,i,j)*dp(i,j)
     enddo
   enddo    
-  !call timer_stop(timer_flow_nonh_coru)
 
   !v
-  !call timer_start(timer_flow_nonh_corv)
   do j=2,s%ny-1
     do i=2,s%nx
      s%vv(i,j) = avr(i,j) + av(1,i,j)*dp(i,j+1)+av(0,i,j)*dp(i,j)  
     enddo
   enddo    
-  !call timer_stop(timer_flow_nonh_corv)
   
   !W
-  !Calculate the vertical velocities
   do j=2,s%ny
     do i=2,s%nx
       if    (nonhZ(i,j) == 1) then
@@ -490,7 +478,6 @@ contains
                     - (s%hv(i,j)*s%vv(i,j)-s%hv(i  ,j-1)*s%vv(i  ,j-1))*ddyz(j) &
                     + dzs_e*s%uu(i,j)+dzs_w*s%uu(i-1,j)                         &
                     + dzs_s*s%vv(i,j)+dzs_n*s%vv(i,j-1)
-   !     endif       
       endif
     enddo
   enddo
@@ -535,8 +522,6 @@ contains
       endif
     enddo
   enddo
-
-  !call timer_stop(timer_flow_nonh_corw)
   
   !Assign boundaries
   s%ws(:,1)      = s%ws(:,2)
@@ -550,13 +535,16 @@ contains
   s%wb(s%nx+1,:) = s%wb(s%nx,:)  
   
   Wm_old = .5_rKind*(s%ws+s%wb)
-
-  !call timer_stop(timer_flow_nonh)
 end subroutine nonh_cor
 
 subroutine nonh_explicit(s,par,nuh)
 !==============================================================================
 !
+
+! DATE                AUTHOR               CHANGES        
+!
+! November  2010       Pieter Bart Smit     New Subroutine
+
 
 !------------------------------------------------------------------------------
 !                             DECLARATIONS
@@ -744,6 +732,11 @@ subroutine zuzv(s)
 !==============================================================================
 !
 
+! DATE               AUTHOR               CHANGES        
+!
+! November 2010       Pieter Bart Smit     New Subroutine
+
+
 !------------------------------------------------------------------------------
 !                             DECLARATIONS
 !------------------------------------------------------------------------------
@@ -879,6 +872,10 @@ subroutine zuzv(s)
   subroutine nonh_free()
 !==============================================================================    
 !
+
+! DATE               AUTHOR               CHANGES        
+!
+! October 2010       Pieter Bart Smit     New Subroutine
 
 !-------------------------------------------------------------------------------
 !                             DECLARATIONS
