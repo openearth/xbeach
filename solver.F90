@@ -5,6 +5,10 @@
 !                               MODULE SOLVER                        
 !==============================================================================
 
+! DATE               AUTHOR               CHANGES        
+!
+! october 2009       Pieter Bart Smit     New module
+
 module solver_module
 
 implicit none
@@ -71,6 +75,11 @@ contains
 !==============================================================================    
 !
 
+
+! DATE               AUTHOR               CHANGES        
+!
+! october 2009       Pieter Bart Smit     New module
+
 !-------------------------------------------------------------------------------
 !                             DECLARATIONS
 !-------------------------------------------------------------------------------
@@ -107,6 +116,7 @@ contains
 
     elseif (par%solver == 2) then   !Solver is TRI-DIAG, check if possible
       if (ny > 2) then
+        write(*,'("Error: tri-diagonal solver cannot be used if ny>2 ")')
         call Halt_program !Halt program if maxerror < 2    
       endif  
     endif
@@ -146,6 +156,10 @@ contains
   subroutine solver_solvemat( amat  , rhs   , x  , nx, ny, par)
 !==============================================================================    
 !
+
+! DATE               AUTHOR               CHANGES        
+!
+! october 2009       Pieter Bart Smit     New module
 
 !-------------------------------------------------------------------------------
 !                             DECLARATIONS
@@ -207,6 +221,10 @@ contains
      subroutine solver_tridiag  ( amat  , rhs   , x     ,cmat ,nx ,ny )
 !==============================================================================    
 !
+ 
+! DATE               AUTHOR               CHANGES        
+!
+! october 2009       Pieter Bart Smit     New module
     
 !-------------------------------------------------------------------------------
 !                             DECLARATIONS
