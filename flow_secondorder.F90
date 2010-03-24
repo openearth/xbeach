@@ -1,9 +1,11 @@
 !==============================================================================
 !                               FLOW_SECONDORDER_MODULE                        
 !==============================================================================
-
-
-
+!
+! DATE               AUTHOR               CHANGES        
+!
+! october 2009       Pieter Bart Smit     New module
+!
 !******************************************************************************
 !                                 INTERFACE                                
 !******************************************************************************
@@ -112,6 +114,10 @@ end subroutine flow_secondorder_init
 subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
 !==============================================================================    
 !
+
+! DATE               AUTHOR               CHANGES        
+!
+! November 2010       Pieter Bart Smit     New Subroutine
 
 !-------------------------------------------------------------------------------
 !                             DECLARATIONS
@@ -313,6 +319,10 @@ subroutine flow_secondorder_advW(s,par,w,w_old)
 !==============================================================================
 !
 
+! DATE               AUTHOR               CHANGES        
+!
+! November 2010       Pieter Bart Smit     New Subroutine
+
 !-------------------------------------------------------------------------------
 !                             DECLARATIONS
 !-------------------------------------------------------------------------------
@@ -429,6 +439,9 @@ end subroutine flow_secondorder_advW
 subroutine flow_secondorder_con(s,par,zs_old)
 !==============================================================================    
 !
+! DATE               AUTHOR               CHANGES        
+!
+! November 2010       Pieter Bart Smit     New Subroutine
 
 !-------------------------------------------------------------------------------
 !                             DECLARATIONS
@@ -550,7 +563,10 @@ end subroutine flow_secondorder_con
 real(kind=rKind) pure function minmod(delta1,delta2)
 !==============================================================================    
 !
-
+! DATE               AUTHOR               CHANGES        
+!
+! November 2010       Pieter Bart Smit     New Subroutine
+!
 !-------------------------------------------------------------------------------
 !                             DECLARATIONS
 !-------------------------------------------------------------------------------
