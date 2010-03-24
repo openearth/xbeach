@@ -284,6 +284,7 @@ type parameters
    integer*4            :: tidelen             = -123    !  [-] Length of input tidal time series 
    integer*4            :: windlen             = -123    !  [-] Length of input wind time series 
    real*8               :: Llong               = -123    !  Note: can be made local [m] Alongshore wave group length for case instat=1
+!   real*8               :: accfac              = -123
 
 
 end type parameters
@@ -573,6 +574,8 @@ par%solver_acc   = readkey_dbl('params.txt','solver_acc' ,0.005d0,0.00001d0,0.1d
 par%solver_alpha = readkey_dbl('params.txt','solver_urelax' ,0.92d0,0.5d0,0.99d0)
 par%solver       = readkey_int('params.txt','solver' ,1,0,2)
 
+!par%accfac       = readkey_dbl('params.txt','accfac' ,0.0d0,0.0d0,10.0d0)
+
 
 
 end subroutine flow_input
@@ -655,8 +658,8 @@ subroutine output_input(par)
   type(parameters), intent(inout)            :: par
   character(len=80)          :: dummystring
 
- ! par%npoints  = readkey_int ('params.txt','npoints',      0,       0,     50)
- ! par%nrugauge = readkey_int ('params.txt','nrugauge',     0,       0,     50)
+  par%npoints  = readkey_int ('params.txt','npoints',      0,       0,     50)
+  par%nrugauge = readkey_int ('params.txt','nrugauge',     0,       0,     50)
   par%timings  = readkey_int ('params.txt','timings',      1,       0,      1)
  ! par%ncross  = readkey_int ('params.txt','ncross',      0,       0,     50)
   par%nglobalvar  = readkey_int ('params.txt','nglobalvar',   -1,       -1,     20)

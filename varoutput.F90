@@ -118,11 +118,11 @@ subroutine output_init(s,sl,par,tpar)
   !!!!! OUTPUT POINTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-  npoints  = readkey_int ('params.txt','npoints',      0,       0,     50)
-  nrugauge = readkey_int ('params.txt','nrugauge',     0,       0,     50)
-  ! Fedor + Robert : temporary, will be changed once point output updated for netcdf
-  par%npoints=npoints
-  par%nrugauge=nrugauge
+!  npoints  = readkey_int ('params.txt','npoints',      0,       0,     50)
+!  nrugauge = readkey_int ('params.txt','nrugauge',     0,       0,     50)
+!  ! Fedor + Robert : temporary, will be changed once point output updated for netcdf
+!  par%npoints=npoints
+!  par%nrugauge=nrugauge
   
   if ((par%npoints+par%nrugauge)>0) then 
       allocate(pointtype(par%npoints+par%nrugauge))
