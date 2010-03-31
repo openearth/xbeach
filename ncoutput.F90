@@ -285,5 +285,5 @@ subroutine nc_output(s,sl,par, tpar)
 
 end subroutine nc_output
 
-#endif USENETCDF
+#endif
 end module ncoutput_module

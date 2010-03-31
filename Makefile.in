@@ -37,7 +37,8 @@ bin_PROGRAMS = makeincludes$(EXEEXT) xbeach$(EXEEXT)
 # if mpi, then add some flags
 @USEMPI_TRUE@am__append_1 = -DUSEMPI -DHAVE_MPI_WTIME
 @USENETCDF_TRUE@am__append_2 = -DUSENETCDF ${NETCDF_CFLAGS}
-@USENETCDF_TRUE@am__append_3 = ${NETCDF_LIBS}
+# Manualy add the netcdff (fortran dll)
+@USENETCDF_TRUE@am__append_3 = ${NETCDF_LIBS}  -lnetcdff
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
@@ -192,8 +193,6 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
-PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
-PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@

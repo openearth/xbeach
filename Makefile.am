@@ -120,7 +120,8 @@ xbeach_FCFLAGS+=-DUSEMPI -DHAVE_MPI_WTIME
 endif
 if USENETCDF
 xbeach_FCFLAGS+=-DUSENETCDF ${NETCDF_CFLAGS}
-LIBS+=${NETCDF_LIBS}
+# Manualy add the netcdff (fortran dll)
+LIBS+=${NETCDF_LIBS}  -lnetcdff
 endif
 
 

@@ -249,11 +249,11 @@ do while (par%t<par%tstop)
         call var_output(it,sglobal,s,par,tpar)
 	elseif (par%outputformat=='netcdf') then
 #ifdef USENETCDF
-	    call nc_output(it,sglobal,s,par)
+	    call nc_output(sglobal,s,par, tpar)
 #endif
 	elseif (par%outputformat=='debug') then
 #ifdef USENETCDF
-	    call nc_output(it,sglobal,s,par)
+	    call nc_output(sglobal,s,par, tpar)
 #endif
 		call var_output(it,sglobal,s,par,tpar)
 	endif

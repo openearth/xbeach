@@ -565,8 +565,6 @@ USENETCDF_FALSE
 USENETCDF_TRUE
 NETCDF_LIBS
 NETCDF_CFLAGS
-PKG_CONFIG_LIBDIR
-PKG_CONFIG_PATH
 PKG_CONFIG
 USEMPI_FALSE
 USEMPI_TRUE
@@ -654,8 +652,6 @@ LDFLAGS
 LIBS
 MPIFC
 PKG_CONFIG
-PKG_CONFIG_PATH
-PKG_CONFIG_LIBDIR
 NETCDF_CFLAGS
 NETCDF_LIBS'
 
@@ -1283,10 +1279,6 @@ Some influential environment variables:
   LIBS        libraries to pass to the linker, e.g. -l<library>
   MPIFC       MPI Fortran compiler command
   PKG_CONFIG  path to pkg-config utility
-  PKG_CONFIG_PATH
-              directories to add to pkg-config's search path
-  PKG_CONFIG_LIBDIR
-              path overriding pkg-config's built-in search path
   NETCDF_CFLAGS
               C compiler flags for NETCDF, overriding pkg-config
   NETCDF_LIBS linker flags for NETCDF, overriding pkg-config
@@ -3067,10 +3059,6 @@ if test "${with_netcdf+set}" = set; then :
 else
   with_netcdf=no
 fi
-
-
-
-
 
 
 

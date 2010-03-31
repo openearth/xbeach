@@ -298,7 +298,8 @@ endif
             
             dvdx1 = nuh1*.5d0*(s%hvm(i,j  )+s%hvm(i+1,j  ))*(s%vv(i+1,j  )-s%vv(i,j  ))/(s%xz(i+1)-s%xz(i))
             dvdx2 = nuh1*.5d0*(s%hvm(i,j-1)+s%hvm(i+1,j-1))*(s%vv(i+1,j-1)-s%vv(i,j-1))/(s%xz(i+1)-s%xz(i))
-            viscu(i,j) = viscu(i,j) + (1.d0/s%hum(i,j))*(dvdx1-dvdx2)/(s%yv(j)-s%yv(j-1))*real(wetv(i+1,j)*wetv(i,j)*wetv(i+1,j-1)*wetv(i,j-1),8)
+            viscu(i,j) = viscu(i,j) + (1.d0/s%hum(i,j))*(dvdx1-dvdx2)/(s%yv(j)-s%yv(j-1))*real(wetv(i+1,j) &
+                 * wetv(i,j)*wetv(i+1,j-1)*wetv(i,j-1),8)
         enddo
     enddo    
   endif  
@@ -385,7 +386,7 @@ endif
             nuh1  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,j+1)+nuh(i,j+1))
             nuh2  = .25d0*(nuh(i,j)+nuh(i-1,j)+nuh(i-1,j+1)+nuh(i,j+1))            
             
-			      dvdx1 = nuh1*.5d0*(s%hum(i  ,j)+s%hum(i  ,j+1))*(vv(i+1,j)-vv(i,j))/(xz(i+1)-xz(i))
+            dvdx1 = nuh1*.5d0*(s%hum(i  ,j)+s%hum(i  ,j+1))*(vv(i+1,j)-vv(i,j))/(xz(i+1)-xz(i))
             dvdx2 = nuh2*.5d0*(s%hum(i-1,j)+s%hum(i-1,j+1))*(vv(i,j)-vv(i-1,j))/(xz(i)-xz(i-1))
             viscv(i,j) = viscv(i,j) + (1.0d0/s%hvm(i,j))*( 2*(dvdx1-dvdx2)/(xz(i+1)-xz(i-1)) )*wetv(i+1,j)*wetv(i-1,j)
         end do 
@@ -401,7 +402,8 @@ endif
               
               dudy1 = nuh1 *.5d0*(s%hum(i  ,j)+s%hum(i  ,j+1))*(s%uu(i,j+1  )-s%uu(i,j  ))/(s%yz(j+1)-s%yz(j))
               dudy2 = nuh2 *.5d0*(s%hum(i-1,j)+s%hum(i-1,j+1))*(s%uu(i-1,j+1)-s%uu(i-1,j))/(s%yz(j+1)-s%yz(j))
-              viscv(i,j) = viscv(i,j) + (1.d0/s%hvm(i,j))*(dudy1-dudy2)/(s%xu(i)-s%xu(i-1))*real(wetu(i,j+1)*wetu(i,j)*wetu(i-1,j+1)*wetv(i-1,j),8)
+              viscv(i,j) = viscv(i,j) + (1.d0/s%hvm(i,j))*(dudy1-dudy2)/(s%xu(i)-s%xu(i-1)) &
+                   * real(wetu(i,j+1)*wetu(i,j)*wetu(i-1,j+1)*wetv(i-1,j),8)
           enddo
       enddo    
     endif  
@@ -424,7 +426,7 @@ endif
                       ! + par%g/par%C**2/hv(i,j)*vmagev(i,j)*vev(i,j)&
                        + (tauby(i,j)- par%lwave*Fy(i,j))/(par%rho*hv(i,j)) &
                        + par%fc*uv(i,j) &
-					             - par%rhoa*par%Cd*sin(s%winddirnow)*s%windvnow**2)
+                       - par%rhoa*par%Cd*sin(s%winddirnow)*s%windvnow**2)
 
             else
                 vv(i,j)=0.0d0
