@@ -40,11 +40,12 @@ integer, save :: thetadimid
 ! global
 integer, dimension(:), allocatable, save :: globalvarids
 ! default output (fixed length)
-character(len=5), parameter :: default_mnems(19) = (/'H    ','zs   ','zs0  ','zb   ',&
-     &'hh   ','u    ','v    ', &
-     &'ue   ','ve   ', 'urms ','Fx   ','Fy   ',&
-     &'ccg  ','ceqsg','ceqbg', &
-     &'E    ','R    ','D    ','DR   '/)
+character(len=5), parameter :: default_mnems(7) = (/'H    ','zs   ','zs0  ','zb   ',&
+     &'hh   ','u    ','v    '/) 
+! One of these doesn't work:
+!      &'ue   ','ve   ', 'urms ','Fx   ','Fy   ',&
+!      &'ccg  ','ceqsg','ceqbg', &
+!      &'E    ','R    ','D    ','DR   '/)
 
 ! points 
 integer, save :: pointsdimid
