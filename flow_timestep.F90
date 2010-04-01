@@ -459,8 +459,9 @@ endif
         else
           hu(i,j)=max(max(zs(i,j),zs(min(nx,i)+1,j))-max(zb(i,j),zb(min(nx,i)+1,j)),par%eps)          
         end if
-		  end do
-	  end do
+      end do
+    end do
+    hu = max(hu,0.d0)
 	
     do j=1,ny+1
       do i=1,nx+1			 
@@ -476,9 +477,11 @@ endif
         end if           
       end do 
     end do
+    hv = max(hv,0.d0)
+    
 #ifdef USEMPI
     call xmpi_shift(hu ,'m:')
-	call xmpi_shift(hv ,':n')
+    call xmpi_shift(hv ,':n')
 #endif	
 
     ! 
