@@ -592,8 +592,8 @@ character(len=80)           :: dummystring
 !par%dico     = readkey_dbl ('params.txt','dico',    1.d0,        0.d0,    10.d0)
 par%kmax     = readkey_int ('params.txt','kmax ',      1,           1,        1000)
 par%ngd      = readkey_int ('params.txt','ngd',        1,           1,        20)
-par%nd       = readkey_int ('params.txt','nd ',        1,           1,        1000)
-par%nd_var   = readkey_int ('params.txt','nd_var', min(par%nd,2),   1,        par%nd)
+par%nd       = readkey_int ('params.txt','nd ',        3,           3,        1000)
+par%nd_var   = readkey_int ('params.txt','nd_var',     2,           2,        par%nd)
 par%dzg1     = readkey_dbl ('params.txt','dzg',    0.1d0,      0.01d0,     1.d0)
 par%dzg1     = readkey_dbl ('params.txt','dzg1', par%dzg1,     0.01d0,     1.d0)
 par%dzg2     = readkey_dbl ('params.txt','dzg2', par%dzg1,     0.01d0,     1.d0)
@@ -706,118 +706,8 @@ return
 
 !call xmpi_bcast(par%px)
 !call xmpi_bcast(par%Hrms)
-!call xmpi_bcast(par%Trep)
-!call xmpi_bcast(par%dir0)
-!call xmpi_bcast(par%m)
-!call xmpi_bcast(par%nt)
-!call xmpi_bcast(par%hmin)
-!call xmpi_bcast(par%gammax)
-!call xmpi_bcast(par%Tlong)
-!call xmpi_bcast(par%Llong)
-!call xmpi_bcast(par%gamma)
-!call xmpi_bcast(par%delta)
-!call xmpi_bcast(par%rho)
-!call xmpi_bcast(par%g)
-!call xmpi_bcast(par%rhog8)
-!!call xmpi_bcast(par%omega)
-!call xmpi_bcast(par%thetamin)
-!call xmpi_bcast(par%thetamax)
-!call xmpi_bcast(par%dtheta)
-!call xmpi_bcast(par%thetanaut)
-!call xmpi_bcast(par%wci)
-!call xmpi_bcast(par%hwci)
-!call xmpi_bcast(par%dt)
-!call xmpi_bcast(par%break)
-!call xmpi_bcast(par%instat)
-!call xmpi_bcast(par%wavint)
-!call xmpi_bcast(par%alpha)
-!call xmpi_bcast(par%n)
-!call xmpi_bcast(par%roller)
-!call xmpi_bcast(par%beta)
-!call xmpi_bcast(par%taper)
-!call xmpi_bcast(par%t)
-!call xmpi_bcast(par%tnext)
-!call xmpi_bcast(par%it)
-!call xmpi_bcast(par%tstart)
-!call xmpi_bcast(par%tint)
-!call xmpi_bcast(par%tintp)
-!call xmpi_bcast(par%tintg)
-!call xmpi_bcast(par%tintm)
-!call xmpi_bcast(par%tstop)
-!call xmpi_bcast(par%ntout)
-!call xmpi_bcast(par%C)
-!call xmpi_bcast(par%cf)
-!call xmpi_bcast(par%eps)
-!call xmpi_bcast(par%umin)
-!call xmpi_bcast(par%zs01)
-!call xmpi_bcast(par%zs02)
-!call xmpi_bcast(par%zs03)
-!call xmpi_bcast(par%zs04)
-!call xmpi_bcast(par%tideloc)
-!call xmpi_bcast(par%paulrevere)
-!call xmpi_bcast(par%tidelen)
-!
-!call xmpi_bcast(par%facsl)
-!call xmpi_bcast(par%nuh)
-!call xmpi_bcast(par%nuhfac)
-!call xmpi_bcast(par%rhos)
-!call xmpi_bcast(par%morfac)
-!call xmpi_bcast(par%morstart)
-!call xmpi_bcast(par%Emean)
-!call xmpi_bcast(par%CFL)
-!call xmpi_bcast(par%ngd)
-!call xmpi_bcast(par%nd)
-!call xmpi_bcast(par%por)
-!call xmpi_bcast(par%wetslp)
-!call xmpi_bcast(par%dryslp)
-!call xmpi_bcast(par%sw)
-!call xmpi_bcast(par%front)
-!call xmpi_bcast(par%ARC)
-!call xmpi_bcast(par%order)
-!call xmpi_bcast(par%left)
-!call xmpi_bcast(par%right)
-!call xmpi_bcast(par%back)
-!call xmpi_bcast(par%refl)
-!call xmpi_bcast(par%hswitch)
-!call xmpi_bcast(par%z0)
-!call xmpi_bcast(par%w)
-!call xmpi_bcast(par%compi)
-!call xmpi_bcast(par%listline)
-!call xmpi_bcast(par%rhoa)
-!call xmpi_bcast(par%Cd)
-!call xmpi_bcast(par%windv)
-!call xmpi_bcast(par%windth)
-!call xmpi_bcast(par%nonh)
-!call xmpi_bcast(par%nuhv)
-!call xmpi_bcast(par%wearth)
-!call xmpi_bcast(par%lat)
-!call xmpi_bcast(par%fc)
-!call xmpi_bcast(par%fcutoff)
-!call xmpi_bcast(par%sprdthr)
-!call xmpi_bcast(par%smax)
-!call xmpi_bcast(par%form)
-!call xmpi_bcast(par%carspan)
-!call xmpi_bcast(par%nspr)
-!call xmpi_bcast(par%thetanum)
-!call xmpi_bcast(par%tsfac)
-!call xmpi_bcast(par%scheme)
-!call xmpi_bcast(par%random)
-!call xmpi_bcast(par%trepfac)
-!call xmpi_bcast(par%facua)
-!call xmpi_bcast(par%dzmax)
-!call xmpi_bcast(par%turb)
-!call xmpi_bcast(par%rfb)
-!call xmpi_bcast(par%lwave)
-!call xmpi_bcast(par%swave)
-!call xmpi_bcast(par%sws)
-!call xmpi_bcast(par%ut)
-!call xmpi_bcast(par%Tbfac)
-!call xmpi_bcast(par%Tsmin)
-!call xmpi_bcast(par%impact)
-!call xmpi_bcast(par%CE)
-!call xmpi_bcast(par%BRfac)
-!call xmpi_bcast(par%betad)
-!call xmpi_bcast(par%lwt)
+!....
+
 end subroutine distribute_par
 #endif
 !
@@ -842,119 +732,7 @@ subroutine printparams(par,str)
 
 !  write(f,*) 'printparams ', id, ' ', str
 !  write(f,*) 'printpar ',id,' ','px:',par%px
-!  write(f,*) 'printpar ',id,' ','Hrms:',par%Hrms
-!  write(f,*) 'printpar ',id,' ','Trep:',par%Trep
-!  write(f,*) 'printpar ',id,' ','dir0:',par%dir0
-!  write(f,*) 'printpar ',id,' ','m:',par%m
-!!  write(f,*) 'printpar ',id,' ','nt:',par%nt
-!  write(f,*) 'printpar ',id,' ','hmin:',par%hmin
-!  write(f,*) 'printpar ',id,' ','gammax:',par%gammax
-!  write(f,*) 'printpar ',id,' ','Tlong:',par%Tlong
-!  write(f,*) 'printpar ',id,' ','Llong:',par%Llong
-!  write(f,*) 'printpar ',id,' ','gamma:',par%gamma
-!  write(f,*) 'printpar ',id,' ','delta:',par%delta
-!  write(f,*) 'printpar ',id,' ','rho:',par%rho
-!  write(f,*) 'printpar ',id,' ','g:',par%g
-!  write(f,*) 'printpar ',id,' ','rhog8:',par%rhog8
-!!  write(f,*) 'printpar ',id,' ','omega:',par%omega
-!  write(f,*) 'printpar ',id,' ','thetamin:',par%thetamin
-!  write(f,*) 'printpar ',id,' ','thetamax:',par%thetamax
-!  write(f,*) 'printpar ',id,' ','dtheta:',par%dtheta
-!  write(f,*) 'printpar ',id,' ','thetanaut:',par%thetanaut
-!  write(f,*) 'printpar ',id,' ','wci:',par%wci
-!  write(f,*) 'printpar ',id,' ','hwci:',par%hwci
-!  write(f,*) 'printpar ',id,' ','dt:',par%dt
-!  write(f,*) 'printpar ',id,' ','break:',par%break
-!  write(f,*) 'printpar ',id,' ','instat:',par%instat
-!  write(f,*) 'printpar ',id,' ','wavint:',par%wavint
-!  write(f,*) 'printpar ',id,' ','alpha:',par%alpha
-!  write(f,*) 'printpar ',id,' ','n:',par%n
-!  write(f,*) 'printpar ',id,' ','roller:',par%roller
-!  write(f,*) 'printpar ',id,' ','beta:',par%beta
-!  write(f,*) 'printpar ',id,' ','taper:',par%taper
-!  write(f,*) 'printpar ',id,' ','t:',par%t
-!  write(f,*) 'printpar ',id,' ','tnext:',par%tnext
-!!  write(f,*) 'printpar ',id,' ','it:',par%it
-!  write(f,*) 'printpar ',id,' ','tstart:',par%tstart
-!  write(f,*) 'printpar ',id,' ','tint:',par%tint
-!  write(f,*) 'printpar ',id,' ','tintp:',par%tintp
-!  write(f,*) 'printpar ',id,' ','tintg:',par%tintg
-!  write(f,*) 'printpar ',id,' ','tintm:',par%tintm
-!  write(f,*) 'printpar ',id,' ','tstop:',par%tstop
-!!  write(f,*) 'printpar ',id,' ','ntout:',par%ntout
-!  write(f,*) 'printpar ',id,' ','C:',par%C
-!  write(f,*) 'printpar ',id,' ','cf:',par%cf
-!  write(f,*) 'printpar ',id,' ','eps:',par%eps
-!  write(f,*) 'printpar ',id,' ','umin:',par%umin
-!  write(f,*) 'printpar ',id,' ','zs01:',par%zs01
-!  write(f,*) 'printpar ',id,' ','zs02:',par%zs02
-!  write(f,*) 'printpar ',id,' ','zs03:',par%zs03
-!  write(f,*) 'printpar ',id,' ','zs04:',par%zs04
-!  write(f,*) 'printpar ',id,' ','tideloc:',par%tideloc
-!  write(f,*) 'printpar ',id,' ','paulrevere:',par%paulrevere
-!  write(f,*) 'printpar ',id,' ','tidelen:',par%tidelen
-!!  write(f,*) 'printpar ',id,' ','dico:',par%dico
-!  write(f,*) 'printpar ',id,' ','facsl:',par%facsl
-!  write(f,*) 'printpar ',id,' ','nuh:',par%nuh
-!  write(f,*) 'printpar ',id,' ','nuhfac:',par%nuhfac
-!  write(f,*) 'printpar ',id,' ','rhos:',par%rhos
-!  write(f,*) 'printpar ',id,' ','morfac:',par%morfac
-!  write(f,*) 'printpar ',id,' ','morstart:',par%morstart
-!  write(f,*) 'printpar ',id,' ','Emean:',par%Emean
-!  write(f,*) 'printpar ',id,' ','CFL:',par%CFL
-!  write(f,*) 'printpar ',id,' ','ngd:',par%ngd
-!  write(f,*) 'printpar ',id,' ','por:',par%por
-!  write(f,*) 'printpar ',id,' ','wetslp:',par%wetslp
-!  write(f,*) 'printpar ',id,' ','dryslp:',par%dryslp
-!!  write(f,*) 'printpar ',id,' ','sw:',par%sw
-!  write(f,*) 'printpar ',id,' ','front:',par%front
-!  write(f,*) 'printpar ',id,' ','ARC:',par%ARC
-!  write(f,*) 'printpar ',id,' ','order:',par%order
-!  write(f,*) 'printpar ',id,' ','left:',par%left
-!  write(f,*) 'printpar ',id,' ','right:',par%right
-!  write(f,*) 'printpar ',id,' ','back:',par%back
-!!  write(f,*) 'printpar ',id,' ','refl:',par%refl
-!  write(f,*) 'printpar ',id,' ','hswitch:',par%hswitch
-!  write(f,*) 'printpar ',id,' ','z0:',par%z0
-!  write(f,*) 'printpar ',id,' ','w:',par%w
-!  write(f,*) 'printpar ',id,' ','compi:',par%compi
-!  write(f,*) 'printpar ',id,' ','listline:',par%listline
-!  write(f,*) 'printpar ',id,' ','rhoa:',par%rhoa
-!  write(f,*) 'printpar ',id,' ','Cd:',par%Cd
-!  write(f,*) 'printpar ',id,' ','windv:',par%windv
-!  write(f,*) 'printpar ',id,' ','windth:',par%windth
-!  write(f,*) 'printpar ',id,' ','nonh:',par%nonh
-!  write(f,*) 'printpar ',id,' ','nuhv:',par%nuhv
-!  write(f,*) 'printpar ',id,' ','wearth:',par%wearth
-!  write(f,*) 'printpar ',id,' ','lat:',par%lat
-!  write(f,*) 'printpar ',id,' ','fc:',par%fc
-!  write(f,*) 'printpar ',id,' ','fcutoff:',par%fcutoff
-!  write(f,*) 'printpar ',id,' ','sprdthr:',par%sprdthr
-!
-!  write(f,*) 'printpar ',id,' ','smax:',par%smax
-!  write(f,*) 'printpar ',id,' ','form:',par%form
-!  write(f,*) 'printpar ',id,' ','carspan:',par%carspan
-!  write(f,*) 'printpar ',id,' ','nspr:',par%nspr
-!  write(f,*) 'printpar ',id,' ','thetanum:',par%thetanum
-!  write(f,*) 'printpar ',id,' ','tsfac:',par%tsfac
-!  write(f,*) 'printpar ',id,' ','scheme:',par%scheme
-!  write(f,*) 'printpar ',id,' ','random:',par%random
-!  write(f,*) 'printpar ',id,' ','trepfac:',par%trepfac
-!  write(f,*) 'printpar ',id,' ','facua:',par%facua
-!  write(f,*) 'printpar ',id,' ','dzmax:',par%dzmax
-!  write(f,*) 'printpar ',id,' ','turb:',par%turb
-!  write(f,*) 'printpar ',id,' ','rfb:',par%rfb
-!  write(f,*) 'printpar ',id,' ','lwave:',par%lwave
-!  write(f,*) 'printpar ',id,' ','swave:',par%swave
-!  write(f,*) 'printpar ',id,' ','sws:',par%sws
-!!  write(f,*) 'printpar ',id,' ','ut:',par%ut
-!  write(f,*) 'printpar ',id,' ','Tbfac:',par%Tbfac
-!  write(f,*) 'printpar ',id,' ','Tsmin:',par%Tsmin
-!!  write(f,*) 'printpar ',id,' ','impact:',par%impact
-!!  write(f,*) 'printpar ',id,' ','CE:',par%CE
-!  write(f,*) 'printpar ',id,' ','BRfac:',par%BRfac
-!  write(f,*) 'printpar ',id,' ','betad:',par%betad
-!  write(f,*) 'printpar ',id,' ','lwt:',par%lwt
+!  ....
   
 end subroutine printparams
 

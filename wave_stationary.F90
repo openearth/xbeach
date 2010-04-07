@@ -113,7 +113,7 @@ hh = max(hh,par%eps)
 
 
 ! Slopes of water depth
-call slope2D(hh+par%delta*H,nx,ny,xz,yz,dhdx,dhdy)
+call slope2D(max(hh,par%delta*H),nx,ny,xz,yz,dhdx,dhdy)
 call slope2D(u*par%wci,nx,ny,xz,yz,dudx,dudy)
 call slope2D(v*par%wci,nx,ny,xz,yz,dvdx,dvdy)
 
@@ -122,7 +122,7 @@ call slope2D(v*par%wci,nx,ny,xz,yz,dvdx,dvdy)
 !
 ! Calculate once sinh(2kh)
 where(2*hh*k<=3000.d0)
-   sinh2kh=sinh(min(2*k*(hh+par%delta*H),10.0d0))
+   sinh2kh=sinh(min(2*k*max(hh,par%delta*H),10.0d0))
 elsewhere
    sinh2kh = 3000.d0
 endwhere
@@ -494,7 +494,7 @@ call xmpi_shift(Fy,'1:')
 call xmpi_shift(Fx,'m:')
 call xmpi_shift(Fy,'m:')
 #endif
-urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*(hh+par%delta*H)))
+urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*max(hh,par%delta*H)))
 !ust=E*k/sigm/par%rho/max(hh,0.001)
 
 ! wave induced mass flux

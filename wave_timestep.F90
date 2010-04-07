@@ -159,7 +159,7 @@ subroutine wave_timestep(s,par)
        umwci   = factime*uu + (1-factime)*umwci
        vmwci   = factime*vv + (1-factime)*vmwci	
        zswci   = factime*zs + (1-factime)*zswci	
-       arg     = min(100.0d0,km*(hh+par%delta*H))
+       arg     = min(100.0d0,km*max(hh,par%delta*H))
        sigm(1,:) = sqrt( par%g*km(1,:)*tanh(arg(1,:))) ! *( 1.d0+ ((km(1,:)*H(1,:)/2.d0)**2)))
 !  calculate change in intrinsic frequency
        tm  = (sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
@@ -226,13 +226,13 @@ subroutine wave_timestep(s,par)
     endif ! end wave current interaction
 
 ! Slopes of water depth
-    call slope2D(hh+par%delta*H,nx,ny,xz,yz,dhdx,dhdy)
+    call slope2D(max(hh,par%delta*H),nx,ny,xz,yz,dhdx,dhdy)
     call slope2D(wcifacu,nx,ny,xz,yz,dudx,dudy)
     call slope2D(wcifacv,nx,ny,xz,yz,dvdx,dvdy)
 !
 ! Calculate once sinh(2kh)
     where(2*hh*k<=3000.d0)
-       sinh2kh=sinh(min(2*k*(hh+par%delta*H),10.0d0))
+       sinh2kh=sinh(min(2*k*max(hh,par%delta*H),10.0d0))
     elsewhere
        sinh2kh = 3000.d0
     endwhere
@@ -291,7 +291,7 @@ subroutine wave_timestep(s,par)
         call roelvink(par,s,km)        
     endif
 ! Dissipation by bed friction
-    uorb=par%px*H/par%Trep/sinh(min(max(k,0.01d0)*(hh+par%delta*H),10.0d0))
+    uorb=par%px*H/par%Trep/sinh(min(max(k,0.01d0)*max(hh,par%delta*H),10.0d0))
     Df=0.6666666d0/par%px*par%rho*par%fw*uorb**3
 
 ! Transformation of kinetic energy to potential energy in the swash zone
@@ -452,9 +452,9 @@ if (xmpi_isright) then
 endif
 
 ! Ad
-!    urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(min(max(k,0.01d0)*(hh+par%delta*H),10.0d0)))
+!    urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(min(max(k,0.01d0)*max(hh,par%delta*H),10.0d0)))
     urms=uorb/sqrt(2.d0)
-!   urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*(hh+par%delta*H)))
+!   urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*max(hh,par%delta*H)))
 
     ustw= E/max(c,sqrt(par%hmin*par%g))/par%rho/max(hh,par%hmin)   ! Jaap
     uwf = ustw*cos(tm)

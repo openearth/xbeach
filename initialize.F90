@@ -402,34 +402,13 @@ IMPLICIT NONE
 type(spacepars)                     :: s
 type(parameters)                    :: par
 
-integer                             :: i,j,m,jg,start,rgd
+integer                             :: i,j,m,jg,start
 character*80                        :: fnameg,line
 character*4                         :: tempc
 real*8                              :: tempr
-real*8,dimension(:,:),allocatable   :: structdepth
-real*8,dimension(:),allocatable     :: layerdepth
-real*8                              :: remain
-
-
-rgd = par%ngd
-
-if (par%struct==1) then   ! If hard structure specified then add one sediment type (non-mobile)
-   par%ngd = par%ngd+1
-   write(*,*) 'Adding one sediment fraction to account for unerodable layer'
-   if (par%nd==1) then
-      par%nd=32
-	  !par%nd=1
-	  !par%nd_var=1
-	  write(*,*)'Bed layers included to support hard structure calculation'
-      par%dzg1=0.05d0
-      par%dzg2=0.05d0
-	  par%dzg3=0.25d0
-      write(*,*)'Setting bed layer thickness to support hard structure calculation'
-	  write(*,*) 'dzg1,dzg2 = 5cm. dzg3 = 25cm.'
-   endif
-endif
 
 allocate(s%ccg(1:s%nx+1,1:s%ny+1,par%ngd))
+allocate(s%ccbg(1:s%nx+1,1:s%ny+1,par%ngd))
 allocate(s%dcbdy(1:s%nx+1,1:s%ny+1))
 allocate(s%dcbdx(1:s%nx+1,1:s%ny+1))
 allocate(s%dcsdy(1:s%nx+1,1:s%ny+1))
@@ -449,8 +428,8 @@ allocate(s%D90top(1:s%nx+1,1:s%ny+1))
 allocate(s%sedcal(1:par%ngd))
 allocate(s%ucrcal(1:par%ngd))
 allocate(s%nd(1:s%nx+1,1:s%ny+1))
-allocate(s%dzbed(1:s%nx+1,1:s%ny+1,1:max(par%nd,2))) 
-allocate(s%pbbed(1:s%nx+1,1:s%ny+1,1:max(par%nd,2),1:par%ngd)) 
+allocate(s%dzbed(1:s%nx+1,1:s%ny+1,1:max(par%nd,3))) 
+allocate(s%pbbed(1:s%nx+1,1:s%ny+1,1:max(par%nd,3),1:par%ngd)) 
 allocate(s%z0bed(1:s%nx+1,1:s%ny+1))
 allocate(s%ureps(1:s%nx+1,1:s%ny+1))
 allocate(s%urepb(1:s%nx+1,1:s%ny+1))
@@ -484,44 +463,44 @@ s%pbbed = 0.d0
  if (line=='') then
     s%D50=0.0002d0   ! Default
  else
-    read(line,*) s%D50(1:rgd)
+    read(line,*) s%D50(1:par%ngd)
  endif
  if (par%form<4 .and. maxval(s%D50)>0.002) write(*,*) 'D50 > 2mm, out of validity range'
  call readkey('params.txt','D90',line)
  if (line=='') then
     s%D90=0.0003d0   ! Default
  else
-    read(line,*) s%D90(1:rgd)
+    read(line,*) s%D90(1:par%ngd)
  endif
  call readkey('params.txt','sedcal',line)
  if (line=='') then
     s%sedcal=1.d0    ! Default
  else
-    read(line,*) s%sedcal(1:rgd)
+    read(line,*) s%sedcal(1:par%ngd)
  endif
  call readkey('params.txt','ucrcal',line)
  if (line=='') then
     s%ucrcal=1.d0    ! Default
  else
-    read(line,*) s%ucrcal(1:rgd)
+    read(line,*) s%ucrcal(1:par%ngd)
  endif
 
-if (rgd==1) then
-! No multi sediment, but we do need some data to keep the script running
-    s%pbbed(:,:,:,rgd)=1.d0   ! set sand fraction everywhere, not structure fraction (if exist) which is still 0.d0
-	par%nd_var=1
-	if (par%nd==1) then
-		s%dzbed = 99999.d0
-	else
-	   s%dzbed(:,:,1:par%nd_var-1)       = par%dzg1
-       s%dzbed(:,:,par%nd_var)           = par%dzg2
-	   s%dzbed(:,:,par%nd_var+1:par%nd)  = par%dzg3
-	endif
+if (par%ngd==1) then
+    
+	! No multi sediment, but we do need some data to keep the script running
+    
+	s%pbbed(:,:,:,par%ngd)=1.d0   ! set sand fraction everywhere, not structure fraction (if exist) which is still 0.d0
+	par%nd_var=2
+
+	s%dzbed(:,:,1:par%nd_var-1)       = par%dzg1
+    s%dzbed(:,:,par%nd_var)           = par%dzg2
+	s%dzbed(:,:,par%nd_var+1:par%nd)  = par%dzg3
+
 else
-   !
+
    ! Fill s%pbed en s%dzbed
    ! 
-   do jg=1,rgd
+   do jg=1,par%ngd
 	  write(tempc,'(i4)')jg
       start=4-floor(log10(real(jg)))
 	  write(fnameg,'(a,a,a)')'gdist',tempc(start:4),'.inp'
@@ -534,18 +513,18 @@ else
 	  close(31)
    enddo
    ! Rework pbbed so that sum fractions = 1
-   do m=1,par%nd
-	   do j=2,s%ny
-		   do i=2,s%nx
+      do m=1,par%nd
+	   do j=1,s%ny+1     !Jaap instead of 2:ny
+		   do i=1,s%nx+1 !Jaap instead of 2:nx
 		       
-			   tempr=sum(s%pbbed(i,j,m,1:rgd))
+			   tempr=sum(s%pbbed(i,j,m,1:par%ngd))
 			   if (abs(1.d0-tempr)>0.d0) then
 			       ! Maybe fix this warning if in combination with structures
 				   write(*,*)' Warning: Resetting sum of sediment fractions in point (',&
 					                     i,',',j,') layer ,',m,&
 												' to equal unity.'
 				   if (tempr<=tiny(0.d0)) then    ! In case cell has zero sediment (i.e. only hard structure)
-                      s%pbbed(i,j,m,:)=1.d0/dble(rgd) 
+                      s%pbbed(i,j,m,:)=1.d0/dble(par%ngd) 
 				   else
 				      s%pbbed(i,j,m,:)=s%pbbed(i,j,m,:)/tempr
 				   endif
@@ -553,11 +532,8 @@ else
 			enddo
 		enddo
 	enddo
-	! boundary neumann
-	s%pbbed(1,:,:,:)=s%pbbed(2,:,:,:)
-	s%pbbed(s%nx+1,:,:,:)=s%pbbed(s%nx,:,:,:)
-	s%pbbed(:,1,:,:)=s%pbbed(:,2,:,:)
-	s%pbbed(:,s%ny+1,:,:)=s%pbbed(:,s%ny,:,:)
+	! boundary neumann --> Jaap not necessary already done in loop above
+
 	! sediment thickness				   
 	s%dzbed(:,:,1:par%nd_var-1)       = par%dzg1
 	s%dzbed(:,:,par%nd_var)           = par%dzg2
@@ -574,39 +550,19 @@ enddo
 ! 
 ! Set non-erodable layer
 !
+allocate(s%structdepth(s%nx+1,s%ny+1))
+
+s%structdepth = 100.d0
+
 if (par%struct==1) then
-   s%D50(rgd+1) = 0.0002d0  ! Dummy
-   s%D90(rgd+1) = 0.0003d0  ! Dummy
-   s%sedcal(rgd+1) = 0.d0   ! Fully non-erodable
-   s%ucrcal(rgd+1) = 1.d0   ! Dummy
-   allocate(structdepth(s%nx+1,s%ny+1))
+
    open(31,file=par%ne_layer)
    do j=1,s%ny+1
-       read(31,*)(structdepth(i,j),i=1,s%nx+1)
+       read(31,*)(s%structdepth(i,j),i=1,s%nx+1)
    end do
    close(31)
-   allocate(layerdepth(par%nd+1))
-   layerdepth(1)=0.d0
-   do m=2,par%nd+1
-      layerdepth(m)=sum(s%dzbed(1,1,1:m-1))
-   enddo
-   do j=2,s%ny
-      do i=2,s%nx
-	     do m=1,par%nd
-		    if (layerdepth(m)>=structdepth(i,j)) then
-               s%pbbed(i,j,m,1:rgd)=0.d0
-			   s%pbbed(i,j,m,rgd+1)=1.d0
-			elseif(layerdepth(m+1)>structdepth(i,j)) then
-			   remain=(layerdepth(m+1)-structdepth(i,j))/s%dzbed(i,j,m)
-               s%pbbed(i,j,m,rgd+1)=remain
-               s%pbbed(i,j,m,1:rgd)=s%pbbed(i,j,m,1:rgd)*(1.d0-remain)
-			endif
-		 enddo
-	  enddo
-  enddo
+
 endif
-
-
 
 ! bottom of sediment model
 s%z0bed = s%zb - sum(s%dzbed,DIM=3)
@@ -616,6 +572,7 @@ s%nd = max(par%nd,2)
 s%ureps      = 0.d0
 s%vreps      = 0.d0
 s%ccg        = 0.d0
+s%ccbg       = 0.d0
 s%ceqbg      = 0.d0
 s%ceqsg      = 0.d0
 s%Susg       = 0.d0

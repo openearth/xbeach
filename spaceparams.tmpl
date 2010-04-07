@@ -126,7 +126,8 @@
       real*8  2  hum    s%nx+1 s%ny+1 d  [m]        water depth in u-points
       real*8  2  hvm    s%nx+1 s%ny+1 d  [m]        water depth in v-points
       real*8  2  vmag   s%nx+1 s%ny+1 d  [m/s]      velocity magnitude in cell centre
-      real*8  3  ccg    s%nx+1 s%ny+1 par%ngd d  [m3/m3]    depth-averaged concentration for each sediment fraction
+      real*8  3  ccg    s%nx+1 s%ny+1 par%ngd d  [m3/m3]    depth-averaged suspended concentration for each sediment fraction
+      real*8  3  ccbg   s%nx+1 s%ny+1 par%ngd d  [m3/m3]    depth-averaged bed concentration for each sediment fraction
       real*8  2  uwf    s%nx+1 s%ny+1 d  [m/s]      x-comp. Stokes drift
       real*8  2  vwf    s%nx+1 s%ny+1 d  [m/s]      y-comp. Stokes drift
       real*8  2  ustr   s%nx+1 s%ny+1 d  [m/s]      return flow due to roller
@@ -201,5 +202,6 @@
       real*8  2  cf        s%nx+1 s%ny+1 d  [-] Friction coefficient flow
       real*8  2  D50top    s%nx+1 s%ny+1 d  [-] Friction coefficient flow
       real*8  2  D90top    s%nx+1 s%ny+1 d  [-] Friction coefficient flow
+      real*8  2  structdepth    s%nx+1 s%ny+1 d  [m] Depth of structure in relation to instantaneous bed level
       
 !* hints for vi vim: filetype=fortran : syntax=fortran
