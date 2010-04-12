@@ -200,6 +200,9 @@ if(abs(par%t-par%dt)<1.d-6) then
                 dist(i)=0
             end if
         end do
+        if (par%instat==3) then
+           par%Hrms=sqrt(8*par%Emean/(par%rho*par%g))
+        endif
         E0=par%rhog8*par%Hrms**2
     
         ! energy density distribution
