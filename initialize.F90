@@ -489,12 +489,12 @@ if (par%ngd==1) then
     
 	! No multi sediment, but we do need some data to keep the script running
     
-	s%pbbed(:,:,:,par%ngd)=1.d0   ! set sand fraction everywhere, not structure fraction (if exist) which is still 0.d0
+	s%pbbed(:,:,:,1)=1.d0   ! set sand fraction everywhere, not structure fraction (if exist) which is still 0.d0
 	par%nd_var=2
 
-	s%dzbed(:,:,1:par%nd_var-1)       = par%dzg1
-    s%dzbed(:,:,par%nd_var)           = par%dzg2
-	s%dzbed(:,:,par%nd_var+1:par%nd)  = par%dzg3
+	s%dzbed(:,:,1:par%nd_var-1)       = 10.d0
+    s%dzbed(:,:,par%nd_var)           = 10.d0
+	s%dzbed(:,:,par%nd_var+1:par%nd)  = 10.d0
 
 else
 

@@ -132,10 +132,10 @@ do jg = 1,par%ngd
       do i=1,nx+1
          exp_ero = par%morfac*par%dt/(1.d0-par%por)*hh(i,j)*(ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg) + ceqbg(i,j,jg)*pbbed(i,j,1,jg)/par%dt) 
          fac(i,j,jg) = min(1.d0,structdepth(i,j)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )        ! limit erosion to available sediment on top of hard layer
-         if (fac(i,j,jg)*exp_ero > dzbed(i,j,1)*pbbed(i,j,1,jg)) then
-            fac(i,j,jg) = min(fac(i,j,jg),dzbed(i,j,1)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )  ! limit erosion to available sand in top layer
-            write(*,*)'WARNING: expected erosion from top layer is larger than available sand in top layer'
-         endif
+         !if (fac(i,j,jg)*exp_ero > dzbed(i,j,1)*pbbed(i,j,1,jg)) then
+         !   fac(i,j,jg) = min(fac(i,j,jg),dzbed(i,j,1)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )  ! limit erosion to available sand in top layer
+         !   write(*,*)'WARNING: expected erosion from top layer is larger than available sand in top layer'
+         !endif
 	  enddo
    enddo
 enddo
@@ -155,7 +155,7 @@ dzbdt=0.0d0
 
 do jg = 1,par%ngd
    cc = ccg(:,:,jg)
-   ccb = ccbg(:,:,jg)
+   !ccb = ccbg(:,:,jg)
    if (D50(jg)>0.002d0) then
       ! RJ: set ceqsg to zero for gravel.
       cc = 0.d0 ! Can be used to test total transport mode
@@ -167,16 +167,16 @@ do jg = 1,par%ngd
          if(ueu(i,j)>0.d0) then
             ! test cu(i,j)=cc(i,j)
             cu(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(min(i+1,nx),j)
-			!cub(i,j)=par%thetanum*ceqbg(i,j,jg)+(1.d0-par%thetanum)*ceqbg(min(i+1,nx),j,jg)
-			cub(i,j)=par%thetanum*ccb(i,j)+(1.d0-par%thetanum)*ccb(min(i+1,nx),j)
+		    cub(i,j)=par%thetanum*pbbed(i,j,1,jg)*ceqbg(i,j,jg)+(1.d0-par%thetanum)*pbbed(min(i+1,nx),j,1,jg)*ceqbg(min(i+1,nx),j,jg)
+			!cub(i,j)=par%thetanum*ccb(i,j)+(1.d0-par%thetanum)*ccb(min(i+1,nx),j)
          elseif(ueu(i,j)<0.d0) then
             cu(i,j)=par%thetanum*cc(i+1,j)+(1.d0-par%thetanum)*cc(max(i,2),j)
-			!cub(i,j)=par%thetanum*ceqbg(i+1,j,jg)+(1.d0-par%thetanum)*ceqbg(max(i,2),j,jg)
-			cub(i,j)=par%thetanum*ccb(i+1,j)+(1.d0-par%thetanum)*ccb(max(i,2),j)
+			cub(i,j)=par%thetanum*pbbed(i+1,j,1,jg)*ceqbg(i+1,j,jg)+(1.d0-par%thetanum)*pbbed(max(i,2),j,1,jg)*ceqbg(max(i,2),j,jg)
+			!cub(i,j)=par%thetanum*ccb(i+1,j)+(1.d0-par%thetanum)*ccb(max(i,2),j)
          else
             cu(i,j)=0.5d0*(cc(i,j)+cc(i+1,j))
-			!cub(i,j)=0.5d0*(ceqbg(i,j,jg)+ceqbg(i+1,j,jg))
-			cub(i,j)=0.5d0*(ccb(i,j)+ccb(i+1,j))
+			cub(i,j)=0.5d0*(pbbed(i,j,1,jg)*ceqbg(i,j,jg)+pbbed(i+1,j,1,jg)*ceqbg(i+1,j,jg))
+			!cub(i,j)=0.5d0*(ccb(i,j)+ccb(i+1,j))
          endif
          dcsdx(i,j)=(cc(i+1,j)-cc(i,j))/(xz(i+1)-xz(i))
 
@@ -237,17 +237,17 @@ do jg = 1,par%ngd
          if(vev(i,j)>0) then
             ! cv(i,j)=cc(i,j)
             cv(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(i,min(j+1,ny))
-			!cvb(i,j)=par%thetanum*ceqbg(i,j,jg)+(1.d0-par%thetanum)*ceqbg(i,min(j+1,ny),jg)
-			cvb(i,j)=par%thetanum*ccb(i,j)+(1.d0-par%thetanum)*ccb(i,min(j+1,ny))
+			cvb(i,j)=par%thetanum*pbbed(i,j,1,jg)*ceqbg(i,j,jg)+(1.d0-par%thetanum)*pbbed(i,min(j+1,ny),1,jg)*ceqbg(i,min(j+1,ny),jg)
+			!cvb(i,j)=par%thetanum*ccb(i,j)+(1.d0-par%thetanum)*ccb(i,min(j+1,ny))
          else if(vev(i,j)<0) then
             ! cv(i,j)=cc(i,j+1)
             cv(i,j)=par%thetanum*cc(i,j+1)+(1.d0-par%thetanum)*cc(i,max(j,2))
-			!cvb(i,j)=par%thetanum*ceqbg(i,j+1,jg)+(1.d0-par%thetanum)*ceqbg(i,max(j,2),jg)
-			cvb(i,j)=par%thetanum*ccb(i,j+1)+(1.d0-par%thetanum)*ccb(i,max(j,2))
+			cvb(i,j)=par%thetanum*pbbed(i,j+1,1,jg)*ceqbg(i,j+1,jg)+(1.d0-par%thetanum)*pbbed(i,max(j,2),1,jg)*ceqbg(i,max(j,2),jg)
+			!cvb(i,j)=par%thetanum*ccb(i,j+1)+(1.d0-par%thetanum)*ccb(i,max(j,2))
          else
             cv(i,j)=0.5d0*(cc(i,j)+cc(i,j+1)) !Jaap: cc instead of cv
-			!cvb(i,j)=0.5d0*(ceqbg(i,j,jg)+ceqbg(i,j+1,jg))
-			cvb(i,j)=0.5d0*(ccb(i,j)+ccb(i,j+1))
+			cvb(i,j)=0.5d0*(pbbed(i,j,1,jg)*ceqbg(i,j,jg)+pbbed(i,j+1,1,jg)*ceqbg(i,j+1,jg))
+			!cvb(i,j)=0.5d0*(ccb(i,j)+ccb(i,j+1))
          end if
          dcsdy(i,j)=(cc(i,j+1)-cc(i,j))/(yz(j+1)-yz(j)) !Jaap
 
@@ -318,44 +318,44 @@ do jg = 1,par%ngd
     enddo
 	!
     ! Jaap: bed load --> Tsg = par%dt for bed load....
-	do j=2,ny
-      do i=2,nx
-         ero(i,j,jg) = ero(i,j,jg) + fac(i,j,jg)*hh(i,j)*ceqbg(i,j,jg)*pbbed(i,j,1,jg)/par%dt                 
-         ccb(i,j) = (par%dt/2.d0)* &
-	                              (hold(i,j)*ccb(i,j)/par%dt -((Sub(i,j)-Sub(i-1,j))/(xu(i)-xu(i-1))+&
-                                                               (Svb(i,j)-Svb(i,j-1))/(yv(j)-yv(j-1))-&
-								                               fac(i,j,jg)*hh(i,j)*ceqbg(i,j,jg)*pbbed(i,j,1,jg)/par%dt) )	
-
-         ccb(i,j)=max(ccb(i,j),0.0d0) ! Jaap: negative cc's are possible...
-		 depo_ex(i,j,jg) = depo_ex(i,j,jg) + ccb(i,j)/par%dt
-      enddo
-    enddo
+	!do j=2,ny
+    !  do i=2,nx
+    !     ero(i,j,jg) = ero(i,j,jg) + fac(i,j,jg)*hh(i,j)*ceqbg(i,j,jg)*pbbed(i,j,1,jg)/par%dt                 
+    !     ccb(i,j) = (par%dt/2.d0)* &
+	!                              (hold(i,j)*ccb(i,j)/par%dt -((Sub(i,j)-Sub(i-1,j))/(xu(i)-xu(i-1))+&
+    !                                                           (Svb(i,j)-Svb(i,j-1))/(yv(j)-yv(j-1))-&
+	!							                               fac(i,j,jg)*hh(i,j)*ceqbg(i,j,jg)*pbbed(i,j,1,jg)/par%dt) )	
+    !
+    !     ccb(i,j)=max(ccb(i,j),0.0d0) ! Jaap: negative cc's are possible...
+	!	 depo_ex(i,j,jg) = depo_ex(i,j,jg) + ccb(i,j)/par%dt
+    !  enddo
+    !enddo
 
 	cc = cc/hh
-	ccb = ccb/hh
+	!ccb = ccb/hh
 
 	! do lateral bounadries...
 if(xmpi_istop)then
     cc(1,:)=cc(2,:)
-	ccb(1,:)=ccb(2,:)
+	!ccb(1,:)=ccb(2,:)
 	ero(1,:,jg)=ero(2,:,jg)
     depo_ex(1,:,jg)=depo_ex(2,:,jg)
 endif
 if(xmpi_isleft)then
 	cc(:,1)=cc(:,2)
-	ccb(:,1)=ccb(:,2)
+	!ccb(:,1)=ccb(:,2)
     ero(:,1,jg)=ero(:,2,jg)
     depo_ex(:,1,jg)=depo_ex(:,2,jg)
 endif
 if(xmpi_istop)then
 	cc(nx+1,:)=cc(nx+1-1,:)
-	ccb(nx+1,:)=ccb(nx+1-1,:)
+	!ccb(nx+1,:)=ccb(nx+1-1,:)
     ero(nx+1,:,jg)=ero(nx,:,jg)
     depo_ex(nx+1,:,jg)=depo_ex(nx,:,jg)
 endif
 if(xmpi_isright)then
 	cc(:,ny+1)=cc(:,ny+1-1)
-	ccb(:,ny+1)=ccb(:,ny+1-1)
+	!ccb(:,ny+1)=ccb(:,ny+1-1)
 	ero(:,ny+1,jg)=ero(:,ny,jg)
     depo_ex(:,ny+1,jg)=depo_ex(:,ny,jg)
 endif
@@ -366,17 +366,17 @@ endif
     call xmpi_shift(cc,'m:')
     call xmpi_shift(cc,':1')   ! Maybe not necessary as zb calculated from 1:ny+1, but just in case...
     call xmpi_shift(cc,':n')   ! Dito
-	call xmpi_shift(ccb,'1:')
-    call xmpi_shift(ccb,'m:')
-    call xmpi_shift(ccb,':1')   ! Maybe not necessary as zb calculated from 1:ny+1, but just in case...
-    call xmpi_shift(ccb,':n')   ! Dito
+	!call xmpi_shift(ccb,'1:')
+    !call xmpi_shift(ccb,'m:')
+    !call xmpi_shift(ccb,':1')   ! Maybe not necessary as zb calculated from 1:ny+1, but just in case...
+    !call xmpi_shift(ccb,':n')   ! Dito
 #endif
     ! Jaap
     ! cc=cc*wetz
     !
     ! wwvv border columns and rows of ccg Svg and Sug have to be communicated
     ccg(:,:,jg) = cc
-	ccbg(:,:,jg) = ccb
+	!ccbg(:,:,jg) = ccb
     Svsg(:,:,jg) = Svs
     Susg(:,:,jg) = Sus
 	Svbg(:,:,jg) = Svb
@@ -434,10 +434,9 @@ par%merge = 0.01d0
 !
 ! bed_predict
 !
-if (par%sourcesink==0) then
-
+if (par%struct == 1) then
 ! reduce sediment transports when hard layer comes to surface
-! this step is only necessary for sourcesink = 0 and is mainly necessary at the transition from hard layers to sand
+! this step is mainly necessary at the transition from hard layers to sand
 
 indSus = 0
 indSub = 0
@@ -448,39 +447,43 @@ Sout   = 0.d0
 do jg = 1,par%ngd 
    do j=2,ny+1
       do i=2,nx+1	    
-	
-		 ! fluxes at i,j
-         if (Susg(i,j,jg) > 0.d0 ) then         ! suspended load u-direction
-		    indSus(i,j,jg) = 1
-			Sout(i,j) = Sout(i,j) + Susg(i,j,jg)*(yv(j)-yv(j-1))
-		 endif
-         if (Subg(i,j,jg) > 0.d0) then      ! bed load u-direction
+         ! fluxes at i,j
+		 if (Subg(i,j,jg) > 0.d0) then      ! bed load u-direction
 		    indSub(i,j,jg) = 1
 			Sout(i,j) = Sout(i,j) + Subg(i,j,jg)*(yv(j)-yv(j-1))
-		 endif
-		 if (Svsg(i,j,jg) > 0.d0 ) then     ! suspended load v-direction
-		    indSvs(i,j,jg) = 1
-			Sout(i,j) = Sout(i,j) + Svsg(i,j,jg)*(xu(i)-xu(i-1))
 		 endif
 		 if (Svbg(i,j,jg) > 0.d0 ) then     ! bed load v-direction
 		    indSvb(i,j,jg) = 1
 			Sout(i,j) = Sout(i,j) + Svbg(i,j,jg)*(xu(i)-xu(i-1))
          endif
 		 ! fluxes at i-1,j
-         if (Susg(i-1,j,jg) < 0.d0 ) then   ! suspended load u-direction
-		 	Sout(i,j) = Sout(i,j) - Susg(i-1,j,jg)*(yv(j)-yv(j-1))
-         endif
 		 if (Subg(i-1,j,jg) < 0.d0 ) then   ! bed load u-direction
 		 	Sout(i,j) = Sout(i,j) - Subg(i-1,j,jg)*(yv(j)-yv(j-1))
 		 endif
 		 ! fluxes at i,j-1
-		 if (Svsg(i,j-1,jg) < 0.d0 ) then   ! suspended load v-direction
-            Sout(i,j) = Sout(i,j) - Svsg(i,j-1,jg)*(xu(i)-xu(i-1))
-		 endif
 		 if (Svbg(i,j-1,jg) < 0.d0 ) then   ! bed load v-direction
 		 	Sout(i,j) = Sout(i,j) - Svbg(i,j-1,jg)*(xu(i)-xu(i-1))
 		 endif
-         	 
+
+		 if (par%sourcesink==0) then	
+		    ! fluxes at i,j
+            if (Susg(i,j,jg) > 0.d0 ) then     ! suspended load u-direction
+		       indSus(i,j,jg) = 1
+			   Sout(i,j) = Sout(i,j) + Susg(i,j,jg)*(yv(j)-yv(j-1))
+		    endif
+		    if (Svsg(i,j,jg) > 0.d0 ) then     ! suspended load v-direction
+		       indSvs(i,j,jg) = 1
+			   Sout(i,j) = Sout(i,j) + Svsg(i,j,jg)*(xu(i)-xu(i-1))
+		    endif
+		    ! fluxes at i-1,j
+            if (Susg(i-1,j,jg) < 0.d0 ) then   ! suspended load u-direction
+		 	   Sout(i,j) = Sout(i,j) - Susg(i-1,j,jg)*(yv(j)-yv(j-1))
+            endif
+		    ! fluxes at i,j-1
+		    if (Svsg(i,j-1,jg) < 0.d0 ) then   ! suspended load v-direction
+               Sout(i,j) = Sout(i,j) - Svsg(i,j-1,jg)*(xu(i)-xu(i-1))
+		    endif
+		 endif 
 	 enddo
   enddo
 enddo
@@ -494,20 +497,22 @@ do jg = 1,par%ngd
 		 ! fix sediment transports for the presence of a hard layer; remind indSus etc are 1 in cases of cell outgoing transports
 		 ! updated S         oell outgoing transports                  cell incoming transports                   
 		 if (fac < 1.d0)then
-            Susg(i,j,jg)   = fac*indSus(i,j,jg)*Susg(i,j,jg)         + (1-indSus(i,j,jg))*Susg(i,j,jg) 
-			Susg(i-1,j,jg) = fac*(1-indSus(i-1,j,jg))*Susg(i-1,j,jg) + indSus(i-1,j,jg)*Susg(i-1,j,jg)
-	        Subg(i,j,jg)   = fac*indSub(i,j,jg)*Subg(i,j,jg)         + (1-indSub(i,j,jg))*Subg(i,j,jg) 
+		    Subg(i,j,jg)   = fac*indSub(i,j,jg)*Subg(i,j,jg)         + (1-indSub(i,j,jg))*Subg(i,j,jg) 
 			Subg(i-1,j,jg) = fac*(1-indSub(i-1,j,jg))*Subg(i-1,j,jg) + indSub(i-1,j,jg)*Subg(i-1,j,jg)
-			Svsg(i,j,jg)   = fac*indSvs(i,j,jg)*Svsg(i,j,jg)         + (1-indSvs(i,j,jg))*Svsg(i,j,jg)
-			Svsg(i,j-1,jg) = fac*(1-indSvs(i,j-1,jg))*Svsg(i,j-1,jg) + indSvs(i,j-1,jg)*Svsg(i,j-1,jg)
-	        Svbg(i,j,jg)   = fac*indSvb(i,j,jg)*Svbg(i,j,jg)         + (1-indSvb(i,j,jg))*Svbg(i,j,jg)
+			Svbg(i,j,jg)   = fac*indSvb(i,j,jg)*Svbg(i,j,jg)         + (1-indSvb(i,j,jg))*Svbg(i,j,jg)
 			Svbg(i,j-1,jg) = fac*(1-indSvb(i,j-1,jg))*Svbg(i,j-1,jg) + indSvb(i,j-1,jg)*Svbg(i,j-1,jg)
+            if (par%sourcesink==0) then
+               Susg(i,j,jg)   = fac*indSus(i,j,jg)*Susg(i,j,jg)         + (1-indSus(i,j,jg))*Susg(i,j,jg) 
+			   Susg(i-1,j,jg) = fac*(1-indSus(i-1,j,jg))*Susg(i-1,j,jg) + indSus(i-1,j,jg)*Susg(i-1,j,jg)
+			   Svsg(i,j,jg)   = fac*indSvs(i,j,jg)*Svsg(i,j,jg)         + (1-indSvs(i,j,jg))*Svsg(i,j,jg)
+			   Svsg(i,j-1,jg) = fac*(1-indSvs(i,j-1,jg))*Svsg(i,j-1,jg) + indSvs(i,j-1,jg)*Svsg(i,j-1,jg)
+			endif
 		 endif
 	  enddo
    enddo
 enddo		  
 
-endif !sourcesink = 0
+endif !struct == 1
 
 do j=2,ny
    do i=2,nx
@@ -522,7 +527,9 @@ do j=2,ny
                                                 (Subg(i,j,:)-Subg(i-1,j,:))/(xu(i)-xu(i-1)) +&           
 		                                        (Svbg(i,j,:)-Svbg(i,j-1,:))/(yv(j)-yv(j-1))    )       
       elseif (par%sourcesink==1) then
-	     dzg=par%morfac*par%dt/(1.d0-par%por)*(ero(i,j,:)-depo_ex(i,j,:))      
+	     dzg=par%morfac*par%dt/(1.d0-par%por)*(ero(i,j,:)-depo_ex(i,j,:)                  +&
+		                                      (Subg(i,j,:)-Subg(i-1,j,:))/(xu(i)-xu(i-1)) +&           
+		                                      (Svbg(i,j,:)-Svbg(i,j-1,:))/(yv(j)-yv(j-1))    ) 		   
 	  endif      
 
       ! erosion/deposition rate of sand mass (m/s)
@@ -613,10 +620,10 @@ do ii=1,nint(par%morfac)
 			enddo
 		
 		    ! update water levels and dzav
-		    zs(ie,j)=s%zs(ie,j)-dzavt
-            dzav(ie,j)=s%dzav(ie,j)-dzavt
-		    zs(id,j)=s%zs(id,j)+dzavt*dxfac
-            dzav(id,j)=s%dzav(id,j)+dzavt*dxfac
+		    zs(ie,j)  = zs(ie,j)-dzavt
+            dzav(ie,j)= dzav(ie,j)-dzavt
+		    zs(id,j)  = zs(id,j)+dzavt*dxfac
+            dzav(id,j)= dzav(id,j)+dzavt*dxfac
 
          end if
       end do
@@ -687,10 +694,10 @@ do ii=1,nint(par%morfac)
 			enddo
 
             ! update water levels and dzav
-            s%zs(i,je)=s%zs(i,je)-dzb
-            s%dzav(i,je)=s%dzav(i,je)-dzb
-			s%zs(i,jd)=s%zs(i,jd)+dzb*dyfac
-            s%dzav(i,jd)=s%dzav(i,jd)+dzb*dyfac
+            s%zs(i,je)  = zs(i,je)-dzavt
+            s%dzav(i,je)= dzav(i,je)-dzavt
+			s%zs(i,jd)  = zs(i,jd)+dzavt*dyfac
+            s%dzav(i,jd)= dzav(i,jd)+dzavt*dyfac
 
 		 end if
       end do
