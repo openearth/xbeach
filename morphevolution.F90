@@ -130,7 +130,8 @@ end if
 do jg = 1,par%ngd
    do j=1,ny+1
       do i=1,nx+1
-         exp_ero = par%morfac*par%dt/(1.d0-par%por)*hh(i,j)*(ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg) + ceqbg(i,j,jg)*pbbed(i,j,1,jg)/par%dt) 
+         exp_ero = par%morfac*par%dt/(1.d0-par%por)*hh(i,j)*(ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg) &
+		                              + ceqbg(i,j,jg)*pbbed(i,j,1,jg)/par%dt) 
          fac(i,j,jg) = min(1.d0,structdepth(i,j)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )        ! limit erosion to available sediment on top of hard layer
          !if (fac(i,j,jg)*exp_ero > dzbed(i,j,1)*pbbed(i,j,1,jg)) then
          !   fac(i,j,jg) = min(fac(i,j,jg),dzbed(i,j,1)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )  ! limit erosion to available sand in top layer
@@ -167,11 +168,13 @@ do jg = 1,par%ngd
          if(ueu(i,j)>0.d0) then
             ! test cu(i,j)=cc(i,j)
             cu(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(min(i+1,nx),j)
-		    cub(i,j)=par%thetanum*pbbed(i,j,1,jg)*ceqbg(i,j,jg)+(1.d0-par%thetanum)*pbbed(min(i+1,nx),j,1,jg)*ceqbg(min(i+1,nx),j,jg)
+		    cub(i,j)=par%thetanum*pbbed(i,j,1,jg)*ceqbg(i,j,jg)+(1.d0-par%thetanum)&
+			                     *pbbed(min(i+1,nx),j,1,jg)*ceqbg(min(i+1,nx),j,jg)
 			!cub(i,j)=par%thetanum*ccb(i,j)+(1.d0-par%thetanum)*ccb(min(i+1,nx),j)
          elseif(ueu(i,j)<0.d0) then
             cu(i,j)=par%thetanum*cc(i+1,j)+(1.d0-par%thetanum)*cc(max(i,2),j)
-			cub(i,j)=par%thetanum*pbbed(i+1,j,1,jg)*ceqbg(i+1,j,jg)+(1.d0-par%thetanum)*pbbed(max(i,2),j,1,jg)*ceqbg(max(i,2),j,jg)
+			cub(i,j)=par%thetanum*pbbed(i+1,j,1,jg)*ceqbg(i+1,j,jg)+(1.d0-par%thetanum)&
+			                                       *pbbed(max(i,2),j,1,jg)*ceqbg(max(i,2),j,jg)
 			!cub(i,j)=par%thetanum*ccb(i+1,j)+(1.d0-par%thetanum)*ccb(max(i,2),j)
          else
             cu(i,j)=0.5d0*(cc(i,j)+cc(i+1,j))
@@ -237,12 +240,14 @@ do jg = 1,par%ngd
          if(vev(i,j)>0) then
             ! cv(i,j)=cc(i,j)
             cv(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(i,min(j+1,ny))
-			cvb(i,j)=par%thetanum*pbbed(i,j,1,jg)*ceqbg(i,j,jg)+(1.d0-par%thetanum)*pbbed(i,min(j+1,ny),1,jg)*ceqbg(i,min(j+1,ny),jg)
+			cvb(i,j)=par%thetanum*pbbed(i,j,1,jg)*ceqbg(i,j,jg)+(1.d0-par%thetanum)&
+			                                     *pbbed(i,min(j+1,ny),1,jg)*ceqbg(i,min(j+1,ny),jg)
 			!cvb(i,j)=par%thetanum*ccb(i,j)+(1.d0-par%thetanum)*ccb(i,min(j+1,ny))
          else if(vev(i,j)<0) then
             ! cv(i,j)=cc(i,j+1)
             cv(i,j)=par%thetanum*cc(i,j+1)+(1.d0-par%thetanum)*cc(i,max(j,2))
-			cvb(i,j)=par%thetanum*pbbed(i,j+1,1,jg)*ceqbg(i,j+1,jg)+(1.d0-par%thetanum)*pbbed(i,max(j,2),1,jg)*ceqbg(i,max(j,2),jg)
+			cvb(i,j)=par%thetanum*pbbed(i,j+1,1,jg)*ceqbg(i,j+1,jg)+(1.d0-par%thetanum)&
+			                                       *pbbed(i,max(j,2),1,jg)*ceqbg(i,max(j,2),jg)
 			!cvb(i,j)=par%thetanum*ccb(i,j+1)+(1.d0-par%thetanum)*ccb(i,max(j,2))
          else
             cv(i,j)=0.5d0*(cc(i,j)+cc(i,j+1)) !Jaap: cc instead of cv
