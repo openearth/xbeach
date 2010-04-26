@@ -348,7 +348,7 @@ do while (any(temp>2*par%px) .or. any(temp<0.d0))
 enddo
 
 ! Calculate directional spreading based on cosine law
-wp%Dd = cos(temp)**(2*nint(scoeff))                                            ! Robert: apparently nint is needed here, else MATH domain error
+wp%Dd = dcos(temp)**(2*nint(scoeff))                                            ! Robert: apparently nint is needed here, else MATH domain error
 deallocate(temp)
 
 ! Scale directional spreading to have a surface of unity by dividing by it's
@@ -393,6 +393,7 @@ deallocate (temp)
 ! wave boundary conditions based on the wave record length and width of the
 ! wave frequency range
 wp%K=ceiling(wp%rt*(wp%f(lastp)-wp%f(firstp))+1)                               ! ja/ap: changed wp%K=max(100,ceiling(wp%rt*(wp%f(lastp)-wp%f(firstp))+1))
+!wp%K=max(256*s%ntheta,wp%K)
 
 return
 
@@ -734,7 +735,7 @@ deallocate(findline)
 !!!!! ja/ap wp%K=max(100,ceiling(wp%rt*(wp%f(lastp)-wp%f(firstp))+1))
 
 wp%K=ceiling(wp%rt*(wp%f(lastp)-wp%f(firstp))+1)  !!! this has changed
-
+!wp%K=max(2048,wp%K)
 
 allocate(wp%Dd(ndir))
 
@@ -860,7 +861,7 @@ deallocate(findline)
 !!!!! ja/ap wp%K=max(100,ceiling(wp%rt*(wp%f(lastp)-wp%f(firstp))+1))
 
 wp%K=ceiling(wp%rt*(wp%f(lastp)-wp%f(firstp))+1)  !!! this has changed
-
+!wp%K=max(2048,wp%K)
 
 
 allocate(wp%Dd(ndir))
@@ -1192,7 +1193,7 @@ wp%CompFn(1,wp%Nr/2+2:wp%Nr)=Comptemp
 ! Determine Fourier coefficients for all other y-coordinates along seaside
 ! border in the same manner
 do index2=2,wp%Npy
-    wp%CompFn(index2,wp%index_vector)=wp%CompFn(1,wp%index_vector)*exp(-par%compi*k*sin(wp%theta0)*s%yz(index2))
+    wp%CompFn(index2,wp%index_vector)=wp%CompFn(1,wp%index_vector)*exp(-par%compi*k*dsin(wp%theta0)*s%yz(index2))
     Comptemp = conjg(wp%CompFn(index2,2:wp%Nr/2))
     call flipiv(Comptemp,size(Comptemp))
     wp%CompFn(index2,wp%Nr/2+2:wp%Nr)=Comptemp
@@ -1203,22 +1204,31 @@ deallocate(Comptemp)
 ! Determine directional bins in computation (not spectrum) ensuring that
 ! s%thetamax is included in the range
 Ns=s%ntheta
-allocate(temp(Ns+1))
-temp=(/(i,i=0,Ns)/)
-temp(Ns+1)=temp(Ns+1)+epsilon(1.d0)          
+!allocate(temp(Ns+1))
+!temp=(/(i,i=0,Ns)/)
+!temp(Ns+1)=temp(Ns+1)+epsilon(1.d0)          
 allocate(Nbox(Ns+1))
-Nbox=s%thetamin+temp*s%dtheta
-deallocate (temp)
+do i=1,Ns+1
+   Nbox(i)=s%thetamin+(i-1)*s%dtheta
+enddo
+!deallocate (temp)
 
 ! Determine computational directional bin for each wave component
 do i=1,size(wp%theta0)
-    Nbin(i)=ceiling((wp%theta0(i)-Nbox(1))/(par%dtheta*par%px/180.d0))
-    
-    ! Ensure lower bin boundaries to be part of succeeding bin
-    if (mod((wp%theta0(i)-Nbox(1)),(par%dtheta*par%px/180.d0))==0) then
-        Nbin(i)=Nbin(i)+1
-    end if
-end do
+   do ii=1,Ns
+      if (wp%theta0(i)>=Nbox(ii) .and. wp%theta0(i)<Nbox(ii+1)) then
+	     Nbin(i)=ii
+	  endif
+   enddo
+enddo
+
+!    Nbin(i)=ceiling((wp%theta0(i)-Nbox(1))/(par%dtheta*par%px/180.d0))
+!    
+!    ! Ensure lower bin boundaries to be part of succeeding bin
+!    if (mod((wp%theta0(i)-Nbox(1)),(par%dtheta*par%px/180.d0))==0) then
+!        Nbin(i)=Nbin(i)+1
+!    end if
+!end do
 
 ! Determine highest bin containing energy
 i=(maxval(Nbin))                                                               ! Bas: not used
@@ -1504,12 +1514,12 @@ do m=1,K-1
     deltheta(m,1:K-m) = abs(wp%theta0(m+1:K)-wp%theta0(1:K-m))+par%px
 
     ! Determine x- and y-components of wave numbers of difference waves
-    KKy(m,1:K-m)=k1(m+1:K)*sin(wp%theta0(m+1:K))-k1(1:K-m)*sin(wp%theta0(1:K-m))
-    KKx(m,1:K-m)=k1(m+1:K)*cos(wp%theta0(m+1:K))-k1(1:K-m)*cos(wp%theta0(1:K-m))
+    KKy(m,1:K-m)=k1(m+1:K)*dsin(wp%theta0(m+1:K))-k1(1:K-m)*dsin(wp%theta0(1:K-m))
+    KKx(m,1:K-m)=k1(m+1:K)*dcos(wp%theta0(m+1:K))-k1(1:K-m)*dcos(wp%theta0(1:K-m))
     
     ! Determine difference wave numbers according to Van Dongeren et al. 2003
     ! eq. 19
-    k3(m,1:K-m) =sqrt(k1(1:K-m)**2+k1(m+1:K)**2+2*k1(1:K-m)*k1(m+1:K)*cos(deltheta(m,1:K-m)))
+    k3(m,1:K-m) =sqrt(k1(1:K-m)**2+k1(m+1:K)**2+2*k1(1:K-m)*k1(m+1:K)*dcos(deltheta(m,1:K-m)))
 
     ! Determine group velocity of difference waves
     cg3(m,1:K-m)= 2.d0*par%px*deltaf/k3(m,1:K-m)
@@ -1528,9 +1538,9 @@ do m=1,K-1
                                                                                                     !                   (term2*((term1)**2/g/g - k1(1:K-m)*k1(m+1:K)*cos(deltheta(m,1:K-m))) - &
                                                                                                     !                   0.5*((-w1(1:K-m))*k1(m+1:K)**2/(chk1**2)+w1(m+1:K)*k1(1:K-m)**2/(chk2**2)))
 
-    D(m,1:K-m) = -g*k1(1:K-m)*k1(m+1:K)*cos(deltheta(m,1:K-m))/2.d0/term1+g*term2*(chk1*chk2)/ &
+    D(m,1:K-m) = -g*k1(1:K-m)*k1(m+1:K)*dcos(deltheta(m,1:K-m))/2.d0/term1+g*term2*(chk1*chk2)/ &
                  ((g*k3(m,1:K-m)*tanh(k3(m,1:K-m)*h)-(term2)**2)*term1*cosh(k3(m,1:K-m)*h))* &
-                 (term2*((term1)**2/g/g - k1(1:K-m)*k1(m+1:K)*cos(deltheta(m,1:K-m))) &
+                 (term2*((term1)**2/g/g - k1(1:K-m)*k1(m+1:K)*dcos(deltheta(m,1:K-m))) &
                  - 0.50d0*((-w1(1:K-m))*k1(m+1:K)**2/(chk2**2)+w1(m+1:K)*k1(1:K-m)**2/(chk1**2)))
 
     deallocate(term1,term2,chk1,chk2)
@@ -1585,7 +1595,7 @@ index2=(/(i,i=1,K-1)/)
 ! Determine complex description of bound long wave per interaction pair of
 ! primary waves for first y-coordinate along seaside boundary
 allocate(Ftemp(K-1,K))
-Ftemp = Abnd/2*exp(-1*par%compi*dphi3)*cg3*cos(theta3)
+Ftemp = Abnd/2*exp(-1*par%compi*dphi3)*cg3*dcos(theta3)
 
 ! Determine complex description of bound long wave per primary wave component
 ! for first y-coordinate along seaside boundary
