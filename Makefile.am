@@ -15,6 +15,8 @@ xbeach_SOURCES= \
 	s.inp \
 	xmpi.F90 \
 	general_mpi.F90 \
+	logging.F90 \
+	filefunctions.F90 \
 	readkey.F90 \
 	mnemonic.F90 \
 	interp.F90 \
