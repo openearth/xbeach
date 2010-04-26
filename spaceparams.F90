@@ -297,8 +297,8 @@ subroutine grid_bathy(s,par)
         s%theta(itheta)=s%thetamin+s%dtheta/2+s%dtheta*(itheta-1)
     end do
 
-    s%cxsth=cos(s%theta)
-    s%sxnth=sin(s%theta)
+    s%cxsth=dcos(s%theta)
+    s%sxnth=dsin(s%theta)
   endif
 end subroutine grid_bathy                         
 
