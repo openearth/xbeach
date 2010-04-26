@@ -515,84 +515,86 @@ call xmpi_shift(ui,'1:')
 ! wwvv also fill in ee(1,:,:)
 call xmpi_shift(ee,'1:')
 #endif
-if (par%t>0.0d0) then
-  if (xmpi_isleft)then ! Jaap
-    if (par%rightwave==0) then		
-		!
-		! Lateral boundary at y=0;
-		!
-		if(par%instat>0 .and. par%instat/=40) then
-			fac1=(y(2:nx+1,2)-y(2:nx+1,1))*abs(tan(thetamean(2:nx+1,2)))/(x(2:nx+1,2)-x(1:nx,2))
-		else
-			fac1=0
-		end if
-		! fac1=min(fac1,1.d0)
-		! fac1=max(fac1,0.d0)\
-		! the above approach causes a shoreline jet from outside to inside the domain
-		! and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
-		! so
-		fac1 = 0.d0 !Ap 28/11   
-		fac2=1.d0-fac1
-		do itheta=1,ntheta 
 
-			  ee(2:nx+1,1,itheta)=ee(1:nx+1-1,2,itheta)*fac1+ee(2:nx+1,2,itheta)*fac2
-
-		end do
-	elseif (par%rightwave==1) then
-		wcrestpos=xz+tan(thetamean(:,2))*(yz(2)-yz(1))
-		do itheta=1,ntheta
-		   do i=1,nx+1
-		      call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-			                     (/ee(1,2,itheta),ee(:,2,itheta),ee(nx+1,2,itheta)/),&
-								  nx+1,xz(i),ee(i,1,itheta),dummy)
-		   enddo
-	    enddo
- 	 endif
-   endif
-   if (xmpi_isright)then
-	 if (par%leftwave==0) then
-		!
-		! lateral; boundary at y=ny*dy
-		!
-		if(par%instat>0 .and. par%instat/=40) then
-			fac1=(y(2:nx+1,ny+1)-y(2:nx+1,ny))*abs(tan(thetamean(2:nx+1,ny)))/(x(2:nx+1,ny)-x(1:nx,ny))
-		else
-			fac1=0.0d0
-		end if
-		! fac1=min(fac1,1.d0)
-		! fac1=max(fac1,0.d0)
-		! the above approach causes a shoreline jet from outside to inside the domain
-		! and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
-		! so   
-		fac1=0.d0 !Ap 28/11
-
-		fac2=1.d0-fac1
-		 do itheta=1,ntheta
-
-			   ee(2:nx+1,ny+1,itheta)= &
-			   ee(1:nx+1-1,ny+1-1,itheta)*fac1+ee(2:nx+1,ny+1-1,itheta)*fac2
-
-		 end do
-	elseif (par%leftwave==1) then
-		wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
-		do itheta=1,ntheta
-		   do i=1,nx+1
-		      call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-			                     (/ee(1,ny,itheta),ee(:,ny,itheta),ee(nx+1,ny,itheta)/),&
-								  nx+1,xz(i),ee(i,ny+1,itheta),dummy)
-		   enddo
-	    enddo
-	 endif
-   endif
-endif
-! wwvv communicate ee(:,1,:)
-#ifdef USEMPI
-call xmpi_shift(ee,':1')
-! wwvv and ee(:,ny+1,:)
-call xmpi_shift(ee,':n')
-! wwv and ee(1,:,:) again
-call xmpi_shift(ee,'1:')
-#endif
+! Robert: moved to wave timestep, before calculation of radiation stress terms
+!if (par%t>0.0d0) then
+!  if (xmpi_isleft)then ! Jaap
+!    if (par%rightwave==0) then		
+!		!
+!		! Lateral boundary at y=0;
+!		!
+!		if(par%instat>0 .and. par%instat/=40) then
+!			fac1=(y(2:nx+1,2)-y(2:nx+1,1))*abs(tan(thetamean(2:nx+1,2)))/(x(2:nx+1,2)-x(1:nx,2))
+!		else
+!			fac1=0
+!		end if
+!		! fac1=min(fac1,1.d0)
+!		! fac1=max(fac1,0.d0)\
+!		! the above approach causes a shoreline jet from outside to inside the domain
+!		! and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
+!		! so
+!		fac1 = 0.d0 !Ap 28/11   
+!		fac2=1.d0-fac1
+!		do itheta=1,ntheta 
+!
+!			  ee(2:nx+1,1,itheta)=ee(1:nx+1-1,2,itheta)*fac1+ee(2:nx+1,2,itheta)*fac2
+!
+!		end do
+!	elseif (par%rightwave==1) then
+!		wcrestpos=xz+tan(thetamean(:,2))*(yz(2)-yz(1))
+!		do itheta=1,ntheta
+!		   do i=1,nx+1
+!		      call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+!			                     (/ee(1,2,itheta),ee(:,2,itheta),ee(nx+1,2,itheta)/),&
+!								  nx+1,xz(i),ee(i,1,itheta),dummy)
+!		   enddo
+!	    enddo
+! 	 endif
+!   endif
+!   if (xmpi_isright)then
+!	 if (par%leftwave==0) then
+!		!
+!		! lateral; boundary at y=ny*dy
+!		!
+!		if(par%instat>0 .and. par%instat/=40) then
+!			fac1=(y(2:nx+1,ny+1)-y(2:nx+1,ny))*abs(tan(thetamean(2:nx+1,ny)))/(x(2:nx+1,ny)-x(1:nx,ny))
+!		else
+!			fac1=0.0d0
+!		end if
+!		! fac1=min(fac1,1.d0)
+!		! fac1=max(fac1,0.d0)
+!		! the above approach causes a shoreline jet from outside to inside the domain
+!		! and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
+!		! so   
+!		fac1=0.d0 !Ap 28/11
+!
+!		fac2=1.d0-fac1
+!		 do itheta=1,ntheta
+!
+!			   ee(2:nx+1,ny+1,itheta)= &
+!			   ee(1:nx+1-1,ny+1-1,itheta)*fac1+ee(2:nx+1,ny+1-1,itheta)*fac2
+!
+!		 end do
+!	elseif (par%leftwave==1) then
+!		wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
+!		do itheta=1,ntheta
+!		   do i=1,nx+1
+!		      call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+!			                     (/ee(1,ny,itheta),ee(:,ny,itheta),ee(nx+1,ny,itheta)/),&
+!								  nx+1,xz(i),ee(i,ny+1,itheta),dummy)
+!		   enddo
+!	    enddo
+!	 endif
+!   endif
+!endif
+!! wwvv communicate ee(:,1,:)
+!#ifdef USEMPI
+!call xmpi_shift(ee,':1')
+!! wwvv and ee(:,ny+1,:)
+!call xmpi_shift(ee,':n')
+!! wwv and ee(1,:,:) again
+!call xmpi_shift(ee,'1:')
+!#endif
 
 end subroutine wave_bc
 
