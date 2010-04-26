@@ -9,7 +9,6 @@ end interface check_file_length
 contains
 
 integer function create_new_fid()
-use general_fileio
 use xmpi_module
 !use logging_module
 
@@ -29,7 +28,6 @@ use xmpi_module
 end function create_new_fid
 
 subroutine check_file_exist(filename)
-use general_fileio
 use xmpi_module
 !use logging_module
 
@@ -207,12 +205,6 @@ endif
 
 end subroutine checkbcfilelength
 
-end module filefunctions
-
-
-module general_fileio
-contains
-
 subroutine check_file_exist_generic(filename,error)
    implicit none
 
@@ -249,4 +241,4 @@ integer function create_new_fid_generic()
    create_new_fid_generic = tryunit   
 end function create_new_fid_generic
 
-end module general_fileio
+end module filefunctions

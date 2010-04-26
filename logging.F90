@@ -42,24 +42,45 @@ end interface writelog
 CONTAINS
 
 subroutine start_logfiles(error)
-use general_fileio
    implicit none
    integer    :: error
-
-   error = 0
-   logfileid = create_new_fid_generic()
-   if (logfileid<0) then
-      error = 1
-	  return
-   endif
+   integer    :: tryunit = 98
+   logical    :: fileopen
+   
+   fileopen = .true.    
+   error    = 0
+   do while (fileopen)
+         inquire(tryunit,OPENED=fileopen)
+	     if (fileopen) then
+	        tryunit=tryunit-1
+	     endif
+	     if (tryunit<=10) then 
+		   tryunit = -1
+		   error  = 1
+		   fileopen = .false.
+		   return
+	     endif	      
+   enddo
+   logfileid = tryunit
    if (xmaster) then
       open(logfileid,file='XBlog.txt',status='replace')
    endif
-   errorfileid = create_new_fid_generic()
-   if (logfileid<0) then
-      error = 1
-	  return
-   endif
+ 
+   fileopen = .true.    
+   error    = 0
+   do while (fileopen)
+         inquire(tryunit,OPENED=fileopen)
+	     if (fileopen) then
+	        tryunit=tryunit-1
+	     endif
+	     if (tryunit<=10) then 
+		   tryunit = -1
+		   error  = 1
+		   fileopen = .false.
+		   return
+	     endif	      
+   enddo
+   errorfileid = tryunit
    if (xmaster) then
       open(errorfileid,file='XBerror.txt',status='replace')
    endif
