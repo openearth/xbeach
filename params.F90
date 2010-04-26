@@ -295,13 +295,23 @@ subroutine all_input(par)
 
 use readkey_module
 use xmpi_module
-use general_fileio
+use filefunctions
+use logging_module
 implicit none
 type(parameters)            :: par
+character(128)              :: testc
+integer                     :: filetype, error
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!        Grid parameters       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+call start_logfiles(error)
+if (error==1) then
+   write(*,*) 'Error: not able to open log file due to insufficient free unit identifiers. Please contact XBeach team. Stopping simulation'
+   call halt_program
+endif
+call writelog('sl','','Reading input parameters: ')
+ 
+! Grid parameters
+call writelog('l','','--------------------------------')
+call writelog('l','','Grid parameters: ')
 par%xori  = readkey_dbl('params.txt','xori',  0.d0,   -1d9,      1d9)
 par%yori  = readkey_dbl('params.txt','yori',  0.d0,   -1d9,      1d9)
 par%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   -360.d0,   360.d0)
@@ -311,6 +321,7 @@ par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
 call readkey('params.txt','depfile',par%depfile)  ! Bathymetry file name
 call check_file_exist(par%depfile)
 call check_file_length(par%depfile,par%nx+1,par%ny+1)
+call writelog('l','(a,a)',' depfile              = ',trim(par%depfile))
 par%vardx = readkey_int('params.txt','vardx',   0,      0,         1) 
 if (par%vardx==0) then
   par%dx    = readkey_dbl('params.txt','dx',    0.d0,   -1d9,      1d9)
@@ -319,37 +330,660 @@ else
   call readkey('params.txt','xfile',par%xfile)    ! X-grid file
   call check_file_exist(par%xfile)
   call check_file_length(par%xfile,par%nx+1,par%ny+1)
-  call readkey('params.txt','xfile',par%xfile)    ! Y-grid file
-  call check_file_exist(par%xfile)
-  call check_file_length(par%xfile,par%nx+1,par%ny+1)
+  call writelog('l','(a,a)',' xfile                = ',trim(par%xfile))
+  call readkey('params.txt','yfile',par%yfile)    ! Y-grid file
+  call check_file_exist(par%yfile)
+  call check_file_length(par%yfile,par%nx+1,par%ny+1)
+  call writelog('l','(a,a)',' yfile                = ',trim(par%yfile))
 endif
 par%thetamin = readkey_dbl ('params.txt','thetamin', -80.d0,    -180.d0,  180.d0)
 par%thetamax = readkey_dbl ('params.txt','thetamax',  80.d0,    -180.d0,  180.d0)
 par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   20.d0)
 par%thetanaut= readkey_int ('params.txt','thetanaut',    0,        0,     1)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!        Model time parameters       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! 
+! Model time parameters
+call writelog('l','','--------------------------------')
+call writelog('l','','Model time parameters: ')
 par%CFL     = readkey_dbl ('params.txt','CFL',     0.2d0,     0.1d0,      0.9d0)
 par%tstop   = readkey_dbl ('params.txt','tstop', 2000.d0,      1.d0, 1000000.d0)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!        Physical constants       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! 
+!                          Physical constants 
+call writelog('l','','--------------------------------')
+call writelog('l','','Physical constants: ')
 par%rho   = readkey_dbl ('params.txt','rho',  1025.0d0,  1000.0d0,  1040.0d0)
 par%g     = readkey_dbl ('params.txt','g',      9.81d0,     9.7d0,     9.9d0)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!        Physical processes       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! 
+! Physical processes 
+call writelog('l','','--------------------------------')
+call writelog('l','','Physical processes: ')
 par%swave      = readkey_int ('params.txt','swave',         1,        0,     1)
 par%lwave      = readkey_int ('params.txt','lwave',         1,        0,     1)
-par%sedtrans   = readkey_int ('params.txt','nonh',          0,        0,     1)
-par%morphology = readkey_int ('params.txt','sedtrans',      1,        0,     1)
-par%nonh       = readkey_int ('params.txt','morphology',    1,        0,     1)
+par%sedtrans   = readkey_int ('params.txt','sedtrans',      1,        0,     1)
+par%morphology = readkey_int ('params.txt','morphology',    1,        0,     1)
+par%nonh       = readkey_int ('params.txt','nonh',          0,        0,     1)
 par%gwflow     = readkey_int ('params.txt','gwflow',        0,        0,     1)
 par%q3d        = readkey_int ('params.txt','q3d',           0,        0,     1)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!        Post-input processing      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+!
+! Initial conditions
+call writelog('l','','--------------------------------')
+call writelog('l','','Initial conditions: ')
+call readkey('params.txt','zsinitfile',par%zsinitfile)  
+if (par%zsinitfile==' ') then
+   call writelog('l','(a)',' zsinitfile           = None specified')
+else
+   call check_file_exist(par%zsinitfile)
+   call check_file_length(par%zsinitfile,par%nx+1,par%ny+1)
+   call writelog('l','(a,a)',' zsinitfile           = ',trim(par%depfile))
+endif
+!
+!
+! Wave boundary condition parameters
+call writelog('l','','--------------------------------')
+call writelog('l','','Wave boundary condition parameters: ')
+call readkey('params.txt','instat',testc)
+testc=trim(testc)
+if (testc == ' ') then    ! Empty, so default values
+   par%instat = 1
+   call writelog('l','(a)',' instat               = 1 (no record found, default value used)')
+else
+   select case (testc)
+      case ('0')
+         par%instat = 0
+      case ('1')
+         par%instat = 1
+      case ('2')
+      	  par%instat = 2
+      case ('3')
+         par%instat = 3
+      case ('4')
+         par%instat = 4
+      case ('5')
+         par%instat = 5
+      case ('6')
+         par%instat = 6
+      case ('7')
+         par%instat = 7
+      case ('8')
+         par%instat = 8
+      case ('9')          ! What is this?
+         par%instat = 9
+      case ('40')
+         par%instat = 40
+      case ('41')
+         par%instat = 41
+      case ('stationary')
+         par%instat = 0
+      case ('regular')
+         par%instat = 1
+      case ('timeseries1')
+         par%instat = 2
+      case ('timeseries2')
+         par%instat = 3
+      case ('jonswap')
+         par%instat = 4
+      case ('swan')
+         par%instat = 5
+      case ('vardens')
+         par%instat = 6
+      case ('reuse')
+         par%instat = 7
+      case ('nonh')
+         par%instat = 8
+      case ('stationary_table')
+         par%instat = 40
+      case ('jonswap_table')
+         par%instat = 41
+      case default   ! unknown instat stated
+         call writelog('els','','Error unknown wave boundary type ''instat = ',trim(testc),'''. Terminating simulation')
+         call halt_program
+   end select
+   call writelog('l','(a,a)',' instat               = ',trim(testc))
+endif
+if (par%instat==4 .or. par%instat==5 .or. par%instat==6 .or. par%instat==40 .or. par%instat==41) then
+   call readkey('params.txt','bcfile',par%bcfile)  ! Bathymetry file name
+   call check_file_exist(par%bcfile)
+   call checkbcfilelength(par%tstop,par%instat,par%bcfile,filetype)
+   call writelog('l','(a,a)',' bcfile               = ',trim(par%bcfile))
+else
+   filetype=-1
+endif
+par%taper    = readkey_dbl ('params.txt','taper',   100.d0,      0.0d0, 1000.d0)
+if (par%instat == 0) then
+    par%Hrms  = readkey_dbl ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
+	par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
+	par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
+	par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
+    par%m     = readkey_int ('params.txt','m',        10,         2,      128)
+elseif (par%instat==1) then
+    par%Hrms  = readkey_dbl ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
+    par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
+	par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
+    par%Tlong = readkey_dbl ('params.txt','Tlong',    80.d0,     20.d0,   300.d0)
+	par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
+    par%m     = readkey_int ('params.txt','m',        10,         2,      128)
+elseif (par%instat==2 .or. par%instat==3) then
+    par%Hrms  = readkey_dbl ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
+	par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
+	par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
+	par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
+    par%m     = readkey_int ('params.txt','m',        10,         2,      128)
+endif
+call readkey('params.txt','leftwave',testc)
+testc=trim(testc)
+if (testc == ' ') then    ! Empty, so default values
+   par%leftwave = 1 
+   call writelog('l','(a)',' leftwave             = 0 (no record found, default value used)')
+else
+   select case (testc)
+      case (' ')     ! Empty, so default values
+         par%leftwave = 0
+      case ('0')
+         par%leftwave = 0
+      case ('1')
+         par%leftwave = 1
+      case ('neumann')
+         par%leftwave = 0
+      case ('wavefront')
+         par%leftwave = 1
+      case default
+         call writelog('els','','Error unknown wave boundary type ''leftwave = ',trim(testc),'''. Terminating simulation')
+         call halt_program
+   end select
+   call writelog('l','(a,a)',' leftwave             = ',trim(testc))
+endif
+call readkey('params.txt','rightwave',testc)
+testc=trim(testc)
+if (testc == ' ') then    ! Empty, so default values
+   par%rightwave = 1 
+   call writelog('l','(a)',' rightwave            = 0 (no record found, default value used)')
+else
+   select case (testc)
+      case (' ')     ! Empty, so default values
+         par%rightwave = 0
+      case ('0')
+         par%rightwave = 0
+      case ('1')
+         par%rightwave = 1
+      case ('neumann')
+         par%rightwave = 0
+      case ('wavefront')
+         par%rightwave = 1
+      case default
+         call writelog('els','','Error unknown wave boundary type ''rightwave = ',trim(testc),'''. Terminating simulation')
+         call halt_program
+   end select
+   call writelog('l','(a,a)',' rightwave            = ',trim(testc))
+endif
+!
+!
+! Wave-spectrum boundary condition parameters
+if (par%instat==4 .or. par%instat==5 .or. par%instat==6 .or. par%instat==41) then
+   call writelog('l','','--------------------------------')
+   call writelog('l','','Wave-spectrum boundary condition parameters: ')
+   par%random   = readkey_int ('params.txt','random',    0,         0,        1)
+   par%fcutoff  = readkey_dbl ('params.txt','fcutoff',   0.d0,      0.d0,     40.d0)
+   par%nspr     = readkey_int ('params.txt','nspr',       0,        0,       1) 
+   par%trepfac  = readkey_dbl ('params.txt','trepfac', 0.8d0,       0.d0,    1.d0) 
+   par%sprdthr  = readkey_dbl ('params.txt','sprdthr', 0.08d0,      0.d0,    1.d0) 
+   par%oldwbc   = readkey_int ('params.txt','oldwbc',       1,        0,     1)
+   if (filetype==0) then
+      par%rt   = readkey_dbl('params.txt','rt'  , 3600.d0, 1200.d0,7200.d0)
+      par%dtbc = readkey_dbl('params.txt','dtbc', 0.1d0,0.01d0,1.0d0)
+   endif
+   if (par%instat==5) then
+      par%dthetaS_XB = readkey_dbl ('params.txt','dthetaS_XB', 0.0d0, -360.0d0, 360.0d0)
+   endif
+endif
+!
+!
+! Flow boundary condition parameters
+call writelog('l','','--------------------------------')
+call writelog('l','','Flow boundary condition parameters: ')
+call readkey('params.txt','front',testc)
+testc=trim(testc)
+if (testc == ' ') then    ! Empty, so default values
+   par%front = 1
+   call writelog('l','(a)',' front                = abs-gen (no record found, default value used)')
+else
+   select case (testc)
+      case ('0')
+         par%front = 0
+      case ('1')
+         par%front = 1
+	  case ('radiating')
+	     par%front = 0
+	  case ('abs-gen')
+	     par%front = 1
+	  case default
+	     call writelog('els','','Error unknown wave boundary type ''front = ',trim(testc),'''. Terminating simulation')
+         call halt_program
+   end select
+   call writelog('l','(a,a)',' front                = ',trim(testc))
+endif
+call readkey('params.txt','left',testc)
+testc=trim(testc)
+if (testc == ' ') then    ! Empty, so default values
+   par%left = 1
+   call writelog('l','(a)',' left                 = neumann (no record found, default value used)')
+else
+   select case (testc)
+      case ('0')
+         par%left = 0
+      case ('1')
+         par%left = 1
+	  case ('wall')
+	     par%left = 0
+	  case ('neumann')
+	     par%left = 1
+	  case default
+	     call writelog('els','','Error unknown wave boundary type ''left = ',trim(testc),'''. Terminating simulation')
+         call halt_program
+   end select
+   call writelog('l','(a,a)',' left                 = ',trim(testc))
+endif
+call readkey('params.txt','right',testc)
+testc=trim(testc)
+if (testc == ' ') then    ! Empty, so default values
+   par%right = 1
+   call writelog('l','(a)',' right                = neumann (no record found, default value used)')
+else
+   select case (testc)
+      case ('0')
+         par%right = 0
+      case ('1')
+         par%right = 1
+	  case ('wall')
+	     par%right = 0
+	  case ('neumann')
+	     par%right = 1
+	  case default
+	     call writelog('els','','Error unknown wave boundary type ''right = ',trim(testc),'''. Terminating simulation')
+         call halt_program
+   end select
+   call writelog('l','(a,a)',' right                = ',trim(testc))
+endif
+call readkey('params.txt','back',testc)
+testc=trim(testc)
+if (testc == ' ') then    ! Empty, so default values
+   par%back = 2
+   call writelog('l','(a)',' back                 = absorbing (no record found, default value used)')
+else
+   select case (testc)
+      case ('0')
+         par%back = 0
+      case ('1')
+         par%back = 1
+	  case ('2')
+	     par%back = 2
+	  case ('wall')
+	     par%back = 0
+	  case ('radiating')
+	     par%back = 1
+	  case ('absorbing')
+	     par%back = 2
+	  case default
+	     call writelog('els','','Error unknown wave boundary type ''back = ',trim(testc),'''. Terminating simulation')
+         call halt_program
+   end select
+   call writelog('l','(a,a)',' back                 = ',trim(testc))
+endif
+if (par%front==1) then
+   par%ARC     = readkey_int ('params.txt','ARC',         1,         0,      1)
+endif
+par%order   = readkey_dbl ('params.txt','order',       2.d0,         1.d0,      2.d0)
+par%carspan = readkey_int ('params.txt','carspan',        0,         0,      1)
+!
+!
+! Tide boundary conditions
+call writelog('l','','--------------------------------')
+call writelog('l','','Tide boundary conditions: ')
+par%zs0        = readkey_dbl ('params.txt','zs0',     0.0d0,     -5.d0,      5.d0)
+par%tideloc    = readkey_int ('params.txt','tideloc', 0,             0,      4)
+if (par%tideloc>0) then
+   if (par%tideloc==2) then
+      par%paulrevere = readkey_int ('params.txt','paulrevere', 0,       0,      1)
+   endif
+   call readkey('params.txt','zs0file',par%zs0file)  ! Bathymetry file name
+   call check_file_exist(par%zs0file)
+   call writelog('l','(a,a)',' bcfile             = ',trim(par%bcfile))
+endif
+!
+!
+! Discharge boundary conditions 
+call writelog('l','','--------------------------------')
+call writelog('l','','Discharge boundary conditions: ')
+call readkey('params.txt','disch_loc_file',par%disch_loc_file) 
+if (par%disch_loc_file==' ') then
+   call writelog('l','(a)',' disch_loc_file       = None specified')
+else 
+   call check_file_exist(par%disch_loc_file)
+   call writelog('l','(a,a)',' disch_loc_file     = ',trim(par%disch_loc_file))
+endif
+call readkey('params.txt','disch_timeseries_file',par%disch_timeseries_file) 
+if (par%disch_timeseries_file==' ') then
+   call writelog('l','(a)',' disch_timeseries_file= None specified')
+else 
+   call check_file_exist(par%disch_timeseries_file)
+   call writelog('l','(a,a)',' disch_timeseries_file= ',trim(par%disch_timeseries_file))
+endif
+!
+!
+! Wave breaking parameters                                                                                                      
+call writelog('l','','--------------------------------')
+call writelog('l','','Wave breaking parameters: ')
+par%break    = readkey_int ('params.txt','break',      3,        1,     4)
+par%gamma    = readkey_dbl ('params.txt','gamma',   0.55d0,     0.4d0,     0.9d0)   !changed 28/11
+par%gamma2   = readkey_dbl ('params.txt','gamma2',   0.3d0,     0.0d0,     0.5d0)   !added 16/3/09
+par%alpha    = readkey_dbl ('params.txt','alpha',   1.0d0,     0.5d0,     2.0d0)
+par%n        = readkey_dbl ('params.txt','n',       10.0d0,     5.0d0,    20.0d0)   !changed 28/11
+par%gammax   = readkey_dbl ('params.txt','gammax',   2.d0,      .4d0,      5.d0)    !changed 28/11
+par%delta    = readkey_dbl ('params.txt','delta',   0.0d0,     0.0d0,     1.0d0)
+par%fw       = readkey_dbl ('params.txt','fw',  0.d0,   0d0,      0.3d0)
+!
+!
+! Roller parameters                                                                                                      
+call writelog('l','','--------------------------------')
+call writelog('l','','Roller parameters: ')
+par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
+par%beta     = readkey_dbl ('params.txt','beta',    0.15d0,     0.05d0,   0.3d0)
+par%rfb      = readkey_int ('params.txt','rfb',        1,        0,     1)
+!    
+! Wave-current interaction parameters    
+call writelog('l','','--------------------------------')
+call writelog('l','','Wave-current interaction parameters: ')
+par%wci      = readkey_int ('params.txt','wci',        0,        0,     1)
+par%hwci     = readkey_dbl ('params.txt','hwci',   0.1d0,   0.001d0,      1.d0)
+par%cats     = readkey_dbl ('params.txt','cats',   20.d0,     1.d0,      50.d0)
+!
+!
+! Flow parameters          
+call writelog('l','','--------------------------------')
+call writelog('l','','Flow parameters: ')
+par%cf      = readkey_dbl ('params.txt','cf',      3.d-3,     0.d0,     0.1d0)
+par%C       = readkey_dbl ('params.txt','C',       sqrt(par%g/par%cf),     20.d0,    100.d0)
+par%nuh     = readkey_dbl ('params.txt','nuh',     0.5d0,     0.0d0,      1.0d0)
+par%nuhfac  = readkey_dbl ('params.txt','nuhfac',      0.0d0,     0.0d0,  1.0d0)
+par%nuhv    = readkey_dbl ('params.txt','nuhv',     1.d0,      1.d0,    20.d0)
+par%smag    = readkey_int ('params.txt','smag',        0,         0,      1)
+!
+!
+! Coriolis force parameters
+call writelog('l','','--------------------------------')
+call writelog('l','','Coriolis force parameters: ')
+par%wearth  = readkey_dbl ('params.txt','omega',   1.d0/24.d0, 0.d0,    1.d0)
+par%lat     = readkey_dbl ('params.txt','lat',     0.d0,      0.d0,   90.d0)
+!
+!
+! Wind parameters
+call writelog('l','','--------------------------------')
+call writelog('l','','Wind parameters: ')
+par%rhoa    = readkey_dbl ('params.txt','rhoa',   1.25d0,     1.0d0,   2.0d0)
+par%Cd      = readkey_dbl ('params.txt','Cd',    0.002d0,  0.0001d0,  0.01d0)
+call readkey('params.txt','windfile',par%windfile) 
+if (par%windfile==' ') then
+   par%windv   = readkey_dbl ('params.txt','windv',   0.0d0,     0.0d0, 200.0d0)
+   par%windth  = readkey_dbl ('params.txt','windth', 270.0d0,  -360.0d0, 360.0d0)
+else 
+   call check_file_exist(par%windfile)
+   call writelog('l','(a,a)',' windfile           = ',trim(par%windfile))
+endif
+!
+!   
+! Groundwater parameters 
+if (par%gwflow==1) then
+   call writelog('l','','--------------------------------')
+   call writelog('l','','Groundwater parameters: ')
+   par%kx         = readkey_dbl ('params.txt','kx'        , 0.0001d0 , 0.00001d0, 0.01d0)
+   par%ky         = readkey_dbl ('params.txt','ky'        , par%kx   , 0.00001d0, 0.01d0)
+   par%kz         = readkey_dbl ('params.txt','kz'        , par%kx   , 0.00001d0, 0.01d0)
+   par%dwetlayer  = readkey_dbl ('params.txt','dwetlayer' , 0.2d0    , 0.01d0     , 1.d0)
+   call readkey('params.txt','aquiferbotfile',par%aquiferbotfile) 
+   if (par%aquiferbotfile==' ') then
+      par%aquiferbot = readkey_dbl('params.txt','aquiferbot',-10.d0,-100.d0,100.d0)
+   else 
+      call check_file_exist(par%aquiferbotfile)
+	  call writelog('l','(a,a)',' aquiferbotfile     = ',trim(par%aquiferbotfile))
+   endif
+   call readkey('params.txt','gw0file',par%gw0file) 
+   if (par%gw0file==' ') then
+      par%gw0 = readkey_dbl('params.txt','gw0',0.d0,-5.d0,5.d0)
+   else 
+      call check_file_exist(par%gw0file)
+      call writelog('l','(a,a)',' gw0file            = ',trim(par%gw0file))
+   endif
+endif
+!
+!
+! Q3D sediment transport parameters
+if (par%q3d==1) then
+   call writelog('l','','--------------------------------')
+   call writelog('l','','Q3D sediment transport parameters: ')
+   par%vonkar  = readkey_dbl ('params.txt','vonkar',   0.4d0,     0.01d0,  1.d0)
+   par%vicmol  = readkey_dbl ('params.txt','vicmol',   0.000001d0,   0.d0,    0.001d0)
+   par%kmax    = readkey_int ('params.txt','kmax ',      1,           1,        1000)
+   par%sigfac  = readkey_dbl ('params.txt','sigfac ',1.3d0,     0.00d0,   10.d0) 
+endif
+!
+!   
+! Non-hydrostatic correction parameters
+if (par%nonh==1) then
+   call writelog('l','','--------------------------------')
+   call writelog('l','','Non-hydrostatic correction parameters: ')
+   par%secorder     = readkey_int('params.txt','secorder' ,0,0,1)
+   par%solver_maxit = readkey_int('params.txt','solver_maxit' ,30,1,1000)
+   par%solver_acc   = readkey_dbl('params.txt','solver_acc' ,0.005d0,0.00001d0,0.1d0)  
+   par%solver_alpha = readkey_dbl('params.txt','solver_urelax' ,0.92d0,0.5d0,0.99d0)
+   par%solver       = readkey_int('params.txt','solver' ,1,0,2)
+   par%kdmin        = readkey_dbl('params.txt','kdmin' ,0.0d0,0.0d0,0.05d0)  
+   par%dispc        = readkey_dbl('params.txt','dispc' ,1.0d0,0.1d0,2.0d0)  
+   par%Topt         = readkey_dbl('params.txt','Topt',  10.d0, 1.d0, 20.d0)
+endif
+!
+!
+! Bed composition parameters
+if (par%sedtrans==1) then 
+   call writelog('l','','--------------------------------')
+   call writelog('l','','Bed composition parameters: ')
+   par%rhos     = readkey_dbl ('params.txt','rhos',  2650d0,     2400.d0,  2800.d0)
+   par%ngd      = readkey_int ('params.txt','ngd',        1,           1,        20)
+   par%nd       = readkey_int ('params.txt','nd ',        1,           1,        1000)
+   par%dzg1     = readkey_dbl ('params.txt','dzg',    0.1d0,      0.01d0,     1.d0)
+   par%dzg1     = readkey_dbl ('params.txt','dzg1', par%dzg1,     0.01d0,     1.d0)
+   par%dzg2     = readkey_dbl ('params.txt','dzg2', par%dzg1,     0.01d0,     1.d0)
+   par%dzg3     = readkey_dbl ('params.txt','dzg3', par%dzg1,     0.01d0,     1.d0)
+   par%por      = readkey_dbl ('params.txt','por',    0.4d0,       0.3d0,    0.5d0)
+   call readkey('params.txt','D50',testc)
+   if (testc==' ') then
+!       par%D50(1:par%ngd)=0.0002d0   ! Default
+   else
+!       read(testc,*) par%D50(1:par%ngd)
+   endif
+   call readkey('params.txt','D90',testc)
+   if (testc==' ') then
+!       par%D90(1:par%ngd)=0.0003d0   ! Default
+   else
+!       read(testc,*) par%D50(1:par%ngd)
+   endif
+   call readkey('params.txt','sedcal',testc)
+   if (testc==' ') then
+!       par%sedcal(1:par%ngd)=1.d0   ! Default
+   else
+!       read(testc,*) par%sedcal(1:par%ngd)
+   endif
+   call readkey('params.txt','ucrcal',testc)
+   if (testc==' ') then
+!       par%ucrcal(1:par%ngd)=1.d0   ! Default
+   else
+!       read(testc,*) par%ucrcal(1:par%ngd)
+   endif
+endif
+!
+!
+! Sediment transport parameters                                                                                                 
+if (par%sedtrans==1) then 
+   call writelog('l','','--------------------------------')
+   call writelog('l','','Sediment transport parameters: ')
+   par%form     = readkey_int ('params.txt','form',   1,           1,            3)
+   par%sws      = readkey_int ('params.txt','sws',           1,        0,     1)
+   par%lws      = readkey_int ('params.txt','lws',           1,        0,     1)
+   par%BRfac    = readkey_dbl ('params.txt','BRfac',    1.0d0,       0.d0, 1.d0)
+   par%facsl    = readkey_dbl ('params.txt','facsl  ',0.00d0,    0.00d0,   1.6d0)  
+   par%z0       = readkey_dbl ('params.txt','z0     ',0.006d0,    0.0001d0,   0.05d0)  
+   par%smax     = readkey_dbl ('params.txt','smax',   -1.d0,    -1.d0,   3.d0)       !changed 28/11 and back 10/2
+   par%tsfac    = readkey_dbl ('params.txt','tsfac',   0.1d0,    0.01d0,   1.d0) 
+   par%facua    = readkey_dbl ('params.txt','facua  ',0.00d0,    0.00d0,   1.0d0) 
+   par%turb     = readkey_int ('params.txt','turb',   2,           0,            2)
+   par%Tbfac    = readkey_dbl ('params.txt','Tbfac  ',1.0d0,     0.00d0,   1.0d0) 
+   par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.2d0,     0.01d0,   10.d0) 
+   par%lwt      = readkey_int ('params.txt','lwt    ',0,           0,            1)
+   par%betad    = readkey_dbl ('params.txt','betad  ',1.0d0,     0.00d0,   10.0d0) 
+   par%hmin     = readkey_dbl ('params.txt','hmin',   0.01d0,   0.001d0,      1.d0)
+endif
+!
+!
+! Morphology parameters 
+if (par%morphology==1) then 
+   call writelog('l','','--------------------------------')
+   call writelog('l','','Morphology parameters: ')
+   par%morfac   = readkey_dbl ('params.txt','morfac', 0.0d0,        0.d0,  1000.d0)
+   par%morfacopt= readkey_int ('params.txt','morfacopt', 1,        0,        1)
+   par%morstart = readkey_dbl ('params.txt','morstart',120.d0,      0.d0, 10000.d0)
+   par%wetslp   = readkey_dbl ('params.txt','wetslp', 0.3d0,       0.1d0,     1.d0)
+   par%dryslp   = readkey_dbl ('params.txt','dryslp', 1.0d0,       0.1d0,     2.d0)
+   par%hswitch  = readkey_dbl ('params.txt','hswitch',0.1d0,      0.01d0,    1.0d0)   
+   par%dzmax    = readkey_dbl ('params.txt','dzmax  ',0.05d0,    0.00d0,   1.0d0) 
+   par%struct   = readkey_int ('params.txt','struct ',0    ,      0,             1)
+   if (par%struct==1) then
+      call readkey('params.txt','ne_layer',par%ne_layer)  ! Bathymetry file name
+      call check_file_exist(par%ne_layer)
+      call check_file_length(par%ne_layer,par%nx+1,par%ny+1)
+	  call writelog('l','(a,a)',' ne_layer           = ',trim(par%ne_layer))
+   endif
+endif
+!
+!
+! Output variables   
+call writelog('l','','--------------------------------')
+call writelog('l','','Output variables: ')
+par%timings  = readkey_int ('params.txt','timings',      1,       0,      1)
+par%tstart  = readkey_dbl ('params.txt','tstart',   1.d0,      0.d0,1000000.d0)
+par%tint    = readkey_dbl ('params.txt','tint',     1.d0,     .01d0, 100000.d0)  ! Robert
+call readkey('params.txt','tsglobal',testc)
+if (testc==' ') then
+   par%tintg   = readkey_dbl ('params.txt','tintg', par%tint,     .01d0, 100000.d0)  ! Robert
+else
+   par%tsglobal=testc
+   call writelog('l','(a,a)',' tspoints           = ',trim(par%tsglobal))
+endif
+call readkey('params.txt','tspoints',testc)
+if (testc==' ') then
+   par%tintp   = readkey_dbl ('params.txt','tintp', par%tint,     .01d0, 100000.d0)  ! Robert
+else
+   par%tspoints=testc
+   call writelog('l','(a,a)',' tspoints           = ',trim(par%tspoints))
+endif
+call readkey('params.txt','tscross',testc)
+if (testc==' ') then
+   par%tintc   = readkey_dbl ('params.txt','tintc', par%tint,     .01d0, 100000.d0)  ! Robert
+else
+   par%tscross=testc
+   call writelog('l','(a,a)',' tscross            = ',trim(par%tscross))
+endif     
+call readkey('params.txt','tsmean',testc)
+if (testc==' ') then
+   par%tintm   = readkey_dbl ('params.txt','tintm', par%tint,     1.d0, par%tstop)  ! Robert
+else
+   par%tsmean=testc
+   call writelog('l','(a,a)',' tsmean             = ',trim(par%tsmean))
+endif  
+par%nglobalvar  = readkey_int ('params.txt','nglobalvar', -1, -1, 20)
+par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
+par%npoints     = readkey_int ('params.txt','npoints',     0,  0, 50)
+par%nrugauge    = readkey_int ('params.txt','nrugauge',    0,  0, 50)
+par%ncross      = readkey_int ('params.txt','ncross',      0,  0, 50)
+!
+!
+! Drifters parameters
+call writelog('l','','--------------------------------')
+call writelog('l','','Drifters parameters: ')
+par%ndrifter   = readkey_int     ('params.txt','ndrifter',    0,         0,        50)
+if (par%ndrifter>0) then
+   call readkey('params.txt','drifterfile',par%drifterfile)
+   call check_file_exist(par%drifterfile)
+   call writelog('l','(a,a)',' drifterfile        = ',trim(par%drifterfile))
+endif
+! 
+!   
+! Wave numerics parameters 
+call writelog('l','','--------------------------------')
+call writelog('l','','Wave numerics parameters: ')                                                                                                     
+par%scheme     = readkey_int ('params.txt','scheme',        2,        1,     2)
+if (par%instat == 0 .or. par%instat == 40) then
+   par%wavint     = readkey_dbl ('params.txt','wavint',    1.d0,      1.d0,  3600.d0)
+   par%maxerror   = readkey_dbl ('params.txt','maxerror', 0.0001d0, 0.00001d0, 0.01d0)
+   par%maxiter    = readkey_int ('params.txt','maxiter',    200,         2,      100)
+endif
+!
+! 
+! Flow numerics parameters 
+call writelog('l','','--------------------------------')
+call writelog('l','','Flow numerics parameters: ') 
+par%eps     = readkey_dbl ('params.txt','eps',     0.1d0,   0.001d0,      1.d0)
+par%umin    = readkey_dbl ('params.txt','umin',    0.1d0,   0.001d0,      5.d0)
+!
+!
+! Sediment transport numerics parameters  
+if (par%sedtrans==1) then 
+   call writelog('l','','--------------------------------')
+   call writelog('l','','Sediment transport numerics parameters: ') 
+   par%thetanum   = readkey_dbl ('params.txt','thetanum',   1.d0,    0.5d0,   1.d0)
+   par%sourcesink = readkey_int ('params.txt','sourcesink    ',0,     0,         1)
+endif
+!
+!
+! Bed update numerics parameters
+if (par%morphology==1) then
+   call writelog('l','','--------------------------------')
+   call writelog('l','','Bed update numerics parameters: ')
+   par%frac_dz   = readkey_dbl ('params.txt','frac_dz',   0.7d0,    0.5d0,   0.98d0)
+   par%nd_var    = readkey_int ('params.txt','nd_var', min(par%nd,2),   1,   par%nd)
+   par%split     = readkey_dbl ('params.txt','split',    1.01d0,  1.005d0,   1.10d0)
+   par%merge     = readkey_dbl ('params.txt','merge',    0.01d0,  0.005d0,   0.10d0)
+endif
+!
+!
+! MPI parameters
+call writelog('l','','--------------------------------')
+call writelog('l','','MPI parameters: ') 
+call readkey('params.txt','mpiboundary',par%mpiboundary)    ! X-grid file
+if (par%mpiboundary==' ') then 
+   par%mpiboundary='auto'   ! Default
+   call writelog('l','(a)',  ' mpiboundary          = None specified')
+else
+   call writelog('l','(a,a)',' mpiboundary          = ',trim(par%mpiboundary))
+endif
+!
+!
+! Finish
+call writelog('l','','--------------------------------')
+call writelog('sl','','Finished reading input parameters')
+call writelog('l','','--------------------------------')
+!
+!
+! -------------------   Post-input processing -------------------------
+!
+!
+! Constants
+par%px    = 4.d0*atan(1.d0)
+par%compi = (0.0d0,1.0d0)
+par%rhog8 = 1.0d0/8.0d0*par%rho*par%g
+!
+!
+! Grid orientation
 if (par%alfa.lt.0) then 
    par%alfa = 360.d0+par%alfa
 endif
@@ -358,9 +992,69 @@ par%alfa  = par%alfa*atan(1.0d0)/45.d0   ! All input converted directly to cathe
 if (par%posdwn<0.1d0) then 
    par%posdwn=-1.d0  ! Backward compatibility, now posdwn = 0 also works in input (i.e. posdwn = false)
 endif
-
+!
+!
+! Stop useless physical processes 
+if (par%sedtrans==0 .and. par%morphology==1) then
+   call writelog('lse','(a)','Error: morphology cannot be computed without sediment transport')
+   call writelog('lse','(a)','Set sedtrans=1 or morphology=0')
+   call writelog('lse','(a)','Stopping calculation')
+   call halt_program
+endif
+!
+!
+! Set taper to non-zero
+par%taper    = max(par%taper,1.d-6)
+!
+!
+! Set tide
+par%zs01=par%zs0
+!
+!
+! Only allow Baldock in stationary mode and Roelvink in non-stationary
+if (par%instat==0 .or. par%instat==40) then
+   if (par%break .ne. 2) then
+        call writelog('lwe','','Error: Roelvink formulation not allowed in stationary calculation, use Baldock formulation.')
+   endif
+else
+   if (par%break==2) then 
+        call writelog('lwe','','Error: Baldock formulation not allowed in non-stationary calculation, use Roelvink formulation.')
+   endif
+endif
+!
+!
+! Convert cf from C
+par%cf      = par%g/par%C**2
+!
+!
+! Set smax to huge if default is specified
+if (par%smax<0) par%smax=huge(0.d0)
+!
+!
+! fix tint
+par%tint    = min(par%tintg,par%tintp,par%tintm,par%tintc)                       ! Robert     
+!
+!
+! Source-sink check
+if (par%morfac>1.d0) then
+   if (par%sourcesink==1) then
+       call writelog('ls','','Warning: Using source-sink terms for bed level change with morfac can lead to loss of sediment mass conservation.')
+   endif
+endif
+!
+!
 ! All input time frames converted to XBeach hydrodynamic time
-if (par%morfacopt==1) par%tstop   = par%tstop  / max(par%morfac,1.d0)
+if (par%morfacopt==1) then 
+   par%tstart  = par%tstart / max(par%morfac,1.d0)
+   par%tint    = par%tint   / max(par%morfac,1.d0)
+   par%tintg   = par%tintg  / max(par%morfac,1.d0)
+   par%tintp   = par%tintp  / max(par%morfac,1.d0)
+   par%tintc   = par%tintc  / max(par%morfac,1.d0)
+   par%tintm   = par%tintm  / max(par%morfac,1.d0)
+   par%wavint  = par%wavint / max(par%morfac,1.d0)
+   par%tstop   = par%tstop  / max(par%morfac,1.d0)
+   par%morstart= par%morstart / max(par%morfac,1.d0)
+endif
 
 
 end subroutine all_input
@@ -583,7 +1277,7 @@ end subroutine flow_input
 subroutine sed_input(par)
 use readkey_module
 use xmpi_module
-use general_fileio
+!use filefunctions
 implicit none
 type(parameters)            :: par
 character(len=80)           :: dummystring
@@ -633,11 +1327,11 @@ if (par%morfac>1.d0) then
    endif
 endif
 par%struct   = readkey_int ('params.txt','struct ',0    ,      0,             1)
-if (par%struct==1) then
-   call readkey('params.txt','ne_layer',par%ne_layer)  ! Bathymetry file name
-   call check_file_exist(par%ne_layer)
-   call check_file_length(par%ne_layer,par%nx+1,par%ny+1)
-endif
+!if (par%struct==1) then
+!   call readkey('params.txt','ne_layer',par%ne_layer)  ! Bathymetry file name
+!   call check_file_exist(par%ne_layer)
+!   call check_file_length(par%ne_layer,par%nx+1,par%ny+1)
+!endif
 
 
 ! Just a check to see if they are there.....
