@@ -253,8 +253,8 @@ real*8,dimension(:),allocatable     :: yzs0,szs0
   ! added for bound long wave bc Ad 27 march 2006
   do itheta=1,s%ntheta
       s%thet(:,:,itheta) = s%theta(itheta)
-      s%costhet(:,:,itheta)= cos(s%theta(itheta))
-      s%sinthet(:,:,itheta)= sin(s%theta(itheta))
+      s%costhet(:,:,itheta)= dcos(s%theta(itheta))
+      s%sinthet(:,:,itheta)= dsin(s%theta(itheta))
   end do
 
   ! introduce intrinsic frequencies for wave action
