@@ -11,7 +11,7 @@ contains
 integer function create_new_fid()
 use general_fileio
 use xmpi_module
-use logging_module
+!use logging_module
 
    integer    :: fileunit
 
@@ -22,7 +22,7 @@ use logging_module
    call xmpi_bcast(fileunit)
 #endif   
    if (fileunit==-1) then
-      call writelog('les','','Serious problem: not enough free unit ids to create new file')
+!      call writelog('les','','Serious problem: not enough free unit ids to create new file')
       call halt_program
    endif
    create_new_fid = fileunit   
@@ -31,7 +31,7 @@ end function create_new_fid
 subroutine check_file_exist(filename)
 use general_fileio
 use xmpi_module
-use logging_module
+!use logging_module
 
    implicit none
 
@@ -46,7 +46,7 @@ use logging_module
 #endif 
 
    if (error==1) then
-      call writelog('sle','','File ''',trim(filename),''' not found. Terminating simulation')
+!      call writelog('sle','','File ''',trim(filename),''' not found. Terminating simulation')
       call halt_program
    endif
 end subroutine check_file_exist
@@ -211,7 +211,6 @@ end module filefunctions
 
 
 module general_fileio
-
 contains
 
 subroutine check_file_exist_generic(filename,error)
