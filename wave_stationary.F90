@@ -225,8 +225,8 @@ do it=2,imax
 		         n(i,:)  = 1.d0
             endwhere
 
-		    cgym = cg(i,:)*sin(thetamean(i,:)) + wcifacv(i,:)
-			cgxm = cg(i,:)*cos(thetamean(i,:)) + wcifacu(i,:)
+		    cgym = cg(i,:)*dsin(thetamean(i,:)) + wcifacv(i,:)
+			cgxm = cg(i,:)*dcos(thetamean(i,:)) + wcifacu(i,:)
 
 			dkmxdx       = (kmx(3,:)-kmx(1,:))/(xz(i+1)-xz(i-1))
 			dkmxdy(2:ny) = (kmx(2,3:ny+1)-kmx(2,1:ny-1))/(yz(3:ny+1)-yz(1:ny-1))
@@ -452,15 +452,15 @@ k=km
 ! Radiation stresses and forcing terms
 !
 n=cg/c
-Sxx=(n*sum((1.d0+(cos(thet))**2.d0)*ee,3)-.5d0*sum(ee,3))*dtheta
-Syy=(n*sum((1.d0+(sin(thet))**2.d0)*ee,3)-.5d0*sum(ee,3))*dtheta
-Sxy=n*sum(sin(thet)*cos(thet)*ee,3)*dtheta
+Sxx=(n*sum((1.d0+(dcos(thet))**2.d0)*ee,3)-.5d0*sum(ee,3))*dtheta
+Syy=(n*sum((1.d0+(dsin(thet))**2.d0)*ee,3)-.5d0*sum(ee,3))*dtheta
+Sxy=n*sum(dsin(thet)*dcos(thet)*ee,3)*dtheta
 
 ! add roller contribution
 
-Sxx = Sxx + sum((cos(thet)**2)*rr,3)*dtheta
-Syy = Syy + sum((sin(thet)**2)*rr,3)*dtheta
-Sxy = Sxy + sum(sin(thet)*cos(thet)*rr,3)*dtheta
+Sxx = Sxx + sum((dcos(thet)**2)*rr,3)*dtheta
+Syy = Syy + sum((dsin(thet)**2)*rr,3)*dtheta
+Sxy = Sxy + sum(dsin(thet)*dcos(thet)*rr,3)*dtheta
 
 do j=2,ny
     do i=1,nx
@@ -499,8 +499,8 @@ urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*max(hh,par%delta*H)))
 
 ! wave induced mass flux
 ustw=E*k/sigm/par%rho/max(hh,.001d0)
-uwf = ustw*cos(thetamean)
-vwf = ustw*sin(thetamean)
+uwf = ustw*dcos(thetamean)
+vwf = ustw*dsin(thetamean)
 ! roller contribution
 ustr=2.*R*k/sigm/par%rho/max(hh,.001d0)
 ! introduce breaker delay
