@@ -15,8 +15,12 @@ use logging_module
 
    integer    :: fileunit
 
-   fileunit = create_new_fid_generic()
-   
+   if (xmaster) then 
+      fileunit = create_new_fid_generic()
+   endif
+#ifdef USEMPI
+   call xmpi_bcast(fileunit)
+#endif   
    if (fileunit==-1) then
       call writelog('les','','Serious problem: not enough free unit ids to create new file')
       call halt_program
@@ -35,7 +39,11 @@ use logging_module
    integer                    :: error
    logical                    :: file_exists
 
-   call check_file_exist_generic(filename,error)
+
+   if (xmaster) call check_file_exist_generic(filename,error)
+#ifdef USEMPI
+   call xmpi_bcast(error)
+#endif 
 
    if (error==1) then
       call writelog('sle','','File ''',trim(filename),''' not found. Terminating simulation')
@@ -58,8 +66,13 @@ use xmpi_module
    allocate(dat(d1))
    
    fid = create_new_fid()
-   open(fid,file=fname)
-   read(fid,*,iostat=iost)(dat(i),i=1,d1)
+   if (xmaster) then
+      open(fid,file=fname)
+      read(fid,*,iostat=iost)(dat(i),i=1,d1)
+   endif
+#ifdef USEMPI
+   call xmpi_bcast(iost)
+#endif 
    if (iost .ne. 0) then
       if (xmaster) then
          write(*,*)'Error processing file ''',trim(fname),'''.',' File may be too short or contains invalid values.', & 
@@ -83,8 +96,13 @@ use xmpi_module
    allocate(dat(d1,d2))
    
    fid = create_new_fid()
-   open(fid,file=fname)
-   read(fid,*,iostat=iost)((dat(i,j),i=1,d1),j=1,d2)
+   if (xmaster) then 
+      open(fid,file=fname)
+      read(fid,*,iostat=iost)((dat(i,j),i=1,d1),j=1,d2)
+   endif
+#ifdef USEMPI
+   call xmpi_bcast(iost)
+#endif 
    if (iost .ne. 0) then
       if (xmaster) then
          write(*,*)'Error processing file ''',trim(fname),'''.',' File may be too short or contains invalid values.', & 
@@ -108,8 +126,13 @@ use xmpi_module
    allocate(dat(d1,d2,d3))
    
    fid = create_new_fid()
-   open(fid,file=fname)
-   read(fid,*,iostat=iost)(((dat(i,j,k),i=1,d1),j=1,d2),k=1,d3)
+   if (xmaster) then 
+      open(fid,file=fname)
+      read(fid,*,iostat=iost)(((dat(i,j,k),i=1,d1),j=1,d2),k=1,d3)
+   endif
+#ifdef USEMPI
+   call xmpi_bcast(iost)
+#endif 
    if (iost .ne. 0) then
       if (xmaster) then
          write(*,*)'Error processing file ''',trim(fname),'''.',' File may be too short or contains invalid values.', & 
@@ -192,7 +215,6 @@ module general_fileio
 contains
 
 subroutine check_file_exist_generic(filename,error)
-use xmpi_module
    implicit none
 
    character(*)               :: filename
@@ -204,22 +226,18 @@ use xmpi_module
    error = 0
 
    if (.not. file_exists) then
-      if (xmaster) then
 	      error = 1
-	  endif
    endif
 
 end subroutine check_file_exist_generic
 
 
 integer function create_new_fid_generic()
-use xmpi_module
    integer    :: tryunit = 98
    logical    :: fileopen
    
    fileopen = .true.    
-   if (xmaster) then
-      do while (fileopen)
+   do while (fileopen)
          inquire(tryunit,OPENED=fileopen)
 	     if (fileopen) then
 	        tryunit=tryunit-1
@@ -228,8 +246,7 @@ use xmpi_module
 		   tryunit = -1
 		   fileopen = .false.
 	     endif	      
-      enddo
-   endif
+   enddo
    create_new_fid_generic = tryunit   
 end function create_new_fid_generic
 
