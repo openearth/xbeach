@@ -156,7 +156,7 @@ tpar%output  = .FALSE.
 ! If working in instat 0 or instat 40 we want time to coincide at wavint timesteps
 if (par%instat==0 .or. par%instat==40) then
    if(xmaster) then
-      ii=floor(par%tstop/par%wavint)
+      ii=ceiling(par%tstop/par%wavint)
       allocate(tpar%tpw(ii))
       do i=1,ii
          tpar%tpw(i)=real(i)*par%wavint
@@ -321,19 +321,20 @@ subroutine outputtimes_update(par, tpar)
   ! check if we need output at the current timestep
   ! do we have anymore  output time points, is it equal to the current?
   if (size(tpar%tpg) .gt. 0) then
-     tpar%outputg = abs(tpar%tpg(tpar%itg+1)-par%t) .le. 0.0000001d0
+     tpar%outputg = abs(tpar%tpg(min(tpar%itg+1,size(tpar%tpg)))-par%t) .le. 0.0000001d0
+	                             ! if global output has last output before tstop, this minimum is necessary
   endif
   if (size(tpar%tpp) .gt. 0) then
-     tpar%outputp = abs(tpar%tpp(tpar%itp+1)-par%t) .le. 0.0000001d0
+     tpar%outputp = abs(tpar%tpp(min(tpar%itp+1,size(tpar%tpp)))-par%t) .le. 0.0000001d0
   endif
   if (size(tpar%tpc) .gt. 0) then
-     tpar%outputc = abs(tpar%tpc(tpar%itc+1)-par%t) .le. 0.0000001d0
+     tpar%outputc = abs(tpar%tpc(min(tpar%itc+1,size(tpar%tpc)))-par%t) .le. 0.0000001d0
   endif
   if (size(tpar%tpm) .gt. 0) then
-     tpar%outputm = abs(tpar%tpm(tpar%itm+1)-par%t) .le. 0.0000001d0
+     tpar%outputm = abs(tpar%tpm(min(tpar%itm+1,size(tpar%tpm)))-par%t) .le. 0.0000001d0
   endif
   if (size(tpar%tpw) .gt. 0) then
-     tpar%outputw = abs(tpar%tpw(tpar%itw+1)-par%t) .le. 0.0000001d0
+     tpar%outputw = abs(tpar%tpw(min(tpar%itw+1,size(tpar%tpw)))-par%t) .le. 0.0000001d0
   endif
   
 !  tpar%outputg = (size(tpar%tpg) .gt. tpar%itg) .and. (abs(tpar%tpg(tpar%itg+1)-par%t) .le. 0.0000001d0)
@@ -386,7 +387,6 @@ integer                     :: i
 integer                     :: j
 integer                     :: n
 real*8                                          :: mdx,mdy
-real*8               :: t1,t2,t3,t4,t5
 real*8,save                         :: dtref
 
 ! Calculate dt based on the Courant number. 
@@ -468,9 +468,6 @@ if(par%t>=tpar%tnext) then
     par%dt=par%dt-(par%t-tpar%tnext)
     par%t=tpar%tnext
     it=it+1
-!    write(*,*)'time (s) = ',par%t,' dt (s) = ',par%dt,' output step ',it
-else
-!    write(*,*)'time (s) = ',par%t,' dt (s) = ',par%dt
 end if  
 end subroutine timestep
 end module timestep_module
