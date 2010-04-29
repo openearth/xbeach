@@ -555,11 +555,14 @@ allocate(s%structdepth(s%nx+1,s%ny+1))
 s%structdepth = 100.d0
 
 if (par%struct==1) then
-
+   !call readkey('params.txt','ne_layer',fnameh)
+   !open(31,file=fnameh)
    open(31,file=par%ne_layer)
+   
    do j=1,s%ny+1
        read(31,*)(s%structdepth(i,j),i=1,s%nx+1)
    end do
+
    close(31)
 
 endif

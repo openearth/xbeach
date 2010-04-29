@@ -1327,11 +1327,11 @@ if (par%morfac>1.d0) then
    endif
 endif
 par%struct   = readkey_int ('params.txt','struct ',0    ,      0,             1)
-!if (par%struct==1) then
-!   call readkey('params.txt','ne_layer',par%ne_layer)  ! Bathymetry file name
-!   call check_file_exist(par%ne_layer)
-!   call check_file_length(par%ne_layer,par%nx+1,par%ny+1)
-!endif
+if (par%struct==1) then
+   call readkey('params.txt','ne_layer',par%ne_layer)  ! Bathymetry file name
+   !call check_file_exist(par%ne_layer)
+   !call check_file_length(par%ne_layer,par%nx+1,par%ny+1)
+endif
 
 
 ! Just a check to see if they are there.....
