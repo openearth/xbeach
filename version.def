@@ -1,1 +1,3 @@
 character(1024) :: Build_Revision
+character(1024) :: Build_Date
+character(1024) :: Build_URL
