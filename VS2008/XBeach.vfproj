@@ -54,6 +54,7 @@ makeversiondat.bat"/>
 		<File RelativePath="..\boundaryconditions.F90"/>
 		<File RelativePath="..\constants.F90"/>
 		<File RelativePath="..\drifters.F90"/>
+		<File RelativePath="..\filefunctions.F90"/>
 		<File RelativePath="..\flow_secondorder.F90"/>
 		<File RelativePath="..\flow_timestep.F90"/>
 		<File RelativePath="..\general_fileio.F90"/>
@@ -61,6 +62,7 @@ makeversiondat.bat"/>
 		<File RelativePath="..\groundwater.F90"/>
 		<File RelativePath="..\initialize.F90"/>
 		<File RelativePath="..\interp.F90"/>
+		<File RelativePath="..\logging.F90"/>
 		<File RelativePath="..\math_tools.F90"/>
 		<File RelativePath="..\mnemonic.F90"/>
 		<File RelativePath="..\morphevolution.F90"/>
