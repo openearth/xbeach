@@ -1,7 +1,10 @@
 wv 2008-08-12
+fb 2010-05-04
 
 Willem Vermin
 willem@sara.nl
+Fedor Baart
+f.baart@tudelft.nl
 
 A few remarks about the parallelization of xbeach
 =================================================
@@ -35,30 +38,17 @@ I hope I did something useful, remarks and comments are appreciated.
 Installation
 ============
 
-Use GNU-make as make program.
+You can make the mpi version by using configure and make
 
-In Makefile, gfortran is defined as the fortran compiler, mpif90
-as fortran compiler for mpi programs.
-
+  ./configure --with-mpi  # configure creates a Makefile which will generate an mpi compatible Makefile..
 
   make clean      # removes *.o *.mod core and test and demo programs
-  make realclean  # removes everything, except the sources
+  make distclean  # removes everything, except the sources
   
   make            # make the program xbeach
-  make install    # install it in ../bin
+  make install    # install it in /usr/local/bin
 
-  make dep        # creates a new DEPENDENCIES file, needed when
-                  # something is changed with resepct to using module
-                  # files or icluding include files.
-
-If the environment variable USEMPI is defined,
-
-  export USEMPI=yes
-
-then, in stead of xbeach, the program xbeach.mpi, the parallel version
-of xbeach is made. 
-
-Between different USEMPI settings, it is necessary to do a
+Between different ./configure --with-mpi settings, it is necessary to do a
 
   make clean
 
