@@ -223,17 +223,17 @@ subroutine writelog_aaai(destination,form,message_char1,message_char2,message_ch
    endif
 end subroutine writelog_aaai
 
-subroutine writelog_aaia(destinationb,formb,message_char1,message_char2,message_int,message_char3)
+subroutine writelog_aaia(destinationb,formb,message_char1b,message_char2b,message_int,message_char3b)
    implicit none
-   character(*),intent(in)    ::  formb,message_char1,message_char2,message_char3
+   character(*),intent(in)    ::  formb,message_char1b,message_char2b,message_char3b
    character(*),intent(in)    ::  destinationb
    integer,intent(in)         ::  message_int
    character(256)             ::  display
 
    if (formb=='') then
-      write(display,*)message_char1,message_char2,message_int,message_char3
+      write(display,*)message_char1b,message_char2b,message_int,message_char3b
    else
-      write(display,formb)message_char1,message_char2,message_int,message_char3
+      write(display,formb)message_char1b,message_char2b,message_int,message_char3b
    endif
 
    if (xmaster) then 

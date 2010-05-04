@@ -304,7 +304,8 @@ integer                     :: filetype, error
 
 call start_logfiles(error)
 if (error==1) then
-   write(*,*) 'Error: not able to open log file due to insufficient free unit identifiers. Please contact XBeach team. Stopping simulation'
+   write(*,*) 'Error: not able to open log file due to insufficient free unit identifiers. Please contact XBeach team.'
+   write(*,*) 'Stopping simulation'
    call halt_program
 endif
 call writelog('sl','','Reading input parameters: ')
@@ -920,7 +921,8 @@ endif
 !   
 ! Wave numerics parameters 
 call writelog('l','','--------------------------------')
-call writelog('l','','Wave numerics parameters: ')                                                                                                     
+call writelog('l','','Wave numerics parameters: ')
+
 par%scheme     = readkey_int ('params.txt','scheme',        2,        1,     2)
 if (par%instat == 0 .or. par%instat == 40) then
    par%wavint     = readkey_dbl ('params.txt','wavint',    1.d0,      1.d0,  3600.d0)
@@ -1038,7 +1040,8 @@ par%tint    = min(par%tintg,par%tintp,par%tintm,par%tintc)                      
 ! Source-sink check
 if (par%morfac>1.d0) then
    if (par%sourcesink==1) then
-       call writelog('ls','','Warning: Using source-sink terms for bed level change with morfac can lead to loss of sediment mass conservation.')
+       call writelog('ls','','Warning: Using source-sink terms for bed level change with morfac can lead to')
+       call writelog('ls','','loss of sediment mass conservation.')
    endif
 endif
 !
