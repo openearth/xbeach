@@ -1326,7 +1326,7 @@ par%sourcesink      = readkey_int ('params.txt','sourcesink    ',0,           0,
 par%waveform        = readkey_int ('params.txt','waveform      ',2,           1,            2)
 if (par%morfac>1.d0) then
    if (par%sourcesink==1) then
-       write(*,*)'Warning: Using source-sink terms for bed level change with morfac can lead to loss of sediment mass conservation.'
+       if (xmaster) write(*,*)'Warning: Using source-sink terms for bed level change with morfac can lead to loss of sediment mass conservation.'
    endif
 endif
 par%struct   = readkey_int ('params.txt','struct ',0    ,      0,             1)
