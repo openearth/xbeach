@@ -326,7 +326,7 @@ endif
 !                   + par%g/par%C**2.d0/hu(i,j)*vmageu(i,j)*ueu(i,j) & 
                     + (taubx(i,j) - par%lwave*Fx(i,j))/(par%rho*hu(i,j)) &
                     - par%fc*vu(i,j) &
-					- par%rhoa*par%Cd*cos(s%winddirnow)*s%windvnow**2)
+					- par%rhoa*par%Cd*cos(s%winddirnow)*s%windvnow**2/(par%rho*hu(i,j)))
             else
                 uu(i,j)=0.0d0
             end if
@@ -426,7 +426,7 @@ endif
                       ! + par%g/par%C**2/hv(i,j)*vmagev(i,j)*vev(i,j)&
                        + (tauby(i,j)- par%lwave*Fy(i,j))/(par%rho*hv(i,j)) &
                        + par%fc*uv(i,j) &
-                       - par%rhoa*par%Cd*sin(s%winddirnow)*s%windvnow**2)
+                       - par%rhoa*par%Cd*sin(s%winddirnow)*s%windvnow**2/(par%rho*hv(i,j)))
 
             else
                 vv(i,j)=0.0d0
