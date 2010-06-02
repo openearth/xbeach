@@ -810,7 +810,8 @@ if (par%instat/=9)then
   if(xmpi_istop) then
     if (par%front==0) then ! Ad's radiating boundary
        umean(1,:)=(1.d0-factime)*umean(1,:)+factime*uu(1,:)
-       uu(1,:)=2.0d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))+umean(1,:)
+!DAno  uu(1,:)=2.0d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))+umean(1,:)
+       uu(1,:)=(1.0d0+sqrt(par%g*hh(1,:))/cg(1,:))*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))+umean(1,:)
        vv(1,:)=vv(2,:)
        zs(1,:)=zs(2,:)
     elseif (par%front==1) then ! Van Dongeren (1997), weakly reflective boundary condition
@@ -932,6 +933,7 @@ if (par%instat/=9)then
      elseif (par%back==1) then
         umean(2,:) = factime*uu(nx,:)+(1.d0-factime)*umean(2,:)   
         uu(nx,:)=sqrt(par%g/hh(nx,:))*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))+umean(2,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
+!        uu(nx,:)=cg(nx,:)/hh(nx,:)*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))+umean(2,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
         !uu(nx,:)=sqrt(par%g/(s%zs0(nx,:)-zb(nx,:)))*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))
         !umean(2,:) = factime*uu(nx,:)+(1-factime)*umean(2,:)    !Ap
         !zs(nx+1,:)=max(s%zs0(nx+1,:),s%zb(nx+1,:))+(uu(nx,:)-umean(2,:))*sqrt(max((s%zs0(nx+1,:)-zb(nx+1,:)),par%eps)/par%g)    !Ap
