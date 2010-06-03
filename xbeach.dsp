@@ -146,7 +146,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /stack:0x3d0900 /subsystem:console /debug /machine:I386 /pdbtype:sept
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib  netcdf.lib /nologo /stack:0x3d0900 /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"lib\win32\VS6\pg"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib netcdf.lib /nologo /stack:0x3d0900 /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"lib\win32\VS6\pg"
 # SUBTRACT LINK32 /pdb:none
 # Begin Special Build Tool
 OutDir=.\xbeach___Win32_Netcdf
@@ -181,10 +181,44 @@ DEP_F90_NETCD=\
 	".\lib\win32\netcdff90\netcdf_visibility.f90"\
 	".\xbeach___Win32_Netcdf\typeSizes.mod"\
 	
+
+!IF  "$(CFG)" == "xbeach - Win32 Release"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "xbeach - Win32 Debug"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "xbeach - Win32 Release_NoMPI"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "xbeach - Win32 Netcdf"
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
 SOURCE=.\lib\win32\netcdff90\typeSizes.f90
+
+!IF  "$(CFG)" == "xbeach - Win32 Release"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "xbeach - Win32 Debug"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "xbeach - Win32 Release_NoMPI"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "xbeach - Win32 Netcdf"
+
+!ENDIF 
+
 # End Source File
 # End Group
 # Begin Source File
@@ -192,17 +226,17 @@ SOURCE=.\lib\win32\netcdff90\typeSizes.f90
 SOURCE=.\boundaryconditions.f90
 DEP_F90_BOUND=\
 	".\nh_pars.inc"\
+	".\Release\interp.mod"\
+	".\Release\params.mod"\
+	".\Release\readkey_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\wave_timestep_module.mod"\
+	".\Release\waveparams.mod"\
+	".\Release\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
-	".\xbeach___Win32_Netcdf\interp.mod"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\readkey_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\wave_timestep_module.mod"\
-	".\xbeach___Win32_Netcdf\waveparams.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
@@ -213,23 +247,23 @@ SOURCE=.\constants.f90
 
 SOURCE=.\drifters.f90
 DEP_F90_DRIFT=\
+	".\Release\mnemmodule.mod"\
+	".\Release\params.mod"\
+	".\Release\readkey_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
-	".\xbeach___Win32_Netcdf\mnemmodule.mod"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\readkey_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\filefunctions.F90
 NODEP_F90_FILEF=\
-	".\xbeach___Win32_Netcdf\logging_module.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
+	".\Release\logging_module.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
@@ -239,25 +273,25 @@ DEP_F90_FLOW_=\
 	".\nh_pars.inc"\
 	
 NODEP_F90_FLOW_=\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
+	".\Release\params.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\flow_timestep.f90
 DEP_F90_FLOW_T=\
+	".\Release\boundaryconditions.mod"\
+	".\Release\flow_secondorder_module.mod"\
+	".\Release\nonh_module.mod"\
+	".\Release\params.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
-	".\xbeach___Win32_Netcdf\boundaryconditions.mod"\
-	".\xbeach___Win32_Netcdf\flow_secondorder_module.mod"\
-	".\xbeach___Win32_Netcdf\nonh_module.mod"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
@@ -267,31 +301,33 @@ SOURCE=.\general_fileio.F90
 # Begin Source File
 
 SOURCE=.\general_mpi.F90
+DEP_F90_GENER=\
+	"c:\Program Files\MPICH2\include\mpi.mod"\
+	
 NODEP_F90_GENER=\
-	".\xbeach___Win32_Netcdf\mpi.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\groundwater.f90
 NODEP_F90_GROUN=\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\readkey_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
+	".\Release\params.mod"\
+	".\Release\readkey_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\initialize.f90
 NODEP_F90_INITI=\
-	".\xbeach___Win32_Netcdf\interp.mod"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\readkey_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\wave_timestep_module.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
+	".\Release\interp.mod"\
+	".\Release\params.mod"\
+	".\Release\readkey_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\wave_timestep_module.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
@@ -302,14 +338,14 @@ SOURCE=.\interp.f90
 
 SOURCE=.\logging.F90
 NODEP_F90_LOGGI=\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\math_tools.f90
 NODEP_F90_MATH_=\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
@@ -324,28 +360,28 @@ DEP_F90_MNEMO=\
 
 SOURCE=.\morphevolution.f90
 DEP_F90_MORPH=\
+	".\Release\interp.mod"\
+	".\Release\params.mod"\
+	".\Release\readkey_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
-	".\xbeach___Win32_Netcdf\interp.mod"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\readkey_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\ncoutput.F90
 NODEP_F90_NCOUT=\
-	".\xbeach___Win32_Netcdf\config.h"\
-	".\xbeach___Win32_Netcdf\mnemmodule.mod"\
-	".\xbeach___Win32_Netcdf\netcdf.mod"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\readkey_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\timestep_module.mod"\
+	".\Release\config.h"\
+	".\Release\mnemmodule.mod"\
+	".\Release\netcdf.mod"\
+	".\Release\params.mod"\
+	".\Release\readkey_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\timestep_module.mod"\
 	
 # End Source File
 # Begin Source File
@@ -355,73 +391,73 @@ DEP_F90_NONH_=\
 	".\nh_pars.inc"\
 	
 NODEP_F90_NONH_=\
-	".\xbeach___Win32_Netcdf\flow_secondorder_module.mod"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\solver_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\wave_timestep_module.mod"\
+	".\Release\flow_secondorder_module.mod"\
+	".\Release\params.mod"\
+	".\Release\solver_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\wave_timestep_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\nonhydrostatic.F90
 NODEP_F90_NONHY=\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
+	".\Release\params.mod"\
+	".\Release\spaceparams.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\params.f90
 NODEP_F90_PARAM=\
-	".\xbeach___Win32_Netcdf\filefunctions.mod"\
-	".\xbeach___Win32_Netcdf\logging_module.mod"\
-	".\xbeach___Win32_Netcdf\mnemmodule.mod"\
-	".\xbeach___Win32_Netcdf\readkey_module.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
+	".\Release\filefunctions.mod"\
+	".\Release\logging_module.mod"\
+	".\Release\mnemmodule.mod"\
+	".\Release\readkey_module.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\readkey.f90
 NODEP_F90_READK=\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\readtide.f90
 DEP_F90_READT=\
+	".\Release\params.mod"\
+	".\Release\readkey_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\readkey_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\readwind.F90
 DEP_F90_READW=\
+	".\Release\params.mod"\
+	".\Release\readkey_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\readkey_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\roelvink.f90
 NODEP_F90_ROELV=\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
+	".\Release\params.mod"\
+	".\Release\spaceparams.mod"\
 	
 # End Source File
 # Begin Source File
@@ -431,8 +467,8 @@ DEP_F90_SOLVE=\
 	".\nh_pars.inc"\
 	
 NODEP_F90_SOLVE=\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
+	".\Release\params.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
@@ -440,90 +476,90 @@ NODEP_F90_SOLVE=\
 SOURCE=.\spaceparams.F90
 DEP_F90_SPACE=\
 	".\indextos.gen"\
+	".\Release\general_mpi_module.mod"\
+	".\Release\mnemmodule.mod"\
+	".\Release\params.mod"\
+	".\Release\readkey_module.mod"\
+	".\Release\xmpi_module.mod"\
 	".\space_alloc_arrays.gen"\
 	".\space_alloc_scalars.gen"\
 	".\spacedecl.gen"\
-	".\xbeach___Win32_Netcdf\general_mpi_module.mod"\
-	".\xbeach___Win32_Netcdf\mnemmodule.mod"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\readkey_module.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\timestep.f90
 NODEP_F90_TIMES=\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\readkey_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
+	".\Release\params.mod"\
+	".\Release\readkey_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\varianceupdate.F90
 NODEP_F90_VARIA=\
-	".\xbeach___Win32_Netcdf\mnemmodule.mod"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
+	".\Release\mnemmodule.mod"\
+	".\Release\params.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\varoutput.f90
 NODEP_F90_VAROU=\
-	".\xbeach___Win32_Netcdf\mnemmodule.mod"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\readkey_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\timestep_module.mod"\
-	".\xbeach___Win32_Netcdf\varianceupdate_module.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
+	".\Release\mnemmodule.mod"\
+	".\Release\params.mod"\
+	".\Release\readkey_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\timestep_module.mod"\
+	".\Release\varianceupdate_module.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\wave_stationary.f90
 DEP_F90_WAVE_=\
+	".\Release\params.mod"\
+	".\Release\roelvink_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\wave_timestep_module.mod"\
+	".\Release\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\roelvink_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\wave_timestep_module.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\wave_timestep.f90
 DEP_F90_WAVE_T=\
+	".\Release\interp.mod"\
+	".\Release\mnemmodule.mod"\
+	".\Release\params.mod"\
+	".\Release\roelvink_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
-	".\xbeach___Win32_Netcdf\interp.mod"\
-	".\xbeach___Win32_Netcdf\mnemmodule.mod"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\roelvink_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\waveparams.f90
 NODEP_F90_WAVEP=\
-	".\xbeach___Win32_Netcdf\interp.mod"\
-	".\xbeach___Win32_Netcdf\math_tools.mod"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\readkey_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
+	".\Release\interp.mod"\
+	".\Release\math_tools.mod"\
+	".\Release\params.mod"\
+	".\Release\readkey_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
@@ -532,33 +568,33 @@ SOURCE=.\xbeach.f90
 DEP_F90_XBEAC=\
 	".\version.dat"\
 	".\version.def"\
-	".\xbeach___Win32_Netcdf\boundaryconditions.mod"\
-	".\xbeach___Win32_Netcdf\drifter_module.mod"\
-	".\xbeach___Win32_Netcdf\flow_timestep_module.mod"\
-	".\xbeach___Win32_Netcdf\groundwaterflow.mod"\
-	".\xbeach___Win32_Netcdf\initialize.mod"\
-	".\xbeach___Win32_Netcdf\morphevolution.mod"\
-	".\xbeach___Win32_Netcdf\ncoutput_module.mod"\
-	".\xbeach___Win32_Netcdf\outputmod.mod"\
-	".\xbeach___Win32_Netcdf\params.mod"\
-	".\xbeach___Win32_Netcdf\readkey_module.mod"\
-	".\xbeach___Win32_Netcdf\readtide_module.mod"\
-	".\xbeach___Win32_Netcdf\readwind_module.mod"\
-	".\xbeach___Win32_Netcdf\spaceparams.mod"\
-	".\xbeach___Win32_Netcdf\timestep_module.mod"\
-	".\xbeach___Win32_Netcdf\wave_stationary_module.mod"\
-	".\xbeach___Win32_Netcdf\wave_timestep_module.mod"\
-	".\xbeach___Win32_Netcdf\xmpi_module.mod"\
 	
 NODEP_F90_XBEAC=\
-	".\xbeach___Win32_Netcdf\config.h"\
+	".\Release\boundaryconditions.mod"\
+	".\Release\config.h"\
+	".\Release\drifter_module.mod"\
+	".\Release\flow_timestep_module.mod"\
+	".\Release\groundwaterflow.mod"\
+	".\Release\initialize.mod"\
+	".\Release\morphevolution.mod"\
+	".\Release\ncoutput_module.mod"\
+	".\Release\outputmod.mod"\
+	".\Release\params.mod"\
+	".\Release\readkey_module.mod"\
+	".\Release\readtide_module.mod"\
+	".\Release\readwind_module.mod"\
+	".\Release\spaceparams.mod"\
+	".\Release\timestep_module.mod"\
+	".\Release\wave_stationary_module.mod"\
+	".\Release\wave_timestep_module.mod"\
+	".\Release\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\xmpi.F90
-NODEP_F90_XMPI_=\
-	".\xbeach___Win32_Netcdf\mpi.mod"\
+DEP_F90_XMPI_=\
+	"c:\Program Files\MPICH2\include\mpi.mod"\
 	
 # End Source File
 # End Target
