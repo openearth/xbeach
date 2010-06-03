@@ -1,0 +1,200 @@
+Instructions for Compiling with the Pre-Compiled Libraries and DLLs (Visual Studio 2005)
+============================================================================
+
+NOTE:
+----
+The zlib 1.2.3 and szip libraries are NOT included with the HDF5 
+software.  You must obtain them separately. You can obtain them from the 
+HDF ftp server at:
+
+    ftp://ftp.hdfgroup.org/lib-external/zlib/1.2/bin/windows
+    ftp://ftp.hdfgroup.org/lib-external/szip/2.1/bin/windows
+
+Extract the files into a working directory, and copy szlibdll.dll and zlib.dll
+into the C:\Windows\SYSTEM directory.
+
+---------------------------------------------------------------------------
+   
+       
+Static Libraries:
+----------------
+
+   Bring up Microsoft Visual Studio 2005.
+
+   Select File->New->Project.  Then select to create a "Win32->Win32 Console Project"
+   and enter a name.
+
+   Select File->Open->File..., and open up a C program.
+
+   Select Project->Properties->Linker->Input
+   Enter "zlibdll.lib zlib1.lib hdf5.lib" at the beginning of the
+   "Addtional Dependencies" line.
+
+   Select Tools->Options->Directories->Projects.
+   Select "Include Files" under "Show directories for".
+   Enter the paths for the HDF5, szip and zlib include files.
+   Then select "Library Files" under "Show directories for".
+   Enter the paths for the HDF5, szip and zlib libraries.
+
+   Select Build->Build Solution.
+   Select Debug->Start Debugging.
+
+
+DLLs:
+----
+   Copy the hdf5dll.dll, zlib.dll, and szlibdll.dll files from
+   the location in the HDF5, szip, and zlib binary distribution to the
+   C:\Windows\SYSTEM directory.
+
+   Bring up Microsft Visual Studio 2005.
+
+   Select File->New->Project.  Then select to create a "Win32->Win32 Console Project"
+   and enter a name.
+
+   Select File->Open->File..., and open up a C program.
+
+   Select Project->Properties->Linker->Input
+   Enter "szlibdll.lib zlib1.lib hdf5dll.lib" at the beginning of the
+   "Addtional Dependencies" line.
+
+   Select Project->Properties->C/C++
+   Under Preprocessor Definitions, add:  _HDF5USEDLL_
+
+   Select Tools->Options->Directories->Projects.
+   Select "Include Files" under "Show directories for".
+   Enter the include paths for the HDF5, szip and zlib include files.
+   Then select "Library Files" under "Show directories for".
+   Enter the library paths for the HDF5 DLL, zlib and szip libraries.
+
+   Select Build->Build Solution.
+   Select Debug->Start Debugging.
+
+
+High Level Library
+---
+   You will need to specify the high level library in addition to the HDF5 libraries. 
+   The high level library should be listed after the HDF5 library, as follows:
+
+   Select Project->Properties->Linker->Input
+   Enter "szlibdll.lib zlib1.lib hdf5dll.lib hdf5_hl.lib" at the beginning
+   of the "Addtional Dependencies" line.
+
+   You will also need to add the paths of the HDF5 high level include 
+   files and libraries, similar to what was done with the HDF5
+   libraries:
+
+     Select Tools->Options->Directories.
+     Select "Include Files" under "Show directories for".
+     Enter the include path for the HDF5 high level include files. 
+     Then select "Library Files" under "Show directories for".
+     Enter the library path for the HDF5 high level library. 
+
+  If using the high level DLLs, copy the high level HDF5 DLLS to the C:\Windows\SYSTEM
+  directory, and include the library path to the HDF5 high level DLLs under 
+  Tools->Options->Directories.  You will also need to define the preprocessor "_HDF5USEHLDLL_".
+
+  
+C++ Library
+---
+   You will need to specify the C++ library in addition to the HDF5 libraries. 
+   The C++ library should be listed after the HDF5 library, as follows:
+
+   Select Project->Properties->Linker->Input
+   Enter "szlibdll.lib zlib1.lib hdf5dll.lib hdf5_cpp.lib" at the beginning
+   of the "Addtional Dependencies" line.
+
+   You will also need to add the paths of the HDF5 C++ include 
+   files and libraries, similar to what was done with the HDF5
+   libraries:
+
+     Select Tools->Options->Directories.
+     Select "Include Files" under "Show directories for".
+     Enter the include path for the HDF5 C++ include files. 
+     Then select "Library Files" under "Show directories for".
+     Enter the library path for the HDF5 C++ library. 
+
+  If using the C++ DLLs, copy the C++ HDF5 DLLS to the C:\Windows\SYSTEM
+  directory, and include the library path to the HDF5 C++ DLLs under 
+  Tools->Options->Directories.  You will also need to define the preprocessor "HDF5CPP_USEDLL".
+
+  
+High-Level C++ Library
+---
+   You will need to specify the HL C++ library in addition to the HDF5, High-level
+   and C++ libraries. The HL C++ library should be listed after the other HDF5 
+   libraries, as follows:
+
+   Select Project->Properties->Linker->Input
+   Enter "szlibdll.lib zlib1.lib hdf5dll.lib hdf5_cpp.lib hdf5_hl.lib 
+   hdf5_hl_cpp.lib" at the beginning of the "Addtional Dependencies" line.
+
+   You will also need to add the paths of the HDF5 HL C++ include 
+   files and libraries, similar to what was done with the HDF5
+   libraries:
+
+     Select Tools->Options->Directories.
+     Select "Include Files" under "Show directories for".
+     Enter the include path for the HDF5, HDF5 HL, and HDF5 HL C++ include files. 
+     Then select "Library Files" under "Show directories for".
+     Enter the library path for the HDF5, HDF5 HL, and HDF5 HL C++ libraries. 
+
+  If using the HL C++ DLLs, copy the HL C++ HDF5 DLLS to the C:\Windows\SYSTEM
+  directory, and include the library path to the HDF5 HL C++ DLLs under 
+  Tools->Options->Directories.  You will also need to define the preprocessor 
+  "HDF5USE_HLCPPDLL".
+
+  
+Fortran
+---
+   You will need to specify the Fortran library in addition to the HDF5 libraries. 
+   The Fortran library should be listed after the HDF5 library, as follows:
+
+   Select Project->Properties->Linker->Input
+   Enter "szlibdll.lib zlib1.lib hdf5dll.lib hdf5_fortran.lib" at the beginning
+   of the "Addtional Dependencies" line.
+
+   You will also need to add the paths of the HDF5 Fortran include 
+   files and libraries, similar to what was done with the HDF5
+   libraries:
+
+     Select Tools->Options->Directories.
+     Select "Include Files" under "Show directories for".
+     Enter the include path for the HDF5 Fortran include files. 
+     Then select "Library Files" under "Show directories for".
+     Enter the library path for the HDF5 Fortran library. 
+
+  If using the Fortran DLLs, copy the Fortran HDF5 DLLS to the C:\Windows\SYSTEM
+  directory, and include the library path to the HDF5 Fortran DLLs under 
+  Tools->Options->Directories.  You will also need to define the preprocessor
+  "HDF5FORT_CSTUB_USEDLL".
+
+  
+High-Level Fortran Library
+---
+   You will need to specify the HL Fortran library in addition to the HDF5, 
+   High-level and Fortran libraries. The HL Fortran library should be listed 
+   after the other HDF5 libraries, as follows:
+
+   Select Project->Properties->Linker->Input
+   Enter "szlibdll.lib zlib1.lib hdf5dll.lib hdf5_fortran.lib hdf5_hl.lib 
+   hdf5_hl_fortran.lib" at the beginning of the "Addtional Dependencies" line.
+
+   You will also need to add the paths of the HDF5 HL Fortran include 
+   files and libraries, similar to what was done with the HDF5
+   libraries:
+
+     Select Tools->Options->Directories.
+     Select "Include Files" under "Show directories for".
+     Enter the include path for the HDF5, HDF5 HL, and HDF5 HL Fortran include 
+     files. 
+     Then select "Library Files" under "Show directories for".
+     Enter the library path for the HDF5, HDF5 HL, and HDF5 HL Fortran libraries. 
+
+  If using the HL Fortran DLLs, copy the HL Fortran HDF5 DLLS to the 
+  C:\Windows\SYSTEM directory, and include the library path to the HDF5 HL 
+  Fortran DLLs under Tools->Options->Directories.  You will also need to define 
+  the preprocessor "HDF5USE_HLF90CSTUBDLL".
+  
+-----
+
+For more detailed instructions, please see the included INSTALL_Windows.txt.
