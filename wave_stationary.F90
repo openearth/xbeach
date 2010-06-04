@@ -6,6 +6,7 @@ use spaceparams
 use roelvink_module
 use wave_timestep_module
 use xmpi_module
+use logging_module
 
 ! wwvv in my testcase, this routine was not called, so it is not
 ! tested. Nevertheless, I put in code for the parallel version.
@@ -167,7 +168,7 @@ call xmpi_shift(km,'1:')
 
 #ifdef USEMPI
 do iimpi=1,xmpi_m    ! Start iteration for number of domains in x direction
-if (xmaster) write(*,'(a,i0,a,i0,a)') 'Starting wave propagation over ',iimpi,' of ',xmpi_m,' MPI rows'
+if (xmaster) call writelog('ls','(a,i0,a,i0,a)','Starting wave propagation over ',iimpi,' of ',xmpi_m,' MPI rows')
 call xmpi_shift(ee,'1:')
 call xmpi_shift(rr,'1:')
 call xmpi_shift(km,'1:')
@@ -301,11 +302,11 @@ do it=2,imax
 
    	!
 		! Total dissipation
-		if(par%break==1 .or. par%break==3) THEN
+		if(trim(par%break)=='roelvink1' .or. trim(par%break)=='roelvink2') THEN
 			call roelvink1(E(i,:),hh(i,:), &
 							par%Trep,par%alpha,par%gamma,par%n, &
 							par%rho,par%g,par%delta,D(i,:),ny+1,par%break)
-		else if(par%break==2) THEN
+		else if(trim(par%break)=='baldock') THEN
 			call baldock1(E(i,:),hh(i,:),k(i,:), &
 							par%Trep,par%alpha,par%gamma, &
 							par%rho,par%g,par%delta,D(i,:),ny+1)
@@ -420,11 +421,11 @@ do it=2,imax
 		if (iter<par%maxiter) then
 			if (Herr<par%maxerror) then
 				stopiterate=.true.
-				if(xmaster) write(*,'(a,i4,a,i4)')'Wave propagation row ',it,', iteration ',iter
+				if(xmaster) call writelog('ls','(a,i4,a,i4)','Wave propagation row ',it,', iteration ',iter)
 			endif
 		else
 			stopiterate=.true.
-			if(xmaster) write(*,'(a,i4,a,i4,a,f5.4)')'Wave propagation row ',it,', iteration ',iter,', error: ',Herr
+			if(xmaster) call writelog('ls','(a,i4,a,i4,a,f5.4)','Wave propagation row ',it,', iteration ',iter,', error: ',Herr)
 		endif	
 	enddo ! End while loop
 enddo ! End do i=2:nx loop  
@@ -504,7 +505,7 @@ vwf = ustw*dsin(thetamean)
 ! roller contribution
 ustr=2.*R*k/sigm/par%rho/max(hh,.001d0)
 ! introduce breaker delay
-call breakerdelay(par,s)
+if (par%breakerdelay == 1) call breakerdelay(par,s)
 !ust = usd
 ust=usd+ustw
 !lateral boundaries

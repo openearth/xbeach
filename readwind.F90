@@ -31,6 +31,7 @@ use params
 use spaceparams
 use xmpi_module
 use readkey_module
+use logging_module
 
 IMPLICIT NONE
 
@@ -70,7 +71,7 @@ if (xmaster) then
 		s%windvel=par%windv
 		s%winddir=(270.d0-par%windth-s%alfa)*par%px/180.d0
 	else                 ! Non-stationary wind
-     write(*,*)'readwind: reading wind time series from ',fname,' ...'
+     call writelog('ls','','readwind: reading wind time series from ',fname,' ...')
      open(31,file=fname)
      do while (io==0)
 	    nwind=nwind+1
@@ -87,7 +88,7 @@ if (xmaster) then
      close(31)
 	  if (par%morfacopt==1) s%windinpt = s%windinpt / max(par%morfac,1.d0)
 	  if (s%windinpt(par%windlen)<par%tstop) then
-	      write(*,*)'Error !!!! Wind condition time series too short. Stopping calculation !!!'
+	     call writelog('els','','Wind condition time series too short. Stopping calculation')
          call halt_program
 	  endif
 	endif

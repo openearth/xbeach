@@ -29,7 +29,8 @@ subroutine roelvink1(E,hh,Trep,alpha,gamma,n,rho,g,delta,D,ntot,break)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 IMPLICIT NONE
 
-integer                         :: ntot,break
+integer                         :: ntot
+character(24)                   :: break
 real*8,dimension(ntot)          :: E,hh,D
 real*8                          :: fac,rho,g,delta,alpha,gamma,n,Trep
 
@@ -54,9 +55,9 @@ Qb=min(1-exp(-(H/gamma/hroelvink)**n),1.0d0) !gebruik hier Hb = (0.88d0/k)*tanh(
 ! D=Qb*2.*alpha/Trep*E
 
 ! cjaap : two options:
-if (break==1) then
+if (trim(break)=='roelvink1') then
    D=Qb*2*alpha/Trep*E
-elseif (break==3) then
+elseif (trim(break)=='roelvink2') then
    ! D=Qb*2.*alpha/Trep*E*H/hroelvink; !breaker delay depth for dissipation in bore and fraction of breaking waves
    D=Qb*2*alpha/Trep*E*H/hh        !breaker delay depth for fraction breaking waves and actual water depth for disipation in bore
 end if
@@ -100,7 +101,7 @@ endwhere
 
 
 H=sqrt(fac*s%E)
-if (par%break<4) then
+if (trim(par%break)/='roelvink_daly') then
    if (par%wci==1) then
       arg = -(H/(par%gamma*tanh(min(max(km,0.01d0),100.d0)*hroelvink)/min(max(km,0.01d0),100.d0)))**par%n
       s%Qb = min(1.d0-exp(max(arg,-100.d0)),1.d0)
@@ -118,14 +119,14 @@ else
 endif
 
 ! cjaap : two options:
-if (par%break==1) then
+if (trim(par%break)=='roelvink1') then
    if (par%wci==1) then
       s%D=s%Qb*2.d0*par%alpha*s%sigm*s%E/2.d0/par%px;
 !     s%D=Qb*par%alpha*km*s%E*H/par%px*sqrt(par%g*km/tanh(max(km,0.001)*hroelvink));  ! according to CK2002
    else
       s%D=s%Qb*2*par%alpha/par%Trep*s%E
    endif
-elseif (par%break>2) then
+elseif (trim(par%break)=='roelvink2' .or. trim(par%break)=='roelvink_daly') then
    ! s%D=s%Qb*2.*par%alpha/par%Trep*s%E*H/hroelvink; !breaker delay depth for dissipation in bore and fraction of breaking waves
    s%D=s%Qb*2*par%alpha/par%Trep*s%E*H/s%hh        !breaker delay depth for fraction breaking waves and actual water depth for disipation in bore
 end if

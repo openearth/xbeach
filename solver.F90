@@ -93,6 +93,7 @@ contains
 
     use xmpi_module, only: Halt_Program 
     use params    
+	use logging_module
   
 !--------------------------     ARGUMENTS          ----------------------------
 !
@@ -116,7 +117,7 @@ contains
 
     elseif (par%solver == 2) then   !Solver is TRI-DIAG, check if possible
       if (ny > 2) then
-        write(*,'("Error: tri-diagonal solver cannot be used if ny>2 ")')
+        call writelog('lse','','Tri-diagonal solver cannot be used if ny>2')
         call Halt_program !Halt program if maxerror < 2    
       endif  
     endif

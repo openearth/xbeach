@@ -120,6 +120,7 @@ subroutine timestep_init(par, tpar)
 use params
 use xmpi_module
 use readkey_module
+use logging_module
 implicit none
 
 type(parameters),intent(inout)         :: par
@@ -154,7 +155,7 @@ tpar%output  = .FALSE.
 
 !!!!! OUTPUT TIME POINTS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! If working in instat 0 or instat 40 we want time to coincide at wavint timesteps
-if (par%instat==0 .or. par%instat==40) then
+if (trim(par%instat)=='stat' .or. trim(par%instat)=='stat_table') then
    if(xmaster) then
       ii=ceiling(par%tstop/par%wavint)
       allocate(tpar%tpw(ii))
@@ -284,7 +285,7 @@ if (par%nmeanvar>0) then
       else
          ii=floor((par%tstop-par%tstart)/par%tintm)+1
          if (ii<=1) then
-            write(*,*)'Tintm is larger than output simulation time '
+            call writelog('lse','','Tintm is larger than output simulation time ')
             call halt_program
          endif
          allocate(tpar%tpm(ii))
@@ -363,7 +364,7 @@ subroutine outputtimes_update(par, tpar)
   t4=minval(tpar%tpw,MASK=tpar%tpw .gt. par%t)
   t5=minval(tpar%tpc,MASK=tpar%tpc .gt. par%t)
 
-  tpar%tnext=min(t1,t2,t3,t4,t5)
+  tpar%tnext=min(t1,t2,t3,t4,t5,par%tstop)
   if (tpar%tnext .eq. huge(tpar%tpg) .and. par%t .eq. 0) then
      write(0,*) 'no output times found, setting tnext to tstop'
      tpar%tnext = par%tstop
@@ -376,22 +377,25 @@ subroutine timestep(s,par, tpar, it)
 use params
 use spaceparams
 use xmpi_module
+use logging_module
 
 IMPLICIT NONE
 
 type(spacepars)                     :: s
 type(parameters)                    :: par
 type(timepars)                      :: tpar
-integer                     :: it, itprev
+integer                     :: it
 integer                     :: i
 integer                     :: j
 integer                     :: n
-real*8                                          :: mdx,mdy
+real*8                                          :: mdx,mdy,tny
 real*8,save                         :: dtref
 
 ! Calculate dt based on the Courant number. 
 ! Check when we need next output.
 ! Next time step will be, min(output times, t+dt) 
+
+tny = tiny(0.d0)
 
 ! Robert new time step criterion
 if (par%t<=0.0d0) then          ! conservative estimate
@@ -402,31 +406,33 @@ if (par%t<=0.0d0) then          ! conservative estimate
 else
   par%dt=huge(0.0d0)      ! Seed dt
   do j=2,s%ny
-    do i=2,s%nx     
+    do i=2,s%nx
+	  if(s%wetz(i,j)==1) then     
       ! u-points
       mdx=(s%xz(i+1)-s%xz(i))
       mdy=min((s%yz(j+1)-s%yz(j)),(s%yz(j)-s%yz(j-1)))
       ! x-component
-      par%dt=min(par%dt,mdx/max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j)),abs(s%ureps(i,j)))) !Jaap: include sediment adevction velocities
+      par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j)),abs(s%ueu(i,j))))) !Jaap: include sediment advection velocities
       ! y-component
-      par%dt=min(par%dt,mdy/(sqrt(par%g*s%hu(i,j))+abs(s%vu(i,j))))
+      par%dt=min(par%dt,mdy/max(tny,(sqrt(par%g*s%hu(i,j))+abs(s%vu(i,j)))))
       
       ! v-points
       mdx=min((s%xz(i+1)-s%xz(i)),(s%xz(i)-s%xz(i-1)))
       mdy=(s%yz(j+1)-s%yz(j))
       ! x-component
-      par%dt=min(par%dt,mdx/(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j))))
+      par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j)))))
       ! y-component
-      par%dt=min(par%dt,mdy/max(sqrt(par%g*s%hv(i,j))+abs(s%vv(i,j)),abs(s%vreps(i,j)))) !Jaap: include sediment adevction velocities
+      par%dt=min(par%dt,mdy/max(tny,max(sqrt(par%g*s%hv(i,j))+abs(s%vv(i,j)),abs(s%vev(i,j))))) !Jaap: include sediment advection velocities
       
       mdx = min(s%xz(i+1)-s%xz(i),s%xu(i)-s%xu(i-1))**2
       mdy = min(s%yz(j+1)-s%yz(j),s%yv(j)-s%yv(j-1))**2
 
 	  par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
+	  endif
     enddo
   enddo
   par%dt=par%dt*par%CFL*0.5d0
-  if (par%instat>0 .and. par%instat/=40) then
+  if (par%instat(1:4)/='stat') then
     par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tiny(0.0d0)))
 !    !do j=2,s%ny
 !    !  do i=2,s%nx     
@@ -440,8 +446,8 @@ else
 !To avoid large timestep differences due to output, which can cause instabities
 !in the hanssen (leapfrog) scheme, we smooth the timestep.
 !
-  n = ceiling((par%tnext-par%t)/par%dt)
-  par%dt = (par%tnext-par%t)/n
+  n = ceiling((tpar%tnext-par%t)/par%dt)
+  par%dt = (tpar%tnext-par%t)/n
 end if
 
 if (par%t==par%dt) then
@@ -449,7 +455,7 @@ if (par%t==par%dt) then
 endif 
 
 if (dtref/par%dt>50.d0) then
-   write(*,*)'Quit XBeach since computational time explodes'
+   call writelog('lse','','Quit XBeach since computational time explodes')
    call halt_program
 endif
 

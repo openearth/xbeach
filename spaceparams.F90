@@ -103,14 +103,14 @@ end subroutine doeniets
 subroutine indextos(s,index,t)
   use mnemmodule
   use xmpi_module
+  use logging_module
   implicit none
   type (spacepars), intent(in)        :: s
   integer, intent(in)                 :: index
   type(arraytype), intent(out)        :: t
 
   if (index .lt. 1 .or. index .gt. numvars) then
-    write(*,*)'invalid index ',index,' in indextos'
-    write(*,*)'program will stop'
+    call writelog('els','ai0a','invalid index ',index,' in indextos. Program will stop')
     call halt_program
   endif
 
@@ -188,6 +188,8 @@ subroutine grid_bathy(s,par)
     allocate(s%yw(1:s%nx+1,1:s%ny+1))
     allocate(s%zb(1:s%nx+1,1:s%ny+1))
     allocate(s%zb0(1:s%nx+1,1:s%ny+1))
+	allocate(s%dzbdx(1:s%nx+1,1:s%ny+1))
+    allocate(s%dzbdy(1:s%nx+1,1:s%ny+1))
   endif
   !
   ! Create grid
@@ -299,6 +301,24 @@ subroutine grid_bathy(s,par)
 
     s%cxsth=dcos(s%theta)
     s%sxnth=dsin(s%theta)
+  endif
+
+  if (xmaster) then
+    ! Initialize dzbdx, dzbdy
+    do j=1,s%ny+1
+       do i=1,s%nx
+          s%dzbdx(i,j)=(s%zb(i+1,j)-s%zb(i,j))/(s%xz(i+1)-s%xz(i))
+       enddo
+    enddo
+    ! dummy, needed to keep compiler happy
+    s%dzbdx(s%nx+1,:)=s%dzbdx(s%nx,:)
+
+    do j=1,s%ny
+       do i=1,s%nx+1
+          s%dzbdy(i,j)=(s%zb(i,j+1)-s%zb(i,j))/(s%yz(j+1)-s%yz(j))
+       enddo
+    enddo
+    s%dzbdy(:,s%ny+1)=s%dzbdy(:,s%ny)
   endif
 end subroutine grid_bathy                         
 
@@ -803,6 +823,7 @@ end subroutine space_distribute_block_vector
 
 subroutine space_distribute_space(sg,sl,par)
   use xmpi_module
+  use logging_module
   use general_mpi_module
   use params
   use mnemmodule
@@ -812,7 +833,7 @@ subroutine space_distribute_space(sg,sl,par)
   type(spacepars), intent(inout)  :: sl 
   type(parameters)                :: par
 
-  integer                         :: i,j
+  integer                         :: i,j,lid,eid
   real*8, pointer, dimension(:)   :: umean1, umean2
   type (arraytype)                :: tg, tl
 
@@ -868,14 +889,14 @@ subroutine space_distribute_space(sg,sl,par)
   call det_submatrices(sg%nx+1, sg%ny+1, xmpi_m, xmpi_n, &
                              sg%is, sg%lm, sg%js, sg%ln, &
                              sg%isleft, sg%isright, sg%istop, sg%isbot)
-    write(*,*)'Distribution of matrix on processors'
-    write(*,*)' proc   is   lm   js   ln'
+    call writelog('sl','','Distribution of matrix on processors')
+    call writelog('sl','',' proc   is   lm   js   ln')
     do i=1,xmpi_size
-       write(*,"(1x,5i5)")i-1,sg%is(i),sg%lm(i),sg%js(i),sg%ln(i)
+       call writelog('sl','(i0,i0,i0,i0,i0)',i-1,sg%is(i),sg%lm(i),sg%js(i),sg%ln(i))
     enddo
-    write(*,*)' proc   left right top bot'
+    call writelog('ls','',' proc   left right top bot')
     do i=1,xmpi_size
-       write(*,"(1x,i5,4l5)")i-1,sg%isleft(i),sg%isright(i),sg%istop(i),sg%isbot(i)
+       call writelog('ls','(i0,i0,i0,i0,i0)',i-1,sg%isleft(i),sg%isright(i),sg%istop(i),sg%isbot(i))
     enddo
   endif
 
@@ -1028,8 +1049,9 @@ subroutine space_distribute_space(sg,sl,par)
   return
 
   100 continue
-  write(*,*)xmpi_rank,': Error in space_distribute_space, trying to distribute:'
-  call printvar(tl)
+  call writelog('sel','',xmpi_rank,': Error in space_distribute_space, trying to distribute:')
+  call get_logfileid(lid,eid)
+  call printvar(tl,lid,eid)
   call halt_program
   return
 
@@ -1222,9 +1244,11 @@ end subroutine space_collect_matrix_integer
 subroutine space_collect_index(sg,sl,index)
   use xmpi_module
   use mnemmodule
+  use logging_module
   type(spacepars)                 :: sg
   type(spacepars), intent(in)     :: sl
   integer, intent(in)             :: index
+  integer                         :: lid,eid
 
   type(arraytype)                 :: tg,tl
 
@@ -1287,9 +1311,10 @@ logical, dimension(numvars)         :: avail      ! .true.: this item is collect
   return
 
   100 continue
-  write(*,*)'Problem in space_collect_index with variable'//trim(tg%name )
-  write(*,*)"Don't know how to collect that on the masternode"
-  call printvar(tl)
+  call writelog('lse','','Problem in space_collect_index with variable ',trim(tg%name ) )
+  call writelog('lse','','Don''t know how to collect that on the masternode')
+  call get_logfileid(lid,eid)
+  call printvar(tl,lid,eid)
   call halt_program
 
 end subroutine space_collect_index

@@ -31,6 +31,7 @@ use params
 use spaceparams
 use xmpi_module
 use readkey_module
+use logging_module
 
 IMPLICIT NONE
 
@@ -57,7 +58,7 @@ if (xmaster) then
   ntide = 0
 
   call readkey('params.txt','zs0file',fnamezs0)
-  write(*,*)'readtide: reading tide time series from ',fnamezs0,' ...'
+  call writelog('ls','','readtide: reading tide time series from ',fnamezs0,' ...')
   open(31,file=fnamezs0)
   do while (io==0)
      ntide=ntide+1
@@ -77,7 +78,7 @@ if (xmaster) then
 
   if (par%morfacopt==1) s%tideinpt = s%tideinpt / max(par%morfac,1.d0)
   if (s%tideinpt(par%tidelen)<par%tstop) then
-     write(*,*)'Error !!!! Tide condition time series too short. Stopping calculation !!!'
+     call writelog('els','','Tide condition time series too short. Stopping calculation')
      call halt_program
   endif
 

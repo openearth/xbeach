@@ -13,8 +13,8 @@ type parameters
    integer*4     :: vardx                      = -123    !  [-] Switch for variable grid spacing: 1 = irregular spacing, 0 = regular grid spacing
    real*8        :: dx                         = -123    !  [m] Regular grid spacing in x-direction
    real*8        :: dy                         = -123    !  [m] Regular grid spacing in y-direction
-   character(256) :: xfile                      = 'abc'   !  [name] Name of the file containing x-coordinates of the calculation grid
-   character(256) :: yfile                      = 'abc'   !  [name] Name of the file containing y-coordinates of the calculation grid
+   character(256) :: xfile                     = 'abc'   !  [name] Name of the file containing x-coordinates of the calculation grid
+   character(256) :: yfile                     = 'abc'   !  [name] Name of the file containing y-coordinates of the calculation grid
    real*8        :: xori                       = -123    !  [m] X-coordinate of origin of axis
    real*8        :: yori                       = -123    !  [m] Y-coordinate of origin of axis
    real*8        :: thetamin                   = -123    !  [deg] Lower directional limit (angle w.r.t computational x-axis)
@@ -34,34 +34,18 @@ type parameters
    ! Physical processes                                                                                                            
    integer*4     :: swave                      = -123    !  [-] Include short waves (1), exclude short waves (0)
    integer*4     :: lwave                      = -123    !  [-] Include short wave forcing on NLSW equations and boundary conditions (1), or exclude (0)
+   integer*4     :: flow                       = -123    !  [-] Include flow calculation (1), or exclude (0)
    integer*4     :: sedtrans                   = -123    !  [-] Include sediment transport (1) or exclude (0)
    integer*4     :: morphology                 = -123    !  [-] Include morphology (1) or exclude (0)
    integer*4     :: nonh                       = -123    !  [-] Non-hydrostatic pressure option: 0 = NSWE, 1 = NSW + non-hydrostatic pressure compensation Stelling & Zijlema, 2003 
    integer*4     :: gwflow                     = -123    !  [-] Turn on (1) or off (0) groundwater flow module
    integer*4     :: q3d                        = -123    !  [-] Turn on (1) or off (0) quasi-3D sediment transport module
-
-   ! Wave numerics parameters                                                                                                      
-   integer*4     :: scheme                     = -123    !  [-] Use first-order upwind (1) or Lax-Wendroff (2) for wave propagation
-   real*8        :: wavint                     = -123    !  [s] Interval between wave module calls (only in stationary wave mode)
-   real*8        :: maxerror                   = -123    !  [m] Maximum wave height error in wave stationary iteration
-   integer*4     :: maxiter                    = -123    !  [-] Maximum number of iterations in wave stationary
  
-   ! Flow numerics parameters                                                                                                      
-   real*8        :: eps                        = -123    !  [m] Threshold water depth above which cells are considered wet
-   real*8        :: hmin                       = -123    !  [m] Threshold water depth above which Stokes drift is included
-   real*8        :: umin                       = -123    !  [m/s] Threshold velocity for upwind velocity detection and for vmag2 in eq. sediment concentration
+   ! Initial conditions
+   character(256):: zsinitfile                 = 'abc'   !  [name] Name of inital condition file zs
 
-   ! Sediment transport numerics parameters                                                                                  
-   real*8        :: thetanum                   = -123    !  [-] Coefficient determining whether upwind (1) or central scheme (0.5) is used.
-   integer*4     :: sourcesink                 = -123    !  [-] In suspended transport use source-sink terms to calculate bed level change (1) or sus transport gradients (0)
-    
-   ! Wave-current interaction parameters                                                                                           
-   integer*4     :: wci                        = -123    !  [-] Turns on (1) or off (0) wave-current interaction
-   real*8        :: hwci                       = -123    !  [m] Minimum depth until which wave-current interaction is used
-   real*8        :: cats                       = -123    !  [Trep] Current averaging time scale for wci, in terms of mean wave periods
- 
    ! Wave boundary condition parameters                                                                                            
-   integer*4     :: instat                     = -123    !  [-] Wave boundary condtion type
+   character(24) :: instat                     = 'abc'   !  [-] Wave boundary condtion type
    real*8        :: taper                      = -123    !  [s] Spin-up time of wave boundary conditions, in morphological time  
    real*8        :: Hrms                       = -123    !  [m] Hrms wave height for instat = 0,1,2,3
    real*8        :: Tm01                       = -123    !  [s] Old name for Trep
@@ -70,8 +54,8 @@ type parameters
    real*8        :: dir0                       = -123    !  [deg] Mean wave direction (Nautical convention) for instat = 0,1,2,3
    integer*4     :: m                          = -123    !  [-] Power in cos^m directional distribution for instat = 0,1,2,3
    character(24) :: lateralwave                = 'neumann'   !  [name] Switch for lateral boundary at left, 'neumann' = E Neumann, 'wavefront' = along wave front
-   integer*4     :: leftwave                   = -123    !  [-] old name for lateralwave
-   integer*4     :: rightwave                  = -123    !  [-] old name for lateralwave
+   character(24) :: leftwave                   = 'abc'   !  [-] old name for lateralwave
+   character(24) :: rightwave                  = 'abc'   !  [-] old name for lateralwave
 
    ! Wave-spectrum boundary condition parameters
    character(256):: bcfile                     = 'abc'   !  Note, will replace current lookup in boundary conditions [name] Name of spectrum file  
@@ -86,21 +70,17 @@ type parameters
    real*8        :: dthetaS_XB                 = -123    !  [deg] If SWAN input is not in nautical degrees, dthetaS_XB is the angle from SWAN x-axis to XBeach x-axis in cathesian degrees
       
    ! Flow boundary condition parameters
-   integer*4     :: front                      = -123    !  [-] Switch for seaward flow boundary: 0 = radiating boundary(Ad), 1 = Van Dongeren, 1997
-   integer*4     :: left                       = -123    !  [name] Switch for lateral boundary at ny+1, 'neumann' = vv computed from NSWE, 'wall' = reflective wall; vv=0
-   integer*4     :: right                      = -123    !  [-] Switch for lateral boundary at right, 0 = vv computed from NSWE, 1 = reflective wall; vv=0 
-   integer*4     :: back                       = -123    !  [-] Switch for boundary at bay side, 0 = radiating boundary (Ad), 1 = reflective boundary; uu=0
+   character(24) :: front                      = 'abc'   !  [-] Switch for seaward flow boundary: 0 = radiating boundary(Ad), 1 = Van Dongeren, 1997
+   character(24) :: left                       = 'abc'   !  [name] Switch for lateral boundary at ny+1, 'neumann' = vv computed from NSWE, 'wall' = reflective wall; vv=0
+   character(24) :: right                      = 'abc'   !  [-] Switch for lateral boundary at right, 0 = vv computed from NSWE, 1 = reflective wall; vv=0 
+   character(24) :: back                       = 'abc'   !  [-] Switch for boundary at bay side, 0 = radiating boundary (Ad), 1 = reflective boundary; uu=0
    integer*4     :: ARC                        = -123    !  [-] Switch for active reflection compensation at seaward boundary: 0 = reflective, 1 = weakly (non) reflective
    real*4        :: order                      = -123    !  [-] Switch for order of wave steering, 1 = first order wave steering (short wave energy only), 2 = second oder wave steering (bound long wave corresponding to short wave forcing is added)
    integer*4     :: carspan                    = -123    !  [-] Switch for Carrier-Greenspan test 0 = use cg (default); 1 = use sqrt(gh) in instat = 3 for c&g tests
-   character(256):: zsinitfile                 = 'abc'   !  [name] Name of inital condition file zs
+   real*8        :: epsi                       = -123    !  [-] Ratio of mean current to time varying current through offshore boundary
 
    ! Tide boundary conditions                                                                                                      
    real*8        :: zs0                        = -123    !  [m] Inital water level
-   real*8        :: zs01                       = -123    !  [m] Initial water level first sea boundary
-   real*8        :: zs02                       = -123    !  [m] Initial water level second sea boundary
-   real*8        :: zs03                       = -123    !  [m] Initial water level first land boundary
-   real*8        :: zs04                       = -123    !  [m] Initial water level second land boundary
    character(256):: zs0file                    = 'abc'   !  Note, will replace lookup in readtide [name] Name of tide boundary condition series
    integer*4     :: tideloc                    = -123    !  [-] Number of corner points on which a tide time series is specified
    integer*4     :: paulrevere                 = -123    !  [-] Specifies tide on sea and land (0) or two sea points (1) if tideloc = 2
@@ -120,32 +100,32 @@ type parameters
                                                          !         (x=N,y=N)
                                                          !         (x=N,y=1)
                                                          !      NOTE:  clockwise from (1,1) corner
-
-   real*8,dimension(2) :: xyzs01               = -123    ! model xy coordinates of global corner (x=1,y=1) 
-   real*8,dimension(2) :: xyzs02               = -123    ! model xy coordinates of global corner (x=1,y=N)
-   real*8,dimension(2) :: xyzs03               = -123    ! model xy coordinates of global corner (x=N,y=N)
-   real*8,dimension(2) :: xyzs04               = -123    ! model xy coordinates of global corner (x=N,y=1)
-
+ 
    ! Discharge boundary conditions 
    character(256):: disch_loc_file             = 'abc'   !  Note: will replace lookup in boundary conditions [name] Name of discharge locations file
    character(256):: disch_timeseries_file      = 'abc'   !  Note: will replace lookup in boundary conditions [name] Name of discharge timeseries file
 
    ! Wave breaking parameters                                                                                                      
-   integer*4     :: break                      = -123    !  [-] Type of breaker formulation (1=roelvink, 2=baldock, 3=roelvink adapted, 4=roelvink on/off breaking)
+   character(24) :: break                      = 'abc'   !  [-] Type of breaker formulation (1=roelvink, 2=baldock, 3=roelvink adapted, 4=roelvink on/off breaking)
    real*8        :: gamma                      = -123    !  [-] Breaker parameter in Baldock or Roelvink formulation
    real*8        :: gamma2                     = -123    !  [-] End of breaking parameter in break = 4 formulation
    real*8        :: alpha                      = -123    !  [-] Wave dissipation coefficient in Roelvink formulation
    real*8        :: n                          = -123    !  [-] Power in Roelvink dissipation model
    real*8        :: gammax                     = -123    !  [-] Maximum ratio wave height to water depth
    real*8        :: delta                      = -123    !  [-] Fraction of wave height to add to water depth
-   real*8        :: waverr                     = -123    !  [-] max. absolute wave height difference between time steps
    real*8        :: fw                         = -123    !  [-] Bed friction factor
+   integer*4     :: breakerdelay               = -123    !  [-] Turn on (1) or off (0) breaker delay model
  
    ! Roller parameters                                                                                                             
    integer*4     :: roller                     = -123    !  [-] Turn on (1) or off(0) roller model
    real*8        :: beta                       = -123    !  [-] Breaker slope coefficient in roller model
    integer*4     :: rfb                        = -123    !  [-] If rfb = 1 then maximum wave surface slope is feeded back in roller energy balance; else rfb = par%Beta
- 
+    
+   ! Wave-current interaction parameters                                                                                           
+   integer*4     :: wci                        = -123    !  [-] Turns on (1) or off (0) wave-current interaction
+   real*8        :: hwci                       = -123    !  [m] Minimum depth until which wave-current interaction is used
+   real*8        :: cats                       = -123    !  [Trep] Current averaging time scale for wci, in terms of mean wave periods
+
    ! Flow parameters                                                                                                               
    real*8        :: C                          = -123    !  [m^0.5s^-1] Chezy coefficient
    real*8        :: cf                         = -123    !  [-] Friction coefficient flow
@@ -183,7 +163,6 @@ type parameters
    real*8        :: sigfac                     = -123    !  [-] dsig scales with log(sigfac). Default = 1.3
    
    ! Non-hydrostatic correction parameters
-   integer*4     :: secorder                   = -123    ! [-] Use second order corrections to advection/non-linear terms based on mcCormack scheme
    integer*4     :: solver_maxit               = -123    ! [-] Maximum number of iterations in the linear SIP solver
    real*8        :: solver_acc                 = -123    ! [?] accuracy with respect to the right-hand side used
                                                          !     in the following termination criterion:
@@ -202,21 +181,15 @@ type parameters
    real*8        :: dzg2                       = -123    !  [m] Nominal thickness of variable sediment class layer
    real*8        :: dzg3                       = -123    !  [m] Thickness of bottom sediment class layers
    real*8        :: por                        = -123    !  [-] Porosity
-   !real*8,dimension(:),allocatable  :: D50               !  Note, will replace lookup in initialize [m] D50 grain size per grain type
-   !real*8,dimension(:),allocatable  :: D90               !  Note, will replace lookup in initialize [m] D90 grain size per grain type
-   !real*8,dimension(:),allocatable  :: sedcal            !  Note, will replace lookup in initialize [-] Sediment transport calibration coefficient per grain type
-   !real*8,dimension(:),allocatable  :: ucrcal            !  Note, will replace lookup in initialize [-] Critical velocity calibration coefficient per grain type
-
-   ! Bed update numerics parameters
-   real*8        :: frac_dz                    = -123    !  [-] Relative thickness to split time step for bed updating
-   integer*4     :: nd_var                     = -123    !  [-] Index of layer with variable thickness 
-   real*8        :: split                      = -123    !  [-] Split threshold for variable sediment layer (ratio to nominal thickness)
-   real*8        :: merge                      = -123    !  [-] Merge threshold for variable sediment layer (ratio to nominal thickness)
+   real*8,dimension(99)  :: D50                = -123    !  Note, will replace lookup in initialize [m] D50 grain size per grain type
+   real*8,dimension(99)  :: D90                = -123    !  Note, will replace lookup in initialize [m] D90 grain size per grain type
+   real*8,dimension(99)  :: sedcal             = -123    !  Note, will replace lookup in initialize [-] Sediment transport calibration coefficient per grain type
+   real*8,dimension(99)  :: ucrcal             = -123    !  Note, will replace lookup in initialize [-] Critical velocity calibration coefficient per grain type
 
 
    ! Sediment transport parameters                                                                                    
-   integer*4     :: waveform                   = -123    !  [-] Option for waveshape model: 1 = Ruessink & Van Rijn, 2 = Van Thiel de Vries, 2009             
-   integer*4     :: form                       = -123    !  [-] Equilibrium sed. conc. formulation: 1 = Soulsby van Rijn, 1997, 2 = Van Rijn 2008 with modifications by Van Thiel
+   character(24) :: waveform                   = 'abc'   !  [-] Option for waveshape model: 1 = Ruessink & Van Rijn, 2 = Van Thiel de Vries, 2009             
+   character(24) :: form                       = 'abc'   !  [-] Equilibrium sed. conc. formulation: 1 = Soulsby van Rijn, 1997, 2 = Van Rijn 2008 with modifications by Van Thiel
    integer*4     :: sws                        = -123    !  [-] 1 = short wave & roller stirring and undertow, 0 = no short wave & roller stirring and undertow
    integer*4     :: lws                        = -123    !  [-] 1 = long wave stirring, 0 = no long wave stirring
    real*8        :: BRfac                      = -123    !  [-] Calibration factor surface slope
@@ -225,12 +198,16 @@ type parameters
    real*8        :: smax                       = -123    !  [-] Being tested: maximum Shields parameter for ceq Diane Foster
    real*8        :: tsfac                      = -123    !  [-] Coefficient determining Ts = tsfac * h/ws in sediment source term
    real*8        :: facua                      = -123    !  [-] Calibration factor time averaged flows due to wave asymmetry
-   integer*4     :: turb                       = -123    !  [-] Equlibrium sediment concentration is computed as function of:
+   character(24) :: turb                       = 'abc'   !  [-] Equlibrium sediment concentration is computed as function of:
+                                                         !      none = no turbulence, 
+														 !      wave_averaged = wave averaged turbulence
+														 !      bore_averaged = maximum turbulence
    real*8        :: Tbfac                      = -123    !  [-] Calibration factor for bore interval Tbore: Tbore = Tbfac*Tbore
-   real*8        :: Tsmin                      = -123    !  [s] Minimum adaptation time scale in advection diffusion equation sediment                                                      !      0 = no turbulence, 1 = wave averaged turbulence, 2 = maximum turbulence
+   real*8        :: Tsmin                      = -123    !  [s] Minimum adaptation time scale in advection diffusion equation sediment    
    integer*4     :: lwt                        = -123    !  [-] Switch 0/1 long wave turbulence model
    real*8        :: betad                      = -123    !  [-] Dissipation parameter long wave breaking turbulence
-
+   character(256) :: swtable                   = 'abc'   !  [-] Name of intra short wave assymetry and skewness table
+   
    ! Morphology parameters                                                                                                         
    real*8        :: morfac                     = -123    !  [-] Morphological acceleration factor
    integer*4     :: morfacopt                  = -123    !  [-] Option indicating whether times should be adjusted (1) or not(0) for morfac
@@ -263,7 +240,29 @@ type parameters
   
    ! Drifters parameters
    integer*4     :: ndrifter                   = -123    !  Note: will replace lookup in drifters module [-] Number of drifers
-   character(256) :: drifterfile                = 'abc'   !  Note: will replace lookup in drifters module [name] Name of drifter data file
+   character(256) :: drifterfile               = 'abc'   !  Note: will replace lookup in drifters module [name] Name of drifter data file
+
+   ! Wave numerics parameters                                                                                                      
+   integer*4     :: scheme                     = -123    !  [-] Use first-order upwind (1) or Lax-Wendroff (2) for wave propagation
+   real*8        :: wavint                     = -123    !  [s] Interval between wave module calls (only in stationary wave mode)
+   real*8        :: maxerror                   = -123    !  [m] Maximum wave height error in wave stationary iteration
+   integer*4     :: maxiter                    = -123    !  [-] Maximum number of iterations in wave stationary
+ 
+   ! Flow numerics parameters                                                                                                      
+   real*8        :: eps                        = -123    !  [m] Threshold water depth above which cells are considered wet
+   real*8        :: umin                       = -123    !  [m/s] Threshold velocity for upwind velocity detection and for vmag2 in eq. sediment concentration
+   real*8        :: hmin                       = -123    !  [m] Threshold water depth above which Stokes drift is included
+   integer*4     :: secorder                   = -123    ! [-] Use second order corrections to advection/non-linear terms based on mcCormack scheme
+
+   ! Sediment transport numerics parameters                                                                                  
+   real*8        :: thetanum                   = -123    !  [-] Coefficient determining whether upwind (1) or central scheme (0.5) is used.
+   integer*4     :: sourcesink                 = -123    !  [-] In suspended transport use source-sink terms to calculate bed level change (1) or sus transport gradients (0)
+
+   ! Bed update numerics parameters
+   real*8        :: frac_dz                    = -123    !  [-] Relative thickness to split time step for bed updating
+   integer*4     :: nd_var                     = -123    !  [-] Index of layer with variable thickness 
+   real*8        :: split                      = -123    !  [-] Split threshold for variable sediment layer (ratio to nominal thickness)
+   real*8        :: merge                      = -123    !  [-] Merge threshold for variable sediment layer (ratio to nominal thickness)
 
    ! MPI parameters
    character(4)   :: mpiboundary               = 'abc'   ! Fix mpi boundaries along y-lines ('y'), x-lines ('x'), or find shortest boundary ('auto')
@@ -284,7 +283,15 @@ type parameters
    integer*4            :: tidelen             = -123    !  [-] Length of input tidal time series 
    integer*4            :: windlen             = -123    !  [-] Length of input wind time series 
    real*8               :: Llong               = -123    !  Note: can be made local [m] Alongshore wave group length for case instat=1
-!   real*8               :: accfac              = -123
+   real*8               :: zs01                = -123    !  [m] Initial water level first sea boundary
+   real*8               :: zs02                = -123    !  [m] Initial water level second sea boundary
+   real*8               :: zs03                = -123    !  [m] Initial water level first land boundary
+   real*8               :: zs04                = -123    !  [m] Initial water level second land boundary
+   real*8,dimension(2)  :: xyzs01              = -123    ! global xy coordinates of corner (x=1,y=1) 
+   real*8,dimension(2)  :: xyzs02              = -123    ! global xy coordinates of corner (x=1,y=N)
+   real*8,dimension(2)  :: xyzs03              = -123    ! global xy coordinates of corner (x=N,y=N)
+   real*8,dimension(2)  :: xyzs04              = -123    ! global xy coordinates of corner (x=N,y=1)
+   real*8               :: waverr              = -123    !  [-] max. absolute wave height difference between time steps
 
 
 end type parameters
@@ -300,14 +307,9 @@ use logging_module
 implicit none
 type(parameters)            :: par
 character(128)              :: testc
-integer                     :: filetype, error
+character(24),dimension(:),allocatable :: allowednames,oldnames
+integer                     :: filetype
 
-call start_logfiles(error)
-if (error==1) then
-   write(*,*) 'Error: not able to open log file due to insufficient free unit identifiers. Please contact XBeach team.'
-   write(*,*) 'Stopping simulation'
-   call halt_program
-endif
 call writelog('sl','','Reading input parameters: ')
  
 ! Grid parameters
@@ -315,39 +317,36 @@ call writelog('l','','--------------------------------')
 call writelog('l','','Grid parameters: ')
 par%xori  = readkey_dbl('params.txt','xori',  0.d0,   -1d9,      1d9)
 par%yori  = readkey_dbl('params.txt','yori',  0.d0,   -1d9,      1d9)
-par%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   -360.d0,   360.d0)
-par%nx    = readkey_int('params.txt','nx',     50,      2,     10000)
-par%ny    = readkey_int('params.txt','ny',      2,      2,     10000)
+par%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   0.d0,   360.d0)
+par%nx    = readkey_int('params.txt','nx',     50,      2,     10000,required=.true.)
+par%ny    = readkey_int('params.txt','ny',      2,      0,     10000,required=.true.)
 par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
-call readkey('params.txt','depfile',par%depfile)  ! Bathymetry file name
+par%depfile = readkey_name('params.txt','depfile',required=.true.)
 call check_file_exist(par%depfile)
 call check_file_length(par%depfile,par%nx+1,par%ny+1)
-call writelog('l','(a,a)',' depfile              = ',trim(par%depfile))
 par%vardx = readkey_int('params.txt','vardx',   0,      0,         1) 
 if (par%vardx==0) then
-  par%dx    = readkey_dbl('params.txt','dx',    0.d0,   -1d9,      1d9)
-  par%dy    = readkey_dbl('params.txt','dy',    0.d0,   -1d9,      1d9)
+  par%dx    = readkey_dbl('params.txt','dx',    -1.d0,   0.d0,      1d9,required=.true.)
+  par%dy    = readkey_dbl('params.txt','dy',    -1.d0,   0.d0,      1d9,required=.true.)
 else
-  call readkey('params.txt','xfile',par%xfile)    ! X-grid file
+  par%xfile = readkey_name('params.txt','xfile')
   call check_file_exist(par%xfile)
   call check_file_length(par%xfile,par%nx+1,par%ny+1)
-  call writelog('l','(a,a)',' xfile                = ',trim(par%xfile))
-  call readkey('params.txt','yfile',par%yfile)    ! Y-grid file
+  par%yfile = readkey_name('params.txt','yfile')
   call check_file_exist(par%yfile)
   call check_file_length(par%yfile,par%nx+1,par%ny+1)
-  call writelog('l','(a,a)',' yfile                = ',trim(par%yfile))
 endif
-par%thetamin = readkey_dbl ('params.txt','thetamin', -80.d0,    -180.d0,  180.d0)
-par%thetamax = readkey_dbl ('params.txt','thetamax',  80.d0,    -180.d0,  180.d0)
-par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   20.d0)
+par%thetamin = readkey_dbl ('params.txt','thetamin', -90.d0,    -180.d0,  180.d0,required=.true.)
+par%thetamax = readkey_dbl ('params.txt','thetamax',  90.d0,    -180.d0,  180.d0,required=.true.)
+par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   20.d0,required=.true.)
 par%thetanaut= readkey_int ('params.txt','thetanaut',    0,        0,     1)
 !
 ! 
 ! Model time parameters
 call writelog('l','','--------------------------------')
 call writelog('l','','Model time parameters: ')
-par%CFL     = readkey_dbl ('params.txt','CFL',     0.2d0,     0.1d0,      0.9d0)
-par%tstop   = readkey_dbl ('params.txt','tstop', 2000.d0,      1.d0, 1000000.d0)
+par%CFL     = readkey_dbl ('params.txt','CFL',     0.7d0,     0.1d0,      0.9d0)
+par%tstop   = readkey_dbl ('params.txt','tstop', 2000.d0,      1.d0, 1000000.d0,required=.true.)
 !
 ! 
 !                          Physical constants 
@@ -362,6 +361,7 @@ call writelog('l','','--------------------------------')
 call writelog('l','','Physical processes: ')
 par%swave      = readkey_int ('params.txt','swave',         1,        0,     1)
 par%lwave      = readkey_int ('params.txt','lwave',         1,        0,     1)
+par%flow       = readkey_int ('params.txt','flow',          1,        0,     1)
 par%sedtrans   = readkey_int ('params.txt','sedtrans',      1,        0,     1)
 par%morphology = readkey_int ('params.txt','morphology',    1,        0,     1)
 par%nonh       = readkey_int ('params.txt','nonh',          0,        0,     1)
@@ -372,271 +372,116 @@ par%q3d        = readkey_int ('params.txt','q3d',           0,        0,     1)
 ! Initial conditions
 call writelog('l','','--------------------------------')
 call writelog('l','','Initial conditions: ')
-call readkey('params.txt','zsinitfile',par%zsinitfile)  
+par%zsinitfile = readkey_name('params.txt','zsinitfile')
 if (par%zsinitfile==' ') then
-   call writelog('l','(a)',' zsinitfile           = None specified')
+  ! do nothing
 else
    call check_file_exist(par%zsinitfile)
    call check_file_length(par%zsinitfile,par%nx+1,par%ny+1)
-   call writelog('l','(a,a)',' zsinitfile           = ',trim(par%depfile))
 endif
 !
 !
 ! Wave boundary condition parameters
 call writelog('l','','--------------------------------')
 call writelog('l','','Wave boundary condition parameters: ')
-call readkey('params.txt','instat',testc)
-testc=trim(testc)
-if (testc == ' ') then    ! Empty, so default values
-   par%instat = 1
-   call writelog('l','(a)',' instat               = 1 (no record found, default value used)')
-else
-   select case (testc)
-      case ('0')
-         par%instat = 0
-      case ('1')
-         par%instat = 1
-      case ('2')
-      	  par%instat = 2
-      case ('3')
-         par%instat = 3
-      case ('4')
-         par%instat = 4
-      case ('5')
-         par%instat = 5
-      case ('6')
-         par%instat = 6
-      case ('7')
-         par%instat = 7
-      case ('8')
-         par%instat = 8
-      case ('9')          ! What is this?
-         par%instat = 9
-      case ('40')
-         par%instat = 40
-      case ('41')
-         par%instat = 41
-      case ('stationary')
-         par%instat = 0
-      case ('regular')
-         par%instat = 1
-      case ('timeseries1')
-         par%instat = 2
-      case ('timeseries2')
-         par%instat = 3
-      case ('jonswap')
-         par%instat = 4
-      case ('swan')
-         par%instat = 5
-      case ('vardens')
-         par%instat = 6
-      case ('reuse')
-         par%instat = 7
-      case ('nonh')
-         par%instat = 8
-      case ('stationary_table')
-         par%instat = 40
-      case ('jonswap_table')
-         par%instat = 41
-      case default   ! unknown instat stated
-         call writelog('els','','Error unknown wave boundary type ''instat = ',trim(testc),'''. Terminating simulation')
-         call halt_program
-   end select
-   call writelog('l','(a,a)',' instat               = ',trim(testc))
-endif
-if (par%instat==4 .or. par%instat==5 .or. par%instat==6 .or. par%instat==40 .or. par%instat==41) then
-   call readkey('params.txt','bcfile',par%bcfile)  ! Bathymetry file name
+allocate(allowednames(12),oldnames(12))
+allowednames=(/'stat','bichrom','ts_1','ts_2','jons','swan','vardens','reuse','nonh','off','stat_table','jons_table'/)
+oldnames=(/'0','1','2','3','4','5','6','7','8','9','40','41'/)
+!             function =   file         key      default  n allowed  n old allowed  allowed names  old allowed names
+par%instat  = readkey_str('params.txt','instat','bichrom',12        ,12            ,allowednames  ,oldnames,required=.true.)
+deallocate(allowednames,oldnames)
+if (  trim(par%instat)=='jons' .or. &
+      trim(par%instat)=='swan' .or. &
+	  trim(par%instat)=='vardens'.or. &
+	  trim(par%instat)=='stat_table' .or. &
+	  trim(par%instat)=='jons_table' &
+   )then
+   par%bcfile = readkey_name('params.txt','bcfile')
    call check_file_exist(par%bcfile)
    call checkbcfilelength(par%tstop,par%instat,par%bcfile,filetype)
-   call writelog('l','(a,a)',' bcfile               = ',trim(par%bcfile))
 else
    filetype=-1
 endif
 par%taper    = readkey_dbl ('params.txt','taper',   100.d0,      0.0d0, 1000.d0)
-if (par%instat == 0) then
+if (trim(par%instat) == 'stat') then
     par%Hrms  = readkey_dbl ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
 	par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
 	par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
 	par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
     par%m     = readkey_int ('params.txt','m',        10,         2,      128)
-elseif (par%instat==1) then
+elseif (trim(par%instat) == 'bichrom') then
     par%Hrms  = readkey_dbl ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
     par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
 	par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
     par%Tlong = readkey_dbl ('params.txt','Tlong',    80.d0,     20.d0,   300.d0)
 	par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
     par%m     = readkey_int ('params.txt','m',        10,         2,      128)
-elseif (par%instat==2 .or. par%instat==3) then
+elseif (trim(par%instat) == 'ts_1' .or. trim(par%instat) == 'ts_2') then
     par%Hrms  = readkey_dbl ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
 	par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
 	par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
 	par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
     par%m     = readkey_int ('params.txt','m',        10,         2,      128)
 endif
-call readkey('params.txt','leftwave',testc)
-testc=trim(testc)
-if (testc == ' ') then    ! Empty, so default values
-   par%leftwave = 1 
-   call writelog('l','(a)',' leftwave             = 0 (no record found, default value used)')
-else
-   select case (testc)
-      case (' ')     ! Empty, so default values
-         par%leftwave = 0
-      case ('0')
-         par%leftwave = 0
-      case ('1')
-         par%leftwave = 1
-      case ('neumann')
-         par%leftwave = 0
-      case ('wavefront')
-         par%leftwave = 1
-      case default
-         call writelog('els','','Error unknown wave boundary type ''leftwave = ',trim(testc),'''. Terminating simulation')
-         call halt_program
-   end select
-   call writelog('l','(a,a)',' leftwave             = ',trim(testc))
-endif
-call readkey('params.txt','rightwave',testc)
-testc=trim(testc)
-if (testc == ' ') then    ! Empty, so default values
-   par%rightwave = 1 
-   call writelog('l','(a)',' rightwave            = 0 (no record found, default value used)')
-else
-   select case (testc)
-      case (' ')     ! Empty, so default values
-         par%rightwave = 0
-      case ('0')
-         par%rightwave = 0
-      case ('1')
-         par%rightwave = 1
-      case ('neumann')
-         par%rightwave = 0
-      case ('wavefront')
-         par%rightwave = 1
-      case default
-         call writelog('els','','Error unknown wave boundary type ''rightwave = ',trim(testc),'''. Terminating simulation')
-         call halt_program
-   end select
-   call writelog('l','(a,a)',' rightwave            = ',trim(testc))
-endif
+allocate(allowednames(2),oldnames(2))
+allowednames=(/'neumann','wavecrest'/)
+oldnames=(/'0','1'/)
+par%leftwave  = readkey_str('params.txt','leftwave','neumann',2,2,allowednames,oldnames)
+par%rightwave  = readkey_str('params.txt','rightwave','neumann',2,2,allowednames,oldnames)
+deallocate(allowednames,oldnames)
 !
 !
 ! Wave-spectrum boundary condition parameters
-if (par%instat==4 .or. par%instat==5 .or. par%instat==6 .or. par%instat==41) then
+if (trim(par%instat) == 'jons' .or. &
+    trim(par%instat) == 'swan' .or. &
+	trim(par%instat) == 'vardens'.or. &
+	trim(par%instat) == 'jons_table' &
+   )then
    call writelog('l','','--------------------------------')
    call writelog('l','','Wave-spectrum boundary condition parameters: ')
-   par%random   = readkey_int ('params.txt','random',    0,         0,        1)
+   par%random   = readkey_int ('params.txt','random',    1,         0,        1)
    par%fcutoff  = readkey_dbl ('params.txt','fcutoff',   0.d0,      0.d0,     40.d0)
    par%nspr     = readkey_int ('params.txt','nspr',       0,        0,       1) 
    par%trepfac  = readkey_dbl ('params.txt','trepfac', 0.8d0,       0.d0,    1.d0) 
    par%sprdthr  = readkey_dbl ('params.txt','sprdthr', 0.08d0,      0.d0,    1.d0) 
-   par%oldwbc   = readkey_int ('params.txt','oldwbc',       1,        0,     1)
+   par%oldwbc   = readkey_int ('params.txt','oldwbc',       0,        0,     1)
    if (filetype==0) then
       par%rt   = readkey_dbl('params.txt','rt'  , 3600.d0, 1200.d0,7200.d0)
-      par%dtbc = readkey_dbl('params.txt','dtbc', 0.1d0,0.01d0,1.0d0)
+      par%dtbc = readkey_dbl('params.txt','dtbc', 0.5d0,0.1d0,2.0d0)
    endif
-   if (par%instat==5) then
+   if (trim(par%instat)=='swan') then
       par%dthetaS_XB = readkey_dbl ('params.txt','dthetaS_XB', 0.0d0, -360.0d0, 360.0d0)
    endif
 endif
 !
 !
 ! Flow boundary condition parameters
+! front
 call writelog('l','','--------------------------------')
 call writelog('l','','Flow boundary condition parameters: ')
-call readkey('params.txt','front',testc)
-testc=trim(testc)
-if (testc == ' ') then    ! Empty, so default values
-   par%front = 1
-   call writelog('l','(a)',' front                = abs-gen (no record found, default value used)')
-else
-   select case (testc)
-      case ('0')
-         par%front = 0
-      case ('1')
-         par%front = 1
-	  case ('radiating')
-	     par%front = 0
-	  case ('abs-gen')
-	     par%front = 1
-	  case default
-	     call writelog('els','','Error unknown wave boundary type ''front = ',trim(testc),'''. Terminating simulation')
-         call halt_program
-   end select
-   call writelog('l','(a,a)',' front                = ',trim(testc))
-endif
-call readkey('params.txt','left',testc)
-testc=trim(testc)
-if (testc == ' ') then    ! Empty, so default values
-   par%left = 1
-   call writelog('l','(a)',' left                 = neumann (no record found, default value used)')
-else
-   select case (testc)
-      case ('0')
-         par%left = 0
-      case ('1')
-         par%left = 1
-	  case ('wall')
-	     par%left = 0
-	  case ('neumann')
-	     par%left = 1
-	  case default
-	     call writelog('els','','Error unknown wave boundary type ''left = ',trim(testc),'''. Terminating simulation')
-         call halt_program
-   end select
-   call writelog('l','(a,a)',' left                 = ',trim(testc))
-endif
-call readkey('params.txt','right',testc)
-testc=trim(testc)
-if (testc == ' ') then    ! Empty, so default values
-   par%right = 1
-   call writelog('l','(a)',' right                = neumann (no record found, default value used)')
-else
-   select case (testc)
-      case ('0')
-         par%right = 0
-      case ('1')
-         par%right = 1
-	  case ('wall')
-	     par%right = 0
-	  case ('neumann')
-	     par%right = 1
-	  case default
-	     call writelog('els','','Error unknown wave boundary type ''right = ',trim(testc),'''. Terminating simulation')
-         call halt_program
-   end select
-   call writelog('l','(a,a)',' right                = ',trim(testc))
-endif
-call readkey('params.txt','back',testc)
-testc=trim(testc)
-if (testc == ' ') then    ! Empty, so default values
-   par%back = 2
-   call writelog('l','(a)',' back                 = absorbing (no record found, default value used)')
-else
-   select case (testc)
-      case ('0')
-         par%back = 0
-      case ('1')
-         par%back = 1
-	  case ('2')
-	     par%back = 2
-	  case ('wall')
-	     par%back = 0
-	  case ('radiating')
-	     par%back = 1
-	  case ('absorbing')
-	     par%back = 2
-	  case default
-	     call writelog('els','','Error unknown wave boundary type ''back = ',trim(testc),'''. Terminating simulation')
-         call halt_program
-   end select
-   call writelog('l','(a,a)',' back                 = ',trim(testc))
-endif
-if (par%front==1) then
-   par%ARC     = readkey_int ('params.txt','ARC',         1,         0,      1)
-endif
+allocate(allowednames(5),oldnames(5))
+allowednames=(/'abs_1d','abs_2d','wall','wlevel','nonh_1d'/)
+oldnames=(/'0','1','2','3','4'/)
+par%front  = readkey_str('params.txt','front','abs_2d',5,5,allowednames,oldnames)
+deallocate(allowednames,oldnames)
+! left and right
+allocate(allowednames(2),oldnames(2))
+allowednames=(/'neumann','wall'/)
+oldnames=(/'0','1'/)
+par%left   = readkey_str('params.txt','left','neumann',2,2,allowednames,oldnames)
+par%right  = readkey_str('params.txt','right','neumann',2,2,allowednames,oldnames)
+deallocate(allowednames,oldnames)
+! Back
+allocate(allowednames(4),oldnames(4))
+allowednames=(/'wall','abs_1d','abs_2d','wlevel'/)
+oldnames=(/'0','1','2','3'/)
+par%back   = readkey_str('params.txt','back','abs_2d',4,4,allowednames,oldnames)
+deallocate(allowednames,oldnames)
+! Others
+par%ARC     = readkey_int ('params.txt','ARC',         1,         0,      1)
 par%order   = readkey_dbl ('params.txt','order',       2.d0,         1.d0,      2.d0)
 par%carspan = readkey_int ('params.txt','carspan',        0,         0,      1)
+par%epsi    = readkey_dbl ('params.txt','epsi',        0.d0,         0.d0,      0.2d0)
 !
 !
 ! Tide boundary conditions
@@ -648,42 +493,44 @@ if (par%tideloc>0) then
    if (par%tideloc==2) then
       par%paulrevere = readkey_int ('params.txt','paulrevere', 0,       0,      1)
    endif
-   call readkey('params.txt','zs0file',par%zs0file)  ! Bathymetry file name
+   par%zs0file = readkey_name('params.txt','zs0file')
    call check_file_exist(par%zs0file)
-   call writelog('l','(a,a)',' bcfile             = ',trim(par%bcfile))
 endif
 !
 !
 ! Discharge boundary conditions 
 call writelog('l','','--------------------------------')
 call writelog('l','','Discharge boundary conditions: ')
-call readkey('params.txt','disch_loc_file',par%disch_loc_file) 
+par%disch_loc_file = readkey_name('params.txt','disch_loc_file')
 if (par%disch_loc_file==' ') then
-   call writelog('l','(a)',' disch_loc_file       = None specified')
+   ! do nothing
 else 
    call check_file_exist(par%disch_loc_file)
-   call writelog('l','(a,a)',' disch_loc_file     = ',trim(par%disch_loc_file))
 endif
-call readkey('params.txt','disch_timeseries_file',par%disch_timeseries_file) 
+par%disch_timeseries_file = readkey_name('params.txt','disch_timeseries_file')
 if (par%disch_timeseries_file==' ') then
-   call writelog('l','(a)',' disch_timeseries_file= None specified')
+   ! do nothing 
 else 
    call check_file_exist(par%disch_timeseries_file)
-   call writelog('l','(a,a)',' disch_timeseries_file= ',trim(par%disch_timeseries_file))
 endif
 !
 !
 ! Wave breaking parameters                                                                                                      
 call writelog('l','','--------------------------------')
 call writelog('l','','Wave breaking parameters: ')
-par%break    = readkey_int ('params.txt','break',      3,        1,     4)
+allocate(allowednames(4),oldnames(4))
+allowednames=(/'roelvink1','baldock','roelvink2','roelvink_daly'/)
+oldnames    =(/'1','2','3','4'/)
+par%break   = readkey_str('params.txt','break','roelvink2',4,4,allowednames,oldnames)
+deallocate(allowednames,oldnames)
 par%gamma    = readkey_dbl ('params.txt','gamma',   0.55d0,     0.4d0,     0.9d0)   !changed 28/11
-par%gamma2   = readkey_dbl ('params.txt','gamma2',   0.3d0,     0.0d0,     0.5d0)   !added 16/3/09
+if (trim(par%break)=='roelvink_daly') par%gamma2   = readkey_dbl ('params.txt','gamma2',   0.3d0,     0.0d0,     0.5d0)
 par%alpha    = readkey_dbl ('params.txt','alpha',   1.0d0,     0.5d0,     2.0d0)
 par%n        = readkey_dbl ('params.txt','n',       10.0d0,     5.0d0,    20.0d0)   !changed 28/11
 par%gammax   = readkey_dbl ('params.txt','gammax',   2.d0,      .4d0,      5.d0)    !changed 28/11
 par%delta    = readkey_dbl ('params.txt','delta',   0.0d0,     0.0d0,     1.0d0)
-par%fw       = readkey_dbl ('params.txt','fw',  0.d0,   0d0,      0.3d0)
+par%fw       = readkey_dbl ('params.txt','fw',       0.d0,   0d0,      1.0d0)
+par%breakerdelay = readkey_int ('params.txt','breakerdelay',    1,   0,      1)
 !
 !
 ! Roller parameters                                                                                                      
@@ -706,17 +553,17 @@ call writelog('l','','--------------------------------')
 call writelog('l','','Flow parameters: ')
 par%cf      = readkey_dbl ('params.txt','cf',      3.d-3,     0.d0,     0.1d0)
 par%C       = readkey_dbl ('params.txt','C',       sqrt(par%g/par%cf),     20.d0,    100.d0)
-par%nuh     = readkey_dbl ('params.txt','nuh',     0.5d0,     0.0d0,      1.0d0)
+par%nuh     = readkey_dbl ('params.txt','nuh',     0.15d0,     0.0d0,      1.0d0)
 par%nuhfac  = readkey_dbl ('params.txt','nuhfac',      0.0d0,     0.0d0,  1.0d0)
 par%nuhv    = readkey_dbl ('params.txt','nuhv',     1.d0,      1.d0,    20.d0)
-par%smag    = readkey_int ('params.txt','smag',        0,         0,      1)
+par%smag    = readkey_int ('params.txt','smag',        1,         0,      1)
 !
 !
 ! Coriolis force parameters
 call writelog('l','','--------------------------------')
 call writelog('l','','Coriolis force parameters: ')
 par%wearth  = readkey_dbl ('params.txt','omega',   1.d0/24.d0, 0.d0,    1.d0)
-par%lat     = readkey_dbl ('params.txt','lat',     0.d0,      0.d0,   90.d0)
+par%lat     = readkey_dbl ('params.txt','lat',     0.d0,      -90.d0,   90.d0)
 !
 !
 ! Wind parameters
@@ -724,13 +571,12 @@ call writelog('l','','--------------------------------')
 call writelog('l','','Wind parameters: ')
 par%rhoa    = readkey_dbl ('params.txt','rhoa',   1.25d0,     1.0d0,   2.0d0)
 par%Cd      = readkey_dbl ('params.txt','Cd',    0.002d0,  0.0001d0,  0.01d0)
-call readkey('params.txt','windfile',par%windfile) 
+par%windfile = readkey_name('params.txt','windfile')
 if (par%windfile==' ') then
    par%windv   = readkey_dbl ('params.txt','windv',   0.0d0,     0.0d0, 200.0d0)
    par%windth  = readkey_dbl ('params.txt','windth', 270.0d0,  -360.0d0, 360.0d0)
 else 
    call check_file_exist(par%windfile)
-   call writelog('l','(a,a)',' windfile           = ',trim(par%windfile))
 endif
 !
 !   
@@ -742,19 +588,17 @@ if (par%gwflow==1) then
    par%ky         = readkey_dbl ('params.txt','ky'        , par%kx   , 0.00001d0, 0.01d0)
    par%kz         = readkey_dbl ('params.txt','kz'        , par%kx   , 0.00001d0, 0.01d0)
    par%dwetlayer  = readkey_dbl ('params.txt','dwetlayer' , 0.2d0    , 0.01d0     , 1.d0)
-   call readkey('params.txt','aquiferbotfile',par%aquiferbotfile) 
+   par%aquiferbotfile = readkey_name('params.txt','aquiferbotfile')
    if (par%aquiferbotfile==' ') then
       par%aquiferbot = readkey_dbl('params.txt','aquiferbot',-10.d0,-100.d0,100.d0)
    else 
       call check_file_exist(par%aquiferbotfile)
-	  call writelog('l','(a,a)',' aquiferbotfile     = ',trim(par%aquiferbotfile))
    endif
-   call readkey('params.txt','gw0file',par%gw0file) 
+   par%gw0file = readkey_name('params.txt','gw0file')
    if (par%gw0file==' ') then
       par%gw0 = readkey_dbl('params.txt','gw0',0.d0,-5.d0,5.d0)
    else 
       call check_file_exist(par%gw0file)
-      call writelog('l','(a,a)',' gw0file            = ',trim(par%gw0file))
    endif
 endif
 !
@@ -774,7 +618,6 @@ endif
 if (par%nonh==1) then
    call writelog('l','','--------------------------------')
    call writelog('l','','Non-hydrostatic correction parameters: ')
-   par%secorder     = readkey_int('params.txt','secorder' ,0,0,1)
    par%solver_maxit = readkey_int('params.txt','solver_maxit' ,30,1,1000)
    par%solver_acc   = readkey_dbl('params.txt','solver_acc' ,0.005d0,0.00001d0,0.1d0)  
    par%solver_alpha = readkey_dbl('params.txt','solver_urelax' ,0.92d0,0.5d0,0.99d0)
@@ -791,35 +634,39 @@ if (par%sedtrans==1) then
    call writelog('l','','Bed composition parameters: ')
    par%rhos     = readkey_dbl ('params.txt','rhos',  2650d0,     2400.d0,  2800.d0)
    par%ngd      = readkey_int ('params.txt','ngd',        1,           1,        20)
-   par%nd       = readkey_int ('params.txt','nd ',        1,           1,        1000)
+   par%nd       = readkey_int ('params.txt','nd ',        3,           3,        1000)
    par%dzg1     = readkey_dbl ('params.txt','dzg',    0.1d0,      0.01d0,     1.d0)
    par%dzg1     = readkey_dbl ('params.txt','dzg1', par%dzg1,     0.01d0,     1.d0)
    par%dzg2     = readkey_dbl ('params.txt','dzg2', par%dzg1,     0.01d0,     1.d0)
    par%dzg3     = readkey_dbl ('params.txt','dzg3', par%dzg1,     0.01d0,     1.d0)
    par%por      = readkey_dbl ('params.txt','por',    0.4d0,       0.3d0,    0.5d0)
-   call readkey('params.txt','D50',testc)
+   testc = readkey_name('params.txt','D50')
    if (testc==' ') then
-!       par%D50(1:par%ngd)=0.0002d0   ! Default
+       par%D50(1:par%ngd)=0.0002d0   ! Default
+	   call writelog('l','','Setting D50 to default value 0.0002')
    else
-!       read(testc,*) par%D50(1:par%ngd)
+       read(testc,*) par%D50(1:par%ngd)
    endif
-   call readkey('params.txt','D90',testc)
+   testc = readkey_name('params.txt','D90')
    if (testc==' ') then
-!       par%D90(1:par%ngd)=0.0003d0   ! Default
+       par%D90(1:par%ngd)=0.0003d0   ! Default
+	   call writelog('l','','Setting D90 to default value 0.0003')
    else
-!       read(testc,*) par%D50(1:par%ngd)
+       read(testc,*) par%D50(1:par%ngd)
    endif
-   call readkey('params.txt','sedcal',testc)
+   testc = readkey_name('params.txt','sedcal')
    if (testc==' ') then
-!       par%sedcal(1:par%ngd)=1.d0   ! Default
+       par%sedcal(1:par%ngd)=1.d0   ! Default
+	   call writelog('l','','Setting sedcal to default value 1.0')
    else
-!       read(testc,*) par%sedcal(1:par%ngd)
+       read(testc,*) par%sedcal(1:par%ngd)
    endif
-   call readkey('params.txt','ucrcal',testc)
+   testc = readkey_name('params.txt','ucrcal')
    if (testc==' ') then
-!       par%ucrcal(1:par%ngd)=1.d0   ! Default
+       par%ucrcal(1:par%ngd)=1.d0   ! Default
+	   call writelog('l','','Setting ucrcal to default value 1.0')
    else
-!       read(testc,*) par%ucrcal(1:par%ngd)
+       read(testc,*) par%ucrcal(1:par%ngd)
    endif
 endif
 !
@@ -828,7 +675,16 @@ endif
 if (par%sedtrans==1) then 
    call writelog('l','','--------------------------------')
    call writelog('l','','Sediment transport parameters: ')
-   par%form     = readkey_int ('params.txt','form',   1,           1,            3)
+   allocate(allowednames(2),oldnames(2))
+   allowednames=(/'soulsby_vanrijn','vanthiel_vanrijn'/)
+   oldnames=(/'1','2'/)
+   par%form   = readkey_str('params.txt','form','soulsby_vanrijn',2,2,allowednames,oldnames)
+   deallocate(allowednames,oldnames)
+   allocate(allowednames(2),oldnames(2))
+   allowednames=(/'ruessink_vanrijn','vanthiel'/)
+   oldnames=(/'1','2'/)
+   par%waveform = readkey_str('params.txt','waveform','vanthiel',2,2,allowednames,oldnames)
+   deallocate(allowednames,oldnames)
    par%sws      = readkey_int ('params.txt','sws',           1,        0,     1)
    par%lws      = readkey_int ('params.txt','lws',           1,        0,     1)
    par%BRfac    = readkey_dbl ('params.txt','BRfac',    1.0d0,       0.d0, 1.d0)
@@ -837,12 +693,20 @@ if (par%sedtrans==1) then
    par%smax     = readkey_dbl ('params.txt','smax',   -1.d0,    -1.d0,   3.d0)       !changed 28/11 and back 10/2
    par%tsfac    = readkey_dbl ('params.txt','tsfac',   0.1d0,    0.01d0,   1.d0) 
    par%facua    = readkey_dbl ('params.txt','facua  ',0.00d0,    0.00d0,   1.0d0) 
-   par%turb     = readkey_int ('params.txt','turb',   2,           0,            2)
+   allocate(allowednames(3),oldnames(3))
+   allowednames=(/'none','wave_averaged','bore_averaged'/)
+   oldnames=(/'0','1','2'/)
+   par%turb = readkey_str('params.txt','turb','bore_averaged',3,3,allowednames,oldnames)
+   deallocate(allowednames,oldnames)
    par%Tbfac    = readkey_dbl ('params.txt','Tbfac  ',1.0d0,     0.00d0,   1.0d0) 
    par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.2d0,     0.01d0,   10.d0) 
    par%lwt      = readkey_int ('params.txt','lwt    ',0,           0,            1)
-   par%betad    = readkey_dbl ('params.txt','betad  ',1.0d0,     0.00d0,   10.0d0) 
-   par%hmin     = readkey_dbl ('params.txt','hmin',   0.01d0,   0.001d0,      1.d0)
+   par%betad    = readkey_dbl ('params.txt','betad  ',1.0d0,     0.00d0,   10.0d0)
+   if (trim(par%form)=='vanthiel_vanrijn') then
+      par%swtable  = readkey_name('params.txt','swtable',required=.true.)
+      call check_file_exist(par%swtable)
+      call check_file_length(par%swtable,18,33,40)
+   endif
 endif
 !
 !
@@ -859,10 +723,9 @@ if (par%morphology==1) then
    par%dzmax    = readkey_dbl ('params.txt','dzmax  ',0.05d0,    0.00d0,   1.0d0) 
    par%struct   = readkey_int ('params.txt','struct ',0    ,      0,             1)
    if (par%struct==1) then
-      call readkey('params.txt','ne_layer',par%ne_layer)  ! Bathymetry file name
+      par%ne_layer = readkey_name('params.txt','ne_layer')
       call check_file_exist(par%ne_layer)
       call check_file_length(par%ne_layer,par%nx+1,par%ny+1)
-	  call writelog('l','(a,a)',' ne_layer           = ',trim(par%ne_layer))
    endif
 endif
 !
@@ -871,35 +734,25 @@ endif
 call writelog('l','','--------------------------------')
 call writelog('l','','Output variables: ')
 par%timings  = readkey_int ('params.txt','timings',      1,       0,      1)
+testc = readkey_name('params.txt','tunits')
+if (len(trim(testc)) .gt. 0) par%tunits = trim(testc)
 par%tstart  = readkey_dbl ('params.txt','tstart',   1.d0,      0.d0,1000000.d0)
 par%tint    = readkey_dbl ('params.txt','tint',     1.d0,     .01d0, 100000.d0)  ! Robert
-call readkey('params.txt','tsglobal',testc)
-if (testc==' ') then
+par%tsglobal = readkey_name('params.txt','tsglobal')
+if (par%tsglobal==' ') then
    par%tintg   = readkey_dbl ('params.txt','tintg', par%tint,     .01d0, 100000.d0)  ! Robert
-else
-   par%tsglobal=testc
-   call writelog('l','(a,a)',' tspoints           = ',trim(par%tsglobal))
 endif
-call readkey('params.txt','tspoints',testc)
-if (testc==' ') then
+par%tspoints = readkey_name('params.txt','tspoints')
+if (par%tspoints==' ') then
    par%tintp   = readkey_dbl ('params.txt','tintp', par%tint,     .01d0, 100000.d0)  ! Robert
-else
-   par%tspoints=testc
-   call writelog('l','(a,a)',' tspoints           = ',trim(par%tspoints))
 endif
-call readkey('params.txt','tscross',testc)
-if (testc==' ') then
+par%tscross = readkey_name('params.txt','tscross')
+if (par%tscross==' ') then
    par%tintc   = readkey_dbl ('params.txt','tintc', par%tint,     .01d0, 100000.d0)  ! Robert
-else
-   par%tscross=testc
-   call writelog('l','(a,a)',' tscross            = ',trim(par%tscross))
-endif     
-call readkey('params.txt','tsmean',testc)
-if (testc==' ') then
+endif 
+par%tsmean = readkey_name('params.txt','tsmean')    
+if (par%tsmean==' ') then
    par%tintm   = readkey_dbl ('params.txt','tintm', par%tint,     1.d0, par%tstop)  ! Robert
-else
-   par%tsmean=testc
-   call writelog('l','(a,a)',' tsmean             = ',trim(par%tsmean))
 endif  
 par%nglobalvar  = readkey_int ('params.txt','nglobalvar', -1, -1, 20)
 par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
@@ -913,9 +766,8 @@ call writelog('l','','--------------------------------')
 call writelog('l','','Drifters parameters: ')
 par%ndrifter   = readkey_int     ('params.txt','ndrifter',    0,         0,        50)
 if (par%ndrifter>0) then
-   call readkey('params.txt','drifterfile',par%drifterfile)
+   par%drifterfile = readkey_name('params.txt','drifterfile')  
    call check_file_exist(par%drifterfile)
-   call writelog('l','(a,a)',' drifterfile        = ',trim(par%drifterfile))
 endif
 ! 
 !   
@@ -924,18 +776,20 @@ call writelog('l','','--------------------------------')
 call writelog('l','','Wave numerics parameters: ')
 
 par%scheme     = readkey_int ('params.txt','scheme',        2,        1,     2)
-if (par%instat == 0 .or. par%instat == 40) then
-   par%wavint     = readkey_dbl ('params.txt','wavint',    1.d0,      1.d0,  3600.d0)
-   par%maxerror   = readkey_dbl ('params.txt','maxerror', 0.0001d0, 0.00001d0, 0.01d0)
-   par%maxiter    = readkey_int ('params.txt','maxiter',    200,         2,      100)
+if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
+   par%wavint     = readkey_dbl ('params.txt','wavint',    60.d0,      1.d0,  3600.d0)
+   par%maxerror   = readkey_dbl ('params.txt','maxerror', 0.00005d0, 0.00001d0, 0.001d0)
+   par%maxiter    = readkey_int ('params.txt','maxiter',    500,         2,      1000)
 endif
 !
 ! 
 ! Flow numerics parameters 
 call writelog('l','','--------------------------------')
 call writelog('l','','Flow numerics parameters: ') 
-par%eps     = readkey_dbl ('params.txt','eps',     0.1d0,   0.001d0,      1.d0)
-par%umin    = readkey_dbl ('params.txt','umin',    0.1d0,   0.001d0,      5.d0)
+par%eps     = readkey_dbl ('params.txt','eps',     0.005d0,   0.001d0,      0.1d0)
+par%umin    = readkey_dbl ('params.txt','umin',    0.0d0,   0.0d0,          0.2d0)
+par%hmin    = readkey_dbl ('params.txt','hmin',   0.05d0,   0.001d0,      1.d0)
+par%secorder = readkey_int('params.txt','secorder' ,1,0,1)
 !
 !
 ! Sediment transport numerics parameters  
@@ -952,7 +806,7 @@ if (par%morphology==1) then
    call writelog('l','','--------------------------------')
    call writelog('l','','Bed update numerics parameters: ')
    par%frac_dz   = readkey_dbl ('params.txt','frac_dz',   0.7d0,    0.5d0,   0.98d0)
-   par%nd_var    = readkey_int ('params.txt','nd_var', min(par%nd,2),   1,   par%nd)
+   par%nd_var    = readkey_int ('params.txt','nd_var',     2,           2,        par%nd)
    par%split     = readkey_dbl ('params.txt','split',    1.01d0,  1.005d0,   1.10d0)
    par%merge     = readkey_dbl ('params.txt','merge',    0.01d0,  0.005d0,   0.10d0)
 endif
@@ -961,12 +815,9 @@ endif
 ! MPI parameters
 call writelog('l','','--------------------------------')
 call writelog('l','','MPI parameters: ') 
-call readkey('params.txt','mpiboundary',par%mpiboundary)    ! X-grid file
+par%mpiboundary = readkey_name('params.txt','mpiboundary')
 if (par%mpiboundary==' ') then 
    par%mpiboundary='auto'   ! Default
-   call writelog('l','(a)',  ' mpiboundary          = None specified')
-else
-   call writelog('l','(a,a)',' mpiboundary          = ',trim(par%mpiboundary))
 endif
 !
 !
@@ -989,7 +840,7 @@ par%rhog8 = 1.0d0/8.0d0*par%rho*par%g
 if (par%alfa.lt.0) then 
    par%alfa = 360.d0+par%alfa
 endif
-par%alfa  = par%alfa*atan(1.0d0)/45.d0   ! All input converted directly to cathesian XBeach grid direction
+par%alfa  = par%alfa*atan(1.0d0)/45.d0   ! All input converted directly to Cartesian XBeach grid direction
 
 if (par%posdwn<0.1d0) then 
    par%posdwn=-1.d0  ! Backward compatibility, now posdwn = 0 also works in input (i.e. posdwn = false)
@@ -1014,13 +865,13 @@ par%zs01=par%zs0
 !
 !
 ! Only allow Baldock in stationary mode and Roelvink in non-stationary
-if (par%instat==0 .or. par%instat==40) then
-   if (par%break .ne. 2) then
-        call writelog('lwe','','Error: Roelvink formulation not allowed in stationary calculation, use Baldock formulation.')
+if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
+   if (trim(par%break) .ne. 'baldock') then
+        call writelog('ls','','Warning: Roelvink formulations not allowed in stationary calculation, use Baldock formulation.')  
    endif
 else
-   if (par%break==2) then 
-        call writelog('lwe','','Error: Baldock formulation not allowed in non-stationary calculation, use Roelvink formulation.')
+   if (trim(par%break)=='baldock') then 
+        call writelog('ls','','Warning: Baldock formulation not allowed in non-stationary calculation, use a Roelvink formulation.')
    endif
 endif
 !
@@ -1046,6 +897,24 @@ if (par%morfac>1.d0) then
 endif
 !
 !
+! If using tide, epsi should be on
+if (par%tideloc>0) then
+   if (par%epsi<tiny(0.d0)) then
+      call writelog('ls','','Automatically setting epsi to 0.05 to let in tide on offshore boundary')
+	  par%epsi = 0.05d0
+   endif
+endif
+!
+!
+! If using nonh, secorder should always be on
+if (par%nonh==1) then
+   if (par%secorder==0) then
+      call writelog('ls','','Automatically turning on second order correction in flow for non-hydrostatic module (secorder = 1)')
+	  par%secorder = 1
+   endif
+endif
+!
+!
 ! All input time frames converted to XBeach hydrodynamic time
 if (par%morfacopt==1) then 
    par%tstart  = par%tstart / max(par%morfac,1.d0)
@@ -1061,312 +930,6 @@ endif
 
 
 end subroutine all_input
-
-
-subroutine wave_input(par)
-use readkey_module
-use xmpi_module
-implicit none
-type(parameters)            :: par
-
-character(len=80)          :: dummystring
-
-par%px    = 4.d0*atan(1.d0)
-par%compi = (0.0d0,1.0d0)
-
-par%instat   = readkey_int     ('params.txt','instat',    1,         0,        7)
-par%fcutoff  = readkey_dbl     ('params.txt','fcutoff',   0.d0,      0.d0,     40.d0)
-par%random   = readkey_int     ('params.txt','random',    0,         0,        1)
-if (par%instat == 0) then
-    par%dir0  = readkey_dbl    ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
-    par%Hrms  = readkey_dbl    ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
-    par%wavint   = readkey_dbl ('params.txt','wavint',    1.d0,      1.d0,  3600.d0)
-    par%m     = readkey_int    ('params.txt','m',        10,         2,      128)
-    par%Trep  = readkey_dbl    ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
-    par%Trep  = readkey_dbl    ('params.txt','Trep',     par%Trep,   1.d0,    20.d0)
-	 par%maxiter = readkey_int  ('params.txt','maxiter', 200,         2,      100)
-    par%maxerror= readkey_dbl  ('params.txt','maxerror', 0.0001d0, 0.00001d0, 0.01d0)
-!    par%omega    = 2.d0*par%px/par%Trep;
-elseif (par%instat==40) then
-    par%wavint   = readkey_dbl ('params.txt','wavint',    1.d0,      1.d0,  3600.d0)
-	 par%maxiter = readkey_int  ('params.txt','maxiter',  15,         2,      100)
-    par%maxerror= readkey_dbl  ('params.txt','maxerror', 0.0001d0, 0.00001d0, 0.01d0)
-elseif (par%instat==1) then
-    par%dir0  = readkey_dbl    ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
-    par%Hrms  = readkey_dbl    ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
-    par%Tlong = readkey_dbl    ('params.txt','Tlong',    80.d0,     20.d0,   300.d0)
-    par%m     = readkey_int    ('params.txt','m',        10,         2,      128)
-    par%Trep  = readkey_dbl    ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
-    par%Trep  = readkey_dbl    ('params.txt','Trep',     par%Trep,   1.d0,    20.d0)
-!    par%omega    = 2.d0*par%px/par%Trep;
-elseif (par%instat==2 .or. par%instat==3) then
-    par%dir0  = readkey_dbl    ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
-    par%Hrms  = readkey_dbl    ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
-    par%m     = readkey_int    ('params.txt','m',        10,         2,      128)
-    par%Trep  = readkey_dbl    ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
-    par%Trep  = readkey_dbl    ('params.txt','Trep',     par%Trep,   1.d0,    20.d0)
-!    par%omega    = 2.d0*par%px/par%Trep;
-elseif (par%instat==4 .or. par%instat==41 .or. par%instat==5 .or. par%instat==6) then
-        ! Just a check .....
-        if (xmaster) then
-          call readkey('params.txt','bcfile',dummystring)
-          call readkey('params.txt','rt',dummystring)
-          call readkey('params.txt','dtbc',dummystring)
-          call readkey('params.txt','dthetaS_XB',dummystring)
-        endif
-elseif (par%instat == 8) then        
-    par%Topt  = readkey_dbl    ('params.txt','Topt',     10.d0,      1.d0,    20.d0)
-    par%zs0   = readkey_dbl    ('params.txt','zs0',     0.0d0,      -100.0d0,    100.0d0)             		
-elseif (par%instat > 8.and. (par%instat>41.or.par%instat<40)) then
-    if(xmaster) then
-      write(*,*)'Instat invalid option'
-    endif
-    call halt_program
-end if
-!                         Input file  Keyword Default  Minimum  Maximum
-!par%dir0  = readkey_dbl    ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
-par%hmin  = readkey_dbl ('params.txt','hmin',   0.01d0,   0.001d0,      1.d0)
-par%gammax= readkey_dbl ('params.txt','gammax',   2.d0,      .4d0,      5.d0)    !changed 28/11
-par%gamma = readkey_dbl ('params.txt','gamma',   0.55d0,     0.4d0,     0.9d0)   !changed 28/11
-par%gamma2= readkey_dbl ('params.txt','gamma2',   0.3d0,     0.0d0,     0.5d0)   !added 16/3/09
-par%alpha = readkey_dbl ('params.txt','alpha',   1.0d0,     0.5d0,     2.0d0)
-par%delta = readkey_dbl ('params.txt','delta',   0.0d0,     0.0d0,     1.0d0)
-par%n    =  readkey_dbl ('params.txt','n',       10.0d0,     5.0d0,    20.0d0)   !changed 28/11
-par%rho   = readkey_dbl ('params.txt','rho',  1025.0d0,  1000.0d0,  1040.0d0)
-par%g     = readkey_dbl ('params.txt','g',      9.81d0,     9.7d0,     9.9d0)
-par%rhog8 = 1.0d0/8.0d0*par%rho*par%g
-par%Emean = par%rhog8*par%Hrms**2
-par%thetamin = readkey_dbl ('params.txt','thetamin', -80.d0,    -180.d0,  180.d0)
-par%thetamax = readkey_dbl ('params.txt','thetamax',  80.d0,    -180.d0,  180.d0)
-par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   20.d0)
-par%thetanaut= readkey_int ('params.txt','thetanaut',    0,        0,     1)
-par%wci      = readkey_int ('params.txt','wci',        0,        0,     1)
-par%hwci     = readkey_dbl ('params.txt','hwci',   0.1d0,   0.001d0,      1.d0)
-par%cats     = readkey_dbl ('params.txt','cats',  7.d0,   1.d0,      50.d0)
-par%fw       = readkey_dbl ('params.txt','fw',  0.d0,   0d0,      0.3d0)
-par%break    = readkey_int ('params.txt','break',      3,        1,     3)
-! Only allow Baldock in stationary mode and Roelvink in non-stationary
-if (par%instat==0) then
-   if (par%break .ne. 2) then
-        write(*,*)'Error: Roelvink formulation not allowed in stationary calculation, use Baldock formulation. Stopping.'
-       	call halt_program
-   endif
-else
-   if (par%break==2) then 
-        write(*,*)'Warning: Baldock formulation not allowed in non-stationary calculation, use Roelvink formulation. Stopping.'
-   endif
-endif
-par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
-par%beta     = readkey_dbl ('params.txt','beta',    0.15d0,     0.05d0,   0.3d0)
-par%rfb      = readkey_int ('params.txt','rfb',        1,        0,     1)
-par%taper    = readkey_dbl ('params.txt','taper',   100.d0,      0.0d0, 1000.d0)
-par%taper    = max(par%taper,1.d-6)
-!par%refl     = readkey_int ('params.txt','refl',       0,        0,     1) 
-par%nspr     = readkey_int ('params.txt','nspr',       0,        0,     1) 
-par%scheme   = readkey_int ('params.txt','scheme',     2,        1,     2)
-par%trepfac  = readkey_dbl  ('params.txt','trepfac', 0.8d0,       0.d0,  1.d0) 
-par%sprdthr  = readkey_dbl ('params.txt','sprdthr', 0.08d0,      0.d0,  1.d0) 
-par%lwave    = readkey_int ('params.txt','lwave',         1,        0,     1)
-par%swave    = readkey_int ('params.txt','swave',         1,        0,     1)
-par%sws      = readkey_int ('params.txt','sws',           1,        0,     1)
-par%lws      = readkey_int ('params.txt','lws',           1,        0,     1)
-!par%ut       = readkey_int ('params.txt','ut',            1,        0,     1)
-par%BRfac    = readkey_dbl ('params.txt','BRfac',    1.0d0,       0.d0, 1.d0)
-par%oldwbc   = readkey_int ('params.txt','oldwbc',       1,        0,     1)
-
-if (xmaster) call readkey('params.txt','mpiboundary',par%mpiboundary)    ! X-grid file
-if (par%mpiboundary==' ') par%mpiboundary='auto'   ! Default
-
-end subroutine wave_input
-
-subroutine flow_input(par)
-use readkey_module
-use xmpi_module
-implicit none
-type(parameters)            :: par
-
-
-par%cf      = readkey_dbl ('params.txt','cf',      -1.d0,     0.d0,     0.1d0)
-par%C       = readkey_dbl ('params.txt','C',       sign(1.d0,par%cf)*sqrt(par%g/abs(par%cf)),  20.d0,    100.d0)
-par%cf      = sign(1.d0,par%C)*par%g/par%C**2 ! Remark: case cf < 0 White Colebrook is used with ks = 3*D90 in upper layer; see flowtimestep
-par%eps     = readkey_dbl ('params.txt','eps',     0.1d0,   0.001d0,      1.d0)
-par%umin    = readkey_dbl ('params.txt','umin',    0.1d0,   0.001d0,      5.d0)
-par%zs01    = readkey_dbl ('params.txt','zs0',     0.0d0,     -5.d0,      5.d0)
-par%tideloc = readkey_int ('params.txt','tideloc', 0,             0,      4)
-par%paulrevere = readkey_int ('params.txt','paulrevere', 0,       0,      1)
-par%tidelen = readkey_int ('params.txt','tidelen',       0,       0,      1000000)
-par%tstart  = readkey_dbl ('params.txt','tstart',   1.d0,      0.d0,1000000.d0)
-par%tstop   = readkey_dbl ('params.txt','tstop', 2000.d0,      1.d0,1000000.d0)
-par%tint    = readkey_dbl ('params.txt','tint',     1.d0,     .01d0, 100000.d0)  ! Robert
-par%tintg   = readkey_dbl ('params.txt','tintg', par%tint,     .01d0, 100000.d0)  ! Robert
-par%tintp   = readkey_dbl ('params.txt','tintp',par%tintg,    .01d0, 100000.d0)  ! Robert
-par%tintc   = readkey_dbl ('params.txt','tintc',par%tintg,    .01d0, 100000.d0)  ! Robert
-par%tintm   = readkey_dbl ('params.txt','tintm',par%tintg,     1.d0, par%tstop)  ! Robert
-par%tint    = min(par%tintg,par%tintp,par%tintm,par%tintc)                       ! Robert     
-! adapt flow times to morfac if par%morfacopt=1
-par%morfac   = readkey_dbl ('params.txt','morfac', 0.0d0,        0.d0,  1000.d0)
-par%morfacopt= readkey_int ('params.txt','morfacopt', 1,        0,        1)
-if (par%morfacopt==1) then
-   par%tstart  = par%tstart / max(par%morfac,1.d0)
-   par%tint    = par%tint   / max(par%morfac,1.d0)
-   par%tintg   = par%tintg  / max(par%morfac,1.d0)
-   par%tintp   = par%tintp  / max(par%morfac,1.d0)
-   par%tintc   = par%tintc  / max(par%morfac,1.d0)
-   par%tintm   = par%tintm  / max(par%morfac,1.d0)
-   par%wavint  = par%wavint / max(par%morfac,1.d0)
-   par%tstop   = par%tstop  / max(par%morfac,1.d0)
-endif
-if (min(par%tintg,par%tintm,par%tintp,par%tintc)<=0.d0) then
-   write(*,*)'Error: Output time steps of 0 or less are not allowed.'
-   call halt_program
-endif
-par%fcutoff  = readkey_dbl ('params.txt','fcutoff', 0.d0,      0.d0,  40.d0)
-par%sprdthr = readkey_dbl ('params.txt','sprdthr', 0.08d0,      0.d0,  1.d0)
-par%carspan = readkey_int    ('params.txt','carspan',0,         0,      1)
-!par%rugauge = readkey_int    ('params.txt','rugauge',0,         0,      1)
-!par%ntout=nint((par%tstop-par%tstart)/par%tint)+1
-par%CFL     = readkey_dbl ('params.txt','CFL',     0.2d0,     0.1d0,      0.9d0)
-par%front   = readkey_int ('params.txt','front',       1,         0,      1) 
-par%ARC     = readkey_int ('params.txt','ARC',         1,         0,      1)
-par%order   = readkey_dbl ('params.txt','order',       2.d0,         1.d0,      2.d0)
-par%left    = readkey_int ('params.txt','left',        0,         0,      1)
-par%right   = readkey_int ('params.txt','right',       0,         0,      1)
-par%leftwave= readkey_int ('params.txt','leftwave',        0,         0,      1)
-par%rightwave= readkey_int ('params.txt','rightwave',        0,         0,      1)
-par%back    = readkey_int ('params.txt','back',        2,         0,      2)
-par%nuh     = readkey_dbl ('params.txt','nuh',     0.5d0,     0.0d0,      1.0d0)
-par%nuhfac  = readkey_dbl ('params.txt','nuhfac',      1.0d0,     0.0d0,  1.0d0)
-
-par%nonh    = readkey_int ('params.txt','nonh',        0,         0,      1)
-par%smag    = readkey_int ('params.txt','smag',        0,         0,      1)
-par%nuhv    = readkey_dbl ('params.txt','nuhv',     1.d0,      1.d0,    20.d0)
-par%lat     = readkey_dbl ('params.txt','lat',     0.d0,      0.d0,   90.d0)
-par%wearth  = readkey_dbl ('params.txt','omega',   1.d0/24.d0, 0.d0,    1.d0)
-par%vonkar  = readkey_dbl ('params.txt','vonkar',   0.4d0,     0.01d0,  1.d0)
-par%vicmol  = readkey_dbl ('params.txt','vicmol',   0.000001d0,   0.d0,    0.001d0)
-
-par%lat = par%lat*par%px/180.d0
-par%wearth = par%px*par%wearth/1800.d0
-par%fc = 2.d0*par%wearth*sin(par%lat)
-
-! Ground water
-par%gwflow  = readkey_int ('params.txt','gwflow',         0,           0,       1)
-if (par%gwflow==1) then
-   par%kx         = readkey_dbl ('params.txt','kx'        , 0.0001d0 , 0.00001d0, 0.01d0)
-   par%ky         = readkey_dbl ('params.txt','ky'        , par%kx   , 0.00001d0, 0.01d0)
-   par%kz         = readkey_dbl ('params.txt','kz'        , par%kx   , 0.00001d0, 0.01d0)
-   par%dwetlayer  = readkey_dbl ('params.txt','dwetlayer' , 0.2d0    , 0.01d0     , 1.d0)
-endif
-
-! Initial condition water level from file
-if (xmaster) then
-   call readkey('params.txt','zsinitfile',par%zsinitfile)
-endif
-
-par%secorder     = readkey_int('params.txt','secorder' ,0,0,1)
-par%solver_maxit = readkey_int('params.txt','solver_maxit' ,30,1,1000)
-par%kdmin        = readkey_dbl('params.txt','kdmin' ,0.0d0,0.0d0,0.05d0)  
-par%dispc        = readkey_dbl('params.txt','dispc' ,1.0d0,0.1d0,2.0d0)  
-par%solver_acc   = readkey_dbl('params.txt','solver_acc' ,0.005d0,0.00001d0,0.1d0)  
-par%solver_alpha = readkey_dbl('params.txt','solver_urelax' ,0.92d0,0.5d0,0.99d0)
-par%solver       = readkey_int('params.txt','solver' ,1,0,2)
-
-!par%accfac       = readkey_dbl('params.txt','accfac' ,0.0d0,0.0d0,10.0d0)
-
-
-
-end subroutine flow_input
-
-subroutine sed_input(par)
-use readkey_module
-use xmpi_module
-!use filefunctions
-implicit none
-type(parameters)            :: par
-character(len=80)           :: dummystring
-
-
-!par%dico     = readkey_dbl ('params.txt','dico',    1.d0,        0.d0,    10.d0)
-par%kmax     = readkey_int ('params.txt','kmax ',      1,           1,        1000)
-par%ngd      = readkey_int ('params.txt','ngd',        1,           1,        20)
-par%nd       = readkey_int ('params.txt','nd ',        3,           3,        1000)
-par%nd_var   = readkey_int ('params.txt','nd_var',     2,           2,        par%nd)
-par%dzg1     = readkey_dbl ('params.txt','dzg',    0.1d0,      0.01d0,     1.d0)
-par%dzg1     = readkey_dbl ('params.txt','dzg1', par%dzg1,     0.01d0,     1.d0)
-par%dzg2     = readkey_dbl ('params.txt','dzg2', par%dzg1,     0.01d0,     1.d0)
-par%dzg3     = readkey_dbl ('params.txt','dzg3', par%dzg1,     0.01d0,     1.d0)
-par%rhos     = readkey_dbl ('params.txt','rhos',  2650d0,     2400.d0,  2800.d0)
-par%morfac   = readkey_dbl ('params.txt','morfac', 0.0d0,        0.d0,  1000.d0)
-par%morfacopt= readkey_int ('params.txt','morfacopt', 1,        0,        1)
-par%morstart = readkey_dbl ('params.txt','morstart',120.d0,      0.d0, 10000.d0)
-if (par%morfacopt==1) par%morstart = par%morstart / max(par%morfac,1.d0)
-par%wetslp   = readkey_dbl ('params.txt','wetslp', 0.3d0,       0.1d0,     1.d0)
-par%dryslp   = readkey_dbl ('params.txt','dryslp', 1.0d0,       0.1d0,     2.d0)
-par%por      = readkey_dbl ('params.txt','por',    0.4d0,       0.3d0,    0.5d0)
-par%hswitch  = readkey_dbl ('params.txt','hswitch',0.1d0,      0.01d0,    1.0d0)  
-par%z0       = readkey_dbl ('params.txt','z0     ',0.006d0,    0.0001d0,   0.05d0)  
-par%facsl    = readkey_dbl ('params.txt','facsl  ',0.00d0,    0.00d0,   1.6d0)  
-!par%struct   = readkey_int ('params.txt','struct ',0,           0,            1) 
-par%form     = readkey_int ('params.txt','form',   1,           1,            3)
-par%smax     = readkey_dbl ('params.txt','smax',   -1.d0,    -1.d0,   3.d0)       !changed 28/11 and back 10/2
-if (par%smax<0) par%smax=huge(0.d0)
-par%thetanum = readkey_dbl ('params.txt','thetanum',   1.d0,    0.5d0,   1.d0) 
-par%tsfac    = readkey_dbl ('params.txt','tsfac',   0.1d0,    0.01d0,   1.d0) 
-par%facua    = readkey_dbl ('params.txt','facua  ',0.00d0,    0.00d0,   1.0d0) 
-par%dzmax    = readkey_dbl ('params.txt','dzmax  ',0.05d0,    0.00d0,   1.0d0) 
-par%turb     = readkey_int ('params.txt','turb',   2,           0,            2)
-par%Tbfac    = readkey_dbl ('params.txt','Tbfac  ',1.0d0,     0.00d0,   1.0d0) 
-par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.2d0,     0.01d0,   10.d0) 
-!par%impact   = readkey_int ('params.txt','impact ',0,           0,            1)  
-!par%CE       = readkey_dbl ('params.txt','CE     ',0.2d0,     0.00d0,   100.d0) 
-par%betad    = readkey_dbl ('params.txt','betad  ',1.0d0,     0.00d0,   10.0d0) 
-par%lwt      = readkey_int ('params.txt','lwt    ',0,           0,            1)
-par%sigfac   = readkey_dbl ('params.txt','sigfac ',1.3d0,     0.00d0,   10.d0) 
-par%sourcesink      = readkey_int ('params.txt','sourcesink    ',0,           0,            1)
-par%waveform        = readkey_int ('params.txt','waveform      ',2,           1,            2)
-if (par%morfac>1.d0) then
-   if (par%sourcesink==1) then
-       if (xmaster) write(*,*)'Warning: Using source-sink terms for bed level change with morfac can lead to loss of sediment mass conservation.'
-   endif
-endif
-par%struct   = readkey_int ('params.txt','struct ',0    ,      0,             1)
-if (par%struct==1) then
-   call readkey('params.txt','ne_layer',par%ne_layer)  ! Bathymetry file name
-   !call check_file_exist(par%ne_layer)
-   !call check_file_length(par%ne_layer,par%nx+1,par%ny+1)
-endif
-
-
-! Just a check to see if they are there.....
-if (xmaster) then
- call readkey('params.txt','D50',dummystring)
- call readkey('params.txt','D90',dummystring)
- call readkey('params.txt','sedcal',dummystring)
- call readkey('params.txt','ucrcal',dummystring)
-endif
-end subroutine sed_input
-
-
-subroutine output_input(par)
-  use readkey_module
-  use xmpi_module
-  use mnemmodule ! can we avoid this? 
-  implicit none
-  type(parameters), intent(inout)            :: par
-  character(len=80)          :: dummystring
-
-  par%npoints  = readkey_int ('params.txt','npoints',      0,       0,     50)
-  par%nrugauge = readkey_int ('params.txt','nrugauge',     0,       0,     50)
-  par%timings  = readkey_int ('params.txt','timings',      1,       0,      1)
- ! par%ncross  = readkey_int ('params.txt','ncross',      0,       0,     50)
-  par%nglobalvar  = readkey_int ('params.txt','nglobalvar',   -1,       -1,     20)
-  par%nmeanvar = readkey_int ('params.txt','nmeanvar',0,0,15)
-  call readkey('params.txt','tunits',dummystring)
-  if (len(trim(dummystring)) .gt. 0) par%tunits = trim(dummystring)
-
-
-
-end subroutine
 
 
 #ifdef USEMPI

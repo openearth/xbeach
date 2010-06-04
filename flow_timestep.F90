@@ -489,7 +489,7 @@ endif
     ! to avoid mass errors
 	! Lateral boundary at y=0
     if (xmpi_isleft) then !Dano/Robert only on outer boundary
-       if (par%right==1) then
+       if (trim(par%right)=='wall') then
          vv(2:nx+1,1) = 0.d0
 	   else
 	     vv(2:nx+1,1) = vv(2:nx+1,2) ! RJ: 
@@ -498,7 +498,7 @@ endif
     endif
 	! Lateral boundary at y=ny*dy 
 	if (xmpi_isright) then !Dano/Robert only at outer boundary
-       if (par%left==1) then
+       if (trim(par%left)=='wall') then
          vv(2:nx+1,ny) = 0.d0       
        else
 	     vv(2:nx+1,ny) = vv(2:nx+1,ny-1) ! RJ

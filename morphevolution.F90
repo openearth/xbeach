@@ -121,9 +121,9 @@ if (par%lwt==1) then
 endif
 
 ! calculate equilibrium concentration
-if (par%form==1) then           ! Soulsby van Rijn
+if (trim(par%form)=='soulsby_vanrijn') then           ! Soulsby van Rijn
    call sb_vr(s,par)
-elseif (par%form==2) then       ! Van Thiel de Vries & Reniers 2008
+elseif (trim(par%form)=='vanthiel_vanrijn') then       ! Van Thiel de Vries & Reniers 2008
    call sednew(s,par)
 end if
 
@@ -1139,7 +1139,7 @@ if (.not. allocated(vmg)) then
    allocate (RF    (18,33,40))
    vmg = 0.d0
    onethird=1.d0/3.d0
-   if (par%waveform==1)then
+   if (trim(par%waveform)=='ruessink_vanrijn')then
       m1 = 0;       ! a = 0
       m2 = 0.7939;  ! b = 0.79 +/- 0.023
       m3 = -0.6065; ! c = -0.61 +/- 0.041
@@ -1176,7 +1176,7 @@ twothird=2.d0/3.d0
 if (abs(par%t-par%dt)<1.d-6) then
    RF = RF*0.d0
    if (xmaster) then
-      call readkey('params.txt','swtable',fnamet)
+      fnamet = readkey_name('params.txt','swtable')
       open(31,file=fnamet);
       do i=1,18
          do j=1,33
@@ -1215,14 +1215,14 @@ do j=1,ny+1
       f2=q*(1-p);
       f3=p*q;
       
-      if (par%waveform==1) then
+      if (trim(par%waveform)=='ruessink_vanrijn') then
          Ur = 3.d0/8.d0*sqrt(2.d0)*H(i,j)*k(i,j)/(k(i,j)*hloc(i,j))**3   !Ursell number
          Ur = max(Ur,0.000000000001d0)
          Bm = m1 + (m2-m1)/(1.d0+beta*Ur**alpha)                         !Boltzmann sigmoid (eq 6)         
          B1 = (-90.d0+90.d0*tanh(m5/Ur**m6))*par%px/180.d0
          Sk(i,j) = Bm*cos(B1)                                            !Skewness (eq 8)
          As(i,j) = Bm*sin(B1)                                            !Asymmetry(eq 9)
-	  elseif (par%waveform==2) then
+	  elseif (trim(par%waveform)=='vanthiel') then
          Sk(i,j) = f0*RF(13,ih0,it0)+f1*RF(13,ih1,it0)+ f2*RF(13,ih0,it1)+f3*RF(13,ih1,it1)
 	     As(i,j) = f0*RF(14,ih0,it0)+f1*RF(14,ih1,it0)+ f2*RF(14,ih0,it1)+f3*RF(14,ih1,it1)
       endif
@@ -1274,11 +1274,11 @@ do j=1,ny+1
 	   ! exponential decay turbulence over depth
 	   dcfin = exp(min(100.d0,hloc(i,j)/max(ML,0.01d0)))
 	   dcf = min(1.d0,1.d0/(dcfin-1.d0))
-	   if (par%turb == 2) then
+	   if (trim(par%turb) == 'bore_averaged') then
           kb(i,j) = par%nuhfac*(DR(i,j)/par%rho)**twothird*dcf*par%Trep/Tbore(i,j)
-	   elseif (par%turb == 1) then
+	   elseif (trim(par%turb) == 'wave_averaged') then
 	      kb(i,j) = par%nuhfac*(DR(i,j)/par%rho)**twothird*dcf
-	   elseif (par%turb == 0) then
+	   elseif (trim(par%turb) == 'none') then
 	      kb(i,j) = 0.0d0
 	   endif
     enddo

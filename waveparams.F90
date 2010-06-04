@@ -65,7 +65,7 @@ if (abs(par%t-par%dt)<1.d-6) then
         call readkey('params.txt','bcfile',fname)
 	    call checkbcfilelength(par,fname)
         open(74,file=fname,form='formatted')
-        if (par%instat/=41) read(74,*)testc
+        if (trim(par%instat)/='jons_table') read(74,*)testc
     endif
     
     if(xmaster) then
@@ -77,7 +77,7 @@ if (abs(par%t-par%dt)<1.d-6) then
     endif
     
     ! Check whether BCF files should be reused
-    if (testc=='FILELIST' .or. par%instat==41) then
+    if (testc=='FILELIST' .or. trim(par%instat)=='jons_table') then
         reuse=0
     else
         reuse=1
@@ -102,7 +102,7 @@ if (reuse==0) then
 
     ! Read rt and dt values
     if(xmaster) then
-        if (par%instat/=41) then
+        if (trim(par%instat)/='jons_table') then
             read(74,*)wp%rt,wp%dt,fname
 		    if (par%morfacopt==1) wp%rt = wp%rt / max(par%morfac,1.d0)
         endif
@@ -115,7 +115,7 @@ if (reuse==0) then
 #endif
 
     ! Create filenames for BCF files
-    if (par%instat/=41) then 
+    if (trim(par%instat)/='jons_table') then 
         Ebcfname='E_'//fname
         qbcfname='q_'//fname
     else
@@ -159,17 +159,17 @@ if (makefile) then
     ! Calculate weighed average water depth at offshore boundary
     h0t0=sum(s%hh(1,2:s%ny)*(s%yv(2:s%ny)-s%yv(1:s%ny-1)))/(s%yv(s%ny)-s%yv(1))
     
-    if (par%instat==4.or.par%instat==41) then
+    if (trim(par%instat)=='jons' .or. trim(par%instat)=='jons_table') then
         ! Use JONSWAP spectrum
         call build_jonswap(par,s,wp,fname)
         call build_etdir(par,s,wp,h0t0,Ebcfname)
         call build_boundw(par,s,wp,h0t0,qbcfname)
-    elseif (par%instat==5) then
+    elseif (trim(par%instat)=='swan') then
         ! Use SWAN data
         call swanreader(par,s,wp,fname)
         call build_etdir(par,s,wp,h0t0,Ebcfname)
         call build_boundw(par,s,wp,h0t0,qbcfname)
-    elseif (par%instat==6) then
+    elseif (trim(par%instat)=='vardens') then
         ! Use variance density spectrum
         call vardensreader(par,s,wp,fname)
         call build_etdir(par,s,wp,h0t0,Ebcfname)
@@ -207,6 +207,7 @@ use readkey_module
 use params
 use spaceparams
 use xmpi_module
+use logging_module
 
 IMPLICIT NONE
 
@@ -228,15 +229,15 @@ character(len=80)                       :: dummystring
 if(xmaster) then
 
     ! Check whether spectrum characteristics or table should be used
-    if (par%instat /= 41) then
+    if (trim(par%instat) /= 'jons_table') then
     
         ! Use spectrum characteristics
-        write(*,*)'waveparams: Reading from ',fname,' ...'
+        call writelog('sl','','waveparams: Reading from ',fname,' ...')
     else
     
         ! Use spectrum table
         call readkey('params.txt','bcfile',fname)
-        write(*,*)'waveparams: reading from table',fname,' ...'
+        call writelog('sl','','waveparams: Reading from table',fname,' ...')
         read(74,*,iostat=ier)wp%hm0gew,fp,wp%mainang,gam,scoeff,wp%rt,wp%dt
         if (par%morfacopt==1) wp%rt = wp%rt/max(par%morfac,1.d0)
         
@@ -248,7 +249,7 @@ if(xmaster) then
 endif
 
 ! Read JONSWAP characteristics
-if (par%instat/=41) then               
+if (trim(par%instat)/='jons_table') then               
 
 !                                      Input file   Keyword     Default     Minimum     Maximum   
     wp%hm0gew           = readkey_dbl (fname,       'Hm0',      0.0d0,      0.00d0,     5.0d0,      bcast=.false. )
@@ -268,7 +269,7 @@ endif
 wp%Npy=s%ny+1
 
 ! Print JONSWAP characteristics to screen
-write(*,*)'Hm0 = ',wp%hm0gew,'Tp = ',1.d0/fp,'dir = ',wp%mainang,'duration = ',wp%rt
+call writelog('sl','','Hm0 = ',wp%hm0gew,'Tp = ',1.d0/fp,'dir = ',wp%mainang,'duration = ',wp%rt)
 
                                                                                ! approximation from Coastal Engineering: Processes, Theory and Design Practice
                                                                                ! Dominic Reeve, Andrew Chadwick 2004
@@ -376,7 +377,7 @@ wp%Sf = sum(wp%S_array, DIM = 2)*wp%dang
 ! Calculate mean wave period based on one-dimensional non-directional variance
 ! density spectrum and factor trepfac
 call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac)
-write(*,*)'Trep =',par%Trep
+call writelog('sl','','Trep =',par%Trep)
                                                                                ! par%Trep=1.d0/par%Trep
                                                                                ! Jaap try Tm-1,0
                                                                                ! par%Trep = 1/fp/1.1d0
@@ -409,6 +410,7 @@ use spaceparams
 use readkey_module
 use math_tools
 use xmpi_module
+use logging_module
 
 IMPLICIT NONE
 
@@ -433,7 +435,7 @@ wp%Npy=s%ny+1
 
 switch = 0
 if(xmaster) then
-  write(*,*)'Reading from SWAN file ',fname,' ...'
+  call writelog('sl','','Reading from SWAN file ',fname,' ...')
   open(44,file=fname,form='formatted',status='old')
 
 
@@ -483,9 +485,9 @@ if(xmaster) then
   elseif (rtext == 'CDIR  ') then
       switch = 2
   else
-      write(*,*) 'SWAN directional bins keyword not found'
+      call writelog('els','', 'SWAN directional bins keyword not found')
 #ifdef USEMPI
-      call xmpi_abort
+      call halt_program
 #else
       stop
 #endif
@@ -579,9 +581,9 @@ if(xmaster) then
   elseif (rtext == 'EnDens') then
       switch = 2
   else
-      write(*,*) 'SWAN VaDens/EnDens keyword not found'
+      call writelog('sle','', 'SWAN VaDens/EnDens keyword not found')
 #ifdef USEMPI
-      call xmpi_abort
+      call halt_program
 #else
       stop
 #endif
@@ -609,16 +611,16 @@ if(xmaster) then
       if (rtext == 'FACTOR') then
           i=1
       elseif (rtext == 'ZERO  ') then
-          write(*,*) 'Zero energy density input for this point'
+          call writelog('lse','','Zero energy density input for this point')
 #ifdef USEMPI
-          call xmpi_abort
+          call halt_program
 #else
           stop
 #endif
       elseif (rtext == 'NODATA') then
-          write(*,*) 'SWAN file has no data for this point'
+          call writelog('lse','','SWAN file has no data for this point')
 #ifdef USEMPI
-          call xmpi_abort
+          call halt_program
 #else
           stop
 #endif
@@ -751,6 +753,7 @@ subroutine vardensreader(par,s,wp,fname)
 use params
 use spaceparams
 use xmpi_module
+use logging_module
 
 IMPLICIT NONE
 
@@ -770,7 +773,7 @@ real*8, dimension(:),allocatable        :: temp, findline
 wp%Npy=s%ny+1
 
 if(xmaster) then
-  write(*,*)'Reading from VarDens file ',fname,' ...'
+  call writelog('ls','','Reading from VarDens file ',fname,' ...')
   open(44,file=fname,form='formatted',status='old')
 
   read(44,*)nfreq
@@ -880,6 +883,7 @@ use math_tools
 use spaceparams
 use interp
 use xmpi_module
+use logging_module
 
 IMPLICIT NONE
 
@@ -894,7 +898,8 @@ character(len=*), INTENT(IN)            :: Ebcfname
 
 ! Help integers
 integer                                 :: Ns ! Number of theta bins
-integer                                 :: reclen 
+integer                                 :: reclen
+logical                                 :: disptext 
 
 ! Counters
 integer                                 :: i, ii, iii, stepf, stepang, index2
@@ -934,13 +939,13 @@ pp=maxval(wp%f)*2.d0
 if (wp%dt>(1.d0/pp)) then
     wp%dt=1.d0/pp
     if (xmaster) then
-        write(*,'(a,f6.4,a)')'Changing dt in wave boundary conditions to satisfy Nyquist condition. New dt = ',wp%dt,' s.'
+        call writelog('ls','(a,f6.4,a)','Changing dt in wave boundary conditions to satisfy Nyquist condition. New dt = ',wp%dt,' s.')
     endif
 endif
 
 ! Print message to screen
 if(xmaster) then
-    write(*,*)'Calculating wave energy at boundary'
+    call writelog('ls','','Calculating wave energy at boundary')
 endif
 
 ! Determine frequencies around peak frequency of one-dimensional
@@ -1276,11 +1281,12 @@ do ii=1,Ns
 
     ! Print message to screen
     if(xmaster) then
-        write(*,'(A,I0,A,I0)')'Calculating wave energy for theta bin ',ii,' of ',Ns
+        call writelog('ls','(A,I0,A,I0)','Calculating wave energy for theta bin ',ii,' of ',Ns)
     endif
     
     ! Calculate wave energy for each y-coordinate along seaside boundary for
     ! current computational directional bin
+	disptext = .true.
     do index2=1,wp%Npy
         
         ! Select wave components that are in the current computational
@@ -1375,9 +1381,9 @@ do ii=1,Ns
 			! Print status message to screen
             if(xmaster) then
                 if (F2/=0) then
-                    write(*,'(A,I0,A,I0,A,I0)')'Y-point ',index2,' of ',wp%Npy,' done. Error code: ',F2
+                    call writelog('ls','(A,I0,A,I0,A,I0)','Y-point ',index2,' of ',wp%Npy,' done. Error code: ',F2)
                 else
-                    write(*,'(A,I0,A,I0,A)')'Y-point ',index2,' of ',wp%Npy,' done.'
+                    call writelog('ls','(A,I0,A,I0,A)','Y-point ',index2,' of ',wp%Npy,' done.')
                 end if          
             endif
             
@@ -1386,7 +1392,10 @@ do ii=1,Ns
             ! Current computational directional bin does not contain any wave
             ! components, so print message to screen
             if(xmaster) then
-                write(*,'(A,I0,A)')'Theta bin ',ii,' empty at this point. Continuing to next point'
+			    if (disptext) then
+                   call writelog('ls','(A,I0,A)','Theta bin ',ii,' empty at this point. Continuing to next point')
+				   disptext = .false.
+			    endif
             endif
         end if
 
@@ -1397,7 +1406,7 @@ end do
 
 ! Print message to screen
 if(xmaster) then
-    write(*,fmt='(a)')'writing wave energy to ',trim(Ebcfname),' ...'
+    call writelog('ls','','writing wave energy to ',trim(Ebcfname),' ...')
 endif
 
 ! Determine energy distribution over y-coordinates, computational directional
@@ -1416,7 +1425,7 @@ if(xmaster) then
         write(12,rec=i)E_tdir(:,min(i,wp%Nr),:)
     end do
     close(12)
-    write(*,*)'file done'
+    call writelog('sl','','file done')
 endif
 
 deallocate (D,t,zeta,Ampzeta,E_tdir, Amp, eta)
@@ -1434,6 +1443,7 @@ use params
 use spaceparams
 use math_tools
 use xmpi_module
+use logging_module
 
 IMPLICIT NONE
 
@@ -1471,7 +1481,7 @@ Nr=wp%Nr
 
 ! Print message to screen
 if(xmaster) then
-    write(*,*) 'Calculating flux at boundary'
+    call writelog('sl','', 'Calculating flux at boundary')
 endif
 
 ! Allocate two-dimensional variables for all combinations of interacting wave
@@ -1614,7 +1624,7 @@ allocate(Comptemp2(Nr))
 
 ! Print status message to screen
 if(xmaster) then
-    write(*,'(A,I0)')'Flux 1 of ',Npy
+    call writelog('ls','(A,I0)','Flux 1 of ',Npy)
 endif
 
 ! Fourier transformation
@@ -1643,7 +1653,7 @@ do jj=2,Npy
 
     ! Print status message to screen
     if(xmaster) then
-        write(*,'(A,I0,A,I0)')'Flux ',jj,' of ',Npy
+        call writelog('ls','(A,I0,A,I0)','Flux ',jj,' of ',Npy)
     endif
     
     ! Inverse Discrete Fourier transformation to transform back to time space
@@ -1666,7 +1676,7 @@ deallocate(index2)
 
 ! Write bound long wave flux to BCF file
 if(xmaster) then
-    write(*,fmt='(a)')'writing long wave mass flux to ',trim(qbcfname),' ...'
+    call writelog('ls','','writing long wave mass flux to ',trim(qbcfname),' ...')
     inquire(iolength=reclen) 1.d0
     reclen=reclen*(Npy)
     open(21,file=qbcfname,form='unformatted',access='direct',recl=reclen)
@@ -1674,7 +1684,7 @@ if(xmaster) then
         write(21,rec=i)qx(:,min(i,wp%Nr))
     end do
     close(21)
-    write(*,*)'file done'
+    call writelog('sl','','file done')
 endif
 
 deallocate(wp%index_vector,wp%S0,wp%dthetafin,wp%fgen,wp%theta0,wp%window)
@@ -1862,6 +1872,7 @@ subroutine checkbcfilelength(par,filename)
 
 use params
 use xmpi_module
+use logging_module
 
 IMPLICIT NONE
 
@@ -1883,7 +1894,10 @@ if (xmaster) then
 	nlines=i
 	rewind(741)    
 		
-	if (par%instat==4 .or. par%instat==5 .or. par%instat==6) then 
+	if (  trim(par%instat)=='jons' .or. &
+	      trim(par%instat)=='swan' .or. &
+		  trim(par%instat)=='vardens' &
+		) then 
 		read(741,*)testc
 		if (testc=='FILELIST') then
 			filetype = 1
@@ -1891,7 +1905,7 @@ if (xmaster) then
 		else
 			filetype = 0
 		endif
-	elseif (par%instat==40 .or. par%instat==41) then
+	elseif (trim(par%instat)=='stat_table' .or. trim(par%instat)=='jons_table') then
         filetype = 2
 	endif
     
@@ -1937,8 +1951,8 @@ if (xmaster) then
 	
 	close(741)
 	if (total<par%tstop) then
-		write(*,*)'Error !!!! Wave boundary condition time series too short. Stopping calculation !!!'
-                write(*,*)'tstop', par%tstop, total
+		call writelog('els','','Wave boundary condition time series too short. Stopping calculation')
+        call writelog('els','','tstop = ', par%tstop,' time series = ',total)
 		call halt_program
 	endif
 

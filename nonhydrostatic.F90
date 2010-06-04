@@ -6,6 +6,7 @@ module nonhydrostatic
 
 use params
 use spaceparams
+use logging_module
 
 implicit none
 
@@ -62,7 +63,7 @@ contains
 		integer i,j
 		integer									:: iw,jw,ie,je
 		
-		write(*,*) 'Setting up dynamic pressure correction'
+		call writelog('ls','', 'Setting up dynamic pressure correction')
 
 		open(124,file='ws.dat',form='binary')       !Output surface velocity    
 		open(128,file='p1.dat',form='binary')       !Output pressure
@@ -273,14 +274,14 @@ endif
 	    ar(1,:)	        = 0.0		       		
 		do j=2,s%ny
 	    !Front boundary
-	    	if (par%front == 4) then
+	    	if (trim(par%front) == 'nonh_1d') then
 		   	    humin(2,j)  = 0.0    !Closed boundary, only used in basin tests
 		    else
                 au(1,j,:)   = 0.0 !dp/dx = 0.0
 		    endif
 			    
 		!Back boundary
-		    if (par%back == 1) then
+		    if (trim(par%back) == 'abs_1d') then
            	    huplus(s%nx,j)  = 0.0 !Closed boundary
            	    au(s%nx,j,:)    = 0.0
 		    else
@@ -339,12 +340,12 @@ endif
 			ar(:,1) 	  = 0.0
 
 		    do i=2,s%nx
-		        if (par%left == 1) then
+		        if (trim(par%left) == 'wall') then
             	    hvmin(i,2)  = 0.0 !Closed boundary            	    
 			    else
                     av(i,1,:)     = 0.0 !dp/dy = 0.0
 			    endif
-			    if (par%right == 1) then
+			    if (trim(par%right) == 'wall') then
             	    hvplus(i,s%ny)  = 0.0 !Closed boundary
             	    hvplus(i,s%ny)  = 0.0
             	else

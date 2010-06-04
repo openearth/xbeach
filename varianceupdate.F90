@@ -41,6 +41,7 @@ subroutine makeaverage(s,sl,par, meanvec)
   use params
   use spaceparams
   use mnemmodule
+  use logging_module
 
   IMPLICIT NONE
 
@@ -339,8 +340,7 @@ subroutine makeaverage(s,sl,par, meanvec)
 		                MA = max(MA,dble(t%i2))
 			            MI = min(MI,dble(t%i2))                        
                 case default
-                  write(*,*)'Error in makeaverage, variable"'//t%name// &
-                          '" is of wrong rank'
+                  call writelog('lse','','Error in makeaverage, variable ''',t%name,''' is of wrong rank')
                   call halt_program
               end select  ! rank
             case ('r')
@@ -361,8 +361,7 @@ subroutine makeaverage(s,sl,par, meanvec)
 		                MA = max(MA,t%r2)
 			            MI = min(MI,t%r2)
                 case default
-                  write(*,*)'Error in makeaverage, variable"'//t%name// &
-                          '" is of wrong rank'
+                  call writelog('lse','','Error in makeaverage, variable ''',t%name,''' is of wrong rank')
                   call halt_program
               end select  ! rank
           end select  !type

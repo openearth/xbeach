@@ -68,6 +68,7 @@ subroutine output_init(s,sl,par,tpar)
   use spaceparams
   use readkey_module
   use timestep_module
+  use logging_module
 
   IMPLICIT NONE
 
@@ -83,7 +84,6 @@ subroutine output_init(s,sl,par,tpar)
   character(80)                       :: var
   integer, dimension(:,:),allocatable :: temparray
   real*8,dimension(s%nx+1,s%ny+1)	  :: mindist
-  real*8                              :: tg1,tp1,tm1,tw1,tc1
   real*8,dimension(:),allocatable     :: xpointsw,ypointsw
   real*8,dimension(:),allocatable     :: xcrossw,ycrossw
   character(1)						  :: singlechar
@@ -152,16 +152,16 @@ subroutine output_init(s,sl,par,tpar)
 
           do i=1,par%npoints
               read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
-			  write(*,'(a,i0)') ' Output point ',i
-              write(*,'(a,f0.2,a,f0.2)') ' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i)
+			  call writelog('ls','(a,i0)',' Output point ',i)
+              call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
               ! Convert world coordinates of points to nearest (lsm) grid point
 			     mindist=sqrt((xpointsw(i)-s%xw)**2+(ypointsw(i)-s%yw)**2)
 			     minlocation=minloc(mindist)
 			     xpoints(i)=minlocation(1)
 			     ypoints(i)=minlocation(2)
-			     write(*,'(a,i0,a,i0,a,f0.2,a)')' Distance output point to nearest grid point ('&
+			     call writelog('ls','(a,i0,a,i0,a,f0.2,a)',' Distance output point to nearest grid point ('&
 			                        ,minlocation(1),',',minlocation(2),') is '&
-			                        ,mindist(minlocation(1),minlocation(2)), ' meters'
+			                        ,mindist(minlocation(1),minlocation(2)), ' meters')
 
               icold=0
               do ii =1,nvarpoint(i)
@@ -172,9 +172,9 @@ subroutine output_init(s,sl,par,tpar)
 
                   if (index/=-1) then
                       temparray(i,ii)=index
-                      write(*,*)' Output type: "'//trim(var)//'"'
+                      call writelog('sl','',' Output type: ''',trim(var),'''')
                   else
-                      write(*,*)' Unknown point output type: "'//trim(var)//'"'
+                      call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
                       call halt_program
                   endif
                   icold=ic
@@ -199,14 +199,14 @@ subroutine output_init(s,sl,par,tpar)
 
           do i=1+par%npoints,par%nrugauge+par%npoints
               read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
-			  write(*,'(a,i0)') ' Output runup gauge ',i-par%npoints
-              write(*,'(a,f0.2,a,f0.2)') ' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i)
+			  call writelog('ls','(a,i0)',' Output runup gauge ',i-par%npoints)
+              call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
 				  ! Convert world coordinates of points to nearest (lsm) grid row
 			     mindist=sqrt((xpointsw(i)-s%xw)**2+(ypointsw(i)-s%yw)**2)
 			     minlocation=minloc(mindist)
 			     xpoints(i)=1
 			     ypoints(i)=minlocation(2)
-			     write(*,'(a,i0)')'Runup gauge at grid line iy=',ypoints(i)
+			     call writelog('ls','(a,i0)','Runup gauge at grid line iy=',ypoints(i))
               icold=0
               do ii =1,nvarpoint(i)
                   ic=scan(line(icold+1:80),'#')
@@ -216,9 +216,9 @@ subroutine output_init(s,sl,par,tpar)
 
                   if (index/=-1) then
                       temparray(i,ii)=index
-                      write(*,*)' Output type:"'//trim(var)//'"'
+                      call writelog('sl','',' Output type: ''',trim(var),'''')
                   else
-                      write(*,*)' Unknown point output type: "'//trim(var)//'"'
+                      call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
                       call halt_program
                   endif
                   icold=ic
@@ -298,13 +298,13 @@ subroutine output_init(s,sl,par,tpar)
 		  do i=1,par%ncross
 !          read(10,*) xcrossw(i),ycrossw(i),crosstype(i),nvarcross(i),line
           read(10,*) xcrossw(i),ycrossw(i),singlechar,nvarcross(i),line
-			 write(*,'(a,i0)') ' Cross section ',i
+			 call writelog('ls','(a,i0)',' Cross section ',i)
 			 if(singlechar=='x'.or.singlechar=='X') then
 			    crosstype(i)=0
 			 elseif(singlechar=='y'.or.singlechar=='Y') then
 			    crosstype(i)=1
 			 else
-                write(*,*)' Unknown cross section type: ',singlechar
+                call writelog('lse','',' Unknown cross section type: ',singlechar)
                 call halt_program
 			 endif
 			 ! Convert world coordinates of points to nearest (lsm) grid row
@@ -312,12 +312,12 @@ subroutine output_init(s,sl,par,tpar)
 			 minlocation=minloc(mindist)
 			 xcross(i)=minlocation(1)
 			 ycross(i)=minlocation(2)
-          write(*,'(a,f0.2,a,f0.2)') ' positioned at x-coordinate: ',xcrossw(i),&
-			                                  ' y-coordinate: ',ycrossw(i)			 
+             call writelog('ls','(a,f0.2,a,f0.2)',' positioned at x-coordinate: ',xcrossw(i),&
+			                                  ' y-coordinate: ',ycrossw(i)	)		 
 			 if (crosstype(i)==0) then
-			   write(*,'(a,i0)')' placed in x-direction at row iy = ',ycross(i)
+			   call writelog('ls','(a,i0)',' placed in x-direction at row iy = ',ycross(i))
 			 else
-			   write(*,'(a,i0)')' placed in y-direction at column ix = ',xcross(i) 
+			   call writelog('ls','(a,i0)',' placed in y-direction at column ix = ',xcross(i))
 			 endif
           icold=0
           do ii =1,nvarcross(i)
@@ -327,14 +327,14 @@ subroutine output_init(s,sl,par,tpar)
             index = chartoindex(var)
             if (index/=-1) then
               temparray(i,ii)=index
-				  call indextos(s,index,At)
-		        if (At%rank.ne.2) then
-		          write(*,'(a,i0,a,a,a)')' Cross section output not designed for rank ',At%rank,' array "',trim(At%name),'"'
-			       call halt_program
-		        endif
-              write(*,*)' Output type: "'//trim(var)//'"'
+			  call indextos(s,index,At)
+		      if (At%rank.ne.2) then
+		         call writelog('les','(a,i0,a,a,a)',' Cross section output not designed for rank ',At%rank,' array "',trim(At%name),'"')
+			     call halt_program
+		      endif
+              call writelog('sl','',' Output type: ''',trim(var),'''')
             else
-              write(*,*)' Unknown point output type: "'//trim(var)//'"'
+              call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
               call halt_program
             endif
             icold=ic
@@ -470,14 +470,14 @@ subroutine output_init(s,sl,par,tpar)
             if (index/=-1) then
 				call indextos(s,index,At)
 		        if (At%rank.ne.2) then
-		           write(*,'(a,f2.0,a,a,a)')' Time-average output not designed for rank ',real(At%rank),&
-						                                       ' array "',trim(At%name),'"'
+		            call writelog('les','(a,i,a,a,a)',' Time-average output not designed for rank ',(At%rank),&
+						                                       ' array "',trim(At%name),'"')
 			        call halt_program
 		        endif
                 meanvec(i)=index
-                write(*,'(a)')' Will generate mean, min, max and variance output for variable: '//trim(mnemonics(index))
+                call writelog('ls','(a)',' Will generate mean, min, max and variance output for variable: '//trim(mnemonics(index)))
             else
-                write(*,*)' Unknown output type ',trim(line)
+                call writelog('sle','',' Unknown point output type: ''',trim(line),'''')
                 call halt_program
             endif
         end do
@@ -509,11 +509,12 @@ end subroutine output_init
 
 subroutine add_outnumber(number)
   use xmpi_module
+  use logging_module
   implicit none
   integer, intent(in)  :: number ! to add
   if (noutnumbers .ge. numvars) then
-    write(*,'(a,i0)')'Too many outnumbers asked, max is ',numvars
-    write(*,*)'Program will stop'
+    call writelog('els','(a,i0)','Too many outnumbers asked, max is ',numvars)
+    call writelog('els','(a)','Program will stop')
     call halt_program
   endif
 
@@ -523,19 +524,20 @@ subroutine add_outnumber(number)
 end subroutine add_outnumber
 
 subroutine add_outmnem(mnem)
+  use logging_module
   implicit none
   character(len=*), intent(in) :: mnem
   integer              :: i
   i = chartoindex(mnem)
   if (i .lt. 1 .or. i .gt. numvars) then
     if(xmaster) then
-      write(*,*)'Warning: cannot locate variable "',trim(mnem),'", no output for this one'
+      call writelog('ls','','Warning: cannot locate variable "',trim(mnem),'", no output for this one')
     endif
     return
   endif
   call add_outnumber(i)
   if(xmaster) then
-    write(*,*)'Will generate global output for variable "',trim(mnem),'"'
+    call writelog('ls','','Will generate global output for variable "',trim(mnem),'"')
   endif
   return
 end subroutine add_outmnem
@@ -551,6 +553,7 @@ subroutine var_output(it,s,sl,par,tpar)
   use params
   use spaceparams
   use timestep_module
+  use logging_module
 
   IMPLICIT NONE
 
@@ -609,21 +612,21 @@ subroutine var_output(it,s,sl,par,tpar)
 	    percnow = 100.d0*par%t/par%tstop
 		tpredicted = 100.d0*(1.d0-par%t/par%tstop)/(max(percnow-percprev,0.01d0)/(tnow-tprev))
         if(xmaster) then
-           write(*,fmt='(a,f5.1,a)')'Simulation ',percnow,' percent complete'
+           call writelog('ls','(a,f5.1,a)','Simulation ',percnow,' percent complete')
            if (tpredicted>=3600) then 
-              write(*,fmt='(a,I3,a,I2,a)')'Time remaining ',&
-              floor(tpredicted/3600.0d0),' hours and ',&
-              nint((tpredicted-3600.0d0*floor(tpredicted/3600.0d0))/60.0d0),&
-              ' minutes'
+              call writelog('ls','(a,I3,a,I2,a)','Time remaining ',&
+                   floor(tpredicted/3600.0d0),' hours and ',&
+                   nint((tpredicted-3600.0d0*floor(tpredicted/3600.0d0))/60.0d0),&
+                   ' minutes')
            elseif (tpredicted>=600) then
-              write(*,fmt='(a,I2,a)')'Time remaining ',&
-              floor(tpredicted/60.0d0),' minutes'
+              call writelog('ls','(a,I2,a)','Time remaining ',&
+                   floor(tpredicted/60.0d0),' minutes')
            elseif (tpredicted>=60) then
-              write(*,fmt='(a,I2,a,I2,a)')'Time remaining ',&
-              floor(tpredicted/60.0d0),' minutes and ',&
-              nint((tpredicted-60.0d0*floor(tpredicted/60.0d0))),' seconds'
+              call writelog('ls','(a,I2,a,I2,a)','Time remaining ',&
+                   floor(tpredicted/60.0d0),' minutes and ',&
+                   nint((tpredicted-60.0d0*floor(tpredicted/60.0d0))),' seconds')
            else
-              write(*,fmt='(a,I2,a)')'Time remaining ',nint(tpredicted),' seconds'
+              call writelog('ls','(a,I2,a)','Time remaining ',nint(tpredicted),' seconds')
            endif
         endif
 		tprev=tnow
@@ -632,61 +635,6 @@ subroutine var_output(it,s,sl,par,tpar)
         day=day+1
      endif
   endif
-
-
-!  if (par%t>=(dble(ot)*par%tstop/500.d0)) then
-!      ot=ot+1
-!      ! Predicted time
-!      !call cpu_time(tnow)
-!      call date_and_time(VALUES=datetime)
-!      tnow=day*24.d0*3600.d0+datetime(5)*3600.d0+60.d0*datetime(6)+1.d0*datetime(7)+0.001d0*datetime(8)
-!
-!      if (tnow<minval(tlast10)) then
-!          day=day+1
-!          tnow=day*24.d0*3600.d0+datetime(5)*3600.d0+60.d0*datetime(6)+1.d0*datetime(7)+0.001d0*datetime(8)
-!      endif
-!
-!      tlast10(minloc(tlast10))=tnow
-!      if (ot==1) then
-!          dtimestep=0.d0
-!      elseif (ot<=9) then
-!          tt=count(tlast10 .gt. 0.d0)
-!          dtimestep=(maxval(tlast10)-minval(tlast10,MASK=tlast10 .gt. (0.d0)))/real(max(1,tt-1))
-!      else
-!          dtimestep=(maxval(tlast10)-minval(tlast10))/9.d0
-!      endif
-!
-!      !       tpredicted=((par%tstop/par%tint)-it)*dtimestep
-!      if(timings .ne. 0) then
-!        if(xmaster) then
-!          write(*,fmt='(a,f5.1,a)')'Simulation ',100.d0*par%t/par%tstop,&
-!             ' percent complete'
-!        endif
-!      endif
-!
-!      tpredicted=(par%tstop-par%t)/(par%tstop/500.d0)*dtimestep
-!      if (timings .ne. 0) then
-!        if (dtimestep<1 .and. tpredicted<120 .or. .not. xmaster) then 
-!                ! Write nothing
-!        elseif (tpredicted>=3600) then 
-!            write(*,fmt='(a,I3,a,I2,a)')'Time remaining ',&
-!              floor(tpredicted/3600.0d0),' hours and ',&
-!              nint((tpredicted-3600.0d0*floor(tpredicted/3600.0d0))/60.0d0),&
-!              ' minutes'
-!        elseif (tpredicted>=600) then
-!            write(*,fmt='(a,I2,a)')'Time remaining ',&
-!              floor(tpredicted/60.0d0),' minutes'
-!        elseif (tpredicted>=60) then
-!            write(*,fmt='(a,I2,a,I2,a)')'Time remaining ',&
-!              floor(tpredicted/60.0d0),' minutes and ',&
-!              nint((tpredicted-60.0d0*floor(tpredicted/60.0d0))),' seconds'
-!        else
-!          write(*,fmt='(a,I2,a)')'Time remaining ',nint(tpredicted),' seconds'
-!        endif
-!      endif
-!  endif
-
-   
 
 
   ! Determine if this is an output timestep
@@ -919,6 +867,7 @@ subroutine makeintpvector(par,s,intpvector,mg,ng)
 
   use params
   use spaceparams
+  use logging_module
 
   IMPLICIT NONE
 
@@ -960,8 +909,8 @@ subroutine makeintpvector(par,s,intpvector,mg,ng)
     endif
   enddo
   if (p .lt. 0) then
-    write(*,*)'Catastrophic error in makeintpvector'
-    write(*,*)'Cannot find processor for indexes',mg,ng
+    call writelog('els','','Catastrophic error in makeintpvector')
+    call writelog('els','(a,i0,i0)','Cannot find processor for indexes',mg,ng)
     call halt_program
   endif
 

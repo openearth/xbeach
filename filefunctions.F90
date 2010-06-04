@@ -52,6 +52,7 @@ end subroutine check_file_exist
 
 subroutine check_file_length_1D(fname,d1)
 use xmpi_module
+use logging_module
   
    implicit none
    character(*)                   ::  fname
@@ -72,8 +73,8 @@ use xmpi_module
 #endif 
    if (iost .ne. 0) then
       if (xmaster) then
-         write(*,*)'Error processing file ''',trim(fname),'''.',' File may be too short or contains invalid values.', & 
-				                                                 ' Terminating simulation' 
+         call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
+				                                                 ' Terminating simulation' )
          call halt_program
       endif
    endif
@@ -82,6 +83,7 @@ end subroutine check_file_length_1D
 
 subroutine check_file_length_2D(fname,d1,d2)
 use xmpi_module
+use logging_module
   
    implicit none
    character(*)                     :: fname
@@ -102,8 +104,8 @@ use xmpi_module
 #endif 
    if (iost .ne. 0) then
       if (xmaster) then
-         write(*,*)'Error processing file ''',trim(fname),'''.',' File may be too short or contains invalid values.', & 
-				                                                 ' Terminating simulation'
+         call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
+				                                                 ' Terminating simulation')
          call halt_program
       endif
    endif
@@ -112,6 +114,7 @@ end subroutine check_file_length_2D
 
 subroutine check_file_length_3D(fname,d1,d2,d3)
 use xmpi_module
+use logging_module
   
    implicit none
    character(*)                       ::  fname
@@ -132,8 +135,8 @@ use xmpi_module
 #endif 
    if (iost .ne. 0) then
       if (xmaster) then
-         write(*,*)'Error processing file ''',trim(fname),'''.',' File may be too short or contains invalid values.', & 
-				                                                 ' Terminating simulation'
+         call writelog('esl','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
+				                                                 ' Terminating simulation')
          call halt_program
       endif
    endif
@@ -145,7 +148,7 @@ use logging_module
 
 IMPLICIT NONE
 real*8, intent(in) :: tstop
-integer, intent(in):: instat
+character(24), intent(in):: instat
 character*80      :: filename,dummy
 character*8       :: testc
 character*1       :: ch
@@ -163,7 +166,7 @@ enddo
 nlines=i
 rewind(fid)    
 	
-if (instat==4 .or. instat==5 .or. instat==6) then 
+if (trim(instat)=='jons' .or. trim(instat)=='swan' .or. trim(instat)=='vardens') then 
 	read(fid,*)testc
     if (testc=='FILELIST') then
 		filetype = 1
@@ -171,7 +174,7 @@ if (instat==4 .or. instat==5 .or. instat==6) then
 	else
 		filetype = 0
 	endif
-elseif (instat==40 .or. instat==41) then
+elseif (trim(instat)=='stat_table' .or. trim(instat)=='jons_table') then
     filetype = 2
 endif
     

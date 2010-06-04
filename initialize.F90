@@ -258,7 +258,13 @@ real*8,dimension(:),allocatable     :: yzs0,szs0
   end do
 
   ! introduce intrinsic frequencies for wave action
-  if (par%instat==4 .or. par%instat==5 .or. par%instat==6 .or. par%instat==7 .or. par%instat==8) par%Trep=10.d0 !Robert
+  if (  trim(par%instat)=='jons' .or. &
+        trim(par%instat)=='swan' .or. &
+	    trim(par%instat)=='vardens' .or. &
+	    trim(par%instat)=='reuse' .or. &
+	    trim(par%instat)=='nonh' &
+	  ) par%Trep=10.d0 
+  !Robert
   ! incorrect values are computed below for instat = 4/5/6/7
   ! in this case right values are computed in wave params.f90
   do itheta=1,s%ntheta
@@ -370,6 +376,8 @@ integer*4                           :: iUnit
   s%v=0.d0
   s%vu=0.d0
   s%uv=0.d0
+  s%ueu=0.d0
+  s%vev=0.d0
   s%qx=0.d0
   s%qy=0.d0
   s%sedero=0.d0
@@ -381,8 +389,15 @@ integer*4                           :: iUnit
   s%tauby=0.d0
   s%maxzs=-999.d0
   s%minzs=999.d0
-
-
+  where(s%zs>s%zb+par%eps)
+     s%wetz=1
+	 s%wetu=1
+	 s%wetv=1
+  elsewhere
+     s%wetz=0
+	 s%wetu=0
+	 s%wetv=0
+  endwhere
 
 end subroutine flow_init
 
@@ -396,6 +411,7 @@ use params
 use spaceparams
 use readkey_module
 use xmpi_module
+use logging_module
 
 IMPLICIT NONE
 
@@ -435,8 +451,6 @@ allocate(s%ureps(1:s%nx+1,1:s%ny+1))
 allocate(s%urepb(1:s%nx+1,1:s%ny+1))
 allocate(s%vreps(1:s%nx+1,1:s%ny+1))
 allocate(s%vrepb(1:s%nx+1,1:s%ny+1))
-allocate(s%dzbdx(1:s%nx+1,1:s%ny+1))
-allocate(s%dzbdy(1:s%nx+1,1:s%ny+1))
 allocate(s%ero(1:s%nx+1,1:s%ny+1,1:par%ngd))
 allocate(s%depo_ex(1:s%nx+1,1:s%ny+1,1:par%ngd))
 allocate(s%depo_im(1:s%nx+1,1:s%ny+1,1:par%ngd))
@@ -465,7 +479,7 @@ s%pbbed = 0.d0
  else
     read(line,*) s%D50(1:par%ngd)
  endif
- if (par%form<4 .and. maxval(s%D50)>0.002) write(*,*) 'D50 > 2mm, out of validity range'
+ if (maxval(s%D50)>0.002) call writelog('ls','', 'D50 > 2mm, out of validity range')
  call readkey('params.txt','D90',line)
  if (line=='') then
     s%D90=0.0003d0   ! Default
@@ -520,9 +534,9 @@ else
 			   tempr=sum(s%pbbed(i,j,m,1:par%ngd))
 			   if (abs(1.d0-tempr)>0.d0) then
 			       ! Maybe fix this warning if in combination with structures
-				   write(*,*)' Warning: Resetting sum of sediment fractions in point (',&
+				   call writelog('ls','ai0ai0ai0a',' Warning: Resetting sum of sediment fractions in point (',&
 					                     i,',',j,') layer ,',m,&
-												' to equal unity.'
+												' to equal unity.')
 				   if (tempr<=tiny(0.d0)) then    ! In case cell has zero sediment (i.e. only hard structure)
                       s%pbbed(i,j,m,:)=1.d0/dble(par%ngd) 
 				   else

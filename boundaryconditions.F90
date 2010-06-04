@@ -34,6 +34,7 @@ use interp
 use wave_timestep_module
 use xmpi_module
 use readkey_module
+use logging_module
 
 IMPLICIT NONE
 
@@ -93,11 +94,11 @@ dtheta = par%dtheta*par%px/180
 startbcf=.false.
 if(abs(par%t-par%dt)<1.d-6) then
     if (xmaster) then
-      write(*,*)'Setting up boundary conditions'
+      call writelog('ls','','Setting up boundary conditions')
     endif
     startbcf=.true.                     ! trigger read from bcf for instat 3,4,5,7
     bcendtime=huge(0.0d0)               ! initial assumption for instat 3,4,5,7
-    if (par%instat==2) then
+    if (trim(par%instat)=='ts_1') then
        if(xmaster) then
 		  open( unit=7, file='bc/gen.ezs')
        endif
@@ -125,7 +126,7 @@ if(abs(par%t-par%dt)<1.d-6) then
          close(7)
        endif
        par%Emean=sum(dataE)/nt
-    elseif (par%instat==3) then
+    elseif (trim(par%instat)=='ts_2') then
        if (xmaster) then
          open( unit=7, file='bc/gen.ezs')
 6        continue
@@ -153,9 +154,9 @@ if(abs(par%t-par%dt)<1.d-6) then
          close(7)
        endif
        par%Emean=sum(dataE)/nt
-	elseif (par%instat==40) then
+	elseif (trim(par%instat)=='stat_table') then
        if (xmaster) then
-         call readkey('params.txt','bcfile',fname)
+	     fname = readkey_name('params.txt','bcfile')
 		 call checkbcfilelength(par,fname)
 	     open( unit=7, file=fname)
 !	     open( unit=7, file='jonswap1.txt')
@@ -179,28 +180,33 @@ if(abs(par%t-par%dt)<1.d-6) then
        s%sigm = sum(s%sigt,3)/s%ntheta
        call dispersion(par,s)     
 	   
-    elseif ((par%instat==4.or.par%instat==41).and.xmaster) then
+    elseif ((trim(par%instat)=='jons'.or.trim(par%instat)=='jons_table').and.xmaster) then
        call makebcf(par,sg,wp)
-    elseif (par%instat==5.and.xmaster) then
+    elseif (trim(par%instat)=='swan'.and.xmaster) then
        call makebcf(par,sg,wp)
-    elseif (par%instat==6.and.xmaster) then
+    elseif (trim(par%instat)=='vardens'.and.xmaster) then
        call makebcf(par,sg,wp) 
-    elseif (par%instat==7.and.xmaster) then
+    elseif (trim(par%instat)=='reuse'.and.xmaster) then
        par%listline=1
-    elseif (par%instat==8.and.xmaster) then   
+    elseif (trim(par%instat)=='nonh'.and.xmaster) then   
        call velocity_Boundary(ui(1,:),zi(1,:),wi(1,:),s%nx,s%ny,par%t,s%zs,s%ws)  
     endif
     !
     ! Directional distribution
     !
-    if(par%instat==0 .or. par%instat==1 .or. par%instat==2 .or. par%instat==3 .or. par%instat==40)then
+    if(  trim(par%instat)=='stat' .or. &
+	     trim(par%instat)=='bichrom' .or. &
+	     trim(par%instat)=='ts_1' .or. &
+	     trim(par%instat)=='ts_2' .or. &
+	     trim(par%instat)=='stat_table' &
+	   )then
         dist=(cos(theta-theta0))**par%m
         do i=1,ntheta
             if(abs(theta(i)-theta0)>par%px/2) then
                 dist(i)=0
             end if
         end do
-        if (par%instat==3) then
+        if (trim(par%instat)=='ts_2') then
            par%Hrms=sqrt(8*par%Emean/(par%rho*par%g))
         endif
         E0=par%rhog8*par%Hrms**2
@@ -220,14 +226,14 @@ if(abs(par%t-par%dt)<1.d-6) then
 
     endif
     if (xmaster) then
-        write(*,*)'Boundary conditions complete, starting computation'
+        call writelog('sl','','Boundary conditions complete, starting computation')
     endif
 end if
 
 if (par%t .ge. bcendtime) then  ! Recalculate bcf-file 
-    if (par%instat==40) then
+    if (trim(par%instat)=='stat_table') then
        if (xmaster) then
-         write(*,*) 'Reading new wave conditions'
+         call writelog('ls','','Reading new wave conditions')
 	     read(7,*) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcdur, dum2
          par%Hrms = Hm0/sqrt(2.d0)
 	     par%m = 0.5d0*spreadpar
@@ -270,23 +276,23 @@ if (par%t .ge. bcendtime) then  ! Recalculate bcf-file
        endif
        e01    = factor*E0;
        e01    = max(e01,0.0d0);
-    elseif ((par%instat==4.or.par%instat==41).and.xmaster) then
+    elseif ((trim(par%instat)=='jons' .or. trim(par%instat)=='jons_table').and.xmaster) then
 !    if ((par%instat==4.or.par%instat==41).and.xmaster) then
         close(71)
         close(72)
         call makebcf(par,sg,wp)
         startbcf=.true.
-    elseif (par%instat==5.and.xmaster) then 
+    elseif (trim(par%instat)=='swan'.and.xmaster) then 
         close(71)
         close(72)
         call makebcf(par,sg,wp)
         startbcf=.true.
-    elseif (par%instat==6.and.xmaster) then 
+    elseif (trim(par%instat)=='vardens'.and.xmaster) then 
         close(71)
         close(72)
         call makebcf(par,sg,wp)
         startbcf=.true.
-    elseif (par%instat==7.and.xmaster) then
+    elseif (trim(par%instat)=='reuse'.and.xmaster) then
         close(71)
         close(72)
         startbcf=.true.
@@ -310,13 +316,13 @@ end if
 ! instat = 5 => directional wave energy time series from SWAN 2D spectrum file; bound long wave from van Dongeren, 19??    
 ! instat = 6 => directional wave energy time series from spectrum file; bound long wave from van Dongeren, 19??
 ! instat = 7 => as instat = 4/5/6; reading from previously computed wave boundary condition file.
-if (par%instat==0 .or. par%instat==40) then
+if (trim(par%instat)=='stat' .or. trim(par%instat)=='stat_table') then
    do j=1,ny+1
        ee(1,j,:)=e01*min(par%t/par%taper,1.0d0)
        bi(1) = 0.0d0
        ui(1,j) = 0.0d0
    end do
-elseif (par%instat==1) then
+elseif (trim(par%instat)=='bichrom') then
    do j=1,ny+1
        ee(1,j,:)=e01*0.5d0*(1.d0+cos(2*par%px*(par%t/par%Tlong-sin(theta0)*s%y(1,j)/par%Llong))) *min(par%t/par%taper,1.d0)
        em = (sum(0.5d0*e01))*dtheta *min(par%t/par%taper,1.d0)
@@ -325,7 +331,7 @@ elseif (par%instat==1) then
        ht=s%zs0(1:2,:)-zb(1:2,:)
        ui(1,j) = cg(1,j)*bi(1)/ht(1,j)*cos(theta0)
    end do
-elseif (par%instat==2) then
+elseif (trim(par%instat)=='ts_1') then
    do j=1,ny+1
       if (abs(theta0)<1e-3) then
          call linear_interp(tE,dataE,nt,par%t,E1,E_idx)
@@ -340,7 +346,7 @@ elseif (par%instat==2) then
       ht=s%zs0(1:2,:)-zb(1:2,:)
       ui(1,j) = cg(1,j)*bi(1)/ht(1,j)*cos(theta0)
    end do
-elseif (par%instat==3) then
+elseif (trim(par%instat)=='ts_2') then
     ht=s%zs0(1:2,:)-zb(1:2,:)
     do j=1,ny+1
         if (abs(theta0)<1e-3) then
@@ -358,7 +364,12 @@ elseif (par%instat==3) then
         endif
 
     end do
-elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat==6) .or. (par%instat==7)) then  
+elseif (  (trim(par%instat)=='jons').or. &
+          (trim(par%instat)=='jons_table').or. &
+		  (trim(par%instat)=='swan') .or. &
+		  (trim(par%instat)=='vardens') .or. &
+		  (trim(par%instat)=='reuse')  &
+		) then  
     ! open file if first time
     if (startbcf) then
         if(xmaster) then
@@ -496,11 +507,11 @@ elseif ((par%instat==4).or.(par%instat==41).or.(par%instat==5) .or. (par%instat=
         (tnew-par%t)/dtbcfile*q1
     ui(1,:) = q/ht(1,:)*min(par%t/par%taper,1.0d0)
     ee(1,:,:)=ee(1,:,:)*min(par%t/par%taper,1.0d0)
-elseif (par%instat==8.and.xmaster) then   
+elseif (trim(par%instat)=='nonh'.and.xmaster) then   
     call velocity_Boundary(ui(1,:),zi(1,:),wi(1,:),s%nx,s%ny,par%t,s%zs,s%ws)
 else
    if (xmaster) then
-     write(*,*)' instat = ',par%instat, ' invalid option'
+     call writelog('lse','', 'instat = ',trim(par%instat), ' invalid option')
    endif
    call halt_program
 endif
@@ -515,86 +526,6 @@ call xmpi_shift(ui,'1:')
 ! wwvv also fill in ee(1,:,:)
 call xmpi_shift(ee,'1:')
 #endif
-
-! Robert: moved to wave timestep, before calculation of radiation stress terms
-!if (par%t>0.0d0) then
-!  if (xmpi_isleft)then ! Jaap
-!    if (par%rightwave==0) then		
-!		!
-!		! Lateral boundary at y=0;
-!		!
-!		if(par%instat>0 .and. par%instat/=40) then
-!			fac1=(y(2:nx+1,2)-y(2:nx+1,1))*abs(tan(thetamean(2:nx+1,2)))/(x(2:nx+1,2)-x(1:nx,2))
-!		else
-!			fac1=0
-!		end if
-!		! fac1=min(fac1,1.d0)
-!		! fac1=max(fac1,0.d0)\
-!		! the above approach causes a shoreline jet from outside to inside the domain
-!		! and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
-!		! so
-!		fac1 = 0.d0 !Ap 28/11   
-!		fac2=1.d0-fac1
-!		do itheta=1,ntheta 
-!
-!			  ee(2:nx+1,1,itheta)=ee(1:nx+1-1,2,itheta)*fac1+ee(2:nx+1,2,itheta)*fac2
-!
-!		end do
-!	elseif (par%rightwave==1) then
-!		wcrestpos=xz+tan(thetamean(:,2))*(yz(2)-yz(1))
-!		do itheta=1,ntheta
-!		   do i=1,nx+1
-!		      call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-!			                     (/ee(1,2,itheta),ee(:,2,itheta),ee(nx+1,2,itheta)/),&
-!								  nx+1,xz(i),ee(i,1,itheta),dummy)
-!		   enddo
-!	    enddo
-! 	 endif
-!   endif
-!   if (xmpi_isright)then
-!	 if (par%leftwave==0) then
-!		!
-!		! lateral; boundary at y=ny*dy
-!		!
-!		if(par%instat>0 .and. par%instat/=40) then
-!			fac1=(y(2:nx+1,ny+1)-y(2:nx+1,ny))*abs(tan(thetamean(2:nx+1,ny)))/(x(2:nx+1,ny)-x(1:nx,ny))
-!		else
-!			fac1=0.0d0
-!		end if
-!		! fac1=min(fac1,1.d0)
-!		! fac1=max(fac1,0.d0)
-!		! the above approach causes a shoreline jet from outside to inside the domain
-!		! and mass gain in the domain, so it is turned off here. This means we extrapolate ee laterally in y
-!		! so   
-!		fac1=0.d0 !Ap 28/11
-!
-!		fac2=1.d0-fac1
-!		 do itheta=1,ntheta
-!
-!			   ee(2:nx+1,ny+1,itheta)= &
-!			   ee(1:nx+1-1,ny+1-1,itheta)*fac1+ee(2:nx+1,ny+1-1,itheta)*fac2
-!
-!		 end do
-!	elseif (par%leftwave==1) then
-!		wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
-!		do itheta=1,ntheta
-!		   do i=1,nx+1
-!		      call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-!			                     (/ee(1,ny,itheta),ee(:,ny,itheta),ee(nx+1,ny,itheta)/),&
-!								  nx+1,xz(i),ee(i,ny+1,itheta),dummy)
-!		   enddo
-!	    enddo
-!	 endif
-!   endif
-!endif
-!! wwvv communicate ee(:,1,:)
-!#ifdef USEMPI
-!call xmpi_shift(ee,':1')
-!! wwvv and ee(:,ny+1,:)
-!call xmpi_shift(ee,':n')
-!! wwv and ee(1,:,:) again
-!call xmpi_shift(ee,'1:')
-!#endif
 
 end subroutine wave_bc
 
@@ -658,7 +589,6 @@ factime=1.d0/par%cats/par%Trep*par%dt
 ! 
 ! Need to interpolate input tidal signal to xbeach par%t to 
 ! compute proper tide contribution 
-!write(*,*)  'made it into flow_bc and about to interp tide(t)'
 
 if (par%tideloc>0) then
 
@@ -804,17 +734,19 @@ endif
 !
 ! UPDATE (LONG) WAVES
 !
-if (par%instat/=9)then
+if (trim(par%instat)/='off')then
 ! wwvv the following is probably only to do in the top processes, but take care for
 ! the mpi_shift calls in horizontal directions
   if(xmpi_istop) then
-    if (par%front==0) then ! Ad's radiating boundary
-       umean(1,:)=(1.d0-factime)*umean(1,:)+factime*uu(1,:)
+    if (trim(par%front)=='abs_1d') then ! Ad's radiating boundary
+!       umean(1,:)=(1.d0-factime)*umean(1,:)+factime*uu(1,:)
+	   ! After hack 3/6/2010, return to par%epsi :
+	   umean(1,:) = (par%epsi*uu(1,:)+(1-par%epsi)*umean(1,:))
 !DAno  uu(1,:)=2.0d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))+umean(1,:)
        uu(1,:)=(1.0d0+sqrt(par%g*hh(1,:))/cg(1,:))*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))+umean(1,:)
        vv(1,:)=vv(2,:)
        zs(1,:)=zs(2,:)
-    elseif (par%front==1) then ! Van Dongeren (1997), weakly reflective boundary condition
+    elseif (trim(par%front)=='abs_2d') then ! Van Dongeren (1997), weakly reflective boundary condition
        ht(1:2,:)=max(s%zs0(1:2,:)-zb(1:2,:),par%eps)
        beta=uu(1:2,:)-2.*dsqrt(par%g*hum(1:2,:)) !cjaap : replace hh with hum
 
@@ -839,8 +771,11 @@ if (par%instat/=9)then
           betanp1(1,j) = beta(1,j)+ bn(j)*par%dt
           alpha2(j)=-theta0
           alphanew = 0.d0
-          umean(1,j) = (factime*uu(1,j)+(1-factime)*umean(1,j))  
-		  vmean(1,j) = (factime*vu(1,j)+(1-factime)*vmean(1,j))  
+!          umean(1,j) = (factime*uu(1,j)+(1-factime)*umean(1,j))  
+!		  vmean(1,j) = (factime*vu(1,j)+(1-factime)*vmean(1,j)) 
+          ! After hack 3/6/2010, return to par%epsi :
+		  umean(1,j) = (par%epsi*uu(1,j)+(1-par%epsi)*umean(1,j))
+		  vmean(1,j) = (par%epsi*vu(1,j)+(1-par%epsi)*vmean(1,j)) 
           do jj=1,50
              !---------- Lower order bound. cond. ---
              !qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
@@ -886,12 +821,12 @@ if (par%instat/=9)then
           end if
        end do
        vv(1,:)=vv(2,:)
-    else if (par%front==2) then
+    else if (trim(par%front)=='wall') then
 !       uu(1,:)=0.d0
 !      zs(1,:)=max(zs(2,:),zb(1,:))
-    else if (par%front==3) then
+    else if (trim(par%front)=='wlevel') then
        zs(1,:)=s%zs0(1,:)
-    else if (par%front==4) then
+    else if (trim(par%front)=='nonh_1d') then
        !Timeseries Boundary for nonh, only use in combination with instat=8       
        if (par%ARC==0) then
          s%uu(1,:) = s%ui(1,:)
@@ -926,19 +861,21 @@ if (par%instat/=9)then
   ! Radiating boundary at x=nx*dx
   !
   if (xmpi_isbot) then
-     if (par%back==0) then ! leave uu(nx+1,:)=0 
+     if (trim(par%back)=='wall') then ! leave uu(nx+1,:)=0 
       !  uu(nx,:) = 0.d0   
    !    zs(nx+1,:) = zs(nx,:)
 		! zs(nx+1,2:ny) = zs(nx+1,2:ny) + par%dt*hh(nx,2:ny)*uu(nx,2:ny)/(xu(nx+1)-xu(nx)) -par%dt*(hv(nx+1,2:ny+1)*vv(nx+1,2:ny+1)-hv(nx+1,1:ny)*vv(nx+1,1:ny))/(yv(2:ny+1)-yv(1:ny))
-     elseif (par%back==1) then
-        umean(2,:) = factime*uu(nx,:)+(1.d0-factime)*umean(2,:)   
+     elseif (trim(par%back)=='abs_1d') then
+!        umean(2,:) = factime*uu(nx,:)+(1.d0-factime)*umean(2,:) 
+		! After hack 3/6/2010, return to par%epsi :
+		umean(2,:) = (par%epsi*uu(nx,:)+(1-par%epsi)*umean(2,:))  
         uu(nx,:)=sqrt(par%g/hh(nx,:))*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))+umean(2,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
 !        uu(nx,:)=cg(nx,:)/hh(nx,:)*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))+umean(2,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
         !uu(nx,:)=sqrt(par%g/(s%zs0(nx,:)-zb(nx,:)))*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))
         !umean(2,:) = factime*uu(nx,:)+(1-factime)*umean(2,:)    !Ap
         !zs(nx+1,:)=max(s%zs0(nx+1,:),s%zb(nx+1,:))+(uu(nx,:)-umean(2,:))*sqrt(max((s%zs0(nx+1,:)-zb(nx+1,:)),par%eps)/par%g)    !Ap
         zs(nx+1,:)=zs(nx,:)
-     elseif (par%back==2) then
+     elseif (trim(par%back)=='abs_2d') then
 	   ht(1:2,:)=max(s%zs0(s%nx:s%nx+1,:)-zb(s%nx:s%nx+1,:),par%eps) !cjaap; make sure ht is always larger than zero
 
        beta=uu(s%nx-1:s%nx,:)+2.*dsqrt(par%g*hum(s%nx-1:s%nx,:)) !cjaap : replace hh with hum
@@ -967,7 +904,10 @@ if (par%instat/=9)then
           betanp1(1,j) = beta(2,j)+ bn(j)*par%dt                                   !Ap toch?
           alpha2(j)= theta0
           alphanew = 0.d0
-          umean(2,j) = (factime*uu(s%nx,j)+(1-factime)*umean(2,j))           !Ap 
+!          umean(2,j) = (factime*uu(s%nx,j)+(1-factime)*umean(2,j))           !Ap 
+		  ! After hack 3/6/2010, return to par%epsi :
+		  umean(2,j) = (par%epsi*uu(nx,j)+(1-par%epsi)*umean(2,j))
+		  vmean(2,j) = (par%epsi*vu(nx,j)+(1-par%epsi)*vmean(2,j)) 
           do jj=1,50
              !---------- Lower order bound. cond. ---
              !qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&  
@@ -992,7 +932,7 @@ if (par%instat/=9)then
       
          endif   ! Robert: dry back boundary points
        enddo
-     elseif (par%back==3) then
+     elseif (par%back=='wlevel') then
         zs(nx+1,:)=s%zs0(nx+1,:)
      endif  !par%back
     ! fix first and last columns of umean and uu and zs
@@ -1027,6 +967,7 @@ use spaceparams
 use xmpi_module
 use readkey_module
 use interp
+use logging_module
 
 IMPLICIT NONE
 
@@ -1060,14 +1001,14 @@ if (firsttimedischarge) then
    allocate (disch_no(2*nx+2*ny))
    ! read discharge information file
    if (xmaster) then
-      call readkey('params.txt','disch_loc_file',fname)
+      fname = readkey_name('params.txt','disch_loc_file')
       if (fname==' ') then
          ndisch=0
          ndisch_cells=0
 !         return   !!!! This is incompatable with MPI. Process must continue until equal with other processes !!!! Robert
 !      endif
       else
-         write(*,*)'discharge_boundary: reading discharge locations from ',fname,' ...'
+         call writelog('ls','','discharge_boundary: reading discharge locations from ',fname,' ...')
          open(31,file=fname)
          do while (io==0)
 	        ndisch=ndisch+1
@@ -1103,8 +1044,8 @@ if (firsttimedischarge) then
       if (ndisch==0) then          !!! Same modification as above to make compatible with MPI  (Robert)
 	     ntdisch=0
 	  else
-         call readkey('params.txt','disch_timeseries_file',fname)
-		 write(*,*)'discharge_boundary: reading discharge timeseries from ',fname,' ...'
+	     fname = readkey_name('params.txt','disch_timeseries_file')
+		 call writelog('ls','','discharge_boundary: reading discharge timeseries from ',fname,' ...')
          open(31,file=fname)
          io=0
          do while (io==0)
@@ -1225,7 +1166,6 @@ do ii=1,ndisch_cells
       vv(i,j)=qy(i,j)/max(hv(i,j),par%eps)
    endif
 enddo
-!write(*,*)par%t,totvol
 end subroutine discharge_boundary
 
 

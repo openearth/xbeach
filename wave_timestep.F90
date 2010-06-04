@@ -154,7 +154,6 @@ subroutine wave_timestep(s,par)
           vmwci = 0.d0
 	      zswci = zs
 	      km=k
-          if (xmaster) write(*,*)'wave current interaction included'
        endif
        km(1,:) = k(1,:)   ! boundary condition *assuming zero flow at the boundary) 
 #ifdef USEMPI
@@ -283,11 +282,11 @@ subroutine wave_timestep(s,par)
     E=par%rhog8*H**2
 
 ! Total dissipation
-    if(par%break == 1 .or. par%break == 3)then
+    if(trim(par%break) == 'roelvink1' .or. trim(par%break) == 'roelvink2')then
         call roelvink(par,s,km)
-    else if(par%break == 2)then
+    else if(trim(par%break) == 'baldock')then
         call baldock(par,s,km)
-    else if (par%break == 4) then
+    else if (trim(par%break) == 'roelvink_daly') then
         cgxm = c*dcos(tm) 
         cgym = c*dsin(tm)
         call advecqx(cgxm,Qb,xwadvec,nx,ny,xz)
@@ -381,13 +380,13 @@ subroutine wave_timestep(s,par)
 
 if (par%t>0.0d0) then
   if (xmpi_isleft)then ! Jaap
-    if (par%rightwave==0) then		
+    if (trim(par%rightwave)=='neumann') then		
 		!
 		! Lateral boundary at y=0;
 		!
 		ee(2:nx+1,1,:)=ee(2:nx+1,2,:)
 		rr(2:nx+1,1,:)=rr(2:nx+1,2,:)
-	elseif (par%rightwave==1) then
+	elseif (trim(par%rightwave)=='wavecrest') then
 		wcrestpos=xz+tan(thetamean(:,2))*(yz(2)-yz(1))
 		do itheta=1,ntheta
 		   do i=1,nx+1
@@ -404,13 +403,13 @@ if (par%t>0.0d0) then
  	 endif
    endif
    if (xmpi_isright)then
-	 if (par%leftwave==0) then
+	 if (trim(par%leftwave)=='neumann') then
 		!
 		! lateral; boundary at y=ny*dy
 		!
         ee(2:nx+1,ny+1,:)=ee(2:nx+1,ny+1-1,:)
 		rr(2:nx+1,ny+1,:)=rr(2:nx+1,ny+1-1,:)
-	elseif (par%leftwave==1) then
+	elseif (trim(par%leftwave)=='wavecrest') then
 		wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
 		do itheta=1,ntheta
 		   do i=1,nx+1
@@ -525,7 +524,7 @@ endif
 ! roller contribution
     ustr=2.*R/max(c,sqrt(par%hmin*par%g))/par%rho/max(hh,par%hmin) ! Jaap
 ! introduce breaker delay
-    call breakerdelay(par,s)
+    if (par%breakerdelay == 1) call breakerdelay(par,s)
     ust=usd+ustw
 !lateral boundaries
 ! wwvv todo the following has consequences for // version
@@ -644,7 +643,7 @@ integer                                         :: i,j,nx,ny,ntheta,scheme
 integer                                         :: itheta
 real*8 , dimension(nx+1)                        :: xz
 real*8 , dimension(nx+1,ny+1,ntheta)            :: xadvec,ee,arrin,cgx
-real*8                                          :: dxmin_i,dxplus_i,dxcent_i,dt
+real*8                                          :: dt
 
 integer                                         :: istart, iend
 
@@ -709,95 +708,6 @@ enddo
 if(xmpi_isbot) then
    xadvec(nx+1,:,:) = xadvec(nx,:,:)
 endif
-
-
-!select case (scheme)
-!
-!case(1)
-!        do itheta=1,ntheta
-!                do i=2,nx
-!                        dxmin_i  = 1.d0/(xz(i)-xz(i-1))
-!                        dxplus_i = 1.d0/(xz(i+1)-xz(i))
-!                        dxcent_i = 1.d0/(xz(i+1)-xz(i-1))
-!                        do j=1,ny+1
-!                           if (arrin(i,j,itheta)>0) then
-!                                  xadvec(i,j,itheta)=(arrin(i,j,itheta)-arrin(i-1,j,itheta))*dxmin_i
-!                           elseif (arrin(i,j,itheta)<0) then
-!                                  xadvec(i,j,itheta)=(arrin(i+1,j,itheta)-arrin(i,j,itheta))*dxplus_i
-!                           else
-!                                  xadvec(i,j,itheta)=(arrin(i+1,j,itheta)-arrin(i-1,j,itheta))*dxcent_i
-!                           endif
-!                        end do
-!                end do
-!        end do
-!case(2)
-!        do itheta=1,ntheta
-!
-!                if(xmpi_istop) then
-!                    do j=1,ny+1
-!                            i=2
-!                            ! this deserves special attention in the parallel case,
-!                            ! only meaningful at the top processes row
-!                            dxmin_i  = 1.d0/(xz(i)-xz(i-1))
-!                            dxplus_i = 1.d0/(xz(i+1)-xz(i))
-!                            dxcent_i = 1.d0/(xz(i+1)-xz(i-1))
-!                            if (arrin(i,j,itheta)>0) then
-!                                    xadvec(i,j,itheta)=(arrin(i,j,itheta)-arrin(i-1,j,itheta))*dxmin_i
-!                            elseif (arrin(i,j,itheta)<0) then
-!                                    xadvec(i,j,itheta)=(arrin(i+1,j,itheta)-arrin(i,j,itheta))*dxplus_i
-!                            else
-!                                    xadvec(i,j,itheta)=(arrin(i+1,j,itheta)-arrin(i-1,j,itheta))*dxcent_i
-!                            endif
-!                    end do
-!                endif
-!
-!                if (xmpi_istop) then
-!                    istart = 3   ! wwvv take care for parallel case
-!                else
-!                    istart = 2
-!                endif
-!                if (xmpi_isbot) then
-!                  iend = nx-1
-!                else
-!                  iend = nx
-!                endif
-!
-!               ! Lax Wendroff
-!               ! do i=3,nx-1    ! wwvv the bounds for the serial case
-!                do i=istart,iend     ! wwvv
-!                
-!                        do j=1,ny+1             ! Lax Wendroff
-!                           xadvec(i,j,itheta)=((arrin(i+1,j,itheta)-arrin(i-1,j,itheta))/(xz(i+1)-xz(i-1)))&
-!                                                                  -(0.5*dt/((xz(i+1)-xz(i))*(xz(i)-xz(i-1))))*&
-!                                                                   ((ee(i-1,j,itheta)*cgx(i-1,j,itheta)**2)+&
-!                                                                        (-2*ee(i,j,itheta)*cgx(i,j,itheta)**2)+&
-!                                                                        (ee(i+1,j,itheta)*cgx(i+1,j,itheta)**2))
-!                        end do
-!                end do
-!
-!			
-!#ifdef USEMPI
-!                call xmpi_shift(xadvec(:,:,itheta),'1:')  ! wwvv
-!                call xmpi_shift(xadvec(:,:,itheta),'m:')  ! wwvv
-!#endif
-!
-!                if (xmpi_isbot) then
-!                  do j=1,ny+1
-!                          i=nx
-!                          dxmin_i  = 1.d0/(xz(i)-xz(i-1))
-!                          dxplus_i = 1.d0/(xz(i+1)-xz(i))
-!                          dxcent_i = 1.d0/(xz(i+1)-xz(i-1))
-!                          if (arrin(i,j,itheta)>0) then
-!                                  xadvec(i,j,itheta)=(arrin(i,j,itheta)-arrin(i-1,j,itheta))*dxmin_i
-!                          elseif (arrin(i,j,itheta)<0) then
-!                                  xadvec(i,j,itheta)=(arrin(i+1,j,itheta)-arrin(i,j,itheta))*dxplus_i
-!                          else
-!                                  xadvec(i,j,itheta)=(arrin(i+1,j,itheta)-arrin(i-1,j,itheta))*dxcent_i
-!                          endif
-!                  end do
-!                endif
-!        end do
-!end select
 
 end subroutine advecxho
 
@@ -874,7 +784,7 @@ integer                                         :: i,j,nx,ny,ntheta,scheme
 integer                                         :: itheta
 real*8 ,  dimension(ny+1)                       :: yz
 real*8 ,  dimension(nx+1,ny+1,ntheta)           :: yadvec,ee,arrin,cgy
-real*8                                          :: dymin_i,dyplus_i,dycent_i,dt
+real*8                                          :: dt
 
 integer                                         :: jstart, jend
 
@@ -937,88 +847,6 @@ do itheta=1,ntheta
 	  enddo	 
    end select
 enddo
-
-
-
-!select case(scheme)
-!
-!case (1)   ! upwind
-!        do itheta=1,ntheta
-!                do j=2,ny
-!                        dymin_i  = 1.d0/(yz(j)-yz(j-1))
-!                        dyplus_i = 1.d0/(yz(j+1)-yz(j))
-!                        dycent_i = 1.d0/(yz(j+1)-yz(j-1))
-!                        do i=1,nx+1
-!                           if (arrin(i,j,itheta)>0) then
-!                                  yadvec(i,j,itheta)=(arrin(i,j,itheta)-arrin(i,j-1,itheta))*dymin_i
-!                           elseif (arrin(i,j,itheta)<0) then
-!                                  yadvec(i,j,itheta)=(arrin(i,j+1,itheta)-arrin(i,j,itheta))*dyplus_i
-!                           else
-!                                  yadvec(i,j,itheta)=(arrin(i,j+1,itheta)-arrin(i,j-1,itheta))*dycent_i
-!                           endif
-!                        end do
-!                end do
-!        end do
-!case(2)    ! Lax Wendroff
-!        do itheta=1,ntheta
-!                if(xmpi_isleft) then
-!                    do i=1,nx+1
-!                            j=2   ! wwvv only meaningful at left processorcolumn
-!                            dymin_i  = 1.d0/(yz(j)-yz(j-1))
-!                            dyplus_i = 1.d0/(yz(j+1)-yz(j))
-!                            dycent_i = 1.d0/(yz(j+1)-yz(j-1))
-!                            if (arrin(i,j,itheta)>0) then
-!                                    yadvec(i,j,itheta)=(arrin(i,j,itheta)-arrin(i,j-1,itheta))*dymin_i
-!                            elseif (arrin(i,j,itheta)<0) then
-!                                    yadvec(i,j,itheta)=(arrin(i,j+1,itheta)-arrin(i,j,itheta))*dyplus_i
-!                            else
-!                                    yadvec(i,j,itheta)=(arrin(i,j+1,itheta)-arrin(i,j-1,itheta))*dycent_i
-!                            endif
-!                    end do
-!                endif
-!                if(xmpi_isleft) then
-!                    jstart = 3
-!                else
-!                    jstart = 2
-!                endif
-!                if(xmpi_isright) then
-!                  jend = ny-1
-!                else
-!                  jend = ny
-!                endif
-!                
-!                do i=1,nx+1
-!                        !do j=3,ny-1  ! the serial bounds           ! Lax Wendroff
-!                        do j=jstart,jend             ! Lax Wendroff     wwvv
-!                           yadvec(i,j,itheta)=((arrin(i,j+1,itheta)-arrin(i,j-1,itheta))/(yz(j+1)-yz(j-1)))&
-!                                                                  -(0.5*dt/((yz(j+1)-yz(j))*(yz(j)-yz(j-1))))*&
-!                                                                   ((ee(i,j-1,itheta)*cgy(i,j-1,itheta)**2)+&
-!                                                                        (-2*ee(i,j,itheta)*cgy(i,j,itheta)**2)+&
-!                                                                        (ee(i,j+1,itheta)*cgy(i,j+1,itheta)**2))
-!                        end do
-!                end do
-!#ifdef USEMPI
-!                call xmpi_shift(yadvec(:,:,itheta),':1')  ! wwvv fill in yadvec(:,1,itheta)
-!                call xmpi_shift(yadvec(:,:,itheta),':n')  !      fill in yadvec(:,ny+1,itheta
-!#endif
-!                
-!                if (xmpi_isright) then
-!                  do i=1,nx+1
-!                          j=ny
-!                          dymin_i  = 1.d0/(yz(j)-yz(j-1))
-!                          dyplus_i = 1.d0/(yz(j+1)-yz(j))
-!                          dycent_i = 1.d0/(yz(j+1)-yz(j-1))
-!                          if (arrin(i,j,itheta)>0) then
-!                                  yadvec(i,j,itheta)=(arrin(i,j,itheta)-arrin(i,j-1,itheta))*dymin_i
-!                          elseif (arrin(i,j,itheta)<0) then
-!                                  yadvec(i,j,itheta)=(arrin(i,j+1,itheta)-arrin(i,j,itheta))*dyplus_i
-!                          else
-!                                  yadvec(i,j,itheta)=(arrin(i,j+1,itheta)-arrin(i,j-1,itheta))*dycent_i
-!                          endif
-!                  end do  
-!                endif
-!        end do
-!end select
 
 ! lateral boundaries
 do itheta=1,ntheta
@@ -1233,6 +1061,7 @@ end subroutine advecqy
 subroutine dispersion(par,s)
 use params
 use spaceparams
+use logging_module
 
 ! Robert: iteration along L=L0tanh(2pih/L)
 
@@ -1290,7 +1119,7 @@ do j = 1,s%ny+1
       s%L1(i,j) = (s%L1(i,j)*aphi + L2*bphi)          ! Golden ratio
     end do
 	if (it==100) then !jaap check if there is convergence
-      write(*,*)'no convergence in dispersion relation itteration'
+      call writelog('ls','','Warning: no convergence in dispersion relation iteration at t = ',par%t*max(par%morfac*par%morfacopt,1.d0))
 	endif
   end do
 end do

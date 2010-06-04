@@ -16,6 +16,7 @@ use wave_timestep_module
 use timestep_module
 use readkey_module
 use groundwaterflow
+use logging_module
 ! IFDEF used in case netcdf support is not compiled, f.i. Windows (non-Cygwin)
 #ifdef USENETCDF
 use ncoutput_module
@@ -33,12 +34,16 @@ character(len=80)        :: dummystring
 character(len=10)        :: date,time,zone
 logical                  :: newstatbc
 
-integer                  :: it
+integer                  :: it,error
 real*8                   :: tbegin,tend
 #ifdef USEMPI
 real*8                   :: t0,t01,t1
 #endif
 
+
+! ----------------------------
+! Initialize program
+! ----------------------------
 
 ! autotools 
 #ifdef HAVE_CONFIG_H
@@ -50,53 +55,55 @@ character(len=255)       :: cwd ! for printing the working dir
 include 'version.def'
 include 'version.dat'
 
-!
-!build_revision = '$Revision$'
-!build_date = '$Date$'
-!build_url = '$HeadURL$'
+! Start up log files
+call start_logfiles(error)
+if (error==1) then
+   write(*,*) 'Error: not able to open log file. Please contact XBeach team. Stopping simulation'
+   stop
+endif
 
+! Setup of MPI 
 #ifdef USEMPI
 s=>slocal
 call xmpi_initialize
 t0 = MPI_Wtime()
 #endif
 
+! 
 call cpu_time(tbegin)
 call DATE_AND_TIME(DATE=date, TIME=time, ZONE=zone)
-
 ! only run this on linux
 #ifdef HAVE_CONFIG_H
 call getcwd(cwd)
 #endif 
 
 if (xmaster) then
-  write(*,*)'**********************************************************'
-  write(*,*)'                   Welcome to XBeach                      '
-  write(*,*)'                                                          '
-  write(*,*)'            revision ',trim(Build_Revision)
-  write(*,*)'            date $Date$'
-  write(*,*)' URL: $HeadURL$ '
-  write(*,*)'**********************************************************'
-  write(*,*)'                                                          '
-  write(*,*)'Simulation started: YYYYMMDD    hh:mm:ss     time zone (UTC)'
-  write(*,*)'                    ',date(1:10),'  ',time(1:2),':',time(3:4),':',time(5:6),'     ',zone(1:5)
-  write(*,*)'                                                          '
+  call writelog('ls','','**********************************************************')
+  call writelog('ls','','                   Welcome to XBeach                      ')
+  call writelog('ls','','                                                          ')
+  call writelog('ls','','            revision ',trim(Build_Revision)                )
+  call writelog('ls','','            date ',trim(Build_Date)                        )
+  call writelog('ls','',' URL: ',trim(Build_URL)                                    )
+  call writelog('ls','','**********************************************************')
+  call writelog('ls','','                                                          ')
+  call writelog('ls','','Simulation started: YYYYMMDD    hh:mm:ss     time zone (UTC)')
+  call writelog('ls','','                    '//date(1:10)//'  '//time(1:2)//':'//time(3:4)//':'//time(5:6)//'     '//zone(1:5))
+  call writelog('ls','','                                                          ')
 #ifdef HAVE_CONFIG_H
-  write(*,*)' running in: ',cwd 
+  call writelog('ls','',' running in: ',cwd )
 #endif
-  write(*,*)'General Input Module'
+  call writelog('ls','','General Input Module')
 #ifdef USEMPI
   if(xmaster) then
-    write(*,*) 'MPI version, running on ',xmpi_size,'processes'
+    call writelog('ls','','MPI version, running on ',xmpi_size,'processes')
   endif
 #endif
 endif
 
-! General input per module
-!
-! the basic input routines, used by the following three subroutines
-! are MPI-aware, no need to do something special here
-!
+
+! ----------------------------
+! Initialize simulation
+! ----------------------------
 
 it=0
 newstatbc=.true.
@@ -104,21 +111,24 @@ newstatbc=.true.
 ! Robert+Fedor : temporary for tests
 par%outputformat='debug'
 
-call wave_input(par)
-call flow_input(par)
-call sed_input(par)
-! read parameters which are used for output
-call output_input(par) 
-
-
+! General input per module
+!
+! the basic input routines, used by the following three subroutines
+! are MPI-aware, no need to do something special here
+call all_input(par)
+! Do check of params.txt to spot errors
+call readkey('params.txt','checkparams',dummystring) 
+call writelog('ls','','Stepping into the time loop ....')   ! writelog is xmaster aware
 
 #ifdef USEMPI
 call distribute_par(par)
 #endif
 
 if (xmaster) then
-  write(*,*) 'Building Grid and Bathymetry and....'
-  write(*,*) 'Distributing wave energy across the directional space ....'     
+  call writelog('l','' ,'------------------------------------')
+  call writelog('ls','','Building Grid and Bathymetry and....')
+  call writelog('ls','','Distributing wave energy across the directional space ....')
+  call writelog('l','', '------------------------------------')
 endif
 ! Grid and bathymetry
 
@@ -130,9 +140,14 @@ call space_alloc_scalars(sglobal)
 s => sglobal
 call grid_bathy(s,par)  ! s%nx and s%ny are available now
 #ifdef USEMPI
-call xmpi_determine_processor_grid(s%nx,s%ny,par%mpiboundary)
+call xmpi_determine_processor_grid(s%nx,s%ny,par%mpiboundary,error)
 if(xmaster) then
-  write(*,*) 'processor grid: ',xmpi_m,' X ',xmpi_n
+  if (error==1) then
+     call writelog('els','','Unknown mpi division ',par%mpiboundary)
+	 call halt_program
+  else
+     call writelog('ls','','processor grid: ',xmpi_m,' X ',xmpi_n)
+  endif
 endif
 #endif
 
@@ -144,16 +159,16 @@ if (xmaster) then
   call readtide (s,par)  !Ap 15/10 ! runs oonly on master wwvv
   call readwind (s,par)  !Robert 8/7/2009 only on master
 
-  write(*,*) 'Initializing .....'
+  call writelog('ls','','Initializing .....')
 ! Initialisations
-  call wave_init (s,par)  ! wave_init only works on master process
+  call wave_init (s,par)  ! Always do this       wave_init only works on master process
 endif
 #ifdef USEMPI
 ! some of par has been changed, so:
 call distribute_par(par)
 #endif
 if (xmaster) then
-   call flow_init (s,par)  ! works only on master process
+   call flow_init (s,par)  ! Always do this      works only on master process
    call gwinit(par,s)      ! works only on master process
    call sed_init (s,par)   ! works only on master process
 endif
@@ -181,7 +196,6 @@ s => slocal
 call space_distribute_space(sglobal,slocal,par)
 !call space_consistency(slocal,'ALL')
 #endif
-call printit(sglobal,slocal,par,it,'after space_distribute_space')
 
 ! update times at which we need output
 call outputtimes_update(par, tpar)
@@ -189,59 +203,43 @@ call var_output(it,sglobal,s,par, tpar)
 #ifdef USENETCDF
 call nc_output(sglobal,s,par, tpar)
 #endif
-if (xmaster) then
-  ! Do check of params.txt to spot errors
-  call readkey('params.txt','checkparams',dummystring) 
-  write(*,*) 'Stepping into the time loop ....'  
-endif
 
-
-
-
-!#ifdef USEMPI
-!t01 = MPI_Wtime()
-!#endif
+! ----------------------------
+! This is the main time loop
+! ----------------------------
 do while (par%t<par%tstop)
     ! Calculate timestep
     call timestep(s,par,tpar, it)
     ! Wave boundary conditions
-    call wave_bc (sglobal,slocal,par,newstatbc)
-    call printit(sglobal,slocal,par,it,'after wave_bc')
+    if (par%swave==1) call wave_bc (sglobal,slocal,par,newstatbc)
     ! Flow boundary conditions
 	if (par%gwflow==1) call gwbc(par,s)
-	call flow_bc (s,par)
+	if (par%flow+par%nonh>0) call flow_bc (s,par)
     !Dano moved here, after (long) wave bc generation
 	if (it==0) then
 #ifdef USEMPI
        t01 = MPI_Wtime()
 #endif
     endif
-    call printit(sglobal,slocal,par,it,'after flow_bc')
-#ifdef USEMPI
-    !call space_consistency(slocal,'ALL')
-#endif
     ! Wave timestep
-    if (par%instat==0.or.par%instat==40) then
-       if ((abs(mod(par%t,par%wavint))<0.000001d0).or.newstatbc) then
-          call wave_stationary(s,par)
-		  newstatbc=.false.
-          call printit(sglobal,slocal,par,it,'after wave_stationary')
+	if (par%swave==1) then
+       if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
+          if ((abs(mod(par%t,par%wavint))<0.000001d0).or.newstatbc) then
+             call wave_stationary(s,par)
+		     newstatbc=.false.
+          endif
+       else
+          call wave_timestep(s,par)
        endif
-    else
-      call wave_timestep(s,par)
-          call printit(sglobal,slocal,par,it,'after wave_timestep')
-    endif
+	endif
     ! Flow timestep
 	if (par%gwflow==1) call gwflow(par,s)
-    call flow_timestep (s,par)
-    call drifter (s,par)
-    call printit(sglobal,slocal,par,it,'after flow_timestep')
+    if (par%flow+par%nonh>0) call flow_timestep (s,par)
+    if (par%ndrifter>0) call drifter (s,par)
     ! Suspended transport
-    call transus(s,par)
-    call printit(sglobal,slocal,par,it,'after transus')
+    if(par%sedtrans==1) call transus(s,par)
     ! Bed level update
-    call bed_update(s,par)
-    call printit(sglobal,slocal,par,it,'after bed_update')
+    if (par%morphology==1) call bed_update(s,par)
     ! Calculate new output times, so we know when to stop
     call outputtimes_update(par, tpar)
 	! Output
@@ -257,75 +255,30 @@ do while (par%t<par%tstop)
 #endif
 		call var_output(it,sglobal,s,par,tpar)
 	endif
-#ifdef USEMPI
-!   varoutput changed some in parameters, so:
-    call distribute_par(par)
-#endif
-
+! No longer necessary
+!#ifdef USEMPI
+!    call distribute_par(par)
+!#endif
 enddo
-
-
+! ------------------------
+! End of main time loop
+! ------------------------
+!
+! Finish files
 if(xmaster) then
-call cpu_time(tend)
-write(*,*)'Total calculation time: ',tend-tbegin,' seconds'
+   call cpu_time(tend)
+   call writelog('ls','','Total calculation time: ',tend-tbegin,' seconds')
 #ifdef USEMPI
-    t1 = MPI_Wtime()
-    write(*,*)'Timing: procs: ',xmpi_size,' seconds: total:',t1-t0,&
-            'loop: ',t1-t01
+   t1 = MPI_Wtime()
+   call writelog('ls','','Timing: procs: ',xmpi_size,' seconds: total:',t1-t0,'loop: ',t1-t01)
 #endif
-  write(*,*)'End of program xbeach'
+   call writelog('ls','','End of program xbeach')
 endif
+call close_logfiles
 #ifdef USEMPI
 call xmpi_finalize
 #endif
 
 end program
 
-subroutine printit(sglobal,slocal,par,it,s)
-  use spaceparams
-  use params
-  use xmpi_module
-  implicit none
-  type(spacepars)          :: sglobal,slocal
-  type(parameters)         :: par
-  integer                  :: it
-  character(len=*)         :: s
-  integer,save             :: iter=0 
-  return
-  iter = iter+1
-#ifdef USEMPI
-  write(*,*) par%t,xmpi_rank,trim(s)
-  call space_collect(slocal,sglobal%H,slocal%H)
-  call space_collect(slocal,sglobal%zs,slocal%zs)
-  call space_collect(slocal,sglobal%zs0,slocal%zs0)
-  call space_collect(slocal,sglobal%u,slocal%u)
-  call space_collect(slocal,sglobal%uu,slocal%uu)
-  call space_collect(slocal,sglobal%ui,slocal%ui)
-  call space_collect(slocal,sglobal%hh,slocal%hh)
-  call space_collect(slocal,sglobal%vu,slocal%vu)
-  call space_collect(slocal,sglobal%v,slocal%v)
-  !call space_consistency(slocal,'ALL')
-#else
-  slocal%nx = slocal%nx  ! to prevent compiler warning about
-                         ! unused slocal
-#endif
-  if(xmaster) call printsum(6,'H',1000*it+iter,sglobal%H)
-  if(xmaster) call printsum(6,'zs',1000*it+iter,sglobal%zs)
-  if(xmaster) call printsum(6,'zs0',1000*it+iter,sglobal%zs0)
-  if(xmaster) call printsum(6,'u',1000*it+iter,sglobal%u)
-  if(xmaster) call printsum(6,'uu',1000*it+iter,sglobal%uu)
-  if(xmaster) call printsum(6,'ui',1000*it+iter,sglobal%ui)
-  if(xmaster) call printsum(6,'hh',1000*it+iter,sglobal%hh)
-  if(xmaster) call printsum(6,'vu',1000*it+iter,sglobal%vu)
-  if(xmaster) call printsum(6,'v',1000*it+iter,sglobal%v)
 
-  if(xmaster) print *,'par%t:',par%t
-  if(xmaster) print *,'par%zs01:',par%zs01
-#ifdef USEMPI
-  if(xmaster) print *,'s%tideinpt:',slocal%tideinpt
-  if(xmaster) print *,'s%tideinpz:',slocal%tideinpz(:,1)
-#else
-  if(xmaster) print *,'s%tideinpt:',sglobal%tideinpt
-  if(xmaster) print *,'s%tideinpz:',sglobal%tideinpz(:,1)
-#endif
-end subroutine printit

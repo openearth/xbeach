@@ -139,9 +139,10 @@ subroutine xmpi_abort
   call MPI_Abort(xmpi_comm,1,ierr)
 end subroutine xmpi_abort
 
-subroutine xmpi_determine_processor_grid(m,n,divtype)
+subroutine xmpi_determine_processor_grid(m,n,divtype,error)
 implicit none
 integer, intent(in) :: m,n  ! the dimensions of the global domain
+integer             :: error
 character(4),intent(in) :: divtype
 
 integer mm,nn, borderlength, min_borderlength
@@ -151,6 +152,7 @@ integer mm,nn, borderlength, min_borderlength
 ! - the total length of the internal borders is minimal
 
   min_borderlength = 1000000000
+  error = 0
   if (trim(divtype)=='y') then   ! Force all subdivisions to run along y-lines
      xmpi_m=xmpi_size
 	 xmpi_n=1
@@ -170,8 +172,8 @@ integer mm,nn, borderlength, min_borderlength
        endif
      enddo
   else
-     write(*,*) 'Unknown mpi division ',divtype
-	 call halt_program
+     error = 1
+	 return
   endif
 
 ! The layout of the processors is as follows:
