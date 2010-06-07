@@ -366,7 +366,8 @@ enddo
 if (key .eq. 'checkparams') then
        do ikey=1,nkeys
                if (readindex(ikey)==0) then
-                       call writelog('sl','','Unknown, unused or multiple statements of parameter ',trim(keyword(ikey)),' in ',trim(fname))
+                       call writelog('sl','','Unknown, unused or multiple statements of parameter ',trim(keyword(ikey)),&
+                                 ' in ',trim(fname))
                endif
        enddo
 endif
