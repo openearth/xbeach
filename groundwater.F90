@@ -59,7 +59,7 @@ integer										:: i,j
 	s%gww=0.d0
 
     if (par%gwflow==1) then
-	    fname = readkey_name('params.txt','aquiferbotfile')
+	    fname = readkey_name('params.txt','aquiferbotfile',bcast=.false.)
 		if (fname=='') then     ! Not a filename
 		   temp = minval(s%zb)
 		   aquiferbot = readkey_dbl('params.txt','aquiferbot',temp-3.d0,-100.d0,100.d0,bcast=.false.)
@@ -72,7 +72,7 @@ integer										:: i,j
 		  close(31)
 		endif
 
-		fname = readkey_name('params.txt','gw0file')
+		fname = readkey_name('params.txt','gw0file',bcast=.false.)
 		if (fname=='') then     ! Not a filename
 		   temp = readkey_dbl('params.txt','gw0',0.d0,-5.d0,5.d0,bcast=.false.)
 		   s%gwhead=temp

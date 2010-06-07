@@ -1176,7 +1176,7 @@ twothird=2.d0/3.d0
 if (abs(par%t-par%dt)<1.d-6) then
    RF = RF*0.d0
    if (xmaster) then
-      fnamet = readkey_name('params.txt','swtable')
+      fnamet = readkey_name('params.txt','swtable',bcast=.false.)
       open(31,file=fnamet);
       do i=1,18
          do j=1,33

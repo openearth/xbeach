@@ -46,7 +46,7 @@ if (first_drifter) then
       allocate(releasetime(ndrifter))
       allocate(retrievaltime(ndrifter))
       if (xmaster) then
-	     drifterfile = readkey_name('params.txt','drifterfile')
+	     drifterfile = readkey_name('params.txt','drifterfile',bcast=.false.)
          open(10,file=drifterfile)
          do i=1,ndrifter
             read(10,*)xwdrift(i),ywdrift(i),releasetime(i),retrievaltime(i)

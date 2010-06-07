@@ -156,7 +156,7 @@ if(abs(par%t-par%dt)<1.d-6) then
        par%Emean=sum(dataE)/nt
 	elseif (trim(par%instat)=='stat_table') then
        if (xmaster) then
-	     fname = readkey_name('params.txt','bcfile')
+	     fname = readkey_name('params.txt','bcfile',bcast=.false.)
 		 call checkbcfilelength(par,fname)
 	     open( unit=7, file=fname)
 !	     open( unit=7, file='jonswap1.txt')
@@ -1001,7 +1001,7 @@ if (firsttimedischarge) then
    allocate (disch_no(2*nx+2*ny))
    ! read discharge information file
    if (xmaster) then
-      fname = readkey_name('params.txt','disch_loc_file')
+      fname = readkey_name('params.txt','disch_loc_file',bcast=.false.)
       if (fname==' ') then
          ndisch=0
          ndisch_cells=0
@@ -1044,7 +1044,7 @@ if (firsttimedischarge) then
       if (ndisch==0) then          !!! Same modification as above to make compatible with MPI  (Robert)
 	     ntdisch=0
 	  else
-	     fname = readkey_name('params.txt','disch_timeseries_file')
+	     fname = readkey_name('params.txt','disch_timeseries_file',bcast=.false.)
 		 call writelog('ls','','discharge_boundary: reading discharge timeseries from ',fname,' ...')
          open(31,file=fname)
          io=0
