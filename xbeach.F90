@@ -47,7 +47,7 @@ real*8                   :: t0,t01,t1
 
 ! autotools 
 #ifdef HAVE_CONFIG_H
-character(len=255)       :: cwd ! for printing the working dir
+character(len=155)       :: cwd ! for printing the working dir
 #include "config.h"
 #endif
 
