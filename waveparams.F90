@@ -939,7 +939,9 @@ pp=maxval(wp%f)*2.d0
 if (wp%dt>(1.d0/pp)) then
     wp%dt=1.d0/pp
     if (xmaster) then
-        call writelog('ls','(a,f6.4,a)','Changing dt in wave boundary conditions to satisfy Nyquist condition. New dt = ',wp%dt,' s.')
+        call writelog('ls','(a,f6.4,a)', &
+             'Changing dt in wave boundary conditions to satisfy Nyquist condition. New dt = ', &
+             wp%dt,' s.')
     endif
 endif
 
