@@ -24,6 +24,7 @@ interface writelog
    module procedure writelog_a
    module procedure writelog_aa
    module procedure writelog_ai
+   module procedure writelog_ia
    module procedure writelog_aaa
    module procedure writelog_aaaa
    module procedure writelog_aai
@@ -36,6 +37,7 @@ interface writelog
    module procedure writelog_aiai
    module procedure writelog_aiaia
    module procedure writelog_aaaiai
+   module procedure writelog_aiafaf
    module procedure writelog_aiaiai
    module procedure writelog_aiaiaia
    module procedure writelog_aiaiaf
@@ -51,6 +53,7 @@ interface writelog
    module procedure writelog_aafaf
    module procedure writelog_aaafaf
    module procedure writelog_afafafaf
+   module procedure writelog_illll
 end interface writelog
 
 CONTAINS
@@ -197,6 +200,25 @@ subroutine writelog_ai(destination,form,message_char,message_int)
    endif
 end subroutine writelog_ai
 
+subroutine writelog_ia(destination,form,mint1,mchar1)
+   implicit none
+   character(*),intent(in)    ::  form,mchar1
+   character(*),intent(in)    ::  destination
+   integer,intent(in)         ::  mint1
+   character(256)             ::  display
+
+   if (form=='') then
+      write(display,*)mint1,mchar1
+   else
+      write(display,form)mint1,mchar1
+   endif
+
+   if (xmaster) then 
+      if (scan(destination,'s')>0) write(*,*)trim(display)
+      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
+      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
+   endif
+end subroutine writelog_ia
 
 subroutine writelog_aaa(destination,form,message_char1,message_char2,message_char3)
    implicit none
@@ -438,6 +460,27 @@ subroutine writelog_aaaiai(destination,form,message_char1,message_char2,message_
    endif
 end subroutine writelog_aaaiai
 
+subroutine writelog_aiafaf(destination,form,mc1,mi1,mc2,mf1,mc3,mf2)
+   implicit none
+   character(*),intent(in)    ::  form,mc1,mc2,mc3
+   character(*),intent(in)       ::  destination
+   integer*4,intent(in)          ::  mi1
+   real*8,intent(in)             ::  mf1,mf2
+   character(256)             ::  display
+ 
+   if (form=='') then
+      write(display,*)mc1,mi1,mc2,mf1,mc3,mf2
+   else
+      write(display,form)mc1,mi1,mc2,mf1,mc3,mf2
+   endif
+
+   if (xmaster) then 
+      if (scan(destination,'s')>0) write(*,*)trim(display)
+      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
+      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
+   endif
+end subroutine writelog_aiafaf
+
 subroutine writelog_aiaiai(destination,form,message_char1,message_i1,message_char2,message_i2,message_char3,message_i3)
 implicit none
    character(*),intent(in)    ::  form,message_char1,message_char2,message_char3
@@ -520,17 +563,17 @@ implicit none
    endif
 end subroutine writelog_aiaiafa
 
-subroutine writelog_iiiii(destination,form,message_i1,message_i2,message_i3,message_i4,message_i5)
+subroutine writelog_iiiii(destination,form,mi1,mi2,mi3,mi4,mi5)
 implicit none
    character(*),intent(in)    ::  form
    character(*),intent(in)    ::  destination
-   integer*4,intent(in)       ::  message_i1,message_i2,message_i3,message_i4,message_i5
+   integer*4,intent(in)       ::  mi1,mi2,mi3,mi4,mi5
    character(256)             ::  display
  
    if (form=='') then
-      write(display,*)message_i1,message_i2,message_i3,message_i4,message_i5
+      write(display,*)mi1,mi2,mi3,mi4,mi5
    else
-      write(display,form)message_i1,message_i2,message_i3,message_i4,message_i5
+      write(display,form)mi1,mi2,mi3,mi4,mi5
    endif
 
    if (xmaster) then 
@@ -741,5 +784,27 @@ subroutine writelog_afafafaf(destination,form,mc1,mf1,mc2,mf2,mc3,mf3,mc4,mf4)
       if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
    endif
 end subroutine writelog_afafafaf
+
+subroutine writelog_illll(destination,form,mi1,ml1,ml2,ml3,ml4)
+implicit none
+   character(*),intent(in)    ::  form
+   character(*),intent(in)    ::  destination
+   integer*4,intent(in)       ::  mi1
+   logical,intent(in)         ::  ml1,ml2,ml3,ml4
+   character(256)             ::  display
+ 
+   if (form=='') then
+      write(display,*)mi1,ml1,ml2,ml3,ml4
+   else
+      write(display,form)mi1,ml1,ml2,ml3,ml4
+   endif
+
+   if (xmaster) then 
+      if (scan(destination,'s')>0) write(*,*)trim(display)
+      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
+      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
+   endif
+
+end subroutine writelog_illll
 
 end module logging_module

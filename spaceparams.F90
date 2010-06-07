@@ -896,7 +896,7 @@ subroutine space_distribute_space(sg,sl,par)
     enddo
     call writelog('ls','',' proc   left right top bot')
     do i=1,xmpi_size
-       call writelog('ls','(i0,i0,i0,i0,i0)',i-1,sg%isleft(i),sg%isright(i),sg%istop(i),sg%isbot(i))
+       call writelog('ls','',i-1,sg%isleft(i),sg%isright(i),sg%istop(i),sg%isbot(i))
     enddo
   endif
 
