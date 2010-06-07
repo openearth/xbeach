@@ -501,7 +501,8 @@ implicit none
    endif
 end subroutine writelog_aiaiai
 
-subroutine writelog_aiaiaia(destination,form,message_char1,message_i1,message_char2,message_i2,message_char3,message_i3,message_char4)
+subroutine writelog_aiaiaia(destination,form,message_char1,message_i1,message_char2,message_i2,message_char3,message_i3, & 
+                            message_char4)
 implicit none
    character(*),intent(in)    ::  form,message_char1,message_char2,message_char3,message_char4
    character(*),intent(in)    ::  destination
