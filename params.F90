@@ -865,6 +865,12 @@ par%taper    = max(par%taper,1.d-6)
 par%zs01=par%zs0
 !
 !
+! Compute Coriolis
+par%lat = par%lat*par%px/180.d0
+par%wearth = par%px*par%wearth/1800.d0
+par%fc = 2.d0*par%wearth*sin(par%lat)
+!
+!
 ! Only allow Baldock in stationary mode and Roelvink in non-stationary
 if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
    if (trim(par%break) .ne. 'baldock') then
