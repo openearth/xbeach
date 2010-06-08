@@ -790,7 +790,7 @@ call writelog('l','','Flow numerics parameters: ')
 par%eps     = readkey_dbl ('params.txt','eps',     0.005d0,   0.001d0,      0.1d0)
 par%umin    = readkey_dbl ('params.txt','umin',    0.0d0,   0.0d0,          0.2d0)
 par%hmin    = readkey_dbl ('params.txt','hmin',   0.05d0,   0.001d0,      1.d0)
-par%secorder = readkey_int('params.txt','secorder' ,1,0,1)
+par%secorder = readkey_int('params.txt','secorder' ,0,0,1)
 !
 !
 ! Sediment transport numerics parameters  
