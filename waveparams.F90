@@ -1385,7 +1385,7 @@ do ii=1,Ns
                 if (F2/=0) then
                     call writelog('ls','(A,I0,A,I0,A,I0)','Y-point ',index2,' of ',wp%Npy,' done. Error code: ',F2)
                 else
-                    call writelog('ls','(A,I0,A,I0,A)','Y-point ',index2,' of ',wp%Npy,' done.')
+                    call writelog('s','(A,I0,A,I0,A)','Y-point ',index2,' of ',wp%Npy,' done.')
                 end if          
             endif
             
@@ -1655,7 +1655,7 @@ do jj=2,Npy
 
     ! Print status message to screen
     if(xmaster) then
-        call writelog('ls','(A,I0,A,I0)','Flux ',jj,' of ',Npy)
+        call writelog('s','(A,I0,A,I0)','Flux ',jj,' of ',Npy)
     endif
     
     ! Inverse Discrete Fourier transformation to transform back to time space
