@@ -524,8 +524,12 @@ endif
 ! roller contribution
     ustr=2.*R/max(c,sqrt(par%hmin*par%g))/par%rho/max(hh,par%hmin) ! Jaap
 ! introduce breaker delay
-    if (par%breakerdelay == 1) call breakerdelay(par,s)
-    ust=usd+ustw
+    if (par%breakerdelay == 1) then
+	   call breakerdelay(par,s)
+       ust=usd+ustw
+	else
+	   ust = ustw+ustr
+	endif
 !lateral boundaries
 ! wwvv todo the following has consequences for // version
     ust(1,:) = ust(2,:)
