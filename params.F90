@@ -760,6 +760,13 @@ par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
 par%npoints     = readkey_int ('params.txt','npoints',     0,  0, 50)
 par%nrugauge    = readkey_int ('params.txt','nrugauge',    0,  0, 50)
 par%ncross      = readkey_int ('params.txt','ncross',      0,  0, 50)
+allocate(allowednames(3))
+allocate(oldnames(0))
+allowednames = (/'fortran', 'netcdf ', 'debug  '/)
+par%outputformat= readkey_str ('params.txt','outputformat','fortran',3, 0, allowednames  ,oldnames,required=.false.)
+deallocate(allowednames)
+deallocate(oldnames)
+
 !
 !
 ! Drifters parameters
@@ -934,6 +941,18 @@ if (par%morfacopt==1) then
    par%tstop   = par%tstop  / max(par%morfac,1.d0)
    par%morstart= par%morstart / max(par%morfac,1.d0)
 endif
+
+!
+!
+! Give an error if you ask for netcdf output if you don't have a netcdf executable
+#ifndef USENETCDF
+if (trim(par%outputformat) .eq. 'netcdf') then
+   call writelog('lse', '', 'You have asked for netcdf output (outputformat=netcdf) but this executable is built without')
+   call writelog('lse', '', 'netcdf support. Use a netcdf enabled executable or outputformat=fortran')
+   call halt_program
+endif
+#endif
+
 
 
 end subroutine all_input

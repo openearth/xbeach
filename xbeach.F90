@@ -108,9 +108,6 @@ endif
 it=0
 newstatbc=.true.
 
-! Robert+Fedor : temporary for tests
-par%outputformat='debug'
-
 ! General input per module
 !
 ! the basic input routines, used by the following three subroutines
