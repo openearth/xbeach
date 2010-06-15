@@ -206,7 +206,7 @@ if(abs(par%t-par%dt)<1.d-6) then
                 dist(i)=0
             end if
         end do
-        if (trim(par%instat)=='ts_2') then
+        if (trim(par%instat)=='ts_1' .or. trim(par%instat)=='ts_2') then
            par%Hrms=sqrt(8*par%Emean/(par%rho*par%g))
         endif
         E0=par%rhog8*par%Hrms**2
@@ -336,7 +336,7 @@ elseif (trim(par%instat)=='ts_1') then
       if (abs(theta0)<1e-3) then
          call linear_interp(tE,dataE,nt,par%t,E1,E_idx)
       else
-         tshifted=max(par%t-s%y(1,j)*sin(theta0)/s%cg(1,1),0.d0)
+         tshifted=max(par%t-(y(1,j)-y(1,1))*sin(theta0)/cg(1,1),0.d0)
          call linear_interp(tE,dataE,nt,tshifted,E1,E_idx) 
       endif
       ee(1,j,:)=e01*E1/max(par%Emean,0.000001d0)*min(par%t/par%taper,1.d0)
@@ -353,7 +353,7 @@ elseif (trim(par%instat)=='ts_2') then
            call linear_interp(tE,dataE,nt,par%t,E1,E_idx) 
            call linear_interp(tE,databi,nt,par%t,bi(1),E_idx)
         else
-           tshifted=max(par%t-s%y(1,j)*sin(theta0)/s%cg(1,1),0.d0)
+           tshifted=max(par%t-(y(1,j)-y(1,1))*sin(theta0)/cg(1,1),0.d0)
            call linear_interp(tE,dataE,nt,tshifted,E1,E_idx) 
            call linear_interp(tE,databi,nt,tshifted,bi(1),E_idx)
         endif
