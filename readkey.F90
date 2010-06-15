@@ -35,7 +35,7 @@ use xmpi_module
 use logging_module
 implicit none
 character(len=*)  :: fname,key
-character(21)     :: printkey
+character(24)     :: printkey
 real*8            :: defval,mnval,mxval
 logical, intent(in), optional :: bcast,required
 
@@ -59,7 +59,7 @@ else
 endif
 
 !printkey=key
-printkey(2:21)=key
+printkey(2:24)=key
 printkey(1:1)=' '
 
 if (xmaster) then
@@ -103,7 +103,7 @@ use xmpi_module
 use logging_module
 implicit none
 character*(*)  :: fname,key
-character(21)  :: printkey
+character(24)  :: printkey
 character*80   :: value
 integer*4      :: value_int
 integer*4      :: defval,mnval,mxval
@@ -125,7 +125,7 @@ else
  lrequired = .false.
 endif
 
-printkey(2:21)=key
+printkey(2:24)=key
 printkey(1:1)=' '
 if (xmaster) then
  call readkey(fname,key,value)
@@ -173,9 +173,9 @@ character(24),dimension(nv) :: allowed
 character(24),dimension(nov):: old
 logical, intent(in), optional :: bcast,required
 logical        :: lbcast,lrequired,passed
-character(21)  :: printkey
+character(24)  :: printkey
 
-printkey(2:21)=key
+printkey(2:24)=key
 printkey(1:1)=' '
 
 if (present(bcast)) then
@@ -240,13 +240,13 @@ use xmpi_module
 use logging_module
 implicit none
 character*(*)  :: fname,key
-character(24)  :: value_str
-character*80   :: value
+character(256)  :: value_str
+character*256   :: value
 logical, intent(in), optional :: bcast,required
 logical        :: lbcast,lrequired
-character(21)  :: printkey
+character(24)  :: printkey
 
-printkey(2:21)=key
+printkey(2:24)=key
 printkey(1:1)=' '
 
 if (present(bcast)) then

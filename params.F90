@@ -488,7 +488,6 @@ par%epsi    = readkey_dbl ('params.txt','epsi',        0.d0,         0.d0,      
 ! Tide boundary conditions
 call writelog('l','','--------------------------------')
 call writelog('l','','Tide boundary conditions: ')
-par%zs0        = readkey_dbl ('params.txt','zs0',     0.0d0,     -5.d0,      5.d0)
 par%tideloc    = readkey_int ('params.txt','tideloc', 0,             0,      4)
 if (par%tideloc>0) then
    if (par%tideloc==2) then
@@ -496,6 +495,8 @@ if (par%tideloc>0) then
    endif
    par%zs0file = readkey_name('params.txt','zs0file')
    call check_file_exist(par%zs0file)
+else
+   par%zs0        = readkey_dbl ('params.txt','zs0',     0.0d0,     -5.d0,      5.d0)
 endif
 !
 !
