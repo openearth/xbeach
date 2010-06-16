@@ -148,6 +148,7 @@ subroutine grid_bathy(s,par)
   use xmpi_module
   use general_mpi_module
   use readkey_module
+  use logging_module
                                                            
   implicit none                                    
                                                    
@@ -243,10 +244,23 @@ subroutine grid_bathy(s,par)
          s%x= cos(s%alfa)*(s%xw-s%xori)+sin(s%alfa)*(s%yw-s%yori)
          s%y=-sin(s%alfa)*(s%xw-s%xori)+cos(s%alfa)*(s%yw-s%yori)
       endif
-    s%zb=-s%zb*s%posdwn
-	! Make sure that at the lateral boundaries the bathymetry is alongshore uniform
-	s%zb(:,1) = s%zb(:,2)
-	s%zb(:,s%ny+1) = s%zb(:,s%ny)
+      s%zb=-s%zb*s%posdwn
+	  ! Make sure that at the lateral boundaries the bathymetry is alongshore uniform
+	  s%zb(:,1) = s%zb(:,2)
+	  s%zb(:,s%ny+1) = s%zb(:,s%ny)
+	  ! Check that grid spacing is relatively smooth:
+      do i=2,s%nx
+	     if ( ((s%x(i+1,1)-s%x(i,1))/(s%x(i,1)-s%x(i-1,1))) > 1.15d0 .or. &
+		      ((s%x(i+1,1)-s%x(i,1))/(s%x(i,1)-s%x(i-1,1))) < 1.d0/1.15d0  ) then
+			  call writelog('sl','','Warning: grid size jump in x larger than recommended 15% in point (m = ',i,')')
+		 endif
+	  enddo
+	  do j=2,s%ny
+	     if ( ((s%y(1,j+1)-s%y(1,j))/(s%y(1,j)-s%y(1,j-1))) > 1.15d0 .or. &
+		      ((s%y(1,j+1)-s%y(1,j))/(s%y(1,j)-s%y(1,j-1))) < 1.d0/1.15d0  ) then
+			  call writelog('sl','','Warning: grid size jump in y larger than recommended 15% in point (n = ',j,')')
+		 endif
+	  enddo
     endif
 
   endif
