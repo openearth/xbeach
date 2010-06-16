@@ -643,7 +643,8 @@ subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,xz,dt,scheme)
 use xmpi_module
 IMPLICIT NONE
 
-integer                                         :: i,j,nx,ny,ntheta,scheme
+integer                                         :: i,j,nx,ny,ntheta
+character(len=*), intent(in)                    :: scheme
 integer                                         :: itheta
 real*8 , dimension(nx+1)                        :: xz
 real*8 , dimension(nx+1,ny+1,ntheta)            :: xadvec,ee,arrin,cgx
@@ -656,14 +657,14 @@ arrin=ee*cgx
 
 
 do itheta=1,ntheta
-   select case (scheme)
-   case(1)   ! Upwind everywhere
+   select case (trim(scheme))
+   case('upwind_1')   ! Upwind everywhere
       do j=1,ny+1
          do i=2,nx
 	        call upwind1(xadvec(i,j,itheta),arrin(i-1:i+1,j,itheta),xz(i-1:i+1))
 	     enddo
 	  enddo
-   case(2)   ! Lax Wendroff
+   case('lax_wendroff')   ! Lax Wendroff
       if(xmpi_istop) then
          do j=1,ny+1
             i=2
@@ -695,7 +696,7 @@ do itheta=1,ntheta
             call upwind1(xadvec(i,j,itheta),arrin(i-1:i+1,j,itheta),xz(i-1:i+1))
          end do
       endif
-   case(3)   ! Second order upwind
+   case('upwind_2')   ! Second order upwind
       do j=1,ny+1
          i=2
 		 call upwind1(xadvec(i,j,itheta),arrin(i-1:i+1,j,itheta),xz(i-1:i+1))
@@ -784,7 +785,8 @@ use xmpi_module
 
 IMPLICIT NONE
 
-integer                                         :: i,j,nx,ny,ntheta,scheme
+integer                                         :: i,j,nx,ny,ntheta
+character(len=*), intent(in)                    :: scheme
 integer                                         :: itheta
 real*8 ,  dimension(ny+1)                       :: yz
 real*8 ,  dimension(nx+1,ny+1,ntheta)           :: yadvec,ee,arrin,cgy
@@ -796,14 +798,14 @@ yadvec = 0.d0
 arrin=ee*cgy
 
 do itheta=1,ntheta
-   select case (scheme)
-   case(1)   ! Upwind everywhere
+   select case (trim(scheme))
+   case('upwind_1')   ! Upwind everywhere
       do j=2,ny
          do i=1,nx+1
-	        call upwind1(yadvec(i,j,itheta),arrin(i:i,j-1:j+1,itheta),yz(j-1:j+1))
+	        call upwind1(yadvec(i,j,itheta),arrin(i,j-1:j+1,itheta),yz(j-1:j+1))
 	     enddo
 	  enddo
-   case(2)   ! Lax Wendroff
+   case('lax_wendroff')   ! Lax Wendroff
       if(xmpi_isleft) then
          do i=1,nx+1
             j=2
@@ -835,7 +837,7 @@ do itheta=1,ntheta
             call upwind1(yadvec(i,j,itheta),arrin(i,j-1:j+1,itheta),yz(j-1:j+1))
          end do
       endif
-   case(3)   ! Second order upwind
+   case('upwind_2')   ! Second order upwind
       j = 2
       do i=1,nx+1
          call upwind1(yadvec(i,j,itheta),arrin(i,j-1:j+1,itheta),yz(j-1:j+1))

@@ -245,7 +245,8 @@ type parameters
    character(256) :: drifterfile               = 'abc'   !  Note: will replace lookup in drifters module [name] Name of drifter data file
 
    ! Wave numerics parameters                                                                                                      
-   integer*4     :: scheme                     = -123    !  [-] Use first-order upwind (1) or Lax-Wendroff (2) for wave propagation
+   character(256):: scheme                     = 'abc'   !  [-] Use first-order upwind (upwind_1), second order upwind (upwind_2) or Lax-Wendroff (lax_wendroff)
+                                                         !      for wave propagation
    real*8        :: wavint                     = -123    !  [s] Interval between wave module calls (only in stationary wave mode)
    real*8        :: maxerror                   = -123    !  [m] Maximum wave height error in wave stationary iteration
    integer*4     :: maxiter                    = -123    !  [-] Maximum number of iterations in wave stationary
@@ -790,8 +791,13 @@ endif
 ! Wave numerics parameters 
 call writelog('l','','--------------------------------')
 call writelog('l','','Wave numerics parameters: ')
-
-par%scheme     = readkey_int ('params.txt','scheme',        2,        1,     2)
+allocate(allowednames(3))
+allocate(oldnames(3))
+allowednames = (/'upwind_1    ', 'lax_wendroff', 'upwind_2    '/)
+oldnames = (/'1', '2', '3'/)
+par%scheme= readkey_str ('params.txt','scheme','lax_wendroff',3, 3, allowednames  ,oldnames)
+deallocate(allowednames)
+deallocate(oldnames)
 if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
    par%wavint     = readkey_dbl ('params.txt','wavint',    60.d0,      1.d0,  3600.d0)
    par%maxerror   = readkey_dbl ('params.txt','maxerror', 0.00005d0, 0.00001d0, 0.001d0)
