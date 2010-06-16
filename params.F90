@@ -207,6 +207,8 @@ type parameters
    integer*4     :: lwt                        = -123    !  [-] Switch 0/1 long wave turbulence model
    real*8        :: betad                      = -123    !  [-] Dissipation parameter long wave breaking turbulence
    character(256) :: swtable                   = 'abc'   !  [-] Name of intra short wave assymetry and skewness table
+   integer*4     :: sus                        = -123    !  [-] Calibration factor for suspensions transports [0..1]
+   integer*4     :: bed                        = -123    !  [-] Calibration factor for bed transports [0..1]
    
    ! Morphology parameters                                                                                                         
    real*8        :: morfac                     = -123    !  [-] Morphological acceleration factor
@@ -712,6 +714,8 @@ if (par%sedtrans==1) then
       call check_file_exist(par%swtable)
       call check_file_length(par%swtable,18,33,40)
    endif
+   par%sus      = readkey_int ('params.txt','sus    ',1,           0,            1)
+   par%bed      = readkey_int ('params.txt','bed    ',1,           0,            1)
 endif
 !
 !
