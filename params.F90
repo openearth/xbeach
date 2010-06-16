@@ -4,6 +4,16 @@ type parameters
 ! These parameters are constants, variables read from params.txt, or are scalars derived directly from read input
 !
 !  Type             name                   initialize    !  [unit] description    
+   ! Physical processes                                                                                                            
+   integer*4     :: swave                      = -123    !  [-] Include short waves (1), exclude short waves (0)
+   integer*4     :: lwave                      = -123    !  [-] Include short wave forcing on NLSW equations and boundary conditions (1), or exclude (0)
+   integer*4     :: flow                       = -123    !  [-] Include flow calculation (1), or exclude (0)
+   integer*4     :: sedtrans                   = -123    !  [-] Include sediment transport (1) or exclude (0)
+   integer*4     :: morphology                 = -123    !  [-] Include morphology (1) or exclude (0)
+   integer*4     :: nonh                       = -123    !  [-] Non-hydrostatic pressure option: 0 = NSWE, 1 = NSW + non-hydrostatic pressure compensation Stelling & Zijlema, 2003 
+   integer*4     :: gwflow                     = -123    !  [-] Turn on (1) or off (0) groundwater flow module
+   integer*4     :: q3d                        = -123    !  [-] Turn on (1) or off (0) quasi-3D sediment transport module
+  
    ! Grid parameters                                                                                                                                                                                                                          
    character(256):: depfile                    = 'abc'   !  [-] Name of the input bathymetry file
    real*8        :: posdwn                     = -123    !  [-] Bathymetry is specified positive down (1) or positive up (-1)
@@ -30,16 +40,6 @@ type parameters
    ! Physical constants                                                                                                            
    real*8        :: g                          = -123    !  [ms^-2] Gravitational acceleration
    real*8        :: rho                        = -123    !  [kgm^-3] Density of water
- 
-   ! Physical processes                                                                                                            
-   integer*4     :: swave                      = -123    !  [-] Include short waves (1), exclude short waves (0)
-   integer*4     :: lwave                      = -123    !  [-] Include short wave forcing on NLSW equations and boundary conditions (1), or exclude (0)
-   integer*4     :: flow                       = -123    !  [-] Include flow calculation (1), or exclude (0)
-   integer*4     :: sedtrans                   = -123    !  [-] Include sediment transport (1) or exclude (0)
-   integer*4     :: morphology                 = -123    !  [-] Include morphology (1) or exclude (0)
-   integer*4     :: nonh                       = -123    !  [-] Non-hydrostatic pressure option: 0 = NSWE, 1 = NSW + non-hydrostatic pressure compensation Stelling & Zijlema, 2003 
-   integer*4     :: gwflow                     = -123    !  [-] Turn on (1) or off (0) groundwater flow module
-   integer*4     :: q3d                        = -123    !  [-] Turn on (1) or off (0) quasi-3D sediment transport module
  
    ! Initial conditions
    character(256):: zsinitfile                 = 'abc'   !  [name] Name of inital condition file zs
@@ -311,7 +311,20 @@ character(24),dimension(:),allocatable :: allowednames,oldnames
 integer                     :: filetype
 
 call writelog('sl','','Reading input parameters: ')
- 
+
+! Physical processes 
+call writelog('l','','--------------------------------')
+call writelog('l','','Physical processes: ')
+par%swave      = readkey_int ('params.txt','swave',         1,        0,     1)
+par%lwave      = readkey_int ('params.txt','lwave',         1,        0,     1)
+par%flow       = readkey_int ('params.txt','flow',          1,        0,     1)
+par%sedtrans   = readkey_int ('params.txt','sedtrans',      1,        0,     1)
+par%morphology = readkey_int ('params.txt','morphology',    1,        0,     1)
+par%nonh       = readkey_int ('params.txt','nonh',          0,        0,     1)
+par%gwflow     = readkey_int ('params.txt','gwflow',        0,        0,     1)
+par%q3d        = readkey_int ('params.txt','q3d',           0,        0,     1)
+
+
 ! Grid parameters
 call writelog('l','','--------------------------------')
 call writelog('l','','Grid parameters: ')
@@ -336,9 +349,9 @@ else
   call check_file_exist(par%yfile)
   call check_file_length(par%yfile,par%nx+1,par%ny+1)
 endif
-par%thetamin = readkey_dbl ('params.txt','thetamin', -90.d0,    -180.d0,  180.d0,required=.true.)
-par%thetamax = readkey_dbl ('params.txt','thetamax',  90.d0,    -180.d0,  180.d0,required=.true.)
-par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   20.d0,required=.true.)
+par%thetamin = readkey_dbl ('params.txt','thetamin', -90.d0,    -180.d0,  180.d0,required=(par%swave==1))
+par%thetamax = readkey_dbl ('params.txt','thetamax',  90.d0,    -180.d0,  180.d0,required=(par%swave==1))
+par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   20.d0,required=(par%swave==1))
 par%thetanaut= readkey_int ('params.txt','thetanaut',    0,        0,     1)
 !
 ! 
@@ -356,17 +369,6 @@ par%rho   = readkey_dbl ('params.txt','rho',  1025.0d0,  1000.0d0,  1040.0d0)
 par%g     = readkey_dbl ('params.txt','g',      9.81d0,     9.7d0,     9.9d0)
 !
 ! 
-! Physical processes 
-call writelog('l','','--------------------------------')
-call writelog('l','','Physical processes: ')
-par%swave      = readkey_int ('params.txt','swave',         1,        0,     1)
-par%lwave      = readkey_int ('params.txt','lwave',         1,        0,     1)
-par%flow       = readkey_int ('params.txt','flow',          1,        0,     1)
-par%sedtrans   = readkey_int ('params.txt','sedtrans',      1,        0,     1)
-par%morphology = readkey_int ('params.txt','morphology',    1,        0,     1)
-par%nonh       = readkey_int ('params.txt','nonh',          0,        0,     1)
-par%gwflow     = readkey_int ('params.txt','gwflow',        0,        0,     1)
-par%q3d        = readkey_int ('params.txt','q3d',           0,        0,     1)
 !
 !
 ! Initial conditions
@@ -389,7 +391,7 @@ allowednames=(/'stat        ','bichrom     ','ts_1        ','ts_2        ','jons
      'vardens     ','reuse       ','nonh        ','off         ','stat_table  ','jons_table  '/)
 oldnames=(/'0 ','1 ','2 ','3 ','4 ','5 ','6 ','7 ','8 ','9 ','40','41'/)
 !             function =   file         key      default  n allowed  n old allowed  allowed names  old allowed names
-par%instat  = readkey_str('params.txt','instat','bichrom',12        ,12            ,allowednames  ,oldnames,required=.true.)
+par%instat  = readkey_str('params.txt','instat','bichrom',12        ,12            ,allowednames  ,oldnames,required=(par%swave==1))
 deallocate(allowednames,oldnames)
 if (  trim(par%instat)=='jons' .or. &
       trim(par%instat)=='swan' .or. &

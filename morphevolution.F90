@@ -567,11 +567,16 @@ do ii=1,nint(par%morfac)
    !
    do i=2,nx-1
       do j=1,ny+1
-         if (max( max(hh(i,j),par%delta*H(i,j)), max(hh(i+1,j),par%delta*H(i+1,j)) )>par%hswitch+par%eps) then
+         !if (max( max(hh(i,j),par%delta*H(i,j)), max(hh(i+1,j),par%delta*H(i+1,j)) )>par%hswitch+par%eps) then
+		 if(max(hh(i,j),hh(i+1,j))>par%hswitch+par%eps) then
             dzmax=par%wetslp;
          else
             dzmax=par%dryslp;
          end if
+		 if (dzbdx(i,j)<0) then
+			    dzb = dzb
+				endif
+
          if(abs(dzbdx(i,j))>dzmax ) then
 		    aval=.true.     
             dzb=sign(1.0d0,dzbdx(i,j))*(abs(dzbdx(i,j))-dzmax)*(xz(i+1)-xz(i));
@@ -686,7 +691,7 @@ do ii=1,nint(par%morfac)
 
                ! erosion deposition per fraction (upwind or downwind); edg is positive in case of erosion  
                do jg=1,par%ngd 
-			      edg2(jg) = sedcal(jg)**dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt       ! erosion    (dzt always > 0 )
+			      edg2(jg) = sedcal(jg)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt       ! erosion    (dzt always > 0 )
 			      edg1(jg) = -sedcal(jg)*edg2(jg)*dyfac                             ! deposition (dzt always < 0 )
 			   enddo
 
@@ -699,10 +704,10 @@ do ii=1,nint(par%morfac)
 			enddo
 
             ! update water levels and dzav
-            s%zs(i,je)  = zs(i,je)-dzavt
-            s%dzav(i,je)= dzav(i,je)-dzavt
-			s%zs(i,jd)  = zs(i,jd)+dzavt*dyfac
-            s%dzav(i,jd)= dzav(i,jd)+dzavt*dyfac
+            zs(i,je)  = zs(i,je)-dzavt
+            dzav(i,je)= dzav(i,je)-dzavt
+			zs(i,jd)  = zs(i,jd)+dzavt*dyfac
+            dzav(i,jd)= dzav(i,jd)+dzavt*dyfac
 
 		 end if
       end do
@@ -941,7 +946,6 @@ if (.not. allocated(vmg)) then
    allocate (b     (nx+1,ny+1))  ! not used wwvv
    allocate (fslope(nx+1,ny+1))  ! not used wwvv
    allocate (hloc  (nx+1,ny+1))
-   allocate (kb    (nx+1,ny+1))
    allocate (Ts    (nx+1,ny+1))
    allocate (ceqs   (nx+1,ny+1))
    allocate (ceqb   (nx+1,ny+1))
@@ -1130,7 +1134,6 @@ if (.not. allocated(vmg)) then
    allocate (Ucrw  (nx+1,ny+1))
    allocate (urmsturb  (nx+1,ny+1))
    allocate (hloc  (nx+1,ny+1))
-   allocate (kb    (nx+1,ny+1))
    allocate (Ts    (nx+1,ny+1))
    allocate (ceqs  (nx+1,ny+1))
    allocate (ceqb  (nx+1,ny+1))

@@ -59,7 +59,7 @@ if (trim(break)=='roelvink1') then
    D=Qb*2*alpha/Trep*E
 elseif (trim(break)=='roelvink2') then
    ! D=Qb*2.*alpha/Trep*E*H/hroelvink; !breaker delay depth for dissipation in bore and fraction of breaking waves
-   D=Qb*2*alpha/Trep*E*H/hh        !breaker delay depth for fraction breaking waves and actual water depth for disipation in bore
+   D=Qb*2*alpha/Trep*E*H/hh            !breaker delay depth for fraction breaking waves and actual water depth for disipation in bore
 end if
 
 
