@@ -112,7 +112,14 @@ subroutine ncoutput_init(s, sl, par, tpar)
 
   ! initialize values
   ! global
-  allocate(globalvarids(par%nglobalvar))
+  allocate(globalvarids(size(default_mnems)))
+  
+  ! should be....
+  !if (par%nglobalvar == -1) then
+  !   allocate(globalvarids(size(default_mnems)))
+  !else
+  !   allocate(globalvarids(par%nglobalvar))
+  !endif
   globalvarids = -1 ! initialize to 0
   outputg = .true.
 
