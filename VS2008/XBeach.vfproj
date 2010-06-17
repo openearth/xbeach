@@ -56,7 +56,10 @@ makeversiondat.bat"/>
 				<Tool Name="VFPreLinkEventTool"/>
 				<Tool Name="VFPreBuildEventTool" CommandLine="cd ..
 makeversiondat.bat"/>
-				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="copy ..\lib\win32\all\hdf5\dll\*.dll $(OutDir)
+copy ..\lib\win32\all\szip\dll\*.dll $(OutDir)
+copy ..\lib\win32\all\zlib\dll\*.dll $(OutDir)
+copy ..\lib\win32\vs\pg\*.dll $(OutDir)"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration></Configurations>
 	<Files>
 		<Filter Name="Header Files" Filter="fi;fd;gen"/>
