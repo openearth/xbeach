@@ -4,8 +4,8 @@ real*8,dimension(:,:,:), allocatable:: meanarrays  ! Keep time average variables
 real*8,dimension(:,:,:), allocatable:: variancearrays     ! Keep variance of variables
 real*8,dimension(:,:,:), allocatable:: variancecrossterm  ! Needed for variance calculation
 real*8,dimension(:,:,:), allocatable:: variancesquareterm ! Needed for variance calculation
-real*8,dimension(:,:,:), allocatable,target:: minarrays   ! Keep time min variables
-real*8,dimension(:,:,:), allocatable,target:: maxarrays   ! Keep time max variables
+real*8,dimension(:,:,:), allocatable:: minarrays   ! Keep time min variables
+real*8,dimension(:,:,:), allocatable:: maxarrays   ! Keep time max variables
 
 
 
@@ -48,15 +48,19 @@ subroutine makeaverage(s,sl,par, meanvec)
   type(parameters), intent(IN)    :: par
   type(spacepars), intent(IN)     :: s
   type(spacepars), intent(IN)     :: sl
-  integer*4,dimension(:),allocatable, intent(IN)  :: meanvec     ! keep track of which mean variables are used
+  integer*4,dimension(:), intent(IN)  :: meanvec     ! keep track of which mean variables are used
 
 
   integer                         :: i,rdims
   real*8                          :: mult
   type(arraytype)                 :: t
-  real*8,dimension(:,:),pointer   :: MI,MA
+  real*8,dimension(:,:),allocatable,save :: MI,MA
   real*8,dimension(s%nx+1,s%ny+1) :: oldmean,tvar
 
+  if (.not. allocated(MI)) then
+     allocate(MI(s%nx+1,s%ny+1))
+	 allocate(MA(s%nx+1,s%ny+1))
+  endif
   ! wwvv this subroutine needs all of the arrays in question
 
   ! to comfort the compiler
@@ -70,8 +74,8 @@ subroutine makeaverage(s,sl,par, meanvec)
 #endif
      if(xmaster) then
       call indextos(s,meanvec(i),t)
-		MI=>minarrays(:,:,i)
-		MA=>maxarrays(:,:,i)
+		MI=minarrays(:,:,i)
+		MA=maxarrays(:,:,i)
       select case(t%name)
         case (mnem_Fx)
 		      oldmean=meanarrays(:,:,i)
@@ -366,6 +370,8 @@ subroutine makeaverage(s,sl,par, meanvec)
               end select  ! rank
           end select  !type
       end select  ! name
+	  minarrays(:,:,i)=MI
+	  maxarrays(:,:,i)=MA
    endif ! xmaster
    enddo ! par%nmeanvar
  !Dano  endif ! xmaster

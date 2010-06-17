@@ -575,7 +575,6 @@ subroutine var_output(it,s,sl,par,tpar)
   integer,dimension(8)                    :: datetime
   real*8,dimension(size(tpar%tpg)+size(tpar%tpp)+size(tpar%tpc)+size(tpar%tpm)) :: outputtimes
   type(arraytype)                         :: t
-  real*8,dimension(:,:),pointer				:: MI,MA
   real*8, save                            :: tprev, percprev
   
   inquire(iolength=wordsize) 1.d0
@@ -733,16 +732,14 @@ subroutine var_output(it,s,sl,par,tpar)
                       write(indextomeanunit(i),rec=itm)meanarrays(:,:,i)
                   endif
 						write(indextovarunit(i),rec=itm)variancearrays(:,:,i)
-						MI=>minarrays(:,:,i)
-						MA=>maxarrays(:,:,i)
-						where(MI>0.99d0*huge(0.d0))
-						    MI=-999.d0
+						where(minarrays(:,:,i)>0.99d0*huge(0.d0))
+						    minarrays(:,:,i)=-999.d0
 						endwhere
-						where(MA<-0.99d0*huge(0.d0))
-						    MA=-999.d0
+						where(maxarrays(:,:,i)<-0.99d0*huge(0.d0))
+						    maxarrays(:,:,i)=-999.d0
 						endwhere
-						write(indextominunit(i),rec=itm)MI
-                  write(indextomaxunit(i),rec=itm)MA
+						write(indextominunit(i),rec=itm)minarrays(:,:,i)
+                  write(indextomaxunit(i),rec=itm)maxarrays(:,:,i)
               enddo
               meanarrays=0.0d0
 				  variancearrays=0.d0
