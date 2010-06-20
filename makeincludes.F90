@@ -30,7 +30,7 @@ character(len=slen)            :: type, name, comment, line, broadcast, descript
 integer                        :: rank
 logical                        :: varfound
 logical                        :: endfound
-character(slen), dimension(10) :: dims       ! 4 should be enough
+character(20), dimension(10) :: dims       ! dimensions are maximum 10 length statement, maximum 10 different dimensions
 integer                        :: maxdimlen
 character(6),parameter         :: sp = '      '
 
@@ -386,9 +386,10 @@ end subroutine makechartoindex
 !
 subroutine makeindextos
   implicit none
-  integer             :: j
+  integer             :: i,j
   character           :: ctype
   character(len=slen) :: rankstr
+  character(len=10) :: extrastr
   call openinfile
   call openoutput
   call warning
@@ -454,6 +455,20 @@ subroutine makeindextos
         endif
         write(outfile,'(a)')      sp//"    t%units= '"//trim(units)//"'"
         write(outfile,'(a)')      sp//"    t%description= '"//trim(description)//"'"
+        if (rank>0) then
+           ! Create a pointer to an array containing the dimensions
+           write(outfile,'(a,i3,a)')      sp//"    allocate(t%dimensions(", rank, "))"
+           write(outfile,'(a)', advance='no')      sp//"    t%dimensions= (/ " 
+           do i=1,rank
+              if (i < rank) then
+                 extrastr = ", "
+              else
+                 extrastr = "/)"
+              endif
+              write(outfile,'(a)',advance='no')   "'"//(dims(i))//"'"//trim(extrastr)
+           enddo
+        write(outfile, *) ! empty line
+        endif
         j = j + 1
     endif
   enddo

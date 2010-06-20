@@ -85,21 +85,6 @@ end interface printsum
 
 contains                                         
 
-subroutine doeniets(sg,sl,par)
-  use params
-  implicit none
-  type (spacepars) :: sg,sl
-  type(parameters) :: par
-
-  type(spacepars) :: gg,ll
-  type(parameters) :: ppp
-
-  gg=sg
-  ll=sl
-  ppp=par
-
-end subroutine doeniets
-
 subroutine indextos(s,index,t)
   use mnemmodule
   use xmpi_module
@@ -110,7 +95,7 @@ subroutine indextos(s,index,t)
   type(arraytype), intent(out)        :: t
 
   if (index .lt. 1 .or. index .gt. numvars) then
-    call writelog('els','ai0a','invalid index ',index,' in indextos. Program will stop')
+    call writelog('els','(a,i3,a)','invalid index ',index,' in indextos. Program will stop')
     call halt_program
   endif
 

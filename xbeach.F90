@@ -169,11 +169,26 @@ if (xmaster) then
    call gwinit(par,s)      ! works only on master process
    call sed_init (s,par)   ! works only on master process
 endif
-call output_init(sglobal,slocal,par,tpar)
-! for testing purposes we output both varoutput and ncoutput
+
+! initialize the correct output module (clean this up?, move to another module?)
+if (par%outputformat=='fortran') then
+   ! only fortran
+   call output_init(sglobal,slocal,par,tpar)
+elseif (par%outputformat=='netcdf') then
+   ! only netcdf, stop if it's not build
 #ifdef USENETCDF
-call ncoutput_init(sglobal,slocal,par,tpar)
+   call ncoutput_init(sglobal,slocal,par,tpar)
+#else
+   call writelog('lse', '', 'This xbeach executable has no netcdf support. Rebuild with netcdf or outputformat=fortran')
+   stop 1
 #endif
+elseif (par%outputformat=='debug') then
+#ifdef USENETCDF
+   call ncoutput_init(sglobal,slocal,par,tpar)
+#endif
+   call output_init(sglobal,slocal,par,tpar)
+endif
+
 
 #ifdef USEMPI
 ! some par has changed, so:
@@ -196,66 +211,71 @@ call space_distribute_space(sglobal,slocal,par)
 
 ! update times at which we need output
 call outputtimes_update(par, tpar)
-call var_output(it,sglobal,s,par, tpar)
+! Store first timestep (always)
+if (par%outputformat=='fortran') then
+   call var_output(it,sglobal,s,par,tpar)
+elseif (par%outputformat=='netcdf') then
 #ifdef USENETCDF
-call nc_output(sglobal,s,par, tpar)
+   call nc_output(sglobal,s,par, tpar)
 #endif
+elseif (par%outputformat=='debug') then
+#ifdef USENETCDF
+   call nc_output(sglobal,s,par, tpar)
+#endif
+   call var_output(it,sglobal,s,par,tpar)
+endif
 
 ! ----------------------------
 ! This is the main time loop
 ! ----------------------------
 do while (par%t<par%tstop)
-    ! Calculate timestep
-    call timestep(s,par,tpar, it)
-    ! Wave boundary conditions
-    if (par%swave==1) call wave_bc (sglobal,slocal,par,newstatbc)
-    ! Flow boundary conditions
-	if (par%gwflow==1) call gwbc(par,s)
-	if (par%flow+par%nonh>0) call flow_bc (s,par)
-    !Dano moved here, after (long) wave bc generation
-	if (it==0) then
+   ! Calculate timestep
+   call timestep(s,par,tpar, it)
+   ! Wave boundary conditions
+   if (par%swave==1) call wave_bc (sglobal,slocal,par,newstatbc)
+   ! Flow boundary conditions
+   if (par%gwflow==1) call gwbc(par,s)
+   if (par%flow+par%nonh>0) call flow_bc (s,par)
+   !Dano moved here, after (long) wave bc generation
+   if (it==0) then
 #ifdef USEMPI
-       t01 = MPI_Wtime()
+      t01 = MPI_Wtime()
 #endif
-    endif
-    ! Wave timestep
-	if (par%swave==1) then
-       if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
-          if ((abs(mod(par%t,par%wavint))<0.000001d0).or.newstatbc) then
-             call wave_stationary(s,par)
-		     newstatbc=.false.
-          endif
-       else
-          call wave_timestep(s,par)
-       endif
-	endif
-    ! Flow timestep
-	if (par%gwflow==1) call gwflow(par,s)
-    if (par%flow+par%nonh>0) call flow_timestep (s,par)
-    if (par%ndrifter>0) call drifter (s,par)
-    ! Suspended transport
-    if(par%sedtrans==1) call transus(s,par)
-    ! Bed level update
-    if (par%morphology==1) call bed_update(s,par)
-    ! Calculate new output times, so we know when to stop
-    call outputtimes_update(par, tpar)
-	! Output
-	if (par%outputformat=='fortran') then
-        call var_output(it,sglobal,s,par,tpar)
-	elseif (par%outputformat=='netcdf') then
+   endif
+   ! Wave timestep
+   if (par%swave==1) then
+      if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
+         if ((abs(mod(par%t,par%wavint))<0.000001d0).or.newstatbc) then
+            call wave_stationary(s,par)
+            newstatbc=.false.
+         endif
+      else
+         call wave_timestep(s,par)
+      endif
+   endif
+   ! Flow timestep
+   if (par%gwflow==1) call gwflow(par,s)
+   if (par%flow+par%nonh>0) call flow_timestep (s,par)
+   if (par%ndrifter>0) call drifter (s,par)
+   ! Suspended transport
+   if(par%sedtrans==1) call transus(s,par)
+   ! Bed level update
+   if (par%morphology==1) call bed_update(s,par)
+   ! Calculate new output times, so we know when to stop
+   call outputtimes_update(par, tpar)
+   ! Output
+   if (par%outputformat=='fortran') then
+      call var_output(it,sglobal,s,par,tpar)
+   elseif (par%outputformat=='netcdf') then
 #ifdef USENETCDF
-	    call nc_output(sglobal,s,par, tpar)
+      call nc_output(sglobal,s,par, tpar)
 #endif
-	elseif (par%outputformat=='debug') then
+   elseif (par%outputformat=='debug') then
 #ifdef USENETCDF
-	    call nc_output(sglobal,s,par, tpar)
+      call nc_output(sglobal,s,par, tpar)
 #endif
-		call var_output(it,sglobal,s,par,tpar)
-	endif
-! No longer necessary
-!#ifdef USEMPI
-!    call distribute_par(par)
-!#endif
+      call var_output(it,sglobal,s,par,tpar)
+   endif
 enddo
 ! ------------------------
 ! End of main time loop

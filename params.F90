@@ -1,5 +1,6 @@
 module params
-
+  use mnemmodule
+  
 type parameters
 ! These parameters are constants, variables read from params.txt, or are scalars derived directly from read input
 !
@@ -234,6 +235,7 @@ type parameters
    character(256):: tscross                    = 'abc'   !  [name] Name of file containing timings of cross section output
    character(256):: tsmean                     = 'abc'   !  [name] Name of file containing timings of mean, max, min and var output
    integer*4     :: nglobalvar                 = -123    !  [-] Number of global output variables
+   character(len=maxnamelen), dimension(:), allocatable :: globalvars      !  [-] Indices of global output variables
    integer*4     :: nmeanvar                   = -123    !  [-] Number of mean,min,max,var output variables
    integer*4     :: npoints                    = -123    !  [-] Number of output point locations
    integer*4     :: nrugauge                   = -123    !  [-] Number of output runup gauge locations
@@ -310,9 +312,11 @@ use logging_module
 implicit none
 type(parameters)            :: par
 character(128)              :: testc
+character(len=256)            :: line, keyword
+
 character(24),dimension(:),allocatable :: allowednames,oldnames
 integer                     :: filetype
-
+integer                     :: i, ic, id ! integers for reading output variables
 call writelog('sl','','Reading input parameters: ')
 
 ! Physical processes 
@@ -764,7 +768,46 @@ par%tsmean = readkey_name('params.txt','tsmean')
 if (par%tsmean==' ') then
    par%tintm   = readkey_dbl ('params.txt','tintm', par%tint,     1.d0, par%tstop)  ! Robert
 endif  
+!!!!! GLOBAL OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 par%nglobalvar  = readkey_int ('params.txt','nglobalvar', -1, -1, 20)
+if (par%nglobalvar == -1) then
+   allocate(par%globalvars(21))
+   par%globalvars =  (/'H    ', 'zs   ', 'zs0  ', 'zb   ', 'hh   ', 'u    ', 'v    ', 'ue   ', 've   ', 'urms ', 'Fx   ', &
+        'Fy   ', 'ccg  ', 'ceqsg', 'ceqbg', 'Susg ', 'Svsg ', 'E    ', 'R    ', 'D    ', 'DR   ' /)
+elseif (par%nglobalvar == 999) then ! Output all
+   allocate(par%globalvars(size(mnemonics)))
+   par%globalvars = mnemonics
+else
+   ! User specified output
+   ! we allocate to 0, we'll let it grow inside add_mnem....
+   allocate(par%globalvars(0))
+   ! Look for keyword nglobalvar in params.txt
+   id=0
+   if (xmaster) then
+      open(10,file='params.txt')
+      do while (id == 0)
+         read(10,'(a)')line
+         ic=scan(line,'=')
+         if (ic>0) then
+            keyword=adjustl(line(1:ic-1))
+            if (keyword == 'nglobalvar') id=1
+         endif
+      enddo
+      ! Read through the variables lines, 
+      do i=1,par%nglobalvar
+         read(10,'(a)')line
+         line = trim(line)
+         ! store the mnemonic in globalvars
+         call add_outmnem(line, par%globalvars)
+      end do
+      close(10)
+   endif  ! xmaster
+#ifdef USEMPI
+   call xmpi_bcast(noutnumbers)
+   call xmpi_bcast(outnumbers)
+#endif
+endif
+
 par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
 par%npoints     = readkey_int ('params.txt','npoints',     0,  0, 50)
 par%nrugauge    = readkey_int ('params.txt','nrugauge',    0,  0, 50)
@@ -1036,5 +1079,40 @@ subroutine printparams(par,str)
   
 end subroutine printparams
 
+!
+! Some extra functions to make reading the output variables possible
+!
+  subroutine add_outmnem(mnem, vars)
+    use logging_module
+    implicit none
+    character(len=maxnamelen), intent(in) :: mnem
+    character(len=maxnamelen), dimension(:), allocatable, intent(inout) :: vars
+    character(len=maxnamelen), dimension(:), allocatable :: temp
+    integer :: i, nvars
+    i = chartoindex(mnem)
+    if (i .lt. 1) then
+       if(xmaster) then
+          call writelog('ls','','Warning: cannot locate variable "',trim(mnem),'", no output for this one')
+       endif
+       return
+    endif
+    ! make a copy of the old vars
+    allocate(temp(size(vars)))
+    ! now copy the values
+    temp =vars
+    ! create room for an extra variable
+    deallocate(vars)
+    allocate(vars(size(temp)+1))
+    ! copy back
+    vars(1:size(temp)) = temp
+    ! and add the new one
+    vars(size(vars)) = mnem
+    ! clean up temp
+    deallocate(temp)
+    if(xmaster) then
+       call writelog('ls','','Will generate global output for variable "',trim(mnem),'"')
+    endif
+    return
+  end subroutine add_outmnem
 
 end module params

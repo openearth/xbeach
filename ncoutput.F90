@@ -36,16 +36,12 @@ integer, save :: xvarid, yvarid
 
 ! Wave angle
 integer, save :: thetadimid
+! Sediment
+integer, save :: sedimentclassesdimid, bedlayersdimid
 
 ! global
 integer, dimension(:), allocatable, save :: globalvarids
 ! default output (fixed length)
-character(len=5), parameter :: default_mnems(7) = (/'H    ','zs   ','zs0  ','zb   ',&
-     &'hh   ','u    ','v    '/) 
-! One of these doesn't work:
-!      &'ue   ','ve   ', 'urms ','Fx   ','Fy   ',&
-!      &'ccg  ','ceqsg','ceqbg', &
-!      &'E    ','R    ','D    ','DR   '/)
 
 ! points 
 integer, save :: pointsdimid
@@ -54,6 +50,10 @@ integer, save :: xpointsvarid, ypointsvarid
 ! time 
 integer, save :: globaltimedimid, pointtimedimid
 integer, save :: globaltimevarid, pointtimevarid
+
+! TODO: check out why these are sometimes used....
+integer, save :: tidetimedimid, windtimedimid
+integer, save :: inoutdimid, tidecornersdimid
 
 ! local variables
 integer, save :: npointstotal
@@ -66,7 +66,7 @@ contains
   ! Error handling of netcdf errors 
   subroutine handle_err(status) 
     use netcdf
-    
+
     integer, intent ( in) :: status
     integer :: status2
     
@@ -95,32 +95,28 @@ subroutine ncoutput_init(s, sl, par, tpar)
   use readkey_module
   use timestep_module
   use mnemmodule
-
+  use logging_module
   implicit none
   integer :: status ! file id and status returned from a file operation
 
   type(spacepars), intent(in)                  :: s,sl ! why do we get 2 space params??
   type(parameters), intent(in)                 :: par 
   type(timepars), intent(in)                   :: tpar
-
+  
   type(arraytype)                                     :: t
   integer                                      :: i,j,k,l,m,n
   character(len=10)                             :: mnem
   
   integer                                      :: npointstotal
   logical                                      :: outputp, outputg, outputw, outputm, outputc
+  integer, dimension(:), allocatable           :: dimids ! store the dimids in a vector
 
   ! initialize values
   ! global
-  allocate(globalvarids(size(default_mnems)))
+  ! store netcdf variable ids for each variable
+  allocate(globalvarids(size(par%globalvars)))
   
-  ! should be....
-  !if (par%nglobalvar == -1) then
-  !   allocate(globalvarids(size(default_mnems)))
-  !else
-  !   allocate(globalvarids(par%nglobalvar))
-  !endif
-  globalvarids = -1 ! initialize to 0
+  globalvarids = -1 ! initialize to -1, so an error is raised when we miss something... 
   outputg = .true.
 
   npointstotal = par%npoints+par%nrugauge
@@ -131,7 +127,8 @@ subroutine ncoutput_init(s, sl, par, tpar)
   status = nf90_create(path = ncfilename, cmode=NF90_CLOBBER, ncid = ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
-  ! dimensions
+
+  ! dimensions TODO: only output dimensions that are used
   ! grid
   status = nf90_def_dim(ncid, 'x', s%nx+1, xdimid) 
   if (status /= nf90_noerr) call handle_err(status)
@@ -140,6 +137,18 @@ subroutine ncoutput_init(s, sl, par, tpar)
   ! wave angles
   status = nf90_def_dim(ncid, 'wave_angle', s%ntheta, thetadimid)
   if (status /= nf90_noerr) call handle_err(status)
+  ! computational layers in bed ...
+  ! TODO: Clean this up, why max(par%nd,2)???
+  status = nf90_def_dim(ncid, 'bed_layers', max(par%nd,2), bedlayersdimid)
+  if (status /= nf90_noerr) call handle_err(status)
+  ! sediment classes
+  status = nf90_def_dim(ncid, 'sediment_classes', par%ngd, sedimentclassesdimid)
+  if (status /= nf90_noerr) call handle_err(status)
+
+  ! dimensions of length 2.... what is this.... TODO: find out what this is 
+  status = nf90_def_dim(ncid, 'inout', 2, inoutdimid)
+  if (status /= nf90_noerr) call handle_err(status)
+
 
 
   ! time dimensions are fixed, only defined if there are points
@@ -155,19 +164,35 @@ subroutine ncoutput_init(s, sl, par, tpar)
      if (status /= nf90_noerr) call handle_err(status)
   end if
 
+  ! TODO: par%tidelen par%tideloc par%windlen 
+  if (par%tidelen > 0) then
+     status = nf90_def_dim(ncid, 'tidetime', par%tidelen, tidetimedimid)
+     if (status /= nf90_noerr) call handle_err(status)
+  endif
+
+  if (par%tideloc > 0) then
+     status = nf90_def_dim(ncid, 'tidecorners', par%tideloc, tidecornersdimid)
+     if (status /= nf90_noerr) call handle_err(status)
+  endif
+
+  if (par%windlen > 0) then
+     status = nf90_def_dim(ncid, 'windtime', par%windlen, windtimedimid)
+     if (status /= nf90_noerr) call handle_err(status)
+  endif
+
   ! define space & time variables
   ! grid
   status = nf90_def_var(ncid, 'x', NF90_DOUBLE, (/ xdimid /), xvarid)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, xvarid, 'units', 'm')
   if (status /= nf90_noerr) call handle_err(status)
-  status = nf90_put_att(ncid, xvarid, 'description', 'local x coordinate')
+  status = nf90_put_att(ncid, xvarid, 'long_name', 'local x coordinate')
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_def_var(ncid, 'y', NF90_DOUBLE, (/ ydimid /), yvarid)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, yvarid, 'units', 'm')
   if (status /= nf90_noerr) call handle_err(status)
-  status = nf90_put_att(ncid, yvarid, 'description', 'local y coordinate')
+  status = nf90_put_att(ncid, yvarid, 'long_name', 'local y coordinate')
   if (status /= nf90_noerr) call handle_err(status)
 
 
@@ -180,35 +205,44 @@ subroutine ncoutput_init(s, sl, par, tpar)
      if (status /= nf90_noerr) call handle_err(status)
      
      ! default global output variables
-     do i=1,size(default_mnems)
-        mnem = default_mnems(i)
+     do i=1,size(par%globalvars)
+        mnem = trim(par%globalvars(i))
         j = chartoindex(mnem)
         call indextos(s,j,t)
         select case(t%type)
         case('r')
+           ! Build the array with dimension ids
+           call writelog('ls', '', 'Creating netcdf variable: ', trim(mnem) )
+           allocate(dimids(t%rank+1))
            select case(t%rank)
            case(2)
-              status = nf90_def_var(ncid, trim(mnem), NF90_DOUBLE, &
-                   (/xdimid, ydimid, globaltimedimid /), globalvarids(i))
-              if (status /= nf90_noerr) call handle_err(status)
+              dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), globaltimedimid /)
            case(3)
-              status = nf90_def_var(ncid, trim(mnem), NF90_DOUBLE,  &
-                   (/xdimid, ydimid, thetadimid, globaltimedimid /), globalvarids(i))
-              if (status /= nf90_noerr) call handle_err(status)
+              dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
+                   dimensionid(t%dimensions(3)), globaltimedimid /)
+           case(4)
+              call writelog('ls', '', 'Variable ' // trim(mnem) // ' is of rank 4. This may not work due to an' // &
+                   ' unresolved issue. If so, remove the variable or use the fortran outputformat option.')
+              dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
+                   dimensionid(t%dimensions(3)), dimensionid(t%dimensions(4)), globaltimedimid /)
            case default
-              write(0,*) 'mnem', mnem, ' not supported, rank:', t%rank
+              call writelog('lse', '', 'mnem: ' // mnem // ' not supported, rank:', t%rank)
+              stop 1
            end select
+           status = nf90_def_var(ncid, trim(mnem), NF90_DOUBLE, &
+                dimids, globalvarids(i))
+           if (status /= nf90_noerr) call handle_err(status)
+           deallocate(dimids)
         case default
            write(0,*) 'mnem', mnem, ' not supported, type:', t%type
         end select
         status = nf90_put_att(ncid, globalvarids(i), 'units', trim(t%units))
         if (status /= nf90_noerr) call handle_err(status)
-        status = nf90_put_att(ncid, globalvarids(i), 'description', trim(t%description))
+        status = nf90_put_att(ncid, globalvarids(i), 'long_name', trim(t%description))
         if (status /= nf90_noerr) call handle_err(status)
      end do
   end if
 !  ! points
-
 
   ! done defining variables
   status = nf90_enddef(ncid)
@@ -225,8 +259,6 @@ subroutine ncoutput_init(s, sl, par, tpar)
   call indextos(s,j,t)
   status = nf90_put_var(ncid, yvarid, t%r1)
   if (status /= nf90_noerr) call handle_err(status)
-
-
 
   status = nf90_close(ncid)
   if (status /= nf90_noerr) call handle_err(status)
@@ -262,10 +294,12 @@ subroutine nc_output(s,sl,par, tpar)
   if (tpar%outputg) then
      status = nf90_put_var(ncid, globaltimevarid, par%t, (/tpar%itg/))
      if (status /= nf90_noerr) call handle_err(status) 
-     ! default global output variables
-     do i=1,size(default_mnems)
-        mnem = default_mnems(i)
+     ! write global output variables
+     do i=1,size(par%globalvars)
+        mnem = trim(par%globalvars(i))
+        write(*,*) 'saving variable', mnem
         j = chartoindex(mnem)
+        ! lookup the proper array
         call indextos(s,j,t)
         select case(t%type)
         case('r')
@@ -276,6 +310,9 @@ subroutine nc_output(s,sl,par, tpar)
            case(3)
               status = nf90_put_var(ncid, globalvarids(i), t%r3, start=(/1,1,1, tpar%itg/) )
               if (status /= nf90_noerr) call handle_err(status)
+           case(4)
+              status = nf90_put_var(ncid, globalvarids(i), t%r3, start=(/1,1,1,1, tpar%itg/) )
+              if (status /= nf90_noerr) call handle_err(status)
            case default
               write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
            end select
@@ -285,13 +322,44 @@ subroutine nc_output(s,sl,par, tpar)
      end do
 !  tpar%outputg = .false. ! not sure if this is required
   end if
-
-
   status = nf90_close(ncid=ncid)
   if (status /= nf90_noerr) call handle_err(status) 
  
 
 end subroutine nc_output
 
+
+integer function dimensionid(expression)
+  use logging_module
+  implicit none
+  character(len=20),intent(in)                       :: expression
+  integer :: i, ic
+  select case(trim(expression))
+  case('s%nx+1')
+     dimensionid = xdimid
+  case('s%ny+1')
+     dimensionid = ydimid
+  case('s%ntheta')
+     dimensionid = thetadimid
+  case('par%tidelen')
+     dimensionid = tidetimedimid
+  case('par%tideloc')
+     dimensionid = tidecornersdimid
+  case('par%windlen')
+     dimensionid = windtimedimid
+  case('par%ngd')
+     dimensionid = sedimentclassesdimid
+  case('2')
+     dimensionid = inoutdimid
+  case('max(par%nd,2)')
+     dimensionid = bedlayersdimid
+  case default
+     call writelog('els','','Unknown dimension expression:'  // expression)
+     stop 1
+  end select
+   
+  
+  
+end function
 #endif
 end module ncoutput_module

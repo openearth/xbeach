@@ -9,6 +9,7 @@ type arraytype
   character(len=maxnamelen) :: name     ! 'v','ve', .....
   character(len=20) :: units     ! m, following udunits convention
   character(len=1024) :: description
+  character(len=20), dimension(:), allocatable :: dimensions ! the dimensions of the variable, for example (s%nx, s%ny)
 
   real*8, pointer             :: r0  ! pointer to real8 scalar
   real*8, dimension(:), pointer :: r1  ! pointer to real8 (:)

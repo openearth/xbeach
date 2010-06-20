@@ -32,10 +32,12 @@ module outputmod
   ! Only alive at xmaster
   integer*4,dimension(:),allocatable  :: meanvec     ! keep track of which mean variables are used
   integer*4                           :: stpm        ! size of tpm
-  
+
+  ! Store the global variables in numbers....
   integer                             :: noutnumbers = 0  ! the number of outnumbers
-  
   integer, dimension(numvars)         :: outnumbers  ! numbers, corrsponding to mnemonics, which are to be output
+ 
+  
   integer                             :: ndt,itg,itp,itc,itm,day,ot
   real*8,dimension(10)                :: tlast10
   type(arraytype)                     :: At
@@ -114,7 +116,17 @@ contains
        write(100,rec=4)s%y
        close(100)
     endif
-    
+
+!!!!! GLOBAL VARS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    ! This module identifies output variables by their index
+    ! store this at the module level so we don't have to pass par around
+    noutnumbers = size(par%globalvars)
+    ! store all indices for the global variables
+    do i= 1,noutnumbers
+       outnumbers(i) = chartoindex(par%globalvars(i))
+    enddo
+
 !!!!! OUTPUT POINTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     
     
@@ -329,7 +341,8 @@ contains
                    temparray(i,ii)=index
                    call indextos(s,index,At)
                    if (At%rank.ne.2) then
-                      call writelog('les','(a,i0,a,a,a)',' Cross section output not designed for rank ',At%rank,' array "',trim(At%name),'"')
+                      call writelog('les','(a,i0,a,a,a)',' Cross section output not designed for rank ' &
+                           ,At%rank,' array "',trim(At%name),'"')
                       call halt_program
                    endif
                    call writelog('sl','',' Output type: ''',trim(var),'''')
@@ -379,70 +392,6 @@ contains
     
     
     
-!!!!! GLOBAL OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
-    ! outputindex is set in this subroutine. Row number corresponds to line in s.inp.
-    ! Default choice = H,zs,zb,u,v,cc,Su,Sv, dims
-    ! dims is given number 999 !!!!!
-    
-    !outputindex = .false.
-    
-    !if (nglobalvar == 0) then                       ! User wants no output
-    !        outputindex = .false.
-    
-    if (par%nglobalvar == -1)       then    ! Default output
-       call add_outmnem('H')
-       call add_outmnem('zs')
-       call add_outmnem('zs0')
-       call add_outmnem('zb')
-       call add_outmnem('hh')
-       call add_outmnem('u')
-       call add_outmnem('v')
-       call add_outmnem('ue')
-       call add_outmnem('ve')
-       call add_outmnem('urms')
-       call add_outmnem('Fx')
-       call add_outmnem('Fy')
-       call add_outmnem('ccg')    ! todo wwvv: cc does not exist
-       call add_outmnem('ceqsg')
-       call add_outmnem('ceqbg')
-       call add_outmnem('Sug')
-       call add_outmnem('Svg')
-       call add_outmnem('E')
-       call add_outmnem('R')
-       call add_outmnem('D')
-       call add_outmnem('DR')
-    elseif (par%nglobalvar == 999) then ! Output all
-       do i=1,numvars
-          call add_outnumber(i)
-       enddo
-    else                                                            ! User specified output
-       ! Look for keyword nglobalvar in params.txt
-       id=0
-       if (xmaster) then
-          open(10,file='params.txt')
-          do while (id == 0)
-             read(10,'(a)')line
-             ic=scan(line,'=')
-             if (ic>0) then
-                keyword=adjustl(line(1:ic-1))
-                if (keyword == 'nglobalvar') id=1
-             endif
-          enddo
-          ! Read through the variables lines, TODO: this should go to params.F90
-          do i=1,par%nglobalvar
-             read(10,'(a)')line
-             line=trim(line)        ! useless   wwvv
-             call add_outmnem(line)
-          end do
-          close(10)
-       endif  ! xmaster
-#ifdef USEMPI
-       call xmpi_bcast(noutnumbers)
-       call xmpi_bcast(outnumbers)
-#endif
-       
-    endif
     
     
 !!!!! TIME-AVEARGE, VARIANCE and MIN-MAX ARRAYS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -507,40 +456,6 @@ contains
     
   end subroutine output_init
   
-  subroutine add_outnumber(number)
-    use xmpi_module
-    use logging_module
-    implicit none
-    integer, intent(in)  :: number ! to add
-    if (noutnumbers .ge. numvars) then
-       call writelog('els','(a,i0)','Too many outnumbers asked, max is ',numvars)
-       call writelog('els','(a)','Program will stop')
-       call halt_program
-    endif
-    
-    noutnumbers = noutnumbers+1
-    outnumbers(noutnumbers) = number
-    
-  end subroutine add_outnumber
-  
-  subroutine add_outmnem(mnem)
-    use logging_module
-    implicit none
-    character(len=*), intent(in) :: mnem
-    integer              :: i
-    i = chartoindex(mnem)
-    if (i .lt. 1 .or. i .gt. numvars) then
-       if(xmaster) then
-          call writelog('ls','','Warning: cannot locate variable "',trim(mnem),'", no output for this one')
-       endif
-       return
-    endif
-    call add_outnumber(i)
-    if(xmaster) then
-       call writelog('ls','','Will generate global output for variable "',trim(mnem),'"')
-    endif
-    return
-  end subroutine add_outmnem
   
   
   
@@ -792,7 +707,7 @@ contains
                       end select
                    end select
                 endif ! xmaster
-             enddo   ! outnumbers loop
+             enddo   ! outnumber loop
           endif
        endif  ! end global file writing
        
