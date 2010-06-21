@@ -1,6 +1,5 @@
 module params
   use mnemmodule
-  
 type parameters
 ! These parameters are constants, variables read from params.txt, or are scalars derived directly from read input
 !
@@ -235,12 +234,17 @@ type parameters
    character(256):: tscross                    = 'abc'   !  [name] Name of file containing timings of cross section output
    character(256):: tsmean                     = 'abc'   !  [name] Name of file containing timings of mean, max, min and var output
    integer*4     :: nglobalvar                 = -123    !  [-] Number of global output variables
-   character(len=maxnamelen), dimension(:), allocatable :: globalvars      !  [-] Indices of global output variables
+   character(len=maxnamelen), dimension(:), allocatable   :: globalvars !  [-] Mnems of global output variables
    integer*4     :: nmeanvar                   = -123    !  [-] Number of mean,min,max,var output variables
    integer*4     :: npoints                    = -123    !  [-] Number of output point locations
+   character(len=maxnamelen), dimension(:), allocatable :: pointvars  !  [-] Mnems of point output variables (by variables)
+   integer, dimension(:), allocatable                   :: pointtypes !  [-] Point types (0 = point, 1=rugauge)
+   real*8 ,dimension(:),allocatable                     :: xpointsw   ! world x-coordinate of output points
+   real*8 ,dimension(:),allocatable                     :: ypointsw   ! world y-coordinate of output points
+   
    integer*4     :: nrugauge                   = -123    !  [-] Number of output runup gauge locations
    integer*4     :: ncross                     = -123    !  [-] Number of output cross sections
-   character(256):: outputformat               = 'fortran' !  [name] Choice of output file format: 'netcdf', 'fortran', or 'debug'
+   character(256):: outputformat               = 'debug' !  [name] Choice of output file format: 'netcdf', 'fortran', or 'debug'
   
    ! Drifters parameters
    integer*4     :: ndrifter                   = -123    !  Note: will replace lookup in drifters module [-] Number of drifers
@@ -808,14 +812,17 @@ else
 #endif
 endif
 
-par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
 par%npoints     = readkey_int ('params.txt','npoints',     0,  0, 50)
 par%nrugauge    = readkey_int ('params.txt','nrugauge',    0,  0, 50)
+! update the pointvariables
+call readpointvars(par, par%xpointsw, par%ypointsw, par%pointtypes, par%pointvars)
+
+par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
 par%ncross      = readkey_int ('params.txt','ncross',      0,  0, 50)
 allocate(allowednames(3))
 allocate(oldnames(0))
 allowednames = (/'fortran', 'netcdf ', 'debug  '/)
-par%outputformat= readkey_str ('params.txt','outputformat','fortran',3, 0, allowednames  ,oldnames,required=.false.)
+par%outputformat= readkey_str ('params.txt','outputformat','debug',3, 0, allowednames  ,oldnames,required=.false.)
 deallocate(allowednames)
 deallocate(oldnames)
 
@@ -1114,5 +1121,164 @@ end subroutine printparams
     endif
     return
   end subroutine add_outmnem
+
+!
+! FB:
+! Now for a long one, reading the point and rugauges output options
+! Just moved this from varoutput, so it can be used in ncoutput also
+! Keeping as much as possible local to the subroutine...
+! It can be reduced a bit by combining points and rugauges
+! also instead of nvarpoints it can use a ragged array:
+! For example: http://coding.derkeiler.com/Archive/Fortran/comp.lang.fortran/2004-05/0774.html
+!
+! The outputformat for points is xworld, yworld, nvars, var1#var2#
+! Split for nrugauges and npoints
+! This is a bit inconvenient because you have different sets of points
+! I think it's more logical to get value per variable than per point....
+! So I read the data as follows:
+! make a collection of all points
+! store the types per point
+! store all found variables in a combined list (not per point)
+! So for each point all variables are stored
+! 
+  subroutine readpointvars(par, xpointsw, ypointsw, pointtypes, pointvars)
+    use logging_module
+    use mnemmodule
+    implicit none
+    type(parameters), intent(in)            :: par
+    real*8,dimension(:),allocatable, intent(out)     :: xpointsw,ypointsw
+   integer, dimension(:), allocatable, intent(out)   :: pointtypes !  [-] Point types (0 = point, 1=rugauge)
+   character(len=maxnamelen), dimension(:), allocatable, intent(out) :: pointvars 
+   
+    integer*4,dimension(:),allocatable  :: nvarpoint   ! vector with number of output variable per output point
+    character(len=maxnamelen), dimension(:),allocatable :: temparray
+    character(80)                       :: line, keyword
+    character(len=maxnamelen)           :: var
+    logical                             :: varfound
+    integer                             :: i, ic, icold, id, ii, index, nvars, ivar
+    allocate(pointtypes(par%npoints+par%nrugauge))
+    allocate(xpointsw(par%npoints+par%nrugauge))
+    allocate(ypointsw(par%npoints+par%nrugauge))
+    allocate(nvarpoint(par%npoints+par%nrugauge))
+    allocate(temparray(99))
+    ! set the point types to the indicator
+    pointtypes(1:par%npoints)=0
+    pointtypes(par%npoints+1:par%npoints+par%nrugauge)=1
+    
+    temparray=''
+    nvars = 0 ! the total number of variables
+    varfound = .false.
+    if (par%npoints>0) then
+       id=0
+       ! Look for keyword npoints in params.txt
+       open(10,file='params.txt')
+       do while (id == 0)
+          read(10,'(a)')line
+          ic=scan(line,'=')
+          if (ic>0) then
+             keyword=adjustl(line(1:ic-1))
+             if (keyword == 'npoints') id=1
+          endif
+       enddo
+       
+       do i=1,par%npoints
+          call writelog('ls','(a,i0)',' Output point ',i)
+          read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
+          call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
+          
+          icold=0
+          do ii =1,nvarpoint(i)
+             ic=scan(line(icold+1:80),'#')
+             ic=ic+icold
+             var=line(icold+1:ic-1)
+             index = chartoindex(var)
+             
+             if (index/=-1) then
+                ! 
+                ! see if we already found this variable.... 
+                ! 
+                varfound = .false.
+                do ivar=1,nvars
+                   if (trim(temparray(ivar)) == trim(var)) then
+                      varfound = .true.
+                   end if
+                end do
+                ! we have a new variable, store it
+                if (varfound .eqv. .false.) then
+                   nvars = nvars + 1 
+                   temparray(nvars)=trim(var)
+                end if
+                call writelog('sl','',' Output type: ''',trim(var),'''')
+             else
+                call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
+                call halt_program
+             endif
+             icold=ic
+          enddo
+          
+       enddo
+       close(10)
+    endif ! par%npoints>0  
+    
+    if (par%nrugauge>0) then
+       id=0
+       ! Look for keyword nrugauge in params.txt
+       open(10,file='params.txt')
+       do while (id == 0)
+          read(10,'(a)')line
+          ic=scan(line,'=')
+          if (ic>0) then
+             keyword=adjustl(line(1:ic-1))
+             if (keyword == 'nrugauge') id=1
+          endif
+       enddo
+       
+       do i=1+par%npoints,par%nrugauge+par%npoints
+          read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
+          call writelog('ls','(a,i0)',' Output runup gauge ',i-par%npoints)
+          call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
+          icold=0
+          do ii =1,nvarpoint(i)
+             ic=scan(line(icold+1:80),'#')
+             ic=ic+icold
+             var=line(icold+1:ic-1)
+             index = chartoindex(var)
+             
+             if (index/=-1) then
+                ! 
+                ! see if we already found this variable.... 
+                ! 
+                varfound = .false.
+                do ivar=1,nvars
+                   if (trim(temparray(ivar)) == trim(var)) then
+                      varfound = .true.
+                   end if
+                end do
+                ! we have a new variable, store it
+                if (varfound .eqv. .false.) then
+                   nvars = nvars + 1 
+                   temparray(nvars)=trim(var)
+                end if
+                call writelog('sl','',' Output type: ''',trim(var),'''')
+             else
+                call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
+                call halt_program
+             endif
+             icold=ic
+          enddo
+       enddo
+       close(10)
+    endif
+    ! copy values to the pointvars array
+    if (par%npoints+par%nrugauge > 0) then
+       allocate(pointvars(nvars))
+       pointvars(:)=temparray(1:nvars)
+    else
+       ! leave unallocated
+    endif
+    deallocate(temparray)
+    deallocate(nvarpoint)
+
+  end subroutine readpointvars
 
 end module params

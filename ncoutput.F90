@@ -45,7 +45,10 @@ integer, dimension(:), allocatable, save :: globalvarids
 
 ! points 
 integer, save :: pointsdimid
-integer, save :: xpointsvarid, ypointsvarid
+integer, save :: xpointsvarid, ypointsvarid, pointtypesvarid, xpointindexvarid, ypointindexvarid
+integer, dimension(:), allocatable, save :: pointsvarids
+integer, dimension(:),allocatable, save  :: xpoints     ! model x-coordinate of output points
+integer, dimension(:),allocatable, save  :: ypoints     ! model y-coordinate of output points
 
 ! time 
 integer, save :: globaltimedimid, pointtimedimid
@@ -82,12 +85,9 @@ contains
     end if
   end subroutine handle_err
   
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!   INITIALISE OUTPUT    !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
 subroutine ncoutput_init(s, sl, par, tpar)
   use params
@@ -110,6 +110,11 @@ subroutine ncoutput_init(s, sl, par, tpar)
   integer                                      :: npointstotal
   logical                                      :: outputp, outputg, outputw, outputm, outputc
   integer, dimension(:), allocatable           :: dimids ! store the dimids in a vector
+  
+  ! variables for point grid snapping
+  real*8,dimension(s%nx+1,s%ny+1)	  :: mindist
+  integer,dimension(2)                :: minlocation
+
 
   ! initialize values
   ! global
@@ -121,6 +126,7 @@ subroutine ncoutput_init(s, sl, par, tpar)
 
   npointstotal = par%npoints+par%nrugauge
   outputp = (npointstotal .gt. 0) .and. (size(tpar%tpp) .gt. 0)
+  allocate(pointsvarids(size(par%pointvars)))
 
   ncfilename = 'xboutput.nc' 
   ! create a file
@@ -148,8 +154,6 @@ subroutine ncoutput_init(s, sl, par, tpar)
   ! dimensions of length 2.... what is this.... TODO: find out what this is 
   status = nf90_def_dim(ncid, 'inout', 2, inoutdimid)
   if (status /= nf90_noerr) call handle_err(status)
-
-
 
   ! time dimensions are fixed, only defined if there are points
   if (outputg) then
@@ -195,7 +199,7 @@ subroutine ncoutput_init(s, sl, par, tpar)
   status = nf90_put_att(ncid, yvarid, 'long_name', 'local y coordinate')
   if (status /= nf90_noerr) call handle_err(status)
 
-
+  
 
   ! global
   if (outputg) then
@@ -242,8 +246,83 @@ subroutine ncoutput_init(s, sl, par, tpar)
         if (status /= nf90_noerr) call handle_err(status)
      end do
   end if
-!  ! points
 
+!  ! points
+  ! default global output variables
+  if (outputp) then
+     status = nf90_def_var(ncid, 'pointtime', NF90_DOUBLE, (/ pointtimedimid /), pointtimevarid)
+     if (status /= nf90_noerr) call handle_err(status)
+     status = nf90_put_att(ncid, pointtimevarid, 'units', trim(par%tunits))
+     if (status /= nf90_noerr) call handle_err(status)
+
+     ! points
+     status = nf90_def_var(ncid, 'xpoint', NF90_DOUBLE, (/ pointsdimid /), xpointsvarid)
+     if (status /= nf90_noerr) call handle_err(status)
+     status = nf90_put_att(ncid, xpointsvarid, 'units', 'm')
+     if (status /= nf90_noerr) call handle_err(status)
+     status = nf90_put_att(ncid, xpointsvarid, 'long_name', 'local x coordinate')
+     if (status /= nf90_noerr) call handle_err(status)
+     status = nf90_def_var(ncid, 'ypoint', NF90_DOUBLE, (/ pointsdimid /), ypointsvarid)
+     if (status /= nf90_noerr) call handle_err(status)
+     status = nf90_put_att(ncid, ypointsvarid, 'units', 'm')
+     if (status /= nf90_noerr) call handle_err(status)
+     status = nf90_put_att(ncid, ypointsvarid, 'long_name', 'local y coordinate')
+     if (status /= nf90_noerr) call handle_err(status)
+     
+     status = nf90_def_var(ncid, 'xpointindex', NF90_DOUBLE, (/ pointsdimid /), xpointindexvarid)
+     if (status /= nf90_noerr) call handle_err(status)
+     status = nf90_put_att(ncid, xpointindexvarid, 'long_name', 'nearest x grid cell')
+     if (status /= nf90_noerr) call handle_err(status)
+     status = nf90_def_var(ncid, 'ypointindex', NF90_DOUBLE, (/ pointsdimid /), ypointindexvarid)
+     if (status /= nf90_noerr) call handle_err(status)
+     status = nf90_put_att(ncid, ypointindexvarid, 'long_name', 'nearest y grid cell')
+     if (status /= nf90_noerr) call handle_err(status)
+     
+     status = nf90_def_var(ncid, 'pointtypes', NF90_DOUBLE, (/ pointsdimid /), pointtypesvarid)
+     if (status /= nf90_noerr) call handle_err(status)
+     status = nf90_put_att(ncid, pointtypesvarid, 'long_name', 'type of point (0=point, 1=rugauge)')
+     if (status /= nf90_noerr) call handle_err(status)
+
+     do i=1,size(par%pointvars)
+        mnem = trim(par%pointvars(i))
+        j = chartoindex(mnem)
+        call indextos(s,j,t)
+        select case(t%type)
+        case('r')
+           ! Build the array with dimension ids
+           call writelog('ls', '', 'Creating netcdf variable: ', 'point_'// trim(mnem) )
+           allocate(dimids(t%rank))
+           ! Make sure the variable has x and y as the first 2 dimensions
+           if ((dimensionid(t%dimensions(1)) .ne. xdimid) .or. (dimensionid(t%dimensions(2)) .ne. ydimid)) then
+              call writelog('lse','', 'Tried to store variable ' // trim(mnem) // ', but this variable is not a function of x,y')
+           endif
+           select case(t%rank)
+           case(2)
+              dimids = (/ pointsdimid, pointtimedimid /)
+           case(3)
+              dimids = (/ pointsdimid, dimensionid(t%dimensions(3)), pointtimedimid /)
+           case(4)
+              call writelog('ls', '', 'Variable ' // trim(mnem) // ' is of rank 4. This may not work due to an' // &
+                   ' unresolved issue. If so, remove the variable or use the fortran outputformat option.')
+              dimids = (/ pointsdimid, dimensionid(t%dimensions(3)), dimensionid(t%dimensions(4)), pointtimedimid /)
+           case default
+              call writelog('lse', '', 'mnem: ' // mnem // ' not supported, rank:', t%rank)
+              stop 1
+           end select
+           status = nf90_def_var(ncid, 'point_' // trim(mnem), NF90_DOUBLE, &
+                dimids, pointsvarids(i))
+           if (status /= nf90_noerr) call handle_err(status)
+           deallocate(dimids)
+        case default
+           write(0,*) 'mnem', mnem, ' not supported, type:', t%type
+        end select
+        status = nf90_put_att(ncid, pointsvarids(i), 'units', trim(t%units))
+        if (status /= nf90_noerr) call handle_err(status)
+        status = nf90_put_att(ncid, pointsvarids(i), 'long_name', trim(t%description))
+        if (status /= nf90_noerr) call handle_err(status)
+     end do
+  end if
+  
   ! done defining variables
   status = nf90_enddef(ncid)
   if (status /= nf90_noerr) call handle_err(status)
@@ -259,6 +338,41 @@ subroutine ncoutput_init(s, sl, par, tpar)
   call indextos(s,j,t)
   status = nf90_put_var(ncid, yvarid, t%r1)
   if (status /= nf90_noerr) call handle_err(status)
+  
+  if (outputp) then
+     status = nf90_put_var(ncid, xpointsvarid, par%xpointsw)
+     if (status /= nf90_noerr) call handle_err(status)
+     status = nf90_put_var(ncid, ypointsvarid, par%ypointsw)
+     if (status /= nf90_noerr) call handle_err(status)
+     status = nf90_put_var(ncid, pointtypesvarid, par%pointtypes)
+     if (status /= nf90_noerr) call handle_err(status)
+
+     ! Convert world coordinates of points to nearest (lsm) grid point
+     allocate(ypoints(npointstotal))
+     allocate(xpoints(npointstotal))
+     do i=1,(npointstotal)
+        mindist=sqrt((par%xpointsw(i)-s%xw)**2+(par%ypointsw(i)-s%yw)**2)
+        minlocation=minloc(mindist)
+        ypoints(i)=minlocation(2)
+        if (par%pointtypes(i) == 1) then
+           xpoints(i)=1
+           call writelog('ls','(a,i0)','Runup gauge at grid line iy=',ypoints(i))
+        else
+           xpoints(i)=minlocation(1)
+           call writelog('ls','(a,i0,a,i0,a,f0.2,a)',' Distance output point to nearest grid point ('&
+                ,minlocation(1),',',minlocation(2),') is '&
+                ,mindist(minlocation(1),minlocation(2)), ' meters')
+        endif
+     end do
+     status = nf90_put_var(ncid, xpointindexvarid, xpoints)
+     if (status /= nf90_noerr) call handle_err(status)
+     status = nf90_put_var(ncid, ypointindexvarid, ypoints)
+     if (status /= nf90_noerr) call handle_err(status)
+     status = nf90_put_var(ncid, pointtypesvarid, par%pointtypes)
+     if (status /= nf90_noerr) call handle_err(status)
+     
+
+  end if
 
   status = nf90_close(ncid)
   if (status /= nf90_noerr) call handle_err(status)
@@ -278,7 +392,7 @@ subroutine nc_output(s,sl,par, tpar)
   type(timepars), intent(in)                        :: tpar
   
   type(arraytype)                                     :: t
-  integer                                      :: i,j,k,l,m,n
+  integer                                      :: i,j,k,l,m,n, ii
   character(len=10)                             :: mnem
 
   character, dimension(:), allocatable                               :: a
@@ -297,7 +411,6 @@ subroutine nc_output(s,sl,par, tpar)
      ! write global output variables
      do i=1,size(par%globalvars)
         mnem = trim(par%globalvars(i))
-        write(*,*) 'saving variable', mnem
         j = chartoindex(mnem)
         ! lookup the proper array
         call indextos(s,j,t)
@@ -311,7 +424,7 @@ subroutine nc_output(s,sl,par, tpar)
               status = nf90_put_var(ncid, globalvarids(i), t%r3, start=(/1,1,1, tpar%itg/) )
               if (status /= nf90_noerr) call handle_err(status)
            case(4)
-              status = nf90_put_var(ncid, globalvarids(i), t%r3, start=(/1,1,1,1, tpar%itg/) )
+              status = nf90_put_var(ncid, globalvarids(i), t%r4, start=(/1,1,1,1, tpar%itg/) )
               if (status /= nf90_noerr) call handle_err(status)
            case default
               write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
@@ -321,6 +434,40 @@ subroutine nc_output(s,sl,par, tpar)
         end select
      end do
 !  tpar%outputg = .false. ! not sure if this is required
+  end if
+  if (tpar%outputp) then
+     status = nf90_put_var(ncid, pointtimevarid, par%t, (/tpar%itp/))
+     if (status /= nf90_noerr) call handle_err(status) 
+
+     do i=1,size(par%pointvars)
+        mnem = trim(par%pointvars(i))
+        j = chartoindex(mnem)
+        ! lookup the proper array
+        call indextos(s,j,t)
+        ! get the proper output points ....
+        ! I have no idea what is happening in varouput so I'll try it in a different way
+        select case(t%type)
+           !TODO This is not very efficient because we are using the outer counters, reorder dimensions....
+        case('r')
+           do ii = 1, (par%npoints + par%nrugauge)           
+              select case(t%rank)
+              case(2)
+                 status = nf90_put_var(ncid, pointsvarids(i), t%r2(xpoints(ii), ypoints(ii)), start=(/ii,tpar%itp/) )
+                 if (status /= nf90_noerr) call handle_err(status)
+              case(3)
+                 status = nf90_put_var(ncid, pointsvarids(i), t%r3(xpoints(ii), ypoints(ii),:), start=(/ii,1,tpar%itp/) )
+                 if (status /= nf90_noerr) call handle_err(status)
+              case(4)
+                 status = nf90_put_var(ncid, pointsvarids(i), t%r4(xpoints(ii), ypoints(ii),:,:), start=(/ii,1,1,tpar%itp/) )
+                 if (status /= nf90_noerr) call handle_err(status)
+              case default
+                 write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
+              end select
+           end do
+           case default
+              write(0,*) 'Can''t handle type: ', t%type, ' of mnemonic', mnem
+           end select
+        end do
   end if
   status = nf90_close(ncid=ncid)
   if (status /= nf90_noerr) call handle_err(status) 
@@ -357,9 +504,6 @@ integer function dimensionid(expression)
      call writelog('els','','Unknown dimension expression:'  // expression)
      stop 1
   end select
-   
-  
-  
 end function
 #endif
 end module ncoutput_module

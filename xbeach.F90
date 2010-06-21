@@ -173,9 +173,11 @@ endif
 ! initialize the correct output module (clean this up?, move to another module?)
 if (par%outputformat=='fortran') then
    ! only fortran
+   call writelog('ls', '', 'Fortran outputformat')
    call output_init(sglobal,slocal,par,tpar)
 elseif (par%outputformat=='netcdf') then
    ! only netcdf, stop if it's not build
+   call writelog('ls', '', 'NetCDF outputformat')
 #ifdef USENETCDF
    call ncoutput_init(sglobal,slocal,par,tpar)
 #else
@@ -183,6 +185,7 @@ elseif (par%outputformat=='netcdf') then
    stop 1
 #endif
 elseif (par%outputformat=='debug') then
+   call writelog('ls', '', 'Debug outputformat, writing both netcdf and fortran output')
 #ifdef USENETCDF
    call ncoutput_init(sglobal,slocal,par,tpar)
 #endif

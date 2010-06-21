@@ -19,7 +19,6 @@ module outputmod
   integer*4                           :: nrugauge    ! number of runup gauges
   integer*4                           :: ncross      ! number of cross section profiles
   
-  integer*4,dimension(:),allocatable  :: pointtype   ! 0 = point output, 1 = runup gauge
   integer*4,dimension(:),allocatable  :: crosstype   ! 0 = cross shore (x), 1 = longshore (y)
   integer*4,dimension(:),allocatable  :: xpoints     ! model x-coordinate of output points
   integer*4,dimension(:),allocatable  :: ypoints     ! model y-coordinate of output points
@@ -78,7 +77,7 @@ contains
     type(parameters)                    :: par
     type(timepars)                    :: tpar
     
-    integer                             :: id,ic,icold,i,ii,index
+    integer                             :: id,ic,icold,i,ii,index, j
     integer                             :: i1,i2,i3
     integer                             :: reclen,reclenc,reclenp,wordsize
     integer,dimension(2)                :: minlocation
@@ -86,7 +85,6 @@ contains
     character(80)                       :: var
     integer, dimension(:,:),allocatable :: temparray
     real*8,dimension(s%nx+1,s%ny+1)	  :: mindist
-    real*8,dimension(:),allocatable     :: xpointsw,ypointsw
     real*8,dimension(:),allocatable     :: xcrossw,ycrossw
     character(1)						  :: singlechar
     character(99)                       :: fname,fnamemean,fnamevar,fnamemin,fnamemax
@@ -128,124 +126,38 @@ contains
     enddo
 
 !!!!! OUTPUT POINTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
-    
-    !  npoints  = readkey_int ('params.txt','npoints',      0,       0,     50)
-    !  nrugauge = readkey_int ('params.txt','nrugauge',     0,       0,     50)
-    !  ! Fedor + Robert : temporary, will be changed once point output updated for netcdf
-    !  par%npoints=npoints
-    !  par%nrugauge=nrugauge
-    
-    if ((par%npoints+par%nrugauge)>0) then 
-       allocate(pointtype(par%npoints+par%nrugauge))
+    ! read from par to local
+    if (par%npoints + par%nrugauge > 0) then
+       
+       allocate(nvarpoint(par%npoints+par%nrugauge))
+       nvarpoint = size(par%pointvars) ! set to the number of pointvars (unique variables)
+       
        allocate(xpoints(par%npoints+par%nrugauge))
        allocate(ypoints(par%npoints+par%nrugauge))
-       allocate(xpointsw(par%npoints+par%nrugauge))
-       allocate(ypointsw(par%npoints+par%nrugauge))
-       allocate(nvarpoint(par%npoints+par%nrugauge))
-       allocate(temparray(par%npoints+par%nrugauge,99))
-       pointtype(1:par%npoints)=0
-       pointtype(par%npoints+1:par%npoints+par%nrugauge)=1
-       temparray=-1
+       allocate(temparray(par%npoints+par%nrugauge,maxval(nvarpoint)))
        
-       if (xmaster) then
-          if (par%npoints>0) then
-             id=0
-             ! Look for keyword npoints in params.txt
-             open(10,file='params.txt')
-             do while (id == 0)
-                read(10,'(a)')line
-                ic=scan(line,'=')
-                if (ic>0) then
-                   keyword=adjustl(line(1:ic-1))
-                   if (keyword == 'npoints') id=1
-                endif
-             enddo
-             
-             do i=1,par%npoints
-                read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
-                call writelog('ls','(a,i0)',' Output point ',i)
-                call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
-                ! Convert world coordinates of points to nearest (lsm) grid point
-                mindist=sqrt((xpointsw(i)-s%xw)**2+(ypointsw(i)-s%yw)**2)
-                minlocation=minloc(mindist)
-                xpoints(i)=minlocation(1)
-                ypoints(i)=minlocation(2)
-                call writelog('ls','(a,i0,a,i0,a,f0.2,a)',' Distance output point to nearest grid point ('&
-                     ,minlocation(1),',',minlocation(2),') is '&
-                     ,mindist(minlocation(1),minlocation(2)), ' meters')
-                
-                icold=0
-                do ii =1,nvarpoint(i)
-                   ic=scan(line(icold+1:80),'#')
-                   ic=ic+icold
-                   var=line(icold+1:ic-1)
-                   index = chartoindex(var)
-                   
-                   if (index/=-1) then
-                      temparray(i,ii)=index
-                      call writelog('sl','',' Output type: ''',trim(var),'''')
-                   else
-                      call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
-                      call halt_program
-                   endif
-                   icold=ic
-                enddo
-                
-             enddo
-             close(10)
-          endif ! par%npoints>0  
-          
-          if (par%nrugauge>0) then
-             id=0
-             ! Look for keyword nrugauge in params.txt
-             open(10,file='params.txt')
-             do while (id == 0)
-                read(10,'(a)')line
-                ic=scan(line,'=')
-                if (ic>0) then
-                   keyword=adjustl(line(1:ic-1))
-                   if (keyword == 'nrugauge') id=1
-                endif
-             enddo
-             
-             do i=1+par%npoints,par%nrugauge+par%npoints
-                read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
-                call writelog('ls','(a,i0)',' Output runup gauge ',i-par%npoints)
-                call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
-                ! Convert world coordinates of points to nearest (lsm) grid row
-                mindist=sqrt((xpointsw(i)-s%xw)**2+(ypointsw(i)-s%yw)**2)
-                minlocation=minloc(mindist)
-                xpoints(i)=1
-                ypoints(i)=minlocation(2)
-                call writelog('ls','(a,i0)','Runup gauge at grid line iy=',ypoints(i))
-                icold=0
-                do ii =1,nvarpoint(i)
-                   ic=scan(line(icold+1:80),'#')
-                   ic=ic+icold
-                   var=line(icold+1:ic-1)
-                   index = chartoindex(var)
-                   
-                   if (index/=-1) then
-                      temparray(i,ii)=index
-                      call writelog('sl','',' Output type: ''',trim(var),'''')
-                   else
-                      call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
-                      call halt_program
-                   endif
-                   icold=ic
-                enddo
-                
-             enddo
-             close(10)
-          endif  ! par%nrugauge > 0	    
-       endif ! xmaster
+       ! Convert world coordinates of points to nearest (lsm) grid point
+       do i=1,(par%npoints+par%nrugauge)
+          mindist=sqrt((par%xpointsw(i)-s%xw)**2+(par%ypointsw(i)-s%yw)**2)
+          minlocation=minloc(mindist)
+          ypoints(i)=minlocation(2)
+          if (par%pointtypes(i) == 1) then
+             xpoints(i)=1
+             call writelog('ls','(a,i0)','Runup gauge at grid line iy=',ypoints(i))
+          else
+             xpoints(i)=minlocation(1)
+             call writelog('ls','(a,i0,a,i0,a,f0.2,a)',' Distance output point to nearest grid point ('&
+                  ,minlocation(1),',',minlocation(2),') is '&
+                  ,mindist(minlocation(1),minlocation(2)), ' meters')
+          endif
+          do j=1,nvarpoint(i)
+             temparray(i,j) = chartoindex(trim(par%pointvars(j)))
+          end do
+       end do
        
-       
-       
+       ! TODO: what is temparray
 #ifdef USEMPI
        call xmpi_bcast(nvarpoint)
-       call xmpi_bcast(pointtype)
        call xmpi_bcast(xpoints)
        call xmpi_bcast(ypoints)
        call xmpi_bcast(temparray)   
@@ -255,10 +167,12 @@ contains
        Avarpoint(:,:)=temparray(:,1:maxval(nvarpoint))
        deallocate (temparray)
        
+
        !! First time file opening for point output
        if (xmaster) then
           do i=1,par%npoints+par%nrugauge
-             if (pointtype(i)==0) then
+             fname = ''
+             if (par%pointtypes(i)==0) then
                 fname(1:5)='point'
                 i1=floor(real(i)/100.d0)
                 i2=floor(real(i-i1*100)/10.d0)
@@ -278,9 +192,9 @@ contains
                   form='unformatted',access='direct',recl=reclenp)
           enddo
        endif
-    endif ! par%npoints + par%nrugauge > 0
-    
-    
+    end if
+       
+       
 !!!!! CROSS SECTION OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ncross  = readkey_int ('params.txt','ncross',      0,       0,     50)
     ! Fedor +  Robert : will be changed once cross section ready for netcdf
@@ -565,7 +479,7 @@ contains
              ! Probably, this test can be coded somewhat smarter
 #ifdef USEMPI
              do i=1,par%npoints+par%nrugauge
-                if (pointtype(i) .eq. 1) then
+                if (par%pointtypes(i) .eq. 1) then
                    call space_collect(sl,s%wetz,sl%wetz)
                    exit
                 endif
@@ -573,7 +487,7 @@ contains
 #endif
              do i=1,par%npoints+par%nrugauge
 !!! Make vector of all s% values at n,m grid coordinate
-                if (pointtype(i)==1) then
+                if (par%pointtypes(i)==1) then
                    if (xmaster) then
                       !                      allocate (temp(1:s%nx+1))
                       !                      temp=(/(k,k=1,s%nx+1)/)
