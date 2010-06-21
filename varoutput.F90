@@ -125,6 +125,11 @@ contains
        outnumbers(i) = chartoindex(par%globalvars(i))
     enddo
 
+#ifdef USEMPI
+    call xmpi_bcast(noutnumbers)
+    call xmpi_bcast(outnumbers)
+#endif
+    
 !!!!! OUTPUT POINTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! read from par to local
     if (par%npoints + par%nrugauge > 0) then

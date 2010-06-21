@@ -565,6 +565,8 @@ USENETCDF_FALSE
 USENETCDF_TRUE
 NETCDF_LIBS
 NETCDF_CFLAGS
+PKG_CONFIG_LIBDIR
+PKG_CONFIG_PATH
 PKG_CONFIG
 USEMPI_FALSE
 USEMPI_TRUE
@@ -652,6 +654,8 @@ LDFLAGS
 LIBS
 MPIFC
 PKG_CONFIG
+PKG_CONFIG_PATH
+PKG_CONFIG_LIBDIR
 NETCDF_CFLAGS
 NETCDF_LIBS'
 
@@ -1279,6 +1283,10 @@ Some influential environment variables:
   LIBS        libraries to pass to the linker, e.g. -l<library>
   MPIFC       MPI Fortran compiler command
   PKG_CONFIG  path to pkg-config utility
+  PKG_CONFIG_PATH
+              directories to add to pkg-config's search path
+  PKG_CONFIG_LIBDIR
+              path overriding pkg-config's built-in search path
   NETCDF_CFLAGS
               C compiler flags for NETCDF, overriding pkg-config
   NETCDF_LIBS linker flags for NETCDF, overriding pkg-config
@@ -2772,7 +2780,7 @@ ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
 
 
-	for ac_prog in mpif90 hf90 mpxlf90 mpxlf95 mpf90 cmpifc cmpif90c
+	for ac_prog in openmpif90 mpif90 hf90 mpxlf90 mpxlf95 mpf90 cmpifc cmpif90c
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -3062,6 +3070,10 @@ fi
 
 
 
+
+
+
+
 if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
 	if test -n "$ac_tool_prefix"; then
   # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
@@ -3174,7 +3186,6 @@ $as_echo "yes" >&6; }
 $as_echo "no" >&6; }
 		PKG_CONFIG=""
 	fi
-
 fi
 if test "x$with_netcdf" != "xno"; then :
 
@@ -3219,6 +3230,8 @@ fi
 
 
 if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
         _pkg_short_errors_supported=yes
@@ -3242,9 +3255,10 @@ installed software in a non-standard prefix.
 
 Alternatively, you may set the environment variables NETCDF_CFLAGS
 and NETCDF_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details.
-" "$LINENO" 5
+See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error "The pkg-config script could not be found or is too old.  Make sure it
@@ -3262,7 +3276,7 @@ else
 	NETCDF_LIBS=$pkg_cv_NETCDF_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	:
+
 fi
 
 $as_echo "#define HAVE_NETCDF 1" >>confdefs.h
