@@ -806,10 +806,6 @@ else
       end do
       close(10)
    endif  ! xmaster
-#ifdef USEMPI
-   call xmpi_bcast(noutnumbers)
-   call xmpi_bcast(outnumbers)
-#endif
 endif
 
 par%npoints     = readkey_int ('params.txt','npoints',     0,  0, 50)
