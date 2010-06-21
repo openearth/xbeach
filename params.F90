@@ -822,7 +822,7 @@ par%ncross      = readkey_int ('params.txt','ncross',      0,  0, 50)
 allocate(allowednames(3))
 allocate(oldnames(0))
 allowednames = (/'fortran', 'netcdf ', 'debug  '/)
-par%outputformat= readkey_str ('params.txt','outputformat','debug',3, 0, allowednames  ,oldnames,required=.false.)
+par%outputformat= readkey_str ('params.txt','outputformat','fortran',3, 0, allowednames  ,oldnames,required=.false.)
 deallocate(allowednames)
 deallocate(oldnames)
 
