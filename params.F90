@@ -577,7 +577,7 @@ par%smag    = readkey_int ('params.txt','smag',        1,         0,      1)
 ! Coriolis force parameters
 call writelog('l','','--------------------------------')
 call writelog('l','','Coriolis force parameters: ')
-par%wearth  = readkey_dbl ('params.txt','omega',   1.d0/24.d0, 0.d0,    1.d0)
+par%wearth  = readkey_dbl ('params.txt','wearth',   1.d0/24.d0, 0.d0,    1.d0)
 par%lat     = readkey_dbl ('params.txt','lat',     0.d0,      -90.d0,   90.d0)
 !
 !
