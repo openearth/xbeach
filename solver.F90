@@ -109,7 +109,7 @@ contains
 !                             IMPLEMENTATION
 !-------------------------------------------------------------------------------                       
     reps = par%solver_acc
-    alpha = par%solver_alpha
+    alpha = par%solver_urelax
     maxit = par%solver_maxit
     
     !Check if solution method is appropriate

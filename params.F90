@@ -167,7 +167,7 @@ type parameters
    real*8        :: solver_acc                 = -123    ! [?] accuracy with respect to the right-hand side used
                                                          !     in the following termination criterion:
                                                          !         ||b-Ax || < acc*||b||
-   real*8        :: solver_alpha               = -123    ! [?] Underrelaxation parameter 
+   real*8        :: solver_urelax              = -123    ! [?] Underrelaxation parameter 
    integer*4     :: solver                     = -123    ! [-] Solver used to solve the linear system, 1=SIP, 2=TRIDIAG (only for 1d)
    real*8        :: kdmin                      = -123    ! Minimum value of kd ( pi/dx > minkd )
    real*8        :: dispc                      = -123    ! Coefficient in front of the vertical pressure gradient, Default = 1.
@@ -605,7 +605,7 @@ if (par%gwflow==1) then
    par%dwetlayer  = readkey_dbl ('params.txt','dwetlayer' , 0.2d0    , 0.01d0     , 1.d0)
    par%aquiferbotfile = readkey_name('params.txt','aquiferbotfile')
    if (par%aquiferbotfile==' ') then
-      par%aquiferbot = readkey_dbl('params.txt','aquiferbot',-10.d0,-100.d0,100.d0)
+      par%aquiferbot = readkey_dbl('params.txt','aquiferbot',-10.d0,-100.d0,100.d0)				!also read in groundwater.f90 which determines value
    else 
       call check_file_exist(par%aquiferbotfile)
    endif
@@ -635,7 +635,7 @@ if (par%nonh==1) then
    call writelog('l','','Non-hydrostatic correction parameters: ')
    par%solver_maxit = readkey_int('params.txt','solver_maxit' ,30,1,1000)
    par%solver_acc   = readkey_dbl('params.txt','solver_acc' ,0.005d0,0.00001d0,0.1d0)  
-   par%solver_alpha = readkey_dbl('params.txt','solver_urelax' ,0.92d0,0.5d0,0.99d0)
+   par%solver_urelax= readkey_dbl('params.txt','solver_urelax' ,0.92d0,0.5d0,0.99d0)
    par%solver       = readkey_int('params.txt','solver' ,1,0,2)
    par%kdmin        = readkey_dbl('params.txt','kdmin' ,0.0d0,0.0d0,0.05d0)  
    par%dispc        = readkey_dbl('params.txt','dispc' ,1.0d0,0.1d0,2.0d0)  
