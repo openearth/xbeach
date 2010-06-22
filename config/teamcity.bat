@@ -8,7 +8,11 @@ echo Build_URL      = '%4' >> ../version.dat
 
 "%VS90COMNTOOLS%..\IDE\devenv.exe" /rebuild "%1|%2" xXBeach.sln
 
-if ERRORLEVEL 1 echo ##teamcity[buildStatus status='FAILED'] else echo ##teamcity[buildStatus status='SUCCES']
+IF ERRORLEVEL 1 (
+	echo ##teamcity[buildStatus status='FAILED']
+) ELSE (
+	echo ##teamcity[buildStatus status='SUCCES']
+)
 
 echo ##teamcity[progressStart 'Build finished']
 
