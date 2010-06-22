@@ -69,8 +69,8 @@ am__xbeach_SOURCES_DIST = s.ind s.inp xmpi.F90 general_mpi.F90 \
 	wave_timestep.F90 wave_stationary.F90 boundaryconditions.F90 \
 	morphevolution.F90 groundwater.F90 drifters.F90 readtide.F90 \
 	readwind.F90 initialize.F90 timestep.F90 flow_secondorder.F90 \
-	solver.F90 nonh.F90 flow_timestep.F90 varianceupdate.F90 \
-	varoutput.F90 ncoutput.F90 xbeach.F90
+	solver.F90 nonh.F90 flow_timestep.F90 postprocess.F90 \
+	varianceupdate.F90 varoutput.F90 ncoutput.F90 xbeach.F90
 @USENETCDF_TRUE@am__objects_1 = xbeach-ncoutput.$(OBJEXT)
 am_xbeach_OBJECTS = xbeach-xmpi.$(OBJEXT) xbeach-general_mpi.$(OBJEXT) \
 	xbeach-logging.$(OBJEXT) xbeach-filefunctions.$(OBJEXT) \
@@ -87,9 +87,9 @@ am_xbeach_OBJECTS = xbeach-xmpi.$(OBJEXT) xbeach-general_mpi.$(OBJEXT) \
 	xbeach-readwind.$(OBJEXT) xbeach-initialize.$(OBJEXT) \
 	xbeach-timestep.$(OBJEXT) xbeach-flow_secondorder.$(OBJEXT) \
 	xbeach-solver.$(OBJEXT) xbeach-nonh.$(OBJEXT) \
-	xbeach-flow_timestep.$(OBJEXT) xbeach-varianceupdate.$(OBJEXT) \
-	xbeach-varoutput.$(OBJEXT) $(am__objects_1) \
-	xbeach-xbeach.$(OBJEXT)
+	xbeach-flow_timestep.$(OBJEXT) xbeach-postprocess.$(OBJEXT) \
+	xbeach-varianceupdate.$(OBJEXT) xbeach-varoutput.$(OBJEXT) \
+	$(am__objects_1) xbeach-xbeach.$(OBJEXT)
 xbeach_OBJECTS = $(am_xbeach_OBJECTS)
 xbeach_LDADD = $(LDADD)
 xbeach_LINK = $(FCLD) $(xbeach_FCFLAGS) $(FCFLAGS) $(AM_LDFLAGS) \
@@ -277,6 +277,7 @@ xbeach_SOURCES = \
 	solver.F90 \
 	nonh.F90 \
 	flow_timestep.F90 \
+	postprocess.F90 \
 	varianceupdate.F90 \
 	varoutput.F90 \
 	${extra_xbeach_sources} \
@@ -591,6 +592,12 @@ xbeach-flow_timestep.o: flow_timestep.F90
 
 xbeach-flow_timestep.obj: flow_timestep.F90
 	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-flow_timestep.obj `if test -f 'flow_timestep.F90'; then $(CYGPATH_W) 'flow_timestep.F90'; else $(CYGPATH_W) '$(srcdir)/flow_timestep.F90'; fi`
+
+xbeach-postprocess.o: postprocess.F90
+	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-postprocess.o `test -f 'postprocess.F90' || echo '$(srcdir)/'`postprocess.F90
+
+xbeach-postprocess.obj: postprocess.F90
+	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-postprocess.obj `if test -f 'postprocess.F90'; then $(CYGPATH_W) 'postprocess.F90'; else $(CYGPATH_W) '$(srcdir)/postprocess.F90'; fi`
 
 xbeach-varianceupdate.o: varianceupdate.F90
 	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-varianceupdate.o `test -f 'varianceupdate.F90' || echo '$(srcdir)/'`varianceupdate.F90

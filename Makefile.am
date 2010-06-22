@@ -41,6 +41,7 @@ xbeach_SOURCES= \
 	solver.F90 \
 	nonh.F90 \
 	flow_timestep.F90 \
+	postprocess.F90 \
 	varianceupdate.F90 \
 	varoutput.F90 \
 	${extra_xbeach_sources} \

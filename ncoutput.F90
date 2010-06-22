@@ -95,6 +95,7 @@ subroutine ncoutput_init(s, sl, par, tpar)
   use readkey_module
   use timestep_module
   use mnemmodule
+  use postprocessmod
   use logging_module
   implicit none
   integer :: status ! file id and status returned from a file operation
@@ -348,22 +349,9 @@ subroutine ncoutput_init(s, sl, par, tpar)
      if (status /= nf90_noerr) call handle_err(status)
 
      ! Convert world coordinates of points to nearest (lsm) grid point
-     allocate(ypoints(npointstotal))
-     allocate(xpoints(npointstotal))
-     do i=1,(npointstotal)
-        mindist=sqrt((par%xpointsw(i)-s%xw)**2+(par%ypointsw(i)-s%yw)**2)
-        minlocation=minloc(mindist)
-        ypoints(i)=minlocation(2)
-        if (par%pointtypes(i) == 1) then
-           xpoints(i)=1
-           call writelog('ls','(a,i0)','Runup gauge at grid line iy=',ypoints(i))
-        else
-           xpoints(i)=minlocation(1)
-           call writelog('ls','(a,i0,a,i0,a,f0.2,a)',' Distance output point to nearest grid point ('&
-                ,minlocation(1),',',minlocation(2),') is '&
-                ,mindist(minlocation(1),minlocation(2)), ' meters')
-        endif
-     end do
+     ! This could be done in some postprocessing function
+     call snappointstogrid(par, s, xpoints, ypoints)
+
      status = nf90_put_var(ncid, xpointindexvarid, xpoints)
      if (status /= nf90_noerr) call handle_err(status)
      status = nf90_put_var(ncid, ypointindexvarid, ypoints)
@@ -384,18 +372,30 @@ subroutine nc_output(s,sl,par, tpar)
   use spaceparams
   use timestep_module
   use mnemmodule
+  use postprocessmod
 
   implicit none
 
-  type(spacepars), intent(in)                         :: s,sl ! s-> spaceparams, what is isl?
-  type(parameters), intent(in)                        :: par
-  type(timepars), intent(in)                        :: tpar
+  type(spacepars), intent(in)            :: s,sl ! s-> spaceparams, what is isl?
+  type(parameters), intent(in)           :: par
+  type(timepars), intent(in)             :: tpar
   
-  type(arraytype)                                     :: t
-  integer                                      :: i,j,k,l,m,n, ii
-  character(len=10)                             :: mnem
+  type(arraytype)                        :: t
+  integer                                :: i,j,k,l,m,n, ii
+  character(len=10)                      :: mnem
 
-  character, dimension(:), allocatable                               :: a
+  ! some local variables to pass the data through the postprocessing function.
+  integer, pointer :: i0
+  integer, dimension(:), pointer :: i1
+  integer, dimension(:,:), pointer :: i2
+  integer, dimension(:,:,:), pointer :: i3
+  integer, dimension(:,:,:,:), pointer :: i4
+  real*8, pointer :: r0
+  real*8, dimension(:), pointer :: r1
+  real*8, dimension(:,:), pointer :: r2
+  real*8, dimension(:,:,:), pointer :: r3
+  real*8, dimension(:,:,:,:), pointer :: r4
+
   integer :: status
   
 
@@ -418,13 +418,16 @@ subroutine nc_output(s,sl,par, tpar)
         case('r')
            select case(t%rank)
            case(2)
-              status = nf90_put_var(ncid, globalvarids(i), t%r2, start=(/1,1,tpar%itg/) )
+              call gridrotate(s, t, r2)
+              status = nf90_put_var(ncid, globalvarids(i), r2, start=(/1,1,tpar%itg/) )
               if (status /= nf90_noerr) call handle_err(status)
            case(3)
-              status = nf90_put_var(ncid, globalvarids(i), t%r3, start=(/1,1,1, tpar%itg/) )
+              call gridrotate(s, t, r3)
+              status = nf90_put_var(ncid, globalvarids(i), r3, start=(/1,1,1, tpar%itg/) )
               if (status /= nf90_noerr) call handle_err(status)
            case(4)
-              status = nf90_put_var(ncid, globalvarids(i), t%r4, start=(/1,1,1,1, tpar%itg/) )
+              call gridrotate(s, t, r4)
+              status = nf90_put_var(ncid, globalvarids(i), r4, start=(/1,1,1,1, tpar%itg/) )
               if (status /= nf90_noerr) call handle_err(status)
            case default
               write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
@@ -452,13 +455,21 @@ subroutine nc_output(s,sl,par, tpar)
            do ii = 1, (par%npoints + par%nrugauge)           
               select case(t%rank)
               case(2)
-                 status = nf90_put_var(ncid, pointsvarids(i), t%r2(xpoints(ii), ypoints(ii)), start=(/ii,tpar%itp/) )
+                 ! This postprocessing creates an ugly dependency.
+                 ! it would be nice if we could call gridrotate as a function
+                 ! or if we could just have the postprocessing insert some reference processing routines to call
+                 ! or if we could split this out of the case statement (dry)
+                 ! or if we could defer this to a postprocessing routine (for example ncks)
+                 call gridrotate(s, t, r2)
+                 status = nf90_put_var(ncid, pointsvarids(i), r2(xpoints(ii), ypoints(ii)), start=(/ii,tpar%itp/) )
                  if (status /= nf90_noerr) call handle_err(status)
               case(3)
-                 status = nf90_put_var(ncid, pointsvarids(i), t%r3(xpoints(ii), ypoints(ii),:), start=(/ii,1,tpar%itp/) )
+                 call gridrotate(s, t, r3)
+                 status = nf90_put_var(ncid, pointsvarids(i), r3(xpoints(ii), ypoints(ii),:), start=(/ii,1,tpar%itp/) )
                  if (status /= nf90_noerr) call handle_err(status)
               case(4)
-                 status = nf90_put_var(ncid, pointsvarids(i), t%r4(xpoints(ii), ypoints(ii),:,:), start=(/ii,1,1,tpar%itp/) )
+                 call gridrotate(s, t, r4)
+                 status = nf90_put_var(ncid, pointsvarids(i), r4(xpoints(ii), ypoints(ii),:,:), start=(/ii,1,1,tpar%itp/) )
                  if (status /= nf90_noerr) call handle_err(status)
               case default
                  write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
@@ -477,6 +488,8 @@ end subroutine nc_output
 
 
 integer function dimensionid(expression)
+  ! Function to transform the expression in spaceparams.tmpl to an id, we might want this in the 
+  ! makeincludes module
   use logging_module
   implicit none
   character(len=20),intent(in)                       :: expression
