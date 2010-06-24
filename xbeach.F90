@@ -116,11 +116,9 @@ call all_input(par)
 call readkey('params.txt','checkparams',dummystring) 
 call writelog('ls','','Stepping into the time loop ....')   ! writelog is xmaster aware
 
-write(*,*)'***********************',xmaster,par%xpointsw,par%ypointsw,par%pointtypes,par%pointvars,par%globalvars
 #ifdef USEMPI
 call distribute_par(par)
 #endif
-write(*,*)'***********************',xmaster,par%xpointsw,par%ypointsw,par%pointtypes,par%pointvars,par%globalvars
 
 if (xmaster) then
   call writelog('l','' ,'------------------------------------')

@@ -233,8 +233,8 @@ type parameters
    character(256):: tspoints                   = 'abc'   !  [name] Name of file containing timings of point output
    character(256):: tscross                    = 'abc'   !  [name] Name of file containing timings of cross section output
    character(256):: tsmean                     = 'abc'   !  [name] Name of file containing timings of mean, max, min and var output
-   integer*4     :: nglobalvar                 = -123    !  [-] Number of global output variables
-   character(len=maxnamelen), dimension(:), allocatable   :: globalvars !  [-] Mnems of global output variables
+   integer*4     :: nglobalvar                 = -123    !  [-] Number of global output variables (as specified by user)
+   character(len=maxnamelen), dimension(:), allocatable   :: globalvars !  [-] Mnems of global output variables, not per se the same sice as nglobalvar (invalid variables, defaults)
    integer*4     :: nmeanvar                   = -123    !  [-] Number of mean,min,max,var output variables
    integer*4     :: npoints                    = -123    !  [-] Number of output point locations
    character(len=maxnamelen), dimension(:), allocatable :: pointvars  !  [-] Mnems of point output variables (by variables)
@@ -320,7 +320,7 @@ character(len=256)            :: line, keyword
 
 character(24),dimension(:),allocatable :: allowednames,oldnames
 integer                     :: filetype
-integer                     :: i, ic, id ! integers for reading output variables
+integer                     :: i, ic, id, nvars ! integers for reading output variables
 call writelog('sl','','Reading input parameters: ')
 
 ! Physical processes 
@@ -774,20 +774,22 @@ if (par%tsmean==' ') then
 endif  
 !!!!! GLOBAL OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 par%nglobalvar  = readkey_int ('params.txt','nglobalvar', -1, -1, 20)
-if (par%nglobalvar == -1) then
-   allocate(par%globalvars(21))
-   par%globalvars =  (/'H    ', 'zs   ', 'zs0  ', 'zb   ', 'hh   ', 'u    ', 'v    ', 'ue   ', 've   ', 'urms ', 'Fx   ', &
-        'Fy   ', 'ccg  ', 'ceqsg', 'ceqbg', 'Susg ', 'Svsg ', 'E    ', 'R    ', 'D    ', 'DR   ' /)
-elseif (par%nglobalvar == 999) then ! Output all
-   allocate(par%globalvars(size(mnemonics)))
-   par%globalvars = mnemonics
-else
-   ! User specified output
-   ! we allocate to 0, we'll let it grow inside add_mnem....
-   allocate(par%globalvars(par%nglobalvar))
-   ! Look for keyword nglobalvar in params.txt
-   id=0
-   if (xmaster) then
+
+if (xmaster) then
+   if (par%nglobalvar == -1) then
+      allocate(par%globalvars(21))
+      par%globalvars =  (/'H    ', 'zs   ', 'zs0  ', 'zb   ', 'hh   ', 'u    ', 'v    ', 'ue   ', 've   ', 'urms ', 'Fx   ', &
+           'Fy   ', 'ccg  ', 'ceqsg', 'ceqbg', 'Susg ', 'Svsg ', 'E    ', 'R    ', 'D    ', 'DR   ' /)
+   elseif (par%nglobalvar == 999) then ! Output all
+      allocate(par%globalvars(size(mnemonics)))
+      par%globalvars = mnemonics
+   else
+      ! User specified output
+      ! This is important because there might be less usable variables than specified.
+      ! Look for keyword nglobalvar in params.txt
+      id=0
+      ! we allocate to 0, we'll let it grow inside add_mnem....
+      allocate(par%globalvars(0))
       open(10,file='params.txt')
       do while (id == 0)
          read(10,'(a)')line
@@ -802,16 +804,27 @@ else
          read(10,'(a)')line
          line = trim(line)
          ! store the mnemonic in globalvars
-         call add_outmnem_single(line, par%globalvars(i))
+         call add_outmnem(line, par%globalvars)
       end do
       close(10)
-   endif  ! xmaster
+   end if ! globalvar
+end if ! xmaster
 #ifdef USEMPI
-   do i=1,par%nglobalvar
-      call xmpi_bcast(par%globalvars(i))
-   enddo  
+! see how many variables we got...
+if (xmaster) then
+   nvars = size(par%globalvars)
+end if 
+! let everyone know
+call xmpi_bcast(nvars)
+! allocate all non masters
+if (.not. xmaster) then
+   allocate(par%globalvars(nvars))
+end if
+! and send over the data
+do i=1,size(par%globalvars)
+   call xmpi_bcast(par%globalvars(i))
+enddo
 #endif
-endif
 
 par%npoints     = readkey_int ('params.txt','npoints',     0,  0, 50)
 par%nrugauge    = readkey_int ('params.txt','nrugauge',    0,  0, 50)
@@ -1055,7 +1068,6 @@ integer                 :: parlen,w,ierror,i
 
 !call MPI_Bcast(par,parlen,MPI_BYTE,xmpi_master,xmpi_comm,ierror)
 call MPI_Bcast(par,sizeof(par),MPI_BYTE,xmpi_master,xmpi_comm,ierror)
-
    call xmpi_bcast(par%xpointsw)
    call xmpi_bcast(par%ypointsw)
    call xmpi_bcast(par%pointtypes)
@@ -1066,12 +1078,6 @@ call MPI_Bcast(par,sizeof(par),MPI_BYTE,xmpi_master,xmpi_comm,ierror)
       call xmpi_bcast(par%pointvars(i))
    enddo
 
-
-!call MPI_Bcast(par%xpointsw, sizeof(par%xpointsw), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
-!call MPI_Bcast(par%ypointsw, sizeof(par%ypointsw), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
-!call MPI_Bcast(par%pointtypes, sizeof(par%pointtypes), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
-!call MPI_Bcast(par%pointvars, sizeof(par%pointvars), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
-!call MPI_Bcast(par%globalvars, sizeof(par%globalvars), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
 
 return
 
@@ -1151,26 +1157,6 @@ end subroutine printparams
     return
   end subroutine add_outmnem
 
-  subroutine add_outmnem_single(mnem, var)
-    use logging_module
-    implicit none
-    character(len=maxnamelen), intent(in) :: mnem
-    character(len=maxnamelen), intent(inout) :: var
-    integer :: i
-    
-	i = chartoindex(mnem)
-    if (i .lt. 1) then
-       if(xmaster) then
-          call writelog('ls','','Warning: cannot locate variable "',trim(mnem),'", no output for this one')
-       endif
-       return
-    endif
-    var = mnem
-    if(xmaster) then
-       call writelog('ls','','Will generate global output for variable "',trim(mnem),'"')
-    endif
-    return
-  end subroutine add_outmnem_single
 
 !
 ! FB:
