@@ -1068,15 +1068,17 @@ integer                 :: parlen,w,ierror,i
 
 !call MPI_Bcast(par,parlen,MPI_BYTE,xmpi_master,xmpi_comm,ierror)
 call MPI_Bcast(par,sizeof(par),MPI_BYTE,xmpi_master,xmpi_comm,ierror)
-   call xmpi_bcast(par%xpointsw)
-   call xmpi_bcast(par%ypointsw)
-   call xmpi_bcast(par%pointtypes)
-   do i=1,size(par%globalvars)
-      call xmpi_bcast(par%globalvars(i))
-   enddo
-   do i=1,size(par%pointvars)
-      call xmpi_bcast(par%pointvars(i))
-   enddo
+! Arrays have to be bcast by hand I think.... This might not be required
+call xmpi_bcast(par%xpointsw)
+call xmpi_bcast(par%ypointsw)
+call xmpi_bcast(par%pointtypes)
+! Character arrays have to be done per value
+do i=1,size(par%globalvars)
+   call xmpi_bcast(par%globalvars(i))
+enddo
+do i=1,size(par%pointvars)
+   call xmpi_bcast(par%pointvars(i))
+enddo
 
 
 return
@@ -1326,18 +1328,18 @@ end subroutine printparams
 	call xmpi_bcast(xpointsw)
 	call xmpi_bcast(ypointsw)
     call xmpi_bcast(pointtypes)
-	if (.not. allocated(pointvars)) allocate(pointvars(nvars))
-	do i=1,nvars
+    if (.not. allocated(pointvars)) allocate(pointvars(nvars))
+    do i=1,nvars
        call xmpi_bcast(pointvars(i))
     enddo
 #endif
     allocate(par%pointvars(nvars))
-	allocate(par%pointtypes(par%npoints+par%nrugauge))
-	allocate(par%xpointsw(par%npoints+par%nrugauge))
-	allocate(par%ypointsw(par%npoints+par%nrugauge))
-	par%pointtypes=pointtypes
-	par%xpointsw=xpointsw
-	par%ypointsw=ypointsw
+    allocate(par%pointtypes(par%npoints+par%nrugauge))
+    allocate(par%xpointsw(par%npoints+par%nrugauge))
+    allocate(par%ypointsw(par%npoints+par%nrugauge))
+    par%pointtypes=pointtypes
+    par%xpointsw=xpointsw
+    par%ypointsw=ypointsw
     par%pointvars=pointvars
   end subroutine readpointvars
 
