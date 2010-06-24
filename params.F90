@@ -1059,10 +1059,10 @@ call MPI_Bcast(par,sizeof(par),MPI_BYTE,xmpi_master,xmpi_comm,ierror)
    call xmpi_bcast(par%xpointsw)
    call xmpi_bcast(par%ypointsw)
    call xmpi_bcast(par%pointtypes)
-   do i=1,sizeof(par%globalvars)
+   do i=1,size(par%globalvars)
       call xmpi_bcast(par%globalvars(i))
    enddo
-   do i=1,sizeof(par%pointvars)
+   do i=1,size(par%pointvars)
       call xmpi_bcast(par%pointvars(i))
    enddo
 
