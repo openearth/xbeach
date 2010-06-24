@@ -1055,6 +1055,12 @@ integer                 :: parlen,w,ierror
 
 !call MPI_Bcast(par,parlen,MPI_BYTE,xmpi_master,xmpi_comm,ierror)
 call MPI_Bcast(par,sizeof(par),MPI_BYTE,xmpi_master,xmpi_comm,ierror)
+call MPI_Bcast(par%xpointsw, sizeof(par%xpointsw), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
+call MPI_Bcast(par%ypointsw, sizeof(par%ypointsw), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
+call MPI_Bcast(par%pointtypes, sizeof(par%pointtypes), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
+call MPI_Bcast(par%pointvars, sizeof(par%pointvars), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
+call MPI_Bcast(par%globalvars, sizeof(par%globalvars), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
+
 return
 
 ! so, the following code is NOT used anymore. I left this here
