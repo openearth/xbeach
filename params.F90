@@ -1038,7 +1038,7 @@ subroutine distribute_par(par)
 use xmpi_module
 implicit none
 type(parameters)        :: par
-integer                 :: parlen,w,ierror
+integer                 :: parlen,w,ierror,i
 
 ! 
 ! distribute parameters 
@@ -1055,11 +1055,23 @@ integer                 :: parlen,w,ierror
 
 !call MPI_Bcast(par,parlen,MPI_BYTE,xmpi_master,xmpi_comm,ierror)
 call MPI_Bcast(par,sizeof(par),MPI_BYTE,xmpi_master,xmpi_comm,ierror)
-call MPI_Bcast(par%xpointsw, sizeof(par%xpointsw), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
-call MPI_Bcast(par%ypointsw, sizeof(par%ypointsw), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
-call MPI_Bcast(par%pointtypes, sizeof(par%pointtypes), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
-call MPI_Bcast(par%pointvars, sizeof(par%pointvars), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
-call MPI_Bcast(par%globalvars, sizeof(par%globalvars), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
+
+   call xmpi_bcast(par%xpointsw)
+   call xmpi_bcast(par%ypointsw)
+   call xmpi_bcast(par%pointtypes)
+   do i=1,sizeof(par%globalvars)
+      call xmpi_bcast(par%globalvars(i))
+   enddo
+   do i=1,sizeof(par%pointvars)
+      call xmpi_bcast(par%pointvars(i))
+   enddo
+
+
+!call MPI_Bcast(par%xpointsw, sizeof(par%xpointsw), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
+!call MPI_Bcast(par%ypointsw, sizeof(par%ypointsw), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
+!call MPI_Bcast(par%pointtypes, sizeof(par%pointtypes), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
+!call MPI_Bcast(par%pointvars, sizeof(par%pointvars), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
+!call MPI_Bcast(par%globalvars, sizeof(par%globalvars), MPI_BYTE, xmpi_master, xmpi_comm, ierror)
 
 return
 
