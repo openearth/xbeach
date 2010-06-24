@@ -110,16 +110,17 @@ newstatbc=.true.
 
 ! General input per module
 !
-! the basic input routines, used by the following three subroutines
-! are MPI-aware, no need to do something special here
-call all_input(par)
+! This routine does need all processes, so not just xmaster ! Robert
+if (xmaster) call all_input(par)
 ! Do check of params.txt to spot errors
 call readkey('params.txt','checkparams',dummystring) 
 call writelog('ls','','Stepping into the time loop ....')   ! writelog is xmaster aware
 
+write(*,*)'***********************',xmaster,par%xpointsw,par%ypointsw,par%pointtypes,par%pointvars,par%globalvars
 #ifdef USEMPI
 call distribute_par(par)
 #endif
+write(*,*)'***********************',xmaster,par%xpointsw,par%ypointsw,par%pointtypes,par%pointvars,par%globalvars
 
 if (xmaster) then
   call writelog('l','' ,'------------------------------------')
@@ -248,10 +249,15 @@ do while (par%t<par%tstop)
    ! Wave timestep
    if (par%swave==1) then
       if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
+   ! Bypass wave stationary routine if running MPI
+#ifdef USEMPI
+         call wave_timestep(s,par)
+#else
          if ((abs(mod(par%t,par%wavint))<0.000001d0).or.newstatbc) then
             call wave_stationary(s,par)
             newstatbc=.false.
          endif
+#endif
       else
          call wave_timestep(s,par)
       endif

@@ -456,7 +456,7 @@ if (trim(par%instat) == 'jons' .or. &
    par%random   = readkey_int ('params.txt','random',    1,         0,        1)
    par%fcutoff  = readkey_dbl ('params.txt','fcutoff',   0.d0,      0.d0,     40.d0)
    par%nspr     = readkey_int ('params.txt','nspr',       0,        0,       1) 
-   par%trepfac  = readkey_dbl ('params.txt','trepfac', 0.8d0,       0.d0,    1.d0) 
+   par%trepfac  = readkey_dbl ('params.txt','trepfac', 0.01d0,      0.d0,    1.d0) 
    par%sprdthr  = readkey_dbl ('params.txt','sprdthr', 0.08d0,      0.d0,    1.d0) 
    par%oldwbc   = readkey_int ('params.txt','oldwbc',       0,        0,     1)
    if (filetype==0) then
@@ -784,7 +784,7 @@ elseif (par%nglobalvar == 999) then ! Output all
 else
    ! User specified output
    ! we allocate to 0, we'll let it grow inside add_mnem....
-   allocate(par%globalvars(0))
+   allocate(par%globalvars(par%nglobalvar))
    ! Look for keyword nglobalvar in params.txt
    id=0
    if (xmaster) then
@@ -802,17 +802,24 @@ else
          read(10,'(a)')line
          line = trim(line)
          ! store the mnemonic in globalvars
-         call add_outmnem(line, par%globalvars)
+         call add_outmnem_single(line, par%globalvars(i))
       end do
       close(10)
    endif  ! xmaster
+#ifdef USEMPI
+   do i=1,par%nglobalvar
+      call xmpi_bcast(par%globalvars(i))
+   enddo  
+#endif
 endif
 
 par%npoints     = readkey_int ('params.txt','npoints',     0,  0, 50)
 par%nrugauge    = readkey_int ('params.txt','nrugauge',    0,  0, 50)
 ! update the pointvariables
-call readpointvars(par, par%xpointsw, par%ypointsw, par%pointtypes, par%pointvars)
-
+!call readpointvars(par, par%xpointsw, par%ypointsw, par%pointtypes, par%pointvars)
+! Robert: to deal with MPI some changes here
+call readpointvars(par)
+! 
 par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
 par%ncross      = readkey_int ('params.txt','ncross',      0,  0, 50)
 allocate(allowednames(3))
@@ -1001,7 +1008,6 @@ if (par%morfacopt==1) then
    par%tstop   = par%tstop  / max(par%morfac,1.d0)
    par%morstart= par%morstart / max(par%morfac,1.d0)
 endif
-
 !
 !
 ! Give an error if you ask for netcdf output if you don't have a netcdf executable
@@ -1010,6 +1016,15 @@ if (trim(par%outputformat) .eq. 'netcdf') then
    call writelog('lse', '', 'You have asked for netcdf output (outputformat=netcdf) but this executable is built without')
    call writelog('lse', '', 'netcdf support. Use a netcdf enabled executable or outputformat=fortran')
    call halt_program
+endif
+#endif
+!
+!
+! Give warning if using wave stationary in MPI
+#ifdef USEMPI
+if (trim(par%instat)=='stat' .or. trim(par%instat)=='stat_table') then
+   call writelog('sl','','Warning: wave stationary solver not compatable with MPI')
+   call writelog('sl','','Wave propagation will be solved by non-stationary solver')
 endif
 #endif
 
@@ -1118,6 +1133,27 @@ end subroutine printparams
     return
   end subroutine add_outmnem
 
+  subroutine add_outmnem_single(mnem, var)
+    use logging_module
+    implicit none
+    character(len=maxnamelen), intent(in) :: mnem
+    character(len=maxnamelen), intent(inout) :: var
+    integer :: i
+    
+	i = chartoindex(mnem)
+    if (i .lt. 1) then
+       if(xmaster) then
+          call writelog('ls','','Warning: cannot locate variable "',trim(mnem),'", no output for this one')
+       endif
+       return
+    endif
+    var = mnem
+    if(xmaster) then
+       call writelog('ls','','Will generate global output for variable "',trim(mnem),'"')
+    endif
+    return
+  end subroutine add_outmnem_single
+
 !
 ! FB:
 ! Now for a long one, reading the point and rugauges output options
@@ -1137,14 +1173,14 @@ end subroutine printparams
 ! store all found variables in a combined list (not per point)
 ! So for each point all variables are stored
 ! 
-  subroutine readpointvars(par, xpointsw, ypointsw, pointtypes, pointvars)
+  subroutine readpointvars(par)
     use logging_module
     use mnemmodule
     implicit none
-    type(parameters), intent(in)            :: par
-    real*8,dimension(:),allocatable, intent(out)     :: xpointsw,ypointsw
-   integer, dimension(:), allocatable, intent(out)   :: pointtypes !  [-] Point types (0 = point, 1=rugauge)
-   character(len=maxnamelen), dimension(:), allocatable, intent(out) :: pointvars 
+    type(parameters), intent(inout)            :: par
+    real*8,dimension(:),allocatable         :: xpointsw,ypointsw
+   integer, dimension(:), allocatable       :: pointtypes !  [-] Point types (0 = point, 1=rugauge)
+   character(len=maxnamelen), dimension(:), allocatable :: pointvars 
    
     integer*4,dimension(:),allocatable  :: nvarpoint   ! vector with number of output variable per output point
     character(len=maxnamelen), dimension(:),allocatable :: temparray
@@ -1152,129 +1188,153 @@ end subroutine printparams
     character(len=maxnamelen)           :: var
     logical                             :: varfound
     integer                             :: i, ic, icold, id, ii, index, nvars, ivar
-    allocate(pointtypes(par%npoints+par%nrugauge))
+    
+	! These must be allocated by all processes
+	allocate(pointtypes(par%npoints+par%nrugauge))
     allocate(xpointsw(par%npoints+par%nrugauge))
     allocate(ypointsw(par%npoints+par%nrugauge))
-    allocate(nvarpoint(par%npoints+par%nrugauge))
-    allocate(temparray(99))
-    ! set the point types to the indicator
-    pointtypes(1:par%npoints)=0
-    pointtypes(par%npoints+1:par%npoints+par%nrugauge)=1
+	nvars = 0 ! the total number of variables
+    ! The rest can all be done by xmaster and then distributed by distribute_par
+	if (xmaster) then
+      allocate(nvarpoint(par%npoints+par%nrugauge))
+      allocate(temparray(99))
+      ! set the point types to the indicator
+      pointtypes(1:par%npoints)=0
+      pointtypes(par%npoints+1:par%npoints+par%nrugauge)=1
     
-    temparray=''
-    nvars = 0 ! the total number of variables
-    varfound = .false.
-    if (par%npoints>0) then
-       id=0
-       ! Look for keyword npoints in params.txt
-       open(10,file='params.txt')
-       do while (id == 0)
-          read(10,'(a)')line
-          ic=scan(line,'=')
-          if (ic>0) then
-             keyword=adjustl(line(1:ic-1))
-             if (keyword == 'npoints') id=1
-          endif
-       enddo
-       
-       do i=1,par%npoints
-          call writelog('ls','(a,i0)',' Output point ',i)
-          read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
-          call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
-          
-          icold=0
-          do ii =1,nvarpoint(i)
-             ic=scan(line(icold+1:80),'#')
-             ic=ic+icold
-             var=line(icold+1:ic-1)
-             index = chartoindex(var)
+      temparray=''
+      varfound = .false.
+      if (par%npoints>0) then
+         id=0
+         ! Look for keyword npoints in params.txt
+         open(10,file='params.txt')
+         do while (id == 0)
+            read(10,'(a)')line
+            ic=scan(line,'=')
+            if (ic>0) then
+               keyword=adjustl(line(1:ic-1))
+               if (keyword == 'npoints') id=1
+            endif
+         enddo
+   
+         do i=1,par%npoints
+            call writelog('ls','(a,i0)',' Output point ',i)
+            read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
+            call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
+   
+            icold=0
+            do ii =1,nvarpoint(i)
+               ic=scan(line(icold+1:80),'#')
+               ic=ic+icold
+               var=line(icold+1:ic-1)
+               index = chartoindex(var)
              
-             if (index/=-1) then
-                ! 
-                ! see if we already found this variable.... 
-                ! 
-                varfound = .false.
-                do ivar=1,nvars
-                   if (trim(temparray(ivar)) == trim(var)) then
-                      varfound = .true.
-                   end if
-                end do
-                ! we have a new variable, store it
-                if (varfound .eqv. .false.) then
-                   nvars = nvars + 1 
-                   temparray(nvars)=trim(var)
-                end if
-                call writelog('sl','',' Output type: ''',trim(var),'''')
-             else
-                call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
-                call halt_program
-             endif
-             icold=ic
-          enddo
+               if (index/=-1) then
+                  ! 
+                  ! see if we already found this variable.... 
+                  ! 
+                  varfound = .false.
+                  do ivar=1,nvars
+                     if (trim(temparray(ivar)) == trim(var)) then
+                        varfound = .true.
+                     end if
+                  end do
+                  ! we have a new variable, store it
+                  if (varfound .eqv. .false.) then
+                     nvars = nvars + 1 
+                     temparray(nvars)=trim(var)
+                  end if
+                  call writelog('sl','',' Output type: ''',trim(var),'''')
+               else
+                  call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
+                  call halt_program
+               endif
+               icold=ic
+            enddo
           
-       enddo
-       close(10)
-    endif ! par%npoints>0  
+         enddo
+         close(10)
+      endif ! par%npoints>0  
     
-    if (par%nrugauge>0) then
-       id=0
-       ! Look for keyword nrugauge in params.txt
-       open(10,file='params.txt')
-       do while (id == 0)
-          read(10,'(a)')line
-          ic=scan(line,'=')
-          if (ic>0) then
-             keyword=adjustl(line(1:ic-1))
-             if (keyword == 'nrugauge') id=1
-          endif
-       enddo
+      if (par%nrugauge>0) then
+         id=0
+         ! Look for keyword nrugauge in params.txt
+         open(10,file='params.txt')
+         do while (id == 0)
+            read(10,'(a)')line
+            ic=scan(line,'=')
+            if (ic>0) then
+               keyword=adjustl(line(1:ic-1))
+               if (keyword == 'nrugauge') id=1
+            endif
+         enddo
        
-       do i=1+par%npoints,par%nrugauge+par%npoints
-          read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
-          call writelog('ls','(a,i0)',' Output runup gauge ',i-par%npoints)
-          call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
-          icold=0
-          do ii =1,nvarpoint(i)
-             ic=scan(line(icold+1:80),'#')
-             ic=ic+icold
-             var=line(icold+1:ic-1)
-             index = chartoindex(var)
+         do i=1+par%npoints,par%nrugauge+par%npoints
+            read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
+            call writelog('ls','(a,i0)',' Output runup gauge ',i-par%npoints)
+            call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
+            icold=0
+            do ii =1,nvarpoint(i)
+               ic=scan(line(icold+1:80),'#')
+               ic=ic+icold
+               var=line(icold+1:ic-1)
+               index = chartoindex(var)
              
-             if (index/=-1) then
-                ! 
-                ! see if we already found this variable.... 
-                ! 
-                varfound = .false.
-                do ivar=1,nvars
-                   if (trim(temparray(ivar)) == trim(var)) then
-                      varfound = .true.
-                   end if
-                end do
-                ! we have a new variable, store it
-                if (varfound .eqv. .false.) then
-                   nvars = nvars + 1 
-                   temparray(nvars)=trim(var)
-                end if
-                call writelog('sl','',' Output type: ''',trim(var),'''')
-             else
-                call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
-                call halt_program
-             endif
-             icold=ic
-          enddo
-       enddo
-       close(10)
-    endif
-    ! copy values to the pointvars array
-    if (par%npoints+par%nrugauge > 0) then
-       allocate(pointvars(nvars))
-       pointvars(:)=temparray(1:nvars)
-    else
-       ! leave unallocated
-    endif
-    deallocate(temparray)
-    deallocate(nvarpoint)
-
+               if (index/=-1) then
+                  ! 
+                  ! see if we already found this variable.... 
+                  ! 
+                  varfound = .false.
+                  do ivar=1,nvars
+                     if (trim(temparray(ivar)) == trim(var)) then
+                        varfound = .true.
+                     end if
+                  end do
+                  ! we have a new variable, store it
+                  if (varfound .eqv. .false.) then
+                     nvars = nvars + 1 
+                     temparray(nvars)=trim(var)
+                  end if
+                  call writelog('sl','',' Output type: ''',trim(var),'''')
+               else
+                  call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
+                  call halt_program
+               endif
+               icold=ic
+            enddo
+         enddo
+         close(10)
+      endif
+      ! copy values to the pointvars array
+      if (par%npoints+par%nrugauge > 0) then
+         allocate(pointvars(nvars))
+         pointvars(:)=temparray(1:nvars)
+      else
+         ! leave unallocated
+      endif
+      deallocate(temparray)
+      deallocate(nvarpoint)
+	endif ! xmaster
+    !
+	! Ensure enough space is reserved on all other processes
+#ifdef USEMPI
+    call xmpi_bcast(nvars)
+	call xmpi_bcast(xpointsw)
+	call xmpi_bcast(ypointsw)
+    call xmpi_bcast(pointtypes)
+	if (.not. allocated(pointvars)) allocate(pointvars(nvars))
+	do i=1,nvars
+       call xmpi_bcast(pointvars(i))
+    enddo
+#endif
+    allocate(par%pointvars(nvars))
+	allocate(par%pointtypes(par%npoints+par%nrugauge))
+	allocate(par%xpointsw(par%npoints+par%nrugauge))
+	allocate(par%ypointsw(par%npoints+par%nrugauge))
+	par%pointtypes=pointtypes
+	par%xpointsw=xpointsw
+	par%ypointsw=ypointsw
+    par%pointvars=pointvars
   end subroutine readpointvars
 
 end module params
