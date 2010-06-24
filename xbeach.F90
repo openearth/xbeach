@@ -111,7 +111,7 @@ newstatbc=.true.
 ! General input per module
 !
 ! This routine does need all processes, so not just xmaster ! Robert
-if (xmaster) call all_input(par)
+call all_input(par)
 ! Do check of params.txt to spot errors
 call readkey('params.txt','checkparams',dummystring) 
 call writelog('ls','','Stepping into the time loop ....')   ! writelog is xmaster aware
