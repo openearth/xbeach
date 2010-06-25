@@ -55,13 +55,6 @@ character(len=155)       :: cwd ! for printing the working dir
 include 'version.def'
 include 'version.dat'
 
-! Start up log files
-call start_logfiles(error)
-if (error==1) then
-   write(*,*) 'Error: not able to open log file. Please contact XBeach team. Stopping simulation'
-   stop
-endif
-
 ! Setup of MPI 
 #ifdef USEMPI
 s=>slocal
@@ -69,6 +62,12 @@ call xmpi_initialize
 t0 = MPI_Wtime()
 #endif
 
+! Start up log files
+call start_logfiles(error)
+if (error==1) then
+   write(*,*) 'Error: not able to open log file. Please contact XBeach team. Stopping simulation'
+   stop
+endif
 ! 
 call cpu_time(tbegin)
 call DATE_AND_TIME(DATE=date, TIME=time, ZONE=zone)
@@ -113,7 +112,7 @@ newstatbc=.true.
 ! This routine does need all processes, so not just xmaster ! Robert
 call all_input(par)
 ! Do check of params.txt to spot errors
-call readkey('params.txt','checkparams',dummystring) 
+if (xmaster) call readkey('params.txt','checkparams',dummystring) 
 call writelog('ls','','Stepping into the time loop ....')   ! writelog is xmaster aware
 
 #ifdef USEMPI
@@ -247,16 +246,12 @@ do while (par%t<par%tstop)
    ! Wave timestep
    if (par%swave==1) then
       if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
-   ! Bypass wave stationary routine if running MPI
-#ifdef USEMPI
-         call wave_timestep(s,par)
-#else
          if ((abs(mod(par%t,par%wavint))<0.000001d0).or.newstatbc) then
             call wave_stationary(s,par)
             newstatbc=.false.
          endif
-#endif
       else
+	     newstatbc=.false.
          call wave_timestep(s,par)
       endif
    endif
