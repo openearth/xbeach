@@ -350,6 +350,8 @@ subroutine ncoutput_init(s, sl, par, tpar)
 
      ! Convert world coordinates of points to nearest (lsm) grid point
      ! This could be done in some postprocessing function
+     allocate(xpoints(par%nrugauge+par%npoints))
+     allocate(ypoints(par%nrugauge+par%npoints))
      call snappointstogrid(par, s, xpoints, ypoints)
 
      status = nf90_put_var(ncid, xpointindexvarid, xpoints)

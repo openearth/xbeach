@@ -30,8 +30,8 @@ contains
     type(spacepars), intent(in)      :: s
     type(parameters), intent(in)     :: par
 
-    integer*4,dimension(par%npoints+par%nrugauge),intent(out) :: xpoints     ! model x-coordinate of output points
-    integer*4,dimension(par%npoints+par%nrugauge),intent(out) :: ypoints     ! model y-coordinate of output points
+    integer*4,dimension(:),intent(inout) :: xpoints     ! model x-coordinate of output points
+    integer*4,dimension(:),intent(inout) :: ypoints     ! model y-coordinate of output points
 
     real*8,dimension(s%nx+1,s%ny+1)	:: mindist
     integer,dimension(2)                :: minlocation
