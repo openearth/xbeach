@@ -63,7 +63,7 @@ if (abs(par%t-par%dt)<1.d-6) then
 	
     if(xmaster) then
         call readkey('params.txt','bcfile',fname)
-	    call checkbcfilelength(par,fname)
+	    call checkbcfilelength_local(par,fname)
         open(74,file=fname,form='formatted')
         if (trim(par%instat)/='jons_table') read(74,*)testc
     endif
@@ -1870,7 +1870,7 @@ end subroutine bc_disper
 
 
 
-subroutine checkbcfilelength(par,filename)
+subroutine checkbcfilelength_local(par,filename)
 
 use params
 use xmpi_module
@@ -1960,7 +1960,7 @@ if (xmaster) then
 
 endif
 
-end subroutine checkbcfilelength
+end subroutine checkbcfilelength_local
 
 subroutine init_seed
   INTEGER :: i, n, clock
