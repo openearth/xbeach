@@ -157,7 +157,7 @@ if(abs(par%t-par%dt)<1.d-6) then
 	elseif (trim(par%instat)=='stat_table') then
        if (xmaster) then
 	     fname = readkey_name('params.txt','bcfile',bcast=.false.)
-		 call checkbcfilelength(par,fname)
+!		 call checkbcfilelength(par,fname)
 	     open( unit=7, file=fname)
 !	     open( unit=7, file='jonswap1.txt')
 	     read(7,*) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcendtime, dum2
