@@ -17,12 +17,12 @@ use logging_module
    if (xmaster) then 
       fileunit = create_new_fid_generic()
    endif
-#ifdef USEMPI
-   call xmpi_bcast(fileunit)
-#endif   
+  
    if (fileunit==-1) then
-      call writelog('les','','Serious problem: not enough free unit ids to create new file')
-      call halt_program
+      if (xmaster) then
+        call writelog('les','','Serious problem: not enough free unit ids to create new file')
+        call halt_program
+	  endif
    endif
    create_new_fid = fileunit   
 end function create_new_fid
@@ -36,15 +36,14 @@ use logging_module
    character(*)               :: filename
    integer                    :: error
 
-
+   error = 0
    if (xmaster) call check_file_exist_generic(filename,error)
-#ifdef USEMPI
-   call xmpi_bcast(error)
-#endif 
 
    if (error==1) then
-      call writelog('sle','','File ''',trim(filename),''' not found. Terminating simulation')
-      call halt_program
+      if (xmaster) then
+         call writelog('sle','','File ''',trim(filename),''' not found. Terminating simulation')
+         call halt_program
+	  endif
    endif
 end subroutine check_file_exist
 
@@ -68,9 +67,7 @@ use logging_module
       open(fid,file=fname)
       read(fid,*,iostat=iost)(dat(i),i=1,d1)
    endif
-#ifdef USEMPI
-   call xmpi_bcast(iost)
-#endif 
+
    if (iost .ne. 0) then
       if (xmaster) then
          call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
@@ -99,9 +96,7 @@ use logging_module
       open(fid,file=fname)
       read(fid,*,iostat=iost)((dat(i,j),i=1,d1),j=1,d2)
    endif
-#ifdef USEMPI
-   call xmpi_bcast(iost)
-#endif 
+ 
    if (iost .ne. 0) then
       if (xmaster) then
          call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
@@ -130,9 +125,7 @@ use logging_module
       open(fid,file=fname)
       read(fid,*,iostat=iost)(((dat(i,j,k),i=1,d1),j=1,d2),k=1,d3)
    endif
-#ifdef USEMPI
-   call xmpi_bcast(iost)
-#endif 
+
    if (iost .ne. 0) then
       if (xmaster) then
          call writelog('esl','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
@@ -145,6 +138,7 @@ end subroutine check_file_length_3D
 
 subroutine checkbcfilelength(tstop,instat,filename,filetype)
 use logging_module
+use xmpi_module
 
 IMPLICIT NONE
 real*8, intent(in) :: tstop
@@ -155,32 +149,34 @@ character*1       :: ch
 integer           :: i,ier=0,nlines,filetype,fid
 real*8            :: t,dt,total,d1,d2,d3,d4,d5
 
-ier = 0
-fid = create_new_fid()
-open(fid,file=filename)
-i=0
-do while (ier==0)
-   read(fid,'(a)',iostat=ier)ch
-   if (ier==0)i=i+1
-enddo
-nlines=i
-rewind(fid)    
+
+if (xmaster) then 
+  ier = 0
+  fid = create_new_fid()
+  open(fid,file=filename)
+  i=0
+  do while (ier==0)
+     read(fid,'(a)',iostat=ier)ch
+     if (ier==0)i=i+1
+  enddo
+  nlines=i
+  rewind(fid)    
 	
-if (trim(instat)=='jons' .or. trim(instat)=='swan' .or. trim(instat)=='vardens') then 
-	read(fid,*)testc
-    if (testc=='FILELIST') then
-		filetype = 1
+  if (trim(instat)=='jons' .or. trim(instat)=='swan' .or. trim(instat)=='vardens') then 
+      read(fid,*)testc
+      if (testc=='FILELIST') then
+	    filetype = 1
 		nlines=nlines-1
-	else
+	  else
 		filetype = 0
-	endif
-elseif (trim(instat)=='stat_table' .or. trim(instat)=='jons_table') then
-    filetype = 2
-endif
+	  endif
+  elseif (trim(instat)=='stat_table' .or. trim(instat)=='jons_table') then
+      filetype = 2
+  endif
     
-total=0.d0
-i=0
-select case (filetype)
+  total=0.d0
+  i=0
+  select case (filetype)
     case(0)
 	   total=2.d0*tstop
 	case(1)
@@ -195,15 +191,15 @@ select case (filetype)
 		  total=total+t
 		  i=i+1
 	   enddo
-end select
-close(fid)
-
-if (total<tstop) then
+  end select
+  close(fid)
+  if (total<tstop) then
 	call writelog('sle',' ','Error: Wave boundary condition time series too short in ',trim(filename))
     call writelog('sle','(a,f0.2,a,f0.2)',' Total wave condition time series is ',total, ' but simulation length is ',tstop)
 	call writelog('sle',' ','Stopping calculation')
 	call halt_program
-endif
+  endif
+endif ! xmaster
 
 end subroutine checkbcfilelength
 
