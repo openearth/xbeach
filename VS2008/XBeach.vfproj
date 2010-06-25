@@ -26,7 +26,7 @@ makeversiondat.bat"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_Debug|Win32">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="C:\Program Files\MPICH2\include" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME" Interfaces="true" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="C:\Program Files\MPICH2\include" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" AdditionalLibraryDirectories="C:\Program Files\MPICH2\lib" GenerateDebugInformation="true" SubSystem="subSystemConsole" AdditionalDependencies="mpi.lib fmpich2.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>

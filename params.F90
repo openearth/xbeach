@@ -320,7 +320,7 @@ character(len=256)            :: line, keyword
 
 character(24),dimension(:),allocatable :: allowednames,oldnames
 integer                     :: filetype
-integer                     :: i, ic, id, nvars ! integers for reading output variables
+integer                     :: i, ic, nvars ! integers for reading output variables
 call writelog('sl','','Reading input parameters: ')
 
 ! Physical processes 
@@ -779,57 +779,6 @@ endif
 !!!!! GLOBAL OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 par%nglobalvar  = readkey_int ('params.txt','nglobalvar', -1, -1, 20)
 
-if (xmaster) then
-   if (par%nglobalvar == -1) then
-      allocate(par%globalvars(21))
-      par%globalvars =  (/'H    ', 'zs   ', 'zs0  ', 'zb   ', 'hh   ', 'u    ', 'v    ', 'ue   ', 've   ', 'urms ', 'Fx   ', &
-           'Fy   ', 'ccg  ', 'ceqsg', 'ceqbg', 'Susg ', 'Svsg ', 'E    ', 'R    ', 'D    ', 'DR   ' /)
-   elseif (par%nglobalvar == 999) then ! Output all
-      allocate(par%globalvars(size(mnemonics)))
-      par%globalvars = mnemonics
-   else
-      ! User specified output
-      ! This is important because there might be less usable variables than specified.
-      ! Look for keyword nglobalvar in params.txt
-      id=0
-      ! we allocate to 0, we'll let it grow inside add_mnem....
-      allocate(par%globalvars(0))
-      open(10,file='params.txt')
-      do while (id == 0)
-         read(10,'(a)')line
-         ic=scan(line,'=')
-         if (ic>0) then
-            keyword=adjustl(line(1:ic-1))
-            if (keyword == 'nglobalvar') id=1
-         endif
-      enddo
-      ! Read through the variables lines, 
-      do i=1,par%nglobalvar
-         read(10,'(a)')line
-         line = trim(line)
-         ! store the mnemonic in globalvars
-         call add_outmnem(line, par%globalvars)
-      end do
-      close(10)
-   end if ! globalvar
-end if ! xmaster
-#ifdef USEMPI
-! see how many variables we got...
-if (xmaster) then
-   nvars = size(par%globalvars)
-end if 
-! let everyone know
-call xmpi_bcast(nvars)
-! allocate all non masters
-if (.not. xmaster) then
-   allocate(par%globalvars(nvars))
-end if
-! and send over the data
-do i=1,size(par%globalvars)
-   call xmpi_bcast(par%globalvars(i))
-enddo
-#endif
-
 par%npoints     = readkey_int ('params.txt','npoints',     0,  0, 50)
 par%nrugauge    = readkey_int ('params.txt','nrugauge',    0,  0, 50)
 ! update the pointvariables
@@ -1164,6 +1113,54 @@ end subroutine printparams
     return
   end subroutine add_outmnem
 
+subroutine readglobalvars(par)
+    use logging_module
+    use mnemmodule
+    implicit none
+    type(parameters), intent(inout)            :: par
+    character(len=maxnamelen), dimension(:), allocatable :: globalvars 
+    character(len=256)            :: line, keyword
+
+    integer :: id, ic, i
+    if (xmaster) then 
+        if (par%nglobalvar == -1) then
+             allocate(globalvars(21))
+             globalvars =  (/'H    ', 'zs   ', 'zs0  ', 'zb   ', 'hh   ', 'u    ', 'v    ', 'ue   ', 've   ', 'urms ', 'Fx   ', &
+                    'Fy   ', 'ccg  ', 'ceqsg', 'ceqbg', 'Susg ', 'Svsg ', 'E    ', 'R    ', 'D    ', 'DR   ' /)
+        elseif (par%nglobalvar == 999) then ! Output all
+            allocate(globalvars(size(mnemonics)))
+            globalvars = mnemonics
+        else
+            ! User specified output
+            ! This is important because there might be less usable variables than specified.
+            ! Look for keyword nglobalvar in params.txt
+            id=0
+            ! we allocate to 0, we'll let it grow inside add_mnem....
+            allocate(globalvars(0))
+            open(10,file='params.txt')
+            do while (id == 0)
+                read(10,'(a)')line
+                ic=scan(line,'=')
+                if (ic>0) then
+                    keyword=adjustl(line(1:ic-1))
+                    if (keyword == 'nglobalvar') id=1
+                endif
+            enddo
+            ! Read through the variables lines, 
+            do i=1,par%nglobalvar
+                read(10,'(a)')line
+                line = trim(line)
+                ! store the mnemonic in globalvars
+                call add_outmnem(line, globalvars)
+            end do
+            close(10)
+        end if ! globalvar
+        allocate(par%globalvars(size(globalvars)))
+        par%globalvars = globalvars
+        deallocate(globalvars)
+    end if ! xmaster
+
+end subroutine
 
 !
 ! FB:
