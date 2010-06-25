@@ -142,23 +142,25 @@ contains
        allocate(temparray(par%npoints+par%nrugauge,maxval(nvarpoint)))
        
        ! Convert world coordinates of points to nearest (lsm) grid point
-       do i=1,(par%npoints+par%nrugauge)
-          mindist=sqrt((par%xpointsw(i)-s%xw)**2+(par%ypointsw(i)-s%yw)**2)
-          minlocation=minloc(mindist)
-          ypoints(i)=minlocation(2)
-          if (par%pointtypes(i) == 1) then
-             xpoints(i)=1
-             call writelog('ls','(a,i0)','Runup gauge at grid line iy=',ypoints(i))
-          else
-             xpoints(i)=minlocation(1)
-             call writelog('ls','(a,i0,a,i0,a,f0.2,a)',' Distance output point to nearest grid point ('&
-                  ,minlocation(1),',',minlocation(2),') is '&
-                  ,mindist(minlocation(1),minlocation(2)), ' meters')
-          endif
-          do j=1,nvarpoint(i)
-             temparray(i,j) = chartoindex(trim(par%pointvars(j)))
-          end do
-       end do
+	   if (xmaster) then 
+         do i=1,(par%npoints+par%nrugauge)
+           mindist=sqrt((par%xpointsw(i)-s%xw)**2+(par%ypointsw(i)-s%yw)**2)
+           minlocation=minloc(mindist)
+           ypoints(i)=minlocation(2)
+           if (par%pointtypes(i) == 1) then
+              xpoints(i)=1
+              call writelog('ls','(a,i0)','Runup gauge at grid line iy=',ypoints(i))
+           else
+              xpoints(i)=minlocation(1)
+              call writelog('ls','(a,i0,a,i0,a,f0.2,a)',' Distance output point to nearest grid point ('&
+                   ,minlocation(1),',',minlocation(2),') is '&
+                   ,mindist(minlocation(1),minlocation(2)), ' meters')
+           endif
+           do j=1,nvarpoint(i)
+              temparray(i,j) = chartoindex(trim(par%pointvars(j)))
+           end do
+         end do
+	   endif
        
        ! TODO: what is temparray
 #ifdef USEMPI
