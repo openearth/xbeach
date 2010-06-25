@@ -96,7 +96,7 @@ contains
     
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
-    real*8, dimension(:,:)          :: x
+    real*8, dimension(:,:), intent(out) :: x
     select case(t%name)
     case(mnem_thetamean)
        x=270-((t%r2+s%alfa)*(180/pi))

@@ -387,19 +387,18 @@ subroutine nc_output(s,sl,par, tpar)
   character(len=10)                      :: mnem
 
   ! some local variables to pass the data through the postprocessing function.
-  integer, pointer :: i0
-  integer, dimension(:), pointer :: i1
-  integer, dimension(:,:), pointer :: i2
-  integer, dimension(:,:,:), pointer :: i3
-  integer, dimension(:,:,:,:), pointer :: i4
-  real*8, pointer :: r0
-  real*8, dimension(:), pointer :: r1
-  real*8, dimension(:,:), pointer :: r2
-  real*8, dimension(:,:,:), pointer :: r3
-  real*8, dimension(:,:,:,:), pointer :: r4
+  integer :: i0
+  integer, dimension(:), allocatable :: i1
+  integer, dimension(:,:), allocatable :: i2
+  integer, dimension(:,:,:), allocatable :: i3
+  integer, dimension(:,:,:,:), allocatable :: i4
+  real*8 :: r0
+  real*8, dimension(:), allocatable :: r1
+  real*8, dimension(:,:), allocatable :: r2
+  real*8, dimension(:,:,:), allocatable :: r3
+  real*8, dimension(:,:,:,:), allocatable :: r4
 
   integer :: status
-  
 
   ! not a output step
 
@@ -420,16 +419,22 @@ subroutine nc_output(s,sl,par, tpar)
         case('r')
            select case(t%rank)
            case(2)
+              allocate(r2(size(t%r2,1),size(t%r2,2)))
               call gridrotate(s, t, r2)
               status = nf90_put_var(ncid, globalvarids(i), r2, start=(/1,1,tpar%itg/) )
+              deallocate(r2)
               if (status /= nf90_noerr) call handle_err(status)
            case(3)
+              allocate(r3(size(t%r3,1),size(t%r3,2),size(t%r3,3)))
               call gridrotate(s, t, r3)
               status = nf90_put_var(ncid, globalvarids(i), r3, start=(/1,1,1, tpar%itg/) )
+              deallocate(r3)
               if (status /= nf90_noerr) call handle_err(status)
            case(4)
+              allocate(r4(size(t%r4,1),size(t%r4,2),size(t%r4,3),size(t%r4,4)))
               call gridrotate(s, t, r4)
               status = nf90_put_var(ncid, globalvarids(i), r4, start=(/1,1,1,1, tpar%itg/) )
+              deallocate(r4)
               if (status /= nf90_noerr) call handle_err(status)
            case default
               write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
@@ -441,6 +446,7 @@ subroutine nc_output(s,sl,par, tpar)
 !  tpar%outputg = .false. ! not sure if this is required
   end if
   if (tpar%outputp) then
+
      status = nf90_put_var(ncid, pointtimevarid, par%t, (/tpar%itp/))
      if (status /= nf90_noerr) call handle_err(status) 
 
@@ -462,16 +468,22 @@ subroutine nc_output(s,sl,par, tpar)
                  ! or if we could just have the postprocessing insert some reference processing routines to call
                  ! or if we could split this out of the case statement (dry)
                  ! or if we could defer this to a postprocessing routine (for example ncks)
+                 allocate(r2(size(t%r2,1),size(t%r2,2)))
                  call gridrotate(s, t, r2)
                  status = nf90_put_var(ncid, pointsvarids(i), r2(xpoints(ii), ypoints(ii)), start=(/ii,tpar%itp/) )
+                 deallocate(r2)
                  if (status /= nf90_noerr) call handle_err(status)
               case(3)
+                 allocate(r3(size(t%r3,1),size(t%r3,2),size(t%r3,3)))
                  call gridrotate(s, t, r3)
                  status = nf90_put_var(ncid, pointsvarids(i), r3(xpoints(ii), ypoints(ii),:), start=(/ii,1,tpar%itp/) )
+                 deallocate(r3)
                  if (status /= nf90_noerr) call handle_err(status)
               case(4)
+                 allocate(r4(size(t%r4,1),size(t%r4,2),size(t%r4,3),size(t%r4,4)))
                  call gridrotate(s, t, r4)
                  status = nf90_put_var(ncid, pointsvarids(i), r4(xpoints(ii), ypoints(ii),:,:), start=(/ii,1,1,tpar%itp/) )
+                 deallocate(r4)
                  if (status /= nf90_noerr) call handle_err(status)
               case default
                  write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
