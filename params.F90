@@ -1018,7 +1018,6 @@ real*8 ,dimension(:), allocatable                      :: ypointsw ! world y-coo
 
 ! 
 ! distribute parameters 
-write(*,*) 'before bcast', xmaster, associated(par%globalvars), loc(par%globalvars), size(par%globalvars), par%globalvars
 
 ! This distributes all of the properties of par, including pointers. These point to memory adresses on the master
 ! We need to reset these on the non masters
@@ -1027,7 +1026,6 @@ call MPI_Bcast(par,sizeof(par),MPI_BYTE,xmpi_master,xmpi_comm,ierror)
 ! Ok now for the manual stuff to circumvent a bug in the intel compiler, which doesn't allow to send over arrays in derived types
 ! The only way to do it on all 3 compilers (gfortran, CVF, ifort) is with pointers. 
 ! First let's store the number of variables, we need this to reserve some memory on all nodes
-write(*,*) xmaster, 'after bcast', 'globalvars'
 if (xmaster) nvars = size(par%globalvars)
 ! send it over
 call xmpi_bcast(nvars)
@@ -1049,8 +1047,6 @@ if (.not. xmaster) par%globalvars = globalvars
 ! and clean up the local one.
 deallocate(globalvars)
 
-write(*,*) xmaster, 'after bcast', 'pointvars', par%npoints, par%nrugauge
-write(*,*) 'before bcast of points', xmaster, associated(par%pointvars), loc(par%pointvars), size(par%pointvars), par%pointvars
 if (xmaster) nvars = size(par%pointvars)
 ! send it over
 call xmpi_bcast(nvars)
@@ -1073,7 +1069,6 @@ if (.not. xmaster) par%pointvars = pointvars
 deallocate(pointvars)
 
 
-write(*,*) xmaster, 'after bcast', 'pointtypes'
 if (xmaster) npoints = size(par%pointtypes)
 ! send it over
 call xmpi_bcast(npoints)
@@ -1093,7 +1088,6 @@ if (.not. xmaster) par%pointtypes = pointtypes
 ! and clean up the local one.
 deallocate(pointtypes)
 
-write(*,*) xmaster, 'after bcast', 'xpointsw'
 if (xmaster) npoints = size(par%xpointsw)
 ! send it over
 call xmpi_bcast(npoints)
@@ -1113,7 +1107,6 @@ if (.not. xmaster) par%xpointsw = xpointsw
 ! and clean up the local one.
 deallocate(xpointsw)
 
-write(*,*) xmaster, 'after bcast', 'ypointsw'
 if (xmaster) npoints = size(par%ypointsw)
 ! send it over
 call xmpi_bcast(npoints)
@@ -1256,7 +1249,6 @@ subroutine readglobalvars(par)
             end do
             close(10)
         end if ! globalvar
-        write(*,*) 'in read globals', xmaster, globalvars
         allocate(par%globalvars(size(globalvars)))
         par%globalvars = globalvars
     end if ! xmaster

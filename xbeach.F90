@@ -116,9 +116,7 @@ if (xmaster) call readkey('params.txt','checkparams',dummystring)
 call writelog('ls','','Stepping into the time loop ....')   ! writelog is xmaster aware
 
 #ifdef USEMPI
-write(*,*) xmaster, par%globalvars
 call distribute_par(par)
-write(*,*) xmaster, par%globalvars
 #endif
 
 if (xmaster) then
