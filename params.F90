@@ -234,13 +234,13 @@ type parameters
    character(256):: tscross                    = 'abc'   !  [name] Name of file containing timings of cross section output
    character(256):: tsmean                     = 'abc'   !  [name] Name of file containing timings of mean, max, min and var output
    integer*4     :: nglobalvar                 = -123    !  [-] Number of global output variables (as specified by user)
-   character(len=maxnamelen), dimension(:), allocatable   :: globalvars !  [-] Mnems of global output variables, not per se the same sice as nglobalvar (invalid variables, defaults)
+   character(len=maxnamelen), dimension(:), pointer   :: globalvars => NULL() !  [-] Mnems of global output variables, not per se the same sice as nglobalvar (invalid variables, defaults)
    integer*4     :: nmeanvar                   = -123    !  [-] Number of mean,min,max,var output variables
    integer*4     :: npoints                    = -123    !  [-] Number of output point locations
-   character(len=maxnamelen), dimension(:), allocatable :: pointvars  !  [-] Mnems of point output variables (by variables)
-   integer, dimension(:), allocatable                   :: pointtypes !  [-] Point types (0 = point, 1=rugauge)
-   real*8 ,dimension(:),allocatable                     :: xpointsw   ! world x-coordinate of output points
-   real*8 ,dimension(:),allocatable                     :: ypointsw   ! world y-coordinate of output points
+   character(len=maxnamelen), dimension(:), pointer   :: pointvars  => NULL()  !  [-] Mnems of point output variables (by variables)
+   integer, dimension(:), pointer                     :: pointtypes => NULL()  !  [-] Point types (0 = point, 1=rugauge)
+   real*8 ,dimension(:), pointer                      :: xpointsw => NULL()  ! world x-coordinate of output points
+   real*8 ,dimension(:), pointer                     :: ypointsw => NULL()  ! world y-coordinate of output points
    
    integer*4     :: nrugauge                   = -123    !  [-] Number of output runup gauge locations
    integer*4     :: ncross                     = -123    !  [-] Number of output cross sections
@@ -778,6 +778,7 @@ if (par%tsmean==' ') then
 endif  
 !!!!! GLOBAL OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 par%nglobalvar  = readkey_int ('params.txt','nglobalvar', -1, -1, 20)
+call readglobalvars(par)
 
 par%npoints     = readkey_int ('params.txt','npoints',     0,  0, 50)
 par%nrugauge    = readkey_int ('params.txt','nrugauge',    0,  0, 50)
@@ -1005,34 +1006,134 @@ subroutine distribute_par(par)
 use xmpi_module
 implicit none
 type(parameters)        :: par
-integer                 :: parlen,w,ierror,i
+integer                 :: parlen,w,ierror,i, nvars, npoints
+
+! We're sending these over by hand, because intel fortran + vs2008 breaks things...
+character(len=maxnamelen), dimension(:), allocatable   :: globalvars 
+character(len=maxnamelen), dimension(:), allocatable   :: pointvars 
+integer, dimension(:), allocatable                     :: pointtypes !  [-] Point types (0 = point, 1=rugauge)
+real*8 ,dimension(:), allocatable                      :: xpointsw ! world x-coordinate of output points
+real*8 ,dimension(:), allocatable                      :: ypointsw ! world y-coordinate of output points
+
 
 ! 
 ! distribute parameters 
+write(*,*) 'before bcast', xmaster, associated(par%globalvars), loc(par%globalvars), size(par%globalvars), par%globalvars
 
-! new method: distribute at once
-
-!inquire(iolength=parlen) par
-!inquire(iolength=w) 1.0d0
-
-! convert parlen to number of bytes, assuming that 
-! 1.0d0 takes 8 bytes
-
-!parlen = (8/w)*parlen
-
-!call MPI_Bcast(par,parlen,MPI_BYTE,xmpi_master,xmpi_comm,ierror)
+! This distributes all of the properties of par, including pointers. These point to memory adresses on the master
+! We need to reset these on the non masters
 call MPI_Bcast(par,sizeof(par),MPI_BYTE,xmpi_master,xmpi_comm,ierror)
-! Arrays have to be bcast by hand I think.... This might not be required
-call xmpi_bcast(par%xpointsw)
-call xmpi_bcast(par%ypointsw)
-call xmpi_bcast(par%pointtypes)
-! Character arrays have to be done per value
+
+! Ok now for the manual stuff to circumvent a bug in the intel compiler, which doesn't allow to send over arrays in derived types
+! The only way to do it on all 3 compilers (gfortran, CVF, ifort) is with pointers. 
+! First let's store the number of variables, we need this to reserve some memory on all nodes
+write(*,*) xmaster, 'after bcast', 'globalvars'
+if (xmaster) nvars = size(par%globalvars)
+! send it over
+call xmpi_bcast(nvars)
+! now on all nodes allocate a array outside the par structure
+allocate(globalvars(nvars))
+! Par is only filled on the master, so use that one and put it in the seperate array
+if (xmaster) globalvars = par%globalvars
+! Now for another ugly step, we can't broadcast the whole array but have to do it per variable.
 do i=1,size(par%globalvars)
-   call xmpi_bcast(par%globalvars(i))
+   call xmpi_bcast(globalvars(i))
 enddo
+! so now everyone has the globalvars, let's put it back in par
+! first dereference the old one, otherwise we get a nasty error on ifort....
+if (.not. xmaster) par%globalvars => NULL()
+! now we can allocate the memory again
+if (.not. xmaster) allocate(par%globalvars(nvars))
+! and store the values from the local array
+if (.not. xmaster) par%globalvars = globalvars
+! and clean up the local one.
+deallocate(globalvars)
+
+write(*,*) xmaster, 'after bcast', 'pointvars', par%npoints, par%nrugauge
+write(*,*) 'before bcast of points', xmaster, associated(par%pointvars), loc(par%pointvars), size(par%pointvars), par%pointvars
+if (xmaster) nvars = size(par%pointvars)
+! send it over
+call xmpi_bcast(nvars)
+! now on all nodes allocate a array outside the par structure
+allocate(pointvars(nvars))
+! Par is only filled on the master, so use that one and put it in the seperate array
+if (xmaster) pointvars = par%pointvars
+! Now for another ugly step, we can't broadcast the whole array but have to do it per variable.
 do i=1,size(par%pointvars)
-   call xmpi_bcast(par%pointvars(i))
+   call xmpi_bcast(pointvars(i))
 enddo
+! so now everyone has the pointvars, let's put it back in par
+! first dereference the old one, otherwise we get a nasty error on ifort....
+if (.not. xmaster) par%pointvars => NULL()
+! now we can allocate the memory again
+if (.not. xmaster) allocate(par%pointvars(nvars))
+! and store the values from the local array
+if (.not. xmaster) par%pointvars = pointvars
+! and clean up the local one.
+deallocate(pointvars)
+
+
+write(*,*) xmaster, 'after bcast', 'pointtypes'
+if (xmaster) npoints = size(par%pointtypes)
+! send it over
+call xmpi_bcast(npoints)
+! now on all nodes allocate a array outside the par structure
+allocate(pointtypes(npoints))
+! Par is only filled on the master, so use that one and put it in the seperate array
+if (xmaster) pointtypes = par%pointtypes
+! Now for another ugly step, we can't broadcast the whole array but have to do it per variable.
+call xmpi_bcast(pointtypes)
+! so now everyone has the pointtypes, let's put it back in par
+! first dereference the old one, otherwise we get a nasty error on ifort....
+if (.not. xmaster) par%pointtypes => NULL()
+! now we can allocate the memory again
+if (.not. xmaster) allocate(par%pointtypes(npoints))
+! and store the values from the local array
+if (.not. xmaster) par%pointtypes = pointtypes
+! and clean up the local one.
+deallocate(pointtypes)
+
+write(*,*) xmaster, 'after bcast', 'xpointsw'
+if (xmaster) npoints = size(par%xpointsw)
+! send it over
+call xmpi_bcast(npoints)
+! now on all nodes allocate a array outside the par structure
+allocate(xpointsw(npoints))
+! Par is only filled on the master, so use that one and put it in the seperate array
+if (xmaster) xpointsw = par%xpointsw
+! Now for another ugly step, we can't broadcast the whole array but have to do it per variable.
+call xmpi_bcast(xpointsw)
+! so now everyone has the xpointsw, let's put it back in par
+! first dereference the old one, otherwise we get a nasty error on ifort....
+if (.not. xmaster) par%xpointsw => NULL()
+! now we can allocate the memory again
+if (.not. xmaster) allocate(par%xpointsw(npoints))
+! and store the values from the local array
+if (.not. xmaster) par%xpointsw = xpointsw
+! and clean up the local one.
+deallocate(xpointsw)
+
+write(*,*) xmaster, 'after bcast', 'ypointsw'
+if (xmaster) npoints = size(par%ypointsw)
+! send it over
+call xmpi_bcast(npoints)
+! now on all nodes allocate a array outside the par structure
+allocate(ypointsw(npoints))
+! Par is only filled on the master, so use that one and put it in the seperate array
+if (xmaster) ypointsw = par%ypointsw
+! Now for another ugly step, we can't broadcast the whole array but have to do it per variable.
+call xmpi_bcast(ypointsw)
+! so now everyone has the ypointsw, let's put it back in par
+! first dereference the old one, otherwise we get a nasty error on ifort....
+if (.not. xmaster) par%ypointsw => NULL()
+! now we can allocate the memory again
+if (.not. xmaster) allocate(par%ypointsw(npoints))
+! and store the values from the local array
+if (.not. xmaster) par%ypointsw = ypointsw
+! and clean up the local one.
+deallocate(ypointsw)
+
+
 
 
 return
@@ -1155,9 +1256,9 @@ subroutine readglobalvars(par)
             end do
             close(10)
         end if ! globalvar
+        write(*,*) 'in read globals', xmaster, globalvars
         allocate(par%globalvars(size(globalvars)))
         par%globalvars = globalvars
-        deallocate(globalvars)
     end if ! xmaster
 
 end subroutine
@@ -1181,168 +1282,153 @@ end subroutine
 ! store all found variables in a combined list (not per point)
 ! So for each point all variables are stored
 ! 
-  subroutine readpointvars(par)
-    use logging_module
-    use mnemmodule
-    implicit none
-    type(parameters), intent(inout)            :: par
-    real*8,dimension(:),allocatable         :: xpointsw,ypointsw
-   integer, dimension(:), allocatable       :: pointtypes !  [-] Point types (0 = point, 1=rugauge)
-   character(len=maxnamelen), dimension(:), allocatable :: pointvars 
-   
-    integer*4,dimension(:),allocatable  :: nvarpoint   ! vector with number of output variable per output point
-    character(len=maxnamelen), dimension(:),allocatable :: temparray
-    character(80)                       :: line, keyword
-    character(len=maxnamelen)           :: var
-    logical                             :: varfound
-    integer                             :: i, ic, icold, id, ii, index, nvars, ivar
-    
-	! These must be allocated by all processes
-	allocate(pointtypes(par%npoints+par%nrugauge))
-    allocate(xpointsw(par%npoints+par%nrugauge))
-    allocate(ypointsw(par%npoints+par%nrugauge))
-	nvars = 0 ! the total number of variables
-    ! The rest can all be done by xmaster and then distributed by distribute_par
-	if (xmaster) then
-      allocate(nvarpoint(par%npoints+par%nrugauge))
-      allocate(temparray(99))
-      ! set the point types to the indicator
-      pointtypes(1:par%npoints)=0
-      pointtypes(par%npoints+1:par%npoints+par%nrugauge)=1
-    
-      temparray=''
-      varfound = .false.
-      if (par%npoints>0) then
-         id=0
-         ! Look for keyword npoints in params.txt
-         open(10,file='params.txt')
-         do while (id == 0)
-            read(10,'(a)')line
-            ic=scan(line,'=')
-            if (ic>0) then
-               keyword=adjustl(line(1:ic-1))
-               if (keyword == 'npoints') id=1
-            endif
-         enddo
-   
-         do i=1,par%npoints
-            call writelog('ls','(a,i0)',' Output point ',i)
-            read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
-            call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
-   
-            icold=0
-            do ii =1,nvarpoint(i)
-               ic=scan(line(icold+1:80),'#')
-               ic=ic+icold
-               var=line(icold+1:ic-1)
-               index = chartoindex(var)
-             
-               if (index/=-1) then
-                  ! 
-                  ! see if we already found this variable.... 
-                  ! 
-                  varfound = .false.
-                  do ivar=1,nvars
-                     if (trim(temparray(ivar)) == trim(var)) then
-                        varfound = .true.
-                     end if
-                  end do
-                  ! we have a new variable, store it
-                  if (varfound .eqv. .false.) then
-                     nvars = nvars + 1 
-                     temparray(nvars)=trim(var)
-                  end if
-                  call writelog('sl','',' Output type: ''',trim(var),'''')
-               else
-                  call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
-                  call halt_program
-               endif
-               icold=ic
-            enddo
-          
-         enddo
-         close(10)
-      endif ! par%npoints>0  
-    
-      if (par%nrugauge>0) then
-         id=0
-         ! Look for keyword nrugauge in params.txt
-         open(10,file='params.txt')
-         do while (id == 0)
-            read(10,'(a)')line
-            ic=scan(line,'=')
-            if (ic>0) then
-               keyword=adjustl(line(1:ic-1))
-               if (keyword == 'nrugauge') id=1
-            endif
-         enddo
-       
-         do i=1+par%npoints,par%nrugauge+par%npoints
-            read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
-            call writelog('ls','(a,i0)',' Output runup gauge ',i-par%npoints)
-            call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
-            icold=0
-            do ii =1,nvarpoint(i)
-               ic=scan(line(icold+1:80),'#')
-               ic=ic+icold
-               var=line(icold+1:ic-1)
-               index = chartoindex(var)
-             
-               if (index/=-1) then
-                  ! 
-                  ! see if we already found this variable.... 
-                  ! 
-                  varfound = .false.
-                  do ivar=1,nvars
-                     if (trim(temparray(ivar)) == trim(var)) then
-                        varfound = .true.
-                     end if
-                  end do
-                  ! we have a new variable, store it
-                  if (varfound .eqv. .false.) then
-                     nvars = nvars + 1 
-                     temparray(nvars)=trim(var)
-                  end if
-                  call writelog('sl','',' Output type: ''',trim(var),'''')
-               else
-                  call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
-                  call halt_program
-               endif
-               icold=ic
-            enddo
-         enddo
-         close(10)
-      endif
-      ! copy values to the pointvars array
-      if (par%npoints+par%nrugauge > 0) then
-         allocate(pointvars(nvars))
-         pointvars(:)=temparray(1:nvars)
-      else
-         ! leave unallocated
-      endif
-      deallocate(temparray)
-      deallocate(nvarpoint)
-	endif ! xmaster
-    !
-	! Ensure enough space is reserved on all other processes
-#ifdef USEMPI
-    call xmpi_bcast(nvars)
-	call xmpi_bcast(xpointsw)
-	call xmpi_bcast(ypointsw)
-    call xmpi_bcast(pointtypes)
-    if (.not. allocated(pointvars)) allocate(pointvars(nvars))
-    do i=1,nvars
-       call xmpi_bcast(pointvars(i))
-    enddo
-#endif
-    allocate(par%pointvars(nvars))
-    allocate(par%pointtypes(par%npoints+par%nrugauge))
-    allocate(par%xpointsw(par%npoints+par%nrugauge))
-    allocate(par%ypointsw(par%npoints+par%nrugauge))
-    par%pointtypes=pointtypes
-    par%xpointsw=xpointsw
-    par%ypointsw=ypointsw
-    par%pointvars=pointvars
-  end subroutine readpointvars
+subroutine readpointvars(par)
+  use logging_module
+  use mnemmodule
+  implicit none
+  type(parameters), intent(inout)            :: par
+  real*8,dimension(:),allocatable         :: xpointsw,ypointsw
+  integer, dimension(:), allocatable       :: pointtypes !  [-] Point types (0 = point, 1=rugauge)
+  character(len=maxnamelen), dimension(:), allocatable :: pointvars 
+
+  integer*4,dimension(:),allocatable  :: nvarpoint   ! vector with number of output variable per output point
+  character(len=maxnamelen), dimension(:),allocatable :: temparray
+  character(80)                       :: line, keyword
+  character(len=maxnamelen)           :: var
+  logical                             :: varfound
+  integer                             :: i, ic, icold, id, ii, index, nvars, ivar
+
+  ! These must be allocated by all processes
+  allocate(pointtypes(par%npoints+par%nrugauge))
+  allocate(xpointsw(par%npoints+par%nrugauge))
+  allocate(ypointsw(par%npoints+par%nrugauge))
+  nvars = 0 ! the total number of variables
+  ! The rest can all be done by xmaster and then distributed by distribute_par
+  if (xmaster) then
+     allocate(nvarpoint(par%npoints+par%nrugauge))
+     allocate(temparray(99))
+     ! set the point types to the indicator
+     pointtypes(1:par%npoints)=0
+     pointtypes(par%npoints+1:par%npoints+par%nrugauge)=1
+
+     temparray=''
+     varfound = .false.
+     if (par%npoints>0) then
+        id=0
+        ! Look for keyword npoints in params.txt
+        open(10,file='params.txt')
+        do while (id == 0)
+           read(10,'(a)')line
+           ic=scan(line,'=')
+           if (ic>0) then
+              keyword=adjustl(line(1:ic-1))
+              if (keyword == 'npoints') id=1
+           endif
+        enddo
+
+        do i=1,par%npoints
+           call writelog('ls','(a,i0)',' Output point ',i)
+           read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
+           call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
+
+           icold=0
+           do ii =1,nvarpoint(i)
+              ic=scan(line(icold+1:80),'#')
+              ic=ic+icold
+              var=line(icold+1:ic-1)
+              index = chartoindex(var)
+
+              if (index/=-1) then
+                 ! 
+                 ! see if we already found this variable.... 
+                 ! 
+                 varfound = .false.
+                 do ivar=1,nvars
+                    if (trim(temparray(ivar)) == trim(var)) then
+                       varfound = .true.
+                    end if
+                 end do
+                 ! we have a new variable, store it
+                 if (varfound .eqv. .false.) then
+                    nvars = nvars + 1 
+                    temparray(nvars)=trim(var)
+                 end if
+                 call writelog('sl','',' Output type: ''',trim(var),'''')
+              else
+                 call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
+                 call halt_program
+              endif
+              icold=ic
+           enddo
+
+        enddo
+        close(10)
+     endif ! par%npoints>0  
+
+     if (par%nrugauge>0) then
+        id=0
+        ! Look for keyword nrugauge in params.txt
+        open(10,file='params.txt')
+        do while (id == 0)
+           read(10,'(a)')line
+           ic=scan(line,'=')
+           if (ic>0) then
+              keyword=adjustl(line(1:ic-1))
+              if (keyword == 'nrugauge') id=1
+           endif
+        enddo
+
+        do i=1+par%npoints,par%nrugauge+par%npoints
+           read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
+           call writelog('ls','(a,i0)',' Output runup gauge ',i-par%npoints)
+           call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
+           icold=0
+           do ii =1,nvarpoint(i)
+              ic=scan(line(icold+1:80),'#')
+              ic=ic+icold
+              var=line(icold+1:ic-1)
+              index = chartoindex(var)
+
+              if (index/=-1) then
+                 ! 
+                 ! see if we already found this variable.... 
+                 ! 
+                 varfound = .false.
+                 do ivar=1,nvars
+                    if (trim(temparray(ivar)) == trim(var)) then
+                       varfound = .true.
+                    end if
+                 end do
+                 ! we have a new variable, store it
+                 if (varfound .eqv. .false.) then
+                    nvars = nvars + 1 
+                    temparray(nvars)=trim(var)
+                 end if
+                 call writelog('sl','',' Output type: ''',trim(var),'''')
+              else
+                 call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
+                 call halt_program
+              endif
+              icold=ic
+           enddo
+        enddo
+        close(10)
+     endif
+     ! copy values to the pointvars array
+     allocate(pointvars(nvars))
+     pointvars(:)=temparray(1:nvars)
+     deallocate(temparray)
+     deallocate(nvarpoint)
+     allocate(par%pointvars(nvars))
+     allocate(par%pointtypes(size(pointtypes)))
+     allocate(par%xpointsw(size(xpointsw)))
+     allocate(par%ypointsw(size(ypointsw)))
+     par%pointvars=pointvars
+     par%pointtypes=pointtypes
+     par%xpointsw= xpointsw
+     par%ypointsw=ypointsw
+  endif ! xmaster
+  !
+end subroutine readpointvars
 
 end module params
