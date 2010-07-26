@@ -31,7 +31,10 @@ type(spacepars), pointer :: s
 type(spacepars), target  :: sglobal
 type(spacepars), target  :: slocal
 character(len=80)        :: dummystring
-character(len=10)        :: date,time,zone
+character(len=8)         :: date
+character(len=10)        :: time
+character(len=5)         :: zone
+
 logical                  :: newstatbc
 
 integer                  :: it,error
@@ -40,6 +43,7 @@ real*8                   :: tbegin,tend
 real*8                   :: t0,t01,t1
 #endif
 
+character(len=155)       :: cwd ! for printing the working dir
 
 ! ----------------------------
 ! Initialize program
@@ -47,7 +51,6 @@ real*8                   :: t0,t01,t1
 
 ! autotools 
 #ifdef HAVE_CONFIG_H
-character(len=155)       :: cwd ! for printing the working dir
 #include "config.h"
 #endif
 
@@ -72,9 +75,7 @@ endif
 call cpu_time(tbegin)
 call DATE_AND_TIME(DATE=date, TIME=time, ZONE=zone)
 ! only run this on linux
-#ifdef HAVE_CONFIG_H
 call getcwd(cwd)
-#endif 
 
 if (xmaster) then
   call writelog('ls','','**********************************************************')
@@ -86,11 +87,9 @@ if (xmaster) then
   call writelog('ls','','**********************************************************')
   call writelog('ls','','                                                          ')
   call writelog('ls','','Simulation started: YYYYMMDD    hh:mm:ss     time zone (UTC)')
-  call writelog('ls','','                    '//date(1:10)//'  '//time(1:2)//':'//time(3:4)//':'//time(5:6)//'     '//zone(1:5))
+  call writelog('ls','','                    '//date //'  '//time(1:2)//':'//time(3:4)//':'//time(5:6)//'     '//zone)
   call writelog('ls','','                                                          ')
-#ifdef HAVE_CONFIG_H
   call writelog('ls','',' running in: ',cwd )
-#endif
   call writelog('ls','','General Input Module')
 #ifdef USEMPI
   if(xmaster) then
@@ -104,15 +103,18 @@ endif
 ! Initialize simulation
 ! ----------------------------
 
+! TODO: move these to a params structure?
 it=0
-newstatbc=.true.
+newstatbc=.true. ! This really shouldn't be here.
 
 ! General input per module
 !
 ! This routine does need all processes, so not just xmaster ! Robert
 call all_input(par)
-! Do check of params.txt to spot errors
+! Do check of params.txt to spot errors 
+! TODO: This shouldn't be in the main
 if (xmaster) call readkey('params.txt','checkparams',dummystring) 
+! TODO: We're not stepping into the timeloop just yet....
 call writelog('ls','','Stepping into the time loop ....')   ! writelog is xmaster aware
 
 #ifdef USEMPI
