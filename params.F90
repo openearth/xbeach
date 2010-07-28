@@ -774,7 +774,7 @@ if (par%tscross==' ') then
 endif 
 par%tsmean = readkey_name('params.txt','tsmean')    
 if (par%tsmean==' ') then
-   par%tintm   = readkey_dbl ('params.txt','tintm', par%tint,     1.d0, par%tstop)  ! Robert
+   par%tintm   = readkey_dbl ('params.txt','tintm', par%tstop-par%tstart,     1.d0, par%tstop-par%tstart)  ! Robert
 endif  
 !!!!! GLOBAL OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 par%nglobalvar  = readkey_int ('params.txt','nglobalvar', -1, -1, 20)
