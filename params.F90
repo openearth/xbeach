@@ -1,5 +1,6 @@
 module params
   use mnemmodule
+  use xmpi_module
 type parameters
 ! These parameters are constants, variables read from params.txt, or are scalars derived directly from read input
 !
@@ -234,13 +235,14 @@ type parameters
    character(256):: tscross                    = 'abc'   !  [name] Name of file containing timings of cross section output
    character(256):: tsmean                     = 'abc'   !  [name] Name of file containing timings of mean, max, min and var output
    integer*4     :: nglobalvar                 = -123    !  [-] Number of global output variables (as specified by user)
-   character(len=maxnamelen), dimension(:), pointer   :: globalvars => NULL() !  [-] Mnems of global output variables, not per se the same sice as nglobalvar (invalid variables, defaults)
+   character(len=maxnamelen), dimension(numvars)   :: globalvars = 'abc' !  [-] Mnems of global output variables, not per se the same sice as nglobalvar (invalid variables, defaults)
    integer*4     :: nmeanvar                   = -123    !  [-] Number of mean,min,max,var output variables
    integer*4     :: npoints                    = -123    !  [-] Number of output point locations
-   character(len=maxnamelen), dimension(:), pointer   :: pointvars  => NULL()  !  [-] Mnems of point output variables (by variables)
+   character(len=maxnamelen), dimension(numvars)   :: pointvars  = 'abc'  !  [-] Mnems of point output variables (by variables)
    integer, dimension(:), pointer                     :: pointtypes => NULL()  !  [-] Point types (0 = point, 1=rugauge)
    real*8 ,dimension(:), pointer                      :: xpointsw => NULL()  ! world x-coordinate of output points
    real*8 ,dimension(:), pointer                     :: ypointsw => NULL()  ! world y-coordinate of output points
+   character(len=maxnamelen), dimension(numvars)   :: meansvars  = 'abc'  !  [-] Mnems of mean output variables (by variables)
    
    integer*4     :: nrugauge                   = -123    !  [-] Number of output runup gauge locations
    integer*4     :: ncross                     = -123    !  [-] Number of output cross sections
@@ -788,6 +790,7 @@ par%nrugauge    = readkey_int ('params.txt','nrugauge',    0,  0, 50)
 call readpointvars(par)
 ! 
 par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
+call readmeans(par)
 par%ncross      = readkey_int ('params.txt','ncross',      0,  0, 50)
 allocate(allowednames(3))
 allocate(oldnames(0))
@@ -1009,8 +1012,6 @@ type(parameters)        :: par
 integer                 :: parlen,w,ierror,i, nvars, npoints
 
 ! We're sending these over by hand, because intel fortran + vs2008 breaks things...
-character(len=maxnamelen), dimension(:), allocatable   :: globalvars 
-character(len=maxnamelen), dimension(:), allocatable   :: pointvars 
 integer, dimension(:), allocatable                     :: pointtypes !  [-] Point types (0 = point, 1=rugauge)
 real*8 ,dimension(:), allocatable                      :: xpointsw ! world x-coordinate of output points
 real*8 ,dimension(:), allocatable                      :: ypointsw ! world y-coordinate of output points
@@ -1026,47 +1027,13 @@ call MPI_Bcast(par,sizeof(par),MPI_BYTE,xmpi_master,xmpi_comm,ierror)
 ! Ok now for the manual stuff to circumvent a bug in the intel compiler, which doesn't allow to send over arrays in derived types
 ! The only way to do it on all 3 compilers (gfortran, CVF, ifort) is with pointers. 
 ! First let's store the number of variables, we need this to reserve some memory on all nodes
-if (xmaster) nvars = size(par%globalvars)
-! send it over
-call xmpi_bcast(nvars)
-! now on all nodes allocate a array outside the par structure
-allocate(globalvars(nvars))
-! Par is only filled on the master, so use that one and put it in the seperate array
-if (xmaster) globalvars = par%globalvars
-! Now for another ugly step, we can't broadcast the whole array but have to do it per variable.
 do i=1,size(par%globalvars)
-   call xmpi_bcast(globalvars(i))
+   call xmpi_bcast(par%globalvars(i))
 enddo
-! so now everyone has the globalvars, let's put it back in par
-! first dereference the old one, otherwise we get a nasty error on ifort....
-if (.not. xmaster) par%globalvars => NULL()
-! now we can allocate the memory again
-if (.not. xmaster) allocate(par%globalvars(nvars))
-! and store the values from the local array
-if (.not. xmaster) par%globalvars = globalvars
-! and clean up the local one.
-deallocate(globalvars)
 
-if (xmaster) nvars = size(par%pointvars)
-! send it over
-call xmpi_bcast(nvars)
-! now on all nodes allocate a array outside the par structure
-allocate(pointvars(nvars))
-! Par is only filled on the master, so use that one and put it in the seperate array
-if (xmaster) pointvars = par%pointvars
-! Now for another ugly step, we can't broadcast the whole array but have to do it per variable.
 do i=1,size(par%pointvars)
-   call xmpi_bcast(pointvars(i))
+   call xmpi_bcast(par%pointvars(i))
 enddo
-! so now everyone has the pointvars, let's put it back in par
-! first dereference the old one, otherwise we get a nasty error on ifort....
-if (.not. xmaster) par%pointvars => NULL()
-! now we can allocate the memory again
-if (.not. xmaster) allocate(par%pointvars(nvars))
-! and store the values from the local array
-if (.not. xmaster) par%pointvars = pointvars
-! and clean up the local one.
-deallocate(pointvars)
 
 
 if (xmaster) npoints = size(par%pointtypes)
@@ -1184,7 +1151,8 @@ end subroutine printparams
     i = chartoindex(mnem)
     if (i .lt. 1) then
        if(xmaster) then
-          call writelog('ls','','Warning: cannot locate variable "',trim(mnem),'", no output for this one')
+          call writelog('els','','Error: cannot locate variable "',trim(mnem),'". Program terminating')
+		  call halt_program
        endif
        return
     endif
@@ -1249,8 +1217,7 @@ subroutine readglobalvars(par)
             end do
             close(10)
         end if ! globalvar
-        allocate(par%globalvars(size(globalvars)))
-        par%globalvars = globalvars
+        par%globalvars(1:par%nglobalvar) = globalvars
     end if ! xmaster
 
 end subroutine
@@ -1411,16 +1378,56 @@ subroutine readpointvars(par)
      pointvars(:)=temparray(1:nvars)
      deallocate(temparray)
      deallocate(nvarpoint)
-     allocate(par%pointvars(nvars))
      allocate(par%pointtypes(size(pointtypes)))
      allocate(par%xpointsw(size(xpointsw)))
      allocate(par%ypointsw(size(ypointsw)))
-     par%pointvars=pointvars
+     par%pointvars(1:nvars)=pointvars
      par%pointtypes=pointtypes
      par%xpointsw= xpointsw
      par%ypointsw=ypointsw
   endif ! xmaster
   !
 end subroutine readpointvars
+
+
+subroutine readmeans(par)
+  use logging_module
+  use mnemmodule
+  
+  implicit none
+
+  type(parameters),intent(inout)    :: par
+  integer                           :: id,ic,index,i
+  character(128)                    :: line,keyword
+
+  if (par%nmeanvar>0) then
+     id=0
+     ! Look for keyword nmeanvar in params.txt
+     if(xmaster) then
+        open(10,file='params.txt')
+        do while (id == 0)
+           read(10,'(a)')line
+           ic=scan(line,'=')
+           if (ic>0) then
+              keyword=adjustl(line(1:ic-1))
+              if (keyword == 'nmeanvar') id=1
+           endif
+        enddo
+        ! Read through the variables lines
+        do i=1,par%nmeanvar
+           read(10,'(a)')line
+           index = chartoindex(trim(line))
+           if (index/=-1) then
+              par%meansvars(i)=trim(line)
+			  call writelog('ls','(a)',' Will generate mean, min, max and variance output for variable: '//trim(mnemonics(index)))
+           else
+              call writelog('sle','',' Unknown point output type: ''',trim(line),'''')
+              call halt_program
+           endif
+        end do
+        close(10) 
+     endif
+  endif
+end subroutine readmeans
 
 end module params

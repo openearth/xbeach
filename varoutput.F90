@@ -6,7 +6,7 @@
 module outputmod
   use xmpi_module
   use mnemmodule
-  use varianceupdate_module
+  use means_module
   
   implicit none
   private
@@ -29,7 +29,6 @@ module outputmod
   integer*4,dimension(:,:),allocatable:: Avarpoint   ! Array with associated index of output variables per point
   integer*4,dimension(:,:),allocatable:: Avarcross   ! Array with associated index of output variables per cross section
   ! Only alive at xmaster
-  integer*4,dimension(:),allocatable  :: meanvec     ! keep track of which mean variables are used
   integer*4                           :: stpm        ! size of tpm
 
   ! Store the global variables in numbers....
@@ -119,7 +118,12 @@ contains
 
     ! This module identifies output variables by their index
     ! store this at the module level so we don't have to pass par around
-    noutnumbers = size(par%globalvars)
+!	do i=1,size(par%globalvars)
+!	   if (trim(par%globalvars(i))=='abc') then
+!	      exit
+!      endif
+!	enddo
+    noutnumbers = par%nmeanvar
     ! store all indices for the global variables
     do i= 1,noutnumbers
        outnumbers(i) = chartoindex(par%globalvars(i))
@@ -135,7 +139,12 @@ contains
     if (par%npoints + par%nrugauge > 0) then
        
        allocate(nvarpoint(par%npoints+par%nrugauge))
-       nvarpoint = size(par%pointvars) ! set to the number of pointvars (unique variables)
+	   do i=1,size(par%pointvars)
+	      if (trim(par%pointvars(i))=='abc') then
+		     exit
+		  endif
+	   enddo
+       nvarpoint = i-1 ! set to the number of pointvars (unique variables)
        
        allocate(xpoints(par%npoints+par%nrugauge))
        allocate(ypoints(par%npoints+par%nrugauge))
@@ -268,7 +277,7 @@ contains
                    endif
                    call writelog('sl','',' Output type: ''',trim(var),'''')
                 else
-                   call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
+                   call writelog('sle','',' Unknown  output type: ''',trim(var),'''')
                    call halt_program
                 endif
                 icold=ic
@@ -319,50 +328,11 @@ contains
     
     
     
-    if (par%nmeanvar>0) then
-       allocate(meanvec(par%nmeanvar))
-       id=0
-       ! Look for keyword nmeanvar in params.txt
-       if(xmaster) then
-          open(10,file='params.txt')
-          do while (id == 0)
-             read(10,'(a)')line
-             ic=scan(line,'=')
-             if (ic>0) then
-                keyword=adjustl(line(1:ic-1))
-                if (keyword == 'nmeanvar') id=1
-             endif
-          enddo
-          ! Read through the variables lines
-          do i=1,par%nmeanvar
-             read(10,'(a)')line
-             index = chartoindex(trim(line))
-             if (index/=-1) then
-                call indextos(s,index,At)
-                if (At%rank.ne.2) then
-                   call writelog('les','(a,i,a,a,a)',' Time-average output not designed for rank ',(At%rank),&
-                        ' array "',trim(At%name),'"')
-                   call halt_program
-                endif
-                meanvec(i)=index
-                call writelog('ls','(a)',' Will generate mean, min, max and variance output for variable: '//trim(mnemonics(index)))
-             else
-                call writelog('sle','',' Unknown point output type: ''',trim(line),'''')
-                call halt_program
-             endif
-          end do
-          close(10)
-          call initialize_mean_arrays(s%nx,s%ny,par%nmeanvar)
-       endif  ! xmaster
-       
-#ifdef USEMPI
-       call xmpi_bcast(meanvec)
-#endif
-       itm=0
+    if (par%nmeanvar>0) then    
        !! First time file opening for time-average output
        if(xmaster) then
           do i=1,par%nmeanvar
-             call makeaveragenames(meanvec(i),fnamemean,fnamevar,fnamemin,fnamemax)
+             call makeaveragenames(chartoindex(trim(par%meansvars(i))),fnamemean,fnamevar,fnamemin,fnamemax)
              fnamemean=trim(fnamemean)
              fnamevar =trim(fnamevar)
              fnamemin =trim(fnamemin)
@@ -374,11 +344,9 @@ contains
           enddo
        endif
     endif ! par%nmeanvar > 0
+ 
     
   end subroutine output_init
-  
-  
-  
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!   OUTPUT AT EVERY TIMESTEP    !!!!!!!!!!!!!!!!!!!!!!!!
@@ -420,7 +388,7 @@ contains
     ! Complicated check, so only carry out if it = 0 
     if (it==0) then 
        ! Do only at very first time step
-       if ((abs(par%t-par%dt)<1.d-6.and.it==0)) then !.or.(par%t<1.d-6.and.it==1)) then
+       if ((abs(par%t-par%dt)<1.d-6)) then !.or.(par%t<1.d-6.and.it==1)) then
           ndt=0
           tlast10=0.d0
           day=0
@@ -435,7 +403,7 @@ contains
     
     if (par%nmeanvar/=0) then
        if (par%t>tpar%tpm(1) .and. par%t<=tpar%tpm(stpm)) then
-          call makeaverage(s,sl,par,meanvec)                ! Make averages and min-max every flow timestep
+          call makeaverage(sl,par,tpar)                ! Make averages and min-max every flow timestep
        endif
     endif
     
@@ -551,43 +519,97 @@ contains
           endif
        endif
        
+!!! Collect mean variable to global grid
+       if (par%nmeanvar>0) then
+         ! Not at the first in tpm as this is the start of averaging. Only output after second in tpm
+         if (tpar%outputm .and. tpar%itm>1) then
+            do i=1,par%nmeanvar
+#ifdef USEMPI
+		       call means_collect(sl,meansparsglobal(i),meansparslocal(i))
+#else
+               meansparsglobal(i)=meansparslocal(i)
+#endif
+            enddo
+		 endif
+	   endif
 !!! Write average variables
-       if(xmaster) then
-          if (par%nmeanvar>0) then
-             ! Not at the first in tpm as this is the start of averaging. Only output after second in tpm
-             if (tpar%outputm .and. tpar%itm>1) then
-                itm=itm+1  ! Note, this is a local counter, used to position in output file
-                do i=1,par%nmeanvar
-                   if (mnemonics(meanvec(i))=='H') then                ! Hrms changed to H
-                      meanarrays(:,:,i)=sqrt(meanarrays(:,:,i))
-                      write(indextomeanunit(i),rec=itm)meanarrays(:,:,i)
-                   elseif (mnemonics(meanvec(i))=='urms') then    ! urms
-                      meanarrays(:,:,i)=sqrt(meanarrays(:,:,i))
-                      write(indextomeanunit(i),rec=itm)meanarrays(:,:,i)
-                   else                                                    ! non-rms variables
-                      write(indextomeanunit(i),rec=itm)meanarrays(:,:,i)
-                   endif
-                   write(indextovarunit(i),rec=itm)variancearrays(:,:,i)
-                   where(minarrays(:,:,i)>0.99d0*huge(0.d0))
-                      minarrays(:,:,i)=-999.d0
-                   endwhere
-                   where(maxarrays(:,:,i)<-0.99d0*huge(0.d0))
-                      maxarrays(:,:,i)=-999.d0
-                   endwhere
-                   write(indextominunit(i),rec=itm)minarrays(:,:,i)
-                   write(indextomaxunit(i),rec=itm)maxarrays(:,:,i)
-                enddo
-                meanarrays=0.0d0
-                variancearrays=0.d0
-                variancecrossterm=0.d0
-                variancesquareterm=0.d0
-                minarrays=huge(0.d0)
-                maxarrays=-1.d0*huge(0.d0)
-                par%tintm=tpar%tpm(min(itm+2,stpm))-tpar%tpm(itm+1)  ! Next averaging period (min to stop array out of bounds)
-                par%tintm=max(par%tintm,tiny(0.d0))        ! to prevent par%tintm=0 after last output
-             endif
-          endif
-       endif ! xmaster
+      
+       if (par%nmeanvar>0) then
+          ! Not at the first in tpm as this is the start of averaging. Only output after second in tpm
+          if (tpar%outputm .and. tpar%itm>1) then
+             itm=itm+1  ! Note, this is a local counter, used to position in output file
+             do i=1,par%nmeanvar
+                select case (meansparsglobal(i)%rank)
+                   case (2)
+				      if(xmaster) then
+				        if (trim(par%meansvars(i))=='H') then                ! Hrms changed to H
+                          write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
+                        elseif (trim(par%meansvars(i))=='urms') then    ! urms
+                          write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
+                        else                                                    ! non-rms variables
+                          write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean2d
+                        endif
+                        write(indextovarunit(i),rec=itm)meansparsglobal(i)%variance2d
+                        where(meansparsglobal(i)%min2d>0.99d0*huge(0.d0))
+                          meansparsglobal(i)%min2d=-999.d0
+                        endwhere
+                        where(meansparsglobal(i)%max2d<-0.99d0*huge(0.d0))
+                          meansparsglobal(i)%max2d=-999.d0
+                        endwhere
+                        write(indextominunit(i),rec=itm)meansparsglobal(i)%min2d
+                        write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max2d
+					  endif
+                      meansparslocal(i)%mean2d = 0.d0
+			          meansparslocal(i)%variance2d = 0.d0
+			          meansparslocal(i)%variancecrossterm2d = 0.d0
+			          meansparslocal(i)%variancesquareterm2d = 0.d0
+			          meansparslocal(i)%min2d = huge(0.d0)
+			          meansparslocal(i)%max2d = -1.d0*huge(0.d0)
+				   case (3)
+					  if(xmaster) then
+                        write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean3d
+                        write(indextovarunit(i),rec=itm)meansparsglobal(i)%variance3d
+                        where(meansparsglobal(i)%min3d>0.99d0*huge(0.d0))
+                          meansparsglobal(i)%min3d=-999.d0
+                        endwhere
+                        where(meansparsglobal(i)%max3d<-0.99d0*huge(0.d0))
+                          meansparsglobal(i)%max3d=-999.d0
+                        endwhere
+                        write(indextominunit(i),rec=itm)meansparsglobal(i)%min3d
+                        write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max3d
+					  endif
+                      meansparslocal(i)%mean3d = 0.d0
+			          meansparslocal(i)%variance3d = 0.d0
+			          meansparslocal(i)%variancecrossterm3d = 0.d0
+			          meansparslocal(i)%variancesquareterm3d = 0.d0
+			          meansparslocal(i)%min3d = huge(0.d0)
+			          meansparslocal(i)%max3d = -1.d0*huge(0.d0)
+                   case (4)
+					  if(xmaster) then
+                        write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean4d
+					    write(indextovarunit(i),rec=itm)meansparsglobal(i)%variance4d
+                        where(meansparsglobal(i)%min4d>0.99d0*huge(0.d0))
+                          meansparsglobal(i)%min4d=-999.d0
+                        endwhere
+                        where(meansparsglobal(i)%max4d<-0.99d0*huge(0.d0))
+                          meansparsglobal(i)%max4d=-999.d0
+                        endwhere
+                        write(indextominunit(i),rec=itm)meansparsglobal(i)%min4d
+                        write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max4d
+					  endif
+                      meansparslocal(i)%mean4d = 0.d0
+			          meansparslocal(i)%variance4d = 0.d0
+			          meansparslocal(i)%variancecrossterm4d = 0.d0
+			          meansparslocal(i)%variancesquareterm4d = 0.d0
+			          meansparslocal(i)%min4d = huge(0.d0)
+			          meansparslocal(i)%max4d = -1.d0*huge(0.d0)
+				end select
+              enddo
+              par%tintm=tpar%tpm(min(itm+2,stpm))-tpar%tpm(itm+1)  ! Next averaging period (min to stop array out of bounds)
+              par%tintm=max(par%tintm,tiny(0.d0))        ! to prevent par%tintm=0 after last output
+          endif  ! t output
+       endif  ! nmeanvar > 0
+ 
        
 !!! Write global variables
        if (par%nglobalvar/=0) then

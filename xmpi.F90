@@ -684,7 +684,7 @@ subroutine halt_program
 #ifdef USEMPI
   call xmpi_abort
 #else
-  stop
+  stop 1
 #endif
   end subroutine halt_program
 end module xmpi_module

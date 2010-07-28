@@ -17,6 +17,7 @@ use timestep_module
 use readkey_module
 use groundwaterflow
 use logging_module
+use means_module
 ! IFDEF used in case netcdf support is not compiled, f.i. Windows (non-Cygwin)
 #ifdef USENETCDF
 use ncoutput_module
@@ -211,6 +212,8 @@ s => slocal
 call space_distribute_space(sglobal,slocal,par)
 !call space_consistency(slocal,'ALL')
 #endif
+! Output means have to be initialized here after distribute space
+if (par%nmeanvar>0) call means_init(sglobal,slocal,par)
 
 ! update times at which we need output
 call outputtimes_update(par, tpar)

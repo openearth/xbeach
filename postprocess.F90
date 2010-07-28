@@ -14,9 +14,9 @@ module postprocessmod
      module procedure gridrotate_r4
      module procedure gridrotate_i0
      module procedure gridrotate_i1
-     ! module procedure gridrotate_i2
-     ! module procedure gridrotate_i3
-     ! module procedure gridrotate_i4
+     module procedure gridrotate_i2
+     module procedure gridrotate_i3
+     module procedure gridrotate_i4
   end interface gridrotate
 
 contains
@@ -97,6 +97,8 @@ contains
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     real*8, dimension(:,:), intent(out) :: x
+	real*8                        :: pi
+    pi = 4*atan(1.0d0)
     select case(t%name)
     case(mnem_thetamean)
        x=270-((t%r2+s%alfa)*(180/pi))
@@ -139,7 +141,8 @@ contains
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     real*8, dimension(:,:,:)      :: x
-
+	real*8                        :: pi
+    pi = 4*atan(1.0d0)
     
     select case(t%name)
     case(mnem_cgx)

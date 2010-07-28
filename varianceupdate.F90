@@ -1,454 +1,284 @@
-module varianceupdate_module
+module means_module
+  ! This module uses the On-line algorithm according to Knuth (1998) to
+  ! determine the variance on the fly
+  ! Note: this approximation can be improved.
   use xmpi_module
-  real*8,dimension(:,:,:), allocatable:: meanarrays  ! Keep time
-  !  average variables 
-  real*8,dimension(:,:,:), allocatable:: variancearrays     ! Keep
-  !  variance of variables
-  real*8,dimension(:,:,:), allocatable:: variancecrossterm  ! Needed
-  !  for variance calculation
-  real*8,dimension(:,:,:), allocatable:: variancesquareterm ! Needed
-  !  for variance calculation
-  real*8,dimension(:,:,:), allocatable:: minarrays   ! Keep time min
-  !  variables
-  real*8,dimension(:,:,:), allocatable:: maxarrays   ! Keep time max
-  !  variables
+  use mnemmodule
 
+  type meanspars
+    ! Name
+    character(maxnamelen)             :: name
+	! Rank
+	integer                           :: rank
+	! Keep time average variables
+    real*8,dimension(:,:), allocatable:: mean2d   
+    real*8,dimension(:,:,:), allocatable:: mean3d   
+	real*8,dimension(:,:,:,:), allocatable:: mean4d
+	! Keep variance of variables   
+    real*8,dimension(:,:), allocatable:: variance2d     
+	real*8,dimension(:,:,:), allocatable:: variance3d     
+	real*8,dimension(:,:,:,:), allocatable:: variance4d     
+    ! Needed for variance calculation
+    real*8,dimension(:,:), allocatable:: variancecrossterm2d  
+	real*8,dimension(:,:,:), allocatable:: variancecrossterm3d  
+	real*8,dimension(:,:,:,:), allocatable:: variancecrossterm4d
+	! Needed for variance calculation  
+    real*8,dimension(:,:), allocatable:: variancesquareterm2d
+	real*8,dimension(:,:,:), allocatable:: variancesquareterm3d 
+	real*8,dimension(:,:,:,:), allocatable:: variancesquareterm4d 
+    ! Keep time min variables
+    real*8,dimension(:,:), allocatable:: min2d   
+	real*8,dimension(:,:,:), allocatable:: min3d   
+	real*8,dimension(:,:,:,:), allocatable:: min4d   
+    ! Keep time max variables
+    real*8,dimension(:,:), allocatable:: max2d   
+	real*8,dimension(:,:,:), allocatable:: max3d   
+	real*8,dimension(:,:,:,:), allocatable:: max4d   
+  end type
 
+  type(meanspars),dimension(:),allocatable  :: meansparsglobal
+  type(meanspars),dimension(:),allocatable  :: meansparslocal
 
-
-
-!!!! Routine to calculate time-average variables
 contains
 
-  subroutine initialize_mean_arrays(nx,ny,nmeanvar)
+  subroutine means_init(sg,sl,par)
+    use spaceparams
+	use params
+	use mnemmodule
 
-    Implicit none
+    implicit none
 
-    integer, intent(in)             :: nx,ny,nmeanvar
+    type(spacepars),intent(in)        :: sg,sl
+	type(parameters),intent(in)       :: par
+	type(arraytype)                   :: t
+	integer                           :: i,index,d1,d2,d3,d4
+	
+	allocate(meansparsglobal(par%nmeanvar))
+	allocate(meansparslocal(par%nmeanvar))
 
-    allocate(meanarrays(nx+1,ny+1,nmeanvar+2))   ! two extra needed
-    !  for straight average of Hrms and urms
-    allocate(variancearrays(nx+1,ny+1,nmeanvar))
-    allocate(variancecrossterm(nx+1,ny+1,nmeanvar))
-    allocate(variancesquareterm(nx+1,ny+1,nmeanvar))
-    allocate(minarrays(nx+1,ny+1,nmeanvar))
-    allocate(maxarrays(nx+1,ny+1,nmeanvar))
+    do i=1,par%nmeanvar
+	   index=chartoindex(trim(par%meansvars(i)))
+       call indextos(sg,index,t)
+       meansparsglobal(i)%name=t%name
+       meansparsglobal(i)%rank=t%rank
+	   select case (t%rank)
+	      case (2)
+	         d1=max(size(t%r2,1),size(t%i2,1))
+	         d2=max(size(t%r2,2),size(t%i2,2))
+		     allocate(meansparsglobal(i)%mean2d(d1,d2))
+             allocate(meansparsglobal(i)%variance2d(d1,d2))
+			 allocate(meansparsglobal(i)%variancecrossterm2d(d1,d2))
+			 allocate(meansparsglobal(i)%variancesquareterm2d(d1,d2))
+			 allocate(meansparsglobal(i)%min2d(d1,d2))
+			 allocate(meansparsglobal(i)%max2d(d1,d2))
+			 meansparsglobal(i)%mean2d = 0.d0
+			 meansparsglobal(i)%variance2d = 0.d0
+			 meansparsglobal(i)%variancecrossterm2d = 0.d0
+			 meansparsglobal(i)%variancesquareterm2d = 0.d0
+			 meansparsglobal(i)%min2d = huge(0.d0)
+			 meansparsglobal(i)%max2d = -1.d0*huge(0.d0)
+		  case (3)
+		     d1=max(size(t%r3,1),size(t%i3,1))
+	         d2=max(size(t%r3,2),size(t%i3,2))
+	         d3=max(size(t%r3,3),size(t%i3,3))
+		     allocate(meansparsglobal(i)%mean3d(d1,d2,d3))
+             allocate(meansparsglobal(i)%variance3d(d1,d2,d3))
+			 allocate(meansparsglobal(i)%variancecrossterm3d(d1,d2,d3))
+			 allocate(meansparsglobal(i)%variancesquareterm3d(d1,d2,d3))
+			 allocate(meansparsglobal(i)%min3d(d1,d2,d3))
+			 allocate(meansparsglobal(i)%max3d(d1,d2,d3))
+			 meansparsglobal(i)%mean3d = 0.d0
+			 meansparsglobal(i)%variance3d = 0.d0
+			 meansparsglobal(i)%variancecrossterm3d = 0.d0
+			 meansparsglobal(i)%variancesquareterm3d = 0.d0
+			 meansparsglobal(i)%min3d = huge(0.d0)
+			 meansparsglobal(i)%max3d = -1.d0*huge(0.d0)
+		  case (4)
+		     d1=max(size(t%r4,1),size(t%i4,1))
+	         d2=max(size(t%r4,2),size(t%i4,2))
+	         d3=max(size(t%r4,3),size(t%i4,3))
+	         d4=max(size(t%r4,4),size(t%i4,4))
+             allocate(meansparsglobal(i)%mean4d(d1,d2,d3,d4))
+             allocate(meansparsglobal(i)%variance4d(d1,d2,d3,d4))
+			 allocate(meansparsglobal(i)%variancecrossterm4d(d1,d2,d3,d4))
+			 allocate(meansparsglobal(i)%variancesquareterm4d(d1,d2,d3,d4))
+			 allocate(meansparsglobal(i)%min4d(d1,d2,d3,d4))
+			 allocate(meansparsglobal(i)%max4d(d1,d2,d3,d4))
+			 meansparsglobal(i)%mean4d = 0.d0
+			 meansparsglobal(i)%variance4d = 0.d0
+			 meansparsglobal(i)%variancecrossterm4d = 0.d0
+			 meansparsglobal(i)%variancesquareterm4d = 0.d0
+			 meansparsglobal(i)%min4d = huge(0.d0)
+			 meansparsglobal(i)%max4d = -1.d0*huge(0.d0)
+	   end select
+#ifdef USEMPI
+	   call indextos(sl,index,t)
+#else
+       ! do nothing, we use s global here, no local s available
+#endif
+	   meansparslocal(i)%name=t%name
+       meansparslocal(i)%rank=t%rank
+	   select case (t%rank)
+	      case (2)
+	         d1=max(size(t%r2,1),size(t%i2,1))
+	         d2=max(size(t%r2,2),size(t%i2,2))
+		     allocate(meansparslocal(i)%mean2d(d1,d2))
+             allocate(meansparslocal(i)%variance2d(d1,d2))
+			 allocate(meansparslocal(i)%variancecrossterm2d(d1,d2))
+			 allocate(meansparslocal(i)%variancesquareterm2d(d1,d2))
+			 allocate(meansparslocal(i)%min2d(d1,d2))
+			 allocate(meansparslocal(i)%max2d(d1,d2))
+			 meansparslocal(i)%mean2d = 0.d0
+			 meansparslocal(i)%variance2d = 0.d0
+			 meansparslocal(i)%variancecrossterm2d = 0.d0
+			 meansparslocal(i)%variancesquareterm2d = 0.d0
+			 meansparslocal(i)%min2d = huge(0.d0)
+			 meansparslocal(i)%max2d = -1.d0*huge(0.d0)
+		  case (3)
+		     d1=max(size(t%r3,1),size(t%i3,1))
+	         d2=max(size(t%r3,2),size(t%i3,2))
+	         d3=max(size(t%r3,3),size(t%i3,3))
+		     allocate(meansparslocal(i)%mean3d(d1,d2,d3))
+             allocate(meansparslocal(i)%variance3d(d1,d2,d3))
+			 allocate(meansparslocal(i)%variancecrossterm3d(d1,d2,d3))
+			 allocate(meansparslocal(i)%variancesquareterm3d(d1,d2,d3))
+			 allocate(meansparslocal(i)%min3d(d1,d2,d3))
+			 allocate(meansparslocal(i)%max3d(d1,d2,d3))
+			 meansparslocal(i)%mean3d = 0.d0
+			 meansparslocal(i)%variance3d = 0.d0
+			 meansparslocal(i)%variancecrossterm3d = 0.d0
+			 meansparslocal(i)%variancesquareterm3d = 0.d0
+			 meansparslocal(i)%min3d = huge(0.d0)
+			 meansparslocal(i)%max3d = -1.d0*huge(0.d0)
+		  case (4)
+		     d1=max(size(t%r4,1),size(t%i4,1))
+	         d2=max(size(t%r4,2),size(t%i4,2))
+	         d3=max(size(t%r4,3),size(t%i4,3))
+	         d4=max(size(t%r4,4),size(t%i4,4))
+             allocate(meansparslocal(i)%mean4d(d1,d2,d3,d4))
+             allocate(meansparslocal(i)%variance4d(d1,d2,d3,d4))
+			 allocate(meansparslocal(i)%variancecrossterm4d(d1,d2,d3,d4))
+			 allocate(meansparslocal(i)%variancesquareterm4d(d1,d2,d3,d4))
+			 allocate(meansparslocal(i)%min4d(d1,d2,d3,d4))
+			 allocate(meansparslocal(i)%max4d(d1,d2,d3,d4))
+			 meansparslocal(i)%mean4d = 0.d0
+			 meansparslocal(i)%variance4d = 0.d0
+			 meansparslocal(i)%variancecrossterm4d = 0.d0
+			 meansparslocal(i)%variancesquareterm4d = 0.d0
+			 meansparslocal(i)%min4d = huge(0.d0)
+			 meansparslocal(i)%max4d = -1.d0*huge(0.d0)
+	   end select
+       
+	enddo
+  end subroutine means_init
 
-    meanarrays = 0.d0
-    variancearrays = 0.d0
-    variancecrossterm = 0.d0
-    variancesquareterm = 0.d0
-    minarrays = huge(0.d0)
-    maxarrays = -1.d0*huge(0.d0)
-  end subroutine initialize_mean_arrays
 
-
-  subroutine makeaverage(s,sl,par, meanvec)
+  subroutine makeaverage(sl,par,tpar)
 
     use params
     use spaceparams
     use mnemmodule
     use logging_module
+	use postprocessmod
+	use timestep_module
 
     IMPLICIT NONE
 
     type(parameters), intent(IN)    :: par
-    type(spacepars), intent(IN)     :: s
     type(spacepars), intent(IN)     :: sl
-    integer*4,dimension(:), intent(IN)  :: meanvec     ! keep track
-    !  of which mean variables are used
-
-
+	type(timepars), intent(IN)      :: tpar 
+    
+    ! keep track of which mean variables are used
+    integer                         :: index 
     integer                         :: i,rdims
-    real*8                          :: mult
+    real*8                          :: mult,avgtime
     type(arraytype)                 :: t
-    real*8,dimension(:,:),allocatable,save :: MI,MA
-    real*8,dimension(s%nx+1,s%ny+1) :: oldmean,tvar
+    real*8,dimension(sl%nx+1,sl%ny+1) :: oldmean2d,tvar2d
+    integer,dimension(sl%nx+1,sl%ny+1) :: tvar2di
+	real*8,dimension(:,:,:),allocatable :: oldmean3d,tvar3d
+	real*8,dimension(:,:,:,:),allocatable :: oldmean4d,tvar4d
 
-    if (.not. allocated(MI)) then
-       allocate(MI(s%nx+1,s%ny+1))
-       allocate(MA(s%nx+1,s%ny+1))
-    endif
-    ! wwvv this subroutine needs all of the arrays in question
 
-    ! to comfort the compiler
-    i=sl%nx
 
+!	avgtime = tpar%tpm(tpar%itm+1)-tpar%tpm(tpar%itm) 
+    ! updated in varoutput, not needed to calculate here
     mult = max(par%dt/par%tintm,0.d0) ! Catch initialization at t=0
-    !Dano  if(xmaster) then
+
     do i=1,par%nmeanvar
-#ifdef USEMPI
-       call space_collect_index(s,sl,meanvec(i))
-#endif
-       if(xmaster) then
-          call indextos(s,meanvec(i),t)
-          MI=minarrays(:,:,i)
-          MA=maxarrays(:,:,i)
-          select case(t%name)
-          case (mnem_Fx)
-             oldmean=meanarrays(:,:,i)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=s%Fx*cos(s%alfa) - s%Fy*sin(s%alfa)
-             meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,i) + mult*2.d0*tvar&
-                  &*meanarrays(:,:,i)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-             MA = max(MA,tvar)
-             MI = min(MI,tvar)
-          case (mnem_Fy)
-             oldmean=meanarrays(:,:,i)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=s%Fx*sin(s%alfa) + s%Fy*cos(s%alfa)
-             meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,i) + mult*2.d0*tvar&
-                  &*meanarrays(:,:,i)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-             MA = max(MA,tvar)
-             MI = min(MI,tvar)       
-          case (mnem_H)
-             meanarrays(:,:,i)=meanarrays(:,:,i) + mult*s%H**2
-             oldmean=meanarrays(:,:,par%nmeanvar+1)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=s%H
-             meanarrays(:,:,par%nmeanvar+1) = meanarrays(:,:,par&
-                  &%nmeanvar+1) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,par%nmeanvar+1) + mult&
-                  &*2.d0*tvar*meanarrays(:,:,par%nmeanvar+1)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,par&
-                  &%nmeanvar+1)**2
-             MA = max(MA,s%H)
-             MI = min(MI,s%H)
-          case (mnem_urms)
-             meanarrays(:,:,i)=meanarrays(:,:,i) + mult*s%urms**2
-             oldmean=meanarrays(:,:,par%nmeanvar+2)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=s%urms
-             meanarrays(:,:,par%nmeanvar+2) = meanarrays(:,:,par&
-                  &%nmeanvar+2) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,par%nmeanvar+2) + mult&
-                  &*2.d0*tvar*meanarrays(:,:,par%nmeanvar+2)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,par&
-                  &%nmeanvar+2)**2
-             MA = max(MA,s%urms)
-             MI = min(MI,s%urms)
-          case (mnem_u)
-             oldmean=meanarrays(:,:,i)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=s%u*cos(s%alfa) - s%v*sin(s%alfa)
-             meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,i) + mult*2.d0*tvar&
-                  &*meanarrays(:,:,i)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-             MA = max(MA,tvar)
-             MI = min(MI,tvar)
-          case (mnem_gwu)
-             oldmean=meanarrays(:,:,i)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=s%gwu*cos(s%alfa) - s%gwv*sin(s%alfa)
-             meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,i) + mult*2.d0*tvar&
-                  &*meanarrays(:,:,i)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-             MA = max(MA,tvar)
-             MI = min(MI,tvar)
-          case (mnem_v)
-             oldmean=meanarrays(:,:,i)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=s%u*sin(s%alfa) + s%v*cos(s%alfa)
-             meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,i) + mult*2.d0*tvar&
-                  &*meanarrays(:,:,i)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-             MA = max(MA,tvar)
-             MI = min(MI,tvar)
-          case (mnem_gwv)
-             oldmean=meanarrays(:,:,i)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=s%gwu*sin(s%alfa) + s%gwv*cos(s%alfa)
-             meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,i) + mult*2.d0*tvar&
-                  &*meanarrays(:,:,i)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-             MA = max(MA,tvar)
-             MI = min(MI,tvar)
-          case (mnem_ue)
-             oldmean=meanarrays(:,:,i)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=s%ue*cos(s%alfa) - s%ve*sin(s%alfa)
-             meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,i) + mult*2.d0*tvar&
-                  &*meanarrays(:,:,i)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-             MA = max(MA,tvar)
-             MI = min(MI,tvar)
-          case (mnem_ve)
-             oldmean=meanarrays(:,:,i)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=s%ue*sin(s%alfa) + s%ve*cos(s%alfa)
-             meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,i) + mult*2.d0*tvar&
-                  &*meanarrays(:,:,i)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-             MA = max(MA,tvar)
-             MI = min(MI,tvar)
-          case (mnem_uwf)
-             oldmean=meanarrays(:,:,i)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=s%uwf*cos(s%alfa) - s%vwf*sin(s%alfa)
-             meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,i) + mult*2.d0*tvar&
-                  &*meanarrays(:,:,i)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-             MA = max(MA,tvar)
-             MI = min(MI,tvar)
-          case (mnem_vwf)
-             oldmean=meanarrays(:,:,i)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=s%uwf*sin(s%alfa) + s%vwf*cos(s%alfa)
-             meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,i) + mult*2.d0*tvar&
-                  &*meanarrays(:,:,i)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-             MA = max(MA,tvar)
-             MI = min(MI,tvar)
-          case (mnem_Sutot)
-             oldmean=meanarrays(:,:,i)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*cos(s%alfa) -&
-                  & (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*sin(s%alfa)
-             meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,i) + mult*2.d0*tvar&
-                  &*meanarrays(:,:,i)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-             MA = max(MA,tvar)
-             MI = min(MI,tvar)
-          case (mnem_Svtot)
-             oldmean=meanarrays(:,:,i)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*sin(s%alfa) +&
-                  & (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*cos(s%alfa)
-             meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,i) + mult*2.d0*tvar&
-                  &*meanarrays(:,:,i)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-             MA = max(MA,tvar)
-             MI = min(MI,tvar)
-          case (mnem_cctot)
-             oldmean=meanarrays(:,:,i)
-             ! oldmean is initiated at 0, so:
-             where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                oldmean=tiny(0.d0)
-             elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean<0.d0)
-                oldmean=-1.d0*tiny(0.d0)
-             endwhere
-             tvar=sum(s%ccg,DIM=3)
-             meanarrays(:,:,i) = meanarrays(:,:,i) + mult*tvar
-             variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                  &/oldmean*meanarrays(:,:,i) + mult*2.d0*tvar&
-                  &*meanarrays(:,:,i)
-             variancesquareterm(:,:,i)=variancesquareterm(:,:,i)+mult&
-                  &*(tvar)**2
-             variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                  &-variancecrossterm(:,:,i)+meanarrays(:,:,i)**2
-             MA = max(MA,tvar)
-             MI = min(MI,tvar)
-          case default
-             select case (t%type)
-             case ('i')
-                select case(t%rank)
-                case(2)
-                   ! Variance = sum(X^2) - 2*sum(XXm) + sum((Xm)^2)
-                   ! X^2 needs previous instantanious value and
-                   !  current value
-                   ! 2*sum(XXm) must be updated by:
-                   !     2*sum(XXm) = (2*sum(XXm))(n)/Xm(n)*Xm(n+1)+2
-                   !     *X(n+1)*Xm(n+1)
-                   ! sum((Xm)^2) is updated using Xm(n+1)
-                   oldmean=meanarrays(:,:,i)
-                   ! oldmean is initiated at 0, so:
-                   where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                      oldmean=tiny(0.d0)
-                   elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean&
-                        &<0.d0)
-                      oldmean=-1.d0*tiny(0.d0)
-                   endwhere
-                   meanarrays(:,:,i)=meanarrays(:,:,i) + mult*dble(t&
-                        &%i2)
-                   variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                        &/oldmean*meanarrays(:,:,i) + mult*2.d0&
-                        &*dble(t%i2)*meanarrays(:,:,i)
-                   variancesquareterm(:,:,i)=variancesquareterm(:,:&
-                        &,i)+mult*dble(t%i2)**2
-                   variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                        &-variancecrossterm(:,:,i)+meanarrays(:,:,i)&
-                        &**2
-                   MA = max(MA,dble(t%i2))
-                   MI = min(MI,dble(t%i2))                        
-                case default
-                   call writelog('lse','','Error in makeaverage,&
-                        & variable ''',t%name,''' is of wrong rank')
-                   call halt_program
-                end select  ! rank
-             case ('r')
-                select case(t%rank)
-                case(2)
-                   oldmean=meanarrays(:,:,i)
-                   ! oldmean is initiated at 0, so:
-                   where (oldmean<tiny(0.d0) .and. oldmean>=0.d0)
-                      oldmean=tiny(0.d0)
-                   elsewhere (oldmean>-1.d0*tiny(0.d0) .and. oldmean&
-                        &<0.d0)
-                      oldmean=-1.d0*tiny(0.d0)
-                   endwhere
-                   meanarrays(:,:,i)=meanarrays(:,:,i) + mult*t%r2
-                   variancecrossterm(:,:,i)=variancecrossterm(:,:,i)&
-                        &/oldmean*meanarrays(:,:,i) + mult*2.d0*t%r2&
-                        &*meanarrays(:,:,i)
-                   variancesquareterm(:,:,i)=variancesquareterm(:,:&
-                        &,i)+mult*(t%r2)**2
-                   variancearrays(:,:,i)=variancesquareterm(:,:,i)&
-                        &-variancecrossterm(:,:,i)+meanarrays(:,:,i)&
-                        &**2
-                   MA = max(MA,t%r2)
-                   MI = min(MI,t%r2)
-                case default
-                   call writelog('lse','','Error in makeaverage,&
-                        & variable ''',t%name,''' is of wrong rank')
-                   call halt_program
-                end select  ! rank
-             end select  !type
-          end select  ! name
-	  minarrays(:,:,i)=MI
-	  maxarrays(:,:,i)=MA
-       endif ! xmaster
+	      index=chartoindex(par%meansvars(i))
+          call indextos(sl,index,t)
+          select case (t%rank)
+		     case (2)
+			    oldmean2d=meansparslocal(i)%mean2d
+				where (oldmean2d<tiny(0.d0) .and. oldmean2d>=0.d0)
+                   oldmean2d=tiny(0.d0)
+                elsewhere (oldmean2d>-1.d0*tiny(0.d0) .and. oldmean2d<0.d0)
+                   oldmean2d=-1.d0*tiny(0.d0)
+                endwhere
+				! Some variables (vectors) are rotated to N-S and E-W direction
+				if (t%type=='i') then 
+				   call gridrotate(sl,t,tvar2di)
+				   tvar2d=dble(tvar2di)
+				else
+				   call gridrotate(sl,t,tvar2d)
+				endif				
+                meansparslocal(i)%mean2d = meansparslocal(i)%mean2d + mult*tvar2d
+                meansparslocal(i)%variancecrossterm2d = &
+				   meansparslocal(i)%variancecrossterm2d/oldmean2d*meansparslocal(i)%mean2d + &
+				   mult*2.d0*tvar2d*meansparslocal(i)%mean2d
+                meansparslocal(i)%variancesquareterm2d = &
+				   meansparslocal(i)%variancesquareterm2d+mult*(tvar2d)**2
+                meansparslocal(i)%variance2d = &
+				   meansparslocal(i)%variancesquareterm2d-meansparslocal(i)%variancecrossterm2d + &
+				   meansparslocal(i)%mean2d**2
+                meansparslocal(i)%max2d = max(meansparslocal(i)%max2d,tvar2d)
+                meansparslocal(i)%min2d = min(meansparslocal(i)%min2d,tvar2d)
+			 case (3)
+			    allocate(oldmean3d(size(t%r3,1),size(t%r3,2),size(t%r3,3)))
+                allocate(tvar3d(size(t%r3,1),size(t%r3,2),size(t%r3,3)))
+                oldmean3d=meansparslocal(i)%mean3d
+				where (oldmean3d<tiny(0.d0) .and. oldmean3d>=0.d0)
+                   oldmean3d=tiny(0.d0)
+                elsewhere (oldmean3d>-1.d0*tiny(0.d0) .and. oldmean3d<0.d0)
+                   oldmean3d=-1.d0*tiny(0.d0)
+                endwhere
+				call gridrotate(sl,t,tvar3d)
+                meansparslocal(i)%mean3d = meansparslocal(i)%mean3d + mult*tvar3d
+                meansparslocal(i)%variancecrossterm3d = &
+				   meansparslocal(i)%variancecrossterm3d/oldmean3d*meansparslocal(i)%mean3d + &
+				   mult*2.d0*tvar3d*meansparslocal(i)%mean3d
+                meansparslocal(i)%variancesquareterm3d = &
+				   meansparslocal(i)%variancesquareterm3d+mult*(tvar3d)**2
+                meansparslocal(i)%variance3d = &
+				   meansparslocal(i)%variancesquareterm3d-meansparslocal(i)%variancecrossterm3d + &
+				   meansparslocal(i)%mean3d**2
+                meansparslocal(i)%max3d = max(meansparslocal(i)%max3d,tvar3d)
+                meansparslocal(i)%min3d = min(meansparslocal(i)%min3d,tvar3d)
+				deallocate(oldmean3d,tvar3d)
+			case (4)
+			    allocate(oldmean4d(size(t%r3,1),size(t%r3,2),size(t%r3,3),size(t%r4,4)))
+                allocate(tvar4d(size(t%r3,1),size(t%r3,2),size(t%r3,3),size(t%r4,4)))
+                oldmean4d=meansparslocal(i)%mean4d
+				where (oldmean4d<tiny(0.d0) .and. oldmean4d>=0.d0)
+                   oldmean4d=tiny(0.d0)
+                elsewhere (oldmean4d>-1.d0*tiny(0.d0) .and. oldmean4d<0.d0)
+                   oldmean4d=-1.d0*tiny(0.d0)
+                endwhere
+				call gridrotate(sl,t,tvar4d)
+                meansparslocal(i)%mean4d = meansparslocal(i)%mean4d + mult*tvar4d
+                meansparslocal(i)%variancecrossterm4d = &
+				   meansparslocal(i)%variancecrossterm4d/oldmean4d*meansparslocal(i)%mean4d + &
+				   mult*2.d0*tvar4d*meansparslocal(i)%mean4d
+                meansparslocal(i)%variancesquareterm4d = &
+				   meansparslocal(i)%variancesquareterm4d+mult*(tvar4d)**2
+                meansparslocal(i)%variance4d = &
+				   meansparslocal(i)%variancesquareterm4d-meansparslocal(i)%variancecrossterm4d + &
+				   meansparslocal(i)%mean4d**2
+                meansparslocal(i)%max4d = max(meansparslocal(i)%max4d,tvar4d)
+                meansparslocal(i)%min4d = min(meansparslocal(i)%min4d,tvar4d)
+				deallocate(oldmean4d,tvar4d)
+			end select     
     enddo ! par%nmeanvar
-    !Dano  endif ! xmaster
 
   end subroutine makeaverage
 
@@ -514,6 +344,38 @@ contains
 #endif 
   end subroutine makecrossvector
 
+#ifdef USEMPI
+  subroutine means_collect(sl,a,b)
+     use spaceparams
+
+	 implicit none
+
+	 type(spacepars),intent(in)  :: sl
+	 type(meanspars),intent(inout) :: a
+     type(meanspars),intent(in)    :: b
+
+	 select case (b%rank)
+	   case (2)
+	      call space_collect(sl,a%mean2d,b%mean2d)
+		  call space_collect(sl,a%variance2d,b%variance2d)
+		  call space_collect(sl,a%max2d,b%max2d)
+		  call space_collect(sl,a%min2d,b%min2d)
+		  ! for H and urms :
+		  call space_collect(sl,a%variancesquareterm2d,b%variancesquareterm2d)
+	   case (3)
+	      call space_collect(sl,a%mean3d,b%mean3d)
+		  call space_collect(sl,a%variance3d,b%variance3d)
+		  call space_collect(sl,a%max3d,b%max3d)
+		  call space_collect(sl,a%min3d,b%min3d)
+	   case (4)
+	      call space_collect(sl,a%mean4d,b%mean4d)
+		  call space_collect(sl,a%variance4d,b%variance4d)
+		  call space_collect(sl,a%max4d,b%max4d)
+		  call space_collect(sl,a%min4d,b%min4d)
+	  end select
+
+  end subroutine means_collect
+#endif
 
 
-end module varianceupdate_module
+end module means_module
