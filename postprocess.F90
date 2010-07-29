@@ -33,7 +33,7 @@ contains
     integer*4,dimension(:),intent(inout) :: xpoints     ! model x-coordinate of output points
     integer*4,dimension(:),intent(inout) :: ypoints     ! model y-coordinate of output points
 
-    real*8,dimension(s%nx+1,s%ny+1)	:: mindist
+    real*8,dimension(s%nx+1,s%ny+1)     :: mindist
     integer,dimension(2)                :: minlocation
     integer  :: i
     ! Let's hope that the s%xw and s%yw are already available....
@@ -63,7 +63,7 @@ contains
   subroutine gridrotate_r0(s, t, x)
     use spaceparams
     use mnemmodule
-    
+
     type(spacepars), intent(in) :: s
     type(arraytype), intent(in) :: t
     real*8                      :: x
@@ -73,7 +73,7 @@ contains
   subroutine gridrotate_r1(s, t, x)
     use spaceparams
     use mnemmodule
-    
+
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     real*8, dimension(:)          :: x
@@ -93,11 +93,11 @@ contains
   subroutine gridrotate_r2(s, t, x)
     use spaceparams
     use mnemmodule
-    
+
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     real*8, dimension(:,:), intent(out) :: x
-	real*8                        :: pi
+    real*8                        :: pi
     pi = 4*atan(1.0d0)
     select case(t%name)
     case(mnem_thetamean)
@@ -137,13 +137,13 @@ contains
   subroutine gridrotate_r3(s, t, x)
     use spaceparams
     use mnemmodule
-    
+
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     real*8, dimension(:,:,:)      :: x
-	real*8                        :: pi
+    real*8                        :: pi
     pi = 4*atan(1.0d0)
-    
+
     select case(t%name)
     case(mnem_cgx)
        x=t%r3*cos(s%alfa)-s%cgy*sin(s%alfa)
@@ -167,11 +167,11 @@ contains
        x=t%r3
     end select
   end subroutine gridrotate_r3
-  
+
   subroutine gridrotate_r4(s, t, x)
     use spaceparams
     use mnemmodule
-    
+
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     real*8, dimension(:,:,:,:)    :: x
@@ -182,7 +182,7 @@ contains
   subroutine gridrotate_i0(s, t, x)
     use spaceparams
     use mnemmodule
-    
+
     type(spacepars), intent(in) :: s
     type(arraytype), intent(in) :: t
     integer                     :: x
@@ -192,7 +192,7 @@ contains
   subroutine gridrotate_i1(s, t, x)
     use spaceparams
     use mnemmodule
-    
+
     type(spacepars), intent(in) :: s
     type(arraytype), intent(in) :: t
     integer, dimension(:),intent(out) :: x
@@ -202,7 +202,7 @@ contains
   subroutine gridrotate_i2(s, t, x)
     use spaceparams
     use mnemmodule
-    
+
     type(spacepars), intent(in) :: s
     type(arraytype), intent(in) :: t
     integer, dimension(:,:),intent(out) :: x
@@ -211,7 +211,7 @@ contains
   subroutine gridrotate_i3(s, t, x)
     use spaceparams
     use mnemmodule
-    
+
     type(spacepars), intent(in) :: s
     type(arraytype), intent(in) :: t
     integer, dimension(:,:,:),intent(out) :: x
@@ -220,7 +220,7 @@ contains
   subroutine gridrotate_i4(s, t, x)
     use spaceparams
     use mnemmodule
-    
+
     type(spacepars), intent(in) :: s
     type(arraytype), intent(in) :: t
     integer, dimension(:,:,:,:),intent(out) :: x

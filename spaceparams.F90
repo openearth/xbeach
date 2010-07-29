@@ -128,15 +128,15 @@ subroutine space_alloc_arrays(s,par)
 end subroutine space_alloc_arrays
 
 subroutine grid_bathy(s,par)                         
-          
+
   use params                
   use xmpi_module
   use general_mpi_module
   use readkey_module
   use logging_module
-                                                           
+
   implicit none                                    
-                                                   
+
   type(spacepars)                     :: s         
   type(parameters)                    :: par         
 
@@ -155,7 +155,7 @@ subroutine grid_bathy(s,par)
   s%yori  = readkey_dbl('params.txt','yori',  0.d0,   -1d9,      1d9)
   s%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   -360.d0,   360.d0)
   if (s%alfa.lt.0) then 
-  s%alfa = 360.d0+s%alfa
+     s%alfa = 360.d0+s%alfa
   endif
 
   s%alfa  = s%alfa*atan(1.0d0)/45.d0
@@ -164,162 +164,162 @@ subroutine grid_bathy(s,par)
   s%vardx = readkey_int('params.txt','vardx',   0,      0,         1)     !Jaap
 
   if (xmaster) then
-    allocate(s%x(1:s%nx+1,1:s%ny+1))
-    allocate(s%y(1:s%nx+1,1:s%ny+1))
-    allocate(s%xz(1:s%nx+1))
-    allocate(s%yz(1:s%ny+1))
-    allocate(s%xu(1:s%nx+1))
-    allocate(s%yv(1:s%ny+1))
-    allocate(s%xw(1:s%nx+1,1:s%ny+1))
-    allocate(s%yw(1:s%nx+1,1:s%ny+1))
-    allocate(s%zb(1:s%nx+1,1:s%ny+1))
-    allocate(s%zb0(1:s%nx+1,1:s%ny+1))
-	allocate(s%dzbdx(1:s%nx+1,1:s%ny+1))
-    allocate(s%dzbdy(1:s%nx+1,1:s%ny+1))
+     allocate(s%x(1:s%nx+1,1:s%ny+1))
+     allocate(s%y(1:s%nx+1,1:s%ny+1))
+     allocate(s%xz(1:s%nx+1))
+     allocate(s%yz(1:s%ny+1))
+     allocate(s%xu(1:s%nx+1))
+     allocate(s%yv(1:s%ny+1))
+     allocate(s%xw(1:s%nx+1,1:s%ny+1))
+     allocate(s%yw(1:s%nx+1,1:s%ny+1))
+     allocate(s%zb(1:s%nx+1,1:s%ny+1))
+     allocate(s%zb0(1:s%nx+1,1:s%ny+1))
+     allocate(s%dzbdx(1:s%nx+1,1:s%ny+1))
+     allocate(s%dzbdy(1:s%nx+1,1:s%ny+1))
   endif
   !
   ! Create grid
   !
   if(s%vardx==0)then
 
-    if (xmaster) then
-      call readkey('params.txt','depfile',fnameh)
-      open(31,file=fnameh)
-      do j=1,s%ny+1
-          read(31,*)(s%zb(i,j),i=1,s%nx+1)
-      end do
-      close(31)
-      s%zb=-s%zb*s%posdwn
-	  ! Make sure that at the lateral boundaries the bathymetry is alongshore uniform
-	  s%zb(:,1) = s%zb(:,2)
-	  s%zb(:,s%ny+1) = s%zb(:,s%ny)
-      do j=1,s%ny+1
-         do i=1,s%nx+1
-           s%x(i,j)=(i-1)*s%dx
-           s%y(i,j)=(j-1)*s%dy
-         end do
-      end do
-    endif
+     if (xmaster) then
+        call readkey('params.txt','depfile',fnameh)
+        open(31,file=fnameh)
+        do j=1,s%ny+1
+           read(31,*)(s%zb(i,j),i=1,s%nx+1)
+        end do
+        close(31)
+        s%zb=-s%zb*s%posdwn
+        ! Make sure that at the lateral boundaries the bathymetry is alongshore uniform
+        s%zb(:,1) = s%zb(:,2)
+        s%zb(:,s%ny+1) = s%zb(:,s%ny)
+        do j=1,s%ny+1
+           do i=1,s%nx+1
+              s%x(i,j)=(i-1)*s%dx
+              s%y(i,j)=(j-1)*s%dy
+           end do
+        end do
+     endif
 
   elseif(s%vardx==1)then
 
-    if (xmaster) then
-      call readkey('params.txt','depfile',fnameh)
-      call readkey('params.txt','xfile',fnamex)
-      call readkey('params.txt','yfile',fnamey)
+     if (xmaster) then
+        call readkey('params.txt','depfile',fnameh)
+        call readkey('params.txt','xfile',fnamex)
+        call readkey('params.txt','yfile',fnamey)
 
-      open(31,file=fnameh)
-      open(32,file=fnamex)
-      open(33,file=fnamey)
-      read(31,*)((s%zb(i,j),i=1,s%nx+1),j=1,s%ny+1)
-      read(32,*)((s%x(i,j),i=1,s%nx+1),j=1,s%ny+1)
-      read(33,*)((s%y(i,j),i=1,s%nx+1),j=1,s%ny+1)
-      close(31)
-      close(32)
-      close(33)
-      if (abs(s%x(1,2)-s%x(1,1))>par%eps) then
-         ! Apparently input grid is at an angle, therefore defined in world coordinates
-         ! Find out grid orientation
-         s%alfa=atan2(s%y(2,1)-s%y(1,1),s%x(2,1)-s%x(1,1))
+        open(31,file=fnameh)
+        open(32,file=fnamex)
+        open(33,file=fnamey)
+        read(31,*)((s%zb(i,j),i=1,s%nx+1),j=1,s%ny+1)
+        read(32,*)((s%x(i,j),i=1,s%nx+1),j=1,s%ny+1)
+        read(33,*)((s%y(i,j),i=1,s%nx+1),j=1,s%ny+1)
+        close(31)
+        close(32)
+        close(33)
+        if (abs(s%x(1,2)-s%x(1,1))>par%eps) then
+           ! Apparently input grid is at an angle, therefore defined in world coordinates
+           ! Find out grid orientation
+           s%alfa=atan2(s%y(2,1)-s%y(1,1),s%x(2,1)-s%x(1,1))
 
-         s%xori=s%x(1,1)
-         s%yori=s%y(1,1)
-         s%xw=s%x
-         s%yw=s%y
-         s%x= cos(s%alfa)*(s%xw-s%xori)+sin(s%alfa)*(s%yw-s%yori)
-         s%y=-sin(s%alfa)*(s%xw-s%xori)+cos(s%alfa)*(s%yw-s%yori)
-      endif
-      s%zb=-s%zb*s%posdwn
-	  ! Make sure that at the lateral boundaries the bathymetry is alongshore uniform
-	  s%zb(:,1) = s%zb(:,2)
-	  s%zb(:,s%ny+1) = s%zb(:,s%ny)
-	  ! Check that grid spacing is relatively smooth:
-      do i=2,s%nx
-	     if ( ((s%x(i+1,1)-s%x(i,1))/(s%x(i,1)-s%x(i-1,1))) > 1.15d0 .or. &
-		      ((s%x(i+1,1)-s%x(i,1))/(s%x(i,1)-s%x(i-1,1))) < 1.d0/1.15d0  ) then
-			  call writelog('sl','','Warning: grid size jump in x larger than recommended 15% in point (m = ',i,')')
-		 endif
-	  enddo
-	  do j=2,s%ny
-	     if ( ((s%y(1,j+1)-s%y(1,j))/(s%y(1,j)-s%y(1,j-1))) > 1.15d0 .or. &
-		      ((s%y(1,j+1)-s%y(1,j))/(s%y(1,j)-s%y(1,j-1))) < 1.d0/1.15d0  ) then
-			  call writelog('sl','','Warning: grid size jump in y larger than recommended 15% in point (n = ',j,')')
-		 endif
-	  enddo
-    endif
+           s%xori=s%x(1,1)
+           s%yori=s%y(1,1)
+           s%xw=s%x
+           s%yw=s%y
+           s%x= cos(s%alfa)*(s%xw-s%xori)+sin(s%alfa)*(s%yw-s%yori)
+           s%y=-sin(s%alfa)*(s%xw-s%xori)+cos(s%alfa)*(s%yw-s%yori)
+        endif
+        s%zb=-s%zb*s%posdwn
+        ! Make sure that at the lateral boundaries the bathymetry is alongshore uniform
+        s%zb(:,1) = s%zb(:,2)
+        s%zb(:,s%ny+1) = s%zb(:,s%ny)
+        ! Check that grid spacing is relatively smooth:
+        do i=2,s%nx
+           if ( ((s%x(i+1,1)-s%x(i,1))/(s%x(i,1)-s%x(i-1,1))) > 1.15d0 .or. &
+                ((s%x(i+1,1)-s%x(i,1))/(s%x(i,1)-s%x(i-1,1))) < 1.d0/1.15d0  ) then
+              call writelog('sl','','Warning: grid size jump in x larger than recommended 15% in point (m = ',i,')')
+           endif
+        enddo
+        do j=2,s%ny
+           if ( ((s%y(1,j+1)-s%y(1,j))/(s%y(1,j)-s%y(1,j-1))) > 1.15d0 .or. &
+                ((s%y(1,j+1)-s%y(1,j))/(s%y(1,j)-s%y(1,j-1))) < 1.d0/1.15d0  ) then
+              call writelog('sl','','Warning: grid size jump in y larger than recommended 15% in point (n = ',j,')')
+           endif
+        enddo
+     endif
 
   endif
 
   if(xmaster) then
-    s%xz = s%x(:,1)
-    s%yz = s%y(1,:)
-    s%xu(1:s%nx) = 0.5d0*(s%xz(1:s%nx)+s%xz(2:s%nx+1))
-    s%xu(s%nx+1) = s%xz(s%nx+1)+0.5d0*(s%xz(s%nx+1)-s%xz(s%nx))
-    s%yv(1:s%ny) = 0.5d0*(s%yz(1:s%ny)+s%yz(2:s%ny+1))
-    s%yv(s%ny+1) = s%yz(s%ny+1)+0.5d0*(s%yz(s%ny+1)-s%yz(s%ny))
+     s%xz = s%x(:,1)
+     s%yz = s%y(1,:)
+     s%xu(1:s%nx) = 0.5d0*(s%xz(1:s%nx)+s%xz(2:s%nx+1))
+     s%xu(s%nx+1) = s%xz(s%nx+1)+0.5d0*(s%xz(s%nx+1)-s%xz(s%nx))
+     s%yv(1:s%ny) = 0.5d0*(s%yz(1:s%ny)+s%yz(2:s%ny+1))
+     s%yv(s%ny+1) = s%yz(s%ny+1)+0.5d0*(s%yz(s%ny+1)-s%yz(s%ny))
 
-    s%xw=s%xori+s%x*cos(s%alfa)-s%y*sin(s%alfa)
-    s%yw=s%yori+s%x*sin(s%alfa)+s%y*cos(s%alfa)
+     s%xw=s%xori+s%x*cos(s%alfa)-s%y*sin(s%alfa)
+     s%yw=s%yori+s%x*sin(s%alfa)+s%y*cos(s%alfa)
 
-    s%zb0  = s%zb
-    !
-    ! Specify theta-grid
-    !
-    !
-    ! from Nautical wave directions in degrees to Cartesian wave directions in radian !!!
-    !
-    s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0 ! Updated in waveparams.f90 for instat 4,5,6,7
-    if (s%theta0<-par%px) s%theta0=s%theta0+2.d0*par%px
-    if (s%theta0> par%px) s%theta0=s%theta0-2.d0*par%px
-    degrad=par%px/180.d0
-    if (par%thetanaut==1) then  
-       s%thetamin=(270-par%thetamax)*degrad-s%alfa
-       s%thetamax=(270-par%thetamin)*degrad-s%alfa
-       if (s%thetamax>par%px) then
-          s%thetamax=s%thetamax-2*par%px
-          s%thetamin=s%thetamin-2*par%px
-       endif
-       if (s%thetamin<-par%px) then
-          s%thetamax=s%thetamax+2*par%px
-          s%thetamin=s%thetamin+2*par%px
-       endif
-    else
-       s%thetamin=par%thetamin*degrad
-       s%thetamax=par%thetamax*degrad
-    endif
-    s%dtheta=par%dtheta*degrad
-    s%ntheta=(s%thetamax-s%thetamin)/s%dtheta
+     s%zb0  = s%zb
+     !
+     ! Specify theta-grid
+     !
+     !
+     ! from Nautical wave directions in degrees to Cartesian wave directions in radian !!!
+     !
+     s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0 ! Updated in waveparams.f90 for instat 4,5,6,7
+     if (s%theta0<-par%px) s%theta0=s%theta0+2.d0*par%px
+     if (s%theta0> par%px) s%theta0=s%theta0-2.d0*par%px
+     degrad=par%px/180.d0
+     if (par%thetanaut==1) then  
+        s%thetamin=(270-par%thetamax)*degrad-s%alfa
+        s%thetamax=(270-par%thetamin)*degrad-s%alfa
+        if (s%thetamax>par%px) then
+           s%thetamax=s%thetamax-2*par%px
+           s%thetamin=s%thetamin-2*par%px
+        endif
+        if (s%thetamin<-par%px) then
+           s%thetamax=s%thetamax+2*par%px
+           s%thetamin=s%thetamin+2*par%px
+        endif
+     else
+        s%thetamin=par%thetamin*degrad
+        s%thetamax=par%thetamax*degrad
+     endif
+     s%dtheta=par%dtheta*degrad
+     s%ntheta=(s%thetamax-s%thetamin)/s%dtheta
 
-    allocate(s%theta(1:s%ntheta))
-    allocate(s%cxsth(1:s%ntheta))
-    allocate(s%sxnth(1:s%ntheta))
+     allocate(s%theta(1:s%ntheta))
+     allocate(s%cxsth(1:s%ntheta))
+     allocate(s%sxnth(1:s%ntheta))
 
-    do itheta=1,s%ntheta
+     do itheta=1,s%ntheta
         s%theta(itheta)=s%thetamin+s%dtheta/2+s%dtheta*(itheta-1)
-    end do
+     end do
 
-    s%cxsth=dcos(s%theta)
-    s%sxnth=dsin(s%theta)
+     s%cxsth=dcos(s%theta)
+     s%sxnth=dsin(s%theta)
   endif
 
   if (xmaster) then
-    ! Initialize dzbdx, dzbdy
-    do j=1,s%ny+1
-       do i=1,s%nx
-          s%dzbdx(i,j)=(s%zb(i+1,j)-s%zb(i,j))/(s%xz(i+1)-s%xz(i))
-       enddo
-    enddo
-    ! dummy, needed to keep compiler happy
-    s%dzbdx(s%nx+1,:)=s%dzbdx(s%nx,:)
+     ! Initialize dzbdx, dzbdy
+     do j=1,s%ny+1
+        do i=1,s%nx
+           s%dzbdx(i,j)=(s%zb(i+1,j)-s%zb(i,j))/(s%xz(i+1)-s%xz(i))
+        enddo
+     enddo
+     ! dummy, needed to keep compiler happy
+     s%dzbdx(s%nx+1,:)=s%dzbdx(s%nx,:)
 
-    do j=1,s%ny
-       do i=1,s%nx+1
-          s%dzbdy(i,j)=(s%zb(i,j+1)-s%zb(i,j))/(s%yz(j+1)-s%yz(j))
-       enddo
-    enddo
-    s%dzbdy(:,s%ny+1)=s%dzbdy(:,s%ny)
+     do j=1,s%ny
+        do i=1,s%nx+1
+           s%dzbdy(i,j)=(s%zb(i,j+1)-s%zb(i,j))/(s%yz(j+1)-s%yz(j))
+        enddo
+     enddo
+     s%dzbdy(:,s%ny+1)=s%dzbdy(:,s%ny)
   endif
-end subroutine grid_bathy                         
+end subroutine grid_bathy
 
 #ifdef USEMPI
 

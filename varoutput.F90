@@ -69,13 +69,13 @@ contains
     use readkey_module
     use timestep_module
     use logging_module
-    
+
     IMPLICIT NONE
-    
+
     type(spacepars),intent(inout)       :: s,sl
     type(parameters)                    :: par
     type(timepars)                    :: tpar
-    
+
     integer                             :: id,ic,icold,i,ii,index, j
     integer                             :: i1,i2,i3
     integer                             :: reclen,reclenc,reclenp,wordsize
@@ -83,28 +83,28 @@ contains
     character(80)                       :: line, keyword
     character(80)                       :: var
     integer, dimension(:,:),allocatable :: temparray
-    real*8,dimension(s%nx+1,s%ny+1)	  :: mindist
+    real*8,dimension(s%nx+1,s%ny+1)     :: mindist
     real*8,dimension(:),allocatable     :: xcrossw,ycrossw
-    character(1)						  :: singlechar
+    character(1)                        :: singlechar
     character(99)                       :: fname,fnamemean,fnamevar,fnamemin,fnamemax
-    
-    
-    
+
+
+
     ! Initialize places in output files
     itg = 0
     itm = 0
     itp = 0
     itc = 0
     stpm = size(tpar%tpm)
-    
+
     ! Record size for global and mean output
     inquire(iolength=wordsize) 1.d0
     reclen=wordsize*(s%nx+1)*(s%ny+1)
-    
+
 !!!!! XY.DAT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
-    
-    
+
+
+
     if (xmaster) then
        open(100,file='xy.dat',form='unformatted',access='direct',recl=reclen)
        write(100,rec=1)s%xw
@@ -118,11 +118,11 @@ contains
 
     ! This module identifies output variables by their index
     ! store this at the module level so we don't have to pass par around
-!	do i=1,size(par%globalvars)
-!	   if (trim(par%globalvars(i))=='abc') then
-!	      exit
-!      endif
-!	enddo
+    ! do i=1,size(par%globalvars)
+    !   if (trim(par%globalvars(i))=='abc') then
+    !      exit
+    !      endif
+    ! enddo
     noutnumbers = par%nglobalvar
     ! store all indices for the global variables
     do i= 1,noutnumbers
@@ -133,44 +133,44 @@ contains
     call xmpi_bcast(noutnumbers)
     call xmpi_bcast(outnumbers)
 #endif
-    
+
 !!!!! OUTPUT POINTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! read from par to local
     if (par%npoints + par%nrugauge > 0) then
-       
+
        allocate(nvarpoint(par%npoints+par%nrugauge))
-	   do i=1,size(par%pointvars)
-	      if (trim(par%pointvars(i))=='abc') then
-		     exit
-		  endif
-	   enddo
+       do i=1,size(par%pointvars)
+          if (trim(par%pointvars(i))=='abc') then
+             exit
+          endif
+       enddo
        nvarpoint = i-1 ! set to the number of pointvars (unique variables)
-       
+
        allocate(xpoints(par%npoints+par%nrugauge))
        allocate(ypoints(par%npoints+par%nrugauge))
        allocate(temparray(par%npoints+par%nrugauge,maxval(nvarpoint)))
-       
+
        ! Convert world coordinates of points to nearest (lsm) grid point
-	   if (xmaster) then 
-         do i=1,(par%npoints+par%nrugauge)
-           mindist=sqrt((par%xpointsw(i)-s%xw)**2+(par%ypointsw(i)-s%yw)**2)
-           minlocation=minloc(mindist)
-           ypoints(i)=minlocation(2)
-           if (par%pointtypes(i) == 1) then
-              xpoints(i)=1
-              call writelog('ls','(a,i0)','Runup gauge at grid line iy=',ypoints(i))
-           else
-              xpoints(i)=minlocation(1)
-              call writelog('ls','(a,i0,a,i0,a,f0.2,a)',' Distance output point to nearest grid point ('&
-                   ,minlocation(1),',',minlocation(2),') is '&
-                   ,mindist(minlocation(1),minlocation(2)), ' meters')
-           endif
-           do j=1,nvarpoint(i)
-              temparray(i,j) = chartoindex(trim(par%pointvars(j)))
-           end do
-         end do
-	   endif
-       
+       if (xmaster) then 
+          do i=1,(par%npoints+par%nrugauge)
+             mindist=sqrt((par%xpointsw(i)-s%xw)**2+(par%ypointsw(i)-s%yw)**2)
+             minlocation=minloc(mindist)
+             ypoints(i)=minlocation(2)
+             if (par%pointtypes(i) == 1) then
+                xpoints(i)=1
+                call writelog('ls','(a,i0)','Runup gauge at grid line iy=',ypoints(i))
+             else
+                xpoints(i)=minlocation(1)
+                call writelog('ls','(a,i0,a,i0,a,f0.2,a)',' Distance output point to nearest grid point ('&
+                     ,minlocation(1),',',minlocation(2),') is '&
+                     ,mindist(minlocation(1),minlocation(2)), ' meters')
+             endif
+             do j=1,nvarpoint(i)
+                temparray(i,j) = chartoindex(trim(par%pointvars(j)))
+             end do
+          end do
+       endif
+
        ! TODO: what is temparray
 #ifdef USEMPI
        call xmpi_bcast(nvarpoint)
@@ -182,7 +182,7 @@ contains
        allocate(Avarpoint(par%npoints+par%nrugauge,maxval(nvarpoint)))
        Avarpoint(:,:)=temparray(:,1:maxval(nvarpoint))
        deallocate (temparray)
-       
+
 
        !! First time file opening for point output
        if (xmaster) then
@@ -209,8 +209,8 @@ contains
           enddo
        endif
     end if
-       
-       
+
+
 !!!!! CROSS SECTION OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ncross  = readkey_int ('params.txt','ncross',      0,       0,     50)
     ! Fedor +  Robert : will be changed once cross section ready for netcdf
@@ -223,7 +223,7 @@ contains
        allocate(nvarcross(par%ncross))
        allocate(temparray(par%ncross,99))
        temparray=-1
-       
+
        if (xmaster) then
           id=0
           ! Look for keyword ncross in params.txt
@@ -236,7 +236,7 @@ contains
                 if (keyword == 'ncross') id=1
              endif
           enddo
-          
+
           do i=1,par%ncross
              !          read(10,*) xcrossw(i),ycrossw(i),crosstype(i),nvarcross(i),line
              read(10,*) xcrossw(i),ycrossw(i),singlechar,nvarcross(i),line
@@ -255,7 +255,7 @@ contains
              xcross(i)=minlocation(1)
              ycross(i)=minlocation(2)
              call writelog('ls','(a,f0.2,a,f0.2)',' positioned at x-coordinate: ',xcrossw(i),&
-                  ' y-coordinate: ',ycrossw(i)	)		 
+                  ' y-coordinate: ',ycrossw(i))
              if (crosstype(i)==0) then
                 call writelog('ls','(a,i0)',' placed in x-direction at row iy = ',ycross(i))
              else
@@ -285,7 +285,7 @@ contains
           enddo
           close(10)
        endif !xmaster
-       
+
 #ifdef USEMPI
        call xmpi_bcast(nvarcross)
        call xmpi_bcast(crosstype)
@@ -293,12 +293,12 @@ contains
        call xmpi_bcast(ycross)
        call xmpi_bcast(temparray)   
 #endif     
-       
+
        ! Tidy up information
        allocate(Avarcross(par%ncross,maxval(nvarcross)))
        Avarcross(:,:)=temparray(:,1:maxval(nvarcross))
        deallocate (temparray)
-       
+
        !! First time file opening for cross section output
        if (xmaster) then
           do i=1,par%ncross
@@ -319,15 +319,15 @@ contains
           enddo
        endif
     endif ! par%ncross > 0
-    
-    
-    
-    
-    
+
+
+
+
+
 !!!!! TIME-AVEARGE, VARIANCE and MIN-MAX ARRAYS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
-    
-    
+
+
+
     if (par%nmeanvar>0) then    
        !! First time file opening for time-average output
        if(xmaster) then
@@ -344,8 +344,8 @@ contains
           enddo
        endif
     endif ! par%nmeanvar > 0
- 
-    
+
+
   end subroutine output_init
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -358,33 +358,33 @@ contains
     use spaceparams
     use timestep_module
     use logging_module
-    
+
     IMPLICIT NONE
-    
+
     type(spacepars)                         :: s,sl
     type(parameters)                        :: par
     type(timepars),intent(in)               :: tpar
-    integer                                 :: i,ii,tt,k
+    integer                                 :: i,ii,tt
     integer, intent(in)                     :: it
     !  integer                                 :: i1,i2,i3
     integer                                 :: wordsize, idum
     !  integer                                 :: reclen,reclen2,reclenc,reclenp
-    real*8                                  :: dtimestep,tpredicted,tnow, percnow
+    real*8                                  :: tpredicted,tnow, percnow
     !  character(12)                           :: fname
     real*8,dimension(numvars)               :: intpvector
     real*8,dimension(numvars,s%nx+1)        :: crossvararray0
     real*8,dimension(numvars,s%ny+1)        :: crossvararray1
     integer,dimension(:),allocatable        :: tempvectori
-    real*8,dimension(:),allocatable         :: tempvectorr, temp
+    real*8,dimension(:),allocatable         :: tempvectorr
     integer,dimension(8)                    :: datetime
     real*8,dimension(size(tpar%tpg)+size(tpar%tpp)+size(tpar%tpc)+size(tpar%tpm)) :: outputtimes
     type(arraytype)                         :: t
     real*8, save                            :: tprev, percprev
-    
+
     inquire(iolength=wordsize) 1.d0
     !  reclen=wordsize*(s%nx+1)*(s%ny+1)
     !  reclen2=wordsize*(s%nx+1)*(s%ny+1)*(par%ngd)*(par%nd)
-    
+
     ! Complicated check, so only carry out if it = 0 
     if (it==0) then 
        ! Do only at very first time step
@@ -398,19 +398,19 @@ contains
           percprev = 0.d0
        endif
     endif
-    
+
     ndt=ndt+1                                       ! Number of calculation time steps per output time step
-    
+
     if (par%nmeanvar/=0) then
        if (par%t>tpar%tpm(1) .and. par%t<=tpar%tpm(stpm)) then
           call makeaverage(sl,par,tpar)                ! Make averages and min-max every flow timestep
        endif
     endif
-    
+
     if (par%timings .ne. 0) then
        call date_and_time(VALUES=datetime)
        tnow=day*24.d0*3600.d0+datetime(5)*3600.d0+60.d0*datetime(6)+1.d0*datetime(7)+0.001d0*datetime(8)
-       
+
        if (tnow>=tprev+5.d0) then
           percnow = 100.d0*par%t/par%tstop
           tpredicted = 100.d0*(1.d0-par%t/par%tstop)/(max(percnow-percprev,0.01d0)/(tnow-tprev))
@@ -438,12 +438,12 @@ contains
           day=day+1
        endif
     endif
-    
-    
+
+
     ! Determine if this is an output timestep
     if (tpar%output) then
 !!! Write at every output timestep
-       
+
 !!! Write point variables
 !!! Only write if it is output time for points
        if (par%npoints+par%nrugauge>0) then
@@ -499,7 +499,7 @@ contains
              enddo
           endif
        endif
-       
+
 !!! Write cross section variables
 !!! Only write if it is output time for cross sections
        if (par%ncross>0) then
@@ -518,99 +518,99 @@ contains
              enddo
           endif
        endif
-       
+
 !!! Collect mean variable to global grid
        if (par%nmeanvar>0) then
-         ! Not at the first in tpm as this is the start of averaging. Only output after second in tpm
-         if (tpar%outputm .and. tpar%itm>1) then
-            do i=1,par%nmeanvar
+          ! Not at the first in tpm as this is the start of averaging. Only output after second in tpm
+          if (tpar%outputm .and. tpar%itm>1) then
+             do i=1,par%nmeanvar
 #ifdef USEMPI
-		       call means_collect(sl,meansparsglobal(i),meansparslocal(i))
+                call means_collect(sl,meansparsglobal(i),meansparslocal(i))
 #else
-               meansparsglobal(i)=meansparslocal(i)
+                meansparsglobal(i)=meansparslocal(i)
 #endif
-            enddo
-		 endif
-	   endif
+             enddo
+          endif
+       endif
 !!! Write average variables
-      
+
        if (par%nmeanvar>0) then
           ! Not at the first in tpm as this is the start of averaging. Only output after second in tpm
           if (tpar%outputm .and. tpar%itm>1) then
              itm=itm+1  ! Note, this is a local counter, used to position in output file
              do i=1,par%nmeanvar
                 select case (meansparsglobal(i)%rank)
-                   case (2)
-				      if(xmaster) then
-				        if (trim(par%meansvars(i))=='H') then                ! Hrms changed to H
-                          write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
-                        elseif (trim(par%meansvars(i))=='urms') then    ! urms
-                          write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
-                        else                                                    ! non-rms variables
-                          write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean2d
-                        endif
-                        write(indextovarunit(i),rec=itm)meansparsglobal(i)%variance2d
-                        where(meansparsglobal(i)%min2d>0.99d0*huge(0.d0))
-                          meansparsglobal(i)%min2d=-999.d0
-                        endwhere
-                        where(meansparsglobal(i)%max2d<-0.99d0*huge(0.d0))
-                          meansparsglobal(i)%max2d=-999.d0
-                        endwhere
-                        write(indextominunit(i),rec=itm)meansparsglobal(i)%min2d
-                        write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max2d
-					  endif
-                      meansparslocal(i)%mean2d = 0.d0
-			          meansparslocal(i)%variance2d = 0.d0
-			          meansparslocal(i)%variancecrossterm2d = 0.d0
-			          meansparslocal(i)%variancesquareterm2d = 0.d0
-			          meansparslocal(i)%min2d = huge(0.d0)
-			          meansparslocal(i)%max2d = -1.d0*huge(0.d0)
-				   case (3)
-					  if(xmaster) then
-                        write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean3d
-                        write(indextovarunit(i),rec=itm)meansparsglobal(i)%variance3d
-                        where(meansparsglobal(i)%min3d>0.99d0*huge(0.d0))
-                          meansparsglobal(i)%min3d=-999.d0
-                        endwhere
-                        where(meansparsglobal(i)%max3d<-0.99d0*huge(0.d0))
-                          meansparsglobal(i)%max3d=-999.d0
-                        endwhere
-                        write(indextominunit(i),rec=itm)meansparsglobal(i)%min3d
-                        write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max3d
-					  endif
-                      meansparslocal(i)%mean3d = 0.d0
-			          meansparslocal(i)%variance3d = 0.d0
-			          meansparslocal(i)%variancecrossterm3d = 0.d0
-			          meansparslocal(i)%variancesquareterm3d = 0.d0
-			          meansparslocal(i)%min3d = huge(0.d0)
-			          meansparslocal(i)%max3d = -1.d0*huge(0.d0)
-                   case (4)
-					  if(xmaster) then
-                        write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean4d
-					    write(indextovarunit(i),rec=itm)meansparsglobal(i)%variance4d
-                        where(meansparsglobal(i)%min4d>0.99d0*huge(0.d0))
-                          meansparsglobal(i)%min4d=-999.d0
-                        endwhere
-                        where(meansparsglobal(i)%max4d<-0.99d0*huge(0.d0))
-                          meansparsglobal(i)%max4d=-999.d0
-                        endwhere
-                        write(indextominunit(i),rec=itm)meansparsglobal(i)%min4d
-                        write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max4d
-					  endif
-                      meansparslocal(i)%mean4d = 0.d0
-			          meansparslocal(i)%variance4d = 0.d0
-			          meansparslocal(i)%variancecrossterm4d = 0.d0
-			          meansparslocal(i)%variancesquareterm4d = 0.d0
-			          meansparslocal(i)%min4d = huge(0.d0)
-			          meansparslocal(i)%max4d = -1.d0*huge(0.d0)
-				end select
-              enddo
-              par%tintm=tpar%tpm(min(itm+2,stpm))-tpar%tpm(itm+1)  ! Next averaging period (min to stop array out of bounds)
-              par%tintm=max(par%tintm,tiny(0.d0))        ! to prevent par%tintm=0 after last output
+                case (2)
+                   if(xmaster) then
+                      if (trim(par%meansvars(i))=='H') then                ! Hrms changed to H
+                         write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
+                      elseif (trim(par%meansvars(i))=='urms') then    ! urms
+                         write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
+                      else                                                    ! non-rms variables
+                         write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean2d
+                      endif
+                      write(indextovarunit(i),rec=itm)meansparsglobal(i)%variance2d
+                      where(meansparsglobal(i)%min2d>0.99d0*huge(0.d0))
+                         meansparsglobal(i)%min2d=-999.d0
+                      endwhere
+                      where(meansparsglobal(i)%max2d<-0.99d0*huge(0.d0))
+                         meansparsglobal(i)%max2d=-999.d0
+                      endwhere
+                      write(indextominunit(i),rec=itm)meansparsglobal(i)%min2d
+                      write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max2d
+                   endif
+                   meansparslocal(i)%mean2d = 0.d0
+                   meansparslocal(i)%variance2d = 0.d0
+                   meansparslocal(i)%variancecrossterm2d = 0.d0
+                   meansparslocal(i)%variancesquareterm2d = 0.d0
+                   meansparslocal(i)%min2d = huge(0.d0)
+                   meansparslocal(i)%max2d = -1.d0*huge(0.d0)
+                case (3)
+                   if(xmaster) then
+                      write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean3d
+                      write(indextovarunit(i),rec=itm)meansparsglobal(i)%variance3d
+                      where(meansparsglobal(i)%min3d>0.99d0*huge(0.d0))
+                         meansparsglobal(i)%min3d=-999.d0
+                      endwhere
+                      where(meansparsglobal(i)%max3d<-0.99d0*huge(0.d0))
+                         meansparsglobal(i)%max3d=-999.d0
+                      endwhere
+                      write(indextominunit(i),rec=itm)meansparsglobal(i)%min3d
+                      write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max3d
+                   endif
+                   meansparslocal(i)%mean3d = 0.d0
+                   meansparslocal(i)%variance3d = 0.d0
+                   meansparslocal(i)%variancecrossterm3d = 0.d0
+                   meansparslocal(i)%variancesquareterm3d = 0.d0
+                   meansparslocal(i)%min3d = huge(0.d0)
+                   meansparslocal(i)%max3d = -1.d0*huge(0.d0)
+                case (4)
+                   if(xmaster) then
+                      write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean4d
+                      write(indextovarunit(i),rec=itm)meansparsglobal(i)%variance4d
+                      where(meansparsglobal(i)%min4d>0.99d0*huge(0.d0))
+                         meansparsglobal(i)%min4d=-999.d0
+                      endwhere
+                      where(meansparsglobal(i)%max4d<-0.99d0*huge(0.d0))
+                         meansparsglobal(i)%max4d=-999.d0
+                      endwhere
+                      write(indextominunit(i),rec=itm)meansparsglobal(i)%min4d
+                      write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max4d
+                   endif
+                   meansparslocal(i)%mean4d = 0.d0
+                   meansparslocal(i)%variance4d = 0.d0
+                   meansparslocal(i)%variancecrossterm4d = 0.d0
+                   meansparslocal(i)%variancesquareterm4d = 0.d0
+                   meansparslocal(i)%min4d = huge(0.d0)
+                   meansparslocal(i)%max4d = -1.d0*huge(0.d0)
+                end select
+             enddo
+             par%tintm=tpar%tpm(min(itm+2,stpm))-tpar%tpm(itm+1)  ! Next averaging period (min to stop array out of bounds)
+             par%tintm=max(par%tintm,tiny(0.d0))        ! to prevent par%tintm=0 after last output
           endif  ! t output
        endif  ! nmeanvar > 0
- 
-       
+
+
 !!! Write global variables
        if (par%nglobalvar/=0) then
           if (tpar%outputg) then
@@ -653,64 +653,64 @@ contains
              enddo   ! outnumber loop
           endif
        endif  ! end global file writing
-       
-       
+
+
        if(xmaster) then
           outputtimes=-999.d0
           outputtimes(1:itg)=tpar%tpg(1:itg)
           outputtimes(itg+1:itg+itp)=tpar%tpp(1:itp)
           outputtimes(itg+itp+1:itg+itp+itc)=tpar%tpc(1:itc)
           outputtimes(itg+itp+itc+1:itg+itp+itc+itm)=tpar%tpm(2:itm+1)          ! mean output always shifted by 1
-	  if (par%morfacopt==1) outputtimes=outputtimes*max(par%morfac,1.d0)
-   open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(10+size(outputtimes)))
-   write(999,rec=1)		 itg*1.d0,&
-        s%nx*1.d0,&
-        s%ny*1.d0,&
-        s%ntheta*1.d0,&
-        par%kmax*1.d0,&
-        par%ngd*1.d0,&
-        par%nd*1.d0, &
-        itp*1.d0,&
-        itc*1.d0,&
-        itm*1.d0,&
-        outputtimes
-   ! Just output for MICORE for backwards compat
-   !      open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(7+size(outputtimes)))
-   !      write(999,rec=1)itg*1.d0,&
-   !							 s%nx*1.d0,&
-   !							 s%ny*1.d0,&
-   !                      par%ngd*1.d0,&
-   !							 par%nd*1.d0, &
-   !                      itp*1.d0,&
-   !							 itm*1.d0,&
-   !							 outputtimes
-   !		close(999)
-endif  !xmaster
+          if (par%morfacopt==1) outputtimes=outputtimes*max(par%morfac,1.d0)
+          open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(10+size(outputtimes)))
+          write(999,rec=1) itg*1.d0,&
+               s%nx*1.d0,&
+               s%ny*1.d0,&
+               s%ntheta*1.d0,&
+               par%kmax*1.d0,&
+               par%ngd*1.d0,&
+               par%nd*1.d0, &
+               itp*1.d0,&
+               itc*1.d0,&
+               itm*1.d0,&
+               outputtimes
+          ! Just output for MICORE for backwards compat
+          !      open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(7+size(outputtimes)))
+          !      write(999,rec=1)itg*1.d0,&
+          ! s%nx*1.d0,&
+          ! s%ny*1.d0,&
+          !                      par%ngd*1.d0,&
+          ! par%nd*1.d0, &
+          !                      itp*1.d0,&
+          ! itm*1.d0,&
+          ! outputtimes
+          ! close(999)
+       endif  !xmaster
 
-end if  ! 
+    end if  ! 
 
 !!! Close files
 
-if(xmaster) then
-   if(par%t>=par%tstop) then
-      do i=1,par%npoints+par%nrugauge
-         close(indextopointsunit(i))
-      enddo
-      
-      do i=1,par%nmeanvar
-         close(indextomeanunit(i))
-         close(indextovarunit(i))
-         close(indextominunit(i))
-         close(indextomaxunit(i))
-      enddo
-      
-      do i=1,noutnumbers
-         close (indextoglobalunit(i))
-      enddo
-   end if
-endif
+    if(xmaster) then
+       if(par%t>=par%tstop) then
+          do i=1,par%npoints+par%nrugauge
+             close(indextopointsunit(i))
+          enddo
 
-end subroutine var_output
+          do i=1,par%nmeanvar
+             close(indextomeanunit(i))
+             close(indextovarunit(i))
+             close(indextominunit(i))
+             close(indextomaxunit(i))
+          enddo
+
+          do i=1,noutnumbers
+             close (indextoglobalunit(i))
+          enddo
+       end if
+    endif
+
+  end subroutine var_output
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!   INTERNAL SUBROUTINE   !!!!!!!!!!!!!!!!!!!!!!!!!!!

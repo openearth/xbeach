@@ -28,175 +28,169 @@ contains
 !! @param   wp  struct with wave information
 !! @return  void
 !! @todo    clean up
-subroutine makebcf(par,s,wp)
+  subroutine makebcf(par,s,wp)
 
-use params
-use spaceparams
-use readkey_module
-use xmpi_module
+    use params
+    use spaceparams
+    use readkey_module
+    use xmpi_module
 
-IMPLICIT NONE
+    IMPLICIT NONE
 
-! Input / output variables
-type(parameters), INTENT(INOUT)             :: par
-type(spacepars), intent(IN)                 :: s
+    ! Input / output variables
+    type(parameters), INTENT(INOUT)             :: par
+    type(spacepars), intent(IN)                 :: s
 
-type(waveparameters)                        :: wp
-real*8                                      :: h0t0
-real*8,save                                 :: bcendtime
-character*80                                :: fname,Ebcfname,qbcfname
-character*8                                 :: testc
-logical                                     :: makefile
-integer,save                                :: reuse  ! = 0 used to be in code
-integer,save                                :: counter
-integer                                     :: i1,i2,i3,clock
-character*80                                :: strclock
+    type(waveparameters)                        :: wp
+    real*8                                      :: h0t0
+    real*8,save                                 :: bcendtime
+    character*80                                :: fname,Ebcfname,qbcfname
+    character*8                                 :: testc
+    logical                                     :: makefile
+    integer,save                                :: reuse  ! = 0 used to be in code
+    integer,save                                :: counter
+    integer                                     :: i1,i2,i3
 
-! Flag that determines whether new BCF files are created or not
-makefile=.false.
+    ! Flag that determines whether new BCF files are created or not
+    makefile=.false.
 
-! Check whether this is the first time step
-if (abs(par%t-par%dt)<1.d-6) then
-    bcendtime=0
-    par%listline=0
-	counter=0
-	
-    if(xmaster) then
-        call readkey('params.txt','bcfile',fname)
-	    call checkbcfilelength_local(par,fname)
-        open(74,file=fname,form='formatted')
-        if (trim(par%instat)/='jons_table') read(74,*)testc
-    endif
-    
-    if(xmaster) then
-        ! Create new BCF files, if in master process
-        open(53,file='ebcflist.bcf',form='formatted',status='replace')
-        open(54,file='qbcflist.bcf',form='formatted',status='replace')
-        close(53)
-        close(54)
-    endif
-    
-    ! Check whether BCF files should be reused
-    if (testc=='FILELIST' .or. trim(par%instat)=='jons_table') then
-        reuse=0
-    else
-        reuse=1
-        if(xmaster) then
-            close(74) ! only close if this is not the list of files
-        endif
+    ! Check whether this is the first time step
+    if (abs(par%t-par%dt)<1.d-6) then
+       bcendtime=0
+       par%listline=0
+       counter=0
+
+       if(xmaster) then
+          call readkey('params.txt','bcfile',fname)
+          call checkbcfilelength_local(par,fname)
+          open(74,file=fname,form='formatted')
+          if (trim(par%instat)/='jons_table') read(74,*)testc
+       endif
+
+       if(xmaster) then
+          ! Create new BCF files, if in master process
+          open(53,file='ebcflist.bcf',form='formatted',status='replace')
+          open(54,file='qbcflist.bcf',form='formatted',status='replace')
+          close(53)
+          close(54)
+       endif
+
+       ! Check whether BCF files should be reused
+       if (testc=='FILELIST' .or. trim(par%instat)=='jons_table') then
+          reuse=0
+       else
+          reuse=1
+          if(xmaster) then
+             close(74) ! only close if this is not the list of files
+          endif
+       end if
     end if
-end if
 
-! Check whether this is the last time step
-if (par%t>=(par%tstop-par%dt)) then
-    ! Prevent recalculation of boundary conditions for last timestep
-    return
-	close(74)
-end if
+    ! Check whether this is the last time step
+    if (par%t>=(par%tstop-par%dt)) then
+       ! Prevent recalculation of boundary conditions for last timestep
+       return
+       close(74)
+    end if
 
-                                                                               ! par%listline is not increased, therefore, first line of current bcf
-                                                                               ! is used (i.e. all zeros)
+    ! par%listline is not increased, therefore, first line of current bcf
+    ! is used (i.e. all zeros)
 
-! Check whether BCF files should be reused
-if (reuse==0) then
+    ! Check whether BCF files should be reused
+    if (reuse==0) then
 
-    ! Read rt and dt values
-    if(xmaster) then
-        if (trim(par%instat)/='jons_table') then
-            read(74,*)wp%rt,wp%dt,fname
-		    if (par%morfacopt==1) wp%rt = wp%rt / max(par%morfac,1.d0)
-        endif
-    endif
-    
+       ! Read rt and dt values
+       if(xmaster) then
+          if (trim(par%instat)/='jons_table') then
+             read(74,*)wp%rt,wp%dt,fname
+             if (par%morfacopt==1) wp%rt = wp%rt / max(par%morfac,1.d0)
+          endif
+       endif
+
 #ifdef USEMPI
-    !Dano call xmpi_bcast(wp%rt)
-    !Dano call xmpi_bcast(wp%dt)
-    !Dano call xmpi_bcast(fname)
+       !Dano call xmpi_bcast(wp%rt)
+       !Dano call xmpi_bcast(wp%dt)
+       !Dano call xmpi_bcast(fname)
 #endif
 
-    ! Create filenames for BCF files
-    if (trim(par%instat)/='jons_table') then 
-        Ebcfname='E_'//fname
-        qbcfname='q_'//fname
-    else
-        counter=counter+1
-        i1=floor(real(counter)/100.d0)
-        i2=floor(real(counter-i1*100)/10.d0)
-        i3=counter-i1*100-i2*10
-	    Ebcfname='Ejonsw'//char(48+i1)//char(48+i2)//char(48+i3)//'.bcf'
-	    qbcfname='qjonsw'//char(48+i1)//char(48+i2)//char(48+i3)//'.bcf'
-    endif
-else 
-    ! Read rt and dt values
-    wp%rt = readkey_dbl ('params.txt', 'rt', 3600.d0, 1200.d0, 7200.d0, bcast=.false.)
-    if (par%morfacopt==1) wp%rt = wp%rt / max(par%morfac,1.d0)
-    wp%dt = readkey_dbl ('params.txt', 'dtbc', 0.1d0, 0.01d0, 1.0d0, bcast=.false.)
-    
-    ! Create filenames for BCF files
-    
-    !CALL SYSTEM_CLOCK(COUNT=clock)                                            ! Bas: prevent overwriting BCF files by timestamping to be able to investigate skewness
-    !write(strclock, '(i10)') clock
-    !Ebcfname='E_reuse_'//strclock//'.bcf'
-    !qbcfname='q_reuse_'//strclock//'.bcf'
-    
-    Ebcfname='E_reuse.bcf'
-    qbcfname='q_reuse.bcf'
-end if
+       ! Create filenames for BCF files
+       if (trim(par%instat)/='jons_table') then 
+          Ebcfname='E_'//trim(fname)
+          qbcfname='q_'//trim(fname)
+       else
+          counter=counter+1
+          i1=floor(real(counter)/100.d0)
+          i2=floor(real(counter-i1*100)/10.d0)
+          i3=counter-i1*100-i2*10
+          Ebcfname='Ejonsw'//char(48+i1)//char(48+i2)//char(48+i3)//'.bcf'
+          qbcfname='qjonsw'//char(48+i1)//char(48+i2)//char(48+i3)//'.bcf'
+       endif
+    else 
+       ! Read rt and dt values
+       wp%rt = readkey_dbl ('params.txt', 'rt', 3600.d0, 1200.d0, 7200.d0, bcast=.false.)
+       if (par%morfacopt==1) wp%rt = wp%rt / max(par%morfac,1.d0)
+       wp%dt = readkey_dbl ('params.txt', 'dtbc', 0.1d0, 0.01d0, 1.0d0, bcast=.false.)
 
-! (Re)create BCF files if this is the first time step or it is explicitly
-! requested
-if (abs(par%t-par%dt)<1.d-6) then
-    makefile=.true.
-else
-    if (reuse==0) then
-        makefile=.true.
+       ! Create filenames for BCF files
+
+       Ebcfname='E_reuse.bcf'
+       qbcfname='q_reuse.bcf'
     end if
-end if
 
-! (Re)create BCF files, if requested
-if (makefile) then
-    
-    ! Calculate weighed average water depth at offshore boundary
-    h0t0=sum(s%hh(1,2:s%ny)*(s%yv(2:s%ny)-s%yv(1:s%ny-1)))/(s%yv(s%ny)-s%yv(1))
-    
-    if (trim(par%instat)=='jons' .or. trim(par%instat)=='jons_table') then
-        ! Use JONSWAP spectrum
-        call build_jonswap(par,s,wp,fname)
-        call build_etdir(par,s,wp,h0t0,Ebcfname)
-        call build_boundw(par,s,wp,h0t0,qbcfname)
-    elseif (trim(par%instat)=='swan') then
-        ! Use SWAN data
-        call swanreader(par,s,wp,fname)
-        call build_etdir(par,s,wp,h0t0,Ebcfname)
-        call build_boundw(par,s,wp,h0t0,qbcfname)
-    elseif (trim(par%instat)=='vardens') then
-        ! Use variance density spectrum
-        call vardensreader(par,s,wp,fname)
-        call build_etdir(par,s,wp,h0t0,Ebcfname)
-        call build_boundw(par,s,wp,h0t0,qbcfname)
+    ! (Re)create BCF files if this is the first time step or it is explicitly
+    ! requested
+    if (abs(par%t-par%dt)<1.d-6) then
+       makefile=.true.
+    else
+       if (reuse==0) then
+          makefile=.true.
+       end if
+    end if
+
+    ! (Re)create BCF files, if requested
+    if (makefile) then
+
+       ! Calculate weighed average water depth at offshore boundary
+       h0t0=sum(s%hh(1,2:s%ny)*(s%yv(2:s%ny)-s%yv(1:s%ny-1)))/(s%yv(s%ny)-s%yv(1))
+
+       if (trim(par%instat)=='jons' .or. trim(par%instat)=='jons_table') then
+          ! Use JONSWAP spectrum
+          call build_jonswap(par,s,wp,fname)
+          call build_etdir(par,s,wp,h0t0,Ebcfname)
+          call build_boundw(par,s,wp,h0t0,qbcfname)
+       elseif (trim(par%instat)=='swan') then
+          ! Use SWAN data
+          call swanreader(par,s,wp,fname)
+          call build_etdir(par,s,wp,h0t0,Ebcfname)
+          call build_boundw(par,s,wp,h0t0,qbcfname)
+       elseif (trim(par%instat)=='vardens') then
+          ! Use variance density spectrum
+          call vardensreader(par,s,wp,fname)
+          call build_etdir(par,s,wp,h0t0,Ebcfname)
+          call build_boundw(par,s,wp,h0t0,qbcfname)
+       endif
+    end if
+
+    ! Define line counter for boundaryconditions.f90
+    par%listline=par%listline+1
+
+    ! Define endtime for boundary conditions, boundaryconditions.f90 should
+    ! recreate BCF files after this moment
+    bcendtime=bcendtime+wp%rt
+
+    if(xmaster) then
+       ! Write lists with BCF information
+       open(53,file='ebcflist.bcf',form='formatted',position='append')
+       open(54,file='qbcflist.bcf',form='formatted',position='append')
+       write(53,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') & 
+            & bcendtime,' ',wp%rt,' ',wp%dt,' ',par%Trep,' ',wp%mainang,' '//trim(Ebcfname)
+       write(54,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
+            & bcendtime,' ',wp%rt,' ',wp%dt,' ',par%Trep,' ',wp%mainang,' '//trim(qbcfname)
+       close(53)
+       close(54)
     endif
-end if
 
-! Define line counter for boundaryconditions.f90
-par%listline=par%listline+1
-
-! Define endtime for boundary conditions, boundaryconditions.f90 should
-! recreate BCF files after this moment
-bcendtime=bcendtime+wp%rt
-
-if(xmaster) then
-    ! Write lists with BCF information
-    open(53,file='ebcflist.bcf',form='formatted',position='append')
-    open(54,file='qbcflist.bcf',form='formatted',position='append')
-    write(53,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') & 
-        & bcendtime,' ',wp%rt,' ',wp%dt,' ',par%Trep,' ',wp%mainang,' '//trim(Ebcfname)
-    write(54,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
-        & bcendtime,' ',wp%rt,' ',wp%dt,' ',par%Trep,' ',wp%mainang,' '//trim(qbcfname)
-    close(53)
-    close(54)
-endif
-
-end subroutine makebcf
+  end subroutine makebcf
 
 ! --------------------------------------------------------------
 ! ----------------------Read spectrum files --------------------
@@ -405,343 +399,343 @@ end subroutine build_jonswap
 ! --------------------------------------------------------------
 subroutine swanreader(par,s,wp,fname)
 
-use params
-use spaceparams
-use readkey_module
-use math_tools
-use xmpi_module
-use logging_module
+  use params
+  use spaceparams
+  use readkey_module
+  use math_tools
+  use xmpi_module
+  use logging_module
 
-IMPLICIT NONE
+  IMPLICIT NONE
 
-! Input / output variables
-type(parameters), INTENT(INout)         :: par
-type(spacepars), intent(IN)             :: s
-type(waveparameters), INTENT(INOUT)     :: wp
-character(len=*), INTENT(IN)            :: fname
+  ! Input / output variables
+  type(parameters), INTENT(INout)         :: par
+  type(spacepars), intent(IN)             :: s
+  type(waveparameters), INTENT(INOUT)     :: wp
+  character(len=*), INTENT(IN)            :: fname
 
-! Internal variables
-character(6)                            :: rtext
-real*8                                  :: factor,exc,m0,dthetaS_XB 
-integer                                 :: nfreq, ndir, switch, i, flipped
-integer                                 :: firstp,lastp,nt,Ashift
-real*8, dimension(:),allocatable        :: temp, findline
-real*8, dimension(:,:),allocatable      :: tempA
+  ! Internal variables
+  character(6)                            :: rtext
+  real*8                                  :: factor,exc,m0,dthetaS_XB 
+  integer                                 :: nfreq, ndir, switch, i, flipped
+  integer                                 :: firstp,lastp,nt,Ashift
+  real*8, dimension(:),allocatable        :: temp, findline
+  real*8, dimension(:,:),allocatable      :: tempA
 
-dthetaS_XB = readkey_dbl ('params.txt','dthetaS_XB', 0.0d0, -360.0d0, 360.0d0,bcast=.false.)
+  dthetaS_XB = readkey_dbl ('params.txt','dthetaS_XB', 0.0d0, -360.0d0, 360.0d0,bcast=.false.)
 
-flipped=0
-wp%Npy=s%ny+1
+  flipped=0
+  wp%Npy=s%ny+1
 
-switch = 0
-if(xmaster) then
-  call writelog('sl','','Reading from SWAN file ',fname,' ...')
-  open(44,file=fname,form='formatted',status='old')
+  switch = 0
+  if(xmaster) then
+     call writelog('sl','','Reading from SWAN file ',fname,' ...')
+     open(44,file=fname,form='formatted',status='old')
 
 
-! Read file until RFREQ or AFREQ is found
+     ! Read file until RFREQ or AFREQ is found
 
-  do while (switch==0)
-      read(44,'(a)')rtext
-      if (rtext == 'RFREQ ') then
-          switch = 1
-      elseif (rtext == 'AFREQ ') then
-          switch = 2
-      end if
-  end do
+     do while (switch==0)
+        read(44,'(a)')rtext
+        if (rtext == 'RFREQ ') then
+           switch = 1
+        elseif (rtext == 'AFREQ ') then
+           switch = 2
+        end if
+     end do
 
-! Read nfreq and f
+     ! Read nfreq and f
 
-  read(44,*)nfreq
-endif
+     read(44,*)nfreq
+  endif
 #ifdef USEMPI
-!Dano call xmpi_bcast(nfreq)
-!Dano call xmpi_bcast(switch)
+  !Dano call xmpi_bcast(nfreq)
+  !Dano call xmpi_bcast(switch)
 #endif
-allocate(wp%f(nfreq))
-if(xmaster) then
-  do i=1,nfreq
-      read(44,*)wp%f(i)
-  end do
-endif
+  allocate(wp%f(nfreq))
+  if(xmaster) then
+     do i=1,nfreq
+        read(44,*)wp%f(i)
+     end do
+  endif
 #ifdef USEMPI
-!Dano call xmpi_bcast(wp%f)
+  !Dano call xmpi_bcast(wp%f)
 #endif
 
-! Convert to absolute frequencies
+  ! Convert to absolute frequencies
 
-if (switch == 1) then
-    wp%f = wp%f
-else 
-    wp%f = wp%f
-end if
-
-! Read CDIR or NDIR
-
-if(xmaster) then
-  read(44,'(a)')rtext
-  if (rtext == 'NDIR  ') then
-      switch = 1
-  elseif (rtext == 'CDIR  ') then
-      switch = 2
-  else
-      call writelog('els','', 'SWAN directional bins keyword not found')
-#ifdef USEMPI
-      call halt_program
-#else
-      stop
-#endif
+  if (switch == 1) then
+     wp%f = wp%f
+  else 
+     wp%f = wp%f
   end if
 
-  ! Read ndir, theta
+  ! Read CDIR or NDIR
 
-  read(44,*)ndir
-endif
+  if(xmaster) then
+     read(44,'(a)')rtext
+     if (rtext == 'NDIR  ') then
+        switch = 1
+     elseif (rtext == 'CDIR  ') then
+        switch = 2
+     else
+        call writelog('els','', 'SWAN directional bins keyword not found')
 #ifdef USEMPI
-!Dano call xmpi_bcast(ndir)
+        call halt_program
+#else
+        stop
 #endif
-allocate(wp%theta(ndir))
+     end if
 
-if(xmaster) then
-do i=1,ndir
-    read(44,*)wp%theta(i)
-end do
-endif
+     ! Read ndir, theta
+
+     read(44,*)ndir
+  endif
+#ifdef USEMPI
+  !Dano call xmpi_bcast(ndir)
+#endif
+  allocate(wp%theta(ndir))
+
+  if(xmaster) then
+     do i=1,ndir
+        read(44,*)wp%theta(i)
+     end do
+  endif
 
 #ifdef USEMPI
-!Dano call xmpi_bcast(wp%theta)
+  !Dano call xmpi_bcast(wp%theta)
 #endif
 
-! Convert angles to XBeach angles and radians
+  ! Convert angles to XBeach angles and radians
 
-if (switch == 1) then
-	wp%theta = 270-s%alfa/par%px*180.d0-wp%theta
-else
-    wp%theta = wp%theta-dthetaS_XB                  ! dthetaS_XB is the angle in the degrees to rotate the x-axis in SWAN to the
-                                                    ! x-axis in XBeach (in Cartesian terms) (Have Fun :-))
-end if
+  if (switch == 1) then
+     wp%theta = 270-s%alfa/par%px*180.d0-wp%theta
+  else
+     wp%theta = wp%theta-dthetaS_XB                  ! dthetaS_XB is the angle in the degrees to rotate the x-axis in SWAN to the
+     ! x-axis in XBeach (in Cartesian terms) (Have Fun :-))
+  end if
 
-! Ensure angles are increasing instead of decreasing
-if ((wp%theta(2)-wp%theta(1))<0) then
-    call flipv(wp%theta,size(wp%theta))
-    flipped=1
-end if
+  ! Ensure angles are increasing instead of decreasing
+  if ((wp%theta(2)-wp%theta(1))<0) then
+     call flipv(wp%theta,size(wp%theta))
+     flipped=1
+  end if
 
-nt = 0
-Ashift = 0
-! Make sure that all angles are in -180 to 180 degrees
-if(minval(wp%theta)<-180)then
+  nt = 0
+  Ashift = 0
+  ! Make sure that all angles are in -180 to 180 degrees
+  if(minval(wp%theta)<-180)then
+     allocate (temp(ndir))
+     Ashift=-1.d0
+     temp=0
+     do i=1,ndir
+        if (wp%theta(i)<-180) then
+           wp%theta(i)=wp%theta(i)+360.0d0
+           nt = nt+1
+        endif
+     enddo
+     !temp(1:ndir-nt) = wp%theta(nt+1:ndir)
+     !temp(ndir-nt+1:ndir) = wp%theta(1:nt)
+     !  temp(1:nt) = wp%theta(ndir-nt+1:ndir)
+     !  temp(nt+1:ndir) = wp%theta(1:ndir-nt)
+     temp(1:ndir-nt)=wp%theta(nt+1:ndir)
+     temp(ndir-nt+1:ndir)=wp%theta(1:nt)
+     wp%theta=temp
+     deallocate(temp)
+  elseif(maxval(wp%theta)>180.0d0)then
+     allocate(temp(ndir))
+     Ashift=1.0d0
+     temp=0
+     do i=1,ndir
+        if (wp%theta(i)>180.0d0) then
+           wp%theta(i)=wp%theta(i)-360.0d0
+           nt = nt+1
+        endif
+     enddo
+     !temp(1:ndir-nt) = wp%theta(nt+1:ndir)
+     !temp(ndir-nt+1:ndir) = wp%theta(1:nt)
+     !temp(1:nt) = wp%theta(ndir-nt+1:ndir)
+     !temp(nt+1:ndir) = wp%theta(1:ndir-nt)
+     temp(nt+1:ndir)=wp%theta(1:ndir-nt)
+     temp(1:nt)=wp%theta(ndir-nt+1:ndir)
+     wp%theta=temp
+     deallocate(temp)
+  endif
+
+  wp%theta=wp%theta*par%px/180
+  wp%dang=wp%theta(2)-wp%theta(1)
+
+  ! Skip Quant, next line, read VaDens or EnDens
+  if(xmaster) then
+     read(44,'(a)')rtext
+     read(44,'(a)')rtext
+     read(44,'(a)')rtext
+     if (rtext == 'VaDens') then
+        switch = 1
+     elseif (rtext == 'EnDens') then
+        switch = 2
+     else
+        call writelog('sle','', 'SWAN VaDens/EnDens keyword not found')
+#ifdef USEMPI
+        call halt_program
+#else
+        stop
+#endif
+     end if
+  endif
+#ifdef USEMPI
+  !Dano call xmpi_bcast(switch)
+#endif
+
+  if(xmaster) then
+     read(44,'(a)')rtext
+     read(44,*)exc
+  endif
+
+#ifdef USEMPI
+  !Dano call xmpi_bcast(rtext)
+  !Dano call xmpi_bcast(exc)
+#endif
+
+  if(xmaster) then
+     i=0
+     ! Find FACTOR keyword
+     do while (i==0)
+        read(44,'(a)')rtext
+        if (rtext == 'FACTOR') then
+           i=1
+        elseif (rtext == 'ZERO  ') then
+           call writelog('lse','','Zero energy density input for this point')
+#ifdef USEMPI
+           call halt_program
+#else
+           stop
+#endif
+        elseif (rtext == 'NODATA') then
+           call writelog('lse','','SWAN file has no data for this point')
+#ifdef USEMPI
+           call halt_program
+#else
+           stop
+#endif
+        end if
+     end do
+     read(44,*)factor
+  endif
+
+#ifdef USEMPI
+  !Dano call xmpi_bcast(factor)
+#endif
+  ! Read S_array
+  allocate(wp%S_array(nfreq,ndir))
+
+  if(xmaster) then
+     do i=1,nfreq
+        read(44,*)wp%S_array(i,:)
+     end do
+  endif
+
+#ifdef USEMPI
+  !Dano call xmpi_bcast(wp%S_array)
+#endif
+
+  where (wp%S_array == exc) wp%S_array =0
+
+  ! If angles were decreasing, flip S_array as also dir is flipped
+  if (flipped == 1) then
+     flipped=2
+     call flipa(wp%S_array,nfreq,ndir,flipped)
+  end if
+
+
+  ! Make sure that all wave variance is between -180 to 180 degrees range
+  if(Ashift==-1)then
+     allocate(tempA(nfreq,ndir))
+     tempA=0
+     !   tempA(:,ndir-nt+1:ndir) = wp%S_array(:,1:nt)
+     !   tempA(:,1:ndir-nt) = wp%S_array(:,nt+1:ndir)
+     !    tempA(:,1:nt) = wp%S_array(:,ndir-nt+1:ndir)
+     !    tempA(:,nt+1:ndir) = wp%S_array(:,1:ndir-nt)
+     tempA(:,1:ndir-nt)=wp%S_array(:,nt+1:ndir)
+     tempA(:,ndir-nt+1:ndir)=wp%S_array(:,1:nt)
+     wp%S_array=tempA
+     deallocate(tempA)
+  elseif (Ashift==1) then
+     allocate(tempA(nfreq,ndir))
+     tempA=0
+     !   tempA(:,ndir-nt+1:ndir) = wp%S_array(:,1:nt)
+     !   tempA(:,1:ndir-nt) = wp%S_array(:,nt+1:ndir)
+     !    tempA(:,1:nt) = wp%S_array(:,ndir-nt+1:ndir)
+     !    tempA(:,nt+1:ndir) = wp%S_array(:,1:ndir-nt)
+     !	tempA(:,nt+1:ndir)=wp%S_array(:,1:ndir-nt)
+     !    tempA(:,ndir-nt+1:ndir)=wp%S_array(:,1:nt)
+     tempA(:,nt+1:ndir)=wp%S_array(:,1:ndir-nt)
+     tempA(:,1:nt)=wp%S_array(:,ndir-nt+1:ndir)
+     wp%S_array=tempA
+     deallocate(tempA)
+  endif
+
+  wp%S_array=wp%S_array*factor
+
+  if(xmaster) then
+     close(44)                               ! Finished reading file
+  endif
+
+  ! Convert to m2/Hz/rad
+
+  wp%S_array=wp%S_array*180/par%px
+
+  ! Convert from energy density to variance density
+
+  if (switch == 2) then
+     wp%S_array=wp%S_array/(par%rho*par%g)
+  end if
+
+  allocate(wp%Sf(nfreq))  
+  wp%Sf = sum(wp%S_array, DIM = 2)*wp%dang
+
+  ! Find main wave direction
   allocate (temp(ndir))
-  Ashift=-1.d0
-  temp=0
-  do i=1,ndir
-      if (wp%theta(i)<-180) then
-          wp%theta(i)=wp%theta(i)+360.0d0
-          nt = nt+1
-      endif
-  enddo
-  !temp(1:ndir-nt) = wp%theta(nt+1:ndir)
-  !temp(ndir-nt+1:ndir) = wp%theta(1:nt)
-!  temp(1:nt) = wp%theta(ndir-nt+1:ndir)
-!  temp(nt+1:ndir) = wp%theta(1:ndir-nt)
-  temp(1:ndir-nt)=wp%theta(nt+1:ndir)
-  temp(ndir-nt+1:ndir)=wp%theta(1:nt)
-  wp%theta=temp
+  temp=sum(wp%S_array, DIM = 1)
+  i=maxval(maxloc(temp))
+  wp%mainang=wp%theta(i)
   deallocate(temp)
-elseif(maxval(wp%theta)>180.0d0)then
-  allocate(temp(ndir))
-  Ashift=1.0d0
-  temp=0
-  do i=1,ndir
-      if (wp%theta(i)>180.0d0) then
-          wp%theta(i)=wp%theta(i)-360.0d0
-          nt = nt+1
-      endif
-  enddo
-  !temp(1:ndir-nt) = wp%theta(nt+1:ndir)
-  !temp(ndir-nt+1:ndir) = wp%theta(1:nt)
-  !temp(1:nt) = wp%theta(ndir-nt+1:ndir)
-  !temp(nt+1:ndir) = wp%theta(1:ndir-nt)
-  temp(nt+1:ndir)=wp%theta(1:ndir-nt)
-  temp(1:nt)=wp%theta(ndir-nt+1:ndir)
-  wp%theta=temp
-  deallocate(temp)
-endif
 
-wp%theta=wp%theta*par%px/180
-wp%dang=wp%theta(2)-wp%theta(1)
-
-! Skip Quant, next line, read VaDens or EnDens
-if(xmaster) then
-  read(44,'(a)')rtext
-  read(44,'(a)')rtext
-  read(44,'(a)')rtext
-  if (rtext == 'VaDens') then
-      switch = 1
-  elseif (rtext == 'EnDens') then
-      switch = 2
-  else
-      call writelog('sle','', 'SWAN VaDens/EnDens keyword not found')
-#ifdef USEMPI
-      call halt_program
-#else
-      stop
-#endif
-  end if
-endif
-#ifdef USEMPI
-!Dano call xmpi_bcast(switch)
-#endif
-
-if(xmaster) then
-  read(44,'(a)')rtext
-  read(44,*)exc
-endif
-
-#ifdef USEMPI
-!Dano call xmpi_bcast(rtext)
-!Dano call xmpi_bcast(exc)
-#endif
-
-if(xmaster) then
-  i=0
-  ! Find FACTOR keyword
-  do while (i==0)
-      read(44,'(a)')rtext
-      if (rtext == 'FACTOR') then
-          i=1
-      elseif (rtext == 'ZERO  ') then
-          call writelog('lse','','Zero energy density input for this point')
-#ifdef USEMPI
-          call halt_program
-#else
-          stop
-#endif
-      elseif (rtext == 'NODATA') then
-          call writelog('lse','','SWAN file has no data for this point')
-#ifdef USEMPI
-          call halt_program
-#else
-          stop
-#endif
-      end if
-  end do
-  read(44,*)factor
-endif
-
-#ifdef USEMPI
-!Dano call xmpi_bcast(factor)
-#endif
-! Read S_array
-allocate(wp%S_array(nfreq,ndir))
-
-if(xmaster) then
+  allocate (temp(nfreq+1))
+  temp(1)=0
+  temp(2:nfreq)=0.5*wp%f(1:nfreq-1)+0.5*wp%f(2:nfreq)
+  temp(nfreq+1)=wp%f(nfreq)
+  ! Calculate zero-order moment
+  m0=0
+  !m1=0
   do i=1,nfreq
-      read(44,*)wp%S_array(i,:)
+     m0=m0+wp%Sf(i)*(temp(i+1)-temp(i))
+     !    m1=m1+wp%f(i)*wp%Sf(i)*(temp(i+1)-temp(i))
   end do
-endif
+  deallocate (temp)
 
-#ifdef USEMPI
-!Dano call xmpi_bcast(wp%S_array)
-#endif
+  wp%hm0gew=4*sqrt(m0)
+  !par%Trep=1/(m1/m0)
 
-where (wp%S_array == exc) wp%S_array =0
+  call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac)
+  !par%Trep=1.d0/par%Trep
 
-! If angles were decreasing, flip S_array as also dir is flipped
-if (flipped == 1) then
-    flipped=2
-    call flipa(wp%S_array,nfreq,ndir,flipped)
-end if
+  allocate(findline(size(wp%Sf)))
 
-
-! Make sure that all wave variance is between -180 to 180 degrees range
-if(Ashift==-1)then
-    allocate(tempA(nfreq,ndir))
-    tempA=0
-!   tempA(:,ndir-nt+1:ndir) = wp%S_array(:,1:nt)
-!   tempA(:,1:ndir-nt) = wp%S_array(:,nt+1:ndir)
-!    tempA(:,1:nt) = wp%S_array(:,ndir-nt+1:ndir)
-!    tempA(:,nt+1:ndir) = wp%S_array(:,1:ndir-nt)
-    tempA(:,1:ndir-nt)=wp%S_array(:,nt+1:ndir)
-    tempA(:,ndir-nt+1:ndir)=wp%S_array(:,1:nt)
-    wp%S_array=tempA
-    deallocate(tempA)
-elseif (Ashift==1) then
-    allocate(tempA(nfreq,ndir))
-    tempA=0
-!   tempA(:,ndir-nt+1:ndir) = wp%S_array(:,1:nt)
-!   tempA(:,1:ndir-nt) = wp%S_array(:,nt+1:ndir)
-!    tempA(:,1:nt) = wp%S_array(:,ndir-nt+1:ndir)
-!    tempA(:,nt+1:ndir) = wp%S_array(:,1:ndir-nt)
-!	tempA(:,nt+1:ndir)=wp%S_array(:,1:ndir-nt)
-!    tempA(:,ndir-nt+1:ndir)=wp%S_array(:,1:nt)
-	tempA(:,nt+1:ndir)=wp%S_array(:,1:ndir-nt)
-    tempA(:,1:nt)=wp%S_array(:,ndir-nt+1:ndir)
-    wp%S_array=tempA
-    deallocate(tempA)
-endif
-
-wp%S_array=wp%S_array*factor
-
-if(xmaster) then
-  close(44)                               ! Finished reading file
-endif
-
-! Convert to m2/Hz/rad
-
-wp%S_array=wp%S_array*180/par%px
-
-! Convert from energy density to variance density
-
-if (switch == 2) then
-    wp%S_array=wp%S_array/(par%rho*par%g)
-end if
-
-allocate(wp%Sf(nfreq))  
-wp%Sf = sum(wp%S_array, DIM = 2)*wp%dang
-
-! Find main wave direction
-allocate (temp(ndir))
-temp=sum(wp%S_array, DIM = 1)
-i=maxval(maxloc(temp))
-wp%mainang=wp%theta(i)
-deallocate(temp)
-
-allocate (temp(nfreq+1))
-temp(1)=0
-temp(2:nfreq)=0.5*wp%f(1:nfreq-1)+0.5*wp%f(2:nfreq)
-temp(nfreq+1)=wp%f(nfreq)
-! Calculate zero-order moment
-m0=0
-!m1=0
-do i=1,nfreq
-    m0=m0+wp%Sf(i)*(temp(i+1)-temp(i))
-!    m1=m1+wp%f(i)*wp%Sf(i)*(temp(i+1)-temp(i))
-end do
-deallocate (temp)
-
-wp%hm0gew=4*sqrt(m0)
-!par%Trep=1/(m1/m0)
-
-call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac)
-!par%Trep=1.d0/par%Trep
-
-allocate(findline(size(wp%Sf)))
-
-firstp=0
-lastp=0
-call frange(par, wp%Sf,firstp,lastp,findline)
-deallocate(findline)
+  firstp=0
+  lastp=0
+  call frange(par, wp%Sf,firstp,lastp,findline)
+  deallocate(findline)
 
 
 !!!!! ja/ap wp%K=max(100,ceiling(wp%rt*(wp%f(lastp)-wp%f(firstp))+1))
 
-wp%K=ceiling(wp%rt*(wp%f(lastp)-wp%f(firstp))+1)  !!! this has changed
-!wp%K=max(2048,wp%K)
+  wp%K=ceiling(wp%rt*(wp%f(lastp)-wp%f(firstp))+1)  !!! this has changed
+  !wp%K=max(2048,wp%K)
 
-allocate(wp%Dd(ndir))
+  allocate(wp%Dd(ndir))
 
-wp%Dd=sum(wp%S_array, DIM = 1)
+  wp%Dd=sum(wp%S_array, DIM = 1)
 
 end subroutine swanreader
 
@@ -878,419 +872,419 @@ end subroutine vardensreader
 ! --------------------------------------------------------------
 subroutine build_etdir(par,s,wp,h,Ebcfname)
 
-use params
-use math_tools
-use spaceparams
-use interp
-use xmpi_module
-use logging_module
+  use params
+  use math_tools
+  use spaceparams
+  use interp
+  use xmpi_module
+  use logging_module
 
-IMPLICIT NONE
+  IMPLICIT NONE
 
-! Input / output variables
-type(parameters), INTENT(IN)            :: par
-type(waveparameters), INTENT(INOUT)     :: wp
-type(spacepars), INTENT(IN)             :: s
-real*8, INTENT(IN)                      :: h
-character(len=*), INTENT(IN)            :: Ebcfname
+  ! Input / output variables
+  type(parameters), INTENT(IN)            :: par
+  type(waveparameters), INTENT(INOUT)     :: wp
+  type(spacepars), INTENT(IN)             :: s
+  real*8, INTENT(IN)                      :: h
+  character(len=*), INTENT(IN)            :: Ebcfname
 
-! Internal variables
+  ! Internal variables
 
-! Help integers
-integer                                 :: Ns ! Number of theta bins
-integer                                 :: reclen
-logical                                 :: disptext 
+  ! Help integers
+  integer                                 :: Ns ! Number of theta bins
+  integer                                 :: reclen
+  logical                                 :: disptext 
 
-! Counters
-integer                                 :: i, ii, iii, stepf, stepang, index2
-integer                                 :: firstp, lastp, M
+  ! Counters
+  integer                                 :: i, ii, iii, stepf, stepang, index2
+  integer                                 :: firstp, lastp, M
 
-! Nothings
-integer                                 :: F2
-real*8                                  :: pp
+  ! Nothings
+  integer                                 :: F2
+  real*8                                  :: pp
 
-! Help single variables with meaning
-real*8                                  :: TT, kmax
-real*8                                  :: hm0now, s1, s2, modf, modang
-real*8									:: stdeta,stdzeta
+  ! Help single variables with meaning
+  real*8                                  :: TT, kmax
+  real*8                                  :: hm0now, s1, s2, modf, modang
+  real*8                                  :: stdeta,stdzeta
 
-! Help vectors
-integer, dimension(wp%K)                :: Nbin
-real*8,dimension(size(wp%Sf))           :: findline
-real*8,dimension(size(wp%Dd))           :: Dmean, P
-real*8,dimension(wp%K)                  :: P0, k,phase, Sf0, A, Sf0org,S0org
-real*8,dimension(wp%K*2)                                :: randummy
-real*8,dimension(:),allocatable         :: temp, temp2, t, Nbox
-real*8,dimension(1:401)                 :: ktemp, ftemp
+  ! Help vectors
+  integer, dimension(wp%K)                :: Nbin
+  real*8,dimension(size(wp%Sf))           :: findline
+  real*8,dimension(size(wp%Dd))           :: Dmean, P
+  real*8,dimension(wp%K)                  :: P0, k,phase, Sf0, A, Sf0org,S0org
+  real*8,dimension(wp%K*2)                                :: randummy
+  real*8,dimension(:),allocatable         :: temp, temp2, t, Nbox
+  real*8,dimension(1:401)                 :: ktemp, ftemp
 
-! Help arrays
-real*8,dimension(:,:), allocatable      :: D
-real*8,dimension(:,:,:), allocatable    :: zeta, Ampzeta, E_tdir
-real*8,dimension(:,:), allocatable      :: eta, Amp
+  ! Help arrays
+  real*8,dimension(:,:), allocatable      :: D
+  real*8,dimension(:,:,:), allocatable    :: zeta, Ampzeta, E_tdir
+  real*8,dimension(:,:), allocatable      :: eta, Amp
 
-! Complex help variables
-! double complex                          :: ctemp
-! wwvv double complex,dimension(:),allocatable :: Gn, Comptemp
-complex(fftkind),dimension(:),allocatable   :: Gn, Comptemp
+  ! Complex help variables
+  ! double complex                          :: ctemp
+  ! wwvv double complex,dimension(:),allocatable :: Gn, Comptemp
+  complex(fftkind),dimension(:),allocatable   :: Gn, Comptemp
 
-! Check whether maximum frequency is smaller than the Nyquist frequency,
-! otherwise limit the time step to fit this frequency
-pp=maxval(wp%f)*2.d0
-if (wp%dt>(1.d0/pp)) then
-    wp%dt=1.d0/pp
-    if (xmaster) then
+  ! Check whether maximum frequency is smaller than the Nyquist frequency,
+  ! otherwise limit the time step to fit this frequency
+  pp=maxval(wp%f)*2.d0
+  if (wp%dt>(1.d0/pp)) then
+     wp%dt=1.d0/pp
+     if (xmaster) then
         call writelog('ls','(a,f6.4,a)', &
              'Changing dt in wave boundary conditions to satisfy Nyquist condition. New dt = ', &
              wp%dt,' s.')
-    endif
-endif
+     endif
+  endif
 
-! Print message to screen
-if(xmaster) then
-    call writelog('ls','','Calculating wave energy at boundary')
-endif
+  ! Print message to screen
+  if(xmaster) then
+     call writelog('ls','','Calculating wave energy at boundary')
+  endif
 
-! Determine frequencies around peak frequency of one-dimensional
-! non-directional variance density spectrum, based on factor sprdthr, which
-! should be included in the determination of the wave boundary conditions
-findline=0.0d0
-call frange(par,wp%Sf,firstp,lastp,findline)
+  ! Determine frequencies around peak frequency of one-dimensional
+  ! non-directional variance density spectrum, based on factor sprdthr, which
+  ! should be included in the determination of the wave boundary conditions
+  findline=0.0d0
+  call frange(par,wp%Sf,firstp,lastp,findline)
 
-! Determine number of frequencies in discrete variance density spectrum to be
-! included (not equal to wp%K)
-M=sum(findline)
+  ! Determine number of frequencies in discrete variance density spectrum to be
+  ! included (not equal to wp%K)
+  M=sum(findline)
 
-! Define one-dimensional non-directional variance density spectrum array       ! Bas: I guess this is unnecessary
-allocate (temp(size(wp%Sf)))
-temp=1.0d0
+  ! Define one-dimensional non-directional variance density spectrum array       ! Bas: I guess this is unnecessary
+  allocate (temp(size(wp%Sf)))
+  temp=1.0d0
 
-! Define two-dimensional spectrum array to be used to fill with directional
-! spreading information in the next step
-allocate (D(size(findline),size(wp%Dd)))
-D=0.0d0
+  ! Define two-dimensional spectrum array to be used to fill with directional
+  ! spreading information in the next step
+  allocate (D(size(findline),size(wp%Dd)))
+  D=0.0d0
 
-! Copy directional spreading array into two-dimensional spectrum array for each
-! frequency
-do i=1,size(wp%Dd)
-    do ii=1,size(findline)
+  ! Copy directional spreading array into two-dimensional spectrum array for each
+  ! frequency
+  do i=1,size(wp%Dd)
+     do ii=1,size(findline)
         D(ii,i)=temp(ii)*wp%Dd(i)                                              ! Bas: temp(ii) is always unity here
-    end do
-end do                                                                         ! Bas: D is filled with copies of the same row, which is wp%Dd
+     end do
+  end do                                                                         ! Bas: D is filled with copies of the same row, which is wp%Dd
 
-deallocate (temp)
+  deallocate (temp)
 
-! Discard directional spreading information for frequencies that are outside
-! the range around the peak frequency determined by sprdthr
-do i=1,size(wp%Dd)
-    D(:,i)=D(:,i)*findline
-end do                                                                         ! Bas: D is still filled with copies of the same row, but about 90% of the values is zero now
+  ! Discard directional spreading information for frequencies that are outside
+  ! the range around the peak frequency determined by sprdthr
+  do i=1,size(wp%Dd)
+     D(:,i)=D(:,i)*findline
+  end do                                                                         ! Bas: D is still filled with copies of the same row, but about 90% of the values is zero now
 
-! Determine the average contribution of a certain frequency for each direction
-Dmean=sum(D, DIM=1)/M                                                          ! Bas: D is still filled with copies of the same row, averaging in the first dimension thus results in that specific row again, still containing 90% zeros... so, Dmean=wp%Dd*findline
+  ! Determine the average contribution of a certain frequency for each direction
+  Dmean=sum(D, DIM=1)/M                                                          ! Bas: D is still filled with copies of the same row, averaging in the first dimension thus results in that specific row again, still containing 90% zeros... so, Dmean=wp%Dd*findline
 
-! Define number of wave components to be used
-allocate (temp(wp%K))
-temp=(/(i,i=0,wp%K-1)/)
+  ! Define number of wave components to be used
+  allocate (temp(wp%K))
+  temp=(/(i,i=0,wp%K-1)/)
 
-! Select equidistant wave components between the earlier selected range of
-! frequencies around the peak frequency based on sprdthr
-allocate(wp%fgen(wp%K))
-wp%fgen=temp*((wp%f(lastp)-wp%f(firstp))/(wp%K-1))+wp%f(firstp)
-deallocate(temp)
+  ! Select equidistant wave components between the earlier selected range of
+  ! frequencies around the peak frequency based on sprdthr
+  allocate(wp%fgen(wp%K))
+  wp%fgen=temp*((wp%f(lastp)-wp%f(firstp))/(wp%K-1))+wp%f(firstp)
+  deallocate(temp)
 
-! Determine equidistant frequency step size
-wp%df=(wp%fgen(wp%K)-wp%fgen(1))/(dble(wp%K)-1.d0)
-                                                                               ! Avoid leakage
-                                                                               ! Pieter, Jaap and Ap 28/5: wp%fgen=floor(wp%fgen/wp%df)*wp%df taken out because this gives double values of fgen
+  ! Determine equidistant frequency step size
+  wp%df=(wp%fgen(wp%K)-wp%fgen(1))/(dble(wp%K)-1.d0)
+  ! Avoid leakage
+  ! Pieter, Jaap and Ap 28/5: wp%fgen=floor(wp%fgen/wp%df)*wp%df taken out because this gives double values of fgen
 
-! Determine equidistant period step size, which approximately equals wp%rt due
-! to the dependence of wp%K on wp%rt
-TT=1/wp%df                                                                     ! Bas: because of ceiling statement in wp%K definition TT can deviate from wp%rt
+  ! Determine equidistant period step size, which approximately equals wp%rt due
+  ! to the dependence of wp%K on wp%rt
+  TT=1/wp%df                                                                     ! Bas: because of ceiling statement in wp%K definition TT can deviate from wp%rt
 
-! Determine maximum wave number based on maximum frequency and dispersion
-! relation w^2 = g*k*tanh(k*d) and max(tanh(k*d))=1
-kmax=((2*(par%px)*wp%f(lastp))**2)/par%g    
+  ! Determine maximum wave number based on maximum frequency and dispersion
+  ! relation w^2 = g*k*tanh(k*d) and max(tanh(k*d))=1
+  kmax=((2*(par%px)*wp%f(lastp))**2)/par%g    
 
-! Determine frequency array with 400 frequencies corresponding to wave numbers
-! running from 0 to 2*kmax using the dispersion relation w^2 = g*k*tanh(k*d)
-allocate(temp(401))
-temp=(/(i,i=0,400)/)
-ktemp=temp*(kmax/200)
-ftemp=sqrt((par%g)*ktemp*tanh(ktemp*h))/(2*par%px)      
-deallocate (temp)
+  ! Determine frequency array with 400 frequencies corresponding to wave numbers
+  ! running from 0 to 2*kmax using the dispersion relation w^2 = g*k*tanh(k*d)
+  allocate(temp(401))
+  temp=(/(i,i=0,400)/)
+  ktemp=temp*(kmax/200)
+  ftemp=sqrt((par%g)*ktemp*tanh(ktemp*h))/(2*par%px)      
+  deallocate (temp)
 
-! Determine all wave numbers of the selected frequencies around the peak
-! frequency by linear interpolation
-do i=1,size(wp%fgen)
-    call LINEAR_INTERP(ftemp,ktemp,401,wp%fgen(i),pp,F2)
-    k(i)=pp
-end do
+  ! Determine all wave numbers of the selected frequencies around the peak
+  ! frequency by linear interpolation
+  do i=1,size(wp%fgen)
+     call LINEAR_INTERP(ftemp,ktemp,401,wp%fgen(i),pp,F2)
+     k(i)=pp
+  end do
 
-! Define normalization factor for wave variance
-pp=1/(sum(Dmean)*wp%dang)
+  ! Define normalization factor for wave variance
+  pp=1/(sum(Dmean)*wp%dang)
 
-! Determine normalized wave variance for each directional bin to be used as
-! probability density function, so surface is equal to unity
-do i=1,size(wp%theta)
-    P(i)=(sum(Dmean(1:i))-Dmean(i)/2)*wp%dang*pp                                            ! Bas: this is equal to P(i)=sum(Dmean(1:i))/sum(Dmean)
-end do  
+  ! Determine normalized wave variance for each directional bin to be used as
+  ! probability density function, so surface is equal to unity
+  do i=1,size(wp%theta)
+     P(i)=(sum(Dmean(1:i))-Dmean(i)/2)*wp%dang*pp                                            ! Bas: this is equal to P(i)=sum(Dmean(1:i))/sum(Dmean)
+  end do
 
-! Update random seed, if requested
-if (par%random==1) CALL init_seed
+  ! Update random seed, if requested
+  if (par%random==1) CALL init_seed
 
-! Define random number between 0.025 and 0975 for each wave component
-call random_number(randummy)
-P0=randummy(1:wp%K)
-!P0=0.95*P0+0.05/2                                                             ! Bas: do not crop cdf, only needed in Matlab to ensure monotonicity
+  ! Define random number between 0.025 and 0975 for each wave component
+  call random_number(randummy)
+  P0=randummy(1:wp%K)
+  !P0=0.95*P0+0.05/2                                                             ! Bas: do not crop cdf, only needed in Matlab to ensure monotonicity
 
-! Define direction for each wave component based on random number and linear
-! interpolation of the probability density function
-allocate(wp%theta0(wp%K))
-do i=1,size(P0)
-    !call LINEAR_INTERP(P(1:size(P)-1),wp%theta(1:size(P)-1),size(P)-1,P0(i),pp,F2)
-    call LINEAR_INTERP(P(1:size(P)),wp%theta(1:size(P)),size(P),P0(i),pp,F2)   ! Bas: do not crop cdf, only needed in Matlab to ensure monotonicity
-    wp%theta0(i)=pp
-end do
+  ! Define direction for each wave component based on random number and linear
+  ! interpolation of the probability density function
+  allocate(wp%theta0(wp%K))
+  do i=1,size(P0)
+     !call LINEAR_INTERP(P(1:size(P)-1),wp%theta(1:size(P)-1),size(P)-1,P0(i),pp,F2)
+     call LINEAR_INTERP(P(1:size(P)),wp%theta(1:size(P)),size(P),P0(i),pp,F2)   ! Bas: do not crop cdf, only needed in Matlab to ensure monotonicity
+     wp%theta0(i)=pp
+  end do
 
-! Determine number of time steps in wave record and make it even
-F2=nint(TT/wp%dt)                                                              ! Bas: why not simply use nint(wp%rt/wp%dt) ??
-if (mod(F2,2)/=0) then
-    F2=F2+1
-end if
+  ! Determine number of time steps in wave record and make it even
+  F2=nint(TT/wp%dt)                                                              ! Bas: why not simply use nint(wp%rt/wp%dt) ??
+  if (mod(F2,2)/=0) then
+     F2=F2+1
+  end if
 
-! Define time axis based on time steps
-allocate(t(F2))
-do i=1,F2
-    t(i)=wp%dt*i
-end do
+  ! Define time axis based on time steps
+  allocate(t(F2))
+  do i=1,F2
+     t(i)=wp%dt*i
+  end do
 
-! Determine number of time steps in wave record and make it even               ! Bas: redundant with above, use wp%Nr = F2
-wp%Nr=nint(TT/wp%dt)
-if (mod(wp%Nr,2)/=0) then
-    wp%Nr=wp%Nr+1
-end if
+  ! Determine number of time steps in wave record and make it even               ! Bas: redundant with above, use wp%Nr = F2
+  wp%Nr=nint(TT/wp%dt)
+  if (mod(wp%Nr,2)/=0) then
+     wp%Nr=wp%Nr+1
+  end if
 
-! Define a random phase for each wave component based on a subsequent series of
-! random numbers
-phase=randummy(wp%K+1:2*wp%K)
-phase=2*phase*par%px
+  ! Define a random phase for each wave component based on a subsequent series of
+  ! random numbers
+  phase=randummy(wp%K+1:2*wp%K)
+  phase=2*phase*par%px
 
-! Determine variance density spectrum values for all relevant wave components
-! around the peak frequency by interpolation of two-dimensional variance
-! density spectrum array. This is done by looping through the corresponding
-! frequencies and find for each component the two-dimensional
-! frequency/directional bin where it is located
-allocate(wp%S0(wp%K))
-do i=1,size(wp%fgen)
+  ! Determine variance density spectrum values for all relevant wave components
+  ! around the peak frequency by interpolation of two-dimensional variance
+  ! density spectrum array. This is done by looping through the corresponding
+  ! frequencies and find for each component the two-dimensional
+  ! frequency/directional bin where it is located
+  allocate(wp%S0(wp%K))
+  do i=1,size(wp%fgen)
 
-    ! Define frequency indices of frequencies that are equal or larger than the
-    ! currently selected component around the peak frequency
-    allocate(temp(size(wp%f)))
-    allocate(temp2(size(wp%f)))
-    temp2=(/(ii,ii=1,size(wp%f))/)
-    temp=1
-    where (wp%f < wp%fgen(i)) temp=0
-    temp=temp*temp2
-    
-    ! Check whether any indices are defined. If so, select the first selected
-    ! index. Otherwise, select the last but one from all frequencies
-    if (sum(temp)==0) then
+     ! Define frequency indices of frequencies that are equal or larger than the
+     ! currently selected component around the peak frequency
+     allocate(temp(size(wp%f)))
+     allocate(temp2(size(wp%f)))
+     temp2=(/(ii,ii=1,size(wp%f))/)
+     temp=1
+     where (wp%f < wp%fgen(i)) temp=0
+     temp=temp*temp2
+
+     ! Check whether any indices are defined. If so, select the first selected
+     ! index. Otherwise, select the last but one from all frequencies
+     if (sum(temp)==0) then
         stepf=size(wp%f)-1
-    else
+     else
         stepf=max(nint(minval(temp, MASK = temp .gt. 0)-1),1)
-    end if
-    
-    ! Determine relative location of the currently selected component in the
-    ! selected frequency bin
-    modf=(wp%fgen(i)-wp%f(stepf))/(wp%f(stepf+1)-wp%f(stepf))
-    deallocate(temp,temp2)
-    
-    ! Define directional indices of directions that are equal or larger than
-    ! the currently selected component around the peak frequency
-    allocate(temp(size(wp%theta)))
-    allocate(temp2(size(wp%theta)))
-    temp2=(/(ii,ii=1,size(wp%theta))/)
-    temp=1
-    where (wp%theta < wp%theta0(i) ) temp=0
-    temp=temp*temp2
-    
-    ! Check whether any indices are defined. If so, select the first selected
-    ! index. Otherwise, select the first from all directions
-    if (wp%theta0(i)==wp%theta(1)) then
+     end if
+
+     ! Determine relative location of the currently selected component in the
+     ! selected frequency bin
+     modf=(wp%fgen(i)-wp%f(stepf))/(wp%f(stepf+1)-wp%f(stepf))
+     deallocate(temp,temp2)
+
+     ! Define directional indices of directions that are equal or larger than
+     ! the currently selected component around the peak frequency
+     allocate(temp(size(wp%theta)))
+     allocate(temp2(size(wp%theta)))
+     temp2=(/(ii,ii=1,size(wp%theta))/)
+     temp=1
+     where (wp%theta < wp%theta0(i) ) temp=0
+     temp=temp*temp2
+
+     ! Check whether any indices are defined. If so, select the first selected
+     ! index. Otherwise, select the first from all directions
+     if (wp%theta0(i)==wp%theta(1)) then
         stepang=1
-    else
+     else
         stepang=nint(minval(temp, MASK = temp .gt. 0) -1)
-    end if
-    
-    ! Determine relative location of the currently selected component in the
-    ! selected directional bin
-    modang=(wp%theta0(i)-wp%theta(stepang))/(wp%theta(stepang+1)-wp%theta(stepang))
-    deallocate(temp,temp2)
-    
-    ! Determine variance density spectrum values at frequency boundaries of
-    ! selected two-dimensional bin by linear interpolation in the directional
-    ! dimension along these two boundaries
-    s1=(1.d0-modang)*wp%S_array(stepf,stepang)+modang*wp%S_array(stepf,stepang+1)
-    s2=(1.d0-modang)*wp%S_array(stepf+1,stepang)+modang*wp%S_array(stepf+1,stepang+1)
-    
-    ! Determine variance density spectrum value at currently selected component
-    ! around peak frequency by linear interpolation of variance density
-    ! spectrum values at frequency boundaries in frequency direction
-    wp%S0(i)=max(tiny(0.d0),0.00000001d0,(1.d0-modf)*s1+modf*s2)               ! Robert: limit to positive values only in case no energy is drawn
-end do
+     end if
 
-! Determine the variance density spectrum values for all relevant wave
-! components around the peak frequency again, but now using the one-dimensional
-! non-directional variance density spectrum only
-do i=1,size(wp%fgen)
-    call Linear_interp(wp%f,wp%Sf,size(wp%f),wp%fgen(i),pp,F2)
-    Sf0(i)=pp
-end do
-    
-! Determine significant wave height using Hm0 = 4*sqrt(m0) using the
-! one-dimensional non-directional variance density spectrum
-hm0now = 4*sqrt(sum(Sf0)*wp%df)
+     ! Determine relative location of the currently selected component in the
+     ! selected directional bin
+     modang=(wp%theta0(i)-wp%theta(stepang))/(wp%theta(stepang+1)-wp%theta(stepang))
+     deallocate(temp,temp2)
 
-! Backup original spectra just calculated
-Sf0org=Sf0
-S0org=wp%S0
+     ! Determine variance density spectrum values at frequency boundaries of
+     ! selected two-dimensional bin by linear interpolation in the directional
+     ! dimension along these two boundaries
+     s1=(1.d0-modang)*wp%S_array(stepf,stepang)+modang*wp%S_array(stepf,stepang+1)
+     s2=(1.d0-modang)*wp%S_array(stepf+1,stepang)+modang*wp%S_array(stepf+1,stepang+1)
 
-! Correct spectra for wave height
-wp%S0 = (wp%hm0gew/hm0now)**2*wp%S0                                            ! Robert: back on ?
-Sf0 = (wp%hm0gew/hm0now)**2*Sf0                                                ! Robert: back on ?
+     ! Determine variance density spectrum value at currently selected component
+     ! around peak frequency by linear interpolation of variance density
+     ! spectrum values at frequency boundaries in frequency direction
+     wp%S0(i)=max(tiny(0.d0),0.00000001d0,(1.d0-modf)*s1+modf*s2)               ! Robert: limit to positive values only in case no energy is drawn
+  end do
 
-! Determine directional step size
-allocate(wp%dthetafin(wp%K))
-wp%dthetafin = Sf0/wp%S0
+  ! Determine the variance density spectrum values for all relevant wave
+  ! components around the peak frequency again, but now using the one-dimensional
+  ! non-directional variance density spectrum only
+  do i=1,size(wp%fgen)
+     call Linear_interp(wp%f,wp%Sf,size(wp%f),wp%fgen(i),pp,F2)
+     Sf0(i)=pp
+  end do
 
-! Determine amplitude of components from two-dimensional variance density
-! spectrum using Var = 1/2*a^2
-A = sqrt(2*wp%S0*wp%df*wp%dthetafin)    
+  ! Determine significant wave height using Hm0 = 4*sqrt(m0) using the
+  ! one-dimensional non-directional variance density spectrum
+  hm0now = 4*sqrt(sum(Sf0)*wp%df)
 
-! Restore original spectra just calculated
-Sf0=Sf0org
-wp%S0=S0org
+  ! Backup original spectra just calculated
+  Sf0org=Sf0
+  S0org=wp%S0
 
-! Allocate Fourier coefficients for each y-position at the seaside border and
-! each time step
-allocate(wp%CompFn(wp%Npy,wp%Nr))
-wp%CompFn=0.d0
+  ! Correct spectra for wave height
+  wp%S0 = (wp%hm0gew/hm0now)**2*wp%S0                                            ! Robert: back on ?
+  Sf0 = (wp%hm0gew/hm0now)**2*Sf0                                                ! Robert: back on ?
 
-! Determine indices of relevant wave components around peak frequencies in
-! Fourier transform result
-allocate(wp%index_vector(wp%K))
-wp%index_vector = floor(wp%f(firstp)/wp%df)+1+nint((wp%fgen-wp%f(firstp))/wp%df)    ! Bas: too complex ?? 1+nint((wp%fgen-wp%f(firstp))/wp%df) equals 1:size(wp%fgen)
+  ! Determine directional step size
+  allocate(wp%dthetafin(wp%K))
+  wp%dthetafin = Sf0/wp%S0
 
-! Determine first half of complex Fourier coefficients of relevant wave
-! components for first y-coordinate using random phase and amplitudes from
-! sampled spectrum until Nyquist frequency. The amplitudes are represented in a
-! two-sided spectrum, which results in the factor 1/2.
-do i=1,wp%K
-    wp%CompFn(1,wp%index_vector(i)) = A(i)/2*exp(par%compi*phase(i))           ! Bas: wp%index_vector used in time dimension because t=j*dt in frequency space
-enddo
+  ! Determine amplitude of components from two-dimensional variance density
+  ! spectrum using Var = 1/2*a^2
+  A = sqrt(2*wp%S0*wp%df*wp%dthetafin)    
 
-! Determine Fourier coefficients beyond Nyquist frequency (equal to
-! coefficients at negative frequency axis) of relevant wave components for
-! first y-coordinate by mirroring
-allocate(Comptemp(size(wp%CompFn(1,wp%Nr/2+2:wp%Nr))))                         ! Bas: too complex ?? size(wp%CompFn(1,wp%Nr/2+2:wp%Nr)) equals (1,size(wp%Nr)/2-2)
-Comptemp = conjg(wp%CompFn(1,2:wp%Nr/2))
-call flipiv(Comptemp,size(Comptemp))
-wp%CompFn(1,wp%Nr/2+2:wp%Nr)=Comptemp
+  ! Restore original spectra just calculated
+  Sf0=Sf0org
+  wp%S0=S0org
 
-! Determine Fourier coefficients for all other y-coordinates along seaside
-! border in the same manner
-do index2=2,wp%Npy
-    wp%CompFn(index2,wp%index_vector)=wp%CompFn(1,wp%index_vector)*exp(-par%compi*k*dsin(wp%theta0)*s%yz(index2))
-    Comptemp = conjg(wp%CompFn(index2,2:wp%Nr/2))
-    call flipiv(Comptemp,size(Comptemp))
-    wp%CompFn(index2,wp%Nr/2+2:wp%Nr)=Comptemp
-end do
+  ! Allocate Fourier coefficients for each y-position at the seaside border and
+  ! each time step
+  allocate(wp%CompFn(wp%Npy,wp%Nr))
+  wp%CompFn=0.d0
 
-deallocate(Comptemp)
+  ! Determine indices of relevant wave components around peak frequencies in
+  ! Fourier transform result
+  allocate(wp%index_vector(wp%K))
+  wp%index_vector = floor(wp%f(firstp)/wp%df)+1+nint((wp%fgen-wp%f(firstp))/wp%df)    ! Bas: too complex ?? 1+nint((wp%fgen-wp%f(firstp))/wp%df) equals 1:size(wp%fgen)
 
-! Determine directional bins in computation (not spectrum) ensuring that
-! s%thetamax is included in the range
-Ns=s%ntheta
-!allocate(temp(Ns+1))
-!temp=(/(i,i=0,Ns)/)
-!temp(Ns+1)=temp(Ns+1)+epsilon(1.d0)          
-allocate(Nbox(Ns+1))
-do i=1,Ns+1
-   Nbox(i)=s%thetamin+(i-1)*s%dtheta
-enddo
-!deallocate (temp)
+  ! Determine first half of complex Fourier coefficients of relevant wave
+  ! components for first y-coordinate using random phase and amplitudes from
+  ! sampled spectrum until Nyquist frequency. The amplitudes are represented in a
+  ! two-sided spectrum, which results in the factor 1/2.
+  do i=1,wp%K
+     wp%CompFn(1,wp%index_vector(i)) = A(i)/2*exp(par%compi*phase(i))           ! Bas: wp%index_vector used in time dimension because t=j*dt in frequency space
+  enddo
 
-! Determine computational directional bin for each wave component
-do i=1,size(wp%theta0)
-   do ii=1,Ns
-      if (wp%theta0(i)>=Nbox(ii) .and. wp%theta0(i)<Nbox(ii+1)) then
-	     Nbin(i)=ii
-	  endif
-   enddo
-enddo
+  ! Determine Fourier coefficients beyond Nyquist frequency (equal to
+  ! coefficients at negative frequency axis) of relevant wave components for
+  ! first y-coordinate by mirroring
+  allocate(Comptemp(size(wp%CompFn(1,wp%Nr/2+2:wp%Nr))))                         ! Bas: too complex ?? size(wp%CompFn(1,wp%Nr/2+2:wp%Nr)) equals (1,size(wp%Nr)/2-2)
+  Comptemp = conjg(wp%CompFn(1,2:wp%Nr/2))
+  call flipiv(Comptemp,size(Comptemp))
+  wp%CompFn(1,wp%Nr/2+2:wp%Nr)=Comptemp
 
-!    Nbin(i)=ceiling((wp%theta0(i)-Nbox(1))/(par%dtheta*par%px/180.d0))
-!    
-!    ! Ensure lower bin boundaries to be part of succeeding bin
-!    if (mod((wp%theta0(i)-Nbox(1)),(par%dtheta*par%px/180.d0))==0) then
-!        Nbin(i)=Nbin(i)+1
-!    end if
-!end do
+  ! Determine Fourier coefficients for all other y-coordinates along seaside
+  ! border in the same manner
+  do index2=2,wp%Npy
+     wp%CompFn(index2,wp%index_vector)=wp%CompFn(1,wp%index_vector)*exp(-par%compi*k*dsin(wp%theta0)*s%yz(index2))
+     Comptemp = conjg(wp%CompFn(index2,2:wp%Nr/2))
+     call flipiv(Comptemp,size(Comptemp))
+     wp%CompFn(index2,wp%Nr/2+2:wp%Nr)=Comptemp
+  end do
 
-! Determine highest bin containing energy
-i=(maxval(Nbin))                                                               ! Bas: not used
+  deallocate(Comptemp)
 
-! Add wave components outside computational directional bins to outer bins, if
-! nspr parameter is set to one
-if (par%nspr==1) then
-    do i=1,wp%K
+  ! Determine directional bins in computation (not spectrum) ensuring that
+  ! s%thetamax is included in the range
+  Ns=s%ntheta
+  !allocate(temp(Ns+1))
+  !temp=(/(i,i=0,Ns)/)
+  !temp(Ns+1)=temp(Ns+1)+epsilon(1.d0)          
+  allocate(Nbox(Ns+1))
+  do i=1,Ns+1
+     Nbox(i)=s%thetamin+(i-1)*s%dtheta
+  enddo
+  !deallocate (temp)
+
+  ! Determine computational directional bin for each wave component
+  do i=1,size(wp%theta0)
+     do ii=1,Ns
+        if (wp%theta0(i)>=Nbox(ii) .and. wp%theta0(i)<Nbox(ii+1)) then
+           Nbin(i)=ii
+        endif
+     enddo
+  enddo
+
+  !    Nbin(i)=ceiling((wp%theta0(i)-Nbox(1))/(par%dtheta*par%px/180.d0))
+  !    
+  !    ! Ensure lower bin boundaries to be part of succeeding bin
+  !    if (mod((wp%theta0(i)-Nbox(1)),(par%dtheta*par%px/180.d0))==0) then
+  !        Nbin(i)=Nbin(i)+1
+  !    end if
+  !end do
+
+  ! Determine highest bin containing energy
+  i=(maxval(Nbin))                                                               ! Bas: not used
+
+  ! Add wave components outside computational directional bins to outer bins, if
+  ! nspr parameter is set to one
+  if (par%nspr==1) then
+     do i=1,wp%K
         if (Nbin(i)<=0) then 
-                Nbin(i)=1
+           Nbin(i)=1
         elseif (Nbin(i)>Ns) then
-                Nbin(i)=Ns
+           Nbin(i)=Ns
         endif
         wp%theta0(i)=s%theta(Nbin(i))
-    enddo
-endif
+     enddo
+  endif
 
-deallocate(Nbox)
+  deallocate(Nbox)
 
-! Define time window that gradually increases and decreases energy input over
-! the wave time record according to tanh(fc*t/max(t))^2*tanh(fc*(1-t/max(t)))^2
-allocate(wp%window(size(t)))
-allocate(temp(size(t)))
-temp=t
-where (t>wp%rt) temp=0                                                         ! Bas: skip time steps that exceed wp%rt, might not be necessary when wp%Nr, F2 and t are defined well, see above
-wp%window=1
-wp%window=wp%window*(tanh(192.d0*temp/maxval(temp))**2)*(tanh(192.d0*(1.d0-temp/maxval(temp)))**2)
-!wp%window=wp%window*(tanh(192.d0*t/maxval(t))**2)*(tanh(192.d0*(1.d0-t/maxval(t)))**2)      ! Bas: array t matches wp%rt, so truncating via temp is not necessary anymore
-deallocate(temp)
+  ! Define time window that gradually increases and decreases energy input over
+  ! the wave time record according to tanh(fc*t/max(t))^2*tanh(fc*(1-t/max(t)))^2
+  allocate(wp%window(size(t)))
+  allocate(temp(size(t)))
+  temp=t
+  where (t>wp%rt) temp=0                                                         ! Bas: skip time steps that exceed wp%rt, might not be necessary when wp%Nr, F2 and t are defined well, see above
+  wp%window=1
+  wp%window=wp%window*(tanh(192.d0*temp/maxval(temp))**2)*(tanh(192.d0*(1.d0-temp/maxval(temp)))**2)
+  !wp%window=wp%window*(tanh(192.d0*t/maxval(t))**2)*(tanh(192.d0*(1.d0-t/maxval(t)))**2)      ! Bas: array t matches wp%rt, so truncating via temp is not necessary anymore
+  deallocate(temp)
 
-! Allocate variables for water level exitation and amplitude with and without
-! directional spreading dependent envelope
-allocate(zeta(wp%Npy,wp%Nr,Ns))
-allocate(Ampzeta(wp%Npy,wp%Nr,Ns))
-zeta=0
-Ampzeta=0
+  ! Allocate variables for water level exitation and amplitude with and without
+  ! directional spreading dependent envelope
+  allocate(zeta(wp%Npy,wp%Nr,Ns))
+  allocate(Ampzeta(wp%Npy,wp%Nr,Ns))
+  zeta=0
+  Ampzeta=0
 
-allocate(eta(wp%Npy,wp%Nr))
-allocate(Amp(wp%Npy,wp%Nr))
-eta=0
-Amp=0
+  allocate(eta(wp%Npy,wp%Nr))
+  allocate(Amp(wp%Npy,wp%Nr))
+  eta=0
+  Amp=0
 
-! Calculate wave energy for each computational directional bin
-do ii=1,Ns
+  ! Calculate wave energy for each computational directional bin
+  do ii=1,Ns
 
-    ! Print message to screen
-    if(xmaster) then
+     ! Print message to screen
+     if(xmaster) then
         call writelog('ls','(A,I0,A,I0)','Calculating wave energy for theta bin ',ii,' of ',Ns)
-    endif
-    
-    ! Calculate wave energy for each y-coordinate along seaside boundary for
-    ! current computational directional bin
-	disptext = .true.
-    do index2=1,wp%Npy
-        
+     endif
+
+     ! Calculate wave energy for each y-coordinate along seaside boundary for
+     ! current computational directional bin
+     disptext = .true.
+     do index2=1,wp%Npy
+
         ! Select wave components that are in the current computational
         ! directional bin
         allocate(Gn(wp%Nr))
@@ -1298,141 +1292,141 @@ do ii=1,Ns
         allocate(temp(size(Nbin)))
         temp=0
         where (Nbin==ii)
-            temp=1.
+           temp=1.
         end where
-        
+
         ! Determine number of wave components that are in the current
         ! computational directional bin
         F2=nint(sum(temp))
-        
+
         ! Check whether any wave components are in the current computational
         ! directional bin
         if (F2/=0) then
 
-            ! Determine for each wave component in the current computational
-            ! directional bin it's index in the Fourier coefficients array
-            ! ordered from hight to low frequency
-            allocate(temp2(F2))
-            temp2=0
-            do i=1,F2
-                iii=maxval(maxloc(temp))
-                temp(iii)=0
-                temp2(i)=wp%index_vector(iii)
-            end do
-            
-            ! Determine Fourier coefficients of all wave components for current
-            ! y-coordinate in the current computational directional bin
-            Gn(int(temp2))=wp%CompFn(index2,int(temp2))
-            deallocate(temp2)
-            allocate(Comptemp(size(Gn(wp%Nr/2+2:wp%Nr))))
-            Comptemp = conjg(Gn(2:wp%Nr/2))
-            call flipiv(Comptemp,size(Comptemp))
-            Gn(wp%Nr/2+2:wp%Nr)=Comptemp
-            deallocate(Comptemp)
+           ! Determine for each wave component in the current computational
+           ! directional bin it's index in the Fourier coefficients array
+           ! ordered from hight to low frequency
+           allocate(temp2(F2))
+           temp2=0
+           do i=1,F2
+              iii=maxval(maxloc(temp))
+              temp(iii)=0
+              temp2(i)=wp%index_vector(iii)
+           end do
 
-            ! Inverse Discrete Fourier transformation to transform back to time
-            ! domain from frequency domain
-            allocate(Comptemp(size(Gn)))
-            Comptemp=Gn
-            F2=0
-            Comptemp=fft(Comptemp,inv=.true.,stat=F2)
-            
-            ! Scale result
-            Comptemp=Comptemp/sqrt(real(size(Comptemp)))
+           ! Determine Fourier coefficients of all wave components for current
+           ! y-coordinate in the current computational directional bin
+           Gn(int(temp2))=wp%CompFn(index2,int(temp2))
+           deallocate(temp2)
+           allocate(Comptemp(size(Gn(wp%Nr/2+2:wp%Nr))))
+           Comptemp = conjg(Gn(2:wp%Nr/2))
+           call flipiv(Comptemp,size(Comptemp))
+           Gn(wp%Nr/2+2:wp%Nr)=Comptemp
+           deallocate(Comptemp)
 
-            ! Superimpose gradual increase and decrease of energy input for
-            ! current y-coordinate and computational diretional bin on
-            ! instantaneous water level excitation
-            zeta(index2,:,ii)=dble(Comptemp*wp%Nr)*wp%window
-            Comptemp=zeta(index2,:,ii)
+           ! Inverse Discrete Fourier transformation to transform back to time
+           ! domain from frequency domain
+           allocate(Comptemp(size(Gn)))
+           Comptemp=Gn
+           F2=0
+           Comptemp=fft(Comptemp,inv=.true.,stat=F2)
 
-            ! Hilbert tranformation to determine envelope for each directional ! Bas: should be located after par%oldwbc==1
-            ! bin seperately
-            call hilbert(Comptemp,size(Comptemp))
-			
-			! Check whether the old or new type of wave boundary conditions
-			! should be used
-            if (par%oldwbc==1) then
-                ! Determine amplitude of water level envelope by calculating
-                ! the absolute value of the complex wave envelope descriptions
-                Ampzeta(index2,:,ii)=abs(Comptemp)
-			else
-                ! Integrate instantaneous water level excitation of wave
-                ! components over directions
-                eta(index2,:) = sum(zeta(index2,:,:),2)
-                Comptemp=eta(index2,:)
-                
-                ! Hilbert transformation to determine envelope of all total
-                ! non-directional wave components
-                call hilbert(Comptemp,size(Comptemp))
-                
-                ! Determine amplitude of water level envelope by calculating
-                ! the absolute value of the complex wave envelope descriptions
-                Amp(index2,:)=abs(Comptemp)
-                
-                ! Calculate standard deviations of directional and
-                ! non-directional instantaneous water level excitation of all
-                ! wave components to be used as weighing factor
-                stdzeta = sqrt(sum(zeta(index2,:,ii)**2)/(size(zeta(index2,:,ii)-1)))
-                stdeta = sqrt(sum(eta(index2,:)**2)/(size(eta(index2,:)-1)))
-                
-                ! Calculate amplitude of directional wave envelope
-                Ampzeta(index2,:,ii)= Amp(index2,:)*stdzeta/stdeta    
-			endif
-			
-			! Print status message to screen
-            if(xmaster) then
-                if (F2/=0) then
-                    call writelog('ls','(A,I0,A,I0,A,I0)','Y-point ',index2,' of ',wp%Npy,' done. Error code: ',F2)
-                else
-                    call writelog('s','(A,I0,A,I0,A)','Y-point ',index2,' of ',wp%Npy,' done.')
-                end if          
-            endif
-            
-            deallocate(Comptemp)
+           ! Scale result
+           Comptemp=Comptemp/sqrt(real(size(Comptemp)))
+
+           ! Superimpose gradual increase and decrease of energy input for
+           ! current y-coordinate and computational diretional bin on
+           ! instantaneous water level excitation
+           zeta(index2,:,ii)=dble(Comptemp*wp%Nr)*wp%window
+           Comptemp=zeta(index2,:,ii)
+
+           ! Hilbert tranformation to determine envelope for each directional ! Bas: should be located after par%oldwbc==1
+           ! bin seperately
+           call hilbert(Comptemp,size(Comptemp))
+
+           ! Check whether the old or new type of wave boundary conditions
+           ! should be used
+           if (par%oldwbc==1) then
+              ! Determine amplitude of water level envelope by calculating
+              ! the absolute value of the complex wave envelope descriptions
+              Ampzeta(index2,:,ii)=abs(Comptemp)
+           else
+              ! Integrate instantaneous water level excitation of wave
+              ! components over directions
+              eta(index2,:) = sum(zeta(index2,:,:),2)
+              Comptemp=eta(index2,:)
+
+              ! Hilbert transformation to determine envelope of all total
+              ! non-directional wave components
+              call hilbert(Comptemp,size(Comptemp))
+
+              ! Determine amplitude of water level envelope by calculating
+              ! the absolute value of the complex wave envelope descriptions
+              Amp(index2,:)=abs(Comptemp)
+
+              ! Calculate standard deviations of directional and
+              ! non-directional instantaneous water level excitation of all
+              ! wave components to be used as weighing factor
+              stdzeta = sqrt(sum(zeta(index2,:,ii)**2)/(size(zeta(index2,:,ii)-1)))
+              stdeta = sqrt(sum(eta(index2,:)**2)/(size(eta(index2,:)-1)))
+
+              ! Calculate amplitude of directional wave envelope
+              Ampzeta(index2,:,ii)= Amp(index2,:)*stdzeta/stdeta    
+           endif
+
+           ! Print status message to screen
+           if(xmaster) then
+              if (F2/=0) then
+                 call writelog('ls','(A,I0,A,I0,A,I0)','Y-point ',index2,' of ',wp%Npy,' done. Error code: ',F2)
+              else
+                 call writelog('s','(A,I0,A,I0,A)','Y-point ',index2,' of ',wp%Npy,' done.')
+              end if
+           endif
+
+           deallocate(Comptemp)
         else
-            ! Current computational directional bin does not contain any wave
-            ! components, so print message to screen
-            if(xmaster) then
-			    if (disptext) then
-                   call writelog('ls','(A,I0,A)','Theta bin ',ii,' empty at this point. Continuing to next point')
-				   disptext = .false.
-			    endif
-            endif
+           ! Current computational directional bin does not contain any wave
+           ! components, so print message to screen
+           if(xmaster) then
+              if (disptext) then
+                 call writelog('ls','(A,I0,A)','Theta bin ',ii,' empty at this point. Continuing to next point')
+                 disptext = .false.
+              endif
+           endif
         end if
 
         deallocate(temp)
         deallocate(Gn)
-    end do
-end do
+     end do
+  end do
 
-! Print message to screen
-if(xmaster) then
-    call writelog('ls','','writing wave energy to ',trim(Ebcfname),' ...')
-endif
+  ! Print message to screen
+  if(xmaster) then
+     call writelog('ls','','writing wave energy to ',trim(Ebcfname),' ...')
+  endif
 
-! Determine energy distribution over y-coordinates, computational directional
-! bins and time using E = 1/2*rho*g*a^2
-allocate(E_tdir(wp%Npy,wp%Nr,Ns))
-E_tdir=0.0d0
-E_tdir=0.5d0*(par%rho)*(par%g)*Ampzeta**2
-E_tdir=E_tdir/s%dtheta
+  ! Determine energy distribution over y-coordinates, computational directional
+  ! bins and time using E = 1/2*rho*g*a^2
+  allocate(E_tdir(wp%Npy,wp%Nr,Ns))
+  E_tdir=0.0d0
+  E_tdir=0.5d0*(par%rho)*(par%g)*Ampzeta**2
+  E_tdir=E_tdir/s%dtheta
 
-! Write energy distribution to BCF file
-if(xmaster) then
-    inquire(iolength=reclen) 1.d0
-    reclen=reclen*(wp%Npy)*(Ns)
-    open(12,file=Ebcfname,form='unformatted',access='direct',recl=reclen)
-    do i=1,wp%Nr+4                                                             ! Bas: why add 4 ??
+  ! Write energy distribution to BCF file
+  if(xmaster) then
+     inquire(iolength=reclen) 1.d0
+     reclen=reclen*(wp%Npy)*(Ns)
+     open(12,file=Ebcfname,form='unformatted',access='direct',recl=reclen)
+     do i=1,wp%Nr+4                                                             ! Bas: why add 4 ??
         write(12,rec=i)E_tdir(:,min(i,wp%Nr),:)
-    end do
-    close(12)
-    call writelog('sl','','file done')
-endif
+     end do
+     close(12)
+     call writelog('sl','','file done')
+  endif
 
-deallocate (D,t,zeta,Ampzeta,E_tdir, Amp, eta)
+  deallocate (D,t,zeta,Ampzeta,E_tdir, Amp, eta)
 
-return
+  return
 
 end subroutine build_etdir
 
@@ -1872,93 +1866,93 @@ end subroutine bc_disper
 
 subroutine checkbcfilelength_local(par,filename)
 
-use params
-use xmpi_module
-use logging_module
+  use params
+  use xmpi_module
+  use logging_module
 
-IMPLICIT NONE
+  IMPLICIT NONE
 
-type(parameters), INTENT(IN)             :: par
-character*80      :: filename,dummy
-character*8       :: testc
-character*1       :: ch
-integer           :: i,ier=0,nlines,filetype
-real*8            :: t,dt,total,d1,d2,d3,d4,d5
+  type(parameters), INTENT(IN)             :: par
+  character*80      :: filename,dummy
+  character*8       :: testc
+  character*1       :: ch
+  integer           :: i,ier=0,nlines,filetype
+  real*8            :: t,dt,total,d1,d2,d3,d4,d5
 
-ier = 0
-if (xmaster) then
-	open(741,file=filename)
-	i=0
-	do while (ier==0)
-	   read(741,'(a)',iostat=ier)ch
-	   if (ier==0)i=i+1
-	enddo
-	nlines=i
-	rewind(741)    
-		
-	if (  trim(par%instat)=='jons' .or. &
-	      trim(par%instat)=='swan' .or. &
-		  trim(par%instat)=='vardens' &
-		) then 
-		read(741,*)testc
-		if (testc=='FILELIST') then
-			filetype = 1
-			nlines=nlines-1
-		else
-			filetype = 0
-		endif
-	elseif (trim(par%instat)=='stat_table' .or. trim(par%instat)=='jons_table') then
+  ier = 0
+  if (xmaster) then
+     open(741,file=filename)
+     i=0
+     do while (ier==0)
+        read(741,'(a)',iostat=ier)ch
+        if (ier==0)i=i+1
+     enddo
+     nlines=i
+     rewind(741)    
+
+     if (  trim(par%instat)=='jons' .or. &
+          trim(par%instat)=='swan' .or. &
+          trim(par%instat)=='vardens' &
+          ) then 
+        read(741,*)testc
+        if (testc=='FILELIST') then
+           filetype = 1
+           nlines=nlines-1
+        else
+           filetype = 0
+        endif
+     elseif (trim(par%instat)=='stat_table' .or. trim(par%instat)=='jons_table') then
         filetype = 2
-	endif
-    
-	total=0.d0
-	i=0
-	select case (filetype)
-	    case(0)
-			if (par%morfacopt==1) then
-			   total=2.d0*par%tstop*max(par%morfac,1.d0)
-			else
-			   total=2.d0*par%tstop
-            endif
-		case(1)
-		    if (par%morfacopt==1) then
-			   do while (total<par%tstop*max(par%morfac,1.d0) .and. i<nlines)
-			      read(741,*)t,dt,dummy
-				  total=total+t
-				  i=i+1
-			   enddo
-			else
-			   do while (total<par%tstop .and. i<nlines)
-			      read(741,*)t,dt,dummy
-				  total=total+t
-				  i=i+1
-			   enddo
-            endif
-		case(2)
-		    if (par%morfacopt==1) then
-			   do while (total<par%tstop*max(par%morfac,1.d0) .and. i<nlines)
-				  read(741,*)d1,d2,d3,d4,d5,t,dt
-				  total=total+t
-				  i=i+1
-			   enddo
-			else
-			   do while (total<par%tstop .and. i<nlines)
-				  read(741,*)d1,d2,d3,d4,d5,t,dt
-				  total=total+t
-				  i=i+1
-			   enddo
-            endif
-	end select
-	if (par%morfacopt==1) total=total/max(par%morfac,1.d0)
-	
-	close(741)
-	if (total<par%tstop) then
-		call writelog('els','','Wave boundary condition time series too short. Stopping calculation')
-        call writelog('els','','tstop = ', par%tstop,' time series = ',total)
-		call halt_program
-	endif
+     endif
 
-endif
+     total=0.d0
+     i=0
+     select case (filetype)
+     case(0)
+        if (par%morfacopt==1) then
+           total=2.d0*par%tstop*max(par%morfac,1.d0)
+        else
+           total=2.d0*par%tstop
+        endif
+     case(1)
+        if (par%morfacopt==1) then
+           do while (total<par%tstop*max(par%morfac,1.d0) .and. i<nlines)
+              read(741,*)t,dt,dummy
+              total=total+t
+              i=i+1
+           enddo
+        else
+           do while (total<par%tstop .and. i<nlines)
+              read(741,*)t,dt,dummy
+              total=total+t
+              i=i+1
+           enddo
+        endif
+     case(2)
+        if (par%morfacopt==1) then
+           do while (total<par%tstop*max(par%morfac,1.d0) .and. i<nlines)
+              read(741,*)d1,d2,d3,d4,d5,t,dt
+              total=total+t
+              i=i+1
+           enddo
+        else
+           do while (total<par%tstop .and. i<nlines)
+              read(741,*)d1,d2,d3,d4,d5,t,dt
+              total=total+t
+              i=i+1
+           enddo
+        endif
+     end select
+     if (par%morfacopt==1) total=total/max(par%morfac,1.d0)
+
+     close(741)
+     if (total<par%tstop) then
+        call writelog('els','','Wave boundary condition time series too short. Stopping calculation')
+        call writelog('els','','tstop = ', par%tstop,' time series = ',total)
+        call halt_program
+     endif
+
+  endif
 
 end subroutine checkbcfilelength_local
 
@@ -1968,6 +1962,7 @@ subroutine init_seed
   ! RANDOM_SEED does not result in a random seed for each compiler, so we better make sure that we have a pseudo random seed.
   ! I am not sure what is a good n
   n = 40
+  i = 1 
   ! not sure what size means here
   ! first call with size
   CALL RANDOM_SEED(size = n)

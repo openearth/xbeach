@@ -374,106 +374,106 @@ end subroutine outputtimes_update
 
 
 subroutine timestep(s,par, tpar, it)
-use params
-use spaceparams
-use xmpi_module
-use logging_module
+  use params
+  use spaceparams
+  use xmpi_module
+  use logging_module
 
-IMPLICIT NONE
+  IMPLICIT NONE
 
-type(spacepars)                     :: s
-type(parameters)                    :: par
-type(timepars)                      :: tpar
-integer                     :: it
-integer                     :: i
-integer                     :: j
-integer                     :: n
-real*8                                          :: mdx,mdy,tny
-real*8,save                         :: dtref
+  type(spacepars)                     :: s
+  type(parameters)                    :: par
+  type(timepars)                      :: tpar
+  integer                     :: it
+  integer                     :: i
+  integer                     :: j
+  integer                     :: n
+  real*8                                          :: mdx,mdy,tny
+  real*8,save                         :: dtref
 
-! Calculate dt based on the Courant number. 
-! Check when we need next output.
-! Next time step will be, min(output times, t+dt) 
+  ! Calculate dt based on the Courant number. 
+  ! Check when we need next output.
+  ! Next time step will be, min(output times, t+dt) 
 
-tny = tiny(0.d0)
+  tny = tiny(0.d0)
 
-! Robert new time step criterion
-if (par%t<=0.0d0) then          ! conservative estimate
-  par%dt    = par%CFL*min(minval(s%xz(2:s%nx+1)-s%xz(1:s%nx)),   &
-                          minval(s%yz(2:s%ny+1)-s%yz(1:s%ny)))   &
-                          /(maxval(s%hh)*par%g)
-  dtref = 0.d0
-else
-  par%dt=huge(0.0d0)      ! Seed dt
-  do j=2,s%ny
-    do i=2,s%nx
-	  if(s%wetz(i,j)==1) then     
-      ! u-points
-      mdx=(s%xz(i+1)-s%xz(i))
-      mdy=min((s%yz(j+1)-s%yz(j)),(s%yz(j)-s%yz(j-1)))
-      ! x-component
-      par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j)),abs(s%ueu(i,j))))) !Jaap: include sediment advection velocities
-      ! y-component
-      par%dt=min(par%dt,mdy/max(tny,(sqrt(par%g*s%hu(i,j))+abs(s%vu(i,j)))))
-      
-      ! v-points
-      mdx=min((s%xz(i+1)-s%xz(i)),(s%xz(i)-s%xz(i-1)))
-      mdy=(s%yz(j+1)-s%yz(j))
-      ! x-component
-      par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j)))))
-      ! y-component
-      par%dt=min(par%dt,mdy/max(tny,max(sqrt(par%g*s%hv(i,j))+abs(s%vv(i,j)),abs(s%vev(i,j))))) !Jaap: include sediment advection velocities
-      
-      mdx = min(s%xz(i+1)-s%xz(i),s%xu(i)-s%xu(i-1))**2
-      mdy = min(s%yz(j+1)-s%yz(j),s%yv(j)-s%yv(j-1))**2
+  ! Robert new time step criterion
+  if (par%t<=0.0d0) then          ! conservative estimate
+     par%dt    = par%CFL*min(minval(s%xz(2:s%nx+1)-s%xz(1:s%nx)),   &
+          minval(s%yz(2:s%ny+1)-s%yz(1:s%ny)))   &
+          /(maxval(s%hh)*par%g)
+     dtref = 0.d0
+  else
+     par%dt=huge(0.0d0)      ! Seed dt
+     do j=2,s%ny
+        do i=2,s%nx
+           if(s%wetz(i,j)==1) then     
+              ! u-points
+              mdx=(s%xz(i+1)-s%xz(i))
+              mdy=min((s%yz(j+1)-s%yz(j)),(s%yz(j)-s%yz(j-1)))
+              ! x-component
+              par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j)),abs(s%ueu(i,j))))) !Jaap: include sediment advection velocities
+              ! y-component
+              par%dt=min(par%dt,mdy/max(tny,(sqrt(par%g*s%hu(i,j))+abs(s%vu(i,j)))))
 
-	  par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
-	  endif
-    enddo
-  enddo
-  par%dt=par%dt*par%CFL*0.5d0
-  if (par%instat(1:4)/='stat') then
-    par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tiny(0.0d0)))
-!    !do j=2,s%ny
-!    !  do i=2,s%nx     
-!    !    do itheta=1,s%ntheta
-!    !      ! Theta points
-!    !      par%dt=min(par%dt,par%CFL*s%dtheta/max(abs(s%ctheta(i,j,itheta)),tiny(0.0d0)))
-!    !    end do
-!    !  end do
-!    !end do
+              ! v-points
+              mdx=min((s%xz(i+1)-s%xz(i)),(s%xz(i)-s%xz(i-1)))
+              mdy=(s%yz(j+1)-s%yz(j))
+              ! x-component
+              par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j)))))
+              ! y-component
+              par%dt=min(par%dt,mdy/max(tny,max(sqrt(par%g*s%hv(i,j))+abs(s%vv(i,j)),abs(s%vev(i,j))))) !Jaap: include sediment advection velocities
+
+              mdx = min(s%xz(i+1)-s%xz(i),s%xu(i)-s%xu(i-1))**2
+              mdy = min(s%yz(j+1)-s%yz(j),s%yv(j)-s%yv(j-1))**2
+
+              par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
+           endif
+        enddo
+     enddo
+     par%dt=par%dt*par%CFL*0.5d0
+     if (par%instat(1:4)/='stat') then
+        par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tiny(0.0d0)))
+        !    !do j=2,s%ny
+        !    !  do i=2,s%nx     
+        !    !    do itheta=1,s%ntheta
+        !    !      ! Theta points
+        !    !      par%dt=min(par%dt,par%CFL*s%dtheta/max(abs(s%ctheta(i,j,itheta)),tiny(0.0d0)))
+        !    !    end do
+        !    !  end do
+        !    !end do
+     end if
+     !To avoid large timestep differences due to output, which can cause instabities
+     !in the hanssen (leapfrog) scheme, we smooth the timestep.
+     !
+     n = ceiling((tpar%tnext-par%t)/par%dt)
+     par%dt = (tpar%tnext-par%t)/n
   end if
-!To avoid large timestep differences due to output, which can cause instabities
-!in the hanssen (leapfrog) scheme, we smooth the timestep.
-!
-  n = ceiling((tpar%tnext-par%t)/par%dt)
-  par%dt = (tpar%tnext-par%t)/n
-end if
 
-if (par%t==par%dt) then
-   dtref = par%dt
-endif 
+  if (par%t==par%dt) then
+     dtref = par%dt
+  endif
 
-if (dtref/par%dt>50.d0) then
-   call writelog('lse','','Quit XBeach since computational time explodes')
-   call halt_program
-endif
+  if (dtref/par%dt>50.d0) then
+     call writelog('lse','','Quit XBeach since computational time explodes')
+     call halt_program
+  endif
 
 
 
 
-! wwvv: In the mpi version par%dt will be calculated different
-! on different processes. So, we take the minimum of all dt's
+  ! wwvv: In the mpi version par%dt will be calculated different
+  ! on different processes. So, we take the minimum of all dt's
 #ifdef USEMPI
-    call xmpi_allreduce(par%dt,MPI_MIN)
+  call xmpi_allreduce(par%dt,MPI_MIN)
 #endif
 
-par%t=par%t+par%dt
+  par%t=par%t+par%dt
 
-if(par%t>=tpar%tnext) then
-    par%dt=par%dt-(par%t-tpar%tnext)
-    par%t=tpar%tnext
-    it=it+1
-end if  
+  if(par%t>=tpar%tnext) then
+     par%dt=par%dt-(par%t-tpar%tnext)
+     par%t=tpar%tnext
+     it=it+1
+  end if
 end subroutine timestep
 end module timestep_module

@@ -31,7 +31,7 @@ integer                        :: rank
 logical                        :: varfound
 logical                        :: endfound
 character(20), dimension(10) :: dims       ! dimensions are maximum 10 length statement, maximum 10 different dimensions
-integer                        :: maxdimlen
+integer                        :: maxdimlen, maxrank
 character(6),parameter         :: sp = '      '
 
 contains
@@ -201,34 +201,36 @@ end subroutine format_fortran
 subroutine counting
   implicit none
   call openinfile
-
+  
   !
   !      just counting
   !
   numvars = 0
   maxnamelen = 0
+  maxrank = 0
   maxdimlen = 0
   inumvars0 = 0
   rnumvars0 = 0
   do
-    call getline
-    if (endfound) then
-      exit
-    endif
-    call getitems
-    if (varfound) then
-      numvars = numvars+1
-      maxnamelen = max(maxnamelen,len_trim(name))
-      if (rank .eq. 0) then
-        if (type(1:1) .eq. 'i' .or. type(1:1) .eq. 'I') then
-          inumvars0=inumvars0+1
-        else
-          rnumvars0=rnumvars0+1
+     call getline
+     if (endfound) then
+        exit
+     endif
+     call getitems
+     if (varfound) then
+        numvars = numvars+1
+        maxnamelen = max(maxnamelen,len_trim(name))
+        maxrank = max(maxrank, rank)
+        if (rank .eq. 0) then
+           if (type(1:1) .eq. 'i' .or. type(1:1) .eq. 'I') then
+              inumvars0=inumvars0+1
+           else
+              rnumvars0=rnumvars0+1
+           endif
         endif
-      endif
-    endif
+     endif
   enddo
-  close(infile)
+close(infile)
 end subroutine counting
 !
 !  construction of spacedecl.gen
@@ -311,6 +313,7 @@ subroutine makemnemonic
   call warning
   write (outfile,'(a,i4)') sp//'  integer, parameter :: numvars    = ', numvars
   write (outfile,'(a,i4)') sp//'  integer, parameter :: maxnamelen = ', maxnamelen
+  write (outfile,'(a,i4)') sp//'  integer, parameter :: maxrank = ', maxrank
 
   do
     call getline
@@ -456,9 +459,8 @@ subroutine makeindextos
         write(outfile,'(a)')      sp//"    t%units= '"//trim(units)//"'"
         write(outfile,'(a)')      sp//"    t%description= '"//trim(description)//"'"
         if (rank>0) then
-           ! Create a pointer to an array containing the dimensions
-           write(outfile,'(a,i3,a)')      sp//"    allocate(t%dimensions(", rank, "))"
-           write(outfile,'(a)', advance='no')      sp//"    t%dimensions= (/ " 
+           ! Stre the dimensions
+           write(outfile,'(a,i3,a)', advance='no')      sp//"    t%dimensions(1:", rank,") = (/ " 
            do i=1,rank
               if (i < rank) then
                  extrastr = ", "

@@ -93,7 +93,7 @@ contains
 
     use xmpi_module, only: Halt_Program 
     use params    
-	use logging_module
+    use logging_module
   
 !--------------------------     ARGUMENTS          ----------------------------
 !
@@ -330,7 +330,6 @@ contains
       real(kind=rKind)    :: p2                        ! auxiliary factor
       real(kind=rKind)    :: p3                        ! auxiliary factor
       real(kind=rKind)    :: rnorm                     ! 2-norm of residual vector
-      real(kind=rKind)    :: rnrm0                     ! 2-norm of initial residual vector
       real(kind=rKind)    :: ueps                      ! minimal accuracy based on machine precision
 
 !

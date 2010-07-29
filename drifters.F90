@@ -13,7 +13,6 @@ subroutine drifter(s,par)
     type(parameters)            :: par
 
     integer                     :: i
-    integer                     :: j
     integer                     :: reclen,wordsize
     integer, save               :: it_drifter=0
     integer, save               :: ndrifter
@@ -22,7 +21,7 @@ subroutine drifter(s,par)
     real*8 , dimension(:)  ,allocatable,save  :: xdrift,ydrift,xwdrift,ywdrift,releasetime,retrievaltime
     logical, save                             :: first_drifter=.true.
     character*14                              :: fname
-    character*78                              :: drifterfile
+    character(256)                            :: drifterfile
     real*8                                    :: facux,facuy,facvx,facvy,udrift,vdrift
 
     include 's.ind'
@@ -46,7 +45,7 @@ if (first_drifter) then
       allocate(releasetime(ndrifter))
       allocate(retrievaltime(ndrifter))
       if (xmaster) then
-	     drifterfile = readkey_name('params.txt','drifterfile',bcast=.false.)
+         drifterfile = readkey_name('params.txt','drifterfile',bcast=.false.)
          open(10,file=drifterfile)
          do i=1,ndrifter
             read(10,*)xwdrift(i),ywdrift(i),releasetime(i),retrievaltime(i)

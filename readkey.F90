@@ -1,435 +1,435 @@
 module readkey_module
 
 contains
-real*8 function readkey_dbl(fname,key,defval,mnval,mxval,bcast,required)
+  real*8 function readkey_dbl(fname,key,defval,mnval,mxval,bcast,required)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
-! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
-! Jaap van Thiel de Vries, Robert McCall                                  !       
-!                                                                         !
-! d.roelvink@unesco-ihe.org                                               !
-! UNESCO-IHE Institute for Water Education                                !
-! P.O. Box 3015                                                           !
-! 2601 DA Delft                                                           !
-! The Netherlands                                                         !
-!                                                                         !
-! This library is free software; you can redistribute it and/or           !
-! modify it under the terms of the GNU Lesser General Public              !
-! License as published by the Free Software Foundation; either            !
-! version 2.1 of the License, or (at your option) any later version.      !
-!                                                                         !
-! This library is distributed in the hope that it will be useful,         !
-! but WITHOUT ANY WARRANTY; without even the implied warranty of          !
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU        !
-! Lesser General Public License for more details.                         !
-!                                                                         !
-! You should have received a copy of the GNU Lesser General Public        !
-! License along with this library; if not, write to the Free Software     !
-! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307     !
-! USA                                                                     !
+    ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
+    ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
+    ! Jaap van Thiel de Vries, Robert McCall                                  !       
+    !                                                                         !
+    ! d.roelvink@unesco-ihe.org                                               !
+    ! UNESCO-IHE Institute for Water Education                                !
+    ! P.O. Box 3015                                                           !
+    ! 2601 DA Delft                                                           !
+    ! The Netherlands                                                         !
+    !                                                                         !
+    ! This library is free software; you can redistribute it and/or           !
+    ! modify it under the terms of the GNU Lesser General Public              !
+    ! License as published by the Free Software Foundation; either            !
+    ! version 2.1 of the License, or (at your option) any later version.      !
+    !                                                                         !
+    ! This library is distributed in the hope that it will be useful,         !
+    ! but WITHOUT ANY WARRANTY; without even the implied warranty of          !
+    ! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU        !
+    ! Lesser General Public License for more details.                         !
+    !                                                                         !
+    ! You should have received a copy of the GNU Lesser General Public        !
+    ! License along with this library; if not, write to the Free Software     !
+    ! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307     !
+    ! USA                                                                     !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! if USEMPI then the master process will read the parameter,
-! this value is subsequently broadcasted to the other processes
+    ! if USEMPI then the master process will read the parameter,
+    ! this value is subsequently broadcasted to the other processes
 
-use xmpi_module
-use logging_module
-implicit none
-character(len=*)  :: fname,key
-character(24)     :: printkey
-real*8            :: defval,mnval,mxval
-logical, intent(in), optional :: bcast,required
+    use xmpi_module
+    use logging_module
+    implicit none
+    character(len=*)  :: fname,key
+    character(24)     :: printkey
+    real*8            :: defval,mnval,mxval
+    logical, intent(in), optional :: bcast,required
 
-character*80   :: value
-real*8         :: value_dbl
-logical        :: lbcast,lrequired
-character(24)  :: fmt
+    character*80   :: value
+    real*8         :: value_dbl
+    logical        :: lbcast,lrequired
+    character(24)  :: fmt
 
-fmt = '(a,a,a,f0.4,a,f0.4)'
+    fmt = '(a,a,a,f0.4,a,f0.4)'
 
-if (present(bcast)) then
- lbcast = bcast
-else
- lbcast = .true.
-endif
-
-if (present(required)) then
- lrequired = required
-else
- lrequired = .false.
-endif
-
-!printkey=key
-printkey(2:24)=key
-printkey(1:1)=' '
-
-if (xmaster) then
- call readkey(fname,key,value)
-
- if (value/=' ') then
-    read(value,'(f10.0)')value_dbl
-    if (value_dbl>mxval) then
-	  call writelog('l','(a,a,f0.4,a,f0.4)',(printkey),' = ',value_dbl,' Warning: value > recommended value of ',mxval)
-      call writelog('s','(a,a,a,f0.4)','Warning: ',trim(printkey),' > recommended value of ',mxval)
-    elseif (value_dbl<mnval) then
-      call writelog('l','(a,a,f0.4,a,f0.4)',(printkey),' = ',value_dbl,' Warning: value < recommended value of ',mnval)
-	  call writelog('s','(a,a,a,f0.4)','Warning: ',trim(printkey),' < recommended value of ',mnval)
+    if (present(bcast)) then
+       lbcast = bcast
     else
-      call writelog('l','(a,a,f0.4)',(printkey),' = ',value_dbl)
+       lbcast = .true.
     endif
- else
-    if (lrequired) then
-       call writelog('lse','','Error: missing required value for parameter ',printkey)
-	   call halt_program
-	else
-       value_dbl=defval
-       call writelog('l','(a,a,f0.4,a)',(printkey),' = ',value_dbl,' (no record found, default value used)')
+
+    if (present(required)) then
+       lrequired = required
+    else
+       lrequired = .false.
     endif
- endif
- ! write to basic params data file
-!  write(pardatfileid,*)'f ',printkey,' ',value_dbl
-endif
+
+    !printkey=key
+    printkey(2:24)=key
+    printkey(1:1)=' '
+
+    if (xmaster) then
+       call readkey(fname,key,value)
+
+       if (value/=' ') then
+          read(value,'(f10.0)')value_dbl
+          if (value_dbl>mxval) then
+             call writelog('l','(a,a,f0.4,a,f0.4)',(printkey),' = ',value_dbl,' Warning: value > recommended value of ',mxval)
+             call writelog('s','(a,a,a,f0.4)','Warning: ',trim(printkey),' > recommended value of ',mxval)
+          elseif (value_dbl<mnval) then
+             call writelog('l','(a,a,f0.4,a,f0.4)',(printkey),' = ',value_dbl,' Warning: value < recommended value of ',mnval)
+             call writelog('s','(a,a,a,f0.4)','Warning: ',trim(printkey),' < recommended value of ',mnval)
+          else
+             call writelog('l','(a,a,f0.4)',(printkey),' = ',value_dbl)
+          endif
+       else
+          if (lrequired) then
+             call writelog('lse','','Error: missing required value for parameter ',printkey)
+             call halt_program
+          else
+             value_dbl=defval
+             call writelog('l','(a,a,f0.4,a)',(printkey),' = ',value_dbl,' (no record found, default value used)')
+          endif
+       endif
+       ! write to basic params data file
+       !  write(pardatfileid,*)'f ',printkey,' ',value_dbl
+    endif
 
 #ifdef USEMPI
- if (lbcast) then
-   call xmpi_bcast(value_dbl)
- endif
+    if (lbcast) then
+       call xmpi_bcast(value_dbl)
+    endif
 #endif
 
-readkey_dbl=value_dbl
-end function readkey_dbl
+    readkey_dbl=value_dbl
+  end function readkey_dbl
 
-function readkey_int(fname,key,defval,mnval,mxval,bcast,required) result (value_int)
-use xmpi_module
-use logging_module
-implicit none
-character*(*)  :: fname,key
-character(24)  :: printkey
-character*80   :: value
-integer*4      :: value_int
-integer*4      :: defval,mnval,mxval
-logical, intent(in), optional :: bcast, required
-logical        :: lbcast,lrequired
-character(24)  :: fmt
+  function readkey_int(fname,key,defval,mnval,mxval,bcast,required) result (value_int)
+    use xmpi_module
+    use logging_module
+    implicit none
+    character*(*)  :: fname,key
+    character(24)  :: printkey
+    character*80   :: value
+    integer*4      :: value_int
+    integer*4      :: defval,mnval,mxval
+    logical, intent(in), optional :: bcast, required
+    logical        :: lbcast,lrequired
+    character(24)  :: fmt
 
-fmt = '(a,a,a,i0,a,i0)'
+    fmt = '(a,a,a,i0,a,i0)'
 
-if (present(bcast)) then
- lbcast = bcast
-else
- lbcast = .true.
-endif
-
-if (present(required)) then
- lrequired = required
-else
- lrequired = .false.
-endif
-
-printkey(2:24)=key
-printkey(1:1)=' '
-if (xmaster) then
- call readkey(fname,key,value)
-
- if (value/=' ') then
-    read(value,'(i80)')value_int
-    if (value_int>mxval) then
-	   call writelog('l',fmt,'Warning: variable ',(printkey),' ',value_int,' > recommended value of ',mxval)
-	   call writelog('s','(a,a,a,i0)','Warning: ',trim(printkey),' > recommended value of ',mxval)
-    elseif (value_int<mnval) then
-	   call writelog('l',fmt,'Warning: variable ',(printkey),' ',value_int,' < recommended value of ',mnval)
-	   call writelog('s','(a,a,a,i0)','Warning: ',trim(printkey),' < recommended value of ',mnval)
+    if (present(bcast)) then
+       lbcast = bcast
     else
-       call writelog('l','(a,a,i0)',(printkey),' = ',value_int)
+       lbcast = .true.
     endif
- else
-    if (lrequired) then
-       call writelog('lse','','Error: missing required value for parameter ',printkey)
-	   call halt_program
-	else
-       value_int=defval
-       call writelog('l','(a,a,i0,a)',(printkey),' = ',value_int,' (no record found, default value used)')
+
+    if (present(required)) then
+       lrequired = required
+    else
+       lrequired = .false.
     endif
- endif
- ! write to basic params data file
-!  write(pardatfileid,*)'i ',printkey,' ',value_int
-endif
+
+    printkey(2:24)=key
+    printkey(1:1)=' '
+    if (xmaster) then
+       call readkey(fname,key,value)
+
+       if (value/=' ') then
+          read(value,'(i80)')value_int
+          if (value_int>mxval) then
+             call writelog('l',fmt,'Warning: variable ',(printkey),' ',value_int,' > recommended value of ',mxval)
+             call writelog('s','(a,a,a,i0)','Warning: ',trim(printkey),' > recommended value of ',mxval)
+          elseif (value_int<mnval) then
+             call writelog('l',fmt,'Warning: variable ',(printkey),' ',value_int,' < recommended value of ',mnval)
+             call writelog('s','(a,a,a,i0)','Warning: ',trim(printkey),' < recommended value of ',mnval)
+          else
+             call writelog('l','(a,a,i0)',(printkey),' = ',value_int)
+          endif
+       else
+          if (lrequired) then
+             call writelog('lse','','Error: missing required value for parameter ',printkey)
+             call halt_program
+          else
+             value_int=defval
+             call writelog('l','(a,a,i0,a)',(printkey),' = ',value_int,' (no record found, default value used)')
+          endif
+       endif
+       ! write to basic params data file
+       !  write(pardatfileid,*)'i ',printkey,' ',value_int
+    endif
 #ifdef USEMPI
- if (lbcast) then
-   call xmpi_bcast(value_int)
- endif
+    if (lbcast) then
+       call xmpi_bcast(value_int)
+    endif
 #endif
 
-end function readkey_int
+  end function readkey_int
 
-function readkey_str(fname,key,defval,nv,nov,allowed,old,bcast,required) result (value_str)
-use xmpi_module
-use logging_module
-implicit none
-character*(*)  :: fname,key,defval
-character(24)  :: value_str
-character*80   :: value
-integer*4      :: nv,nov,i,j
-character(24),dimension(nv) :: allowed
-character(24),dimension(nov):: old
-logical, intent(in), optional :: bcast,required
-logical        :: lbcast,lrequired,passed
-character(24)  :: printkey
+  function readkey_str(fname,key,defval,nv,nov,allowed,old,bcast,required) result (value_str)
+    use xmpi_module
+    use logging_module
+    implicit none
+    character*(*)  :: fname,key,defval
+    character(24)  :: value_str
+    character(24)   :: value
+    integer*4      :: nv,nov,i,j
+    character(24),dimension(nv) :: allowed
+    character(24),dimension(nov):: old
+    logical, intent(in), optional :: bcast,required
+    logical        :: lbcast,lrequired,passed
+    character(24)  :: printkey
 
-printkey(2:24)=key
-printkey(1:1)=' '
+    printkey(2:24)=key
+    printkey(1:1)=' '
 
-if (present(bcast)) then
- lbcast = bcast
-else
- lbcast = .true.
-endif
-
-if (present(required)) then
- lrequired = required
-else
- lrequired = .false.
-endif
-
-passed = .false.
-if (xmaster) then
-  call readkey(fname,key,value)
-  ! Change to lowercase
-  call lowercase(value)
-  if (value == ' ') then
-    if (lrequired) then
-       call writelog('lse','','Error: missing required value for parameter ',printkey)
-	   call halt_program
-	else 
-       value_str=defval
-       call writelog('l','(a,a,a,a)',(printkey),' = ',trim(value_str),' (no record found, default value used)')
-	endif
-  else
-    value=adjustl(value)
-    do i=1,nv
-       if (trim(value)==trim(allowed(i))) then
-	      passed = .true.
-		  value_str = value
-	   endif
-    enddo
-	do j=1,nov
-	   if (trim(value)==trim(old(j))) then
-	      passed = .true.
-		  value_str = allowed(j)
-	   endif
-	enddo
-	if (passed) then
-	   call writelog('l','(a,a,a)',printkey,' = ',trim(value_str))
-	else
-	   call writelog('sle','(a,a,a,a)','Invalid option for ',trim(printkey),' : ',trim(value))
-	   call halt_program
-	endif
-  endif
-  ! write to basic params data file
-!  write(pardatfileid,*)'c ',printkey,' ',value_str
-endif
-#ifdef USEMPI
-if (lbcast) then
-  call xmpi_bcast(value_str)
-endif
-#endif   
-end function readkey_str
-
-
-function readkey_name(fname,key,bcast,required) result (value_str)
-use xmpi_module
-use logging_module
-implicit none
-character*(*)  :: fname,key
-character(256)  :: value_str
-character*256   :: value
-logical, intent(in), optional :: bcast,required
-logical        :: lbcast,lrequired
-character(24)  :: printkey
-
-printkey(2:24)=key
-printkey(1:1)=' '
-
-if (present(bcast)) then
- lbcast = bcast
-else
- lbcast = .true.
-endif
-
-if (present(required)) then
- lrequired = required
-else
- lrequired = .false.
-endif
-
-if (xmaster) then
-  call readkey(fname,key,value)
-  if (value == ' ') then
-    if (lrequired) then
-       call writelog('lse','','Error: missing required value for parameter ',printkey)
-	   call halt_program
-	else 
-       value_str=' '
-       call writelog('l',' (a,a)'    ,printkey,' = None specified')
-	! write to basic params data file
-!    write(pardatfileid,*)'c ',key,' ','none'
+    if (present(bcast)) then
+       lbcast = bcast
+    else
+       lbcast = .true.
     endif
-  else
-    value_str=adjustl(value)
-	call writelog('l','(a,a,a)',printkey,' = ',trim(value_str))
-	! write to basic params data file
-!    write(pardatfileid,*)'c ',printkey,' ',value_str
-  endif
-endif
+
+    if (present(required)) then
+       lrequired = required
+    else
+       lrequired = .false.
+    endif
+
+    passed = .false.
+    if (xmaster) then
+       call readkey(fname,key,value)
+       ! Change to lowercase
+       call lowercase(value)
+       if (value == ' ') then
+          if (lrequired) then
+             call writelog('lse','','Error: missing required value for parameter ',printkey)
+             call halt_program
+          else 
+             value_str=defval
+             call writelog('l','(a,a,a,a)',(printkey),' = ',trim(value_str),' (no record found, default value used)')
+          endif
+       else
+          value=adjustl(value)
+          do i=1,nv
+             if (trim(value)==trim(allowed(i))) then
+                passed = .true.
+                value_str = value
+             endif
+          enddo
+          do j=1,nov
+             if (trim(value)==trim(old(j))) then
+                passed = .true.
+                value_str = allowed(j)
+             endif
+          enddo
+          if (passed) then
+             call writelog('l','(a,a,a)',printkey,' = ',trim(value_str))
+          else
+             call writelog('sle','(a,a,a,a)','Invalid option for ',trim(printkey),' : ',trim(value))
+             call halt_program
+          endif
+       endif
+       ! write to basic params data file
+       !  write(pardatfileid,*)'c ',printkey,' ',value_str
+    endif
 #ifdef USEMPI
-if (lbcast) then
-  call xmpi_bcast(value_str)
-endif
+    if (lbcast) then
+       call xmpi_bcast(value_str)
+    endif
 #endif   
-end function readkey_name
+  end function readkey_str
 
 
-!
-!  readkey is only to be called from master, ie:
-!  if(xmaster) then
-!    call readkey(....)
-!
-subroutine readkey(fname,key,value)
-use logging_module
-integer                                     :: lun,i,ier,nlines,ic,ikey
-character*1                                 :: ch
-character(len=*), intent(in)                :: fname,key
-character(len=*), intent(out)               :: value
-character*80, dimension(:),allocatable,save :: keyword,values
-character*80                                :: line
-logical, save                               :: first=.true.
-integer, save                               :: nkeys
-character*80, save                          :: fnameold='first_time.exe'
-integer, dimension(:),allocatable,save          :: readindex
+  function readkey_name(fname,key,bcast,required) result (value_str)
+    use xmpi_module
+    use logging_module
+    implicit none
+    character*(*)  :: fname,key
+    character(256)  :: value_str
+    character*256   :: value
+    logical, intent(in), optional :: bcast,required
+    logical        :: lbcast,lrequired
+    character(24)  :: printkey
 
-if (fname/=fnameold) then                   ! Open new file if fname changes
-   if (fnameold/='first_time.exe') then    ! only if not the first time older versions
-       deallocate(keyword)
-       deallocate(values)
-               deallocate(readindex)
-   end if
-   first=.true.
-   fnameold=fname
-   nkeys=0
-   ier=0
-end if
+    printkey(2:24)=key
+    printkey(1:1)=' '
 
+    if (present(bcast)) then
+       lbcast = bcast
+    else
+       lbcast = .true.
+    endif
 
-if (first) then
-  call writelog('ls','','XBeach reading from ',trim(fname))
-!  write(*,*)'readkey: Reading from ',trim(fname),' ...........'
-  first=.false.
-  lun=99
-  i=0
-  open(lun,file=fname)
-  do while (ier==0)
-     read(lun,'(a)',iostat=ier)ch
-     if (ier==0)i=i+1
-  enddo
-  close(lun)
-  nlines=i
+    if (present(required)) then
+       lrequired = required
+    else
+       lrequired = .false.
+    endif
 
-  allocate(keyword(nlines))
-  allocate(values(nlines))
-
-  open(lun,file=fname)
-  ikey=0
-  do i=1,nlines
-     read(lun,'(a)')line
-     ic=scan(line,'=')
-     if (ic>0) then
-        ikey=ikey+1
-        keyword(ikey)=adjustl(line(1:ic-1))
-        values(ikey)=adjustl(line(ic+1:80))
-     endif
-  enddo
-  nkeys=ikey
-  close(lun)
-  allocate(readindex(nkeys))
-  readindex=0
-endif
-
-value=' '
-do ikey=1,nkeys
-  if (key.eq.keyword(ikey)) then
-     value=values(ikey)
-         readindex(ikey)=1
-  endif
-enddo
+    if (xmaster) then
+       call readkey(fname,key,value)
+       if (value == ' ') then
+          if (lrequired) then
+             call writelog('lse','','Error: missing required value for parameter ',printkey)
+             call halt_program
+          else 
+             value_str=' '
+             call writelog('l',' (a,a)'    ,printkey,' = None specified')
+             ! write to basic params data file
+             !    write(pardatfileid,*)'c ',key,' ','none'
+          endif
+       else
+          value_str=adjustl(value)
+          call writelog('l','(a,a,a)',printkey,' = ',trim(value_str))
+          ! write to basic params data file
+          !    write(pardatfileid,*)'c ',printkey,' ',value_str
+       endif
+    endif
+#ifdef USEMPI
+    if (lbcast) then
+       call xmpi_bcast(value_str)
+    endif
+#endif   
+  end function readkey_name
 
 
-! If required, do a check whether params are not used or unknown
-if (key .eq. 'checkparams') then
-       do ikey=1,nkeys
-               if (readindex(ikey)==0) then
-                       call writelog('sl','','Unknown, unused or multiple statements of parameter ',trim(keyword(ikey)),&
-                                 ' in ',trim(fname))
-               endif
+  !
+  !  readkey is only to be called from master, ie:
+  !  if(xmaster) then
+  !    call readkey(....)
+  !
+  subroutine readkey(fname,key,value)
+    use logging_module
+    integer                                     :: lun,i,ier,nlines,ic,ikey
+    character*1                                 :: ch
+    character(len=*), intent(in)                :: fname,key
+    character(len=*), intent(out)               :: value
+    character*80, dimension(:),allocatable,save :: keyword,values
+    character*80                                :: line
+    logical, save                               :: first=.true.
+    integer, save                               :: nkeys
+    character*80, save                          :: fnameold='first_time.exe'
+    integer, dimension(:),allocatable,save          :: readindex
+
+    if (fname/=fnameold) then                   ! Open new file if fname changes
+       if (fnameold/='first_time.exe') then    ! only if not the first time older versions
+          deallocate(keyword)
+          deallocate(values)
+          deallocate(readindex)
+       end if
+       first=.true.
+       fnameold=fname
+       nkeys=0
+       ier=0
+    end if
+
+
+    if (first) then
+       call writelog('ls','','XBeach reading from ',trim(fname))
+       !  write(*,*)'readkey: Reading from ',trim(fname),' ...........'
+       first=.false.
+       lun=99
+       i=0
+       open(lun,file=fname)
+       do while (ier==0)
+          read(lun,'(a)',iostat=ier)ch
+          if (ier==0)i=i+1
        enddo
-endif
+       close(lun)
+       nlines=i
+
+       allocate(keyword(nlines))
+       allocate(values(nlines))
+
+       open(lun,file=fname)
+       ikey=0
+       do i=1,nlines
+          read(lun,'(a)')line
+          ic=scan(line,'=')
+          if (ic>0) then
+             ikey=ikey+1
+             keyword(ikey)=adjustl(line(1:ic-1))
+             values(ikey)=adjustl(line(ic+1:80))
+          endif
+       enddo
+       nkeys=ikey
+       close(lun)
+       allocate(readindex(nkeys))
+       readindex=0
+    endif
+
+    value=' '
+    do ikey=1,nkeys
+       if (key.eq.keyword(ikey)) then
+          value=values(ikey)
+          readindex(ikey)=1
+       endif
+    enddo
 
 
-end subroutine readkey
+    ! If required, do a check whether params are not used or unknown
+    if (key .eq. 'checkparams') then
+       do ikey=1,nkeys
+          if (readindex(ikey)==0) then
+             call writelog('sl','','Unknown, unused or multiple statements of parameter ',trim(keyword(ikey)),&
+                  ' in ',trim(fname))
+          endif
+       enddo
+    endif
+
+
+  end subroutine readkey
 
 
 
-! The following code is taken from program "CHCASE" @ http://www.davidgsimpson.com/software/chcase_f90.txt:
-!  Programmer:   Dr. David G. Simpson
-!                NASA Goddard Space Flight Center
-!                Greenbelt, Maryland  20771
-!
-!  Date:         January 24, 2003
-!
-!  Language:     Fortran-90
-!
-!  Version:      1.00a
-!
+  ! The following code is taken from program "CHCASE" @ http://www.davidgsimpson.com/software/chcase_f90.txt:
+  !  Programmer:   Dr. David G. Simpson
+  !                NASA Goddard Space Flight Center
+  !                Greenbelt, Maryland  20771
+  !
+  !  Date:         January 24, 2003
+  !
+  !  Language:     Fortran-90
+  !
+  !  Version:      1.00a
+  !
 
-SUBROUTINE UPPERCASE(STR)
+  SUBROUTINE UPPERCASE(STR)
 
-      IMPLICIT NONE
+    IMPLICIT NONE
 
-      CHARACTER(LEN=*), INTENT(IN OUT) :: STR
-      INTEGER :: I, DEL
-
-
-      DEL = IACHAR('a') - IACHAR('A')
-
-      DO I = 1, LEN_TRIM(STR)
-         IF (LGE(STR(I:I),'a') .AND. LLE(STR(I:I),'z')) THEN
-            STR(I:I) = ACHAR(IACHAR(STR(I:I)) - DEL)
-         END IF
-      END DO
-
-      RETURN
-
-END SUBROUTINE UPPERCASE
-!
-!  LOWERCASE
-!
-SUBROUTINE LOWERCASE(STR)
-
-      IMPLICIT NONE
-
-      CHARACTER(LEN=*), INTENT(IN OUT) :: STR
-      INTEGER :: I, DEL
+    CHARACTER(LEN=*), INTENT(IN OUT) :: STR
+    INTEGER :: I, DEL
 
 
-      DEL = IACHAR('a') - IACHAR('A')
+    DEL = IACHAR('a') - IACHAR('A')
 
-      DO I = 1, LEN_TRIM(STR)
-         IF (LGE(STR(I:I),'A') .AND. LLE(STR(I:I),'Z')) THEN
-            STR(I:I) = ACHAR(IACHAR(STR(I:I)) + DEL)
-         END IF
-      END DO
+    DO I = 1, LEN_TRIM(STR)
+       IF (LGE(STR(I:I),'a') .AND. LLE(STR(I:I),'z')) THEN
+          STR(I:I) = ACHAR(IACHAR(STR(I:I)) - DEL)
+       END IF
+    END DO
 
-      RETURN
+    RETURN
 
-END SUBROUTINE LOWERCASE
+  END SUBROUTINE UPPERCASE
+  !
+  !  LOWERCASE
+  !
+  SUBROUTINE LOWERCASE(STR)
+
+    IMPLICIT NONE
+
+    CHARACTER(LEN=*), INTENT(IN OUT) :: STR
+    INTEGER :: I, DEL
+
+
+    DEL = IACHAR('a') - IACHAR('A')
+
+    DO I = 1, LEN_TRIM(STR)
+       IF (LGE(STR(I:I),'A') .AND. LLE(STR(I:I),'Z')) THEN
+          STR(I:I) = ACHAR(IACHAR(STR(I:I)) + DEL)
+       END IF
+    END DO
+
+    RETURN
+
+  END SUBROUTINE LOWERCASE
 
 ! End of code taken from CHCASE
 

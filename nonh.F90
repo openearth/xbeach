@@ -129,7 +129,7 @@ contains
 
 !--------------------------     LOCAL VARIABLES    ----------------------------
  
-    integer(kind=iKind)        :: iw,i,ie,jn,j,js,iww,iee
+    integer(kind=iKind)        :: iw,i,ie,jn,j,js
     real   (kind=rKind)        :: d,sigma,k
 !-------------------------------------------------------------------------------
 !                             IMPLEMENTATION
@@ -256,21 +256,15 @@ contains
 !--------------------------     LOCAL VARIABLES    ----------------------------
  
     !Indices
-    integer(kind=iKind)                     :: i,ie,iee,iw,iww               !Index variables
+    integer(kind=iKind)                     :: i               !Index variables
     integer(kind=iKind)                     :: j               !Index variables
     
     !Work
-    real(kind=rKind)                        :: dzbdx1
-    real(kind=rKind)                        :: dzbdx2       
-    real(kind=rKind)                        :: dzbdy1
-    real(kind=rKind)                        :: dzbdy2
-    real(kind=rKind)                        :: delta1,delta2
+
     real(kind=rKind)                        :: dzs_e,dzs_w
     real(kind=rKind)                        :: dzs_s,dzs_n
     real(kind=rKind)                        :: dzb_e,dzb_w
     real(kind=rKind)                        :: dzb_n,dzb_s
-    real(kind=rKind)                        :: vol    
-    real(kind=rKind)                        :: mindepth
    
 
 !
@@ -304,7 +298,8 @@ contains
       if (nonhZ(i,j) == 1) then
         if     (nonhU(i,j)*nonhU(i-1,j) == 1) then
           dzb_e = .5_rKind*(zbu(i,j)-zbu(i-1,j))*ddxz(i)
-          dzb_w = dzs_e
+          ! FB: this was dzs_e, which was not defined. Assumed it was a typo. TODO: check.
+          dzb_w = dzb_e
         elseif (nonhU(i  ,j) == 0) then
           dzb_e = .0_rKind
           dzb_w = .5_rKind*(s%zb(i,j)-zbu(i-1,j))*ddxz(i)
@@ -568,8 +563,8 @@ subroutine nonh_explicit(s,par,nuh)
 !--------------------------     LOCAL VARIABLES    ----------------------------
  
     !Indices
-    integer(kind=iKind)                     :: i,ie,iee,iw,iww               !Index variables
-    integer(kind=iKind)                     :: j,js,jn       
+    integer(kind=iKind)                     :: i,ie,iee,iw               !Index variables
+    integer(kind=iKind)                     :: j,js       
     
     real(kind=rKind)                        :: dwdx1    !Gradient of vertical velocity in x-dir at i+1/2,j
     real(kind=rKind)                        :: dwdx2    !Gradient of vertical velocity in x-dir at i-1/2,j
@@ -840,7 +835,7 @@ subroutine zuzv(s)
  
     real(kind=rKind) :: k
     real(kind=rKind) :: alpha
-    real(kind=rKind) :: k0,k1,L,Ldeep,pi2d,w2
+    real(kind=rKind) :: L,Ldeep,pi2d,w2
     real(kind=rKind) :: error
 
 !-------------------------------------------------------------------------------

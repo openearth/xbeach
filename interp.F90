@@ -92,48 +92,48 @@ contains
 !
 ! SOURCE
 !
-     SUBROUTINE BINARY_SEARCH(XX, N, X, J) 
-     integer,              intent(in) :: N
-	 real*8, dimension(N), intent(in) :: xx
-     real*8, intent(in)               :: x
-     integer, intent(out)             :: j
-!****
-!
-! CODE: binary search in (real) arrays
-!
-! Requirement:
-!    Parameter wp set to the proper kind
-!
-! Subroutine from 'Numerical recipes' Fortran  edition.
-! Given an array XX of length N, given value X, return a value J
-! such that X is between XX(J) en XX (J+1)
-! XX must be monotonic, either decreasing or increasin
-! J=0 or J=N indicates X is out of range.
+      SUBROUTINE BINARY_SEARCH(XX, N, X, J) 
+        integer,              intent(in) :: N
+        real*8, dimension(N), intent(in) :: xx
+        real*8, intent(in)               :: x
+        integer, intent(out)             :: j
+        !****
+        !
+        ! CODE: binary search in (real) arrays
+        !
+        ! Requirement:
+        !    Parameter wp set to the proper kind
+        !
+        ! Subroutine from 'Numerical recipes' Fortran  edition.
+        ! Given an array XX of length N, given value X, return a value J
+        ! such that X is between XX(J) en XX (J+1)
+        ! XX must be monotonic, either decreasing or increasin
+        ! J=0 or J=N indicates X is out of range.
 
 
-!
-! Local variables
-!
-      Integer   jl, ju, jm
-      LOGICAL   L1, L2
+        !
+        ! Local variables
+        !
+        Integer   jl, ju, jm
+        LOGICAL   L1, L2
 
-      JL = 0
-      JU = N+1
-  10  IF (JU-JL .GT. 1) THEN
-          JM = (JU+JL)/2
-          L1 = XX(N) .GT. XX(1)
-          L2 = X .GT. XX(JM)
-          IF ( (L1.AND.L2) .OR. (.NOT. (L1 .OR. L2)) ) THEN
+        JL = 0
+        JU = N+1
+10      IF (JU-JL .GT. 1) THEN
+           JM = (JU+JL)/2
+           L1 = XX(N) .GT. XX(1)
+           L2 = X .GT. XX(JM)
+           IF ( (L1.AND.L2) .OR. (.NOT. (L1 .OR. L2)) ) THEN
               JL = JM
-          ELSE
+           ELSE
               JU = JM
-          ENDIF
-          GOTO 10
-      ENDIF
+           ENDIF
+           GOTO 10
+        ENDIF
 
-      J = JL
+        J = JL
 
-      RETURN
+        RETURN
 
       END SUBROUTINE BINARY_SEARCH
 

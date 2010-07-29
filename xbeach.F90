@@ -256,7 +256,7 @@ do while (par%t<par%tstop)
             newstatbc=.false.
          endif
       else
-	     newstatbc=.false.
+         newstatbc=.false.
          call wave_timestep(s,par)
       endif
    endif

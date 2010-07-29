@@ -58,54 +58,54 @@ end interface writelog
 
 CONTAINS
 
-subroutine start_logfiles(error)
-   implicit none
-   integer    :: error
-   integer    :: tryunit = 98
-   logical    :: fileopen
-   
-   if (xmaster) then 
-   fileopen = .true.    
-   error    = 0
-   do while (fileopen)
-         inquire(tryunit,OPENED=fileopen)
-	     if (fileopen) then
-	        tryunit=tryunit-1
-	     endif
-	     if (tryunit<=10) then 
-		   tryunit = -1
-		   error  = 1
-		   fileopen = .false.
-		   return
-	     endif	      
-   enddo
-   logfileid = tryunit
-   if (xmaster) then
-      open(logfileid,file='XBlog.txt',status='replace')
-   endif
- 
-   fileopen = .true.    
-   error    = 0
-   do while (fileopen)
-         inquire(tryunit,OPENED=fileopen)
-	     if (fileopen) then
-	        tryunit=tryunit-1
-	     endif
-	     if (tryunit<=10) then 
-		   tryunit = -1
-		   error  = 1
-		   fileopen = .false.
-		   return
-	     endif	      
-   enddo
-   errorfileid = tryunit
-   if (xmaster) then
-      open(errorfileid,file='XBerror.txt',status='replace')
-   endif
-   endif ! xmaster
+  subroutine start_logfiles(error)
+    implicit none
+    integer    :: error
+    integer    :: tryunit = 98
+    logical    :: fileopen
+
+    if (xmaster) then 
+       fileopen = .true.    
+       error    = 0
+       do while (fileopen)
+          inquire(tryunit,OPENED=fileopen)
+          if (fileopen) then
+             tryunit=tryunit-1
+          endif
+          if (tryunit<=10) then 
+             tryunit = -1
+             error  = 1
+             fileopen = .false.
+             return
+          endif
+       enddo
+       logfileid = tryunit
+       if (xmaster) then
+          open(logfileid,file='XBlog.txt',status='replace')
+       endif
+
+       fileopen = .true.    
+       error    = 0
+       do while (fileopen)
+          inquire(tryunit,OPENED=fileopen)
+          if (fileopen) then
+             tryunit=tryunit-1
+          endif
+          if (tryunit<=10) then 
+             tryunit = -1
+             error  = 1
+             fileopen = .false.
+             return
+          endif
+       enddo
+       errorfileid = tryunit
+       if (xmaster) then
+          open(errorfileid,file='XBerror.txt',status='replace')
+       endif
+    endif ! xmaster
 
 
-end subroutine start_logfiles
+  end subroutine start_logfiles
 
 subroutine close_logfiles
 
