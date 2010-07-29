@@ -123,7 +123,7 @@ contains
 !	      exit
 !      endif
 !	enddo
-    noutnumbers = par%nmeanvar
+    noutnumbers = par%nglobalvar
     ! store all indices for the global variables
     do i= 1,noutnumbers
        outnumbers(i) = chartoindex(par%globalvars(i))
@@ -615,7 +615,7 @@ contains
        if (par%nglobalvar/=0) then
           if (tpar%outputg) then
              itg=itg+1      
-             do i = 1,noutnumbers
+             do i = 1,par%nglobalvar
 #ifdef USEMPI
                 call space_collect_index(s,sl,outnumbers(i))
 #endif
