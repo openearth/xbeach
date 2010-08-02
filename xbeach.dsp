@@ -248,6 +248,8 @@ DEP_F90_BOUND=\
 	".\nh_pars.inc"\
 	".\s.ind"\
 	".\s.inp"\
+	
+NODEP_F90_BOUND=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -267,6 +269,8 @@ DEP_F90_DRIFT=\
 	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
+	
+NODEP_F90_DRIFT=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -301,6 +305,8 @@ DEP_F90_FLOW_T=\
 	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
+	
+NODEP_F90_FLOW_T=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -363,7 +369,7 @@ DEP_F90_MATH_=\
 # Begin Source File
 
 SOURCE=.\mnemonic.F90
-DEP_F90_MNEMO=\
+NODEP_F90_MNEMO=\
 	".\chartoindex.gen"\
 	".\mnemonic.gen"\
 	
@@ -379,6 +385,8 @@ DEP_F90_MORPH=\
 	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
+	
+NODEP_F90_MORPH=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -414,15 +422,6 @@ DEP_F90_NONH_=\
 # End Source File
 # Begin Source File
 
-SOURCE=.\nonhydrostatic.F90
-DEP_F90_NONHY=\
-	".\Debug\logging_module.mod"\
-	".\Debug\params.mod"\
-	".\Debug\spaceparams.mod"\
-	
-# End Source File
-# Begin Source File
-
 SOURCE=.\params.f90
 DEP_F90_PARAM=\
 	".\Debug\filefunctions.mod"\
@@ -451,6 +450,8 @@ DEP_F90_READT=\
 	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
+	
+NODEP_F90_READT=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -466,6 +467,8 @@ DEP_F90_READW=\
 	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
+	
+NODEP_F90_READW=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -498,6 +501,8 @@ DEP_F90_SPACE=\
 	".\Debug\params.mod"\
 	".\Debug\readkey_module.mod"\
 	".\Debug\xmpi_module.mod"\
+	
+NODEP_F90_SPACE=\
 	".\indextos.gen"\
 	".\space_alloc_arrays.gen"\
 	".\space_alloc_scalars.gen"\
@@ -554,6 +559,8 @@ DEP_F90_WAVE_=\
 	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
+	
+NODEP_F90_WAVE_=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -571,6 +578,8 @@ DEP_F90_WAVE_T=\
 	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
+	
+NODEP_F90_WAVE_T=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
