@@ -67,12 +67,11 @@ contains
              d1 = size(t%r2,1)
              d2 = size(t%r2,2)
           elseif (t%type == 'i') then
-             d1 = size(t%r2,1)
-             d2 = size(t%r2,2)
+             d1 = size(t%i2,1)
+             d2 = size(t%i2,2)
           else
              call halt_program
           end if
-          write(*,*) i, 'of', size(meansparsglobal), d1, d2
           allocate(meansparsglobal(i)%mean2d(d1,d2))
           allocate(meansparsglobal(i)%variance2d(d1,d2))
           allocate(meansparsglobal(i)%variancecrossterm2d(d1,d2))
