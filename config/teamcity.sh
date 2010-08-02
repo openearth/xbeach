@@ -1,4 +1,9 @@
 #!/bin/sh
+# check if we need to go into the trunk
+if [ -d trunk ]
+then
+    cd trunk
+fi
 export TEAMCITY=yes
 # we could update the configure script
 #autoreconf
