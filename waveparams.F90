@@ -748,6 +748,7 @@ use params
 use spaceparams
 use xmpi_module
 use logging_module
+use readkey_module
 
 IMPLICIT NONE
 
@@ -758,7 +759,6 @@ type(waveparameters), INTENT(INOUT)     :: wp
 character(len=*), INTENT(IN)            :: fname
 
 ! Internal variables
-real*8, external                        :: readkey_dbl
 real*8                                  :: m0 
 integer                                 :: nfreq, ndir,i
 integer                                 :: firstp,lastp

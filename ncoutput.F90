@@ -50,6 +50,9 @@ integer, dimension(:), allocatable, save :: pointsvarids
 integer, dimension(:),allocatable, save  :: xpoints     ! model x-coordinate of output points
 integer, dimension(:),allocatable, save  :: ypoints     ! model y-coordinate of output points
 
+! global
+integer, dimension(:), allocatable, save :: meanvarids
+
 ! time 
 integer, save :: globaltimedimid, pointtimedimid
 integer, save :: globaltimevarid, pointtimevarid
@@ -61,6 +64,8 @@ integer, save :: inoutdimid, tidecornersdimid
 ! local variables
 integer, save :: npointstotal
 logical, save :: pointoutput
+
+
 
 
 contains
@@ -120,14 +125,15 @@ subroutine ncoutput_init(s, sl, par, tpar)
   ! initialize values
   ! global
   ! store netcdf variable ids for each variable
-  allocate(globalvarids(size(par%globalvars)))
-  
+  allocate(globalvarids(par%nglobalvar))
+  allocate(meanvarids(par%nmeanvar))
   globalvarids = -1 ! initialize to -1, so an error is raised when we miss something... 
+  meanvarids = -1
   outputg = .true.
 
   npointstotal = par%npoints+par%nrugauge
   outputp = (npointstotal .gt. 0) .and. (size(tpar%tpp) .gt. 0)
-  allocate(pointsvarids(size(par%pointvars)))
+  allocate(pointsvarids(par%npoints))
 
   ncfilename = 'xboutput.nc' 
   ! create a file
@@ -210,7 +216,7 @@ subroutine ncoutput_init(s, sl, par, tpar)
      if (status /= nf90_noerr) call handle_err(status)
      
      ! default global output variables
-     do i=1,size(par%globalvars)
+     do i=1,par%nglobalvar
         mnem = trim(par%globalvars(i))
         j = chartoindex(mnem)
         call indextos(s,j,t)
@@ -284,7 +290,7 @@ subroutine ncoutput_init(s, sl, par, tpar)
      status = nf90_put_att(ncid, pointtypesvarid, 'long_name', 'type of point (0=point, 1=rugauge)')
      if (status /= nf90_noerr) call handle_err(status)
 
-     do i=1,size(par%pointvars)
+     do i=1,par%npoints
         mnem = trim(par%pointvars(i))
         j = chartoindex(mnem)
         call indextos(s,j,t)
@@ -410,7 +416,7 @@ subroutine nc_output(s,sl,par, tpar)
      status = nf90_put_var(ncid, globaltimevarid, par%t, (/tpar%itg/))
      if (status /= nf90_noerr) call handle_err(status) 
      ! write global output variables
-     do i=1,size(par%globalvars)
+     do i=1,par%nglobalvar
         mnem = trim(par%globalvars(i))
         j = chartoindex(mnem)
         ! lookup the proper array
@@ -450,7 +456,7 @@ subroutine nc_output(s,sl,par, tpar)
      status = nf90_put_var(ncid, pointtimevarid, par%t, (/tpar%itp/))
      if (status /= nf90_noerr) call handle_err(status) 
 
-     do i=1,size(par%pointvars)
+     do i=1,par%npoints
         mnem = trim(par%pointvars(i))
         j = chartoindex(mnem)
         ! lookup the proper array

@@ -327,7 +327,10 @@ MODULE math_tools
 
     ntotal = PRODUCT(shape)
     scale = SQRT(1.0_fftkind / PRODUCT(shape(d(1:ndim))))
-    FORALL (i = 1: ntotal) array(i) = array(i) * scale
+    ! FORALL (i = 1: ntotal) array(i) = array(i) * scale
+    do i = 1, ntotal
+       array(i) = array(i) * scale
+    end do
     DO i = 1, ndim
        CALL fftradix(array, ntotal, shape(d(i)), PRODUCT(shape(1:d(i))), &
             inverse, stat)
