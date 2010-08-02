@@ -24,10 +24,10 @@ use ncoutput_module
 #endif
 
 ! Used for getcwd
-#ifdef HASIFPORT
+#ifdef HAVE_IFPORT
 use ifport
 #endif
-#ifdef HASDFPORT
+#ifdef HAVE_DFPORT
 use dfport
 #endif
 
