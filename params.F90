@@ -993,9 +993,7 @@ contains
     ! Give warning if using wave stationary in MPI
 #ifdef USEMPI
     if (trim(par%instat)=='stat' .or. trim(par%instat)=='stat_table') then
-       call writelog('sle','','Error: wave stationary solver not compatable with MPI')
-       !   call writelog('sle','','Wave propagation will be solved by non-stationary solver')
-       if (xmaster) call halt_program
+       call writelog('sl','','Warning: wave stationary solver not compatable with MPI, changing to instationary solver')
     endif
 #endif
 

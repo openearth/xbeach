@@ -990,7 +990,7 @@ contains
 
     io    = 0
 
-    ! first time
+    ! first time  
     if (firsttimedischarge) then
        firsttimedischarge=.false.
        allocate (disch_i(2*nx+2*ny))
@@ -1006,7 +1006,7 @@ contains
              !         return   !!!! This is incompatable with MPI. Process must continue until equal with other processes !!!! Robert
              !      endif
           else
-             call writelog('ls','','discharge_boundary: reading discharge locations from ',fname,' ...')
+             call writelog('ls','','Reading discharge locations from ',trim(fname),' ...')
              open(31,file=fname)
              do while (io==0)
                 ndisch=ndisch+1
@@ -1043,7 +1043,7 @@ contains
              ntdisch=0
           else
              fname = readkey_name('params.txt','disch_timeseries_file',bcast=.false.)
-             call writelog('ls','','discharge_boundary: reading discharge timeseries from ',fname,' ...')
+             call writelog('ls','','Reading discharge timeseries from ',trim(fname),' ...')
              open(31,file=fname)
              io=0
              do while (io==0)
@@ -1062,7 +1062,7 @@ contains
        if (xmaster) then
           do i=1,ntdisch
              read(31,*,IOSTAT=io) tdisch(i),(disch(i,j),j=1,ndisch)
-          enddo
+          enddo                                                                                                                                                                                                                        
           close(31)
        endif
 #ifdef USEMPI

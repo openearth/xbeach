@@ -432,17 +432,13 @@ subroutine timestep(s,par, tpar, it)
         enddo
      enddo
      par%dt=par%dt*par%CFL*0.5d0
+#ifdef USEMPI
+     par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tiny(0.0d0)))
+#else
      if (par%instat(1:4)/='stat') then
         par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tiny(0.0d0)))
-        !    !do j=2,s%ny
-        !    !  do i=2,s%nx     
-        !    !    do itheta=1,s%ntheta
-        !    !      ! Theta points
-        !    !      par%dt=min(par%dt,par%CFL*s%dtheta/max(abs(s%ctheta(i,j,itheta)),tiny(0.0d0)))
-        !    !    end do
-        !    !  end do
-        !    !end do
      end if
+#endif
      !To avoid large timestep differences due to output, which can cause instabities
      !in the hanssen (leapfrog) scheme, we smooth the timestep.
      !

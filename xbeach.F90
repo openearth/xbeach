@@ -251,10 +251,17 @@ do while (par%t<par%tstop)
    ! Wave timestep
    if (par%swave==1) then
       if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
+#ifdef USEMPI
+         call wave_timestep(s,par)
+         if ((abs(mod(par%t,par%wavint))<0.000001d0).or.newstatbc) then
+            newstatbc=.false.
+         endif
+#else
          if ((abs(mod(par%t,par%wavint))<0.000001d0).or.newstatbc) then
             call wave_stationary(s,par)
             newstatbc=.false.
          endif
+#endif
       else
          newstatbc=.false.
          call wave_timestep(s,par)
