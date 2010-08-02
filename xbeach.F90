@@ -23,14 +23,6 @@ use means_module
 use ncoutput_module
 #endif
 
-! Used for getcwd
-#ifdef HAVE_IFPORT
-use ifport
-#endif
-#ifdef HAVE_DFPORT
-use dfport
-#endif
-
 IMPLICIT NONE
 
 type(parameters)         :: par
@@ -82,8 +74,10 @@ endif
 ! 
 call cpu_time(tbegin)
 call DATE_AND_TIME(DATE=date, TIME=time, ZONE=zone)
-! only run this on linux
+! only run this on linux (gcc function)
+#ifdef HAVE_CONFIG_H
 call getcwd(cwd)
+#endif
 
 if (xmaster) then
   call writelog('ls','','**********************************************************')
@@ -97,7 +91,9 @@ if (xmaster) then
   call writelog('ls','','Simulation started: YYYYMMDD    hh:mm:ss     time zone (UTC)')
   call writelog('ls','','                    '//date //'  '//time(1:2)//':'//time(3:4)//':'//time(5:6)//'     '//zone)
   call writelog('ls','','                                                          ')
+#ifdef HAVE_CONFIG_H
   call writelog('ls','',' running in: ',cwd )
+#endif
   call writelog('ls','','General Input Module')
 #ifdef USEMPI
   if(xmaster) then
