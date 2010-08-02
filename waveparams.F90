@@ -54,6 +54,7 @@ contains
     ! Flag that determines whether new BCF files are created or not
     makefile=.false.
 
+
     ! Check whether this is the first time step
     if (abs(par%t-par%dt)<1.d-6) then
        bcendtime=0
@@ -87,7 +88,7 @@ contains
     end if
 
     ! Check whether this is the last time step
-    if (par%t>=(par%tstop-par%dt)) then
+    if (par%t>(par%tstop-par%dt)) then
        ! Prevent recalculation of boundary conditions for last timestep
        return
        close(74)
@@ -179,6 +180,7 @@ contains
     bcendtime=bcendtime+wp%rt
 
     if(xmaster) then
+
        ! Write lists with BCF information
        open(53,file='ebcflist.bcf',form='formatted',position='append')
        open(54,file='qbcflist.bcf',form='formatted',position='append')

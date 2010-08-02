@@ -45,7 +45,7 @@ module flow_secondorder_module
 
 contains
 
-subroutine flow_secondorder_init(s,iUnit)
+subroutine flow_secondorder_init(s)
 !
 
 !-------------------------------------------------------------------------------
@@ -64,48 +64,19 @@ subroutine flow_secondorder_init(s,iUnit)
 ! -- MODULES --
   use spaceparams
   use params 
-  use xmpi_module, only: Halt_Program 
-!
+
 !
 !--------------------------     ARGUMENTS          ----------------------------
 !
   type(spacepars)    ,intent(inout) :: s
-  integer(kind=iKind),intent(in)    :: iUnit    !Unit number for error messages
-                                                ! iUnit>0  : write to indicated unit
-                                                ! iUnit<=0 : write to screen
-!         
-!--------------------------     LOCAL VARIABLES    ----------------------------
-! 
-  integer(kind=iKind)              :: iAllocErr   ! Error code returned (if /=0)
-  integer(kind=iKind)              :: iWriteUnit  ! Write unit (see also iUnit)
-!
-!-------------------------------------------------------------------------------
-!                             IMPLEMENTATION
-!-------------------------------------------------------------------------------
-!
-  
 
-  
- 
-  
-  if (iAllocErr /= 0) call Halt_program
-  
   !Allocate resources
-  allocate (  wrk1(s%nx+1,s%ny+1),stat=iAllocErr);   if (iAllocErr /= 0) goto 10
-  allocate (  wrk2(s%nx+1,s%ny+1),stat=iAllocErr);   if (iAllocErr /= 0) goto 10
+  allocate (  wrk1(s%nx+1,s%ny+1))
+  allocate (  wrk2(s%nx+1,s%ny+1))
     
   wrk1   = 0.0_rKind
   wrk2   = 0.0_rKind
-  
-10 if (iAllocErr /=0) then
-    if   (iUnit > 0 ) then
-      iWriteUnit = iUnit
-    else 
-      iWriteUnit = iScreen
-    endif
-    write(iWriteUnit,'(a,i8)') 'Could not allocate array in flow_secondorder_init, error code returned: ', iAllocErr
-    call Halt_program
-  endif
+
   initialized = .true.
 end subroutine flow_secondorder_init  
 
@@ -187,7 +158,7 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
     
     !Initialize/allocate arrays on first entry
     if (.not. initialized) then
-      call flow_secondorder_init(s,0)
+      call flow_secondorder_init(s)
     endif  
     
     !-- calculate du in z-points --
@@ -339,7 +310,7 @@ subroutine flow_secondorder_advW(s,par,w,w_old)
 ! -- MODULES --
   use spaceparams
   use params 
-  use xmpi_module, only: Halt_Program 
+  use xmpi_module, only: halt_program 
 
 
 !--------------------------     ARGUMENTS          ----------------------------
@@ -372,7 +343,7 @@ subroutine flow_secondorder_advW(s,par,w,w_old)
 !-------------------------------------------------------------------------------
     !Initialize/allocate arrays on first entry
     if (.not. initialized) then
-      call flow_secondorder_init(s,0)
+      call flow_secondorder_init(s)
     endif  
 
    !== SECOND ORDER EXPLICIT CORRECTION TO W ==
@@ -488,7 +459,7 @@ subroutine flow_secondorder_con(s,par,zs_old)
     !== SECOND ORDER EXPLICIT CORRECTION TO CONTINUITY ==
     !Initialize/allocate arrays on first entry
       if (.not. initialized) then
-        call flow_secondorder_init(s,0)
+        call flow_secondorder_init(s)
       endif  
       !return
       !correction to mass flux qx

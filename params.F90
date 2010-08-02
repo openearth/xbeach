@@ -237,8 +237,10 @@ type parameters
    integer*4     :: nglobalvar                 = -123    !  [-] Number of global output variables (as specified by user)
    character(len=maxnamelen), dimension(numvars)   :: globalvars = 'abc' !  [-] Mnems of global output variables, not per se the same sice as nglobalvar (invalid variables, defaults)
    integer*4     :: nmeanvar                   = -123    !  [-] Number of mean,min,max,var output variables
+   integer*4     :: npointvar                  = -123    !  [-] Number of point output variables
    integer*4     :: npoints                    = -123    !  [-] Number of output point locations
    character(len=maxnamelen), dimension(numvars)   :: pointvars  = 'abc'  !  [-] Mnems of point output variables (by variables)
+   
    integer, dimension(:), pointer                     :: pointtypes => NULL()  !  [-] Point types (0 = point, 1=rugauge)
    real*8 ,dimension(:), pointer                      :: xpointsw => NULL()  ! world x-coordinate of output points
    real*8 ,dimension(:), pointer                     :: ypointsw => NULL()  ! world y-coordinate of output points
@@ -1034,6 +1036,9 @@ do i=1,size(par%pointvars)
    call xmpi_bcast(par%pointvars(i))
 enddo
 
+do i=1,size(par%meansvars)
+   call xmpi_bcast(par%meansvars(i))
+enddo
 
 if (xmaster) npoints = size(par%pointtypes)
 ! send it over
@@ -1356,6 +1361,7 @@ subroutine readpointvars(par)
      allocate(par%xpointsw(size(xpointsw)))
      allocate(par%ypointsw(size(ypointsw)))
      par%pointvars(1:nvars)=pointvars
+     par%npointvar = nvars
      par%pointtypes=pointtypes
      par%xpointsw= xpointsw
      par%ypointsw=ypointsw
@@ -1393,7 +1399,7 @@ subroutine readmeans(par)
            index = chartoindex(trim(line))
            if (index/=-1) then
               par%meansvars(i)=trim(line)
-              call writelog('ls','(a)',' Will generate mean, min, max and variance output for variable: '//trim(mnemonics(index)))
+              call writelog('ls','(a)',' Will generate mean, min, max and variance output for variable: '// trim(par%meansvars(i)))
            else
               call writelog('sle','',' Unknown point output type: ''',trim(line),'''')
               call halt_program

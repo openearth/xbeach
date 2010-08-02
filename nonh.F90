@@ -697,6 +697,7 @@ subroutine nonh_explicit(s,par,nuh)
     av(:,:,s%ny)  = 0.0_rKind
   endif  
        
+
  !Include explicit approximation for pressure in s%uu and s%vv   and Wm
   if (par%secorder == 1) then 
     do j=2,s%ny

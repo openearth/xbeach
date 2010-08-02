@@ -1062,7 +1062,7 @@ contains
        if (xmaster) then
           do i=1,ntdisch
              read(31,*,IOSTAT=io) tdisch(i),(disch(i,j),j=1,ndisch)
-          enddo                                                                                                                                                                                                                        
+          enddo
           close(31)
        endif
 #ifdef USEMPI

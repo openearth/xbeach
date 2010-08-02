@@ -433,6 +433,7 @@ contains
           end if
        end do
     end do
+
 #ifndef USEMPI
     if (par%nonh==1) then
        !Do explicit predictor step with pressure
@@ -444,6 +445,7 @@ contains
        call flow_secondorder_advUV(s,par,uu_old,vv_old)
     end if
 #endif
+
 
 
     ! Pieter and Jaap: update hu en hv for continuity
@@ -516,9 +518,6 @@ contains
     call xmpi_shift(vv,'1:')
     call xmpi_shift(vv,'m:')
 #endif
-
-
-
 
 #ifndef USEMPI
     if (par%nonh==1) then

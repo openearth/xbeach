@@ -290,7 +290,7 @@ subroutine ncoutput_init(s, sl, par, tpar)
      status = nf90_put_att(ncid, pointtypesvarid, 'long_name', 'type of point (0=point, 1=rugauge)')
      if (status /= nf90_noerr) call handle_err(status)
 
-     do i=1,par%npoints
+     do i=1,par%npointvar
         mnem = trim(par%pointvars(i))
         j = chartoindex(mnem)
         call indextos(s,j,t)
@@ -331,6 +331,7 @@ subroutine ncoutput_init(s, sl, par, tpar)
   end if
   
   ! done defining variables
+  call writelog('ls', '', 'Writing file definition.')
   status = nf90_enddef(ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
@@ -347,6 +348,7 @@ subroutine ncoutput_init(s, sl, par, tpar)
   if (status /= nf90_noerr) call handle_err(status)
   
   if (outputp) then
+     call writelog('ls', '', 'Writing point vars.')
      status = nf90_put_var(ncid, xpointsvarid, par%xpointsw)
      if (status /= nf90_noerr) call handle_err(status)
      status = nf90_put_var(ncid, ypointsvarid, par%ypointsw)
@@ -366,8 +368,6 @@ subroutine ncoutput_init(s, sl, par, tpar)
      if (status /= nf90_noerr) call handle_err(status)
      status = nf90_put_var(ncid, pointtypesvarid, par%pointtypes)
      if (status /= nf90_noerr) call handle_err(status)
-     
-
   end if
 
   status = nf90_close(ncid)
@@ -456,7 +456,7 @@ subroutine nc_output(s,sl,par, tpar)
      status = nf90_put_var(ncid, pointtimevarid, par%t, (/tpar%itp/))
      if (status /= nf90_noerr) call handle_err(status) 
 
-     do i=1,par%npoints
+     do i=1,par%npointvar
         mnem = trim(par%pointvars(i))
         j = chartoindex(mnem)
         ! lookup the proper array

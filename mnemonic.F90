@@ -29,15 +29,17 @@ end type arraytype
 contains
 
 integer function chartoindex(line)
-
+  use logging_module
   implicit none
 
   character(len=*), intent(in)  :: line
 
   chartoindex = -1
-
+  
 include 'chartoindex.gen'
-
+  if (chartoindex == -1) then
+     call writelog('sl','','Could not find index for: ', line)
+  end if
 end function chartoindex
 
 subroutine printvar(t,lid,eid)

@@ -23,6 +23,13 @@ use means_module
 use ncoutput_module
 #endif
 
+! Used for getcwd
+#ifdef HASIFPORT
+use ifport
+#endif
+#ifdef HASDFPORT
+use dfport
+#endif
 
 IMPLICIT NONE
 
