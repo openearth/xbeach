@@ -128,6 +128,7 @@ type parameters
    real*8        :: cats                       = -123    !  [Trep] Current averaging time scale for wci, in terms of mean wave periods
 
    ! Flow parameters                                                                                                               
+   character(256):: bedfriction                = 'abc'   !  [-] Bed friction formulation: 'chezy','white-colebrook'
    real*8        :: C                          = -123    !  [m^0.5s^-1] Chezy coefficient
    real*8        :: cf                         = -123    !  [-] Friction coefficient flow
    real*8        :: nuh                        = -123    !  [m^2s^-1] Horizontal background viscosity 
@@ -572,8 +573,14 @@ contains
     ! Flow parameters          
     call writelog('l','','--------------------------------')
     call writelog('l','','Flow parameters: ')
-    par%cf      = readkey_dbl ('params.txt','cf',      3.d-3,     0.d0,     0.1d0)
-    par%C       = readkey_dbl ('params.txt','C',       sqrt(par%g/par%cf),     20.d0,    100.d0)
+    allocate(allowednames(2),oldnames(0))
+    allowednames=(/'chezy          ','white-colebrook'/)
+    par%bedfriction = readkey_str('params.txt','bedfriction','chezy',2,0,allowednames,oldnames)
+    deallocate(allowednames,oldnames)
+    if (trim(par%bedfriction)=='chezy') then
+       par%cf      = readkey_dbl ('params.txt','cf',      3.d-3,     0.d0,     0.1d0)
+       par%C       = readkey_dbl ('params.txt','C',       sqrt(par%g/par%cf),     20.d0,    100.d0)
+    endif
     par%nuh     = readkey_dbl ('params.txt','nuh',     0.15d0,     0.0d0,      1.0d0)
     par%nuhfac  = readkey_dbl ('params.txt','nuhfac',      0.0d0,     0.0d0,  1.0d0)
     par%nuhv    = readkey_dbl ('params.txt','nuhv',     1.d0,      1.d0,    20.d0)

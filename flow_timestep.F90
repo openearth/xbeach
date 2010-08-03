@@ -109,7 +109,7 @@ contains
        ve      =0.d0
     endif
     ! update bedfriction coefficient cf
-    if (par%cf < 0.d0) then
+    if (trim(par%bedfriction)=='white-colebrook') then
        s%cf = par%g/(18.d0*log10(4.*s%hh/min(s%hh,s%D90top)))**2 ! cf = g/C^2 where C = 18*log(4*hh/D90)
     endif
 
