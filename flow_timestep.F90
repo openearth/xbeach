@@ -229,16 +229,12 @@ contains
     !
 
     ! Jaap: Slightly changes approach; 1) background viscosity is user defined or obtained from Smagorinsky, 2) nuh = max(nuh,roller induced viscosity)
-#ifndef USEMPI
     if (par%smag == 1) then
        !Use smagorinsky subgrid model
        call visc_smagorinsky(s,par)
     else
-#endif
        s%nuh = par%nuh
-#ifndef USEMPI
     endif
-#endif
 
     do j=2,ny
        do i=2,nx
@@ -254,7 +250,6 @@ contains
        end do
     end do
 
-#ifndef USEMPI
     if (par%smag == 1) then
        !
        !   For non constant eddy viscosity the stress terms read:
@@ -274,7 +269,6 @@ contains
        !
        viscu = 2.0d0*viscu
     endif
-#endif
 
     do j=2,ny
        do i=2,nx
@@ -288,7 +282,6 @@ contains
        end do
     end do
 
-#ifndef USEMPI
     if (par%smag == 1) then
        do j=2,ny
           do i=2,nx
@@ -303,9 +296,6 @@ contains
           enddo
        enddo
     endif
-#endif
-
-
     !
     ! Explicit Euler step momentum u-direction
     !
@@ -373,11 +363,9 @@ contains
        end do
     end do
 
-#ifndef USEMPI
     if (par%smag == 1) then
        viscv = 2.0d0*viscv
     endif
-#endif
 
     nuh = par%nuhv*nuh !Robert en Ap: increase nuh interaction in d2v/dx2
     do j=2,ny
@@ -392,7 +380,6 @@ contains
        end do
     end do
 
-#ifndef USEMPI
     if (par%smag == 1) then
        do j=2,ny
           do i=2,nx
@@ -407,7 +394,6 @@ contains
           enddo
        enddo
     endif
-#endif
 
     udvdx(nx+1,:)=0.0d0       !Jaap udvdx(nx+1,:) is not defined but is used to compute vv(nx+1,:)
     viscv(nx+1,:)=viscv(nx,:) !Jaap viscv(nx+1,:) is not defined but is used to compute vv(nx+1,:)
@@ -796,11 +782,11 @@ contains
 
   end subroutine flow_timestep
 
-#ifndef USEMPI
 
 subroutine visc_smagorinsky(s,par)
   use params
   use spaceparams
+  use xmpi_module
 
   IMPLICIT NONE
 
@@ -868,12 +854,20 @@ subroutine visc_smagorinsky(s,par)
       s%nuh(i,j) = par%nuh**2 * l * Tau * real(s%wetu(i,j)*s%wetu(i-1,j)*s%wetv(i,j)*s%wetv(i,j-1),kind=8)
     enddo
   enddo
+  
+  ! Internal and external boundaries
+  if (xmpi_istop)   s%nuh(1,:)      = 0.0d0
+  if (xmpi_isright) s%nuh(:,s%ny+1) = 0.0d0
+  if (xmpi_isleft)  s%nuh(:,1)      = 0.0d0
+  if (xmpi_isbot)   s%nuh(s%nx+1,:) = 0.0d0
 
-  s%nuh(1,:)      = 0.0d0
-  s%nuh(:,s%ny+1) = 0.0d0
-  s%nuh(:,1)      = 0.0d0
-  s%nuh(s%nx+1,:) = 0.0d0
+#ifdef USEMPI
+  call xmpi_shift(s%nuh,'1:')
+  call xmpi_shift(s%nuh,'m:')
+  call xmpi_shift(s%nuh,':1')
+  call xmpi_shift(s%nuh,':n')
+#endif  
+  
 end subroutine visc_smagorinsky
 
-#endif
 end module flow_timestep_module
