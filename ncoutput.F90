@@ -137,7 +137,7 @@ subroutine ncoutput_init(s, sl, par, tpar)
 
   ncfilename = 'xboutput.nc' 
   ! create a file
-  status = nf90_create(path = ncfilename, cmode=NF90_CLOBBER, ncid = ncid)
+  status = nf90_create(path = ncfilename, cmode=ior(NF90_CLOBBER,NF90_64BIT_OFFSET), ncid = ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
 
