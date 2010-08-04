@@ -39,7 +39,7 @@ contains
     real*8            :: defval,mnval,mxval
     logical, intent(in), optional :: bcast,required
 
-    character*80   :: value
+    character(len=256)   :: value
     real*8         :: value_dbl
     logical        :: lbcast,lrequired
     character(24)  :: fmt
@@ -104,7 +104,7 @@ contains
     implicit none
     character*(*)  :: fname,key
     character(24)  :: printkey
-    character*80   :: value
+    character*256   :: value
     integer*4      :: value_int
     integer*4      :: defval,mnval,mxval
     logical, intent(in), optional :: bcast, required
@@ -131,7 +131,7 @@ contains
        call readkey(fname,key,value)
 
        if (value/=' ') then
-          read(value,'(i80)')value_int
+          read(value,'(i256)')value_int
           if (value_int>mxval) then
              call writelog('l',fmt,'Warning: variable ',(printkey),' ',value_int,' > recommended value of ',mxval)
              call writelog('s','(a,a,a,i0)','Warning: ',trim(printkey),' > recommended value of ',mxval)
@@ -288,93 +288,46 @@ contains
   end function readkey_name
 
 
+
   !
   !  readkey is only to be called from master, ie:
   !  if(xmaster) then
   !    call readkey(....)
+  !  No need to cache these results. 
   !
-  subroutine readkey(fname,key,value)
+  subroutine readkey(fname, key, value)
     use logging_module
-    integer                                     :: lun,i,ier,nlines,ic,ikey
-    character*1                                 :: ch
     character(len=*), intent(in)                :: fname,key
     character(len=*), intent(out)               :: value
-    character*80, dimension(:),allocatable,save :: keyword,values
-    character*80                                :: line
-    logical, save                               :: first=.true.
-    integer, save                               :: nkeys
-    character*80, save                          :: fnameold='first_time.exe'
-    integer, dimension(:),allocatable,save          :: readindex
 
-    if (fname/=fnameold) then                   ! Open new file if fname changes
-       if (fnameold/='first_time.exe') then    ! only if not the first time older versions
-          deallocate(keyword)
-          deallocate(values)
-          deallocate(readindex)
-       end if
-       first=.true.
-       fnameold=fname
-       nkeys=0
-       ier=0
-    end if
+    integer                                     :: stat,ic
+    integer                                     :: fh
+    character(len=256)                            :: line
+    character(len=24)                           :: foundkey
+    logical                                     :: found=.true.
 
-
-    if (first) then
-       call writelog('ls','','XBeach reading from ',trim(fname))
-       !  write(*,*)'readkey: Reading from ',trim(fname),' ...........'
-       first=.false.
-       lun=99
-       i=0
-       open(lun,file=fname)
-       do while (ier==0)
-          read(lun,'(a)',iostat=ier)ch
-          if (ier==0)i=i+1
-       enddo
-       close(lun)
-       nlines=i
-
-       allocate(keyword(nlines))
-       allocate(values(nlines))
-
-       open(lun,file=fname)
-       ikey=0
-       do i=1,nlines
-          read(lun,'(a)')line
-          ic=scan(line,'=')
-          if (ic>0) then
-             ikey=ikey+1
-             keyword(ikey)=adjustl(line(1:ic-1))
-             values(ikey)=adjustl(line(ic+1:80))
-          endif
-       enddo
-       nkeys=ikey
-       close(lun)
-       allocate(readindex(nkeys))
-       readindex=0
-    endif
-
-    value=' '
-    do ikey=1,nkeys
-       if (key.eq.keyword(ikey)) then
-          value=values(ikey)
-          readindex(ikey)=1
+    open(fh, file=fname)
+    found = .false.
+    value = ' '
+    line = 'x'
+    do 
+       read(fh, '(a)', iostat=stat) line
+       if (stat /= 0) exit
+       ic = scan(line,'=')
+       if (ic>0) then
+          ! remove leading and trailing spaces
+          foundkey=trim(adjustl(line(1:ic-1)))
+          if (trim(key).eq.trim(foundkey)) then
+             ! remove leading and trailing spaces
+             value=trim(adjustl(line(ic+1:256)))
+             found = .true.
+             exit
+          end if
        endif
     enddo
-
-
-    ! If required, do a check whether params are not used or unknown
-    if (key .eq. 'checkparams') then
-       do ikey=1,nkeys
-          if (readindex(ikey)==0) then
-             call writelog('sl','','Unknown, unused or multiple statements of parameter ',trim(keyword(ikey)),&
-                  ' in ',trim(fname))
-          endif
-       enddo
-    endif
-
-
+    close(fh)
+       
   end subroutine readkey
-
 
 
   ! The following code is taken from program "CHCASE" @ http://www.davidgsimpson.com/software/chcase_f90.txt:

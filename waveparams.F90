@@ -44,7 +44,7 @@ contains
     type(waveparameters)                        :: wp
     real*8                                      :: h0t0
     real*8,save                                 :: bcendtime
-    character*80                                :: fname,Ebcfname,qbcfname
+    character(len=256)                          :: fname,Ebcfname,qbcfname
     character*8                                 :: testc
     logical                                     :: makefile
     integer,save                                :: reuse  ! = 0 used to be in code

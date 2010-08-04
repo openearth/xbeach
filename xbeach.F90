@@ -225,11 +225,11 @@ if (par%outputformat=='fortran') then
    call var_output(it,sglobal,s,par,tpar)
 elseif (par%outputformat=='netcdf') then
 #ifdef USENETCDF
-   call nc_output(sglobal,s,par, tpar)
+   call ncoutput(sglobal,s,par, tpar)
 #endif
 elseif (par%outputformat=='debug') then
 #ifdef USENETCDF
-   call nc_output(sglobal,s,par, tpar)
+   call ncoutput(sglobal,s,par, tpar)
 #endif
    call var_output(it,sglobal,s,par,tpar)
 endif
@@ -285,11 +285,11 @@ do while (par%t<par%tstop)
       call var_output(it,sglobal,s,par,tpar)
    elseif (par%outputformat=='netcdf') then
 #ifdef USENETCDF
-      call nc_output(sglobal,s,par, tpar)
+      call ncoutput(sglobal,s,par, tpar)
 #endif
    elseif (par%outputformat=='debug') then
 #ifdef USENETCDF
-      call nc_output(sglobal,s,par, tpar)
+      call ncoutput(sglobal,s,par, tpar)
 #endif
       call var_output(it,sglobal,s,par,tpar)
    endif
