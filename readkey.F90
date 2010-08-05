@@ -306,6 +306,7 @@ contains
     character(len=24)                           :: foundkey
     logical                                     :: found=.true.
 
+    fh = 2600
     open(fh, file=fname)
     found = .false.
     value = ' '
