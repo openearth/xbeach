@@ -305,16 +305,28 @@ contains
     character(len=256)                            :: line
     character(len=24)                           :: foundkey
     logical                                     :: found=.true.
-
+    
+    ! Set the file handle to some arbitrary number
     fh = 2600
+
+    ! open the file handle
     open(fh, file=fname)
+
+    ! We're going to look for the key in the file but we haven't found it yet
     found = .false.
+    
+    ! The value and line are empty for now. 
     value = ' '
-    line = 'x'
+    line = ' '
+    
+    ! loop until we reach the EOF
     do 
        read(fh, '(a)', iostat=stat) line
+       ! End of file, exit the loop
        if (stat /= 0) exit
+       ! See if there's a key value pair
        ic = scan(line,'=')
+       ! Let's split them up
        if (ic>0) then
           ! remove leading and trailing spaces
           foundkey=trim(adjustl(line(1:ic-1)))
@@ -322,10 +334,12 @@ contains
              ! remove leading and trailing spaces
              value=trim(adjustl(line(ic+1:256)))
              found = .true.
+             ! We've found the key, let's return the value
              exit
           end if
        endif
     enddo
+    ! Always close the file.
     close(fh)
        
   end subroutine readkey
