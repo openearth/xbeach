@@ -746,7 +746,7 @@ contains
     if (par%morphology==1) then 
        call writelog('l','','--------------------------------')
        call writelog('l','','Morphology parameters: ')
-       par%morfac   = readkey_dbl ('params.txt','morfac', 0.0d0,        0.d0,  1000.d0)
+       par%morfac   = readkey_dbl ('params.txt','morfac', 1.0d0,        0.d0,  1000.d0)
        par%morfacopt= readkey_int ('params.txt','morfacopt', 1,        0,        1)
        par%morstart = readkey_dbl ('params.txt','morstart',120.d0,      0.d0, 10000.d0)
        par%wetslp   = readkey_dbl ('params.txt','wetslp', 0.3d0,       0.1d0,     1.d0)
