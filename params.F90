@@ -1124,89 +1124,60 @@ return
 end subroutine distribute_par
 #endif
 
-!
-! Some extra functions to make reading the output variables possible
-!
-  subroutine add_outmnem(mnem, vars)
-    use logging_module
-    implicit none
-    character(len=maxnamelen), intent(in) :: mnem
-    character(len=maxnamelen), dimension(:), allocatable, intent(inout) :: vars
-    character(len=maxnamelen), dimension(:), allocatable :: temp
-    integer :: i
-    i = chartoindex(mnem)
-    if (i .lt. 1) then
-       if(xmaster) then
-          call writelog('els','','Error: cannot locate variable "',trim(mnem),'". Program terminating')
-          call halt_program
-       endif
-       return
-    endif
-    ! make a copy of the old vars
-    allocate(temp(size(vars)))
-    ! now copy the values
-    temp =vars
-    ! create room for an extra variable
-    deallocate(vars)
-    allocate(vars(size(temp)+1))
-    ! copy back
-    vars(1:size(temp)) = temp
-    ! and add the new one
-    vars(size(vars)) = mnem
-    ! clean up temp
-    deallocate(temp)
-    if(xmaster) then
-       call writelog('ls','','Will generate global output for variable "',trim(mnem),'"')
-    endif
-    return
-  end subroutine add_outmnem
 
 subroutine readglobalvars(par)
-    use logging_module
-    use mnemmodule
-    implicit none
-    type(parameters), intent(inout)            :: par
-    character(len=maxnamelen), dimension(:), allocatable :: globalvars 
-    character(len=256)            :: line, keyword
+  use logging_module
+  use mnemmodule
+  implicit none
+  type(parameters), intent(inout)            :: par
+  character(len=256)            :: line
+  character(len=maxnamelen)     :: mnem
+  character(len=24)             :: keyword
+  integer :: id, ic, i, index
 
-    integer :: id, ic, i
-    if (xmaster) then 
-        if (par%nglobalvar == -1) then
-             allocate(globalvars(21))
-             globalvars =  (/'H    ', 'zs   ', 'zs0  ', 'zb   ', 'hh   ', 'u    ', 'v    ', 'ue   ', 've   ', 'urms ', 'Fx   ', &
-                    'Fy   ', 'ccg  ', 'ceqsg', 'ceqbg', 'Susg ', 'Svsg ', 'E    ', 'R    ', 'D    ', 'DR   ' /)
-        elseif (par%nglobalvar == 999) then ! Output all
-            allocate(globalvars(size(mnemonics)))
-            globalvars = mnemonics
-        else
-            ! User specified output
-            ! This is important because there might be less usable variables than specified.
-            ! Look for keyword nglobalvar in params.txt
-            id=0
-            ! we allocate to 0, we'll let it grow inside add_mnem....
-            allocate(globalvars(0))
-            open(10,file='params.txt')
-            do while (id == 0)
-                read(10,'(a)')line
-                ic=scan(line,'=')
-                if (ic>0) then
-                    keyword=adjustl(line(1:ic-1))
-                    if (keyword == 'nglobalvar') id=1
-                endif
-            enddo
-            ! Read through the variables lines, 
-            do i=1,par%nglobalvar
-                read(10,'(a)')line
-                line = trim(line)
-                ! store the mnemonic in globalvars
-                call add_outmnem(line, globalvars)
-            end do
-            close(10)
-        end if ! globalvar
-        par%globalvars(1:par%nglobalvar) = globalvars
-    end if ! xmaster
+  if (xmaster) then 
+     if (par%nglobalvar == -1) then
+        par%globalvars(1:21) =  (/'H    ', 'zs   ', 'zs0  ', 'zb   ',&
+             & 'hh   ', 'u    ', 'v    ', 'ue   ', 've   ', 'urms ', 'Fx   ', &
+             & 'Fy   ', 'ccg  ', 'ceqsg', 'ceqbg', 'Susg ', 'Svsg ', 'E    ', 'R    ',&
+             & 'D    ', 'DR   ' /)
+        call writelog('ls','','Will generate global output for default variables')
+     elseif (par%nglobalvar == 999) then ! Output all
+        par%globalvars = mnemonics
+        call writelog('ls','','Will generate global output for all variables')
+     else
+        ! User specified output
+        ! This is important because there might be less usable variables than specified.
+        ! Look for keyword nglobalvar in params.txt
+        id=0
+        ! we allocate to 0, we'll let it grow inside add_mnem....
+        open(10,file='params.txt')
+        do while (id == 0)
+           read(10,'(a)')line
+           ic=scan(line,'=')
+           if (ic>0) then
+              keyword=adjustl(line(1:ic-1))
+              if (keyword == 'nglobalvar') id=1
+           endif
+        enddo
+        ! Read through the variables lines, 
+        do i=1,par%nglobalvar
+           read(10,'(a)')line
+           mnem = trim(line)
+           ! store the mnemonic in globalvars
+           index = chartoindex(trim(mnem))
+           if (index .lt. 1) then
+              call writelog('els','','Error: cannot locate variable "',trim(mnem),'". Program terminating')
+              call halt_program
+           end if
+           par%globalvars(i) = trim(mnem)
+           call writelog('ls','','Will generate global output for variable "',trim(mnem),'"')
+        end do
+        close(10)
+     end if ! globalvar
+  end if ! xmaster
 
-end subroutine
+end subroutine readglobalvars
 
 !
 ! FB:
