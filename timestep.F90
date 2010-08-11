@@ -303,9 +303,8 @@ if (par%nmeanvar>0) then
 #endif
 else
    allocate(tpar%tpm(0))
+
 endif  ! nmeanvar > 0
-
-
 
 end subroutine
 
@@ -313,6 +312,7 @@ end subroutine
 subroutine outputtimes_update(par, tpar)
   use params
   use xmpi_module
+  use logging_module
   implicit none
   type(parameters),intent(inout)      :: par
   type(timepars), intent(inout):: tpar
@@ -366,7 +366,7 @@ subroutine outputtimes_update(par, tpar)
 
   tpar%tnext=min(t1,t2,t3,t4,t5,par%tstop)
   if (tpar%tnext .eq. huge(tpar%tpg) .and. par%t .eq. 0) then
-     write(0,*) 'no output times found, setting tnext to tstop'
+     call writelog('ls','', 'no output times found, setting tnext to tstop')
      tpar%tnext = par%tstop
   end if
 
@@ -396,6 +396,9 @@ subroutine timestep(s,par, tpar, it)
   ! Next time step will be, min(output times, t+dt) 
 
   tny = tiny(0.d0)
+  if (par%t .gt. 119) then
+     par%t = par%t + 0.0d0
+  end if
 
   ! Robert new time step criterion
   if (par%t<=0.0d0) then          ! conservative estimate
@@ -431,8 +434,11 @@ subroutine timestep(s,par, tpar, it)
            endif
         enddo
      enddo
+
      par%dt=par%dt*par%CFL*0.5d0
+
 #ifdef USEMPI
+
      par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tiny(0.0d0)))
 #else
      if (par%instat(1:4)/='stat') then
@@ -441,22 +447,24 @@ subroutine timestep(s,par, tpar, it)
 #endif
      !To avoid large timestep differences due to output, which can cause instabities
      !in the hanssen (leapfrog) scheme, we smooth the timestep.
-     !
+
      n = ceiling((tpar%tnext-par%t)/par%dt)
      par%dt = (tpar%tnext-par%t)/n
   end if
-
-  if (par%t==par%dt) then
+  
+  if (dtref .eq. 0.0d0) then
+     ! If dtref is not yet set.
      dtref = par%dt
-  endif
+#ifdef USEMPI
+     ! Use the same dtref everywhere.
+     call xmpi_allreduce(dtref,MPI_MIN)
+#endif
+  end if
 
   if (dtref/par%dt>50.d0) then
      call writelog('lse','','Quit XBeach since computational time explodes')
      call halt_program
   endif
-
-
-
 
   ! wwvv: In the mpi version par%dt will be calculated different
   ! on different processes. So, we take the minimum of all dt's
@@ -471,5 +479,6 @@ subroutine timestep(s,par, tpar, it)
      par%t=tpar%tnext
      it=it+1
   end if
+
 end subroutine timestep
 end module timestep_module

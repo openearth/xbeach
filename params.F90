@@ -289,7 +289,7 @@ type parameters
    ! Variables, not read in params.txt
    real*8               :: dt                  = -123    !  [s] Computational time step, in hydrodynamic time
    real*8               :: t                   = -123    !  [s] Computational time, in hydrodynamic time
-   real*8               :: tnext               = -123    !  [s] Next time point for output or wave stationary calculation, in hydrodynamic time
+
    real*8               :: Emean               = -123    !  Note: can be made local [Jm^-2] Mean wave energy at boundary
    real*8               :: w                   = -123    !  Note: can be made local [ms^-1] Fall velocity sediment
    integer*4            :: listline            = -123    !  Note: can be made local [-] Keeps track of the record line in bcf-files in case of instat 4,5,6

@@ -200,11 +200,20 @@ contains
        if (status /= nf90_noerr) call handle_err(status)
        status = nf90_put_att(ncid, xvarid, 'long_name', 'local x coordinate')
        if (status /= nf90_noerr) call handle_err(status)
+       status = nf90_put_att(ncid, xvarid, 'standard_name', 'projection_x_coordinate')
+       if (status /= nf90_noerr) call handle_err(status)
+       status = nf90_put_att(ncid, xvarid, 'axis', 'X')
+       if (status /= nf90_noerr) call handle_err(status)
+
        status = nf90_def_var(ncid, 'y', NF90_DOUBLE, (/ ydimid /), yvarid)
        if (status /= nf90_noerr) call handle_err(status)
        status = nf90_put_att(ncid, yvarid, 'units', 'm')
        if (status /= nf90_noerr) call handle_err(status)
        status = nf90_put_att(ncid, yvarid, 'long_name', 'local y coordinate')
+       if (status /= nf90_noerr) call handle_err(status)
+       status = nf90_put_att(ncid, yvarid, 'standard_name', 'projection_y_coordinate')
+       if (status /= nf90_noerr) call handle_err(status)
+       status = nf90_put_att(ncid, yvarid, 'axis', 'Y')
        if (status /= nf90_noerr) call handle_err(status)
 
 
@@ -214,6 +223,10 @@ contains
           status = nf90_def_var(ncid, 'globaltime', NF90_DOUBLE, (/ globaltimedimid /), globaltimevarid)
           if (status /= nf90_noerr) call handle_err(status)
           status = nf90_put_att(ncid, globaltimevarid, 'units', trim(par%tunits))
+          if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, globaltimevarid, 'axis', 'T')
+          if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, globaltimevarid, 'standard_name', 'time')
           if (status /= nf90_noerr) call handle_err(status)
 
           ! default global output variables
@@ -262,6 +275,10 @@ contains
           if (status /= nf90_noerr) call handle_err(status)
           status = nf90_put_att(ncid, pointtimevarid, 'units', trim(par%tunits))
           if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, pointtimevarid, 'axis', 'T')
+          if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, pointtimevarid, 'standard_name', 'time')
+          if (status /= nf90_noerr) call handle_err(status)
 
           ! points
           status = nf90_def_var(ncid, 'xpoint', NF90_DOUBLE, (/ pointsdimid /), xpointsvarid)
@@ -270,11 +287,21 @@ contains
           if (status /= nf90_noerr) call handle_err(status)
           status = nf90_put_att(ncid, xpointsvarid, 'long_name', 'local x coordinate')
           if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, xpointsvarid, 'standard_name', 'projection_x_coordinate')
+          if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, xpointsvarid, 'axis', 'X')
+          if (status /= nf90_noerr) call handle_err(status)
+
+
           status = nf90_def_var(ncid, 'ypoint', NF90_DOUBLE, (/ pointsdimid /), ypointsvarid)
           if (status /= nf90_noerr) call handle_err(status)
           status = nf90_put_att(ncid, ypointsvarid, 'units', 'm')
           if (status /= nf90_noerr) call handle_err(status)
           status = nf90_put_att(ncid, ypointsvarid, 'long_name', 'local y coordinate')
+          if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, ypointsvarid, 'standard_name', 'projection_y_coordinate')
+          if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, ypointsvarid, 'axis', 'Y')
           if (status /= nf90_noerr) call handle_err(status)
 
           status = nf90_def_var(ncid, 'xpointindex', NF90_DOUBLE, (/ pointsdimid /), xpointindexvarid)
@@ -429,7 +456,7 @@ contains
        ! only write the information on the xmaster node
        if (xmaster) then
           ! Store the time (in morphological time)
-          status = nf90_put_var(ncid, globaltimevarid, par%t*par%morfac, (/tpar%itg/))
+          status = nf90_put_var(ncid, globaltimevarid, par%t*max(par%morfac,1.d0), (/tpar%itg/))
           if (status /= nf90_noerr) call handle_err(status) 
           ! write global output variables
           do i=1,par%nglobalvar
@@ -481,7 +508,7 @@ contains
        end do
 #endif
        if (xmaster) then
-          status = nf90_put_var(ncid, pointtimevarid, par%t*par%morfac, (/tpar%itp/))
+          status = nf90_put_var(ncid, pointtimevarid, par%t*max(par%morfac,1.d0), (/tpar%itp/))
           if (status /= nf90_noerr) call handle_err(status) 
           do i=1,par%npointvar
              mnem = trim(par%pointvars(i))

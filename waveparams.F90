@@ -1376,15 +1376,6 @@ subroutine build_etdir(par,s,wp,h,Ebcfname)
               Ampzeta(index2,:,ii)= Amp(index2,:)*stdzeta/stdeta    
            endif
 
-           ! Print status message to screen
-           if(xmaster) then
-              if (F2/=0) then
-                 call writelog('ls','(A,I0,A,I0,A,I0)','Y-point ',index2,' of ',wp%Npy,' done. Error code: ',F2)
-              else
-                 call writelog('s','(A,I0,A,I0,A)','Y-point ',index2,' of ',wp%Npy,' done.')
-              end if
-           endif
-
            deallocate(Comptemp)
         else
            ! Current computational directional bin does not contain any wave
@@ -1620,11 +1611,6 @@ allocate(qx(Npy,Nr))
 qx=0.0d0
 allocate(Comptemp2(Nr)) 
 
-! Print status message to screen
-if(xmaster) then
-    call writelog('ls','(A,I0)','Flux 1 of ',Npy)
-endif
-
 ! Fourier transformation
 Comptemp2=fft(Gn(1,:),inv=.true.)
 
@@ -1649,11 +1635,6 @@ do jj=2,Npy
     call flipiv(Comptemp,Nr/2-1)
     Gn(jj,Nr/2+2:Nr) = Comptemp
 
-    ! Print status message to screen
-    if(xmaster) then
-        call writelog('s','(A,I0,A,I0)','Flux ',jj,' of ',Npy)
-    endif
-    
     ! Inverse Discrete Fourier transformation to transform back to time space
     ! from frequency space
     Comptemp2=fft(Gn(jj,:),inv=.true.)

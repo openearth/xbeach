@@ -145,7 +145,7 @@ call xmpi_determine_processor_grid(s%nx,s%ny,par%mpiboundary,error)
 if(xmaster) then
   if (error==1) then
      call writelog('els','','Unknown mpi division ',par%mpiboundary)
-	 call halt_program
+     call halt_program
   else
      call writelog('ls','','processor grid: ',xmpi_m,' X ',xmpi_n)
   endif
@@ -186,7 +186,7 @@ elseif (par%outputformat=='netcdf') then
    call ncoutput_init(sglobal,slocal,par,tpar)
 #else
    call writelog('lse', '', 'This xbeach executable has no netcdf support. Rebuild with netcdf or outputformat=fortran')
-   stop 1
+   call halt_program
 #endif
 elseif (par%outputformat=='debug') then
    call writelog('ls', '', 'Debug outputformat, writing both netcdf and fortran output')
@@ -195,7 +195,6 @@ elseif (par%outputformat=='debug') then
 #endif
    call output_init(sglobal,slocal,par,tpar)
 endif
-
 
 #ifdef USEMPI
 ! some par has changed, so:
@@ -241,7 +240,7 @@ do while (par%t<par%tstop)
    ! Calculate timestep
    call timestep(s,par,tpar, it)
    ! Wave boundary conditions
-   if (par%swave==1) call wave_bc (sglobal,slocal,par,newstatbc)
+   if (par%swave==1) call wave_bc (sglobal,slocal,par,newstatbc) 
    ! Flow boundary conditions
    if (par%gwflow==1) call gwbc(par,s)
    if (par%flow+par%nonh>0) call flow_bc (s,par)
