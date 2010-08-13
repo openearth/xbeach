@@ -679,10 +679,10 @@ contains
        endif
        testc = readkey_name('params.txt','D90')
        if (testc==' ') then
-          par%D90(1:par%ngd)=0.0003d0   ! Default
-          call writelog('l','','Setting D90 to default value 0.0003')
+          par%D90(1:par%ngd)=1.5d0*par%D50(1:par%ngd)  ! Default
+          call writelog('l','','Setting D90 to default value (1.5*D50)')
        else
-          read(testc,*) par%D50(1:par%ngd)
+          read(testc,*) par%D90(1:par%ngd)
        endif
        testc = readkey_name('params.txt','sedcal')
        if (testc==' ') then
