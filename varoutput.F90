@@ -417,7 +417,7 @@ contains
           if(xmaster) then
              call writelog('ls','(a,f5.1,a)','Simulation ',percnow,' percent complete')
              if (tpredicted>=3600) then 
-                call writelog('ls','(a,I3,a,I2,a)','Time remaining ',&
+                call writelog('ls','(a,I0,a,I2,a)','Time remaining ',&
                      floor(tpredicted/3600.0d0),' hours and ',&
                      nint((tpredicted-3600.0d0*floor(tpredicted/3600.0d0))/60.0d0),&
                      ' minutes')
