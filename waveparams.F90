@@ -1575,11 +1575,12 @@ end do
 
 ! Determine angle of bound long wave according to Van Dongeren et al. 2003 eq. 22
 allocate(theta3(K-1,K))
-where (abs(KKx)>0.00001d0)
-   theta3 = atan(KKy/KKx)
-elsewhere
-   theta3 = atan(KKy/sign(0.00001d0,KKx))
-endwhere
+!where (abs(KKx)>0.00001d0)
+!   theta3 = atan(KKy/KKx)
+!elsewhere
+!   theta3 = atan(KKy/sign(0.00001d0,KKx))
+!endwhere
+theta3 = atan2(KKy,KKx)
 
 ! Allocate variables for amplitude and Fourier coefficients of bound long wave
 allocate(Gn(Npy,Nr))
