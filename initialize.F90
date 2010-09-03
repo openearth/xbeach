@@ -422,7 +422,7 @@ contains
     real*8                              :: tempr
 
     allocate(s%ccg(1:s%nx+1,1:s%ny+1,par%ngd))
-    allocate(s%ccbg(1:s%nx+1,1:s%ny+1,par%ngd))
+    ! allocate(s%ccbg(1:s%nx+1,1:s%ny+1,par%ngd))
     allocate(s%dcbdy(1:s%nx+1,1:s%ny+1))
     allocate(s%dcbdx(1:s%nx+1,1:s%ny+1))
     allocate(s%dcsdy(1:s%nx+1,1:s%ny+1))
@@ -504,9 +504,9 @@ contains
        s%pbbed(:,:,:,1)=1.d0   ! set sand fraction everywhere, not structure fraction (if exist) which is still 0.d0
        par%nd_var=2
 
-       s%dzbed(:,:,1:par%nd_var-1)       = 10.d0
-       s%dzbed(:,:,par%nd_var)           = 10.d0
-       s%dzbed(:,:,par%nd_var+1:par%nd)  = 10.d0
+       s%dzbed(:,:,1:par%nd_var-1)       = max(par%dzg1,10.d0)
+       s%dzbed(:,:,par%nd_var)           = max(par%dzg2,10.d0)
+       s%dzbed(:,:,par%nd_var+1:par%nd)  = max(par%dzg3,10.d0)
 
     else
 
@@ -587,7 +587,7 @@ contains
     s%ureps      = 0.d0
     s%vreps      = 0.d0
     s%ccg        = 0.d0
-    s%ccbg       = 0.d0
+    ! s%ccbg       = 0.d0
     s%ceqbg      = 0.d0
     s%ceqsg      = 0.d0
     s%Susg       = 0.d0

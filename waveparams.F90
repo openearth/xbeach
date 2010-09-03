@@ -250,7 +250,11 @@ if (trim(par%instat)/='jons_table') then
 !                                      Input file   Keyword     Default     Minimum     Maximum   
     wp%hm0gew           = readkey_dbl (fname,       'Hm0',      0.0d0,      0.00d0,     5.0d0,      bcast=.false. )
     fp                  = readkey_dbl (fname,       'fp',       0.08d0,     0.0625d0,   0.4d0,      bcast=.false. )
-    fnyq                = readkey_dbl (fname,       'fnyq',     max(0.3d0,5.d0*fp),    0.2d0,      1.0d0,      bcast=.false. )
+	if (par%oldnyq==1) then
+       fnyq                = readkey_dbl (fname,       'fnyq', 0.3d0,    0.2d0,      1.0d0,      bcast=.false. )
+    else 
+	   fnyq                = readkey_dbl (fname,       'fnyq',     max(0.3d0,5.d0*fp),    0.2d0,      1.0d0,      bcast=.false. )
+	endif
     dfj                 = readkey_dbl (fname,       'dfj',      fnyq/200,   fnyq/1000,  fnyq/20,    bcast=.false. )
     gam                 = readkey_dbl (fname,       'gammajsp', 3.3d0,      1.0d0,      5.0d0,      bcast=.false. )
     scoeff              = readkey_dbl (fname,       's',        10.0d0,     1.0d0,      1000.0d0,   bcast=.false. )
@@ -372,7 +376,7 @@ wp%Sf = sum(wp%S_array, DIM = 2)*wp%dang
 
 ! Calculate mean wave period based on one-dimensional non-directional variance
 ! density spectrum and factor trepfac
-call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac)
+call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac,par%Tm01switch)
 call writelog('sl','','Trep =',par%Trep)
                                                                                ! par%Trep=1.d0/par%Trep
                                                                                ! Jaap try Tm-1,0
@@ -719,8 +723,8 @@ subroutine swanreader(par,s,wp,fname)
   wp%hm0gew=4*sqrt(m0)
   !par%Trep=1/(m1/m0)
 
-  call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac)
-  !par%Trep=1.d0/par%Trep
+  call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac,par%Tm01switch)
+  call writelog('sl','','Trep =',par%Trep)
 
   allocate(findline(size(wp%Sf)))
 
@@ -848,8 +852,8 @@ deallocate(temp)
 
 wp%hm0gew=4*sqrt(m0)
 !par%Trep=1/(m1/m0)
-call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac)
-!par%Trep=1.d0/par%Trep
+call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac,par%Tm01switch)
+call writelog('sl','','Trep =',par%Trep)
 !
 allocate(findline(size(wp%Sf)))
 firstp=0
@@ -1036,6 +1040,7 @@ subroutine build_etdir(par,s,wp,h,Ebcfname)
 
   ! Define random number between 0.025 and 0975 for each wave component
   call random_number(randummy)
+
   P0=randummy(1:wp%K)
   !P0=0.95*P0+0.05/2                                                             ! Bas: do not crop cdf, only needed in Matlab to ensure monotonicity
 
@@ -1152,8 +1157,10 @@ subroutine build_etdir(par,s,wp,h,Ebcfname)
   S0org=wp%S0
 
   ! Correct spectra for wave height
-  wp%S0 = (wp%hm0gew/hm0now)**2*wp%S0                                            ! Robert: back on ?
-  Sf0 = (wp%hm0gew/hm0now)**2*Sf0                                                ! Robert: back on ?
+  if (par%correctHm0 == 1) then
+     wp%S0 = (wp%hm0gew/hm0now)**2*wp%S0                                            ! Robert: back on ?
+     Sf0 = (wp%hm0gew/hm0now)**2*Sf0                                                ! Robert: back on ?
+  endif
 
   ! Determine directional step size
   allocate(wp%dthetafin(wp%K))
@@ -1376,6 +1383,15 @@ subroutine build_etdir(par,s,wp,h,Ebcfname)
               Ampzeta(index2,:,ii)= Amp(index2,:)*stdzeta/stdeta    
            endif
 
+           ! Print status message to screen
+           if(xmaster) then
+              if (F2/=0) then
+                 call writelog('ls','(A,I0,A,I0,A,I0)','Y-point ',index2,' of ',wp%Npy,' done. Error code: ',F2)
+              else
+                 call writelog('s','(A,I0,A,I0,A)','Y-point ',index2,' of ',wp%Npy,' done.')
+              end if
+           endif
+
            deallocate(Comptemp)
         else
            ! Current computational directional bin does not contain any wave
@@ -1575,12 +1591,11 @@ end do
 
 ! Determine angle of bound long wave according to Van Dongeren et al. 2003 eq. 22
 allocate(theta3(K-1,K))
-!where (abs(KKx)>0.00001d0)
-!   theta3 = atan(KKy/KKx)
-!elsewhere
-!   theta3 = atan(KKy/sign(0.00001d0,KKx))
-!endwhere
-theta3 = atan2(KKy,KKx)
+where (abs(KKx)>0.00001d0)
+   theta3 = atan(KKy/KKx)
+elsewhere
+   theta3 = atan(KKy/sign(0.00001d0,KKx))
+endwhere
 
 ! Allocate variables for amplitude and Fourier coefficients of bound long wave
 allocate(Gn(Npy,Nr))
@@ -1612,6 +1627,11 @@ allocate(qx(Npy,Nr))
 qx=0.0d0
 allocate(Comptemp2(Nr)) 
 
+! Print status message to screen
+if(xmaster) then
+    call writelog('ls','(A,I0)','Flux 1 of ',Npy)
+endif
+
 ! Fourier transformation
 Comptemp2=fft(Gn(1,:),inv=.true.)
 
@@ -1636,6 +1656,11 @@ do jj=2,Npy
     call flipiv(Comptemp,Nr/2-1)
     Gn(jj,Nr/2+2:Nr) = Comptemp
 
+    ! Print status message to screen
+    if(xmaster) then
+        call writelog('s','(A,I0,A,I0)','Flux ',jj,' of ',Npy)
+    endif
+    
     ! Inverse Discrete Fourier transformation to transform back to time space
     ! from frequency space
     Comptemp2=fft(Gn(jj,:),inv=.true.)
@@ -1763,13 +1788,14 @@ end subroutine frange
 ! -----------------------------------------------------------
 ! ----------- Small subroutine to determine tpD -------------
 ! ----(used by build_jonswap, swanreader, vardensreader)-----
-subroutine tpDcalc(Sf,f,Trep,trepfac)
+subroutine tpDcalc(Sf,f,Trep,trepfac,switch)
 
 implicit none
 
 real*8, dimension(:), intent(in)        :: Sf, f
 real*8, intent(out)                     :: Trep
 real*8, intent(in)                      :: trepfac
+integer, intent(in)                     :: switch
 
 real*8, dimension(:),allocatable        :: temp
 
@@ -1779,9 +1805,11 @@ where (Sf>=trepfac*maxval(Sf))
     temp=1.d0
 end where
 
-! Trep=sum(temp*Sf*f)/sum(temp*Sf)
-Trep = sum(temp*Sf/f)/sum(temp*Sf)
-
+if (switch == 1) then
+   Trep=sum(temp*Sf)/sum(temp*Sf*f)    ! Tm01
+else
+   Trep = sum(temp*Sf/f)/sum(temp*Sf)    ! Tm-1,0
+endif
 
 end subroutine tpDcalc
 

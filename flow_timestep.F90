@@ -439,11 +439,17 @@ contains
        do i=1,nx+1 !Ap
           ! Water depth in u-points do continuity equation: upwind
           if (uu(i,j)>par%umin) then
-             !   hu(i,j)=hh(i,j)
-             hu(i,j)=zs(i,j)-max(zb(i,j),zb(min(nx,i)+1,j))
+             if (par%oldhu == 1) then 
+			    hu(i,j)=hh(i,j)
+			 else
+                hu(i,j)=zs(i,j)-max(zb(i,j),zb(min(nx,i)+1,j))
+			 endif
           elseif (uu(i,j)<-par%umin) then
-             !    hu(i,j)=hh(min(nx,i)+1,j)
-             hu(i,j)=zs(min(nx,i)+1,j)-max(zb(i,j),zb(min(nx,i)+1,j))
+		     if (par%oldhu == 1) then 
+                hu(i,j)=hh(min(nx,i)+1,j)
+			 else
+                hu(i,j)=zs(min(nx,i)+1,j)-max(zb(i,j),zb(min(nx,i)+1,j))
+		     endif
           else
              hu(i,j)=max(max(zs(i,j),zs(min(nx,i)+1,j))-max(zb(i,j),zb(min(nx,i)+1,j)),par%eps)
           end if
@@ -455,11 +461,17 @@ contains
        do i=1,nx+1
           ! Water depth in v-points do continuity equation: upwind
           if (vv(i,j)>par%umin) then
-             !hv(i,j)=hh(i,j)
-             hv(i,j)=zs(i,j)-max(zb(i,j),zb(i,min(ny,j)+1))
+		     if (par%oldhu == 1) then 
+                hv(i,j)=hh(i,j)
+			 else
+                hv(i,j)=zs(i,j)-max(zb(i,j),zb(i,min(ny,j)+1))
+			 endif
           elseif (vv(i,j)<-par%umin) then
-             !hv(i,j)=hh(i,min(ny,j)+1)
-             hv(i,j)=zs(i,min(ny,j)+1)-max(zb(i,j),zb(i,min(ny,j)+1))
+		     if (par%oldhu == 1) then 
+                hv(i,j)=hh(i,min(ny,j)+1)
+			 else
+                hv(i,j)=zs(i,min(ny,j)+1)-max(zb(i,j),zb(i,min(ny,j)+1))
+			 endif
           else
              hv(i,j)=max(max(zs(i,j),zs(i,min(ny,j)+1))-max(zb(i,j),zb(i,min(ny,j)+1)),par%eps)
           end if

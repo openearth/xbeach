@@ -66,9 +66,13 @@ type parameters
    real*8        :: trepfac                    = -123    !  [-] Compute mean wave period over energy band: par%trepfac*maxval(Sf) for instat 4,5,6; converges to Tm01 for trepfac = 0.0 and
    real*8        :: sprdthr                    = -123    !  [-] Threshold ratio to maxval of S above which spec dens are read in (default 0.08*maxval)
    integer*4     :: oldwbc                     = -123    !  [-] (1) Use old version wave boundary conditions for instat 4,5,6
+   integer*4     :: correctHm0                 = -123    !  [-] Turn off or on Hm0 correction
+   integer*4     :: oldnyq                     = -123    !  [-] Turn off or on old nyquist switch
+   integer*4     :: Tm01switch                 = -123    !  [-] Turn off or on Tm01 or Tm-10 switch
    real*8        :: rt                         = -123    !  [s] Duration of wave spectrum at offshore boundary, in morphological time 
    real*8        :: dtbc                       = -123    !  [s] Timestep used to describe time series of wave energy and long wave flux at offshore boundary (not affected by morfac)
    real*8        :: dthetaS_XB                 = -123    !  [deg] If SWAN input is not in nautical degrees, dthetaS_XB is the angle from SWAN x-axis to XBeach x-axis in cathesian degrees
+
       
    ! Flow boundary condition parameters
    character(24) :: front                      = 'abc'   !  [-] Switch for seaward flow boundary: 0 = radiating boundary(Ad), 1 = Van Dongeren, 1997
@@ -211,6 +215,7 @@ type parameters
    character(256) :: swtable                   = 'abc'   !  [-] Name of intra short wave assymetry and skewness table
    integer*4     :: sus                        = -123    !  [-] Calibration factor for suspensions transports [0..1]
    integer*4     :: bed                        = -123    !  [-] Calibration factor for bed transports [0..1]
+   integer*4     :: bulk                       = -123    !  [-] Option to compute bedload and suspended load seperately; 0 = seperately, 1 = bulk (as in previous versions)
    
    ! Morphology parameters                                                                                                         
    real*8        :: morfac                     = -123    !  [-] Morphological acceleration factor
@@ -266,7 +271,8 @@ type parameters
    real*8        :: eps                        = -123    !  [m] Threshold water depth above which cells are considered wet
    real*8        :: umin                       = -123    !  [m/s] Threshold velocity for upwind velocity detection and for vmag2 in eq. sediment concentration
    real*8        :: hmin                       = -123    !  [m] Threshold water depth above which Stokes drift is included
-   integer*4     :: secorder                   = -123    ! [-] Use second order corrections to advection/non-linear terms based on mcCormack scheme
+   integer*4     :: secorder                   = -123    !  [-] Use second order corrections to advection/non-linear terms based on mcCormack scheme
+   integer*4     :: oldhu                      = -123    !  [-] Turn on / off old hu calculation
 
    ! Sediment transport numerics parameters                                                                                  
    real*8        :: thetanum                   = -123    !  [-] Coefficient determining whether upwind (1) or central scheme (0.5) is used.
@@ -289,7 +295,7 @@ type parameters
    ! Variables, not read in params.txt
    real*8               :: dt                  = -123    !  [s] Computational time step, in hydrodynamic time
    real*8               :: t                   = -123    !  [s] Computational time, in hydrodynamic time
-
+   real*8               :: tnext               = -123    !  [s] Next time point for output or wave stationary calculation, in hydrodynamic time
    real*8               :: Emean               = -123    !  Note: can be made local [Jm^-2] Mean wave energy at boundary
    real*8               :: w                   = -123    !  Note: can be made local [ms^-1] Fall velocity sediment
    integer*4            :: listline            = -123    !  Note: can be made local [-] Keeps track of the record line in bcf-files in case of instat 4,5,6
@@ -466,7 +472,10 @@ contains
        par%trepfac  = readkey_dbl ('params.txt','trepfac', 0.01d0,      0.d0,    1.d0) 
        par%sprdthr  = readkey_dbl ('params.txt','sprdthr', 0.08d0,      0.d0,    1.d0) 
        par%oldwbc   = readkey_int ('params.txt','oldwbc',       0,        0,     1)
-       if (filetype==0) then
+	   par%correctHm0   = readkey_int ('params.txt','correctHm0',       1,        0,     1)
+       par%oldnyq    = readkey_int ('params.txt','oldnyq',       0,        0,     1)
+       par%Tm01switch    = readkey_int ('params.txt','Tm01switch',       0,        0,     1)
+	   if (filetype==0) then
           par%rt   = readkey_dbl('params.txt','rt'  , 3600.d0, 1200.d0,7200.d0)
           par%dtbc = readkey_dbl('params.txt','dtbc', 0.5d0,0.1d0,2.0d0)
        endif
@@ -560,7 +569,7 @@ contains
     call writelog('l','','Roller parameters: ')
     par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
     par%beta     = readkey_dbl ('params.txt','beta',    0.15d0,     0.05d0,   0.3d0)
-    par%rfb      = readkey_int ('params.txt','rfb',        1,        0,     1)
+    par%rfb      = readkey_int ('params.txt','rfb',        0,        0,     1)
     !    
     ! Wave-current interaction parameters    
     call writelog('l','','--------------------------------')
@@ -679,10 +688,10 @@ contains
        endif
        testc = readkey_name('params.txt','D90')
        if (testc==' ') then
-          par%D90(1:par%ngd)=1.5d0*par%D50(1:par%ngd)  ! Default
-          call writelog('l','','Setting D90 to default value (1.5*D50)')
+          par%D90(1:par%ngd)=0.0003d0   ! Default
+          call writelog('l','','Setting D90 to default value 0.0003')
        else
-          read(testc,*) par%D90(1:par%ngd)
+          read(testc,*) par%D50(1:par%ngd)
        endif
        testc = readkey_name('params.txt','sedcal')
        if (testc==' ') then
@@ -713,7 +722,7 @@ contains
        allocate(allowednames(2),oldnames(2))
        allowednames=(/'ruessink_vanrijn','vanthiel        '/)
        oldnames=(/'1','2'/)
-       par%waveform = readkey_str('params.txt','waveform','vanthiel',2,2,allowednames,oldnames)
+       par%waveform = readkey_str('params.txt','waveform','ruessink_vanrijn',2,2,allowednames,oldnames)
        deallocate(allowednames,oldnames)
        par%sws      = readkey_int ('params.txt','sws',           1,        0,     1)
        par%lws      = readkey_int ('params.txt','lws',           1,        0,     1)
@@ -726,7 +735,7 @@ contains
        allocate(allowednames(3),oldnames(3))
        allowednames=(/'none         ','wave_averaged','bore_averaged'/)
        oldnames=(/'0','1','2'/)
-       par%turb = readkey_str('params.txt','turb','bore_averaged',3,3,allowednames,oldnames)
+       par%turb = readkey_str('params.txt','turb','none',3,3,allowednames,oldnames)
        deallocate(allowednames,oldnames)
        par%Tbfac    = readkey_dbl ('params.txt','Tbfac  ',1.0d0,     0.00d0,   1.0d0) 
        par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.2d0,     0.01d0,   10.d0) 
@@ -739,6 +748,7 @@ contains
        endif
        par%sus      = readkey_int ('params.txt','sus    ',1,           0,            1)
        par%bed      = readkey_int ('params.txt','bed    ',1,           0,            1)
+       par%bulk     = readkey_int ('params.txt','bulk   ',1,           0,            1)
     endif
     !
     !
@@ -843,6 +853,7 @@ contains
     par%umin    = readkey_dbl ('params.txt','umin',    0.0d0,   0.0d0,          0.2d0)
     par%hmin    = readkey_dbl ('params.txt','hmin',   0.05d0,   0.001d0,      1.d0)
     par%secorder = readkey_int('params.txt','secorder' ,0,0,1)
+	par%oldhu    = readkey_int('params.txt','oldhu' ,0,0,1)
     !
     !
     ! Sediment transport numerics parameters  
@@ -1124,60 +1135,89 @@ return
 end subroutine distribute_par
 #endif
 
+!
+! Some extra functions to make reading the output variables possible
+!
+  subroutine add_outmnem(mnem, vars)
+    use logging_module
+    implicit none
+    character(len=maxnamelen), intent(in) :: mnem
+    character(len=maxnamelen), dimension(:), allocatable, intent(inout) :: vars
+    character(len=maxnamelen), dimension(:), allocatable :: temp
+    integer :: i
+    i = chartoindex(mnem)
+    if (i .lt. 1) then
+       if(xmaster) then
+          call writelog('els','','Error: cannot locate variable "',trim(mnem),'". Program terminating')
+          call halt_program
+       endif
+       return
+    endif
+    ! make a copy of the old vars
+    allocate(temp(size(vars)))
+    ! now copy the values
+    temp =vars
+    ! create room for an extra variable
+    deallocate(vars)
+    allocate(vars(size(temp)+1))
+    ! copy back
+    vars(1:size(temp)) = temp
+    ! and add the new one
+    vars(size(vars)) = mnem
+    ! clean up temp
+    deallocate(temp)
+    if(xmaster) then
+       call writelog('ls','','Will generate global output for variable "',trim(mnem),'"')
+    endif
+    return
+  end subroutine add_outmnem
 
 subroutine readglobalvars(par)
-  use logging_module
-  use mnemmodule
-  implicit none
-  type(parameters), intent(inout)            :: par
-  character(len=256)            :: line
-  character(len=maxnamelen)     :: mnem
-  character(len=24)             :: keyword
-  integer :: id, ic, i, index
+    use logging_module
+    use mnemmodule
+    implicit none
+    type(parameters), intent(inout)            :: par
+    character(len=maxnamelen), dimension(:), allocatable :: globalvars 
+    character(len=256)            :: line, keyword
 
-  if (xmaster) then 
-     if (par%nglobalvar == -1) then
-        par%globalvars(1:21) =  (/'H    ', 'zs   ', 'zs0  ', 'zb   ',&
-             & 'hh   ', 'u    ', 'v    ', 'ue   ', 've   ', 'urms ', 'Fx   ', &
-             & 'Fy   ', 'ccg  ', 'ceqsg', 'ceqbg', 'Susg ', 'Svsg ', 'E    ', 'R    ',&
-             & 'D    ', 'DR   ' /)
-        call writelog('ls','','Will generate global output for default variables')
-     elseif (par%nglobalvar == 999) then ! Output all
-        par%globalvars = mnemonics
-        call writelog('ls','','Will generate global output for all variables')
-     else
-        ! User specified output
-        ! This is important because there might be less usable variables than specified.
-        ! Look for keyword nglobalvar in params.txt
-        id=0
-        ! we allocate to 0, we'll let it grow inside add_mnem....
-        open(10,file='params.txt')
-        do while (id == 0)
-           read(10,'(a)')line
-           ic=scan(line,'=')
-           if (ic>0) then
-              keyword=adjustl(line(1:ic-1))
-              if (keyword == 'nglobalvar') id=1
-           endif
-        enddo
-        ! Read through the variables lines, 
-        do i=1,par%nglobalvar
-           read(10,'(a)')line
-           mnem = trim(line)
-           ! store the mnemonic in globalvars
-           index = chartoindex(trim(mnem))
-           if (index .lt. 1) then
-              call writelog('els','','Error: cannot locate variable "',trim(mnem),'". Program terminating')
-              call halt_program
-           end if
-           par%globalvars(i) = trim(mnem)
-           call writelog('ls','','Will generate global output for variable "',trim(mnem),'"')
-        end do
-        close(10)
-     end if ! globalvar
-  end if ! xmaster
+    integer :: id, ic, i
+    if (xmaster) then 
+        if (par%nglobalvar == -1) then
+             allocate(globalvars(21))
+             globalvars =  (/'H    ', 'zs   ', 'zs0  ', 'zb   ', 'hh   ', 'u    ', 'v    ', 'ue   ', 've   ', 'urms ', 'Fx   ', &
+                    'Fy   ', 'ccg  ', 'ceqsg', 'ceqbg', 'Susg ', 'Svsg ', 'E    ', 'R    ', 'D    ', 'DR   ' /)
+        elseif (par%nglobalvar == 999) then ! Output all
+            allocate(globalvars(size(mnemonics)))
+            globalvars = mnemonics
+        else
+            ! User specified output
+            ! This is important because there might be less usable variables than specified.
+            ! Look for keyword nglobalvar in params.txt
+            id=0
+            ! we allocate to 0, we'll let it grow inside add_mnem....
+            allocate(globalvars(0))
+            open(10,file='params.txt')
+            do while (id == 0)
+                read(10,'(a)')line
+                ic=scan(line,'=')
+                if (ic>0) then
+                    keyword=adjustl(line(1:ic-1))
+                    if (keyword == 'nglobalvar') id=1
+                endif
+            enddo
+            ! Read through the variables lines, 
+            do i=1,par%nglobalvar
+                read(10,'(a)')line
+                line = trim(line)
+                ! store the mnemonic in globalvars
+                call add_outmnem(line, globalvars)
+            end do
+            close(10)
+        end if ! globalvar
+        par%globalvars(1:par%nglobalvar) = globalvars
+    end if ! xmaster
 
-end subroutine readglobalvars
+end subroutine
 
 !
 ! FB:

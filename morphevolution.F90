@@ -119,20 +119,28 @@ contains
     if (par%lwt==1) then
        call longwaveturb(s,par)
     endif
-
-    ! calculate equilibrium concentration
+    
+    ! include wave skewness and assymetry in sediment advection velocity
+    if (trim(par%waveform)=='ruessink_vanrijn')then
+       call RvR(s,par)
+    elseif (trim(par%waveform)=='vanthiel') then
+       call vT(s,par)
+    endif
+    
+    ! calculate equilibrium concentration/sediment source
     if (trim(par%form)=='soulsby_vanrijn') then           ! Soulsby van Rijn
        call sb_vr(s,par)
     elseif (trim(par%form)=='vanthiel_vanrijn') then       ! Van Thiel de Vries & Reniers 2008
        call sednew(s,par)
     end if
-
+    
+    ! compute reduction factor for sediment sources due to presence of hard layers
     do jg = 1,par%ngd
        do j=1,ny+1
           do i=1,nx+1
              exp_ero = par%morfac*par%dt/(1.d0-par%por)*hh(i,j)*(ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg) &
                   + ceqbg(i,j,jg)*pbbed(i,j,1,jg)/par%dt) 
-             fac(i,j,jg) = min(1.d0,structdepth(i,j)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )        ! limit erosion to available sediment on top of hard layer
+             fac(i,j,jg) = min(1.d0,structdepth(i,j)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )         ! limit erosion to available sediment on top of hard layer
              !if (fac(i,j,jg)*exp_ero > dzbed(i,j,1)*pbbed(i,j,1,jg)) then
              !   fac(i,j,jg) = min(fac(i,j,jg),dzbed(i,j,1)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )  ! limit erosion to available sand in top layer
              !   write(*,*)'WARNING: expected erosion from top layer is larger than available sand in top layer'
@@ -141,18 +149,8 @@ contains
        enddo
     enddo
 
-    ! compute long wave turbulence due to breaking
-    if (par%lwt==1) then
-       call longwaveturb(s,par)
-    endif
-
     ! compute diffusion coefficient
-
-    !if (par%nuhfac==1) then
     Dc = par%nuh+par%nuhfac*hh*(DR/par%rho)**(1.d0/3.d0)
-    !end if
-
-    dzbdt=0.0d0
 
     do jg = 1,par%ngd
        cc = ccg(:,:,jg)
@@ -163,15 +161,26 @@ contains
        endif
        !
        ! X-direction
+       !
+       ! Get ua in u points and split out in u and v direction
+       uau(1:nx,:) = 0.5*(ua(1:nx,:)*cos(thetamean(1:nx,:))+ua(2:nx+1,:)*cos(thetamean(1:nx,:)))
+       uav(1:nx,:) = 0.5*(ua(1:nx,:)*sin(thetamean(1:nx,:))+ua(2:nx+1,:)*sin(thetamean(1:nx,:)))
+       ! Compute vmagu including ua
+       vmagu = sqrt((uu+uau)**2+(vu+uav)**2)
+       ! sediment advection velocity for suspended load and bed load respectively
+       ! REMARK: when vreps does not equal vv; no mass conservation 
+       ureps = ueu+uau
+       urepb = ueu+uau  ! RJ maybe reduce this velocity?
+       !
        do j=1,ny+1
           do i=1,nx
-             if(ueu(i,j)>0.d0) then
+             if(ureps(i,j)>0.d0) then
                 ! test cu(i,j)=cc(i,j)
                 cu(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(min(i+1,nx),j)
                 cub(i,j)=par%thetanum*pbbed(i,j,1,jg)*ceqbg(i,j,jg)+(1.d0-par%thetanum)&
                      *pbbed(min(i+1,nx),j,1,jg)*ceqbg(min(i+1,nx),j,jg)
                 !cub(i,j)=par%thetanum*ccb(i,j)+(1.d0-par%thetanum)*ccb(min(i+1,nx),j)
-             elseif(ueu(i,j)<0.d0) then
+             elseif(ureps(i,j)<0.d0) then
                 cu(i,j)=par%thetanum*cc(i+1,j)+(1.d0-par%thetanum)*cc(max(i,2),j)
                 cub(i,j)=par%thetanum*pbbed(i+1,j,1,jg)*ceqbg(i+1,j,jg)+(1.d0-par%thetanum)&
                      *pbbed(max(i,2),j,1,jg)*ceqbg(max(i,2),j,jg)
@@ -201,23 +210,14 @@ contains
 #ifdef USEMPI
        call xmpi_shift(dzbdx,'m:')
 #endif
-       ! Get ua in u points and split out in u and v direction
-       uau(1:nx,:) = 0.5*(ua(1:nx,:)*cos(thetamean(1:nx,:))+ua(2:nx+1,:)*cos(thetamean(1:nx,:)))
-       uav(1:nx,:) = 0.5*(ua(1:nx,:)*sin(thetamean(1:nx,:))+ua(2:nx+1,:)*sin(thetamean(1:nx,:)))
-       ! Compute vmagu including ua
-       vmagu = sqrt((uu+uau)**2+(vu+uav)**2)
-       !
-       ! Compute sedimnent transport in u-direction
-       !
-       ureps = ueu
-       urepb = ueu   ! RJ maybe reduce this velocity?
        !
        Sus = 0.d0
        Sub = 0.d0
+       
        ! suspended load
-       Sus=par%sus*(cu*(ureps+uau)*hu-Dc*hu*dcsdx)*wetu   !No bed slope term in suspended transport?
+       Sus=par%sus*(cu*ureps*hu-Dc*hu*dcsdx-par%facsl*cu*vmagu*hu*dzbdx)*wetu   !No bed slope term in suspended transport?
        ! bed load
-       Sub=par%bed*(cub*(urepb+uau)*hu-par%facsl*cub*vmagu*hu*dzbdx)*wetu 
+       Sub=par%bed*(cub*urepb*hu-par%facsl*cub*vmagu*hu*dzbdx)*wetu 
        ! 
        do j=1,ny+1
           do i=1,nx
@@ -235,16 +235,24 @@ contains
        !
        ! Y-direction
        !
+       ! Jaap: get ua in v points and split out in u and v direction
+       uau(:,1:ny) = 0.5*(ua(:,1:ny)*cos(thetamean(:,1:ny))+ua(:,2:ny+1)*cos(thetamean(:,1:ny)))
+       uav(:,1:ny) = 0.5*(ua(:,1:ny)*sin(thetamean(:,1:ny))+ua(:,2:ny+1)*sin(thetamean(:,1:ny)))
+       ! Jaap: compute vmagv including ua
+       vmagv = sqrt((uv+uau)**2+(vv+uav)**2)
+       ! sediment advection velocity for suspended load and bed load respectively
+       ! REMARK: when vreps does not equal vv; no mass conservation 
+       vreps = vev+uav   
+       vrepb = vev+uav   ! RJ maybe reduce this velocity?
+       !
        do j=1,ny
           do i=1,nx+1
-             if(vev(i,j)>0) then
-                ! cv(i,j)=cc(i,j)
+             if(vreps(i,j)>0) then
                 cv(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(i,min(j+1,ny))
                 cvb(i,j)=par%thetanum*pbbed(i,j,1,jg)*ceqbg(i,j,jg)+(1.d0-par%thetanum)&
                      *pbbed(i,min(j+1,ny),1,jg)*ceqbg(i,min(j+1,ny),jg)
                 !cvb(i,j)=par%thetanum*ccb(i,j)+(1.d0-par%thetanum)*ccb(i,min(j+1,ny))
-             else if(vev(i,j)<0) then
-                ! cv(i,j)=cc(i,j+1)
+             elseif(vreps(i,j)<0) then
                 cv(i,j)=par%thetanum*cc(i,j+1)+(1.d0-par%thetanum)*cc(i,max(j,2))
                 cvb(i,j)=par%thetanum*pbbed(i,j+1,1,jg)*ceqbg(i,j+1,jg)+(1.d0-par%thetanum)&
                      *pbbed(i,max(j,2),1,jg)*ceqbg(i,max(j,2),jg)
@@ -270,23 +278,15 @@ contains
 #ifdef USEMPI
        call xmpi_shift(dzbdy,':n')
 #endif
-       ! Jaap: get ua in v points and split out in u and v direction
-       uau(:,1:ny) = 0.5*(ua(:,1:ny)*cos(thetamean(:,1:ny))+ua(:,2:ny+1)*cos(thetamean(:,1:ny)))
-       uav(:,1:ny) = 0.5*(ua(:,1:ny)*sin(thetamean(:,1:ny))+ua(:,2:ny+1)*sin(thetamean(:,1:ny)))
-       ! Jaap: compute vmagv including ua
-       vmagv = sqrt((uv+uau)**2+(vv+uav)**2)
        !
        ! Compute sedimnent transport in v-direction
-       !
-       vreps = vev
-       vrepb = vev   ! RJ maybe reduce this velocity?
        !
        Svs = 0.d0
        Svb = 0.d0
        ! Suspended load
-       Svs=par%sus*(cv*(vreps+uav)*hv-Dc*hv*dcsdy)*wetv
+       Svs=par%sus*(cv*vreps*hv-Dc*hv*dcsdy)*wetv
        ! Bed load
-       Svb=par%bed*(cvb*(vrepb+uav)*hv-par%facsl*cvb*vmagv*hv*dzbdy)*wetv
+       Svb=par%bed*(cvb*vrepb*hv-par%facsl*cvb*vmagv*hv*dzbdy)*wetv
        !
        do j=1,ny
           do i=1,nx+1
@@ -303,25 +303,24 @@ contains
        Svb = 0.d0
        Svb = pbbedv*Svb
        !
-       ! BRJ: compute sources (sink must be computed after updating actual sed.conc.)
-       !  
-       ! Jaap: suspended load  
+       ! BRJ: implicit concentration update (compute sources first, sink must be computed after updating actual sed.conc.)
+       ! 
        do j=2,ny
           do i=2,nx
-             ero(i,j,jg) = fac(i,j,jg)*hh(i,j)*ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg)    ! Changed to hh from hold by RJ (13072009)
+             ero(i,j,jg) = fac(i,j,jg)*hh(i,j)*ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg)    ! Changed to hh from hold by RJ (13072009) !**2/max(hh(i,j),par%hmin)
              ! depo_ex(i,j,jg) = max(hold(i,j),0.01d0)*cc(i,j)/Tsg(i,j,jg)                    
              ! BRJ: the volume in the water column is updated and not the volume concentration.
-             ! BRJ: implicit concentration update
              cc(i,j) = (par%dt*Tsg(i,j,jg))/(par%dt+Tsg(i,j,jg))* &
                   (hold(i,j)*cc(i,j)/par%dt -((Sus(i,j)-Sus(i-1,j))/(xu(i)-xu(i-1))+&
-                  (Svs(i,j)-Svs(i,j-1))/(yv(j)-yv(j-1))-&
-                  ero(i,j,jg)))
+                                              (Svs(i,j)-Svs(i,j-1))/(yv(j)-yv(j-1))-&
+                                               ero(i,j,jg)))
 
              cc(i,j)=max(cc(i,j),0.0d0) ! Jaap: negative cc's are possible...
              depo_ex(i,j,jg) = cc(i,j)/Tsg(i,j,jg)
+                 
           enddo
        enddo
-       !
+       
        ! Jaap: bed load --> Tsg = par%dt for bed load....
        !do j=2,ny
        !  do i=2,nx
@@ -433,16 +432,12 @@ contains
 
     if (par%t>=par%morstart .and. par%morfac > .999d0) then
        !
-       par%frac_dz = 0.7d0 ! relative thickness to split time step for bed updating
-       par%split = 1.01d0
-       par%merge = 0.01d0
-       !
        ! bed_predict
        !
+       ! reduce sediment transports when hard layer comes to surface
+       ! this step is mainly necessary at the transition from hard layers to sand
        if (par%struct == 1) then
-          ! reduce sediment transports when hard layer comes to surface
-          ! this step is mainly necessary at the transition from hard layers to sand
-
+          
           indSus = 0
           indSub = 0
           indSvs = 0
@@ -492,7 +487,7 @@ contains
                 enddo
              enddo
           enddo
-
+          !
           do jg = 1,par%ngd 
              do j=2,ny+1
                 do i=2,nx+1
@@ -548,7 +543,6 @@ contains
 
           enddo ! nx+1
        enddo ! ny+1
-
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        !
@@ -610,6 +604,7 @@ contains
                    ! now update bed and fractions by stepping through each layer seperately
                    dzleft = abs(dzb)
                    dzavt  = 0.d0
+                   
                    do jdz=1,ndz
 
                       dzt = min(dz(jdz),dzleft)
@@ -632,6 +627,7 @@ contains
                    ! update water levels and dzav
                    zs(ie,j)  = zs(ie,j)-dzavt
                    dzav(ie,j)= dzav(ie,j)-dzavt
+                   
                    zs(id,j)  = zs(id,j)+dzavt*dxfac
                    dzav(id,j)= dzav(id,j)+dzavt*dxfac
 
@@ -706,6 +702,7 @@ contains
                    ! update water levels and dzav
                    zs(i,je)  = zs(i,je)-dzavt
                    dzav(i,je)= dzav(i,je)-dzavt
+                   
                    zs(i,jd)  = zs(i,jd)+dzavt*dyfac
                    dzav(i,jd)= dzav(i,jd)+dzavt*dyfac
 
@@ -808,8 +805,8 @@ contains
 
     ! do t_sub=1,nt_sub  !loop over subtimesteps
     do while (dzb_loc .ne. 0.d0)
-       dzb_loc  = min(dzb_loc,dz(par%nd_var))                 ! make sure erosion (dzg is positive) is limited to thickness of variable layer
-       dzbt     = max(dzb_loc,-par%frac_dz*dz(par%nd_var+1))  ! make sure deposition (dzg is negative) is limited to thickness of first layer below variable layer
+       dzbt     = min(dzb_loc,dz(par%nd_var))                 ! make sure erosion (dzg is positive) is limited to thickness of variable layer
+       dzbt     = max(dzbt,-par%frac_dz*dz(par%nd_var+1))     ! make sure deposition (dzg is negative) is limited to thickness of first layer below variable layer
 
        fac = dzbt/dzb_loc                                     ! factor over mass change in cells to limit erosion and deposition
 
@@ -918,14 +915,13 @@ contains
 
     integer                             :: i
     integer                             :: j,jg
-    real*8                              :: onethird,twothird
-    real*8                              :: z0,Ass,dcf,dcfin
+    real*8                              :: z0,Ass,dcf,dcfin,ML
     real*8                              :: Te,kvis,Sster,c1,c2,wster
     real*8,save                         :: m1,m2,m3,m4,m5,m6
-    real*8,save                         :: alpha,beta,delta
+    real*8,save                         :: delta,onethird,twothird
 
     real*8 , dimension(:)  ,allocatable,save   :: w,dster
-    real*8 , dimension(:,:),allocatable,save   :: vmg,Cd,Asb,dhdx,dhdy,Ts,Ur,Bm,B1
+    real*8 , dimension(:,:),allocatable,save   :: vmg,Cd,Asb,dhdx,dhdy,Ts,hfac
     real*8 , dimension(:,:),allocatable,save   :: urms2,Ucr,term1,term2
     real*8 , dimension(:,:),allocatable,save   :: uandv,b,fslope,hloc,ceqs,ceqb
 
@@ -947,23 +943,15 @@ contains
        allocate (fslope(nx+1,ny+1))  ! not used wwvv
        allocate (hloc  (nx+1,ny+1))
        allocate (Ts    (nx+1,ny+1))
+       allocate (hfac   (nx+1,ny+1))
        allocate (ceqs   (nx+1,ny+1))
        allocate (ceqb   (nx+1,ny+1))
-       allocate (Ur    (nx+1,ny+1))
-       allocate (Bm    (nx+1,ny+1))
-       allocate (B1    (nx+1,ny+1))
+       
        allocate (w     (par%ngd))
        allocate (dster (par%ngd))
        vmg = 0.d0
-       m1 = 0;       ! a = 0
-       m2 = 0.7939;  ! b = 0.79 +/- 0.023
-       m3 = -0.6065; ! c = -0.61 +/- 0.041
-       m4 = 0.3539;  ! d = -0.35 +/- 0.032 
-       m5 = 0.6373;  ! e = 0.64 +/- 0.025
-       m6 = 0.5995;  ! f = 0.60 +/- 0.043
-       alpha = -log10(exp(1.d0))/m4
-       beta  = exp(m3/m4)
        onethird=1.d0/3.d0
+       twothird=2.d0/3.d0
        ! Robert: do only once, not necessary every time step
        do jg=1,par%ngd
           ! cjaap: compute fall velocity with simple expression from Ahrens (2000)
@@ -979,30 +967,31 @@ contains
           dster(jg)=(delta*par%g/1.d-12)**onethird*s%D50(jg) 
        enddo
     endif
-    ! Soulsby van Rijn sediment transport formula
-    ! Ad Reniers april 2006
     !
-    ! z is defined positive upward 
-    ! x is defined positive toward the shore
-    !  Formal parameters:
-    !  ------------------
+    hloc = max(hh,par%hmin)
     !
-    !   Var. I/O  Type Dimensions
-    !   -------------------------
-    !
-    hloc = hh
-    twothird=2.d0/3.d0
-    ! use eulerian velocities
-    ! cjaap: add turbulence near bottom
-    do j=1,ny+1 
+    ! wave breaking induced turbulence due to short waves
+    do j=1,ny+1
        do i=1,nx+1
+          ! compute mixing length
+          ! ML = 2*R(i,j)*par%Trep/(par%rho*c(i,j)*max(H(i,j),par%eps))
+          ML = dsqrt(2*R(i,j)*par%Trep/(par%rho*c(i,j)))
+          ! ML = 0.9d0*H(i,j)
+          ML = min(ML,hloc(i,j));
           ! exponential decay turbulence over depth
-          dcfin = exp(min(100.d0,hloc(i,j)/max(H(i,j),0.1d0)))
+          dcfin = exp(min(100.d0,hloc(i,j)/max(ML,0.01d0)))
           dcf = min(1.d0,1.d0/(dcfin-1.d0))
-          kb(i,j) = par%nuhfac*(DR(i,j)/par%rho)**twothird*dcf
+          if (trim(par%turb) == 'bore_averaged') then
+             kb(i,j) = par%nuhfac*(DR(i,j)/par%rho)**twothird*dcf*par%Trep/Tbore(i,j)
+          elseif (trim(par%turb) == 'wave_averaged') then
+             kb(i,j) = par%nuhfac*(DR(i,j)/par%rho)**twothird*dcf
+          elseif (trim(par%turb) == 'none') then
+             kb(i,j) = 0.0d0
+          endif
        enddo
     enddo
-
+    
+    ! switch to include long wave stirring
     if (par%lws==1) then
        vmg  = dsqrt(ue**2+ve**2)
     elseif (par%lws==0) then
@@ -1010,8 +999,7 @@ contains
        vmg = (1.d0-1.d0/par%cats/par%Trep*par%dt)*vmg + (1.d0/par%cats/par%Trep*par%dt)*dsqrt(ue**2+ve**2) 
     endif
 
-    urms2  = urms**2+0.50d0*(kb+kturb)
-
+    urms2  = urms**2+1.45d0*(kb+kturb)
 
     do jg = 1,par%ngd
 
@@ -1024,25 +1012,26 @@ contains
        else if(D50(jg)<0.05d0) then   !Dano see what happens with coarse material
           Ucr=8.5d0*D50(jg)**0.6d0*log10(4*hloc/D90(jg))
        else
+       
 #ifdef USEMPI
-          write(*,'(a,i4)') 'In process',xmpi_rank
+       write(*,'(a,i4)') 'In process',xmpi_rank
 #endif
        end if
        ! drag coefficient
        z0 = par%z0
-       Cd=(0.40d0/(log(max(hloc,10.d0*z0)/z0)-1.0d0))**2 !Jaap: max(hloc,10.d0*z0) 
+       Cd=(0.40d0/(log(max(hloc,10.d0*z0)/z0)-1.0d0))**2
 
        ! transport parameters
-       Asb=0.005d0*hloc*(D50(jg)/hloc/(delta*par%g*D50(jg)))**1.2d0     ! bed load coefficent
+       Asb=0.005d0*hloc*(D50(jg)/hloc/(delta*par%g*D50(jg)))**1.2d0         ! bed load coefficent
        Ass=0.012d0*D50(jg)*dster(jg)**(-0.6d0)/(delta*par%g*D50(jg))**1.2d0 ! suspended load coeffient
 
-       ! Diane Foster and Robert: limit Shields to par%smax -> vmag2 for transp. limited
+       term1=(vmg**2+0.018/Cd*par%sws*urms2) ! Make 0.018/Cd is always smaller than the flow friction coefficient 
+        
+       ! reduce sediment suspensions for (inundation) overwash conditions with critical flow velocitties
        ! vmag2=min(vmag2,par%smax*par%C**2*D50(jg)*delta)
        ! vmag2=min(vmag2,par%smax*par%g/par%cf*D50(jg)*delta)            ! In terms of cf
        ! term1=sqrt(vmag2+0.018d0/Cd*urms2)     ! nearbed-velocity
        ! the two above lines are comment out and replaced by a limit on total velocity u2+urms2, robert 1/9 and ap 28/11
-
-       term1=(vmg**2+0.018/Cd*par%sws*urms2) ! Make 0.018/Cd is always smaller than the flow friction coefficient 
 
        term1=min(term1,par%smax*par%g/par%cf*s%D50(jg)*delta)
        term1=sqrt(term1)      
@@ -1050,9 +1039,8 @@ contains
        term2 = 0.d0
        do j=1,ny+1
           do i=1,nx
-             if(term1(i,j)>Ucr(i,j) .and. hloc(i,j)>par%eps) then
+             if(term1(i,j)>Ucr(i,j) .and. hh(i,j)>par%eps) then
                 term2(i,j)=(term1(i,j)-Ucr(i,j))**2.4d0
-                ! term2(i,j)=(term1(i,j)-Ucr(i,j))**(1.7-0.7*tanh((ue(i,j)/sqrt(par%g*hh(i,j))-0.5)*10))
              end if
           end do
        end do
@@ -1065,23 +1053,15 @@ contains
 #endif
        ceqb = Asb*term2
        ceqb = min(ceqb/hloc,0.05d0)             ! maximum equilibrium bed concentration
-       ceqbg(:,:,jg) = ceqb*sedcal(jg)*wetz
+       ceqbg(:,:,jg) = (1.d0-par%bulk)*ceqb*sedcal(jg)*wetz
        ceqs = Ass*term2
        ceqs = min(ceqs/hloc,0.05d0)             ! maximum equilibrium suspended concentration
-       ceqsg(:,:,jg) = ceqs*sedcal(jg)*wetz
+       ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*sedcal(jg)*wetz
+       
+       ! Jaap: old brute method to prevent strong coastline erosion
+       where (hloc<=par%hmin) ceqsg(:,:,jg) = 0.d0
 
     enddo  ! end og grain size classes
-
-    ! Robert + Pieter : should be faster
-    if (abs(par%facua)>tiny(0.d0)) then     ! Robert: Very slow loop, so only do if necessary 
-       Ur = 3.d0/8.d0*sqrt(2.d0)*H*k/(k*hloc)**3                  !Ursell number
-       Ur = max(Ur,0.000000000001d0)
-       Bm = m1 + (m2-m1)/(1.d0+beta*Ur**alpha)                    !Boltzmann sigmoid (eq 6)         
-       B1 = (-90.d0+90.d0*tanh(m5/Ur**m6))*par%px/180.d0
-       Sk = Bm*cos(B1)                                            !Skewness (eq 8)
-       As = Bm*sin(B1)                                            !Asymmetry(eq 9)
-       ua = par%facua*(Sk-As)*urms
-    endif
 
   end subroutine sb_vr
 
@@ -1099,32 +1079,20 @@ contains
     type(spacepars),target                  :: s
     type(parameters)                        :: par
 
-    character(256)                          :: fnamet
-    integer                                 :: i,ii
-    integer , save                          :: nh,nt    
-    integer                                 :: ih0,it0,ih1,it1
-    integer                                 :: j,jg
+    integer                                 :: i,j,jg
     real*8                                  :: onethird,twothird,Ass,dcf,dcfin,ML
     real*8                                  :: Te,kvis,Sster,cc1,cc2,wster
-    real*8                                  :: p,q,f0,f1,f2,f3,uad,duddtmax,dudtmax,siguref,t0fac,duddtmean,dudtmean
-    real*8 , save                           :: dh,dt,delta
-    real*8 , save                           :: m1,m2,m3,m4,m5,m6
-    real*8 , save                           :: alpha,beta,Ur,Bm,B1
+    real*8 , save                           :: delta
     real*8 , dimension(:),allocatable    ,save     :: w,dster  
     real*8 , dimension(:,:),allocatable  ,save     :: vmg,Asb,Ts
-    real*8 , dimension(:,:),allocatable  ,save     :: urmsturb,Ucr,Ucrc,Ucrw,term1,B2,Cd
-    real*8 , dimension(:,:),allocatable  ,save     :: hloc,ceqs,ceqb,h0,t0,detadxmax,detadxmean
-    real*8 , dimension(:,:,:),allocatable,save     :: RF 
-
+    real*8 , dimension(:,:),allocatable  ,save     :: urms2,Ucr,Ucrc,Ucrw,term1,B2,Cd
+    real*8 , dimension(:,:),allocatable  ,save     :: hloc,ceqs,ceqb
+    
     include 's.ind'
     include 's.inp'
 
     if (.not. allocated(vmg)) then
        allocate (vmg   (nx+1,ny+1))
-       allocate (h0    (nx+1,ny+1))
-       allocate (t0    (nx+1,ny+1))
-       allocate (detadxmax    (nx+1,ny+1))
-       allocate (detadxmean   (nx+1,ny+1))
        allocate (term1 (nx+1,ny+1))
        allocate (B2    (nx+1,ny+1))
        allocate (Cd    (nx+1,ny+1))
@@ -1132,26 +1100,16 @@ contains
        allocate (Ucr   (nx+1,ny+1))
        allocate (Ucrc  (nx+1,ny+1))
        allocate (Ucrw  (nx+1,ny+1))
-       allocate (urmsturb  (nx+1,ny+1))
+       allocate (urms2 (nx+1,ny+1))
        allocate (hloc  (nx+1,ny+1))
        allocate (Ts    (nx+1,ny+1))
        allocate (ceqs  (nx+1,ny+1))
        allocate (ceqb  (nx+1,ny+1))
        allocate (w     (par%ngd))
        allocate (dster (par%ngd))
-       allocate (RF    (18,33,40))
        vmg = 0.d0
        onethird=1.d0/3.d0
-       if (trim(par%waveform)=='ruessink_vanrijn')then
-          m1 = 0;       ! a = 0
-          m2 = 0.7939;  ! b = 0.79 +/- 0.023
-          m3 = -0.6065; ! c = -0.61 +/- 0.041
-          m4 = 0.3539;  ! d = -0.35 +/- 0.032 
-          m5 = 0.6373;  ! e = 0.64 +/- 0.025
-          m6 = 0.5995;  ! f = 0.60 +/- 0.043
-          alpha = -log10(exp(1.d0))/m4
-          beta  = exp(m3/m4)
-       endif
+       
        ! Robert: do only once, not necessary every time step
        do jg=1,par%ngd
           ! cjaap: compute fall velocity with simple expression from Ahrens (2000)
@@ -1172,97 +1130,6 @@ contains
     hloc = hh
     onethird=1.d0/3.d0
     twothird=2.d0/3.d0
-    !
-    ! compute wave shape short waves (Rienecker and Fenton + Ruessink and van Rijn to estimate weighting of sine's and cosines)
-    !
-    ! read table at t=0;
-    if (abs(par%t-par%dt)<1.d-6) then
-       RF = RF*0.d0
-       if (xmaster) then
-          fnamet = readkey_name('params.txt','swtable',bcast=.false.)
-          open(31,file=fnamet);
-          do i=1,18
-             do j=1,33
-                read(31,*)(RF(i,j,ii),ii=1,40)
-             enddo
-          enddo
-       endif
-#ifdef USEMPI
-       do i=1,18
-          call xmpi_bcast(RF(i,:,:))
-       enddo
-#endif
-       dh = 0.03d0
-       dt = 1.25d0
-       nh = floor(0.99d0/dh);
-       nt = floor(50.d0/dt);
-    endif
-    close(31)
-
-    ! read us and duddtmax from table....
-    h0 = min(nh*dh,max(dh,min(H,hloc)/hloc))  ! Jaap: try this
-    t0 = min(nt*dt,max(dt,par%Trep*sqrt(par%g/hloc)))
-
-    do j=1,ny+1
-       do i=1,nx+1
-          ! interpolate table values....
-          ih0=floor(h0(i,j)/dh);
-          it0=floor(T0(i,j)/dt);
-          ih1=min(ih0+1,nh);
-          it1=min(it0+1,nt);
-          p=(h0(i,j)-ih0*dh)/dh;
-          q=(T0(i,j)-it0*dt)/dt;
-
-          f0=(1-p)*(1-q);
-          f1=p*(1-q);
-          f2=q*(1-p);
-          f3=p*q;
-
-          if (trim(par%waveform)=='ruessink_vanrijn') then
-             Ur = 3.d0/8.d0*sqrt(2.d0)*H(i,j)*k(i,j)/(k(i,j)*hloc(i,j))**3   !Ursell number
-             Ur = max(Ur,0.000000000001d0)
-             Bm = m1 + (m2-m1)/(1.d0+beta*Ur**alpha)                         !Boltzmann sigmoid (eq 6)         
-             B1 = (-90.d0+90.d0*tanh(m5/Ur**m6))*par%px/180.d0
-             Sk(i,j) = Bm*cos(B1)                                            !Skewness (eq 8)
-             As(i,j) = Bm*sin(B1)                                            !Asymmetry(eq 9)
-          elseif (trim(par%waveform)=='vanthiel') then
-             Sk(i,j) = f0*RF(13,ih0,it0)+f1*RF(13,ih1,it0)+ f2*RF(13,ih0,it1)+f3*RF(13,ih1,it1)
-             As(i,j) = f0*RF(14,ih0,it0)+f1*RF(14,ih1,it0)+ f2*RF(14,ih0,it1)+f3*RF(14,ih1,it1)
-          endif
-
-          duddtmax = f0*RF(15,ih0,it0)+f1*RF(15,ih1,it0)+ f2*RF(15,ih0,it1)+f3*RF(15,ih1,it1)
-          siguref = f0*RF(16,ih0,it0)+f1*RF(16,ih1,it0)+ f2*RF(16,ih0,it1)+f3*RF(16,ih1,it1)
-
-   ! correct slope in case 1.25>T0>50
-          if (t0(i,j)==50.d0) then
-             t0fac = 50.d0/max((par%Trep*sqrt(par%g/hloc(i,j))),50.d0) 
-          elseif (t0(i,j)==1.25)then
-             t0fac = 1.25d0/min((par%Trep*sqrt(par%g/hloc(i,j))),1.25d0) 
-          else
-             t0fac = 1.d0
-          endif
-   ! translate dimensionless duddtmax to real world dudtmax
-   !         /scale with variance and go from [-] to [m/s^2]     /tableb./dimensionless dudtmax
-          dudtmax = urms(i,j)/max(par%eps,siguref)*sqrt(par%g/hloc(i,j))*t0fac*duddtmax
-          detadxmax(i,j) = dudtmax*sinh(k(i,j)*hloc(i,j))/max(c(i,j),sqrt(H(i,j)*par%g))/sigm(i,j)
-
-          uad = f0*RF(17,ih0,it0)+f1*RF(17,ih1,it0)+ f2*RF(17,ih0,it1)+f3*RF(17,ih1,it1)
-
-          ua(i,j) = par%sws*par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
-
-   ! Jaap: use average slope over bore front in roller energy balance...
-          duddtmean = f0*RF(18,ih0,it0)+f1*RF(18,ih1,it0)+ f2*RF(18,ih0,it1)+f3*RF(18,ih1,it1)
-          dudtmean = urms(i,j)/max(par%eps,siguref)*sqrt(par%g/hloc(i,j))*t0fac*duddtmean
-          detadxmean(i,j) = dudtmean*sinh(k(i,j)*hloc(i,j))/max(c(i,j),sqrt(H(i,j)*par%g))/sigm(i,j)
-       enddo
-    enddo
-    Tbore = max(par%Trep/25.d0,min(par%Trep/4.d0,H/(max(c,sqrt(H*par%g))*max(detadxmax,par%eps))))
-    Tbore = par%Tbfac*Tbore
-    if (par%rfb==1) then
-       BR = par%BRfac*sin(atan(detadxmean))
-    else
-       BR = par%beta
-    endif
     !
     ! compute near bed turbulence
     !
@@ -1295,7 +1162,7 @@ contains
        vmg = (1.d0-1.d0/par%cats/par%Trep*par%dt)*vmg + (1.d0/par%cats/par%Trep*par%dt)*dsqrt(ue**2+ve**2) 
     endif
 
-    urmsturb = dsqrt(urms**2.d0+1.45d0*(kb+kturb))
+    urms2 = urms**2.d0+1.45d0*(kb+kturb)
 
     do jg = 1,par%ngd
 
@@ -1314,7 +1181,7 @@ contains
           Ucrc=1.3d0*sqrt(delta*par%g*D50(jg))*(hloc/D50(jg))**(0.5d0*onethird)         !Maynord (1978) --> also Neill (1968) where 1.3d0 = 1.4d0
           Ucrw=0.95d0*(delta*par%g)**0.57d0*D50(jg)**0.43*par%Trep**0.14                !Komar and Miller (1975)
        end if
-       B2 = vmg/max(vmg+urmsturb,par%eps)
+       B2 = vmg/max(vmg+dsqrt(urms2),par%eps)
        Ucr = B2*Ucrc + (1-B2)*Ucrw                                                     !Van Rijn 2007 (Bed load transport paper)
 
        ! transport parameters
@@ -1325,7 +1192,11 @@ contains
 
        ! Jaap: par%sws to set short wave stirring to zero
        ! Jaap: Van Rijn use Peak orbital flow velocity --> 0.64 corresponds to 0.4 coefficient regular waves Van Rijn (2007)  
-       term1= dsqrt(vmg**2+0.64d0*par%sws*urmsturb**2)                                       
+       term1= dsqrt(vmg**2+0.64d0*par%sws*urms2) 
+       
+       ! reduce sediment suspensions for (inundation) overwash conditions with critical flow velocitties
+       term1=min(term1,par%smax*par%g/par%cf*s%D50(jg)*delta)
+       term1=sqrt(term1)                                        
 
        ! Try Soulsby van Rijn approach...
        ! drag coefficient
@@ -1345,9 +1216,12 @@ contains
        end do
 
        ceqb = min(ceqb/hloc,0.05) ! maximum equilibrium bed concentration
-       ceqbg(:,:,jg) = ceqb*sedcal(jg)*wetz
+       ceqbg(:,:,jg) = (1.d0-par%bulk)*ceqb*sedcal(jg)*wetz
        ceqs = min(ceqs/hloc,0.05) ! maximum equilibrium suspended concentration
-       ceqsg(:,:,jg) = ceqs*sedcal(jg)*wetz
+       ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*ceqs*sedcal(jg)*wetz
+       
+       ! Jaap: old brute method to prevent strong coastline erosion
+       where (hloc<=par%hmin) ceqsg(:,:,jg) = 0.d0
     enddo                                 ! end of grain size classes
     ! end of grain size classes
 
@@ -1477,4 +1351,180 @@ end subroutine longwaveturb
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+subroutine RvR(s,par)
+
+use params
+use spaceparams
+use xmpi_module
+
+IMPLICIT NONE
+
+type(spacepars),target                   :: s
+type(parameters)                         :: par
+
+integer                                  :: i
+integer                                  :: j
+real*8 , save                            :: m1,m2,m3,m4,m5,m6,alpha,beta
+
+real*8 , dimension(:,:),allocatable,save   :: Ur,Bm,B1
+
+include 's.ind'
+include 's.inp'
+
+! only in first timestep..
+if (.not. allocated(Ur)) then
+    
+   allocate (Ur    (nx+1,ny+1))
+   allocate (Bm    (nx+1,ny+1))
+   allocate (B1    (nx+1,ny+1))
+
+   m1 = 0;       ! a = 0
+   m2 = 0.7939;  ! b = 0.79 +/- 0.023
+   m3 = -0.6065; ! c = -0.61 +/- 0.041
+   m4 = 0.3539;  ! d = -0.35 +/- 0.032 
+   m5 = 0.6373;  ! e = 0.64 +/- 0.025
+   m6 = 0.5995;  ! f = 0.60 +/- 0.043
+   alpha = -log10(exp(1.d0))/m4
+   beta  = exp(m3/m4)
+       
+endif 
+   
+Ur = 3.d0/8.d0*sqrt(2.d0)*H*k/(k*hh)**3                  !Ursell number
+Ur = max(Ur,0.000000000001d0)
+Bm = m1 + (m2-m1)/(1.d0+beta*Ur**alpha)                    !Boltzmann sigmoid (eq 6)         
+B1 = (-90.d0+90.d0*tanh(m5/Ur**m6))*par%px/180.d0
+Sk = Bm*cos(B1)                                            !Skewness (eq 8)
+As = Bm*sin(B1)                                            !Asymmetry(eq 9)
+ua = par%facua*(Sk-As)*urms
+ 
+end subroutine RvR  
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+       
+subroutine vT(s,par)
+
+use params
+use spaceparams
+use readkey_module
+use xmpi_module
+
+IMPLICIT NONE
+
+type(spacepars),target                   :: s
+type(parameters)                         :: par
+
+character(256)                           :: fnamet
+integer                                  :: i,j,ii
+integer , save                           :: nh,nt    
+integer                                  :: ih0,it0,ih1,it1
+real*8                                   :: p,q,f0,f1,f2,f3
+real*8                                   :: t0fac,siguref,duddtmax,dudtmax,duddtmean,dudtmean,detadxmean
+real*8 , save                            :: dh,dt
+
+real*8 , dimension(:,:),allocatable  ,save     :: h0,t0,detadxmax
+real*8 , dimension(:,:,:),allocatable,save     :: RF 
+
+include 's.ind'
+include 's.inp'
+
+
+! only in first timestep..
+if (.not. allocated(RF)) then
+   allocate (RF    (18,33,40))
+   allocate (h0    (nx+1,ny+1))
+   allocate (t0    (nx+1,ny+1))
+   allocate (detadxmax    (nx+1,ny+1))
+
+   ! read Rienecker Fenton table with amongst others amplitudes non-linear components obtained with stream function theory        
+   RF = RF*0.d0
+   if (xmaster) then
+      fnamet = readkey_name('params.txt','swtable',bcast=.false.)
+      open(31,file=fnamet);
+      do i=1,18
+         do j=1,33
+            read(31,*)(RF(i,j,ii),ii=1,40)
+         enddo
+      enddo
+      close(31)
+   endif
+#ifdef USEMPI
+   do i=1,18
+      call xmpi_bcast(RF(i,:,:))
+   enddo
+#endif
+   dh = 0.03d0
+   dt = 1.25d0
+   nh = floor(0.99d0/dh);
+   nt = floor(50.d0/dt);
+   
+endif
+
+! non-linearity of short waves is listed in table as function of dimensionless wave height h0 and dimensionless wave period t0 
+
+! compute dimensionless wave height and wave period in each grid point..
+h0 = min(nh*dh,max(dh,min(H,hh)/hh))
+t0 = min(nt*dt,max(dt,par%Trep*sqrt(par%g/hh)))
+
+! estimate Sk, As and ua by interpolating table values
+do j=1,ny+1
+   do i=1,nx+1
+      ! interpolate table values....
+      ih0=floor(h0(i,j)/dh);
+      it0=floor(T0(i,j)/dt);
+      ih1=min(ih0+1,nh);
+      it1=min(it0+1,nt);
+      p=(h0(i,j)-ih0*dh)/dh;
+      q=(T0(i,j)-it0*dt)/dt;
+
+      f0=(1-p)*(1-q);
+      f1=p*(1-q);
+      f2=q*(1-p);
+      f3=p*q;
+      
+      ! Skewness and assymetry
+      Sk(i,j) = f0*RF(13,ih0,it0)+f1*RF(13,ih1,it0)+ f2*RF(13,ih0,it1)+f3*RF(13,ih1,it1)
+      As(i,j) = f0*RF(14,ih0,it0)+f1*RF(14,ih1,it0)+ f2*RF(14,ih0,it1)+f3*RF(14,ih1,it1)
+      
+      ! Sediment advection velocity from Skewness and Assymetry
+      ua(i,j) = par%sws*par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
+
+      ! Estimate bore period Tbore and mean slope bore front to feeded back in roller energy balance
+      
+      ! correct slope in case 1.25>T0>50
+      if (t0(i,j)==50.d0) then
+         t0fac = 50.d0/max((par%Trep*sqrt(par%g/hh(i,j))),50.d0) 
+      elseif (t0(i,j)==1.25)then
+         t0fac = 1.25d0/min((par%Trep*sqrt(par%g/hh(i,j))),1.25d0) 
+      else
+         t0fac = 1.d0
+      endif
+      
+      ! detadxmax for Tbore...
+      ! dimnesionless maximum acceleration under bore front 
+      duddtmax = f0*RF(15,ih0,it0)+f1*RF(15,ih1,it0)+ f2*RF(15,ih0,it1)+f3*RF(15,ih1,it1)
+      siguref = f0*RF(16,ih0,it0)+f1*RF(16,ih1,it0)+ f2*RF(16,ih0,it1)+f3*RF(16,ih1,it1)
+      ! translate dimensionless duddtmax to real world dudtmax
+      !         /scale with variance and go from [-] to [m/s^2]     /tableb./dimensionless dudtmax
+      dudtmax = urms(i,j)/max(par%eps,siguref)*sqrt(par%g/hh(i,j))*t0fac*duddtmax
+      detadxmax(i,j) = dudtmax*sinh(k(i,j)*hh(i,j))/max(c(i,j),sqrt(H(i,j)*par%g))/sigm(i,j)
+      
+      ! detadxmean for roller energy balance dissipation...
+      if (par%rfb==1) then
+         duddtmean = f0*RF(18,ih0,it0)+f1*RF(18,ih1,it0)+ f2*RF(18,ih0,it1)+f3*RF(18,ih1,it1)
+         dudtmean = urms(i,j)/max(par%eps,siguref)*sqrt(par%g/hh(i,j))*t0fac*duddtmean
+         detadxmean = dudtmean*sinh(k(i,j)*hh(i,j))/max(c(i,j),sqrt(H(i,j)*par%g))/sigm(i,j)
+         BR(i,j) = par%BRfac*sin(atan(detadxmean))
+      endif
+      
+   enddo
+enddo
+
+Tbore = max(par%Trep/25.d0,min(par%Trep/4.d0,H/(max(c,sqrt(H*par%g))*max(detadxmax,par%eps))))
+Tbore = par%Tbfac*Tbore
+
+end subroutine vT
+   
 end module morphevolution
