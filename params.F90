@@ -951,6 +951,14 @@ contains
     par%cf      = par%g/par%C**2
     !
     !
+    ! Only allow bore-averaged turbulence in combination with vanthiel waveform
+    if ((trim(par%waveform) .ne. 'vanthiel') .and. (trim(par%turb) .eq. 'bore_averaged')) then
+       call writelog('lse','','Cannot compute bore-averaged turbulence without vanthiel wave form')
+       call writelog('lse','','Please set waveform=vanthiel and specify swtable in params.txt,')
+       call writelog('lse','','or choose other turbulence model')
+       call halt_program
+    endif
+    !
     ! Set smax to huge if default is specified
     if (par%smax<0) par%smax=huge(0.d0)
     !
