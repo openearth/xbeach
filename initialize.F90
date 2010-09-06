@@ -422,7 +422,7 @@ contains
     real*8                              :: tempr
 
     allocate(s%ccg(1:s%nx+1,1:s%ny+1,par%ngd))
-    ! allocate(s%ccbg(1:s%nx+1,1:s%ny+1,par%ngd))
+    allocate(s%ccbg(1:s%nx+1,1:s%ny+1,par%ngd))
     allocate(s%dcbdy(1:s%nx+1,1:s%ny+1))
     allocate(s%dcbdx(1:s%nx+1,1:s%ny+1))
     allocate(s%dcsdy(1:s%nx+1,1:s%ny+1))
@@ -587,7 +587,7 @@ contains
     s%ureps      = 0.d0
     s%vreps      = 0.d0
     s%ccg        = 0.d0
-    ! s%ccbg       = 0.d0
+    s%ccbg       = 0.d0
     s%ceqbg      = 0.d0
     s%ceqsg      = 0.d0
     s%Susg       = 0.d0
