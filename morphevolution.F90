@@ -315,8 +315,16 @@ contains
                                               (Svs(i,j)-Svs(i,j-1))/(yv(j)-yv(j-1))-&
                                                ero(i,j,jg)))
 
-             cc(i,j)=max(cc(i,j),0.0d0) ! Jaap: negative cc's are possible...
-             depo_ex(i,j,jg) = cc(i,j)/Tsg(i,j,jg)
+              ! old explicit solution
+              !cc(i,j) = hold(i,j)*cc(i,j)-par%dt*((Sus(i,j)-Sus(i-1,j))/(xu(i)-xu(i-1))+&
+              !                               (Svs(i,j)-Svs(i,j-1))/(yv(j)-yv(j-1))-&
+	  		  !							     hold(i,j)*(ceqsg(i,j,jg)*pbbed(i,j,1,jg)-cc(i,j))/Tsg(i,j,jg))
+											 !Jaap: set source to zero in case of hard layer near surface...
+                                             !min(source(i,j),hold(i,j)*(ceqg(i,j,jg)*graindistr(i,j,1,jg)-cc(i,j))/Tsg(i,j,jg)))
+                                             
+              cc(i,j)=max(cc(i,j),0.0d0) ! Jaap: negative cc's are possible...   
+              depo_ex(i,j,jg) = cc(i,j)/Tsg(i,j,jg)  
+                                                    
                  
           enddo
        enddo
@@ -964,7 +972,7 @@ contains
           w(jg) = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*D50(jg))
           ! RJ: for modeling gravel
           delta = (par%rhos-par%rho)/par%rho
-          dster(jg)=(delta*par%g/1.d-12)**onethird*s%D50(jg) 
+          dster(jg)=(delta*par%g/1.d-12)**onethird*s%D50(jg)      
        enddo
     endif
     !
@@ -1080,9 +1088,9 @@ contains
     type(parameters)                        :: par
 
     integer                                 :: i,j,jg
-    real*8                                  :: onethird,twothird,Ass,dcf,dcfin,ML
+    real*8                                  :: Ass,dcf,dcfin,ML
     real*8                                  :: Te,kvis,Sster,cc1,cc2,wster
-    real*8 , save                           :: delta
+    real*8 , save                           :: delta,onethird,twothird
     real*8 , dimension(:),allocatable    ,save     :: w,dster  
     real*8 , dimension(:,:),allocatable  ,save     :: vmg,Asb,Ts
     real*8 , dimension(:,:),allocatable  ,save     :: urms2,Ucr,Ucrc,Ucrw,term1,B2,Cd
@@ -1109,7 +1117,7 @@ contains
        allocate (dster (par%ngd))
        vmg = 0.d0
        onethird=1.d0/3.d0
-       
+       twothird=2.d0/3.d0
        ! Robert: do only once, not necessary every time step
        do jg=1,par%ngd
           ! cjaap: compute fall velocity with simple expression from Ahrens (2000)
@@ -1128,8 +1136,6 @@ contains
 
     ! hloc   = max(hh,0.01d0) ! Jaap 
     hloc = hh
-    onethird=1.d0/3.d0
-    twothird=2.d0/3.d0
     !
     ! compute near bed turbulence
     !
@@ -1188,8 +1194,6 @@ contains
        Asb=0.015d0*hloc*(s%D50(jg)/hloc)**1.2d0/(delta*par%g*s%D50(jg))**0.75d0        !bed load coefficent
        Ass=0.012d0*s%D50(jg)*dster(jg)**(-0.6d0)/(delta*par%g*s%D50(jg))**1.2d0        !suspended load coeffient
 
-       ! Jaap: Gravel test:
-
        ! Jaap: par%sws to set short wave stirring to zero
        ! Jaap: Van Rijn use Peak orbital flow velocity --> 0.64 corresponds to 0.4 coefficient regular waves Van Rijn (2007)  
        term1= dsqrt(vmg**2+0.64d0*par%sws*urms2) 
@@ -1197,12 +1201,6 @@ contains
        ! reduce sediment suspensions for (inundation) overwash conditions with critical flow velocitties
        term1=min(term1,par%smax*par%g/par%cf*s%D50(jg)*delta)
        term1=sqrt(term1)                                        
-
-       ! Try Soulsby van Rijn approach...
-       ! drag coefficient
-       ! z0 = par%z0
-       ! Cd=(0.40/(log(hloc/z0)-1.0))**2 !Jaap
-       ! term1=(vmg**2+0.018/Cd*uorb**2)**0.5   
 
        ceqb = 0.d0*term1                                                                     !initialize ceqb
        ceqs = 0.d0*term1                                                                     !initialize ceqs
@@ -1218,14 +1216,15 @@ contains
        ceqb = min(ceqb/hloc,0.05) ! maximum equilibrium bed concentration
        ceqbg(:,:,jg) = (1.d0-par%bulk)*ceqb*sedcal(jg)*wetz
        ceqs = min(ceqs/hloc,0.05) ! maximum equilibrium suspended concentration
-       ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*ceqs*sedcal(jg)*wetz
+       ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*sedcal(jg)*wetz       
        
        ! Jaap: old brute method to prevent strong coastline erosion
        where (hloc<=par%hmin) ceqsg(:,:,jg) = 0.d0
+       
     enddo                                 ! end of grain size classes
     ! end of grain size classes
 
-  end subroutine sednew
+end subroutine sednew
 
 subroutine longwaveturb(s,par)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
@@ -1364,8 +1363,6 @@ IMPLICIT NONE
 type(spacepars),target                   :: s
 type(parameters)                         :: par
 
-integer                                  :: i
-integer                                  :: j
 real*8 , save                            :: m1,m2,m3,m4,m5,m6,alpha,beta
 
 real*8 , dimension(:,:),allocatable,save   :: Ur,Bm,B1
@@ -1391,13 +1388,14 @@ if (.not. allocated(Ur)) then
        
 endif 
    
-Ur = 3.d0/8.d0*sqrt(2.d0)*H*k/(k*hh)**3                  !Ursell number
+Ur = 3.d0/8.d0*sqrt(2.d0)*H*k/(k*hh)**3                    !Ursell number
 Ur = max(Ur,0.000000000001d0)
 Bm = m1 + (m2-m1)/(1.d0+beta*Ur**alpha)                    !Boltzmann sigmoid (eq 6)         
 B1 = (-90.d0+90.d0*tanh(m5/Ur**m6))*par%px/180.d0
 Sk = Bm*cos(B1)                                            !Skewness (eq 8)
 As = Bm*sin(B1)                                            !Asymmetry(eq 9)
-ua = par%facua*(Sk-As)*urms
+ua = par%sws*par%facua*(Sk-As)*urms
+
  
 end subroutine RvR  
 
