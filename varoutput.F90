@@ -453,12 +453,14 @@ contains
              ! In that case, we need the values in wetz
              ! Probably, this test can be coded somewhat smarter
 #ifdef USEMPI
-             do i=1,par%npoints+par%nrugauge
-                if (par%pointtypes(i) .eq. 1) then
-                   call space_collect(sl,s%wetz,sl%wetz)
-                   exit
-                endif
-             enddo
+             !do i=1,par%npoints+par%nrugauge
+             !   if (par%pointtypes(i) .eq. 1) then
+             if (par%nrugauge>0) then
+                 call space_collect(sl,s%wetz,sl%wetz)
+             endif
+             !      exit
+             !   endif
+             !enddo
 #endif
              do i=1,par%npoints+par%nrugauge
 !!! Make vector of all s% values at n,m grid coordinate
