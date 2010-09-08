@@ -258,9 +258,12 @@ contains
        select case (t%rank)
        case (2)
           oldmean2d=meansparslocal(i)%mean2d
+          ! Robert: One where, elsewhere, endwhere statement leads to memory leak. 
+          ! maybe ifort bug ?
           where (oldmean2d<tiny(0.d0) .and. oldmean2d>=0.d0)
              oldmean2d=tiny(0.d0)
-          elsewhere (oldmean2d>-1.d0*tiny(0.d0) .and. oldmean2d<0.d0)
+          endwhere   
+          where (oldmean2d>-1.d0*tiny(0.d0) .and. oldmean2d<0.d0)
              oldmean2d=-1.d0*tiny(0.d0)
           endwhere
           ! Some variables (vectors) are rotated to N-S and E-W direction
