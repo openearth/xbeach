@@ -1061,7 +1061,7 @@ contains
 #endif
        ceqb = Asb*term2
        ceqb = min(ceqb/hloc,0.05d0)             ! maximum equilibrium bed concentration
-       ceqbg(:,:,jg) = (1.d0-par%bulk)*ceqb*sedcal(jg)*wetz
+       ceqbg(:,:,jg) = (1-par%bulk)*ceqb*sedcal(jg)*wetz
        ceqs = Ass*term2
        ceqs = min(ceqs/hloc,0.05d0)             ! maximum equilibrium suspended concentration
        ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*sedcal(jg)*wetz
@@ -1214,7 +1214,7 @@ contains
        end do
 
        ceqb = min(ceqb/hloc,0.05) ! maximum equilibrium bed concentration
-       ceqbg(:,:,jg) = (1.d0-par%bulk)*ceqb*sedcal(jg)*wetz
+       ceqbg(:,:,jg) = (1-par%bulk)*ceqb*sedcal(jg)*wetz
        ceqs = min(ceqs/hloc,0.05) ! maximum equilibrium suspended concentration
        ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*sedcal(jg)*wetz       
        
