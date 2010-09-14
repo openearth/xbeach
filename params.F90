@@ -667,12 +667,11 @@ contains
     !
     !
     ! Bed composition parameters
+    call writelog('l','','--------------------------------')
+    call writelog('l','','Bed composition parameters: ')
     par%ngd      = readkey_int ('params.txt','ngd',        1,           1,        20)
     par%nd       = readkey_int ('params.txt','nd ',        3,           3,        1000)
-
     if (par%sedtrans==1) then 
-       call writelog('l','','--------------------------------')
-       call writelog('l','','Bed composition parameters: ')
        par%rhos     = readkey_dbl ('params.txt','rhos',  2650d0,     2400.d0,  2800.d0)
        par%dzg1     = readkey_dbl ('params.txt','dzg',    0.1d0,      0.01d0,     1.d0)
        par%dzg1     = readkey_dbl ('params.txt','dzg1', par%dzg1,     0.01d0,     1.d0)
