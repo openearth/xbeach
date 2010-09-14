@@ -253,7 +253,7 @@ if (trim(par%instat)/='jons_table') then
 	if (par%oldnyq==1) then
        fnyq                = readkey_dbl (fname,       'fnyq', 0.3d0,    0.2d0,      1.0d0,      bcast=.false. )
     else 
-	   fnyq                = readkey_dbl (fname,       'fnyq',     max(0.3d0,5.d0*fp),    0.2d0,      1.0d0,      bcast=.false. )
+	   fnyq                = readkey_dbl (fname,       'fnyq',     max(0.3d0,3.d0*fp),    0.2d0,      1.0d0,      bcast=.false. )
 	endif
     dfj                 = readkey_dbl (fname,       'dfj',      fnyq/200,   fnyq/1000,  fnyq/20,    bcast=.false. )
     gam                 = readkey_dbl (fname,       'gammajsp', 3.3d0,      1.0d0,      5.0d0,      bcast=.false. )

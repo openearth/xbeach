@@ -314,15 +314,14 @@ contains
                   (hold(i,j)*cc(i,j)/par%dt -((Sus(i,j)-Sus(i-1,j))/(xu(i)-xu(i-1))+&
                                               (Svs(i,j)-Svs(i,j-1))/(yv(j)-yv(j-1))-&
                                                ero(i,j,jg)))
-
-              ! old explicit solution
+                                               
+              !old explicit solution
               !cc(i,j) = hold(i,j)*cc(i,j)-par%dt*((Sus(i,j)-Sus(i-1,j))/(xu(i)-xu(i-1))+&
-              !                               (Svs(i,j)-Svs(i,j-1))/(yv(j)-yv(j-1))-&
-	  		  !							     hold(i,j)*(ceqsg(i,j,jg)*pbbed(i,j,1,jg)-cc(i,j))/Tsg(i,j,jg))
-											 !Jaap: set source to zero in case of hard layer near surface...
-                                             !min(source(i,j),hold(i,j)*(ceqg(i,j,jg)*graindistr(i,j,1,jg)-cc(i,j))/Tsg(i,j,jg)))
+              !                                    (Svs(i,j)-Svs(i,j-1))/(yv(j)-yv(j-1))-&
+	  		  !							           hold(i,j)*(ceqsg(i,j,jg)*pbbed(i,j,1,jg)-cc(i,j))/Tsg(i,j,jg))
                                              
               cc(i,j)=max(cc(i,j),0.0d0) ! Jaap: negative cc's are possible...   
+              cc(i,j)=min(cc(i,j),0.1*hh(i,j))
               depo_ex(i,j,jg) = cc(i,j)/Tsg(i,j,jg)  
                                                     
                  
@@ -1219,7 +1218,7 @@ contains
        ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*sedcal(jg)*wetz       
        
        ! Jaap: old brute method to prevent strong coastline erosion
-       where (hloc<=par%hmin) ceqsg(:,:,jg) = 0.d0
+       ! where (hloc<=par%hmin) ceqsg(:,:,jg) = 0.d0
        
     enddo                                 ! end of grain size classes
     ! end of grain size classes

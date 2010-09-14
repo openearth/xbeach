@@ -455,6 +455,7 @@ contains
           end if
        end do
     end do
+
     hu = max(hu,0.d0)
 
     do j=1,ny+1
