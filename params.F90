@@ -1194,8 +1194,9 @@ subroutine readglobalvars(par)
              globalvars =  (/'H    ', 'zs   ', 'zs0  ', 'zb   ', 'hh   ', 'u    ', 'v    ', 'ue   ', 've   ', 'urms ', 'Fx   ', &
                     'Fy   ', 'ccg  ', 'ceqsg', 'ceqbg', 'Susg ', 'Svsg ', 'E    ', 'R    ', 'D    ', 'DR   ' /)
         elseif (par%nglobalvar == 999) then ! Output all
-            allocate(globalvars(size(mnemonics)))
-            globalvars = mnemonics
+            allocate(globalvars(numvars))
+            globalvars(1:numvars) = mnemonics
+            par%nglobalvar = numvars
         else
             ! User specified output
             ! This is important because there might be less usable variables than specified.
