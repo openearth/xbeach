@@ -37,7 +37,9 @@ type parameters
    real*8        :: tstop                      = -123    !  [s] Stop time of simulation, in morphological time
    real*8        :: CFL                        = -123    !  [-] Maximum Courant-Friedrichs-Lewy number
    character*80  :: tunits                     = 's'     !  Units can be defined in udunits format (seconds since 1970-01-01 00:00:00.00 +1:00)
-    
+   ! Projection units (not to be used, only pass to output, this limit is too short for WKT....)
+   character*80  :: projection                 = ' '     !  [-] projection string 
+   
    ! Physical constants                                                                                                            
    real*8        :: g                          = -123    !  [ms^-2] Gravitational acceleration
    real*8        :: rho                        = -123    !  [kgm^-3] Density of water
@@ -254,7 +256,9 @@ type parameters
    
    integer*4     :: nrugauge                   = -123    !  [-] Number of output runup gauge locations
    integer*4     :: ncross                     = -123    !  [-] Number of output cross sections
-   character(24):: outputformat               = 'debug' !  [name] Choice of output file format: 'netcdf', 'fortran', or 'debug'
+   character(24) :: outputformat               = 'debug' !  [name] Choice of output file format: 'netcdf', 'fortran', or 'debug'
+   character(256):: ncfilename                 = 'xboutput.nc' ! [filename] xbeach netcdf output file name
+
   
    ! Drifters parameters
    integer*4     :: ndrifter                   = -123    !  Note: will replace lookup in drifters module [-] Number of drifers
@@ -777,6 +781,11 @@ contains
     par%timings  = readkey_int ('params.txt','timings',      1,       0,      1)
     testc = readkey_name('params.txt','tunits')
     if (len(trim(testc)) .gt. 0) par%tunits = trim(testc)
+    
+    ! projection string for output netcdf output
+    testc = readkey_name('params.txt','projection')
+    if (len(trim(testc)) .gt. 0) par%projection = trim(testc)
+
     par%tstart  = readkey_dbl ('params.txt','tstart',   1.d0,      0.d0,1000000.d0)
     par%tint    = readkey_dbl ('params.txt','tint',     1.d0,     .01d0, 100000.d0)  ! Robert
     par%tsglobal = readkey_name('params.txt','tsglobal')
@@ -813,8 +822,13 @@ contains
     allocate(oldnames(0))
     allowednames = (/'fortran', 'netcdf ', 'debug  '/)
     par%outputformat= readkey_str ('params.txt','outputformat','fortran',3, 0, allowednames  ,oldnames,required=.false.)
+    ! get the nc output file name from the parameter file
     deallocate(allowednames)
     deallocate(oldnames)
+    par%ncfilename = readkey_name('params.txt','ncoutfile')
+    if (len(trim(par%ncfilename)) .eq. 0) par%ncfilename = 'xboutput.nc'
+    call writelog('ls','','netcdf output to:' // par%ncfilename)
+
 
     !
     !

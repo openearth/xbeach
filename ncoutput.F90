@@ -7,6 +7,7 @@
 ! It will also be compiled conditionally like mpi. Only if it proves usefull will it be added by default. 
 ! it will add dependencies on the netcdf fortran library (http://www.unidata.ucar.edu/software/netcdf/)
 ! 
+! With contributions from Uwe Rosebrock (CSIRO).
 module ncoutput_module
 #ifdef USENETCDF
 
@@ -27,8 +28,6 @@ module ncoutput_module
   integer*4                           :: nmeanvar    ! number of time-average variables
 
   integer, save :: ncid
-  character(80), save                 :: ncfilename          
-
 
   ! grid
   integer, save :: xdimid, ydimid
@@ -98,7 +97,6 @@ contains
     use xmpi_module
     use params
     use spaceparams
-    use readkey_module
     use timestep_module
     use mnemmodule
     use postprocessmod
@@ -117,10 +115,16 @@ contains
     integer                                      :: npointstotal
     logical                                      :: outputp, outputg, outputw, outputm, outputc
     integer, dimension(:), allocatable           :: dimids ! store the dimids in a vector
+    character(256)                               :: coordinates
 
     ! variables for point grid snapping
     real*8,dimension(s%nx+1,s%ny+1)	  :: mindist
     integer,dimension(2)                :: minlocation
+
+
+    ! subversion information
+    include 'version.def'
+    include 'version.dat'
 
     if (xmaster) then
 
@@ -137,17 +141,15 @@ contains
        outputp = (npointstotal .gt. 0) .and. (size(tpar%tpp) .gt. 0)
        allocate(pointsvarids(par%npoints))
 
-       ncfilename = 'xboutput.nc' 
        ! create a file
-       status = nf90_create(path = ncfilename, cmode=ior(NF90_CLOBBER,NF90_64BIT_OFFSET), ncid = ncid)
+       status = nf90_create(path = par%ncfilename, cmode=ior(NF90_CLOBBER,NF90_64BIT_OFFSET), ncid = ncid)
        if (status /= nf90_noerr) call handle_err(status)
-
 
        ! dimensions TODO: only output dimensions that are used
        ! grid
-       status = nf90_def_dim(ncid, 'x', s%nx+1, xdimid) 
+       status = nf90_def_dim(ncid, 'globalx', s%nx+1, xdimid) 
        if (status /= nf90_noerr) call handle_err(status)
-       status = nf90_def_dim(ncid, 'y', s%ny+1, ydimid)
+       status = nf90_def_dim(ncid, 'globaly', s%ny+1, ydimid)
        if (status /= nf90_noerr) call handle_err(status)
        ! wave angles
        status = nf90_def_dim(ncid, 'wave_angle', s%ntheta, thetadimid)
@@ -166,7 +168,7 @@ contains
 
        ! time dimensions are fixed, only defined if there are points
        if (outputg) then
-          status = nf90_def_dim(ncid, 'globaltime', size(tpar%tpg), globaltimedimid)
+          status = nf90_def_dim(ncid, 'globaltime', NF90_unlimited, globaltimedimid)
           if (status /= nf90_noerr) call handle_err(status)
        end if
        if (outputp) then
@@ -194,7 +196,7 @@ contains
 
        ! define space & time variables
        ! grid
-       status = nf90_def_var(ncid, 'x', NF90_DOUBLE, (/ xdimid /), xvarid)
+       status = nf90_def_var(ncid, 'globalx', NF90_DOUBLE, (/ xdimid /), xvarid)
        if (status /= nf90_noerr) call handle_err(status)
        status = nf90_put_att(ncid, xvarid, 'units', 'm')
        if (status /= nf90_noerr) call handle_err(status)
@@ -204,6 +206,13 @@ contains
        if (status /= nf90_noerr) call handle_err(status)
        status = nf90_put_att(ncid, xvarid, 'axis', 'X')
        if (status /= nf90_noerr) call handle_err(status)
+       ! For compatibility with CSIRO Dive software
+       if (len(trim(par%projection)) .ne. 0)  then
+         status = nf90_put_att(ncid, xvarid, 'projection', par%projection)
+         if (status /= nf90_noerr) call handle_err(status)
+         status = nf90_put_att(ncid, xvarid, 'rotation',( s%alfa/atan(1.0d0)*45.d0))
+         if (status /= nf90_noerr) call handle_err(status)
+       end if
 
        status = nf90_def_var(ncid, 'y', NF90_DOUBLE, (/ ydimid /), yvarid)
        if (status /= nf90_noerr) call handle_err(status)
@@ -215,7 +224,25 @@ contains
        if (status /= nf90_noerr) call handle_err(status)
        status = nf90_put_att(ncid, yvarid, 'axis', 'Y')
        if (status /= nf90_noerr) call handle_err(status)
+       ! For compatibility with CSIRO Dive software
+       if (len(trim(par%projection)) .ne. 0)  then
+         status = nf90_put_att(ncid, yvarid, 'projection', par%projection)
+         if (status /= nf90_noerr) call handle_err(status)
+         status = nf90_put_att(ncid, yvarid, 'rotation',( s%alfa/atan(1.0d0)*45.d0))
+         if (status /= nf90_noerr) call handle_err(status)
+       end if
 
+       ! Some metadata attributes
+       status = nf90_put_att(ncid,nf90_global, "Conventions", "CF-1.4");
+       if (status /= nf90_noerr) call handle_err(status)
+       status = nf90_put_att(ncid,nf90_global, "Producer", "XBeach littoral zone wave model (http://www.xbeach.org)");
+       if (status /= nf90_noerr) call handle_err(status)
+       status = nf90_put_att(ncid,nf90_global, "Build-Revision", trim(Build_Revision));
+       if (status /= nf90_noerr) call handle_err(status)
+       status = nf90_put_att(ncid,nf90_global, "Build-Date", trim(Build_Date));
+       if (status /= nf90_noerr) call handle_err(status)
+       status = nf90_put_att(ncid,nf90_global, "URL", trim(Build_URL));
+       if (status /= nf90_noerr) call handle_err(status)
 
 
        ! global
@@ -232,6 +259,7 @@ contains
           ! default global output variables
           do i=1,par%nglobalvar
              mnem = trim(par%globalvars(i))
+             coordinates = ''
              j = chartoindex(mnem)
              call indextos(s,j,t)
              select case(t%type)
@@ -242,20 +270,31 @@ contains
                 select case(t%rank)
                 case(2)
                    dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), globaltimedimid /)
+                   coordinates = 'globalx globaly'
                 case(3)
                    dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
                         dimensionid(t%dimensions(3)), globaltimedimid /)
+                   coordinates = 'globalx globaly' 
+                   ! Do we have a vertical level?
+                   if (dimids(3) .eq. bedlayersdimid) coordinates = trim(coordinates) // ' bed_layers'
                 case(4)
                    call writelog('ls', '', 'Variable ' // trim(mnem) // ' is of rank 4. This may not work due to an' // &
                         ' unresolved issue. If so, remove the variable or use the fortran outputformat option.')
                    dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
                         dimensionid(t%dimensions(3)), dimensionid(t%dimensions(4)), globaltimedimid /)
+                   coordinates = 'globalx globaly' 
+                   ! Do we have a vertical level?
+                   if ((dimids(3) .eq. bedlayersdimid) .or. (dimids(4) .eq. bedlayersdimid)) then
+                      coordinates = trim(coordinates) // ' bed_layers'
+                   end if
                 case default
                    call writelog('lse', '', 'mnem: ' // mnem // ' not supported, rank:', t%rank)
                    stop 1
                 end select
                 status = nf90_def_var(ncid, trim(mnem), NF90_DOUBLE, &
                      dimids, globalvarids(i))
+                if (status /= nf90_noerr) call handle_err(status)
+                status = nf90_put_att(ncid, globalvarids(i), 'coordinates', trim(coordinates))
                 if (status /= nf90_noerr) call handle_err(status)
                 deallocate(dimids)
              case default
@@ -281,7 +320,7 @@ contains
           if (status /= nf90_noerr) call handle_err(status)
 
           ! points
-          status = nf90_def_var(ncid, 'xpoint', NF90_DOUBLE, (/ pointsdimid /), xpointsvarid)
+          status = nf90_def_var(ncid, 'pointx', NF90_DOUBLE, (/ pointsdimid /), xpointsvarid)
           if (status /= nf90_noerr) call handle_err(status)
           status = nf90_put_att(ncid, xpointsvarid, 'units', 'm')
           if (status /= nf90_noerr) call handle_err(status)
@@ -293,7 +332,7 @@ contains
           if (status /= nf90_noerr) call handle_err(status)
 
 
-          status = nf90_def_var(ncid, 'ypoint', NF90_DOUBLE, (/ pointsdimid /), ypointsvarid)
+          status = nf90_def_var(ncid, 'pointy', NF90_DOUBLE, (/ pointsdimid /), ypointsvarid)
           if (status /= nf90_noerr) call handle_err(status)
           status = nf90_put_att(ncid, ypointsvarid, 'units', 'm')
           if (status /= nf90_noerr) call handle_err(status)
@@ -321,6 +360,7 @@ contains
           do i=1,par%npointvar
              mnem = trim(par%pointvars(i))
              j = chartoindex(mnem)
+             coordinates = ''
              call indextos(s,j,t)
              select case(t%type)
              case('r')
@@ -334,18 +374,29 @@ contains
                 select case(t%rank)
                 case(2)
                    dimids = (/ pointsdimid, pointtimedimid /)
+                   coordinates = 'pointx pointy'
                 case(3)
                    dimids = (/ pointsdimid, dimensionid(t%dimensions(3)), pointtimedimid /)
+                   coordinates = 'pointx pointy'
+                   ! Do we have a vertical level?
+                   if (dimids(3) .eq. bedlayersdimid) coordinates = trim(coordinates) // ' bed_layers'
                 case(4)
                    call writelog('ls', '', 'Variable ' // trim(mnem) // ' is of rank 4. This may not work due to an' // &
                         ' unresolved issue. If so, remove the variable or use the fortran outputformat option.')
                    dimids = (/ pointsdimid, dimensionid(t%dimensions(3)), dimensionid(t%dimensions(4)), pointtimedimid /)
+                   coordinates = 'pointx pointy'
+                   ! Do we have a vertical level?
+                   if ((dimids(3) .eq. bedlayersdimid) .or. (dimids(4) .eq. bedlayersdimid)) then
+                      coordinates = trim(coordinates) // ' bed_layers'
+                   end if
                 case default
                    call writelog('lse', '', 'mnem: ' // mnem // ' not supported, rank:', t%rank)
                    stop 1
                 end select
                 status = nf90_def_var(ncid, 'point_' // trim(mnem), NF90_DOUBLE, &
                      dimids, pointsvarids(i))
+                if (status /= nf90_noerr) call handle_err(status)
+                status = nf90_put_att(ncid, pointsvarids(i), 'coordinates', trim(coordinates))
                 if (status /= nf90_noerr) call handle_err(status)
                 deallocate(dimids)
              case default
@@ -404,6 +455,7 @@ contains
   end subroutine ncoutput_init
 
   subroutine ncoutput(s,sl,par, tpar)
+    use logging_module
     use xmpi_module
     use params
     use spaceparams
@@ -437,7 +489,7 @@ contains
 
     ! Open the output file
     if (xmaster) then
-       status = nf90_open(ncid=ncid, path=ncfilename, mode=nf90_write)
+       status = nf90_open(ncid=ncid, path=par%ncfilename, mode=nf90_write)
        if (status /= nf90_noerr) call handle_err(status)  
     end if
 
@@ -562,6 +614,27 @@ contains
     end if
   end subroutine ncoutput
 
+  character(256) function dimensionnames(dimids)
+    implicit none
+    integer, dimension(:), intent(in)           :: dimids ! store the dimids in a vector
+
+    integer :: i, status
+    character(256) :: dimensionnames 
+    character(80)  :: dimensionname 
+    ! combine all the dimensionnames
+    ! assumes all dimensions have an accompanying variable that should be used for coordinates.
+    ! ",".join would have been nice here....
+    dimensionnames = ''
+    ! Fortran array dimensions are in reverse order
+    do i=size(dimids),2,-1
+       status = nf90_inquire_dimension(ncid, dimids(i), name=dimensionname)
+       if (status /= nf90_noerr) call handle_err(status) 
+       dimensionnames = trim(dimensionnames) // trim(dimensionname) // ',' 
+    end do
+    status = nf90_inquire_dimension(ncid, dimids(1), name=dimensionname)
+    if (status /= nf90_noerr) call handle_err(status) 
+    dimensionnames = trim(dimensionnames) // trim(dimensionname)
+  end function dimensionnames
 
   integer function dimensionid(expression)
     ! Function to transform the expression in spaceparams.tmpl to an id, we might want this in the 
