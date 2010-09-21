@@ -1658,7 +1658,7 @@ do jj=2,Npy
 
     ! Print status message to screen
     if(xmaster) then
-        call writelog('s','(A,I0,A,I0)','Flux ',jj,' of ',Npy)
+        call writelog('ls','(A,I0,A,I0)','Flux ',jj,' of ',Npy)
     endif
     
     ! Inverse Discrete Fourier transformation to transform back to time space
