@@ -975,7 +975,7 @@ contains
        enddo
     endif
     !
-    hloc = max(hh,par%hmin)
+    hloc = max(hh,0.01)
     !
     ! wave breaking induced turbulence due to short waves
     do j=1,ny+1
@@ -1066,7 +1066,7 @@ contains
        ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*sedcal(jg)*wetz
        
        ! Jaap: old brute method to prevent strong coastline erosion
-       where (hloc<=par%hmin) ceqsg(:,:,jg) = 0.d0
+       ! where (hloc<=par%hmin) ceqsg(:,:,jg) = 0.d0
 
     enddo  ! end og grain size classes
 
@@ -1134,7 +1134,7 @@ contains
     endif
 
     ! hloc   = max(hh,0.01d0) ! Jaap 
-    hloc = hh
+    hloc = max(hh,0.01)
     !
     ! compute near bed turbulence
     !
