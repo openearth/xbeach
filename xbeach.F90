@@ -162,17 +162,15 @@ if (xmaster) then
 
   call writelog('ls','','Initializing .....')
 ! Initialisations
+  call flow_init (s,par)  ! Always do this      works only on master process
   call wave_init (s,par)  ! Always do this       wave_init only works on master process
+  call gwinit(par,s)      ! works only on master process
+  call sed_init (s,par)   ! works only on master process
 endif
 #ifdef USEMPI
 ! some of par has been changed, so:
 call distribute_par(par)
 #endif
-if (xmaster) then
-   call flow_init (s,par)  ! Always do this      works only on master process
-   call gwinit(par,s)      ! works only on master process
-   call sed_init (s,par)   ! works only on master process
-endif
 
 ! initialize the correct output module (clean this up?, move to another module?)
 if (par%outputformat=='fortran') then
@@ -240,7 +238,9 @@ do while (par%t<par%tstop)
    ! Calculate timestep
    call timestep(s,par,tpar, it)
    ! Wave boundary conditions
-   if (par%swave==1) call wave_bc (sglobal,slocal,par,newstatbc) 
+   ! Jaap: if swave = 0 you also set ui of long waves to zero so always call wave_bc
+   ! if (par%swave==1) call wave_bc (sglobal,slocal,par,newstatbc)
+   call wave_bc (sglobal,slocal,par,newstatbc)
    ! Flow boundary conditions
    if (par%gwflow==1) call gwbc(par,s)
    if (par%flow+par%nonh>0) call flow_bc (s,par)
