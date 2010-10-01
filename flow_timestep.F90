@@ -202,6 +202,7 @@ contains
     !
     do j=2,ny ! Jaap 2,ny instead of 1,ny+1
        do i=2,nx
+       !write(*,*)i,j,1
           ududx(i,j)=max(0.d0,.5d0*(qx(i,j)+qx(i-1,j)) ) / hum(i,j)*(uu(i,j  )-uu(i-1,j))/(xu(i  )-xu(i-1)) + &
                min(0.d0,.5d0*(qx(i,j)+qx(i+1,j)) ) / hum(i,j)*(uu(i+1,j)-uu(i,j  ))/(xu(i+1)-xu(i  ))
        end do
@@ -244,6 +245,7 @@ contains
 
     do j=2,ny
        do i=2,nx
+       !write(*,*)i,j,2
           dudx1 = nuh(i+1,j)*s%hh(i+1,j)*(uu(i+1,j)-uu(i,j))/(xu(i+1)-xu(i))
           dudx2 = nuh(i,j)  *s%hh(i  ,j)*(uu(i,j)-uu(i-1,j))/(xu(i)-xu(i-1))
           viscu(i,j) = (1.0d0/s%hum(i,j))*( 2*(dudx1-dudx2)/(xu(i+1)-xu(i-1)) )*wetu(i+1,j)*wetu(i-1,j)  !Set viscu = 0.0 near water line   wwvv: viscu is overwritten in next loopnest before it is used

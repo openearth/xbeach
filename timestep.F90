@@ -463,6 +463,9 @@ subroutine timestep(s,par, tpar, it)
 
   if (dtref/par%dt>50.d0) then
      call writelog('lse','','Quit XBeach since computational time explodes')
+     call writelog('lse','','dtref',dtref)
+     call writelog('lse','','par%dt',par%dt)
+
      call halt_program
   endif
 

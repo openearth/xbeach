@@ -1175,11 +1175,13 @@ end subroutine distribute_par
        return
     endif
     ! make a copy of the old vars
+	write(*,*)size(vars)
+	write(*,*)vars
     allocate(temp(size(vars)))
     ! now copy the values
     temp =vars
     ! create room for an extra variable
-    deallocate(vars)
+    if (allocated(vars)) deallocate(vars)
     allocate(vars(size(temp)+1))
     ! copy back
     vars(1:size(temp)) = temp

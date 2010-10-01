@@ -28,7 +28,7 @@ contains
     real*8 , dimension(:),allocatable,save      :: Hprev
     real*8                                      :: Herr,dtw
     real*8 , dimension(:)  ,allocatable,save    :: dkmxdx,dkmxdy,dkmydx,dkmydy,cgxm,cgym,arg,fac,xwadvec,ywadvec
-    real*8 , dimension(:,:),allocatable,save  :: wcifacu,wcifacv
+    real*8 , dimension(:,:),allocatable,save    :: wcifacu,wcifacv,uorb
     logical                                     :: stopiterate
 
 #ifdef USEMPI
@@ -76,6 +76,7 @@ contains
        allocate(fac     (ny+1))
        allocate(wcifacu     (nx+1,ny+1))
        allocate(wcifacv     (nx+1,ny+1))
+       allocate(uorb        (nx+1,ny+1))
 
     endif
 
@@ -112,7 +113,7 @@ contains
 
     arg         = 0.0d0
     fac         = 0.0d0
-
+    uorb        = 0.0d0
 
     ! cjaap: replaced par%hmin by par%eps
     hh = max(hh,par%eps)
@@ -316,11 +317,15 @@ contains
                      par%Trep,par%alpha,par%gamma, &
                      par%rho,par%g,par%delta,D(i,:),ny+1)
              end if
+             ! Dissipation by bed friction
+             uorb(i,:)=par%px*H(i,:)/par%Trep/sinh(min(max(k(i,:),0.01d0)*max(hh(i,:),par%delta*H(i,:)),10.0d0))
+             Df(i,:)=0.6666666d0/par%px*par%rho*par%fw*uorb(i,:)**3
+
              !
              ! Distribution of dissipation over directions and frequencies
              !
              do itheta=1,ntheta
-                dd(i,:,itheta)=ee(i,:,itheta)*D(i,:)/max(E(i,:),0.00001d0)
+                dd(i,:,itheta)=ee(i,:,itheta)*(D(i,:)+Df(i,:))/max(E(i,:),0.00001d0)
              end do
              do j=1,ny+1
                 ! cjaap: replaced par%hmin by par%eps

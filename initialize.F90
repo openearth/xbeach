@@ -238,6 +238,7 @@ contains
     s%R         = 0.d0
     s%urms      = 0.d0
     s%D         = 0.d0
+    s%Df         = 0.d0
     s%Qb        = 0.d0
     s%ust       = 0.d0
     s%tm        = 0.d0
