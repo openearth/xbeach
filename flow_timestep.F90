@@ -312,7 +312,8 @@ contains
           ! give the same results. If this modification is not ok, then
           ! we have a problem
           if(wetu(i,j)==1) then
-             taubx(i,j)=s%cf(i,j)*par%rho*ueu(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmageu(i,j)**2)
+             ! Robert: ensure taubx always has the same sign as uu (always decelerates) 
+             taubx(i,j)=sign(s%cf(i,j)*par%rho*ueu(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmageu(i,j)**2),uu(i,j))
              uu(i,j)=uu(i,j)-par%dt*(ududx(i,j)+vdudy(i,j)-viscu(i,j) & !Ap,Robert,Jaap
                   + par%g*dzsdx(i,j) &
                                 !                   + par%g/par%C**2.d0/hu(i,j)*vmageu(i,j)*ueu(i,j) &
@@ -408,7 +409,8 @@ contains
     do j=1,ny
        do i=2,nx !jaap instead of nx+1
           if(wetv(i,j)==1) then
-             tauby(i,j)=s%cf(i,j)*par%rho*vev(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmagev(i,j)**2) !Ruessink et al, 2001
+             ! Robert: ensure taubx always has the same sign as uu (always decelerates) 
+             tauby(i,j)=sign(s%cf(i,j)*par%rho*vev(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmagev(i,j)**2),vv(i,j)) !Ruessink et al, 2001
              vv(i,j)=vv(i,j)-par%dt*(udvdx(i,j)+vdvdy(i,j)-viscv(i,j)& !Ap,Robert,Jaap
                   + par%g*dzsdy(i,j)&
                                 ! + par%g/par%C**2/hv(i,j)*vmagev(i,j)*vev(i,j)&
