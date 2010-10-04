@@ -619,7 +619,6 @@ contains
     integer, dimension(:), intent(in)           :: dimids ! store the dimids in a vector
 
     integer :: i, status
-    character(256) :: dimensionnames 
     character(80)  :: dimensionname 
     ! combine all the dimensionnames
     ! assumes all dimensions have an accompanying variable that should be used for coordinates.
