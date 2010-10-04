@@ -885,9 +885,11 @@ subroutine space_distribute_space(sg,sl,par)
   allocate(sl%isbot(xmpi_size))
 
   if(xmaster) then
-  call det_submatrices(sg%nx+1, sg%ny+1, xmpi_m, xmpi_n, &
+    call det_submatrices(sg%nx+1, sg%ny+1, xmpi_m, xmpi_n, &
                              sg%is, sg%lm, sg%js, sg%ln, &
                              sg%isleft, sg%isright, sg%istop, sg%isbot)
+    call writelog('l','','--------------------------------')
+    call writelog('l','','MPI implementation: ')                                
     call writelog('sl','','Distribution of matrix on processors')
     call writelog('sl','',' proc   is   lm   js   ln')
     do i=1,xmpi_size
@@ -897,6 +899,7 @@ subroutine space_distribute_space(sg,sl,par)
     do i=1,xmpi_size
        call writelog('ls','',i-1,sg%isleft(i),sg%isright(i),sg%istop(i),sg%isbot(i))
     enddo
+    call writelog('l','','--------------------------------')
   endif
 
   if (xmaster) then

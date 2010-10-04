@@ -85,6 +85,8 @@ type parameters
    real*4        :: order                      = -123    !  [-] Switch for order of wave steering, 1 = first order wave steering (short wave energy only), 2 = second oder wave steering (bound long wave corresponding to short wave forcing is added)
    integer*4     :: carspan                    = -123    !  [-] Switch for Carrier-Greenspan test 0 = use cg (default); 1 = use sqrt(gh) in instat = 3 for c&g tests
    real*8        :: epsi                       = -123    !  [-] Ratio of mean current to time varying current through offshore boundary
+   character(24) :: tidetype                   = 'abc'   !  [-] Switch for offfshore boundary, velocity boundary or instant water level boundary (default)
+   
 
    ! Tide boundary conditions                                                                                                      
    real*8        :: zs0                        = -123    !  [m] Inital water level
@@ -516,6 +518,10 @@ contains
     par%order   = readkey_dbl ('params.txt','order',       2.d0,         1.d0,      2.d0)
     par%carspan = readkey_int ('params.txt','carspan',        0,         0,      1)
     par%epsi    = readkey_dbl ('params.txt','epsi',        0.d0,         0.d0,      0.2d0)
+    allocate(allowednames(2),oldnames(0))
+    allowednames=(/'instant ','velocity'/)
+    par%tidetype= readkey_str('params.txt','tidetype','instant',2,0,allowednames,oldnames)
+    deallocate(allowednames,oldnames)
     !
     !
     ! Tide boundary conditions
@@ -1175,8 +1181,6 @@ end subroutine distribute_par
        return
     endif
     ! make a copy of the old vars
-	write(*,*)size(vars)
-	write(*,*)vars
     allocate(temp(size(vars)))
     ! now copy the values
     temp =vars

@@ -160,13 +160,10 @@ contains
              open( unit=7, file=fname)
              ! open( unit=7, file='jonswap1.txt')
              read(7,*) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcendtime, dum2
-             write(*,*)'Hm0=',Hm0, 'Trep=',par%Trep,'dir0=',par%dir0, 'spreadpar=',spreadpar, 'bcendtime=',bcendtime
              par%Hrms = Hm0/sqrt(2.d0)
              par%m = 0.5d0*spreadpar
              if (par%morfacopt==1) bcendtime=bcendtime/max(par%morfac,1.d0)
-             theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0
-             if (theta0>par%px) theta0=theta0-2*par%px
-             if (theta0<-par%px) theta0=theta0+2*par%px
+             s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0
           endif
           newstatbc=.true.
 #ifdef USEMPI
@@ -552,7 +549,7 @@ contains
     integer                                     :: j,jj,indt
     real*8                                      :: ur,alphanew,vert,factime,dzs0dy
     real*8 , dimension(2)                       :: yzs0,szs0
-    real*8 , dimension(:,:)  ,allocatable,save  :: zs0old
+    real*8 , dimension(:,:)  ,allocatable,save  :: zs0old,zsmean,dzs0
     real*8 , dimension(:,:)  ,allocatable,save  :: ht,beta,betanp1
     real*8 , dimension(:)    ,allocatable,save  :: bn,alpha2
     real*8 , dimension(:,:)  ,allocatable,save  :: dhdx,dhdy,dvdx,dvdy
@@ -573,10 +570,18 @@ contains
        allocate(dbetadx (2,ny+1))
        allocate(dbetady (2,ny+1))
        allocate(beta    (2,ny+1))
+       allocate(zsmean  (2,ny+1))
+       allocate(dzs0    (2,ny+1))
        allocate(bn      (ny+1))
        allocate(alpha2  (ny+1))
        allocate(betanp1 (1,ny+1))
        allocate(zs0old(nx+1,ny+1))   ! wwvv not used
+       ! initialize zsmean and dzs0
+       zsmean(1,:) = zs(1,:)
+       zsmean(2,:) = zs(nx,:)
+       umean = 0.d0
+       vmean = 0.d0
+       dzs0 = 0; 
     endif
 
     factime=1.d0/par%cats/par%Trep*par%dt
@@ -591,45 +596,56 @@ contains
     ! 
     ! Need to interpolate input tidal signal to xbeach par%t to 
     ! compute proper tide contribution 
-
+    
     if (par%tideloc>0) then
 
+       ! read in first water surface time series 
        call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,1), par%tidelen, par%t, par%zs01, indt)
 
        if(par%tideloc.eq.1) then 
           par%zs02=par%zs01
        end if
 
+       ! tideloc = 2, paulrevere = 0
        if(par%tideloc.eq.2 .and. par%paulrevere.eq.0) then
+          ! read in second water surface time series
           call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), par%tidelen, par%t, par%zs03, indt)
-          par%zs02=par%zs01
-          par%zs04=par%zs03
+          par%zs02=par%zs01 ! second offshore corner is equal to first offshore corner
+          par%zs04=par%zs03 ! second bay corner is equal to first bay corner
        endif
-
+ 
+       ! tideloc = 2, paulrevere = 1
        if(par%tideloc.eq.2 .and. par%paulrevere.eq.1) then
           call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), par%tidelen, par%t, par%zs02, indt)
+          ! no timeseries at bay side, (and two different timeseries at offshore corners)
           par%zs03=0.d0
           par%zs04=0.d0
        endif
-
+ 
+       ! tideloc = 4: for each corner individual timeseries
        if(par%tideloc.eq.4) then
           call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), par%tidelen, par%t, par%zs02, indt)
           call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,3), par%tidelen, par%t, par%zs03, indt)
           call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,4), par%tidelen, par%t, par%zs04, indt)
        endif
-
+       !
+       ! from here on set global vriable s%zs0
+       !
        if(par%tideloc.eq.1) s%zs0 = par%zs01
 
        if(par%tideloc.eq.2 .and. par%paulrevere.eq.1) then
           yzs0(1)=s%yz(1)
           yzs0(2)=s%yz(s%ny+1)
-          ! Jaap: for MPI!
+          
+          ! for MPI look at water level gradient over each subdomain
+          
+          ! lonsghore water level difference over whole model domain at offshore boundary    
           dzs0dy = (par%zs02-par%zs01)/(par%xyzs02(2)-par%xyzs01(2));
 
+          ! estimate water level at corners sub-domain
           szs0(1)=par%zs01+dzs0dy*(yzs0(1)-par%xyzs01(2))
           szs0(2)=par%zs01+dzs0dy*(yzs0(2)-par%xyzs01(2))
 
-          ! end Jaap
           do i = 1,s%ny+1
              call LINEAR_INTERP(yzs0, szs0, 2, s%yz(i), s%zs0(1,i), indt)
           enddo
@@ -666,7 +682,7 @@ contains
 
 #ifdef USEMPI
           call xmpi_getrow(s%zs0,ny+1,'1',1,s%zs0(1,:))
-          call xmpi_getrow(s%zs0,ny+1,'m',1,s%zs0(nx+1,:))
+          call xmpi_getrow(s%zs0,ny+1,'m',xmpi_m,s%zs0(nx+1,:))
 #endif
           do j = 1,s%ny+1 
              do i = 1,s%nx+1
@@ -704,7 +720,7 @@ contains
           ! wwvv see above
 #ifdef USEMPI
           call xmpi_getrow(s%zs0,ny+1,'1',1,s%zs0(1,:))
-          call xmpi_getrow(s%zs0,ny+1,'m',1,s%zs0(nx+1,:))
+          call xmpi_getrow(s%zs0,ny+1,'m',xmpi_m,s%zs0(nx+1,:))
 #endif
           do j = 1,s%ny+1 
              do i = 1,s%nx+1
@@ -732,7 +748,32 @@ contains
        !endif
     else ! ie if tideloc=0
        s%zs0 = par%zs01
-    endif
+    endif    
+    
+    if (trim(par%tidetype)=='instant') then
+    !
+    ! RJ: 22-09-2010 Correct water level for surge and tide:
+    !
+    zsmean(1,:) = par%epsi*s%zs(1,:)+(1-par%epsi)*zsmean(1,:)
+    zsmean(2,:) = par%epsi*s%zs(nx,:)+(1-par%epsi)*zsmean(2,:)
+    ! compute difference between offshore/bay mean water level and imposed on tide   
+    dzs0(1,:) = s%zs0(1,:)-zsmean(1,:)
+    dzs0(2,:) = s%zs0(nx,:)-zsmean(2,:)
+#ifdef USEMPI    
+    call xmpi_getrow(dzs0,ny+1,'1',1,dzs0(1,:))
+    call xmpi_getrow(dzs0,ny+1,'m',xmpi_m,dzs0(2,:))
+#endif    
+    
+    do j = 1,s%ny+1 
+       do i = 1,s%nx+1 
+          s%zs(i,j) = s%zs(i,j) + (s%zs0fac(i,j,1)*dzs0(1,j) + s%zs0fac(i,j,2)*dzs0(2,j))*wetz(i,j)
+       enddo
+    enddo
+    
+    ! RJ: 22-09-2010 end update tide and surge
+    
+    endif ! tidetype = instant water level boundary
+    
     !
     ! UPDATE (LONG) WAVES
     !
@@ -741,16 +782,19 @@ contains
        ! the mpi_shift calls in horizontal directions
        if(xmpi_istop) then
           if (trim(par%front)=='abs_1d') then ! Ad's radiating boundary
-             ! umean(1,:)=(1.d0-factime)*umean(1,:)+factime*uu(1,:)
-             ! After hack 3/6/2010, return to par%epsi :
-             umean(1,:) = (par%epsi*uu(1,:)+(1-par%epsi)*umean(1,:))
+             !uu(1,:)=2.d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))
+             if (trim(par%tidetype)=='velocity') then
+               umean(1,:) = (par%epsi*uu(1,:)+(1-par%epsi)*umean(1,:))
+             else
+               umean(1,:) = 0.d0
+             endif
              !DAno  uu(1,:)=2.0d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))+umean(1,:)
-             uu(1,:)=(1.0d0+sqrt(par%g*hh(1,:))/cg(1,:))*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))+umean(1,:)
+             uu(1,:)=(1.0d0+sqrt(par%g*hh(1,:))/cg(1,:))*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:))) + umean(1,:)
              vv(1,:)=vv(2,:)
              zs(1,:)=zs(2,:)
           elseif (trim(par%front)=='abs_2d') then ! Van Dongeren (1997), weakly reflective boundary condition
              ht(1:2,:)=max(s%zs0(1:2,:)-zb(1:2,:),par%eps)
-             beta=uu(1:2,:)-2.*dsqrt(par%g*hum(1:2,:)) !cjaap : replace hh with hum
+             beta=uu(1:2,:)-2.*dsqrt(par%g*hum(1:2,:))
 
              do j=2,ny
                 ! compute gradients in u-points....
@@ -759,13 +803,13 @@ contains
                 dbetadx(1,j)=(beta(2,j)-beta(1,j))/(xu(2)-xu(1))
                 dbetady(1,j)=(beta(1,min(j,ny)+1)-beta(1,max(j,2)-1))/(yz(min(j,ny)+1)-yz(max(j,2)-1))
 
-                inv_ht(j) = 1.d0/hum(1,j)                                  !Jaap replaced hh with hum
+                inv_ht(j) = 1.d0/hum(1,j)                                 
 
-                bn(j)=-(uu(1,j)-dsqrt(par%g*hum(1,j)))*dbetadx(1,j) &      !Jaap replaced hh with hum 
+                bn(j)=-(uu(1,j)-dsqrt(par%g*hum(1,j)))*dbetadx(1,j) &      
                      -vu(1,j)*dbetady(1,j)& !Ap vu
-                     +dsqrt(par%g*hum(1,j))*dvdy(1,j)&                    !Jaap replaced hh with hum 
-                     +Fx(1,j)*inv_ht(j)/par%rho-par%g/par%C**2.d0&        !Ap
-                     *sqrt(uu(1,j)**2+vu(1,j)**2)*uu(1,j)/hum(1,j)&       !Jaap replaced hh with hum
+                     +dsqrt(par%g*hum(1,j))*dvdy(1,j)&                    
+                     +Fx(1,j)*inv_ht(j)/par%rho-par%g/par%C**2.d0&       
+                     *sqrt(uu(1,j)**2+vu(1,j)**2)*uu(1,j)/hum(1,j)&    
                      +par%g*dhdx(1,j)
              end do
 
@@ -773,11 +817,13 @@ contains
                 betanp1(1,j) = beta(1,j)+ bn(j)*par%dt
                 alpha2(j)=-theta0
                 alphanew = 0.d0
-                ! umean(1,j) = (factime*uu(1,j)+(1-factime)*umean(1,j))  
-                ! vmean(1,j) = (factime*vu(1,j)+(1-factime)*vmean(1,j)) 
-                ! After hack 3/6/2010, return to par%epsi :
-                umean(1,j) = (par%epsi*uu(1,j)+(1-par%epsi)*umean(1,j))
-                vmean(1,j) = (par%epsi*vu(1,j)+(1-par%epsi)*vmean(1,j)) 
+                if (trim(par%tidetype)=='velocity') then
+                  umean(1,j) = (par%epsi*uu(1,j)+(1-par%epsi)*umean(1,j))
+                  vmean(1,j) = (par%epsi*vu(1,j)+(1-par%epsi)*vmean(1,j)) 
+                else
+                  umean(1,j) = 0.d0
+                  vmean(1,j) = 0.d0
+                endif
                 do jj=1,50
                    !---------- Lower order bound. cond. ---
                    !qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
@@ -870,7 +916,11 @@ contains
           elseif (trim(par%back)=='abs_1d') then
              !        umean(2,:) = factime*uu(nx,:)+(1.d0-factime)*umean(2,:) 
              ! After hack 3/6/2010, return to par%epsi :
-             umean(2,:) = (par%epsi*uu(nx,:)+(1-par%epsi)*umean(2,:))  
+             if (trim(par%tidetype)=='velocity') then
+               umean(2,:) = (par%epsi*uu(nx,:)+(1-par%epsi)*umean(2,:))
+             else
+               umean(2,:) = 0.d0
+             endif
              uu(nx,:)=sqrt(par%g/hh(nx,:))*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))+umean(2,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
              !        uu(nx,:)=cg(nx,:)/hh(nx,:)*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))+umean(2,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
              !uu(nx,:)=sqrt(par%g/(s%zs0(nx,:)-zb(nx,:)))*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))
@@ -908,8 +958,13 @@ contains
                    alphanew = 0.d0
                    !          umean(2,j) = (factime*uu(s%nx,j)+(1-factime)*umean(2,j))           !Ap 
                    ! After hack 3/6/2010, return to par%epsi :
-                   umean(2,j) = (par%epsi*uu(nx,j)+(1-par%epsi)*umean(2,j))
-                   vmean(2,j) = (par%epsi*vu(nx,j)+(1-par%epsi)*vmean(2,j)) 
+                   if (trim(par%tidetype)=='velocity') then
+                      umean(2,j) = (par%epsi*uu(nx,j)+(1-par%epsi)*umean(2,j))
+                      vmean(2,j) = (par%epsi*vu(nx,j)+(1-par%epsi)*vmean(2,j)) 
+                   else
+                     umean(2,j) = 0.d0
+                     vmean(2,j) = 0.d0
+                   endif
                    do jj=1,50
                       !---------- Lower order bound. cond. ---
                       !qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&  

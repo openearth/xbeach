@@ -5,7 +5,6 @@ contains
     use spaceparams
     use readkey_module
     use xmpi_module
-    use interp
     use wave_timestep_module
 
     IMPLICIT NONE
@@ -14,12 +13,9 @@ contains
     type(parameters)                    :: par
 
     integer                             :: i
-    integer                             :: j,ig
-    integer                             :: itheta,indt
-    logical                             :: exists
-
-    real*8,dimension(:),allocatable     :: yzs0,szs0
-
+    integer                             :: j
+    integer                             :: itheta
+    
     allocate(s%thetamean(1:s%nx+1,1:s%ny+1))
     allocate(s%Fx(1:s%nx+1,1:s%ny+1))
     allocate(s%Fy(1:s%nx+1,1:s%ny+1))
@@ -28,7 +24,6 @@ contains
     allocate(s%Syy(1:s%nx+1,1:s%ny+1))
     allocate(s%n(1:s%nx+1,1:s%ny+1))
     allocate(s%H(1:s%nx+1,1:s%ny+1))
-    allocate(s%hh(1:s%nx+1,1:s%ny+1))
     allocate(s%cgx(1:s%nx+1,1:s%ny+1,1:s%ntheta))
     allocate(s%cgy(1:s%nx+1,1:s%ny+1,1:s%ntheta))
     allocate(s%cx(1:s%nx+1,1:s%ny+1,1:s%ntheta))
@@ -58,9 +53,6 @@ contains
     allocate(s%vwf(1:s%nx+1,1:s%ny+1)) 
     allocate(s%ustr(1:s%nx+1,1:s%ny+1)) 
     allocate(s%usd(1:s%nx+1,1:s%ny+1))
-    allocate(s%zs0(1:s%nx+1,1:s%ny+1)) 
-    allocate(szs0(1:2)) 
-    allocate(yzs0(1:2)) 
     allocate(s%bi(1:s%ny+1))
     allocate(s%DR(1:s%nx+1,1:s%ny+1)) 
     allocate(s%umean(2,1:s%ny+1))
@@ -70,10 +62,162 @@ contains
     allocate(s%zswci       (1:s%nx+1,1:s%ny+1))
     allocate(s%BR(1:s%nx+1,1:s%ny+1))
     allocate(s%wm(1:s%nx+1,1:s%ny+1))
-    s%wm=0.d0
+
+    !
+    ! Initial condition
+    !
+    do itheta=1,s%ntheta
+       do j=1,s%ny+1
+          do i=1,s%nx+1
+             s%ee(i,j,itheta)=0.d0
+          end do
+       end do
+    end do
+
+    s%thetamean = 0.d0
+    s%Fx        = 0.d0
+    s%Fy        = 0.d0
+    s%Sxx       = 0.d0
+    s%Sxy       = 0.d0
+    s%Syy       = 0.d0
+    s%n         = 0.d0
+    s%H         = 0.d0
+    s%cgx       = 0.d0
+    s%cgy       = 0.d0
+    s%cx        = 0.d0
+    s%cy        = 0.d0
+    s%ctheta    = 0.d0
+    s%thet      = 0.d0
+    s%sigt      = 0.d0
+    s%rr        = 0.d0
+    s%sigm      = 0.d0
+    s%c         = 0.d0
+    s%cg        = 0.d0
+    s%k         = 0.d0
+    s%ui        = 0.d0
+    s%E         = 0.d0
+    s%R         = 0.d0
+    s%urms      = 0.d0
+    s%D         = 0.d0
+    s%Qb        = 0.d0
+    s%ust       = 0.d0
+    s%tm        = 0.d0
+    s%uwf       = 0.d0
+    s%vwf       = 0.d0
+    s%ustr      = 0.d0
+    s%usd       = 0.d0
+    s%bi        = 0.d0
+    s%DR        = 0.d0
+    s%BR        = par%Beta
+
+
+    ! added for bound long wave bc Ad 27 march 2006
+    do itheta=1,s%ntheta
+       s%thet(:,:,itheta) = s%theta(itheta)
+       s%costhet(:,:,itheta)= dcos(s%theta(itheta))
+       s%sinthet(:,:,itheta)= dsin(s%theta(itheta))
+    end do
+
+    ! introduce intrinsic frequencies for wave action
+    if (  trim(par%instat)=='jons' .or. &
+         trim(par%instat)=='swan' .or. &
+         trim(par%instat)=='vardens' .or. &
+         trim(par%instat)=='reuse' .or. &
+         trim(par%instat)=='nonh' &
+         ) par%Trep=10.d0 
+    !Robert
+    ! incorrect values are computed below for instat = 4/5/6/7
+    ! in this case right values are computed in wave params.f90
+    do itheta=1,s%ntheta
+       s%sigt(:,:,itheta) = 2*par%px/par%Trep
+    end do
+    s%sigm = sum(s%sigt,3)/s%ntheta
+    call dispersion(par,s)
+
+
+  end subroutine wave_init
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine flow_init (s,par)
+    use params
+    use spaceparams
+    use interp
+    use xmpi_module
+
+    IMPLICIT NONE
+
+    type(spacepars)                     :: s
+    type(parameters)                    :: par
+
+    integer*4                           :: i,j,ig,indt
+    logical                             :: exists
+    logical                             :: offshoreregime
+    integer                             :: indoff,indbay
+
+    real*8,dimension(:),allocatable     :: yzs0,szs0
+
+    allocate(s%zs(1:s%nx+1,1:s%ny+1))
+    allocate(s%dzsdt(1:s%nx+1,1:s%ny+1))
+    allocate(s%dzsdx(1:s%nx+1,1:s%ny+1))
+    allocate(s%dzsdy(1:s%nx+1,1:s%ny+1))
+    allocate(s%dzbdt(1:s%nx+1,1:s%ny+1))
+    allocate(s%uu(1:s%nx+1,1:s%ny+1))
+    allocate(s%vv(1:s%nx+1,1:s%ny+1))
+    allocate(s%qx(1:s%nx+1,1:s%ny+1))
+    allocate(s%qy(1:s%nx+1,1:s%ny+1))
+    allocate(s%sedero(1:s%nx+1,1:s%ny+1))
+    allocate(s%ueu(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%vev(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%vmagu(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%vmagv(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%vmageu(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%vmagev(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%u(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%v(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%ue(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%ve(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%hold(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%wetu(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%wetv(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%wetz(1:s%nx+1,1:s%ny+1))
+    allocate(s%hh(1:s%nx+1,1:s%ny+1))
+    allocate(s%hu(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%hv(1:s%nx+1,1:s%ny+1))
+    allocate(s%hum(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%hvm(1:s%nx+1,1:s%ny+1))
+    allocate(s%vu(1:s%nx+1,1:s%ny+1))
+    allocate(s%uv(1:s%nx+1,1:s%ny+1))
+    allocate(s%maxzs(1:s%nx+1,1:s%ny+1))
+    allocate(s%minzs(1:s%nx+1,1:s%ny+1))
+    allocate(s%taubx(1:s%nx+1,1:s%ny+1))
+    allocate(s%tauby(1:s%nx+1,1:s%ny+1))
+    allocate(s%ws(1:s%nx+1,1:s%ny+1))
+    allocate(s%wb(1:s%nx+1,1:s%ny+1))
+    allocate(s%nuh(1:s%nx+1,1:s%ny+1))  
+    allocate(s%pres(1:s%nx+1,1:s%ny+1))
+    allocate(s%wi(2,1:s%ny+1))
+    allocate(s%zi(2,1:s%ny+1))
+    allocate(s%cf(1:s%nx+1,1:s%ny+1))
+    allocate(s%zs0(1:s%nx+1,1:s%ny+1)) 
+    allocate(szs0(1:2)) 
+    allocate(yzs0(1:2)) 
+    allocate(s%zs0fac(1:s%nx+1,1:s%ny+1,2))
+    s%ws   = 0.0d0
+    s%wb   = 0.0d0
+    s%pres = 0.0d0
+    s%zi   = 0.0d0
+    s%wi   = 0.0d0
+    s%nuh  = 0.0d0
+    s%cf   = par%cf
+    s%wm   =0.d0
     s%umean=0.d0
     s%vmean=0.d0
-
+    !
+    ! set-up tide and surge waterlevels
+    ! I: read zs0 at model corners using zs0file
     if (par%tideloc>0) then
 
        par%zs01=s%tideinpz(1,1)
@@ -98,7 +242,7 @@ contains
           par%zs04=s%tideinpz(1,4)
        endif
 
-       ! jaap for MPI
+       ! Set global domain corners for MPI simulations
        par%xyzs01(1) = s%x(1,1)
        par%xyzs01(2) = s%y(1,1)
        par%xyzs02(1) = s%x(1,s%ny+1)
@@ -106,9 +250,11 @@ contains
        par%xyzs03(1) = s%x(s%nx+1,s%ny+1)
        par%xyzs03(2) = s%y(s%nx+1,s%ny+1)
        par%xyzs04(1) = s%x(s%nx+1,1)
-       par%xyzs04(2) = s%y(s%nx+1,1)
-       ! Jaap
-
+       par%xyzs04(2) = s%y(s%nx+1,1) 
+            
+       !
+       ! Fill in matrix zs0
+       !
        if(par%tideloc.eq.1) s%zs0 = s%x*0.0d0 + par%zs01
 
        if(par%tideloc.eq.2 .and. par%paulrevere.eq.1) then
@@ -185,12 +331,10 @@ contains
              endif
           enddo
        endif
-
     else
-
        s%zs0 = par%zs01
-
     endif
+     
     inquire(file=par%zsinitfile,exist=exists)
     if (exists) then
        open(723,file=par%zsinitfile)
@@ -199,149 +343,12 @@ contains
        enddo
        close(723)
     endif
+    
+    !
+    ! set zs, hh, wetu, wetv, wetz
+    !
+    
     s%zs0 = max(s%zs0,s%zb)
-    !Dano s%hh = max(s%zs0-s%zb,par%eps);
-    s%hh = s%zs0-s%zb
-    !
-    ! Initial condition
-    !
-    do itheta=1,s%ntheta
-       do j=1,s%ny+1
-          do i=1,s%nx+1
-             s%ee(i,j,itheta)=0.d0
-          end do
-       end do
-    end do
-
-    s%thetamean = 0.d0
-    s%Fx        = 0.d0
-    s%Fy        = 0.d0
-    s%Sxx       = 0.d0
-    s%Sxy       = 0.d0
-    s%Syy       = 0.d0
-    s%n         = 0.d0
-    s%H         = 0.d0
-    s%cgx       = 0.d0
-    s%cgy       = 0.d0
-    s%cx        = 0.d0
-    s%cy        = 0.d0
-    s%ctheta    = 0.d0
-    s%thet      = 0.d0
-    s%sigt      = 0.d0
-    s%rr        = 0.d0
-    s%sigm      = 0.d0
-    s%c         = 0.d0
-    s%cg        = 0.d0
-    s%k         = 0.d0
-    s%ui        = 0.d0
-    s%E         = 0.d0
-    s%R         = 0.d0
-    s%urms      = 0.d0
-    s%D         = 0.d0
-    s%Df         = 0.d0
-    s%Qb        = 0.d0
-    s%ust       = 0.d0
-    s%tm        = 0.d0
-    s%uwf       = 0.d0
-    s%vwf       = 0.d0
-    s%ustr      = 0.d0
-    s%usd       = 0.d0
-    s%bi        = 0.d0
-    s%DR        = 0.d0
-    s%BR        = par%Beta
-
-
-    ! added for bound long wave bc Ad 27 march 2006
-    do itheta=1,s%ntheta
-       s%thet(:,:,itheta) = s%theta(itheta)
-       s%costhet(:,:,itheta)= dcos(s%theta(itheta))
-       s%sinthet(:,:,itheta)= dsin(s%theta(itheta))
-    end do
-
-    ! introduce intrinsic frequencies for wave action
-    if (  trim(par%instat)=='jons' .or. &
-         trim(par%instat)=='swan' .or. &
-         trim(par%instat)=='vardens' .or. &
-         trim(par%instat)=='reuse' .or. &
-         trim(par%instat)=='nonh' &
-         ) par%Trep=10.d0 
-    !Robert
-    ! incorrect values are computed below for instat = 4/5/6/7
-    ! in this case right values are computed in wave params.f90
-    do itheta=1,s%ntheta
-       s%sigt(:,:,itheta) = 2*par%px/par%Trep
-    end do
-    s%sigm = sum(s%sigt,3)/s%ntheta
-    call dispersion(par,s)
-
-
-  end subroutine wave_init
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine flow_init (s,par)
-    use params
-    use spaceparams
-    use xmpi_module
-
-    IMPLICIT NONE
-
-    type(spacepars)                     :: s
-    type(parameters)                    :: par
-
-    integer*4                           :: i,j
-
-    allocate(s%zs(1:s%nx+1,1:s%ny+1))
-    allocate(s%dzsdt(1:s%nx+1,1:s%ny+1))
-    allocate(s%dzsdx(1:s%nx+1,1:s%ny+1))
-    allocate(s%dzsdy(1:s%nx+1,1:s%ny+1))
-    allocate(s%dzbdt(1:s%nx+1,1:s%ny+1))
-    allocate(s%uu(1:s%nx+1,1:s%ny+1))
-    allocate(s%vv(1:s%nx+1,1:s%ny+1))
-    allocate(s%qx(1:s%nx+1,1:s%ny+1))
-    allocate(s%qy(1:s%nx+1,1:s%ny+1))
-    allocate(s%sedero(1:s%nx+1,1:s%ny+1))
-    allocate(s%ueu(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%vev(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%vmagu(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%vmagv(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%vmageu(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%vmagev(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%u(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%v(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%ue(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%ve(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%hold(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%wetu(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%wetv(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%wetz(1:s%nx+1,1:s%ny+1))
-    allocate(s%hu(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%hv(1:s%nx+1,1:s%ny+1))
-    allocate(s%hum(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%hvm(1:s%nx+1,1:s%ny+1))
-    allocate(s%vu(1:s%nx+1,1:s%ny+1))
-    allocate(s%uv(1:s%nx+1,1:s%ny+1))
-    allocate(s%maxzs(1:s%nx+1,1:s%ny+1))
-    allocate(s%minzs(1:s%nx+1,1:s%ny+1))
-    allocate(s%taubx(1:s%nx+1,1:s%ny+1))
-    allocate(s%tauby(1:s%nx+1,1:s%ny+1))
-    allocate(s%ws(1:s%nx+1,1:s%ny+1))
-    allocate(s%wb(1:s%nx+1,1:s%ny+1))
-    allocate(s%nuh(1:s%nx+1,1:s%ny+1))  
-    allocate(s%pres(1:s%nx+1,1:s%ny+1))
-    allocate(s%wi(2,1:s%ny+1))
-    allocate(s%zi(2,1:s%ny+1))
-    allocate(s%cf(1:s%nx+1,1:s%ny+1))
-    s%ws   = 0.0d0
-    s%wb   = 0.0d0
-    s%pres = 0.0d0
-    s%zi   = 0.0d0
-    s%wi   = 0.0d0
-    s%nuh  = 0.0d0
-    s%cf   = par%cf
-
     ! cjaap: replaced par%hmin by par%eps
     s%hh=max(s%zs0-s%zb,par%eps)
     s%zs=0.d0
@@ -397,7 +404,47 @@ contains
        s%wetu=0
        s%wetv=0
     endwhere
-
+    !
+    if (trim(par%tidetype)=='instant') then
+    ! RJ: 22-09-2010
+    ! Check for whole domain whether a grid cell should be associated with
+    ! 1) offshore tide and surge
+    ! 2) bay tide and surge
+    ! 3) no tide and surge
+    ! 4) weighted tide and surge (for completely wet arrays)
+    ! relative weight of offshore boundary and bay boundary for each grid point is stored in zs0fac 
+    !
+    s%zs0fac = 0.d0
+    do j = 1,s%ny+1 
+       offshoreregime = .true.   
+       indoff = s%nx+1 ! ind of last point (starting at offshore boundary) that should be associated with offshore boundary
+       indbay = 1      ! ind of first point (starting at offshore boundary) that should be associated with bay boundary
+       do i = 1,s%nx+1
+          if (offshoreregime .and. s%wetz(i,j)==0) then
+             indoff = max(i-1,1)
+             offshoreregime = .false.
+          endif
+          if (s%wetz(i,j)==0 .and. s%wetz(min(i+1,s%nx+1),j)==1) then
+             indbay = min(i+1,s%nx+1)
+          endif
+        enddo
+          
+        if (indbay==1 .and. indoff==s%nx+1) then ! in case of completely wet arrays linear interpolation for zs0fac
+           s%zs0fac(:,j,2) = (s%xz-s%xz(1))/(s%xz(s%nx+1)-s%xz(1))
+           s%zs0fac(:,j,1) = 1-s%zs0fac(2,:,j)
+        else                                    ! in all other cases we assume three regims offshore, dry and bay
+           s%zs0fac(1:indoff,j,1) = 1.d0
+           s%zs0fac(1:indoff,j,2) = 0.d0
+           if (indbay > 1) then
+              s%zs0fac(indoff+1:indbay-1,j,1) = 0.d0
+              s%zs0fac(indbay:s%nx+1,j,1) = 0.d0
+              s%zs0fac(indoff+1:indbay-1,j,2) = 0.d0
+              s%zs0fac(indbay:s%nx+1,j,2) = 1.d0
+           endif   
+        endif       
+     enddo
+ 
+     endif ! tidetype = instant water level boundary
   end subroutine flow_init
 
 
