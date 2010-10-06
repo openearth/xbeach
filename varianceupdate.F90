@@ -221,7 +221,7 @@ contains
   end subroutine means_init
 
 
-  subroutine makeaverage(sl,par,tpar)
+  subroutine makeaverage(sl,par)
 
     use params
     use spaceparams
@@ -234,12 +234,11 @@ contains
 
     type(parameters), intent(IN)    :: par
     type(spacepars), intent(IN)     :: sl
-    type(timepars), intent(IN)      :: tpar 
 
     ! keep track of which mean variables are used
     integer                         :: index 
-    integer                         :: i,rdims
-    real*8                          :: mult,avgtime
+    integer                         :: i
+    real*8                          :: mult
     type(arraytype)                 :: t
     real*8,dimension(sl%nx+1,sl%ny+1) :: oldmean2d,tvar2d
     integer,dimension(sl%nx+1,sl%ny+1) :: tvar2di

@@ -8,7 +8,6 @@ use boundaryconditions
 use drifter_module
 use flow_timestep_module
 use morphevolution
-use outputmod
 use readtide_module
 use readwind_module
 use wave_stationary_module
@@ -18,10 +17,8 @@ use readkey_module
 use groundwaterflow
 use logging_module
 use means_module
-! IFDEF used in case netcdf support is not compiled, f.i. Windows (non-Cygwin)
-#ifdef USENETCDF
-use ncoutput_module
-#endif
+use output_module
+
 
 IMPLICIT NONE
 
@@ -219,7 +216,7 @@ if (par%nmeanvar>0) call means_init(sglobal,slocal,par)
 call outputtimes_update(par, tpar)
 ! Store first timestep (always)
 if (par%outputformat=='fortran') then
-   call var_output(it,sglobal,s,par,tpar)
+   call var_output(sglobal,s,par,tpar)
 elseif (par%outputformat=='netcdf') then
 #ifdef USENETCDF
    call ncoutput(sglobal,s,par, tpar)
@@ -228,7 +225,7 @@ elseif (par%outputformat=='debug') then
 #ifdef USENETCDF
    call ncoutput(sglobal,s,par, tpar)
 #endif
-   call var_output(it,sglobal,s,par,tpar)
+   call var_output(sglobal,s,par,tpar)
 endif
 
 ! ----------------------------
@@ -278,20 +275,7 @@ do while (par%t<par%tstop)
    ! Bed level update
    if (par%morphology==1) call bed_update(s,par)
    ! Calculate new output times, so we know when to stop
-   call outputtimes_update(par, tpar)
-   ! Output
-   if (par%outputformat=='fortran') then
-      call var_output(it,sglobal,s,par,tpar)
-   elseif (par%outputformat=='netcdf') then
-#ifdef USENETCDF
-      call ncoutput(sglobal,s,par, tpar)
-#endif
-   elseif (par%outputformat=='debug') then
-#ifdef USENETCDF
-      call ncoutput(sglobal,s,par, tpar)
-#endif
-      call var_output(it,sglobal,s,par,tpar)
-   endif
+   call output(s,sglobal,par,tpar)
 enddo
 ! ------------------------
 ! End of main time loop

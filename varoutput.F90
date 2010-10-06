@@ -3,7 +3,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-module outputmod
+module fortoutput_module
   use xmpi_module
   use mnemmodule
   use means_module
@@ -36,7 +36,7 @@ module outputmod
   integer, dimension(numvars)         :: outnumbers  ! numbers, corrsponding to mnemonics, which are to be output
  
   
-  integer                             :: ndt,itg,itp,itc,itm,day,ot
+  integer                             :: itg,itp,itc,itm,day,ot
   real*8,dimension(10)                :: tlast10
   type(arraytype)                     :: At
   
@@ -353,7 +353,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   
-  subroutine var_output(it,s,sl,par,tpar)
+  subroutine var_output(s,sl,par,tpar)
     use params
     use spaceparams
     use timestep_module
@@ -364,81 +364,28 @@ contains
     type(spacepars)                         :: s,sl
     type(parameters)                        :: par
     type(timepars),intent(in)               :: tpar
-    integer                                 :: i,ii,tt
-    integer, intent(in)                     :: it
+    integer                                 :: i,ii
     !  integer                                 :: i1,i2,i3
     integer                                 :: wordsize, idum
     !  integer                                 :: reclen,reclen2,reclenc,reclenp
-    real*8                                  :: tpredicted,tnow, percnow
     !  character(12)                           :: fname
     real*8,dimension(numvars)               :: intpvector
     real*8,dimension(numvars,s%nx+1)        :: crossvararray0
     real*8,dimension(numvars,s%ny+1)        :: crossvararray1
     integer,dimension(:),allocatable        :: tempvectori
     real*8,dimension(:),allocatable         :: tempvectorr
-    integer,dimension(8)                    :: datetime
     real*8,dimension(size(tpar%tpg)+size(tpar%tpp)+size(tpar%tpc)+size(tpar%tpm)) :: outputtimes
     type(arraytype)                         :: t
-    real*8, save                            :: tprev, percprev
 
     inquire(iolength=wordsize) 1.d0
     !  reclen=wordsize*(s%nx+1)*(s%ny+1)
     !  reclen2=wordsize*(s%nx+1)*(s%ny+1)*(par%ngd)*(par%nd)
-
-    ! Complicated check, so only carry out if it = 0 
-    if (it==0) then 
-       ! Do only at very first time step
-       if ((abs(par%t-par%dt)<1.d-6)) then !.or.(par%t<1.d-6.and.it==1)) then
-          ndt=0
-          tlast10=0.d0
-          day=0
-          ot=0
-          call date_and_time(VALUES=datetime)
-          tprev = day*24.d0*3600.d0+datetime(5)*3600.d0+60.d0*datetime(6)+1.d0*datetime(7)+0.001d0*datetime(8)
-          percprev = 0.d0
-       endif
-    endif
-
-    ndt=ndt+1                                       ! Number of calculation time steps per output time step
-
+    
     if (par%nmeanvar/=0) then
        if (par%t>tpar%tpm(1) .and. par%t<=tpar%tpm(stpm)) then
-          call makeaverage(sl,par,tpar)                ! Make averages and min-max every flow timestep
+          call makeaverage(sl,par)                ! Make averages and min-max every flow timestep
        endif
     endif
-
-    if (par%timings .ne. 0) then
-       call date_and_time(VALUES=datetime)
-       tnow=day*24.d0*3600.d0+datetime(5)*3600.d0+60.d0*datetime(6)+1.d0*datetime(7)+0.001d0*datetime(8)
-
-       if (tnow>=tprev+5.d0) then
-          percnow = 100.d0*par%t/par%tstop
-          tpredicted = 100.d0*(1.d0-par%t/par%tstop)/(max(percnow-percprev,0.01d0)/(tnow-tprev))
-          if(xmaster) then
-             call writelog('ls','(a,f5.1,a)','Simulation ',percnow,' percent complete')
-             if (tpredicted>=3600) then 
-                call writelog('ls','(a,I0,a,I2,a)','Time remaining ',&
-                     floor(tpredicted/3600.0d0),' hours and ',&
-                     nint((tpredicted-3600.0d0*floor(tpredicted/3600.0d0))/60.0d0),&
-                     ' minutes')
-             elseif (tpredicted>=600) then
-                call writelog('ls','(a,I2,a)','Time remaining ',&
-                     floor(tpredicted/60.0d0),' minutes')
-             elseif (tpredicted>=60) then
-                call writelog('ls','(a,I2,a,I2,a)','Time remaining ',&
-                     floor(tpredicted/60.0d0),' minutes and ',&
-                     nint((tpredicted-60.0d0*floor(tpredicted/60.0d0))),' seconds')
-             else
-                call writelog('ls','(a,I2,a)','Time remaining ',nint(tpredicted),' seconds')
-             endif
-          endif
-          tprev=tnow
-          percprev=percnow
-       elseif (tnow<tprev-60.d0) then  ! It's probably the next day 
-          day=day+1
-       endif
-    endif
-
 
     ! Determine if this is an output timestep
     if (tpar%output) then
@@ -1121,4 +1068,4 @@ integer function indextovarunit(index)
   indextovarunit = 100+60*numvars+index
 end function indextovarunit
 
-end module outputmod
+end module fortoutput_module

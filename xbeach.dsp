@@ -248,8 +248,6 @@ DEP_F90_BOUND=\
 	".\nh_pars.inc"\
 	".\s.ind"\
 	".\s.inp"\
-	
-NODEP_F90_BOUND=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -269,8 +267,6 @@ DEP_F90_DRIFT=\
 	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
-	
-NODEP_F90_DRIFT=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -305,8 +301,6 @@ DEP_F90_FLOW_T=\
 	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
-	
-NODEP_F90_FLOW_T=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -369,8 +363,9 @@ DEP_F90_MATH_=\
 # Begin Source File
 
 SOURCE=.\mnemonic.F90
-NODEP_F90_MNEMO=\
+DEP_F90_MNEMO=\
 	".\chartoindex.gen"\
+	".\Debug\logging_module.mod"\
 	".\mnemonic.gen"\
 	
 # End Source File
@@ -385,8 +380,6 @@ DEP_F90_MORPH=\
 	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
-	
-NODEP_F90_MORPH=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -399,9 +392,11 @@ DEP_F90_NCOUT=\
 	".\Debug\mnemmodule.mod"\
 	".\Debug\params.mod"\
 	".\Debug\postprocessmod.mod"\
-	".\Debug\readkey_module.mod"\
 	".\Debug\spaceparams.mod"\
 	".\Debug\timestep_module.mod"\
+	".\Debug\xmpi_module.mod"\
+	".\version.dat"\
+	".\version.def"\
 	
 NODEP_F90_NCOUT=\
 	".\Debug\config.h"\
@@ -422,6 +417,21 @@ DEP_F90_NONH_=\
 # End Source File
 # Begin Source File
 
+SOURCE=.\output.F90
+DEP_F90_OUTPU=\
+	".\Debug\fortoutput_module.mod"\
+	".\Debug\logging_module.mod"\
+	".\Debug\ncoutput_module.mod"\
+	".\Debug\params.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\timestep_module.mod"\
+	
+NODEP_F90_OUTPU=\
+	".\Debug\config.h"\
+	
+# End Source File
+# Begin Source File
+
 SOURCE=.\params.f90
 DEP_F90_PARAM=\
 	".\Debug\filefunctions.mod"\
@@ -429,6 +439,9 @@ DEP_F90_PARAM=\
 	".\Debug\mnemmodule.mod"\
 	".\Debug\readkey_module.mod"\
 	".\Debug\xmpi_module.mod"\
+	
+NODEP_F90_PARAM=\
+	".\Debug\mpi.mod"\
 	
 # End Source File
 # Begin Source File
@@ -450,8 +463,6 @@ DEP_F90_READT=\
 	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
-	
-NODEP_F90_READT=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -467,8 +478,6 @@ DEP_F90_READW=\
 	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
-	
-NODEP_F90_READW=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -501,8 +510,6 @@ DEP_F90_SPACE=\
 	".\Debug\params.mod"\
 	".\Debug\readkey_module.mod"\
 	".\Debug\xmpi_module.mod"\
-	
-NODEP_F90_SPACE=\
 	".\indextos.gen"\
 	".\space_alloc_arrays.gen"\
 	".\space_alloc_scalars.gen"\
@@ -559,8 +566,6 @@ DEP_F90_WAVE_=\
 	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
-	
-NODEP_F90_WAVE_=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -578,8 +583,6 @@ DEP_F90_WAVE_T=\
 	".\Debug\xmpi_module.mod"\
 	".\s.ind"\
 	".\s.inp"\
-	
-NODEP_F90_WAVE_T=\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
@@ -609,8 +612,7 @@ DEP_F90_XBEAC=\
 	".\Debug\logging_module.mod"\
 	".\Debug\means_module.mod"\
 	".\Debug\morphevolution.mod"\
-	".\Debug\ncoutput_module.mod"\
-	".\Debug\outputmod.mod"\
+	".\Debug\output_module.mod"\
 	".\Debug\params.mod"\
 	".\Debug\readkey_module.mod"\
 	".\Debug\readtide_module.mod"\
