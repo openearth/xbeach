@@ -164,8 +164,8 @@ contains
              par%m = 0.5d0*spreadpar
              if (par%morfacopt==1) bcendtime=bcendtime/max(par%morfac,1.d0)
              s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0
-             if (theta0>par%px) theta0=theta0-par%px
-             if (theta0<-par%px) theta0=theta0+par%px
+             if (theta0>par%px) theta0=theta0-2*par%px
+             if (theta0<-par%px) theta0=theta0+2*par%px
           endif
           newstatbc=.true.
 #ifdef USEMPI
