@@ -1201,9 +1201,10 @@ subroutine readglobalvars(par)
                 index = chartoindex(trim(line))
                 if (index/=-1) then
                    par%globalvars(i)=line
-                   call writelog('ls','(a)',' Will generate mean, min, max and variance output for variable: '// trim(par%meansvars(i)))
+                   call writelog('ls','(a)',' Will generate global output for variable: ' // &
+                        trim(par%globalvars(i)))
                 else
-                   call writelog('sle','',' Unknown point output type: ''',trim(line),'''')
+                   call writelog('sle','',' Unknown global output variable: ''',trim(line),'''')
                    call halt_program
                 endif
             end do
@@ -1302,9 +1303,9 @@ subroutine readpointvars(par)
                     nvars = nvars + 1 
                     temparray(nvars)=trim(var)
                  end if
-                 call writelog('sl','',' Output type: ''',trim(var),'''')
+                 call writelog('sl','',' Will generate point output for variable: ''',trim(var),'''')
               else
-                 call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
+                 call writelog('sle','',' Unknown point output variable: ''',trim(var),'''')
                  call halt_program
               endif
               icold=ic
@@ -1353,9 +1354,9 @@ subroutine readpointvars(par)
                     nvars = nvars + 1 
                     temparray(nvars)=trim(var)
                  end if
-                 call writelog('sl','',' Output type: ''',trim(var),'''')
+                 call writelog('sl','',' Will generate rugauge output for variable: ''',trim(var),'''')
               else
-                 call writelog('sle','',' Unknown point output type: ''',trim(var),'''')
+                 call writelog('sle','',' Unknown rugauge output variable: ''',trim(var),'''')
                  call halt_program
               endif
               icold=ic
@@ -1412,7 +1413,7 @@ subroutine readmeans(par)
               par%meansvars(i)=trim(line)
               call writelog('ls','(a)',' Will generate mean, min, max and variance output for variable: '// trim(par%meansvars(i)))
            else
-              call writelog('sle','',' Unknown point output type: ''',trim(line),'''')
+              call writelog('sle','',' Unknown mean output variable: ''',trim(line),'''')
               call halt_program
            endif
         end do

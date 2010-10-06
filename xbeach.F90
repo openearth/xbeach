@@ -169,32 +169,6 @@ endif
 call distribute_par(par)
 #endif
 
-! initialize the correct output module (clean this up?, move to another module?)
-if (par%outputformat=='fortran') then
-   ! only fortran
-   call writelog('ls', '', 'Fortran outputformat')
-   call output_init(sglobal,slocal,par,tpar)
-elseif (par%outputformat=='netcdf') then
-   ! only netcdf, stop if it's not build
-   call writelog('ls', '', 'NetCDF outputformat')
-#ifdef USENETCDF
-   call ncoutput_init(sglobal,slocal,par,tpar)
-#else
-   call writelog('lse', '', 'This xbeach executable has no netcdf support. Rebuild with netcdf or outputformat=fortran')
-   call halt_program
-#endif
-elseif (par%outputformat=='debug') then
-   call writelog('ls', '', 'Debug outputformat, writing both netcdf and fortran output')
-#ifdef USENETCDF
-   call ncoutput_init(sglobal,slocal,par,tpar)
-#endif
-   call output_init(sglobal,slocal,par,tpar)
-endif
-
-#ifdef USEMPI
-! some par has changed, so:
-call distribute_par(par)
-#endif
 
 #ifdef USEMPI
 s => slocal
@@ -211,6 +185,9 @@ call space_distribute_space(sglobal,slocal,par)
 #endif
 ! Output means have to be initialized here after distribute space
 if (par%nmeanvar>0) call means_init(sglobal,slocal,par)
+
+call output_init(sglobal, slocal, par, tpar)
+
 
 ! update times at which we need output
 call outputtimes_update(par, tpar)

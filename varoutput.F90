@@ -10,7 +10,7 @@ module fortoutput_module
   
   implicit none
   private
-  public output_init, var_output
+  public var_output_init, var_output
   
   ! Robert: Add choice of output variables
   !logical,dimension(999)              :: outputindex ! [-]      tracks which  global variables are to be outputted.
@@ -63,7 +63,7 @@ contains
   
   
   
-  subroutine output_init(s,sl,par,tpar)
+  subroutine var_output_init(s,sl,par,tpar)
     use params
     use spaceparams
     use readkey_module
@@ -72,9 +72,9 @@ contains
 
     IMPLICIT NONE
 
-    type(spacepars),intent(inout)       :: s,sl
-    type(parameters)                    :: par
-    type(timepars)                    :: tpar
+    type(spacepars),intent(in)          :: s,sl
+    type(parameters),intent(in)         :: par
+    type(timepars),intent(in)           :: tpar
 
     integer                             :: id,ic,icold,i,ii,index, j
     integer                             :: i1,i2,i3
@@ -346,7 +346,7 @@ contains
     endif ! par%nmeanvar > 0
 
 
-  end subroutine output_init
+  end subroutine var_output_init
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!   OUTPUT AT EVERY TIMESTEP    !!!!!!!!!!!!!!!!!!!!!!!!

@@ -14,7 +14,36 @@ use fortoutput_module
 
 
 contains
+subroutine output_init(sglobal, slocal, par, tpar)
+  type(spacepars), target, intent(in)  :: sglobal
+  type(spacepars), target, intent(in)  :: slocal
+  type(parameters), intent(in)         :: par
+  type(timepars), intent(in)           :: tpar
 
+  
+! initialize the correct output module (clean this up?, move to another module?)
+if (par%outputformat=='fortran') then
+   ! only fortran
+   call writelog('ls', '', 'Fortran outputformat')
+   call var_output_init(sglobal,slocal,par,tpar)
+elseif (par%outputformat=='netcdf') then
+   ! only netcdf, stop if it's not build
+   call writelog('ls', '', 'NetCDF outputformat')
+#ifdef USENETCDF
+   call ncoutput_init(sglobal,slocal,par,tpar)
+#else
+   call writelog('lse', '', 'This xbeach executable has no netcdf support. Rebuild with netcdf or outputformat=fortran')
+   call halt_program
+#endif
+elseif (par%outputformat=='debug') then
+   call writelog('ls', '', 'Debug outputformat, writing both netcdf and fortran output')
+#ifdef USENETCDF
+   call ncoutput_init(sglobal,slocal,par,tpar)
+#endif
+   call var_output_init(sglobal,slocal,par,tpar)
+endif
+
+end subroutine output_init
 subroutine output(s,sglobal,par,tpar)
    
    implicit none

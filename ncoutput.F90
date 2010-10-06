@@ -21,12 +21,6 @@ module ncoutput_module
   private
   public ncoutput_init, ncoutput 
 
-  integer*4                           :: nglobalvar  ! number of global output variables
-  integer*4                           :: npoints     ! number of output points
-  integer*4                           :: nrugauge    ! number of runup gauges
-  integer*4,dimension(:),allocatable  :: nassocvar   ! vector with number of output variable per output point
-  integer*4                           :: nmeanvar    ! number of time-average variables
-
   integer, save :: ncid
 
   ! grid
@@ -49,12 +43,17 @@ module ncoutput_module
   integer, dimension(:),allocatable, save  :: xpoints     ! model x-coordinate of output points
   integer, dimension(:),allocatable, save  :: ypoints     ! model y-coordinate of output points
 
-  ! global
-  integer, dimension(:), allocatable, save :: meanvarids
+  ! mean
+  ! number of variables by number of parameters per variable (mean, sigma^2, min, max)
+  integer, dimension(:,:), allocatable, save       :: meanvarids
+  character(8), dimension(:), allocatable, save    :: meanvartypes
+  integer*4                           :: nmeanvartypes  = 4   ! number of time-average variable types
+
+
 
   ! time 
-  integer, save :: globaltimedimid, pointtimedimid
-  integer, save :: globaltimevarid, pointtimevarid
+  integer, save :: globaltimedimid, pointtimedimid, meantimedimid
+  integer, save :: globaltimevarid, pointtimevarid, meantimevarid
 
   ! TODO: check out why these are sometimes used....
   integer, save :: tidetimedimid, windtimedimid
@@ -99,6 +98,7 @@ contains
     use spaceparams
     use timestep_module
     use mnemmodule
+    use means_module
     use postprocessmod
     use logging_module
     implicit none
@@ -108,7 +108,8 @@ contains
     type(parameters), intent(in)                 :: par 
     type(timepars), intent(in)                   :: tpar
 
-    type(arraytype)                                     :: t
+    type(arraytype)                              :: t
+    type(meanspars)                              :: meanvar
     integer                                      :: i,j,k,l,m,n
     character(len=10)                             :: mnem
 
@@ -116,6 +117,7 @@ contains
     logical                                      :: outputp, outputg, outputw, outputm, outputc
     integer, dimension(:), allocatable           :: dimids ! store the dimids in a vector
     character(256)                               :: coordinates
+    character(8)                                 :: cellmethod
 
     ! variables for point grid snapping
     real*8,dimension(s%nx+1,s%ny+1)	  :: mindist
@@ -130,16 +132,23 @@ contains
 
        ! initialize values
        ! global
+
        ! store netcdf variable ids for each variable
        allocate(globalvarids(par%nglobalvar))
-       allocate(meanvarids(par%nmeanvar))
        globalvarids = -1 ! initialize to -1, so an error is raised when we miss something... 
-       meanvarids = -1
        outputg = .true.
 
        npointstotal = par%npoints+par%nrugauge
        outputp = (npointstotal .gt. 0) .and. (size(tpar%tpp) .gt. 0)
        allocate(pointsvarids(par%npoints))
+
+
+       allocate(meanvarids(par%nmeanvar,nmeanvartypes))
+       meanvarids = -1
+       outputm = (par%nmeanvar .gt. 0)
+       allocate(meanvartypes(nmeanvartypes))
+       meanvartypes = (/ 'mean    ', 'variance', 'min     ', 'max     '  /)
+
 
        ! create a file
        status = nf90_create(path = par%ncfilename, cmode=ior(NF90_CLOBBER,NF90_64BIT_OFFSET), ncid = ncid)
@@ -178,6 +187,10 @@ contains
           status = nf90_def_dim(ncid, 'pointtime', size(tpar%tpp), pointtimedimid)
           if (status /= nf90_noerr) call handle_err(status)
        end if
+       if (outputm) then
+          status = nf90_def_dim(ncid, 'meantime', size(tpar%tpm), meantimedimid)
+          if (status /= nf90_noerr) call handle_err(status)
+       end if
 
        if (par%tidelen > 0) then
           status = nf90_def_dim(ncid, 'tidetime', par%tidelen, tidetimedimid)
@@ -208,10 +221,10 @@ contains
        if (status /= nf90_noerr) call handle_err(status)
        ! For compatibility with CSIRO Dive software
        if (len(trim(par%projection)) .ne. 0)  then
-         status = nf90_put_att(ncid, xvarid, 'projection', par%projection)
-         if (status /= nf90_noerr) call handle_err(status)
-         status = nf90_put_att(ncid, xvarid, 'rotation',( s%alfa/atan(1.0d0)*45.d0))
-         if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, xvarid, 'projection', par%projection)
+          if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, xvarid, 'rotation',( s%alfa/atan(1.0d0)*45.d0))
+          if (status /= nf90_noerr) call handle_err(status)
        end if
 
        status = nf90_def_var(ncid, 'y', NF90_DOUBLE, (/ ydimid /), yvarid)
@@ -226,10 +239,10 @@ contains
        if (status /= nf90_noerr) call handle_err(status)
        ! For compatibility with CSIRO Dive software
        if (len(trim(par%projection)) .ne. 0)  then
-         status = nf90_put_att(ncid, yvarid, 'projection', par%projection)
-         if (status /= nf90_noerr) call handle_err(status)
-         status = nf90_put_att(ncid, yvarid, 'rotation',( s%alfa/atan(1.0d0)*45.d0))
-         if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, yvarid, 'projection', par%projection)
+          if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, yvarid, 'rotation',( s%alfa/atan(1.0d0)*45.d0))
+          if (status /= nf90_noerr) call handle_err(status)
        end if
 
        ! Some metadata attributes
@@ -409,6 +422,83 @@ contains
           end do
        end if
 
+       if (outputm) then
+          status = nf90_def_var(ncid, 'meantime', NF90_DOUBLE, (/ meantimedimid /), meantimevarid)
+          if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, globaltimevarid, 'units', trim(par%tunits))
+          if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, globaltimevarid, 'axis', 'T')
+          if (status /= nf90_noerr) call handle_err(status)
+          status = nf90_put_att(ncid, globaltimevarid, 'standard_name', 'time')
+          if (status /= nf90_noerr) call handle_err(status)
+          ! default global output variables
+          do i=1,par%nmeanvar
+             ! Not sure if this is required here, but it is used in varoutput
+#ifdef USEMPI
+             call means_collect(sl,meansparsglobal(i),meansparslocal(i))
+#else
+             meansparsglobal(i)=meansparslocal(i)
+#endif
+             coordinates = ''
+             meanvar = meansparsglobal(i)
+             t = meanvar%t
+             select case(t%type)
+             case('r')
+                ! Build the array with dimension ids
+                allocate(dimids(t%rank+1))
+                select case(t%rank)
+                case(2)
+                   dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), meantimedimid /)
+                   coordinates = 'globalx globaly'
+                case(3)
+                   dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
+                        dimensionid(t%dimensions(3)), meantimedimid /)
+                   coordinates = 'globalx globaly' 
+                   ! Do we have a vertical level?
+                   if (dimids(3) .eq. bedlayersdimid) coordinates = trim(coordinates) // ' bed_layers'
+                case(4)
+                   call writelog('ls', '', 'Variable ' // trim(mnem) // ' is of rank 4. This may not work due to an' // &
+                        ' unresolved issue. If so, remove the variable or use the fortran outputformat option.')
+                   dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
+                        dimensionid(t%dimensions(3)), dimensionid(t%dimensions(4)), meantimedimid /)
+                   coordinates = 'globalx globaly' 
+                   ! Do we have a vertical level?
+                   if ((dimids(3) .eq. bedlayersdimid) .or. (dimids(4) .eq. bedlayersdimid)) then
+                      coordinates = trim(coordinates) // ' bed_layers'
+                   end if
+                case default
+                   call writelog('lse', '', 'mnem: ' // mnem // ' not supported, rank:', t%rank)
+                   stop 1
+                end select
+
+                ! Create a variable for all types of meanvars (mean, var, min, max)
+                do j = 1,nmeanvartypes
+                   ! For H and urms we don't compute the mean but the rms of the rms.....
+                   cellmethod = trim(meanvartypes(j))
+                   if (cellmethod .eq. 'mean' .and. ((t%name .eq. 'H') .or. (t%name .eq. 'urms')))  then
+                      cellmethod = 'rms'
+                   end if
+                   call writelog('ls', '', 'Creating netcdf variable: ',  trim(t%name) // '_' // cellmethod)
+                   status = nf90_def_var(ncid, trim(t%name) // '_' // trim(cellmethod), NF90_DOUBLE, &
+                        dimids, meanvarids(i,j))
+                   if (status /= nf90_noerr) call handle_err(status)
+                   status = nf90_put_att(ncid, meanvarids(i,j), 'coordinates', trim(coordinates))
+                   if (status /= nf90_noerr) call handle_err(status)
+                   status = nf90_put_att(ncid, meanvarids(i,j), 'units', trim(t%units))
+                   if (status /= nf90_noerr) call handle_err(status)
+                   status = nf90_put_att(ncid, meanvarids(i,j), 'long_name', trim(t%description))
+                   if (status /= nf90_noerr) call handle_err(status)
+                   status = nf90_put_att(ncid, meanvarids(i,j), 'cell_methods', 'meantime: ' // trim(cellmethod))
+                   if (status /= nf90_noerr) call handle_err(status)
+                end do
+
+                deallocate(dimids)
+             case default
+                write(0,*) 'mnem', mnem, ' not supported, type:', t%type
+             end select
+          end do
+       end if
+
        ! done defining variables
        call writelog('ls', '', 'Writing file definition.')
        status = nf90_enddef(ncid)
@@ -461,6 +551,7 @@ contains
     use spaceparams
     use timestep_module
     use mnemmodule
+    use means_module
     use postprocessmod
 
     implicit none
@@ -486,7 +577,7 @@ contains
     real*8, dimension(:,:,:,:), allocatable :: r4
 
     integer :: status
-
+    
     ! Open the output file
     if (xmaster) then
        status = nf90_open(ncid=ncid, path=par%ncfilename, mode=nf90_write)
@@ -607,6 +698,99 @@ contains
           end do
        end if
     end if
+
+
+
+    ! If we're gonna write some mean output
+    if (tpar%outputm) then
+       ! only write the information on the xmaster node
+
+       if (xmaster) then
+          ! Store the time (in morphological time)
+          status = nf90_put_var(ncid, meantimevarid, par%t*max(par%morfac,1.d0), (/tpar%itm/))
+          if (status /= nf90_noerr) call handle_err(status) 
+          ! write global output variables
+          do i=1,par%nmeanvar
+#ifdef USEMPI
+             call means_collect(sl,meansparsglobal(i),meansparslocal(i))
+#else
+             meansparsglobal(i)=meansparslocal(i)
+#endif
+             t = meansparsglobal(i)%t
+             do j=1,nmeanvartypes
+
+                select case(t%type)
+                case('r')
+                   select case(t%rank)
+                   case(2)
+                      select case(meanvartypes(j))
+                      case('mean')
+                         if ((t%name .eq. 'H') .or. (t%name .eq. 'urms'))  then
+                            status = nf90_put_var(ncid, meanvarids(i,j), sqrt(meansparsglobal(i)%variancesquareterm2d), &
+                                 start=(/1,1,tpar%itm/) )
+                         else
+                            status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean2d, start=(/1,1,tpar%itm/) )
+                         end if
+                         if (status /= nf90_noerr) call handle_err(status)
+                      case('variance')
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%variance2d, start=(/1,1,tpar%itm/) )
+                         if (status /= nf90_noerr) call handle_err(status)
+                      case('min')
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%min2d, start=(/1,1,tpar%itm/) )
+                         if (status /= nf90_noerr) call handle_err(status)
+                      case('max')
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%max2d, start=(/1,1,tpar%itm/) )
+                         if (status /= nf90_noerr) call handle_err(status)
+                      case default
+                         write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
+                      end select
+                   case(3)
+                      select case(meanvartypes(j))
+                      case('mean')
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean3d, start=(/1,1,1,tpar%itm/) )
+                         if (status /= nf90_noerr) call handle_err(status)
+                      case('variance')
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%variance3d, start=(/1,1,1,tpar%itm/) )
+                         if (status /= nf90_noerr) call handle_err(status)
+                      case('min')
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%min3d, start=(/1,1,1,tpar%itm/) )
+                         if (status /= nf90_noerr) call handle_err(status)
+                      case('max')
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%max3d, start=(/1,1,1,tpar%itm/) )
+                         if (status /= nf90_noerr) call handle_err(status)
+                      case default
+                         write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
+                      end select
+                   case(4)
+                      select case(meanvartypes(j))
+                      case('mean')
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean4d, start=(/1,1,1,1,tpar%itm/) )
+                         if (status /= nf90_noerr) call handle_err(status)
+                      case('variance')
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%variance4d, start=(/1,1,1,1,tpar%itm/) )
+                         if (status /= nf90_noerr) call handle_err(status)
+                      case('min')
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%min4d, start=(/1,1,1,1,tpar%itm/) )
+                         if (status /= nf90_noerr) call handle_err(status)
+                      case('max')
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%max4d, start=(/1,1,1,1,tpar%itm/) )
+                         if (status /= nf90_noerr) call handle_err(status)
+                      case default
+                         write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
+                      end select
+                   case default
+                      write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
+                   end select
+                case default
+                   write(0,*) 'Can''t handle type: ', t%type, ' of mnemonic', mnem
+                end select
+             end do
+          end do
+       end if
+    end if
+
+
+
 
     if (xmaster) then
        status = nf90_close(ncid=ncid)

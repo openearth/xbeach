@@ -10,6 +10,10 @@ module means_module
      character(maxnamelen)             :: name
      ! Rank
      integer                           :: rank
+
+     ! Array type
+     type(arraytype)                   :: t
+
      ! Keep time average variables
      real*8,dimension(:,:), pointer:: mean2d   => NULL()
      real*8,dimension(:,:,:), pointer:: mean3d   => NULL()
@@ -61,6 +65,7 @@ contains
        call indextos(sg,index,t)
        meansparsglobal(i)%name=t%name
        meansparsglobal(i)%rank=t%rank
+       meansparsglobal(i)%t = t
        select case (t%rank)
        case (2)
           if (t%type == 'r') then
@@ -142,6 +147,7 @@ contains
 #endif
        meansparslocal(i)%name=t%name
        meansparslocal(i)%rank=t%rank
+       meansparslocal(i)%t = t
        select case (t%rank)
        case (2)
           if (t%type == 'r') then
@@ -261,7 +267,7 @@ contains
           ! maybe ifort bug ?
           where (oldmean2d<tiny(0.d0) .and. oldmean2d>=0.d0)
              oldmean2d=tiny(0.d0)
-          endwhere   
+          endwhere
           where (oldmean2d>-1.d0*tiny(0.d0) .and. oldmean2d<0.d0)
              oldmean2d=-1.d0*tiny(0.d0)
           endwhere
