@@ -55,14 +55,10 @@ contains
     allocate(s%usd(1:s%nx+1,1:s%ny+1))
     allocate(s%bi(1:s%ny+1))
     allocate(s%DR(1:s%nx+1,1:s%ny+1)) 
-    allocate(s%umean(2,1:s%ny+1))
-    allocate(s%vmean(2,1:s%ny+1))
     allocate(s%umwci       (1:s%nx+1,1:s%ny+1))
     allocate(s%vmwci       (1:s%nx+1,1:s%ny+1))
     allocate(s%zswci       (1:s%nx+1,1:s%ny+1))
     allocate(s%BR(1:s%nx+1,1:s%ny+1))
-    allocate(s%wm(1:s%nx+1,1:s%ny+1))
-
     !
     ! Initial condition
     !
@@ -205,6 +201,9 @@ contains
     allocate(szs0(1:2)) 
     allocate(yzs0(1:2)) 
     allocate(s%zs0fac(1:s%nx+1,1:s%ny+1,2))
+    allocate(s%wm(1:s%nx+1,1:s%ny+1))
+    allocate(s%umean(2,1:s%ny+1))
+    allocate(s%vmean(2,1:s%ny+1))
     s%ws   = 0.0d0
     s%wb   = 0.0d0
     s%pres = 0.0d0
@@ -427,24 +426,24 @@ contains
           if (s%wetz(i,j)==0 .and. s%wetz(min(i+1,s%nx+1),j)==1) then
              indbay = min(i+1,s%nx+1)
           endif
-        enddo
+       enddo
           
-        if (indbay==1 .and. indoff==s%nx+1) then ! in case of completely wet arrays linear interpolation for zs0fac
-           s%zs0fac(:,j,2) = (s%xz-s%xz(1))/(s%xz(s%nx+1)-s%xz(1))
-           s%zs0fac(:,j,1) = 1-s%zs0fac(2,:,j)
-        else                                    ! in all other cases we assume three regims offshore, dry and bay
-           s%zs0fac(1:indoff,j,1) = 1.d0
-           s%zs0fac(1:indoff,j,2) = 0.d0
-           if (indbay > 1) then
-              s%zs0fac(indoff+1:indbay-1,j,1) = 0.d0
-              s%zs0fac(indbay:s%nx+1,j,1) = 0.d0
-              s%zs0fac(indoff+1:indbay-1,j,2) = 0.d0
-              s%zs0fac(indbay:s%nx+1,j,2) = 1.d0
-           endif   
-        endif       
-     enddo
+       if (indbay==1 .and. indoff==s%nx+1) then ! in case of completely wet arrays linear interpolation for zs0fac
+          s%zs0fac(:,j,2) = (s%xz-s%xz(1))/(s%xz(s%nx+1)-s%xz(1))
+          s%zs0fac(:,j,1) = 1-s%zs0fac(:,j,2)
+       else                                    ! in all other cases we assume three regims offshore, dry and bay
+          s%zs0fac(1:indoff,j,1) = 1.d0
+          s%zs0fac(1:indoff,j,2) = 0.d0
+          if (indbay > 1) then
+             s%zs0fac(indoff+1:indbay-1,j,1) = 0.d0
+             s%zs0fac(indbay:s%nx+1,j,1) = 0.d0
+             s%zs0fac(indoff+1:indbay-1,j,2) = 0.d0
+             s%zs0fac(indbay:s%nx+1,j,2) = 1.d0
+          endif   
+       endif       
+    enddo
  
-     endif ! tidetype = instant water level boundary
+    endif ! tidetype = instant water level boundary
   end subroutine flow_init
 
 
