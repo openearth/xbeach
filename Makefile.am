@@ -45,6 +45,7 @@ xbeach_SOURCES= \
 	varianceupdate.F90 \
 	varoutput.F90 \
 	${extra_xbeach_sources} \
+	output.F90 \
 	xbeach.F90
 
 
