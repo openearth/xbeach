@@ -250,7 +250,7 @@ if (trim(par%instat)/='jons_table') then
 !                                      Input file   Keyword     Default     Minimum     Maximum   
     wp%hm0gew           = readkey_dbl (fname,       'Hm0',      0.0d0,      0.00d0,     5.0d0,      bcast=.false. )
     fp                  = readkey_dbl (fname,       'fp',       0.08d0,     0.0625d0,   0.4d0,      bcast=.false. )
-	if (par%oldnyq==1) then
+    if (par%oldnyq==1) then
        fnyq                = readkey_dbl (fname,       'fnyq', 0.3d0,    0.2d0,      1.0d0,      bcast=.false. )
     else 
 	   fnyq                = readkey_dbl (fname,       'fnyq',     max(0.3d0,3.d0*fp),    0.2d0,      1.0d0,      bcast=.false. )
