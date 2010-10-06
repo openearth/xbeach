@@ -924,7 +924,6 @@ contains
     integer                             :: j,jg
     real*8                              :: z0,Ass,dcf,dcfin,ML
     real*8                              :: Te,kvis,Sster,c1,c2,wster
-    real*8,save                         :: m1,m2,m3,m4,m5,m6
     real*8,save                         :: delta,onethird,twothird
 
     real*8 , dimension(:)  ,allocatable,save   :: w,dster
