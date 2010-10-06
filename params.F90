@@ -520,7 +520,7 @@ contains
     par%epsi    = readkey_dbl ('params.txt','epsi',        0.d0,         0.d0,      0.2d0)
     allocate(allowednames(2),oldnames(0))
     allowednames=(/'instant ','velocity'/)
-    par%tidetype= readkey_str('params.txt','tidetype','instant',2,0,allowednames,oldnames)
+    par%tidetype= readkey_str('params.txt','tidetype','velocity',2,0,allowednames,oldnames)
     deallocate(allowednames,oldnames)
     !
     !
