@@ -97,6 +97,7 @@ copy ..\lib\win32\vs\pg\*.dll $(OutDir)"/>
 		<File RelativePath="..\mnemonic.F90"/>
 		<File RelativePath="..\morphevolution.F90"/>
 		<File RelativePath="..\nonh.F90"/>
+		<File RelativePath="..\output.F90"/>
 		<File RelativePath="..\params.F90"/>
 		<File RelativePath="..\postprocess.F90"/>
 		<File RelativePath="..\readkey.F90"/>
