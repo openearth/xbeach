@@ -478,7 +478,7 @@ contains
        par%trepfac  = readkey_dbl ('params.txt','trepfac', 0.01d0,      0.d0,    1.d0) 
        par%sprdthr  = readkey_dbl ('params.txt','sprdthr', 0.08d0,      0.d0,    1.d0) 
        par%oldwbc   = readkey_int ('params.txt','oldwbc',       0,        0,     1)
-	   par%correctHm0   = readkey_int ('params.txt','correctHm0',       1,        0,     1)
+       par%correctHm0   = readkey_int ('params.txt','correctHm0',       1,        0,     1)
        par%oldnyq    = readkey_int ('params.txt','oldnyq',       0,        0,     1)
        par%Tm01switch    = readkey_int ('params.txt','Tm01switch',       0,        0,     1)
 	   if (filetype==0) then
@@ -1165,66 +1165,26 @@ end subroutine distribute_par
 !
 ! Some extra functions to make reading the output variables possible
 !
-  subroutine add_outmnem(mnem, vars)
-    use logging_module
-    implicit none
-    character(len=maxnamelen), intent(in) :: mnem
-    character(len=maxnamelen), dimension(:), allocatable, intent(inout) :: vars
-    character(len=maxnamelen), dimension(:), allocatable :: temp
-    integer :: i
-    i = chartoindex(mnem)
-    if (i .lt. 1) then
-       if(xmaster) then
-          call writelog('els','','Error: cannot locate variable "',trim(mnem),'". Program terminating')
-          call halt_program
-       endif
-       return
-    endif
-    ! make a copy of the old vars
-    allocate(temp(size(vars)))
-    ! now copy the values
-    temp =vars
-    ! create room for an extra variable
-    if (allocated(vars)) deallocate(vars)
-    allocate(vars(size(temp)+1))
-    ! copy back
-    vars(1:size(temp)) = temp
-    ! and add the new one
-    vars(size(vars)) = mnem
-    ! clean up temp
-    deallocate(temp)
-    if(xmaster) then
-       call writelog('ls','','Will generate global output for variable "',trim(mnem),'"')
-    endif
-    return
-  end subroutine add_outmnem
-
 subroutine readglobalvars(par)
     use logging_module
     use mnemmodule
     implicit none
     type(parameters), intent(inout)            :: par
-    character(len=maxnamelen), dimension(:), allocatable :: globalvars 
     character(len=256)            :: line, keyword
+    integer :: id, ic, i, index
 
-    integer :: id, ic, i
     if (xmaster) then 
         if (par%nglobalvar == -1) then
-             allocate(globalvars(21))
-             globalvars =  (/'H    ', 'zs   ', 'zs0  ', 'zb   ', 'hh   ', 'u    ', 'v    ', 'ue   ', 've   ', 'urms ', 'Fx   ', &
-                    'Fy   ', 'ccg  ', 'ceqsg', 'ceqbg', 'Susg ', 'Svsg ', 'E    ', 'R    ', 'D    ', 'DR   ' /)
+             par%globalvars(1:21) =  (/'H    ', 'zs   ', 'zs0  ', 'zb   ', 'hh   ', 'u    ', 'v    ', 'ue   ',&
+                                       've   ', 'urms ', 'Fx   ', 'Fy   ', 'ccg  ', 'ceqsg', 'ceqbg', 'Susg ',&
+                                       'Svsg ', 'E    ', 'R    ', 'D    ', 'DR   ' /)
         elseif (par%nglobalvar == 999) then ! Output all
-            allocate(globalvars(numvars))
-            globalvars(1:numvars) = mnemonics
-            par%nglobalvar = numvars
+            par%globalvars(1:numvars) = mnemonics   ! list of all s% variables
         else
             ! User specified output
-            ! This is important because there might be less usable variables than specified.
-            ! Look for keyword nglobalvar in params.txt
+            ! Find nglobalvar keyword in params.txt
             id=0
-            ! we allocate to 0, we'll let it grow inside add_mnem....
-            allocate(globalvars(0))
-            open(10,file='params.txt')
+            open(10,file='params.txt')   ! (this is done by xmaster only)
             do while (id == 0)
                 read(10,'(a)')line
                 ic=scan(line,'=')
@@ -1237,14 +1197,19 @@ subroutine readglobalvars(par)
             do i=1,par%nglobalvar
                 read(10,'(a)')line
                 line = trim(line)
-                ! store the mnemonic in globalvars
-                call add_outmnem(line, globalvars)
+                ! Check if this is a valid variable name
+                index = chartoindex(trim(line))
+                if (index/=-1) then
+                   par%globalvars(i)=line
+                   call writelog('ls','(a)',' Will generate mean, min, max and variance output for variable: '// trim(par%meansvars(i)))
+                else
+                   call writelog('sle','',' Unknown point output type: ''',trim(line),'''')
+                   call halt_program
+                endif
             end do
             close(10)
         end if ! globalvar
-        par%globalvars(1:par%nglobalvar) = globalvars
     end if ! xmaster
-
 end subroutine
 
 !
