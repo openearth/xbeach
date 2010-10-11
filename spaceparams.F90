@@ -147,21 +147,34 @@ subroutine grid_bathy(s,par)
   real*8                              :: degrad
 
   !                     Input file  Keyword Default  Minimum  Maximum
-  s%nx    = readkey_int('params.txt','nx',     50,      2,     10000)
-  s%ny    = readkey_int('params.txt','ny',      2,      2,     10000)
-  s%dx    = readkey_dbl('params.txt','dx',    0.d0,   -1d9,      1d9)
-  s%dy    = readkey_dbl('params.txt','dy',    0.d0,   -1d9,      1d9)
-  s%xori  = readkey_dbl('params.txt','xori',  0.d0,   -1d9,      1d9)
-  s%yori  = readkey_dbl('params.txt','yori',  0.d0,   -1d9,      1d9)
-  s%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   -360.d0,   360.d0)
+  s%nx    = par%nx
+  s%ny    = par%ny
+  s%dx    = par%dx
+  s%dy    = par%dy
+  s%xori  = par%xori
+  s%yori  = par%yori
+  s%alfa  = par%alfa
+  s%posdwn= par%posdwn
+  s%vardx = par%vardx
+
+!  s%nx    = readkey_int('params.txt','nx',     50,      2,     10000)
+!  s%ny    = readkey_int('params.txt','ny',      2,      2,     10000)
+!  s%dx    = readkey_dbl('params.txt','dx',    0.d0,   -1d9,      1d9)
+!  s%dy    = readkey_dbl('params.txt','dy',    0.d0,   -1d9,      1d9)
+!  s%xori  = readkey_dbl('params.txt','xori',  0.d0,   -1d9,      1d9)
+!  s%yori  = readkey_dbl('params.txt','yori',  0.d0,   -1d9,      1d9)
+!  s%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   -360.d0,   360.d0)
+!  s%posdwn= readkey_dbl('params.txt','posdwn',1.d0,   -1.d0,     1.d0)
+!  s%vardx = readkey_int('params.txt','vardx',   0,      0,         1)     !Jaap
+
   if (s%alfa.lt.0) then 
      s%alfa = 360.d0+s%alfa
   endif
 
   s%alfa  = s%alfa*atan(1.0d0)/45.d0
-  s%posdwn= readkey_dbl('params.txt','posdwn',1.d0,   -1.d0,     1.d0)
+  ! Robert: huh?
   s%posdwn = s%posdwn*sign(s%posdwn,1.d0)
-  s%vardx = readkey_int('params.txt','vardx',   0,      0,         1)     !Jaap
+  ! end huh?
 
   if (xmaster) then
      allocate(s%x(1:s%nx+1,1:s%ny+1))
@@ -183,8 +196,8 @@ subroutine grid_bathy(s,par)
   if(s%vardx==0)then
 
      if (xmaster) then
-        call readkey('params.txt','depfile',fnameh)
-        open(31,file=fnameh)
+!        call readkey('params.txt','depfile',fnameh)
+        open(31,file=par%depfile)
         do j=1,s%ny+1
            read(31,*)(s%zb(i,j),i=1,s%nx+1)
         end do
@@ -204,13 +217,13 @@ subroutine grid_bathy(s,par)
   elseif(s%vardx==1)then
 
      if (xmaster) then
-        call readkey('params.txt','depfile',fnameh)
-        call readkey('params.txt','xfile',fnamex)
-        call readkey('params.txt','yfile',fnamey)
+  !      call readkey('params.txt','depfile',fnameh)
+  !      call readkey('params.txt','xfile',fnamex)
+  !      call readkey('params.txt','yfile',fnamey)
 
-        open(31,file=fnameh)
-        open(32,file=fnamex)
-        open(33,file=fnamey)
+        open(31,file=par%depfile)
+        open(32,file=par%xfile)
+        open(33,file=par%yfile)
         read(31,*)((s%zb(i,j),i=1,s%nx+1),j=1,s%ny+1)
         read(32,*)((s%x(i,j),i=1,s%nx+1),j=1,s%ny+1)
         read(33,*)((s%y(i,j),i=1,s%nx+1),j=1,s%ny+1)
@@ -235,14 +248,14 @@ subroutine grid_bathy(s,par)
         s%zb(:,s%ny+1) = s%zb(:,s%ny)
         ! Check that grid spacing is relatively smooth:
         do i=2,s%nx
-           if ( ((s%x(i+1,1)-s%x(i,1))/(s%x(i,1)-s%x(i-1,1))) > 1.15d0 .or. &
-                ((s%x(i+1,1)-s%x(i,1))/(s%x(i,1)-s%x(i-1,1))) < 1.d0/1.15d0  ) then
+           if ( ((s%x(i+1,1)-s%x(i,1))/(s%x(i,1)-s%x(i-1,1))) > 1.16d0 .or. &
+                ((s%x(i+1,1)-s%x(i,1))/(s%x(i,1)-s%x(i-1,1))) < 1.d0/1.16d0  ) then
               call writelog('sl','','Warning: grid size jump in x larger than recommended 15% in point (m = ',i,')')
            endif
         enddo
         do j=2,s%ny
-           if ( ((s%y(1,j+1)-s%y(1,j))/(s%y(1,j)-s%y(1,j-1))) > 1.15d0 .or. &
-                ((s%y(1,j+1)-s%y(1,j))/(s%y(1,j)-s%y(1,j-1))) < 1.d0/1.15d0  ) then
+           if ( ((s%y(1,j+1)-s%y(1,j))/(s%y(1,j)-s%y(1,j-1))) > 1.16d0 .or. &
+                ((s%y(1,j+1)-s%y(1,j))/(s%y(1,j)-s%y(1,j-1))) < 1.d0/1.16d0  ) then
               call writelog('sl','','Warning: grid size jump in y larger than recommended 15% in point (n = ',j,')')
            endif
         enddo
