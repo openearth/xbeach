@@ -52,14 +52,14 @@ contains
 
     if (xmaster) then
 
-       par%rhoa    = readkey_dbl ('params.txt','rhoa',   1.25d0,     1.0d0,   2.0d0,bcast=.false.)
-       par%Cd      = readkey_dbl ('params.txt','Cd',    0.002d0,  0.0001d0,  0.01d0,bcast=.false.)
+!       par%rhoa    = readkey_dbl ('params.txt','rhoa',   1.25d0,     1.0d0,   2.0d0,bcast=.false.)
+!       par%Cd      = readkey_dbl ('params.txt','Cd',    0.002d0,  0.0001d0,  0.01d0,bcast=.false.)
+!
+!       call readkey('params.txt','windfile',fname)
 
-       call readkey('params.txt','windfile',fname)
-
-       if (fname=='') then   ! Stationary wind
-          par%windv   = readkey_dbl ('params.txt','windv',   0.0d0,     0.0d0, 200.0d0,bcast=.false.)
-          par%windth  = readkey_dbl ('params.txt','windth', 270.0d0,  -360.0d0, 360.0d0,bcast=.false.)
+       if (par%windfile==' ') then   ! Stationary wind
+        !  par%windv   = readkey_dbl ('params.txt','windv',   0.0d0,     0.0d0, 200.0d0,bcast=.false.)
+        !  par%windth  = readkey_dbl ('params.txt','windth', 270.0d0,  -360.0d0, 360.0d0,bcast=.false.)
 
           par%windlen=2
           allocate(s%windinpt(par%windlen))
