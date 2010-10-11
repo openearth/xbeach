@@ -212,7 +212,8 @@ contains
 
 
 !!!!! CROSS SECTION OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ncross  = readkey_int ('params.txt','ncross',      0,       0,     50)
+    !ncross  = readkey_int ('params.txt','ncross',      0,       0,     50)
+    ncross = 0
     ! Fedor +  Robert : will be changed once cross section ready for netcdf
     if (par%ncross>0) then
        allocate(crosstype(par%ncross))
