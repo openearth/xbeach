@@ -221,6 +221,13 @@ contains
              call writelog('l','(a,a,a)',printkey,' = ',trim(value_str))
           else
              call writelog('sle','(a,a,a,a)','Invalid option for ',trim(printkey),' : ',trim(value))
+             call writelog('sle','(a,a,a)','Valid options for ',trim(printkey),' are:')
+             do i=1,nv
+                call writelog('sle','(a)',trim(allowed(i)))
+             enddo
+             do j=1,nov
+                call writelog('sle','(a)',trim(old(j)))
+             enddo
              call halt_program
           endif
        endif
@@ -287,7 +294,37 @@ contains
 #endif   
   end function readkey_name
 
-
+  function isSetParameter(fname,key,bcast) result (isSet)
+    ! Function return logical true if the keyword is specified in file,
+    ! or logical false if the keyword is not specified in the file.
+    use xmpi_module
+    implicit none
+    character*(*)   :: fname,key
+    logical, intent(in), optional :: bcast
+    logical         :: isSet
+    character*256   :: value
+    logical         :: lbcast
+    
+    if (present(bcast)) then
+       lbcast = bcast
+    else
+       lbcast = .true.
+    endif
+    
+    if (xmaster) then
+       call readkey(fname,key,value)
+       if (value == ' ') then
+          isSet = .false.
+       else
+          isSet = .true.
+       endif
+    endif
+#ifdef USEMPI
+    if (lbcast) then
+       call xmpi_bcast(isSet)
+    endif
+#endif  
+  end function isSetParameter
 
   !
   !  readkey is only to be called from master, ie:
@@ -295,53 +332,92 @@ contains
   !    call readkey(....)
   !  No need to cache these results. 
   !
-  subroutine readkey(fname, key, value)
+  subroutine readkey(fname,key,value)
+    ! Reads through input file (fname) looking for key = value combinations
+    ! Return value as string
+    ! Subroutine also used to keep track of which lines have been succesfully read
+    ! If called by readkey('params.txt','checkparams'), will output unsuccesful key = value
+    ! combinations in params.txt
     use logging_module
+    integer                                     :: lun,i,ier,nlines,ic,ikey
+    character*1                                 :: ch
     character(len=*), intent(in)                :: fname,key
     character(len=*), intent(out)               :: value
+    character*80, dimension(:),allocatable,save :: keyword,values
+    character*80                                :: line
+    integer, save                               :: nkeys
+    character*80, save                          :: fnameold=''
+    integer, dimension(:),allocatable,save      :: readindex
 
-    integer                                     :: stat,ic
-    integer                                     :: fh
-    character(len=256)                            :: line
-    character(len=24)                           :: foundkey
-    logical                                     :: found=.true.
-    
-    ! Set the file handle to some arbitrary number
-    fh = 2600
+    ! If the file name of the input file changes, the file should be reread
+    if (fname/=fnameold) then
+       ! reset keyword values and readindex                   
+       if (allocated(values)) then
+          deallocate(keyword)
+          deallocate(values)
+          deallocate(readindex)
+       end if
+       ! Make sure this reset only recurs when the input file name changes
+       fnameold=fname
+       nkeys=0
+       ier=0
+       ! Read the file for all lines with "=" 
+       call writelog('ls','','XBeach reading from ',trim(fname))
+       lun=99
+       i=0
+       open(lun,file=fname)
+       do while (ier==0)
+          read(lun,'(a)',iostat=ier)ch
+          if (ier==0)i=i+1
+       enddo
+       close(lun)
+       nlines=i
+       ! allocate keyword and values arrays to store all keyword = value combinations
+       allocate(keyword(nlines))
+       allocate(values(nlines))
+       ! Read through the file to fill all the keyword = value combinations
+       open(lun,file=fname)
+       ikey=0
+       do i=1,nlines
+          read(lun,'(a)')line
+          ic=scan(line,'=')
+          if (ic>0) then
+             ikey=ikey+1
+             keyword(ikey)=adjustl(line(1:ic-1))
+             values(ikey)=adjustl(line(ic+1:80))
+          endif
+       enddo
+       nkeys=ikey
+       close(lun)
+       ! allocate index vector that stores which values have succesfully been called to be read
+       allocate(readindex(nkeys))
+       readindex=0
+    endif
 
-    ! open the file handle
-    open(fh, file=fname)
-
-    ! We're going to look for the key in the file but we haven't found it yet
-    found = .false.
-    
-    ! The value and line are empty for now. 
-    value = ' '
-    line = ' '
-    
-    ! loop until we reach the EOF
-    do 
-       read(fh, '(a)', iostat=stat) line
-       ! End of file, exit the loop
-       if (stat /= 0) exit
-       ! See if there's a key value pair
-       ic = scan(line,'=')
-       ! Let's split them up
-       if (ic>0) then
-          ! remove leading and trailing spaces
-          foundkey=trim(adjustl(line(1:ic-1)))
-          if (trim(key).eq.trim(foundkey)) then
-             ! remove leading and trailing spaces
-             value=trim(adjustl(line(ic+1:256)))
-             found = .true.
-             ! We've found the key, let's return the value
-             exit
-          end if
+    ! Compare the input key with any keyword stored in the keyword vector and return the value.
+    ! A succesful key - keyword match is recorded in readindex with a value "1"
+    ! Note: in case more than one keyword matches the key, the first keyword - value combination is returned
+    value=' '
+    do ikey=1,nkeys
+       if (key.eq.keyword(ikey)) then
+          value=values(ikey)
+          readindex(ikey)=1
+          exit
        endif
     enddo
-    ! Always close the file.
-    close(fh)
-       
+
+    ! Easter egg!
+    ! With call for key "checkparams", the subroutine searches readindex for keyword - value combinations that
+    ! have not yet been read. It returns a warning to screen and log file for each unsuccesful keyword.
+    if (key .eq. 'checkparams') then
+       do ikey=1,nkeys
+          if (readindex(ikey)==0) then
+             call writelog('sl','','Unknown, unused or multiple statements of parameter ',trim(keyword(ikey)),&
+                  ' in ',trim(fname))
+          endif
+       enddo
+    endif
+
   end subroutine readkey
 
 
