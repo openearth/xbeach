@@ -920,12 +920,6 @@ contains
     par%rhog8 = 1.0d0/8.0d0*par%rho*par%g
     !
     !
-    ! Grid orientation
-    if (par%alfa.lt.0) then 
-       par%alfa = 360.d0+par%alfa
-    endif
-    par%alfa  = par%alfa*atan(1.0d0)/45.d0   ! All input converted directly to Cartesian XBeach grid direction
-
     if (par%posdwn<0.1d0) then 
        par%posdwn=-1.d0  ! Backward compatibility, now posdwn = 0 also works in input (i.e. posdwn = false)
     endif

@@ -157,16 +157,6 @@ subroutine grid_bathy(s,par)
   s%posdwn= par%posdwn
   s%vardx = par%vardx
 
-!  s%nx    = readkey_int('params.txt','nx',     50,      2,     10000)
-!  s%ny    = readkey_int('params.txt','ny',      2,      2,     10000)
-!  s%dx    = readkey_dbl('params.txt','dx',    0.d0,   -1d9,      1d9)
-!  s%dy    = readkey_dbl('params.txt','dy',    0.d0,   -1d9,      1d9)
-!  s%xori  = readkey_dbl('params.txt','xori',  0.d0,   -1d9,      1d9)
-!  s%yori  = readkey_dbl('params.txt','yori',  0.d0,   -1d9,      1d9)
-!  s%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   -360.d0,   360.d0)
-!  s%posdwn= readkey_dbl('params.txt','posdwn',1.d0,   -1.d0,     1.d0)
-!  s%vardx = readkey_int('params.txt','vardx',   0,      0,         1)     !Jaap
-
   if (s%alfa.lt.0) then 
      s%alfa = 360.d0+s%alfa
   endif
