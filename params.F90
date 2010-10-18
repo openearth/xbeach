@@ -1178,8 +1178,10 @@ subroutine readglobalvars(par)
              par%globalvars(1:21) =  (/'H    ', 'zs   ', 'zs0  ', 'zb   ', 'hh   ', 'u    ', 'v    ', 'ue   ',&
                                        've   ', 'urms ', 'Fx   ', 'Fy   ', 'ccg  ', 'ceqsg', 'ceqbg', 'Susg ',&
                                        'Svsg ', 'E    ', 'R    ', 'D    ', 'DR   ' /)
+             par%nglobalvar = 21
         elseif (par%nglobalvar == 999) then ! Output all
             par%globalvars(1:numvars) = mnemonics   ! list of all s% variables
+            par%nglobalvar = numvars
         else
             ! User specified output
             ! Find nglobalvar keyword in params.txt
