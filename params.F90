@@ -925,11 +925,18 @@ contains
     !
     !
     ! Fix input parameters for choosen depthscale
-    par%eps     = par%eps/par%depthscale
-    par%hmin    = par%hmin/par%depthscale
-    par%hswitch = par%hswitch/par%depthscale
-    par%dzmax   = par%dzmax/par%depthscale**1.5d0
+    if (par%depthscale .ne. 1.d0) then
+      par%eps     = par%eps/par%depthscale
+      par%hmin    = par%hmin/par%depthscale
+      par%hswitch = par%hswitch/par%depthscale
+      par%dzmax   = par%dzmax/par%depthscale**1.5d0
     
+      call writelog('ls','(a)','Warning: input parameters eps, hmin, hswitch and dzmax are scaled with depthscale to:')
+      call writelog('ls','(a,f0)','eps = ',    par%eps)
+      call writelog('ls','(a,f0)','hmin = ',   par%hmin)
+      call writelog('ls','(a,f0)','hswitch = ',par%hswitch)
+      call writelog('ls','(a,f0)','dzmax = ',  par%dzmax)
+    endif
     ! Constants
     par%px    = 4.d0*atan(1.d0)
     par%compi = (0.0d0,1.0d0)
