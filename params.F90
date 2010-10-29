@@ -43,6 +43,15 @@ type parameters
    ! Physical constants                                                                                                            
    real*8        :: g                          = -123    !  [ms^-2] Gravitational acceleration
    real*8        :: rho                        = -123    !  [kgm^-3] Density of water
+   real*8        :: depthscale                 = -123    !  depthscale of (lab)test simulated. 1 = default, which corresponds to teh real world (nature)
+                                                         !  the follwing (numerical) parameters are scaled with the depth scale (see Brandenburg, 2010):
+                                                         !  eps     = eps_default/depthscale
+                                                         !  hmin    = hmin_default/depthscale
+                                                         !  hswitch = hswitch/depthscale
+                                                         !  dzmax   = dzmax/depthscale**1.5d0   
+                                                         !  Brandenburg concluded that also the following parameters potentially need to be scaled:
+                                                         !  wetslp, turb (suggested to turn off at depthscales<20) & ucr (distinguish ucr_bed load and 
+                                                         !  ucr_sus at depthscales<20) 
  
    ! Initial conditions
    character(256):: zsinitfile                 = 'abc'   !  [name] Name of inital condition file zs
@@ -391,8 +400,9 @@ contains
     !                          Physical constants 
     call writelog('l','','--------------------------------')
     call writelog('l','','Physical constants: ')
-    par%rho   = readkey_dbl ('params.txt','rho',  1025.0d0,  1000.0d0,  1040.0d0)
-    par%g     = readkey_dbl ('params.txt','g',      9.81d0,     9.7d0,     9.9d0)
+    par%rho        = readkey_dbl ('params.txt','rho',       1025.0d0,  1000.0d0,  1040.0d0)
+    par%g          = readkey_dbl ('params.txt','g',         9.81d0,    9.7d0,     9.9d0)
+    par%depthscale = readkey_dbl ('params.txt','depthscale',1.0d0,     1.0d0,     200.d0)
     !
     ! 
     !
@@ -578,7 +588,7 @@ contains
     call writelog('l','','--------------------------------')
     call writelog('l','','Roller parameters: ')
     par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
-    par%beta     = readkey_dbl ('params.txt','beta',    0.15d0,     0.05d0,   0.3d0)
+    par%beta     = readkey_dbl ('params.txt','beta',    0.10d0,     0.05d0,   0.3d0)
     par%rfb      = readkey_int ('params.txt','rfb',        0,        0,     1)
     !    
     ! Wave-current interaction parameters    
@@ -600,10 +610,10 @@ contains
        par%cf      = readkey_dbl ('params.txt','cf',      3.d-3,     0.d0,     0.1d0)
        par%C       = readkey_dbl ('params.txt','C',       sqrt(par%g/par%cf),     20.d0,    100.d0)
     endif
-    par%nuh     = readkey_dbl ('params.txt','nuh',     0.15d0,     0.0d0,      1.0d0)
-    par%nuhfac  = readkey_dbl ('params.txt','nuhfac',      0.0d0,     0.0d0,  1.0d0)
-    par%nuhv    = readkey_dbl ('params.txt','nuhv',     1.d0,      1.d0,    20.d0)
-    par%smag    = readkey_int ('params.txt','smag',        1,         0,      1)
+    par%nuh     = readkey_dbl ('params.txt','nuh',       0.1d0,     0.0d0,   1.0d0)
+    par%nuhfac  = readkey_dbl ('params.txt','nuhfac',    1.0d0,     0.0d0,   1.0d0)
+    par%nuhv    = readkey_dbl ('params.txt','nuhv',      1.d0,      1.d0,    20.d0)
+    par%smag    = readkey_int ('params.txt','smag',      1,         0,       1)
     !
     !
     ! Coriolis force parameters
@@ -726,25 +736,25 @@ contains
        allocate(allowednames(2),oldnames(2))
        allowednames=(/'soulsby_vanrijn ','vanthiel_vanrijn'/)
        oldnames=(/'1','2'/)
-       par%form   = readkey_str('params.txt','form','soulsby_vanrijn',2,2,allowednames,oldnames)
+       par%form   = readkey_str('params.txt','form','vanthiel_vanrijn',2,2,allowednames,oldnames)
        deallocate(allowednames,oldnames)
        allocate(allowednames(2),oldnames(2))
        allowednames=(/'ruessink_vanrijn','vanthiel        '/)
        oldnames=(/'1','2'/)
-       par%waveform = readkey_str('params.txt','waveform','ruessink_vanrijn',2,2,allowednames,oldnames)
+       par%waveform = readkey_str('params.txt','waveform','vanthiel',2,2,allowednames,oldnames)
        deallocate(allowednames,oldnames)
        par%sws      = readkey_int ('params.txt','sws',           1,        0,     1)
        par%lws      = readkey_int ('params.txt','lws',           1,        0,     1)
        par%BRfac    = readkey_dbl ('params.txt','BRfac',    1.0d0,       0.d0, 1.d0)
-       par%facsl    = readkey_dbl ('params.txt','facsl  ',0.00d0,    0.00d0,   1.6d0)  
+       par%facsl    = readkey_dbl ('params.txt','facsl  ',  1.6d0,       0.d0, 1.6d0)  
        par%z0       = readkey_dbl ('params.txt','z0     ',0.006d0,    0.0001d0,   0.05d0)  
        par%smax     = readkey_dbl ('params.txt','smax',   -1.d0,    -1.d0,   3.d0)       !changed 28/11 and back 10/2
        par%tsfac    = readkey_dbl ('params.txt','tsfac',   0.1d0,    0.01d0,   1.d0) 
-       par%facua    = readkey_dbl ('params.txt','facua  ',0.00d0,    0.00d0,   1.0d0) 
+       par%facua    = readkey_dbl ('params.txt','facua  ',0.10d0,    0.00d0,   1.0d0) 
        allocate(allowednames(3),oldnames(3))
        allowednames=(/'none         ','wave_averaged','bore_averaged'/)
        oldnames=(/'0','1','2'/)
-       par%turb = readkey_str('params.txt','turb','none',3,3,allowednames,oldnames)
+       par%turb = readkey_str('params.txt','turb','bore_averaged',3,3,allowednames,oldnames)
        deallocate(allowednames,oldnames)
        par%Tbfac    = readkey_dbl ('params.txt','Tbfac  ',1.0d0,     0.00d0,   1.0d0) 
        par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.2d0,     0.01d0,   10.d0) 
@@ -869,8 +879,8 @@ contains
     call writelog('l','','--------------------------------')
     call writelog('l','','Flow numerics parameters: ') 
     par%eps     = readkey_dbl ('params.txt','eps',     0.005d0,   0.001d0,      0.1d0)
-    par%umin    = readkey_dbl ('params.txt','umin',    0.0d0,   0.0d0,          0.2d0)
-    par%hmin    = readkey_dbl ('params.txt','hmin',   0.05d0,   0.001d0,      1.d0)
+    par%umin    = readkey_dbl ('params.txt','umin',    0.0d0,     0.0d0,        0.2d0)
+    par%hmin    = readkey_dbl ('params.txt','hmin',    0.2d0,     0.001d0,      1.d0)
     par%secorder = readkey_int('params.txt','secorder' ,0,0,1)
 	par%oldhu    = readkey_int('params.txt','oldhu' ,0,0,1)
     !
@@ -914,6 +924,12 @@ contains
     ! -------------------   Post-input processing -------------------------
     !
     !
+    ! Fix input parameters for choosen depthscale
+    par%eps     = par%eps/par%depthscale
+    par%hmin    = par%hmin/par%depthscale
+    par%hswitch = par%hswitch/par%depthscale
+    par%dzmax   = par%dzmax/par%depthscale**1.5d0
+    
     ! Constants
     par%px    = 4.d0*atan(1.d0)
     par%compi = (0.0d0,1.0d0)
