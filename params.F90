@@ -761,7 +761,12 @@ contains
        par%lwt      = readkey_int ('params.txt','lwt    ',0,           0,            1)
        par%betad    = readkey_dbl ('params.txt','betad  ',1.0d0,     0.00d0,   10.0d0)
        if (trim(par%waveform)=='vanthiel') then
-          par%swtable  = readkey_name('params.txt','swtable',required=.true.)
+          ! Jaap: if swtable is not specified in params.txt it is named RF_table.txt
+          par%swtable  = readkey_name('params.txt','swtable') ! ,required=.true.
+          if (trim(par%swtable)=='') then
+             par%swtable  = ('RF_table.txt')
+          endif
+          !
           call check_file_exist(par%swtable)
           call check_file_length(par%swtable,18,33,40)
        endif

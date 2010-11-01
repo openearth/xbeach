@@ -1437,8 +1437,7 @@ if (.not. allocated(RF)) then
    ! read Rienecker Fenton table with amongst others amplitudes non-linear components obtained with stream function theory        
    RF = RF*0.d0
    if (xmaster) then
-      fnamet = readkey_name('params.txt','swtable',bcast=.false.)
-      open(31,file=fnamet);
+      open(31,file=par%swtable);
       do i=1,18
          do j=1,33
             read(31,*)(RF(i,j,ii),ii=1,40)
