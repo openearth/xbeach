@@ -1193,8 +1193,9 @@ contains
        Ass=0.012d0*s%D50(jg)*dster(jg)**(-0.6d0)/(delta*par%g*s%D50(jg))**1.2d0        !suspended load coeffient
 
        ! Jaap: par%sws to set short wave stirring to zero
-       ! Jaap: Van Rijn use Peak orbital flow velocity --> 0.64 corresponds to 0.4 coefficient regular waves Van Rijn (2007)  
-       term1= dsqrt(vmg**2+0.64d0*par%sws*urms2) 
+       ! Jaap: Van Rijn use Peak orbital flow velocity --> 0.64 corresponds to 0.4 coefficient regular waves Van Rijn (2007)
+         
+       term1= vmg**2+0.64d0*par%sws*urms2
        
        ! reduce sediment suspensions for (inundation) overwash conditions with critical flow velocitties
        term1=min(term1,par%smax*par%g/par%cf*s%D50(jg)*delta)
