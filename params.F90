@@ -710,7 +710,7 @@ contains
           par%D90(1:par%ngd)=0.0003d0   ! Default
           call writelog('l','','Setting D90 to default value 0.0003')
        else
-          read(testc,*) par%D50(1:par%ngd)
+          read(testc,*) par%D90(1:par%ngd)
        endif
        testc = readkey_name('params.txt','sedcal')
        if (testc==' ') then
