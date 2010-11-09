@@ -89,8 +89,9 @@ endif
 ! Dissipation acc. to Roelvink (1993)
 
 fac=8.0d0/par%rho/par%g
-hroelvink=s%hh+par%delta*s%H
+H=sqrt(fac*s%E)
 
+hroelvink=s%hh+par%delta*s%H
 
 kmr=km
 where(km<0.01d0)
@@ -99,8 +100,6 @@ elsewhere(km>100.d0)
    kmr=100.d0
 endwhere
 
-
-H=sqrt(fac*s%E)
 if (trim(par%break)/='roelvink_daly') then
    if (par%wci==1) then
       arg = -(H/(par%gamma*tanh(min(max(km,0.01d0),100.d0)*hroelvink)/min(max(km,0.01d0),100.d0)))**par%n
@@ -116,6 +115,7 @@ else
       enddo
    enddo
    s%Qb=max(s%Qb,0.d0)
+   
 endif
 
 ! cjaap : two options:

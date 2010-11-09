@@ -297,20 +297,12 @@ contains
     ! Dissipation by bed friction
     uorb=par%px*H/par%Trep/sinh(min(max(k,0.01d0)*max(hh,par%delta*H),10.0d0))
     Df=0.6666666d0/par%px*par%rho*par%fw*uorb**3
-
-    ! Transformation of kinetic energy to potential energy in the swash zone
-    where (par%delta*H>hh)
-       Dp = max(cgxm*par%delta*H*par%rho*par%g*dzbdx + &
-            cgym*par%delta*H*par%rho*par%g*dzbdy,0.d0)
-    elsewhere
-       Dp = 0.d0
-    endwhere
     !
     ! Distribution of dissipation over directions and frequencies
     !
     do itheta=1,ntheta
        ! Only calculate for E>0 FB
-       dd(:,:,itheta)=ee(:,:,itheta)*(D+Df+Dp)/max(E,0.00001d0)
+       dd(:,:,itheta)=ee(:,:,itheta)*(D+Df)/max(E,0.00001d0)
     enddo
 
     do j=1,ny+1

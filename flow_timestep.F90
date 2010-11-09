@@ -316,7 +316,7 @@ contains
              taubx(i,j)=sign(s%cf(i,j)*par%rho*ueu(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmageu(i,j)**2),uu(i,j))
              uu(i,j)=uu(i,j)-par%dt*(ududx(i,j)+vdudy(i,j)-viscu(i,j) & !Ap,Robert,Jaap
                   + par%g*dzsdx(i,j) &
-                                !                   + par%g/par%C**2.d0/hu(i,j)*vmageu(i,j)*ueu(i,j) &
+                 !+ par%g/par%C**2.d0/hu(i,j)*vmageu(i,j)*ueu(i,j) &
                   + (taubx(i,j) - par%lwave*Fx(i,j))/(par%rho*hu(i,j)) &
                   - par%fc*vu(i,j) &
                   - par%rhoa*par%Cd*cos(s%winddirnow)*s%windvnow**2/(par%rho*hu(i,j)))
