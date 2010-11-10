@@ -227,7 +227,7 @@ contains
           if (status /= nf90_noerr) call handle_err(status)
        end if
 
-       status = nf90_def_var(ncid, 'y', NF90_DOUBLE, (/ ydimid /), yvarid)
+       status = nf90_def_var(ncid, 'globaly', NF90_DOUBLE, (/ ydimid /), yvarid)
        if (status /= nf90_noerr) call handle_err(status)
        status = nf90_put_att(ncid, yvarid, 'units', 'm')
        if (status /= nf90_noerr) call handle_err(status)
