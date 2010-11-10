@@ -6,6 +6,7 @@ integer                                 :: K, Npy, Nr
 integer, dimension(:), pointer          :: index_vector
 
 real*8                                  :: mainang,dang
+real*8                                  :: h0t0
 real*8                                  :: hm0gew, df
 real*8                                  :: Ly, dt, rt
 real*8,dimension(:),pointer             :: S0, dthetafin, fgen, theta0
@@ -42,7 +43,6 @@ contains
     type(spacepars), intent(IN)                 :: s
 
     type(waveparameters)                        :: wp
-    real*8                                      :: h0t0
     real*8,save                                 :: bcendtime
     character(len=256)                          :: fname,Ebcfname,qbcfname
     character*8                                 :: testc
@@ -152,23 +152,23 @@ contains
     if (makefile) then
 
        ! Calculate weighed average water depth at offshore boundary
-       h0t0=sum(s%hh(1,2:s%ny)*(s%yv(2:s%ny)-s%yv(1:s%ny-1)))/(s%yv(s%ny)-s%yv(1))
+       wp%h0t0=sum(s%hh(1,2:s%ny)*(s%yv(2:s%ny)-s%yv(1:s%ny-1)))/(s%yv(s%ny)-s%yv(1))
 
        if (trim(par%instat)=='jons' .or. trim(par%instat)=='jons_table') then
           ! Use JONSWAP spectrum
           call build_jonswap(par,s,wp,fname)
-          call build_etdir(par,s,wp,h0t0,Ebcfname)
-          call build_boundw(par,s,wp,h0t0,qbcfname)
+          call build_etdir(par,s,wp,Ebcfname)
+          call build_boundw(par,s,wp,qbcfname)
        elseif (trim(par%instat)=='swan') then
           ! Use SWAN data
           call swanreader(par,s,wp,fname)
-          call build_etdir(par,s,wp,h0t0,Ebcfname)
-          call build_boundw(par,s,wp,h0t0,qbcfname)
+          call build_etdir(par,s,wp,Ebcfname)
+          call build_boundw(par,s,wp,qbcfname)
        elseif (trim(par%instat)=='vardens') then
           ! Use variance density spectrum
           call vardensreader(par,s,wp,fname)
-          call build_etdir(par,s,wp,h0t0,Ebcfname)
-          call build_boundw(par,s,wp,h0t0,qbcfname)
+          call build_etdir(par,s,wp,Ebcfname)
+          call build_boundw(par,s,wp,qbcfname)
        endif
     end if
 
@@ -876,7 +876,7 @@ end subroutine vardensreader
 ! --------------------------------------------------------------
 ! ---------------------- Build E_tdir file ---------------------
 ! --------------------------------------------------------------
-subroutine build_etdir(par,s,wp,h,Ebcfname)
+subroutine build_etdir(par,s,wp,Ebcfname)
 
   use params
   use math_tools
@@ -891,7 +891,7 @@ subroutine build_etdir(par,s,wp,h,Ebcfname)
   type(parameters), INTENT(IN)            :: par
   type(waveparameters), INTENT(INOUT)     :: wp
   type(spacepars), INTENT(IN)             :: s
-  real*8, INTENT(IN)                      :: h
+ 
   character(len=*), INTENT(IN)            :: Ebcfname
 
   ! Internal variables
@@ -1016,7 +1016,7 @@ subroutine build_etdir(par,s,wp,h,Ebcfname)
   allocate(temp(401))
   temp=(/(i,i=0,400)/)
   ktemp=temp*(kmax/200)
-  ftemp=sqrt((par%g)*ktemp*tanh(ktemp*h))/(2*par%px)      
+  ftemp=sqrt((par%g)*ktemp*tanh(ktemp*wp%h0t0))/(2*par%px)      
   deallocate (temp)
 
   ! Determine all wave numbers of the selected frequencies around the peak
@@ -1442,7 +1442,7 @@ end subroutine build_etdir
 ! --------------------------------------------------------------
 ! ----------------------- Bound long wave ----------------------
 ! --------------------------------------------------------------
-subroutine build_boundw(par,s,wp,h,qbcfname)
+subroutine build_boundw(par,s,wp,qbcfname)
 
 use params
 use spaceparams
@@ -1458,7 +1458,6 @@ IMPLICIT NONE
 type(parameters), INTENT(IN)            :: par
 type(spacepars), INTENT(IN)             :: s
 type(waveparameters), INTENT(INOUT)     :: wp
-real*8, INTENT(IN)                      :: h
 character(len=*), INTENT(IN)            :: qbcfname
 
 ! Internal variables
@@ -1523,7 +1522,7 @@ do m=1,K-1
     w1=2*par%px*wp%fgen
 
     ! Determine wave numbers of primary waves
-    call bc_disper(k1,w1,size(w1),h,g)
+    call bc_disper(k1,w1,size(w1),wp%h0t0,g)
 
     ! Determine difference angles (pi already added)
     deltheta(m,1:K-m) = abs(wp%theta0(m+1:K)-wp%theta0(1:K-m))+par%px
@@ -1538,6 +1537,10 @@ do m=1,K-1
 
     ! Determine group velocity of difference waves
     cg3(m,1:K-m)= 2.d0*par%px*deltaf/k3(m,1:K-m)
+    
+    ! Ideetje Robert Jaap: make sure that we don't blow up bound long wave 
+    !                      when offshore boundary is too close to shore
+    cg3 = min(cg3,par%nmax*sqrt(par%g*wp%h0t0))
 
     ! Determine difference-interaction coefficient according to Herbers 1994
     ! eq. A5
@@ -1545,16 +1548,11 @@ do m=1,K-1
     
     term1 = (-w1(1:K-m))*w1(m+1:K)
     term2 = (-w1(1:K-m))+w1(m+1:K)
-    chk1  = cosh(k1(1:K-m)*h)
-    chk2  = cosh(k1(m+1:K)*h)
-
-                                                                                                    ! Previous version: D(m,1:K-m) = -g*k1(1:K-m)*k1(m+1:K)*cos(deltheta(m,1:K-m))/2/term1+g*term2*(chk1*chk2)/ &
-                                                                                                    !                   ((g*k3(m,1:K-m)*tanh(k3(m,1:K-m)*h)-(term2)**2)*term1*cosh(k3(m,1:K-m)*h))* &
-                                                                                                    !                   (term2*((term1)**2/g/g - k1(1:K-m)*k1(m+1:K)*cos(deltheta(m,1:K-m))) - &
-                                                                                                    !                   0.5*((-w1(1:K-m))*k1(m+1:K)**2/(chk1**2)+w1(m+1:K)*k1(1:K-m)**2/(chk2**2)))
-
+    chk1  = cosh(k1(1:K-m)*wp%h0t0)
+    chk2  = cosh(k1(m+1:K)*wp%h0t0)
+                                                                                                    
     D(m,1:K-m) = -g*k1(1:K-m)*k1(m+1:K)*dcos(deltheta(m,1:K-m))/2.d0/term1+g*term2*(chk1*chk2)/ &
-                 ((g*k3(m,1:K-m)*tanh(k3(m,1:K-m)*h)-(term2)**2)*term1*cosh(k3(m,1:K-m)*h))* &
+                 ((g*k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0t0)-(term2)**2)*term1*cosh(k3(m,1:K-m)*wp%h0t0))* &
                  (term2*((term1)**2/g/g - k1(1:K-m)*k1(m+1:K)*dcos(deltheta(m,1:K-m))) &
                  - 0.50d0*((-w1(1:K-m))*k1(m+1:K)**2/(chk2**2)+w1(m+1:K)*k1(1:K-m)**2/(chk1**2)))
 
@@ -1562,7 +1560,7 @@ do m=1,K-1
 
     ! Correct for surface elevation input and output instead of bottom pressure
     ! so it is consistent with Van Dongeren et al 2003 eq. 18
-    D(m,1:K-m) = D(m,1:K-m)*cosh(k3(m,1:K-m)*h)/(cosh(k1(1:K-m)*h)*cosh(k1(m+1:K)*h))  
+    D(m,1:K-m) = D(m,1:K-m)*cosh(k3(m,1:K-m)*wp%h0t0)/(cosh(k1(1:K-m)*wp%h0t0)*cosh(k1(m+1:K)*wp%h0t0))  
 
     ! Exclude interactions with components smaller than or equal to current
     ! component according to lower limit Herbers 1994 eq. 1

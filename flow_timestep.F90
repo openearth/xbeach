@@ -292,7 +292,7 @@ contains
              nuh2  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,j-1)+nuh(i,j-1))
 
              dvdx1 = nuh1*.5d0*(s%hvm(i,j  )+s%hvm(i+1,j  ))*(s%vv(i+1,j  )-s%vv(i,j  ))/(s%xz(i+1)-s%xz(i))
-             dvdx2 = nuh1*.5d0*(s%hvm(i,j-1)+s%hvm(i+1,j-1))*(s%vv(i+1,j-1)-s%vv(i,j-1))/(s%xz(i+1)-s%xz(i))
+             dvdx2 = nuh2*.5d0*(s%hvm(i,j-1)+s%hvm(i+1,j-1))*(s%vv(i+1,j-1)-s%vv(i,j-1))/(s%xz(i+1)-s%xz(i)) ! Jaap replce nuh1 by nuh2
              viscu(i,j) = viscu(i,j) + (1.d0/s%hum(i,j))*(dvdx1-dvdx2)/(s%yv(j)-s%yv(j-1))*real(wetv(i+1,j) &
                   * wetv(i,j)*wetv(i+1,j-1)*wetv(i,j-1),8)
           enddo
@@ -316,8 +316,8 @@ contains
              taubx(i,j)=sign(s%cf(i,j)*par%rho*ueu(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmageu(i,j)**2),uu(i,j))
              uu(i,j)=uu(i,j)-par%dt*(ududx(i,j)+vdudy(i,j)-viscu(i,j) & !Ap,Robert,Jaap
                   + par%g*dzsdx(i,j) &
-                 !+ par%g/par%C**2.d0/hu(i,j)*vmageu(i,j)*ueu(i,j) &
-                  + (taubx(i,j) - par%lwave*Fx(i,j))/(par%rho*hu(i,j)) &
+                  + taubx(i,j)/(par%rho*hu(i,j)) &
+                  - par%lwave*Fx(i,j)/(par%rho*max(hu(i,j),par%hmin)) &
                   - par%fc*vu(i,j) &
                   - par%rhoa*par%Cd*cos(s%winddirnow)*s%windvnow**2/(par%rho*hu(i,j)))
           else
@@ -413,8 +413,8 @@ contains
              tauby(i,j)=sign(s%cf(i,j)*par%rho*vev(i,j)*sqrt((1.16d0*s%urms(i,j))**2+vmagev(i,j)**2),vv(i,j)) !Ruessink et al, 2001
              vv(i,j)=vv(i,j)-par%dt*(udvdx(i,j)+vdvdy(i,j)-viscv(i,j)& !Ap,Robert,Jaap
                   + par%g*dzsdy(i,j)&
-                                ! + par%g/par%C**2/hv(i,j)*vmagev(i,j)*vev(i,j)&
-                  + (tauby(i,j)- par%lwave*Fy(i,j))/(par%rho*hv(i,j)) &
+                  + tauby(i,j)/(par%rho*hv(i,j)) &
+                  - par%lwave*Fy(i,j)/(par%rho*max(hv(i,j),par%hmin)) &
                   + par%fc*uv(i,j) &
                   - par%rhoa*par%Cd*sin(s%winddirnow)*s%windvnow**2/(par%rho*hv(i,j)))
 

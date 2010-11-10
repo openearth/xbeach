@@ -64,6 +64,7 @@ type parameters
    real*8        :: Trep                       = -123    !  [s] Representative wave period for instat = 0,1,2,3
    real*8        :: Tlong                      = -123    !  [s] Wave group period for case instat = 1
    real*8        :: dir0                       = -123    !  [deg] Mean wave direction (Nautical convention) for instat = 0,1,2,3
+   real*8        :: nmax                       = -123    !  [-] maximum ratio of cg/c fro computing long wave boundary conditions
    integer*4     :: m                          = -123    !  [-] Power in cos^m directional distribution for instat = 0,1,2,3
    character(24) :: lateralwave                = 'neumann'   !  [name] Switch for lateral boundary at left, 'neumann' = E Neumann, 'wavefront' = along wave front
    character(24) :: leftwave                   = 'abc'   !  [-] old name for lateralwave
@@ -446,6 +447,7 @@ contains
        filetype=-1
     endif
     par%taper    = readkey_dbl ('params.txt','taper',   100.d0,      0.0d0, 1000.d0)
+    par%nmax     = readkey_dbl ('params.txt','nmax',    0.8d0,       0.5d0, 1.d0)
     if (trim(par%instat) == 'stat') then
        par%Hrms  = readkey_dbl ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
        par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)

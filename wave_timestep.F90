@@ -524,9 +524,15 @@ contains
     endif
     !lateral boundaries
     ! wwvv todo the following has consequences for // version
-    ust(1,:) = ust(2,:)
-    ust(:,1) = ust(:,2)
-    ust(:,ny+1) = ust(:,ny)
+    if(xmpi_istop) then
+       ust(1,:) = ust(2,:)
+    endif
+    if(xmpi_isleft) then
+       ust(:,1) = ust(:,2)
+    endif
+    if(xmpi_isright) then
+       ust(:,ny+1) = ust(:,ny)
+    endif
 
 #ifdef USEMPI
     call xmpi_shift(ust,'1:')  ! get ust(1,:) from above
@@ -745,14 +751,14 @@ do itheta=1,ntheta
    do i=1,nx+1
       if (arrin(i,ny+1,itheta)>0) then
              yadvec(i,ny+1,itheta)=(arrin(i,ny+1,itheta)-arrin(i,ny,itheta))*(1.d0/(yz(ny+1)-yz(ny)))
-          elseif (arrin(i,ny+1,itheta)<=0) then
+      elseif (arrin(i,ny+1,itheta)<=0) then
              yadvec(i,ny+1,itheta) = yadvec(i,ny,itheta)
       elseif (arrin(i,1,itheta)>=0) then
              yadvec(i,1,itheta)=yadvec(i,2,itheta) 
-          elseif (arrin(i,1,itheta)<0) then
-         yadvec(i,1,itheta)=(arrin(i,2,itheta)-arrin(i,1,itheta))*(1.d0/(yz(2)-yz(1)))
+      elseif (arrin(i,1,itheta)<0) then
+             yadvec(i,1,itheta)=(arrin(i,2,itheta)-arrin(i,1,itheta))*(1.d0/(yz(2)-yz(1)))
       endif
-        enddo
+   enddo
 enddo
                  
 !yadvec(:,1,:)=yadvec(:,2,:)             !Ap
@@ -1183,10 +1189,18 @@ do jy = 2,ny
 end do
 
 !lateral boundaries
-usd(1,:) = usd(2,:)
-usd(:,1) = usd(:,2)
-usd(:,ny+1) = usd(:,ny)
-usd(nx+1,:) = usd(nx,:)
+if(xmpi_istop) then
+   usd(1,:) = usd(2,:)
+endif
+if(xmpi_isbot) then
+   usd(nx+1,:) = usd(nx,:)
+endif
+if(xmpi_isleft) then
+   usd(:,1) = usd(:,2)
+endif
+if(xmpi_isright) then
+   usd(:,ny+1) = usd(:,ny)
+endif
 
 ! wwvv for the parallel version, shift in the columns and rows
 #ifdef USEMPI

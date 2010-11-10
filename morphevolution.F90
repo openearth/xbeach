@@ -444,14 +444,13 @@ contains
        ! reduce sediment transports when hard layer comes to surface
        ! this step is mainly necessary at the transition from hard layers to sand
        if (par%struct == 1) then
-          
-          indSus = 0
-          indSub = 0
-          indSvs = 0
-          indSvb = 0
-          Sout   = 0.d0
 
           do jg = 1,par%ngd 
+             indSus = 0
+             indSub = 0
+             indSvs = 0
+             indSvb = 0
+             Sout   = 0.d0
              do j=2,ny+1
                 do i=2,nx+1
                    ! fluxes at i,j
@@ -493,9 +492,7 @@ contains
                    endif
                 enddo
              enddo
-          enddo
-          !
-          do jg = 1,par%ngd 
+             !
              do j=2,ny+1
                 do i=2,nx+1
                    Savailable = structdepth(i,j)*pbbed(i,j,1,jg)/par%morfac/par%dt*(1.d0-par%por)*(xu(i)-xu(i-1))*(yv(j)-yv(j-1))
