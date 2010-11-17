@@ -939,10 +939,10 @@ contains
       par%dzmax   = par%dzmax/par%depthscale**1.5d0
     
       call writelog('ls','(a)','Warning: input parameters eps, hmin, hswitch and dzmax are scaled with depthscale to:')
-      call writelog('ls','(a,f0)','eps = ',    par%eps)
-      call writelog('ls','(a,f0)','hmin = ',   par%hmin)
-      call writelog('ls','(a,f0)','hswitch = ',par%hswitch)
-      call writelog('ls','(a,f0)','dzmax = ',  par%dzmax)
+      call writelog('ls','(a,f0.4)','eps = ',    par%eps)
+      call writelog('ls','(a,f0.4)','hmin = ',   par%hmin)
+      call writelog('ls','(a,f0.4)','hswitch = ',par%hswitch)
+      call writelog('ls','(a,f0.4)','dzmax = ',  par%dzmax)
     endif
     ! Constants
     par%px    = 4.d0*atan(1.d0)
