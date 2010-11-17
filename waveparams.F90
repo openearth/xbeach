@@ -1465,10 +1465,12 @@ integer                                 :: K, m, index1, Npy, Nr, i=0, jj
 integer                                 :: reclen
 integer,dimension(:),allocatable        :: index2
 
+logical                                 :: firsttime = .true.
+
 real*8                                  :: g
 real*8                                  :: df, deltaf
 real*8,dimension(:), allocatable        :: w1, k1
-real*8,dimension(:), allocatable        :: term1, term2, chk1, chk2
+real*8,dimension(:), allocatable        :: term1, term2, term2new, dif, chk1, chk2
 real*8,dimension(:,:),allocatable       :: Eforc, D, deltheta, KKx, KKy, theta3
 real*8,dimension(:,:),allocatable       :: dphi3, k3, cg3, Abnd, qx
 
@@ -1540,23 +1542,31 @@ do m=1,K-1
     
     ! Ideetje Robert Jaap: make sure that we don't blow up bound long wave 
     !                      when offshore boundary is too close to shore
-    cg3 = min(cg3,par%nmax*sqrt(par%g*wp%h0t0))
+    ! cg3 = min(cg3,par%nmax*sqrt(par%g*wp%h0t0))
+    cg3(m,1:K-m) = min(cg3(m,1:K-m),par%nmax*sqrt(g/k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0t0)))
 
     ! Determine difference-interaction coefficient according to Herbers 1994
     ! eq. A5
-    allocate(term1(K-m),term2(K-m),chk1(K-m),chk2(K-m))
+    allocate(term1(K-m),term2(K-m),term2new(K-m),dif(K-m),chk1(K-m),chk2(K-m))
     
     term1 = (-w1(1:K-m))*w1(m+1:K)
     term2 = (-w1(1:K-m))+w1(m+1:K)
+    term2new = cg3(m,1:K-m)*k3(m,1:K-m)
+    dif = (abs(term2-term2new))
+    if (any(dif>0.01*term2 .and. firsttime == .true.)) then
+       firsttime = .false.
+       call writelog('sl','','Warning: shallow water so long wave variance is reduced using par%nmax'); 
+    endif 
+    
     chk1  = cosh(k1(1:K-m)*wp%h0t0)
     chk2  = cosh(k1(m+1:K)*wp%h0t0)
                                                                                                     
     D(m,1:K-m) = -g*k1(1:K-m)*k1(m+1:K)*dcos(deltheta(m,1:K-m))/2.d0/term1+g*term2*(chk1*chk2)/ &
-                 ((g*k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0t0)-(term2)**2)*term1*cosh(k3(m,1:K-m)*wp%h0t0))* &
+                 ((g*k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0t0)-(term2new)**2)*term1*cosh(k3(m,1:K-m)*wp%h0t0))* &
                  (term2*((term1)**2/g/g - k1(1:K-m)*k1(m+1:K)*dcos(deltheta(m,1:K-m))) &
                  - 0.50d0*((-w1(1:K-m))*k1(m+1:K)**2/(chk2**2)+w1(m+1:K)*k1(1:K-m)**2/(chk1**2)))
 
-    deallocate(term1,term2,chk1,chk2)
+    deallocate(term1,term2,term2new,dif,chk1,chk2)
 
     ! Correct for surface elevation input and output instead of bottom pressure
     ! so it is consistent with Van Dongeren et al 2003 eq. 18
