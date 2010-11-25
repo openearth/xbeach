@@ -38,6 +38,7 @@ type parameters
    real*8        :: CFL                        = -123    !  [-] Maximum Courant-Friedrichs-Lewy number
    character*80  :: tunits                     = 's'     !  Units can be defined in udunits format (seconds since 1970-01-01 00:00:00.00 +1:00)
    ! Projection units (not to be used, only pass to output, this limit is too short for WKT....)
+   ! This could be the proj4 string +init=epsg:28992
    character*80  :: projection                 = ' '     !  [-] projection string 
    
    ! Physical constants                                                                                                            
