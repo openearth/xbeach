@@ -1553,7 +1553,7 @@ do m=1,K-1
     term2 = (-w1(1:K-m))+w1(m+1:K)
     term2new = cg3(m,1:K-m)*k3(m,1:K-m)
     dif = (abs(term2-term2new))
-    if (any(dif>0.01*term2 .and. firsttime == .true.)) then
+    if (any(dif>0.01*term2 .and. firsttime .eqv. .true.)) then
        firsttime = .false.
        call writelog('sl','','Warning: shallow water so long wave variance is reduced using par%nmax'); 
     endif 
