@@ -1345,7 +1345,7 @@ subroutine velocity_Boundary(u,z,w,nx,ny,t,zs,ws)
       read(unit_U,fmt=*) header
             
       do i=1,nvar
-        if (header(i) == 'Zs' .or. header(i) == 'ZS' .or. header(i) == 'zS' .or. header(i) == 'zs') then
+        if (header(i) == 'z' .or. header(i) == 'Z') then
           iZ = i;
         elseif (header(i) == 't' .or. header(i) == 'T') then
           iT = i;

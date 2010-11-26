@@ -1465,7 +1465,7 @@ integer                                 :: K, m, index1, Npy, Nr, i=0, jj
 integer                                 :: reclen
 integer,dimension(:),allocatable        :: index2
 
-logical                                 :: firsttime = .true.
+logical                                 :: firsttime
 
 real*8                                  :: g
 real*8                                  :: df, deltaf
@@ -1515,6 +1515,10 @@ k1=0
 ! Determine for each wave component interactions with all other wave components
 ! as far as not processed yet (each loop step the number of interactions thus
 ! decrease with one)
+
+! First time is set true for each time new wave bc are generated
+firsttime = .true.
+
 do m=1,K-1
     
     ! Determine difference frequency
