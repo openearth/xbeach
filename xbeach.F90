@@ -116,6 +116,9 @@ call all_input(par)
 ! TODO: This shouldn't be in the main
 if (xmaster) call readkey('params.txt','checkparams',dummystring) 
 ! TODO: We're not stepping into the timeloop just yet....
+! Add the self-generating function "outputparameters". RM: do once linux okay
+! include 'parameters.inc'
+! call outputparameters(par)
 call writelog('ls','','Stepping into the time loop ....')   ! writelog is xmaster aware
 
 #ifdef USEMPI

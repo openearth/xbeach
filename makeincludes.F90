@@ -15,8 +15,8 @@ module makemodule
 integer, parameter             :: slen = 1024
 character(len=slen), parameter :: templatefilename = 'spaceparams.tmpl'
 character(len=slen)            :: outputfilename
-integer, parameter             :: infile = 1
-integer, parameter             :: outfile = 2
+integer             :: infile = 1
+integer             :: outfile = 2
 character(len=slen), parameter :: spacedeclname = 'spacedecl.gen'
 character(len=slen), parameter :: mnemonicname = 'mnemonic.gen'
 character(len=slen), parameter :: indextosname = 'indextos.gen'
@@ -30,6 +30,7 @@ character(len=slen)            :: type, name, comment, line, broadcast, descript
 integer                        :: rank
 logical                        :: varfound
 logical                        :: endfound
+logical                        :: dimensioned
 character(20), dimension(10) :: dims       ! dimensions are maximum 10 length statement, maximum 10 different dimensions
 integer                        :: maxdimlen, maxrank
 character(6),parameter         :: sp = '      '
@@ -582,13 +583,127 @@ subroutine makespaceinp
   close(infile)
 end subroutine makespaceinp
 
+subroutine makeparamsinc
+   implicit none
+   integer             :: startpar,endpar,i
+   logical             :: readtype
+   character(len=slen) :: parname
+
+   infile = 10
+   outfile = 11
+   endfound = .false.
+   readtype = .false.
+   open(infile,file='params.F90')
+   open(outfile,file='parameters.inc')
+   write(outfile,'(a)')'!! This code is generated automatocally by makeincludes'
+   write(outfile,'(a)')'!! Do not change manually'
+   write(outfile,'(a)')'subroutine outputparameters(par)'
+   write(outfile,'(a)')'use filefunctions'
+   write(outfile,'(a)')'implicit none'
+   write(outfile,'(a)')'type(parameters)        :: par'
+   write(outfile,'(a)')'integer                 :: fid,i'
+   write(outfile,'(a)')' '
+   write(outfile,'(a)')'fid=create_new_fid()'
+   write(outfile,'(a)')'open(fid,file=''params.dat'')'
+   do
+      call getline
+      if (endfound) then
+         exit
+      endif
+      if (.not. readtype) then
+	     if (line(1:15) == 'type parameters') then
+            readtype = .true.
+         endif
+	  else
+         ! look for end of type declaration
+         if (line(1:19) == 'end type parameters') then
+            readtype = .false.
+			exit
+         else  ! we're still reading in parameters
+            if (line(1:1) .ne. '!') then ! not reading comment lines
+               ! look for '::' and '='
+               startpar = 0
+               endpar = 0
+			   line=adjustl(line)
+               do i=1,slen-1
+                  if (line(i:i+1) == '::') then
+                     startpar = i+2
+					 exit
+                  endif
+               enddo
+               do i=1,slen-1
+                  if ((line(i:i) == '=') .and. (i>startpar) )then
+                     endpar = i-1
+					 exit
+                  endif
+               enddo
+               if ((startpar .ne. 0).and.(endpar.ne.0)) then ! we have a valid parameter
+                  dimensioned = .false.
+                  parname = trim(adjustl(line(startpar:endpar)))
+                  do i=1,startpar-1-9
+				     if (line(i:i+8)=='dimension') then
+			            dimensioned=.true.
+				        exit
+				     endif
+			      enddo
+                  if (line(1:9) =='character') then
+					 if (dimensioned) then
+					    if (parname(1:10)=='globalvars') then
+					       write(outfile,'(a)')'do i=1,par%nglobalvar'
+					       write(outfile,'(a)')'    write(fid,*)trim(adjustl(par%globalvars(i)))'
+					       write(outfile,'(a)')'enddo'   
+					    elseif(parname(1:9)=='meansvars') then
+					       write(outfile,'(a)')'do i=1,par%nmeanvar'
+				           write(outfile,'(a)')'    write(fid,*)trim(adjustl(par%meansvars(i)))'
+				           write(outfile,'(a)')'enddo'   
+				        elseif(parname(1:9)=='pointvars') then
+				           write(outfile,'(a)')'do i=1,par%nrugauge+par%npoints'
+				           write(outfile,'(a)')'    write(fid,*)trim(adjustl(par%pointvars(i)))'
+				           write(outfile,'(a)')'enddo' 
+				        endif
+                        !write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)
+					 else
+				        write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',trim(adjustl(par%'//trim(parname)//'))'
+				     endif
+				  else
+				     if (dimensioned) then
+				        if(parname(1:3)=='D50') then
+				           write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
+				        elseif(parname(1:3)=='D90') then
+				           write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
+				        elseif(parname(1:6)=='sedcal') then
+				           write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
+				        elseif(parname(1:6)=='ucrcal') then
+				           write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
+				        elseif(parname(1:6)=='ucrcal') then
+				           write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
+				        endif
+				     else
+				        write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)
+				     endif
+				  endif
+			   endif
+            endif 
+         endif
+      endif
+   enddo
+   write(outfile,'(a)')'close(fid)'
+   write(outfile,'(a)')'end subroutine'
+   close(infile)
+   close(outfile)
+
+
+
+end subroutine makeparamsinc
+
+
+
 end module makemodule
 
 program makeincludes
   use makemodule
   implicit none
   character(len=slen) :: command
-
   !
   ! count number of variables
   !
@@ -653,6 +768,8 @@ program makeincludes
      outputfilename = chartoindexname
      call makechartoindex
    endif
-
+   
+   call makeparamsinc
+   
 end program makeincludes
 

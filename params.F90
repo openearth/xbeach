@@ -38,9 +38,9 @@ type parameters
    real*8        :: CFL                        = -123    !  [-] Maximum Courant-Friedrichs-Lewy number
    character*80  :: tunits                     = 's'     !  Units can be defined in udunits format (seconds since 1970-01-01 00:00:00.00 +1:00)
    ! Projection units (not to be used, only pass to output, this limit is too short for WKT....)
-   ! This could be the proj4 string +init=epsg:28992
    character*80  :: projection                 = ' '     !  [-] projection string 
-   
+   ! This could be the proj4 string +init=epsg:28992   
+
    ! Physical constants                                                                                                            
    real*8        :: g                          = -123    !  [ms^-2] Gravitational acceleration
    real*8        :: rho                        = -123    !  [kgm^-3] Density of water
@@ -258,16 +258,16 @@ type parameters
    integer*4     :: nglobalvar                 = -123    !  [-] Number of global output variables (as specified by user)
    character(len=maxnamelen), dimension(numvars)   :: globalvars = 'abc' !  [-] Mnems of global output variables, not per se the same sice as nglobalvar (invalid variables, defaults)
    integer*4     :: nmeanvar                   = -123    !  [-] Number of mean,min,max,var output variables
+   character(len=maxnamelen), dimension(numvars)   :: meansvars  = 'abc'  !  [-] Mnems of mean output variables (by variables)
    integer*4     :: npointvar                  = -123    !  [-] Number of point output variables
    integer*4     :: npoints                    = -123    !  [-] Number of output point locations
+   integer*4     :: nrugauge                   = -123    !  [-] Number of output runup gauge locations
    character(len=maxnamelen), dimension(numvars)   :: pointvars  = 'abc'  !  [-] Mnems of point output variables (by variables)
    
    integer, dimension(:), pointer                     :: pointtypes => NULL()  !  [-] Point types (0 = point, 1=rugauge)
    real*8 ,dimension(:), pointer                      :: xpointsw => NULL()  ! world x-coordinate of output points
    real*8 ,dimension(:), pointer                     :: ypointsw => NULL()  ! world y-coordinate of output points
-   character(len=maxnamelen), dimension(numvars)   :: meansvars  = 'abc'  !  [-] Mnems of mean output variables (by variables)
-   
-   integer*4     :: nrugauge                   = -123    !  [-] Number of output runup gauge locations
+ 
    integer*4     :: ncross                     = -123    !  [-] Number of output cross sections
    character(24) :: outputformat               = 'debug' !  [name] Choice of output file format: 'netcdf', 'fortran', or 'debug'
    character(256):: ncfilename                 = 'xboutput.nc' ! [filename] xbeach netcdf output file name
