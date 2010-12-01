@@ -13,7 +13,10 @@
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool" CommandLine="pwd
 copy ..\*.tmpl .
-.\$(ConfigurationName)\makeincludes &lt; nul"/>
+copy ..\params.F90 .
+del ..\parameters.inc
+.\$(ConfigurationName)\makeincludes &lt; nul
+del params.F90"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|Win32">
 				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes"/>
@@ -25,7 +28,10 @@ copy ..\*.tmpl .
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool" CommandLine="pwd
 copy ..\*.tmpl .
-.\$(ConfigurationName)\makeincludes &lt; nul"/>
+copy ..\params.F90 .
+del ..\parameters.inc
+.\$(ConfigurationName)\makeincludes &lt; nul
+del params.F90"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="netcdf_Debug|Win32">
 				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" Interfaces="true" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
@@ -37,7 +43,10 @@ copy ..\*.tmpl .
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool" CommandLine="pwd
 copy ..\*.tmpl .
-.\$(ConfigurationName)\makeincludes &lt; nul"/>
+copy ..\params.F90 .
+del ..\parameters.inc
+.\$(ConfigurationName)\makeincludes &lt; nul
+del params.F90"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration></Configurations>
 	<Files>
 		<Filter Name="Header Files" Filter="fi;fd"/>

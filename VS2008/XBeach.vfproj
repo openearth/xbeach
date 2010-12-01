@@ -10,7 +10,8 @@
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool"/>
-				<Tool Name="VFPreBuildEventTool" CommandLine="cd ..
+				<Tool Name="VFPreBuildEventTool" CommandLine="copy parameters.inc ..\parameters.inc
+cd ..
 makeversiondat.bat"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
@@ -21,7 +22,8 @@ makeversiondat.bat"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool"/>
-				<Tool Name="VFPreBuildEventTool" CommandLine="cd ..
+				<Tool Name="VFPreBuildEventTool" CommandLine="copy parameters.inc ..\parameters.inc
+cd ..
 makeversiondat.bat"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
@@ -32,7 +34,8 @@ makeversiondat.bat"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool"/>
-				<Tool Name="VFPreBuildEventTool" CommandLine="cd ..
+				<Tool Name="VFPreBuildEventTool" CommandLine="copy parameters.inc ..\parameters.inc
+cd ..
 makeversiondat.bat"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
@@ -43,7 +46,8 @@ makeversiondat.bat"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool"/>
-				<Tool Name="VFPreBuildEventTool" CommandLine="cd ..
+				<Tool Name="VFPreBuildEventTool" CommandLine="copy parameters.inc ..\parameters.inc
+cd ..
 makeversiondat.bat"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
@@ -54,7 +58,8 @@ makeversiondat.bat"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool"/>
-				<Tool Name="VFPreBuildEventTool" CommandLine="cd ..
+				<Tool Name="VFPreBuildEventTool" CommandLine="copy parameters.inc ..\parameters.inc
+cd ..
 makeversiondat.bat"/>
 				<Tool Name="VFPostBuildEventTool" CommandLine="copy ..\lib\win32\all\hdf5\dll\*.dll $(OutDir)
 copy ..\lib\win32\all\szip\dll\*.dll $(OutDir)
