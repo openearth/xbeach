@@ -103,14 +103,14 @@ type parameters
    real*8        :: zs0                        = -123    !  [m] Inital water level
    character(256):: zs0file                    = 'abc'   !  Note, will replace lookup in readtide [name] Name of tide boundary condition series
    integer*4     :: tideloc                    = -123    !  [-] Number of corner points on which a tide time series is specified
-   integer*4     :: paulrevere                 = -123    !  [-] Specifies tide on sea and land (0) or two sea points (1) if tideloc = 2
+   character(256):: paulrevere                 = 'abc'   !  [-] Specifies tide on sea and land ('land') or two sea points ('sea') if tideloc = 2
                                                          !      if tideloc =>2, then this indicates where the time series are to be 
                                                          !      applied. Input for tidal information to xbeach options (3):
                                                          !      1. one tidal record --> specify tidal record everywhere
                                                          !      2. two tidal records --> Need to specify keyword 'paulrevere'
-                                                         !      paulrevere==0 implies to apply one tidal record to
+                                                         !      paulrevere=='land' implies to apply one tidal record to
                                                          !      both sea corners and one tidal record to both land corners
-                                                         !      paulrevere==1 implies to apply the first tidal record
+                                                         !      paulrevere=='sea' implies to apply the first tidal record
                                                          !      (column 2 in zs0input.dat) to the (x=1,y=1) sea corner and
                                                          !      the second tidal record (third column) to the (x=1,y=N) sea corner
                                                          !      3. four tidal records --> Need to list tidal records in  
@@ -543,7 +543,11 @@ contains
     par%tideloc    = readkey_int ('params.txt','tideloc', 0,             0,      4)
     if (par%tideloc>0) then
        if (par%tideloc==2) then
-          par%paulrevere = readkey_int ('params.txt','paulrevere', 0,       0,      1)
+          allocate(allowednames(2),oldnames(2))
+          allowednames=(/'land','sea '/)
+          oldnames=(/'0','1'/)
+          par%paulrevere = readkey_str('params.txt','paulrevere','land',2,2,allowednames,oldnames)
+          deallocate(allowednames,oldnames)
        endif
        par%zs0file = readkey_name('params.txt','zs0file')
        call check_file_exist(par%zs0file)

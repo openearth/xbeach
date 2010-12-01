@@ -608,16 +608,16 @@ contains
           par%zs02=par%zs01
        end if
 
-       ! tideloc = 2, paulrevere = 0
-       if(par%tideloc.eq.2 .and. par%paulrevere.eq.0) then
+       ! tideloc = 2, paulrevere = land
+       if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='land') then
           ! read in second water surface time series
           call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), par%tidelen, par%t, par%zs03, indt)
           par%zs02=par%zs01 ! second offshore corner is equal to first offshore corner
           par%zs04=par%zs03 ! second bay corner is equal to first bay corner
        endif
  
-       ! tideloc = 2, paulrevere = 1
-       if(par%tideloc.eq.2 .and. par%paulrevere.eq.1) then
+       ! tideloc = 2, paulrevere = sea
+       if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='sea') then
           call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), par%tidelen, par%t, par%zs02, indt)
           ! no timeseries at bay side, (and two different timeseries at offshore corners)
           par%zs03=0.d0
@@ -635,7 +635,7 @@ contains
        !
        if(par%tideloc.eq.1) s%zs0 = par%zs01
 
-       if(par%tideloc.eq.2 .and. par%paulrevere.eq.1) then
+       if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='sea') then
           yzs0(1)=s%yz(1)
           yzs0(2)=s%yz(s%ny+1)
           
@@ -658,7 +658,7 @@ contains
           enddo
        endif
 
-       if(par%tideloc.eq.2 .and. par%paulrevere.eq.0) then
+       if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='land') then
           yzs0(1)=s%xz(1)
           yzs0(2)=s%xz(s%nx+1)
           szs0(1)=par%zs01

@@ -112,7 +112,7 @@ type(spacepars)                             :: s
 if(xmpi_istop) then
    s%gwhead(1,:)=s%zs(1,:)
 elseif (xmpi_isbot) then
-   if (par%tideloc==4 .or. (par%tideloc==2 .and. par%paulrevere==0)) then
+   if (par%tideloc==4 .or. (par%tideloc==2 .and. trim(par%paulrevere)=='land')) then
        s%gwhead(s%nx+1,:)=s%zs(s%nx+1,:)
    else
       s%gwhead(s%nx+1,:)=s%gw0back(2,:)

@@ -223,13 +223,13 @@ contains
 
        if(par%tideloc.eq.1) par%zs02=par%zs01
 
-       if(par%tideloc.eq.2 .and. par%paulrevere.eq.0) then
+       if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='land') then
           par%zs03=s%tideinpz(1,2)
           par%zs02=par%zs01
           par%zs04=par%zs03
        endif
 
-       if(par%tideloc.eq.2 .and. par%paulrevere.eq.1) then
+       if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='sea') then
           par%zs02=s%tideinpz(1,2)
           par%zs03=0.d0
           par%zs04=0.d0
@@ -256,7 +256,7 @@ contains
        !
        if(par%tideloc.eq.1) s%zs0 = s%x*0.0d0 + par%zs01
 
-       if(par%tideloc.eq.2 .and. par%paulrevere.eq.1) then
+       if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='sea') then
           yzs0(1)=s%y(1,1)
           yzs0(2)=s%y(1,s%ny+1)
           szs0(1)=par%zs01
@@ -272,7 +272,7 @@ contains
           enddo
        endif
 
-       if(par%tideloc.eq.2 .and. par%paulrevere.eq.0) then
+       if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='land') then
           yzs0(1)=s%x(1,1)
           yzs0(2)=s%x(s%nx+1,1)
           szs0(1)=par%zs01
