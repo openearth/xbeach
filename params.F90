@@ -5,7 +5,7 @@ type parameters
 ! These parameters are constants, variables read from params.txt, or are scalars derived directly from read input
 !
 !  Type             name                   initialize    !  [unit] description    
-   ! Physical processes                                                                                                            
+   ! [Section] Physical processes                                                                                                            
    integer*4     :: swave                      = -123    !  [-] Include short waves (1), exclude short waves (0)
    integer*4     :: lwave                      = -123    !  [-] Include short wave forcing on NLSW equations and boundary conditions (1), or exclude (0)
    integer*4     :: flow                       = -123    !  [-] Include flow calculation (1), or exclude (0)
@@ -15,7 +15,7 @@ type parameters
    integer*4     :: gwflow                     = -123    !  [-] Turn on (1) or off (0) groundwater flow module
    integer*4     :: q3d                        = -123    !  [-] Turn on (1) or off (0) quasi-3D sediment transport module
   
-   ! Grid parameters                                                                                                                                                                                                                          
+   ! [Section] Grid parameters                                                                                                                                                                                                                          
    character(256):: depfile                    = 'abc'   !  [-] Name of the input bathymetry file
    real*8        :: posdwn                     = -123    !  [-] Bathymetry is specified positive down (1) or positive up (-1)
    integer*4     :: nx                         = -123    !  [-] Number of computiation cell corners in x-direction
@@ -33,15 +33,16 @@ type parameters
    real*8        :: dtheta                     = -123    !  [deg] Directional resolution
    integer*4     :: thetanaut                  = -123    !  [-] Thetamin,thetamax in cartesian (0) or nautical convention (1)
  
-   ! Model time                                                                                                                    
+   ! [Section] Model time                                                                                                                    
    real*8        :: tstop                      = -123    !  [s] Stop time of simulation, in morphological time
    real*8        :: CFL                        = -123    !  [-] Maximum Courant-Friedrichs-Lewy number
    character*80  :: tunits                     = 's'     !  Units can be defined in udunits format (seconds since 1970-01-01 00:00:00.00 +1:00)
    ! Projection units (not to be used, only pass to output, this limit is too short for WKT....)
-   character*80  :: projection                 = ' '     !  [-] projection string 
    ! This could be the proj4 string +init=epsg:28992   
+   character*80  :: projection                 = ' '     !  [-] projection string 
+   
 
-   ! Physical constants                                                                                                            
+   ! [Section] Physical constants                                                                                                            
    real*8        :: g                          = -123    !  [ms^-2] Gravitational acceleration
    real*8        :: rho                        = -123    !  [kgm^-3] Density of water
    real*8        :: depthscale                 = -123    !  depthscale of (lab)test simulated. 1 = default, which corresponds to teh real world (nature)
@@ -54,10 +55,10 @@ type parameters
                                                          !  wetslp, turb (suggested to turn off at depthscales<20) & ucr (distinguish ucr_bed load and 
                                                          !  ucr_sus at depthscales<20) 
  
-   ! Initial conditions
+   ! [Section] Initial conditions
    character(256):: zsinitfile                 = 'abc'   !  [name] Name of inital condition file zs
 
-   ! Wave boundary condition parameters                                                                                            
+   ! [Section] Wave boundary condition parameters                                                                                            
    character(24) :: instat                     = 'abc'   !  [-] Wave boundary condtion type
    real*8        :: taper                      = -123    !  [s] Spin-up time of wave boundary conditions, in morphological time  
    real*8        :: Hrms                       = -123    !  [m] Hrms wave height for instat = 0,1,2,3
@@ -71,7 +72,7 @@ type parameters
    character(24) :: leftwave                   = 'abc'   !  [-] old name for lateralwave
    character(24) :: rightwave                  = 'abc'   !  [-] old name for lateralwave
 
-   ! Wave-spectrum boundary condition parameters
+   ! [Section] Wave-spectrum boundary condition parameters
    character(256):: bcfile                     = 'abc'   !  Note, will replace current lookup in boundary conditions [name] Name of spectrum file  
    integer*4     :: random                     = -123    !  [-] Random seed on (1) or off (0) for instat = 4,5,6 boundary conditions
    real*8        :: fcutoff                    = -123    !  [Hz] Low-freq cutoff frequency for instat = 4,5,6 boundary conditions
@@ -87,7 +88,7 @@ type parameters
    real*8        :: dthetaS_XB                 = -123    !  [deg] If SWAN input is not in nautical degrees, dthetaS_XB is the angle from SWAN x-axis to XBeach x-axis in cathesian degrees
 
       
-   ! Flow boundary condition parameters
+   ! [Section] Flow boundary condition parameters
    character(24) :: front                      = 'abc'   !  [-] Switch for seaward flow boundary: 0 = radiating boundary(Ad), 1 = Van Dongeren, 1997
    character(24) :: left                       = 'abc'   !  [name] Switch for lateral boundary at ny+1, 'neumann' = vv computed from NSWE, 'wall' = reflective wall; vv=0
    character(24) :: right                      = 'abc'   !  [-] Switch for lateral boundary at right, 0 = vv computed from NSWE, 1 = reflective wall; vv=0 
@@ -99,7 +100,7 @@ type parameters
    character(24) :: tidetype                   = 'abc'   !  [-] Switch for offfshore boundary, velocity boundary or instant water level boundary (default)
    
 
-   ! Tide boundary conditions                                                                                                      
+   ! [Section] Tide boundary conditions                                                                                                      
    real*8        :: zs0                        = -123    !  [m] Inital water level
    character(256):: zs0file                    = 'abc'   !  Note, will replace lookup in readtide [name] Name of tide boundary condition series
    integer*4     :: tideloc                    = -123    !  [-] Number of corner points on which a tide time series is specified
@@ -121,11 +122,11 @@ type parameters
                                                          !         (x=N,y=1)
                                                          !      NOTE:  clockwise from (1,1) corner
  
-   ! Discharge boundary conditions 
+   ! [Section] Discharge boundary conditions 
    character(256):: disch_loc_file             = 'abc'   !  Note: will replace lookup in boundary conditions [name] Name of discharge locations file
    character(256):: disch_timeseries_file      = 'abc'   !  Note: will replace lookup in boundary conditions [name] Name of discharge timeseries file
 
-   ! Wave breaking parameters                                                                                                      
+   ! [Section] Wave breaking parameters                                                                                                      
    character(24) :: break                      = 'abc'   !  [-] Type of breaker formulation (1=roelvink, 2=baldock, 3=roelvink adapted, 4=roelvink on/off breaking)
    real*8        :: gamma                      = -123    !  [-] Breaker parameter in Baldock or Roelvink formulation
    real*8        :: gamma2                     = -123    !  [-] End of breaking parameter in break = 4 formulation
@@ -136,17 +137,17 @@ type parameters
    real*8        :: fw                         = -123    !  [-] Bed friction factor
    integer*4     :: breakerdelay               = -123    !  [-] Turn on (1) or off (0) breaker delay model
  
-   ! Roller parameters                                                                                                             
+   ! [Section] Roller parameters                                                                                                             
    integer*4     :: roller                     = -123    !  [-] Turn on (1) or off(0) roller model
    real*8        :: beta                       = -123    !  [-] Breaker slope coefficient in roller model
    integer*4     :: rfb                        = -123    !  [-] If rfb = 1 then maximum wave surface slope is feeded back in roller energy balance; else rfb = par%Beta
     
-   ! Wave-current interaction parameters                                                                                           
+   ! [Section] Wave-current interaction parameters                                                                                           
    integer*4     :: wci                        = -123    !  [-] Turns on (1) or off (0) wave-current interaction
    real*8        :: hwci                       = -123    !  [m] Minimum depth until which wave-current interaction is used
    real*8        :: cats                       = -123    !  [Trep] Current averaging time scale for wci, in terms of mean wave periods
 
-   ! Flow parameters                                                                                                               
+   ! [Section] Flow parameters                                                                                                               
    character(256):: bedfriction                = 'abc'   !  [-] Bed friction formulation: 'chezy','white-colebrook'
    real*8        :: C                          = -123    !  [m^0.5s^-1] Chezy coefficient
    real*8        :: cf                         = -123    !  [-] Friction coefficient flow
@@ -155,18 +156,18 @@ type parameters
    real*8        :: nuhv                       = -123    !  [-] Longshore viscosity enhancement factor, following Svendsen (?)
    integer*4     :: smag                       = -123    !  [-] (=1) Use smagorinsky subgrid model for viscocity
    
-   ! Coriolis force parameters
+   ! [Section] Coriolis force parameters
    real*8        :: wearth                     = -123    !  [hour^-1] Angular velocity of earth calculated as: 1/rotation_time (in hours), later changed in calculation code to rad/s
    real*8        :: lat                        = -123    !  [deg] Latitude at model location  for computing Coriolis
    
-   ! Wind parameters
+   ! [Section] Wind parameters
    real*8        :: rhoa                       = -123    !  [kgm^-3] Air density
    real*8        :: Cd                         = -123    !  [-] Wind drag coefficient
    real*8        :: windv                      = -123    !  [ms^-1] Wind velocity, in case of stationary wind
    real*8        :: windth                     = -123    !  [deg] Nautical wind direction, in case of stationary wind
    character(256) :: windfile                   = 'abc'   !  Note, will replace lookup in readwind [name] Name of file with non-stationary wind data
    
-   ! Groundwater parameters 
+   ! [Section] Groundwater parameters 
    real*8        :: kx                         = -123    !  [ms^-1] Darcy-flow permeability coefficient in x-direction [m/s]
    real*8        :: ky                         = -123    !  [ms^-1] Darcy-flow permeability coefficient in y-direction [m/s]
    real*8        :: kz                         = -123    !  [ms^-1] Darcy-flow permeability coefficient in z-direction [m/s]
@@ -177,13 +178,13 @@ type parameters
    character(256):: gw0file                    = 'abc'   !  Note, will replace lookup in groundwater module [name] Name of initial groundwater level file
 
    
-   ! Q3D sediment transport parameters
+   ! [Section] Q3D sediment transport parameters
    real*8        :: vonkar                     = -123    !   von Karman constant
    real*8        :: vicmol                     = -123    !   molecular viscosity
    integer*4     :: kmax                       = -123    !  [-] Number of sigma layers in Quasi-3D model; kmax = 1 (default) is without vertical structure of flow and suspensions
    real*8        :: sigfac                     = -123    !  [-] dsig scales with log(sigfac). Default = 1.3
    
-   ! Non-hydrostatic correction parameters
+   ! [Section] Non-hydrostatic correction parameters
    integer*4     :: solver_maxit               = -123    ! [-] Maximum number of iterations in the linear SIP solver
    real*8        :: solver_acc                 = -123    ! [?] accuracy with respect to the right-hand side used
                                                          !     in the following termination criterion:
@@ -194,7 +195,7 @@ type parameters
    real*8        :: dispc                      = -123    ! Coefficient in front of the vertical pressure gradient, Default = 1.
    real*8        :: Topt                       = -123    ! Absolute period to optimize coefficient
    
-   ! Bed composition parameters
+   ! [Section] Bed composition parameters
    real*8        :: rhos                       = -123    !  [kgm^-3] Solid sediment density (no pores)
    integer*4     :: ngd                        = -123    !  [-] Number of sediment classes
    integer*4     :: nd                         = -123    !  [-] Number of computational layers in the bed
@@ -208,7 +209,7 @@ type parameters
    real*8,dimension(99)  :: ucrcal             = -123    !  Note, will replace lookup in initialize [-] Critical velocity calibration coefficient per grain type
 
 
-   ! Sediment transport parameters                                                                                    
+   ! [Section] Sediment transport parameters                                                                                    
    character(24) :: waveform                   = 'abc'   !  [-] Option for waveshape model: 1 = Ruessink & Van Rijn, 2 = Van Thiel de Vries, 2009             
    character(24) :: form                       = 'abc'   !  [-] Equilibrium sed. conc. formulation: 1 = Soulsby van Rijn, 1997, 2 = Van Rijn 2008 with modifications by Van Thiel
    integer*4     :: sws                        = -123    !  [-] 1 = short wave & roller stirring and undertow, 0 = no short wave & roller stirring and undertow
@@ -234,7 +235,7 @@ type parameters
    integer*4     :: bed                        = -123    !  [-] Calibration factor for bed transports [0..1]
    integer*4     :: bulk                       = -123    !  [-] Option to compute bedload and suspended load seperately; 0 = seperately, 1 = bulk (as in previous versions)
    
-   ! Morphology parameters                                                                                                         
+   ! [Section] Morphology parameters                                                                                                         
    real*8        :: morfac                     = -123    !  [-] Morphological acceleration factor
    integer*4     :: morfacopt                  = -123    !  [-] Option indicating whether times should be adjusted (1) or not(0) for morfac
    real*8        :: morstart                   = -123    !  [s] Start time morphology, in morphological time
@@ -245,7 +246,7 @@ type parameters
    integer*4     :: struct                     = -123    !  [-] Switch for hard structures
    character(256):: ne_layer                   = 'abc'   !  [name] Name of file containing depth of hard structure
  
-   ! Output variables                                                                                                              
+   ! [Section] Output variables                                                                                                              
    integer*4     :: timings                    = -123    !  [-] Switch to turn on (1) or off (0) progress output to screen
    real*8        :: tstart                     = -123    !  [s] Start time of output, in morphological time
    real*8        :: tint                       = -123    !  [s] Interval time of global output (replaced by tintg)
@@ -275,43 +276,43 @@ type parameters
    character(256):: ncfilename                 = 'xboutput.nc' ! [filename] xbeach netcdf output file name
 
   
-   ! Drifters parameters
+   ! [Section] Drifters parameters
    integer*4     :: ndrifter                   = -123    !  Note: will replace lookup in drifters module [-] Number of drifers
    character(256) :: drifterfile               = 'abc'   !  Note: will replace lookup in drifters module [name] Name of drifter data file
 
-   ! Wave numerics parameters                                                                                                      
+   ! [Section] Wave numerics parameters                                                                                                      
    character(256):: scheme                     = 'abc'   !  [-] Use first-order upwind (upwind_1), second order upwind (upwind_2) or Lax-Wendroff (lax_wendroff)
                                                          !      for wave propagation
    real*8        :: wavint                     = -123    !  [s] Interval between wave module calls (only in stationary wave mode)
    real*8        :: maxerror                   = -123    !  [m] Maximum wave height error in wave stationary iteration
    integer*4     :: maxiter                    = -123    !  [-] Maximum number of iterations in wave stationary
  
-   ! Flow numerics parameters                                                                                                      
+   ! [Section] Flow numerics parameters                                                                                                      
    real*8        :: eps                        = -123    !  [m] Threshold water depth above which cells are considered wet
    real*8        :: umin                       = -123    !  [m/s] Threshold velocity for upwind velocity detection and for vmag2 in eq. sediment concentration
    real*8        :: hmin                       = -123    !  [m] Threshold water depth above which Stokes drift is included
    integer*4     :: secorder                   = -123    !  [-] Use second order corrections to advection/non-linear terms based on mcCormack scheme
    integer*4     :: oldhu                      = -123    !  [-] Turn on / off old hu calculation
 
-   ! Sediment transport numerics parameters                                                                                  
+   ! [Section] Sediment transport numerics parameters                                                                                  
    real*8        :: thetanum                   = -123    !  [-] Coefficient determining whether upwind (1) or central scheme (0.5) is used.
    integer*4     :: sourcesink                 = -123    !  [-] In suspended transport use source-sink terms to calculate bed level change (1) or sus transport gradients (0)
 
-   ! Bed update numerics parameters
+   ! [Section] Bed update numerics parameters
    real*8        :: frac_dz                    = -123    !  [-] Relative thickness to split time step for bed updating
    integer*4     :: nd_var                     = -123    !  [-] Index of layer with variable thickness 
    real*8        :: split                      = -123    !  [-] Split threshold for variable sediment layer (ratio to nominal thickness)
    real*8        :: merge                      = -123    !  [-] Merge threshold for variable sediment layer (ratio to nominal thickness)
 
-   ! MPI parameters
+   ! [Section] MPI parameters
    character(256)   :: mpiboundary               = 'abc'   ! Fix mpi boundaries along y-lines ('y'), x-lines ('x'), or find shortest boundary ('auto')
   
-   ! Constants, not read in params.txt
+   ! [Section] Constants, not read in params.txt
    real*8               :: px                  = -123    !  [-] Pi
    complex(kind(0.0d0)) :: compi               = -123    !  [-] Imaginary unit
    real*8               :: rhog8               = -123    !  [Nm^-3] 1/8*rho*g
 
-   ! Variables, not read in params.txt
+   ! [Section] Variables, not read in params.txt
    real*8               :: dt                  = -123    !  [s] Computational time step, in hydrodynamic time
    real*8               :: t                   = -123    !  [s] Computational time, in hydrodynamic time
    real*8               :: tnext               = -123    !  [s] Next time point for output or wave stationary calculation, in hydrodynamic time
