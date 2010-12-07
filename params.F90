@@ -75,7 +75,7 @@ type parameters
    character(256):: bcfile                     = 'abc'   !  Note, will replace current lookup in boundary conditions [name] Name of spectrum file  
    integer*4     :: random                     = -123    !  [-] Random seed on (1) or off (0) for instat = 4,5,6 boundary conditions
    real*8        :: fcutoff                    = -123    !  [Hz] Low-freq cutoff frequency for instat = 4,5,6 boundary conditions
-   integer*4     :: nspr                       = -123    !  [-] nspr = 1 bin all wave components for generation of qin (instat 4,5,6) in one direction, nspr = 0 regular long wave spreadin
+   integer*4     :: nspr                       = -123    !  [-] nspr = 1 long wave direction forced into centres of short wave bins, nspr = 0 regular long wave spreadin
    real*8        :: trepfac                    = -123    !  [-] Compute mean wave period over energy band: par%trepfac*maxval(Sf) for instat 4,5,6; converges to Tm01 for trepfac = 0.0 and
    real*8        :: sprdthr                    = -123    !  [-] Threshold ratio to maxval of S above which spec dens are read in (default 0.08*maxval)
    integer*4     :: oldwbc                     = -123    !  [-] (1) Use old version wave boundary conditions for instat 4,5,6
@@ -218,7 +218,9 @@ type parameters
    real*8        :: z0                         = -123    !  [m] Zero flow velocity level in Soulsby van Rijn (1997) sed.conc. expression
    real*8        :: smax                       = -123    !  [-] Being tested: maximum Shields parameter for ceq Diane Foster
    real*8        :: tsfac                      = -123    !  [-] Coefficient determining Ts = tsfac * h/ws in sediment source term
-   real*8        :: facua                      = -123    !  [-] Calibration factor time averaged flows due to wave asymmetry
+   real*8        :: facua                      = -123    !  [-] Calibration factor time averaged flows due to wave skewness and asymmetry
+   real*8        :: facSk                      = -123    !  [-] Calibration factor time averaged flows due to wave skewness 
+   real*8        :: facAs                      = -123    !  [-] Calibration factor time averaged flows due to wave asymmetry
    character(24) :: turb                       = 'abc'   !  [-] Equlibrium sediment concentration is computed as function of:
                                                          !      none = no turbulence, 
 														 !      wave_averaged = wave averaged turbulence
@@ -758,6 +760,12 @@ contains
        par%smax     = readkey_dbl ('params.txt','smax',   -1.d0,    -1.d0,   3.d0)       !changed 28/11 and back 10/2
        par%tsfac    = readkey_dbl ('params.txt','tsfac',   0.1d0,    0.01d0,   1.d0) 
        par%facua    = readkey_dbl ('params.txt','facua  ',0.10d0,    0.00d0,   1.0d0) 
+       par%facSk    = readkey_dbl ('params.txt','facSk  ',0.00d0,    0.00d0,   1.0d0) 
+       par%facAs    = readkey_dbl ('params.txt','facAs  ',0.00d0,    0.00d0,   1.0d0) 
+       if (par%facSk==0 .or. par%facAs==0) then
+          par%facSk = par%facua
+          par%facAs = par%facua
+       endif
        allocate(allowednames(3),oldnames(3))
        allowednames=(/'none         ','wave_averaged','bore_averaged'/)
        oldnames=(/'0','1','2'/)

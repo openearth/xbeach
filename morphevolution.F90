@@ -1387,8 +1387,8 @@ Ur = max(Ur,0.000000000001d0)
 Bm = m1 + (m2-m1)/(1.d0+beta*Ur**alpha)                    !Boltzmann sigmoid (eq 6)         
 B1 = (-90.d0+90.d0*tanh(m5/Ur**m6))*par%px/180.d0
 Sk = Bm*cos(B1)                                            !Skewness (eq 8)
-As = Bm*sin(B1)                                            !Asymmetry(eq 9)
-ua = par%sws*par%facua*(Sk-As)*urms
+As = Bm*sin(B1)                                            !Asymmetry(eq 9)                                
+ua = par%sws*(par%facSk*Sk-par%facAs*As)*urms
 
  
 end subroutine RvR  
@@ -1480,7 +1480,8 @@ do j=1,ny+1
       As(i,j) = f0*RF(14,ih0,it0)+f1*RF(14,ih1,it0)+ f2*RF(14,ih0,it1)+f3*RF(14,ih1,it1)
       
       ! Sediment advection velocity from Skewness and Assymetry
-      ua(i,j) = par%sws*par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
+      ! ua(i,j) = par%sws*par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
+      ua(i,j) = par%sws*(par%facSk*Sk(i,j)-par%facAs*As(i,j))*urms(i,j)
 
       ! Estimate bore period Tbore and mean slope bore front to feeded back in roller energy balance
       
