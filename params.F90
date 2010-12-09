@@ -758,7 +758,7 @@ contains
        par%BRfac    = readkey_dbl ('params.txt','BRfac',    1.0d0,       0.d0, 1.d0)
        par%facsl    = readkey_dbl ('params.txt','facsl  ',  1.6d0,       0.d0, 1.6d0)  
        par%z0       = readkey_dbl ('params.txt','z0     ',0.006d0,    0.0001d0,   0.05d0)  
-       par%smax     = readkey_dbl ('params.txt','smax',   -1.d0,    -1.d0,   3.d0)       !changed 28/11 and back 10/2
+       par%smax     = readkey_dbl ('params.txt','smax',   1.d0,    -1.d0,   3.d0)       !changed 28/11 and back 10/2
        par%tsfac    = readkey_dbl ('params.txt','tsfac',   0.1d0,    0.01d0,   1.d0) 
        par%facua    = readkey_dbl ('params.txt','facua  ',0.10d0,    0.00d0,   1.0d0) 
        par%facSk    = readkey_dbl ('params.txt','facSk  ',0.00d0,    0.00d0,   1.0d0) 
