@@ -76,8 +76,8 @@ subroutine log_progress(par)
 
    type(parameters)                    :: par
    logical,save                        :: firsttime = .true.
-   integer,save                        :: day
-   real*8,save                         :: tprev,percprev
+   integer,save                        :: day, ndt
+   real*8,save                         :: tprev,percprev,sumdt
    real*8                              :: tnow,percnow,tpredicted
    integer,dimension(8)                :: datetime
    
@@ -88,19 +88,27 @@ subroutine log_progress(par)
        tprev = day*24.d0*3600.d0+datetime(5)*3600.d0+60.d0*datetime(6)+1.d0*datetime(7)+0.001d0*datetime(8)
        percprev = 0.d0
        firsttime = .false.
+       ndt = 0
+       sumdt = 0.d0
     else    
        if (par%timings .ne. 0) then
-          
+          ndt=ndt+1
+          sumdt=sumdt+par%dt
           call date_and_time(VALUES=datetime)
           ! Current time in seconds
           tnow=day*24.d0*3600.d0+datetime(5)*3600.d0+60.d0*datetime(6)+1.d0*datetime(7)+0.001d0*datetime(8)
           ! Is it time to update the log again?
           if (tnow>=tprev+5.d0) then
+             ! Percentage complete
              percnow = 100.d0*par%t/par%tstop
+             call writelog('ls','(a,f5.1,a)','Simulation ',percnow,' percent complete')
+             ! Average time step in the last 5 seconds
+             call writelog('ls','(a,f7.4,a)','Average time step last interval: ',sumdt/ndt,' seconds')
+             ndt=0
+             sumdt=0.d0
              ! Predict time based on percentage change rate in the last 5 seconds. 
              tpredicted = 100.d0*(1.d0-par%t/par%tstop)/(max(percnow-percprev,0.01d0)/(tnow-tprev))
              ! Percentage complete:
-             call writelog('ls','(a,f5.1,a)','Simulation ',percnow,' percent complete')
              if (tpredicted>=3600) then 
                 call writelog('ls','(a,I0,a,I2,a)','Time remaining ',&
                      floor(tpredicted/3600.0d0),' hours and ',&
