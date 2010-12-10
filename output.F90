@@ -77,7 +77,7 @@ subroutine log_progress(par)
    type(parameters)                    :: par
    logical,save                        :: firsttime = .true.
    integer,save                        :: day, ndt
-   real*8,save                         :: tprev,percprev,sumdt
+   real*8,save                         :: tprev,percprev,sumdt,dtavg
    real*8                              :: tnow,percnow,tpredicted
    integer,dimension(8)                :: datetime
    
@@ -101,9 +101,9 @@ subroutine log_progress(par)
           if (tnow>=tprev+5.d0) then
              ! Percentage complete
              percnow = 100.d0*par%t/par%tstop
-             call writelog('ls','(a,f5.1,a)','Simulation ',percnow,' percent complete')
              ! Average time step in the last 5 seconds
-             call writelog('ls','(a,f7.4,a)','Average time step last interval: ',sumdt/ndt,' seconds')
+             dtavg = sumdt/ndt
+             call writelog('ls','(a,f5.1,a,f5.3,a)','Simulation ',percnow,' percent complete. Average dt ',sumdt/ndt,' seconds')
              ndt=0
              sumdt=0.d0
              ! Predict time based on percentage change rate in the last 5 seconds. 

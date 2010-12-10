@@ -47,6 +47,7 @@ interface writelog
    module procedure writelog_aaf
    module procedure writelog_afa
    module procedure writelog_afaf
+   module procedure writelog_afafa
    module procedure writelog_aaaf
    module procedure writelog_aafa
    module procedure writelog_afaaa
@@ -649,6 +650,25 @@ subroutine writelog_afaf(destination,form,message_char1,message_f1,message_char2
    endif
 end subroutine writelog_afaf
 
+subroutine writelog_afafa(destination,form,mc1,mf1,mc2,mf2,mc3)
+   implicit none
+   character(*),intent(in)    ::  form,mc1,mc2,mc3
+   character(*),intent(in)       ::  destination
+   real*8,intent(in)          ::  mf1,mf2
+   character(1024)            ::  display
+ 
+   if (form=='') then
+      write(display,*)mc1,mf1,mc2,mf2,mc3
+   else
+      write(display,form)mc1,mf1,mc2,mf2,mc3
+   endif
+
+   if (xmaster) then 
+      if (scan(destination,'s')>0) write(*,*)trim(display)
+      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
+      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
+   endif
+end subroutine writelog_afafa
 
 subroutine writelog_aaaf(destination,form,message_char1,message_char2,message_char3,message_f1)
    implicit none
