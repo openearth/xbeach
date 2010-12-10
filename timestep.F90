@@ -396,9 +396,6 @@ subroutine timestep(s,par, tpar, it)
   ! Next time step will be, min(output times, t+dt) 
 
   tny = tiny(0.d0)
-  if (par%t .gt. 119) then
-     par%t = par%t + 0.0d0
-  end if
 
   ! Robert new time step criterion
   if (par%t<=0.0d0) then          ! conservative estimate
@@ -439,10 +436,10 @@ subroutine timestep(s,par, tpar, it)
 
 #ifdef USEMPI
 
-     par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tiny(0.0d0)))
+     par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tny))
 #else
      if (par%instat(1:4)/='stat') then
-        par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tiny(0.0d0)))
+        par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tny))
      end if
 #endif
      !To avoid large timestep differences due to output, which can cause instabities
