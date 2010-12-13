@@ -39,7 +39,6 @@ type parameters
    character*80  :: tunits                     = 's'     !  Units can be defined in udunits format (seconds since 1970-01-01 00:00:00.00 +1:00)
    ! Projection units (not to be used, only pass to output, this limit is too short for WKT....)
    ! This could be the proj4 string +init=epsg:28992   
-   character*80  :: projection                 = ' '     !  [-] projection string 
    
 
    ! [Section] Physical constants                                                                                                            
@@ -274,6 +273,7 @@ type parameters
    integer*4     :: ncross                     = -123    !  [-] Number of output cross sections
    character(24) :: outputformat               = 'debug' !  [name] Choice of output file format: 'netcdf', 'fortran', or 'debug'
    character(256):: ncfilename                 = 'xboutput.nc' ! [filename] xbeach netcdf output file name
+   character*80  :: projection                 = ' '     !  [-] projection string 
 
   
    ! [Section] Drifters parameters
