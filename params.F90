@@ -224,8 +224,8 @@ type parameters
    real*8        :: facAs                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave asymmetry
    character(24) :: turb                       = 'abc'   !  [-] (advanced) Equlibrium sediment concentration is computed as function of:
                                                          !      none = no turbulence, 
-														 !      wave_averaged = wave averaged turbulence
-														 !      bore_averaged = maximum turbulence
+							 !      wave_averaged = wave averaged turbulence
+							 !      bore_averaged = maximum turbulence
    real*8        :: Tbfac                      = -123    !  [-] (advanced) Calibration factor for bore interval Tbore: Tbore = Tbfac*Tbore
    real*8        :: Tsmin                      = -123    !  [s] (advanced) Minimum adaptation time scale in advection diffusion equation sediment    
    integer*4     :: lwt                        = -123    !  [-] (advanced) Switch 0/1 long wave turbulence model
