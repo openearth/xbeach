@@ -942,11 +942,10 @@ contains
     ! MPI parameters
     call writelog('l','','--------------------------------')
     call writelog('l','','MPI parameters: ') 
-    ! TODO: Should this be readkey_str?
-    par%mpiboundary = readkey_name('params.txt','mpiboundary')
-    if (par%mpiboundary==' ') then 
-       par%mpiboundary='auto'   ! Default
-    endif
+    allocate(allowednames(3),oldnames(0))
+    allowednames=(/'auto ','x   ','y   '/)
+    par%mpiboundary= readkey_str('params.txt','mpiboundary','auto',3,0,allowednames,oldnames)
+    deallocate(allowednames,oldnames)
     !
     !
     ! Finish
