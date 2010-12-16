@@ -12,6 +12,7 @@ type parameters
 !  - Fortran declaration always as "kind  ::  name   = initial value"
 !  - After the declaration of a variable add exclamation mark, followed by [unit] and decription.
 !    If the parameter is essentially only for advanced users, follow the unit declation by "(advanced)"
+!    If the parameter is deprecated, but still used for backwards-compatibility, follow the unit declation by "(deprecated)"
 !  - Description of a variable may continue on a new line as long as the first character is "!" and the
 !    position of the first "!" is greater than 50 characters from the start of the line. Best practice
 !    is to keep in line with the start of the description on the line above.
@@ -72,13 +73,13 @@ type parameters
    character(24) :: instat                     = 'abc'   !  [-] Wave boundary condtion type
    real*8        :: taper                      = -123    !  [s] Spin-up time of wave boundary conditions, in morphological time  
    real*8        :: Hrms                       = -123    !  [m] Hrms wave height for instat = 0,1,2,3
-   real*8        :: Tm01                       = -123    !  [s] Old name for Trep
+   real*8        :: Tm01                       = -123    !  [s] (deprecated) Old name for Trep
    real*8        :: Trep                       = -123    !  [s] Representative wave period for instat = 0,1,2,3
    real*8        :: Tlong                      = -123    !  [s] Wave group period for case instat = 1
    real*8        :: dir0                       = -123    !  [deg] Mean wave direction (Nautical convention) for instat = 0,1,2,3
    real*8        :: nmax                       = -123    !  [-] (advanced) maximum ratio of cg/c fro computing long wave boundary conditions
    integer*4     :: m                          = -123    !  [-] Power in cos^m directional distribution for instat = 0,1,2,3
-   character(24) :: lateralwave                = 'neumann'   !  [-] Switch for lateral boundary at left, 'neumann' = E Neumann, 'wavefront' = along wave front
+   character(24) :: lateralwave                = 'neumann'   !  [-] (deprecated) Switch for lateral boundary at left, 'neumann' = E Neumann, 'wavefront' = along wave front
    character(24) :: leftwave                   = 'abc'   !  [-] old name for lateralwave
    character(24) :: rightwave                  = 'abc'   !  [-] old name for lateralwave
 
@@ -259,7 +260,7 @@ type parameters
    ! [Section] Output variables                                                                                                              
    integer*4     :: timings                    = -123    !  [-] (advanced) Switch to turn on (1) or off (0) progress output to screen
    real*8        :: tstart                     = -123    !  [s] Start time of output, in morphological time
-   real*8        :: tint                       = -123    !  [s] (advanced) Interval time of global output (replaced by tintg)
+   real*8        :: tint                       = -123    !  [s] (deprecated) Interval time of global output (replaced by tintg)
    real*8        :: tintg                      = -123    !  [s] Interval time of global output
    real*8        :: tintp                      = -123    !  [s] Interval time of point and runup gauge output
    real*8        :: tintc                      = -123    !  [s] (advanced) Interval time of cross section output
