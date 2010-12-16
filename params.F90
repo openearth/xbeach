@@ -4,6 +4,20 @@ module params
 type parameters
 ! These parameters are constants, variables read from params.txt, or are scalars derived directly from read input
 !
+!  Please maintain current setup of type declaration in order to allow parsing of this file by script readers,
+!  such as the function "xb_get_params" in OpenEarth (http://public.deltares.nl/display/OET/OpenEarth). 
+! 
+!  Rules are:
+!  - [Section] markers indicate new sets of parameters, followed by the name of the set
+!  - Fortran declaration always as "kind  ::  name   = initial value"
+!  - After the declaration of a variable add exclamation mark, followed by [unit] and decription.
+!    If the parameter is essentially only for advanced users, follow the unit declation by "(advanced)"
+!  - Description of a variable may continue on a new line as long as the first character is "!" and the
+!    position of the first "!" is greater than 50 characters from the start of the line. Best practice
+!    is to keep in line with the start of the description on the line above.
+!  - To enable parsing of "all_input" subroutine please only use "if () then, ... , endif/else/elseif" blocks,
+!    rather than one line "if () ..." commands in the "all_input" subroutine.
+!
 !  Type             name                   initialize    !  [unit] (advanced) description    
    ! [Section] Physical processes                                                                                                            
    integer*4     :: swave                      = -123    !  [-] Include short waves (1), exclude short waves (0)
