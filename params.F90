@@ -51,11 +51,7 @@ type parameters
    real*8        :: tstop                      = -123    !  [s] Stop time of simulation, in morphological time
    real*8        :: CFL                        = -123    !  [-] Maximum Courant-Friedrichs-Lewy number
    character*80  :: tunits                     = 's'     !  [-] (advanced) Units can be defined in udunits format (seconds since 1970-01-01 00:00:00.00 +1:00)
-   ! Projection units (not to be used, only pass to output, this limit is too short for WKT....)
-   ! This could be the proj4 string +init=epsg:28992   
-   character*80  :: projection                 = ' '     !  [-] (advanced) projection string 
    
-
    ! [Section] Physical constants                                                                                                            
    real*8        :: g                          = -123    !  [ms^-2] Gravitational acceleration
    real*8        :: rho                        = -123    !  [kgm^-3] Density of water
@@ -288,6 +284,9 @@ type parameters
    integer*4     :: ncross                     = -123    !  [-] (advanced) Number of output cross sections
    character(24) :: outputformat               = 'debug' !  [-] (advanced) Choice of output file format: 'netcdf', 'fortran', or 'debug'
    character(256):: ncfilename                 = 'xboutput.nc' ! [-] (advanced) xbeach netcdf output file name
+   ! Projection units (not to be used, only pass to output, this limit is too short for WKT....)
+   ! This could be the proj4 string +init=epsg:28992   
+   character*80  :: projection                 = ' '     !  [-] (advanced) projection string 
 
   
    ! [Section] Drifters parameters
