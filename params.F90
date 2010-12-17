@@ -599,7 +599,9 @@ contains
     par%break   = readkey_str('params.txt','break','roelvink2',4,4,allowednames,oldnames)
     deallocate(allowednames,oldnames)
     par%gamma    = readkey_dbl ('params.txt','gamma',   0.55d0,     0.4d0,     0.9d0)   !changed 28/11
-    if (trim(par%break)=='roelvink_daly') par%gamma2   = readkey_dbl ('params.txt','gamma2',   0.3d0,     0.0d0,     0.5d0)
+    if (trim(par%break)=='roelvink_daly') then
+       par%gamma2   = readkey_dbl ('params.txt','gamma2',   0.3d0,     0.0d0,     0.5d0)
+    endif
     par%alpha    = readkey_dbl ('params.txt','alpha',   1.0d0,     0.5d0,     2.0d0)
     par%n        = readkey_dbl ('params.txt','n',       10.0d0,     5.0d0,    20.0d0)   !changed 28/11
     par%gammax   = readkey_dbl ('params.txt','gammax',   2.d0,      .4d0,      5.d0)    !changed 28/11
