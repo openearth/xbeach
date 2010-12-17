@@ -67,6 +67,7 @@ type parameters
                                                          !  ucr_sus at depthscales<20) 
  
    ! [Section] Initial conditions
+   real*8        :: zs0                        = -123    !  [m] Inital water level
    character(256):: zsinitfile                 = 'abc'   !  [name] Name of inital condition file zs
 
    ! [Section] Wave boundary condition parameters                                                                                            
@@ -112,7 +113,6 @@ type parameters
    
 
    ! [Section] Tide boundary conditions                                                                                                      
-   real*8        :: zs0                        = -123    !  [m] Inital water level
    character(256):: zs0file                    = 'abc'   !  [-] Name of tide boundary condition series
    integer*4     :: tideloc                    = -123    !  [-] Number of corner points on which a tide time series is specified
    character(256):: paulrevere                 = 'abc'   !  [-] Specifies tide on sea and land ('land') or two sea points ('sea') if tideloc = 2
