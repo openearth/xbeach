@@ -111,8 +111,8 @@ CONTAINS
 subroutine close_logfiles
 
 if (xmaster) then 
-close(logfileid)
-close(errorfileid, STATUS ='DELETE')
+   close(logfileid)
+   close(errorfileid, STATUS ='DELETE')
 endif
 
 end subroutine close_logfiles

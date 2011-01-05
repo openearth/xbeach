@@ -14,12 +14,10 @@ contains
 
     integer    :: fileunit
 
+    fileunit = -1 ! temporary
     if (xmaster) then 
        fileunit = create_new_fid_generic()
-    endif
-
-    if (fileunit==-1) then
-       if (xmaster) then
+       if (fileunit==-1) then
           call writelog('les','','Serious problem: not enough free unit ids to create new file')
           call halt_program
        endif
@@ -42,8 +40,8 @@ contains
     if (error==1) then
        if (xmaster) then
           call writelog('sle','','File ''',trim(filename),''' not found. Terminating simulation')
-          call halt_program
        endif
+	   call halt_program
     endif
   end subroutine check_file_exist
 
@@ -60,22 +58,20 @@ contains
     integer                        ::  i
     real,dimension(:),allocatable  ::  dat
 
-    allocate(dat(d1))
-
-    fid = create_new_fid()
     if (xmaster) then
-       open(fid,file=fname)
+	   allocate(dat(d1))
+       fid = create_new_fid()
+	   open(fid,file=fname)
        read(fid,*,iostat=iost)(dat(i),i=1,d1)
-    endif
-
-    if (iost .ne. 0) then
-       if (xmaster) then
+       if (iost .ne. 0) then
           call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
                ' Terminating simulation' )
           call halt_program
        endif
-    endif
-    close(fid)
+       close(fid)
+	   deallocate(dat)
+	endif
+    
   end subroutine check_file_length_1D
 
   subroutine check_file_length_2D(fname,d1,d2)
@@ -89,22 +85,20 @@ contains
     integer                          :: i,j
     real,dimension(:,:),allocatable  :: dat
 
-    allocate(dat(d1,d2))
-
-    fid = create_new_fid()
+   
     if (xmaster) then 
+	   allocate(dat(d1,d2))
+       fid = create_new_fid()
        open(fid,file=fname)
        read(fid,*,iostat=iost)((dat(i,j),i=1,d1),j=1,d2)
-    endif
-
-    if (iost .ne. 0) then
-       if (xmaster) then
+       if (iost .ne. 0) then
           call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
                ' Terminating simulation')
           call halt_program
        endif
+       close(fid)
+	   deallocate(dat)
     endif
-    close(fid)
   end subroutine check_file_length_2D
 
   subroutine check_file_length_3D(fname,d1,d2,d3)
@@ -118,22 +112,20 @@ contains
     integer                            ::  i,j,k
     real,dimension(:,:,:),allocatable  ::  dat
 
-    allocate(dat(d1,d2,d3))
-
-    fid = create_new_fid()
+    
     if (xmaster) then 
+	   allocate(dat(d1,d2,d3))
+       fid = create_new_fid()
        open(fid,file=fname)
        read(fid,*,iostat=iost)(((dat(i,j,k),i=1,d1),j=1,d2),k=1,d3)
-    endif
-
-    if (iost .ne. 0) then
-       if (xmaster) then
+       if (iost .ne. 0) then
           call writelog('esl','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
                ' Terminating simulation')
           call halt_program
        endif
-    endif
-    close(fid)
+	   close(fid)
+	   deallocate(dat)
+    endif    
   end subroutine check_file_length_3D
 
   subroutine checkbcfilelength(tstop,instat,filename,filetype)
