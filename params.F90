@@ -614,8 +614,20 @@ contains
     par%bedfriction = readkey_str('params.txt','bedfriction','chezy',2,0,allowednames,oldnames)
     deallocate(allowednames,oldnames)
     if (trim(par%bedfriction)=='chezy') then
-       par%cf      = readkey_dbl ('params.txt','cf',      3.d-3,     0.d0,     0.1d0)
-       par%C       = readkey_dbl ('params.txt','C',       sqrt(par%g/par%cf),     20.d0,    100.d0)
+       if (isSetParameter('params.txt','cf') .and. .not. isSetParameter('params.txt','C')) then
+          par%cf      = readkey_dbl ('params.txt','cf',      3.d-3,     0.d0,     0.1d0)
+          par%C = sqrt(par%g/par%cf)
+       elseif (isSetParameter('params.txt','C') .and. .not. isSetParameter('params.txt','cf')) then
+          par%C       = readkey_dbl ('params.txt','C',   55.d0 ,     20.d0,    100.d0)
+          par%cf      = par%g/par%C**2
+       elseif (isSetParameter('params.txt','C') .and. isSetParameter('params.txt','cf')) then
+          par%C       = readkey_dbl ('params.txt','C',   55.d0 ,     20.d0,    100.d0)
+          par%cf      = par%g/par%C**2
+          call writelog('ls','(a)','Warning: C and cf both specified. C will take precedence')
+       else
+          par%C       = readkey_dbl ('params.txt','C',   55.d0 ,     20.d0,    100.d0)
+          par%cf      = par%g/par%C**2
+       endif  
     endif
     par%nuh     = readkey_dbl ('params.txt','nuh',       0.1d0,     0.0d0,   1.0d0)
     par%nuhfac  = readkey_dbl ('params.txt','nuhfac',    1.0d0,     0.0d0,   1.0d0)
