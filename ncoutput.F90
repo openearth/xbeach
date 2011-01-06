@@ -192,8 +192,8 @@ contains
           if (status /= nf90_noerr) call handle_err(status)
        end if
 
-       if (par%tidelen > 0) then
-          status = nf90_def_dim(ncid, 'tidetime', par%tidelen, tidetimedimid)
+       if (s%tidelen > 0) then
+          status = nf90_def_dim(ncid, 'tidetime', s%tidelen, tidetimedimid)
           if (status /= nf90_noerr) call handle_err(status)
        endif
 
@@ -202,8 +202,8 @@ contains
           if (status /= nf90_noerr) call handle_err(status)
        endif
 
-       if (par%windlen > 0) then
-          status = nf90_def_dim(ncid, 'windtime', par%windlen, windtimedimid)
+       if (s%windlen > 0) then
+          status = nf90_def_dim(ncid, 'windtime', s%windlen, windtimedimid)
           if (status /= nf90_noerr) call handle_err(status)
        endif
 
@@ -833,11 +833,11 @@ contains
        dimensionid = ydimid
     case('s%ntheta')
        dimensionid = thetadimid
-    case('par%tidelen')
+    case('s%tidelen')
        dimensionid = tidetimedimid
     case('par%tideloc')
        dimensionid = tidecornersdimid
-    case('par%windlen')
+    case('s%windlen')
        dimensionid = windtimedimid
     case('par%ngd')
        dimensionid = sedimentclassesdimid

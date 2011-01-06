@@ -204,6 +204,10 @@ contains
     allocate(s%wm(1:s%nx+1,1:s%ny+1))
     allocate(s%umean(2,1:s%ny+1))
     allocate(s%vmean(2,1:s%ny+1))
+    allocate(s%xyzs01(2))
+    allocate(s%xyzs02(2))
+    allocate(s%xyzs03(2))
+    allocate(s%xyzs04(2))
     s%ws   = 0.0d0
     s%wb   = 0.0d0
     s%pres = 0.0d0
@@ -216,51 +220,52 @@ contains
     s%vmean=0.d0
     !
     ! set-up tide and surge waterlevels
+    s%zs01=par%zs0
     ! I: read zs0 at model corners using zs0file
     if (par%tideloc>0) then
 
-       par%zs01=s%tideinpz(1,1)
+       s%zs01=s%tideinpz(1,1)
 
-       if(par%tideloc.eq.1) par%zs02=par%zs01
+       if(par%tideloc.eq.1) s%zs02=s%zs01
 
        if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='land') then
-          par%zs03=s%tideinpz(1,2)
-          par%zs02=par%zs01
-          par%zs04=par%zs03
+          s%zs03=s%tideinpz(1,2)
+          s%zs02=s%zs01
+          s%zs04=s%zs03
        endif
 
        if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='sea') then
-          par%zs02=s%tideinpz(1,2)
-          par%zs03=0.d0
-          par%zs04=0.d0
+          s%zs02=s%tideinpz(1,2)
+          s%zs03=0.d0
+          s%zs04=0.d0
        endif
 
        if(par%tideloc.eq.4) then
-          par%zs02=s%tideinpz(1,2)
-          par%zs03=s%tideinpz(1,3)
-          par%zs04=s%tideinpz(1,4)
+          s%zs02=s%tideinpz(1,2)
+          s%zs03=s%tideinpz(1,3)
+          s%zs04=s%tideinpz(1,4)
        endif
 
        ! Set global domain corners for MPI simulations
-       par%xyzs01(1) = s%x(1,1)
-       par%xyzs01(2) = s%y(1,1)
-       par%xyzs02(1) = s%x(1,s%ny+1)
-       par%xyzs02(2) = s%y(1,s%ny+1)
-       par%xyzs03(1) = s%x(s%nx+1,s%ny+1)
-       par%xyzs03(2) = s%y(s%nx+1,s%ny+1)
-       par%xyzs04(1) = s%x(s%nx+1,1)
-       par%xyzs04(2) = s%y(s%nx+1,1) 
+       s%xyzs01(1) = s%x(1,1)
+       s%xyzs01(2) = s%y(1,1)
+       s%xyzs02(1) = s%x(1,s%ny+1)
+       s%xyzs02(2) = s%y(1,s%ny+1)
+       s%xyzs03(1) = s%x(s%nx+1,s%ny+1)
+       s%xyzs03(2) = s%y(s%nx+1,s%ny+1)
+       s%xyzs04(1) = s%x(s%nx+1,1)
+       s%xyzs04(2) = s%y(s%nx+1,1) 
             
        !
        ! Fill in matrix zs0
        !
-       if(par%tideloc.eq.1) s%zs0 = s%x*0.0d0 + par%zs01
+       if(par%tideloc.eq.1) s%zs0 = s%x*0.0d0 + s%zs01
 
        if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='sea') then
           yzs0(1)=s%y(1,1)
           yzs0(2)=s%y(1,s%ny+1)
-          szs0(1)=par%zs01
-          szs0(2)=par%zs02
+          szs0(1)=s%zs01
+          szs0(2)=s%zs02
 
           do i = 1,s%ny+1
              call LINEAR_INTERP(yzs0, szs0, 2, s%y(1,i), s%zs0(1,i), indt)
@@ -275,10 +280,10 @@ contains
        if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='land') then
           yzs0(1)=s%x(1,1)
           yzs0(2)=s%x(s%nx+1,1)
-          szs0(1)=par%zs01
-          szs0(2)=par%zs04
-          s%zs0(1,:)=par%zs01
-          s%zs0(s%nx+1,:)=par%zs03
+          szs0(1)=s%zs01
+          szs0(2)=s%zs04
+          s%zs0(1,:)=s%zs01
+          s%zs0(s%nx+1,:)=s%zs03
           do j = 1,s%ny+1 
              do i = 1,s%nx+1
                 if (s%zb(i,j).gt.s%zs0(1,j)+par%eps) goto 302
@@ -300,15 +305,15 @@ contains
        if(par%tideloc.eq.4) then
           yzs0(1)=s%y(1,1)
           yzs0(2)=s%y(1,s%ny+1)
-          szs0(1)=par%zs01
-          szs0(2)=par%zs02
+          szs0(1)=s%zs01
+          szs0(2)=s%zs02
           do i = 1,s%ny+1
              call LINEAR_INTERP(yzs0, szs0, 2, s%y(1,i), s%zs0(1,i), indt)
           enddo
           yzs0(1)=s%y(s%nx+1,1)
           yzs0(2)=s%y(s%nx+1,s%ny+1)
-          szs0(1)=par%zs04
-          szs0(2)=par%zs03
+          szs0(1)=s%zs04
+          szs0(2)=s%zs03
           do i = 1,s%ny+1
              call LINEAR_INTERP(yzs0, szs0, 2, s%y(s%nx+1,i), s%zs0(s%nx+1,i), indt)
           enddo
@@ -331,7 +336,7 @@ contains
           enddo
        endif
     else
-       s%zs0 = par%zs01
+       s%zs0 = s%zs01
     endif
      
     inquire(file=par%zsinitfile,exist=exists)

@@ -38,7 +38,6 @@ contains
     type(spacepars),target                  :: s
     type(parameters)                        :: par
 
-    character(256)                        :: fname
     integer                             :: i
     integer                             :: nwind,io
     real*8,dimension(3)                 :: temp
@@ -61,33 +60,33 @@ contains
         !  par%windv   = readkey_dbl ('params.txt','windv',   0.0d0,     0.0d0, 200.0d0,bcast=.false.)
         !  par%windth  = readkey_dbl ('params.txt','windth', 270.0d0,  -360.0d0, 360.0d0,bcast=.false.)
 
-          par%windlen=2
-          allocate(s%windinpt(par%windlen))
-          allocate(s%windvel (par%windlen))
-          allocate(s%winddir (par%windlen))
+          s%windlen=2
+          allocate(s%windinpt(s%windlen))
+          allocate(s%windvel (s%windlen))
+          allocate(s%winddir (s%windlen))
 
           s%windinpt(1)=0
           s%windinpt(2)=par%tstop
           s%windvel=par%windv
           s%winddir=(270.d0-par%windth-s%alfa)*par%px/180.d0
        else                 ! Non-stationary wind
-          call writelog('ls','','readwind: reading wind time series from ',fname,' ...')
-          open(31,file=fname)
+          call writelog('ls','','readwind: reading wind time series from ',trim(par%windfile),' ...')
+          open(31,file=par%windfile)
           do while (io==0)
              nwind=nwind+1
              read(31,*,IOSTAT=io) temp
           enddo
           rewind(31)
-          par%windlen=nwind-1
-          allocate(s%windinpt(par%windlen))
-          allocate(s%windvel (par%windlen))
-          allocate(s%winddir (par%windlen))
-          do i=1,par%windlen
+          s%windlen=nwind-1
+          allocate(s%windinpt(s%windlen))
+          allocate(s%windvel (s%windlen))
+          allocate(s%winddir (s%windlen))
+          do i=1,s%windlen
              read(31,*,IOSTAT=io) s%windinpt(i),s%windvel(i),s%winddir(i)
           enddo
           close(31)
           if (par%morfacopt==1) s%windinpt = s%windinpt / max(par%morfac,1.d0)
-          if (s%windinpt(par%windlen)<par%tstop) then
+          if (s%windinpt(s%windlen)<par%tstop) then
              call writelog('els','','Wind condition time series too short. Stopping calculation')
              call halt_program
           endif

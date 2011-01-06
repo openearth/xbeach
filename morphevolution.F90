@@ -1408,11 +1408,10 @@ IMPLICIT NONE
 type(spacepars),target                   :: s
 type(parameters)                         :: par
 
-character(256)                           :: fnamet
 integer                                  :: i,j,ii
 integer , save                           :: nh,nt    
 integer                                  :: ih0,it0,ih1,it1
-real*8                                   :: p,q,f0,f1,f2,f3,test
+real*8                                   :: p,q,f0,f1,f2,f3
 real*8                                   :: t0fac,siguref,duddtmax,dudtmax,duddtmean,dudtmean,detadxmean
 real*8 , save                            :: dh,dt
 

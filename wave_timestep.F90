@@ -55,6 +55,7 @@ contains
     real*8 , dimension(:,:)  ,allocatable,save  :: wcifacu,wcifacv,hrmsold,uorb
     real*8 , dimension(:)    ,allocatable,save  :: wcrestpos
     real*8                                      :: factime
+    real*8, save                                :: waverr
     integer                                     :: dummy
 
 
@@ -440,8 +441,8 @@ contains
     R  = sum(rr,3)*dtheta
     DR = sum(drr,3)*dtheta
     H  = sqrt(E/par%rhog8)
-    par%waverr=sum(abs(H-hrmsold))/((nx+1)*(ny+1))
-    !    write(*,*)'waverr=',par%waverr,'t = ',par%t
+    waverr=sum(abs(H-hrmsold))/((nx+1)*(ny+1))
+    !    write(*,*)'waverr=',waverr,'t = ',par%t
     !
     ! Radiation stresses and forcing terms
     !

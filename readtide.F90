@@ -49,8 +49,9 @@ include 's.inp'
 ! this must only work on master
 if (xmaster) then
   if (par%tideloc .eq. 0) then
-     allocate(s%tideinpt(par%tidelen))
-     allocate(s%tideinpz(par%tidelen,par%tideloc))
+     s%tidelen = 2
+     allocate(s%tideinpt(s%tidelen))
+     allocate(s%tideinpz(s%tidelen,par%tideloc))
      return
   endif
 
@@ -66,18 +67,18 @@ if (xmaster) then
   enddo
   rewind(31)
 
-  par%tidelen=ntide-1
+  s%tidelen=ntide-1
 
-  allocate(s%tideinpt(par%tidelen))
-  allocate(s%tideinpz(par%tidelen,par%tideloc))
+  allocate(s%tideinpt(s%tidelen))
+  allocate(s%tideinpz(s%tidelen,par%tideloc))
 
-  do i=1,par%tidelen
+  do i=1,s%tidelen
      read(31,*)s%tideinpt(i),s%tideinpz(i,:)
   end do
   close(31)
 
   if (par%morfacopt==1) s%tideinpt = s%tideinpt / max(par%morfac,1.d0)
-  if (s%tideinpt(par%tidelen)<par%tstop) then
+  if (s%tideinpt(s%tidelen)<par%tstop) then
      call writelog('els','','Tide condition time series too short. Stopping calculation')
      call halt_program
   endif

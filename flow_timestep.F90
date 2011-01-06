@@ -55,6 +55,7 @@ contains
     real*8                                  :: nuh1,nuh2
     real*8                                  :: dudx1,dudx2,dudy1,dudy2
     real*8                                  :: dvdy1,dvdy2,dvdx1,dvdx2  !Jaap
+    real*8,save                             :: fc
 
     integer                                 :: imax,jmax
 
@@ -107,6 +108,7 @@ contains
        v       =0.d0
        ue      =0.d0
        ve      =0.d0
+       fc      =2.d0*par%wearth*sin(par%lat)
     endif
     ! update bedfriction coefficient cf
     if (trim(par%bedfriction)=='white-colebrook') then
@@ -318,7 +320,7 @@ contains
                   + par%g*dzsdx(i,j) &
                   + taubx(i,j)/(par%rho*hu(i,j)) &
                   - par%lwave*Fx(i,j)/(par%rho*max(hu(i,j),par%hmin)) &
-                  - par%fc*vu(i,j) &
+                  - fc*vu(i,j) &
                   - par%rhoa*par%Cd*cos(s%winddirnow)*s%windvnow**2/(par%rho*hu(i,j)))
           else
              uu(i,j)=0.0d0
@@ -415,7 +417,7 @@ contains
                   + par%g*dzsdy(i,j)&
                   + tauby(i,j)/(par%rho*hv(i,j)) &
                   - par%lwave*Fy(i,j)/(par%rho*max(hv(i,j),par%hmin)) &
-                  + par%fc*uv(i,j) &
+                  + fc*uv(i,j) &
                   - par%rhoa*par%Cd*sin(s%winddirnow)*s%windvnow**2/(par%rho*hv(i,j)))
 
           else

@@ -140,7 +140,6 @@ subroutine grid_bathy(s,par)
   type(spacepars)                     :: s         
   type(parameters)                    :: par         
 
-  character*80                        :: fnameh,fnamex,fnamey
   integer                             :: i
   integer                             :: j
   integer                             :: itheta

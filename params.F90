@@ -329,24 +329,6 @@ type parameters
    real*8               :: dt                  = -123    !  [s] Computational time step, in hydrodynamic time
    real*8               :: t                   = -123    !  [s] Computational time, in hydrodynamic time
    real*8               :: tnext               = -123    !  [s] Next time point for output or wave stationary calculation, in hydrodynamic time
-   real*8               :: Emean               = -123    !  Note: can be made local [Jm^-2] Mean wave energy at boundary
-   real*8               :: w                   = -123    !  Note: can be made local [ms^-1] Fall velocity sediment
-   integer*4            :: listline            = -123    !  Note: can be made local [-] Keeps track of the record line in bcf-files in case of instat 4,5,6
-   real*8               :: fc                  = -123    !  Note: can be made local [s^-1] Coriolis forcing parameter
-   integer*4            :: tidelen             = -123    !  [-] Length of input tidal time series 
-   integer*4            :: windlen             = -123    !  [-] Length of input wind time series 
-   real*8               :: Llong               = -123    !  Note: can be made local [m] Alongshore wave group length for case instat=1
-   real*8               :: zs01                = -123    !  [m] Initial water level first sea boundary
-   real*8               :: zs02                = -123    !  [m] Initial water level second sea boundary
-   real*8               :: zs03                = -123    !  [m] Initial water level first land boundary
-   real*8               :: zs04                = -123    !  [m] Initial water level second land boundary
-   real*8,dimension(2)  :: xyzs01              = -123    ! global xy coordinates of corner (x=1,y=1) 
-   real*8,dimension(2)  :: xyzs02              = -123    ! global xy coordinates of corner (x=1,y=N)
-   real*8,dimension(2)  :: xyzs03              = -123    ! global xy coordinates of corner (x=N,y=N)
-   real*8,dimension(2)  :: xyzs04              = -123    ! global xy coordinates of corner (x=N,y=1)
-   real*8               :: waverr              = -123    !  [-] max. absolute wave height difference between time steps
-
-
 end type parameters
 
 contains
@@ -958,15 +940,9 @@ contains
     ! Set taper to non-zero
     par%taper    = max(par%taper,1.d-6)
     !
-    !
-    ! Set tide
-    par%zs01=par%zs0
-    !
-    !
     ! Compute Coriolis
     par%lat = par%lat*par%px/180.d0
     par%wearth = par%px*par%wearth/1800.d0
-    par%fc = 2.d0*par%wearth*sin(par%lat)
     !
     !
     ! Only allow Baldock in stationary mode and Roelvink in non-stationary

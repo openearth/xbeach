@@ -3,6 +3,7 @@ implicit none
 type waveparameters
 
 integer                                 :: K, Npy, Nr
+integer*4                               :: listline
 integer, dimension(:), pointer          :: index_vector
 
 real*8                                  :: mainang,dang
@@ -58,7 +59,7 @@ contains
     ! Check whether this is the first time step
     if (abs(par%t-par%dt)<1.d-6) then
        bcendtime=0
-       par%listline=0
+       wp%listline=0
        counter=0
 
        if(xmaster) then
@@ -94,7 +95,7 @@ contains
        close(74)
     end if
 
-    ! par%listline is not increased, therefore, first line of current bcf
+    ! wp%listline is not increased, therefore, first line of current bcf
     ! is used (i.e. all zeros)
 
     ! Check whether BCF files should be reused
@@ -173,7 +174,7 @@ contains
     end if
 
     ! Define line counter for boundaryconditions.f90
-    par%listline=par%listline+1
+    wp%listline=wp%listline+1
 
     ! Define endtime for boundary conditions, boundaryconditions.f90 should
     ! recreate BCF files after this moment

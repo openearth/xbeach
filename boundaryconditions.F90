@@ -53,6 +53,7 @@ contains
     real*8                                      :: E1,ei,dum,Hm0, dum1, spreadpar, bcdur, dum2
     real*8, save                                :: dtbcfile,rt,bcendtime
     real*8                                      :: em,tshifted,tnew
+    real*8, save                                :: Emean,Llong
     real*8,dimension(:)     ,allocatable,save   :: e01       ! [J/m2/rad] directional distribution of wave energy at boundary
     real*8,dimension(:)     ,allocatable,save   :: fac1,fac2
     real*8,dimension(:)     ,allocatable,save   :: tE,dataE,databi
@@ -124,7 +125,7 @@ contains
           if (xmaster) then
              close(7)
           endif
-          par%Emean=sum(dataE)/nt
+          Emean=sum(dataE)/nt
        elseif (trim(par%instat)=='ts_2') then
           if (xmaster) then
              open( unit=7, file='bc/gen.ezs')
@@ -152,7 +153,7 @@ contains
           if (xmaster) then
              close(7)
           endif
-          par%Emean=sum(dataE)/nt
+          Emean=sum(dataE)/nt
        elseif (trim(par%instat)=='stat_table') then
           if (xmaster) then
              fname = readkey_name('params.txt','bcfile',bcast=.false.)
@@ -188,7 +189,7 @@ contains
        elseif (trim(par%instat)=='vardens'.and.xmaster) then
           call makebcf(par,sg,wp) 
        elseif (trim(par%instat)=='reuse'.and.xmaster) then
-          par%listline=1
+          wp%listline=1
        elseif (trim(par%instat)=='nonh'.and.xmaster) then   
           call velocity_Boundary(ui(1,:),zi(1,:),wi(1,:),s%nx,s%ny,par%t,s%zs,s%ws)  
        endif
@@ -208,7 +209,7 @@ contains
              end if
           end do
           if (trim(par%instat)=='ts_1' .or. trim(par%instat)=='ts_2') then
-             par%Hrms=sqrt(8*par%Emean/(par%rho*par%g))
+             par%Hrms=sqrt(8*Emean/(par%rho*par%g))
           endif
           E0=par%rhog8*par%Hrms**2
 
@@ -223,7 +224,7 @@ contains
           e01    = max(e01,0.0d0);
 
           if (abs(theta0)<1.d-9) theta0=1.d-9
-          par%Llong=par%Tlong*cg(1,1)/cos(theta0)
+          Llong=par%Tlong*cg(1,1)/cos(theta0)
 
        endif
        if (xmaster) then
@@ -298,7 +299,7 @@ contains
           close(72)
           startbcf=.true.
           if (par%t <= (par%tstop-par%dt)) then
-             par%listline=par%listline+1
+             wp%listline=wp%listline+1
           end if
        end if
 #ifdef USEMPI
@@ -325,7 +326,7 @@ contains
        end do
     elseif (trim(par%instat)=='bichrom') then
        do j=1,ny+1
-          ee(1,j,:)=e01*0.5d0*(1.d0+cos(2*par%px*(par%t/par%Tlong-sin(theta0)*s%y(1,j)/par%Llong))) *min(par%t/par%taper,1.d0)
+          ee(1,j,:)=e01*0.5d0*(1.d0+cos(2*par%px*(par%t/par%Tlong-sin(theta0)*s%y(1,j)/Llong))) *min(par%t/par%taper,1.d0)
           em = (sum(0.5d0*e01))*dtheta *min(par%t/par%taper,1.d0)
           ei =  sum(ee(1,j,1:ntheta))*dtheta
           bi(1) = -(2*cg(1,j)/c(1,j)-0.5d0)*(em-ei)/(cg(1,j)**2-par%g*hh(1,j))/par%rho
@@ -340,8 +341,8 @@ contains
              tshifted=max(par%t-(y(1,j)-y(1,1))*sin(theta0)/cg(1,1),0.d0)
              call linear_interp(tE,dataE,nt,tshifted,E1,E_idx) 
           endif
-          ee(1,j,:)=e01*E1/max(par%Emean,0.000001d0)*min(par%t/par%taper,1.d0)
-          em = par%Emean *min(par%t/par%taper,1.d0)
+          ee(1,j,:)=e01*E1/max(Emean,0.000001d0)*min(par%t/par%taper,1.d0)
+          em = Emean *min(par%t/par%taper,1.d0)
           ei = sum(ee(1,j,:))*dtheta
           bi(1) = -(2*cg(1,j)/c(1,j)-0.5d0)*(em-ei)/(cg(1,j)**2-par%g*hh(1,j))/par%rho
           ht=s%zs0(1:2,:)-zb(1:2,:)
@@ -358,7 +359,7 @@ contains
              call linear_interp(tE,dataE,nt,tshifted,E1,E_idx) 
              call linear_interp(tE,databi,nt,tshifted,bi(1),E_idx)
           endif
-          ee(1,j,:)=e01*E1/max(par%Emean,0.000001d0)*min(par%t/par%taper,1.d0)
+          ee(1,j,:)=e01*E1/max(Emean,0.000001d0)*min(par%t/par%taper,1.d0)
           ui(1,j) = cg(1,j)*bi(1)/ht(1,j)*cos(theta0)*min(par%t/par%taper,1.d0)
           if (par%carspan==1) then
              ui(1,j) = sqrt(par%g/ht(1,j))*bi(1)! Carrier and Greenspan
@@ -378,7 +379,7 @@ contains
              open(54,file='qbcflist.bcf',form='formatted',position='rewind')
           endif
           if (xmaster) then
-             do i=1,par%listline
+             do i=1,wp%listline
                 read(53,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,ebcfname
                 read(54,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,qbcfname
              enddo  ! wwvv strange
@@ -602,38 +603,38 @@ contains
     if (par%tideloc>0) then
 
        ! read in first water surface time series 
-       call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,1), par%tidelen, par%t, par%zs01, indt)
+       call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,1), s%tidelen, par%t, s%zs01, indt)
 
        if(par%tideloc.eq.1) then 
-          par%zs02=par%zs01
+          s%zs02=s%zs01
        end if
 
        ! tideloc = 2, paulrevere = land
        if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='land') then
           ! read in second water surface time series
-          call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), par%tidelen, par%t, par%zs03, indt)
-          par%zs02=par%zs01 ! second offshore corner is equal to first offshore corner
-          par%zs04=par%zs03 ! second bay corner is equal to first bay corner
+          call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs03, indt)
+          s%zs02=s%zs01 ! second offshore corner is equal to first offshore corner
+          s%zs04=s%zs03 ! second bay corner is equal to first bay corner
        endif
  
        ! tideloc = 2, paulrevere = sea
        if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='sea') then
-          call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), par%tidelen, par%t, par%zs02, indt)
+          call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs02, indt)
           ! no timeseries at bay side, (and two different timeseries at offshore corners)
-          par%zs03=0.d0
-          par%zs04=0.d0
+          s%zs03=0.d0
+          s%zs04=0.d0
        endif
  
        ! tideloc = 4: for each corner individual timeseries
        if(par%tideloc.eq.4) then
-          call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), par%tidelen, par%t, par%zs02, indt)
-          call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,3), par%tidelen, par%t, par%zs03, indt)
-          call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,4), par%tidelen, par%t, par%zs04, indt)
+          call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs02, indt)
+          call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,3), s%tidelen, par%t, s%zs03, indt)
+          call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,4), s%tidelen, par%t, s%zs04, indt)
        endif
        !
        ! from here on set global vriable s%zs0
        !
-       if(par%tideloc.eq.1) s%zs0 = par%zs01
+       if(par%tideloc.eq.1) s%zs0 = s%zs01
 
        if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='sea') then
           yzs0(1)=s%yz(1)
@@ -642,11 +643,11 @@ contains
           ! for MPI look at water level gradient over each subdomain
           
           ! lonsghore water level difference over whole model domain at offshore boundary    
-          dzs0dy = (par%zs02-par%zs01)/(par%xyzs02(2)-par%xyzs01(2));
+          dzs0dy = (s%zs02-s%zs01)/(s%xyzs02(2)-s%xyzs01(2));
 
           ! estimate water level at corners sub-domain
-          szs0(1)=par%zs01+dzs0dy*(yzs0(1)-par%xyzs01(2))
-          szs0(2)=par%zs01+dzs0dy*(yzs0(2)-par%xyzs01(2))
+          szs0(1)=s%zs01+dzs0dy*(yzs0(1)-s%xyzs01(2))
+          szs0(2)=s%zs01+dzs0dy*(yzs0(2)-s%xyzs01(2))
 
           do i = 1,s%ny+1
              call LINEAR_INTERP(yzs0, szs0, 2, s%yz(i), s%zs0(1,i), indt)
@@ -661,10 +662,10 @@ contains
        if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='land') then
           yzs0(1)=s%xz(1)
           yzs0(2)=s%xz(s%nx+1)
-          szs0(1)=par%zs01
-          szs0(2)=par%zs04
-          s%zs0(1,:)=par%zs01
-          s%zs0(s%nx+1,:)=par%zs03
+          szs0(1)=s%zs01
+          szs0(2)=s%zs04
+          s%zs0(1,:)=s%zs01
+          s%zs0(s%nx+1,:)=s%zs03
           ! 
           ! wwvv the following j-loop needs special care in the parallel case
           !      zs0(:,j) will get equal to one of
@@ -706,15 +707,15 @@ contains
        if(par%tideloc.eq.4) then
           yzs0(1)=s%yz(1)
           yzs0(2)=s%yz(s%ny+1)
-          szs0(1)=par%zs01
-          szs0(2)=par%zs02
+          szs0(1)=s%zs01
+          szs0(2)=s%zs02
           do i = 1,s%ny+1
              call LINEAR_INTERP(yzs0, szs0, 2, s%yz(i), s%zs0(1,i), indt)
           enddo
           yzs0(1)=s%yz(1)
           yzs0(2)=s%yz(s%ny+1)
-          szs0(1)=par%zs04
-          szs0(2)=par%zs03
+          szs0(1)=s%zs04
+          szs0(2)=s%zs03
           do i = 1,s%ny+1
              call LINEAR_INTERP(yzs0, szs0, 2, s%yz(i), s%zs0(s%nx+1,i), indt)
           enddo
@@ -749,7 +750,7 @@ contains
 
        !endif
     else ! ie if tideloc=0
-       s%zs0 = par%zs01
+       s%zs0 = s%zs01
     endif    
     
     if (trim(par%tidetype)=='instant') then
@@ -1015,8 +1016,8 @@ contains
 
 !!! Wind boundary conditions
 
-    call LINEAR_INTERP(s%windinpt,s%windvel,par%windlen,par%t,s%windvnow,indt)
-    call LINEAR_INTERP(s%windinpt,s%winddir,par%windlen,par%t,s%winddirnow,indt)
+    call LINEAR_INTERP(s%windinpt,s%windvel,s%windlen,par%t,s%windvnow,indt)
+    call LINEAR_INTERP(s%windinpt,s%winddir,s%windlen,par%t,s%winddirnow,indt)
 
   end subroutine flow_bc
 

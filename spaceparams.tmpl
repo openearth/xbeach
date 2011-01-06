@@ -42,6 +42,16 @@
       real*8  0  thetamax b  [rad]      minimum angle of computational wave grid (carth. in rad)
       integer 0  nx     b  [-]        local number of grid cells x-direction
       integer 0  ny     b  [-]        local number of grid cells y-direction
+      real*8  0  zs01        b   [m] Initial water level first sea boundary
+      real*8  0  zs02        b   [m] Initial water level second sea boundary
+      real*8  0  zs03        b   [m] Initial water level first land boundary
+      real*8  0  zs04        b   [m] Initial water level second land boundary
+      real*8  1  xyzs01  2   b   [-] global xy coordinates of corner (x=1,y=1) 
+      real*8  1  xyzs02  2   b   [-] global xy coordinates of corner (x=1,y=N)
+      real*8  1  xyzs03  2   b   [-] global xy coordinates of corner (x=N,y=N)
+      real*8  1  xyzs04  2   b   [-] global xy coordinates of corner (x=N,y=1)
+      integer 0  tidelen b [-]        length of tide time series
+      integer 0  windlen b [-]        length of tide time series
       real*8  2  zb     s%nx+1 s%ny+1 d  [m]        bed level
       real*8  2  zb0    s%nx+1 s%ny+1 d  [m]        initial bed level
       real*8  1  theta  s%ntheta b  [rad]      wave angles directional distribution w.r.t. comp. x-axis
@@ -77,11 +87,11 @@
       real*8  2  hh     s%nx+1 s%ny+1 d  [m]        water depth
       real*8  2  zs     s%nx+1 s%ny+1 d  [m]        water level
       real*8  2  zs0    s%nx+1 s%ny+1 d  [m]        water level due to tide alone
-      real*8  1  tideinpt par%tidelen b  [s]        input time of input tidal signal
-      real*8  2  tideinpz par%tidelen par%tideloc b  [m]        input tidal signal
-      real*8  1  windinpt par%windlen b  [s]        input time of input wind signal
-      real*8  1  windvel  par%windlen b  [m/s]        input wind velocity
-      real*8  1  winddir  par%windlen b  [deg nautical]        input wind direction
+      real*8  1  tideinpt s%tidelen b  [s]        input time of input tidal signal
+      real*8  2  tideinpz s%tidelen par%tideloc b  [m]        input tidal signal
+      real*8  1  windinpt s%windlen b  [s]        input time of input wind signal
+      real*8  1  windvel  s%windlen b  [m/s]        input wind velocity
+      real*8  1  winddir  s%windlen b  [deg nautical]        input wind direction
       real*8  0  windvnow b              [m/s]      uniform wind velocity current time
       real*8  0  winddirnow b            [m/s]      uniform wind direction current time
       real*8  2  dzsdt  s%nx+1 s%ny+1 d  [m/s]      rate of change water level
