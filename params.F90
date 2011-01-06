@@ -19,7 +19,7 @@ type parameters
 !  - To enable parsing of "all_input" subroutine please only use "if () then, ... , endif/else/elseif" blocks,
 !    rather than one line "if () ..." commands in the "all_input" subroutine.
 !
-!  Type             name                   initialize    !  [unit] (advanced) description    
+!  Type             name                   initialize    !  [unit] (advanced/deprecated) description    
    ! [Section] Physical processes                                                                                                            
    integer*4     :: swave                      = -123    !  [-] Include short waves (1), exclude short waves (0)
    integer*4     :: lwave                      = -123    !  [-] Include short wave forcing on NLSW equations and boundary conditions (1), or exclude (0)
@@ -235,8 +235,8 @@ type parameters
    real*8        :: facAs                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave asymmetry
    character(24) :: turb                       = 'abc'   !  [-] (advanced) Equlibrium sediment concentration is computed as function of:
                                                          !      none = no turbulence, 
-							 !      wave_averaged = wave averaged turbulence
-							 !      bore_averaged = maximum turbulence
+							                             !      wave_averaged = wave averaged turbulence
+							                             !      bore_averaged = maximum turbulence
    real*8        :: Tbfac                      = -123    !  [-] (advanced) Calibration factor for bore interval Tbore: Tbore = Tbfac*Tbore
    real*8        :: Tsmin                      = -123    !  [s] (advanced) Minimum adaptation time scale in advection diffusion equation sediment    
    integer*4     :: lwt                        = -123    !  [-] (advanced) Switch 0/1 long wave turbulence model
@@ -724,34 +724,11 @@ contains
        par%dzg2     = readkey_dbl ('params.txt','dzg2', par%dzg1,     0.01d0,     1.d0)
        par%dzg3     = readkey_dbl ('params.txt','dzg3', par%dzg1,     0.01d0,     1.d0)
        par%por      = readkey_dbl ('params.txt','por',    0.4d0,       0.3d0,    0.5d0)
-       testc = readkey_name('params.txt','D50')
-       if (testc==' ') then
-          par%D50(1:par%ngd)=0.0002d0   ! Default
-          call writelog('l','','Setting D50 to default value 0.0002')
-       else
-          read(testc,*) par%D50(1:par%ngd)
-       endif
-       testc = readkey_name('params.txt','D90')
-       if (testc==' ') then
-          par%D90(1:par%ngd)=0.0003d0   ! Default
-          call writelog('l','','Setting D90 to default value 0.0003')
-       else
-          read(testc,*) par%D90(1:par%ngd)
-       endif
-       testc = readkey_name('params.txt','sedcal')
-       if (testc==' ') then
-          par%sedcal(1:par%ngd)=1.d0   ! Default
-          call writelog('l','','Setting sedcal to default value 1.0')
-       else
-          read(testc,*) par%sedcal(1:par%ngd)
-       endif
-       testc = readkey_name('params.txt','ucrcal')
-       if (testc==' ') then
-          par%ucrcal(1:par%ngd)=1.d0   ! Default
-          call writelog('l','','Setting ucrcal to default value 1.0')
-       else
-          read(testc,*) par%ucrcal(1:par%ngd)
-       endif
+       !                              file,keyword,size read vector,size vector in par,default,min,max
+       par%D50      = readkey_dblvec('params.txt','D50',par%ngd,size(par%D50),0.0002d0,0.00005d0,0.0008d0)
+       par%D90      = readkey_dblvec('params.txt','D90',par%ngd,size(par%D90),0.0003d0,0.00010d0,0.0015d0)
+       par%sedcal   = readkey_dblvec('params.txt','sedcal',par%ngd,size(par%sedcal),1.d0,0.d0,2.d0)
+       par%ucrcal   = readkey_dblvec('params.txt','ucrcal',par%ngd,size(par%ucrcal),1.d0,0.d0,2.d0)
     endif
     !
     !
