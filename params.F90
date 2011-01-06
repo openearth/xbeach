@@ -754,12 +754,8 @@ contains
        par%smax     = readkey_dbl ('params.txt','smax',   -1.d0,    -1.d0,   3.d0)       !changed 28/11 and back 10/2
        par%tsfac    = readkey_dbl ('params.txt','tsfac',   0.1d0,    0.01d0,   1.d0) 
        par%facua    = readkey_dbl ('params.txt','facua  ',0.10d0,    0.00d0,   1.0d0) 
-       par%facSk    = readkey_dbl ('params.txt','facSk  ',0.00d0,    0.00d0,   1.0d0) 
-       par%facAs    = readkey_dbl ('params.txt','facAs  ',0.00d0,    0.00d0,   1.0d0) 
-       if (par%facSk==0 .or. par%facAs==0) then
-          par%facSk = par%facua
-          par%facAs = par%facua
-       endif
+       par%facSk    = readkey_dbl ('params.txt','facSk  ',par%facua,    0.00d0,   1.0d0) 
+       par%facAs    = readkey_dbl ('params.txt','facAs  ',par%facua,    0.00d0,   1.0d0) 
        allocate(allowednames(3),oldnames(3))
        allowednames=(/'none         ','wave_averaged','bore_averaged'/)
        oldnames=(/'0','1','2'/)
