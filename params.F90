@@ -241,7 +241,6 @@ type parameters
    real*8        :: Tsmin                      = -123    !  [s] (advanced) Minimum adaptation time scale in advection diffusion equation sediment    
    integer*4     :: lwt                        = -123    !  [-] (advanced) Switch 0/1 long wave turbulence model
    real*8        :: betad                      = -123    !  [-] (advanced) Dissipation parameter long wave breaking turbulence
-   character(256) :: swtable                   = 'abc'   !  [-] Name of intra short wave assymetry and skewness table
    integer*4     :: sus                        = -123    !  [-] (advanced) Calibration factor for suspensions transports [0..1]
    integer*4     :: bed                        = -123    !  [-] (advanced) Calibration factor for bed transports [0..1]
    integer*4     :: bulk                       = -123    !  [-] (advanced) Option to compute bedload and suspended load seperately; 0 = seperately, 1 = bulk (as in previous versions)
@@ -765,16 +764,6 @@ contains
        par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.2d0,     0.01d0,   10.d0) 
        par%lwt      = readkey_int ('params.txt','lwt    ',0,           0,            1)
        par%betad    = readkey_dbl ('params.txt','betad  ',1.0d0,     0.00d0,   10.0d0)
-       if (trim(par%waveform)=='vanthiel') then
-          ! Jaap: if swtable is not specified in params.txt it is named RF_table.txt
-          par%swtable  = readkey_name('params.txt','swtable') ! ,required=.true.
-          if (trim(par%swtable)=='') then
-             par%swtable  = ('RF_table.txt')
-          endif
-          !
-          call check_file_exist(par%swtable)
-          call check_file_length(par%swtable,18,33,40)
-       endif
        par%sus      = readkey_int ('params.txt','sus    ',1,           0,            1)
        par%bed      = readkey_int ('params.txt','bed    ',1,           0,            1)
        par%bulk     = readkey_int ('params.txt','bulk   ',1,           0,            1)
@@ -999,7 +988,7 @@ contains
     ! Only allow bore-averaged turbulence in combination with vanthiel waveform
     if ((trim(par%waveform) .ne. 'vanthiel') .and. (trim(par%turb) .eq. 'bore_averaged')) then
        call writelog('lse','','Cannot compute bore-averaged turbulence without vanthiel wave form')
-       call writelog('lse','','Please set waveform=vanthiel and specify swtable in params.txt,')
+       call writelog('lse','','Please set waveform=vanthiel in params.txt,')
        call writelog('lse','','or choose other turbulence model')
        call halt_program
     endif

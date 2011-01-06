@@ -1412,45 +1412,31 @@ character(256)                           :: fnamet
 integer                                  :: i,j,ii
 integer , save                           :: nh,nt    
 integer                                  :: ih0,it0,ih1,it1
-real*8                                   :: p,q,f0,f1,f2,f3
+real*8                                   :: p,q,f0,f1,f2,f3,test
 real*8                                   :: t0fac,siguref,duddtmax,dudtmax,duddtmean,dudtmean,detadxmean
 real*8 , save                            :: dh,dt
 
 real*8 , dimension(:,:),allocatable  ,save     :: h0,t0,detadxmax
-real*8 , dimension(:,:,:),allocatable,save     :: RF 
+! Robert: RF table now included in source code, rather than read from file
+! Rienecker Fenton table with amongst others amplitudes non-linear components obtained with stream function theory
+include 'RF.inc'
+! Robert: 'RF.inc' contains definition of RF as real*8(5,33,40) with "parameter" attribute
+!   so RF values may not be modified! To save memory, only rows 13,14,15,16 and 18 of the 
+!   original matrix are stored. So new row 1 corresponds with old row 13, etc.
 
 include 's.ind'
 include 's.inp'
 
 
 ! only in first timestep..
-if (.not. allocated(RF)) then
-   allocate (RF    (18,33,40))
+if (.not. allocated(h0)) then
    allocate (h0    (nx+1,ny+1))
    allocate (t0    (nx+1,ny+1))
    allocate (detadxmax    (nx+1,ny+1))
-
-   ! read Rienecker Fenton table with amongst others amplitudes non-linear components obtained with stream function theory        
-   RF = RF*0.d0
-   if (xmaster) then
-      open(31,file=par%swtable);
-      do i=1,18
-         do j=1,33
-            read(31,*)(RF(i,j,ii),ii=1,40)
-         enddo
-      enddo
-      close(31)
-   endif
-#ifdef USEMPI
-   do i=1,18
-      call xmpi_bcast(RF(i,:,:))
-   enddo
-#endif
    dh = 0.03d0
    dt = 1.25d0
    nh = floor(0.99d0/dh);
    nt = floor(50.d0/dt);
-   
 endif
 
 ! non-linearity of short waves is listed in table as function of dimensionless wave height h0 and dimensionless wave period t0 
@@ -1476,8 +1462,8 @@ do j=1,ny+1
       f3=p*q;
       
       ! Skewness and assymetry
-      Sk(i,j) = f0*RF(13,ih0,it0)+f1*RF(13,ih1,it0)+ f2*RF(13,ih0,it1)+f3*RF(13,ih1,it1)
-      As(i,j) = f0*RF(14,ih0,it0)+f1*RF(14,ih1,it0)+ f2*RF(14,ih0,it1)+f3*RF(14,ih1,it1)
+      Sk(i,j) = f0*RF(1,ih0,it0)+f1*RF(1,ih1,it0)+ f2*RF(1,ih0,it1)+f3*RF(1,ih1,it1)
+      As(i,j) = f0*RF(2,ih0,it0)+f1*RF(2,ih1,it0)+ f2*RF(2,ih0,it1)+f3*RF(2,ih1,it1)
       
       ! Sediment advection velocity from Skewness and Assymetry
       ! ua(i,j) = par%sws*par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
@@ -1496,8 +1482,8 @@ do j=1,ny+1
       
       ! detadxmax for Tbore...
       ! dimnesionless maximum acceleration under bore front 
-      duddtmax = f0*RF(15,ih0,it0)+f1*RF(15,ih1,it0)+ f2*RF(15,ih0,it1)+f3*RF(15,ih1,it1)
-      siguref = f0*RF(16,ih0,it0)+f1*RF(16,ih1,it0)+ f2*RF(16,ih0,it1)+f3*RF(16,ih1,it1)
+      duddtmax = f0*RF(3,ih0,it0)+f1*RF(3,ih1,it0)+ f2*RF(3,ih0,it1)+f3*RF(3,ih1,it1)
+      siguref = f0*RF(4,ih0,it0)+f1*RF(4,ih1,it0)+ f2*RF(4,ih0,it1)+f3*RF(4,ih1,it1)
       ! translate dimensionless duddtmax to real world dudtmax
       !         /scale with variance and go from [-] to [m/s^2]     /tableb./dimensionless dudtmax
       dudtmax = urms(i,j)/max(par%eps,siguref)*sqrt(par%g/hh(i,j))*t0fac*duddtmax
@@ -1505,7 +1491,7 @@ do j=1,ny+1
       
       ! detadxmean for roller energy balance dissipation...
       if (par%rfb==1) then
-         duddtmean = f0*RF(18,ih0,it0)+f1*RF(18,ih1,it0)+ f2*RF(18,ih0,it1)+f3*RF(18,ih1,it1)
+         duddtmean = f0*RF(5,ih0,it0)+f1*RF(5,ih1,it0)+ f2*RF(5,ih0,it1)+f3*RF(5,ih1,it1)
          dudtmean = urms(i,j)/max(par%eps,siguref)*sqrt(par%g/hh(i,j))*t0fac*duddtmean
          detadxmean = dudtmean*sinh(k(i,j)*hh(i,j))/max(c(i,j),sqrt(H(i,j)*par%g))/sigm(i,j)
          BR(i,j) = par%BRfac*sin(atan(detadxmean))
