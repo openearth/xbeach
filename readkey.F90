@@ -416,7 +416,7 @@ contains
     character*1                                 :: ch
     character(len=*), intent(in)                :: fname,key
     character(len=*), intent(out)               :: value
-    character*80, dimension(:),allocatable,save :: keyword,values
+    character*80, dimension(1024),save          :: keyword,values
     character*80                                :: line
     integer, save                               :: nkeys
     character*80, save                          :: fnameold=''
@@ -439,41 +439,10 @@ contains
        enddo
        close(lun)
        nlines=i
-       ! allocate keyword and values arrays to store all keyword = value combinations
-
-
-       ! reset keyword values and readindex    
-       if (xor(allocated(values), allocated(keyword)))  then
-           call writelog('lse', '', 'key and values allocation inconsistent during reading key:', trim(key))
-       end if
-       if (allocated(values)) then
-          call writelog('ls', '', 'unallocating values with size', size(values))
-          deallocate(values, stat=ier)
-          if (ier .ne. 0) then
-             call writelog('lse', '', 'deallocation error of values while reading key:', trim(key))
-          end if
-       end if
-       if (allocated(keyword)) then
-          deallocate(keyword, stat=ier)
-          if (ier .ne. 0) then
-             call writelog('lse', '', 'deallocation error of keyword while reading key:', trim(key))
-          end if
-       end if
-       if (allocated(readindex)) then
-          deallocate(readindex, stat=ier)
-          if (ier .ne. 0) then
-             call writelog('lse', '', 'deallocation error of readindex while reading key:', trim(key))
-          end if
-       end if
-       allocate(keyword(nlines), stat=ier)
-       if (ier .ne. 0) then
-          call writelog('lse', '', 'allocation error of keyword')
-       end if
-       call writelog('ls', '', 'allocating values with', nlines)
-       allocate(values(nlines), stat=ier)
-       if (ier .ne. 0) then
-          call writelog('lse', '', 'allocation error of value')
-       end if
+       ! reset keyword values and readindex 
+       keyword = ''
+	   values = '' 
+	   if (allocated(readindex)) deallocate(readindex)
        ! Read through the file to fill all the keyword = value combinations
        open(lun,file=fname)
        ikey=0
