@@ -431,11 +431,11 @@ contains
              if (iter<par%maxiter) then
                 if (Herr<par%maxerror) then
                    stopiterate=.true.
-                   if(xmaster) call writelog('ls','(a,i4,a,i4)','Wave propagation row ',it,', iteration ',iter)
+                   if(xmaster) call writelog('l','(a,i4,a,i4)','Wave propagation row ',it,', iteration ',iter)
                 endif
              else
                 stopiterate=.true.
-                if(xmaster) call writelog('ls','(a,i4,a,i4,a,f5.4)','Wave propagation row ',it,', iteration ',iter,', error: ',Herr)
+                if(xmaster) call writelog('l','(a,i4,a,i4,a,f5.4)','Wave propagation row ',it,', iteration ',iter,', error: ',Herr)
              endif
           enddo ! End while loop
        enddo ! End do i=2:nx loop  

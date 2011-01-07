@@ -63,6 +63,7 @@ t0 = MPI_Wtime()
 #endif
 
 ! Start up log files
+error = 0
 call start_logfiles(error)
 if (error==1) then
    write(*,*) 'Error: not able to open log file. Please contact XBeach team. Stopping simulation'
@@ -192,28 +193,30 @@ if (par%nmeanvar>0) call means_init(sglobal,slocal,par)
 call output_init(sglobal, slocal, par, tpar)
 
 
-! update times at which we need output
-call outputtimes_update(par, tpar)
+
 ! Store first timestep (always)
-if (par%outputformat=='fortran') then
-   call var_output(sglobal,s,par,tpar)
-elseif (par%outputformat=='netcdf') then
-#ifdef USENETCDF
-   call ncoutput(sglobal,s,par, tpar)
-#endif
-elseif (par%outputformat=='debug') then
-#ifdef USENETCDF
-   call ncoutput(sglobal,s,par, tpar)
-#endif
-   call var_output(sglobal,s,par,tpar)
-endif
+call output(s,sglobal,par,tpar)
 
 ! ----------------------------
 ! This is the main time loop
 ! ----------------------------
 do while (par%t<par%tstop)
    ! Calculate timestep
-   call timestep(s,par,tpar, it)
+   call timestep(s,par,tpar, it, ierr=error)
+   if (error .eq. 1) then 
+      ! error message is given by timestep
+      ! Force output for this timestep
+      tpar%outputg = (size(tpar%tpg) .gt. 0)
+      tpar%outputp = (size(tpar%tpp) .gt. 0)
+      tpar%outputm = (size(tpar%tpm) .gt. 0)
+      tpar%outputc = (size(tpar%tpc) .gt. 0)
+      tpar%outputw = (size(tpar%tpw) .gt. 0)
+      tpar%output = (tpar%outputg .or. tpar%outputp .or. tpar%outputm .or. tpar%outputc .or. tpar%outputw)
+      ! Write output for this time
+      call output(s,sglobal,par,tpar, update=.false.)
+      call halt_program
+
+   end if
    ! Wave boundary conditions
    ! Jaap: if swave = 0 you also set ui of long waves to zero so always call wave_bc
    ! if (par%swave==1) call wave_bc (sglobal,slocal,par,newstatbc)

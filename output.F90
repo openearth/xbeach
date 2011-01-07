@@ -44,16 +44,23 @@ elseif (par%outputformat=='debug') then
 endif
 
 end subroutine output_init
-subroutine output(s,sglobal,par,tpar)
+subroutine output(s,sglobal,par,tpar, update)
    
    implicit none
    
    type(spacepars)                     :: s,sglobal
    type(parameters)                    :: par
    type(timepars)                      :: tpar
-        
+   logical, optional                   :: update
+   logical                             :: lupdate
+
+   if (present(update)) then
+      lupdate = update
+   else
+      lupdate = .true.
+   endif
    ! update output times
-   call outputtimes_update(par, tpar)
+   if (lupdate) call outputtimes_update(par, tpar)
    ! update log
    call log_progress(par)
    ! Output

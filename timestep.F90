@@ -316,6 +316,7 @@ subroutine outputtimes_update(par, tpar)
   implicit none
   type(parameters),intent(inout)      :: par
   type(timepars), intent(inout):: tpar
+
   real*8               :: t1,t2,t3,t4,t5
 
   ! Current timestep:
@@ -373,7 +374,7 @@ subroutine outputtimes_update(par, tpar)
 end subroutine outputtimes_update
 
 
-subroutine timestep(s,par, tpar, it)
+subroutine timestep(s,par, tpar, it, ierr)
   use params
   use spaceparams
   use xmpi_module
@@ -381,10 +382,11 @@ subroutine timestep(s,par, tpar, it)
 
   IMPLICIT NONE
 
-  type(spacepars)                     :: s
-  type(parameters)                    :: par
-  type(timepars)                      :: tpar
-  integer                     :: it
+  type(spacepars), intent(inout)   :: s
+  type(parameters), intent(inout)  :: par
+  type(timepars), intent(inout)    :: tpar
+  integer, intent(inout)           :: it
+  integer, intent(out), optional   :: ierr 
   integer                     :: i
   integer                     :: j
   integer                     :: n
@@ -394,7 +396,8 @@ subroutine timestep(s,par, tpar, it)
   ! Calculate dt based on the Courant number. 
   ! Check when we need next output.
   ! Next time step will be, min(output times, t+dt) 
-
+  
+  ierr = 0
   tny = tiny(0.d0)
 
   ! Robert new time step criterion
@@ -458,12 +461,14 @@ subroutine timestep(s,par, tpar, it)
 #endif
   end if
 
+  ! TODO should this be in the main loop? Now we can't write output
   if (dtref/par%dt>50.d0) then
      call writelog('lse','','Quit XBeach since computational time explodes')
      call writelog('lse','','dtref',dtref)
      call writelog('lse','','par%dt',par%dt)
-
-     call halt_program
+     ! TODO: write output
+     ! TODO: make this 50.0 configurable
+     ierr = 1
   endif
 
   ! wwvv: In the mpi version par%dt will be calculated different

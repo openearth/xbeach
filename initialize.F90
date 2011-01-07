@@ -15,7 +15,7 @@ contains
     integer                             :: i
     integer                             :: j
     integer                             :: itheta
-    
+
     allocate(s%thetamean(1:s%nx+1,1:s%ny+1))
     allocate(s%Fx(1:s%nx+1,1:s%ny+1))
     allocate(s%Fy(1:s%nx+1,1:s%ny+1))
@@ -208,6 +208,7 @@ contains
     allocate(s%xyzs02(2))
     allocate(s%xyzs03(2))
     allocate(s%xyzs04(2))
+    s%zs0  = 0.0d0 ! make sure it is initialized.
     s%ws   = 0.0d0
     s%wb   = 0.0d0
     s%pres = 0.0d0
@@ -255,7 +256,7 @@ contains
        s%xyzs03(2) = s%y(s%nx+1,s%ny+1)
        s%xyzs04(1) = s%x(s%nx+1,1)
        s%xyzs04(2) = s%y(s%nx+1,1) 
-            
+
        !
        ! Fill in matrix zs0
        !
@@ -338,7 +339,7 @@ contains
     else
        s%zs0 = s%zs01
     endif
-     
+
     inquire(file=par%zsinitfile,exist=exists)
     if (exists) then
        open(723,file=par%zsinitfile)
@@ -347,11 +348,10 @@ contains
        enddo
        close(723)
     endif
-    
+
     !
     ! set zs, hh, wetu, wetv, wetz
     !
-    
     s%zs0 = max(s%zs0,s%zb)
     ! cjaap: replaced par%hmin by par%eps
     s%hh=max(s%zs0-s%zb,par%eps)
@@ -359,6 +359,7 @@ contains
     s%zs=max(s%zb,s%zs0)
 
     !Initialize hu correctly to prevent spurious initial flow (Pieter)
+    s%hu=0.0d0
     do j=1,s%ny+1
        do i=1,s%nx
           s%hu(i,j) = max(s%zs(i,j),s%zs(i+1,j))-max(s%zb(i,j),s%zb(i+1,j))
@@ -366,12 +367,13 @@ contains
     enddo
     s%hu(s%nx+1,:)=s%hu(s%nx,:)
 
+    s%hv=0.0d0
     do j=1,s%ny
        do i=1,s%nx+1
           s%hv(i,j) = max(s%zs(i,j),s%zs(i,j+1))-max(s%zb(i,j),s%zb(i,j+1))
        enddo
     enddo
-    s%hv(:,s%ny+1)=s%hv(:,s%ny+1)
+    s%hv(:,s%ny+1)=s%hv(:,s%ny)
 
     s%hum(1:s%nx,:) = 0.5d0*(s%hh(1:s%nx,:)+s%hh(2:s%nx+1,:))
     s%hum(s%nx+1,:)=s%hh(s%nx+1,:)
@@ -410,44 +412,44 @@ contains
     endwhere
     !
     if (trim(par%tidetype)=='instant') then
-    ! RJ: 22-09-2010
-    ! Check for whole domain whether a grid cell should be associated with
-    ! 1) offshore tide and surge
-    ! 2) bay tide and surge
-    ! 3) no tide and surge
-    ! 4) weighted tide and surge (for completely wet arrays)
-    ! relative weight of offshore boundary and bay boundary for each grid point is stored in zs0fac 
-    !
-    s%zs0fac = 0.d0
-    do j = 1,s%ny+1 
-       offshoreregime = .true.   
-       indoff = s%nx+1 ! ind of last point (starting at offshore boundary) that should be associated with offshore boundary
-       indbay = 1      ! ind of first point (starting at offshore boundary) that should be associated with bay boundary
-       do i = 1,s%nx+1
-          if (offshoreregime .and. s%wetz(i,j)==0) then
-             indoff = max(i-1,1)
-             offshoreregime = .false.
-          endif
-          if (s%wetz(i,j)==0 .and. s%wetz(min(i+1,s%nx+1),j)==1) then
-             indbay = min(i+1,s%nx+1)
+       ! RJ: 22-09-2010
+       ! Check for whole domain whether a grid cell should be associated with
+       ! 1) offshore tide and surge
+       ! 2) bay tide and surge
+       ! 3) no tide and surge
+       ! 4) weighted tide and surge (for completely wet arrays)
+       ! relative weight of offshore boundary and bay boundary for each grid point is stored in zs0fac 
+       !
+       s%zs0fac = 0.d0
+       do j = 1,s%ny+1 
+          offshoreregime = .true.   
+          indoff = s%nx+1 ! ind of last point (starting at offshore boundary) that should be associated with offshore boundary
+          indbay = 1      ! ind of first point (starting at offshore boundary) that should be associated with bay boundary
+          do i = 1,s%nx+1
+             if (offshoreregime .and. s%wetz(i,j)==0) then
+                indoff = max(i-1,1)
+                offshoreregime = .false.
+             endif
+             if (s%wetz(i,j)==0 .and. s%wetz(min(i+1,s%nx+1),j)==1) then
+                indbay = min(i+1,s%nx+1)
+             endif
+          enddo
+
+          if (indbay==1 .and. indoff==s%nx+1) then ! in case of completely wet arrays linear interpolation for zs0fac
+             s%zs0fac(:,j,2) = (s%xz-s%xz(1))/(s%xz(s%nx+1)-s%xz(1))
+             s%zs0fac(:,j,1) = 1-s%zs0fac(:,j,2)
+          else                                    ! in all other cases we assume three regims offshore, dry and bay
+             s%zs0fac(1:indoff,j,1) = 1.d0
+             s%zs0fac(1:indoff,j,2) = 0.d0
+             if (indbay > 1) then
+                s%zs0fac(indoff+1:indbay-1,j,1) = 0.d0
+                s%zs0fac(indbay:s%nx+1,j,1) = 0.d0
+                s%zs0fac(indoff+1:indbay-1,j,2) = 0.d0
+                s%zs0fac(indbay:s%nx+1,j,2) = 1.d0
+             endif
           endif
        enddo
-          
-       if (indbay==1 .and. indoff==s%nx+1) then ! in case of completely wet arrays linear interpolation for zs0fac
-          s%zs0fac(:,j,2) = (s%xz-s%xz(1))/(s%xz(s%nx+1)-s%xz(1))
-          s%zs0fac(:,j,1) = 1-s%zs0fac(:,j,2)
-       else                                    ! in all other cases we assume three regims offshore, dry and bay
-          s%zs0fac(1:indoff,j,1) = 1.d0
-          s%zs0fac(1:indoff,j,2) = 0.d0
-          if (indbay > 1) then
-             s%zs0fac(indoff+1:indbay-1,j,1) = 0.d0
-             s%zs0fac(indbay:s%nx+1,j,1) = 0.d0
-             s%zs0fac(indoff+1:indbay-1,j,2) = 0.d0
-             s%zs0fac(indbay:s%nx+1,j,2) = 1.d0
-          endif   
-       endif       
-    enddo
- 
+
     endif ! tidetype = instant water level boundary
   end subroutine flow_init
 

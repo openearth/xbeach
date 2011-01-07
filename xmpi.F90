@@ -102,6 +102,10 @@ subroutine xmpi_initialize
 ! initialize mpi environment
   implicit none
   integer ierr
+  ierr = 0
+  ! Message buffers in openmpi are not initialized so this call can give a vallgrind error
+  ! http://www.open-mpi.org/community/lists/users/2009/06/9566.php
+  ! http://valgrind.org/docs/manual/manual-core.html#manual-core.suppress
   call MPI_Init(ierr)
 #ifdef USEMPE
   call MPE_Log_get_solo_eventid(event_output_start)

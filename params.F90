@@ -249,6 +249,7 @@ type parameters
    real*8        :: morfac                     = -123    !  [-] Morphological acceleration factor
    integer*4     :: morfacopt                  = -123    !  [-] (advanced) Option indicating whether times should be adjusted (1) or not(0) for morfac
    real*8        :: morstart                   = -123    !  [s] Start time morphology, in morphological time
+   real*8        :: morstop                    = -123    !  [s] Stop time morphology, in morphological time
    real*8        :: wetslp                     = -123    !  [-] Critical avalanching slope under water (dz/dx and dz/dy)
    real*8        :: dryslp                     = -123    !  [-] Critical avalanching slope above water (dz/dx and dz/dy)
    real*8        :: hswitch                    = -123    !  [m] (advanced) Water depth at which is switched from wetslp to dryslp
@@ -771,6 +772,7 @@ contains
        par%morfac   = readkey_dbl ('params.txt','morfac', 1.0d0,        0.d0,  1000.d0)
        par%morfacopt= readkey_int ('params.txt','morfacopt', 1,        0,        1)
        par%morstart = readkey_dbl ('params.txt','morstart',120.d0,      0.d0, 10000.d0)
+       par%morstop  = readkey_dbl ('params.txt','morstop', par%tstop,      0.d0, 10000.d0)
        par%wetslp   = readkey_dbl ('params.txt','wetslp', 0.3d0,       0.1d0,     1.d0)
        par%dryslp   = readkey_dbl ('params.txt','dryslp', 1.0d0,       0.1d0,     2.d0)
        par%hswitch  = readkey_dbl ('params.txt','hswitch',0.1d0,      0.01d0,    1.0d0)   
@@ -902,7 +904,7 @@ contains
     call writelog('l','','--------------------------------')
     call writelog('l','','MPI parameters: ') 
     allocate(allowednames(3),oldnames(0))
-    allowednames=(/'auto ','x   ','y   '/)
+    allowednames=(/'auto','x   ','y   '/)
     par%mpiboundary= readkey_str('params.txt','mpiboundary','auto',3,0,allowednames,oldnames)
     deallocate(allowednames,oldnames)
     !

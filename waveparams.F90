@@ -63,9 +63,7 @@ contains
        counter=0
 
        if(xmaster) then
-          call readkey('params.txt','bcfile',fname)
-          call checkbcfilelength_local(par,fname)
-          open(74,file=fname,form='formatted')
+          open(74,file=par%bcfile,form='formatted')
           if (trim(par%instat)/='jons_table') read(74,*)testc
        endif
 
@@ -1888,98 +1886,6 @@ return
 end subroutine bc_disper
 
 
-
-subroutine checkbcfilelength_local(par,filename)
-
-  use params
-  use xmpi_module
-  use logging_module
-
-  IMPLICIT NONE
-
-  type(parameters), INTENT(IN)             :: par
-  character*80      :: filename,dummy
-  character*8       :: testc
-  character*1       :: ch
-  integer           :: i,ier=0,nlines,filetype
-  real*8            :: t,dt,total,d1,d2,d3,d4,d5
-
-  ier = 0
-  if (xmaster) then
-     open(741,file=filename)
-     i=0
-     do while (ier==0)
-        read(741,'(a)',iostat=ier)ch
-        if (ier==0)i=i+1
-     enddo
-     nlines=i
-     rewind(741)    
-
-     if (  trim(par%instat)=='jons' .or. &
-          trim(par%instat)=='swan' .or. &
-          trim(par%instat)=='vardens' &
-          ) then 
-        read(741,*)testc
-        if (testc=='FILELIST') then
-           filetype = 1
-           nlines=nlines-1
-        else
-           filetype = 0
-        endif
-     elseif (trim(par%instat)=='stat_table' .or. trim(par%instat)=='jons_table') then
-        filetype = 2
-     endif
-
-     total=0.d0
-     i=0
-     select case (filetype)
-     case(0)
-        if (par%morfacopt==1) then
-           total=2.d0*par%tstop*max(par%morfac,1.d0)
-        else
-           total=2.d0*par%tstop
-        endif
-     case(1)
-        if (par%morfacopt==1) then
-           do while (total<par%tstop*max(par%morfac,1.d0) .and. i<nlines)
-              read(741,*)t,dt,dummy
-              total=total+t
-              i=i+1
-           enddo
-        else
-           do while (total<par%tstop .and. i<nlines)
-              read(741,*)t,dt,dummy
-              total=total+t
-              i=i+1
-           enddo
-        endif
-     case(2)
-        if (par%morfacopt==1) then
-           do while (total<par%tstop*max(par%morfac,1.d0) .and. i<nlines)
-              read(741,*)d1,d2,d3,d4,d5,t,dt
-              total=total+t
-              i=i+1
-           enddo
-        else
-           do while (total<par%tstop .and. i<nlines)
-              read(741,*)d1,d2,d3,d4,d5,t,dt
-              total=total+t
-              i=i+1
-           enddo
-        endif
-     end select
-     if (par%morfacopt==1) total=total/max(par%morfac,1.d0)
-
-     close(741)
-     if (total<par%tstop) then
-        call writelog('els','','Wave boundary condition time series too short. Stopping calculation')
-        call writelog('els','','tstop = ', par%tstop,' time series = ',total)
-        call halt_program
-     endif
-
-  endif
-
-end subroutine checkbcfilelength_local
 
 subroutine init_seed
   INTEGER :: i, n, clock

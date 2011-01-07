@@ -611,12 +611,14 @@ contains
              case('r')
                 select case(t%rank)
                 case(2)
+                   write(*,*) 'writing', t%name
                    allocate(r2(size(t%r2,1),size(t%r2,2)))
                    call gridrotate(s, t, r2)
                    status = nf90_put_var(ncid, globalvarids(i), r2, start=(/1,1,tpar%itg/) )
                    deallocate(r2)
                    if (status /= nf90_noerr) call handle_err(status)
                 case(3)
+                   write(*,*) 'writing', t%name
                    allocate(r3(size(t%r3,1),size(t%r3,2),size(t%r3,3)))
                    call gridrotate(s, t, r3)
                    status = nf90_put_var(ncid, globalvarids(i), r3, start=(/1,1,1, tpar%itg/) )

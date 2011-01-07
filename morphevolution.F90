@@ -437,7 +437,8 @@ contains
     dzbdt  = 0.d0
     dzb    = 0.d0
 
-    if (par%t>=par%morstart .and. par%morfac > .999d0) then
+    ! Should this be >= <?
+    if (par%t>=par%morstart .and. par%morfac > .999d0 .and. par%t <= par%morstop ) then
        !
        ! bed_predict
        !

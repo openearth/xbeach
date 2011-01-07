@@ -1,3 +1,3 @@
-Build_Revision = 'Range 1511:1512' //  ' Mixed revisions' // '  with local modifications'
-Build_Date     = '2010/11/26 10:20:46'
-Build_URL      = 'https://repos.deltares.nl/repos/XBeach/trunk'
+Build_Revision = '1606M'
+Build_URL = 'URL: https://repos.deltares.nl/repos/XBeach/trunk'
+Build_Date = 'Fri Jan  7 13:13:56 CET 2011'
