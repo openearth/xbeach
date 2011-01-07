@@ -410,6 +410,7 @@ contains
     ! Subroutine also used to keep track of which lines have been succesfully read
     ! If called by readkey('params.txt','checkparams'), will output unsuccesful key = value
     ! combinations in params.txt
+    use xmpi_module
     use logging_module
     integer                                     :: lun,i,ier,nlines,ic,ikey
     character*1                                 :: ch
@@ -423,12 +424,6 @@ contains
 
     ! If the file name of the input file changes, the file should be reread
     if (fname/=fnameold) then
-       ! reset keyword values and readindex                   
-       if (allocated(values)) then
-          deallocate(keyword)
-          deallocate(values)
-          deallocate(readindex)
-       end if
        ! Make sure this reset only recurs when the input file name changes
        fnameold=fname
        nkeys=0
@@ -445,8 +440,40 @@ contains
        close(lun)
        nlines=i
        ! allocate keyword and values arrays to store all keyword = value combinations
-       allocate(keyword(nlines))
-       allocate(values(nlines))
+
+
+       ! reset keyword values and readindex    
+       if (xor(allocated(values), allocated(keyword)))  then
+           call writelog('lse', '', 'key and values allocation inconsistent during reading key:', trim(key))
+       end if
+       if (allocated(values)) then
+          call writelog('ls', '', 'unallocating values with size', size(values))
+          deallocate(values, stat=ier)
+          if (ier .ne. 0) then
+             call writelog('lse', '', 'deallocation error of values while reading key:', trim(key))
+          end if
+       end if
+       if (allocated(keyword)) then
+          deallocate(keyword, stat=ier)
+          if (ier .ne. 0) then
+             call writelog('lse', '', 'deallocation error of keyword while reading key:', trim(key))
+          end if
+       end if
+       if (allocated(readindex)) then
+          deallocate(readindex, stat=ier)
+          if (ier .ne. 0) then
+             call writelog('lse', '', 'deallocation error of readindex while reading key:', trim(key))
+          end if
+       end if
+       allocate(keyword(nlines), stat=ier)
+       if (ier .ne. 0) then
+          call writelog('lse', '', 'allocation error of keyword')
+       end if
+       call writelog('ls', '', 'allocating values with', nlines)
+       allocate(values(nlines), stat=ier)
+       if (ier .ne. 0) then
+          call writelog('lse', '', 'allocation error of value')
+       end if
        ! Read through the file to fill all the keyword = value combinations
        open(lun,file=fname)
        ikey=0
