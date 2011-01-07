@@ -204,18 +204,9 @@ do while (par%t<par%tstop)
    ! Calculate timestep
    call timestep(s,par,tpar, it, ierr=error)
    if (error .eq. 1) then 
-      ! error message is given by timestep
-      ! Force output for this timestep
-      tpar%outputg = (size(tpar%tpg) .gt. 0)
-      tpar%outputp = (size(tpar%tpp) .gt. 0)
-      tpar%outputm = (size(tpar%tpm) .gt. 0)
-      tpar%outputc = (size(tpar%tpc) .gt. 0)
-      tpar%outputw = (size(tpar%tpw) .gt. 0)
-      tpar%output = (tpar%outputg .or. tpar%outputp .or. tpar%outputm .or. tpar%outputc .or. tpar%outputw)
       ! Write output for this time
       call output(s,sglobal,par,tpar, update=.false.)
       call halt_program
-
    end if
    ! Wave boundary conditions
    ! Jaap: if swave = 0 you also set ui of long waves to zero so always call wave_bc

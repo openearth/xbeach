@@ -44,6 +44,7 @@ elseif (par%outputformat=='debug') then
 endif
 
 end subroutine output_init
+
 subroutine output(s,sglobal,par,tpar, update)
    
    implicit none

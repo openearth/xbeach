@@ -466,8 +466,17 @@ subroutine timestep(s,par, tpar, it, ierr)
      call writelog('lse','','Quit XBeach since computational time explodes')
      call writelog('lse','','dtref',dtref)
      call writelog('lse','','par%dt',par%dt)
-     ! TODO: write output
-     ! TODO: make this 50.0 configurable
+     ! Force output before exit in main time loop
+     tpar%outputg = (size(tpar%tpg) .gt. 0)
+     tpar%outputp = (size(tpar%tpp) .gt. 0)
+     tpar%outputm = (size(tpar%tpm) .gt. 0)
+     tpar%outputc = (size(tpar%tpc) .gt. 0)
+     ! set output time to current time
+     if (tpar%outputg) tpar%tpg=min(tpar%tpg,par%t)
+     if (tpar%outputp) tpar%tpp=min(tpar%tpp,par%t)
+     if (tpar%outputm) tpar%tpm=min(tpar%tpm,par%t)
+     if (tpar%outputc) tpar%tpc=min(tpar%tpc,par%t)
+     tpar%output = (tpar%outputg .or. tpar%outputp .or. tpar%outputm .or. tpar%outputc)
      ierr = 1
   endif
 
