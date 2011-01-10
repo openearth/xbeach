@@ -46,6 +46,7 @@ module spaceparams
      module procedure space_distribute_block_real8
      module procedure space_distribute_block_integer
      module procedure space_distribute_block4_real8
+
      module procedure space_distribute_vector
      module procedure space_distribute_block_vector
   end interface space_distribute
@@ -59,6 +60,7 @@ module spaceparams
      module procedure space_collect_block_real8
      module procedure space_collect_block_integer
      module procedure space_collect_block4_real8
+     module procedure space_collect_block4_integer
      module procedure space_collect_matrix_real8
      module procedure space_collect_matrix_integer
   end interface space_collect
@@ -799,6 +801,24 @@ contains
     enddo
 
   end subroutine space_distribute_block4_real8
+  
+  subroutine space_distribute_block4_integer(sl,a,b)
+    use xmpi_module
+    use general_mpi_module
+    implicit none
+    type (spacepars), intent(inout)                :: sl
+    integer, dimension(:,:,:,:), intent(in)         :: a
+    integer, dimension(:,:,:,:), intent(out)        :: b
+
+    integer                                        :: i,j
+
+    do i=1,size(b,3)
+       do j=1,size(b,4)
+          call matrix_distr(a(:,:,i,j),b(:,:,i,j),sl%is,sl%lm,sl%js,sl%ln,xmpi_master,xmpi_comm)
+       enddo
+    enddo
+
+  end subroutine space_distribute_block4_integer
 
   subroutine space_distribute_vector(xy,sl,a,b)
     use xmpi_module
@@ -1141,37 +1161,11 @@ contains
 
     integer i
 
-    real*8, dimension(:,:,:), allocatable :: ra,rb
-    integer                             :: m,n,o
-
-    m = size(b,1)
-    n = size(b,2)
-    o = size(b,3)
-
-    allocate(rb(m,n,o))
-
-    if (xmaster) then
-       m = size(a,1)
-       n = size(a,2)
-       o = size(a,3)
-       allocate(ra(m,n,o))
-    else
-       allocate(ra(1,1,1))
-    endif
-
-    rb = b
-
-    do i = 1,o
-       call matrix_coll(ra(:,:,i),rb(:,:,i),s%is,s%lm,s%js,s%ln, &
+    do i = 1,size(b,3)
+       call matrix_coll(a(:,:,i),b(:,:,i),s%is,s%lm,s%js,s%ln, &
             s%isleft,s%isright,s%istop,s%isbot, &
             xmpi_master,xmpi_comm)
     enddo
-
-    if (xmaster) then
-       a = ra
-    endif
-
-    deallocate(ra,rb)
 
   end subroutine space_collect_block_integer
 
@@ -1193,6 +1187,25 @@ contains
     enddo
 
   end subroutine space_collect_block4_real8
+  
+  subroutine space_collect_block4_integer(s,a,b)
+    use general_mpi_module
+    use xmpi_module
+    implicit none
+    type(spacepars), intent(in)              :: s
+    integer, dimension(:,:,:,:), intent(out)  :: a
+    integer, dimension(:,:,:,:), intent(in)   :: b
+
+    integer i,j
+    do j = 1,size(b,4)
+       do i = 1,size(b,3)
+          call matrix_coll(a(:,:,i,j),b(:,:,i,j),s%is,s%lm,s%js,s%ln, &
+               s%isleft,s%isright,s%istop,s%isbot, &
+               xmpi_master,xmpi_comm)
+       enddo
+    enddo
+
+  end subroutine space_collect_block4_integer
 
   subroutine space_collect_matrix_real8(s,a,b)
     use general_mpi_module
@@ -1216,39 +1229,9 @@ contains
     integer, dimension(:,:), intent(out)  :: a
     integer, dimension(:,:), intent(in)   :: b
 
-    ! not used often, so we convert the integers to real*8,
-    ! collect and convert back. 
-    ! if this routine becomes heavily used, than a special
-    ! matrix_coll has to be made. (Now we understand why
-    ! C++ has templates)
-
-    real*8, dimension(:,:), allocatable :: ra,rb
-    integer                             :: m,n
-
-    m = size(b,1)
-    n = size(b,2)
-
-    allocate(rb(m,n))
-
-    if (xmaster) then
-       m = size(a,1)
-       n = size(a,2)
-       allocate(ra(m,n))
-    else
-       allocate(ra(1,1))
-    endif
-
-    rb = b
-
-    call matrix_coll(ra,rb,s%is,s%lm,s%js,s%ln, &
+    call matrix_coll(a,b,s%is,s%lm,s%js,s%ln, &
          s%isleft,s%isright,s%istop,s%isbot, &
          xmpi_master,xmpi_comm)
-
-    if (xmaster) then
-       a = ra
-    endif
-
-    deallocate(ra,rb)
 
   end subroutine space_collect_matrix_integer
 
@@ -1302,6 +1285,12 @@ contains
     case('i')
        select case(tl%rank)
        case(0)             ! nothing to do
+       case (2)
+          call space_collect(sl,tg%i2,tl%i2)
+       case (3)
+          call space_collect(sl,tg%i3,tl%i3)
+       case (4)
+          call space_collect(sl,tg%i4,tl%i4)
        case default     ! case 1, 2, 3 and 4 are not handled
           goto 100
        end select   ! rank

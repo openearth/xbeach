@@ -68,6 +68,7 @@ end interface matrix_distr
 interface matrix_coll
 !  module procedure matrix_coll_gather_real8
 !  module procedure matrix_coll_recv_real8
+  module procedure matrix_coll_recvmat_int
   module procedure matrix_coll_recvmat_real8
 end interface matrix_coll
 
@@ -1410,6 +1411,154 @@ subroutine matrix_coll_recvmat_real8(a,b,is,lm,js,ln,&
   endif
 
 end subroutine matrix_coll_recvmat_real8
+
+subroutine matrix_coll_recvmat_int(a,b,is,lm,js,ln,&
+                      isleft,isright,istop,isbot,root,comm)
+  ! This is a copy of matrix_coll_recvmat_real8 for integers
+  use mpi
+  implicit none
+  integer, intent(out), dimension(:,:)  :: a
+  integer, intent(in),  dimension(:,:)  :: b
+  integer, intent(in), dimension(:)    :: is, lm
+  integer, intent(in), dimension(:)    :: js, ln
+  logical, intent(in), dimension(:)    :: isleft, isright, istop, isbot
+  integer, intent(in)                  :: root, comm
+
+  integer                              :: i, rank, ierror, procs, p
+
+  integer                              :: mlocal, nlocal
+
+  !logical, allocatable, dimension(:)   :: isleft, isright, istop, isbot
+
+  integer, parameter                   :: tag = 2
+
+  integer                              :: acolstart, acolend, arowstart, arowend
+  integer                              :: bcolstart, bcolend, browstart, browend
+  integer                              :: mp, np, k, ia, ja
+  integer, parameter                   :: tag1 = 123
+  integer, parameter                   :: tag2 = 124
+  logical                              :: isleftl, isrightl, istopl, isbotl
+
+
+  call MPI_Comm_rank(comm, rank, ierror)
+  call MPI_Comm_size(comm, procs, ierror)
+
+  nlocal   = ln(rank+1)
+  mlocal   = lm(rank+1)
+  isleftl  = isleft(rank+1)
+  isrightl = isright(rank+1)
+  istopl   = istop(rank+1)
+  isbotl   = isbot(rank+1)
+
+  ! define start-end cols and rows for the general case:
+  ! computations on arow.. and acol.. are only meaningful at root
+  browstart  = 2
+  browend    = mlocal - 1
+  bcolstart  = 2
+  bcolend    = nlocal - 1
+  arowstart  = is(root + 1) + 1
+  arowend    = is(root + 1) + mlocal - 2
+  acolstart  = js(root + 1) + 1
+  acolend    = js(root + 1) + nlocal - 2
+
+  ! correct for the border cases:
+
+  if (isleftl) then
+    bcolstart = bcolstart - 1
+    acolstart = acolstart - 1
+  endif
+  if (isrightl) then
+    bcolend = bcolend + 1
+    acolend = acolend + 1
+  endif
+  if (istopl) then
+    browstart = browstart - 1
+    arowstart = arowstart - 1
+  endif
+  if (isbotl) then
+    browend = browend + 1
+    arowend = arowend + 1
+  endif
+
+  if (rank .eq. root) then
+
+    ! copy local submatrix 
+
+    ! coy of the local submtrix B to A:
+
+    a(arowstart:arowend,acolstart:acolend) = &
+    b(browstart:browend,bcolstart:bcolend)
+
+    ! now, collect from each non-root process 
+    ! it's matrix b, and put it in the proper place in a
+
+    ploop: do p = 1, procs
+      if ( p - 1 .eq. root ) then
+        cycle ploop
+      endif
+      ! howmany elements to expect from process p-1  (= mp*np)
+      ! and where to put this in a  (ia:ia+mp-1, ja:ja+np-1)
+      !
+
+      mp = lm(p) - 2
+      np = ln(p) - 2
+      ia = is(p) + 1
+      ja = js(p) + 1
+
+      ! correction if b is at a border:
+
+      if (isleft(p)) then
+        ja = ja - 1
+        np = np + 1
+      endif
+      if (isright(p)) then
+        np = np + 1
+      endif
+      if (istop(p)) then
+        ia = ia - 1
+        mp = mp + 1
+      endif
+      if (isbot(p)) then
+        mp = mp + 1
+      endif
+
+      ! to avoid deadlocks, master first sends a
+      ! short message to p. After receiving that message,
+      ! p will start sending its submatrix
+
+      call MPI_Send(mp*np, 1, MPI_INTEGER, p - 1, tag1, comm, ierror)
+
+      ! receive a submatrix from process p-1
+
+      call MPI_Recv(a(ia:ia+mp-1,ja:ja+np-1), mp*np, MPI_INTEGER, &
+                    p - 1, tag2, comm, MPI_STATUS_IGNORE, ierror)
+
+    enddo  ploop ! loop over non-root processes
+  else ! above is the root code, now the non-root code
+    ! receive the short message fro root, so I can start sending b
+    call MPI_Recv(i, 1, MPI_INTEGER,&
+                  root, tag1, comm, MPI_STATUS_IGNORE, ierror)
+
+    ! which part of b to send: b(browstart:browend,bcolstart:bcolend) 
+
+    ! sanity check
+    k = (browend - browstart + 1)*(bcolend - bcolstart + 1)
+    if (i .ne. k) then
+       write(*,*)'process ',rank,' has a problem in matrix_coll_recvmat_real8: '
+       write(*,*)'number of words to send:',k
+       write(*,*)'root expects:           ',i
+       do i=1,procs
+         write(*,*)i-1,isleft(i),isright(i),istop(i),isbot(i)
+       enddo
+       write(*,*)isleftl,isrightl,istopl,isbotl
+       call MPI_Abort(MPI_COMM_WORLD,1,ierror)
+    endif
+               
+    call MPI_Send(b(browstart:browend,bcolstart:bcolend), k, &
+                    MPI_INTEGER, root, tag2, comm, ierror)
+  endif
+
+end subroutine matrix_coll_recvmat_int
 
 subroutine decomp(n, numprocs, myid, s, e)
 
