@@ -1337,7 +1337,6 @@ subroutine matrix_coll_recvmat_real8(a,b,is,lm,js,ln,&
     ! copy local submatrix 
 
     ! coy of the local submtrix B to A:
-
     a(arowstart:arowend,acolstart:acolend) = &
     b(browstart:browend,bcolstart:bcolend)
 

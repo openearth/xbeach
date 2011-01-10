@@ -111,7 +111,7 @@ contains
     type(arraytype)                              :: t
     type(meanspars)                              :: meanvar
     integer                                      :: i,j,k,l,m,n
-    character(len=10)                             :: mnem
+    character(len=maxnamelen)                    :: mnem
 
     integer                                      :: npointstotal
     logical                                      :: outputp, outputg, outputw, outputm, outputc
@@ -275,44 +275,57 @@ contains
              coordinates = ''
              j = chartoindex(mnem)
              call indextos(s,j,t)
+             call writelog('ls', '', 'Creating netcdf variable: ', trim(mnem) )
+
+             ! Build the array with dimension ids
+             allocate(dimids(t%rank+1))
+             select case(t%rank)
+             case(0)
+                dimids = (/ globaltimedimid /)
+                coordinates = ''
+             case(1)
+                dimids = (/ dimensionid(t%dimensions(1)), globaltimedimid /)
+                coordinates = ''
+                if (dimids(1) .eq. xdimid) coordinates = 'globalx'
+                if (dimids(1) .eq. ydimid) coordinates = 'globaly'
+             case(2)
+                dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), globaltimedimid /)
+                coordinates = 'globalx globaly'
+             case(3)
+                dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
+                     dimensionid(t%dimensions(3)), globaltimedimid /)
+                coordinates = 'globalx globaly' 
+                ! Do we have a vertical level?
+                if (dimids(3) .eq. bedlayersdimid) coordinates = trim(coordinates) // ' bed_layers'
+             case(4)
+                call writelog('ls', '', 'Variable ' // trim(mnem) // ' is of rank 4. This may not work due to an' // &
+                     ' unresolved issue. If so, remove the variable or use the fortran outputformat option.')
+                dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
+                     dimensionid(t%dimensions(3)), dimensionid(t%dimensions(4)), globaltimedimid /)
+                coordinates = 'globalx globaly' 
+                ! Do we have a vertical level?
+                if ((dimids(3) .eq. bedlayersdimid) .or. (dimids(4) .eq. bedlayersdimid)) then
+                   coordinates = trim(coordinates) // ' bed_layers'
+                end if
+             case default
+                call writelog('lse', '', 'mnem: ' // mnem // ' not supported, rank:', t%rank)
+                stop 1
+             end select
              select case(t%type)
+             case('i')
+                status = nf90_def_var(ncid, trim(mnem), NF90_INT, &
+                     dimids, globalvarids(i))
+                if (status /= nf90_noerr) call handle_err(status)
              case('r')
-                ! Build the array with dimension ids
-                call writelog('ls', '', 'Creating netcdf variable: ', trim(mnem) )
-                allocate(dimids(t%rank+1))
-                select case(t%rank)
-                case(2)
-                   dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), globaltimedimid /)
-                   coordinates = 'globalx globaly'
-                case(3)
-                   dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
-                        dimensionid(t%dimensions(3)), globaltimedimid /)
-                   coordinates = 'globalx globaly' 
-                   ! Do we have a vertical level?
-                   if (dimids(3) .eq. bedlayersdimid) coordinates = trim(coordinates) // ' bed_layers'
-                case(4)
-                   call writelog('ls', '', 'Variable ' // trim(mnem) // ' is of rank 4. This may not work due to an' // &
-                        ' unresolved issue. If so, remove the variable or use the fortran outputformat option.')
-                   dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
-                        dimensionid(t%dimensions(3)), dimensionid(t%dimensions(4)), globaltimedimid /)
-                   coordinates = 'globalx globaly' 
-                   ! Do we have a vertical level?
-                   if ((dimids(3) .eq. bedlayersdimid) .or. (dimids(4) .eq. bedlayersdimid)) then
-                      coordinates = trim(coordinates) // ' bed_layers'
-                   end if
-                case default
-                   call writelog('lse', '', 'mnem: ' // mnem // ' not supported, rank:', t%rank)
-                   stop 1
-                end select
                 status = nf90_def_var(ncid, trim(mnem), NF90_DOUBLE, &
                      dimids, globalvarids(i))
                 if (status /= nf90_noerr) call handle_err(status)
-                status = nf90_put_att(ncid, globalvarids(i), 'coordinates', trim(coordinates))
-                if (status /= nf90_noerr) call handle_err(status)
-                deallocate(dimids)
              case default
                 write(0,*) 'mnem', mnem, ' not supported, type:', t%type
              end select
+             status = nf90_put_att(ncid, globalvarids(i), 'coordinates', trim(coordinates))
+             if (status /= nf90_noerr) call handle_err(status)
+             deallocate(dimids)
              status = nf90_put_att(ncid, globalvarids(i), 'units', trim(t%units))
              if (status /= nf90_noerr) call handle_err(status)
              status = nf90_put_att(ncid, globalvarids(i), 'long_name', trim(t%description))
@@ -562,7 +575,7 @@ contains
 
     type(arraytype)                        :: t
     integer                                :: i,j,k,l,m,n, ii
-    character(len=10)                      :: mnem
+    character(len=maxnamelen)              :: mnem
 
     ! some local variables to pass the data through the postprocessing function.
     integer :: i0
@@ -577,7 +590,7 @@ contains
     real*8, dimension(:,:,:,:), allocatable :: r4
 
     integer :: status
-    
+
     ! Open the output file
     if (xmaster) then
        status = nf90_open(ncid=ncid, path=par%ncfilename, mode=nf90_write)
@@ -587,9 +600,9 @@ contains
 
     ! If we're gonna write some global output
     if (tpar%outputg) then
-
 #ifdef USEMPI
        ! we'll need to collect the information from all nodes.
+       write(*,*) par%nglobalvar
        do i=1,par%nglobalvar
           mnem = trim(par%globalvars(i))
           j = chartoindex(mnem)
@@ -604,21 +617,39 @@ contains
           ! write global output variables
           do i=1,par%nglobalvar
              mnem = trim(par%globalvars(i))
+             write(*,*) 'writing output for ',mnem, 't=', par%t
              j = chartoindex(mnem)
              ! lookup the proper array (should have been collected already)
              call indextos(s,j,t)
+
              select case(t%type)
+             case('i')
+                select case(t%rank)
+                case(0)
+                   ! no need to allocate here
+                   status = nf90_put_var(ncid, globalvarids(i), i0, start=(/1,tpar%itg/) )
+                   if (status /= nf90_noerr) call handle_err(status)
+                case default
+                   write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
+                end select
              case('r')
                 select case(t%rank)
+                case(0)
+                   ! no need to allocate here
+                   status = nf90_put_var(ncid, globalvarids(i), r0, start=(/1,tpar%itg/) )
+                   if (status /= nf90_noerr) call handle_err(status)
+                case(1)
+                   allocate(r1(size(t%r1,1)))
+                   status = nf90_put_var(ncid, globalvarids(i), r1, start=(/1,tpar%itg/) )
+                   deallocate(r1)
+                   if (status /= nf90_noerr) call handle_err(status)
                 case(2)
-                   write(*,*) 'writing', t%name
                    allocate(r2(size(t%r2,1),size(t%r2,2)))
                    call gridrotate(s, t, r2)
                    status = nf90_put_var(ncid, globalvarids(i), r2, start=(/1,1,tpar%itg/) )
                    deallocate(r2)
                    if (status /= nf90_noerr) call handle_err(status)
                 case(3)
-                   write(*,*) 'writing', t%name
                    allocate(r3(size(t%r3,1),size(t%r3,2),size(t%r3,3)))
                    call gridrotate(s, t, r3)
                    status = nf90_put_var(ncid, globalvarids(i), r3, start=(/1,1,1, tpar%itg/) )

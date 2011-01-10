@@ -1015,7 +1015,8 @@ contains
 
 
 !!! Wind boundary conditions
-
+    ! TODO: These should be circular (at least the direction) to create proper circular statistics
+    ! (mean of vectors instead of mean of angles (0 + 0 + 180)/3 => 60, while in vector format it is 0)
     call LINEAR_INTERP(s%windinpt,s%windvel,s%windlen,par%t,s%windvnow,indt)
     call LINEAR_INTERP(s%windinpt,s%winddir,s%windlen,par%t,s%winddirnow,indt)
 

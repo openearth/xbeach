@@ -150,6 +150,9 @@ contains
     real*8                              :: degrad
 
     !                     Input file  Keyword Default  Minimum  Maximum
+    ! FB: I think these really should have stayed in par or in a grid type. 
+    ! Now we have two of them, which is bad in any case.
+
     s%nx    = par%nx
     s%ny    = par%ny
     s%dx    = par%dx
@@ -1214,11 +1217,10 @@ contains
     type(spacepars), intent(in)          :: s
     real*8, dimension(:,:), intent(out)  :: a
     real*8, dimension(:,:), intent(in)   :: b
-
     call matrix_coll(a,b,s%is,s%lm,s%js,s%ln, &
          s%isleft,s%isright,s%istop,s%isbot, &
          xmpi_master,xmpi_comm)
-
+    
   end subroutine space_collect_matrix_real8
 
   subroutine space_collect_matrix_integer(s,a,b)
@@ -1298,9 +1300,6 @@ contains
        select case(tl%rank)
        case(0)             ! nothing to do
        case(2)
-          if (tl%name .eq. mnem_umean) then
-             goto 100
-          endif
           call space_collect(sl,tg%r2,tl%r2)
        case(3)
           call space_collect(sl,tg%r3,tl%r3)

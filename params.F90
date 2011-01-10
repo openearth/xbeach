@@ -378,6 +378,8 @@ contains
        par%dx    = readkey_dbl('params.txt','dx',    -1.d0,   0.d0,      1d9,required=.true.)
        par%dy    = readkey_dbl('params.txt','dy',    -1.d0,   0.d0,      1d9,required=.true.)
     else
+       par%dx = -1.d0
+       par%dy = -1.d0
        par%xfile = readkey_name('params.txt','xfile')
        call check_file_exist(par%xfile)
        call check_file_length(par%xfile,par%nx+1,par%ny+1)
@@ -1185,8 +1187,35 @@ subroutine readglobalvars(par)
                                        'Svsg ', 'E    ', 'R    ', 'D    ', 'DR   ' /)
              par%nglobalvar = 21
         elseif (par%nglobalvar == 999) then ! Output all
-            par%globalvars(1:numvars) = mnemonics   ! list of all s% variables
-            par%nglobalvar = numvars
+           par%nglobalvar = 0
+           do i=1,numvars
+              ! Don't output variables that don't work (misalignment)
+              if (mnemonics(i) .eq. 'xyzs01') then
+                 cycle
+              elseif (mnemonics(i) .eq. 'xyzs02') then
+                 cycle
+              elseif (mnemonics(i) .eq. 'xyzs03') then
+                 cycle
+              elseif (mnemonics(i) .eq. 'xyzs04') then
+                 cycle
+              elseif (mnemonics(i) .eq. 'tideinpz') then
+                 cycle
+              elseif (mnemonics(i) .eq. 'umean') then
+                 cycle
+              elseif (mnemonics(i) .eq. 'vmean') then
+                 cycle
+              elseif (mnemonics(i) .eq. 'gw0back') then
+                 cycle
+              elseif (mnemonics(i) .eq. 'zi') then
+                 cycle
+              elseif (mnemonics(i) .eq. 'wi') then
+                 cycle
+              elseif (mnemonics(i) .eq. 'tideinpz') then
+                 cycle
+              end if
+              par%globalvars(par%nglobalvar+1) = mnemonics(i)   ! list of all s% variables
+              par%nglobalvar = par%nglobalvar + 1
+           end do
         else
             ! User specified output
             ! Find nglobalvar keyword in params.txt

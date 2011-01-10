@@ -71,7 +71,7 @@ if (xmaster) then
 
   allocate(s%tideinpt(s%tidelen))
   allocate(s%tideinpz(s%tidelen,par%tideloc))
-
+  s%tideinpz = 0.0d0
   do i=1,s%tidelen
      read(31,*)s%tideinpt(i),s%tideinpz(i,:)
   end do

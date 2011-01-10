@@ -208,7 +208,11 @@ contains
     allocate(s%xyzs02(2))
     allocate(s%xyzs03(2))
     allocate(s%xyzs04(2))
-    s%zs0  = 0.0d0 ! make sure it is initialized.
+    ! TODO: do this properly....
+    ! All variables above, should be initialized below (for all cells)
+    s%zs0  = 0.0d0 
+    s%ue   = 0.0d0
+    s%ve   = 0.0d0
     s%ws   = 0.0d0
     s%wb   = 0.0d0
     s%pres = 0.0d0
@@ -219,6 +223,13 @@ contains
     s%wm   =0.d0
     s%umean=0.d0
     s%vmean=0.d0
+    s%zs0fac = 0.0d0
+
+    ! scalars
+    ! TODO should these be here in flow?
+    s%windvnow = 0.0d0
+    s%winddirnow = 0.0d0
+
     !
     ! set-up tide and surge waterlevels
     s%zs01=par%zs0
@@ -420,7 +431,6 @@ contains
        ! 4) weighted tide and surge (for completely wet arrays)
        ! relative weight of offshore boundary and bay boundary for each grid point is stored in zs0fac 
        !
-       s%zs0fac = 0.d0
        do j = 1,s%ny+1 
           offshoreregime = .true.   
           indoff = s%nx+1 ! ind of last point (starting at offshore boundary) that should be associated with offshore boundary
