@@ -1268,6 +1268,31 @@ end subroutine
 ! store all found variables in a combined list (not per point)
 ! So for each point all variables are stored
 ! 
+
+! TODO after some discussion with Robert we will change this to:
+! Rugauges don't need any output variables other then zs, x, y, t
+! Pointvars need a different input specification:
+! npointvars=3
+! zs
+! H
+! u
+! npoints=2
+! 3.0 2.0
+! 10.0 3.1
+! nrugauges=1
+! 4.1 3.2
+! Using the old notation should give a warning and an explanation what will be output.
+
+! Tasks:
+! Create tests: FB+RMC
+! Implement npointvars, stop using vars in #: RMC
+! Give error if # present in points: RMC
+! Use fixed outputvars for rugauges: RMC
+! Fix matlab read routines (toolbox + zelt): FB
+! Reimplement rugauges in ncoutput:  FB
+! Update documentation: FB, check RMC
+
+
 subroutine readpointvars(par)
   use logging_module
   use mnemmodule

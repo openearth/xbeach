@@ -602,7 +602,6 @@ contains
     if (tpar%outputg) then
 #ifdef USEMPI
        ! we'll need to collect the information from all nodes.
-       write(*,*) par%nglobalvar
        do i=1,par%nglobalvar
           mnem = trim(par%globalvars(i))
           j = chartoindex(mnem)
@@ -617,7 +616,6 @@ contains
           ! write global output variables
           do i=1,par%nglobalvar
              mnem = trim(par%globalvars(i))
-             write(*,*) 'writing output for ',mnem, 't=', par%t
              j = chartoindex(mnem)
              ! lookup the proper array (should have been collected already)
              call indextos(s,j,t)
