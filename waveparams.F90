@@ -130,7 +130,7 @@ contains
        wp%rt = readkey_dbl ('params.txt', 'rt', 3600.d0, 1200.d0, 7200.d0, bcast=.false.)
        if (par%morfacopt==1) wp%rt = wp%rt / max(par%morfac,1.d0)
        wp%dt = readkey_dbl ('params.txt', 'dtbc', 0.1d0, 0.01d0, 1.0d0, bcast=.false.)
-
+       fname=par%bcfile
        ! Create filenames for BCF files
 
        Ebcfname='E_reuse.bcf'
