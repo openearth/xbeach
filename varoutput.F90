@@ -84,7 +84,6 @@ contains
     integer,dimension(2)                :: minlocation
     character(80)                       :: line, keyword
     character(80)                       :: var
-    integer, dimension(:,:),allocatable :: temparray
     real*8,dimension(s%nx+1,s%ny+1)     :: mindist
     real*8,dimension(:),allocatable     :: xcrossw,ycrossw
     character(1)                        :: singlechar
@@ -144,7 +143,6 @@ contains
        allocate(Avarpoint(par%npoints+par%nrugauge,max(par%npointvar,3)))  ! 3 for rugauge, npointvar for points
        xpoints=0.d0
        ypoints=0.d0
-       temparray=0
 
        ! Convert world coordinates of points to nearest (lsm) grid point
        if (xmaster) then 
@@ -203,118 +201,6 @@ contains
           endif
        endif ! xmaster
     end if ! npoints+nrugauge>0
-
-
-!!!!! CROSS SECTION OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    !ncross  = readkey_int ('params.txt','ncross',      0,       0,     50)
-    ncross = 0
-    ! Fedor +  Robert : will be changed once cross section ready for netcdf
-    if (par%ncross>0) then
-       allocate(crosstype(par%ncross))
-       allocate(xcross(par%ncross))
-       allocate(ycross(par%ncross))
-       allocate(xcrossw(par%ncross))
-       allocate(ycrossw(par%ncross))
-       allocate(nvarcross(par%ncross))
-       allocate(temparray(par%ncross,99))
-       temparray=-1
-
-       if (xmaster) then
-          id=0
-          ! Look for keyword ncross in params.txt
-          open(10,file='params.txt')
-          do while (id == 0)
-             read(10,'(a)')line
-             ic=scan(line,'=')
-             if (ic>0) then
-                keyword=adjustl(line(1:ic-1))
-                if (keyword == 'ncross') id=1
-             endif
-          enddo
-
-          do i=1,par%ncross
-             !          read(10,*) xcrossw(i),ycrossw(i),crosstype(i),nvarcross(i),line
-             read(10,*) xcrossw(i),ycrossw(i),singlechar,nvarcross(i),line
-             call writelog('ls','(a,i0)',' Cross section ',i)
-             if(singlechar=='x'.or.singlechar=='X') then
-                crosstype(i)=0
-             elseif(singlechar=='y'.or.singlechar=='Y') then
-                crosstype(i)=1
-             else
-                call writelog('lse','',' Unknown cross section type: ',singlechar)
-                call halt_program
-             endif
-             ! Convert world coordinates of points to nearest (lsm) grid row
-             mindist=(xcrossw(i)-s%xw)**2+(ycrossw(i)-s%yw)**2
-             minlocation=minloc(mindist)
-             xcross(i)=minlocation(1)
-             ycross(i)=minlocation(2)
-             call writelog('ls','(a,f0.2,a,f0.2)',' positioned at x-coordinate: ',xcrossw(i),&
-                  ' y-coordinate: ',ycrossw(i))
-             if (crosstype(i)==0) then
-                call writelog('ls','(a,i0)',' placed in x-direction at row iy = ',ycross(i))
-             else
-                call writelog('ls','(a,i0)',' placed in y-direction at column ix = ',xcross(i))
-             endif
-             icold=0
-             do ii =1,nvarcross(i)
-                ic=scan(line(icold+1:80),'#')
-                ic=ic+icold
-                var=line(icold+1:ic-1)
-                index = chartoindex(var)
-                if (index/=-1) then
-                   temparray(i,ii)=index
-                   call indextos(s,index,At)
-                   if (At%rank.ne.2) then
-                      call writelog('les','(a,i0,a,a,a)',' Cross section output not designed for rank ' &
-                           ,At%rank,' array "',trim(At%name),'"')
-                      call halt_program
-                   endif
-                   call writelog('sl','',' Output type: ''',trim(var),'''')
-                else
-                   call writelog('sle','',' Unknown  output type: ''',trim(var),'''')
-                   call halt_program
-                endif
-                icold=ic
-             enddo
-          enddo
-          close(10)
-       endif !xmaster
-
-#ifdef USEMPI
-       call xmpi_bcast(nvarcross)
-       call xmpi_bcast(crosstype)
-       call xmpi_bcast(xcross)
-       call xmpi_bcast(ycross)
-       call xmpi_bcast(temparray)   
-#endif     
-
-       ! Tidy up information
-       allocate(Avarcross(par%ncross,maxval(nvarcross)))
-       Avarcross(:,:)=temparray(:,1:maxval(nvarcross))
-       deallocate (temparray)
-
-       !! First time file opening for cross section output
-       if (xmaster) then
-          do i=1,par%ncross
-             fname(1:5)='cross'
-             i1=floor(real(i)/100.d0)
-             i2=floor(real(i-i1*100)/10.d0)
-             i3=i-i1*100-i2*10
-             fname(6:6)=char(48+i1)
-             fname(7:7)=char(48+i2)
-             fname(8:8)=char(48+i3)
-             fname(9:12)='.dat'
-             if (crosstype(i)==0) then
-                reclenc=wordsize*(s%nx+1)*(nvarcross(i))
-             else
-                reclenc=wordsize*(s%ny+1)*(nvarcross(i))
-             endif
-             open(indextocrossunit(i),file=fname,form='unformatted',access='direct',recl=reclenc)
-          enddo
-       endif
-    endif ! par%ncross > 0
-
 
 
 
