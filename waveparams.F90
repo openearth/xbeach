@@ -227,7 +227,7 @@ if(xmaster) then
     if (trim(par%instat) /= 'jons_table') then
     
         ! Use spectrum characteristics
-        call writelog('sl','','waveparams: Reading from ',fname,' ...')
+        call writelog('sl','','waveparams: Reading from ',trim(fname),' ...')
     else
     
         ! Use spectrum table
@@ -268,11 +268,11 @@ endif
 wp%Npy=s%ny+1
 
 ! Print JONSWAP characteristics to screen
-call writelog('sl','','Hm0 = ',wp%hm0gew,'Tp = ',1.d0/fp,'dir = ',wp%mainang,'duration = ',wp%rt)
+call writelog('sl','(a,f0.3,a,f0.3,a,f0.3,a,f0.3)','Input checked: Hm0 = ',wp%hm0gew,' Tp = ',1.d0/fp,' dir = ',wp%mainang,' duration = ',wp%rt)
 
-                                                                               ! approximation from Coastal Engineering: Processes, Theory and Design Practice
-                                                                               ! Dominic Reeve, Andrew Chadwick 2004
-                                                                               ! par%Trep=0.8345d0*(1/fp)                      
+! approximation from Coastal Engineering: Processes, Theory and Design Practice
+! Dominic Reeve, Andrew Chadwick 2004
+! par%Trep=0.8345d0*(1/fp)                      
 
 ! Make the sample resoltion depending on the time record length, thus
 ! discarding the input parameter dfj. The base frequency now perfectly fits the
@@ -376,7 +376,7 @@ wp%Sf = sum(wp%S_array, DIM = 2)*wp%dang
 ! Calculate mean wave period based on one-dimensional non-directional variance
 ! density spectrum and factor trepfac
 call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac,par%Tm01switch)
-call writelog('sl','','Trep =',par%Trep)
+call writelog('sl','(a,f0.3)','Derived Trep = ',par%Trep)
                                                                                ! par%Trep=1.d0/par%Trep
                                                                                ! Jaap try Tm-1,0
                                                                                ! par%Trep = 1/fp/1.1d0
@@ -938,9 +938,8 @@ subroutine build_etdir(par,s,wp,Ebcfname)
   if (wp%dt>(1.d0/pp)) then
      wp%dt=1.d0/pp
      if (xmaster) then
-        call writelog('ls','(a,f6.4,a)', &
-             'Changing dt in wave boundary conditions to satisfy Nyquist condition. New dt = ', &
-             wp%dt,' s.')
+        call writelog('ls','(a)','Changing dtbc in wave boundary conditions to satisfy Nyquist condition:')
+        call writelog('ls','(a,f0.4,a)','New dtbc = ',wp%dt,' s.')
      endif
   endif
 
