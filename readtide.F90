@@ -59,7 +59,7 @@ if (xmaster) then
   ntide = 0
 
   call readkey('params.txt','zs0file',fnamezs0)
-  call writelog('ls','','readtide: reading tide time series from ',fnamezs0,' ...')
+  call writelog('ls','','readtide: reading tide time series from ',trim(fnamezs0),' ...')
   open(31,file=fnamezs0)
   do while (io==0)
      ntide=ntide+1
