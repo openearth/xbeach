@@ -46,7 +46,7 @@ contains
     integer, save                               :: nt
     integer                                     :: i,new,reclen,wordsize
     integer, save                               :: old
-    integer, save                               :: recpos
+    integer, save                               :: recpos, curline
     integer                                     :: j
     integer                                     :: itheta
     integer                                     :: E_idx
@@ -183,11 +183,18 @@ contains
           call dispersion(par,s)     
 
        elseif ((trim(par%instat)=='jons'.or.trim(par%instat)=='jons_table').and.xmaster) then
+          ! wp is not saved and we only know about the current line which is called listline in wp....
+          wp%listline = curline
           call makebcf(par,sg,wp)
+          curline = wp%listline
        elseif (trim(par%instat)=='swan'.and.xmaster) then
+          wp%listline = curline
           call makebcf(par,sg,wp)
+          curline = wp%listline
        elseif (trim(par%instat)=='vardens'.and.xmaster) then
+          wp%listline = curline
           call makebcf(par,sg,wp) 
+          curline = wp%listline
        elseif (trim(par%instat)=='reuse'.and.xmaster) then
           wp%listline=1
        elseif (trim(par%instat)=='nonh'.and.xmaster) then   
@@ -282,24 +289,30 @@ contains
           !    if ((par%instat==4.or.par%instat==41).and.xmaster) then
           close(71)
           close(72)
+          wp%listline = curline
           call makebcf(par,sg,wp)
+          curline = wp%listline
           startbcf=.true.
        elseif (trim(par%instat)=='swan'.and.xmaster) then 
           close(71)
           close(72)
+          wp%listline = curline
           call makebcf(par,sg,wp)
+          curline = wp%listline
           startbcf=.true.
        elseif (trim(par%instat)=='vardens'.and.xmaster) then 
           close(71)
           close(72)
+          wp%listline = curline
           call makebcf(par,sg,wp)
+          curline = wp%listline
           startbcf=.true.
        elseif (trim(par%instat)=='reuse'.and.xmaster) then
           close(71)
           close(72)
           startbcf=.true.
           if (par%t <= (par%tstop-par%dt)) then
-             wp%listline=wp%listline+1
+             curline = curline + 1
           end if
        end if
 #ifdef USEMPI
@@ -379,7 +392,9 @@ contains
              open(54,file='qbcflist.bcf',form='formatted',position='rewind')
           endif
           if (xmaster) then
-             do i=1,wp%listline
+
+             do i=1,curline
+                write(*,*) i, curline
                 read(53,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,ebcfname
                 read(54,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,qbcfname
              enddo  ! wwvv strange

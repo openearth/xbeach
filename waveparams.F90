@@ -43,7 +43,7 @@ contains
     type(parameters), INTENT(INOUT)             :: par
     type(spacepars), intent(IN)                 :: s
 
-    type(waveparameters)                        :: wp
+    type(waveparameters), intent(inout)         :: wp
     real*8,save                                 :: bcendtime
     character(len=256)                          :: fname,Ebcfname,qbcfname
     character*8                                 :: testc
@@ -54,7 +54,6 @@ contains
 
     ! Flag that determines whether new BCF files are created or not
     makefile=.false.
-
 
     ! Check whether this is the first time step
     if (abs(par%t-par%dt)<1.d-6) then
@@ -173,6 +172,7 @@ contains
 
     ! Define line counter for boundaryconditions.f90
     wp%listline=wp%listline+1
+    write(*,*) wp%listline
 
     ! Define endtime for boundary conditions, boundaryconditions.f90 should
     ! recreate BCF files after this moment
@@ -252,8 +252,9 @@ if (trim(par%instat)/='jons_table') then
     if (par%oldnyq==1) then
        fnyq                = readkey_dbl (fname,       'fnyq', 0.3d0,    0.2d0,      1.0d0,      bcast=.false. )
     else 
-	   fnyq                = readkey_dbl (fname,       'fnyq',     max(0.3d0,3.d0*fp),    0.2d0,      1.0d0,      bcast=.false. )
-	endif
+       fnyq                = readkey_dbl (fname,       'fnyq',     max(0.3d0,3.d0*fp),    0.2d0,      1.0d0, &
+         bcast=.false. )
+    endif
     dfj                 = readkey_dbl (fname,       'dfj',      fnyq/200,   fnyq/1000,  fnyq/20,    bcast=.false. )
     gam                 = readkey_dbl (fname,       'gammajsp', 3.3d0,      1.0d0,      5.0d0,      bcast=.false. )
     scoeff              = readkey_dbl (fname,       's',        10.0d0,     1.0d0,      1000.0d0,   bcast=.false. )
@@ -268,7 +269,8 @@ endif
 wp%Npy=s%ny+1
 
 ! Print JONSWAP characteristics to screen
-call writelog('sl','(a,f0.3,a,f0.3,a,f0.3,a,f0.3)','Input checked: Hm0 = ',wp%hm0gew,' Tp = ',1.d0/fp,' dir = ',wp%mainang,' duration = ',wp%rt)
+call writelog('sl','(a,f0.3,a,f0.3,a,f0.3,a,f0.3)','Input checked: Hm0 = ',wp%hm0gew,' Tp = ',1.d0/fp, &
+     ' dir = ',wp%mainang,' duration = ',wp%rt)
 
 ! approximation from Coastal Engineering: Processes, Theory and Design Practice
 ! Dominic Reeve, Andrew Chadwick 2004
