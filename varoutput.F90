@@ -24,7 +24,6 @@ module fortoutput_module
   integer*4,dimension(:),allocatable  :: ypoints     ! model y-coordinate of output points
   integer*4,dimension(:),allocatable  :: xcross      ! model x-coordinate of output cross sections
   integer*4,dimension(:),allocatable  :: ycross      ! model y-coordinate of output cross sections
-  integer*4,dimension(:),allocatable  :: nvarpoint   ! vector with number of output variable per output point
   integer*4,dimension(:),allocatable  :: nvarcross   ! vector with number of output variable per output cross section
   integer*4,dimension(:,:),allocatable:: Avarpoint   ! Array with associated index of output variables per point
   integer*4,dimension(:,:),allocatable:: Avarcross   ! Array with associated index of output variables per cross section
@@ -69,6 +68,8 @@ contains
     use readkey_module
     use timestep_module
     use logging_module
+    use postprocessmod
+    use filefunctions
 
     IMPLICIT NONE
 
@@ -79,6 +80,7 @@ contains
     integer                             :: id,ic,icold,i,ii,index, j
     integer                             :: i1,i2,i3
     integer                             :: reclen,reclenc,reclenp,wordsize
+    integer                             :: fid
     integer,dimension(2)                :: minlocation
     character(80)                       :: line, keyword
     character(80)                       :: var
@@ -137,53 +139,32 @@ contains
 !!!!! OUTPUT POINTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! read from par to local
     if (par%npoints + par%nrugauge > 0) then
-
-       allocate(nvarpoint(par%npoints+par%nrugauge))
-       do i=1,size(par%pointvars)
-          if (trim(par%pointvars(i))=='abc') then
-             exit
-          endif
-       enddo
-       nvarpoint = i-1 ! set to the number of pointvars (unique variables)
-
        allocate(xpoints(par%npoints+par%nrugauge))
        allocate(ypoints(par%npoints+par%nrugauge))
-       allocate(temparray(par%npoints+par%nrugauge,maxval(nvarpoint)))
+       allocate(Avarpoint(par%npoints+par%nrugauge,max(par%npointvar,3)))  ! 3 for rugauge, npointvar for points
+       xpoints=0.d0
+       ypoints=0.d0
+       temparray=0
 
        ! Convert world coordinates of points to nearest (lsm) grid point
        if (xmaster) then 
-          do i=1,(par%npoints+par%nrugauge)
-             mindist=sqrt((par%xpointsw(i)-s%xw)**2+(par%ypointsw(i)-s%yw)**2)
-             minlocation=minloc(mindist)
-             ypoints(i)=minlocation(2)
-             if (par%pointtypes(i) == 1) then
-                xpoints(i)=1
-                call writelog('ls','(a,i0)','Runup gauge at grid line iy=',ypoints(i))
-             else
-                xpoints(i)=minlocation(1)
-                call writelog('ls','(a,i0,a,i0,a,f0.2,a)',' Distance output point to nearest grid point ('&
-                     ,minlocation(1),',',minlocation(2),') is '&
-                     ,mindist(minlocation(1),minlocation(2)), ' meters')
-             endif
-             do j=1,nvarpoint(i)
-                temparray(i,j) = chartoindex(trim(par%pointvars(j)))
+          call snappointstogrid(par, s, xpoints, ypoints)
+          do i=1,par%npoints
+             do j=1,par%npointvar
+                Avarpoint(i,j) = chartoindex(trim(par%pointvars(j)))
              end do
           end do
+          do i=par%npoints+1,par%npoints+par%nrugauge
+             Avarpoint(i,1) = chartoindex('xw')
+             Avarpoint(i,2) = chartoindex('yw')
+             Avarpoint(i,3) = chartoindex('zs')
+          enddo
        endif
-
-       ! TODO: what is temparray
 #ifdef USEMPI
-       call xmpi_bcast(nvarpoint)
        call xmpi_bcast(xpoints)
        call xmpi_bcast(ypoints)
-       call xmpi_bcast(temparray)   
+       call xmpi_bcast(Avarpoint)   
 #endif
-       ! Tidy up information
-       allocate(Avarpoint(par%npoints+par%nrugauge,maxval(nvarpoint)))
-       Avarpoint(:,:)=temparray(:,1:maxval(nvarpoint))
-       deallocate (temparray)
-
-
        !! First time file opening for point output
        if (xmaster) then
           do i=1,par%npoints+par%nrugauge
@@ -203,12 +184,25 @@ contains
              fname(7:7)=char(48+i2)
              fname(8:8)=char(48+i3)
              fname(9:12)='.dat'
-             reclenp=wordsize*(nvarpoint(i)+1)*1
+             if (par%pointtypes(i)==0) then
+                reclenp=wordsize*(par%npointvar+1)*1
+             else
+                reclenp=wordsize*4*1
+             endif
              open(indextopointsunit(i),file=fname,&
                   form='unformatted',access='direct',recl=reclenp)
           enddo
-       endif
-    end if
+          if (par%npoints>0) then
+             ! write index file of point output variables
+             fid=create_new_fid()
+             open(fid,file='pointvars.idx',status='replace',action='write')
+             do i=1,par%npointvar
+                write(fid,*)trim(par%pointvars(i))
+             enddo
+             close(fid)
+          endif
+       endif ! xmaster
+    end if ! npoints+nrugauge>0
 
 
 !!!!! CROSS SECTION OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -431,17 +425,28 @@ contains
                    call makeintpvector(par,sl,intpvector,xpoints(i),ypoints(i))
                 endif
                 if (xmaster) then
-                   allocate(tempvectori(nvarpoint(i)))
-                   allocate(tempvectorr(nvarpoint(i)+1))
-                   tempvectori=Avarpoint(i,1:nvarpoint(i))
+                   if (par%pointtypes(i)==0) then
+                      allocate(tempvectori(par%npointvar))
+                      tempvectori=Avarpoint(i,1:par%npointvar)
+                      allocate(tempvectorr(par%npointvar+1))
+                      tempvectorr=0.d0
+                      do ii=1,par%npointvar
+                         tempvectorr(ii+1)=intpvector(tempvectori(ii))
+                      enddo
+                   else
+                      allocate(tempvectori(3))
+                      tempvectori=Avarpoint(i,:)
+                      allocate(tempvectorr(4))
+                      tempvectorr=0.d0
+                      do ii=1,3
+                         tempvectorr(ii+1)=intpvector(tempvectori(ii))
+                      enddo
+                   endif                   
                    if (par%morfacopt==1) then
                       tempvectorr(1)=par%t*max(par%morfac,1.d0)
                    else
                       tempvectorr(1)=par%t
-                   endif
-                   do ii=1,nvarpoint(i)
-                      tempvectorr(ii+1)=intpvector(tempvectori(ii))
-                   enddo
+                   endif                  
                    write(indextopointsunit(i),rec=itp)tempvectorr
                    deallocate(tempvectori)
                    deallocate(tempvectorr)
