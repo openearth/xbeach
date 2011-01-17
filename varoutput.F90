@@ -15,28 +15,26 @@ module fortoutput_module
   ! Robert: Add choice of output variables
   !logical,dimension(999)              :: outputindex ! [-]      tracks which  global variables are to be outputted.
   
-  integer*4                           :: npoints     ! number of output points
-  integer*4                           :: nrugauge    ! number of runup gauges
-  integer*4                           :: ncross      ! number of cross section profiles
-  
-  integer*4,dimension(:),allocatable  :: crosstype   ! 0 = cross shore (x), 1 = longshore (y)
-  integer*4,dimension(:),allocatable  :: xpoints     ! model x-coordinate of output points
-  integer*4,dimension(:),allocatable  :: ypoints     ! model y-coordinate of output points
-  integer*4,dimension(:),allocatable  :: xcross      ! model x-coordinate of output cross sections
-  integer*4,dimension(:),allocatable  :: ycross      ! model y-coordinate of output cross sections
-  integer*4,dimension(:),allocatable  :: nvarcross   ! vector with number of output variable per output cross section
-  integer*4,dimension(:,:),allocatable:: Avarpoint   ! Array with associated index of output variables per point
-  integer*4,dimension(:,:),allocatable:: Avarcross   ! Array with associated index of output variables per cross section
+  integer*4,dimension(:),allocatable,save  :: crosstype   ! 0 = cross shore (x), 1 = longshore (y)
+  integer*4,dimension(:),allocatable,save  :: xpoints     ! model x-coordinate of output points
+  integer*4,dimension(:),allocatable,save  :: ypoints     ! model y-coordinate of output points
+  integer*4,dimension(:),allocatable,save  :: xcross      ! model x-coordinate of output cross sections
+  integer*4,dimension(:),allocatable,save  :: ycross      ! model y-coordinate of output cross sections
+  integer*4,dimension(:),allocatable,save  :: nvarcross   ! vector with number of output variable per output cross section
+  integer*4,dimension(:,:),allocatable,save:: Avarpoint   ! Array with associated index of output variables per point
+  integer*4,dimension(:,:),allocatable,save:: Avarcross   ! Array with associated index of output variables per cross section
+  integer*4,dimension(:,:),allocatable,save:: rugmaskg,rugmaskl   ! Mask with 1 for row with runup gauge, 0 without. Dimensions: nx+1,ny+1
+                                                             ! One for global field, one for mpi subdomain if using MPI
+  integer*4,dimension(:),allocatable,save  :: rugrowindex ! Array with row index where runup gauge can be found                                                              
   ! Only alive at xmaster
-  integer*4                           :: stpm        ! size of tpm
+  integer*4,save                           :: stpm        ! size of tpm
 
   ! Store the global variables in numbers....
-  integer                             :: noutnumbers = 0  ! the number of outnumbers
-  integer, dimension(numvars)         :: outnumbers  ! numbers, corrsponding to mnemonics, which are to be output
+  integer,save                             :: noutnumbers = 0  ! the number of outnumbers
+  integer, dimension(numvars),save         :: outnumbers  ! numbers, corrsponding to mnemonics, which are to be output
  
   
   integer                             :: itg,itp,itc,itm,day,ot
-  real*8,dimension(10)                :: tlast10
   type(arraytype)                     :: At
   
   interface outarray
@@ -70,6 +68,9 @@ contains
     use logging_module
     use postprocessmod
     use filefunctions
+#ifdef USEMPI
+    use general_mpi_module
+#endif
 
     IMPLICIT NONE
 
@@ -88,7 +89,6 @@ contains
     real*8,dimension(:),allocatable     :: xcrossw,ycrossw
     character(1)                        :: singlechar
     character(99)                       :: fname,fnamemean,fnamevar,fnamemin,fnamemax
-
 
 
     ! Initialize places in output files
@@ -163,7 +163,48 @@ contains
        call xmpi_bcast(ypoints)
        call xmpi_bcast(Avarpoint)   
 #endif
-       !! First time file opening for point output
+       ! make mask for grid rows which include 
+       if (par%nrugauge>0) then
+          allocate(rugrowindex(par%nrugauge))
+#ifdef USEMPI
+          allocate(rugmaskg(s%nx+1,s%ny+1))
+          allocate(rugmaskl(sl%nx+1,sl%ny+1))
+#endif    
+          ! Make rugrowindex with row number (per subprocess) with runup gauge
+          do i=1,par%nrugauge
+#ifndef USEMPI
+            ! very easy
+            rugrowindex(i)=ypoints(par%npoints+i)
+#else
+            ! very complicated
+            if (xmaster) then 
+               ! generate rugmask on global grid
+               do j=1,s%ny+1
+                  if (j==ypoints(par%npoints+i)) then
+                     rugmaskg(:,j)=1
+                  else
+                     rugmaskg(:,j)=0
+                  endif
+               enddo
+            endif
+            ! now distribute rugmask global to rugmask local on all subgrids
+            call matrix_distr(rugmaskg,rugmaskl,sl%is,sl%lm,sl%js,sl%ln,xmpi_master,xmpi_comm)
+            ! everybody has their own rugmaskl. Look to see if your domain has "1" in rugmaskl
+            ! first assume that no runup gauge exists in this domain, so we set rowindex to zero
+            rugrowindex(i)=0    ! rugrowindex is local on all subgrid
+            do j=1,sl%ny+1
+               if (rugmaskl(1,j)==1) rugrowindex(i)=j   ! okay, there is a runup gauge this row
+            enddo
+#endif
+          enddo  ! i=1,par%nrugauge
+#ifdef USEMPI
+          deallocate(rugmaskg)   ! not needed anymore
+          deallocate(rugmaskl)   ! not needed anymore
+#endif          
+       endif  ! runup gauge > 0
+       !
+       ! First time file opening for point output
+       !
        if (xmaster) then
           do i=1,par%npoints+par%nrugauge
              fname = ''
@@ -203,8 +244,6 @@ contains
     end if ! npoints+nrugauge>0
 
 
-
-
 !!!!! TIME-AVEARGE, VARIANCE and MIN-MAX ARRAYS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
@@ -239,6 +278,9 @@ contains
     use spaceparams
     use timestep_module
     use logging_module
+#ifdef USEMPI
+    use xmpi_module
+#endif
 
     IMPLICIT NONE
 
@@ -247,9 +289,8 @@ contains
     type(timepars),intent(in)               :: tpar
     integer                                 :: i,ii
     !  integer                                 :: i1,i2,i3
-    integer                                 :: wordsize, idum
-    !  integer                                 :: reclen,reclen2,reclenc,reclenp
-    !  character(12)                           :: fname
+    integer                                 :: wordsize, idumhg,idumhl,idum
+    integer                                 :: xrank,xmax
     real*8,dimension(numvars)               :: intpvector
     real*8,dimension(numvars,s%nx+1)        :: crossvararray0
     real*8,dimension(numvars,s%ny+1)        :: crossvararray1
@@ -277,57 +318,74 @@ contains
        if (par%npoints+par%nrugauge>0) then
           if (tpar%outputp) then
              itp=itp+1
-             ! wwvv check if there is any pointtype.eq. 1
-             ! In that case, we need the values in wetz
-             ! Probably, this test can be coded somewhat smarter
+             do i=1,par%nrugauge
+                ! in MPI we only want to cycle through sub matrix, else through whole matrix
 #ifdef USEMPI
-             !do i=1,par%npoints+par%nrugauge
-             !   if (par%pointtypes(i) .eq. 1) then
-             if (par%nrugauge>0) then
-                 call space_collect(sl,s%wetz,sl%wetz)
-             endif
-             !      exit
-             !   endif
-             !enddo
+                xmax = sl%nx+1
+#else
+                xmax = s%nx+1
 #endif
-             do i=1,par%npoints+par%nrugauge
-!!! Make vector of all s% values at n,m grid coordinate
-                if (par%pointtypes(i)==1) then
-                   if (xmaster) then
-                      !                      allocate (temp(1:s%nx+1))
-                      !                      temp=(/(k,k=1,s%nx+1)/)
-                      ! wwvv wetz ok?, probably not
-                      ! idum = maxval(maxloc(temp*s%wetz(1:s%nx+1,ypoints(i)))) ! Picks the last "1" in temp
-                      idum =  max(maxval(minloc(s%wetz(:,ypoints(i))))-1,1)
-                      !                      deallocate(temp)
-                   endif
+                xrank  = huge(xrank) ! Set default, so processes not involved in runup gauge do not affect all_reduce statement
+                idumhl = 0           ! Set default
+                if (rugrowindex(i)>0) then  ! this (sub) domain contains this runup gauge
+                   ! local index of minimum location where hh<rugdepth
+                   do ii=1,xmax
+                      if (s%hh(ii,rugrowindex(i))<=par%rugdepth) then
+                         idumhl=ii
+                         exit
+                      endif
+                   enddo
 #ifdef USEMPI
-                   call xmpi_bcast(idum)
+                   xrank = xmpi_rank  ! the row number of this process in the MPI grid of subdomains
 #endif
-                   call makeintpvector(par,sl,intpvector,idum,ypoints(i))
-                   ! need sl here, because of availability
-                   ! of is,js,lm,ln
-                else
-                   call makeintpvector(par,sl,intpvector,xpoints(i),ypoints(i))
                 endif
+                !
+                ! Set up runup gauge output vector
+                allocate(tempvectori(3))
+                tempvectori=huge(0.d0)
+#ifdef USEMPI
+                ! In MPI multiple domains may have a non-zero value for idumhl, so we choose the one with the 
+                ! lowest MPI rank (closest to xmpi_top, or the offshore boundary)
+                call xmpi_allreduce(xrank,MPI_MIN)
+                ! now only look at this process
+                if (xmpi_rank==xrank) then
+                   tempvectori(1)=sl%xw(idumhl,rugrowindex(i))
+                   tempvectori(2)=sl%yw(idumhl,rugrowindex(i))
+                   tempvectori(3)=sl%zs(idumhl,rugrowindex(i))
+                endif
+                ! Reduce the whole set to only the real numbers in tempvectori in xmpi_rank
+                call xmpi_allreduce(tempvectori,MPI_MIN)
+#else
+                tempvectori(1)=s%xw(idumhl,rugrowindex(i))
+                tempvectori(2)=s%yw(idumhl,rugrowindex(i))
+                tempvectori(3)=s%zs(idumhl,rugrowindex(i))                   
+#endif
+                allocate(tempvectorr(4))
+                tempvectorr=0.d0
+                do ii=1,3
+                   tempvectorr(ii+1)=tempvectori(ii)
+                enddo
+                if (par%morfacopt==1) then
+                   tempvectorr(1)=par%t*max(par%morfac,1.d0)
+                else
+                   tempvectorr(1)=par%t
+                endif
+                if (xmaster) write(indextopointsunit(i+par%npoints),rec=itp)tempvectorr
+                deallocate(tempvectori)
+                deallocate(tempvectorr)
+             enddo  ! i=1,par%nrugauge
+             
+             do i=1,par%npoints
+                !!! Make vector of all s% values at n,m grid coordinate
+                call makeintpvector(par,sl,intpvector,xpoints(i),ypoints(i))
                 if (xmaster) then
-                   if (par%pointtypes(i)==0) then
-                      allocate(tempvectori(par%npointvar))
-                      tempvectori=Avarpoint(i,1:par%npointvar)
-                      allocate(tempvectorr(par%npointvar+1))
-                      tempvectorr=0.d0
-                      do ii=1,par%npointvar
-                         tempvectorr(ii+1)=intpvector(tempvectori(ii))
-                      enddo
-                   else
-                      allocate(tempvectori(3))
-                      tempvectori=Avarpoint(i,:)
-                      allocate(tempvectorr(4))
-                      tempvectorr=0.d0
-                      do ii=1,3
-                         tempvectorr(ii+1)=intpvector(tempvectori(ii))
-                      enddo
-                   endif                   
+                   allocate(tempvectori(par%npointvar))
+                   tempvectori=Avarpoint(i,1:par%npointvar)
+                   allocate(tempvectorr(par%npointvar+1))
+                   tempvectorr=0.d0
+                   do ii=1,par%npointvar
+                      tempvectorr(ii+1)=intpvector(tempvectori(ii))
+                   enddo
                    if (par%morfacopt==1) then
                       tempvectorr(1)=par%t*max(par%morfac,1.d0)
                    else

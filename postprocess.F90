@@ -20,7 +20,7 @@ module postprocessmod
   end interface gridrotate
 
 contains
-  subroutine snappointstogrid(par, s, xpoints, ypoints)
+  subroutine snappointstogrid(par, s, xpoints, ypoints,scrprintinp,dmin)
     ! Lookup the nearest neighbour grid coordinates of the output points specified in params file
     ! Convert world coordinates of points to nearest (lsm) grid point
     use spaceparams
@@ -35,7 +35,19 @@ contains
 
     real*8,dimension(s%nx+1,s%ny+1)     :: mindist
     integer,dimension(2)                :: minlocation
-    integer  :: i
+    integer                             :: i
+    logical,optional,intent(in)         :: scrprintinp
+    logical                             :: scrprint
+    real*8,dimension(:),allocatable     :: mindistr
+    real*8,dimension(:),optional,intent(out)  :: dmin
+    !
+    if (present(scrprintinp)) then
+       scrprint=scrprintinp
+    else
+       scrprint=.true.
+    endif
+    !
+    allocate(mindistr(par%npoints+par%nrugauge))
     ! Let's hope that the s%xw and s%yw are already available....
     ! Compute the minimum distances for each point
     if (par%npoints + par%nrugauge > 0) then
@@ -43,20 +55,26 @@ contains
           mindist=sqrt((par%xpointsw(i)-s%xw)**2+(par%ypointsw(i)-s%yw)**2)
           ! look up the location of the found minimum
           minlocation=minloc(mindist)
+          ! minimum distance
+          mindistr(i) = mindist(minlocation(1),minlocation(2))
           ! The y coordinate is always the same
           ypoints(i)=minlocation(2)
           ! For rugauges the xpoint is always 1
           if (par%pointtypes(i) == 1) then
              xpoints(i)=1
-             call writelog('ls','(a,i0)','Runup gauge at grid line iy=',ypoints(i))
+             if (scrprint) call writelog('ls','(a,i0)','Runup gauge at grid line iy=',ypoints(i))
           else
              xpoints(i)=minlocation(1)
-             call writelog('ls','(a,i0,a,i0,a,f0.2,a)',' Distance output point to nearest grid point ('&
-                  ,minlocation(1),',',minlocation(2),') is '&
-                  ,mindist(minlocation(1),minlocation(2)), ' meters')
-          end if
+             if (scrprint) call writelog('ls','(a,i0,a,i0,a,f0.2,a)',' Distance output point to nearest grid point ('&
+                                                                    ,minlocation(1),',',minlocation(2),') is '&
+                                                                    ,mindistr(i), ' meters')
+          endif
        end do
     end if
+    if (present(dmin)) then
+       dmin = mindistr
+    endif
+    deallocate(mindistr)
   end subroutine snappointstogrid
 
 
