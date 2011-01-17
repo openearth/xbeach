@@ -241,6 +241,7 @@ type parameters
    real*8        :: Tsmin                      = -123    !  [s] (advanced) Minimum adaptation time scale in advection diffusion equation sediment    
    integer*4     :: lwt                        = -123    !  [-] (advanced) Switch 0/1 long wave turbulence model
    real*8        :: betad                      = -123    !  [-] (advanced) Dissipation parameter long wave breaking turbulence
+   character(256) :: swtable                   = 'abc'   !  [-] (deprecated)Name of intra short wave assymetry and skewness table
    integer*4     :: sus                        = -123    !  [-] (advanced) Calibration factor for suspensions transports [0..1]
    integer*4     :: bed                        = -123    !  [-] (advanced) Calibration factor for bed transports [0..1]
    integer*4     :: bulk                       = -123    !  [-] (advanced) Option to compute bedload and suspended load seperately; 0 = seperately, 1 = bulk (as in previous versions)
@@ -278,11 +279,10 @@ type parameters
    integer*4     :: nrugauge                   = -123    !  [-] Number of output runup gauge locations
    character(len=maxnamelen), dimension(numvars)   :: pointvars  = 'abc'  !  [-] (advanced) Mnems of point output variables (by variables)
    
-   integer, dimension(:), pointer :: pointtypes => NULL()! (advanced) [-] (advanced) Point types (0 = point, 1=rugauge)
-   real*8 ,dimension(:), pointer  :: xpointsw => NULL()  ! (advanced) [m] world x-coordinate of output points
-   real*8 ,dimension(:), pointer  :: ypointsw => NULL()  ! (advanced) [m] world y-coordinate of output points
-   
-   real*8        :: rugdepth                   = -123    !  [m] (advanced) Minimum depth for determination of last wet point in runup gauge 
+   integer, dimension(:), pointer                     :: pointtypes => NULL()  !  [-] (advanced) Point types (0 = point, 1=rugauge)
+   real*8 ,dimension(:), pointer                      :: xpointsw => NULL()  ! (advanced) world x-coordinate of output points
+   real*8 ,dimension(:), pointer                     :: ypointsw => NULL()  ! (advanced) world y-coordinate of output points
+ 
    integer*4     :: ncross                     = -123    !  [-] (advanced) Number of output cross sections
    character(24) :: outputformat               = 'debug' !  [-] (advanced) Choice of output file format: 'netcdf', 'fortran', or 'debug'
    character(256):: ncfilename                 = 'xboutput.nc' ! [-] (advanced) xbeach netcdf output file name
@@ -827,9 +827,7 @@ contains
     ! update the pointvariables
     !call readpointvars(par, par%xpointsw, par%ypointsw, par%pointtypes, par%pointvars)
     ! Robert: to deal with MPI some changes here
-    par%npointvar   = readkey_int ('params.txt','npointvar',   0,  0, 50)
     call readpointvars(par)
-    par%rugdepth    = readkey_dbl ('params.txt','rugdepth', 0.0d0,0.d0,0.05d0)
     ! 
     par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
     call readmeans(par)
@@ -844,6 +842,8 @@ contains
     par%ncfilename = readkey_name('params.txt','ncoutfile')
     if (len(trim(par%ncfilename)) .eq. 0) par%ncfilename = 'xboutput.nc'
     call writelog('ls','','netcdf output to:' // par%ncfilename)
+
+
     !
     !
     ! Drifters parameters
@@ -1035,13 +1035,6 @@ contains
     endif
     !
     !
-    ! Set par%rugdepth to maximum of par%rugdepth and par%eps
-    if (par%rugdepth<par%eps) then
-       par%rugdepth=par%eps
-       call writelog('l','(a,f0.5,a)','Setting rugdepth to minimum water depth eps (',par%eps,')')
-    endif
-    !
-    !
     ! Give an error if you ask for netcdf output if you don't have a netcdf executable
 #ifndef USENETCDF
     if (trim(par%outputformat) .eq. 'netcdf') then
@@ -1185,8 +1178,9 @@ subroutine readglobalvars(par)
     use mnemmodule
     implicit none
     type(parameters), intent(inout)            :: par
-    integer ::  i
-    
+    character(len=256)            :: line, keyword
+    integer :: id, ic, i, index
+
     if (xmaster) then 
         if (par%nglobalvar == -1) then
              par%globalvars(1:21) =  (/'H    ', 'zs   ', 'zs0  ', 'zb   ', 'hh   ', 'u    ', 'v    ', 'ue   ',&
@@ -1226,7 +1220,32 @@ subroutine readglobalvars(par)
         else
             ! User specified output
             ! Find nglobalvar keyword in params.txt
-            call readOutputStrings(par,'global')
+            id=0
+            open(10,file='params.txt')   ! (this is done by xmaster only)
+            do while (id == 0)
+                read(10,'(a)')line
+                ic=scan(line,'=')
+                if (ic>0) then
+                    keyword=adjustl(line(1:ic-1))
+                    if (keyword == 'nglobalvar') id=1
+                endif
+            enddo
+            ! Read through the variables lines, 
+            do i=1,par%nglobalvar
+                read(10,'(a)')line
+                line = trim(line)
+                ! Check if this is a valid variable name
+                index = chartoindex(trim(line))
+                if (index/=-1) then
+                   par%globalvars(i)=line
+                   call writelog('ls','(a)',' Will generate global output for variable: ' // &
+                        trim(par%globalvars(i)))
+                else
+                   call writelog('sle','',' Unknown global output variable: ''',trim(line),'''')
+                   call halt_program
+                endif
+            end do
+            close(10)
         end if ! globalvar
     end if ! xmaster
 end subroutine
@@ -1250,79 +1269,148 @@ end subroutine
 ! store all found variables in a combined list (not per point)
 ! So for each point all variables are stored
 ! 
-
-! TODO after some discussion with Robert we will change this to:
-! Rugauges don't need any output variables other then zs, x, y, t
-! Pointvars need a different input specification:
-! npointvars=3
-! zs
-! H
-! u
-! npoints=2
-! 3.0 2.0
-! 10.0 3.1
-! nrugauges=1
-! 4.1 3.2
-! Using the old notation should give a warning and an explanation what will be output.
-
-! Tasks:
-! Create tests: FB+RMC
-! Implement npointvars, stop using vars in #: RMC
-! Give error if # present in points: RMC
-! Use fixed outputvars for rugauges: RMC
-! Fix matlab read routines (toolbox + zelt): FB
-! Reimplement rugauges in ncoutput:  FB
-! Update documentation: FB, check RMC
-
-
 subroutine readpointvars(par)
   use logging_module
   use mnemmodule
-  use readkey_module
   implicit none
-  type(parameters), intent(inout)          :: par
+  type(parameters), intent(inout)            :: par
+  real*8,dimension(:),allocatable         :: xpointsw,ypointsw
+  integer, dimension(:), allocatable       :: pointtypes !  [-] Point types (0 = point, 1=rugauge)
+  character(len=maxnamelen), dimension(:), allocatable :: pointvars 
 
-  real*8,dimension(:),allocatable          :: xpointsw,ypointsw
-  integer, dimension(:), allocatable       :: pointtypes
-  integer                                  :: i
- 
-  ! These "targets" must be allocated by all processes
+  integer*4,dimension(:),allocatable  :: nvarpoint   ! vector with number of output variable per output point
+  character(len=maxnamelen), dimension(:),allocatable :: temparray
+  character(80)                       :: line, keyword
+  character(len=maxnamelen)           :: var
+  logical                             :: varfound
+  integer                             :: i, ic, icold, id, ii, index, nvars, ivar
+
+  ! These must be allocated by all processes
   allocate(pointtypes(par%npoints+par%nrugauge))
   allocate(xpointsw(par%npoints+par%nrugauge))
   allocate(ypointsw(par%npoints+par%nrugauge))
+  nvars = 0 ! the total number of variables
+  ! The rest can all be done by xmaster and then distributed by distribute_par
   if (xmaster) then
+     allocate(nvarpoint(par%npoints+par%nrugauge))
+     allocate(temparray(99))
      ! set the point types to the indicator
      pointtypes(1:par%npoints)=0
      pointtypes(par%npoints+1:par%npoints+par%nrugauge)=1
-     par%pointvars=''
+
+     temparray=''
+     varfound = .false.
      if (par%npoints>0) then
-        call readPointPosition(par,'point',xpointsw,ypointsw)
-        ! Is the keyword npointvar specified?
-        if (isSetParameter('params.txt','npointvar',bcast=.false.)) then
-           ! Look for keyword npointvar in params.txt
-           call readOutputStrings(par,'point')
-        else
-           ! This branch of the else will change to a halt_program statement in later versions (written on 13 January 2011)
-           call writelog('ls','','')
-           call writelog('ls','','************************** WARNING  ***************************')
-           call writelog('ls','','In future versions the keyword ''npointvar'' must be specified if ''npoints''>0')
-           call writelog('ls','','Current order of output in all point output files is:')
-           do i=1,par%npointvar
-              call writelog('ls','',trim(par%pointvars(i)))
+        id=0
+        ! Look for keyword npoints in params.txt
+        open(10,file='params.txt')
+        do while (id == 0)
+           read(10,'(a)')line
+           ic=scan(line,'=')
+           if (ic>0) then
+              keyword=adjustl(line(1:ic-1))
+              if (keyword == 'npoints') id=1
+           endif
+        enddo
+
+        do i=1,par%npoints
+           call writelog('ls','(a,i0)',' Output point ',i)
+           read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
+           call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
+
+           icold=0
+           do ii =1,nvarpoint(i)
+              ic=scan(line(icold+1:80),'#')
+              ic=ic+icold
+              var=line(icold+1:ic-1)
+              index = chartoindex(var)
+
+              if (index/=-1) then
+                 ! 
+                 ! see if we already found this variable.... 
+                 ! 
+                 varfound = .false.
+                 do ivar=1,nvars
+                    if (trim(temparray(ivar)) == trim(var)) then
+                       varfound = .true.
+                    end if
+                 end do
+                 ! we have a new variable, store it
+                 if (varfound .eqv. .false.) then
+                    nvars = nvars + 1 
+                    temparray(nvars)=trim(var)
+                 end if
+                 call writelog('sl','',' Will generate point output for variable: ''',trim(var),'''')
+              else
+                 call writelog('sle','',' Unknown point output variable: ''',trim(var),'''')
+                 call halt_program
+              endif
+              icold=ic
            enddo
-           call writelog('ls','','Order of point output variables stored in ''pointvars.idx''')
-           call writelog('ls','','***************************************************************')
-           call writelog('ls','','')
-        endif  ! isSetParameter 
-     endif ! par%npoints>0
+
+        enddo
+        close(10)
+     endif ! par%npoints>0  
 
      if (par%nrugauge>0) then
-        call readPointPosition(par,'rugauge',xpointsw,ypointsw)
+        id=0
+        ! Look for keyword nrugauge in params.txt
+        open(10,file='params.txt')
+        do while (id == 0)
+           read(10,'(a)')line
+           ic=scan(line,'=')
+           if (ic>0) then
+              keyword=adjustl(line(1:ic-1))
+              if (keyword == 'nrugauge') id=1
+           endif
+        enddo
+
+        do i=1+par%npoints,par%nrugauge+par%npoints
+           read(10,*) xpointsw(i),ypointsw(i),nvarpoint(i),line
+           call writelog('ls','(a,i0)',' Output runup gauge ',i-par%npoints)
+           call writelog('ls','(a,f0.2,a,f0.2)',' xpoint: ',xpointsw(i),'   ypoint: ',ypointsw(i))
+           icold=0
+           do ii =1,nvarpoint(i)
+              ic=scan(line(icold+1:80),'#')
+              ic=ic+icold
+              var=line(icold+1:ic-1)
+              index = chartoindex(var)
+
+              if (index/=-1) then
+                 ! 
+                 ! see if we already found this variable.... 
+                 ! 
+                 varfound = .false.
+                 do ivar=1,nvars
+                    if (trim(temparray(ivar)) == trim(var)) then
+                       varfound = .true.
+                    end if
+                 end do
+                 ! we have a new variable, store it
+                 if (varfound .eqv. .false.) then
+                    nvars = nvars + 1 
+                    temparray(nvars)=trim(var)
+                 end if
+                 call writelog('sl','',' Will generate rugauge output for variable: ''',trim(var),'''')
+              else
+                 call writelog('sle','',' Unknown rugauge output variable: ''',trim(var),'''')
+                 call halt_program
+              endif
+              icold=ic
+           enddo
+        enddo
+        close(10)
      endif
-     ! Set pointers correct
+     ! copy values to the pointvars array
+     allocate(pointvars(nvars))
+     pointvars(:)=temparray(1:nvars)
+     deallocate(temparray)
+     deallocate(nvarpoint)
      allocate(par%pointtypes(size(pointtypes)))
      allocate(par%xpointsw(size(xpointsw)))
      allocate(par%ypointsw(size(ypointsw)))
+     par%pointvars(1:nvars)=pointvars
+     par%npointvar = nvars
      par%pointtypes=pointtypes
      par%xpointsw= xpointsw
      par%ypointsw=ypointsw
@@ -1338,202 +1426,37 @@ subroutine readmeans(par)
   implicit none
 
   type(parameters),intent(inout)    :: par
+  integer                           :: id,ic,index,i
+  character(128)                    :: line,keyword
 
   if (par%nmeanvar>0) then
-     call readOutputStrings(par,'mean')
+     id=0
+     ! Look for keyword nmeanvar in params.txt
+     if(xmaster) then
+        open(10,file='params.txt')
+        do while (id == 0)
+           read(10,'(a)')line
+           ic=scan(line,'=')
+           if (ic>0) then
+              keyword=adjustl(line(1:ic-1))
+              if (keyword == 'nmeanvar') id=1
+           endif
+        enddo
+        ! Read through the variables lines
+        do i=1,par%nmeanvar
+           read(10,'(a)')line
+           index = chartoindex(trim(line))
+           if (index/=-1) then
+              par%meansvars(i)=trim(line)
+              call writelog('ls','(a)',' Will generate mean, min, max and variance output for variable: '// trim(par%meansvars(i)))
+           else
+              call writelog('sle','',' Unknown mean output variable: ''',trim(line),'''')
+              call halt_program
+           endif
+        end do
+        close(10) 
+     endif
   endif
 end subroutine readmeans
-
-subroutine readOutputStrings(par,readtype)
-  use logging_module
-  use mnemmodule
-  use readkey_module
-  implicit none
-  type(parameters), intent(inout)          :: par
-  character(*), intent(in)                 :: readtype
-  
-  character(256)                           :: okline,errline
-  character(80)                            :: line,keyword,keyread
-  integer                                  :: i,imax,id,ic,index
-  character(len=maxnamelen),dimension(numvars) :: tempnames
-  
-  select case (trim(readtype))
-     case ('global')
-        imax = par%nglobalvar
-        keyword = 'nglobalvar'
-        okline =  'nglobalvar: Will generate global output for variable: '
-        errline = ' Unknown global output variable: '''
-     case ('mean')
-        imax = par%nmeanvar
-        keyword = 'nmeanvar'
-        okline =  'nmeanvar: Will generate mean, min, max and variance output for variable: '
-        errline = ' Unknown mean output variable: '''
-     case ('point')
-        imax = par%npointvar
-        keyword = 'npointvar'
-        okline =  'npointvar: Will generate point output for variable: '
-        errline = ' Unknown global output variable: '''
-     case ('rugauge')
-        imax = 0
-        keyword = ''
-        okline =  ''
-        errline = ''
-     case default
-        write(*,*)'Programming error calling readOutputStrings'
-        write(*,*)'Unknown calling type ''',trim(readtype),''''
-        call halt_program
-  end select
-  tempnames=''
-  
-  if (xmaster) then
-     id=0
-     open(10,file='params.txt')   ! (this is done by xmaster only)
-     do while (id == 0)
-        read(10,'(a)')line
-        ic=scan(line,'=')
-        if (ic>0) then
-           keyread=adjustl(line(1:ic-1))
-           if (keyread == keyword) id=1
-        endif
-     enddo
-     ! Read through the variables lines, 
-     do i=1,imax
-        read(10,'(a)')line
-        line = trim(line)
-        ! Check if this is a valid variable name
-        index = chartoindex(trim(line))
-        if (index/=-1) then
-           tempnames(i)=trim(line)
-           call writelog('ls','',trim(okline),trim(tempnames(i)))
-        else
-           call writelog('sle','',trim(errline),trim(line),'''')
-           call halt_program
-        endif
-     end do
-     close(10)
-  endif
-  
-  ! only useful information on xmaster, but distributed later by distribute_pars
-  select case (trim(readtype))
-     case ('global')
-        par%globalvars=tempnames
-     case ('mean')
-        par%meansvars=tempnames
-     case ('point')
-       par%pointvars=tempnames
-       call writelog('ls','','Order of point output variables stored in ''pointvars.idx''')
-     case ('rugauge')
-      ! no variables to store
-  end select
-   
-end subroutine readOutputStrings
-
-subroutine readPointPosition(par,readtype,xpoints,ypoints)
-  use logging_module
-  use mnemmodule
-  use readkey_module
-  implicit none
-  type(parameters), intent(inout)          :: par
-  character(*), intent(in)                 :: readtype
-  real*8,dimension(:),intent(inout)        :: xpoints,ypoints
-  
-  character(80)                            :: line,keyword,keyread,varline,varstr
-  character(256)                           :: fullline,errmes1,errmes2,okaymes
-  integer                                  :: i,imax,id,ic,imark,imarkold,imin,nvar,ivar,index,j
-  logical                                  :: varfound
-  
-  select case (readtype)
-     case('point')
-        imin = 0
-        imax = par%npoints
-        keyword = 'npoints'
-        errmes1 = ' points '
-        errmes2 = 'State point output variables using the "npointvar" keyword'
-        okaymes = ' Output point '
-     case('rugauge')
-        imin = par%npoints
-        imax = par%nrugauge
-        keyword = 'nrugauge'
-        errmes1 = ' runup gauge '
-        errmes2 = 'Runup gauge automatically returns t,xw,yw and zs only'
-        okaymes = ' Output runup gauge '
-     case default
-        write(*,*)'Programming error calling readOutputStrings'
-        write(*,*)'Unknown calling type ''',trim(readtype),''''
-        call halt_program
-  end select
-  
-  if (xmaster) then
-     id=0
-     open(10,file='params.txt')   ! (this is done by xmaster only)
-     do while (id == 0)
-        read(10,'(a)')line
-        ic=scan(line,'=')
-        if (ic>0) then
-           keyread=adjustl(line(1:ic-1))
-           if (keyread == keyword) id=1
-        endif
-     enddo
-     ! Read positions
-     do i=1,imax
-        read(10,'(a)')fullline
-        ! Check params.txt has old (unsupported) method of defining points
-        ic=scan(fullline,'#')
-        if (ic .ne. 0) then ! This branch of the if/else will change to a halt_program statement in later versions 
-                            ! (written on 13 January 2011)
-           if (.not. isSetParameter('params.txt','npointvar',bcast=.false.)) then
-              read(fullline,*)xpoints(i+imin),ypoints(i+imin),nvar,varline
-              if (readtype=='point') then   ! no use at all for rugauge output, which is fixed at x,y,zs
-                 imarkold = 0
-                 do ivar=1,nvar
-                    imark=scan(varline(imarkold+1:80),'#')
-                    imark=imark+imarkold
-                    varstr=varline(imarkold+1:imark-1)
-                    index = chartoindex(varstr)
-                    if (index/=-1) then
-                       ! see if we already found this variable.... 
-                       varfound = .false.
-                       do j=1,numvars
-                          if (trim(par%pointvars(j)) == trim(varstr)) then
-                             varfound = .true.
-                          end if
-                       end do
-                       ! we have a new variable, store it
-                       if (varfound .eqv. .false.) then
-                          par%npointvar=par%npointvar+1
-                          par%pointvars(par%npointvar)=trim(varstr)
-                       end if
-                    else
-                       call writelog('sle','',' Unknown point output variable: ''',trim(varstr),'''')
-                       call halt_program
-                    endif
-                    imarkold=imark  
-                 enddo
-              endif ! type point
-           else   ! isset npointvar
-              read(fullline,*)xpoints(i+imin),ypoints(i+imin),nvar,varline
-              call writelog('ls','','Point output variables specified by ''npointvar'' will be selected over')
-              call writelog('ls','','variables specified on the point location line in params.txt')
-           endif  ! isset npointvar
-           call writelog('ls','','')
-           call writelog('ls','','************************** WARNING  ***************************')
-           call writelog('ls','','Unsupported method of defining output',trim(errmes1),'variables')
-           call writelog('ls','',trim(fullline))
-           call writelog('ls','','Please remove "nvar var1#Var2#..." from definition of',trim(errmes1))
-           call writelog('ls','',trim(errmes2))
-           call writelog('ls','','This warning will become and error in future versions of XBeach')
-           call writelog('ls','','Refer to manual for complete documentation')
-           call writelog('ls','','***************************************************************')
-           call writelog('ls','','')
-        else ! not old method of setting point output
-           read(fullline,*)xpoints(i+imin),ypoints(i+imin)
-        endif ! old method of point output
-        call writelog('ls','(a,i0,a,f0.2,a,f0.2)',&
-                         trim(okaymes),i,' xpoint: ',xpoints(i+imin),'   ypoint: ',ypoints(i+imin))
-     enddo
-     close(10)
-  endif
-
-end subroutine readPointPosition  
 
 end module params
