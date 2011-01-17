@@ -84,6 +84,8 @@ contains
           do i=1,s%windlen
              read(31,*,IOSTAT=io) s%windinpt(i),s%windvel(i),s%winddir(i)
           enddo
+          ! to cartesian radians
+          s%winddir=(270.d0-s%winddir-s%alfa)*par%px/180.d0
           close(31)
           if (par%morfacopt==1) s%windinpt = s%windinpt / max(par%morfac,1.d0)
           if (s%windinpt(s%windlen)<par%tstop) then
