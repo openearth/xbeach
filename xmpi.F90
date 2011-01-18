@@ -71,6 +71,7 @@ end interface xmpi_bcast
 interface xmpi_allreduce
 module procedure xmpi_allreduce_r0
 module procedure xmpi_allreduce_r1
+module procedure xmpi_allreduce_i0
 end interface xmpi_allreduce
 
 interface xmpi_reduce
@@ -442,6 +443,17 @@ subroutine xmpi_allreduce_r1(x,op)
   call MPI_Allreduce(y,x,size(x),MPI_DOUBLE_PRECISION,op,xmpi_comm,ierror)
   deallocate(y)
 end subroutine xmpi_allreduce_r1
+
+subroutine xmpi_allreduce_i0(x,op)
+  implicit none
+  integer,intent(inout)  :: x
+  integer,intent(in)    :: op
+
+  integer :: y
+  integer :: ierror
+  y = x
+  call MPI_Allreduce(y,x,1,MPI_INTEGER,op,xmpi_comm,ierror)
+end subroutine xmpi_allreduce_i0
 
 subroutine xmpi_reduce_r0(x,y,op)
   implicit none

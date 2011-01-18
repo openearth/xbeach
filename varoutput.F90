@@ -322,9 +322,20 @@ contains
                 ! in MPI we only want to cycle through sub matrix, else through whole matrix
 #ifdef USEMPI
                 xmax = sl%nx+1
+                xrank  = huge(xrank) ! Set default, so processes not involved in runup gauge do not affect all_reduce statement
+                idumhl = 0           ! Set default
+                if (rugrowindex(i)>0) then  ! this (sub) domain contains this runup gauge
+                   ! local index of minimum location where hh<rugdepth
+                   do ii=1,xmax
+                      if (sl%hh(ii,rugrowindex(i))<=par%rugdepth) then
+                         idumhl=ii
+                         xrank = xmpi_rank  ! the row number of this process in the MPI grid of subdomains
+                         exit
+                      endif
+                   enddo
+               endif
 #else
                 xmax = s%nx+1
-#endif
                 xrank  = huge(xrank) ! Set default, so processes not involved in runup gauge do not affect all_reduce statement
                 idumhl = 0           ! Set default
                 if (rugrowindex(i)>0) then  ! this (sub) domain contains this runup gauge
@@ -335,43 +346,40 @@ contains
                          exit
                       endif
                    enddo
-#ifdef USEMPI
-                   xrank = xmpi_rank  ! the row number of this process in the MPI grid of subdomains
+               endif
 #endif
-                endif
                 !
                 ! Set up runup gauge output vector
-                allocate(tempvectori(3))
-                tempvectori=huge(0.d0)
+                allocate(tempvectorr(4))
+                tempvectorr=huge(0.d0)
 #ifdef USEMPI
                 ! In MPI multiple domains may have a non-zero value for idumhl, so we choose the one with the 
                 ! lowest MPI rank (closest to xmpi_top, or the offshore boundary)
                 call xmpi_allreduce(xrank,MPI_MIN)
                 ! now only look at this process
                 if (xmpi_rank==xrank) then
-                   tempvectori(1)=sl%xw(idumhl,rugrowindex(i))
-                   tempvectori(2)=sl%yw(idumhl,rugrowindex(i))
-                   tempvectori(3)=sl%zs(idumhl,rugrowindex(i))
+                   if (par%morfacopt==1) then
+                      tempvectorr(1)=par%t*max(par%morfac,1.d0)
+                   else
+                      tempvectorr(1)=par%t
+                   endif
+                   tempvectorr(2)=sl%xw(idumhl,rugrowindex(i))
+                   tempvectorr(3)=sl%yw(idumhl,rugrowindex(i))
+                   tempvectorr(4)=sl%zs(idumhl,rugrowindex(i))
                 endif
                 ! Reduce the whole set to only the real numbers in tempvectori in xmpi_rank
-                call xmpi_allreduce(tempvectori,MPI_MIN)
+                call xmpi_allreduce(tempvectorr,MPI_MIN)
 #else
-                tempvectori(1)=s%xw(idumhl,rugrowindex(i))
-                tempvectori(2)=s%yw(idumhl,rugrowindex(i))
-                tempvectori(3)=s%zs(idumhl,rugrowindex(i))                   
-#endif
-                allocate(tempvectorr(4))
-                tempvectorr=0.d0
-                do ii=1,3
-                   tempvectorr(ii+1)=tempvectori(ii)
-                enddo
                 if (par%morfacopt==1) then
                    tempvectorr(1)=par%t*max(par%morfac,1.d0)
                 else
                    tempvectorr(1)=par%t
                 endif
+                tempvectorr(2)=s%xw(idumhl,rugrowindex(i))
+                tempvectorr(3)=s%yw(idumhl,rugrowindex(i))
+                tempvectorr(4)=s%zs(idumhl,rugrowindex(i))                   
+#endif
                 if (xmaster) write(indextopointsunit(i+par%npoints),rec=itp)tempvectorr
-                deallocate(tempvectori)
                 deallocate(tempvectorr)
              enddo  ! i=1,par%nrugauge
              
