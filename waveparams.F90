@@ -6,7 +6,7 @@ integer                                 :: K, Npy, Nr
 integer*4                               :: listline
 integer, dimension(:), pointer          :: index_vector
 
-real*8                                  :: mainang,dang
+real*8                                  :: mainang,dang, scoeff			!scoeff is now a wp
 real*8                                  :: h0t0
 real*8                                  :: hm0gew, df
 real*8                                  :: Ly, dt, rt
@@ -60,6 +60,7 @@ contains
        bcendtime=0
        wp%listline=0
        counter=0
+	   wp%scoeff=-1
 
        if(xmaster) then
           open(74,file=par%bcfile,form='formatted')
@@ -217,7 +218,7 @@ integer                                 :: i=0,ii,nang,nfreq,ier
 integer                                 :: firstp, lastp
 real*8,dimension(:),allocatable         :: temp, x, y
 real*8                                  :: t1, dfj, fnyq, fp
-real*8                                  :: gam, scoeff
+real*8                                  :: gam
 character(len=80)                       :: dummystring
 
 ! Read JONSWAP data
@@ -233,7 +234,7 @@ if(xmaster) then
         ! Use spectrum table
         call readkey('params.txt','bcfile',fname)
         call writelog('sl','','waveparams: Reading from table',fname,' ...')
-        read(74,*,iostat=ier)wp%hm0gew,fp,wp%mainang,gam,scoeff,wp%rt,wp%dt
+        read(74,*,iostat=ier)wp%hm0gew,fp,wp%mainang,gam,wp%scoeff,wp%rt,wp%dt
         if (par%morfacopt==1) wp%rt = wp%rt/max(par%morfac,1.d0)
         
         ! Set extra parameters
@@ -257,7 +258,7 @@ if (trim(par%instat)/='jons_table') then
     endif
     dfj                 = readkey_dbl (fname,       'dfj',      fnyq/200,   fnyq/1000,  fnyq/20,    bcast=.false. )
     gam                 = readkey_dbl (fname,       'gammajsp', 3.3d0,      1.0d0,      5.0d0,      bcast=.false. )
-    scoeff              = readkey_dbl (fname,       's',        10.0d0,     1.0d0,      1000.0d0,   bcast=.false. )
+    wp%scoeff           = readkey_dbl (fname,       's',        10.0d0,     1.0d0,      1000.0d0,   bcast=.false. )
     wp%mainang          = readkey_dbl (fname,       'mainang',  270.0d0,    0.0d0,      360.0d0,    bcast=.false. )
     
     if(xmaster) then
@@ -350,7 +351,7 @@ do while (any(temp>2*par%px) .or. any(temp<0.d0))
 enddo
 
 ! Calculate directional spreading based on cosine law
-wp%Dd = dcos(temp)**(2*nint(scoeff))                                            ! Robert: apparently nint is needed here, else MATH domain error
+wp%Dd = dcos(temp)**(2*nint(wp%scoeff))                                            ! Robert: apparently nint is needed here, else MATH domain error
 deallocate(temp)
 
 ! Scale directional spreading to have a surface of unity by dividing by it's
@@ -1047,11 +1048,16 @@ subroutine build_etdir(par,s,wp,Ebcfname)
   ! Define direction for each wave component based on random number and linear
   ! interpolation of the probability density function
   allocate(wp%theta0(wp%K))
-  do i=1,size(P0)
-     !call LINEAR_INTERP(P(1:size(P)-1),wp%theta(1:size(P)-1),size(P)-1,P0(i),pp,F2)
-     call LINEAR_INTERP(P(1:size(P)),wp%theta(1:size(P)),size(P),P0(i),pp,F2)   ! Bas: do not crop cdf, only needed in Matlab to ensure monotonicity
-     wp%theta0(i)=pp
-  end do
+  
+  if (wp%scoeff >= 1000) then
+		wp%theta0 = wp%mainang								!Ap longcrested waves
+  else
+	  do i=1,size(P0)
+		 !call LINEAR_INTERP(P(1:size(P)-1),wp%theta(1:size(P)-1),size(P)-1,P0(i),pp,F2)
+		 call LINEAR_INTERP(P(1:size(P)),wp%theta(1:size(P)),size(P),P0(i),pp,F2)   ! Bas: do not crop cdf, only needed in Matlab to ensure monotonicity
+		 wp%theta0(i)=pp
+	  end do
+  end if
 
   ! Determine number of time steps in wave record and make it even
   F2=nint(TT/wp%dt)                                                              ! Bas: why not simply use nint(wp%rt/wp%dt) ??
