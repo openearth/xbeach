@@ -197,6 +197,7 @@ contains
           curline = wp%listline
        elseif (trim(par%instat)=='reuse'.and.xmaster) then
           wp%listline=1
+          curline = wp%listline
        elseif (trim(par%instat)=='nonh'.and.xmaster) then   
           call velocity_Boundary(ui(1,:),zi(1,:),wi(1,:),s%nx,s%ny,par%t,s%zs,s%ws)  
        endif
@@ -394,7 +395,6 @@ contains
           if (xmaster) then
 
              do i=1,curline
-                write(*,*) i, curline
                 read(53,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,ebcfname
                 read(54,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,qbcfname
              enddo  ! wwvv strange
