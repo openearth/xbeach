@@ -173,7 +173,6 @@ contains
 
     ! Define line counter for boundaryconditions.f90
     wp%listline=wp%listline+1
-    write(*,*) wp%listline
 
     ! Define endtime for boundary conditions, boundaryconditions.f90 should
     ! recreate BCF files after this moment

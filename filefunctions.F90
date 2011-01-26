@@ -57,15 +57,17 @@ contains
     integer                        ::  fid,iost
     integer                        ::  i
     real,dimension(:),allocatable  ::  dat
-
+    character(256)                   ::  msg
+    
     if (xmaster) then
 	   allocate(dat(d1))
        fid = create_new_fid()
-	   open(fid,file=fname)
-       read(fid,*,iostat=iost)(dat(i),i=1,d1)
+	   open(fid,file=trim(fname))
+       read(fid,*,iostat=iost,iomsg=msg)(dat(i),i=1,d1)
        if (iost .ne. 0) then
           call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
                ' Terminating simulation' )
+          call writelog('sle','', msg)
           call halt_program
        endif
        close(fid)
@@ -84,16 +86,18 @@ contains
     integer                          :: fid,iost
     integer                          :: i,j
     real,dimension(:,:),allocatable  :: dat
+    character(256)                   ::  msg
 
    
     if (xmaster) then 
 	   allocate(dat(d1,d2))
        fid = create_new_fid()
-       open(fid,file=fname)
-       read(fid,*,iostat=iost)((dat(i,j),i=1,d1),j=1,d2)
+       open(fid,file=trim(fname))
+       read(fid,*,iostat=iost, iomsg=msg)((dat(i,j),i=1,d1),j=1,d2)
        if (iost .ne. 0) then
           call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
                ' Terminating simulation')
+          call writelog('sle','',msg)
           call halt_program
        endif
        close(fid)
@@ -111,16 +115,16 @@ contains
     integer                            ::  fid,iost
     integer                            ::  i,j,k
     real,dimension(:,:,:),allocatable  ::  dat
+    character(256)                   ::  msg
 
     
     if (xmaster) then 
 	   allocate(dat(d1,d2,d3))
        fid = create_new_fid()
-       open(fid,file=fname)
-       read(fid,*,iostat=iost)(((dat(i,j,k),i=1,d1),j=1,d2),k=1,d3)
+       open(fid,file=trim(fname))
+       read(fid,*,iostat=iost,iomsg=msg)(((dat(i,j,k),i=1,d1),j=1,d2),k=1,d3)
        if (iost .ne. 0) then
-          call writelog('esl','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
-               ' Terminating simulation')
+          call writelog('esl','', msg)
           call halt_program
        endif
 	   close(fid)
@@ -145,7 +149,7 @@ contains
     if (xmaster) then 
        ier = 0
        fid = create_new_fid()
-       open(fid,file=filename)
+       open(fid,file=trim(filename))
        i=0
        do while (ier==0)
           read(fid,'(a)',iostat=ier)ch

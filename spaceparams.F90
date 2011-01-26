@@ -736,7 +736,6 @@ contains
     type (spacepars), intent(inout)     :: sl
     real*8, dimension(:,:), intent(in)  :: a
     real*8, dimension(:,:), intent(out) :: b
-
     call matrix_distr(a,b,sl%is,sl%lm,sl%js,sl%ln,xmpi_master,xmpi_comm)
 
   end subroutine space_distribute_matrix_real8

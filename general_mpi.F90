@@ -665,16 +665,19 @@ subroutine matrix_distr_sendmat_real8(a,b,is,lm,js,ln,&
   ! define start-end cols and rows for the general case:
   ! computations on arow.. and acol.. are only meaningful at root
 
+  ! See also spaceparams comments:
+  !    b concides with 
+  !       a(is(p+1):is(p+1)+lm(p+1)-1,js(p+1):js(p+1)+ln(p+1)-1)
+
   arowstart  = is(root + 1)
-  arowend    = is(root + 1) + mlocal
+  arowend    = is(root + 1) + mlocal - 1
   acolstart  = js(root + 1)
-  acolend    = js(root + 1) + nlocal
+  acolend    = js(root + 1) + nlocal - 1
 
   if (rank .eq. root) then
 
     ! copy of the the relevant part of A to local submtrix B:
-   
-    b(:,:) =  a(arowstart:arowend,acolstart:acolend)
+     b(:,:) =  a(arowstart:arowend,acolstart:acolend)
 
     ! now, send to each non-root process 
     ! it's part of matrix a
@@ -776,9 +779,9 @@ subroutine matrix_distr_sendmat_integer(a,b,is,lm,js,ln,&
   ! computations on arow.. and acol.. are only meaningful at root
 
   arowstart  = is(root + 1)
-  arowend    = is(root + 1) + mlocal
+  arowend    = is(root + 1) + mlocal - 1 
   acolstart  = js(root + 1)
-  acolend    = js(root + 1) + nlocal
+  acolend    = js(root + 1) + nlocal - 1
 
   if (rank .eq. root) then
 

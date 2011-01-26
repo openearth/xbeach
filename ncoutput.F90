@@ -447,11 +447,12 @@ contains
           ! default global output variables
           do i=1,par%nmeanvar
              ! Not sure if this is required here, but it is used in varoutput
-#ifdef USEMPI
-             call means_collect(sl,meansparsglobal(i),meansparslocal(i))
-#else
-             meansparsglobal(i)=meansparslocal(i)
-#endif
+! #ifdef USEMPI
+!              ! No need to collect here, we're just using the types
+!              ! call means_collect(sl,meansparsglobal(i),meansparslocal(i))
+! #else
+!              meansparsglobal(i)=meansparslocal(i)
+! #endif
              coordinates = ''
              meanvar = meansparsglobal(i)
              t = meanvar%t
@@ -736,17 +737,19 @@ contains
     if (tpar%outputm) then
        ! only write the information on the xmaster node
 
+       do i=1,par%nmeanvar
+#ifdef USEMPI
+          call means_collect(sl,meansparsglobal(i),meansparslocal(i))
+#else
+          meansparsglobal(i)=meansparslocal(i)
+#endif
+       end do
        if (xmaster) then
           ! Store the time (in morphological time)
           status = nf90_put_var(ncid, meantimevarid, par%t*max(par%morfac,1.d0), (/tpar%itm/))
           if (status /= nf90_noerr) call handle_err(status) 
           ! write global output variables
           do i=1,par%nmeanvar
-#ifdef USEMPI
-             call means_collect(sl,meansparsglobal(i),meansparslocal(i))
-#else
-             meansparsglobal(i)=meansparslocal(i)
-#endif
              t = meansparsglobal(i)%t
              do j=1,nmeanvartypes
 
