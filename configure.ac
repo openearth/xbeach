@@ -42,6 +42,10 @@ AS_IF([test "x$with_mpi" != xno],
 # define usempi (same as HAVE_MPI)
 AM_CONDITIONAL(USEMPI, test "x$with_mpi" != "xno")
 
+# check for functions
+AC_LANG_PUSH([Fortran])
+ACX_FORTRAN_ISNAN
+AC_LANG_POP
 #AC_SUBST(with_netcdf)
 
 dnl not prefered, but added for compatibility 

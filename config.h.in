@@ -1,5 +1,8 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Define if the compiler provides the isnan instrinsic */
+#undef HAVE_FORTRAN_ISNAN
+
 /* Define if you have the MPI library. */
 #undef HAVE_MPI
 

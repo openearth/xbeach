@@ -1,4 +1,8 @@
 module morphevolution
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 contains
   subroutine transus(s,par)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
@@ -787,7 +791,8 @@ contains
     type(parameters)                                :: par
 
     integer                                         :: i,j,jg,jd
-    real*8                                          :: ED,zbold,dzb,dzbt,fac,dzb_loc
+    real*8                                          :: ED,zbold,dzbt,fac,dzb_loc
+    real*8, intent(in)                              :: dzb
     real*8 , dimension(par%ngd),intent(in)          :: edg
     real*8 , dimension(s%nd(i,j)),intent(inout)     :: dz
     real*8 , dimension(s%nd(i,j),par%ngd),intent(inout) :: pb
@@ -801,7 +806,7 @@ contains
        allocate(Sm   (s%nd(1,1),par%ngd))
        allocate(A    (s%nd(1,1),3))
     endif
-
+    !TODO, dzb_loc is not initialized can be Nan, leading to infinite loop
     dzb_loc = dzb
 
 !!!initialize Sm      
@@ -809,7 +814,12 @@ contains
     ED = sum(edg)
 
     ! do t_sub=1,nt_sub  !loop over subtimesteps
-    do while (dzb_loc .ne. 0.d0)
+    do while (dzb_loc .gt. 0.d0)
+       ! dzb can be nan, check...
+       if (isnan(dzb_loc)) then
+          write(*,*) dzbt, dzb_loc
+          write(*,*) 'dzb is nan'
+       end if
        dzbt     = min(dzb_loc,dz(par%nd_var))                 ! make sure erosion (dzg is positive) is limited to thickness of variable layer
        dzbt     = max(dzbt,-par%frac_dz*dz(par%nd_var+1))     ! make sure deposition (dzg is negative) is limited to thickness of first layer below variable layer
 
@@ -1504,5 +1514,22 @@ Tbore = max(par%Trep/25.d0,min(par%Trep/4.d0,H/(max(c,sqrt(H*par%g))*max(detadxm
 Tbore = par%Tbfac*Tbore
 
 end subroutine vT
-   
+
+#ifdef HAVE_CONFIG_H
+#ifndef HAVE_FORTRAN_ISNAN
+! define a isnan function based on the 2003 extension ieee_is_nan for portland group
+logical function isnan(a)
+use ieee_arithmetic 
+
+real*8 a
+if (ieee_is_nan(a)) then
+isnan = .true.
+else
+isnan = .false.
+end if
+return
+end function isnan
+#endif
+#endif
+
 end module morphevolution
