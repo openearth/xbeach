@@ -327,10 +327,18 @@ allocate (wp%Dd(size(wp%theta)))
 wp%mainang=(1.5d0*par%px-s%alfa)-wp%mainang*par%px/180.d0
 
 ! Make sure the main angle is defined between 0 and 2*pi
-do while (wp%mainang>2*par%px .or. wp%mainang<0.d0)
-    if (wp%mainang>2*par%px) then
+!do while (wp%mainang>2*par%px .or. wp%mainang<0.d0)
+!    if (wp%mainang>2*par%px) then
+!        wp%mainang=wp%mainang-2*par%px
+!    elseif (wp%mainang<0.d0*par%px) then
+!        wp%mainang=wp%mainang+2*par%px
+!    endif
+!enddo
+
+do while (wp%mainang>par%px .or. wp%mainang<-par%px) !Robert en Ap
+    if (wp%mainang>par%px) then
         wp%mainang=wp%mainang-2*par%px
-    elseif (wp%mainang<0.d0*par%px) then
+    elseif (wp%mainang<-par%px) then
         wp%mainang=wp%mainang+2*par%px
     endif
 enddo
@@ -1049,7 +1057,8 @@ subroutine build_etdir(par,s,wp,Ebcfname)
   allocate(wp%theta0(wp%K))
   
   if (wp%scoeff >= 1000) then
-		wp%theta0 = wp%mainang								!Ap longcrested waves
+		wp%theta0 = wp%mainang
+								!Ap longcrested waves
   else
 	  do i=1,size(P0)
 		 !call LINEAR_INTERP(P(1:size(P)-1),wp%theta(1:size(P)-1),size(P)-1,P0(i),pp,F2)
