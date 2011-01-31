@@ -814,7 +814,7 @@ contains
     ED = sum(edg)
 
     ! do t_sub=1,nt_sub  !loop over subtimesteps
-    do while (dzb_loc .gt. 0.d0)
+    do while (abs(dzb_loc) .gt. 0.d0)
        ! dzb can be nan, check...
        if (isnan(dzb_loc)) then
           write(*,*) dzbt, dzb_loc
