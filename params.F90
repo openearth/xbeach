@@ -830,7 +830,7 @@ contains
     ! Robert: to deal with MPI some changes here
     par%npointvar   = readkey_int ('params.txt','npointvar',   0,  0, 50)
     call readpointvars(par)
-    par%rugdepth    = readkey_dbl ('params.txt','rugdepth', 0.0d0,0.d0,0.05d0)
+    par%rugdepth    = readkey_dbl ('params.txt','rugdepth', 0.d0,0.d0,0.05d0)
     ! 
     par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
     call readmeans(par)
@@ -995,6 +995,12 @@ contains
     par%tint    = min(par%tintg,par%tintp,par%tintm,par%tintc)                       ! Robert     
     !
     !
+    ! fix minimum runup depth
+    if (par%rugdepth<=par%eps) then 
+       par%rugdepth = par%eps+tiny(0.d0)
+       call writelog('ls','(a,f0.5,a)','Setting rugdepth to minimum value greater than eps (',par%rugdepth,')')
+    endif
+    !
     ! Source-sink check
     if (par%morfac>1.d0) then
        if (par%sourcesink==1) then
@@ -1033,13 +1039,6 @@ contains
        par%wavint  = par%wavint / max(par%morfac,1.d0)
        par%tstop   = par%tstop  / max(par%morfac,1.d0)
        par%morstart= par%morstart / max(par%morfac,1.d0)
-    endif
-    !
-    !
-    ! Set par%rugdepth to maximum of par%rugdepth and par%eps
-    if (par%rugdepth<par%eps) then
-       par%rugdepth=par%eps
-       call writelog('l','(a,f0.5,a)','Setting rugdepth to minimum water depth eps (',par%eps,')')
     endif
     !
     !
