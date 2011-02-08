@@ -323,11 +323,12 @@ contains
 #ifdef USEMPI
                 xmax = sl%nx+1
                 xrank  = huge(xrank) ! Set default, so processes not involved in runup gauge do not affect all_reduce statement
-                idumhl = 0           ! Set default
+                idumhl = xmax        ! Set default
                 if (rugrowindex(i)>0) then  ! this (sub) domain contains this runup gauge
                    ! local index of minimum location where hh<rugdepth
                    do ii=2,xmax
-                      if (sl%hh(ii,rugrowindex(i))<=par%rugdepth) then
+                      if ((s%hh(ii,rugrowindex(i))<=par%rugdepth) .and. &
+                          (s%hh(ii-1,rugrowindex(i))>par%rugdepth) ) then
                          idumhl= ii-1
                          xrank = xmpi_rank  ! the row number of this process in the MPI grid of subdomains
                          exit
@@ -336,11 +337,12 @@ contains
                endif
 #else
                 xmax = s%nx+1
-                idumhl = 0           ! Set default
-                if (rugrowindex(i)>0) then  ! this (sub) domain contains this runup gauge
+                idumhl = xmax        ! Set default
+                if (rugrowindex(i)>0) then  ! master domain always contains this runup gauge
                    ! local index of minimum location where hh<rugdepth
                    do ii=2,xmax
-                      if ((s%hh(ii,rugrowindex(i))<=par%rugdepth) .and. (s%hh(ii,rugrowindex(i))<s%hh(ii-1,rugrowindex(i)))) then
+                      if ((s%hh(ii,rugrowindex(i))<=par%rugdepth) .and. &
+                          (s%hh(ii-1,rugrowindex(i))>par%rugdepth) ) then
                          idumhl=ii-1
                          exit
                       endif
