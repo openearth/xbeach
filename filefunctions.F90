@@ -63,11 +63,11 @@ contains
 	   allocate(dat(d1))
        fid = create_new_fid()
 	   open(fid,file=trim(fname))
-       read(fid,*,iostat=iost,iomsg=msg)(dat(i),i=1,d1)
+       read(fid,*,iostat=iost)(dat(i),i=1,d1)
        if (iost .ne. 0) then
           call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
                ' Terminating simulation' )
-          call writelog('sle','', msg)
+!          call writelog('sle','', msg)
           call halt_program
        endif
        close(fid)
@@ -93,11 +93,11 @@ contains
 	   allocate(dat(d1,d2))
        fid = create_new_fid()
        open(fid,file=trim(fname))
-       read(fid,*,iostat=iost, iomsg=msg)((dat(i,j),i=1,d1),j=1,d2)
+       read(fid,*,iostat=iost)((dat(i,j),i=1,d1),j=1,d2)
        if (iost .ne. 0) then
           call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
                ' Terminating simulation')
-          call writelog('sle','',msg)
+!          call writelog('sle','',msg)
           call halt_program
        endif
        close(fid)
@@ -122,9 +122,11 @@ contains
 	   allocate(dat(d1,d2,d3))
        fid = create_new_fid()
        open(fid,file=trim(fname))
-       read(fid,*,iostat=iost,iomsg=msg)(((dat(i,j,k),i=1,d1),j=1,d2),k=1,d3)
+       read(fid,*,iostat=iost)(((dat(i,j,k),i=1,d1),j=1,d2),k=1,d3)
        if (iost .ne. 0) then
-          call writelog('esl','', msg)
+          call writelog('esl','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
+               ' Terminating simulation')
+!          call writelog('esl','', msg)
           call halt_program
        endif
 	   close(fid)
