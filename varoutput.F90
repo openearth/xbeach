@@ -327,8 +327,8 @@ contains
                 if (rugrowindex(i)>0) then  ! this (sub) domain contains this runup gauge
                    ! local index of minimum location where hh<rugdepth
                    do ii=2,xmax
-                      if ((s%hh(ii,rugrowindex(i))<=par%rugdepth) .and. &
-                          (s%hh(ii-1,rugrowindex(i))>par%rugdepth) ) then
+                      if ((sl%hh(ii,rugrowindex(i))<=par%rugdepth) .and. &
+                          (sl%hh(ii-1,rugrowindex(i))>par%rugdepth) ) then
                          idumhl= ii-1
                          xrank = xmpi_rank  ! the row number of this process in the MPI grid of subdomains
                          exit
