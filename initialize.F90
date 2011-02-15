@@ -359,7 +359,17 @@ contains
        enddo
        close(723)
     endif
-
+    
+    inquire(file=par%bedfricfile,exist=exists)
+    if ((exists) .and. trim(par%bedfriction)=='chezy') then
+       open(723,file=par%bedfricfile)
+       do j=1,s%ny+1
+          read(723,*)(s%cf(i,j),i=1,s%nx+1)
+       enddo
+       close(723)
+       ! convert from C to cf
+       s%cf=par%g/s%cf**2
+    endif
     !
     ! set zs, hh, wetu, wetv, wetz
     !
