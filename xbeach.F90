@@ -40,7 +40,7 @@ real*8                   :: tbegin,tend
 real*8                   :: t0,t01,t1
 #endif
 
-character(len=155)       :: cwd ! for printing the working dir
+!character(len=155)       :: cwd ! for printing the working dir
 
 ! ----------------------------
 ! Initialize program
@@ -135,7 +135,7 @@ endif
 ! Grid and bathymetry
 
 !
-! grid_bathy will allocate x,y,xz,yz,xu,yv,xw,yw,zb,zb0 only
+! grid_bathy will allocate x,y,xz,yz,xu,yu,xv,yv,zb,zb0 only
 ! on master process 
 !
 call space_alloc_scalars(sglobal)

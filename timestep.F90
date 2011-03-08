@@ -316,7 +316,6 @@ subroutine outputtimes_update(par, tpar)
   implicit none
   type(parameters),intent(inout)      :: par
   type(timepars), intent(inout):: tpar
-
   real*8               :: t1,t2,t3,t4,t5
 
   ! Current timestep:
@@ -388,10 +387,17 @@ subroutine timestep(s,par, tpar, it, ierr)
   integer, intent(inout)           :: it
   integer, intent(out), optional   :: ierr 
   integer                     :: i
-  integer                     :: j
+  integer                     :: j,j1
   integer                     :: n
   real*8                                          :: mdx,mdy,tny
   real*8,save                         :: dtref
+
+  ! Super fast 1D
+  if (s%ny==0) then
+    j1 = 1
+  else
+    j1 = 2
+  endif
 
   ! Calculate dt based on the Courant number. 
   ! Check when we need next output.
@@ -402,35 +408,43 @@ subroutine timestep(s,par, tpar, it, ierr)
 
   ! Robert new time step criterion
   if (par%t<=0.0d0) then          ! conservative estimate
-     par%dt    = par%CFL*min(minval(s%xz(2:s%nx+1)-s%xz(1:s%nx)),   &
-          minval(s%yz(2:s%ny+1)-s%yz(1:s%ny)))   &
-          /(maxval(s%hh)*par%g)
+     par%dt    = par%CFL*min(minval(s%dsu(1:s%nx+1,1:s%ny+1)),   &
+          minval(s%dnv(1:s%nx+1,1:s%ny+1)))   &
+          /sqrt(maxval(s%hh)*par%g)
      dtref = 0.d0
   else
      par%dt=huge(0.0d0)      ! Seed dt
-     do j=2,s%ny
+     do j=j1,max(s%ny,1)
         do i=2,s%nx
-           if(s%wetz(i,j)==1) then     
+           if(s%wetz(i,j)==1 .and. s%ny>0) then     
               ! u-points
-              mdx=(s%xz(i+1)-s%xz(i))
-              mdy=min((s%yz(j+1)-s%yz(j)),(s%yz(j)-s%yz(j-1)))
+              mdx=s%dsu(i+1,j)
+              mdy=min(s%dnv(i,j),s%dnv(i,j-1))
               ! x-component
               par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j)),abs(s%ueu(i,j))))) !Jaap: include sediment advection velocities
               ! y-component
               par%dt=min(par%dt,mdy/max(tny,(sqrt(par%g*s%hu(i,j))+abs(s%vu(i,j)))))
 
               ! v-points
-              mdx=min((s%xz(i+1)-s%xz(i)),(s%xz(i)-s%xz(i-1)))
-              mdy=(s%yz(j+1)-s%yz(j))
+              mdx=min(s%dsu(i,j),s%dsu(i-1,j))
+              mdy=s%dnv(i,j)
               ! x-component
               par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j)))))
               ! y-component
               par%dt=min(par%dt,mdy/max(tny,max(sqrt(par%g*s%hv(i,j))+abs(s%vv(i,j)),abs(s%vev(i,j))))) !Jaap: include sediment advection velocities
 
-              mdx = min(s%xz(i+1)-s%xz(i),s%xu(i)-s%xu(i-1))**2
-              mdy = min(s%yz(j+1)-s%yz(j),s%yv(j)-s%yv(j-1))**2
+              mdx = min(s%dsu(i,j),s%dsz(i,j))**2
+              mdy = min(s%dnv(i,j),s%dnz(i,j))**2
 
               par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
+           else
+              ! u-points
+              mdx=s%dsu(i,j)
+              par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j)),abs(s%ueu(i,j))))) !Jaap: include sediment advection velocities
+              ! v-points
+              ! Dano: no need for 1D case            
+              mdx = min(s%dsu(i,j),s%dsz(i,j))**2
+              par%dt=min(par%dt,0.5d0*mdx*mdx/(mdx+mdx)/max(s%nuh(i,j),1e-6))
            endif
         enddo
      enddo
@@ -461,7 +475,6 @@ subroutine timestep(s,par, tpar, it, ierr)
 #endif
   end if
 
-  ! TODO should this be in the main loop? Now we can't write output
   if (dtref/par%dt>50.d0) then
      call writelog('lse','','Quit XBeach since computational time explodes')
      call writelog('lse','','dtref',dtref)

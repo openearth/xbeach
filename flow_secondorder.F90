@@ -172,13 +172,13 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
         mindepth = minval(s%zs(iww:iee,j))-maxval(s%zb(iww:iee,j))
         if (mindepth > par%eps) then
           if   ((s%qx(i,j)+s%qx(iw,j) > 0.d0) .and. (i>2))    then
-            delta1    = (s%uu(i,j) -uu_old(iw ,j)) / (s%xu(i) -s%xu(iw))
-            delta2    = (s%uu(iw,j)-uu_old(iww,j)) / (s%xu(iw)-s%xu(iww))
-            wrk1(i,j) = (s%xz(i)-s%xu(iw))  *minmod(delta1,delta2)
+            delta1    = (s%uu(i,j) -uu_old(iw ,j)) / s%dsz(i,1)
+            delta2    = (s%uu(iw,j)-uu_old(iww,j)) / s%dsz(iw,1)
+            wrk1(i,j) = 0.5d0*s%dsu(iw,1)*minmod(delta1,delta2)
           elseif (s%qx(i,j)+s%qx(iw,j) < 0.d0 .and. (i<s%nx-2)) then
-            delta1    = (uu_old(i,j) -s%uu(iw ,j)) / (s%xu(i) -s%xu(iw))
-            delta2    = (uu_old(ie,j)-s%uu(i,j))   / (s%xu(ie)-s%xu(i))
-            wrk1(i,j)   = -(s%xu(i)-s%xz(i))*minmod(delta1,delta2)
+            delta1    = (uu_old(i,j) -s%uu(iw ,j)) / s%dsz(i,1)
+            delta2    = (uu_old(ie,j)-s%uu(i,j))   / s%dsz(ie,1)
+            wrk1(i,j)   = -0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
           endif
         endif
       enddo
@@ -193,13 +193,13 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
         mindepth = minval(s%zs(i:i+1,jn:jss))-maxval(s%zb(i:i+1,jn:jss))
         if ((mindepth > par%eps)) then
           if     ((s%qy(i+1,j) + s%qy(i,j)   > 0.d0) .and. j>2) then
-            delta1    = (s%uu(i,js) -uu_old(i ,j )) / (s%yz(js)-s%yz(j ))
-            delta2    = (s%uu(i,j)  -uu_old(i ,jn)) / (s%yz(j )-s%yz(jn))
-            wrk2(i,j) = (s%yv(j)-s%yz(j))*minmod(delta1,delta2)
+            delta1    = (s%uu(i,js) -uu_old(i ,j )) / s%dnv(1,j)
+            delta2    = (s%uu(i,j)  -uu_old(i ,jn)) / s%dnv(1,jn)
+            wrk2(i,j) = 0.5d0*s%dnv(1,j)*minmod(delta1,delta2)
           elseif ( s%qy(i+1,j) + s%qy(i,j)   < 0.d0   .and. j<s%ny-2) then
-            delta1    = (uu_old(i,js) -s%uu(i ,j)) / (s%yz(js )-s%yz(j ))
-            delta2    = (uu_old(i,jss)-s%uu(i,js)) / (s%yz(jss)-s%yz(js))
-            wrk2(i,j)   = -(s%yz(js)-s%yv(j))*minmod(delta1,delta2)
+            delta1    = (uu_old(i,js) -s%uu(i ,j)) / s%dnv(1,j)
+            delta2    = (uu_old(i,jss)-s%uu(i,js)) / s%dnv(1,js)
+            wrk2(i,j)   = -0.5d0*s%dnv(1,j)*minmod(delta1,delta2)
           endif
         endif          
       enddo
@@ -216,8 +216,8 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
         qw = .5*(s%qx(i  ,j  ) + s%qx(i-1,j  ))
         qn = .5*(s%qy(i  ,j-1) + s%qy(i+1,j-1))
         qs = .5*(s%qy(i  ,j  ) + s%qy(i+1,j  ))          
-        s%uu(i,j) = s%uu(i,j)-par%dt/s%hum(i,j)*(  (qe*wrk1(i+1,j)-qw*wrk1(i  ,j  ))/(s%xz(i+1)-s%xz(i  )) &
-                                                +  (qs*wrk2(i  ,j)-qn*wrk2(i  ,j-1))/(s%yv(j  )-s%yv(j-1)) )
+        s%uu(i,j) = s%uu(i,j)-par%dt/s%hum(i,j)*(  (qe*wrk1(i+1,j)-qw*wrk1(i  ,j  ))/s%dsu(i,1) &
+                                                +  (qs*wrk2(i  ,j)-qn*wrk2(i  ,j-1))/s%dnz(1,j) )
       enddo
     enddo
      
@@ -233,13 +233,13 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
           mindepth = minval(s%zs(i,jnn:jss))-maxval(s%zb(i,jnn:jss))
           if (mindepth > par%eps) then
             if   ((s%qy(i,j)+s%qy(i,jn) > par%Umin) .and. (j>2)) then
-              delta1    = (s%vv(i,j ) - vv_old(i ,jn )) / (s%yv(j )-s%yv(jn ))
-              delta2    = (s%vv(i,jn) - vv_old(i ,jnn)) / (s%yv(jn)-s%yv(jnn))
-              wrk1(i,j)   = (s%yz(j)-s%yv(jn))*minmod(delta1,delta2)
+              delta1    = (s%vv(i,j ) - vv_old(i ,jn )) / s%dnz(1,j)
+              delta2    = (s%vv(i,jn) - vv_old(i ,jnn)) / s%dnz(1,jn)
+              wrk1(i,j)   = 0.5d0*s%dnv(1,jn)*minmod(delta1,delta2)
             elseif (s%qy(i,j)+s%qy(i,jn) < -par%Umin .and. j<s%ny-2) then
-              delta1    = (vv_old(i,j ) - s%vv(i,jn)) / (s%yv(j) -s%yv(jn))
-              delta2    = (vv_old(i,js) - s%vv(i,j )) / (s%yv(js)-s%yv(j ))
-              wrk1(i,j)   = -(s%yv(j)-s%yz(j))*minmod(delta1,delta2)
+              delta1    = (vv_old(i,j ) - s%vv(i,jn)) / s%dnz(1,j)
+              delta2    = (vv_old(i,js) - s%vv(i,j )) / s%dnz(1,js)
+              wrk1(i,j)   = -0.5d0*s%dnv(1,j)*minmod(delta1,delta2)
             endif
           endif
         enddo
@@ -255,13 +255,13 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
           mindepth = minval(s%zs(iw:iee,j:j+1))-maxval(s%zb(iw:iee,j:j+1))
           if (mindepth > par%eps) then
             if     (s%qx(i,j+1) + s%qx(i,j) > par%Umin .and. i>2) then
-              delta1    = (s%vv(ie,j) - vv_old(i ,j )) / (s%xz(ie)-s%xz(i ))
-              delta2    = (s%vv(i ,j) - vv_old(iw,j))  / (s%xz(i )-s%xz(iw))
-              wrk2(i,j) = (s%xu(i)-s%xz(i))*minmod(delta1,delta2)
+              delta1    = (s%vv(ie,j) - vv_old(i ,j )) / s%dsu(i,1)
+              delta2    = (s%vv(i ,j) - vv_old(iw,j))  / s%dsu(iw,1)
+              wrk2(i,j) = 0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
             elseif (s%qx(i,j+1) + s%qx(i,j) < -par%Umin .and. i<s%nx-2) then
-              delta1    = (vv_old(ie,j) -s%vv(i ,j)) / (s%xz(ie )-s%xz(i ))
-              delta2    = (vv_old(iee,j)-s%vv(ie,j)) / (s%xz(iee)-s%xz(ie))
-              wrk2(i,j) = -(s%xz(ie)-s%xu(i))*minmod(delta1,delta2)
+              delta1    = (vv_old(ie,j) -s%vv(i ,j)) / s%dsu(ie,1)
+              delta2    = (vv_old(iee,j)-s%vv(ie,j)) / s%dsu(ie,1)
+              wrk2(i,j) = -0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
             endif
           endif          
         enddo
@@ -276,8 +276,8 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
           qw = .5_rKind*(s%qx(i-1,j  ) + s%qx(i-1,j+1))
           qn = .5_rKind*(s%qy(i  ,j  ) + s%qy(i  ,j-1))
           qs = .5_rKind*(s%qy(i  ,j+1) + s%qy(i  ,j  ))
-          s%vv(i,j) = s%vv(i,j)-par%dt/s%hvm(i,j)*(  (qe*wrk2(i,j  )- qw*wrk2(i-1,j))/(s%xu(i  )-s%xu(i-1))  &
-                                                  +  (qs*wrk1(i,j+1)- qn*wrk1(i  ,j))/(s%yz(j+1)-s%yz(j  ))  )
+          s%vv(i,j) = s%vv(i,j)-par%dt/s%hvm(i,j)*(  (qe*wrk2(i,j  )- qw*wrk2(i-1,j))/ s%dsz(i,1)  &
+                                                  +  (qs*wrk1(i,j+1)- qn*wrk1(i  ,j))/ s%dnv(1,j)  )
         enddo
       enddo
     endif
@@ -356,13 +356,13 @@ subroutine flow_secondorder_advW(s,par,w,w_old)
         mindepth = minval(s%zs(iw:iee,j))-maxval(s%zb(iw:iee,j))
         if (mindepth > par%eps) then
           if   (s%qx(i,j) > 0.0_rKind  .and. i>2) then
-            delta1    = (w(ie,j ) - w_old(i  ,j )) / (s%xz(ie )-s%xz(i ))
-            delta2    = (w(i,j )  - w_old(iw ,j )) / (s%xz(i)  -s%xz(iw))
-            wrk1(i,j)   = (s%xu(i)-s%xz(i))*minmod(delta1,delta2)
+            delta1    = (w(ie,j ) - w_old(i  ,j )) / s%dsu(i,1)
+            delta2    = (w(i,j )  - w_old(iw ,j )) / s%dsu(iw,1)
+            wrk1(i,j)   = 0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
           elseif (s%qx(i,j) < 0.0_rKind .and. i<s%nx-1) then
-            delta1    = (w_old(ie ,j)  - w(i ,j )) / (s%xz(ie ) -s%xz(i ))
-            delta2    = (w_old(iee,j ) - w(ie,j )) / (s%xz(iee) -s%xz(ie))
-            wrk1(i,j)   = -(s%xz(ie)-s%xu(i))*minmod(delta1,delta2)
+            delta1    = (w_old(ie ,j)  - w(i ,j )) / s%dsu(i,1)
+            delta2    = (w_old(iee,j ) - w(ie,j )) / s%dsu(ie,1)
+            wrk1(i,j)   = -0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
           endif
         endif
       enddo
@@ -381,13 +381,13 @@ subroutine flow_secondorder_advW(s,par,w,w_old)
         mindepth = minval(s%zs(i,jn:jss))-maxval(s%zb(i,jn:jss))
         if (mindepth > par%eps) then
           if   (s%qy(i,j) > 0.0_rKind .and. j>2) then
-            delta1    = (w(i,js ) - w_old(i  ,j )) / (s%yz(js)-s%yz(j ))
-            delta2    = (w(i,j  ) - w_old(i  ,jn)) / (s%yz(j )-s%yz(jn))
-            wrk2(i,j) = (s%yv(j)-s%yz(j))*minmod(delta1,delta2)
+            delta1    = (w(i,js ) - w_old(i  ,j )) / s%dnv(1,j)
+            delta2    = (w(i,j  ) - w_old(i  ,jn)) / s%dnv(1,jn)
+            wrk2(i,j) = 0.5d0*s%dnv(1,j)*minmod(delta1,delta2)
           elseif (s%qy(i,j) < 0.0_rKind .and. j<s%ny-1) then
-            delta1    = (w_old(i,js)   - w(i ,j )) / (s%yz(js ) -s%yz(j ))
-            delta2    = (w_old(i,jss ) - w(i ,js)) / (s%yz(jss) -s%yz(js))
-            wrk2(i,j) = -(s%yz(js)-s%yv(j))*minmod(delta1,delta2)
+            delta1    = (w_old(i,js)   - w(i ,j )) / s%dnv(1,j)
+            delta2    = (w_old(i,jss ) - w(i ,js)) / s%dnv(1,js)
+            wrk2(i,j) = -0.5d0*s%dnv(1,j)*minmod(delta1,delta2)
           endif
         endif        
       enddo
@@ -398,8 +398,8 @@ subroutine flow_secondorder_advW(s,par,w,w_old)
     !CORRECTION TO W
     do j=2,s%ny
       do i=2,s%nx
-        w(i,j) = w(i,j)-par%dt/s%hh(i,j)*(  (s%qx(i,j)*wrk1(i,j)- s%qx(i-1,j)*wrk1(i-1,j))/(s%xu(i  )-s%xu(i-1))  &
-                                         +  (s%qy(i,j)*wrk2(i,j)- s%qy(i,j-1)*wrk2(i,j-1))/(s%yv(j)  -s%yv(j-1))  )
+        w(i,j) = w(i,j)-par%dt/s%hh(i,j)*(  (s%qx(i,j)*wrk1(i,j)- s%qx(i-1,j)*wrk1(i-1,j))/ s%dsz(i,1)  &
+                                         +  (s%qy(i,j)*wrk2(i,j)- s%qy(i,j-1)*wrk2(i,j-1))/ s%dnz(1,j)  )
       enddo
     enddo
 
@@ -472,13 +472,13 @@ subroutine flow_secondorder_con(s,par,zs_old)
           mindepth = minval(s%zs(iw:iee,j))-maxval(s%zb(iw:iee,j))
           if (mindepth>par%eps) then
             if     (s%uu(i,j) >  par%umin .and. i>2     ) then
-              delta1    =  (s%zs(ie,j)- zs_old(i,j ))/(s%xz(i+1)-s%xz(i))
-              delta2    =  (s%zs(i,j) - zs_old(iw,j))/(s%xz(i)  -s%xz(i-1))
-              wrk1(i,j)  =   s%uu(i,j)*(s%xu(i)-s%xz(i))*minmod(delta1,delta2)
+              delta1    =  (s%zs(ie,j)- zs_old(i,j ))/ s%dsu(i,1)
+              delta2    =  (s%zs(i,j) - zs_old(iw,j))/ s%dsu(i-1,1)
+              wrk1(i,j)  =   s%uu(i,j)*0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
             elseif (s%uu(i,j) < -par%umin .and. i<s%nx-1) then
-              delta1    =  (zs_old(iee,j) - s%zs(ie,j)) / (s%xz(i+2)-s%xz(i+1))
-              delta2    =  (zs_old(ie ,j) - s%zs(i ,j)) / (s%xz(i+1)-s%xz(i))
-              wrk1(i,j)  = - s%uu(i,j)*(s%xz(ie)-s%xu(i))*minmod(delta1,delta2)
+              delta1    =  (zs_old(iee,j) - s%zs(ie,j)) / s%dsu(i+1,1)
+              delta2    =  (zs_old(ie ,j) - s%zs(i ,j)) / s%dsu(i,1)
+              wrk1(i,j)  = - s%uu(i,j)*0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
             endif          
           endif
         enddo
@@ -497,13 +497,13 @@ subroutine flow_secondorder_con(s,par,zs_old)
             mindepth = minval(s%zs(i,jn:jss))-maxval(s%zb(i,jn:jss))
             if (mindepth> par%eps) then
               if     (s%vv(i,j) >  par%Umin .and. j>2) then
-                delta1    = (s%zs(i,js) - zs_old(i,j ))/(s%yz(j+1)-s%yz(j))
-                delta2    = (s%zs(i,j)  - zs_old(i,jn))/(s%yz(j)  -s%yz(j-1))
-                wrk2(i,j) =  s%vv(i,j)*(s%yv(j)-s%yz(j))*minmod(delta1,delta2)
+                delta1    = (s%zs(i,js) - zs_old(i,j ))/ s%dnv(1,j)
+                delta2    = (s%zs(i,j)  - zs_old(i,jn))/ s%dnv(1,j-1)
+                wrk2(i,j) =  s%vv(i,j)*0.5d0*s%dnv(1,j)*minmod(delta1,delta2)
               elseif (s%vv(i,j) < -par%Umin .and. j<s%ny-1) then
-                delta1    = (zs_old(i,jss) - s%zs(i,js)) / (s%yz(j+2)-s%yz(j+1))
-                delta2    = (zs_old(i ,js) - s%zs(i ,j)) / (s%yz(j+1)-s%yz(j))
-                wrk2(i,j) =  s%vv(i,j)*(s%yv(j)-s%yz(j))*minmod(delta1,delta2)
+                delta1    = (zs_old(i,jss) - s%zs(i,js)) / s%dnv(1,j+1)
+                delta2    = (zs_old(i ,js) - s%zs(i ,j)) / s%dnv(1,j)
+                wrk2(i,j) =  s%vv(i,j)*0.5d0*s%dnv(1,j)*minmod(delta1,delta2)
               endif          
             endif
           enddo
@@ -517,8 +517,8 @@ subroutine flow_secondorder_con(s,par,zs_old)
       !Update waterlevels
       do j=2,s%ny
         do i=2,s%nx
-          s%zs(i,j) = s%zs(i,j)-par%dt*(  (wrk1(i,j)-wrk1(i-1,j))/(s%xu(i)-s%xu(i-1))  &
-                                       +  (wrk2(i,j)-wrk2(i,j-1))/(s%yv(j)-s%yv(j-1))  )
+          s%zs(i,j) = s%zs(i,j)-par%dt*(  (wrk1(i,j)-wrk1(i-1,j))/ s%dsz(i,1)  &
+                                       +  (wrk2(i,j)-wrk2(i,j-1))/ s%dnz(1,j)  )
         enddo
       enddo
       

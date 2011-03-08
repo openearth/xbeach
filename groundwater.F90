@@ -195,13 +195,13 @@ subroutine gwflow(par,s)
 
   do j=1,s%ny+1
      do i=1,s%nx
-        dheaddx(i,j)=(s%gwhead(i+1,j)-s%gwhead(i,j))/(s%xz(i+1)-s%xz(i))  
+        dheaddx(i,j)=(s%gwhead(i+1,j)-s%gwhead(i,j))/s%dsu(i,j)  
      end do
   end do
 
   do j=1,s%ny
      do i=1,s%nx+1
-        dheaddy(i,j)=(s%gwhead(i,j+1)-s%gwhead(i,j))/(s%yz(j+1)-s%yz(j))    
+        dheaddy(i,j)=(s%gwhead(i,j+1)-s%gwhead(i,j))/s%dnv(i,j)   
      end do
   end do
 
@@ -216,8 +216,8 @@ subroutine gwflow(par,s)
   s%gwv=-par%ky*dheaddy
 
   ! Limit for stability in case of very high kx values
-  !s%gwu(1:s%nx,1:s%ny)=min(s%gwu(1:s%nx,1:s%ny),0.5d0*(s%x(2:s%nx+1,1:s%ny)-s%x(1:s%nx,1:s%ny))/par%dt)
-  !s%gwv(1:s%nx,1:s%ny)=min(s%gwv(1:s%nx,1:s%ny),0.5d0*(s%y(1:s%nx,2:s%ny+1)-s%y(1:s%nx,1:s%ny))/par%dt)
+  !s%gwu(1:s%nx,1:s%ny)=min(s%gwu(1:s%nx,1:s%ny),0.5d0*(s%xz(2:s%nx+1,1:s%ny)-s%xz(1:s%nx,1:s%ny))/par%dt)
+  !s%gwv(1:s%nx,1:s%ny)=min(s%gwv(1:s%nx,1:s%ny),0.5d0*(s%yz(1:s%nx,2:s%ny+1)-s%yz(1:s%nx,1:s%ny))/par%dt)
 
   gwqx=s%gwu*gwhu
   gwqy=s%gwv*gwhv
@@ -269,8 +269,8 @@ subroutine gwflow(par,s)
   ! Mass balance
   do j=2,s%ny
      do i=2,s%nx
-        dleveldt(i,j)=-1.d0*(gwqx(i,j)-gwqx(i-1,j))/(s%xu(i)-s%xu(i-1))/par%por &
-             -1.d0*(gwqy(i,j)-gwqy(i,j-1))/(s%yv(j)-s%yv(j-1))/par%por &
+        dleveldt(i,j)=-1.d0*(gwqx(i,j)*s%dnu(i,j)-gwqx(i-1,j)*s%dnu(i-1,j) + &
+                             gwqy(i,j)*s%dsv(i,j)-gwqy(i,j-1)*s%dsv(i,j-1))*s%dsdnzi(i,j)/par%por &
              +1.d0*s%gww(i,j)/par%por
      enddo
   enddo

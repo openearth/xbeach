@@ -164,7 +164,7 @@ contains
              par%Hrms = Hm0/sqrt(2.d0)
              par%m = 0.5d0*spreadpar
              if (par%morfacopt==1) bcendtime=bcendtime/max(par%morfac,1.d0)
-             s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0
+             theta0=(1.5d0*par%px-alfa)-par%dir0*atan(1.d0)/45.d0
              if (theta0>par%px) theta0=theta0-2*par%px
              if (theta0<-par%px) theta0=theta0+2*par%px
           endif
@@ -174,12 +174,12 @@ contains
           call xmpi_bcast(par%Hrms)
           call xmpi_bcast(par%Trep)
           call xmpi_bcast(par%m)
-          call xmpi_bcast(s%theta0)
+          call xmpi_bcast(theta0)
 #endif  
-          do itheta=1,s%ntheta
-             s%sigt(:,:,itheta) = 2.d0*par%px/par%Trep
+          do itheta=1,ntheta
+             sigt(:,:,itheta) = 2.d0*par%px/par%Trep
           end do
-          s%sigm = sum(s%sigt,3)/s%ntheta
+          sigm = sum(sigt,3)/ntheta
           call dispersion(par,s)     
 
        elseif ((trim(par%instat)=='jons'.or.trim(par%instat)=='jons_table').and.xmaster) then
@@ -199,7 +199,7 @@ contains
           wp%listline=1
           curline = wp%listline
        elseif (trim(par%instat)=='nonh'.and.xmaster) then   
-          call velocity_Boundary(ui(1,:),zi(1,:),wi(1,:),s%nx,s%ny,par%t,s%zs,s%ws)  
+          call velocity_Boundary(ui(1,:),zi(1,:),wi(1,:),nx,ny,par%t,zs,ws)  
        endif
        !
        ! Directional distribution
@@ -232,7 +232,8 @@ contains
           e01    = max(e01,0.0d0);
 
           if (abs(theta0)<1.d-9) theta0=1.d-9
-          Llong=par%Tlong*cg(1,1)/cos(theta0)
+          ! Dano Llong=par%Tlong*cg(1,1)/cos(theta0)
+          Llong=par%Tlong*cg(1,1)
 
        endif
        if (xmaster) then
@@ -252,7 +253,7 @@ contains
              else
                 bcendtime=bcendtime+bcdur
              endif
-             s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0
+             theta0=(1.5d0*par%px-alfa)-par%dir0*atan(1.d0)/45.d0
           endif
           newstatbc=.true.
 #ifdef USEMPI
@@ -260,13 +261,13 @@ contains
           call xmpi_bcast(par%Hrms)
           call xmpi_bcast(par%Trep)
           call xmpi_bcast(par%m)
-          call xmpi_bcast(s%theta0)
+          call xmpi_bcast(theta0)
 #endif
 
-          do itheta=1,s%ntheta
-             s%sigt(:,:,itheta) = 2*par%px/par%Trep
+          do itheta=1,ntheta
+             sigt(:,:,itheta) = 2*par%px/par%Trep
           end do
-          s%sigm = sum(s%sigt,3)/s%ntheta
+          sigm = sum(sigt,3)/ntheta
           call dispersion(par,s)
 
           dist=(cos(theta-theta0))**par%m
@@ -340,11 +341,11 @@ contains
        end do
     elseif (trim(par%instat)=='bichrom') then
        do j=1,ny+1
-          ee(1,j,:)=e01*0.5d0*(1.d0+cos(2*par%px*(par%t/par%Tlong-sin(theta0)*s%y(1,j)/Llong))) *min(par%t/par%taper,1.d0)
+          ee(1,j,:)=e01*0.5d0*(1.d0+cos(2*par%px*(par%t/par%Tlong-(sin(theta0)*(yz(1,j)-yz(1,1))+cos(theta0)*(xz(1,j)-xz(1,1)))/Llong))) *min(par%t/par%taper,1.d0)
           em = (sum(0.5d0*e01))*dtheta *min(par%t/par%taper,1.d0)
           ei =  sum(ee(1,j,1:ntheta))*dtheta
           bi(1) = -(2*cg(1,j)/c(1,j)-0.5d0)*(em-ei)/(cg(1,j)**2-par%g*hh(1,j))/par%rho
-          ht=s%zs0(1:2,:)-zb(1:2,:)
+          ht=zs0(1:2,:)-zb(1:2,:)
           ui(1,j) = cg(1,j)*bi(1)/ht(1,j)*cos(theta0)
        end do
     elseif (trim(par%instat)=='ts_1') then
@@ -352,24 +353,24 @@ contains
           if (abs(theta0)<1e-3) then
              call linear_interp(tE,dataE,nt,par%t,E1,E_idx)
           else
-             tshifted=max(par%t-(y(1,j)-y(1,1))*sin(theta0)/cg(1,1),0.d0)
+             tshifted=max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1),0.d0)
              call linear_interp(tE,dataE,nt,tshifted,E1,E_idx) 
           endif
           ee(1,j,:)=e01*E1/max(Emean,0.000001d0)*min(par%t/par%taper,1.d0)
           em = Emean *min(par%t/par%taper,1.d0)
           ei = sum(ee(1,j,:))*dtheta
           bi(1) = -(2*cg(1,j)/c(1,j)-0.5d0)*(em-ei)/(cg(1,j)**2-par%g*hh(1,j))/par%rho
-          ht=s%zs0(1:2,:)-zb(1:2,:)
+          ht=zs0(1:2,:)-zb(1:2,:)
           ui(1,j) = cg(1,j)*bi(1)/ht(1,j)*cos(theta0)
        end do
     elseif (trim(par%instat)=='ts_2') then
-       ht=s%zs0(1:2,:)-zb(1:2,:)
+       ht=zs0(1:2,:)-zb(1:2,:)
        do j=1,ny+1
           if (abs(theta0)<1e-3) then
              call linear_interp(tE,dataE,nt,par%t,E1,E_idx) 
              call linear_interp(tE,databi,nt,par%t,bi(1),E_idx)
           else
-             tshifted=max(par%t-(y(1,j)-y(1,1))*sin(theta0)/cg(1,1),0.d0)
+             tshifted=max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1),0.d0)
              call linear_interp(tE,dataE,nt,tshifted,E1,E_idx) 
              call linear_interp(tE,databi,nt,tshifted,bi(1),E_idx)
           endif
@@ -404,7 +405,7 @@ contains
           call xmpi_bcast(rt)
           call xmpi_bcast(dtbcfile)
           call xmpi_bcast(par%Trep)
-          call xmpi_bcast(s%theta0)
+          call xmpi_bcast(theta0)
           call xmpi_bcast(ebcfname)
 #endif
           if (xmaster) then
@@ -414,15 +415,15 @@ contains
           ! Robert and Jaap : Initialize for new wave conditions
           ! par%Trep = par%Trep
           ! par%omega = 2*par%px/par%Trep            
-          do itheta=1,s%ntheta
-             s%sigt(:,:,itheta) = 2*par%px/par%Trep
+          do itheta=1,ntheta
+             sigt(:,:,itheta) = 2*par%px/par%Trep
           end do
-          s%sigm = sum(s%sigt,3)/s%ntheta
+          sigm = sum(sigt,3)/ntheta
           call dispersion(par,s)     
           ! End initialize
           if (xmaster) then
              inquire(iolength=wordsize) 1.d0
-             reclen=wordsize*(sg%ny+1)*(s%ntheta)
+             reclen=wordsize*(sg%ny+1)*(ntheta)
              open(71,file=ebcfname,status='old',form='unformatted',access='direct',recl=reclen)
              reclen=wordsize*(sg%ny+1)
              open(72,file=qbcfname,status='old',form='unformatted',access='direct',recl=reclen)
@@ -516,7 +517,7 @@ contains
           endif
           old=new
        end if
-       ht=s%zs0(1:2,:)-zb(1:2,:)
+       ht=zs0(1:2,:)-zb(1:2,:)
        tnew = dble(new)*dtbcfile
        ee(1,:,:) = (dtbcfile-(tnew-par%t))/dtbcfile*ee2 + & !Jaap
             (tnew-par%t)/dtbcfile*ee1
@@ -525,7 +526,7 @@ contains
        ui(1,:) = q/ht(1,:)*min(par%t/par%taper,1.0d0)
        ee(1,:,:)=ee(1,:,:)*min(par%t/par%taper,1.0d0)
     elseif (trim(par%instat)=='nonh'.and.xmaster) then   
-       call velocity_Boundary(ui(1,:),zi(1,:),wi(1,:),s%nx,s%ny,par%t,s%zs,s%ws)
+       call velocity_Boundary(ui(1,:),zi(1,:),wi(1,:),nx,ny,par%t,zs,ws)
     else
        if (xmaster) then
           call writelog('lse','', 'instat = ',trim(par%instat), ' invalid option')
@@ -565,8 +566,8 @@ contains
 
     integer                                     :: i,ig
     integer                                     :: j,jj,indt
-    real*8                                      :: ur,alphanew,vert,factime,dzs0dy
-    real*8 , dimension(2)                       :: yzs0,szs0
+    real*8                                      :: ur,alphanew,vert,factime,dzs0dy,windxnow,windynow
+    real*8 , dimension(2)                       :: xzs0,yzs0,szs0
     real*8 , dimension(:,:)  ,allocatable,save  :: zs0old,zsmean,dzs0
     real*8 , dimension(:,:)  ,allocatable,save  :: ht,beta,betanp1
     real*8 , dimension(:)    ,allocatable,save  :: bn,alpha2
@@ -602,7 +603,7 @@ contains
        dzs0 = 0; 
     endif
 
-    factime=1.d0/par%cats/par%Trep*par%dt
+    ! factime=1.d0/par%cats/par%Trep*par%dt !Jaap: not used anymore
 
     !allocate(szs0(1:2))  ! wwvv changed this, now defined as an automatic array
     !allocate(yzs0(1:2)) 
@@ -647,13 +648,13 @@ contains
           call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,4), s%tidelen, par%t, s%zs04, indt)
        endif
        !
-       ! from here on set global vriable s%zs0
+       ! from here on set global variable zs0
        !
        if(par%tideloc.eq.1) s%zs0 = s%zs01
 
        if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='sea') then
-          yzs0(1)=s%yz(1)
-          yzs0(2)=s%yz(s%ny+1)
+          yzs0(1)=ndist(1,1)
+          yzs0(2)=ndist(1,ny+1)
           
           ! for MPI look at water level gradient over each subdomain
           
@@ -664,131 +665,91 @@ contains
           szs0(1)=s%zs01+dzs0dy*(yzs0(1)-s%xyzs01(2))
           szs0(2)=s%zs01+dzs0dy*(yzs0(2)-s%xyzs01(2))
 
-          do i = 1,s%ny+1
-             call LINEAR_INTERP(yzs0, szs0, 2, s%yz(i), s%zs0(1,i), indt)
+          do j = 1,ny+1
+             call LINEAR_INTERP(yzs0, szs0, 2, ndist(1,j), zs0(1,j), indt)
           enddo
-          do j = 1,s%ny+1 
-             do i = 1,s%nx+1
-                s%zs0(i,j) = s%zs0(1,j)
-             enddo
-          enddo
-       endif
-
-       if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='land') then
-          yzs0(1)=s%xz(1)
-          yzs0(2)=s%xz(s%nx+1)
-          szs0(1)=s%zs01
-          szs0(2)=s%zs04
-          s%zs0(1,:)=s%zs01
-          s%zs0(s%nx+1,:)=s%zs03
-          ! 
-          ! wwvv the following j-loop needs special care in the parallel case
-          !      zs0(:,j) will get equal to one of
-          !      -> zs0(1,j)
-          !      -> zs0(nx+1)
-          !      -> some interpolation function
-          !      -> not changed
-          !      The first two cases require, that the 'real' zs0(1,:)
-          !      and zs0(nx+1,:) are present, otherwise the local
-          !      values would be used.
-          !      We fix this by first copying the first row of the
-          !      top matrices to the first row of the local matrix
-          !      and the last row of the bottom matrices to the last
-          !      row of the local matrix.
-          !      Then new values of zs0 are determined and afterwards
-          !      the first and last rows are copied from top and lower neighbours
-
-#ifdef USEMPI
-          call xmpi_getrow(s%zs0,ny+1,'1',1,s%zs0(1,:))
-          call xmpi_getrow(s%zs0,ny+1,'m',xmpi_m,s%zs0(nx+1,:))
-#endif
-          do j = 1,s%ny+1 
-             do i = 1,s%nx+1
-                if (s%zb(i,j).gt.s%zs0(1,j)+par%eps) goto 302 ! wwvv can use exit here
-                s%zs0(i,j) = s%zs0(1,j)
-             enddo
-302          if (i.lt.s%nx+1) then
-                do ig=i+1,s%nx+1      ! wwvv then s%zs0(i) is untouched, ok?
-                   s%zs0(ig,j) = s%zs0(s%nx+1,j)   
-                enddo
-             else
-                do i = 1,s%nx+1
-                   call LINEAR_INTERP(yzs0, szs0, 2, s%xz(i), s%zs0(i,j), indt)
-                enddo
-             endif
-          enddo
-       endif
-
+		  
+		  zs0(2,:)=zs0(1,:)
+          !do j = 1,ny+1 
+          !   do i = 1,nx+1
+          !      zs0(i,j) = zs0(1,j)
+          !   enddo
+          !enddo
+       elseif (par%tideloc.eq.2 .and. trim(par%paulrevere)=='land') then
+          if (xmpi_istop) then
+             zs0(1:2,:)=zs01
+	      endif
+          if (xmpi_isbot) then
+		     zs0(nx:nx+1,:)=zs04
+		  endif
+       endif 
+ 
        if(par%tideloc.eq.4) then
-          yzs0(1)=s%yz(1)
-          yzs0(2)=s%yz(s%ny+1)
-          szs0(1)=s%zs01
-          szs0(2)=s%zs02
-          do i = 1,s%ny+1
-             call LINEAR_INTERP(yzs0, szs0, 2, s%yz(i), s%zs0(1,i), indt)
-          enddo
-          yzs0(1)=s%yz(1)
-          yzs0(2)=s%yz(s%ny+1)
-          szs0(1)=s%zs04
-          szs0(2)=s%zs03
-          do i = 1,s%ny+1
-             call LINEAR_INTERP(yzs0, szs0, 2, s%yz(i), s%zs0(s%nx+1,i), indt)
-          enddo
-
-          ! wwvv see above
-#ifdef USEMPI
-          call xmpi_getrow(s%zs0,ny+1,'1',1,s%zs0(1,:))
-          call xmpi_getrow(s%zs0,ny+1,'m',xmpi_m,s%zs0(nx+1,:))
-#endif
-          do j = 1,s%ny+1 
-             do i = 1,s%nx+1
-                if (s%zb(i,j).gt.s%zs0(1,j)+par%eps) goto 303
-                s%zs0(i,j) = s%zs0(1,j)
+	      if (xmpi_istop) then
+             yzs0(1)=xyzs01(2)
+             yzs0(2)=xyzs02(2)
+             szs0(1)=zs01
+             szs0(2)=zs02
+             do j = 1,ny+1
+                call LINEAR_INTERP(yzs0, szs0, 2, ndist(1,j), zs0(1,j), indt)
              enddo
-303          if (i.lt.s%nx+1) then
-                do ig=i+1,s%nx+1
-                   s%zs0(ig,j) = s%zs0(s%nx+1,j)   
-                enddo
-             else
-                do i = 1,s%nx+1
-                   call LINEAR_INTERP(yzs0, szs0, 2, s%xz(i), s%zs0(i,j), indt)
-                enddo
-             endif
-          enddo
+			 zs0(2,:)=zs0(1,:)
+          endif
+		  if (xmpi_isbot) then
+             yzs0(1)=xyzs04(2)
+             yzs0(2)=xyzs03(2)
+             szs0(1)=zs04
+             szs0(2)=zs03
+             do j = 1,ny+1
+                call LINEAR_INTERP(yzs0, szs0, 2, ndist(nx+1,j), zs0(nx+1,j), indt)
+             enddo
+			 zs0(nx,:)=zs0(nx+1,:)
+          endif
+		  if (xmpi_isleft) then
+             xzs0(1)=xyzs01(1)
+             xzs0(2)=xyzs04(1)
+             szs0(1)=zs01
+             szs0(2)=zs04
+             do i = 1,nx+1
+                call LINEAR_INTERP(xzs0, szs0, 2, sdist(i,1), zs0(i,1), indt)
+             enddo
+          endif
+		  if (xmpi_isright) then
+             xzs0(1)=xyzs02(1)
+             xzs0(2)=xyzs03(1)
+             szs0(1)=zs02
+             szs0(2)=zs03
+             do i = 1,nx+1
+                call LINEAR_INTERP(xzs0, szs0, 2, sdist(i,ny+1), zs0(i,ny+1), indt)
+             enddo
+          endif
        endif
-       ! wwvv in the parallel case, we need to get valid values for the top
-       !  and bottom row 
-#ifdef USEMPI
-       call xmpi_shift(s%zs0,'1:')
-       call xmpi_shift(s%zs0,'m:')
-#endif
 
-       !endif
     else ! ie if tideloc=0
-       s%zs0 = s%zs01
+       zs0 = zs01
     endif    
     
     if (trim(par%tidetype)=='instant') then
-    !
-    ! RJ: 22-09-2010 Correct water level for surge and tide:
-    !
-    zsmean(1,:) = par%epsi*s%zs(1,:)+(1-par%epsi)*zsmean(1,:)
-    zsmean(2,:) = par%epsi*s%zs(nx,:)+(1-par%epsi)*zsmean(2,:)
-    ! compute difference between offshore/bay mean water level and imposed on tide   
-    dzs0(1,:) = s%zs0(1,:)-zsmean(1,:)
-    dzs0(2,:) = s%zs0(nx,:)-zsmean(2,:)
+        !
+        ! RJ: 22-09-2010 Correct water level for surge and tide:
+        !
+        zsmean(1,:) = par%epsi*zs(1,:)+(1-par%epsi)*zsmean(1,:)
+        zsmean(2,:) = par%epsi*zs(nx,:)+(1-par%epsi)*zsmean(2,:)
+        ! compute difference between offshore/bay mean water level and imposed on tide   
+        dzs0(1,:) = zs0(1,:)-zsmean(1,:)
+        dzs0(2,:) = zs0(nx,:)-zsmean(2,:)
 #ifdef USEMPI    
-    call xmpi_getrow(dzs0,ny+1,'1',1,dzs0(1,:))
-    call xmpi_getrow(dzs0,ny+1,'m',xmpi_m,dzs0(2,:))
+        call xmpi_getrow(dzs0,ny+1,'1',1,dzs0(1,:))
+        call xmpi_getrow(dzs0,ny+1,'m',xmpi_m,dzs0(2,:))
 #endif    
     
-    do j = 1,s%ny+1 
-       do i = 1,s%nx+1 
-          s%zs(i,j) = s%zs(i,j) + (s%zs0fac(i,j,1)*dzs0(1,j) + s%zs0fac(i,j,2)*dzs0(2,j))*wetz(i,j)
-       enddo
-    enddo
-    
-    ! RJ: 22-09-2010 end update tide and surge
+        do j = 1,ny+1 
+           do i = 1,nx+1 
+              zs(i,j) = zs(i,j) + (zs0fac(i,j,1)*dzs0(1,j) + zs0fac(i,j,2)*dzs0(2,j))*wetz(i,j)
+           enddo
+        enddo
+        
+        ! RJ: 22-09-2010 end update tide and surge
     
     endif ! tidetype = instant water level boundary
     
@@ -800,26 +761,26 @@ contains
        ! the mpi_shift calls in horizontal directions
        if(xmpi_istop) then
           if (trim(par%front)=='abs_1d') then ! Ad's radiating boundary
-             !uu(1,:)=2.d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))
+             !uu(1,:)=2.d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-zs0(2,:)))
              if (trim(par%tidetype)=='velocity') then
                umean(1,:) = (par%epsi*uu(1,:)+(1-par%epsi)*umean(1,:))
              else
                umean(1,:) = 0.d0
              endif
-             !DAno  uu(1,:)=2.0d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:)))+umean(1,:)
-             uu(1,:)=(1.0d0+sqrt(par%g*hh(1,:))/cg(1,:))*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-s%zs0(2,:))) + umean(1,:)
+             !DAno  uu(1,:)=2.0d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-zs0(2,:)))+umean(1,:)
+             uu(1,:)=(1.0d0+sqrt(par%g*hh(1,:))/cg(1,:))*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-zs0(2,:))) + umean(1,:)
              vv(1,:)=vv(2,:)
              zs(1,:)=zs(2,:)
           elseif (trim(par%front)=='abs_2d') then ! Van Dongeren (1997), weakly reflective boundary condition
-             ht(1:2,:)=max(s%zs0(1:2,:)-zb(1:2,:),par%eps)
+             ht(1:2,:)=max(zs0(1:2,:)-zb(1:2,:),par%eps)
              beta=uu(1:2,:)-2.*dsqrt(par%g*hum(1:2,:))
 
              do j=2,ny
                 ! compute gradients in u-points....
-                dvdy(1,j)=(vu(1,min(j,ny)+1)-vu(1,max(j,2)-1))/(yz(min(j,ny)+1)-yz(max(j,2)-1))
-                dhdx(1,j)=(ht(2,j)-ht(1,j))/(xz(2)-xz(1))
-                dbetadx(1,j)=(beta(2,j)-beta(1,j))/(xu(2)-xu(1))
-                dbetady(1,j)=(beta(1,min(j,ny)+1)-beta(1,max(j,2)-1))/(yz(min(j,ny)+1)-yz(max(j,2)-1))
+                dvdy(1,j)=(vu(1,j+1)-vu(1,j-1))/ (2.d0*dnu(1,j)) 
+                dhdx(1,j)=(ht(2,j)-ht(1,j))/dsu(1,j)
+                dbetadx(1,j)=(beta(2,j)-beta(1,j))/dsz(2,j)
+                dbetady(1,j)=(beta(1,j+1)-beta(1,j-1))/(2.d0*dnu(1,j))
 
                 inv_ht(j) = 1.d0/hum(1,j)                                 
 
@@ -891,18 +852,18 @@ contains
              !       uu(1,:)=0.d0
              !      zs(1,:)=max(zs(2,:),zb(1,:))
           else if (trim(par%front)=='wlevel') then
-             zs(1,:)=s%zs0(1,:)
+             zs(1,:)=zs0(1,:)
           else if (trim(par%front)=='nonh_1d') then
              !Timeseries Boundary for nonh, only use in combination with instat=8       
              if (par%ARC==0) then
-                s%uu(1,:) = s%ui(1,:)
-                s%zs(1,:) = s%zi(1,:)
-                s%ws(1,:) = s%wi(1,:)
+                uu(1,:) = ui(1,:)
+                zs(1,:) = zi(1,:)
+                ws(1,:) = wi(1,:)
              else
                 !Radiating boundary for short waves:
-                s%uu(1,:) = s%ui(1,:)-sqrt(par%g/s%hh(2,:))*(s%zs(2,:)-s%zi(1,:)-s%zs0(2,:))
-                s%zs(1,:) = s%zs(2,:)
-                s%ws(1,:) = s%ws(2,:)
+                uu(1,:) = ui(1,:)-sqrt(par%g/hh(2,:))*(zs(2,:)-zi(1,:)-zs0(2,:))
+                zs(1,:) = zs(2,:)
+                ws(1,:) = ws(2,:)
              endif
           endif ! par%front
           ! uu, zs and umean shift horizontally in two directions (loop was 2..ny)
@@ -939,42 +900,42 @@ contains
              else
                umean(2,:) = 0.d0
              endif
-             uu(nx,:)=sqrt(par%g/hh(nx,:))*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))+umean(2,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
-             !        uu(nx,:)=cg(nx,:)/hh(nx,:)*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))+umean(2,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
-             !uu(nx,:)=sqrt(par%g/(s%zs0(nx,:)-zb(nx,:)))*(zs(nx,:)-max(zb(nx,:),s%zs0(nx,:)))
+             uu(nx,:)=sqrt(par%g/hh(nx,:))*(zs(nx,:)-max(zb(nx,:),zs0(nx,:)))+umean(2,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
+             !        uu(nx,:)=cg(nx,:)/hh(nx,:)*(zs(nx,:)-max(zb(nx,:),zs0(nx,:)))+umean(2,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
+             !uu(nx,:)=sqrt(par%g/(zs0(nx,:)-zb(nx,:)))*(zs(nx,:)-max(zb(nx,:),zs0(nx,:)))
              !umean(2,:) = factime*uu(nx,:)+(1-factime)*umean(2,:)    !Ap
-             !zs(nx+1,:)=max(s%zs0(nx+1,:),s%zb(nx+1,:))+(uu(nx,:)-umean(2,:))*sqrt(max((s%zs0(nx+1,:)-zb(nx+1,:)),par%eps)/par%g)    !Ap
+             !zs(nx+1,:)=max(zs0(nx+1,:),zb(nx+1,:))+(uu(nx,:)-umean(2,:))*sqrt(max((zs0(nx+1,:)-zb(nx+1,:)),par%eps)/par%g)    !Ap
              zs(nx+1,:)=zs(nx,:)
           elseif (trim(par%back)=='abs_2d') then
-             ht(1:2,:)=max(s%zs0(s%nx:s%nx+1,:)-zb(s%nx:s%nx+1,:),par%eps) !cjaap; make sure ht is always larger than zero
+             ht(1:2,:)=max(zs0(nx:nx+1,:)-zb(nx:nx+1,:),par%eps) !cjaap; make sure ht is always larger than zero
 
-             beta=uu(s%nx-1:s%nx,:)+2.*dsqrt(par%g*hum(s%nx-1:s%nx,:)) !cjaap : replace hh with hum
+             beta=uu(nx-1:nx,:)+2.*dsqrt(par%g*hum(nx-1:nx,:)) !cjaap : replace hh with hum
 
              do j=2,ny
-                if (wetu(s%nx,j)==1) then   ! Robert: dry back boundary points
+                if (wetu(nx,j)==1) then   ! Robert: dry back boundary points
                    ! Compute gradients in u-points....
-                   dvdy(2,j)=(vu(s%nx,min(j,ny)+1)-vu(s%nx,max(j,2)-1))/(yz(min(j,ny)+1)-yz(max(j,2)-1))
-                   dhdx(2,j)=(ht(2,j)-ht(1,j))/(xz(s%nx+1)-xz(s%nx))
-                   dbetadx(2,j)=(beta(2,j)-beta(1,j))/(xu(s%nx)-xu(s%nx-1))
-                   dbetady(2,j)=(beta(1,min(j,ny)+1)-beta(1,max(j,2)-1))/(yz(min(j,ny)+1)-yz(max(j,2)-1))
+                   dvdy(2,j)=(vu(nx,j+1)-vu(nx,j-1))/(2.d0*dnu(nx,j))
+                   dhdx(2,j)=(ht(2,j)-ht(1,j))/dsu(nx,j)
+                   dbetadx(2,j)=(beta(2,j)-beta(1,j))/dsz(nx,j)
+                   dbetady(2,j)=(beta(1,j+1)-beta(1,j-1))/(2.0*dnu(nx,j))
 
-                   inv_ht(j) = 1.d0/hum(s%nx,j)                                           !Jaap replaced hh with hum
+                   inv_ht(j) = 1.d0/hum(nx,j)                                           !Jaap replaced hh with hum
 
-                   bn(j)=-(uu(s%nx,j)+dsqrt(par%g*hum(s%nx,j)))*dbetadx(2,j) &            !Ap says plus  !Jaap replaced hh with hum 
-                        -vu(s%nx,j)*dbetady(2,j)& !Ap vu
-                        -dsqrt(par%g*hum(s%nx,j))*dvdy(2,j)&                             !Jaap replaced hh with hum 
-                        +Fx(s%nx,j)*inv_ht(j)/par%rho-par%g/par%C**2.d0&                 !Ap
-                        *sqrt(uu(s%nx,j)**2+vu(s%nx,j)**2)*uu(s%nx,j)/hum(s%nx,j)&       !Jaap replaced hh with hum
+                   bn(j)=-(uu(nx,j)+dsqrt(par%g*hum(nx,j)))*dbetadx(2,j) &            !Ap says plus  !Jaap replaced hh with hum 
+                        -vu(nx,j)*dbetady(2,j)& !Ap vu
+                        -dsqrt(par%g*hum(nx,j))*dvdy(2,j)&                             !Jaap replaced hh with hum 
+                        +Fx(nx,j)*inv_ht(j)/par%rho-par%g/par%C**2.d0&                 !Ap
+                        *sqrt(uu(nx,j)**2+vu(nx,j)**2)*uu(nx,j)/hum(nx,j)&       !Jaap replaced hh with hum
                         +par%g*dhdx(2,j)
                 endif   ! Robert: dry back boundary points
              enddo
 
              do j=2,ny
-                if (wetu(s%nx,j)==1) then                                                   ! Robert: dry back boundary points
+                if (wetu(nx,j)==1) then                                                   ! Robert: dry back boundary points
                    betanp1(1,j) = beta(2,j)+ bn(j)*par%dt                                   !Ap toch?
                    alpha2(j)= theta0
                    alphanew = 0.d0
-                   !          umean(2,j) = (factime*uu(s%nx,j)+(1-factime)*umean(2,j))           !Ap 
+                   !          umean(2,j) = (factime*uu(nx,j)+(1-factime)*umean(2,j))           !Ap 
                    ! After hack 3/6/2010, return to par%epsi :
                    if (trim(par%tidetype)=='velocity') then
                       umean(2,j) = (par%epsi*uu(nx,j)+(1-par%epsi)*umean(2,j))
@@ -992,7 +953,7 @@ contains
                            *((betanp1(1,j)-umean(2,j)-2.d0*DSQRT(par%g*0.5*(ht(1,j)+ht(2,j))))) 
 
                       !vert = velocity of the reflected wave = total-specified
-                      vert = vu(s%nx,j)
+                      vert = vu(nx,j)
                       alphanew = datan(vert/(ur+1.d-16))                      !Ap  ! wwvv maybe better atan2
                       if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
                       if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
@@ -1000,15 +961,15 @@ contains
                       alpha2(j) = alphanew 
                    end do
 2000               continue
-                   uu(s%nx,j) = ur + umean(2,j)                       !Jaap: replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
+                   uu(nx,j) = ur + umean(2,j)                       !Jaap: replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
                    ! Ap replaced zs with extrapolation.
-                   zs(s%nx+1,j) = 1.5*((betanp1(1,j)-uu(s%nx,j))**2.d0/4.d0/par%g+.5*(zb(s%nx,j)+zb(s%nx+1,j)))-&
-                        0.5*((beta(1,j)-uu(s%nx-1,j))**2.d0/4.d0/par%g+.5*(zb(s%nx-1,j)+zb(s%nx,j)))
+                   zs(nx+1,j) = 1.5*((betanp1(1,j)-uu(nx,j))**2.d0/4.d0/par%g+.5*(zb(nx,j)+zb(nx+1,j)))-&
+                        0.5*((beta(1,j)-uu(nx-1,j))**2.d0/4.d0/par%g+.5*(zb(nx-1,j)+zb(nx,j)))
 
                 endif   ! Robert: dry back boundary points
              enddo
           elseif (par%back=='wlevel') then
-             zs(nx+1,:)=s%zs0(nx+1,:)
+             zs(nx+1,:)=zs0(nx+1,:)
           endif  !par%back
           ! fix first and last columns of umean and uu and zs
 #ifdef USEMPI
@@ -1030,14 +991,117 @@ contains
 
 
 !!! Wind boundary conditions
-    ! TODO: These should be circular (at least the direction) to create proper circular statistics
-    ! (mean of vectors instead of mean of angles (0 + 0 + 180)/3 => 60, while in vector format it is 0)
-    call LINEAR_INTERP(s%windinpt,s%windvel,s%windlen,par%t,s%windvnow,indt)
-    call LINEAR_INTERP(s%windinpt,s%winddir,s%windlen,par%t,s%winddirnow,indt)
-
+    if (s%windlen>1) then  ! only if non-stationary wind, otherwise waste of computational time
+       call LINEAR_INTERP(windinpt,windxts,s%windlen,par%t,windxnow,indt)
+       call LINEAR_INTERP(windinpt,windyts,s%windlen,par%t,windynow,indt)
+       windsu = windxnow*dcos(alfau) + windynow*dsin(alfau)
+       ! Can we do this more efficiently?
+       windnv = windynow*dcos(alfav-0.5d0*par%px) - windxnow*dsin(alfav-0.5d0*par%px)
+    endif
   end subroutine flow_bc
 
-  subroutine discharge_boundary(s,par)
+  function flow_lat_bc(s,par,bctype,jbc,jn,udvdx,vdvdy,viscv) result(vbc)
+    use params
+    use spaceparams
+    use xmpi_module
+    
+	type(spacepars),target                  :: s
+	type(parameters)                        :: par
+    character*(*)                           :: bctype
+	integer                                 :: jbc,jn ! j-index of boundary and j-index of neighbouring cell
+	                                                  ! varies for xmpi_isleft and xmpi_isright
+	real*8,dimension(s%nx+1)                :: udvdx,vdvdy,viscv   ! advection terms from flow timestep
+	
+	real*8,dimension(s%nx+1)                :: vbc    ! result vector for boundary flow
+
+	integer                                 :: i      ! internal variables
+	real*8                                  :: advterm 
+	real*8,save                             :: fc 
+		
+    include 's.ind'                                   ! pointers
+    include 's.inp'
+    
+    if (par%t<=par%dt) fc =2.d0*par%wearth*sin(par%lat)
+    
+    if (ny==0) then      ! 1D models have special case
+	   if (trim(bctype)=='wall') then 
+	      vbc(:) = 0.d0 ! Only this bc scheme can be applied to ny==0 models
+	   else
+	      vbc(:) = vv(:,jbc)  ! return whatever was already calculated in the flow routine for the cross shore row
+	   endif
+	else
+	   select case (trim(bctype))
+	      case ('wall')
+		     ! No flow at boundary
+	         vbc(:) = 0.d0
+	      case ('neumann_v')
+		     ! Calculate vv at boundary using identical forcing as (:,2), but with dzsdy determined from (:,1), which includes
+	         ! the tide-driven water level gradient as zs(:,1) = zs(:,2) + dzsdytide
+			 !
+			 ! in flow timestep we calculate:
+			 ! vv(jn) = vvold(jn)-dt(gDZS(jn) + R(jn))
+			 !   -> vvold(jn) = vv(jn) + dt(gDZS(jn) + R(jn))
+			 !
+			 ! we state in bc that:
+			 ! vv(jbc) = vvold(jn)-dt(gDZS(jbc) + R(jn))
+			 !   -> vv(jbc) = ( vv(jn) + dt(gDZS(jn) + R(jn)) )-dt(gDZS(jbc) + R(jn))
+			 !   -> vv(jbc) = vv(jn) + dt(gDZS(jn)) - dt(gDZS(jbc)) + dt(R(jn)) - dt(R(jn))
+			 !   -> vv(jbc) = vv(jn) + dt(gDZS(jn)-gDZS(jbc))
+			 !   -> vv(jbc) = vv(jn) + dtg(DZS(jn)-DZS(jbc))
+!		     vbc(:) = (vv(:,jn)+par%dt*par%g*(dzsdy(i,jn)-dzsdy(i,jbc))) * wetv(:,jbc)
+             ! AANPASSING: Neumann zonder getij
+             ! Dano/Jaap: Je kunt niet druk gradient a.g.v getij meenemen zonder ook andere forcerings termen (bijv bodem wrijving) 
+             ! uit te rekenen. In geval van getij gradient heb je een meer complexe neumann rvw die jij "free" noemt
+             vbc(:) = vv(:,jn)
+		  case ('no_advec')
+		     ! We allow vv at the boundary to be calulated from NLSWE, but only include the advective terms if
+			 ! they decrease the flow velocity
+             do i=2,nx
+                if (wetv(i,jbc)==1) then
+				   advterm = udvdx(i)+vdvdy(i)-viscv(i)+ fc*uv(i,jbc)
+                   if (vv(i,jbc)>0.d0) then
+	                  advterm = max(advterm,0.d0)
+	               elseif (vv(i,jbc)<0.d0) then
+	                  advterm = min(advterm,0.d0)
+	               else
+	                  advterm = 0.d0
+	               endif
+				   vbc(i) = vv(i,jbc)- par%dt*(advterm &
+                                     + par%g*dzsdy(i,jbc)&
+					                 + tauby(i,jbc)/(par%rho*hvm(i,jbc)) &
+                                     - par%lwave*Fy(i,jbc)/(par%rho*max(hvm(i,jbc),par%hmin)) &
+                                     - par%rhoa*par%Cd*windnv(i,jbc)**2/(par%rho*hvm(i,jbc)))
+				else
+				   vbc(i) = 0.d0
+				endif
+			 enddo
+			 ! now fill i=1 and i=nx+1
+			 vbc(1) = vbc(2) * wetv(1,jbc)
+			 vbc(nx+1) = vbc(nx) * wetv(nx+1,jbc)
+		  case ('neumann')
+		     ! Dano/Jaap: En dit is dan dus complexe vorm van Neumann (zoals in Delft3D) met getij
+		     ! We allow vv at the boundary to be calulated from NLSWE without any limitations
+             do i=2,nx
+                if (wetv(i,jbc)==1) then 
+				   vbc(i) = vv(i,jbc)- par%dt*(udvdx(i)+vdvdy(i)-viscv(i)& 
+                                     + par%g*dzsdy(i,jbc)&
+					                 + tauby(i,jbc)/(par%rho*hvm(i,jbc)) &
+                                     - par%lwave*Fy(i,jbc)/(par%rho*max(hvm(i,jbc),par%hmin)) &
+                                     + fc*uv(i,jbc) &
+                                     - par%rhoa*par%Cd*windnv(i,jbc)**2/(par%rho*hvm(i,jbc)))
+				else
+				   vbc(i) = 0.d0
+				endif
+			 enddo
+			 ! now fill i=1 and i=nx+1
+			 vbc(1) = vbc(2) * wetv(1,jbc)
+			 vbc(nx+1) = vbc(nx) * wetv(nx+1,jbc)
+	   end select
+	endif
+  end function flow_lat_bc
+
+
+  subroutine discharge_boundary_h(s,par)
     use params
     use spaceparams
     use xmpi_module
@@ -1049,201 +1113,108 @@ contains
 
     type(spacepars),target                  :: s
     type(parameters)                        :: par
+    
+    integer                                 :: i,m1,m2,n1,n2,indx
+    real*8                                  :: qnow,CONST
+    logical                                 :: isborder
+    
+    include 's.ind'
+    include 's.inp'
+    
+    ! loop through discharge location
+    do i = 1,ndisch
+        if (pntdisch(i).eq.0) then
+        
+            ! interpolate discharge timeseries to current time
+            call linear_interp(tdisch,qdisch(:,i),ntdisch,par%t,qnow,indx)
+            
+            m1 = pdisch(i,1)
+            n1 = pdisch(i,2)
+            m2 = pdisch(i,3)
+            n2 = pdisch(i,4)
+            
+            ! add momentum in either u- or v-direction
+            if (n1.eq.n2) then
+                
+                isborder = (n1.eq.1 .or. n1.eq.ny)
+                
+                ! make sure discharge is an inflow at border and water levels are defined
+                if (isborder) then
+                    if (n1.gt.1) then
+                        qnow = -1*abs(qnow)
+                        hv(m1:m2,n1) = hh(m1:m2,n1)
+                    elseif (n1.lt.ny) then
+                        hv(m1:m2,n1) = hh(m1:m2,n1+1)
+                    endif
+                endif
+                
+                ! compute distribution of discharge over discharge cells according to:
+                !     vv = CONST * hv^0.5
+                !     qy = CONST * hv^1.5
+                !     Q  = CONST * hv^1.5 * dsv
+                
+                CONST = qnow/max(sum(hv(m1:m2,n1)**1.5*dsv(m1:m2,n1)),par%eps)
+                vv(m1:m2,n1) = CONST*hv(m1:m2,n1)**0.5
+                qy(m1:m2,n1) = CONST*hv(m1:m2,n1)**1.5
+                
+            elseif (m1.eq.m2) then
+                
+                isborder = (m1.eq.1 .or. m1.eq.nx)
+                
+                ! make sure discharge is an inflow at border and water levels are defined
+                if (isborder) then
+                    if (m1.gt.1) then
+                        qnow = -1*abs(qnow)
+                        hu(m1,n1:n2) = hh(m1,n1:n2)
+                    elseif (m1.lt.nx) then
+                        hu(m1,n1:n2) = hh(m1+1,n1:n2)
+                    endif
+                endif
+                
+                ! compute distribution of discharge over discharge cells according to:
+                !     uu = CONST * hu^0.5
+                !     qx = CONST * hu^1.5
+                !     Q  = CONST * hu^1.5 * dnu
+                
+                CONST = qnow/max(sum(hu(m1,n1:n2)**1.5*dnu(m1,n1:n2)),par%eps)
+                uu(m1,n1:n2) = CONST*hu(m1,n1:n2)**0.5
+                qx(m1,n1:n2) = CONST*hu(m1,n1:n2)**1.5
+            endif
+        endif
+    enddo
+  end subroutine discharge_boundary_h
 
-    character(256)                          :: fname
-    integer                                 :: i,j,idisch,ii=0,indx
-    integer,save                            :: ndisch=0,ntdisch=0,ndisch_cells=0
-    integer                                 :: io
-    logical, save                           :: firsttimedischarge=.true.
-    real*8                                  :: temp,xdb,xde,ydb,yde
-    real*8, dimension(:)  ,allocatable,save :: x_disch_begin,x_disch_end,length_disch
-    real*8, dimension(:)  ,allocatable,save :: y_disch_begin,y_disch_end,dischnow
-    real*8, dimension(:)  ,allocatable,save :: tdisch
-    real*8, dimension(:,:),allocatable,save :: disch
-    integer,dimension(:)  ,allocatable,save :: disch_i,disch_j,disch_no
-    real*8, dimension(:)  ,allocatable,save :: disch_w
+  subroutine discharge_boundary_v(s,par)
+    use params
+    use spaceparams
+    use xmpi_module
+    use readkey_module
+    use interp
+    use logging_module
+
+    IMPLICIT NONE
+
+    type(spacepars),target                  :: s
+    type(parameters)                        :: par
+    
+    integer                                 :: i,j,m1,n1,indx
+    real*8                                  :: qnow
+    
     include 's.ind'
     include 's.inp'
 
-    io    = 0
-
-    ! first time  
-    if (firsttimedischarge) then
-       firsttimedischarge=.false.
-       allocate (disch_i(2*nx+2*ny))
-       allocate (disch_j(2*nx+2*ny))
-       allocate (disch_w(2*nx+2*ny))
-       allocate (disch_no(2*nx+2*ny))
-       ! read discharge information file
-       if (xmaster) then
-          fname = readkey_name('params.txt','disch_loc_file',bcast=.false.)
-          if (fname==' ') then
-             ndisch=0
-             ndisch_cells=0
-             !         return   !!!! This is incompatable with MPI. Process must continue until equal with other processes !!!! Robert
-             !      endif
-          else
-             call writelog('ls','','Reading discharge locations from ',trim(fname),' ...')
-             open(31,file=fname)
-             do while (io==0)
-                ndisch=ndisch+1
-                read(31,*,IOSTAT=io) temp
-             enddo
-             rewind(31)
-             ndisch=ndisch-1
-          endif
-       endif
-#ifdef USEMPI
-       call xmpi_bcast(ndisch)
-#endif
-       allocate(x_disch_begin(ndisch))
-       allocate(y_disch_begin(ndisch))
-       allocate(x_disch_end  (ndisch))
-       allocate(y_disch_end  (ndisch))
-       allocate(length_disch (ndisch))
-       allocate(dischnow     (ndisch))
-       if (xmaster) then
-          do i=1,ndisch
-             read(31,*,IOSTAT=io) x_disch_begin(i),y_disch_begin(i),x_disch_end(i),y_disch_end(i)
-          enddo
-          close(31)
-       endif
-#ifdef USEMPI
-       call xmpi_bcast(x_disch_begin)
-       call xmpi_bcast(y_disch_begin)
-       call xmpi_bcast(x_disch_end)
-       call xmpi_bcast(y_disch_end)
-#endif
-       if (xmaster) then
-          ! Read discharge timeseries
-          if (ndisch==0) then          !!! Same modification as above to make compatible with MPI  (Robert)
-             ntdisch=0
-          else
-             fname = readkey_name('params.txt','disch_timeseries_file',bcast=.false.)
-             call writelog('ls','','Reading discharge timeseries from ',trim(fname),' ...')
-             open(31,file=fname)
-             io=0
-             do while (io==0)
-                ntdisch=ntdisch+1
-                read(31,*,IOSTAT=io) temp
-             enddo
-             rewind(31)
-             ntdisch=ntdisch-1
-          endif
-       endif
-#ifdef USEMPI
-       call xmpi_bcast(ntdisch)
-#endif
-       allocate(tdisch(ntdisch))
-       allocate(disch(ntdisch,ndisch))
-       if (xmaster) then
-          do i=1,ntdisch
-             read(31,*,IOSTAT=io) tdisch(i),(disch(i,j),j=1,ndisch)
-          enddo
-          close(31)
-       endif
-#ifdef USEMPI
-       call xmpi_bcast(tdisch)
-       call xmpi_bcast(disch)
-#endif
-       do idisch=1,ndisch
-          length_disch(idisch)=0.d0
-          xdb= cos(alfa)*(x_disch_begin(idisch)-xori)+sin(alfa)*(y_disch_begin(idisch)-yori)
-          ydb=-sin(alfa)*(x_disch_begin(idisch)-xori)+cos(alfa)*(y_disch_begin(idisch)-yori)
-          xde= cos(alfa)*(x_disch_end(idisch)-xori)+sin(alfa)*(y_disch_end(idisch)-yori)
-          yde=-sin(alfa)*(x_disch_end(idisch)-xori)+cos(alfa)*(y_disch_end(idisch)-yori)
-          if (abs(yde-ydb)>abs(xde-xdb)) then
-             ! line in y-direction
-             if (abs(xdb-x(1,1))<xu(2)-xu(1)) then
-                ! line at i=2
-                do j=2,ny
-                   if (y(1,j)>min(ydb,yde).and.y(1,j)<max(ydb,yde)) then
-                      ii=ii+1
-                      disch_i(ii)=1
-                      disch_j(ii)=j
-                      disch_w(ii)=1.d0
-                      disch_no(ii)=idisch
-                      length_disch(idisch)=length_disch(idisch)+yv(j)-yv(j-1)
-                   endif
-                enddo
-             elseif (abs(xdb-x(nx+1,1))<xu(nx+1)-xu(nx)) then
-                ! line at i=nx
-                do j=2,ny
-                   if (y(nx+1,j)>min(ydb,yde).and.y(nx+1,j)<max(ydb,yde)) then
-                      ii=ii+1
-                      disch_i(ii)=nx
-                      disch_j(ii)=j
-                      disch_w(ii)=-1.d0
-                      disch_no(ii)=idisch
-                      length_disch(idisch)=length_disch(idisch)+yv(j)-yv(j-1)
-                   endif
-                enddo
-             endif
-          else
-             ! line in x-direction
-             if (abs(ydb-y(1,1))<yv(2)-yv(1)) then
-                ! line at j=2
-                do i=2,nx
-                   if (x(i,1)>min(xdb,xde).and.x(i,1)<max(xdb,xde)) then
-                      ii=ii+1
-                      disch_i(ii)=i
-                      disch_j(ii)=1
-                      disch_w(ii)=1.d0
-                      disch_no(ii)=idisch
-                      length_disch(idisch)=length_disch(idisch)+xu(i)-xu(i-1)
-                   endif
-                enddo
-             elseif (abs(ydb-y(1,ny+1))<yv(ny+1)-yv(ny)) then
-                ! line at j=ny
-                do i=2,nx
-                   if (x(i,ny+1)>min(xdb,xde).and.x(i+1,ny+1)<max(xdb,xde)) then
-                      ii=ii+1
-                      disch_i(ii)=i
-                      disch_j(ii)=ny
-                      disch_w(ii)=-1.d0
-                      disch_no(ii)=idisch
-                      length_disch(idisch)=length_disch(idisch)+xu(i)-xu(i-1)
-                   endif
-                enddo
-             endif
-          endif
-          ndisch_cells=ii
-#ifdef USEMPI
-          call xmpi_allreduce(length_disch(idisch),MPI_SUM)
-#endif
-       enddo
-       do ii=1,ndisch_cells
-          disch_w(ii)=disch_w(ii)/length_disch(disch_no(ii))
-       enddo
-    endif !end firsttimedischarge
-
-    do idisch=1,ndisch
-       call linear_interp(tdisch,disch(:,idisch),ntdisch,par%t,dischnow(idisch),indx)
+    do i = 1,ndisch
+        if (pntdisch(i).eq.1) then
+            call linear_interp(tdisch,qdisch(:,i),ntdisch,par%t,qnow,indx)
+            
+            m1 = pdisch(i,1)
+            n1 = pdisch(i,2)
+            
+            ! add mass
+            zs(m1,n1) = zs(m1,n1)+qnow*par%dt*dsdnzi(m1,n1)
+        endif
     enddo
-    do ii=1,ndisch_cells
-       i=disch_i(ii)
-       j=disch_j(ii)
-       if (i==1) then
-          qx(i,j)=dischnow(disch_no(ii))*disch_w(ii) 
-          hu(i,j)=hh(i+1,j)
-          uu(i,j)=qx(i,j)/max(hu(i,j),par%eps)
-       elseif (i==nx) then
-          qx(i,j)=dischnow(disch_no(ii))*disch_w(ii) 
-          hu(i,j)=hh(i,j)
-          uu(i,j)=qx(i,j)/max(hu(i,j),par%eps)
-       elseif (j==1) then
-          qy(i,j)=dischnow(disch_no(ii))*disch_w(ii) 
-          hv(i,j)=hh(i,j+1)
-          vv(i,j)=qy(i,j)/max(hv(i,j),par%eps)
-       elseif (j==ny) then
-          qy(i,j)=dischnow(disch_no(ii))*disch_w(ii) 
-          hv(i,j)=hh(i,j)
-          vv(i,j)=qy(i,j)/max(hv(i,j),par%eps)
-       endif
-    enddo
-  end subroutine discharge_boundary
-
-
+  end subroutine discharge_boundary_v
 
 !
 !==============================================================================    

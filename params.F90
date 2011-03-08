@@ -16,6 +16,9 @@ type parameters
 !  - Description of a variable may continue on a new line as long as the first character is "!" and the
 !    position of the first "!" is greater than 50 characters from the start of the line. Best practice
 !    is to keep in line with the start of the description on the line above.
+!  - Please keep the declaration of "globalvars", "meansvars" and "pointvars" on the line directly after their respective related size 
+!    parameter declaration (i.e. declaration of "nglobalvars", "nmeanvar" and "npointvar"). This is needed for the autogeneration of
+!    parameters.inc and subsequent params.dat file.
 !  - To enable parsing of "all_input" subroutine please only use "if () then, ... , endif/else/elseif" blocks,
 !    rather than one line "if () ..." commands in the "all_input" subroutine.
 !
@@ -33,9 +36,9 @@ type parameters
    ! [Section] Grid parameters                                                                                                                                                                                                                          
    character(256):: depfile                    = 'abc'   !  [-] Name of the input bathymetry file
    real*8        :: posdwn                     = -123    !  [-] Bathymetry is specified positive down (1) or positive up (-1)
-   integer*4     :: nx                         = -123    !  [-] Number of computiation cells in x-direction
-   integer*4     :: ny                         = -123    !  [-] Number of computiation cells in y-direction
-   real*8        :: alfa                       = -123    !  [deg] Angle from East to of x-axis of model grid in cartesian degrees
+   integer*4     :: nx                         = -123    !  [-] Number of computiation cell corners in x-direction
+   integer*4     :: ny                         = -123    !  [-] Number of computiation cell corners in y-direction
+   real*8        :: alfa                       = -123    !  [deg] Angle of x-axis from East
    integer*4     :: vardx                      = -123    !  [-] Switch for variable grid spacing: 1 = irregular spacing, 0 = regular grid spacing
    real*8        :: dx                         = -123    !  [m] Regular grid spacing in x-direction
    real*8        :: dy                         = -123    !  [m] Regular grid spacing in y-direction
@@ -276,10 +279,9 @@ type parameters
    integer*4     :: nmeanvar                   = -123    !  [-] Number of mean,min,max,var output variables
    character(len=maxnamelen), dimension(numvars)   :: meansvars  = 'abc'  !  [-] (advanced) Mnems of mean output variables (by variables)
    integer*4     :: npointvar                  = -123    !  [-] Number of point output variables
+   character(len=maxnamelen), dimension(numvars)   :: pointvars  = 'abc'  !  [-] (advanced) Mnems of point output variables (by variables)
    integer*4     :: npoints                    = -123    !  [-] Number of output point locations
    integer*4     :: nrugauge                   = -123    !  [-] Number of output runup gauge locations
-   character(len=maxnamelen), dimension(numvars)   :: pointvars  = 'abc'  !  [-] (advanced) Mnems of point output variables (by variables)
-   
    integer, dimension(:), pointer                     :: pointtypes => NULL()  !  [-] (advanced) Point types (0 = point, 1=rugauge)
    real*8 ,dimension(:), pointer                      :: xpointsw => NULL()  ! (advanced) world x-coordinate of output points
    real*8 ,dimension(:), pointer                     :: ypointsw => NULL()  ! (advanced) world y-coordinate of output points
@@ -518,11 +520,12 @@ contains
     par%front  = readkey_str('params.txt','front','abs_2d',5,5,allowednames,oldnames)
     deallocate(allowednames,oldnames)
     ! left and right
-    allocate(allowednames(2),oldnames(2))
-    allowednames=(/'neumann','wall   '/)
+    allocate(allowednames(4),oldnames(2))
+    ! Dano/Jaap: changed defaults
+    allowednames=(/'neumann ','wall    ','no_advec','neumann_v    '/)
     oldnames=(/'0','1'/)
-    par%left   = readkey_str('params.txt','left','neumann',2,2,allowednames,oldnames)
-    par%right  = readkey_str('params.txt','right','neumann',2,2,allowednames,oldnames)
+    par%left   = readkey_str('params.txt','left','neumann',4,2,allowednames,oldnames)
+    par%right  = readkey_str('params.txt','right','neumann',4,2,allowednames,oldnames)
     deallocate(allowednames,oldnames)
     ! Back
     allocate(allowednames(4),oldnames(4))
@@ -837,7 +840,7 @@ contains
     ! Robert: to deal with MPI some changes here
     par%npointvar   = readkey_int ('params.txt','npointvar',   0,  0, 50)
     call readpointvars(par)
-    par%rugdepth    = readkey_dbl ('params.txt','rugdepth', 0.d0,0.d0,0.05d0)
+    par%rugdepth    = readkey_dbl ('params.txt','rugdepth', 0.0d0,0.d0,0.05d0)
     ! 
     par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
     call readmeans(par)
@@ -871,7 +874,7 @@ contains
     allocate(oldnames(3))
     allowednames = (/'upwind_1    ', 'lax_wendroff', 'upwind_2    '/)
     oldnames = (/'1', '2', '3'/)
-    par%scheme= readkey_str ('params.txt','scheme','lax_wendroff',3, 3, allowednames  ,oldnames)
+    par%scheme= readkey_str ('params.txt','scheme','upwind_2',3, 3, allowednames  ,oldnames)
     deallocate(allowednames)
     deallocate(oldnames)
     if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
@@ -936,7 +939,8 @@ contains
       par%hswitch = par%hswitch/par%depthscale
       par%dzmax   = par%dzmax/par%depthscale**1.5d0
     
-      call writelog('ls','(a)','Warning: input parameters eps, hmin, hswitch and dzmax are scaled with depthscale to:')
+      call writelog('ls','(a)','Warning: input parameters eps, hmin, hswitch and dzmax are scaled with')
+      call writelog('ls','(a)','         depthscale to:')
       call writelog('ls','(a,f0.4)','eps = ',    par%eps)
       call writelog('ls','(a,f0.4)','hmin = ',   par%hmin)
       call writelog('ls','(a,f0.4)','hswitch = ',par%hswitch)
@@ -955,9 +959,8 @@ contains
     !
     ! Stop useless physical processes 
     if (par%sedtrans==0 .and. par%morphology==1) then
-       call writelog('lse','(a)','Error: morphology cannot be computed without sediment transport')
-       call writelog('lse','(a)','Set sedtrans=1 or morphology=0')
-       call writelog('lse','(a)','Stopping calculation')
+       call writelog('lse','(a)','Error: Morphology cannot be computed without sediment transport.')
+       call writelog('lse','(a)','       Set sedtrans=1 or morphology=0')
        call halt_program
     endif
     !
@@ -973,11 +976,13 @@ contains
     ! Only allow Baldock in stationary mode and Roelvink in non-stationary
     if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
        if (trim(par%break) .ne. 'baldock') then
-          call writelog('ls','','Warning: Roelvink formulations not allowed in stationary, use Baldock formulation.')  
+          call writelog('ls','','Warning: Roelvink formulations not allowed in stationary, use Baldock')  
+          call writelog('ls','','         formulation.')
        endif
     else
        if (trim(par%break)=='baldock') then 
-          call writelog('ls','','Warning: Baldock formulation not allowed in non-stationary, use a Roelvink formulation.')
+          call writelog('ls','','Warning: Baldock formulation not allowed in non-stationary, use a Roelvink')
+          call writelog('ls','','         formulation.')
        endif
     endif
     !
@@ -988,31 +993,22 @@ contains
     !
     ! Only allow bore-averaged turbulence in combination with vanthiel waveform
     if ((trim(par%waveform) .ne. 'vanthiel') .and. (trim(par%turb) .eq. 'bore_averaged')) then
-       call writelog('lse','','Cannot compute bore-averaged turbulence without vanthiel wave form')
-       call writelog('lse','','Please set waveform=vanthiel in params.txt,')
-       call writelog('lse','','or choose other turbulence model')
+       call writelog('lse','','Error: Cannot compute bore-averaged turbulence without vanthiel wave form.')
+       call writelog('lse','','       Please set waveform=vanthiel in params.txt, or choose another')
+       call writelog('lse','','       turbulence model')
        call halt_program
     endif
+    !
     !
     ! Set smax to huge if default is specified
     if (par%smax<0) par%smax=huge(0.d0)
     !
     !
-    ! fix tint
-    par%tint    = min(par%tintg,par%tintp,par%tintm,par%tintc)                       ! Robert     
-    !
-    !
-    ! fix minimum runup depth
-    if (par%rugdepth<=par%eps) then 
-       par%rugdepth = par%eps+tiny(0.d0)
-       call writelog('ls','(a,f0.5,a)','Setting rugdepth to minimum value greater than eps (',par%rugdepth,')')
-    endif
-    !
     ! Source-sink check
     if (par%morfac>1.d0) then
        if (par%sourcesink==1) then
           call writelog('ls','','Warning: Using source-sink terms for bed level change with morfac can lead to')
-          call writelog('ls','','loss of sediment mass conservation.')
+          call writelog('ls','','         loss of sediment mass conservation.')
        endif
     endif
     !
@@ -1020,7 +1016,7 @@ contains
     ! If using tide, epsi should be on
     if (par%tideloc>0) then
        if (par%epsi<tiny(0.d0)) then
-          call writelog('ls','','Automatically setting epsi to 0.05 to let in tide on offshore boundary')
+          call writelog('ls','','Warning: Automatically setting epsi to 0.05 to let in tide on offshore boundary')
           par%epsi = 0.05d0
        endif
     endif
@@ -1029,10 +1025,15 @@ contains
     ! If using nonh, secorder should always be on
     if (par%nonh==1) then
        if (par%secorder==0) then
-          call writelog('ls','','Automatically turning on 2nd order correction in flow for non-hydrostatic module (secorder = 1)')
+          call writelog('ls','','Warning: Automatically turning on 2nd order correction in flow for')
+          call writelog('ls','','         non-hydrostatic module [secorder=1]')
           par%secorder = 1
        endif
     endif
+    !
+    !
+    ! fix tint
+    par%tint    = min(par%tintg,par%tintp,par%tintm,par%tintc)                       ! Robert 
     !
     !
     ! All input time frames converted to XBeach hydrodynamic time
@@ -1049,22 +1050,46 @@ contains
     endif
     !
     !
+    ! fix minimum runup depth
+    if (par%rugdepth<=par%eps) then 
+       par%rugdepth = par%eps+tiny(0.d0)
+       call writelog('ls','(a,f0.5,a)','Warning: Setting rugdepth to minimum value greater than eps (',par%rugdepth,')')
+    endif
+    !
+    !
     ! Give an error if you ask for netcdf output if you don't have a netcdf executable
 #ifndef USENETCDF
     if (trim(par%outputformat) .eq. 'netcdf') then
-       call writelog('lse', '', 'You have asked for netcdf output (outputformat=netcdf) but this executable is built without')
-       call writelog('lse', '', 'netcdf support. Use a netcdf enabled executable or outputformat=fortran')
+       call writelog('lse', '', 'Error: You have asked for netcdf output [outputformat=netcdf] but this')
+       call writelog('lse', '', '       executable is built without netcdf support. Use a netcdf enabled')
+       call writelog('lse', '', '       executable or outputformat=fortran')
        call halt_program
     endif
 #endif
     !
     !
+    ! Lax-Wendroff not yet supported in curvilinear
+    if (trim(par%scheme)=='lax_wendroff') then
+	   par%scheme='upwind_2'
+	   call writelog('sl','','Warning: Lax Wendroff [scheme=lax_wendroff] scheme is not supported, changed')
+	   call writelog('sl','','         to 2nd order upwind [scheme=upwind_2]')
+    endif
+    !
+    !
     ! Give warning if using wave stationary in MPI
 #ifdef USEMPI
     if (trim(par%instat)=='stat' .or. trim(par%instat)=='stat_table') then
-       call writelog('sl','','Warning: wave stationary solver not compatable with MPI, changing to instationary solver')
+       call writelog('sl','','Warning: Stationary wave solver not compatable with MPI, changing to')
+       call writelog('sl','','         instationary solver')
     endif
 #endif
+    !
+    !
+    ! Wave-current interaction with non-stationary waves still experimental
+    if (trim(par%instat)/='stat' .and. trim(par%instat)/='stat_table' .and. par%wci.ne.0) then
+       call writelog('sl','','Warning: Wave-current interaction with non-stationary waves is still')
+       call writelog('sl','','         experimental, continue with computation nevertheless')
+    endif
 
 
 
@@ -1462,7 +1487,7 @@ subroutine readPointPosition(par,readtype,xpoints,ypoints)
         imax = par%nrugauge
         keyword = 'nrugauge'
         errmes1 = ' runup gauge '
-        errmes2 = 'Runup gauge automatically returns t,xw,yw and zs only'
+        errmes2 = 'Runup gauge automatically returns t,xz,yz and zs only'
         okaymes = ' Output runup gauge '
      case default
         write(*,*)'Programming error calling readOutputStrings'

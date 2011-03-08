@@ -25,6 +25,7 @@ contains
     real*8 , dimension(:,:)  ,allocatable,save  :: kmx,kmy,sinh2kh ! ,wm
     real*8 , dimension(:,:,:),allocatable,save  :: xadvec,yadvec,thetaadvec,dd,drr
     real*8 , dimension(:,:,:),allocatable,save  :: xradvec,yradvec,thetaradvec
+    real*8 , dimension(:,:,:),allocatable,save  :: cgxu,cgyv,cxu,cyv
     real*8 , dimension(:),allocatable,save      :: Hprev
     real*8                                      :: Herr,dtw
     real*8 , dimension(:)  ,allocatable,save    :: dkmxdx,dkmxdy,dkmydx,dkmydy,cgxm,cgym,arg,fac,xwadvec,ywadvec
@@ -50,6 +51,12 @@ contains
        allocate(thetaradvec(nx+1,ny+1,ntheta))
        allocate(dd        (nx+1,ny+1,ntheta))
        allocate(drr       (nx+1,ny+1,ntheta))
+       
+       allocate(cgxu        (nx+1,ny+1,ntheta))
+       allocate(cgyv        (nx+1,ny+1,ntheta))
+       allocate(cxu         (nx+1,ny+1,ntheta))
+       allocate(cyv         (nx+1,ny+1,ntheta))
+       
        allocate(dhdx(nx+1,ny+1))
        allocate(dhdy(nx+1,ny+1))
        allocate(dudx(nx+1,ny+1))
@@ -120,9 +127,9 @@ contains
 
 
     ! Slopes of water depth
-    call slope2D(max(hh,par%delta*H),nx,ny,xz,yz,dhdx,dhdy)
-    call slope2D(u*par%wci,nx,ny,xz,yz,dudx,dudy)
-    call slope2D(v*par%wci,nx,ny,xz,yz,dvdx,dvdy)
+    call slope2D(max(hh,par%delta*H),nx,ny,dsu,dnv,dhdx,dhdy)
+    call slope2D(u*par%wci,nx,ny,dsu,dnv,dudx,dudy)
+    call slope2D(v*par%wci,nx,ny,dsu,dnv,dvdx,dvdy)
 
     ! wwvv these slope routines are in wave_timestep, and are
     !   MPI-aware
@@ -153,16 +160,39 @@ contains
     wcifacv=v*par%wci*min(hh/par%hwci,1.d0)
 
     DO itheta=1,ntheta
-       cgx(:,:,itheta)= cg*cxsth(itheta)+wcifacu
-       cgy(:,:,itheta)= cg*sxnth(itheta)+wcifacv
-       cx(:,:,itheta) =  c*cxsth(itheta)+wcifacu
-       cy(:,:,itheta) =  c*sxnth(itheta)+wcifacv
+       cgx(:,:,itheta)= cg*costh(:,:,itheta)+wcifacu
+       cgy(:,:,itheta)= cg*sinth(:,:,itheta)+wcifacv
+       cx(:,:,itheta) =  c*costh(:,:,itheta)+wcifacu
+       cy(:,:,itheta) =  c*sinth(:,:,itheta)+wcifacv
        ctheta(:,:,itheta)=  &
-            sigm/sinh2kh*(dhdx*sxnth(itheta)-dhdy*cxsth(itheta)) + &
+            sigm/sinh2kh*(dhdx*sinth(:,:,itheta)-dhdy*costh(:,:,itheta)) + &
             par%wci*(&
-            cxsth(itheta)*(sxnth(itheta)*dudx - cxsth(itheta)*dudy) + &
-            sxnth(itheta)*(sxnth(itheta)*dvdx - cxsth(itheta)*dvdy))
+            costh(:,:,itheta)*(sinth(:,:,itheta)*dudx - costh(:,:,itheta)*dudy) + &
+            sinth(:,:,itheta)*(sinth(:,:,itheta)*dvdx - costh(:,:,itheta)*dvdy))
     END DO
+    
+    ! convert wave velocities from z to u points using the mean
+    do j=1,ny+1
+       do i=1,nx
+          do itheta=1,ntheta
+            cgxu(i,j,itheta) = 0.5*(cgx(i,j,itheta)+cgx(i+1,j,itheta))
+            cxu(i,j,itheta) = 0.5*(cx(i,j,itheta)+cx(i+1,j,itheta))
+          enddo
+       enddo
+    enddo
+    cgxu(nx+1,:,:) = cgxu(nx,:,:)
+    cxu(nx+1,:,:) = cxu(nx,:,:)
+    
+    do j=1,ny
+       do i=1,nx+1
+          do itheta=1,ntheta
+            cgyv(i,j,itheta) = 0.5*(cgy(i,j,itheta)+cgy(i,j+1,itheta))
+            cyv(i,j,itheta) = 0.5*(cy(i,j,itheta)+cy(i,j+1,itheta))
+          enddo
+       enddo
+    enddo
+    cgyv(:,ny+1,:) = cgyv(:,ny,:)
+    cyv(:,ny+1,:) = cyv(:,ny,:)
 
     km = k
 
@@ -203,8 +233,8 @@ contains
              i=it+1-nx
           endif
           !Dano
-          dtw=.5*minval(xz(i:i+1)-xz(i-1:i))/maxval(cgx(i-1:i+1,:,:))
-          dtw=min(dtw,.5*minval(yz(2:ny+1)-yz(1:ny))/maxval(abs(cgy(i,:,:))))
+          dtw=.5*minval(dsu(i:i+1,:))/maxval(cgx(i-1:i+1,:,:))
+          dtw=min(dtw,.5*minval(dnv(i,2:ny+1))/maxval(abs(cgy(i,:,:))))
           dtw=min(dtw,.5*dtheta/maxval(abs(ctheta(i,:,:))))
           Herr=1.
           iter=0
@@ -217,6 +247,7 @@ contains
              Hprev=H(i,:)
              ! WCI
              if (par%wci==1) then
+			    ! Dano NEED TO CHECK THIS FOR CURVI
                 kmx = km(i-1:i+1,:)*cos(thetamean(i-1:i+1,:))
                 kmy = km(i-1:i+1,:)*sin(thetamean(i-1:i+1,:))
                 wm(i-1:i+1,:) = sigm(i-1:i+1,:)+kmx*wcifacu(i-1:i+1,:)&
@@ -235,19 +266,19 @@ contains
                 cgym = cg(i,:)*dsin(thetamean(i,:)) + wcifacv(i,:)
                 cgxm = cg(i,:)*dcos(thetamean(i,:)) + wcifacu(i,:)
 
-                dkmxdx       = (kmx(3,:)-kmx(1,:))/(xz(i+1)-xz(i-1))
-                dkmxdy(2:ny) = (kmx(2,3:ny+1)-kmx(2,1:ny-1))/(yz(3:ny+1)-yz(1:ny-1))
+                dkmxdx       = (kmx(3,:)-kmx(1,:))/(dsu(i,:)+dsu(i+1,:))
+                dkmxdy(2:ny) = (kmx(2,3:ny+1)-kmx(2,1:ny-1))/(dnv(i,2:ny)+dnv(i,3:ny+1))
                 dkmxdy(1)    = dkmxdy(2)
                 dkmxdy(ny+1) = dkmxdy(ny)
-                dkmydx       = (kmy(3,:)-kmy(1,:))/(xz(i+1)-xz(i-1))
-                dkmydy(2:ny) = (kmy(2,3:ny+1)-kmy(2,1:ny-1))/(yz(3:ny+1)-yz(1:ny-1))
+                dkmydx       = (kmy(3,:)-kmy(1,:))/(dsu(i,:)+dsu(i+1,:))
+                dkmydy(2:ny) = (kmy(2,3:ny+1)-kmy(2,1:ny-1))/(dnv(i,2:ny)+dnv(i,3:ny+1))
                 dkmydy(1)    = dkmydy(2)
                 dkmydy(ny+1) = dkmydy(ny)
 
-                xwadvec  = (wm(i,:)-wm(i-1,:))/(xz(i)-xz(i-1))
+                xwadvec  = (wm(i,:)-wm(i-1,:))/dsu(i-1,:)
                 kmx(2,:) = kmx(2,:) -dtw*xwadvec -dtw*cgym*(dkmydx-dkmxdy)
 
-                ywadvec(2:ny) = (wm(i,3:ny+1)-wm(i,1:ny-1))/(yz(3:ny+1)-yz(1:ny-1))
+                ywadvec(2:ny) = (wm(i,3:ny+1)-wm(i,1:ny-1))/(dnv(i,2:ny)+dnv(i,3:ny+1))
                 ywadvec(1)=ywadvec(2)
                 ywadvec(ny+1)=ywadvec(ny)
                 kmy(2,:) = kmy(2,:) -dtw*ywadvec + dtw*cgxm*(dkmydx-dkmxdy)
@@ -279,9 +310,13 @@ contains
              !
              ! Upwind Euler timestep propagation
              !
-             call advecx(ee(i-1:i+1,:,:)*cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),2,ny,ntheta,xz(i-1:i+1)) !Robert & Jaap
-             call advecy(ee(i,:,:)*cgy(i,:,:),yadvec(i,:,:),0,ny,ntheta,yz)                   !Robert & Jaap, nx and ny increased with 1 in advecy
-             call advectheta(ee(i,:,:)*ctheta(i,:,:),thetaadvec(i,:,:),0,ny,ntheta,dtheta)    !Robert & Jaap
+             call advecxho(ee(i-1:i+1,:,:),cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),    &
+                           2,ny,ntheta,dsu(i-1:i+1,:),dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_1')
+             call advecyho(ee(i,:,:),cgy(i,:,:),yadvec(i,:,:),                                  &
+                           0,ny,ntheta,dnv(i,:),dsv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
+             !call advecx(ee(i-1:i+1,:,:)*cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),2,ny,ntheta,dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:))
+             !call advecy(ee(i,:,:)*cgy(i,:,:),yadvec(i,:,:),0,ny,ntheta,dsv(i,:),dsdnzi(i,:))
+             call advectheta(ee(i,:,:)*ctheta(i,:,:),thetaadvec(i,:,:),0,ny,ntheta,dtheta)
 
              ee(i,:,:)=ee(i,:,:)-dtw*(xadvec(i,:,:) &
                   +yadvec(i,:,:) &
@@ -340,8 +375,12 @@ contains
              !
              ! calculate roller energy balance
              !
-             call advecx(rr(i-1:i+1,:,:)*cx(i-1:i+1,:,:),xradvec(i-1:i+1,:,:),2,ny,ntheta,xz(i-1:i+1)) !Robert & Jaap
-             call advecy(rr(i,:,:)*cy(i,:,:),yradvec(i,:,:),0,ny,ntheta,yz)                   !Robert & Jaap
+             call advecxho(rr(i-1:i+1,:,:),cx(i-1:i+1,:,:),xradvec(i-1:i+1,:,:),   &
+                           2,ny,ntheta,dsu(i-1:i+1,:),dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_1')
+             call advecyho(rr(i,:,:),cy(i,:,:),yradvec(i,:,:),                                 &
+                           0,ny,ntheta,dnv(i,:),dsv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
+             !call advecx(rr(i-1:i+1,:,:)*cx(i-1:i+1,:,:),xradvec(i-1:i+1,:,:),2,ny,ntheta,dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:)) !Robert & Jaap
+             !call advecy(rr(i,:,:)*cy(i,:,:),yradvec(i,:,:),0,ny,ntheta,dsv(i,:),dsdnzi(i,:))                   !Robert & Jaap
              call advectheta(rr(i,:,:)*ctheta(i,:,:),thetaradvec(i,:,:),0,ny,ntheta,dtheta)   !Robert & Jaap
 
              rr(i,:,:)=rr(i,:,:)-dtw*(xradvec(i,:,:) &
@@ -383,16 +422,17 @@ contains
              ! Lateral boundary condition
              if (xmpi_isleft) then
                 do itheta=1,ntheta
-                   if (theta(itheta)+0.5d0*dtheta>=0.) then
+                   if (sinth(i,1,itheta)>=0.) then
                       ee(i,1,itheta)=ee(i,2,itheta)
                       rr(i,1,itheta)=rr(i,2,itheta)
                    endif
                 enddo
                 km(:,1)=km(:,2)
                 sigm(:,1)=sigm(:,2)
-             elseif (xmpi_isright) then
+             endif
+             if (xmpi_isright) then
                 do itheta=1,ntheta 
-                   if (theta(itheta)-0.5d0*dtheta<=0.) then
+                   if (sinth(i,1,itheta)<=0.) then
                       ee(i,ny+1,itheta)=ee(i,ny,itheta)
                       rr(i,ny+1,itheta)=rr(i,ny,itheta)
                    endif
@@ -431,11 +471,11 @@ contains
              if (iter<par%maxiter) then
                 if (Herr<par%maxerror) then
                    stopiterate=.true.
-                   if(xmaster) call writelog('l','(a,i4,a,i4)','Wave propagation row ',it,', iteration ',iter)
+                   if(xmaster) call writelog('ls','(a,i4,a,i4)','Wave propagation row ',it,', iteration ',iter)
                 endif
              else
                 stopiterate=.true.
-                if(xmaster) call writelog('l','(a,i4,a,i4,a,f5.4)','Wave propagation row ',it,', iteration ',iter,', error: ',Herr)
+                if(xmaster) call writelog('ls','(a,i4,a,i4,a,f5.4)','Wave propagation row ',it,', iteration ',iter,', error: ',Herr)
              endif
           enddo ! End while loop
        enddo ! End do i=2:nx loop  
@@ -462,30 +502,32 @@ contains
     !
     ! Radiation stresses and forcing terms
     !
-    n=cg/c
-    Sxx=(n*sum((1.d0+(dcos(thet))**2.d0)*ee,3)-.5d0*sum(ee,3))*dtheta
-    Syy=(n*sum((1.d0+(dsin(thet))**2.d0)*ee,3)-.5d0*sum(ee,3))*dtheta
-    Sxy=n*sum(dsin(thet)*dcos(thet)*ee,3)*dtheta
+n=cg/c
+Sxx=(n*sum((1.d0+costh**2.d0)*ee,3)-.5d0*sum(ee,3))*dtheta
+Syy=(n*sum((1.d0+sinth**2.d0)*ee,3)-.5d0*sum(ee,3))*dtheta
+Sxy=n*sum(sinth*costh*ee,3)*dtheta
 
-    ! add roller contribution
+! add roller contribution
 
-    Sxx = Sxx + sum((dcos(thet)**2)*rr,3)*dtheta
-    Syy = Syy + sum((dsin(thet)**2)*rr,3)*dtheta
-    Sxy = Sxy + sum(dsin(thet)*dcos(thet)*rr,3)*dtheta
+Sxx = Sxx + sum((costh**2)*rr,3)*dtheta
+Syy = Syy + sum((costh**2)*rr,3)*dtheta
+Sxy = Sxy + sum(sinth*costh*rr,3)*dtheta
 
-    do j=2,ny
+    do j=2,ny 
        do i=1,nx
-          Fx(i,j)=-(Sxx(i+1,j)-Sxx(i,j))/(xz(i+1)-xz(i))                                   &
-               -0.5d0*(Sxy(i,j+1)+Sxy(i+1,j+1)- Sxy(i,j-1)-Sxy(i+1,j-1))/(yz(j+1)-yz(j-1))
+          Fx(i,j)=-(Sxx(i+1,j)-Sxx(i,j))/dsu(i,j)             &
+                  -(Sxy(i,j+1)+Sxy(i+1,j+1)- Sxy(i,j-1)-Sxy(i+1,j-1))/ &
+                   (dnv(i,j-1)+dnv(i,j)+dnv(i+1,j-1)+dnv(i+1,j))
        enddo
-    enddo
+   enddo
 
-    do j=1,ny
-       do i=2,nx
-          Fy(i,j)=-(Syy(i,j+1)-Syy(i,j))/(yz(j+1)-yz(j))                                  &
-               -0.5d0*(Sxy(i+1,j)+Sxy(i+1,j+1)-Sxy(i-1,j)-Sxy(i-1,j+1))/(xz(i+1)-xz(i-1))
-       enddo
-    enddo
+   do j=1,ny 
+      do i=2,nx
+         Fy(i,j)=-(Syy(i,j+1)-Syy(i,j))/dnv(i,j)                                  &
+                 -(Sxy(i+1,j)+Sxy(i+1,j+1)-Sxy(i-1,j)-Sxy(i-1,j+1))/ &
+                  (dsu(i-1,j)+dsu(i-1,j+1)+dsu(i,j)+dsu(i,j+1))
+      enddo
+   enddo
 
     Fx(:,1)=Fx(:,2)
     Fy(:,1)=Fy(:,2)

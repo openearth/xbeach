@@ -151,7 +151,11 @@ contains
     if (makefile) then
 
        ! Calculate weighed average water depth at offshore boundary
-       wp%h0t0=sum(s%hh(1,2:s%ny)*(s%yv(2:s%ny)-s%yv(1:s%ny-1)))/(s%yv(s%ny)-s%yv(1))
+       if (s%ny>0) then
+          wp%h0t0=sum(s%hh(1,2:s%ny)*s%dnv(1,2:s%ny))/sum(s%dnv(1,2:s%ny))
+       else
+          wp%h0t0 = s%hh(1,1)
+       endif
 
        if (trim(par%instat)=='jons' .or. trim(par%instat)=='jons_table') then
           ! Use JONSWAP spectrum
@@ -173,7 +177,7 @@ contains
 
     ! Define line counter for boundaryconditions.f90
     wp%listline=wp%listline+1
-
+ 
     ! Define endtime for boundary conditions, boundaryconditions.f90 should
     ! recreate BCF files after this moment
     bcendtime=bcendtime+wp%rt
@@ -306,25 +310,32 @@ call jonswapgk(x,gam,y)
 y=(wp%hm0gew/(4.d0*sqrt(sum(y)*dfj)))**2*y
 deallocate (x)
 
-! Define pi/2
-t1=-(par%px)/2.d0
-
-! Define 100 directions relative to main angle running from -pi/2 to pi/2
-allocate(temp(101))
-allocate(wp%theta(101))
-temp=(/(i,i=0,100)/)
-wp%theta=temp*((par%px)/100.d0)+t1
+! Define 200 directions relative to main angle running from -pi to pi
+allocate(temp(201))
+allocate(wp%theta(201))
+temp=(/(i,i=0,200)/)
+wp%theta=temp*((2*par%px)/200.d0)-par%px
 deallocate (temp)
 
-! Determine directional step size: pi/100
+! Define pi/2
+!t1=-(par%px)/2.d0
+
+! Define 100 directions relative to main angle running from -pi/2 to pi/2
+!allocate(temp(101))
+!allocate(wp%theta(101))
+!temp=(/(i,i=0,100)/)
+!wp%theta=temp*((par%px)/100.d0)+t1
+!deallocate (temp)
+
+! Determine directional step size: pi/200
 wp%dang=wp%theta(2)-wp%theta(1)
 
-! Define 100 directional bins accordingly
+! Define 200 directional bins accordingly
 allocate (wp%Dd(size(wp%theta)))
 
 ! Convert main angle from degrees to radians and from nautical convention to
 ! internal grid
-wp%mainang=(1.5d0*par%px-s%alfa)-wp%mainang*par%px/180.d0
+wp%mainang=(1.5d0*par%px)-wp%mainang*par%px/180.d0
 
 ! Make sure the main angle is defined between 0 and 2*pi
 !do while (wp%mainang>2*par%px .or. wp%mainang<0.d0)
@@ -343,7 +354,7 @@ do while (wp%mainang>par%px .or. wp%mainang<-par%px) !Robert en Ap
     endif
 enddo
 
-! Convert 100 directions relative to main angle to directions relative to
+! Convert 200 directions relative to main angle to directions relative to
 ! internal grid                                                                ! Bas: apparently division by 2 for cosine law happens already here
 allocate(temp(size(wp%theta)))
 temp = (wp%theta-wp%mainang)/2.d0
@@ -524,7 +535,7 @@ subroutine swanreader(par,s,wp,fname)
   ! Convert angles to XBeach angles and radians
 
   if (switch == 1) then
-     wp%theta = 270-s%alfa/par%px*180.d0-wp%theta
+     wp%theta = 270-wp%theta
   else
      wp%theta = wp%theta-dthetaS_XB                  ! dthetaS_XB is the angle in the degrees to rotate the x-axis in SWAN to the
      ! x-axis in XBeach (in Cartesian terms) (Have Fun :-))
@@ -1056,7 +1067,7 @@ subroutine build_etdir(par,s,wp,Ebcfname)
   ! interpolation of the probability density function
   allocate(wp%theta0(wp%K))
   
-  if (wp%scoeff >= 1000) then
+  if (wp%scoeff >= 1000.d0) then
 		wp%theta0 = wp%mainang
 								!Ap longcrested waves
   else
@@ -1217,8 +1228,10 @@ subroutine build_etdir(par,s,wp,Ebcfname)
   ! Determine Fourier coefficients for all other y-coordinates along seaside
   ! border in the same manner
   do index2=2,wp%Npy
-     wp%CompFn(index2,wp%index_vector)=wp%CompFn(1,wp%index_vector)*exp(-par%compi*k*dsin(wp%theta0)*s%yz(index2))
-     Comptemp = conjg(wp%CompFn(index2,2:wp%Nr/2))
+     wp%CompFn(index2,wp%index_vector)=wp%CompFn(1,wp%index_vector)*exp(-par%compi*k*(dsin(wp%theta0)*(s%yz(1,index2)-s%yz(1,1)) &
+                                                                                      +dcos(wp%theta0)*(s%xz(1,index2)-s%xz(1,1))) )
+
+    Comptemp = conjg(wp%CompFn(index2,2:wp%Nr/2))
      call flipiv(Comptemp,size(Comptemp))
      wp%CompFn(index2,wp%Nr/2+2:wp%Nr)=Comptemp
   end do
@@ -1674,7 +1687,7 @@ do jj=2,Npy
 
     ! Determine phase shift due to y-coordinate and y-component wave number
     ! with respect to first y-coordinate alogn seaside boundary
-    Ftemp2 = Ftemp*exp(-1*par%compi*KKy*s%yz(jj))
+    Ftemp2 = Ftemp*exp(-1*par%compi*(KKy*(s%yz(1,jj)-s%yz(1,1))+KKx*(s%xz(1,jj)-s%xz(1,1))))
     
     ! Determine Fourier coefficients
     Gn(jj,index2+1) = (sum(Ftemp2,DIM=2))

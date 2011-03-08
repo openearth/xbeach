@@ -108,8 +108,8 @@ contains
 
     if (xmaster) then
        open(100,file='xy.dat',form='unformatted',access='direct',recl=reclen)
-       write(100,rec=1)s%xw
-       write(100,rec=2)s%yw
+       write(100,rec=1)s%xz
+       write(100,rec=2)s%yz
        write(100,rec=3)s%x
        write(100,rec=4)s%y
        close(100)
@@ -153,8 +153,8 @@ contains
              end do
           end do
           do i=par%npoints+1,par%npoints+par%nrugauge
-             Avarpoint(i,1) = chartoindex('xw')
-             Avarpoint(i,2) = chartoindex('yw')
+             Avarpoint(i,1) = chartoindex('xz')
+             Avarpoint(i,2) = chartoindex('yz')
              Avarpoint(i,3) = chartoindex('zs')
           enddo
        endif
@@ -364,8 +364,8 @@ contains
                    else
                       tempvectorr(1)=par%t
                    endif
-                   tempvectorr(2)=sl%xw(idumhl,rugrowindex(i))
-                   tempvectorr(3)=sl%yw(idumhl,rugrowindex(i))
+                   tempvectorr(2)=sl%x(idumhl,rugrowindex(i))
+                   tempvectorr(3)=sl%y(idumhl,rugrowindex(i))
                    tempvectorr(4)=sl%zs(idumhl,rugrowindex(i))
                 endif
                 ! Reduce the whole set to only the real numbers in tempvectori in xmpi_rank
@@ -376,8 +376,8 @@ contains
                 else
                    tempvectorr(1)=par%t
                 endif
-                tempvectorr(2)=s%xw(idumhl,rugrowindex(i))
-                tempvectorr(3)=s%yw(idumhl,rugrowindex(i))
+                tempvectorr(2)=s%xz(idumhl,rugrowindex(i))
+                tempvectorr(3)=s%yz(idumhl,rugrowindex(i))
                 tempvectorr(4)=s%zs(idumhl,rugrowindex(i))                   
 #endif
                 if (xmaster) write(indextopointsunit(i+par%npoints),rec=itp)tempvectorr
@@ -685,29 +685,30 @@ subroutine makeintpvector(par,s,intpvector,mg,ng)
         value = -999   ! default
         select case (t%name)
         case(mnem_thetamean)
-           value = 270-((s%thetamean(m,n)+s%alfa)*(180/par%px))  ! iwwvv thetamean: is that
+        !   value = 270-((s%thetamean(m,n)+s%alfaz(m,n))*(180/par%px))  ! iwwvv thetamean: is that
+           value = 270-((s%thetamean(m,n))*(180/par%px))  ! iwwvv thetamean: is that
            ! different on each
            ! process?
         case(mnem_Fx) 
-           value = s%Fx(m,n)*cos(s%alfa)-s%Fy(m,n)*sin(s%alfa)
+           value = s%Fx(m,n)*cos(s%alfaz(m,n))-s%Fy(m,n)*sin(s%alfaz(m,n))
         case(mnem_Fy)
-           value = s%Fx(m,n)*sin(s%alfa)+s%Fy(m,n)*cos(s%alfa)
+           value = s%Fx(m,n)*sin(s%alfaz(m,n))+s%Fy(m,n)*cos(s%alfaz(m,n))
         case(mnem_u)
-           value = s%u(m,n)*cos(s%alfa)-s%v(m,n)*sin(s%alfa)
+           value = s%u(m,n)*cos(s%alfaz(m,n))-s%v(m,n)*sin(s%alfaz(m,n))
         case(mnem_gwu)
-           value = s%gwu(m,n)*cos(s%alfa)-s%gwv(m,n)*sin(s%alfa)
+           value = s%gwu(m,n)*cos(s%alfaz(m,n))-s%gwv(m,n)*sin(s%alfaz(m,n))
         case(mnem_v)
-           value = s%u(m,n)*sin(s%alfa)+s%v(m,n)*cos(s%alfa)
+           value = s%u(m,n)*sin(s%alfaz(m,n))+s%v(m,n)*cos(s%alfaz(m,n))
         case(mnem_gwv)
-           value = s%gwu(m,n)*sin(s%alfa)+s%gwv(m,n)*cos(s%alfa)
+           value = s%gwu(m,n)*sin(s%alfaz(m,n))+s%gwv(m,n)*cos(s%alfaz(m,n))
         case(mnem_ue)
-           value = s%ue(m,n)*cos(s%alfa)-s%ve(m,n)*sin(s%alfa)
+           value = s%ue(m,n)*cos(s%alfaz(m,n))-s%ve(m,n)*sin(s%alfaz(m,n))
         case(mnem_ve)
-           value = s%ue(m,n)*sin(s%alfa)+s%ve(m,n)*cos(s%alfa)
+           value = s%ue(m,n)*sin(s%alfaz(m,n))+s%ve(m,n)*cos(s%alfaz(m,n))
         case(mnem_uwf)
-           value = s%uwf(m,n)*cos(s%alfa)-s%vwf(m,n)*sin(s%alfa)
+           value = s%uwf(m,n)*cos(s%alfaz(m,n))-s%vwf(m,n)*sin(s%alfaz(m,n))
         case(mnem_vwf)
-           value = s%uwf(m,n)*sin(s%alfa)+s%vwf(m,n)*cos(s%alfa)
+           value = s%uwf(m,n)*sin(s%alfaz(m,n))+s%vwf(m,n)*cos(s%alfaz(m,n))
         case default
            select case(t%rank)
            case (0)
@@ -719,10 +720,10 @@ subroutine makeintpvector(par,s,intpvector,mg,ng)
            case(1)
               if (t%type .eq. 'r') then
                  select case(t%name)
-                 case (mnem_yz,mnem_yv)
-                    value = t%r1(n)
-                 case (mnem_xz,mnem_xu)
-                    value = t%r1(m)
+ !                case (mnem_yz,mnem_yv)
+ !                   value = t%r1(n)
+ !                case (mnem_xz,mnem_xu)
+ !                   value = t%r1(m)
                  end select
               endif
            case (2)
@@ -827,31 +828,31 @@ subroutine outarray_r2(s,index,x)
   
   select case(mnem)
   case(mnem_thetamean)
-     write(unit,rec=jtg)270-((x+s%alfa)*(180/pi))
+     write(unit,rec=jtg)270-((x)*(180/pi))
   case(mnem_Fx)
-     write(unit,rec=jtg)x*cos(s%alfa)-s%Fy*sin(s%alfa)
+     write(unit,rec=jtg)x*cos(s%alfaz)-s%Fy*sin(s%alfaz)
   case(mnem_Fy)
-     write(unit,rec=jtg)s%Fx*sin(s%alfa)+x*cos(s%alfa)
+     write(unit,rec=jtg)s%Fx*sin(s%alfaz)+x*cos(s%alfaz)
   case(mnem_u)
-     write(unit,rec=jtg)x*cos(s%alfa)-s%v*sin(s%alfa)
+     write(unit,rec=jtg)x*cos(s%alfaz)-s%v*sin(s%alfaz)
   case(mnem_gwu)
-     write(unit,rec=jtg)x*cos(s%alfa)-s%gwv*sin(s%alfa)
+     write(unit,rec=jtg)x*cos(s%alfaz)-s%gwv*sin(s%alfaz)
   case(mnem_v)
-     write(unit,rec=jtg)s%u*sin(s%alfa)+x*cos(s%alfa)
+     write(unit,rec=jtg)s%u*sin(s%alfaz)+x*cos(s%alfaz)
   case(mnem_gwv)
-     write(unit,rec=jtg)s%gwu*sin(s%alfa)+x*cos(s%alfa)
+     write(unit,rec=jtg)s%gwu*sin(s%alfaz)+x*cos(s%alfaz)
   case(mnem_ue)
-     write(unit,rec=jtg)x*cos(s%alfa)-s%ve*sin(s%alfa)
+     write(unit,rec=jtg)x*cos(s%alfaz)-s%ve*sin(s%alfaz)
   case(mnem_ve)
-     write(unit,rec=jtg)s%ue*sin(s%alfa)+x*cos(s%alfa)
+     write(unit,rec=jtg)s%ue*sin(s%alfaz)+x*cos(s%alfaz)
   case(mnem_uwf)
-     write(unit,rec=jtg)x*cos(s%alfa)-s%vwf*sin(s%alfa)
+     write(unit,rec=jtg)x*cos(s%alfaz)-s%vwf*sin(s%alfaz)
   case(mnem_vwf)
-     write(unit,rec=jtg)s%uwf*sin(s%alfa)+x*cos(s%alfa)
+     write(unit,rec=jtg)s%uwf*sin(s%alfaz)+x*cos(s%alfaz)
   case(mnem_Sutot)
-     write(unit,rec=jtg)(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*cos(s%alfa) - (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*sin(s%alfa)
+     write(unit,rec=jtg)(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*cos(s%alfaz) - (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*sin(s%alfaz)
   case(mnem_Svtot)
-     write(unit,rec=jtg)(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*sin(s%alfa) + (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*cos(s%alfa)
+     write(unit,rec=jtg)(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*sin(s%alfaz) + (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*cos(s%alfaz)
   case(mnem_cctot)
      write(unit,rec=jtg)sum(s%ccg,DIM=3)
   case default
@@ -876,28 +877,30 @@ subroutine outarray_r3(s,index,x)
   call checkfile(index,unit,reclen,jtg)
   
   mnem = mnemonics(outnumbers(index))
-  select case(mnem)
-  case(mnem_cgx)
-     write(unit,rec=jtg)x*cos(s%alfa)-s%cgy*sin(s%alfa)
-  case(mnem_cgy)
-     write(unit,rec=jtg)s%cgx*sin(s%alfa)+x*cos(s%alfa)
-  case(mnem_cx)
-     write(unit,rec=jtg)x*cos(s%alfa)-s%cy*sin(s%alfa)
-  case(mnem_cy)
-     write(unit,rec=jtg)s%cx*sin(s%alfa)+x*cos(s%alfa)
-  case(mnem_thet)
-     write(unit,rec=jtg)270-((s%thet+s%alfa)*(180/pi))
-  case(mnem_Susg)
-     write(unit,rec=jtg)x*cos(s%alfa)-s%Svsg*sin(s%alfa)
-  case(mnem_Svsg)
-     write(unit,rec=jtg)s%Susg*sin(s%alfa)+x*cos(s%alfa)
-  case(mnem_Subg)
-     write(unit,rec=jtg)x*cos(s%alfa)-s%Svbg*sin(s%alfa)
-  case(mnem_Svbg)
-     write(unit,rec=jtg)s%Subg*sin(s%alfa)+x*cos(s%alfa)
-  case default
+!!
+!! Dano: need to find elegant way to multiply 3d array woth 2d alfaz
+!  select case(mnem)
+!  case(mnem_cgx)
+!     write(unit,rec=jtg)x*cos(s%alfaz)-s%cgy*sin(s%alfaz)
+!  case(mnem_cgy)
+!     write(unit,rec=jtg)s%cgx*sin(s%alfaz)+x*cos(s%alfaz)
+!  case(mnem_cx)
+!     write(unit,rec=jtg)x*cos(s%alfaz)-s%cy*sin(s%alfaz)
+!  case(mnem_cy)
+!     write(unit,rec=jtg)s%cx*sin(s%alfaz)+x*cos(s%alfaz)
+!  case(mnem_thet)
+!     write(unit,rec=jtg)270-((s%thet+s%alfaz)*(180/pi))
+!  case(mnem_Susg)
+!     write(unit,rec=jtg)x*cos(s%alfaz)-s%Svsg*sin(s%alfaz)
+!  case(mnem_Svsg)
+!     write(unit,rec=jtg)s%Susg*sin(s%alfaz)+x*cos(s%alfaz)
+!  case(mnem_Subg)
+!     write(unit,rec=jtg)x*cos(s%alfaz)-s%Svbg*sin(s%alfaz)
+!  case(mnem_Svbg)
+!     write(unit,rec=jtg)s%Subg*sin(s%alfaz)+x*cos(s%alfaz)
+!  case default
      write(unit,rec=jtg) x
-  end select
+!  end select
 end subroutine outarray_r3
 
 subroutine outarray_r4(index,x)

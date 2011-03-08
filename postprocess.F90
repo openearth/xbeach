@@ -48,11 +48,11 @@ contains
     endif
     !
     allocate(mindistr(par%npoints+par%nrugauge))
-    ! Let's hope that the s%xw and s%yw are already available....
+    ! Let's hope that the s%xz and s%yz are already available....
     ! Compute the minimum distances for each point
     if (par%npoints + par%nrugauge > 0) then
        do i=1,(par%npoints+par%nrugauge)
-          mindist=sqrt((par%xpointsw(i)-s%xw)**2+(par%ypointsw(i)-s%yw)**2)
+          mindist=sqrt((par%xpointsw(i)-s%xz)**2+(par%ypointsw(i)-s%yz)**2)
           ! look up the location of the found minimum
           minlocation=minloc(mindist)
           ! minimum distance

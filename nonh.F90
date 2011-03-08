@@ -175,27 +175,15 @@ contains
     
     
     !Initialize grid variables
-    do j=1,s%ny+1
-      js = min(j+1,s%ny+1)
-      jn = max(j-1,1     )      
-      dyz(j) = s%yv(j) -s%yv(jn)
-      dyv(j) = s%yz(js)-s%yz(j)      
-    enddo    
-    dyv(s%ny+1)   = dyv(s%ny)
-    dyz(1)      = dyz(2)
-    ddyz        = 1.0_rKind/dyz
-    ddyv        = 1.0_rKind/dyv
-    
-    do i=1,s%nx+1
-      ie = min(i+1,s%nx+1)
-      iw = max(i-1,1     )      
-      dxz(i) = s%xu(i) -s%xu(iw)
-      dxu(i) = s%xz(ie)-s%xz(i)
-    enddo    
-    dxu(s%nx+1)   = dxu(s%nx)
-    dxz(1)      = dxz(2)
-    ddxu        = 1.0_rKind/dxu
-    ddxz        = 1.0_rKind/dxz
+    dyz  = s%dnz(1,:)
+    dyv  = s%dnv(1,:)
+    ddyz = 1.0_rKind/dyz
+    ddyv = 1.0_rKind/dyv
+
+    dxu  = s%dsu(:,1)
+    dxz  = s%dsz(:,1)
+    ddxu = 1.0_rKind/dxu
+    ddxz = 1.0_rKind/dxz
     
     mat(1,1,:)      = 1.0_rKind
     mat(1,s%nx+1,:) = 1.0_rKind
@@ -592,7 +580,7 @@ subroutine nonh_explicit(s,par,nuh)
 
       if (  (s%wetU(i,j)==1                                      )  & 
       .and. (0.5_rKind*(s%zs(i,j) + s%zs(ie,j))    > zbu(i,j)    )  & 
-      .and. ( (s%xz(ie)-s%xz(i))*par%kdmin/par%px  < s%hum(i,j)  )  ) then
+      .and. ( s%dsu(i,1)*par%kdmin/par%px  < s%hum(i,j)  )  ) then
         nonhU(i,j) = 1
       else
         nonhU(i,j) = 0      
@@ -606,7 +594,7 @@ subroutine nonh_explicit(s,par,nuh)
       do i=1,s%nx+1
         if (  (s%wetV(i,j)==1                                      )  &
         .and. (0.5_rKind*(s%zs(i,j) + s%zs(i,js))    > zbv(i,j)    )  & 
-        .and. ( (s%yz(js)-s%yz(j))*par%kdmin/par%px  < s%hvm(i,j)  )  ) then
+        .and. ( s%dnv(1,j)*par%kdmin/par%px  < s%hvm(i,j)  )  ) then
           nonhV(i,j) = 1
         else
           nonhV(i,j) = 0

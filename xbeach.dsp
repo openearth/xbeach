@@ -162,77 +162,6 @@ PostBuild_Cmds=copy lib\win32\VS6\pg\*.dll $(OutDir)	copy lib\win32\all\hdf5\dll
 # Name "xbeach - Win32 Debug"
 # Name "xbeach - Win32 Release_NoMPI"
 # Name "xbeach - Win32 Netcdf"
-# Begin Group "netcdff90"
-
-# PROP Default_Filter "f90"
-# Begin Source File
-
-SOURCE=.\lib\win32\netcdff90\netcdf.f90
-DEP_F90_NETCD=\
-	".\lib\win32\netcdff90\netcdf_attributes.f90"\
-	".\lib\win32\netcdff90\netcdf_constants.f90"\
-	".\lib\win32\netcdff90\netcdf_dims.f90"\
-	".\lib\win32\netcdff90\netcdf_expanded.f90"\
-	".\lib\win32\netcdff90\netcdf_externals.f90"\
-	".\lib\win32\netcdff90\netcdf_file.f90"\
-	".\lib\win32\netcdff90\netcdf_overloads.f90"\
-	".\lib\win32\netcdff90\netcdf_text_variables.f90"\
-	".\lib\win32\netcdff90\netcdf_variables.f90"\
-	".\lib\win32\netcdff90\netcdf_visibility.f90"\
-	
-NODEP_F90_NETCD=\
-	".\xbeach___Win32_Netcdf\typeSizes.mod"\
-	
-
-!IF  "$(CFG)" == "xbeach - Win32 Release"
-
-# PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "xbeach - Win32 Debug"
-
-# PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "xbeach - Win32 Release_NoMPI"
-
-# PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "xbeach - Win32 Netcdf"
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\postprocess.F90
-DEP_F90_POSTP=\
-	".\Debug\logging_module.mod"\
-	".\Debug\mnemmodule.mod"\
-	".\Debug\params.mod"\
-	".\Debug\spaceparams.mod"\
-	
-# End Source File
-# Begin Source File
-
-SOURCE=.\lib\win32\netcdff90\typeSizes.f90
-
-!IF  "$(CFG)" == "xbeach - Win32 Release"
-
-# PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "xbeach - Win32 Debug"
-
-# PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "xbeach - Win32 Release_NoMPI"
-
-# PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "xbeach - Win32 Netcdf"
-
-!ENDIF 
-
-# End Source File
-# End Group
 # Begin Source File
 
 SOURCE=.\boundaryconditions.f90
@@ -255,21 +184,6 @@ DEP_F90_BOUND=\
 # Begin Source File
 
 SOURCE=.\constants.f90
-# End Source File
-# Begin Source File
-
-SOURCE=.\drifters.f90
-DEP_F90_DRIFT=\
-	".\Debug\mnemmodule.mod"\
-	".\Debug\params.mod"\
-	".\Debug\readkey_module.mod"\
-	".\Debug\spaceparams.mod"\
-	".\Debug\xmpi_module.mod"\
-	".\s.ind"\
-	".\s.inp"\
-	".\space_ind.gen"\
-	".\space_inp.gen"\
-	
 # End Source File
 # Begin Source File
 
@@ -321,7 +235,7 @@ NODEP_F90_GENER=\
 # End Source File
 # Begin Source File
 
-SOURCE=.\groundwater.f90
+SOURCE=.\groundwater.F90
 DEP_F90_GROUN=\
 	".\Debug\params.mod"\
 	".\Debug\readkey_module.mod"\
@@ -333,6 +247,7 @@ DEP_F90_GROUN=\
 
 SOURCE=.\initialize.f90
 DEP_F90_INITI=\
+	".\Debug\general_mpi_module.mod"\
 	".\Debug\interp.mod"\
 	".\Debug\logging_module.mod"\
 	".\Debug\params.mod"\
@@ -340,6 +255,10 @@ DEP_F90_INITI=\
 	".\Debug\spaceparams.mod"\
 	".\Debug\wave_timestep_module.mod"\
 	".\Debug\xmpi_module.mod"\
+	".\s.ind"\
+	".\s.inp"\
+	".\space_ind.gen"\
+	".\space_inp.gen"\
 	
 # End Source File
 # Begin Source File
@@ -378,29 +297,15 @@ DEP_F90_MORPH=\
 	".\Debug\readkey_module.mod"\
 	".\Debug\spaceparams.mod"\
 	".\Debug\xmpi_module.mod"\
+	".\RF.inc"\
 	".\s.ind"\
 	".\s.inp"\
 	".\space_ind.gen"\
 	".\space_inp.gen"\
 	
-# End Source File
-# Begin Source File
-
-SOURCE=.\ncoutput.F90
-DEP_F90_NCOUT=\
-	".\Debug\logging_module.mod"\
-	".\Debug\mnemmodule.mod"\
-	".\Debug\params.mod"\
-	".\Debug\postprocessmod.mod"\
-	".\Debug\spaceparams.mod"\
-	".\Debug\timestep_module.mod"\
-	".\Debug\xmpi_module.mod"\
-	".\version.dat"\
-	".\version.def"\
-	
-NODEP_F90_NCOUT=\
+NODEP_F90_MORPH=\
 	".\Debug\config.h"\
-	".\Debug\netcdf.mod"\
+	".\Debug\ieee_arithmetic.mod"\
 	
 # End Source File
 # Begin Source File
@@ -421,13 +326,13 @@ SOURCE=.\output.F90
 DEP_F90_OUTPU=\
 	".\Debug\fortoutput_module.mod"\
 	".\Debug\logging_module.mod"\
-	".\Debug\ncoutput_module.mod"\
 	".\Debug\params.mod"\
 	".\Debug\spaceparams.mod"\
 	".\Debug\timestep_module.mod"\
 	
 NODEP_F90_OUTPU=\
 	".\Debug\config.h"\
+	".\Debug\ncoutput_module.mod"\
 	
 # End Source File
 # Begin Source File
@@ -442,6 +347,16 @@ DEP_F90_PARAM=\
 	
 NODEP_F90_PARAM=\
 	".\Debug\mpi.mod"\
+	
+# End Source File
+# Begin Source File
+
+SOURCE=.\postprocess.F90
+DEP_F90_POSTP=\
+	".\Debug\logging_module.mod"\
+	".\Debug\mnemmodule.mod"\
+	".\Debug\params.mod"\
+	".\Debug\spaceparams.mod"\
 	
 # End Source File
 # Begin Source File
@@ -508,11 +423,14 @@ DEP_F90_SPACE=\
 	".\Debug\logging_module.mod"\
 	".\Debug\mnemmodule.mod"\
 	".\Debug\params.mod"\
-	".\Debug\readkey_module.mod"\
 	".\Debug\xmpi_module.mod"\
 	".\indextos.gen"\
+	".\s.ind"\
+	".\s.inp"\
 	".\space_alloc_arrays.gen"\
 	".\space_alloc_scalars.gen"\
+	".\space_ind.gen"\
+	".\space_inp.gen"\
 	".\spacedecl.gen"\
 	
 # End Source File
@@ -544,10 +462,13 @@ DEP_F90_VARIA=\
 
 SOURCE=.\varoutput.f90
 DEP_F90_VAROU=\
+	".\Debug\filefunctions.mod"\
+	".\Debug\general_mpi_module.mod"\
 	".\Debug\logging_module.mod"\
 	".\Debug\means_module.mod"\
 	".\Debug\mnemmodule.mod"\
 	".\Debug\params.mod"\
+	".\Debug\postprocessmod.mod"\
 	".\Debug\readkey_module.mod"\
 	".\Debug\spaceparams.mod"\
 	".\Debug\timestep_module.mod"\
@@ -556,7 +477,7 @@ DEP_F90_VAROU=\
 # End Source File
 # Begin Source File
 
-SOURCE=.\wave_stationary.f90
+SOURCE=.\wave_stationary.F90
 DEP_F90_WAVE_=\
 	".\Debug\logging_module.mod"\
 	".\Debug\params.mod"\
@@ -605,7 +526,6 @@ DEP_F90_WAVEP=\
 SOURCE=.\xbeach.f90
 DEP_F90_XBEAC=\
 	".\Debug\boundaryconditions.mod"\
-	".\Debug\drifter_module.mod"\
 	".\Debug\flow_timestep_module.mod"\
 	".\Debug\groundwaterflow.mod"\
 	".\Debug\initialize.mod"\

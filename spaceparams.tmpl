@@ -24,14 +24,30 @@
 !*
 !* comment starts with !
 !* lines starting with !* will be ignored
-      real*8  2  x  s%nx+1 s%ny+1  d    [m]        x-coord. comp. grid (positive shoreward, perp. to coastline)
-      real*8  2  y  s%nx+1 s%ny+1  d    [m]        y-coord. comp. grid
-      real*8  1  xz s%nx+1 d    [m]        x-coord. comp. grid (positive shoreward, perp. to coastline)
-      real*8  1  yz s%ny+1 d    [m]        y-coord. comp. grid
-      real*8  1  xu s%nx+1  d    [m]        x-coord. in u points
-      real*8  1  yv s%ny+1  d    [m]        y-coord. in v points
-      real*8  2  xw s%nx+1 s%ny+1  d    [m]        world x-coordinates
-      real*8  2  yw s%nx+1 s%ny+1  d    [m]        world y-coordinates
+      real*8  2  x   s%nx+1 s%ny+1  d    [m]       x-coord. original comp. grid (w/o xori, yori and alfa)
+      real*8  2  y   s%nx+1 s%ny+1  d    [m]       y-coord. original comp. grid
+      real*8  2  xz  s%nx+1 s%ny+1  d    [m]       x-coord. comp. grid (positive shoreward, perp. to coastline)
+      real*8  2  yz  s%nx+1 s%ny+1  d    [m]       y-coord. comp. grid
+      real*8  2  xu  s%nx+1 s%ny+1  d    [m]       x-coord. comp. grid u-points
+      real*8  2  yu  s%nx+1 s%ny+1  d    [m]       y-coord. comp. grid u-points
+      real*8  2  xv  s%nx+1 s%ny+1  d    [m]       x-coord. comp. grid v-points
+      real*8  2  yv  s%nx+1 s%ny+1  d    [m]       y-coord. comp. grid v-points
+      real*8  2  dsu s%nx+1 s%ny+1  d    [m]       grid distance in s-direction, centered around u-point
+      real*8  2  dsv s%nx+1 s%ny+1  d    [m]       grid distance in s-direction, centered around v-point
+      real*8  2  dsz s%nx+1 s%ny+1  d    [m]       grid distance in s-direction, centered around z-point (=eta-point)
+      real*8  2  dsc s%nx+1 s%ny+1  d    [m]       grid distance in s-direction, centered around c-point
+      real*8  2  dnu s%nx+1 s%ny+1  d    [m]       grid distance in n-direction, centered around u-point
+      real*8  2  dnv s%nx+1 s%ny+1  d    [m]       grid distance in n-direction, centered around v-point
+      real*8  2  dnz s%nx+1 s%ny+1  d    [m]       grid distance in n-direction, centered around z-point (=eta-point)
+      real*8  2  dnc s%nx+1 s%ny+1  d    [m]       grid distance in n-direction, centered around c-point
+      real*8  2  dsdnui s%nx+1 s%ny+1  d    [1/m2]   inverse of grid cell surface, centered around u-point
+      real*8  2  dsdnvi s%nx+1 s%ny+1  d    [1/m2]   inverse of grid cell surface, centered around v-point
+      real*8  2  dsdnzi s%nx+1 s%ny+1  d    [1/m2]   inverse of grid cell surface, centered around z-point
+      real*8  2  alfaz s%nx+1 s%ny+1  d    [m2]      grid orientation at z-point
+      real*8  2  alfau s%nx+1 s%ny+1  d    [m2]      grid orientation at u-point
+      real*8  2  alfav s%nx+1 s%ny+1  d    [m2]      grid orientation at v-point
+      real*8  2  sdist s%nx+1 s%ny+1  d    [m]      cum. distance from offshore boundary along s-direction
+      real*8  2  ndist s%nx+1 s%ny+1  d    [m]      cum. distance from right boundary along n-direction
       real*8  0  dx   b    [m]        grid size x-direction
       real*8  0  dy   b    [m]        grid size y-direction
       real*8  0  xori b    [m]        x-origin of grid in world coordinates
@@ -58,8 +74,6 @@
       integer 0  ntheta b  [-]        number of wave direction bins
       real*8  0  dtheta b  [rad]      wave direction bin size
       real*8  0  theta0 b  [rad]      mean incident wave angle
-      real*8  1  cxsth  s%ntheta b  [-]        cos(theta)
-      real*8  1  sxnth  s%ntheta b  [-]        sin(theta)
       real*8  2  thetamean s%nx+1 s%ny+1 d  [rad]      mean wave angle
       real*8  2  Fx     s%nx+1 s%ny+1 d  [N/m2]     wave force x-direction
       real*8  2  Fy     s%nx+1 s%ny+1 d  [N/m2]     wave force y-direction
@@ -75,8 +89,8 @@
       real*8  3  ctheta s%nx+1 s%ny+1 s%ntheta d  [rad/s]    wave celerity theta-direction (refraction)
       real*8  3  ee     s%nx+1 s%ny+1 s%ntheta d  [J/m2/rad] directionally distributed wave energy
       real*8  3  thet   s%nx+1 s%ny+1 s%ntheta d  [rad]      wave angles  
-      real*8  3  costhet s%nx+1 s%ny+1 s%ntheta d   [-]        cos of wave angles  
-      real*8  3  sinthet s%nx+1 s%ny+1 s%ntheta d  [-]        sin of wave angles  
+      real*8  3  costh s%nx+1 s%ny+1 s%ntheta d   [-]        cos of wave angles relative to grid direction
+      real*8  3  sinth s%nx+1 s%ny+1 s%ntheta d   [-]        sin of wave angles relative to grid direction 
       real*8  3  sigt   s%nx+1 s%ny+1 s%ntheta d  [rad/s]    relative frequency 
       real*8  3  rr     s%nx+1 s%ny+1 s%ntheta d  [J/m2/rad] directionally distributed roller energy
       real*8  2  k      s%nx+1 s%ny+1 d  [rad/m]    wave number
@@ -90,10 +104,12 @@
       real*8  1  tideinpt s%tidelen b  [s]        input time of input tidal signal
       real*8  2  tideinpz s%tidelen par%tideloc b  [m]        input tidal signal
       real*8  1  windinpt s%windlen b  [s]        input time of input wind signal
-      real*8  1  windvel  s%windlen b  [m/s]        input wind velocity
-      real*8  1  winddir  s%windlen b  [deg nautical]        input wind direction
-      real*8  0  windvnow b              [m/s]      uniform wind velocity current time
-      real*8  0  winddirnow b            [m/s]      uniform wind direction current time
+      real*8  1  windvelts  s%windlen b  [m/s]        input wind velocity
+      real*8  1  winddirts  s%windlen b  [deg nautical]        input wind direction
+      real*8  1  windxts    s%windlen b  [m/s]    time series of input wind velocity in X direction (not S direction)
+      real*8  1  windyts    s%windlen b  [m/s]    time series of input wind velocity in Y direction (not N direction)
+      real*8  2  windsu     s%nx+1 s%ny+1 d  [m/s]  wind velocity in S direction in u point at current time step
+      real*8  2  windnv     s%nx+1 s%ny+1 d  [m/s]  wind velocity in N direction in v point at current time step
       real*8  2  dzsdt  s%nx+1 s%ny+1 d  [m/s]      rate of change water level
       real*8  2  dzsdx  s%nx+1 s%ny+1 d  [m/s]      water surface gradient in x-direction
       real*8  2  dzsdy  s%nx+1 s%ny+1 d  [m/s]      water surface gradient in y-direction
@@ -214,4 +230,10 @@
       real*8  2  D90top    s%nx+1 s%ny+1 d  [-] Friction coefficient flow
       real*8  2  structdepth    s%nx+1 s%ny+1 d  [m] Depth of structure in relation to instantaneous bed level
       real*8  3  zs0fac    s%nx+1 s%ny+1 2 d  [-]  relative weight of offshore boundary and bay boundary for each grid point is stored in zs0fac       
+      integer 0  ntdisch                 b  [-]     Length of discharge timeseries
+      integer 0  ndisch                  b  [-]     Number of discharge locations
+      real*8  1  tdisch    s%ntdisch     b  [-]     Discharge time series
+      real*8  2  pdisch    s%ndisch 4    b  [-]     Discharge locations
+      integer 1  pntdisch  s%ndisch      b  [-]     Point discharge locations (no momentum)
+      real*8  2  qdisch    s%ntdisch s%ndisch b [m^2/s] Discharges
 !* hints for vi vim: filetype=fortran : syntax=fortran

@@ -7,6 +7,7 @@
 ! spacedecl.gen           is for spaceparams.F90
 ! space_ind.gen           is for s.ind
 ! space_inp.gen           is for s.inp
+! parameters.inc          is for xbeach.F90 after params.F90
 !
 ! see also README.includefiles
 !          spaceparams.tmpl
@@ -598,13 +599,13 @@ subroutine makeparamsinc
    write(outfile,'(a)')'!! This code is generated automatocally by makeincludes'
    write(outfile,'(a)')'!! Do not change manually'
    write(outfile,'(a)')'subroutine outputparameters(par)'
-   write(outfile,'(a)')'use filefunctions'
-   write(outfile,'(a)')'implicit none'
-   write(outfile,'(a)')'type(parameters)        :: par'
-   write(outfile,'(a)')'integer                 :: fid,i'
+   write(outfile,'(a)')'   use filefunctions'
+   write(outfile,'(a)')'   implicit none'
+   write(outfile,'(a)')'   type(parameters)   :: par'
+   write(outfile,'(a)')'   integer            :: fid,i'
    write(outfile,'(a)')' '
-   write(outfile,'(a)')'fid=create_new_fid()'
-   write(outfile,'(a)')'open(fid,file=''params.dat'')'
+   write(outfile,'(a)')'   fid=create_new_fid()'
+   write(outfile,'(a)')'   open(fid,file=''params.dat'',status=''replace'', action=''write'')'
    do
       call getline
       if (endfound) then
@@ -649,37 +650,48 @@ subroutine makeparamsinc
                   if (line(1:9) =='character') then
 					 if (dimensioned) then
 					    if (parname(1:10)=='globalvars') then
-					       write(outfile,'(a)')'do i=1,par%nglobalvar'
-					       write(outfile,'(a)')'    write(fid,*)trim(adjustl(par%globalvars(i)))'
-					       write(outfile,'(a)')'enddo'   
+					       write(outfile,'(a)')'   do i=1,par%nglobalvar'
+					       write(outfile,'(a)')'      write(fid,*)trim(adjustl(par%globalvars(i)))'
+					       write(outfile,'(a)')'   enddo'   
 					    elseif(parname(1:9)=='meansvars') then
-					       write(outfile,'(a)')'do i=1,par%nmeanvar'
-				           write(outfile,'(a)')'    write(fid,*)trim(adjustl(par%meansvars(i)))'
-				           write(outfile,'(a)')'enddo'   
+					       write(outfile,'(a)')'   do i=1,par%nmeanvar'
+				           write(outfile,'(a)')'      write(fid,*)trim(adjustl(par%meansvars(i)))'
+				           write(outfile,'(a)')'   enddo'   
 				        elseif(parname(1:9)=='pointvars') then
-				           write(outfile,'(a)')'do i=1,par%nrugauge+par%npoints'
-				           write(outfile,'(a)')'    write(fid,*)trim(adjustl(par%pointvars(i)))'
-				           write(outfile,'(a)')'enddo' 
+				           write(outfile,'(a)')'   do i=1,par%npointvar'
+				           write(outfile,'(a)')'      write(fid,*)trim(adjustl(par%pointvars(i)))'
+				           write(outfile,'(a)')'   enddo' 
 				        endif
-                        !write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)
 					 else
-				        write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',trim(adjustl(par%'//trim(parname)//'))'
+                        write(outfile,'(a)')'   write(fid,*)'''//trim(parname)//'='',trim(adjustl(par%'//trim(parname)//'))'
 				     endif
-				  else
+				  else  ! not character, i.e. real/integer/logical
 				     if (dimensioned) then
 				        if(parname(1:3)=='D50') then
-				           write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
+				           write(outfile,'(a)')'   write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
 				        elseif(parname(1:3)=='D90') then
-				           write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
+				           write(outfile,'(a)')'   write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
 				        elseif(parname(1:6)=='sedcal') then
-				           write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
+				           write(outfile,'(a)')'   write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
 				        elseif(parname(1:6)=='ucrcal') then
-				           write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
+				           write(outfile,'(a)')'   write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
 				        elseif(parname(1:6)=='ucrcal') then
-				           write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
+				           write(outfile,'(a)')'   write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)//'(1:par%ngd)'
 				        endif
 				     else
-				        write(outfile,'(a)')'write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)
+					    if(parname(1:7)=='npoints') then
+                           write(outfile,'(a)')'   write(fid,*)''npoints='',trim(adjustl(par%npoints))'
+				           write(outfile,'(a)')'   do i=1,par%npoints'
+				           write(outfile,'(a)')'      write(fid,*)xpointsw(i),''  '',ypointsw(i)'
+				           write(outfile,'(a)')'   enddo'
+				        elseif(parname(1:8)=='nrugauge') then
+                           write(outfile,'(a)')'   write(fid,*)''nrugauge='',trim(adjustl(par%nrugauge))'
+				           write(outfile,'(a)')'   do i=1,par%nrugauge'
+				           write(outfile,'(a)')'      write(fid,*)xpointsw(i+par%npoints),''  '',ypointsw(i+par%npoints)'
+				           write(outfile,'(a)')'   enddo'
+				        else				     
+				           write(outfile,'(a)')'   write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)
+				        endif
 				     endif
 				  endif
 			   endif
@@ -687,7 +699,7 @@ subroutine makeparamsinc
          endif
       endif
    enddo
-   write(outfile,'(a)')'close(fid)'
+   write(outfile,'(a)')'   close(fid)'
    write(outfile,'(a)')'end subroutine'
    close(infile)
    close(outfile)

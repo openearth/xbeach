@@ -50,25 +50,28 @@ contains
     nwind = 0
 
     if (xmaster) then
-
-!       par%rhoa    = readkey_dbl ('params.txt','rhoa',   1.25d0,     1.0d0,   2.0d0,bcast=.false.)
-!       par%Cd      = readkey_dbl ('params.txt','Cd',    0.002d0,  0.0001d0,  0.01d0,bcast=.false.)
-!
-!       call readkey('params.txt','windfile',fname)
-
+       allocate(s%windsu(s%nx+1,s%ny+1))
+       allocate(s%windnv(s%nx+1,s%ny+1))
+       windsu=0.d0
+       windnv=0.d0
        if (par%windfile==' ') then   ! Stationary wind
-        !  par%windv   = readkey_dbl ('params.txt','windv',   0.0d0,     0.0d0, 200.0d0,bcast=.false.)
-        !  par%windth  = readkey_dbl ('params.txt','windth', 270.0d0,  -360.0d0, 360.0d0,bcast=.false.)
 
-          s%windlen=2
-          allocate(s%windinpt(s%windlen))
-          allocate(s%windvel (s%windlen))
-          allocate(s%winddir (s%windlen))
+          s%windlen=1
+          allocate(s%windinpt(1))
+          allocate(s%windvelts (1))
+          allocate(s%winddirts (1))
+          allocate(s%windxts(1))
+          allocate(s%windyts(1))
 
-          s%windinpt(1)=0
-          s%windinpt(2)=par%tstop
-          s%windvel=par%windv
-          s%winddir=(270.d0-par%windth-s%alfa)*par%px/180.d0
+          s%windinpt=par%tstop
+          s%windvelts=par%windv
+          s%winddirts=(270.d0-par%windth-s%alfa)*par%px/180.d0
+          ! Alfa is East to X still ?? 
+          s%windxts = dcos(s%winddirts)*s%windvelts
+          s%windyts = dsin(s%winddirts)*s%windvelts
+          ! If stationary wind then we will calculate now what the wind velocity is everywhere now
+          s%windsu = s%windxts(1)*dcos(alfau) + s%windyts(1)*dsin(s%alfau)
+          s%windnv = s%windyts(1)*dcos(s%alfav-0.5d0*par%px) - s%windxts(1)*dsin(s%alfav-0.5d0*par%px)
        else                 ! Non-stationary wind
           call writelog('ls','','readwind: reading wind time series from ',trim(par%windfile),' ...')
           open(31,file=par%windfile)
@@ -79,13 +82,17 @@ contains
           rewind(31)
           s%windlen=nwind-1
           allocate(s%windinpt(s%windlen))
-          allocate(s%windvel (s%windlen))
-          allocate(s%winddir (s%windlen))
+          allocate(s%windvelts(s%windlen))
+          allocate(s%winddirts(s%windlen))
+          allocate(s%windxts(s%windlen))
+          allocate(s%windyts(s%windlen))
           do i=1,s%windlen
-             read(31,*,IOSTAT=io) s%windinpt(i),s%windvel(i),s%winddir(i)
+             read(31,*,IOSTAT=io) s%windinpt(i),s%windvelts(i),s%winddirts(i)
           enddo
           ! to cartesian radians
-          s%winddir=(270.d0-s%winddir-s%alfa)*par%px/180.d0
+          s%winddirts=(270.d0-s%winddirts-s%alfa)*par%px/180.d0
+          s%windxts = dcos(s%winddirts)*s%windvelts
+          s%windyts = dsin(s%winddirts)*s%windvelts
           close(31)
           if (par%morfacopt==1) s%windinpt = s%windinpt / max(par%morfac,1.d0)
           if (s%windinpt(s%windlen)<par%tstop) then

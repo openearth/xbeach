@@ -54,10 +54,9 @@ contains
     real*8 , dimension(:,:)  ,allocatable,save  :: dkmxdx,dkmxdy,dkmydx,dkmydy,cgxm,cgym,arg,fac
     real*8 , dimension(:,:)  ,allocatable,save  :: wcifacu,wcifacv,hrmsold,uorb
     real*8 , dimension(:)    ,allocatable,save  :: wcrestpos
-    real*8                                      :: factime
-    real*8, save                                :: waverr
-    integer                                     :: dummy
-
+    real*8                                      :: factime,cs,sn
+    real*8 , save                               :: waverr  
+ 
 
     include 's.ind'
     include 's.inp'
@@ -72,6 +71,7 @@ contains
        allocate(yradvec     (nx+1,ny+1,ntheta))
        allocate(thetaradvec (nx+1,ny+1,ntheta))
        allocate(dd          (nx+1,ny+1,ntheta))
+       
        allocate(dhdx        (nx+1,ny+1))
        allocate(dhdy        (nx+1,ny+1))
        allocate(dudx        (nx+1,ny+1))
@@ -175,9 +175,9 @@ contains
        cgym = cg*dsin(tm) + vmwci*min((zswci-zb)/par%hwci,1.d0)
        cgxm = cg*dcos(tm) + umwci*min((zswci-zb)/par%hwci,1.d0)
 
-       call slope2D(kmx,nx,ny,xz,yz,dkmxdx,dkmxdy)
-       call slope2D(kmy,nx,ny,xz,yz,dkmydx,dkmydy)
-       call advecwx(wm,xwadvec,kmx,nx,ny,xz)   ! cjaap: xz or xu?
+       call slope2D(kmx,nx,ny,dsu,dnv,dkmxdx,dkmxdy)
+       call slope2D(kmy,nx,ny,dsu,dnv,dkmydx,dkmydy)
+       call advecwx(wm,xwadvec,kmx,nx,ny,dsu)   ! cjaap: xz or xu?
        kmx = kmx -par%dt*xwadvec  -1.0d0*par%dt*cgym*(dkmydx-dkmxdy)
        kmx(:,ny+1) = kmx(:,ny)  ! lateral bc
        kmx(:,1) = kmx(:,2)  ! lateral bc
@@ -187,7 +187,7 @@ contains
        call xmpi_shift(kmx,':n')  ! get column kml(:ny+1) from right neighbour
        call xmpi_shift(kmx,':1')
 #endif
-       call advecwy(wm,ywadvec,kmy,nx,ny,yz)   ! cjaap: yz or yv?
+       call advecwy(wm,ywadvec,kmy,nx,ny,dnv)   ! cjaap: yz or yv?
        kmy = kmy-par%dt*ywadvec  + 1.0*par%dt*cgxm*(dkmydx-dkmxdy)
        kmy(:,ny+1) = kmy(:,ny)   ! lateral bc
        kmy(:,1) = kmy(:,2)   ! lateral bc
@@ -231,9 +231,9 @@ contains
     endif ! end wave current interaction
 
     ! Slopes of water depth
-    call slope2D(max(hh,par%delta*H),nx,ny,xz,yz,dhdx,dhdy)
-    call slope2D(wcifacu,nx,ny,xz,yz,dudx,dudy)
-    call slope2D(wcifacv,nx,ny,xz,yz,dvdx,dvdy)
+    call slope2D(max(hh,par%delta*H),nx,ny,dsu,dnv,dhdx,dhdy)
+    call slope2D(wcifacu,nx,ny,dsu,dnv,dudx,dudy)
+    call slope2D(wcifacv,nx,ny,dsu,dnv,dvdx,dvdy)
     !
     ! Calculate once sinh(2kh)
     where(2*hh*k<=3000.d0)
@@ -242,16 +242,27 @@ contains
        sinh2kh = 3000.d0
     endwhere
 
-    do itheta=1,ntheta
-       cgx(:,:,itheta)= cg*cxsth(itheta)+wcifacu
-       cgy(:,:,itheta)= cg*sxnth(itheta)+wcifacv
-       cx(:,:,itheta) =  c*cxsth(itheta)+wcifacu
-       cy(:,:,itheta) =  c*sxnth(itheta)+wcifacv
-       ctheta(:,:,itheta)=  &
-            sigm/sinh2kh*(dhdx*sxnth(itheta)-dhdy*cxsth(itheta)) + &
-            par%wci*(&
-            cxsth(itheta)*(sxnth(itheta)*dudx - cxsth(itheta)*dudy) + &
-            sxnth(itheta)*(sxnth(itheta)*dvdx - cxsth(itheta)*dvdy))
+    ! split wave velocities in wave grid directions theta
+    do j=1,ny+1
+       do i=1,nx+1
+          do itheta=1,ntheta
+            ! wave grid directions theta with respect to spatial grid s,n
+            cs=costh(i,j,itheta)
+            sn=sinth(i,j,itheta)
+            
+            ! split wave velocities over theta bins
+            cgx(i,j,itheta)= cg(i,j)*cs+wcifacu(i,j)
+            cgy(i,j,itheta)= cg(i,j)*sn+wcifacv(i,j)
+            cx(i,j,itheta) =  c(i,j)*cs+wcifacu(i,j)
+            cy(i,j,itheta) =  c(i,j)*sn+wcifacv(i,j)
+            
+            ! compute refraction velocity
+            ctheta(i,j,itheta)=                                             &
+            sigm(i,j)/sinh2kh(i,j)*(dhdx(i,j)*sn-dhdy(i,j)*cs) + par%wci*   &
+            ( cs*(sn*dudx(i,j) - cs*dudy(i,j)) +                            &
+              sn*(sn*dvdx(i,j) - cs*dvdy(i,j)) )
+          enddo
+       enddo
     enddo
     !
     ! transform to wave action
@@ -260,8 +271,10 @@ contains
     !
     ! Upwind Euler timestep propagation
     !
-    call advecxho(ee,cgx,xadvec,nx,ny,ntheta,xz,par%dt,par%scheme)
-    call advecyho(ee,cgy,yadvec,nx,ny,ntheta,yz,par%dt,par%scheme)
+    call advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,par%dt,par%scheme)
+    if (ny>0) then
+      call advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,par%dt,par%scheme)
+    endif
     call advectheta(ee*ctheta,thetaadvec,nx,ny,ntheta,dtheta)
     !
     ee=ee-par%dt*(xadvec+yadvec+thetaadvec)
@@ -270,7 +283,6 @@ contains
     !
     ee = ee*sigt
     ee=max(ee,0.0d0) !Jaap
-
     !
     ! Energy integrated over wave directions,Hrms
     !
@@ -290,9 +302,13 @@ contains
     else if (trim(par%break) == 'roelvink_daly') then
        cgxm = c*dcos(tm) 
        cgym = c*dsin(tm)
-       call advecqx(cgxm,Qb,xwadvec,nx,ny,xz)
-       call advecqy(cgym,Qb,ywadvec,nx,ny,yz)
-       Qb=Qb-par%dt*(xwadvec+ywadvec)
+       call advecqx(cgxm,Qb,xwadvec,nx,ny,dsu)
+       if (ny>0) then
+         call advecqy(cgym,Qb,ywadvec,nx,ny,dnv)
+         Qb=Qb-par%dt*(xwadvec+ywadvec)
+       else
+         Qb=Qb-par%dt*xwadvec
+       endif
        call roelvink(par,s,km)        
     endif
     ! Dissipation by bed friction
@@ -321,8 +337,10 @@ contains
     !
     ! calculate roller energy balance
     !
-    call advecxho(rr,cx,xradvec,nx,ny,ntheta,xz,par%dt,par%scheme)
-    call advecyho(rr,cy,yradvec,nx,ny,ntheta,yz,par%dt,par%scheme)
+    call advecxho(rr,cx,xradvec,nx,ny,ntheta,dnu,dsu,dsdnzi,par%dt,par%scheme)
+    if (ny>0) then
+       call advecyho(rr,cy,yradvec,nx,ny,ntheta,dsv,dnv,dsdnzi,par%dt,par%scheme)
+    endif
     call advectheta(rr*ctheta,thetaradvec,nx,ny,ntheta,dtheta)
 
     rr=rr-par%dt*(xradvec+yradvec+thetaradvec)
@@ -336,11 +354,10 @@ contains
              if(wete(i,j,itheta)==1) then
                 ee(i,j,itheta)=ee(i,j,itheta)-par%dt*dd(i,j,itheta)
                 if(par%roller==1) then
-                   rr(i,j,itheta)=rr(i,j,itheta)+par%dt*dd(i,j,itheta)           &
-                        -par%dt*2*par%g*BR(i,j)*rr(i,j,itheta)        &
-                        /sqrt(cx(i,j,itheta)**2+cy(i,j,itheta)**2)
-                   drr(i,j,itheta) = 2*par%g*BR(i,j)*max(rr(i,j,itheta),0.0d0)/   &
+				   drr(i,j,itheta) = 2*par%g*BR(i,j)*max(rr(i,j,itheta),0.0d0)/   &
                         sqrt(cx(i,j,itheta)**2 +cy(i,j,itheta)**2)
+                   rr(i,j,itheta)=rr(i,j,itheta)+par%dt*(dd(i,j,itheta)           &
+                        -drr(i,j,itheta))
                 else if (par%roller==0) then
                    rr(i,j,itheta)= 0.0d0
                    drr(i,j,itheta)= 0.0d0
@@ -364,14 +381,18 @@ contains
     ! get valid values for ee(nx+1,:,:) and rr(nx+1,:,:) from
     ! the neighbour below. We cannot postpone this until this
     ! subroutine ends, because ee and rr are used in this subroutine
-    ee(nx+1,:,:) =ee(nx,:,:)
-    rr(nx+1,:,:) =rr(nx,:,:)
+    
+    if (xmpi_isbot) then
+      ee(nx+1,:,:) =ee(nx,:,:)
+      rr(nx+1,:,:) =rr(nx,:,:)
+    endif
 #ifdef USEMPI
     call xmpi_shift(ee,'m:')  ! fill in ee(nx+1,:,:)
     call xmpi_shift(rr,'m:')  ! fill in rr(nx+1,:,:)
 #endif
 
     if (par%t>0.0d0) then
+      if (ny>0) then
        if (xmpi_isleft)then ! Jaap
           if (trim(par%rightwave)=='neumann') then
              !
@@ -379,20 +400,20 @@ contains
              !
              ee(2:nx+1,1,:)=ee(2:nx+1,2,:)
              rr(2:nx+1,1,:)=rr(2:nx+1,2,:)
-          elseif (trim(par%rightwave)=='wavecrest') then
-             wcrestpos=xz+tan(thetamean(:,2))*(yz(2)-yz(1))
-             do itheta=1,ntheta
-                do i=1,nx+1
-                   call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-                        (/ee(1,2,itheta),ee(:,2,itheta),ee(nx+1,2,itheta)/),&
-                        nx+1,xz(i),ee(i,1,itheta),dummy)
-                   call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-                        (/rr(1,2,itheta),rr(:,2,itheta),rr(nx+1,2,itheta)/),&
-                        nx+1,xz(i),rr(i,1,itheta),dummy)
-                   ee(i,1,itheta)=max(ee(i,1,itheta),0.d0)
-                   rr(i,1,itheta)=max(rr(i,1,itheta),0.d0)
-                enddo
-             enddo
+         ! elseif (trim(par%rightwave)=='wavecrest') then
+         !    wcrestpos=xz+tan(thetamean(:,2))*(yz(2)-yz(1))
+         !    do itheta=1,ntheta
+         !       do i=1,nx+1
+         !          call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+         !               (/ee(1,2,itheta),ee(:,2,itheta),ee(nx+1,2,itheta)/),&
+         !               nx+1,xz(i),ee(i,1,itheta),dummy)
+         !          call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+         !               (/rr(1,2,itheta),rr(:,2,itheta),rr(nx+1,2,itheta)/),&
+         !               nx+1,xz(i),rr(i,1,itheta),dummy)
+         !          ee(i,1,itheta)=max(ee(i,1,itheta),0.d0)
+         !          rr(i,1,itheta)=max(rr(i,1,itheta),0.d0)
+         !       enddo
+         !    enddo
           endif
        endif
        if (xmpi_isright)then
@@ -400,25 +421,26 @@ contains
              !
              ! lateral; boundary at y=ny*dy
              !
-             ee(2:nx+1,ny+1,:)=ee(2:nx+1,ny+1-1,:)
-             rr(2:nx+1,ny+1,:)=rr(2:nx+1,ny+1-1,:)
-          elseif (trim(par%leftwave)=='wavecrest') then
-             wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
-             do itheta=1,ntheta
-                do i=1,nx+1
-                   call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-                        (/ee(1,ny,itheta),ee(:,ny,itheta),ee(nx+1,ny,itheta)/),&
-                        nx+1,xz(i),ee(i,ny+1,itheta),dummy)
-                   call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-                        (/rr(1,ny,itheta),rr(:,ny,itheta),rr(nx+1,ny,itheta)/),&
-                        nx+1,xz(i),rr(i,ny+1,itheta),dummy)
-                   ee(i,ny+1,itheta)=max(ee(i,ny+1,itheta),0.d0)
-                   rr(i,ny+1,itheta)=max(rr(i,ny+1,itheta),0.d0)
-                enddo
-             enddo
+             ee(2:nx+1,ny+1,:)=ee(2:nx+1,ny,:)
+             rr(2:nx+1,ny+1,:)=rr(2:nx+1,ny,:)
+          !elseif (trim(par%leftwave)=='wavecrest') then
+          !   wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
+          !   do itheta=1,ntheta
+          !      do i=1,nx+1
+          !         call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+          !              (/ee(1,ny,itheta),ee(:,ny,itheta),ee(nx+1,ny,itheta)/),&
+          !              nx+1,xz(i),ee(i,ny+1,itheta),dummy)
+          !         call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+          !              (/rr(1,ny,itheta),rr(:,ny,itheta),rr(nx+1,ny,itheta)/),&
+          !              nx+1,xz(i),rr(i,ny+1,itheta),dummy)
+          !         ee(i,ny+1,itheta)=max(ee(i,ny+1,itheta),0.d0)
+          !         rr(i,ny+1,itheta)=max(rr(i,ny+1,itheta),0.d0)
+          !      enddo
+          !   enddo
           endif
        endif
     endif
+  endif
     ! wwvv communicate ee(:,1,:)
 #ifdef USEMPI
     call xmpi_shift(ee,':1')
@@ -442,33 +464,46 @@ contains
     DR = sum(drr,3)*dtheta
     H  = sqrt(E/par%rhog8)
     waverr=sum(abs(H-hrmsold))/((nx+1)*(ny+1))
-    !    write(*,*)'waverr=',waverr,'t = ',par%t
+    !    write(*,*)'waverr=',par%waverr,'t = ',par%t
     !
     ! Radiation stresses and forcing terms
     !
     ! n=cg/c   (Robert: calculated earlier in dispersion relation)
-    Sxx=(n*sum((1.d0+(costhet)**2)*ee,3)-.5d0*sum(ee,3))*dtheta
-    Syy=(n*sum((1.d0+(sinthet)**2)*ee,3)-.5d0*sum(ee,3))*dtheta
-    Sxy=n*sum(sinthet*costhet*ee,3)*dtheta
+    Sxx=(n*sum((1.d0+costh**2)*ee,3)-.5d0*sum(ee,3))*dtheta
+    Syy=(n*sum((1.d0+sinth**2)*ee,3)-.5d0*sum(ee,3))*dtheta
+    Sxy=n*sum(sinth*costh*ee,3)*dtheta
 
     ! add roller contribution
-    Sxx = Sxx + sum((costhet**2)*rr,3)*dtheta
-    Syy = Syy + sum((sinthet**2)*rr,3)*dtheta
-    Sxy = Sxy + sum(sinthet*costhet*rr,3)*dtheta
 
-    do j=2,ny
-       do i=1,nx
-          Fx(i,j)=-(Sxx(i+1,j)-Sxx(i,j))/(xz(i+1)-xz(i))                                   &
-               -0.5*(Sxy(i,j+1)+Sxy(i+1,j+1)- Sxy(i,j-1)-Sxy(i+1,j-1))/(yz(j+1)-yz(j-1))
-       enddo
-    enddo
+    Sxx = Sxx + sum((costh**2)*rr,3)*dtheta
+    Syy = Syy + sum((costh**2)*rr,3)*dtheta
+    Sxy = Sxy + sum(sinth*costh*rr,3)*dtheta
 
-    do j=1,ny
-       do i=2,nx
-          Fy(i,j)=-(Syy(i,j+1)-Syy(i,j))/(yz(j+1)-yz(j))                                  &
-               -0.5d0*(Sxy(i+1,j)+Sxy(i+1,j+1)-Sxy(i-1,j)-Sxy(i-1,j+1))/(xz(i+1)-xz(i-1))
+    if (ny>0) then
+       do j=2,ny 
+          do i=1,nx
+             Fx(i,j)=-(Sxx(i+1,j)-Sxx(i,j))/dsu(i,j)                        &
+                     -(Sxy(i,j+1)+Sxy(i+1,j+1)-Sxy(i,j-1)-Sxy(i+1,j-1))/    &
+                      (dnv(i,j-1)+dnv(i,j)+dnv(i+1,j-1)+dnv(i+1,j))
+          enddo
        enddo
-    enddo
+
+       do j=1,ny 
+          do i=2,nx
+             Fy(i,j)=-(Syy(i,j+1)-Syy(i,j))/dnv(i,j)            &
+                     -(Sxy(i+1,j)+Sxy(i+1,j+1)-Sxy(i-1,j)-Sxy(i-1,j+1))/                    &
+                      (dsu(i-1,j)+dsu(i,j)+dsu(i-1,j+1)+dsu(i,j+1))
+          enddo
+       enddo
+    else
+       j=1 
+          do i=1,nx
+             Fx(i,j)=-(Sxx(i+1,j)-Sxx(i,j))/dsu(i,j)          
+          enddo
+          do i=2,nx
+             Fy(i,j)=-(Sxy(i+1,j)-Sxy(i-1,j))/ (dsu(i-1,j)+dsu(i,j))
+          enddo
+   endif
     ! wwvv in the previous, Fx and Fy are computed. The missing elements
     !  elements are Fx(:,1), Fx(nx+1,:), Fx(:,ny+1)
     !               Fy(1,:), Fy(nx+1,:), Fy(:,ny+1)
@@ -495,14 +530,15 @@ contains
        Fx(nx+1,:) = 0.0d0
        Fy(nx+1,:) = 0.0d0
     endif
-    if(xmpi_isleft) then 
+    if(xmpi_isleft .and. ny>0) then 
        ! Robert: Fix Neumann assumption for wave forcing on boudary, even if ee not Neumanned
        Fx(:,1)=Fx(:,2)     
        Fy(:,1)=Fy(:,2)
        where (Fy(:,1)>0.d0) Fy(:,1)=0.d0;
     endif
-    if (xmpi_isright) then
+    if (xmpi_isright .and. ny>0) then
        Fy(:,ny+1)=Fy(:,ny)   ! only a dummy point in non mpi
+       Fx(:,ny+1)=Fx(:,ny)   ! only a dummy point in non mpi
        where (Fy(:,ny+1)<0.d0) Fy(:,ny+1)=0.d0;
     endif
 
@@ -512,8 +548,8 @@ contains
     !   urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*max(hh,par%delta*H)))
 
     ustw= E/max(c,sqrt(par%hmin*par%g))/par%rho/max(hh,par%hmin)   ! Jaap
-    uwf = ustw*cos(tm)
-    vwf = ustw*sin(tm)
+    uwf = ustw*cos(tm-alfaz)
+    vwf = ustw*sin(tm-alfaz)
     ! roller contribution
     ustr=2.*R/max(c,sqrt(par%hmin*par%g))/par%rho/max(hh,par%hmin) ! Jaap
     ! introduce breaker delay
@@ -528,10 +564,10 @@ contains
     if(xmpi_istop) then
        ust(1,:) = ust(2,:)
     endif
-    if(xmpi_isleft) then
+    if(xmpi_isleft.and.ny>0) then
        ust(:,1) = ust(:,2)
     endif
-    if(xmpi_isright) then
+    if(xmpi_isright.and. ny>0) then
        ust(:,ny+1) = ust(:,ny)
     endif
 
@@ -543,14 +579,14 @@ contains
   end subroutine wave_timestep
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-subroutine slope2D(h,nx,ny,x,y,dhdx,dhdy)
+subroutine slope2D(h,nx,ny,dsu,dnv,dhdx,dhdy)
 use xmpi_module
 IMPLICIT NONE
 
 integer                           :: i,j,nx,ny
 real*8, dimension(nx+1,ny+1)      :: h,dhdx,dhdy
-real*8, dimension(nx+1)           :: x
-real*8, dimension(ny+1)           :: y
+real*8, dimension(nx+1,ny+1)           :: dsu
+real*8, dimension(nx+1,ny+1)           :: dnv
 
 
 ! wwvv dhdx(2:nx,:) is computed, dhdx(1,:) and dhdx(nx+1,:) 
@@ -561,10 +597,10 @@ real*8, dimension(ny+1)           :: y
 do j=1,ny+1
     if(nx+1>=2)then
       do i=2,nx
-          dhdx(i,j)=(h(i+1,j)-h(i-1,j))/(x(i+1)-x(i-1))
+          dhdx(i,j)=(h(i+1,j)-h(i-1,j))/(dsu(i,j)+dsu(i-1,j))
       end do  
-      dhdx(1,j)=(h(2,j)-h(1,j))/(x(2)-x(1))
-      dhdx(nx+1,j)=(h(nx+1,j)-h(nx,j))/(x(nx+1)-x(nx))
+      dhdx(1,j)=(h(2,j)-h(1,j))/dsu(1,j)
+      dhdx(nx+1,j)=(h(nx+1,j)-h(nx,j))/dsu(nx,j)
     end if
 end do
 #ifdef USEMPI
@@ -575,10 +611,10 @@ call xmpi_shift(dhdx,'1:')  ! fill in dhdx(1,:)
 do i=1,nx+1
     if(ny+1>=2)then
       do j=2,ny
-          dhdy(i,j)=(h(i,j+1)-h(i,j-1))/(y(j+1)-y(j-1))
+          dhdy(i,j)=(h(i,j+1)-h(i,j-1))/(dnv(i,j)+dnv(i,j-1))
       end do
-      dhdy(i,1)=(h(i,2)-h(i,1))/(y(2)-y(1))
-      dhdy(i,ny+1)=(h(i,ny+1)-h(i,ny))/(y(ny+1)-y(ny))
+      dhdy(i,1)=(h(i,2)-h(i,1))/dnv(i,1)
+      dhdy(i,ny+1)=(h(i,ny+1)-h(i,ny))/dnv(i,ny)
     end if
 end do
 
@@ -590,293 +626,174 @@ end subroutine slope2D
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-subroutine advecx(arrin,xadvec,nx,ny,ntheta,xz)
-use xmpi_module
+subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,dt,scheme)
 
-IMPLICIT NONE
-
-integer                                         :: i,j,nx,ny,ntheta
-integer                                         :: itheta
-real*8 , dimension(nx+1)                        :: xz
-real*8 , dimension(nx+1,ny+1,ntheta)            :: xadvec,arrin
-real*8                                          :: dxmin_i,dxplus_i,dxcent_i
-
-xadvec = 0.d0
-
-do itheta=1,ntheta
-    do i=2,nx
-        dxmin_i  = 1.d0/(xz(i)-xz(i-1))
-        dxplus_i = 1.d0/(xz(i+1)-xz(i))
-        dxcent_i = 1.d0/(xz(i+1)-xz(i-1))
-        do j=1,ny+1
-           if (arrin(i,j,itheta)>0) then
-              xadvec(i,j,itheta)=(arrin(i,j,itheta)-arrin(i-1,j,itheta))*dxmin_i
-           elseif (arrin(i,j,itheta)<0) then
-              xadvec(i,j,itheta)=(arrin(i+1,j,itheta)-arrin(i,j,itheta))*dxplus_i
-           else
-              xadvec(i,j,itheta)=(arrin(i+1,j,itheta)-arrin(i-1,j,itheta))*dxcent_i
-           endif
-        end do
-    end do
-end do
-! wwvv xadvec(1,:,:) and xadvec(nx+1,:,:) are not determined, in the parallel
-! case this is not desirable. We copy these rows from top and bot neighbours
-!
-! However:
-! wwvv todo: the parameters are somewhat misleading, not always is nx the
-! nx from spaceparams, so this correction is not desirable here
-! The same for the other advec subroutines. I commented the xmpi_shift
-! calls out. ( it seems that nx is always 2)
-!
-!#ifdef USEMPI
-!call xmpi_shift(xadvec,'m:')  ! fill in xadvec(nx+1,:,:)
-!call xmpi_shift(xadvec,'1:')  ! fill in xadvec(1,:,:)
-!#endif
-
-end subroutine advecx
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,xz,dt,scheme)
-
-  use xmpi_module
   IMPLICIT NONE
 
   integer                                         :: i,j,nx,ny,ntheta
   character(len=*), intent(in)                    :: scheme
+  character(len=10)                               :: scheme_now
   integer                                         :: itheta
-  real*8 , dimension(nx+1)                        :: xz
-  real*8 , dimension(nx+1,ny+1,ntheta)            :: xadvec,ee,arrin,cgx
-  real*8                                          :: dt
+  real*8 , dimension(nx+1,ny+1)                   :: dnu,dsu,dsdnzi,fluxx
+  real*8 , dimension(nx+1,ny+1,ntheta)            :: xadvec,ee,cgx
+  real*8                                          :: dt,cgxu,eupw
 
   integer                                         :: istart, iend
 
   xadvec = 0.d0
-  arrin=ee*cgx
+  fluxx  = 0.d0
 
 
-  do itheta=1,ntheta
-     select case (trim(scheme))
-     case('upwind_1')   ! Upwind everywhere
-        do j=1,ny+1
-           do i=2,nx
-              call upwind1(xadvec(i,j,itheta),arrin(i-1:i+1,j,itheta),xz(i-1:i+1))
+  ! split into schemes first, less split loops -> more efficiency 
+  scheme_now=scheme
+  select case(trim(scheme_now))
+     case('upwind_1')
+        do itheta=1,ntheta
+           do j=1,ny+1
+              do i=1,nx  ! Whole domain
+                 cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
+                 if (cgxu>0) then
+                    fluxx(i,j)=ee(i,j,itheta)*cgxu*dnu(i,j)
+                 else
+                    fluxx(i,j)=ee(i+1,j,itheta)*cgxu*dnu(i,j)
+                 endif
+              enddo
+           enddo
+           do j=1,ny+1  ! 
+              do i=2,nx 
+                 xadvec(i,j,itheta)=(fluxx(i,j)-fluxx(i-1,j))*dsdnzi(i,j)
+              enddo
            enddo
         enddo
-     case('lax_wendroff')   ! Lax Wendroff
-        if(xmpi_istop) then
+     case('upwind_2')
+        do itheta=1,ntheta
            do j=1,ny+1
-              i=2
-              ! this deserves special attention in the parallel case,
-              ! only meaningful at the top processes row
-              call upwind1(xadvec(i,j,itheta),arrin(i-1:i+1,j,itheta),xz(i-1:i+1))
-           end do
-        endif
-        if (xmpi_istop) then
-           istart = 3   ! wwvv take care for parallel case
-        else
-           istart = 2
-        endif
-        if (xmpi_isbot) then
-           iend = nx-1
-        else
-           iend = nx
-        endif
-        do i=istart,iend     ! wwvv
-           do j=1,ny+1
-              call laxwend(xadvec(i,j,itheta),ee(i-1:i+1,j,itheta),cgx(i-1:i+1,j,itheta),xz(i-1:i+1),dt)
+              do i=2,nx-1
+                 cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
+                 if (cgxu>0) then
+                     eupw=((dsu(i,j)+.5*dsu(i-1,j))*ee(i,j,itheta)-.5*dsu(i-1,j)*ee(i-1,j,itheta))/dsu(i-1,j)
+                     if (eupw<0.d0) eupw=ee(i,j,itheta)
+                     fluxx(i,j)=eupw*cgxu*dnu(i,j)
+                 else
+                     eupw=((dsu(i+1,j)+.5*dsu(i+2,j))*ee(i+1,j,itheta)-.5*dsu(i+2,j)*ee(i+2,j,itheta))/dsu(i+1,j)
+                     if (eupw<0.d0) eupw=ee(i+1,j,itheta)
+                     fluxx(i,j)=eupw*cgxu*dnu(i,j)
+                 endif
+              enddo
+              i=1   ! only compute for i==1
+              cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
+              if (cgxu>0) then
+                 fluxx(i,j)=ee(i,j,itheta)*cgxu*dnu(i,j)
+              else
+                 eupw=((dsu(i+1,j)+.5*dsu(i+2,j))*ee(i+1,j,itheta)-.5*dsu(i+2,j)*ee(i+2,j,itheta))/dsu(i+1,j)
+                 if (eupw<0.d0) eupw=ee(i+1,j,itheta)
+                 fluxx(i,j)=eupw*cgxu*dnu(i,j)
+              endif
+              i=nx  ! only compute for i==nx
+              cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
+              if (cgxu>0) then
+                 eupw=((dsu(i,j)+.5*dsu(i-1,j))*ee(i,j,itheta)-.5*dsu(i-1,j)*ee(i-1,j,itheta))/dsu(i-1,j)
+                 if (eupw<0.d0) eupw=ee(i,j,itheta)
+                 fluxx(i,j)=eupw*cgxu*dnu(i,j)
+              else
+                 fluxx(i,j)=ee(i+1,j,itheta)*cgxu*dnu(i,j)
+              endif
+           enddo
+           do j=1,ny+1  ! 
+              do i=2,nx 
+                 xadvec(i,j,itheta)=(fluxx(i,j)-fluxx(i-1,j))*dsdnzi(i,j)
+              enddo
            enddo
         enddo
-        if(xmpi_isbot) then
-           do j=1,ny+1
-              i=nx
-              ! this deserves special attention in the parallel case,
-              ! only meaningful at the bottom processes row
-              call upwind1(xadvec(i,j,itheta),arrin(i-1:i+1,j,itheta),xz(i-1:i+1))
-           end do
-        endif
-     case('upwind_2')   ! Second order upwind
-        do j=1,ny+1
-           i=2
-           call upwind1(xadvec(i,j,itheta),arrin(i-1:i+1,j,itheta),xz(i-1:i+1))
-           do i=3,nx-1
-              call upwind2(xadvec(i,j,itheta),arrin(i-2:i+2,j,itheta),xz(i-2:i+2))
-           enddo
-           i=nx
-           call upwind1(xadvec(i,j,itheta),arrin(i-1:i+1,j,itheta),xz(i-1:i+1))
-        enddo
-     end select
-  enddo
-
-  ! Robert, necessary if the model has an open boundary at the back
-  if(xmpi_isbot) then
-     xadvec(nx+1,:,:) = xadvec(nx,:,:)
-  endif
+  end select
 
 end subroutine advecxho
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-subroutine advecy(arrin,yadvec,nx,ny,ntheta,yz)
-
-use xmpi_module
-IMPLICIT NONE
-
-integer                                         :: i,j,nx,ny,ntheta
-integer                                         :: itheta
-real*8 ,  dimension(ny+1)                       :: yz
-real*8 ,  dimension(nx+1,ny+1,ntheta)           :: yadvec,arrin
-real*8                                          :: dymin_i,dyplus_i,dycent_i
-
-yadvec = 0.d0
-
-do itheta=1,ntheta
-    do j=2,ny
-        dymin_i  = 1.d0/(yz(j)-yz(j-1))
-        dyplus_i = 1.d0/(yz(j+1)-yz(j))
-        dycent_i = 1.d0/(yz(j+1)-yz(j-1))
-        do i=1,nx+1
-           if (arrin(i,j,itheta)>0) then
-              yadvec(i,j,itheta)=(arrin(i,j,itheta)-arrin(i,j-1,itheta))*dymin_i
-           elseif (arrin(i,j,itheta)<0) then
-              yadvec(i,j,itheta)=(arrin(i,j+1,itheta)-arrin(i,j,itheta))*dyplus_i
-           else
-              yadvec(i,j,itheta)=(arrin(i,j+1,itheta)-arrin(i,j-1,itheta))*dycent_i
-           endif
-        end do
-    end do
-end do
-! lateral boundaries
-do itheta=1,ntheta
-   do i=1,nx+1
-      if (arrin(i,ny+1,itheta)>0) then
-             yadvec(i,ny+1,itheta)=(arrin(i,ny+1,itheta)-arrin(i,ny,itheta))*(1.d0/(yz(ny+1)-yz(ny)))
-      elseif (arrin(i,ny+1,itheta)<=0) then
-             yadvec(i,ny+1,itheta) = yadvec(i,ny,itheta)
-      elseif (arrin(i,1,itheta)>=0) then
-             yadvec(i,1,itheta)=yadvec(i,2,itheta) 
-      elseif (arrin(i,1,itheta)<0) then
-             yadvec(i,1,itheta)=(arrin(i,2,itheta)-arrin(i,1,itheta))*(1.d0/(yz(2)-yz(1)))
-      endif
-   enddo
-enddo
-                 
-!yadvec(:,1,:)=yadvec(:,2,:)             !Ap
-!yadvec(:,ny+1,:) = yadvec(:,ny,:)       !Ap
-
-! wwvv: I guess that in the parallel case the first and last columns of yadvec
-! have to be copied from neighbours
-
-! It seems that this routine is always called with nx = 0
-
-#ifdef USEMPI
-call xmpi_shift(yadvec,':n')  ! fill in yadvec(:,nx+1,:)
-call xmpi_shift(yadvec,':1')  ! fill in yadvec(:,1,:)
-#endif
-
-end subroutine advecy
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,yz,dt,scheme)
-  use xmpi_module
+subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,dt,scheme)
 
   IMPLICIT NONE
 
   integer                                         :: i,j,nx,ny,ntheta
   character(len=*), intent(in)                    :: scheme
+  character(len=10)                               :: scheme_now
   integer                                         :: itheta
-  real*8 ,  dimension(ny+1)                       :: yz
-  real*8 ,  dimension(nx+1,ny+1,ntheta)           :: yadvec,ee,arrin,cgy
-  real*8                                          :: dt
+  real*8 ,  dimension(nx+1,ny+1)                  :: dsv,dnv,dsdnzi,fluxy
+  real*8 ,  dimension(nx+1,ny+1,ntheta)           :: yadvec,ee,cgy
+  real*8                                          :: dt,cgyv,eupw
 
   integer                                         :: jstart, jend
 
   yadvec = 0.d0
-  arrin=ee*cgy
+  fluxy  = 0.d0
 
-  do itheta=1,ntheta
-     select case (trim(scheme))
-     case('upwind_1')   ! Upwind everywhere
-        do j=2,ny
-           do i=1,nx+1
-              call upwind1(yadvec(i,j,itheta),arrin(i,j-1:j+1,itheta),yz(j-1:j+1))
+  ! split into schemes first, less split loops -> more efficiency 
+  scheme_now=scheme
+  select case(trim(scheme_now))
+     case('upwind_1')
+        do itheta=1,ntheta
+           do j=1,ny  
+              do i=1,nx+1  ! Whole domain
+                 cgyv=.5*(cgy(i,j+1,itheta)+cgy(i,j,itheta))
+                 if (cgyv>0) then
+                    fluxy(i,j)=ee(i,j,itheta)*cgyv*dsv(i,j)
+                 else
+                    fluxy(i,j)=ee(i,j+1,itheta)*cgyv*dsv(i,j)
+                 endif
+              enddo
+           enddo
+           do j=2,ny
+              do i=1,nx+1 
+                 yadvec(i,j,itheta)=(fluxy(i,j)-fluxy(i,j-1))*dsdnzi(i,j)
+              enddo
            enddo
         enddo
-     case('lax_wendroff')   ! Lax Wendroff
-        if(xmpi_isleft) then
+     case('upwind_2')
+        do itheta=1,ntheta
+           do j=2,ny-1  
+              do i=1,nx+1
+                 cgyv=.5*(cgy(i,j+1,itheta)+cgy(i,j,itheta))
+                 if (cgyv>0) then
+                    eupw=((dnv(i,j)+.5*dnv(i,j-1))*ee(i,j,itheta)-.5*dnv(i,j-1)*ee(i,j-1,itheta))/dnv(i,j-1)
+                    if (eupw<0.d0) eupw=ee(i,j,itheta)
+                    fluxy(i,j)=eupw*cgyv*dsv(i,j)
+                 else
+                    eupw=((dnv(i,j+1)+.5*dnv(i,j+2))*ee(i,j+1,itheta)-.5*dnv(i,j+2)*ee(i,j+2,itheta))/dnv(i,j+1)
+                    if (eupw<0.d0) eupw=ee(i,j+1,itheta)
+                    fluxy(i,j)=eupw*cgyv*dsv(i,j)
+                 endif
+              enddo
+           enddo
+           j=1   ! only compute for j==1
            do i=1,nx+1
-              j=2
-              ! this deserves special attention in the parallel case,
-              ! only meaningful at the top processes row
-              call upwind1(yadvec(i,j,itheta),arrin(i,j-1:j+1,itheta),yz(j-1:j+1))
-           end do
-        endif
-        if (xmpi_isleft) then
-           jstart = 3   ! wwvv take care for parallel case
-        else
-           jstart = 2
-        endif
-        if (xmpi_isright) then
-           jend = ny-1
-        else
-           jend = ny
-        endif
-        do j=jstart,jend
+              cgyv=.5*(cgy(i,j+1,itheta)+cgy(i,j,itheta))
+              if (cgyv>0) then
+                 fluxy(i,j)=ee(i,j,itheta)*cgyv*dsv(i,j)
+              else
+                 eupw=((dnv(i,j+1)+.5*dnv(i,j+2))*ee(i,j+1,itheta)-.5*dnv(i,j+2)*ee(i,j+2,itheta))/dnv(i,j+1)
+                 if (eupw<0.d0) eupw=ee(i,j+1,itheta)
+                 fluxy(i,j)=eupw*cgyv*dsv(i,j)
+              endif
+           enddo
+           j=ny ! only compute for j==ny
            do i=1,nx+1
-              call laxwend(yadvec(i,j,itheta),ee(i,j-1:j+1,itheta),cgy(i,j-1:j+1,itheta),yz(j-1:j+1),dt)
+              cgyv=.5*(cgy(i,j+1,itheta)+cgy(i,j,itheta))
+              if (cgyv>0) then
+                 eupw=((dnv(i,j)+.5*dnv(i,j-1))*ee(i,j,itheta)-.5*dnv(i,j-1)*ee(i,j-1,itheta))/dnv(i,j-1)
+                 if (eupw<0.d0) eupw=ee(i,j,itheta)
+                 fluxy(i,j)=eupw*cgyv*dsv(i,j)
+              else
+                 fluxy(i,j)=ee(i,j+1,itheta)*cgyv*dsv(i,j)
+              endif
+           enddo
+           do j=2,ny
+              do i=1,nx+1 
+                 yadvec(i,j,itheta)=(fluxy(i,j)-fluxy(i,j-1))*dsdnzi(i,j)
+              enddo
            enddo
         enddo
-        if(xmpi_isright) then
-           do i=1,nx+1
-              j=ny
-              ! this deserves special attention in the parallel case,
-              ! only meaningful at the bottom processes row
-              call upwind1(yadvec(i,j,itheta),arrin(i,j-1:j+1,itheta),yz(j-1:j+1))
-           end do
-        endif
-     case('upwind_2')   ! Second order upwind
-        j = 2
-        do i=1,nx+1
-           call upwind1(yadvec(i,j,itheta),arrin(i,j-1:j+1,itheta),yz(j-1:j+1))
-        enddo
-        do j=3,ny-1
-           do i=1,nx+1
-              call upwind2(yadvec(i,j,itheta),arrin(i,j-2:j+2,itheta),yz(j-2:j+2))
-           enddo
-        enddo
-        j=ny
-        do i=1,nx+1
-           call upwind1(yadvec(i,j,itheta),arrin(i,j-1:j+1,itheta),yz(j-1:j+1))
-        enddo
-     end select
-  enddo
-
-  ! lateral boundaries
-  do itheta=1,ntheta
-     do i=1,nx+1
-        if (arrin(i,ny+1,itheta)>0) then
-           if(xmpi_isright) then
-              yadvec(i,ny+1,itheta)=(arrin(i,ny+1,itheta)-arrin(i,ny,itheta))*(1.d0/(yz(ny+1)-yz(ny)))
-           endif
-        elseif (arrin(i,ny+1,itheta)<=0) then
-           if(xmpi_isright) then
-              yadvec(i,ny+1,itheta) = yadvec(i,ny,itheta)
-           endif
-        elseif (arrin(i,1,itheta)>=0) then    ! wwvv is this ok?
-           ! yadvec(i,1,itheta will not change if 
-           ! yadvec(i,ny+1,itheta) did change
-           if(xmpi_isleft) then
-              yadvec(i,1,itheta)=yadvec(i,2,itheta) 
-           endif
-        elseif (arrin(i,1,itheta)<0) then
-           if(xmpi_isleft) then
-              yadvec(i,1,itheta)=(arrin(i,2,itheta)-arrin(i,1,itheta))*(1.d0/(yz(2)-yz(1)))
-           endif
-        endif
-     enddo
-  enddo
+  end select
 
 end subroutine advecyho
 
@@ -913,14 +830,14 @@ end subroutine advectheta
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-subroutine advecwx(arrin2d,xwadvec,kmx,nx,ny,xz)
+subroutine advecwx(arrin2d,xwadvec,kmx,nx,ny,dsu)
 use xmpi_module
 
 IMPLICIT NONE
 
 integer                                         :: i,nx,ny
 integer                                         :: j
-real*8 , dimension(nx+1)                        :: xz
+real*8 , dimension(nx+1,ny+1)                   :: dsu
 real*8 , dimension(nx+1,ny+1)                   :: xwadvec,arrin2d,kmx
 
 xwadvec = 0.d0
@@ -928,11 +845,11 @@ xwadvec = 0.d0
 do j=2,ny
     do i=2,nx   
         if (kmx(i,j)>0) then
-           xwadvec(i,j)=(arrin2d(i,j)-arrin2d(i-1,j))/(xz(i)-xz(i-1))
+           xwadvec(i,j)=(arrin2d(i,j)-arrin2d(i-1,j))/dsu(i-1,j)
         elseif (kmx(i,j)<0) then
-           xwadvec(i,j)=(arrin2d(i+1,j)-arrin2d(i,j))/(xz(i+1)-xz(i))
+           xwadvec(i,j)=(arrin2d(i+1,j)-arrin2d(i,j))/dsu(i,j)
         else
-           xwadvec(i,j)=(arrin2d(i+1,j)-arrin2d(i-1,j))/(xz(i+1)-xz(i-1))
+           xwadvec(i,j)=(arrin2d(i+1,j)-arrin2d(i-1,j))/(dsu(i,j)+dsu(i-1,j))
         endif
     end do
 end do
@@ -951,14 +868,14 @@ end subroutine advecwx
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 
-subroutine advecwy(arrin2d,ywadvec,kmy,nx,ny,yz)
+subroutine advecwy(arrin2d,ywadvec,kmy,nx,ny,dnv)
 use xmpi_module
 use xmpi_module
 IMPLICIT NONE
 
 integer                                         :: i,nx,ny
 integer                                         :: j
-real*8 , dimension(ny+1)                        :: yz
+real*8 , dimension(nx+1,ny+1)                   :: dnv
 real*8 , dimension(nx+1,ny+1)                   :: ywadvec,arrin2d,kmy
 
 ywadvec = 0.d0
@@ -966,11 +883,11 @@ ywadvec = 0.d0
 do j=2,ny
     do i=2,nx
         if (kmy(i,j)>0) then
-           ywadvec(i,j)=(arrin2d(i,j)-arrin2d(i,j-1))/(yz(j)-yz(j-1))
+           ywadvec(i,j)=(arrin2d(i,j)-arrin2d(i,j-1))/dnv(i,j-1)
         elseif (kmy(i,j)<0) then
-           ywadvec(i,j)=(arrin2d(i,j+1)-arrin2d(i,j))/(yz(j+1)-yz(j))
+           ywadvec(i,j)=(arrin2d(i,j+1)-arrin2d(i,j))/dnv(i,j)
         else
-           ywadvec(i,j)=(arrin2d(i,j+1)-arrin2d(i,j-1))/(yz(j+1)-yz(j-1))
+           ywadvec(i,j)=(arrin2d(i,j+1)-arrin2d(i,j-1))/(dnv(i,j)+dnv(i,j-1))
         endif
     end do
 end do
@@ -989,14 +906,14 @@ end subroutine advecwy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-subroutine advecqx(c,arrin2d,xwadvec,nx,ny,xz)
+subroutine advecqx(c,arrin2d,xwadvec,nx,ny,dsu)
 use xmpi_module
 
 IMPLICIT NONE
 
 integer                                         :: i,nx,ny
 integer                                         :: j
-real*8 , dimension(nx+1)                        :: xz
+real*8 , dimension(nx+1,ny+1)                   :: dsu
 real*8 , dimension(nx+1,ny+1)                   :: xwadvec,arrin2d,c
 
 xwadvec = 0.d0
@@ -1004,11 +921,11 @@ xwadvec = 0.d0
 do j=2,ny
     do i=2,nx   
         if (c(i,j)>0) then
-           xwadvec(i,j)=c(i,j)*(arrin2d(i,j)-arrin2d(i-1,j))/(xz(i)-xz(i-1))
+           xwadvec(i,j)=c(i,j)*(arrin2d(i,j)-arrin2d(i-1,j))/dsu(i-1,j)
         elseif (c(i,j)<0) then
-           xwadvec(i,j)=c(i,j)*(arrin2d(i+1,j)-arrin2d(i,j))/(xz(i+1)-xz(i))
+           xwadvec(i,j)=c(i,j)*(arrin2d(i+1,j)-arrin2d(i,j))/dsu(i,j)
         else
-           xwadvec(i,j)=c(i,j)*(arrin2d(i+1,j)-arrin2d(i-1,j))/(xz(i+1)-xz(i-1))
+           xwadvec(i,j)=c(i,j)*(arrin2d(i+1,j)-arrin2d(i-1,j))/(dsu(i,j)+dsu(i-1,j))
         endif
     end do
 end do
@@ -1028,14 +945,14 @@ end subroutine advecqx
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 
-subroutine advecqy(c,arrin2d,ywadvec,nx,ny,yz)
+subroutine advecqy(c,arrin2d,ywadvec,nx,ny,dnv)
 use xmpi_module
 use xmpi_module
 IMPLICIT NONE
 
 integer                                         :: i,nx,ny
 integer                                         :: j
-real*8 , dimension(ny+1)                        :: yz
+real*8 , dimension(nx+1,ny+1)                   :: dnv
 real*8 , dimension(nx+1,ny+1)                   :: ywadvec,arrin2d,c
 
 ywadvec = 0.d0
@@ -1043,11 +960,11 @@ ywadvec = 0.d0
 do j=2,ny
     do i=2,nx
         if (c(i,j)>0) then
-           ywadvec(i,j)=c(i,j)*(arrin2d(i,j)-arrin2d(i,j-1))/(yz(j)-yz(j-1))
+           ywadvec(i,j)=c(i,j)*(arrin2d(i,j)-arrin2d(i,j-1))/dnv(i,j-1)
         elseif (c(i,j)<0) then
-           ywadvec(i,j)=c(i,j)*(arrin2d(i,j+1)-arrin2d(i,j))/(yz(j+1)-yz(j))
+           ywadvec(i,j)=c(i,j)*(arrin2d(i,j+1)-arrin2d(i,j))/dnv(i,j)
         else
-           ywadvec(i,j)=c(i,j)*(arrin2d(i,j+1)-arrin2d(i,j-1))/(yz(j+1)-yz(j-1))
+           ywadvec(i,j)=c(i,j)*(arrin2d(i,j+1)-arrin2d(i,j-1))/(dnv(i,j)+dnv(i,j-1))
         endif
     end do
 end do
@@ -1169,7 +1086,7 @@ do jy = 2,ny
     nbr=0
     Lbr = sqrt(par%g*hh(jx,jy))*par%Trep
     i=jx-1
-    do while (x(i,jy)>=(x(jx,jy)-Lbr).and. i>1)
+    do while (xz(i,jy)>=(xz(jx,jy)-Lbr).and. i>1)
         nbr = nbr+1
         i=i-1
     end do
@@ -1196,10 +1113,10 @@ endif
 if(xmpi_isbot) then
    usd(nx+1,:) = usd(nx,:)
 endif
-if(xmpi_isleft) then
+if(xmpi_isleft.and.ny>0) then
    usd(:,1) = usd(:,2)
 endif
-if(xmpi_isright) then
+if(xmpi_isright.and.ny>0) then
    usd(:,ny+1) = usd(:,ny)
 endif
 
@@ -1214,59 +1131,6 @@ call xmpi_shift(usd,':1')  ! fill in usd(:,1)
 
 
 end subroutine breakerdelay 
-
-
-subroutine upwind1(advec,arrin,posgrid)
-
-real*8,intent(out)             :: advec
-real*8,dimension(3),intent(in) :: arrin
-real*8,dimension(3),intent(in) :: posgrid
-
-advec = 0.d0
-
-if (arrin(2)>0.d0) then
-   advec = (arrin(2)-arrin(1))/(posgrid(2)-posgrid(1))
-elseif(arrin(2)<0.d0) then
-   advec = (arrin(3)-arrin(2))/(posgrid(3)-posgrid(2))
-else
-   advec = (arrin(3)-arrin(1))/(posgrid(3)-posgrid(1))
-endif
-
-end subroutine upwind1
-
-subroutine upwind2(advec,arrin,posgrid)
-
-real*8,intent(out)             :: advec
-real*8,dimension(5),intent(in) :: arrin
-real*8,dimension(5),intent(in) :: posgrid
-
-advec = 0.d0
-
-if (arrin(3)>0.d0) then
-   advec = (3*arrin(3)-4*arrin(2)+  arrin(1))/(posgrid(3)-posgrid(1))
-elseif(arrin(3)<0.d0) then
-   advec = ( -arrin(5)+4*arrin(4)-3*arrin(3))/(posgrid(5)-posgrid(3))
-else
-   advec = (arrin(4)-arrin(2))/(posgrid(4)-posgrid(2))
-endif
-
-end subroutine upwind2
-
-
-subroutine laxwend(advec,ee,cg,posgrid,dt)
-
-real*8,intent(out)             :: advec
-real*8,dimension(3),intent(in) :: ee,cg
-real*8,dimension(3),intent(in) :: posgrid
-real*8,intent(in)              :: dt
-
-advec = 0.d0
-
-advec = (ee(3)*cg(3)-ee(1)*cg(1))/(posgrid(3)-posgrid(1)) - &              ! advec = d(eecg)/dx - 0.5dt/dx^2 * ( eecg^2(1) - 2eecg^2(2) + eecg^2(3) )
-        0.5d0*dt/((posgrid(3)-posgrid(2))*(posgrid(2)-posgrid(1))) * &     ! 
-        (   ee(1)*cg(1)**2 - 2*ee(2)*cg(2)**2 + ee(3)*cg(3)**2  )          !
-
-end subroutine laxwend
 
 
 
