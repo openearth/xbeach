@@ -833,7 +833,6 @@ contains
     endif
     
 #ifdef USEMPI
-    call xmpi_bcast(s%adisch)
     call xmpi_bcast(s%pdisch)
     call xmpi_bcast(s%qdisch)
 #endif
