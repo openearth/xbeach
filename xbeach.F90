@@ -40,7 +40,6 @@ real*8                   :: tbegin,tend
 real*8                   :: t0,t01,t1
 #endif
 
-!character(len=155)       :: cwd ! for printing the working dir
 
 ! ----------------------------
 ! Initialize program
@@ -49,6 +48,7 @@ real*8                   :: t0,t01,t1
 ! autotools 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
+character(len=155)       :: cwd ! for printing the working dir
 #endif
 
 ! subversion information

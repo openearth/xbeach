@@ -522,7 +522,7 @@ contains
     ! left and right
     allocate(allowednames(4),oldnames(2))
     ! Dano/Jaap: changed defaults
-    allowednames=(/'neumann ','wall    ','no_advec','neumann_v    '/)
+    allowednames=(/'neumann  ','wall     ','no_advec ','neumann_v'/)
     oldnames=(/'0','1'/)
     par%left   = readkey_str('params.txt','left','neumann',4,2,allowednames,oldnames)
     par%right  = readkey_str('params.txt','right','neumann',4,2,allowednames,oldnames)

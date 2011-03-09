@@ -1213,10 +1213,8 @@ testbed:
 clean-local: clean-local-check
 .PHONY: clean-local-check
 clean-local-check:
-	rm -rf testbed
+	rm -rf testbed; \
 	rm -rf run
-	rm -rf testbed/tools/autotests/autotest_*
-	rm -rf testbed/tools/autotests/mpi_autotest_*
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

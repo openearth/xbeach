@@ -341,7 +341,9 @@ contains
        end do
     elseif (trim(par%instat)=='bichrom') then
        do j=1,ny+1
-          ee(1,j,:)=e01*0.5d0*(1.d0+cos(2*par%px*(par%t/par%Tlong-(sin(theta0)*(yz(1,j)-yz(1,1))+cos(theta0)*(xz(1,j)-xz(1,1)))/Llong))) *min(par%t/par%taper,1.d0)
+          ee(1,j,:)=e01*0.5d0 * &
+               & (1.d0+cos(2*par%px*(par%t/par%Tlong-(sin(theta0)*(yz(1,j)-yz(1,1))+cos(theta0)*(xz(1,j)-xz(1,1)))/Llong))) * &
+               & min(par%t/par%taper,1.d0)
           em = (sum(0.5d0*e01))*dtheta *min(par%t/par%taper,1.d0)
           ei =  sum(ee(1,j,1:ntheta))*dtheta
           bi(1) = -(2*cg(1,j)/c(1,j)-0.5d0)*(em-ei)/(cg(1,j)**2-par%g*hh(1,j))/par%rho
