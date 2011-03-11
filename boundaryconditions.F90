@@ -813,7 +813,7 @@ contains
 
                    if (par%carspan==1) then ! assuming incoming long wave propagates at sqrt(g*h)
                       ur = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
-                           *(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j)))&  !Jaap replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
+                           *(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j)))&  !Jaap in relation with V16 a factor 0.5*(ht(1,j)+ht(2,j)) disappeared
                            -ui(1,j)*(dcos(theta0)-1.d0)/dcos(theta0))   !Jaap replaced hh with hu
                    else                     ! assuming incoming long wave propagates at cg
                       ur = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
@@ -892,8 +892,8 @@ contains
        if (xmpi_isbot) then
           if (trim(par%back)=='wall') then ! leave uu(nx+1,:)=0 
              !  uu(nx,:) = 0.d0   
-             !    zs(nx+1,:) = zs(nx,:)
-             ! zs(nx+1,2:ny) = zs(nx+1,2:ny) + par%dt*hh(nx,2:ny)*uu(nx,2:ny)/(xu(nx+1)-xu(nx)) -par%dt*(hv(nx+1,2:ny+1)*vv(nx+1,2:ny+1)-hv(nx+1,1:ny)*vv(nx+1,1:ny))/(yv(2:ny+1)-yv(1:ny))
+             !  zs(nx+1,:) = zs(nx,:)
+             !  zs(nx+1,2:ny) = zs(nx+1,2:ny) + par%dt*hh(nx,2:ny)*uu(nx,2:ny)/(xu(nx+1)-xu(nx)) -par%dt*(hv(nx+1,2:ny+1)*vv(nx+1,2:ny+1)-hv(nx+1,1:ny)*vv(nx+1,1:ny))/(yv(2:ny+1)-yv(1:ny))
           elseif (trim(par%back)=='abs_1d') then
              !        umean(2,:) = factime*uu(nx,:)+(1.d0-factime)*umean(2,:) 
              ! After hack 3/6/2010, return to par%epsi :
