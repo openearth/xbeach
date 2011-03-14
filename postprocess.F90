@@ -171,8 +171,10 @@ contains
     
     ! fill variable alfazr3. We presume first 2 dimension are related to nx+1, ny+1 respectively
     ! Better double check    
-    if (size(s%alfaz,1) .ne. size(t%r3,1)) call writelog('ls', '', 'Assertion error, s%alfaz and t%r3 do not align on 1st dimension', size(s%alfaz,1), size(t%r3,1))
-    if (size(s%alfaz,2) .ne. size(t%r3,2)) call writelog('ls', '', 'Assertion error, s%alfaz and t%r3 do not align on 2nd dimension', size(s%alfaz,2), size(t%r3,2))
+    if (size(s%alfaz,1) .ne. size(t%r3,1)) call writelog('ls', '', &
+           & 'Assertion error, s%alfaz and t%r3 do not align on 1st dimension', size(s%alfaz,1), size(t%r3,1))
+    if (size(s%alfaz,2) .ne. size(t%r3,2)) call writelog('ls', '', & 
+           & 'Assertion error, s%alfaz and t%r3 do not align on 2nd dimension', size(s%alfaz,2), size(t%r3,2))
     ! This should be something like:
     ! alfazr3 = (/(s%alfaz, i=1,size(t%r3,3)) /)
     do i=1,size(t%r3,3)
