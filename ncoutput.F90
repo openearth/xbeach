@@ -209,7 +209,7 @@ contains
 
        ! define space & time variables
        ! grid
-       status = nf90_def_var(ncid, 'globalx', NF90_DOUBLE, (/ xdimid /), xvarid)
+       status = nf90_def_var(ncid, 'globalx', NF90_DOUBLE, (/ xdimid, ydimid /), xvarid)
        if (status /= nf90_noerr) call handle_err(status)
        status = nf90_put_att(ncid, xvarid, 'units', 'm')
        if (status /= nf90_noerr) call handle_err(status)
@@ -227,7 +227,7 @@ contains
           if (status /= nf90_noerr) call handle_err(status)
        end if
 
-       status = nf90_def_var(ncid, 'globaly', NF90_DOUBLE, (/ ydimid /), yvarid)
+       status = nf90_def_var(ncid, 'globaly', NF90_DOUBLE, (/ xdimid, ydimid /), yvarid)
        if (status /= nf90_noerr) call handle_err(status)
        status = nf90_put_att(ncid, yvarid, 'units', 'm')
        if (status /= nf90_noerr) call handle_err(status)
@@ -522,12 +522,13 @@ contains
        ! Grid
        j = chartoindex('xz')
        call indextos(s,j,t)
-       status = nf90_put_var(ncid, xvarid, t%r1)
+       
+       status = nf90_put_var(ncid, xvarid, t%r2)
        if (status /= nf90_noerr) call handle_err(status)
 
        j = chartoindex('yz')
        call indextos(s,j,t)
-       status = nf90_put_var(ncid, yvarid, t%r1)
+       status = nf90_put_var(ncid, yvarid, t%r2)
        if (status /= nf90_noerr) call handle_err(status)
 
        if (outputp) then
