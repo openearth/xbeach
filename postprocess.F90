@@ -5,6 +5,7 @@
 ! This module contains transformation routines from xbeach internal data structures to output data structures.
 
 module postprocessmod
+    implicit none
   interface gridrotate
      ! rotate grids, given s, t and outputs x
      module procedure gridrotate_r0
@@ -155,32 +156,48 @@ contains
   subroutine gridrotate_r3(s, t, x)
     use spaceparams
     use mnemmodule
+    use logging_module
 
+    implicit none
+    
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     real*8, dimension(:,:,:)      :: x
+    ! no need to allocate
+    real*8, dimension(size(s%alfaz,1), size(s%alfaz,2), size(t%r3,3)) :: alfazr3
     real*8                        :: pi
+    integer                       :: n3,i
     pi = 4*atan(1.0d0)
-
+    
+    ! fill variable alfazr3. We presume first 2 dimension are related to nx+1, ny+1 respectively
+    ! Better double check    
+    if (size(s%alfaz,1) .ne. size(t%r3,1)) call writelog('ls', '', 'Assertion error, s%alfaz and t%r3 do not align on 1st dimension', size(s%alfaz,1), size(t%r3,1))
+    if (size(s%alfaz,2) .ne. size(t%r3,2)) call writelog('ls', '', 'Assertion error, s%alfaz and t%r3 do not align on 2nd dimension', size(s%alfaz,2), size(t%r3,2))
+    ! This should be something like:
+    ! alfazr3 = (/(s%alfaz, i=1,size(t%r3,3)) /)
+    do i=1,size(t%r3,3)
+        alfazr3(:,:,i) = s%alfaz
+    end do  
+    
     select case(t%name)
     case(mnem_cgx)
-       x=t%r3*cos(s%alfaz)-s%cgy*sin(s%alfaz)
+       x=t%r3*cos(alfazr3)-s%cgy*sin(alfazr3)
     case(mnem_cgy)
-       x=s%cgx*sin(s%alfaz)+t%r3*cos(s%alfaz)
+       x=s%cgx*sin(alfazr3)+t%r3*cos(alfazr3)
     case(mnem_cx)
-       x=t%r3*cos(s%alfaz)-s%cy*sin(s%alfaz)
+       x=t%r3*cos(alfazr3)-s%cy*sin(alfazr3)
     case(mnem_cy)
-       x=s%cx*sin(s%alfaz)+t%r3*cos(s%alfaz)
+       x=s%cx*sin(alfazr3)+t%r3*cos(alfazr3)
     case(mnem_thet)
-       x=270-((s%thet+s%alfaz)*(180/pi))
+       x=270-((s%thet+alfazr3)*(180/pi))
     case(mnem_Susg)
-       x=t%r3*cos(s%alfaz)-s%Svsg*sin(s%alfaz)
+       x=t%r3*cos(alfazr3)-s%Svsg*sin(alfazr3)
     case(mnem_Svsg)
-       x=s%Susg*sin(s%alfaz)+t%r3*cos(s%alfaz)
+       x=s%Susg*sin(alfazr3)+t%r3*cos(alfazr3)
     case(mnem_Subg)
-       x=t%r3*cos(s%alfaz)-s%Svbg*sin(s%alfaz)
+       x=t%r3*cos(alfazr3)-s%Svbg*sin(alfazr3)
     case(mnem_Svbg)
-       x=s%Subg*sin(s%alfaz)+t%r3*cos(s%alfaz)
+       x=s%Subg*sin(alfazr3)+t%r3*cos(alfazr3)
     case default
        x=t%r3
     end select

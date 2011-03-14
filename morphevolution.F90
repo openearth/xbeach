@@ -1590,6 +1590,7 @@ end subroutine vT
 #ifdef HAVE_CONFIG_H
 #ifndef HAVE_FORTRAN_ISNAN
 ! define a isnan function based on the 2003 extension ieee_is_nan for portland group
+! If your compiler doesn't support isnan and you are not using portland group, it's probably time to upgrade your compiler (see README/INSTALL for details)
 logical function isnan(a)
 use ieee_arithmetic 
 
