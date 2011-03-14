@@ -52,8 +52,8 @@ contains
     if (xmaster) then
        allocate(s%windsu(s%nx+1,s%ny+1))
        allocate(s%windnv(s%nx+1,s%ny+1))
-       windsu=0.d0
-       windnv=0.d0
+       s%windsu=0.d0
+       s%windnv=0.d0
        if (par%windfile==' ') then   ! Stationary wind
 
           s%windlen=1
