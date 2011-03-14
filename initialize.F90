@@ -334,7 +334,7 @@ contains
     IMPLICIT NONE
 
     type(spacepars)                         :: s
-    type(parameters)                        :: par
+    type(parameters), intent(in)            :: par
 
     integer*4                               :: i,j,t,ig,indt
     logical                                 :: exists
@@ -344,74 +344,137 @@ contains
     real*8,dimension(:),allocatable         :: xzs0,yzs0,szs0
     
     character(256)                          :: fname
-    integer                                 :: io,idisch,ii=0
+    integer                                 :: io,idisch,ii
     integer                                 :: m1,m2,n1,n2
     real*8                                  :: temp,xdb,xde,ydb,yde,dxd,dyd
     real*8                                  :: ldisch,pi
     real*8, dimension(:),allocatable        :: x_disch_begin,x_disch_end
     real*8, dimension(:),allocatable        :: y_disch_begin,y_disch_end
     integer,dimension(2)                    :: mnb,mne
-
+    
     include 's.ind'
     include 's.inp'
+
+    io=0
+    idisch=0
+    ii=0
     
-    allocate(s%zs(1:nx+1,1:ny+1))
-    allocate(s%dzsdt(1:nx+1,1:ny+1))
-    allocate(s%dzsdx(1:nx+1,1:ny+1))
-    allocate(s%dzsdy(1:nx+1,1:ny+1))
-    allocate(s%dzbdt(1:nx+1,1:ny+1))
-    allocate(s%uu(1:nx+1,1:ny+1))
-    allocate(s%vv(1:nx+1,1:ny+1))
-    allocate(s%qx(1:nx+1,1:ny+1))
-    allocate(s%qy(1:nx+1,1:ny+1))
-    allocate(s%sedero(1:nx+1,1:ny+1))
-    allocate(s%ueu(1:nx+1,1:ny+1)) 
-    allocate(s%vev(1:nx+1,1:ny+1)) 
-    allocate(s%vmagu(1:nx+1,1:ny+1)) 
-    allocate(s%vmagv(1:nx+1,1:ny+1)) 
-    allocate(s%vmageu(1:nx+1,1:ny+1)) 
-    allocate(s%vmagev(1:nx+1,1:ny+1)) 
-    allocate(s%u(1:nx+1,1:ny+1)) 
-    allocate(s%v(1:nx+1,1:ny+1)) 
-    allocate(s%ue(1:nx+1,1:ny+1)) 
-    allocate(s%ve(1:nx+1,1:ny+1)) 
-    allocate(s%hold(1:nx+1,1:ny+1)) 
-    allocate(s%wetu(1:nx+1,1:ny+1)) 
-    allocate(s%wetv(1:nx+1,1:ny+1)) 
-    allocate(s%wetz(1:nx+1,1:ny+1))
-    allocate(s%hh(1:nx+1,1:ny+1))
-    allocate(s%hu(1:nx+1,1:ny+1)) 
-    allocate(s%hv(1:nx+1,1:ny+1))
-    allocate(s%hum(1:nx+1,1:ny+1)) 
-    allocate(s%hvm(1:nx+1,1:ny+1))
-    allocate(s%vu(1:nx+1,1:ny+1))
-    allocate(s%uv(1:nx+1,1:ny+1))
-    allocate(s%maxzs(1:nx+1,1:ny+1))
-    allocate(s%minzs(1:nx+1,1:ny+1))
-    allocate(s%taubx(1:nx+1,1:ny+1))
-    allocate(s%tauby(1:nx+1,1:ny+1))
-    allocate(s%ws(1:nx+1,1:ny+1))
-    allocate(s%wb(1:nx+1,1:ny+1))
-    allocate(s%nuh(1:nx+1,1:ny+1))  
-    allocate(s%pres(1:nx+1,1:ny+1))
-    allocate(s%wi(2,1:ny+1))
-    allocate(s%zi(2,1:ny+1))
-    allocate(s%cf(1:nx+1,1:ny+1))
-    allocate(s%zs0(1:nx+1,1:ny+1)) 
-    allocate(szs0(1:2)) 
-    allocate(xzs0(1:2)) 
-    allocate(yzs0(1:2)) 
-    allocate(s%zs0fac(1:nx+1,1:ny+1,2))
-    allocate(s%wm(1:nx+1,1:ny+1))
-    allocate(s%umean(2,1:ny+1))
-    allocate(s%vmean(2,1:ny+1))
+    allocate(s%zs(1:s%nx+1,1:s%ny+1))
+    allocate(s%dzsdt(1:s%nx+1,1:s%ny+1))
+    allocate(s%dzsdx(1:s%nx+1,1:s%ny+1))
+    allocate(s%dzsdy(1:s%nx+1,1:s%ny+1))
+    allocate(s%dzbdt(1:s%nx+1,1:s%ny+1))
+    allocate(s%uu(1:s%nx+1,1:s%ny+1))
+    allocate(s%vv(1:s%nx+1,1:s%ny+1))
+    allocate(s%qx(1:s%nx+1,1:s%ny+1))
+    allocate(s%qy(1:s%nx+1,1:s%ny+1))
+    allocate(s%sedero(1:s%nx+1,1:s%ny+1))
+    allocate(s%ueu(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%vev(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%vmagu(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%vmagv(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%vmageu(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%vmagev(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%u(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%v(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%ue(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%ve(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%hold(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%wetu(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%wetv(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%wetz(1:s%nx+1,1:s%ny+1))
+    allocate(s%hh(1:s%nx+1,1:s%ny+1))
+    allocate(s%hu(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%hv(1:s%nx+1,1:s%ny+1))
+    allocate(s%hum(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%hvm(1:s%nx+1,1:s%ny+1))
+    allocate(s%vu(1:s%nx+1,1:s%ny+1))
+    allocate(s%uv(1:s%nx+1,1:s%ny+1))
+    allocate(s%maxzs(1:s%nx+1,1:s%ny+1))
+    allocate(s%minzs(1:s%nx+1,1:s%ny+1))
+    allocate(s%taubx(1:s%nx+1,1:s%ny+1))
+    allocate(s%tauby(1:s%nx+1,1:s%ny+1))
+    allocate(s%ws(1:s%nx+1,1:s%ny+1))
+    allocate(s%wb(1:s%nx+1,1:s%ny+1))
+    allocate(s%nuh(1:s%nx+1,1:s%ny+1))  
+    allocate(s%pres(1:s%nx+1,1:s%ny+1))
+    allocate(s%wi(2,1:s%ny+1))
+    allocate(s%zi(2,1:s%ny+1))
+    allocate(s%cf(1:s%nx+1,1:s%ny+1))
+    allocate(s%zs0(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%zs0fac(1:s%nx+1,1:s%ny+1,2))
+    allocate(s%wm(1:s%nx+1,1:s%ny+1))
+    allocate(s%umean(2,1:s%ny+1))
+    allocate(s%vmean(2,1:s%ny+1))
     allocate(s%xyzs01(2))
     allocate(s%xyzs02(2))
     allocate(s%xyzs03(2))
     allocate(s%xyzs04(2))
+
+    allocate(szs0(1:2)) 
+    allocate(xzs0(1:2)) 
+    allocate(yzs0(1:2)) 
     
     pi = 4.d0*datan(1.d0)
     
+
+    ! Just to be sure!
+    s%zs = 0.0d0
+    s%dzsdt = 0.0d0
+    s%dzsdx = 0.0d0
+    s%dzsdy = 0.0d0
+    s%dzbdt = 0.0d0
+    s%uu = 0.0d0
+    s%vv = 0.0d0
+    s%qx = 0.0d0
+    s%qy = 0.0d0
+    s%sedero = 0.0d0
+    s%ueu = 0.0d0
+    s%vev = 0.0d0
+    s%vmagu = 0.0d0
+    s%vmagv = 0.0d0
+    s%vmageu = 0.0d0
+    s%vmagev = 0.0d0
+    s%u = 0.0d0
+    s%v = 0.0d0
+    s%ue = 0.0d0
+    s%ve = 0.0d0
+    s%hold = 0.0d0
+    s%wetu = 0
+    s%wetv = 0
+    s%wetz = 0
+    s%hh = 0.0d0
+    s%hu = 0.0d0
+    s%hv = 0.0d0
+    s%hum = 0.0d0
+    s%hvm = 0.0d0
+    s%vu = 0.0d0
+    s%uv = 0.0d0
+    s%maxzs = 0.0d0
+    s%minzs = 0.0d0
+    s%taubx = 0.0d0
+    s%tauby = 0.0d0
+    s%ws = 0.0d0
+    s%wb = 0.0d0 
+    s%nuh = 0.0d0
+    s%pres = 0.0d0 
+    s%wi = 0.0d0 
+    s%zi = 0.0d0 
+    s%cf = 0.0d0
+    s%zs0 = 0.0d0
+    s%zs0fac = 0.0d0
+    s%wm = 0.0d0
+    s%umean = 0.0d0
+    s%vmean = 0.0d0
+    s%xyzs01 = 0.0d0
+    s%xyzs02 = 0.0d0
+    s%xyzs03 = 0.0d0
+    s%xyzs04 = 0.0d0
+
+    szs0 = 0.0d0
+    xzs0 = 0.0d0
+    yzs0 = 0.0d0
+
     ! TODO: do this properly....
     ! All variables above, should be initialized below (for all cells)
     s%zs0  = 0.0d0 
@@ -428,6 +491,9 @@ contains
     s%umean=0.d0
     s%vmean=0.d0
     s%zs0fac = 0.0d0
+
+
+
     !
     ! set-up tide and surge waterlevels
     s%zs01=par%zs0
@@ -457,58 +523,58 @@ contains
        endif
 
        ! Set global domain corners for MPI simulations
-       s%xyzs01(1) = sdist(1,1)          !x(1,1)
-       s%xyzs01(2) = ndist(1,1)          !y(1,1)
-       s%xyzs02(1) = sdist(1,ny+1)       !x(1,ny+1)
-       s%xyzs02(2) = ndist(1,ny+1)       !y(1,ny+1)
-       s%xyzs03(1) = sdist(nx+1,ny+1)    !x(nx+1,ny+1)
-       s%xyzs03(2) = ndist(nx+1,ny+1)    !y(nx+1,ny+1)
-       s%xyzs04(1) = sdist(nx+1,1)       !x(nx+1,1)
-       s%xyzs04(2) = ndist(nx+1,1)               !y(nx+1,1) 
+       s%xyzs01(1) = s%sdist(1,1)          !x(1,1)
+       s%xyzs01(2) = s%ndist(1,1)          !y(1,1)
+       s%xyzs02(1) = s%sdist(1,s%ny+1)       !x(1,s%ny+1)
+       s%xyzs02(2) = s%ndist(1,s%ny+1)       !y(1,s%ny+1)
+       s%xyzs03(1) = s%sdist(s%nx+1,s%ny+1)    !x(s%nx+1,s%ny+1)
+       s%xyzs03(2) = s%ndist(s%nx+1,s%ny+1)    !y(s%nx+1,s%ny+1)
+       s%xyzs04(1) = s%sdist(s%nx+1,1)       !x(s%nx+1,1)
+       s%xyzs04(2) = s%ndist(s%nx+1,1)               !y(s%nx+1,1) 
             
        !
        ! Fill in matrix zs0
        !
-       if(par%tideloc.eq.1) s%zs0 = xz*0.0d0 + s%zs01
+       if(par%tideloc.eq.1) s%zs0 = s%xz*0.0d0 + s%zs01
 
        if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='sea') then
-          yzs0(1)=ndist(1,1)
-          yzs0(2)=ndist(1,ny+1)
+          yzs0(1)=s%ndist(1,1)
+          yzs0(2)=s%ndist(1,s%ny+1)
           szs0(1)=s%zs01
           szs0(2)=s%zs02
 
-          do j = 1,ny+1
-             call LINEAR_INTERP(yzs0, szs0, 2, ndist(1,j), s%zs0(1,j), indt)
+          do j = 1,s%ny+1
+             call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(1,j), s%zs0(1,j), indt)
           enddo
-          do j = 1,ny+1 
-             do i = 1,nx+1
+          do j = 1,s%ny+1 
+             do i = 1,s%nx+1
                 s%zs0(i,j) = s%zs0(1,j)
              enddo
           enddo
        endif
 
        if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='land') then
-          yzs0(1)=sdist(1,1)
-          yzs0(2)=sdist(nx+1,1)
+          yzs0(1)=s%sdist(1,1)
+          yzs0(2)=s%sdist(s%nx+1,1)
           szs0(1)=s%zs01
           szs0(2)=s%zs04
           s%zs0(1,:)=s%zs01
-          s%zs0(nx+1,:)=s%zs03
-          do j = 1,ny+1 
-             do i = 1,nx+1
+          s%zs0(s%nx+1,:)=s%zs03
+          do j = 1,s%ny+1 
+             do i = 1,s%nx+1
                 if (s%zb(i,j).gt.s%zs0(1,j)+par%eps) goto 302
                 s%zs0(i,j) = s%zs0(1,j)
              enddo
 
-302          if (i.lt.nx+1) then
-                do ig=i+1,nx+1
-                   s%zs0(ig,j) = s%zs0(nx+1,j) 
+302          if (i.lt.s%nx+1) then
+                do ig=i+1,s%nx+1
+                   s%zs0(ig,j) = s%zs0(s%nx+1,j) 
                 enddo
              else
-                do i = 1,nx+1
-                  yzs0(1)=sdist(1,j)
-                  yzs0(2)=sdist(nx+1,j)
-                  call LINEAR_INTERP(yzs0, szs0, 2, sdist(i,j), s%zs0(i,j), indt)
+                do i = 1,s%nx+1
+                  yzs0(1)=s%sdist(1,j)
+                  yzs0(2)=s%sdist(s%nx+1,j)
+                  call LINEAR_INTERP(yzs0, szs0, 2, s%sdist(i,j), s%zs0(i,j), indt)
                 enddo
              endif
           enddo
@@ -517,36 +583,36 @@ contains
        if(par%tideloc.eq.4) then
           szs0(1)=s%zs01
           szs0(2)=s%zs02
-          do j = 1,ny+1
-             yzs0(1)=ndist(1,1)
-             yzs0(2)=ndist(1,ny+1)
-             call LINEAR_INTERP(yzs0, szs0, 2, ndist(1,j), s%zs0(1,j), indt)
+          do j = 1,s%ny+1
+             yzs0(1)=s%ndist(1,1)
+             yzs0(2)=s%ndist(1,s%ny+1)
+             call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(1,j), s%zs0(1,j), indt)
           enddo
           szs0(1)=s%zs04
           szs0(2)=s%zs03
-          do j = 1,ny+1
-             yzs0(1)=ndist(nx+1,1)
-             yzs0(2)=ndist(nx+1,ny+1)
-             call LINEAR_INTERP(yzs0, szs0, 2, ndist(nx+1,j), s%zs0(nx+1,j), indt)
+          do j = 1,s%ny+1
+             yzs0(1)=s%ndist(s%nx+1,1)
+             yzs0(2)=s%ndist(s%nx+1,s%ny+1)
+             call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(s%nx+1,j), s%zs0(s%nx+1,j), indt)
           enddo
 
-          do j = 1,ny+1 
-             do i = 1,nx+1
+          do j = 1,s%ny+1 
+             do i = 1,s%nx+1
                 if (s%zb(i,j).gt.s%zs0(1,j)+par%eps) goto 303
                 s%zs0(i,j) = s%zs0(1,j)
              enddo
 
-303          if (i.lt.nx+1) then
-                do ig=i+1,nx+1
-                   s%zs0(ig,j) = s%zs0(nx+1,j) 
+303          if (i.lt.s%nx+1) then
+                do ig=i+1,s%nx+1
+                   s%zs0(ig,j) = s%zs0(s%nx+1,j) 
                 enddo
              else
-                do i = 1,nx+1
-				   xzs0(1)=sdist(1,j)
-				   xzs0(2)=sdist(nx+1,j)
-				   szs0(1)=zs0(1,j)
-				   szs0(2)=zs0(nx+1,j)
-                   call LINEAR_INTERP(xzs0, szs0, 2, sdist(i,j), s%zs0(i,j), indt)
+                do i = 1,s%nx+1
+				   xzs0(1)=s%sdist(1,j)
+				   xzs0(2)=s%sdist(s%nx+1,j)
+				   szs0(1)=s%zs0(1,j)
+				   szs0(2)=s%zs0(s%nx+1,j)
+                   call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(i,j), s%zs0(i,j), indt)
                 enddo
              endif
           enddo
@@ -558,8 +624,8 @@ contains
     inquire(file=par%zsinitfile,exist=exists)
     if (exists) then
        open(723,file=par%zsinitfile)
-       do j=1,ny+1
-          read(723,*)(s%zs0(i,j),i=1,nx+1)
+       do j=1,s%ny+1
+          read(723,*)(s%zs0(i,j),i=1,s%nx+1)
        enddo
        close(723)
     endif
@@ -585,22 +651,22 @@ contains
     s%zs=max(s%zb,s%zs0)
 
     !Initialize hu correctly to prevent spurious initial flow (Pieter)
-    do j=1,ny+1
-       do i=1,nx
+    do j=1,s%ny+1
+       do i=1,s%nx
           s%hu(i,j) = max(s%zs(i,j),s%zs(i+1,j))-max(s%zb(i,j),s%zb(i+1,j))
        enddo
     enddo
-    s%hu(nx+1,:)=s%hu(nx,:)
+    s%hu(s%nx+1,:)=s%hu(s%nx,:)
 
-    do j=1,ny
-       do i=1,nx+1
+    do j=1,s%ny
+       do i=1,s%nx+1
           s%hv(i,j) = max(s%zs(i,j),s%zs(i,j+1))-max(s%zb(i,j),s%zb(i,j+1))
        enddo
     enddo
-    s%hv(:,ny+1)=s%hv(:,ny+1)
+    s%hv(:,s%ny+1)=s%hv(:,s%ny+1)
 
-    s%hum(1:nx,:) = 0.5d0*(s%hh(1:nx,:)+s%hh(2:nx+1,:))
-    s%hum(nx+1,:)=s%hh(nx+1,:)
+    s%hum(1:s%nx,:) = 0.5d0*(s%hh(1:s%nx,:)+s%hh(2:s%nx+1,:))
+    s%hum(s%nx+1,:)=s%hh(s%nx+1,:)
 
     s%dzsdt=0.d0
     s%dzsdx=0.d0
@@ -644,33 +710,33 @@ contains
         ! 4) weighted tide and surge (for completely wet arrays)
         ! relative weight of offshore boundary and bay boundary for each grid point is stored in zs0fac 
         !
-        zs0fac = 0.d0
-        do j = 1,ny+1 
+        s%zs0fac = 0.d0
+        do j = 1,s%ny+1 
            offshoreregime = .true.   
-           indoff = nx+1 ! ind of last point (starting at offshore boundary) that should be associated with offshore boundary
+           indoff = s%nx+1 ! ind of last point (starting at offshore boundary) that should be associated with offshore boundary
            indbay = 1      ! ind of first point (starting at offshore boundary) that should be associated with bay boundary
-           do i = 1,nx+1
+           do i = 1,s%nx+1
               if (offshoreregime .and. s%wetz(i,j)==0) then
                  indoff = max(i-1,1)
                  offshoreregime = .false.
               endif
-              if (s%wetz(i,j)==0 .and. s%wetz(min(i+1,nx+1),j)==1) then
-                 indbay = min(i+1,nx+1)
+              if (s%wetz(i,j)==0 .and. s%wetz(min(i+1,s%nx+1),j)==1) then
+                 indbay = min(i+1,s%nx+1)
               endif
            enddo
               
-           if (indbay==1 .and. indoff==nx+1) then ! in case of completely wet arrays linear interpolation for zs0fac
+           if (indbay==1 .and. indoff==s%nx+1) then ! in case of completely wet arrays linear interpolation for zs0fac
 ! Dano: don't know how to fix this for curvilinear
-!          zs0fac(:,j,2) = (xz-xz(1))/(xz(nx+1)-xz(1))
+!          zs0fac(:,j,2) = (xz-xz(1))/(xz(s%nx+1)-xz(1))
 !          zs0fac(:,j,1) = 1-zs0fac(:,j,2)
            else                                    ! in all other cases we assume three regims offshore, dry and bay
               s%zs0fac(1:indoff,j,1) = 1.d0
               s%zs0fac(1:indoff,j,2) = 0.d0
               if (indbay > 1) then
                  s%zs0fac(indoff+1:indbay-1,j,1) = 0.d0
-                 s%zs0fac(indbay:nx+1,j,1) = 0.d0
+                 s%zs0fac(indbay:s%nx+1,j,1) = 0.d0
                  s%zs0fac(indoff+1:indbay-1,j,2) = 0.d0
-                 s%zs0fac(indbay:nx+1,j,2) = 1.d0
+                 s%zs0fac(indbay:s%nx+1,j,2) = 1.d0
               endif   
            endif       
         enddo
@@ -682,38 +748,38 @@ contains
     !
 
     io    = 0
-    ndisch = 0
-    ntdisch = 0
+    s%ndisch = 0
+    s%ntdisch = 0
     
     ! read discharge information file
     if (xmaster) then
         fname = readkey_name('params.txt','disch_loc_file',bcast=.false.)
         if (fname==' ') then
-            ndisch=0
+            s%ndisch=0
         else
             call writelog('ls','','Reading discharge locations from ',trim(fname),' ...')
             open(31,file=fname)
             do while (io==0)
-                ndisch=ndisch+1
+                s%ndisch=s%ndisch+1
                 read(31,*,IOSTAT=io) temp
             enddo
             rewind(31)
-            ndisch=ndisch-1
+            s%ndisch=s%ndisch-1
         endif
     endif
     
 #ifdef USEMPI
-        call xmpi_bcast(ndisch)
+        call xmpi_bcast(s%ndisch)
 #endif
 
-    allocate(x_disch_begin(ndisch))
-    allocate(y_disch_begin(ndisch))
-    allocate(x_disch_end  (ndisch))
-    allocate(y_disch_end  (ndisch))
-    allocate(s%pntdisch(1:ndisch))
+    allocate(x_disch_begin(s%ndisch))
+    allocate(y_disch_begin(s%ndisch))
+    allocate(x_disch_end  (s%ndisch))
+    allocate(y_disch_end  (s%ndisch))
+    allocate(s%pntdisch(1:s%ndisch))
     
     if (xmaster) then
-        do i=1,ndisch
+        do i=1,s%ndisch
             read(31,*,IOSTAT=io) x_disch_begin(i),y_disch_begin(i),x_disch_end(i),y_disch_end(i)
             
             ! distinguish between horizontal and vertical discharge
@@ -736,31 +802,31 @@ contains
 
     ! read discharge timeseries
     if (xmaster) then
-        ntdisch=0
-        if (ndisch.gt.0) then
+        s%ntdisch=0
+        if (s%ndisch.gt.0) then
             fname = readkey_name('params.txt','disch_timeseries_file',bcast=.false.)
             call writelog('ls','','Reading discharge timeseries from ',trim(fname),' ...')
             open(31,file=fname)
             io=0
             do while (io==0)
-                ntdisch=ntdisch+1
+                s%ntdisch=s%ntdisch+1
                 read(31,*,IOSTAT=io) temp
             enddo
             rewind(31)
-            ntdisch=ntdisch-1
+            s%ntdisch=s%ntdisch-1
         endif
     endif
     
 #ifdef USEMPI
-       call xmpi_bcast(ntdisch)
+       call xmpi_bcast(s%ntdisch)
 #endif
 
-    allocate(s%tdisch(1:ntdisch))
-    allocate(s%qdisch(1:ntdisch,1:ndisch))
+    allocate(s%tdisch(1:s%ntdisch))
+    allocate(s%qdisch(1:s%ntdisch,1:s%ndisch))
     
     if (xmaster) then
-        do i=1,ntdisch
-            read(31,*,IOSTAT=io) s%tdisch(i),(s%qdisch(i,j),j=1,ndisch)
+        do i=1,s%ntdisch
+            read(31,*,IOSTAT=io) s%tdisch(i),(s%qdisch(i,j),j=1,s%ndisch)
         enddo
         close(31)
     endif
@@ -769,20 +835,20 @@ contains
     call xmpi_bcast(s%tdisch)
 #endif
     
-    allocate(s%pdisch(1:ndisch,1:4))
+    allocate(s%pdisch(1:s%ndisch,1:4))
     
     s%pdisch = 0.d0
     
     if (xmaster) then
     
         ! initialise each discharge location
-        do idisch=1,ndisch
+        do idisch=1,s%ndisch
             
             ! read discharge coordinates for each discharge section from file and translate to XBeach coordinate system  
-            xdb= cos(alfa)*(x_disch_begin(idisch)-xori)+sin(alfa)*(y_disch_begin(idisch)-yori)
-            ydb=-sin(alfa)*(x_disch_begin(idisch)-xori)+cos(alfa)*(y_disch_begin(idisch)-yori)
-            xde= cos(alfa)*(x_disch_end(idisch)-xori)+sin(alfa)*(y_disch_end(idisch)-yori)
-            yde=-sin(alfa)*(x_disch_end(idisch)-xori)+cos(alfa)*(y_disch_end(idisch)-yori)
+            xdb= cos(s%alfa)*(x_disch_begin(idisch)-s%xori)+sin(s%alfa)*(y_disch_begin(idisch)-s%yori)
+            ydb=-sin(s%alfa)*(x_disch_begin(idisch)-s%xori)+cos(s%alfa)*(y_disch_begin(idisch)-s%yori)
+            xde= cos(s%alfa)*(x_disch_end(idisch)-s%xori)+sin(s%alfa)*(y_disch_end(idisch)-s%yori)
+            yde=-sin(s%alfa)*(x_disch_end(idisch)-s%xori)+cos(s%alfa)*(y_disch_end(idisch)-s%yori)
             
             dxd = xde-xdb
             dyd = yde-ydb
@@ -793,8 +859,8 @@ contains
             
                 ! point discharge (no orientation, no added momentum, just mass)
                 
-                mnb = minloc(sqrt((xz-xdb)**2+(yz-ydb)**2))
-                mne = minloc(sqrt((xz-xde)**2+(yz-yde)**2))
+                mnb = minloc(sqrt((s%xz-xdb)**2+(s%yz-ydb)**2))
+                mne = minloc(sqrt((s%xz-xde)**2+(s%yz-yde)**2))
                 
                 s%pdisch(idisch,:) = (/mnb(1),mnb(2),0,0/)
                 
@@ -802,30 +868,30 @@ contains
             
                 ! discharge through v-points
                 
-                mnb = minloc(sqrt((xv-xdb)**2+(yv-ydb)**2))
-                mne = minloc(sqrt((xv-xde)**2+(yv-yde)**2))
+                mnb = minloc(sqrt((s%xv-xdb)**2+(s%yv-ydb)**2))
+                mne = minloc(sqrt((s%xv-xde)**2+(s%yv-yde)**2))
             
                 m1 = minval((/mnb(1),mne(1)/))
                 m2 = maxval((/mnb(1),mne(1)/))
                 n1 = nint(0.5*(mnb(2)+mne(2)))
                 
                 if (n1.lt.1)    n1 = 1
-                if (n1.gt.ny)   n1 = ny
+                if (n1.gt.s%ny)   n1 = s%ny
                 
                 s%pdisch(idisch,:) = (/m1,n1,m2,n1/)
             else
             
                 ! discharge through u-points
                 
-                mnb = minloc(sqrt((xu-xdb)**2+(yu-ydb)**2))
-                mne = minloc(sqrt((xu-xde)**2+(yu-yde)**2))
+                mnb = minloc(sqrt((s%xu-xdb)**2+(s%yu-ydb)**2))
+                mne = minloc(sqrt((s%xu-xde)**2+(s%yu-yde)**2))
                 
                 m1 = nint(0.5*(mnb(1)+mne(1)))
                 n1 = minval((/mnb(2),mne(2)/))
                 n2 = maxval((/mnb(2),mne(2)/))
                 
                 if (m1.lt.1)    m1 = 1
-                if (m1.gt.nx)   m1 = nx
+                if (m1.gt.s%nx)   m1 = s%nx
                 
                 s%pdisch(idisch,:) = (/m1,n1,m1,n2/)
             endif

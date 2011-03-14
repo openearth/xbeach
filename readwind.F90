@@ -36,7 +36,7 @@ contains
     IMPLICIT NONE
 
     type(spacepars),target                  :: s
-    type(parameters)                        :: par
+    type(parameters), intent(in)            :: par
 
     integer                             :: i
     integer                             :: nwind,io
