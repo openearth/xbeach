@@ -102,16 +102,16 @@ contains
     call halt_program
   endif
 
-  s%zb=-s%zb*s%posdwn
-! Make sure that at the lateral boundaries the bathymetry is alongshore uniform
-  if (s%ny>0) then
-     s%zb(:,1) = s%zb(:,2)
-     s%zb(:,s%ny+1) = s%zb(:,s%ny)
-  endif
-  s%zb(1,:)=s%zb(2,:)
-  s%zb(s%nx+1,:)=s%zb(s%nx,:)
-
   if(xmaster) then
+      
+       s%zb=-s%zb*s%posdwn
+       ! Make sure that at the lateral boundaries the bathymetry is alongshore uniform
+       if (s%ny>0) then
+         s%zb(:,1) = s%zb(:,2)
+         s%zb(:,s%ny+1) = s%zb(:,s%ny)
+       endif
+       s%zb(1,:)=s%zb(2,:)
+       s%zb(s%nx+1,:)=s%zb(s%nx,:)
       
        call gridprops (s)
 	  
