@@ -1386,11 +1386,15 @@ subroutine gridprops (s)
    allocate (xc(nx+1,ny+1))
    allocate (yc(nx+1,ny+1))
    
-   ! coordinates of z-points
+   ! x and y were read in grid_bathy.f90 (initialize.f90) and can be either (cartesian) world coordinates or 
+   ! XBeach coordinates (xori, yori and alfa are nonzero). Here x and y are transformed to cartesian world coordinates.
+   ! XBeach performs all computations (after implementation of curvi-lineair option) world coordinate grid.  
+   
+   ! world coordinates of z-points
    xz=xori+x*cos(alfa)-y*sin(alfa)
    yz=yori+x*sin(alfa)+y*cos(alfa)
 
-   ! coordinates of u-points
+   ! world coordinates of u-points
    do j=1,ny+1
       do i=1,nx
          xu(i,j)=.5d0*(xz(i,j)+xz(i+1,j))
@@ -1400,7 +1404,7 @@ subroutine gridprops (s)
       yu(nx+1,j)=1.5d0*yz(nx+1,j)-0.5d0*yz(nx,j)
    enddo
 
-   ! coordinates of v-points
+   ! world coordinates of v-points
    if (ny>0) then
       do i=1,nx+1
          do j=1,ny
@@ -1415,7 +1419,7 @@ subroutine gridprops (s)
 	  yv=yz
    endif
 
-   ! coordinates of corner points
+   ! world coordinates of corner points
    if (ny>0) then
       do j=1,ny
          do i=1,nx
