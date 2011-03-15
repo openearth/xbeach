@@ -372,12 +372,14 @@ contains
        end do
     end do
    	! Lateral boundary conditions for uu
-	if (xmpi_isleft) then !Dano/Robert only on outer boundary
-       uu(1:nx+1,1)=uu(1:nx+1,2) ! RJ: can also be done after continuity but more appropriate here
-    endif
-	! Lateral boundary at y=ny*dy 
-	if (xmpi_isright) then !Dano/Robert only at outer boundary
-       uu(1:nx+1,ny+1)=uu(1:nx+1,ny) ! RJ: can also be done after continuity but more appropriate here
+   	if (ny>0) then
+	   if (xmpi_isleft) then !Dano/Robert only on outer boundary
+          uu(1:nx+1,1)=uu(1:nx+1,2) ! RJ: can also be done after continuity but more appropriate here
+       endif
+	   ! Lateral boundary at y=ny*dy 
+	   if (xmpi_isright) then !Dano/Robert only at outer boundary
+          uu(1:nx+1,ny+1)=uu(1:nx+1,ny) ! RJ: can also be done after continuity but more appropriate here
+       endif
     endif
 #ifdef USEMPI
     ! wwvv qx is used later on, also the first row, fix the first row
@@ -503,11 +505,13 @@ contains
        end do
     end do
 	! Robert: global boundary at (:,1) edge
-    if (xmpi_isleft .and. ny>0) then
-       viscv(i,1) = viscv(i,2)
-    endif
-    if (xmpi_isright .and. ny>0) then
-       viscv(i,ny) = viscv(i,ny-1)
+	if (ny>0) then
+       if (xmpi_isleft) then
+          viscv(i,1) = viscv(i,2)
+       endif
+       if (xmpi_isright) then
+          viscv(i,ny) = viscv(i,ny-1)
+       endif
     endif
 	!
 	! Viscosity
@@ -591,11 +595,13 @@ contains
     ! Robert: Boundary conditions along the global boundaries
 	! Function flow_lat_bc located in boundaryconditions.F90
 	! function call takes care of 1D vs 2D models and boundary condition types
-    if (xmpi_isleft) then
-	   vv(:,1)=flow_lat_bc(s,par,par%right,1,2,udvdx(:,1),vdvdy(:,1),viscv(:,1))
-	endif
-    if (xmpi_isright) then
-	   vv(:,ny)=flow_lat_bc(s,par,par%left,ny,ny-1,udvdx(:,ny),vdvdy(:,ny),viscv(:,ny))
+	if (ny>0) then
+       if (xmpi_isleft) then
+	      vv(:,1)=flow_lat_bc(s,par,par%right,1,2,udvdx(:,1),vdvdy(:,1),viscv(:,1))
+	   endif
+       if (xmpi_isright) then
+	      vv(:,ny)=flow_lat_bc(s,par,par%left,ny,ny-1,udvdx(:,ny),vdvdy(:,ny),viscv(:,ny))
+	   endif
 	endif
 
 #ifndef USEMPI
