@@ -130,12 +130,12 @@ contains
        degrad=par%px/180.d0
        
        ! rotate theta grid to world coordinates for backwards compatibility
-       par%thetamin=par%thetamin+s%alfa/degrad
-       par%thetamax=par%thetamax+s%alfa/degrad
+       s%thetamin=par%thetamin+s%alfa/degrad
+       s%thetamax=par%thetamax+s%alfa/degrad
        
        if (par%thetanaut==1) then  
-            s%thetamin=(270-par%thetamax)*degrad
-            s%thetamax=(270-par%thetamin)*degrad
+            s%thetamin=(270-s%thetamax)*degrad
+            s%thetamax=(270-s%thetamin)*degrad
             if (s%thetamax>par%px) then
                  s%thetamax=s%thetamax-2*par%px
                  s%thetamin=s%thetamin-2*par%px
@@ -145,8 +145,8 @@ contains
                  s%thetamin=s%thetamin+2*par%px
             endif
        else
-            s%thetamin=par%thetamin*degrad
-            s%thetamax=par%thetamax*degrad
+            s%thetamin=s%thetamin*degrad
+            s%thetamax=s%thetamax*degrad
        endif
        s%dtheta=par%dtheta*degrad
        s%ntheta=(s%thetamax-s%thetamin)/s%dtheta
@@ -767,15 +767,12 @@ contains
             s%ndisch=s%ndisch-1
         endif
     endif
-    
-#ifdef USEMPI
-        call xmpi_bcast(s%ndisch)
-#endif
 
     allocate(x_disch_begin(s%ndisch))
     allocate(y_disch_begin(s%ndisch))
     allocate(x_disch_end  (s%ndisch))
     allocate(y_disch_end  (s%ndisch))
+    
     allocate(s%pntdisch(1:s%ndisch))
     
     if (xmaster) then
@@ -793,13 +790,6 @@ contains
         close(31)
     endif
     
-#ifdef USEMPI
-        call xmpi_bcast(x_disch_begin)
-        call xmpi_bcast(y_disch_begin)
-        call xmpi_bcast(x_disch_end)
-        call xmpi_bcast(y_disch_end)
-#endif
-
     ! read discharge timeseries
     if (xmaster) then
         s%ntdisch=0
@@ -817,10 +807,6 @@ contains
         endif
     endif
     
-#ifdef USEMPI
-       call xmpi_bcast(s%ntdisch)
-#endif
-
     allocate(s%tdisch(1:s%ntdisch))
     allocate(s%qdisch(1:s%ntdisch,1:s%ndisch))
     
@@ -830,10 +816,6 @@ contains
         enddo
         close(31)
     endif
-    
-#ifdef USEMPI
-    call xmpi_bcast(s%tdisch)
-#endif
     
     allocate(s%pdisch(1:s%ndisch,1:4))
     
@@ -897,11 +879,6 @@ contains
             endif
         enddo
     endif
-    
-#ifdef USEMPI
-    call xmpi_bcast(s%pdisch)
-    call xmpi_bcast(s%qdisch)
-#endif
       
   end subroutine flow_init
 
