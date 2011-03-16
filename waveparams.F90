@@ -1499,11 +1499,13 @@ real*8                                  :: df, deltaf
 real*8,dimension(:), allocatable        :: w1, k1
 real*8,dimension(:), allocatable        :: term1, term2, term2new, dif, chk1, chk2
 real*8,dimension(:,:),allocatable       :: Eforc, D, deltheta, KKx, KKy, theta3
-real*8,dimension(:,:),allocatable       :: dphi3, k3, cg3, Abnd, qx
+real*8,dimension(:,:),allocatable       :: dphi3, k3, cg3, Abnd
+real*8,dimension(:,:,:),allocatable     :: q
 
-double complex,dimension(:),allocatable     :: Comptemp, Comptemp2
-! wwvv double complex,dimension(:,:),allocatable    :: Gn, Ftemp, Ftemp2
-complex(fftkind),dimension(:,:),allocatable :: Gn, Ftemp, Ftemp2
+double complex,dimension(:),allocatable       :: Comptemp, Comptemp2
+complex(fftkind),dimension(:,:),  allocatable :: Gn, Ftemp2
+complex(fftkind),dimension(:,:,:),allocatable :: Ftemp
+character(24),dimension(3)              :: qstr
 
 g=par%g
 K=wp%K
@@ -1640,7 +1642,6 @@ endwhere
 allocate(Gn(Npy,Nr))
 allocate(Abnd(K-1,K))
 
-Gn=0
 Abnd = sqrt(2*Eforc*df)
 
 allocate(index2(K-1))
@@ -1648,69 +1649,78 @@ index2=(/(i,i=1,K-1)/)
 
 ! Determine complex description of bound long wave per interaction pair of
 ! primary waves for first y-coordinate along seaside boundary
-allocate(Ftemp(K-1,K))
-Ftemp = Abnd/2*exp(-1*par%compi*dphi3)*cg3*dcos(theta3)
+allocate(Ftemp(K-1,K,3)) ! Jaap qx, qy qtot
+Ftemp(:,:,1) = Abnd/2*exp(-1*par%compi*dphi3)*cg3*dcos(theta3) ! qx
+Ftemp(:,:,2) = Abnd/2*exp(-1*par%compi*dphi3)*cg3*dsin(theta3) ! qy
+Ftemp(:,:,3) = Abnd/2*exp(-1*par%compi*dphi3)*cg3              ! qtot
 
-! Determine complex description of bound long wave per primary wave component
-! for first y-coordinate along seaside boundary
-Gn(1,index2+1)=(sum(Ftemp,DIM=2))
-
-! Determine Fourier coefficients
-allocate (Comptemp(Nr/2-1))
-Comptemp=conjg(Gn(1,2:Nr/2))
-call flipiv(Comptemp,Nr/2-1)
-Gn(1,Nr/2+2:Nr)=Comptemp
-
-! Allocate mass flux as function of time
-allocate(qx(Npy,Nr))
-qx=0.0d0
-allocate(Comptemp2(Nr)) 
-
-! Print status message to screen
-if(xmaster) then
-    call writelog('ls','(A,I0)','Flux 1 of ',Npy)
-endif
-
-! Fourier transformation
-Comptemp2=fft(Gn(1,:),inv=.true.)
-
-! Determine mass flux as function of time and let the flux gradually increase
-! and decrease in and out the wave time record using the earlier specified
-! window
-Comptemp2=Comptemp2/sqrt(real(Nr))
-qx(1,:)=real(Comptemp2*Nr)*wp%window
-
-! Determine mass flux of bound long wave for every y-coordinate at the seaside
-! boundary
+allocate(q(Npy,Nr,3))           ! qx qy qtot
+allocate(Comptemp(Nr/2-1))
+allocate(Comptemp2(Nr))         ! Allocate mass flux as function of time
 allocate(Ftemp2(K-1,K))
-do jj=2,Npy
+
+q=0.0d0
+
+qstr = (/'qx','qy','qtot'/)
+
+do m=1,3
+  ! Determine complex description of bound long wave per primary wave component
+  ! for first y-coordinate along seaside boundary
+  Gn=0
+  Gn(1,index2+1)=(sum(Ftemp(:,:,m),DIM=2))  
+
+  ! Determine Fourier coefficients
+      
+  Comptemp=conjg(Gn(1,2:Nr/2))    
+  call flipiv(Comptemp,Nr/2-1)
+  Gn(1,Nr/2+2:Nr)=Comptemp
+
+  ! Print status message to screen
+  if(xmaster) then
+    call writelog('ls','(A,A,I0)',qstr(m),' 1 of ',Npy)
+  endif
+
+  ! Fourier transformation
+  Comptemp2=fft(Gn(1,:),inv=.true.)   
+
+  ! Determine mass flux as function of time and let the flux gradually increase
+  ! and decrease in and out the wave time record using the earlier specified
+  ! window
+  Comptemp2=Comptemp2/sqrt(real(Nr))    
+  q(1,:,m)=real(Comptemp2*Nr)*wp%window  
+
+  ! Determine mass flux of bound long wave for every y-coordinate at the seaside
+  ! boundary
+  
+  do jj=2,Npy
 
     ! Determine phase shift due to y-coordinate and y-component wave number
     ! with respect to first y-coordinate alogn seaside boundary
-    Ftemp2 = Ftemp*exp(-1*par%compi*(KKy*(s%yz(1,jj)-s%yz(1,1))+KKx*(s%xz(1,jj)-s%xz(1,1))))
+    Ftemp2 = Ftemp(:,:,m)*exp(-1*par%compi*(KKy*(s%yz(1,jj)-s%yz(1,1))+KKx*(s%xz(1,jj)-s%xz(1,1))))  
     
     ! Determine Fourier coefficients
-    Gn(jj,index2+1) = (sum(Ftemp2,DIM=2))
+    Gn(jj,index2+1) = (sum(Ftemp2,DIM=2)) 
     Comptemp = conjg(Gn(jj,2:Nr/2))
     call flipiv(Comptemp,Nr/2-1)
     Gn(jj,Nr/2+2:Nr) = Comptemp
 
     ! Print status message to screen
     if(xmaster) then
-        call writelog('ls','(A,I0,A,I0)','Flux ',jj,' of ',Npy)
+        call writelog('ls','(A,I0,A,I0)',qstr(m),jj,' of ',Npy)
     endif
     
     ! Inverse Discrete Fourier transformation to transform back to time space
     ! from frequency space
-    Comptemp2=fft(Gn(jj,:),inv=.true.)
+    Comptemp2=fft(Gn(jj,:),inv=.true.)  
     
     ! Determine mass flux as function of time and let the flux gradually
     ! increase and decrease in and out the wave time record using the earlier
     ! specified window
-    Comptemp2=Comptemp2/sqrt(real(Nr))
-    qx(jj,:)=real(Comptemp2*Nr)*wp%window
+    Comptemp2=Comptemp2/sqrt(real(Nr))    ! u-direction
+    q(jj,:,m)=real(Comptemp2*Nr)*wp%window
     
-end do
+  end do !jj loop
+end do !m loop
 
 deallocate(Comptemp)
 deallocate(Comptemp2)
@@ -1722,10 +1732,10 @@ deallocate(index2)
 if(xmaster) then
     call writelog('ls','','writing long wave mass flux to ',trim(qbcfname),' ...')
     inquire(iolength=reclen) 1.d0
-    reclen=reclen*(Npy)
+    reclen=reclen*(Npy*3)
     open(21,file=qbcfname,form='unformatted',access='direct',recl=reclen)
     do i=1,wp%Nr+4                                                             ! Bas: why add 4 ??
-        write(21,rec=i)qx(:,min(i,wp%Nr))
+        write(21,rec=i)q(:,min(i,wp%Nr),:)
     end do
     close(21)
     call writelog('sl','','file done')

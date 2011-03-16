@@ -58,10 +58,10 @@ contains
     real*8,dimension(:)     ,allocatable,save   :: fac1,fac2
     real*8,dimension(:)     ,allocatable,save   :: tE,dataE,databi
     real*8,dimension(:,:)   ,allocatable,save   :: ht
-    real*8,dimension(:)     ,allocatable,save   :: q1,q2,q
+    real*8,dimension(:,:)   ,allocatable,save   :: q1,q2,q
     real*8,dimension(:)     ,allocatable,save   :: wcrestpos
     real*8,dimension(:,:)   ,allocatable,save   :: ee1, ee2
-    real*8,dimension(:)     ,allocatable,save   :: gq1,gq2,gq
+    real*8,dimension(:,:)   ,allocatable,save   :: gq1,gq2,gq
     real*8,dimension(:,:)   ,allocatable,save   :: gee1, gee2
     character*1                                 :: bl
     character(256)                              :: ebcfname,qbcfname,fname
@@ -427,7 +427,7 @@ contains
              inquire(iolength=wordsize) 1.d0
              reclen=wordsize*(sg%ny+1)*(ntheta)
              open(71,file=ebcfname,status='old',form='unformatted',access='direct',recl=reclen)
-             reclen=wordsize*(sg%ny+1)
+             reclen=wordsize*((sg%ny+1)*3)
              open(72,file=qbcfname,status='old',form='unformatted',access='direct',recl=reclen)
           endif
           !
@@ -437,18 +437,18 @@ contains
           !
           if (xmaster) then
              if (.not. allocated(gq1) ) then
-                allocate(gq1(sg%ny+1),gq2(sg%ny+1),gq(sg%ny+1))
+                allocate(gq1(sg%ny+1,3),gq2(sg%ny+1,3),gq(sg%ny+1,3))
                 allocate(gee1(sg%ny+1,ntheta),gee2(sg%ny+1,ntheta))
              endif
           else
              if (.not. allocated(gq1) ) then ! to get valid addresses for
                 ! gq1, gq2, gq, gee1, gee2
-                allocate(gq1(1),gq2(1),gq(1))
+                allocate(gq1(1,3),gq2(1,3),gq(1,3))
                 allocate(gee1(1,ntheta),gee2(1,ntheta))
              endif
           endif
           if (.not. allocated(q1) ) then
-             allocate(q1(ny+1),q2(ny+1),q(ny+1))
+             allocate(q1(ny+1,3),q2(ny+1,3),q(ny+1,3))
              allocate(ee1(ny+1,ntheta),ee2(ny+1,ntheta))
           end if
           if (xmaster) then
@@ -525,7 +525,8 @@ contains
             (tnew-par%t)/dtbcfile*ee1
        q = (dtbcfile-(tnew-par%t))/dtbcfile*q2 + &          !Jaap
             (tnew-par%t)/dtbcfile*q1
-       ui(1,:) = q/ht(1,:)*min(par%t/par%taper,1.0d0)
+       ui(1,:) = q(:,1)/ht(1,:)*min(par%t/par%taper,1.0d0)
+       vi(1,:) = q(:,2)/ht(1,:)*min(par%t/par%taper,1.0d0)
        ee(1,:,:)=ee(1,:,:)*min(par%t/par%taper,1.0d0)
     elseif (trim(par%instat)=='nonh'.and.xmaster) then   
        call velocity_Boundary(ui(1,:),zi(1,:),wi(1,:),nx,ny,par%t,zs,ws)
@@ -572,7 +573,7 @@ contains
     real*8 , dimension(2)                       :: xzs0,yzs0,szs0
     real*8 , dimension(:,:)  ,allocatable,save  :: zs0old,zsmean,dzs0
     real*8 , dimension(:,:)  ,allocatable,save  :: ht,beta,betanp1
-    real*8 , dimension(:)    ,allocatable,save  :: bn,alpha2
+    real*8 , dimension(:)    ,allocatable,save  :: bn,alpha2,thetai
     real*8 , dimension(:,:)  ,allocatable,save  :: dhdx,dhdy,dvdx,dvdy
     real*8 , dimension(:,:)  ,allocatable,save  :: dbetadx,dbetady,dvudy
     real*8 , dimension(:)    ,allocatable,save  :: inv_ht
@@ -595,6 +596,7 @@ contains
        allocate(dzs0    (2,ny+1))
        allocate(bn      (ny+1))
        allocate(alpha2  (ny+1))
+       allocate(thetai  (ny+1))
        allocate(betanp1 (1,ny+1))
        allocate(zs0old(nx+1,ny+1))   ! wwvv not used
        ! initialize zsmean and dzs0
@@ -602,7 +604,8 @@ contains
        zsmean(2,:) = zs(nx,:)
        umean = 0.d0
        vmean = 0.d0
-       dzs0 = 0; 
+       dzs0 = 0.d0 
+       thetai = 0.d0
     endif
 
     ! factime=1.d0/par%cats/par%Trep*par%dt !Jaap: not used anymore
@@ -793,10 +796,13 @@ contains
                      *sqrt(uu(1,j)**2+vu(1,j)**2)*uu(1,j)/hum(1,j)&    
                      +par%g*dhdx(1,j)
              end do
-
+             
+             ! Jaap: Compute angle of incominge wave
+             thetai = datan(vi(1,:)/(ui(1,:)+1.d-16))   
+             
              do j=2,ny
                 betanp1(1,j) = beta(1,j)+ bn(j)*par%dt
-                alpha2(j)=-theta0
+                alpha2(j)=-theta0 ! Jaap: this is first estimate
                 alphanew = 0.d0
                 if (trim(par%tidetype)=='velocity') then
                   umean(1,j) = (par%epsi*uu(1,j)+(1-par%epsi)*umean(1,j))
@@ -805,28 +811,26 @@ contains
                   umean(1,j) = 0.d0
                   vmean(1,j) = 0.d0
                 endif
+                
                 do jj=1,50
                    !---------- Lower order bound. cond. ---
-                   !qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
-                   !  *(0.5d0*(ht(1,j)+ht(2,j))*(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))))&  !Jaap replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
-                   !  -(ui(1,j)*hum(1,j))*(dcos(theta0)-1.d0)/dcos(theta0))   !Jaap replaced hh with hu
 
                    if (par%carspan==1) then ! assuming incoming long wave propagates at sqrt(g*h)
                       ur = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
-                           *(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j)))&  !Jaap in relation with V16 a factor 0.5*(ht(1,j)+ht(2,j)) disappeared
-                           -ui(1,j)*(dcos(theta0)-1.d0)/dcos(theta0))   !Jaap replaced hh with hu
+                           *(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))) &
+                           -ui(1,j)*(dcos(thetai(j))-1.d0)/dcos(thetai(j)))   
                    else                     ! assuming incoming long wave propagates at cg
                       ur = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
                            *(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j)))&  
-                           -ui(1,j)*(cg(1,j)*dcos(theta0)- DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))) )/(cg(1,j)*dcos(theta0))) 
+                           -ui(1,j)*(cg(1,j)*dcos(thetai(j))- DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))) )/(cg(1,j)*dcos(thetai(j)))) 
                    endif
 
                    !vert = velocity of the reflected wave = total-specified
-                   vert = vu(1,j)-vmean(1,j)-ui(1,j)*tan(theta0)
+                   vert = vu(1,j)-vmean(1,j)-vi(1,j)                    ! Jaap use vi instead of ui(1,j)*tan(theta0)
                    alphanew = datan(vert/(ur+1.d-16))                   ! wwvv can  use atan2 here
                    if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
                    if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
-                   if(dabs(alphanew-alpha2(j)).lt.0.001d0) goto 1000     ! wwvv can use exit here
+                   if(dabs(alphanew-alpha2(j)).lt.0.001d0) goto 1000    ! wwvv can use exit here
                    alpha2(j) = alphanew 
                 end do
 1000            continue
@@ -834,8 +838,6 @@ contains
                    uu(1,j) = (par%order-1)*ui(1,j)
                    zs(1,j) = zs(2,j)
                 else
-                   ! jaap: to fix surge in 2DH case
-                   ! umean(1,j) = (par%epsi*2.d0*qxr/(ht(1,j)+ht(2,j))+(1-par%epsi)*umean(1,j))  
                    !
                    uu(1,j) = (par%order-1.d0)*ui(1,j) + ur + umean(1,j)
                    ! zs(1,:) is dummy variable
@@ -845,8 +847,7 @@ contains
                    ! Ad + Jaap: zs does indeed influence hydrodynamics at boundary --> do higher order taylor expansions to check influence
                    ! zs(1,j) = 13.d0/8.d0*((betanp1(1,j)-uu(1,j))**2.d0/4.d0/par%g+.5d0*(zb(1,j)+zb(2,j))) - &
                    !           0.75d0*((beta(2,j)-uu(2,j))**2.d0/4.d0/par%g+.5d0*(zb(2,j)+zb(3,j)))        + &
-                   ! 0.125d0*0.5d0*(zs(3,j)+zs(4,j))
-
+                   !           0.125d0*0.5d0*(zs(3,j)+zs(4,j))
                 end if
              end do
              vv(1,:)=vv(2,:)
@@ -903,7 +904,7 @@ contains
                umean(2,:) = 0.d0
              endif
              uu(nx,:)=sqrt(par%g/hh(nx,:))*(zs(nx,:)-max(zb(nx,:),zs0(nx,:)))+umean(2,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
-             !        uu(nx,:)=cg(nx,:)/hh(nx,:)*(zs(nx,:)-max(zb(nx,:),zs0(nx,:)))+umean(2,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
+             !uu(nx,:)=cg(nx,:)/hh(nx,:)*(zs(nx,:)-max(zb(nx,:),zs0(nx,:)))+umean(2,:)   ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
              !uu(nx,:)=sqrt(par%g/(zs0(nx,:)-zb(nx,:)))*(zs(nx,:)-max(zb(nx,:),zs0(nx,:)))
              !umean(2,:) = factime*uu(nx,:)+(1-factime)*umean(2,:)    !Ap
              !zs(nx+1,:)=max(zs0(nx+1,:),zb(nx+1,:))+(uu(nx,:)-umean(2,:))*sqrt(max((zs0(nx+1,:)-zb(nx+1,:)),par%eps)/par%g)    !Ap
@@ -921,19 +922,19 @@ contains
                    dbetadx(2,j)=(beta(2,j)-beta(1,j))/dsz(nx,j)
                    dbetady(2,j)=(beta(1,j+1)-beta(1,j-1))/(2.0*dnu(nx,j))
 
-                   inv_ht(j) = 1.d0/hum(nx,j)                                           !Jaap replaced hh with hum
+                   inv_ht(j) = 1.d0/hum(nx,j)                                           
 
-                   bn(j)=-(uu(nx,j)+dsqrt(par%g*hum(nx,j)))*dbetadx(2,j) &            !Ap says plus  !Jaap replaced hh with hum 
-                        -vu(nx,j)*dbetady(2,j)& !Ap vu
-                        -dsqrt(par%g*hum(nx,j))*dvdy(2,j)&                             !Jaap replaced hh with hum 
-                        +Fx(nx,j)*inv_ht(j)/par%rho-par%g/par%C**2.d0&                 !Ap
-                        *sqrt(uu(nx,j)**2+vu(nx,j)**2)*uu(nx,j)/hum(nx,j)&       !Jaap replaced hh with hum
-                        +par%g*dhdx(2,j)
-                endif   ! Robert: dry back boundary points
+                   bn(j)=-(uu(nx,j)+dsqrt(par%g*hum(nx,j)))*dbetadx(2,j) &       
+                         -vu(nx,j)*dbetady(2,j)& !Ap vu
+                         -dsqrt(par%g*hum(nx,j))*dvdy(2,j)&                            
+                         +Fx(nx,j)*inv_ht(j)/par%rho-par%g/par%C**2.d0&               
+                         *sqrt(uu(nx,j)**2+vu(nx,j)**2)*uu(nx,j)/hum(nx,j)&       
+                         +par%g*dhdx(2,j)
+                endif    ! Robert: dry back boundary points
              enddo
 
              do j=2,ny
-                if (wetu(nx,j)==1) then                                                   ! Robert: dry back boundary points
+                if (wetu(nx,j)==1) then                                                     ! Robert: dry back boundary points
                    betanp1(1,j) = beta(2,j)+ bn(j)*par%dt                                   !Ap toch?
                    alpha2(j)= theta0
                    alphanew = 0.d0
@@ -947,23 +948,22 @@ contains
                      vmean(2,j) = 0.d0
                    endif
                    do jj=1,50
+                      !
                       !---------- Lower order bound. cond. ---
-                      !qxr = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&  
-                      !  *(0.5*(ht(1,j)+ht(2,j))*(betanp1(1,j)-umean(2,j)-2.d0*DSQRT(par%g*0.5*(ht(1,j)+ht(2,j)))))
-
+                      !
                       ur = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&  
                            *((betanp1(1,j)-umean(2,j)-2.d0*DSQRT(par%g*0.5*(ht(1,j)+ht(2,j))))) 
 
                       !vert = velocity of the reflected wave = total-specified
-                      vert = vu(nx,j)
-                      alphanew = datan(vert/(ur+1.d-16))                      !Ap  ! wwvv maybe better atan2
+                      vert = vu(nx,j)-vmean(2,j)                              !Jaap included vmean
+                      alphanew = datan(vert/(ur+1.d-16))                      ! wwvv maybe better atan2
                       if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
                       if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
                       if(dabs(alphanew-alpha2(j)).lt.0.001) goto 2000    ! wwvv can use exit here
                       alpha2(j) = alphanew 
                    end do
 2000               continue
-                   uu(nx,j) = ur + umean(2,j)                       !Jaap: replaced ht(1,j) with 0.5*(ht(1,j)+ht(2,j))
+                   uu(nx,j) = ur + umean(2,j)                     
                    ! Ap replaced zs with extrapolation.
                    zs(nx+1,j) = 1.5*((betanp1(1,j)-uu(nx,j))**2.d0/4.d0/par%g+.5*(zb(nx,j)+zb(nx+1,j)))-&
                         0.5*((beta(1,j)-uu(nx-1,j))**2.d0/4.d0/par%g+.5*(zb(nx-1,j)+zb(nx,j)))

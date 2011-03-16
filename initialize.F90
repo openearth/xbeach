@@ -234,6 +234,7 @@ contains
     allocate(s%cg(1:nx+1,1:ny+1))
     allocate(s%k(1:nx+1,1:ny+1))
     allocate(s%ui(1:nx+1,1:ny+1))
+    allocate(s%vi(1:nx+1,1:ny+1))
     allocate(s%E(1:nx+1,1:ny+1)) 
     allocate(s%R(1:nx+1,1:ny+1)) 
     allocate(s%urms(1:nx+1,1:ny+1)) 
@@ -284,6 +285,7 @@ contains
     s%cg        = 0.d0
     s%k         = 0.d0
     s%ui        = 0.d0
+    s%vi        = 0.d0
     s%E         = 0.d0
     s%R         = 0.d0
     s%urms      = 0.d0
