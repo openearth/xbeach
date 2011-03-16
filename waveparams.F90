@@ -1661,7 +1661,7 @@ allocate(Ftemp2(K-1,K))
 
 q=0.0d0
 
-qstr = (/'qx','qy','qtot'/)
+qstr = (/'qx  ','qy  ','qtot'/)
 
 do m=1,3
   ! Determine complex description of bound long wave per primary wave component
