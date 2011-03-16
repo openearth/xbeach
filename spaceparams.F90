@@ -1535,7 +1535,7 @@ subroutine gridprops (s)
       enddo
 	  dnc(:,ny+1)=dnc(:,ny)
    else
-      dnz=100.d0
+      dnc=100.d0
    endif
    
 

@@ -339,20 +339,20 @@ contains
            enddo
          enddo
        else
-         do j=2,ny
+           j=1
            do i=2,nx
              ero(i,j,jg) = fac(i,j,jg)*hh(i,j)*ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg)    ! Changed to hh from hold by RJ (13072009) !**2/max(hh(i,j),par%hmin)
              ! depo_ex(i,j,jg) = max(hold(i,j),0.01d0)*cc(i,j)/Tsg(i,j,jg)                    
              ! BRJ: the volume in the water column is updated and not the volume concentration.
              cc(i,j) = (par%dt*Tsg(i,j,jg))/(par%dt+Tsg(i,j,jg))* &
-                  (hold(i,j)*cc(i,j)/par%dt -((Sus(i,j)*dnu(i,j)-Sus(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)+&
+                  (hold(i,j)*cc(i,j)/par%dt -((Sus(i,j)*dnu(i,j)-Sus(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)-&
                                                ero(i,j,jg)))
                                                                                     
               cc(i,j)=max(cc(i,j),0.0d0) ! Jaap: negative cc's are possible...   
               cc(i,j)=min(cc(i,j),0.1*hh(i,j))
+              
               depo_ex(i,j,jg) = cc(i,j)/Tsg(i,j,jg)  
             enddo
-         enddo
        endif
        
        ! Jaap: bed load --> Tsg = par%dt for bed load....

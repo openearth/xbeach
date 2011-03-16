@@ -365,7 +365,7 @@ contains
                   + taubx(i,j)/(par%rho*hu(i,j)) &  ! Dano: changed hum to hu NOT cf volume approach
                   - par%lwave*Fx(i,j)/(par%rho*max(hum(i,j),par%hmin)) &
                   - fc*vu(i,j) &
-                  - par%rhoa*par%Cd*windsu(i,j)**2/(par%rho*hvm(i,j)))
+                  - par%rhoa*par%Cd*windsu(i,j)**2/(par%rho*hum(i,j)))
           else
              uu(i,j)=0.0d0
           end if
@@ -544,6 +544,7 @@ contains
 
              dudy1 = nuh1 *.5d0*(hum(i  ,j)+hum(i  ,jp1))*(uu(i,jp1  )-uu(i,j  ))/dnc(i,j)
              dudy2 = nuh2 *.5d0*(hum(i-1,j)+hum(i-1,jp1))*(uu(i-1,jp1)-uu(i-1,j))/dnc(i-1,j)
+             
              viscv(i,j) = viscv(i,j) + (1.d0/hvm(i,j))*(dudy1-dudy2)/dsz(i,j)  &
                   * real(wetu(i,jp1)*wetu(i,j)*wetu(i-1,jp1)*wetv(i-1,j),8)
           enddo
