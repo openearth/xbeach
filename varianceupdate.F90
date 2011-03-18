@@ -61,7 +61,7 @@ contains
     allocate(meansparslocal(par%nmeanvar))
 
     do i=1,par%nmeanvar
-       index=chartoindex(trim(par%meansvars(i)))
+       index=chartoindex(trim(par%meanvars(i)))
        call indextos(sg,index,t)
        meansparsglobal(i)%name=t%name
        meansparsglobal(i)%rank=t%rank
@@ -258,7 +258,7 @@ contains
     mult = max(par%dt/par%tintm,0.d0) ! Catch initialization at t=0
 
     do i=1,par%nmeanvar
-       index=chartoindex(par%meansvars(i))
+       index=chartoindex(par%meanvars(i))
        call indextos(sl,index,t)
        select case (t%rank)
        case (2)

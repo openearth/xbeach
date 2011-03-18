@@ -653,9 +653,9 @@ subroutine makeparamsinc
 					       write(outfile,'(a)')'   do i=1,par%nglobalvar'
 					       write(outfile,'(a)')'      write(fid,*)trim(adjustl(par%globalvars(i)))'
 					       write(outfile,'(a)')'   enddo'   
-					    elseif(parname(1:9)=='meansvars') then
+					    elseif(parname(1:9)=='meanvars') then
 					       write(outfile,'(a)')'   do i=1,par%nmeanvar'
-				           write(outfile,'(a)')'      write(fid,*)trim(adjustl(par%meansvars(i)))'
+				           write(outfile,'(a)')'      write(fid,*)trim(adjustl(par%meanvars(i)))'
 				           write(outfile,'(a)')'   enddo'   
 				        elseif(parname(1:9)=='pointvars') then
 				           write(outfile,'(a)')'   do i=1,par%npointvar'

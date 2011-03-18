@@ -252,7 +252,7 @@ contains
        !! First time file opening for time-average output
        if(xmaster) then
           do i=1,par%nmeanvar
-             call makeaveragenames(chartoindex(trim(par%meansvars(i))),fnamemean,fnamevar,fnamemin,fnamemax)
+             call makeaveragenames(chartoindex(trim(par%meanvars(i))),fnamemean,fnamevar,fnamemin,fnamemax)
              fnamemean=trim(fnamemean)
              fnamevar =trim(fnamevar)
              fnamemin =trim(fnamemin)
@@ -450,9 +450,9 @@ contains
                 select case (meansparsglobal(i)%rank)
                 case (2)
                    if(xmaster) then
-                      if (trim(par%meansvars(i))=='H') then                ! Hrms changed to H
+                      if (trim(par%meanvars(i))=='H') then                ! Hrms changed to H
                          write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
-                      elseif (trim(par%meansvars(i))=='urms') then    ! urms
+                      elseif (trim(par%meanvars(i))=='urms') then    ! urms
                          write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
                       else                                                    ! non-rms variables
                          write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean2d

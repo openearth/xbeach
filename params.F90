@@ -16,7 +16,7 @@ type parameters
 !  - Description of a variable may continue on a new line as long as the first character is "!" and the
 !    position of the first "!" is greater than 50 characters from the start of the line. Best practice
 !    is to keep in line with the start of the description on the line above.
-!  - Please keep the declaration of "globalvars", "meansvars" and "pointvars" on the line directly after their respective related size 
+!  - Please keep the declaration of "globalvars", "meanvars" and "pointvars" on the line directly after their respective related size 
 !    parameter declaration (i.e. declaration of "nglobalvars", "nmeanvar" and "npointvar"). This is needed for the autogeneration of
 !    parameters.inc and subsequent params.dat file.
 !  - To enable parsing of "all_input" subroutine please only use "if () then, ... , endif/else/elseif" blocks,
@@ -277,7 +277,7 @@ type parameters
    integer*4     :: nglobalvar                 = -123    !  [-] Number of global output variables (as specified by user)
    character(len=maxnamelen), dimension(numvars)   :: globalvars = 'abc' !  [-] (advanced) Mnems of global output variables, not per se the same sice as nglobalvar (invalid variables, defaults)
    integer*4     :: nmeanvar                   = -123    !  [-] Number of mean,min,max,var output variables
-   character(len=maxnamelen), dimension(numvars)   :: meansvars  = 'abc'  !  [-] (advanced) Mnems of mean output variables (by variables)
+   character(len=maxnamelen), dimension(numvars)   :: meanvars  = 'abc'  !  [-] (advanced) Mnems of mean output variables (by variables)
    integer*4     :: npointvar                  = -123    !  [-] Number of point output variables
    character(len=maxnamelen), dimension(numvars)   :: pointvars  = 'abc'  !  [-] (advanced) Mnems of point output variables (by variables)
    integer*4     :: npoints                    = -123    !  [-] Number of output point locations
@@ -1128,8 +1128,8 @@ do i=1,size(par%pointvars)
    call xmpi_bcast(par%pointvars(i))
 enddo
 
-do i=1,size(par%meansvars)
-   call xmpi_bcast(par%meansvars(i))
+do i=1,size(par%meanvars)
+   call xmpi_bcast(par%meanvars(i))
 enddo
 
 if (xmaster) npoints = size(par%pointtypes)
@@ -1450,7 +1450,7 @@ subroutine readOutputStrings(par,readtype)
      case ('global')
         par%globalvars=tempnames
      case ('mean')
-        par%meansvars=tempnames
+        par%meanvars=tempnames
      case ('point')
        par%pointvars=tempnames
        call writelog('ls','','Order of point output variables stored in ''pointvars.idx''')
