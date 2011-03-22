@@ -1505,7 +1505,7 @@ real*8,dimension(:,:,:),allocatable     :: q
 double complex,dimension(:),allocatable       :: Comptemp, Comptemp2
 complex(fftkind),dimension(:,:),  allocatable :: Gn, Ftemp2
 complex(fftkind),dimension(:,:,:),allocatable :: Ftemp
-character(24),dimension(3)              :: qstr
+character(4),dimension(3)               :: qstr
 
 g=par%g
 K=wp%K
@@ -1677,7 +1677,7 @@ do m=1,3
 
   ! Print status message to screen
   if(xmaster) then
-    call writelog('ls','(A,A,I0)',qstr(m),' 1 of ',Npy)
+    call writelog('ls','(A,A,A,I0)','Flux ',qstr(m),' 1 of ',Npy)
   endif
 
   ! Fourier transformation
@@ -1706,7 +1706,7 @@ do m=1,3
 
     ! Print status message to screen
     if(xmaster) then
-        call writelog('ls','(A,I0,A,I0)',qstr(m),jj,' of ',Npy)
+        call writelog('ls','(A,A,A,I0,A,I0)','Flux ',qstr(m),' ',jj,' of ',Npy)
     endif
     
     ! Inverse Discrete Fourier transformation to transform back to time space

@@ -302,12 +302,6 @@ contains
     inquire(iolength=wordsize) 1.d0
     !  reclen=wordsize*(s%nx+1)*(s%ny+1)
     !  reclen2=wordsize*(s%nx+1)*(s%ny+1)*(par%ngd)*(par%nd)
-    
-    if (par%nmeanvar/=0) then
-       if (par%t>tpar%tpm(1) .and. par%t<=tpar%tpm(stpm)) then
-          call makeaverage(sl,par)                ! Make averages and min-max every flow timestep
-       endif
-    endif
 
     ! Determine if this is an output timestep
     if (tpar%output) then
@@ -467,12 +461,6 @@ contains
                       write(indextominunit(i),rec=itm)meansparsglobal(i)%min2d
                       write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max2d
                    endif
-                   meansparslocal(i)%mean2d = 0.d0
-                   meansparslocal(i)%variance2d = 0.d0
-                   meansparslocal(i)%variancecrossterm2d = 0.d0
-                   meansparslocal(i)%variancesquareterm2d = 0.d0
-                   meansparslocal(i)%min2d = huge(0.d0)
-                   meansparslocal(i)%max2d = -1.d0*huge(0.d0)
                 case (3)
                    if(xmaster) then
                       write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean3d
@@ -486,12 +474,6 @@ contains
                       write(indextominunit(i),rec=itm)meansparsglobal(i)%min3d
                       write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max3d
                    endif
-                   meansparslocal(i)%mean3d = 0.d0
-                   meansparslocal(i)%variance3d = 0.d0
-                   meansparslocal(i)%variancecrossterm3d = 0.d0
-                   meansparslocal(i)%variancesquareterm3d = 0.d0
-                   meansparslocal(i)%min3d = huge(0.d0)
-                   meansparslocal(i)%max3d = -1.d0*huge(0.d0)
                 case (4)
                    if(xmaster) then
                       write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean4d
@@ -505,12 +487,6 @@ contains
                       write(indextominunit(i),rec=itm)meansparsglobal(i)%min4d
                       write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max4d
                    endif
-                   meansparslocal(i)%mean4d = 0.d0
-                   meansparslocal(i)%variance4d = 0.d0
-                   meansparslocal(i)%variancecrossterm4d = 0.d0
-                   meansparslocal(i)%variancesquareterm4d = 0.d0
-                   meansparslocal(i)%min4d = huge(0.d0)
-                   meansparslocal(i)%max4d = -1.d0*huge(0.d0)
                 end select
              enddo
              par%tintm=tpar%tpm(min(itm+2,stpm))-tpar%tpm(itm+1)  ! Next averaging period (min to stop array out of bounds)

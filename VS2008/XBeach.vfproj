@@ -65,6 +65,21 @@ makeversiondat.bat"/>
 copy ..\lib\win32\all\szip\dll\*.dll $(OutDir)
 copy ..\lib\win32\all\zlib\dll\*.dll $(OutDir)
 copy ..\lib\win32\vs\pg\*.dll $(OutDir)"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="netcdf_Release|Win32">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Interfaces="true" WarnInterfaces="true" ExternalNameInterpretation="extNameLowerCase" CallingConvention="callConventionCVF" StringLengthArgPassing="strLenArgsAfterAll" ExternalNameUnderscore="true" Traceback="true" BoundsCheck="true"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" AdditionalLibraryDirectories="..\lib\win32\vs\pg" GenerateDebugInformation="true" SubSystem="subSystemConsole" AdditionalDependencies="netcdf.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="copy parameters.inc ..\parameters.inc
+cd ..
+makeversiondat.bat"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="copy ..\lib\win32\all\hdf5\dll\*.dll $(OutDir)
+copy ..\lib\win32\all\szip\dll\*.dll $(OutDir)
+copy ..\lib\win32\all\zlib\dll\*.dll $(OutDir)
+copy ..\lib\win32\vs\pg\*.dll $(OutDir)"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration></Configurations>
 	<Files>
 		<Filter Name="Header Files" Filter="fi;fd;gen"/>

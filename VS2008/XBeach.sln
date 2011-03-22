@@ -14,6 +14,7 @@ Global
 		MPI_Debug|Win32 = MPI_Debug|Win32
 		MPI_Release|Win32 = MPI_Release|Win32
 		netcdf_Debug|Win32 = netcdf_Debug|Win32
+		netcdf_Release|Win32 = netcdf_Release|Win32
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
@@ -25,6 +26,8 @@ Global
 		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_Release|Win32.Build.0 = MPI_Release|Win32
 		{72E3F77D-F93B-44E1-B765-F01069CE7394}.netcdf_Debug|Win32.ActiveCfg = netcdf_Debug|Win32
 		{72E3F77D-F93B-44E1-B765-F01069CE7394}.netcdf_Debug|Win32.Build.0 = netcdf_Debug|Win32
+		{72E3F77D-F93B-44E1-B765-F01069CE7394}.netcdf_Release|Win32.ActiveCfg = netcdf_Release|Win32
+		{72E3F77D-F93B-44E1-B765-F01069CE7394}.netcdf_Release|Win32.Build.0 = netcdf_Release|Win32
 		{72E3F77D-F93B-44E1-B765-F01069CE7394}.Release|Win32.ActiveCfg = Release|Win32
 		{72E3F77D-F93B-44E1-B765-F01069CE7394}.Release|Win32.Build.0 = Release|Win32
 		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.Debug|Win32.ActiveCfg = Debug|Win32
@@ -35,6 +38,8 @@ Global
 		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_Release|Win32.Build.0 = Release|Win32
 		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.netcdf_Debug|Win32.ActiveCfg = netcdf_Debug|Win32
 		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.netcdf_Debug|Win32.Build.0 = netcdf_Debug|Win32
+		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.netcdf_Release|Win32.ActiveCfg = netcdf_Release|Win32
+		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.netcdf_Release|Win32.Build.0 = netcdf_Release|Win32
 		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.Release|Win32.ActiveCfg = Release|Win32
 		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection

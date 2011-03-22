@@ -206,6 +206,8 @@ do while (par%t<par%tstop)
    if (error .eq. 1) then 
       ! Write output for this time
       call output(s,sglobal,par,tpar, update=.false.)
+      call writelog('lse','','An extra output timestep is created to inquire the last timestep')
+      call writelog('lse','','    before an error occured')
       call halt_program
    end if
    ! Wave boundary conditions

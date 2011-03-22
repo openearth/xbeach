@@ -337,6 +337,43 @@ contains
     enddo ! par%nmeanvar
 
   end subroutine makeaverage
+  
+  ! clear averages for new averaging period
+  subroutine clearaverage(par)
+  
+    use params
+    
+    implicit none
+
+    integer                         :: i
+    type(parameters), intent(in)    :: par
+    
+    do i=1,par%nmeanvar
+      select case (meansparsglobal(i)%rank)
+        case (2)
+          meansparslocal(i)%mean2d = 0.d0
+          meansparslocal(i)%variance2d = 0.d0
+          meansparslocal(i)%variancecrossterm2d = 0.d0
+          meansparslocal(i)%variancesquareterm2d = 0.d0
+          meansparslocal(i)%min2d = huge(0.d0)
+          meansparslocal(i)%max2d = -1.d0*huge(0.d0)
+        case (3)
+          meansparslocal(i)%mean3d = 0.d0
+          meansparslocal(i)%variance3d = 0.d0
+          meansparslocal(i)%variancecrossterm3d = 0.d0
+          meansparslocal(i)%variancesquareterm3d = 0.d0
+          meansparslocal(i)%min3d = huge(0.d0)
+          meansparslocal(i)%max3d = -1.d0*huge(0.d0)
+        case (4)
+          meansparslocal(i)%mean4d = 0.d0
+          meansparslocal(i)%variance4d = 0.d0
+          meansparslocal(i)%variancecrossterm4d = 0.d0
+          meansparslocal(i)%variancesquareterm4d = 0.d0
+          meansparslocal(i)%min4d = huge(0.d0)
+          meansparslocal(i)%max4d = -1.d0*huge(0.d0)
+      end select
+    enddo
+  end subroutine clearaverage
 
   ! Subroutine make time series file name
 

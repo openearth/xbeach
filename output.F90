@@ -47,6 +47,8 @@ end subroutine output_init
 
 subroutine output(s,sglobal,par,tpar, update)
    
+   use means_module
+   
    implicit none
    
    type(spacepars)                     :: s,sglobal
@@ -64,6 +66,14 @@ subroutine output(s,sglobal,par,tpar, update)
    if (lupdate) call outputtimes_update(par, tpar)
    ! update log
    call log_progress(par)
+   
+   ! update meanvars in current averaging period with current timestep
+   if (par%nmeanvar/=0) then
+      if (par%t>tpar%tpm(1) .and. par%t<=tpar%tpm(size(tpar%tpm))) then
+         call makeaverage(s,par)
+      endif
+   endif
+   
    ! Output
    if (par%outputformat=='fortran') then
       call var_output(sglobal,s,par,tpar)
@@ -76,6 +86,11 @@ subroutine output(s,sglobal,par,tpar, update)
       call ncoutput(sglobal,s,par, tpar)
 #endif
       call var_output(sglobal,s,par,tpar)
+   endif
+   
+   ! clear averages after output of means
+   if (tpar%outputm .and. tpar%itm>1) then
+      call clearaverage(par)
    endif
    
 end subroutine output

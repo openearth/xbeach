@@ -36,6 +36,7 @@ interface writelog
    module procedure writelog_aiaaa
    module procedure writelog_aiai
    module procedure writelog_aiaia
+   module procedure writelog_aaiai
    module procedure writelog_aaaiai
    module procedure writelog_aiafaf
    module procedure writelog_aiaiai
@@ -424,6 +425,26 @@ subroutine writelog_aiaia(destination,form,mc1,mi1,mc2,mi2,mc3)
       if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
    endif
 end subroutine writelog_aiaia
+
+subroutine writelog_aaiai(destination,form,message_char1,message_char2,message_i1,message_char3,message_i2)
+   implicit none
+   character(*),intent(in)    ::  form,message_char1,message_char2,message_char3
+   character(*),intent(in)       ::  destination
+   integer*4,intent(in)          ::  message_i1,message_i2
+   character(1024)            ::  display
+ 
+   if (form=='') then
+      write(display,*)message_char1,message_char2,message_i1,message_char3,message_i2
+   else
+      write(display,form)message_char1,message_char2,message_i1,message_char3,message_i2
+   endif
+
+   if (xmaster) then 
+      if (scan(destination,'s')>0) write(*,*)trim(display)
+      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
+      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
+   endif
+end subroutine writelog_aaiai
 
 subroutine writelog_aaaiai(destination,form,message_char1,message_char2,message_char3,message_i1,message_char4,message_i2)
    implicit none

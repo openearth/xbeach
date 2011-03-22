@@ -735,7 +735,7 @@ contains
 
 
     ! If we're gonna write some mean output
-    if (tpar%outputm) then
+    if (tpar%outputm .and. tpar%itm>1) then
        ! only write the information on the xmaster node
 
        do i=1,par%nmeanvar
@@ -747,7 +747,7 @@ contains
        end do
        if (xmaster) then
           ! Store the time (in morphological time)
-          status = nf90_put_var(ncid, meantimevarid, par%t*max(par%morfac,1.d0), (/tpar%itm/))
+          status = nf90_put_var(ncid, meantimevarid, par%t*max(par%morfac,1.d0), (/tpar%itm-1/))
           if (status /= nf90_noerr) call handle_err(status) 
           ! write global output variables
           do i=1,par%nmeanvar
@@ -764,17 +764,17 @@ contains
                             status = nf90_put_var(ncid, meanvarids(i,j), sqrt(meansparsglobal(i)%variancesquareterm2d), &
                                  start=(/1,1,tpar%itm/) )
                          else
-                            status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean2d, start=(/1,1,tpar%itm/) )
+                            status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean2d, start=(/1,1,tpar%itm-1/) )
                          end if
                          if (status /= nf90_noerr) call handle_err(status)
                       case('variance')
-                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%variance2d, start=(/1,1,tpar%itm/) )
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%variance2d, start=(/1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
                       case('min')
-                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%min2d, start=(/1,1,tpar%itm/) )
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%min2d, start=(/1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
                       case('max')
-                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%max2d, start=(/1,1,tpar%itm/) )
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%max2d, start=(/1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
                       case default
                          write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
@@ -782,16 +782,16 @@ contains
                    case(3)
                       select case(meanvartypes(j))
                       case('mean')
-                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean3d, start=(/1,1,1,tpar%itm/) )
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean3d, start=(/1,1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
                       case('variance')
-                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%variance3d, start=(/1,1,1,tpar%itm/) )
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%variance3d, start=(/1,1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
                       case('min')
-                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%min3d, start=(/1,1,1,tpar%itm/) )
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%min3d, start=(/1,1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
                       case('max')
-                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%max3d, start=(/1,1,1,tpar%itm/) )
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%max3d, start=(/1,1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
                       case default
                          write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
@@ -799,16 +799,16 @@ contains
                    case(4)
                       select case(meanvartypes(j))
                       case('mean')
-                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean4d, start=(/1,1,1,1,tpar%itm/) )
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean4d, start=(/1,1,1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
                       case('variance')
-                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%variance4d, start=(/1,1,1,1,tpar%itm/) )
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%variance4d, start=(/1,1,1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
                       case('min')
-                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%min4d, start=(/1,1,1,1,tpar%itm/) )
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%min4d, start=(/1,1,1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
                       case('max')
-                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%max4d, start=(/1,1,1,1,tpar%itm/) )
+                         status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%max4d, start=(/1,1,1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
                       case default
                          write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)

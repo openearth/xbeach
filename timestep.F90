@@ -479,7 +479,8 @@ subroutine timestep(s,par, tpar, it, ierr)
   end if
 
   if (dtref/par%dt>50.d0) then
-     call writelog('lse','','Quit XBeach since computational time explodes')
+     call writelog('lse','','Quit XBeach since computational time implodes')
+     call writelog('lse','','Please check the velocities at the end of the simulation')
      call writelog('lse','','dtref',dtref)
      call writelog('lse','','par%dt',par%dt)
      ! Force output before exit in main time loop
