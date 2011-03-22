@@ -151,7 +151,7 @@ contains
        endif
        
        s%dtheta=par%dtheta*degrad
-       s%ntheta=(s%thetamax-s%thetamin)/s%dtheta
+       s%ntheta=nint((s%thetamax-s%thetamin)/s%dtheta)
 
        allocate(s%theta(1:s%ntheta))
        allocate(s%thet(1:s%nx+1,1:s%ny+1,1:s%ntheta))
