@@ -825,8 +825,6 @@ contains
     end if
 
 
-
-
     if (xmaster) then
        status = nf90_close(ncid=ncid)
        if (status /= nf90_noerr) call handle_err(status) 

@@ -129,25 +129,27 @@ contains
        
        degrad=par%px/180.d0
        
-       ! rotate theta grid to world coordinates for backwards compatibility
-       s%thetamin=par%thetamin+s%alfa/degrad
-       s%thetamax=par%thetamax+s%alfa/degrad
-       
        if (par%thetanaut==1) then  
-            s%thetamin=(270-s%thetamax)*degrad
-            s%thetamax=(270-s%thetamin)*degrad
-            if (s%thetamax>par%px) then
-                 s%thetamax=s%thetamax-2*par%px
-                 s%thetamin=s%thetamin-2*par%px
-            endif
-            if (s%thetamin<-par%px) then
-                 s%thetamax=s%thetamax+2*par%px
-                 s%thetamin=s%thetamin+2*par%px
-            endif
+            s%thetamin=(270-par%thetamax)*degrad
+            s%thetamax=(270-par%thetamin)*degrad
        else
+            ! rotate theta grid to world coordinates for backwards compatibility
+            s%thetamin=par%thetamin+s%alfa/degrad
+            s%thetamax=par%thetamax+s%alfa/degrad
+            
             s%thetamin=s%thetamin*degrad
             s%thetamax=s%thetamax*degrad
        endif
+       
+       if (s%thetamax>par%px) then
+            s%thetamax=s%thetamax-2*par%px
+            s%thetamin=s%thetamin-2*par%px
+       endif
+       if (s%thetamin<-par%px) then
+            s%thetamax=s%thetamax+2*par%px
+            s%thetamin=s%thetamin+2*par%px
+       endif
+       
        s%dtheta=par%dtheta*degrad
        s%ntheta=(s%thetamax-s%thetamin)/s%dtheta
 

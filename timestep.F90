@@ -315,7 +315,7 @@ subroutine outputtimes_update(par, tpar)
   use logging_module
   implicit none
   type(parameters),intent(inout)      :: par
-  type(timepars), intent(inout):: tpar
+  type(timepars), intent(inout)       :: tpar
   real*8               :: t1,t2,t3,t4,t5
 
   ! Current timestep:
