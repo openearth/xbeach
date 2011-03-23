@@ -531,15 +531,14 @@ contains
        Fy(nx+1,:) = 0.0d0
     endif
     if(xmpi_isleft .and. ny>0) then 
-       ! Robert: Fix Neumann assumption for wave forcing on boudary, even if ee not Neumanned
        Fx(:,1)=Fx(:,2)     
        Fy(:,1)=Fy(:,2)
-       where (Fy(:,1)>0.d0) Fy(:,1)=0.d0;
+       ! where (Fy(:,1)>0.d0) Fy(:,1)=0.d0; !Jaap + Bas: Don't do this before calling Dano :-)
     endif
     if (xmpi_isright .and. ny>0) then
        Fy(:,ny+1)=Fy(:,ny)   ! only a dummy point in non mpi
        Fx(:,ny+1)=Fx(:,ny)   ! only a dummy point in non mpi
-       where (Fy(:,ny+1)<0.d0) Fy(:,ny+1)=0.d0;
+       ! where (Fy(:,ny+1)<0.d0) Fy(:,ny+1)=0.d0; !Jaap + Bas: Don't do this before calling Dano :-)
     endif
 
     ! Ad

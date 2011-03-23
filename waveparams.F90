@@ -1051,7 +1051,8 @@ subroutine build_etdir(par,s,wp,Ebcfname)
   ! Determine normalized wave variance for each directional bin to be used as
   ! probability density function, so surface is equal to unity
   do i=1,size(wp%theta)
-     P(i)=(sum(Dmean(1:i))-Dmean(i)/2)*wp%dang*pp                                            ! Bas: this is equal to P(i)=sum(Dmean(1:i))/sum(Dmean)
+     ! P(i)=(sum(Dmean(1:i))-Dmean(i)/2)*wp%dang*pp                                            ! Bas: this is equal to P(i)=sum(Dmean(1:i))/sum(Dmean)
+     P(i)=sum(Dmean(1:i))*wp%dang*pp 
   end do
 
   ! Update random seed, if requested
