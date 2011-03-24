@@ -188,7 +188,7 @@ contains
           if (status /= nf90_noerr) call handle_err(status)
        end if
        if (outputm) then
-          status = nf90_def_dim(ncid, 'meantime', size(tpar%tpm), meantimedimid)
+          status = nf90_def_dim(ncid, 'meantime', size(tpar%tpm)-1, meantimedimid)
           if (status /= nf90_noerr) call handle_err(status)
        end if
 
@@ -762,7 +762,7 @@ contains
                       case('mean')
                          if ((t%name .eq. 'H') .or. (t%name .eq. 'urms'))  then
                             status = nf90_put_var(ncid, meanvarids(i,j), sqrt(meansparsglobal(i)%variancesquareterm2d), &
-                                 start=(/1,1,tpar%itm/) )
+                                 start=(/1,1,tpar%itm-1/) )
                          else
                             status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean2d, start=(/1,1,tpar%itm-1/) )
                          end if
