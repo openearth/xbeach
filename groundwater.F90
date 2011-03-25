@@ -251,7 +251,27 @@ subroutine gwflow(par,s)
      s%dinfil=max(s%dinfil,par%dwetlayer/3.d0)
   endwhere
 
-
+  !! Implicit calculation of w:
+  !!
+  !!    w(n) = k(1+dp(n)/dinfil(n))   &   dinfil(n) = dinfil(n-1)+dt/por*w(n)
+  !!   
+  !!    dt/por*(w(n))^2 + (dinfil(n-1)-k*dt/por)*w(n)-k(dp(n)+dinfil(n-1))=0
+  !
+  ! where(s%wetz==0)
+  !    s%dinfil= 0.d0
+  ! endwhere
+  !
+  ! do j=2,s%ny
+  !   do i=2,s%nx
+  !      if (wetz(i,j)==1 .and. c2(i,j)==1) then
+  !          a = par%dt/par%por
+  !          b = dinfil(i,j)-par%kz*par%dt/par%por
+  !          c = -par%kz*(fsh(i,j)+dinfil(i,j))
+  !          w(i,j) = (-b+sqrt(b**2-4*a*c))/2/a
+  !          w(i,j) = min(w(i,j),fsh(i,j)/par%dt)
+  !      endif
+  !   enddo
+  ! enddo
 
   s%gww=0.d0 ! w defined positive from sea to groundwater in volumes of surface water (no pores).
   s%gww=par%por*(&
