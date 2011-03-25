@@ -670,11 +670,13 @@ subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,dt,scheme)
               do i=2,nx-1
                  cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
                  if (cgxu>0) then
-                     eupw=((dsu(i,j)+.5*dsu(i-1,j))*ee(i,j,itheta)-.5*dsu(i-1,j)*ee(i-1,j,itheta))/dsu(i-1,j)
+!                    eupw=((dsu(i,j)+.5*dsu(i-1,j))*ee(i,j,itheta)-.5*dsu(i-1,j)*ee(i-1,j,itheta))/dsu(i-1,j)
+                     eupw=((dsu(i-1,j)+.5*dsu(i,j))*ee(i,j,itheta)-.5*dsu(i,j)*ee(i-1,j,itheta))/dsu(i-1,j)
                      if (eupw<0.d0) eupw=ee(i,j,itheta)
                      fluxx(i,j)=eupw*cgxu*dnu(i,j)
                  else
-                     eupw=((dsu(i+1,j)+.5*dsu(i+2,j))*ee(i+1,j,itheta)-.5*dsu(i+2,j)*ee(i+2,j,itheta))/dsu(i+1,j)
+!                    eupw=((dsu(i+1,j)+.5*dsu(i+2,j))*ee(i+1,j,itheta)-.5*dsu(i+2,j)*ee(i+2,j,itheta))/dsu(i+1,j)
+                     eupw=((dsu(i+1,j)+.5*dsu(i,j))*ee(i+1,j,itheta)-.5*dsu(i,j)*ee(i+2,j,itheta))/dsu(i+1,j)
                      if (eupw<0.d0) eupw=ee(i+1,j,itheta)
                      fluxx(i,j)=eupw*cgxu*dnu(i,j)
                  endif
@@ -684,14 +686,16 @@ subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,dt,scheme)
               if (cgxu>0) then
                  fluxx(i,j)=ee(i,j,itheta)*cgxu*dnu(i,j)
               else
-                 eupw=((dsu(i+1,j)+.5*dsu(i+2,j))*ee(i+1,j,itheta)-.5*dsu(i+2,j)*ee(i+2,j,itheta))/dsu(i+1,j)
+!                     eupw=((dsu(i+1,j)+.5*dsu(i+2,j))*ee(i+1,j,itheta)-.5*dsu(i+2,j)*ee(i+2,j,itheta))/dsu(i+1,j)
+                      eupw=((dsu(i+1,j)+.5*dsu(i,j))*ee(i+1,j,itheta)-.5*dsu(i,j)*ee(i+2,j,itheta))/dsu(i+1,j)
                  if (eupw<0.d0) eupw=ee(i+1,j,itheta)
                  fluxx(i,j)=eupw*cgxu*dnu(i,j)
               endif
               i=nx  ! only compute for i==nx
               cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
               if (cgxu>0) then
-                 eupw=((dsu(i,j)+.5*dsu(i-1,j))*ee(i,j,itheta)-.5*dsu(i-1,j)*ee(i-1,j,itheta))/dsu(i-1,j)
+!                    eupw=((dsu(i,j)+.5*dsu(i-1,j))*ee(i,j,itheta)-.5*dsu(i-1,j)*ee(i-1,j,itheta))/dsu(i-1,j)
+                     eupw=((dsu(i-1,j)+.5*dsu(i,j))*ee(i,j,itheta)-.5*dsu(i,j)*ee(i-1,j,itheta))/dsu(i-1,j)
                  if (eupw<0.d0) eupw=ee(i,j,itheta)
                  fluxx(i,j)=eupw*cgxu*dnu(i,j)
               else
@@ -754,11 +758,13 @@ subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,dt,scheme)
               do i=1,nx+1
                  cgyv=.5*(cgy(i,j+1,itheta)+cgy(i,j,itheta))
                  if (cgyv>0) then
-                    eupw=((dnv(i,j)+.5*dnv(i,j-1))*ee(i,j,itheta)-.5*dnv(i,j-1)*ee(i,j-1,itheta))/dnv(i,j-1)
+!                    eupw=((dnv(i,j)+.5*dnv(i,j-1))*ee(i,j,itheta)-.5*dnv(i,j-1)*ee(i,j-1,itheta))/dnv(i,j-1)
+                     eupw=((dnv(i,j-1)+.5*dnv(i,j))*ee(i,j,itheta)-.5*dnv(i,j)*ee(i,j-1,itheta))/dnv(i,j-1)
                     if (eupw<0.d0) eupw=ee(i,j,itheta)
                     fluxy(i,j)=eupw*cgyv*dsv(i,j)
                  else
-                    eupw=((dnv(i,j+1)+.5*dnv(i,j+2))*ee(i,j+1,itheta)-.5*dnv(i,j+2)*ee(i,j+2,itheta))/dnv(i,j+1)
+!                   eupw=((dnv(i,j+1)+.5*dnv(i,j+2))*ee(i,j+1,itheta)-.5*dnv(i,j+2)*ee(i,j+2,itheta))/dnv(i,j+1)
+                    eupw=((dnv(i,j+1)+.5*dnv(i,j))*ee(i,j+1,itheta)-.5*dnv(i,j)*ee(i,j+2,itheta))/dnv(i,j+1)
                     if (eupw<0.d0) eupw=ee(i,j+1,itheta)
                     fluxy(i,j)=eupw*cgyv*dsv(i,j)
                  endif
@@ -770,7 +776,8 @@ subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,dt,scheme)
               if (cgyv>0) then
                  fluxy(i,j)=ee(i,j,itheta)*cgyv*dsv(i,j)
               else
-                 eupw=((dnv(i,j+1)+.5*dnv(i,j+2))*ee(i,j+1,itheta)-.5*dnv(i,j+2)*ee(i,j+2,itheta))/dnv(i,j+1)
+!                   eupw=((dnv(i,j+1)+.5*dnv(i,j+2))*ee(i,j+1,itheta)-.5*dnv(i,j+2)*ee(i,j+2,itheta))/dnv(i,j+1)
+                    eupw=((dnv(i,j+1)+.5*dnv(i,j))*ee(i,j+1,itheta)-.5*dnv(i,j)*ee(i,j+2,itheta))/dnv(i,j+1)
                  if (eupw<0.d0) eupw=ee(i,j+1,itheta)
                  fluxy(i,j)=eupw*cgyv*dsv(i,j)
               endif
@@ -779,7 +786,8 @@ subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,dt,scheme)
            do i=1,nx+1
               cgyv=.5*(cgy(i,j+1,itheta)+cgy(i,j,itheta))
               if (cgyv>0) then
-                 eupw=((dnv(i,j)+.5*dnv(i,j-1))*ee(i,j,itheta)-.5*dnv(i,j-1)*ee(i,j-1,itheta))/dnv(i,j-1)
+!                eupw=((dnv(i,j)+.5*dnv(i,j-1))*ee(i,j,itheta)-.5*dnv(i,j-1)*ee(i,j-1,itheta))/dnv(i,j-1)
+                 eupw=((dnv(i,j-1)+.5*dnv(i,j))*ee(i,j,itheta)-.5*dnv(i,j)*ee(i,j-1,itheta))/dnv(i,j-1)
                  if (eupw<0.d0) eupw=ee(i,j,itheta)
                  fluxy(i,j)=eupw*cgyv*dsv(i,j)
               else
