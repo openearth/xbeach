@@ -622,7 +622,8 @@ subroutine space_distribute_block_vector(xy,sl,a,b)
 
   integer                             :: i
 
-  do i=1,sl%ntheta
+!DF  do i=1,sl%ntheta
+  do i=1,size(b,2)
     call space_distribute(xy,sl,a(:,i),b(:,i))
   enddo
 
@@ -701,7 +702,7 @@ subroutine space_distribute_space(sg,sl,par)
     call writelog('sl','','Distribution of matrix on processors')
     call writelog('sl','',' proc   is   lm   js   ln')
     do i=1,xmpi_size
-       call writelog('sl','(i0,i0,i0,i0,i0)',i-1,sg%is(i),sg%lm(i),sg%js(i),sg%ln(i))
+       call writelog('sl','(i5,i5,i5,i5,i5)',i-1,sg%is(i),sg%lm(i),sg%js(i),sg%ln(i))
     enddo
     call writelog('ls','',' proc   left right top bot')
     do i=1,xmpi_size

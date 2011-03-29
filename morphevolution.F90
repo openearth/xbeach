@@ -164,7 +164,7 @@ contains
        !ccb = ccbg(:,:,jg)
        if (D50(jg)>0.002d0) then
           ! RJ: set ceqsg to zero for gravel.
-          cc = 0.d0 ! Can be used to test total transport mode
+          ! Dano: try without this fix cc = 0.d0 ! Can be used to test total transport mode
        endif
        !
        ! X-direction
