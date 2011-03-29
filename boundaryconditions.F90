@@ -568,7 +568,7 @@ contains
     type(parameters)                            :: par
 
     integer                                     :: i,ig
-    integer                                     :: j,jj,indt
+    integer                                     :: j,jj,j1,indt
     real*8                                      :: ur,alphanew,vert,factime,dzs0dy,windxnow,windynow
     real*8 , dimension(2)                       :: xzs0,yzs0,szs0
     real*8 , dimension(:,:)  ,allocatable,save  :: zs0old,zsmean,dzs0
@@ -606,6 +606,13 @@ contains
        vmean = 0.d0
        dzs0 = 0.d0 
        thetai = 0.d0
+    endif
+    
+    ! Super fast 1D
+    if (ny==0) then
+      j1 = 1
+    else
+      j1 = 2
     endif
 
     ! factime=1.d0/par%cats/par%Trep*par%dt !Jaap: not used anymore
@@ -780,27 +787,33 @@ contains
              ht(1:2,:)=max(zs0(1:2,:)-zb(1:2,:),par%eps)
              beta=uu(1:2,:)-2.*dsqrt(par%g*hum(1:2,:))
 
-             do j=2,ny
-                ! compute gradients in u-points....
-                dvdy(1,j)=(vu(1,j+1)-vu(1,j-1))/ (2.d0*dnu(1,j)) 
-                dhdx(1,j)=(ht(2,j)-ht(1,j))/dsu(1,j)
-                dbetadx(1,j)=(beta(2,j)-beta(1,j))/dsz(2,j)
-                dbetady(1,j)=(beta(1,j+1)-beta(1,j-1))/(2.d0*dnu(1,j))
+             do j=j1,max(ny,1)
+                ! compute gradients in u-points
+                dhdx   (1,j) = ( ht  (2,j) - ht  (1,j) ) / dsu(1,j)
+                dbetadx(1,j) = ( beta(2,j) - beta(1,j) ) / dsz(2,j)
+                
+                if (ny>0) then
+                    dvdy   (1,j) = ( vu  (1,j+1) - vu  (1,j-1) ) / ( 2.d0*dnu(1,j) ) 
+                    dbetady(1,j) = ( beta(1,j+1) - beta(1,j-1) ) / ( 2.d0*dnu(1,j) )
+                else
+                    dvdy   (1,j) = 0.d0
+                    dbetady(1,j) = 0.d0
+                endif
 
-                inv_ht(j) = 1.d0/hum(1,j)                                 
+                inv_ht(j) = 1.d0/hum(1,j)
 
-                bn(j)=-(uu(1,j)-dsqrt(par%g*hum(1,j)))*dbetadx(1,j) &      
-                     -vu(1,j)*dbetady(1,j)& !Ap vu
-                     +dsqrt(par%g*hum(1,j))*dvdy(1,j)&                    
-                     +Fx(1,j)*inv_ht(j)/par%rho-par%g/par%C**2.d0&       
-                     *sqrt(uu(1,j)**2+vu(1,j)**2)*uu(1,j)/hum(1,j)&    
-                     +par%g*dhdx(1,j)
+                bn    (j) = -( uu(1,j) - dsqrt(par%g*hum(1,j)) ) * dbetadx(1,j) &
+                            -  vu(1,j)                           * dbetady(1,j) &
+                            +            dsqrt(par%g*hum(1,j))   * dvdy   (1,j) &
+                            +  par%g                             * dhdx   (1,j) &
+                            +  Fx(1,j) * inv_ht(j) / par%rho                    &
+                            -  par%g  / par%C**2.d0 * sqrt(uu(1,j)**2 + vu(1,j)**2) * uu(1,j) / hum(1,j)
              end do
              
              ! Jaap: Compute angle of incominge wave
              thetai = datan(vi(1,:)/(ui(1,:)+1.d-16))   
              
-             do j=2,ny
+             do j=j1,max(ny,1)
                 betanp1(1,j) = beta(1,j)+ bn(j)*par%dt
                 alpha2(j)=-theta0 ! Jaap: this is first estimate
                 alphanew = 0.d0
@@ -914,7 +927,7 @@ contains
 
              beta=uu(nx-1:nx,:)+2.*dsqrt(par%g*hum(nx-1:nx,:)) !cjaap : replace hh with hum
 
-             do j=2,ny
+             do j=j1,max(ny,1)
                 if (wetu(nx,j)==1) then   ! Robert: dry back boundary points
                    ! Compute gradients in u-points....
                    dvdy(2,j)=(vu(nx,j+1)-vu(nx,j-1))/(2.d0*dnu(nx,j))
@@ -933,7 +946,7 @@ contains
                 endif    ! Robert: dry back boundary points
              enddo
 
-             do j=2,ny
+             do j=j1,max(ny,1)
                 if (wetu(nx,j)==1) then                                                     ! Robert: dry back boundary points
                    betanp1(1,j) = beta(2,j)+ bn(j)*par%dt                                   !Ap toch?
                    alpha2(j)= theta0

@@ -1090,6 +1090,15 @@ contains
        call writelog('sl','','Warning: Wave-current interaction with non-stationary waves is still')
        call writelog('sl','','         experimental, continue with computation nevertheless')
     endif
+    !
+    !
+    ! 2D absorbing boundary limits to 1D absorbing boundary with superfast 1D
+    if (trim(par%front)=='abs_2d' .and. par%ny==0) then
+       call writelog('sl','','Warning: 2D absorbing boundary condition [front=abs_2d] reduces to a')
+       call writelog('sl','','         1D absoribng boundary condition [front=abs_1d] in')
+       call writelog('sl','','         fast 1D mode [ny=0]')
+       par%front = 'abs_1d '
+    endif
 
 
 
