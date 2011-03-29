@@ -140,7 +140,7 @@ contains
 
        npointstotal = par%npoints+par%nrugauge
        outputp = (npointstotal .gt. 0) .and. (size(tpar%tpp) .gt. 0)
-       allocate(pointsvarids(par%npoints))
+       allocate(pointsvarids(par%npointvar))
 
 
        allocate(meanvarids(par%nmeanvar,nmeanvartypes))
@@ -542,8 +542,8 @@ contains
 
           ! Convert world coordinates of points to nearest (lsm) grid point
           ! This could be done in some postprocessing function
-          allocate(xpoints(par%nrugauge+par%npoints))
-          allocate(ypoints(par%nrugauge+par%npoints))
+          allocate(xpoints(npointstotal))
+          allocate(ypoints(npointstotal))
           call snappointstogrid(par, s, xpoints, ypoints)
 
           status = nf90_put_var(ncid, xpointindexvarid, xpoints)

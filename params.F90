@@ -1326,6 +1326,7 @@ subroutine readpointvars(par)
   real*8,dimension(:),allocatable          :: xpointsw,ypointsw
   integer, dimension(:), allocatable       :: pointtypes
   integer                                  :: i
+  logical                                  :: xzfound, yzfound, zsfound
  
   ! These "targets" must be allocated by all processes
   allocate(pointtypes(par%npoints+par%nrugauge))
@@ -1359,7 +1360,29 @@ subroutine readpointvars(par)
 
      if (par%nrugauge>0) then
         call readPointPosition(par,'rugauge',xpointsw,ypointsw)
-     endif
+        ! Make sure xz, yz and zs are in pointvars (default)
+        xzfound = .false.
+        yzfound = .false.
+        zsfound = .false.
+        do i=1,par%npointvar
+           if (par%pointvars(i) .eq. 'xz') xzfound = .true.
+           if (par%pointvars(i) .eq. 'yz') yzfound = .true.
+           if (par%pointvars(i) .eq. 'zs') zsfound = .true.
+        end do
+        if (.not.xzfound) then
+           par%pointvars(par%npointvar+1)='xz'
+           par%npointvar = par%npointvar + 1
+        end if
+        if (.not.yzfound) then
+           par%pointvars(par%npointvar+1)='yz'
+           par%npointvar = par%npointvar + 1
+        end if
+        if (.not.zsfound) then
+           par%pointvars(par%npointvar+1)='zs'
+           par%npointvar = par%npointvar + 1
+        end if
+     end if
+     
      ! Set pointers correct
      allocate(par%pointtypes(size(pointtypes)))
      allocate(par%xpointsw(size(xpointsw)))
