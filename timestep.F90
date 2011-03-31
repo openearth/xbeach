@@ -445,9 +445,16 @@ subroutine timestep(s,par, tpar, it, ierr)
               mdx=s%dsu(i,j)
               par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j)),abs(s%ueu(i,j))))) !Jaap: include sediment advection velocities
               ! v-points
-              ! Dano: no need for 1D case            
+              mdx=min(s%dsu(i,j),s%dsu(i-1,j))
+              par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j)))))                    !Bas: needed even in fast 1D to obtain results equal to regular 1D
+                                                                                                        !     uv(2,:) is based on uu(1,:), which is otherwise neglected
+                                                                                                        !     if uu(1,:) is the largest velocity in the domain, a different dt is computed
+              
               mdx = min(s%dsu(i,j),s%dsz(i,j))**2
-              par%dt=min(par%dt,0.5d0*mdx*mdx/(mdx+mdx)/max(s%nuh(i,j),1e-6))
+              mdy = min(s%dnv(i,j),s%dnz(i,j))**2
+              
+              par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))                           !Bas: nuh depends also on min(dy), only using mdx here will result in 
+                                                                                                        !     a extra small timesteps since dy is large. Consider making nuh independent of dy
            endif
         enddo
      enddo

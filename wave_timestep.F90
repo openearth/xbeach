@@ -476,7 +476,7 @@ contains
     ! add roller contribution
 
     Sxx = Sxx + sum((costh**2)*rr,3)*dtheta
-    Syy = Syy + sum((costh**2)*rr,3)*dtheta
+    Syy = Syy + sum((sinth**2)*rr,3)*dtheta
     Sxy = Sxy + sum(sinth*costh*rr,3)*dtheta
 
     if (ny>0) then
@@ -1080,14 +1080,20 @@ type(parameters)                    :: par
 
 real*8                              :: Lbr
 real*8, dimension(s%nx+1)           :: utemp
-integer                             :: jx,jy,i,nbr,tempxid
+integer                             :: jx,jy,i,j1,nbr,tempxid
 integer, dimension(s%nx+1)          :: ibr
 
 include 's.ind'
 include 's.inp'
 
+! Superfast 1D
+if (ny>0) then
+    j1 = 2
+else
+    j1 = 1
+endif
 
-do jy = 2,ny
+do jy = j1,max(1,ny)
   usd(1,jy) = ustr(1,jy)
   do jx = 2,nx+1
     nbr=0

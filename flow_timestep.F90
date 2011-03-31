@@ -1078,6 +1078,9 @@ subroutine visc_smagorinsky(s,par)
         nuh(i,j) = par%nuh**2 * l * Tau * real(wetu(i,j)*wetu(i-1,j)*wetv(i,j)*wetv(i,j-1),kind=8)
       enddo
     enddo
+    
+    if (xmpi_isleft)  nuh(:,1)      = nuh(:,2)      ! Bas+Jaap: changed from boundaries=0.d0 to neumann
+    if (xmpi_isright) nuh(:,ny+1)   = nuh(:,ny)
   
   else
   
@@ -1087,16 +1090,13 @@ subroutine visc_smagorinsky(s,par)
         dvdx = (vv(i+1,j) - vv(i-1,j) )/(dsu(i,j)+dsu(i-1,j))
         Tau  = sqrt(2.0d0 * dudx**2 + dvdx**2)
         l    = 1.d0/dsdnzi(i,j)
-        nuh(i,j) = par%nuh**2 * l * Tau * real(wetu(i,j)*wetu(i-1,j)*wetv(i,j),kind=8)
+        nuh(i,j) = par%nuh**2 * l * Tau * real(wetu(i,j)*wetu(i-1,j),kind=8)
     enddo
   
   endif !ny>0
-  
-  ! Internal and external boundaries
-  if (xmpi_istop)   nuh(1,:)      = 0.0d0
-  if (xmpi_isright) nuh(:,ny+1)   = 0.0d0
-  if (xmpi_isleft)  nuh(:,1)      = 0.0d0
-  if (xmpi_isbot)   nuh(nx+1,:)   = 0.0d0
+
+if (xmpi_istop)   nuh(1,:)      = nuh(2,:)      ! Bas+Jaap: changed from boundaries=0.d0 to neumann
+if (xmpi_isbot)   nuh(nx+1,:)   = nuh(nx,:)
 
 #ifdef USEMPI
   call xmpi_shift(nuh,'1:')

@@ -662,13 +662,17 @@ contains
     enddo
     s%hu(s%nx+1,:)=s%hu(s%nx,:)
 
-    do j=1,s%ny
-       do i=1,s%nx+1
-          s%hv(i,j) = max(s%zs(i,j),s%zs(i,j+1))-max(s%zb(i,j),s%zb(i,j+1))
-       enddo
-    enddo
-    s%hv(:,s%ny+1)=s%hv(:,s%ny+1)
-
+    if (s%ny>0) then
+        do j=1,s%ny
+           do i=1,s%nx+1
+              s%hv(i,j) = max(s%zs(i,j),s%zs(i,j+1))-max(s%zb(i,j),s%zb(i,j+1))
+           enddo
+        enddo
+        s%hv(:,s%ny+1)=s%hv(:,s%ny)
+    else
+        s%hv(:,1)=s%zs(:,1)-s%zb(:,1)
+    endif
+    
     s%hum(1:s%nx,:) = 0.5d0*(s%hh(1:s%nx,:)+s%hh(2:s%nx+1,:))
     s%hum(s%nx+1,:)=s%hh(s%nx+1,:)
 
