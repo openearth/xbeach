@@ -110,18 +110,14 @@ contains
 
     type(arraytype)                              :: t
     type(meanspars)                              :: meanvar
-    integer                                      :: i,j,k,l,m,n
+    integer                                      :: i,j
     character(len=maxnamelen)                    :: mnem
 
     integer                                      :: npointstotal
-    logical                                      :: outputp, outputg, outputw, outputm, outputc
+    logical                                      :: outputp, outputg, outputm
     integer, dimension(:), allocatable           :: dimids ! store the dimids in a vector
     character(256)                               :: coordinates
     character(8)                                 :: cellmethod
-
-    ! variables for point grid snapping
-    real*8,dimension(s%nx+1,s%ny+1)	  :: mindist
-    integer,dimension(2)                :: minlocation
 
 
     ! subversion information
@@ -576,15 +572,11 @@ contains
     type(timepars), intent(in)             :: tpar
 
     type(arraytype)                        :: t
-    integer                                :: i,j,k,l,m,n, ii
+    integer                                :: i,j,ii
     character(len=maxnamelen)              :: mnem
 
     ! some local variables to pass the data through the postprocessing function.
     integer :: i0
-    integer, dimension(:), allocatable :: i1
-    integer, dimension(:,:), allocatable :: i2
-    integer, dimension(:,:,:), allocatable :: i3
-    integer, dimension(:,:,:,:), allocatable :: i4
     real*8 :: r0
     real*8, dimension(:), allocatable :: r1
     real*8, dimension(:,:), allocatable :: r2
@@ -858,7 +850,7 @@ contains
     use logging_module
     implicit none
     character(len=20),intent(in)                       :: expression
-    integer :: i, ic
+    
     select case(trim(expression))
     case('s%nx+1')
        dimensionid = xdimid

@@ -35,7 +35,7 @@ contains
 #ifdef USEMPI
 ! some variables used for mpi only
     real*8                      :: imaxr
-    integer                     :: impi,iimpi
+    integer                     :: iimpi
 #endif
 
     include 's.ind'

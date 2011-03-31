@@ -637,8 +637,6 @@ subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,dt,scheme)
   real*8 , dimension(nx+1,ny+1,ntheta)            :: xadvec,ee,cgx
   real*8                                          :: dt,cgxu,eupw
 
-  integer                                         :: istart, iend
-
   xadvec = 0.d0
   fluxx  = 0.d0
 
@@ -725,8 +723,6 @@ subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,dt,scheme)
   real*8 ,  dimension(nx+1,ny+1)                  :: dsv,dnv,dsdnzi,fluxy
   real*8 ,  dimension(nx+1,ny+1,ntheta)           :: yadvec,ee,cgy
   real*8                                          :: dt,cgyv,eupw
-
-  integer                                         :: jstart, jend
 
   yadvec = 0.d0
   fluxy  = 0.d0

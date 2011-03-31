@@ -44,7 +44,7 @@ contains
     type(parameters)                        :: par
 
     integer                                 :: i
-    integer                                 :: j,j1,jp1,jm1
+    integer                                 :: j,j1,jp1
     real*8,dimension(:,:),allocatable,save  :: vv_old                   !Velocity at previous timestep
     real*8,dimension(:,:),allocatable,save  :: uu_old                   !Velocity at previous timestep
     real*8,dimension(:,:),allocatable,save  :: zs_old
@@ -1089,7 +1089,7 @@ subroutine visc_smagorinsky(s,par)
         dudx = (uu(i,j)-uu(i-1,j))/dsz(i,j)
         dvdx = (vv(i+1,j) - vv(i-1,j) )/(dsu(i,j)+dsu(i-1,j))
         Tau  = sqrt(2.0d0 * dudx**2 + dvdx**2)
-        l    = 1.d0/dsdnzi(i,j)
+        l    = dsz(i,j)**2
         nuh(i,j) = par%nuh**2 * l * Tau * real(wetu(i,j)*wetu(i-1,j),kind=8)
     enddo
   

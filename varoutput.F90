@@ -78,16 +78,10 @@ contains
     type(parameters),intent(in)         :: par
     type(timepars),intent(in)           :: tpar
 
-    integer                             :: id,ic,icold,i,ii,index, j
+    integer                             :: i,j
     integer                             :: i1,i2,i3
-    integer                             :: reclen,reclenc,reclenp,wordsize
+    integer                             :: reclen,reclenp,wordsize
     integer                             :: fid
-    integer,dimension(2)                :: minlocation
-    character(80)                       :: line, keyword
-    character(80)                       :: var
-    real*8,dimension(s%nx+1,s%ny+1)     :: mindist
-    real*8,dimension(:),allocatable     :: xcrossw,ycrossw
-    character(1)                        :: singlechar
     character(99)                       :: fname,fnamemean,fnamevar,fnamemin,fnamemax
 
 
@@ -289,7 +283,7 @@ contains
     type(timepars),intent(in)               :: tpar
     integer                                 :: i,ii
     !  integer                                 :: i1,i2,i3
-    integer                                 :: wordsize, idumhg,idumhl,idum
+    integer                                 :: wordsize,idumhl
     integer                                 :: xrank,xmax
     real*8,dimension(numvars)               :: intpvector
     real*8,dimension(numvars,s%nx+1)        :: crossvararray0

@@ -220,7 +220,7 @@ character(len=*)                        :: fname
 integer                                 :: i=0,ii,nang,nfreq,ier
 integer                                 :: firstp, lastp
 real*8,dimension(:),allocatable         :: temp, x, y
-real*8                                  :: t1, dfj, fnyq, fp
+real*8                                  :: dfj, fnyq, fp
 real*8                                  :: gam
 character(len=80)                       :: dummystring
 

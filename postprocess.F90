@@ -166,7 +166,7 @@ contains
     ! no need to allocate
     real*8, dimension(size(s%alfaz,1), size(s%alfaz,2), size(t%r3,3)) :: alfazr3
     real*8                        :: pi
-    integer                       :: n3,i
+    integer                       :: i
     pi = 4*atan(1.0d0)
     
     ! fill variable alfazr3. We presume first 2 dimension are related to nx+1, ny+1 respectively

@@ -340,10 +340,10 @@ contains
     type(spacepars)                         :: s
     type(parameters), intent(in)            :: par
 
-    integer*4                               :: i,j,t,ig,indt
+    integer*4                               :: i,j,ig,indt
     logical                                 :: exists
     logical                                 :: offshoreregime
-    integer                                 :: indoff,indbay,l
+    integer                                 :: indoff,indbay
 
     real*8,dimension(:),allocatable         :: xzs0,yzs0,szs0
     
@@ -351,7 +351,7 @@ contains
     integer                                 :: io,idisch,ii
     integer                                 :: m1,m2,n1,n2
     real*8                                  :: temp,xdb,xde,ydb,yde,dxd,dyd
-    real*8                                  :: ldisch,pi
+    real*8                                  :: pi
     real*8, dimension(:),allocatable        :: x_disch_begin,x_disch_end
     real*8, dimension(:),allocatable        :: y_disch_begin,y_disch_end
     integer,dimension(2)                    :: mnb,mne

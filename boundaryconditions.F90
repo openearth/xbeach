@@ -567,9 +567,8 @@ contains
     type(spacepars), target                     :: s
     type(parameters)                            :: par
 
-    integer                                     :: i,ig
-    integer                                     :: j,jj,j1,indt
-    real*8                                      :: ur,alphanew,vert,factime,dzs0dy,windxnow,windynow
+    integer                                     :: i,j,jj,j1,indt
+    real*8                                      :: ur,alphanew,vert,dzs0dy,windxnow,windynow
     real*8 , dimension(2)                       :: xzs0,yzs0,szs0
     real*8 , dimension(:,:)  ,allocatable,save  :: zs0old,zsmean,dzs0
     real*8 , dimension(:,:)  ,allocatable,save  :: ht,beta,betanp1
@@ -1212,7 +1211,7 @@ contains
     type(spacepars),target                  :: s
     type(parameters)                        :: par
     
-    integer                                 :: i,j,m1,n1,indx
+    integer                                 :: i,m1,n1,indx
     real*8                                  :: qnow
     
     include 's.ind'

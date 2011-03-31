@@ -129,7 +129,7 @@ contains
 
 !--------------------------     LOCAL VARIABLES    ----------------------------
  
-    integer(kind=iKind)        :: iw,i,ie,jn,j,js
+    integer(kind=iKind)        :: i,j
     real   (kind=rKind)        :: d,sigma,k
 !-------------------------------------------------------------------------------
 !                             IMPLEMENTATION

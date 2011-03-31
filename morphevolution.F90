@@ -1491,7 +1491,7 @@ IMPLICIT NONE
 type(spacepars),target                   :: s
 type(parameters)                         :: par
 
-integer                                  :: i,j,ii
+integer                                  :: i,j
 integer , save                           :: nh,nt    
 integer                                  :: ih0,it0,ih1,it1
 real*8                                   :: p,q,f0,f1,f2,f3
