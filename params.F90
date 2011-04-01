@@ -537,7 +537,7 @@ contains
     par%ARC     = readkey_int ('params.txt','ARC',         1,         0,      1)
     par%order   = readkey_dbl ('params.txt','order',       2.d0,         1.d0,      2.d0)
     par%carspan = readkey_int ('params.txt','carspan',        0,         0,      1)
-    par%epsi    = readkey_dbl ('params.txt','epsi',        0.d0,         0.d0,      0.2d0)
+    par%epsi    = readkey_dbl ('params.txt','epsi',        0.d0,         -1.d0,      0.2d0)
     allocate(allowednames(2),oldnames(0))
     allowednames=(/'instant ','velocity'/)
     par%tidetype= readkey_str('params.txt','tidetype','velocity',2,0,allowednames,oldnames)
@@ -612,7 +612,7 @@ contains
     call writelog('l','','Wave-current interaction parameters: ')
     par%wci      = readkey_int ('params.txt','wci',        0,        0,     1)
     par%hwci     = readkey_dbl ('params.txt','hwci',   0.1d0,   0.001d0,      1.d0)
-    par%cats     = readkey_dbl ('params.txt','cats',   20.d0,     1.d0,      50.d0)
+    par%cats     = readkey_dbl ('params.txt','cats',   4.d0,     1.d0,      50.d0)
     !
     !
     ! Flow parameters          
@@ -1015,9 +1015,9 @@ contains
     !
     ! If using tide, epsi should be on
     if (par%tideloc>0) then
-       if (par%epsi<tiny(0.d0)) then
-          call writelog('ls','','Warning: Automatically setting epsi to 0.05 to let in tide on offshore boundary')
-          par%epsi = 0.05d0
+       if (par%epsi<-1.d0) then
+          call writelog('ls','','Automatically computing epsi using offshore boundary conditions')
+          ! par%epsi = 0.05d0 --> Jaap do this in boundary conditions to account for vary wave conditions during simulation
        endif
     endif
     !

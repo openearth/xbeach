@@ -615,6 +615,12 @@ contains
     endif
 
     ! factime=1.d0/par%cats/par%Trep*par%dt !Jaap: not used anymore
+    ! jaap: compute epsi based on offshore boundary conditions if epsi = -1
+    if (par%epsi==-1.d0) then
+       factime = 1.d0/par%cats/par%Trep*par%dt
+    else
+       factime = par%epsi
+    endif 
 
     !allocate(szs0(1:2))  ! wwvv changed this, now defined as an automatic array
     !allocate(yzs0(1:2)) 
@@ -744,8 +750,8 @@ contains
         !
         ! RJ: 22-09-2010 Correct water level for surge and tide:
         !
-        zsmean(1,:) = par%epsi*zs(1,:)+(1-par%epsi)*zsmean(1,:)
-        zsmean(2,:) = par%epsi*zs(nx,:)+(1-par%epsi)*zsmean(2,:)
+        zsmean(1,:) = factime*zs(1,:)+(1-factime)*zsmean(1,:)
+        zsmean(2,:) = factime*zs(nx,:)+(1-factime)*zsmean(2,:)
         ! compute difference between offshore/bay mean water level and imposed on tide   
         dzs0(1,:) = zs0(1,:)-zsmean(1,:)
         dzs0(2,:) = zs0(nx,:)-zsmean(2,:)
@@ -774,7 +780,7 @@ contains
           if (trim(par%front)=='abs_1d') then ! Ad's radiating boundary
              !uu(1,:)=2.d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-zs0(2,:)))
              if (trim(par%tidetype)=='velocity') then
-               umean(1,:) = (par%epsi*uu(1,:)+(1-par%epsi)*umean(1,:))
+               umean(1,:) = (factime*uu(1,:)+(1-factime)*umean(1,:))
              else
                umean(1,:) = 0.d0
              endif
@@ -817,8 +823,8 @@ contains
                 alpha2(j)=-theta0 ! Jaap: this is first estimate
                 alphanew = 0.d0
                 if (trim(par%tidetype)=='velocity') then
-                  umean(1,j) = (par%epsi*uu(1,j)+(1-par%epsi)*umean(1,j))
-                  vmean(1,j) = (par%epsi*vu(1,j)+(1-par%epsi)*vmean(1,j)) 
+                  umean(1,j) = (factime*uu(1,j)+(1-factime)*umean(1,j))
+                  vmean(1,j) = (factime*vu(1,j)+(1-factime)*vmean(1,j)) 
                 else
                   umean(1,j) = 0.d0
                   vmean(1,j) = 0.d0
@@ -911,7 +917,7 @@ contains
              !        umean(2,:) = factime*uu(nx,:)+(1.d0-factime)*umean(2,:) 
              ! After hack 3/6/2010, return to par%epsi :
              if (trim(par%tidetype)=='velocity') then
-               umean(2,:) = (par%epsi*uu(nx,:)+(1-par%epsi)*umean(2,:))
+               umean(2,:) = (factime*uu(nx,:)+(1-factime)*umean(2,:))
              else
                umean(2,:) = 0.d0
              endif
@@ -953,8 +959,8 @@ contains
                    !          umean(2,j) = (factime*uu(nx,j)+(1-factime)*umean(2,j))           !Ap 
                    ! After hack 3/6/2010, return to par%epsi :
                    if (trim(par%tidetype)=='velocity') then
-                      umean(2,j) = (par%epsi*uu(nx,j)+(1-par%epsi)*umean(2,j))
-                      vmean(2,j) = (par%epsi*vu(nx,j)+(1-par%epsi)*vmean(2,j)) 
+                      umean(2,j) = (factime*uu(nx,j)+(1-factime)*umean(2,j))
+                      vmean(2,j) = (factime*vu(nx,j)+(1-factime)*vmean(2,j)) 
                    else
                      umean(2,j) = 0.d0
                      vmean(2,j) = 0.d0

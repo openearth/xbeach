@@ -143,7 +143,7 @@ contains
        meanvarids = -1
        outputm = (par%nmeanvar .gt. 0)
        allocate(meanvartypes(nmeanvartypes))
-       meanvartypes = (/ 'mean    ', 'variance', 'min     ', 'max     '  /)
+       meanvartypes = (/ 'mean    ', 'var     ', 'min     ', 'max     '  /)
 
 
        ! create a file
@@ -483,11 +483,7 @@ contains
 
                 ! Create a variable for all types of meanvars (mean, var, min, max)
                 do j = 1,nmeanvartypes
-                   ! For H and urms we don't compute the mean but the rms of the rms.....
                    cellmethod = trim(meanvartypes(j))
-                   if (cellmethod .eq. 'mean' .and. ((t%name .eq. 'H') .or. (t%name .eq. 'urms')))  then
-                      cellmethod = 'rms'
-                   end if
                    call writelog('ls', '', 'Creating netcdf variable: ',  trim(t%name) // '_' // cellmethod)
                    status = nf90_def_var(ncid, trim(t%name) // '_' // trim(cellmethod), NF90_DOUBLE, &
                         dimids, meanvarids(i,j))
@@ -498,6 +494,10 @@ contains
                    if (status /= nf90_noerr) call handle_err(status)
                    status = nf90_put_att(ncid, meanvarids(i,j), 'long_name', trim(t%description))
                    if (status /= nf90_noerr) call handle_err(status)
+                   ! For H and urms we don't compute the mean but the rms of the rms.....
+                   if (cellmethod .eq. 'mean' .and. ((t%name .eq. 'H') .or. (t%name .eq. 'urms')))  then
+                      cellmethod = 'rms'
+                   end if
                    status = nf90_put_att(ncid, meanvarids(i,j), 'cell_methods', 'meantime: ' // trim(cellmethod))
                    if (status /= nf90_noerr) call handle_err(status)
                 end do
@@ -759,7 +759,7 @@ contains
                             status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean2d, start=(/1,1,tpar%itm-1/) )
                          end if
                          if (status /= nf90_noerr) call handle_err(status)
-                      case('variance')
+                      case('var')
                          status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%variance2d, start=(/1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
                       case('min')
@@ -776,7 +776,7 @@ contains
                       case('mean')
                          status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean3d, start=(/1,1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
-                      case('variance')
+                      case('var')
                          status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%variance3d, start=(/1,1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
                       case('min')
@@ -793,7 +793,7 @@ contains
                       case('mean')
                          status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean4d, start=(/1,1,1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
-                      case('variance')
+                      case('var')
                          status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%variance4d, start=(/1,1,1,1,tpar%itm-1/) )
                          if (status /= nf90_noerr) call handle_err(status)
                       case('min')
