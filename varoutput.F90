@@ -34,7 +34,7 @@ module fortoutput_module
   integer, dimension(numvars),save         :: outnumbers  ! numbers, corrsponding to mnemonics, which are to be output
  
   
-  integer                             :: itg,itp,itc,itm,day,ot
+  integer                             :: itg,itp,itc,itm,itd,day,ot
   type(arraytype)                     :: At
   
   interface outarray
@@ -90,6 +90,7 @@ contains
     itm = 0
     itp = 0
     itc = 0
+    itd = 0
     stpm = size(tpar%tpm)
 
     ! Record size for global and mean output
@@ -258,7 +259,24 @@ contains
           enddo
        endif
     endif ! par%nmeanvar > 0
-
+    
+    
+    !
+    ! drifter output files
+    !
+    if (par%ndrifter>0) then
+        if (xmaster) then
+            inquire(iolength=wordsize) 1.d0
+            
+            reclen=wordsize*3
+            do i=1,par%ndrifter
+                write(fname(7:10),'(i4)')i+1000
+                fname(1:7)='drifter'
+                fname(11:14)='.dat'
+                open(indextodrifterunit(i), file=fname, form='unformatted', access='direct', recl=reclen)
+            enddo
+        endif
+    endif ! par%ndrifter >0
 
   end subroutine var_output_init
   
@@ -292,6 +310,9 @@ contains
     real*8,dimension(:),allocatable         :: tempvectorr
     real*8,dimension(size(tpar%tpg)+size(tpar%tpp)+size(tpar%tpc)+size(tpar%tpm)) :: outputtimes
     type(arraytype)                         :: t
+    
+    integer                                 :: iz,jz
+    real*8                                  :: di,dj
 
     inquire(iolength=wordsize) 1.d0
     !  reclen=wordsize*(s%nx+1)*(s%ny+1)
@@ -440,8 +461,10 @@ contains
                    if(xmaster) then
                       if (trim(par%meanvars(i))=='H') then                ! Hrms changed to H
                          write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
-                      elseif (trim(par%meanvars(i))=='urms') then    ! urms
+                      elseif (trim(par%meanvars(i))=='urms') then       ! urms
                          write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
+                      elseif (trim(par%meanvars(i))=='thetamean') then       ! thetamean
+                         write(indextomeanunit(i),rec=itm)atan2(int(meansparsglobal(i)%mean2d)/1e9-1,mod(meansparsglobal(i)%mean2d,1.d0)*1e3-1)
                       else                                                    ! non-rms variables
                          write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean2d
                       endif
@@ -532,7 +555,36 @@ contains
           endif
        endif  ! end global file writing
 
-
+        !
+        ! write drifter output
+        !
+    
+        if (xmaster) then
+            if (abs(mod(par%t,par%tintp))<1.d-6) then
+                itd = itd+1
+                do i=1,par%ndrifter
+                    if (par%t>s%tdriftb(i) .and. par%t<s%tdrifte(i)) then
+                        
+                        iz = int(s%idrift(i))
+                        jz = int(s%jdrift(i))
+                        
+                        di = mod(s%idrift(i),1.d0)
+                        dj = mod(s%jdrift(i),1.d0)
+                        
+                        write(indextodrifterunit(i),rec=itd)    &
+                            s%xz(iz,jz)+di*s%dsu(iz,jz),        &
+                            s%yz(iz,jz)+dj*s%dnv(iz,jz),        &
+                            par%t
+                    else
+                        write(indextodrifterunit(i),rec=itd)    &
+                            -999d0,                             &
+                            -999d0,                             &
+                            par%t
+                    endif
+                enddo
+            endif 
+        endif
+        
        if(xmaster) then
           outputtimes=-999.d0
           outputtimes(1:itg)=tpar%tpg(1:itg)
@@ -564,8 +616,8 @@ contains
           ! outputtimes
           ! close(999)
        endif  !xmaster
-
-    end if  ! 
+    
+    end if  !
 
 !!! Close files
 
@@ -580,6 +632,10 @@ contains
              close(indextovarunit(i))
              close(indextominunit(i))
              close(indextomaxunit(i))
+          enddo
+          
+          do i=1,par%ndrifter
+             close (indextodrifterunit(i))
           enddo
 
           do i=1,noutnumbers
@@ -999,5 +1055,11 @@ integer function indextovarunit(index)
   integer, intent(in) :: index
   indextovarunit = 100+60*numvars+index
 end function indextovarunit
+
+integer function indextodrifterunit(index)
+  implicit none
+  integer, intent(in) :: index
+  indextodrifterunit = 700+index
+end function indextodrifterunit
 
 end module fortoutput_module

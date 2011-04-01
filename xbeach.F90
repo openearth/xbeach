@@ -157,22 +157,26 @@ endif
 call timestep_init(par, tpar)
 
 if (xmaster) then
-  ! Jump into subroutine readtide
-  call readtide (s,par)  !Ap 15/10 ! runs oonly on master wwvv
-  call readwind (s,par)  !Robert 8/7/2009 only on master
+  
+  ! jump into subroutine readtide
+  call readtide         (s,par)
+  call readwind         (s,par)
 
   call writelog('ls','','Initializing .....')
-! Initialisations
-  call flow_init (s,par)  ! Always do this      works only on master process
-  call wave_init (s,par)  ! Always do this       wave_init only works on master process
-  call gwinit(par,s)      ! works only on master process
-  call sed_init (s,par)   ! works only on master process
+  
+  ! initialisations
+  call flow_init        (s,par)
+  call discharge_init   (s,par)
+  call drifter_init     (s,par)
+  call wave_init        (s,par)
+  call gw_init          (s,par)
+  call sed_init         (s,par)
+  
 endif
+
 #ifdef USEMPI
-! some of par has been changed, so:
 call distribute_par(par)
 #endif
-
 
 #ifdef USEMPI
 s => slocal

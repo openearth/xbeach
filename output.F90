@@ -47,51 +47,53 @@ end subroutine output_init
 
 subroutine output(s,sglobal,par,tpar, update)
    
-   use means_module
-   
-   implicit none
-   
-   type(spacepars)                     :: s,sglobal
-   type(parameters)                    :: par
-   type(timepars)                      :: tpar
-   logical, optional                   :: update
-   logical                             :: lupdate
+    use means_module
 
-   if (present(update)) then
-      lupdate = update
-   else
-      lupdate = .true.
-   endif
-   ! update output times
-   if (lupdate) call outputtimes_update(par, tpar)
-   ! update log
-   call log_progress(par)
+    implicit none
+
+    type(spacepars)                     :: s,sglobal
+    type(parameters)                    :: par
+    type(timepars)                      :: tpar
+    logical, optional                   :: update
+    logical                             :: lupdate
+
+    if (present(update)) then
+        lupdate = update
+    else
+        lupdate = .true.
+    endif
+    
+    ! update output times
+    if (lupdate) call outputtimes_update(par, tpar)
+    
+    ! update log
+    call log_progress(par)
    
-   ! update meanvars in current averaging period with current timestep
-   if (par%nmeanvar/=0) then
-      if (par%t>tpar%tpm(1) .and. par%t<=tpar%tpm(size(tpar%tpm))) then
-         call makeaverage(s,par)
-      endif
-   endif
+    ! update meanvars in current averaging period with current timestep
+    if (par%nmeanvar/=0) then
+        if (par%t>tpar%tpm(1) .and. par%t<=tpar%tpm(size(tpar%tpm))) then
+            call makeaverage(s,par)
+        endif
+    endif
    
-   ! Output
-   if (par%outputformat=='fortran') then
-      call var_output(sglobal,s,par,tpar)
-   elseif (par%outputformat=='netcdf') then
+    ! output
+    if (par%outputformat=='fortran') then
+        call var_output(sglobal,s,par,tpar)
+    elseif (par%outputformat=='netcdf') then
 #ifdef USENETCDF
-      call ncoutput(sglobal,s,par, tpar)
+        call ncoutput(sglobal,s,par, tpar)
 #endif
-   elseif (par%outputformat=='debug') then
+    elseif (par%outputformat=='debug') then
 #ifdef USENETCDF
-      call ncoutput(sglobal,s,par, tpar)
+        call ncoutput(sglobal,s,par, tpar)
 #endif
-      call var_output(sglobal,s,par,tpar)
-   endif
+        call var_output(sglobal,s,par,tpar)
+    endif
    
-   ! clear averages after output of means
-   if (tpar%outputm .and. tpar%itm>1) then
-      call clearaverage(par)
-   endif
+    ! clear averages after output of means
+    if (tpar%outputm .and. tpar%itm>1) then
+        call clearaverage(par)
+    endif
    
 end subroutine output
 

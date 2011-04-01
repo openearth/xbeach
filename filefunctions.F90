@@ -57,7 +57,6 @@ contains
     integer                        ::  fid,iost
     integer                        ::  i
     real,dimension(:),allocatable  ::  dat
-    character(256)                   ::  msg
     
     if (xmaster) then
 	   allocate(dat(d1))
@@ -67,7 +66,6 @@ contains
        if (iost .ne. 0) then
           call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
                ' Terminating simulation' )
-!          call writelog('sle','', msg)
           call halt_program
        endif
        close(fid)
@@ -86,7 +84,6 @@ contains
     integer                          :: fid,iost
     integer                          :: i,j
     real,dimension(:,:),allocatable  :: dat
-    character(256)                   ::  msg
 
    
     if (xmaster) then 
@@ -97,7 +94,6 @@ contains
        if (iost .ne. 0) then
           call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
                ' Terminating simulation')
-!          call writelog('sle','',msg)
           call halt_program
        endif
        close(fid)
@@ -115,7 +111,6 @@ contains
     integer                            ::  fid,iost
     integer                            ::  i,j,k
     real,dimension(:,:,:),allocatable  ::  dat
-    character(256)                   ::  msg
 
     
     if (xmaster) then 
@@ -126,7 +121,6 @@ contains
        if (iost .ne. 0) then
           call writelog('esl','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
                ' Terminating simulation')
-!          call writelog('esl','', msg)
           call halt_program
        endif
 	   close(fid)

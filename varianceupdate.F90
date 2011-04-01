@@ -278,7 +278,13 @@ contains
           else
              call gridrotate(sl,t,tvar2d)
           endif
-          meansparslocal(i)%mean2d = meansparslocal(i)%mean2d + mult*tvar2d
+          if (par%meanvars(i)=='thetamean') then
+            meansparslocal(i)%mean2d = meansparslocal(i)%mean2d +   &
+                nint((1+mult*sin(tvar2d))*1e6)*1e3              +   &
+                nint((1+mult*cos(tvar2d))*1e6)/1e9
+          else
+            meansparslocal(i)%mean2d = meansparslocal(i)%mean2d + mult*tvar2d
+          endif
           meansparslocal(i)%variancecrossterm2d = &
                meansparslocal(i)%variancecrossterm2d/oldmean2d*meansparslocal(i)%mean2d + &
                mult*2.d0*tvar2d*meansparslocal(i)%mean2d

@@ -237,4 +237,9 @@
       real*8  2  pdisch    s%ndisch 4    b  [-]     Discharge locations
       integer 1  pntdisch  s%ndisch      b  [-]     Point discharge locations (no momentum)
       real*8  2  qdisch    s%ntdisch s%ndisch b [m^2/s] Discharges
+      integer 0  ndrift                  b  [-]     Number of drifters
+      real*8  1  idrift    s%ndrift 	 b  [-]     Drifter x-coordinate in grid space
+      real*8  1  jdrift    s%ndrift 	 b  [-]     Drifter y-coordinate in grid space
+      real*8  1  tdriftb   s%ndrift 	 b  [s]     Drifter release time
+      real*8  1  tdrifte   s%ndrift 	 b  [s]     Drifter retrieval time
 !* hints for vi vim: filetype=fortran : syntax=fortran

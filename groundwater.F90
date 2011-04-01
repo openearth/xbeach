@@ -30,7 +30,7 @@ contains
 
 
 
-  subroutine gwinit(par,s)
+  subroutine gw_init(s,par)
     use params
     use xmpi_module
     use spaceparams
@@ -93,7 +93,7 @@ contains
        s%gww=0.d0
        s%dinfil=max(par%dwetlayer/3.d0,0.02)   ! Centroid of area influenced instantly by free surface level lies at dwetlayer/3
     endif
-  end subroutine gwinit
+  end subroutine gw_init
 
 
 
