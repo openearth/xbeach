@@ -137,6 +137,8 @@ type parameters
                                                          !      NOTE:  clockwise from (1,1) corner
  
    ! [Section] Discharge boundary conditions 
+   integer*4     :: ndischarge                 = -123    !  [-] Number of discharge locations
+   integer*4     :: ntdischarge                = -123    !  [-] Length of discharge time series
    character(256):: disch_loc_file             = 'abc'   !  [-] Name of discharge locations file
    character(256):: disch_timeseries_file      = 'abc'   !  [-] Name of discharge timeseries file
 
@@ -566,6 +568,8 @@ contains
     ! Discharge boundary conditions 
     call writelog('l','','--------------------------------')
     call writelog('l','','Discharge boundary conditions: ')
+    par%ndischarge  = readkey_int   ('params.txt','ndischarge',  0,         0,       100)
+    par%ntdischarge = readkey_int   ('params.txt','ntdischarge', 0,         0,       100)
     par%disch_loc_file = readkey_name('params.txt','disch_loc_file')
     if (par%disch_loc_file==' ') then
        ! do nothing

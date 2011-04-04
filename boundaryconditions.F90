@@ -1142,11 +1142,11 @@ contains
     include 's.inp'
     
     ! loop through discharge location
-    do i = 1,ndisch
+    do i = 1,par%ndischarge
         if (pntdisch(i).eq.0) then
         
             ! interpolate discharge timeseries to current time
-            call linear_interp(tdisch,qdisch(:,i),ntdisch,par%t,qnow,indx)
+            call linear_interp(tdisch,qdisch(:,i),par%ntdischarge,par%t,qnow,indx)
             
             m1 = pdisch(i,1)
             n1 = pdisch(i,2)
@@ -1223,9 +1223,9 @@ contains
     include 's.ind'
     include 's.inp'
 
-    do i = 1,ndisch
+    do i = 1,par%ndischarge
         if (pntdisch(i).eq.1) then
-            call linear_interp(tdisch,qdisch(:,i),ntdisch,par%t,qnow,indx)
+            call linear_interp(tdisch,qdisch(:,i),par%ntdischarge,par%t,qnow,indx)
             
             m1 = pdisch(i,1)
             n1 = pdisch(i,2)

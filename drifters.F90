@@ -28,7 +28,7 @@ subroutine drifter(s,par)
     jshift  = 0.d0
 #endif
 
-    do i=1,s%ndrift
+    do i=1,par%ndrifter
         if (par%t>s%tdriftb(i) .and. par%t<s%tdrifte(i)) then
      
             ! determine closest u- and v-points

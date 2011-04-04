@@ -993,11 +993,9 @@ contains
     type(spacepars)                         :: s
     type(parameters)                        :: par
 
-    character(256)                          :: fname
     integer                                 :: i,j
     integer                                 :: io,idisch
     integer                                 :: m1,m2,n1,n2
-    real*8                                  :: temp
     real*8                                  :: xdb,xde,ydb,yde,dxd,dyd
     real*8, dimension(:),allocatable        :: x_disch_begin,x_disch_end
     real*8, dimension(:),allocatable        :: y_disch_begin,y_disch_end
@@ -1006,38 +1004,21 @@ contains
     include 's.ind'
     include 's.inp'
     
-    io          = 0
-    idisch      = 0
-    s%ndisch    = 0
-    s%ntdisch   = 0
-    
-    ! read discharge information file
-    if (xmaster) then
-        fname = readkey_name('params.txt','disch_loc_file',bcast=.false.)
-        if (fname==' ') then
-            s%ndisch = 0
-        else
-            call writelog('ls','','Reading discharge locations from ',trim(fname),' ...')
-            open(31,file=fname)
-            do while (io==0)
-                s%ndisch = s%ndisch+1
-                read(31,*,IOSTAT=io) temp
-            enddo
-            rewind(31)
-            s%ndisch = s%ndisch-1
-        endif
-    endif
+    io              = 0
+    idisch          = 0
 
-    allocate(x_disch_begin  (s%ndisch)      )
-    allocate(y_disch_begin  (s%ndisch)      )
-    allocate(x_disch_end    (s%ndisch)      )
-    allocate(y_disch_end    (s%ndisch)      )
+    allocate(x_disch_begin  (par%ndischarge)      )
+    allocate(y_disch_begin  (par%ndischarge)      )
+    allocate(x_disch_end    (par%ndischarge)      )
+    allocate(y_disch_end    (par%ndischarge)      )
     
-    allocate(s%pntdisch     (1:s%ndisch)    )
+    allocate(s%pntdisch     (1:par%ndischarge)    )
     
+    ! read discharge locations
     if (xmaster) then
-        do i=1,s%ndisch
-            read(31,*,IOSTAT=io) x_disch_begin(i),y_disch_begin(i),x_disch_end(i),y_disch_end(i)
+        open(10,file=par%disch_loc_file)
+        do i=1,par%ndischarge
+            read(10,*,IOSTAT=io) x_disch_begin(i),y_disch_begin(i),x_disch_end(i),y_disch_end(i)
             
             ! distinguish between horizontal and vertical discharge
             if (x_disch_begin(i).eq.x_disch_end(i) .and. y_disch_begin(i).eq.y_disch_end(i)) then
@@ -1047,44 +1028,29 @@ contains
             endif
             
         enddo
-        close(31)
+        close(10)
     endif
     
-    ! read discharge timeseries
-    if (xmaster) then
-        s%ntdisch=0
-        if (s%ndisch.gt.0) then
-            fname = readkey_name('params.txt','disch_timeseries_file',bcast=.false.)
-            call writelog('ls','','Reading discharge timeseries from ',trim(fname),' ...')
-            open(31,file=fname)
-            io=0
-            do while (io==0)
-                s%ntdisch = s%ntdisch+1
-                read(31,*,IOSTAT=io) temp
-            enddo
-            rewind(31)
-            s%ntdisch = s%ntdisch-1
-        endif
-    endif
+    allocate(s%tdisch       (1:par%ntdischarge)                 )
+    allocate(s%qdisch       (1:par%ntdischarge,1:par%ndischarge))
     
-    allocate(s%tdisch       (1:s%ntdisch)           )
-    allocate(s%qdisch       (1:s%ntdisch,1:s%ndisch))
-    
+    ! read time series
     if (xmaster) then
-        do i=1,s%ntdisch
-            read(31,*,IOSTAT=io) s%tdisch(i),(s%qdisch(i,j),j=1,s%ndisch)
+        open(10,file=par%disch_timeseries_file)
+        do i=1,par%ntdischarge
+            read(10,*,IOSTAT=io) s%tdisch(i),(s%qdisch(i,j),j=1,par%ndischarge)
         enddo
-        close(31)
+        close(10)
     endif
     
-    allocate(s%pdisch       (1:s%ndisch,1:4)        )
+    allocate(s%pdisch       (1:par%ndischarge,1:4)              )
     
     s%pdisch = 0.d0
     
     if (xmaster) then
     
         ! initialise each discharge location
-        do idisch=1,s%ndisch
+        do idisch=1,par%ndischarge
             
             ! read discharge coordinates for each discharge section from file and translate to XBeach coordinate system  
             xdb =  cos(s%alfa)*(x_disch_begin(idisch)-s%xori)+sin(s%alfa)*(y_disch_begin(idisch)-s%yori)
@@ -1165,23 +1131,21 @@ contains
 
     include 's.ind'
     include 's.inp'
-   
-    s%ndrift = par%ndrifter
     
-    if (s%ndrift>0) then
+    if (par%ndrifter>0) then
    
         if (xmaster) then
             
-            allocate(s%idrift   (s%ndrift))
-            allocate(s%jdrift   (s%ndrift))
-            allocate(s%tdriftb  (s%ndrift))
-            allocate(s%tdrifte  (s%ndrift))
+            allocate(s%idrift   (par%ndrifter))
+            allocate(s%jdrift   (par%ndrifter))
+            allocate(s%tdriftb  (par%ndrifter))
+            allocate(s%tdrifte  (par%ndrifter))
         
             ! read drifter file
             drifterfile = readkey_name('params.txt','drifterfile',bcast=.false.)
             open(10,file=drifterfile)
-            do i=1,s%ndrift
-                read(10,*)xdrift,ydrift,tdriftb(i),tdrifte(i)
+            do i=1,par%ndrifter
+                read(10,*)xdrift,ydrift,s%tdriftb(i),s%tdrifte(i)
                 
                 mn          = minloc(sqrt((s%xz-xdrift)**2+(s%yz-ydrift)**2))
                 

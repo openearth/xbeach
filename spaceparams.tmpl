@@ -231,15 +231,12 @@
       real*8  2  D90top    s%nx+1 s%ny+1 d  [-] Friction coefficient flow
       real*8  2  structdepth    s%nx+1 s%ny+1 d  [m] Depth of structure in relation to instantaneous bed level
       real*8  3  zs0fac    s%nx+1 s%ny+1 2 d  [-]  relative weight of offshore boundary and bay boundary for each grid point is stored in zs0fac       
-      integer 0  ntdisch                 b  [-]     Length of discharge timeseries
-      integer 0  ndisch                  b  [-]     Number of discharge locations
-      real*8  1  tdisch    s%ntdisch     b  [-]     Discharge time series
-      real*8  2  pdisch    s%ndisch 4    b  [-]     Discharge locations
-      integer 1  pntdisch  s%ndisch      b  [-]     Point discharge locations (no momentum)
-      real*8  2  qdisch    s%ntdisch s%ndisch b [m^2/s] Discharges
-      integer 0  ndrift                  b  [-]     Number of drifters
-      real*8  1  idrift    s%ndrift 	 b  [-]     Drifter x-coordinate in grid space
-      real*8  1  jdrift    s%ndrift 	 b  [-]     Drifter y-coordinate in grid space
-      real*8  1  tdriftb   s%ndrift 	 b  [s]     Drifter release time
-      real*8  1  tdrifte   s%ndrift 	 b  [s]     Drifter retrieval time
+      real*8  1  tdisch    par%ntdischarge     b  [-]     Discharge time series
+      real*8  2  pdisch    par%ndischarge 4    b  [-]     Discharge locations
+      integer 1  pntdisch  par%ndischarge      b  [-]     Point discharge locations (no momentum)
+      real*8  2  qdisch    par%ntdischarge par%ndischarge b [m^2/s] Discharges
+      real*8  1  idrift    par%ndrifter  b  [-]     Drifter x-coordinate in grid space
+      real*8  1  jdrift    par%ndrifter	 b  [-]     Drifter y-coordinate in grid space
+      real*8  1  tdriftb   par%ndrifter	 b  [s]     Drifter release time
+      real*8  1  tdrifte   par%ndrifter  b  [s]     Drifter retrieval time
 !* hints for vi vim: filetype=fortran : syntax=fortran
