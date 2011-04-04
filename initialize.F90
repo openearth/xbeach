@@ -1016,19 +1016,21 @@ contains
     
     ! read discharge locations
     if (xmaster) then
-        open(10,file=par%disch_loc_file)
-        do i=1,par%ndischarge
-            read(10,*,IOSTAT=io) x_disch_begin(i),y_disch_begin(i),x_disch_end(i),y_disch_end(i)
-            
-            ! distinguish between horizontal and vertical discharge
-            if (x_disch_begin(i).eq.x_disch_end(i) .and. y_disch_begin(i).eq.y_disch_end(i)) then
-                s%pntdisch(i) = 1
-            else
-                s%pntdisch(i) = 0
-            endif
-            
-        enddo
-        close(10)
+        if (par%ndischarge>0) then
+            open(10,file=par%disch_loc_file)
+            do i=1,par%ndischarge
+                read(10,*,IOSTAT=io) x_disch_begin(i),y_disch_begin(i),x_disch_end(i),y_disch_end(i)
+                
+                ! distinguish between horizontal and vertical discharge
+                if (x_disch_begin(i).eq.x_disch_end(i) .and. y_disch_begin(i).eq.y_disch_end(i)) then
+                    s%pntdisch(i) = 1
+                else
+                    s%pntdisch(i) = 0
+                endif
+                
+            enddo
+            close(10)
+        endif
     endif
     
     allocate(s%tdisch       (1:par%ntdischarge)                 )
@@ -1036,11 +1038,13 @@ contains
     
     ! read time series
     if (xmaster) then
-        open(10,file=par%disch_timeseries_file)
-        do i=1,par%ntdischarge
-            read(10,*,IOSTAT=io) s%tdisch(i),(s%qdisch(i,j),j=1,par%ndischarge)
-        enddo
-        close(10)
+        if (par%ntdischarge>0) then
+            open(10,file=par%disch_timeseries_file)
+            do i=1,par%ntdischarge
+                read(10,*,IOSTAT=io) s%tdisch(i),(s%qdisch(i,j),j=1,par%ndischarge)
+            enddo
+            close(10)
+        endif
     endif
     
     allocate(s%pdisch       (1:par%ndischarge,1:4)              )

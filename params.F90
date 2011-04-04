@@ -568,19 +568,18 @@ contains
     ! Discharge boundary conditions 
     call writelog('l','','--------------------------------')
     call writelog('l','','Discharge boundary conditions: ')
+    
     par%ndischarge  = readkey_int   ('params.txt','ndischarge',  0,         0,       100)
     par%ntdischarge = readkey_int   ('params.txt','ntdischarge', 0,         0,       100)
-    par%disch_loc_file = readkey_name('params.txt','disch_loc_file')
-    if (par%disch_loc_file==' ') then
-       ! do nothing
-    else 
-       call check_file_exist(par%disch_loc_file)
+    
+    if (par%ndischarge>0) then
+        par%disch_loc_file = readkey_name('params.txt','disch_loc_file')
+        call check_file_exist(par%disch_loc_file)
     endif
-    par%disch_timeseries_file = readkey_name('params.txt','disch_timeseries_file')
-    if (par%disch_timeseries_file==' ') then
-       ! do nothing 
-    else 
-       call check_file_exist(par%disch_timeseries_file)
+    
+    if (par%ntdischarge>0) then
+        par%disch_timeseries_file = readkey_name('params.txt','disch_timeseries_file')
+        call check_file_exist(par%disch_timeseries_file)
     endif
     !
     !
