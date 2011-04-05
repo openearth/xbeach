@@ -24,6 +24,218 @@
 !*
 !* comment starts with !
 !* lines starting with !* will be ignored
+<<<<<<< .mine
+      real*8  2  x   s%nx+1 s%ny+1  d    [m] [projection_x_coordinate]      x-coord. original comp. grid (w/o xori, yori and alfa)
+      real*8  2  y   s%nx+1 s%ny+1  d    [m] [projection_y_coordinate]      y-coord. original comp. grid
+      real*8  2  xz  s%nx+1 s%ny+1  d    [m] [projection_x_coordinate]      x-coord. comp. grid (positive shoreward, perp. to coastline)
+      real*8  2  yz  s%nx+1 s%ny+1  d    [m] [projection_y_coordinate]      y-coord. comp. grid
+      real*8  2  xu  s%nx+1 s%ny+1  d    [m] [projection_x_coordinate]      x-coord. comp. grid u-points
+      real*8  2  yu  s%nx+1 s%ny+1  d    [m] [projection_y_coordinate]      y-coord. comp. grid u-points
+      real*8  2  xv  s%nx+1 s%ny+1  d    [m] [projection_x_coordinate]      x-coord. comp. grid v-points
+      real*8  2  yv  s%nx+1 s%ny+1  d    [m] [projection_y_coordinate]      y-coord. comp. grid v-points
+      real*8  2  dsu s%nx+1 s%ny+1  d    [m] []      grid distance in s-direction, centered around u-point
+      real*8  2  dsv s%nx+1 s%ny+1  d    [m] []      grid distance in s-direction, centered around v-point
+      real*8  2  dsz s%nx+1 s%ny+1  d    [m] []      grid distance in s-direction, centered around z-point (=eta-point)
+      real*8  2  dsc s%nx+1 s%ny+1  d    [m] []      grid distance in s-direction, centered around c-point
+      real*8  2  dnu s%nx+1 s%ny+1  d    [m] []      grid distance in n-direction, centered around u-point
+      real*8  2  dnv s%nx+1 s%ny+1  d    [m] []      grid distance in n-direction, centered around v-point
+      real*8  2  dnz s%nx+1 s%ny+1  d    [m] []      grid distance in n-direction, centered around z-point (=eta-point)
+      real*8  2  dnc s%nx+1 s%ny+1  d    [m] []      grid distance in n-direction, centered around c-point
+      real*8  2  dsdnui s%nx+1 s%ny+1  d    [1/m2] []  inverse of grid cell surface, centered around u-point
+      real*8  2  dsdnvi s%nx+1 s%ny+1  d    [1/m2] []  inverse of grid cell surface, centered around v-point
+      real*8  2  dsdnzi s%nx+1 s%ny+1  d    [1/m2] []  inverse of grid cell surface, centered around z-point
+      real*8  2  alfaz s%nx+1 s%ny+1  d    [rad] [angle_of_rotation_from_east_to_x]     grid orientation at z-point
+      real*8  2  alfau s%nx+1 s%ny+1  d    [rad] [angle_of_rotation_from_east_to_x]     grid orientation at u-point
+      real*8  2  alfav s%nx+1 s%ny+1  d    [rad] [angle_of_rotation_from_east_to_x]     grid orientation at v-point
+      real*8  2  sdist s%nx+1 s%ny+1  d    [m] []     cum. distance from offshore boundary along s-direction
+      real*8  2  ndist s%nx+1 s%ny+1  d    [m] []     cum. distance from right boundary along n-direction
+      real*8  0  dx   b    [m] []       grid size x-direction
+      real*8  0  dy   b    [m] []       grid size y-direction
+      real*8  0  xori b    [m] [projection_x_coordinate]       x-origin of grid in world coordinates
+      real*8  0  yori b    [m] [projection_y_coordinate]       y-origin of grid in world coordinates
+      real*8  0  alfa b    [rad] [angle_of_rotation_from_east_to_x]     (deg on input) angle of grid w.r.t. East
+      real*8  0  posdwn b  [-] []       depths defined positive downwards (1) or upwards(-1)
+      real*8  0  thetamin b  [rad] [angle_of_rotation_from_east_to_x]     minimum angle of computational wave grid (cart. in rad)
+      real*8  0  thetamax b  [rad] [angle_of_rotation_from_east_to_x]     minimum angle of computational wave grid (cart. in rad)
+      integer 0  nx     b  [-] []       local number of grid cells x-direction
+      integer 0  ny     b  [-] []       local number of grid cells y-direction
+      real*8  0  zs01        b   [m] [sea_surface_height_above_sea_level] Initial water level first sea boundary
+      real*8  0  zs02        b   [m] [sea_surface_height_above_sea_level] Initial water level second sea boundary
+      real*8  0  zs03        b   [m] [sea_surface_height_above_sea_level] Initial water level first land boundary
+      real*8  0  zs04        b   [m] [sea_surface_height_above_sea_level] Initial water level second land boundary
+      real*8  1  xyzs01  2   b   [-] [] global xy coordinates of corner (x=1,y=1) 
+      real*8  1  xyzs02  2   b   [-] [] global xy coordinates of corner (x=1,y=N)
+      real*8  1  xyzs03  2   b   [-] [] global xy coordinates of corner (x=N,y=N)
+      real*8  1  xyzs04  2   b   [-] [] global xy coordinates of corner (x=N,y=1)
+      integer 0  tidelen b [-] []       length of tide time series
+      integer 0  windlen b [-] []       length of tide time series
+      real*8  2  zb     s%nx+1 s%ny+1 d  [m] [altitude]       bed level
+      real*8  2  zb0    s%nx+1 s%ny+1 d  [m] [altitude]       initial bed level
+      real*8  1  theta  s%ntheta b  [rad] [sea_surface_wind_wave_to_direction]     wave angles directional distribution w.r.t. comp. x-axis
+      integer 0  ntheta b  [-] []       number of wave direction bins
+      real*8  0  dtheta b  [rad] []     wave direction bin size
+      real*8  0  theta0 b  [rad] [sea_surface_wind_wave_to_direction]     mean incident wave angle
+      real*8  2  thetamean s%nx+1 s%ny+1 d  [rad] [sea_surface_wind_wave_to_direction]     mean wave angle
+      real*8  2  Fx     s%nx+1 s%ny+1 d  [N/m2] []    wave force, x-component
+      real*8  2  Fy     s%nx+1 s%ny+1 d  [N/m2] []    wave force, y-component
+      real*8  2  Sxy    s%nx+1 s%ny+1 d  [N/m] []     radiation stress, y-component
+      real*8  2  Syy    s%nx+1 s%ny+1 d  [N/m] []     radiation stress, y-component
+      real*8  2  Sxx    s%nx+1 s%ny+1 d  [N/m] []     radiation stress, x-component
+      real*8  2  n      s%nx+1 s%ny+1 d  [-] []       ratio group velocity/wave celerity
+      real*8  2  H      s%nx+1 s%ny+1 d  [m] []       Hrms wave height based on instantaneous wave energy
+      real*8  3  cgx    s%nx+1 s%ny+1 s%ntheta d  [m/s] []     group velocity, x-component
+      real*8  3  cgy    s%nx+1 s%ny+1 s%ntheta d  [m/s] []     group velocity, y-component
+      real*8  3  cx     s%nx+1 s%ny+1 s%ntheta d  [m/s] []     wave celerity, x-component
+      real*8  3  cy     s%nx+1 s%ny+1 s%ntheta d  [m/s] []     wave celerity, y-component
+      real*8  3  ctheta s%nx+1 s%ny+1 s%ntheta d  [rad/s] []   wave celerity theta-direction (refraction)
+      real*8  3  ee     s%nx+1 s%ny+1 s%ntheta d  [J/m2/rad] []         directionally distributed wave energy
+      real*8  3  thet   s%nx+1 s%ny+1 s%ntheta d  [rad] [sea_surface_wind_wave_to_direction]     wave angles  
+      real*8  3  costh s%nx+1 s%ny+1 s%ntheta d   [-] []       cos of wave angles relative to grid direction
+      real*8  3  sinth s%nx+1 s%ny+1 s%ntheta d   [-] []       sin of wave angles relative to grid direction 
+      real*8  3  sigt   s%nx+1 s%ny+1 s%ntheta d  [rad/s] []   relative frequency 
+      real*8  3  rr     s%nx+1 s%ny+1 s%ntheta d  [J/m2/rad] []directionally distributed roller energy
+      real*8  2  k      s%nx+1 s%ny+1 d  [rad/m] []   wave number
+      real*8  2  c      s%nx+1 s%ny+1 d  [m/s] []     wave celerity
+      real*8  2  cg     s%nx+1 s%ny+1 d  [m/s] []     group velocity
+      real*8  2  sigm   s%nx+1 s%ny+1 d  [rad/s] []   mean frequency
+      real*8  2  wm     s%nx+1 s%ny+1 d  [rad/s] []   mean abs frequency
+      real*8  2  hh     s%nx+1 s%ny+1 d  [m] []       water depth
+      real*8  2  zs     s%nx+1 s%ny+1 d  [m] [sea_surface_height_above_sea_level]       water level
+      real*8  2  zs0    s%nx+1 s%ny+1 d  [m] [sea_surface_height_above_sea_level]       water level due to tide alone
+      real*8  1  tideinpt s%tidelen b  [s] [time]       input time of input tidal signal
+      real*8  2  tideinpz s%tidelen par%tideloc b  [m] [sea_surface_height_above_sea_level]       input tidal signal
+      real*8  1  windinpt s%windlen b  [s] [time]       input time of input wind signal
+      real*8  1  windvelts  s%windlen b  [m/s] []       input wind velocity
+      real*8  1  winddirts  s%windlen b  [deg nautical] []       input wind direction
+      real*8  1  windxts    s%windlen b  [m/s] []   time series of input wind velocity (not S direction), x-component
+      real*8  1  windyts    s%windlen b  [m/s] []   time series of input wind velocity (not N direction), y-component
+      real*8  2  windsu     s%nx+1 s%ny+1 d  [m/s] [] wind velocity in S direction in u point at current time step
+      real*8  2  windnv     s%nx+1 s%ny+1 d  [m/s] [] wind velocity in N direction in v point at current time step
+      real*8  2  dzsdt  s%nx+1 s%ny+1 d  [m/s] []     rate of change water level
+      real*8  2  dzsdx  s%nx+1 s%ny+1 d  [m/s] []     water surface gradient in x-direction
+      real*8  2  dzsdy  s%nx+1 s%ny+1 d  [m/s] []     water surface gradient in y-direction
+      real*8  2  dzbdx  s%nx+1 s%ny+1 d  [-] []       bed level gradient in x-direction
+      real*8  2  dzbdy  s%nx+1 s%ny+1 d  [-] []       bed level gradient in y-direction
+      real*8  2  dzbdt  s%nx+1 s%ny+1 d  [m/s] []     rate of change bed level 
+      real*8  2  uu     s%nx+1 s%ny+1 d  [m/s] [sea_water_x_velocity]     GLM velocity in u-points, x-component
+      real*8  2  vu     s%nx+1 s%ny+1 d  [m/s] [sea_water_y_velocity]     GLM velocity in u-points, y-component 
+      real*8  2  uv     s%nx+1 s%ny+1 d  [m/s] [sea_water_x_velocity]     GLM velocity in v-points, x-component
+      real*8  2  vv     s%nx+1 s%ny+1 d  [m/s] [sea_water_y_velocity]     GLM velocity in v-points, y-component
+      real*8  2  qx     s%nx+1 s%ny+1 d  [m2/s] []    discharge in u-points, x-component
+      real*8  2  qy     s%nx+1 s%ny+1 d  [m2/s] []    discharge in u-points, y-component
+      real*8  2  sedero s%nx+1 s%ny+1 d  [m] []       cum. sedimentation/erosion
+      real*8  2  dcbdx   s%nx+1 s%ny+1 d  [kg/m3/m] [] bed concentration gradient x-dir.
+      real*8  2  dcbdy   s%nx+1 s%ny+1 d  [kg/m3/m] [] bed concentration gradient y-dir.
+      real*8  2  dcsdx   s%nx+1 s%ny+1 d  [kg/m3/m] [] suspended concentration gradient x-dir.
+      real*8  2  dcsdy   s%nx+1 s%ny+1 d  [kg/m3/m] [] suspended concentration gradient y-dir.
+      real*8  2  ui     s%nx+1 s%ny+1 d  [m/s] []     incident bound wave velocity in, x-component
+      real*8  2  vi     s%nx+1 s%ny+1 d  [m/s] []     incident bound wave velocity in, y-component
+      real*8  2  E      s%nx+1 s%ny+1 d  [Nm/m2] []   wave energy
+      real*8  2  R      s%nx+1 s%ny+1 d  [Nm/m2] []   roller energy
+      real*8  2  urms   s%nx+1 s%ny+1 d  [m/s] []     orbital velocity
+      real*8  2  D      s%nx+1 s%ny+1 d  [W/m2] []    dissipation
+      real*8  2  Qb     s%nx+1 s%ny+1 d  [-] []       fraction breaking waves
+      real*8  2  ust    s%nx+1 s%ny+1 d  [m/s] []     Stokes drift
+      real*8  2  tm     s%nx+1 s%ny+1 d  [rad] []     mean wave direction
+      real*8  2  ueu    s%nx+1 s%ny+1 d  [m/s] [sea_water_x_velocity]     Eulerian velocity in u-points, x-component
+      real*8  2  vev    s%nx+1 s%ny+1 d  [m/s] [sea_water_y_velocity]     Eulerian velocity in u-points, y-component
+      real*8  2  vmagu  s%nx+1 s%ny+1 d  [m/s] []     GLM velocity magnitude u-points
+      real*8  2  vmageu s%nx+1 s%ny+1 d  [m/s] []     Eulerian velocity magnitude u-points
+      real*8  2  vmagv  s%nx+1 s%ny+1 d  [m/s] []     GLM velocity magnitude v-points
+      real*8  2  vmagev s%nx+1 s%ny+1 d  [m/s] []     Eulerian velocity magnitude v-points
+      real*8  2  u      s%nx+1 s%ny+1 d  [m/s] [sea_water_x_velocity]     GLM velocity in cell centre, x-component
+      real*8  2  v      s%nx+1 s%ny+1 d  [m/s] [sea_water_y_velocity]     GLM velocity in cell centre, y-component
+      real*8  2  ue     s%nx+1 s%ny+1 d  [m/s] [sea_water_x_velocity]     Eulerian velocity in cell centre, x-component
+      real*8  2  ve     s%nx+1 s%ny+1 d  [m/s] [sea_water_y_velocity]     Eulerian velocity in cell centre, y-component
+      real*8  2  hold   s%nx+1 s%ny+1 d  [m] []       water depth previous time step
+      integer 2  wetu   s%nx+1 s%ny+1 d  [-] []       mask wet/dry u-points
+      integer 2  wetv   s%nx+1 s%ny+1 d  [-] []       mask wet/dry v-points
+      integer 2  wetz   s%nx+1 s%ny+1 d  [-] []       mask wet/dry eta-points
+      real*8  2  hu     s%nx+1 s%ny+1 d  [m] []       water depth in u-points
+      real*8  2  hv     s%nx+1 s%ny+1 d  [m] []       water depth in v-points
+      real*8  2  hum    s%nx+1 s%ny+1 d  [m] []       water depth in u-points
+      real*8  2  hvm    s%nx+1 s%ny+1 d  [m] []       water depth in v-points
+      real*8  2  vmag   s%nx+1 s%ny+1 d  [m/s] []     velocity magnitude in cell centre
+      real*8  3  ccg    s%nx+1 s%ny+1 par%ngd d  [m3/m3] []   depth-averaged suspended concentration for each sediment fraction
+      real*8  3  ccbg   s%nx+1 s%ny+1 par%ngd d  [m3/m3] []   depth-averaged bed concentration for each sediment fraction
+      real*8  2  uwf    s%nx+1 s%ny+1 d  [m/s] []     Stokes drift, x-component
+      real*8  2  vwf    s%nx+1 s%ny+1 d  [m/s] []     Stokes drift, y-component
+      real*8  2  ustr   s%nx+1 s%ny+1 d  [m/s] []     return flow due to roller
+      real*8  2  usd    s%nx+1 s%ny+1 d  [m/s] []     return flow due to roller after breaker delay
+      real*8  1  bi     s%ny+1 d  [m] []       incoming bound long wave
+      real*8  2  DR     s%nx+1 s%ny+1 d  [W/m2] []    roller energy dissipation
+      real*8  2  umean  2 s%ny+1 2  [m/s] [sea_water_x_velocity]     longterm mean velocity at bnds in u-points, x-component
+      real*8  2  vmean  2 s%ny+1 2  [m/s] [sea_water_y_velocity]     longterm mean velocity at bnds in u-points, y-component 
+      integer 0  vardx  b  [-] []       0 = uniform grid size, 1 = variable grid size
+      real*8  1  D50    par%ngd b  [m] []       D50 grain diameters for all sediment classses
+      real*8  1  D90    par%ngd b  [m] []       D90 grain diameters for all sediment classses
+      real*8  1  sedcal par%ngd b  [-] []       equilibrium sediment concentartion factor for each sediment class
+      real*8  1  ucrcal par%ngd b  [-] []       calibration factor for u critical for each sediment class
+      real*8  3  Tsg    s%nx+1 s%ny+1 par%ngd d  [s] []       sediment response time for each sediment class
+      real*8  3  Susg    s%nx+1 s%ny+1 par%ngd d  [m2/s] []   suspended sediment transport for each sediment class (excluding pores), x-component
+      real*8  3  Svsg    s%nx+1 s%ny+1 par%ngd d  [m2/s] []   suspended sediment transport for each sediment class (excluding pores), y-component
+      real*8  3  Subg    s%nx+1 s%ny+1 par%ngd d  [m2/s] []   bed sediment transport for each sediment class (excluding pores), x-component
+      real*8  3  Svbg    s%nx+1 s%ny+1 par%ngd d  [m2/s] []   bed sediment transport for each sediment class (excluding pores), y-component
+      real*8  3  ceqbg s%nx+1 s%ny+1 par%ngd d  [m3/m3] []   depth-averaged bed equilibrium concentration for each sediment class
+      real*8  3  ceqsg s%nx+1 s%ny+1 par%ngd d  [m3/m3] []   depth-averaged suspended equilibrium concentration for each sediment class
+      real*8  2  ua     s%nx+1 s%ny+1 d  [m/s] []     time averaged flow velocity due to wave assymetry
+      real*8  2  BR     s%nx+1 s%ny+1 d  [-] []       maximum wave surface slope used in roller dissipation formulation
+      real*8  2  kb s%nx+1 s%ny+1 d  [m^2/s^2] [] near bed turbulence intensity due to depth induces breaking
+      real*8  2  Tbore s%nx+1 s%ny+1 d  [s] []       wave period interval associated with breaking induced turbulence
+      real*8  2  dzav   s%nx+1 s%ny+1 d  [m] []       total bed level change due to avalanching
+      real*8  2  maxzs  s%nx+1 s%ny+1 d  [m] []       maximum elevation in simulation  
+      real*8  2  minzs  s%nx+1 s%ny+1 d  [m] []       minimum elevation in simulation 
+      real*8  2  L1     s%nx+1 s%ny+1 d [m] []  wave length (used in dispersion relation)
+      real*8  2  Sk s%nx+1 s%ny+1 d  [-] [] skewness of short waves
+      real*8  2  As s%nx+1 s%ny+1 d  [-] [] asymmetry of short waves
+      real*8  2  gwhead   s%nx+1 s%ny+1 d  [m] [] groundwater head (differs from gwlevel)
+      real*8  2  gwlevel  s%nx+1 s%ny+1 d  [m] [] groundwater table (min(zb,gwhead))
+      real*8  2  gwheight s%nx+1 s%ny+1 d  [m] [] vertical size of aquifer through which groundwater can flow
+      real*8  2  gwbottom s%nx+1 s%ny+1 d  [m] [] level of the bottom of the aquifer
+      real*8  2  gwu      s%nx+1 s%ny+1 d  [m/s] [] groundwater flow in x-direction
+      real*8  2  gwv      s%nx+1 s%ny+1 d  [m/s] [] groundwater flow in y-direction
+      real*8  2  gww      s%nx+1 s%ny+1 d  [m/s] [] groundwater flow in z-direction (interaction between surface and ground water)
+      real*8  2  dinfil   s%nx+1 s%ny+1 d  [m] [] Infiltration layer depth used in quasi-vertical flow model for groundwater
+      real*8  2  gw0back  2      s%ny+1 2  [m] [] boundary condition back boundary for groundwater head
+      real*8  2  kturb    s%nx+1 s%ny+1 d  [m^2/s^2] [] depth averaged turbulence intensity due to long wave breaking
+      real*8  3  ero      s%nx+1 s%ny+1 par%ngd d  [m/s] [] bed erosion rate per fraction
+      real*8  3  depo_im     s%nx+1 s%ny+1 par%ngd d  [m/s] [] implicit bed deposition rate per fraction
+      real*8  3  depo_ex     s%nx+1 s%ny+1 par%ngd d  [m/s] [] explicit bed deposition rate per fraction
+      integer 2  nd       s%nx+1 s%ny+1 d  [-] [] number of bed layers (can be different for each computational cell)
+      real*8  4  pbbed    s%nx+1 s%ny+1 max(par%nd,2) par%ngd d [-] [] NO DESCRIPTION
+      real*8  3  dzbed    s%nx+1 s%ny+1 max(par%nd,2) d [-] [] NO DESCRIPTION
+      real*8  2  z0bed    s%nx+1 s%ny+1 d  [-] [] NO DESCRIPTION
+      real*8  2  ureps     s%nx+1 s%ny+1 d [m/s] [sea_water_x_velocity] representative flow velocity for sediment advection and diffusion, x-component
+      real*8  2  vreps     s%nx+1 s%ny+1 d [m/s] [sea_water_y_velocity] representative flow velocity for sediment advection and diffusion, y-component
+      real*8  2  urepb     s%nx+1 s%ny+1 d [m/s] [sea_water_x_velocity] representative flow velocity for sediment advection and diffusion, x-component
+      real*8  2  vrepb     s%nx+1 s%ny+1 d [m/s] [sea_water_y_velocity] representative flow velocity for sediment advection and diffusion, y-component
+      real*8  2  umwci     s%nx+1 s%ny+1 d  [m/s] [sea_water_x_velocity]   velocity (time-averaged) for wci, x-component
+      real*8  2  vmwci     s%nx+1 s%ny+1 d  [m/s] [sea_water_y_velocity]   velocity (time-averaged) for wci, y-component
+      real*8  2  rolthick s%nx+1 s%ny+1 d  [m] [] long wave roller thickness
+      real*8  2  zswci     s%nx+1 s%ny+1 d  [m] []   waterlevel (time-averaged) for wci
+      real*8  2  pres      s%nx+1 s%ny+1 d  [m^2/s^2] [] normalized dynamic pressure
+      real*8  2  wb        s%nx+1 s%ny+1 d  [m/s] []    vertical velocity at the bottom
+      real*8  2  ws        s%nx+1 s%ny+1 d  [m/s] []    vertical velocity at the free surface
+      real*8  2  taubx     s%nx+1 s%ny+1 d  [N/m^2] []  bed shear stress, x-component
+      real*8  2  tauby     s%nx+1 s%ny+1 d  [N/m^2] []  bed shear stress, y-component
+      real*8  2  Df        s%nx+1 s%ny+1 d  [W/m^2] []  dissipation rate due to bed friction
+      real*8  2  Dp        s%nx+1 s%ny+1 d  [W/m^2] []  dissipation rate in the swash due to transformation of kinetic wave energy to potential wave energy
+      real*8  2  Sutot     s%nx+1 s%ny+1 d  [m2/s] []  Sediment transport integrated over bed load and suspended and for all sediment grains, x-component
+      real*8  2  Svtot     s%nx+1 s%ny+1 d  [m2/s] []  Sediment transport integrated over bed load and suspended and for all sediment grains, y-component
+      real*8  2  cctot     s%nx+1 s%ny+1 d  [m3/m3] []  Sediment concentration integrated over bed load and suspended and for all sediment grains
+      real*8  2  wi        2      s%ny+1 2  [m/s] []  Vertical velocity at boundary due to (short) waves
+      real*8  2  zi        2      s%ny+1 2  [m] []    Surface elevation at boundary due to (short) waves
+      real*8  2  nuh       s%nx+1 s%ny+1 d  [m2/s] [] horizontal viscosity coefficient 
+      real*8  2  cf        s%nx+1 s%ny+1 d  [-] [] Friction coefficient flow
+      real*8  2  D50top    s%nx+1 s%ny+1 d  [-] [] Friction coefficient flow
+      real*8  2  D90top    s%nx+1 s%ny+1 d  [-] [] Friction coefficient flow
+      real*8  2  structdepth    s%nx+1 s%ny+1 d  [m] [] Depth of structure in relation to instantaneous bed level
+      real*8  3  zs0fac    s%nx+1 s%ny+1 2 d  [-] [] relative weight of offshore boundary and bay boundary for each grid point is stored in zs0fac       
+      real*8  1  tdisch    s%ntdisch     b  [-] []    Discharge time series
+      real*8  2  pdisch    s%ndisch 4    b  [-] []    Discharge locations
+      integer 1  pntdisch  s%ndisch      b  [-] []    Point discharge locations (no momentum)
+      real*8  2  qdisch    s%ntdisch s%ndisch b [m^2/s] [] Discharges
+!* hints for vi vim: filetype=fortran : syntax=fortran=======
       real*8  2  x   s%nx+1 s%ny+1  d    [m]       x-coord. original comp. grid (w/o xori, yori and alfa)
       real*8  2  y   s%nx+1 s%ny+1  d    [m]       y-coord. original comp. grid
       real*8  2  xz  s%nx+1 s%ny+1  d    [m]       x-coord. comp. grid (positive shoreward, perp. to coastline)
@@ -240,3 +452,4 @@
       real*8  1  tdriftb   par%ndrifter	 b  [s]     Drifter release time
       real*8  1  tdrifte   par%ndrifter  b  [s]     Drifter retrieval time
 !* hints for vi vim: filetype=fortran : syntax=fortran
+>>>>>>> .r1916
