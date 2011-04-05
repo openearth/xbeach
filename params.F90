@@ -570,17 +570,18 @@ contains
     call writelog('l','','Discharge boundary conditions: ')
     
     par%ndischarge  = readkey_int   ('params.txt','ndischarge',  0,         0,       100)
-    par%ntdischarge = readkey_int   ('params.txt','ntdischarge', 0,         0,       100)
+    par%ntdischarge = readkey_int   ('params.txt','ntdischarge', 2,         0,       100)
     
     if (par%ndischarge>0) then
         par%disch_loc_file = readkey_name('params.txt','disch_loc_file')
         call check_file_exist(par%disch_loc_file)
+        
+        if (par%ntdischarge>0) then
+            par%disch_timeseries_file = readkey_name('params.txt','disch_timeseries_file')
+            call check_file_exist(par%disch_timeseries_file)
+        endif
     endif
     
-    if (par%ntdischarge>0) then
-        par%disch_timeseries_file = readkey_name('params.txt','disch_timeseries_file')
-        call check_file_exist(par%disch_timeseries_file)
-    endif
     !
     !
     ! Wave breaking parameters                                                                                                      

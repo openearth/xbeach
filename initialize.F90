@@ -994,35 +994,42 @@ contains
     type(parameters)                        :: par
 
     integer                                 :: i,j
-    integer                                 :: io,idisch
+    integer                                 :: io
     integer                                 :: m1,m2,n1,n2
-    real*8                                  :: xdb,xde,ydb,yde,dxd,dyd
-    real*8, dimension(:),allocatable        :: x_disch_begin,x_disch_end
-    real*8, dimension(:),allocatable        :: y_disch_begin,y_disch_end
+    real*8                                  :: dxd,dyd
+    real*8, dimension(:),allocatable        :: xdb,ydb,xde,yde
     integer,dimension(2)                    :: mnb,mne
 
     include 's.ind'
     include 's.inp'
     
     io              = 0
-    idisch          = 0
 
-    allocate(x_disch_begin  (par%ndischarge)      )
-    allocate(y_disch_begin  (par%ndischarge)      )
-    allocate(x_disch_end    (par%ndischarge)      )
-    allocate(y_disch_end    (par%ndischarge)      )
+    allocate(xdb    (par%ndischarge)      )
+    allocate(ydb    (par%ndischarge)      )
+    allocate(xde    (par%ndischarge)      )
+    allocate(yde    (par%ndischarge)      )
     
-    allocate(s%pntdisch     (1:par%ndischarge)    )
+    allocate(s%pntdisch     (1:par%ndischarge)                      )
+    allocate(s%pdisch       (1:par%ndischarge   , 1:4)              )
+    allocate(s%tdisch       (1:par%ntdischarge)                     )
+    allocate(s%qdisch       (1:par%ntdischarge  , 1:par%ndischarge) )
     
-    ! read discharge locations
+    s%pntdisch  = 0.d0
+    s%tdisch    = 0.d0
+    s%pdisch    = 0.d0
+    s%qdisch    = 0.d0
+    
     if (xmaster) then
         if (par%ndischarge>0) then
+        
+            ! read discharge locations
             open(10,file=par%disch_loc_file)
             do i=1,par%ndischarge
-                read(10,*,IOSTAT=io) x_disch_begin(i),y_disch_begin(i),x_disch_end(i),y_disch_end(i)
+                read(10,*,IOSTAT=io) xdb(i),ydb(i),xde(i),yde(i)
                 
                 ! distinguish between horizontal and vertical discharge
-                if (x_disch_begin(i).eq.x_disch_end(i) .and. y_disch_begin(i).eq.y_disch_end(i)) then
+                if (xdb(i).eq.xde(i) .and. ydb(i).eq.yde(i)) then
                     s%pntdisch(i) = 1
                 else
                     s%pntdisch(i) = 0
@@ -1030,58 +1037,44 @@ contains
                 
             enddo
             close(10)
+        
+            if (par%ntdischarge>0) then
+            
+                ! read time series
+                open(10,file=par%disch_timeseries_file)
+                do i=1,par%ntdischarge
+                    read(10,*,IOSTAT=io) s%tdisch(i),(s%qdisch(i,j),j=1,par%ndischarge)
+                enddo
+                close(10)
+            endif
         endif
     endif
-    
-    allocate(s%tdisch       (1:par%ntdischarge)                 )
-    allocate(s%qdisch       (1:par%ntdischarge,1:par%ndischarge))
-    
-    ! read time series
-    if (xmaster) then
-        if (par%ntdischarge>0) then
-            open(10,file=par%disch_timeseries_file)
-            do i=1,par%ntdischarge
-                read(10,*,IOSTAT=io) s%tdisch(i),(s%qdisch(i,j),j=1,par%ndischarge)
-            enddo
-            close(10)
-        endif
-    endif
-    
-    allocate(s%pdisch       (1:par%ndischarge,1:4)              )
-    
-    s%pdisch = 0.d0
     
     if (xmaster) then
     
         ! initialise each discharge location
-        do idisch=1,par%ndischarge
+        do i=1,par%ndischarge
             
-            ! read discharge coordinates for each discharge section from file and translate to XBeach coordinate system  
-            xdb =  cos(s%alfa)*(x_disch_begin(idisch)-s%xori)+sin(s%alfa)*(y_disch_begin(idisch)-s%yori)
-            ydb = -sin(s%alfa)*(x_disch_begin(idisch)-s%xori)+cos(s%alfa)*(y_disch_begin(idisch)-s%yori)
-            xde =  cos(s%alfa)*(x_disch_end  (idisch)-s%xori)+sin(s%alfa)*(y_disch_end  (idisch)-s%yori)
-            yde = -sin(s%alfa)*(x_disch_end  (idisch)-s%xori)+cos(s%alfa)*(y_disch_end  (idisch)-s%yori)
-            
-            dxd = xde-xdb
-            dyd = yde-ydb
+            dxd = abs(xde(i)-xdb(i))
+            dyd = abs(yde(i)-ydb(i))
             
             ! convert discharge location to cell indices depending on type of discharge:
             !     point discharge, in v-direction or in u-direction
-            if (s%pntdisch(idisch).eq.1) then
+            if (s%pntdisch(i).eq.1) then
             
                 ! point discharge (no orientation, no added momentum, just mass)
                 
-                mnb = minloc(sqrt((s%xz-xdb)**2+(s%yz-ydb)**2))
-                mne = minloc(sqrt((s%xz-xde)**2+(s%yz-yde)**2))
+                mnb = minloc(sqrt((s%xz-xdb(i))**2+(s%yz-ydb(i))**2))
+                mne = minloc(sqrt((s%xz-xde(i))**2+(s%yz-yde(i))**2))
                 
-                s%pdisch(idisch,:) = (/mnb(1),mnb(2),0,0/)
+                s%pdisch(i,:) = (/mnb(1),mnb(2),0,0/)
                 
             elseif (dxd.gt.dyd) then
             
                 ! discharge through v-points
                 
-                mnb = minloc(sqrt((s%xv-xdb)**2+(s%yv-ydb)**2))
-                mne = minloc(sqrt((s%xv-xde)**2+(s%yv-yde)**2))
+                mnb = minloc(sqrt((s%xv-xdb(i))**2+(s%yv-ydb(i))**2))
+                mne = minloc(sqrt((s%xv-xde(i))**2+(s%yv-yde(i))**2))
             
                 m1 = minval((/mnb(1),mne(1)/))
                 m2 = maxval((/mnb(1),mne(1)/))
@@ -1090,13 +1083,13 @@ contains
                 if (n1.lt.1)    n1 = 1
                 if (n1.gt.s%ny) n1 = s%ny
                 
-                s%pdisch(idisch,:) = (/m1,n1,m2,n1/)
+                s%pdisch(i,:) = (/m1,n1,m2,n1/)
             else
             
                 ! discharge through u-points
                 
-                mnb = minloc(sqrt((s%xu-xdb)**2+(s%yu-ydb)**2))
-                mne = minloc(sqrt((s%xu-xde)**2+(s%yu-yde)**2))
+                mnb = minloc(sqrt((s%xu-xdb(i))**2+(s%yu-ydb(i))**2))
+                mne = minloc(sqrt((s%xu-xde(i))**2+(s%yu-yde(i))**2))
                 
                 m1 = nint(0.5*(mnb(1)+mne(1)))
                 n1 = minval((/mnb(2),mne(2)/))
@@ -1105,7 +1098,7 @@ contains
                 if (m1.lt.1)    m1 = 1
                 if (m1.gt.s%nx) m1 = s%nx
                 
-                s%pdisch(idisch,:) = (/m1,n1,m1,n2/)
+                s%pdisch(i,:) = (/m1,n1,m1,n2/)
             endif
         enddo
     endif
@@ -1163,7 +1156,6 @@ contains
             enddo
             close(10)
         endif
-        
     endif
   end subroutine drifter_init
 

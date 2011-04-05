@@ -1134,12 +1134,23 @@ contains
     type(spacepars),target                  :: s
     type(parameters)                        :: par
     
-    integer                                 :: i,m1,m2,n1,n2,indx
-    real*8                                  :: qnow,CONST
+    integer                                 :: i,indx
+    integer                                 :: m1,m2,n1,n2
+    integer                                 :: m1l,m2l,n1l,n2l
+    real*8                                  :: qnow,A,CONST
     logical                                 :: isborder
+    integer                                 :: ishift,jshift
     
     include 's.ind'
     include 's.inp'
+    
+#ifdef USEMPI
+    ishift  = s%is(xmpi_rank+1)-1
+    jshift  = s%js(xmpi_rank+1)-1
+#else
+    ishift  = 0.d0
+    jshift  = 0.d0
+#endif
     
     ! loop through discharge location
     do i = 1,par%ndischarge
@@ -1153,18 +1164,24 @@ contains
             m2 = pdisch(i,3)
             n2 = pdisch(i,4)
             
+            ! convert to local coordinates
+            m1l = min(max(m1-ishift,1),nx)
+            m2l = min(max(m2-ishift,1),nx)
+            n1l = min(max(n1-jshift,1),ny)
+            n2l = min(max(n2-jshift,1),ny)
+            
             ! add momentum in either u- or v-direction
             if (n1.eq.n2) then
                 
-                isborder = (n1.eq.1 .or. n1.eq.ny)
+                isborder = (n1l.eq.1 .and. xmpi_isleft) .or. (n1l.eq.ny .and. xmpi_isright)
                 
                 ! make sure discharge is an inflow at border and water levels are defined
                 if (isborder) then
-                    if (n1.gt.1) then
+                    if (n1l.gt.1) then
                         qnow = -1*abs(qnow)
-                        hv(m1:m2,n1) = hh(m1:m2,n1)
-                    elseif (n1.lt.ny) then
-                        hv(m1:m2,n1) = hh(m1:m2,n1+1)
+                        hv(m1l:m2l,n1l) = hh(m1l:m2l,n1l)
+                    elseif (n1l.lt.ny) then
+                        hv(m1l:m2l,n1l) = hh(m1l:m2l,n1l+1)
                     endif
                 endif
                 
@@ -1173,21 +1190,25 @@ contains
                 !     qy = CONST * hv^1.5
                 !     Q  = CONST * hv^1.5 * dsv
                 
-                CONST = qnow/max(sum(hv(m1:m2,n1)**1.5*dsv(m1:m2,n1)),par%eps)
-                vv(m1:m2,n1) = CONST*hv(m1:m2,n1)**0.5
-                qy(m1:m2,n1) = CONST*hv(m1:m2,n1)**1.5
+                A = sum(hv(m1l:m2l,n1l)**1.5*dsv(m1l:m2l,n1l))
+                
+                call xmpi_allreduce(A,MPI_SUM)
+                
+                CONST = qnow/max(A,par%eps)
+                vv(m1l:m2l,n1l) = CONST*hv(m1l:m2l,n1l)**0.5
+                qy(m1l:m2l,n1l) = CONST*hv(m1l:m2l,n1l)**1.5
                 
             elseif (m1.eq.m2) then
                 
-                isborder = (m1.eq.1 .or. m1.eq.nx)
+                isborder = (m1l.eq.1 .and. xmpi_istop) .or. (m1l.eq.nx .and. xmpi_isbot)
                 
                 ! make sure discharge is an inflow at border and water levels are defined
                 if (isborder) then
-                    if (m1.gt.1) then
+                    if (m1l.gt.1) then
                         qnow = -1*abs(qnow)
-                        hu(m1,n1:n2) = hh(m1,n1:n2)
-                    elseif (m1.lt.nx) then
-                        hu(m1,n1:n2) = hh(m1+1,n1:n2)
+                        hu(m1l,n1l:n2l) = hh(m1l,n1l:n2l)
+                    elseif (m1l.lt.nx) then
+                        hu(m1l,n1l:n2l) = hh(m1l+1,n1l:n2l)
                     endif
                 endif
                 
@@ -1196,9 +1217,13 @@ contains
                 !     qx = CONST * hu^1.5
                 !     Q  = CONST * hu^1.5 * dnu
                 
-                CONST = qnow/max(sum(hu(m1,n1:n2)**1.5*dnu(m1,n1:n2)),par%eps)
-                uu(m1,n1:n2) = CONST*hu(m1,n1:n2)**0.5
-                qx(m1,n1:n2) = CONST*hu(m1,n1:n2)**1.5
+                A = sum(hu(m1l,n1l:n2l)**1.5*dnu(m1l,n1l:n2l))
+                
+                call xmpi_allreduce(A,MPI_SUM)
+                
+                CONST = qnow/max(A,par%eps)
+                uu(m1l,n1l:n2l) = CONST*hu(m1l,n1l:n2l)**0.5
+                qx(m1l,n1l:n2l) = CONST*hu(m1l,n1l:n2l)**1.5
             endif
         endif
     enddo
@@ -1217,11 +1242,22 @@ contains
     type(spacepars),target                  :: s
     type(parameters)                        :: par
     
-    integer                                 :: i,m1,n1,indx
+    integer                                 :: i,indx
+    integer                                 :: m1,n1
+    integer                                 :: m1l,n1l
     real*8                                  :: qnow
+    integer                                 :: ishift,jshift
     
     include 's.ind'
     include 's.inp'
+
+#ifdef USEMPI
+    ishift  = s%is(xmpi_rank+1)-1
+    jshift  = s%js(xmpi_rank+1)-1
+#else
+    ishift  = 0.d0
+    jshift  = 0.d0
+#endif
 
     do i = 1,par%ndischarge
         if (pntdisch(i).eq.1) then
@@ -1230,8 +1266,12 @@ contains
             m1 = pdisch(i,1)
             n1 = pdisch(i,2)
             
+            ! convert to local coordinates
+            m1l = min(max(m1-ishift,1),nx)
+            n1l = min(max(n1-jshift,1),ny)
+            
             ! add mass
-            zs(m1,n1) = zs(m1,n1)+qnow*par%dt*dsdnzi(m1,n1)
+            zs(m1l,n1l) = zs(m1l,n1l)+qnow*par%dt*dsdnzi(m1l,n1l)
         endif
     enddo
   end subroutine discharge_boundary_v

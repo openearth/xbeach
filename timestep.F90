@@ -414,8 +414,6 @@ subroutine timestep(s,par, tpar, it, ierr)
                              /sqrt(maxval(s%hh)*par%g)
      dtref = 0.d0
      
-     write(*,*) minval(s%dsu(1:s%nx+1,1:s%ny+1)), minval(s%dnv(1:s%nx+1,1:s%ny+1)), maxval(s%hh), par%CFL, par%g, par%dt
-     
   else
      par%dt=huge(0.0d0)      ! Seed dt
      do j=j1,max(s%ny,1)

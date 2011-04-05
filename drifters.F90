@@ -21,13 +21,13 @@ subroutine drifter(s,par)
     include 's.inp'
     
 #ifdef USEMPI
-    ishift  = s%is(1)-1
-    jshift  = s%js(1)-1
+    ishift  = s%is(xmpi_rank+1)-1
+    jshift  = s%js(xmpi_rank+1)-1
 #else
     ishift  = 0.d0
     jshift  = 0.d0
 #endif
-
+    
     do i=1,par%ndrifter
         if (par%t>s%tdriftb(i) .and. par%t<s%tdrifte(i)) then
      
@@ -37,14 +37,17 @@ subroutine drifter(s,par)
             iv          = nint(s%idrift(i)-ishift     )
             jv          = nint(s%jdrift(i)-jshift-0.d5)
             
-            ! determine movement of drifter relative to grid size
-            di          = uu(iu,ju)/dsu(iu,ju)*par%dt
-            dj          = vv(iv,jv)/dnv(iv,jv)*par%dt
-            
             ! update drifter if still inside domain
-            if (s%idrift(i)+di<=s%nx .and. s%jdrift(i)+dj<=s%ny) then
-                s%idrift(i) = s%idrift(i) + di + ishift
-                s%jdrift(i) = s%jdrift(i) + dj + jshift
+            if (    iu <= s%nx .and. ju <= s%ny .and. iv <= s%nx .and. jv <= s%ny .and. &
+                    iu >= 1    .and. ju >= 1    .and. iv >= 1    .and. jv >= 1          ) then
+                    
+                ! determine movement of drifter relative to grid size
+                di      = uu(iu,ju)/dsu(iu,ju)*par%dt
+                dj      = vv(iv,jv)/dnv(iv,jv)*par%dt
+                
+                s%idrift(i) = s%idrift(i) + di
+                s%jdrift(i) = s%jdrift(i) + dj
+                
 #ifdef USEMPI
             else
                s%idrift(i)  = huge(0.0d0)
@@ -59,7 +62,6 @@ subroutine drifter(s,par)
 
         endif
     enddo
-    
 end subroutine drifter
 
 end module drifter_module

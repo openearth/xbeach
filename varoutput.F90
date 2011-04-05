@@ -558,13 +558,13 @@ contains
         !
         ! write drifter output
         !
-    
+
         if (xmaster) then
             if (abs(mod(par%t,par%tintp))<1.d-6) then
                 itd = itd+1
                 do i=1,par%ndrifter
                     if (par%t>s%tdriftb(i) .and. par%t<s%tdrifte(i)) then
-                        
+                
                         iz = int(s%idrift(i))
                         jz = int(s%jdrift(i))
                         
@@ -582,7 +582,7 @@ contains
                             par%t
                     endif
                 enddo
-            endif 
+            endif
         endif
         
        if(xmaster) then
