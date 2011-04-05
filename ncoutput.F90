@@ -324,6 +324,10 @@ contains
              deallocate(dimids)
              status = nf90_put_att(ncid, globalvarids(i), 'units', trim(t%units))
              if (status /= nf90_noerr) call handle_err(status)
+             if (.not.(trim(t%standardname) .eq. '')) then
+               status = nf90_put_att(ncid, globalvarids(i), 'standard_name', trim(t%standardname))
+               if (status /= nf90_noerr) call handle_err(status)
+             endif
              status = nf90_put_att(ncid, globalvarids(i), 'long_name', trim(t%description))
              if (status /= nf90_noerr) call handle_err(status)
           end do
@@ -426,6 +430,10 @@ contains
              end select
              status = nf90_put_att(ncid, pointsvarids(i), 'units', trim(t%units))
              if (status /= nf90_noerr) call handle_err(status)
+             if (.not.(trim(t%standardname) .eq. '')) then
+               status = nf90_put_att(ncid, pointsvarids(i), 'standard_name', trim(t%standardname))
+               if (status /= nf90_noerr) call handle_err(status)
+             endif
              status = nf90_put_att(ncid, pointsvarids(i), 'long_name', trim(t%description))
              if (status /= nf90_noerr) call handle_err(status)
           end do
@@ -434,11 +442,11 @@ contains
        if (outputm) then
           status = nf90_def_var(ncid, 'meantime', NF90_DOUBLE, (/ meantimedimid /), meantimevarid)
           if (status /= nf90_noerr) call handle_err(status)
-          status = nf90_put_att(ncid, globaltimevarid, 'units', trim(par%tunits))
+          status = nf90_put_att(ncid, meantimevarid, 'units', trim(par%tunits))
           if (status /= nf90_noerr) call handle_err(status)
-          status = nf90_put_att(ncid, globaltimevarid, 'axis', 'T')
+          status = nf90_put_att(ncid, meantimevarid, 'axis', 'T')
           if (status /= nf90_noerr) call handle_err(status)
-          status = nf90_put_att(ncid, globaltimevarid, 'standard_name', 'time')
+          status = nf90_put_att(ncid, meantimevarid, 'standard_name', 'time')
           if (status /= nf90_noerr) call handle_err(status)
           ! default global output variables
           do i=1,par%nmeanvar
@@ -492,6 +500,10 @@ contains
                    if (status /= nf90_noerr) call handle_err(status)
                    status = nf90_put_att(ncid, meanvarids(i,j), 'units', trim(t%units))
                    if (status /= nf90_noerr) call handle_err(status)
+                   if (.not.(trim(t%standardname) .eq. '')) then
+                     status = nf90_put_att(ncid, meanvarids(i,j), 'standard_name', trim(t%standardname))
+                     if (status /= nf90_noerr) call handle_err(status)
+                   endif
                    status = nf90_put_att(ncid, meanvarids(i,j), 'long_name', trim(t%description))
                    if (status /= nf90_noerr) call handle_err(status)
                    ! For H and urms we don't compute the mean but the rms of the rms.....
@@ -866,6 +878,8 @@ contains
        dimensionid = windtimedimid
     case('par%ngd')
        dimensionid = sedimentclassesdimid
+    case('s%ntdisch')
+       dimensionid = inoutdimid
     case('2')
        dimensionid = inoutdimid
     case('max(par%nd,2)')

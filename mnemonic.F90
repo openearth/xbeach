@@ -9,6 +9,7 @@ type arraytype
   integer rank           ! 0,1,2,3,4
   character(len=maxnamelen) :: name     ! 'v','ve', .....
   character(len=20) :: units     ! m, following udunits convention
+  character(len=1024) :: standardname
   character(len=1024) :: description
   character(len=20), dimension(maxrank) :: dimensions ! the dimensions of the variable, for example (s%nx, s%ny)
 

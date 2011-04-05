@@ -27,7 +27,7 @@ character(len=slen), parameter :: space_indname = 'space_ind.gen'
 character(len=slen), parameter :: space_inpname = 'space_inp.gen'
 character(len=slen), parameter :: chartoindexname = 'chartoindex.gen'
 integer                        :: numvars, maxnamelen, inumvars0, rnumvars0
-character(len=slen)            :: type, name, comment, line, broadcast, description, units
+character(len=slen)            :: type, name, comment, line, broadcast, description, units, standardname
 integer                        :: rank
 logical                        :: varfound
 logical                        :: endfound
@@ -93,6 +93,7 @@ subroutine getitems
   type = ''
   name = ''
   units = ''
+  standardname = ''
   description = ''
   comment = ''
   
@@ -123,6 +124,8 @@ subroutine getitems
   call getnext(line,l,broadcast)
 
   call getnext(line,l,units)
+  
+  call getnext(line,l,standardname)
 
   ! Get the first word of the description
   call getnext(line,l,description)
@@ -459,6 +462,14 @@ subroutine makeindextos
            units=units(1:index(units,']')-1) // '' ! make sure we add an extra ''
         endif
         write(outfile,'(a)')      sp//"    t%units= '"//trim(units)//"'"
+        ! write standard names
+        if (standardname(1:1) .eq. '[') then
+           standardname=standardname(2:) // '' ! avoid length issues
+        endif
+        if (index(standardname,']') > 0) then
+           standardname=standardname(1:index(standardname,']')-1) // '' ! make sure we add an extra ''
+        endif
+        write(outfile,'(a)')      sp//"    t%standardname= '"//trim(standardname)//"'"
         write(outfile,'(a)')      sp//"    t%description= '"//trim(description)//"'"
         if (rank>0) then
            ! Stre the dimensions
