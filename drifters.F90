@@ -21,8 +21,8 @@ subroutine drifter(s,par)
     include 's.inp'
     
 #ifdef USEMPI
-    ishift  = s%is-1
-    jshift  = s%js-1
+    ishift  = s%is(1)-1
+    jshift  = s%js(1)-1
 #else
     ishift  = 0.d0
     jshift  = 0.d0

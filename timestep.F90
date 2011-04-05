@@ -481,6 +481,12 @@ subroutine timestep(s,par, tpar, it, ierr)
 #endif
     end if
 
+    ! wwvv: In the mpi version par%dt will be calculated different
+    ! on different processes. So, we take the minimum of all dt's
+#ifdef USEMPI
+    call xmpi_allreduce(par%dt,MPI_MIN)
+#endif
+
     par%t=par%t+par%dt
 
     if(par%t>=tpar%tnext) then
@@ -507,12 +513,6 @@ subroutine timestep(s,par, tpar, it, ierr)
         tpar%output = (tpar%outputg .or. tpar%outputp .or. tpar%outputm .or. tpar%outputc)
         ierr = 1
     endif
-
-    ! wwvv: In the mpi version par%dt will be calculated different
-    ! on different processes. So, we take the minimum of all dt's
-#ifdef USEMPI
-    call xmpi_allreduce(par%dt,MPI_MIN)
-#endif
 
 end subroutine timestep
 end module timestep_module
