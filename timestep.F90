@@ -358,13 +358,14 @@ subroutine outputtimes_update(par, tpar)
   ! calculate the output for the following time
   ! this routine computes the next timestep at which output should be generated
   ! Determine next time step
-  t1=minval(tpar%tpg,MASK=tpar%tpg .gt. par%t)
-  t2=minval(tpar%tpp,MASK=tpar%tpp .gt. par%t)
-  t3=minval(tpar%tpm,MASK=tpar%tpm .gt. par%t)
-  t4=minval(tpar%tpw,MASK=tpar%tpw .gt. par%t)
-  t5=minval(tpar%tpc,MASK=tpar%tpc .gt. par%t)
+  t1=minval(tpar%tpg,MASK=tpar%tpg .gt. par%t+0.0000001d0)
+  t2=minval(tpar%tpp,MASK=tpar%tpp .gt. par%t+0.0000001d0)
+  t3=minval(tpar%tpm,MASK=tpar%tpm .gt. par%t+0.0000001d0)
+  t4=minval(tpar%tpw,MASK=tpar%tpw .gt. par%t+0.0000001d0)
+  t5=minval(tpar%tpc,MASK=tpar%tpc .gt. par%t+0.0000001d0)
 
   tpar%tnext=min(t1,t2,t3,t4,t5,par%tstop)
+  
   if (tpar%tnext .eq. huge(tpar%tpg) .and. par%t .eq. 0) then
      call writelog('ls','', 'no output times found, setting tnext to tstop')
      tpar%tnext = par%tstop
@@ -471,47 +472,47 @@ subroutine timestep(s,par, tpar, it, ierr)
      par%dt = (tpar%tnext-par%t)/n
   end if
   
-  if (dtref .eq. 0.0d0) then
-     ! If dtref is not yet set.
-     dtref = par%dt
+    if (dtref .eq. 0.0d0) then
+        ! If dtref is not yet set.
+        dtref = par%dt
 #ifdef USEMPI
-     ! Use the same dtref everywhere.
-     call xmpi_allreduce(dtref,MPI_MIN)
+        ! Use the same dtref everywhere.
+        call xmpi_allreduce(dtref,MPI_MIN)
 #endif
-  end if
+    end if
 
-  if (dtref/par%dt>50.d0) then
-     call writelog('lse','','Quit XBeach since computational time implodes')
-     call writelog('lse','','Please check the velocities at the end of the simulation')
-     call writelog('lse','','dtref',dtref)
-     call writelog('lse','','par%dt',par%dt)
-     ! Force output before exit in main time loop
-     tpar%outputg = (size(tpar%tpg) .gt. 0)
-     tpar%outputp = (size(tpar%tpp) .gt. 0)
-     tpar%outputm = (size(tpar%tpm) .gt. 0)
-     tpar%outputc = (size(tpar%tpc) .gt. 0)
-     ! set output time to current time
-     if (tpar%outputg) tpar%tpg=min(tpar%tpg,par%t)
-     if (tpar%outputp) tpar%tpp=min(tpar%tpp,par%t)
-     if (tpar%outputm) tpar%tpm=min(tpar%tpm,par%t)
-     if (tpar%outputc) tpar%tpc=min(tpar%tpc,par%t)
-     tpar%output = (tpar%outputg .or. tpar%outputp .or. tpar%outputm .or. tpar%outputc)
-     ierr = 1
-  endif
+    par%t=par%t+par%dt
 
-  ! wwvv: In the mpi version par%dt will be calculated different
-  ! on different processes. So, we take the minimum of all dt's
+    if(par%t>=tpar%tnext) then
+        par%dt  = par%dt-(par%t-tpar%tnext)
+        par%t   = tpar%tnext
+        it      = it+1
+    end if
+  
+    if (dtref/par%dt>50.d0) then
+        call writelog('lse','','Quit XBeach since computational time implodes')
+        call writelog('lse','','Please check the velocities at the end of the simulation')
+        call writelog('lse','','dtref',dtref)
+        call writelog('lse','','par%dt',par%dt)
+        ! Force output before exit in main time loop
+        tpar%outputg = (size(tpar%tpg) .gt. 0)
+        tpar%outputp = (size(tpar%tpp) .gt. 0)
+        tpar%outputm = (size(tpar%tpm) .gt. 0)
+        tpar%outputc = (size(tpar%tpc) .gt. 0)
+        ! set output time to current time
+        if (tpar%outputg) tpar%tpg=min(tpar%tpg,par%t)
+        if (tpar%outputp) tpar%tpp=min(tpar%tpp,par%t)
+        if (tpar%outputm) tpar%tpm=min(tpar%tpm,par%t)
+        if (tpar%outputc) tpar%tpc=min(tpar%tpc,par%t)
+        tpar%output = (tpar%outputg .or. tpar%outputp .or. tpar%outputm .or. tpar%outputc)
+        ierr = 1
+    endif
+
+    ! wwvv: In the mpi version par%dt will be calculated different
+    ! on different processes. So, we take the minimum of all dt's
 #ifdef USEMPI
-  call xmpi_allreduce(par%dt,MPI_MIN)
+    call xmpi_allreduce(par%dt,MPI_MIN)
 #endif
-
-  par%t=par%t+par%dt
-
-  if(par%t>=tpar%tnext) then
-     par%dt=par%dt-(par%t-tpar%tnext)
-     par%t=tpar%tnext
-     it=it+1
-  end if
 
 end subroutine timestep
 end module timestep_module
