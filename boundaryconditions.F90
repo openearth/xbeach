@@ -1191,9 +1191,9 @@ contains
                 !     Q  = CONST * hv^1.5 * dsv
                 
                 A = sum(hv(m1l:m2l,n1l)**1.5*dsv(m1l:m2l,n1l))
-                
+#ifdef USEMPI                
                 call xmpi_allreduce(A,MPI_SUM)
-                
+#endif                
                 CONST = qnow/max(A,par%eps)
                 vv(m1l:m2l,n1l) = CONST*hv(m1l:m2l,n1l)**0.5
                 qy(m1l:m2l,n1l) = CONST*hv(m1l:m2l,n1l)**1.5
@@ -1218,9 +1218,9 @@ contains
                 !     Q  = CONST * hu^1.5 * dnu
                 
                 A = sum(hu(m1l,n1l:n2l)**1.5*dnu(m1l,n1l:n2l))
-                
+#ifdef USEMPI                
                 call xmpi_allreduce(A,MPI_SUM)
-                
+#endif                
                 CONST = qnow/max(A,par%eps)
                 uu(m1l,n1l:n2l) = CONST*hu(m1l,n1l:n2l)**0.5
                 qx(m1l,n1l:n2l) = CONST*hu(m1l,n1l:n2l)**1.5
