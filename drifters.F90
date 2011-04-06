@@ -38,8 +38,10 @@ subroutine drifter(s,par)
             jv          = nint(s%jdrift(i)-jshift-0.d5)
             
             ! update drifter if still inside domain
-            if (    iu <= s%nx .and. ju <= s%ny .and. iv <= s%nx .and. jv <= s%ny .and. &
-                    iu >= 1    .and. ju >= 1    .and. iv >= 1    .and. jv >= 1          ) then
+            if (    iu >= 1 .and. iu <= s%nx .and.  &
+                    ju >= 1 .and. ju <= s%ny .and.  &
+                    iv >= 1 .and. iv <= s%nx .and.  &
+                    jv >= 1 .and. jv <= s%ny            ) then
                     
                 ! determine movement of drifter relative to grid size
                 di      = uu(iu,ju)/dsu(iu,ju)*par%dt

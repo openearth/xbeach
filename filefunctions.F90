@@ -194,6 +194,38 @@ contains
     endif ! xmaster
 
   end subroutine checkbcfilelength
+  
+  function get_file_length(filename) result (n)
+    
+    implicit none
+    
+    character*80, intent(in)                :: filename
+    integer                                 :: n
+    integer                                 :: io, error
+    real*8                                  :: temp
+    
+    n   = 0
+    io  = 0
+    
+    if (filename==' ') then
+        n = 0
+    else
+        call check_file_exist_generic(filename, error)
+        
+        if (error == 1) then
+            n = 0
+        else
+            open(11,file=filename)
+            do while (io==0)
+                n = n + 1
+                read(11,*,IOSTAT=io) temp
+            enddo
+            close(11)
+            n = n - 1
+        endif
+    endif
+    
+  end function
 
   subroutine check_file_exist_generic(filename,error)
     implicit none

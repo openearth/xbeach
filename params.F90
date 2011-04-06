@@ -569,15 +569,19 @@ contains
     call writelog('l','','--------------------------------')
     call writelog('l','','Discharge boundary conditions: ')
     
-    par%ndischarge  = readkey_int   ('params.txt','ndischarge',  0,         0,       100)
-    par%ntdischarge = readkey_int   ('params.txt','ntdischarge', 2,         0,       100)
+    par%ndischarge              = readkey_int   ('params.txt','ndischarge',  -1,         0,      100)
+    par%disch_loc_file          = readkey_name  ('params.txt','disch_loc_file'                      )
+    
+    par%ntdischarge             = readkey_int   ('params.txt','ntdischarge', -1,         0,      100)
+    par%disch_timeseries_file   = readkey_name  ('params.txt','disch_timeseries_file'               )
+    
+    if (par%ndischarge  < 0)      par%ndischarge  = get_file_length(par%disch_loc_file              )
+    if (par%ntdischarge < 0)      par%ntdischarge = get_file_length(par%disch_timeseries_file       )
     
     if (par%ndischarge>0) then
-        par%disch_loc_file = readkey_name('params.txt','disch_loc_file')
         call check_file_exist(par%disch_loc_file)
         
         if (par%ntdischarge>0) then
-            par%disch_timeseries_file = readkey_name('params.txt','disch_timeseries_file')
             call check_file_exist(par%disch_timeseries_file)
         endif
     endif
@@ -864,11 +868,16 @@ contains
     ! Drifters parameters
     call writelog('l','','--------------------------------')
     call writelog('l','','Drifters parameters: ')
-    par%ndrifter   = readkey_int     ('params.txt','ndrifter',    0,         0,        50)
+    
+    par%ndrifter            = readkey_int   ('params.txt','ndrifter',    -1,        0,        50)
+    par%drifterfile         = readkey_name  ('params.txt','drifterfile'                         )  
+    
+    if (par%ndrifter < 0)     par%ndrifter = get_file_length(par%drifterfile                    )
+
     if (par%ndrifter>0) then
-       par%drifterfile = readkey_name('params.txt','drifterfile')  
-       call check_file_exist(par%drifterfile)
+        call check_file_exist(par%drifterfile)
     endif
+    
     ! 
     !   
     ! Wave numerics parameters 

@@ -1138,7 +1138,7 @@ contains
     integer                                 :: m1,m2,n1,n2
     integer                                 :: m1l,m2l,n1l,n2l
     real*8                                  :: qnow,A,CONST
-    logical                                 :: isborder
+    logical                                 :: indomain,isborder
     integer                                 :: ishift,jshift
     
     include 's.ind'
@@ -1154,76 +1154,100 @@ contains
     
     ! loop through discharge location
     do i = 1,par%ndischarge
-        if (pntdisch(i).eq.0) then
+        if (s%pntdisch(i).eq.0) then
         
             ! interpolate discharge timeseries to current time
-            call linear_interp(tdisch,qdisch(:,i),par%ntdischarge,par%t,qnow,indx)
+            call linear_interp(s%tdisch,s%qdisch(:,i),par%ntdischarge,par%t,qnow,indx)
             
-            m1 = pdisch(i,1)
-            n1 = pdisch(i,2)
-            m2 = pdisch(i,3)
-            n2 = pdisch(i,4)
+            m1 = s%pdisch(i,1)
+            n1 = s%pdisch(i,2)
+            m2 = s%pdisch(i,3)
+            n2 = s%pdisch(i,4)
             
             ! convert to local coordinates
-            m1l = min(max(m1-ishift,1),nx)
-            m2l = min(max(m2-ishift,1),nx)
-            n1l = min(max(n1-jshift,1),ny)
-            n2l = min(max(n2-jshift,1),ny)
+            m1l = m1-ishift
+            m2l = m2-ishift
+            n1l = n1-jshift
+            n2l = n2-jshift
+            
+            indomain =  (   m1l > 0 .and. m1l <= s%nx .and.         &
+                            n1l > 0 .and. n1l <= s%ny       ) .or.  &
+                        (   m2l > 0 .and. m2l <= s%nx .and.         &
+                            n2l > 0 .and. n2l <= s%ny       )
+                            
+            m1l = min(max(m1l,1),s%nx)
+            m2l = min(max(m2l,1),s%nx)
+            n1l = min(max(n1l,1),s%ny)
+            n2l = min(max(n2l,1),s%ny)
+            
+            A = 0.d0
             
             ! add momentum in either u- or v-direction
             if (n1.eq.n2) then
                 
-                isborder = (n1l.eq.1 .and. xmpi_isleft) .or. (n1l.eq.ny .and. xmpi_isright)
-                
-                ! make sure discharge is an inflow at border and water levels are defined
-                if (isborder) then
-                    if (n1l.gt.1) then
-                        qnow = -1*abs(qnow)
-                        hv(m1l:m2l,n1l) = hh(m1l:m2l,n1l)
-                    elseif (n1l.lt.ny) then
-                        hv(m1l:m2l,n1l) = hh(m1l:m2l,n1l+1)
+                if (indomain) then
+                    isborder = (n1l.eq.1 .and. xmpi_isleft) .or. (n1l.eq.s%ny .and. xmpi_isright)
+                    
+                    ! make sure discharge is an inflow at border and water levels are defined
+                    if (isborder) then
+                        if (n1l.gt.1) then
+                            qnow = -1*abs(qnow)
+                            s%hv(m1l:m2l,n1l) = s%hh(m1l:m2l,n1l)
+                        elseif (n1l.lt.s%ny) then
+                            s%hv(m1l:m2l,n1l) = s%hh(m1l:m2l,n1l+1)
+                        endif
                     endif
+                    
+                    A = sum(s%hv(m1l:m2l,n1l)**1.5*s%dsv(m1l:m2l,n1l))
                 endif
+                
+#ifdef USEMPI
+                call xmpi_allreduce(A,MPI_SUM)
+#endif
                 
                 ! compute distribution of discharge over discharge cells according to:
                 !     vv = CONST * hv^0.5
                 !     qy = CONST * hv^1.5
                 !     Q  = CONST * hv^1.5 * dsv
                 
-                A = sum(hv(m1l:m2l,n1l)**1.5*dsv(m1l:m2l,n1l))
-#ifdef USEMPI                
-                call xmpi_allreduce(A,MPI_SUM)
-#endif                
-                CONST = qnow/max(A,par%eps)
-                vv(m1l:m2l,n1l) = CONST*hv(m1l:m2l,n1l)**0.5
-                qy(m1l:m2l,n1l) = CONST*hv(m1l:m2l,n1l)**1.5
+                if (indomain) then
+                    CONST = qnow/max(A,par%eps)
+                    s%vv(m1l:m2l,n1l) = CONST*s%hv(m1l:m2l,n1l)**0.5
+                    s%qy(m1l:m2l,n1l) = CONST*s%hv(m1l:m2l,n1l)**1.5
+                endif
                 
             elseif (m1.eq.m2) then
                 
-                isborder = (m1l.eq.1 .and. xmpi_istop) .or. (m1l.eq.nx .and. xmpi_isbot)
-                
-                ! make sure discharge is an inflow at border and water levels are defined
-                if (isborder) then
-                    if (m1l.gt.1) then
-                        qnow = -1*abs(qnow)
-                        hu(m1l,n1l:n2l) = hh(m1l,n1l:n2l)
-                    elseif (m1l.lt.nx) then
-                        hu(m1l,n1l:n2l) = hh(m1l+1,n1l:n2l)
+                if (indomain) then
+                    isborder = (m1l.eq.1 .and. xmpi_istop) .or. (m1l.eq.s%nx .and. xmpi_isbot)
+                    
+                    ! make sure discharge is an inflow at border and water levels are defined
+                    if (isborder) then
+                        if (m1l.gt.1) then
+                            qnow = -1*abs(qnow)
+                            s%hu(m1l,n1l:n2l) = s%hh(m1l,n1l:n2l)
+                        elseif (m1l.lt.nx) then
+                            s%hu(m1l,n1l:n2l) = s%hh(m1l+1,n1l:n2l)
+                        endif
                     endif
+                    
+                    A = sum(s%hu(m1l,n1l:n2l)**1.5*s%dnu(m1l,n1l:n2l))
                 endif
+                
+#ifdef USEMPI
+                call xmpi_allreduce(A,MPI_SUM)
+#endif
                 
                 ! compute distribution of discharge over discharge cells according to:
                 !     uu = CONST * hu^0.5
                 !     qx = CONST * hu^1.5
                 !     Q  = CONST * hu^1.5 * dnu
                 
-                A = sum(hu(m1l,n1l:n2l)**1.5*dnu(m1l,n1l:n2l))
-#ifdef USEMPI                
-                call xmpi_allreduce(A,MPI_SUM)
-#endif                
-                CONST = qnow/max(A,par%eps)
-                uu(m1l,n1l:n2l) = CONST*hu(m1l,n1l:n2l)**0.5
-                qx(m1l,n1l:n2l) = CONST*hu(m1l,n1l:n2l)**1.5
+                if (indomain) then
+                    CONST = qnow/max(A,par%eps)
+                    s%uu(m1l,n1l:n2l) = CONST*s%hu(m1l,n1l:n2l)**0.5
+                    s%qx(m1l,n1l:n2l) = CONST*s%hu(m1l,n1l:n2l)**1.5
+                endif
             endif
         endif
     enddo
