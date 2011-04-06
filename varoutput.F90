@@ -464,7 +464,8 @@ contains
                       elseif (trim(par%meanvars(i))=='urms') then       ! urms
                          write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
                       elseif (trim(par%meanvars(i))=='thetamean') then       ! thetamean
-                         write(indextomeanunit(i),rec=itm)atan2(int(meansparsglobal(i)%mean2d)/1e9-1,mod(meansparsglobal(i)%mean2d, 1.d0)*1e3-1)
+                         write(indextomeanunit(i),rec=itm)atan2(int(meansparsglobal(i)%mean2d)/1e9-1, &
+                                                                mod(meansparsglobal(i)%mean2d, 1.d0)*1e3-1)
                       else                                                    ! non-rms variables
                          write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean2d
                       endif
