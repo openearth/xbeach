@@ -166,6 +166,13 @@ PostBuild_Cmds=copy lib\win32\VS6\pg\*.dll $(OutDir)	copy lib\win32\all\hdf5\dll
 
 SOURCE=.\boundaryconditions.f90
 DEP_F90_BOUND=\
+	".\nh_pars.inc"\
+	".\s.ind"\
+	".\s.inp"\
+	".\space_ind.gen"\
+	".\space_inp.gen"\
+	
+NODEP_F90_BOUND=\
 	".\Debug\interp.mod"\
 	".\Debug\logging_module.mod"\
 	".\Debug\params.mod"\
@@ -174,11 +181,6 @@ DEP_F90_BOUND=\
 	".\Debug\wave_timestep_module.mod"\
 	".\Debug\waveparams.mod"\
 	".\Debug\xmpi_module.mod"\
-	".\nh_pars.inc"\
-	".\s.ind"\
-	".\s.inp"\
-	".\space_ind.gen"\
-	".\space_inp.gen"\
 	
 # End Source File
 # Begin Source File
@@ -187,8 +189,23 @@ SOURCE=.\constants.f90
 # End Source File
 # Begin Source File
 
+SOURCE=.\drifters.F90
+DEP_F90_DRIFT=\
+	".\Debug\mnemmodule.mod"\
+	".\Debug\params.mod"\
+	".\Debug\readkey_module.mod"\
+	".\Debug\spaceparams.mod"\
+	".\Debug\xmpi_module.mod"\
+	".\s.ind"\
+	".\s.inp"\
+	".\space_ind.gen"\
+	".\space_inp.gen"\
+	
+# End Source File
+# Begin Source File
+
 SOURCE=.\filefunctions.F90
-DEP_F90_FILEF=\
+NODEP_F90_FILEF=\
 	".\Debug\logging_module.mod"\
 	".\Debug\xmpi_module.mod"\
 	
@@ -197,10 +214,12 @@ DEP_F90_FILEF=\
 
 SOURCE=.\flow_secondorder.F90
 DEP_F90_FLOW_=\
+	".\nh_pars.inc"\
+	
+NODEP_F90_FLOW_=\
 	".\Debug\params.mod"\
 	".\Debug\spaceparams.mod"\
 	".\Debug\xmpi_module.mod"\
-	".\nh_pars.inc"\
 	
 # End Source File
 # Begin Source File
@@ -226,17 +245,15 @@ SOURCE=.\general_fileio.F90
 # Begin Source File
 
 SOURCE=.\general_mpi.F90
-DEP_F90_GENER=\
-	".\Debug\xmpi_module.mod"\
-	
 NODEP_F90_GENER=\
 	".\Debug\mpi.mod"\
+	".\Debug\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\groundwater.F90
-DEP_F90_GROUN=\
+NODEP_F90_GROUN=\
 	".\Debug\params.mod"\
 	".\Debug\readkey_module.mod"\
 	".\Debug\spaceparams.mod"\
@@ -268,14 +285,14 @@ SOURCE=.\interp.f90
 # Begin Source File
 
 SOURCE=.\logging.F90
-DEP_F90_LOGGI=\
+NODEP_F90_LOGGI=\
 	".\Debug\xmpi_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\math_tools.f90
-DEP_F90_MATH_=\
+NODEP_F90_MATH_=\
 	".\Debug\xmpi_module.mod"\
 	
 # End Source File
@@ -312,47 +329,46 @@ NODEP_F90_MORPH=\
 
 SOURCE=.\nonh.F90
 DEP_F90_NONH_=\
+	".\nh_pars.inc"\
+	
+NODEP_F90_NONH_=\
 	".\Debug\flow_secondorder_module.mod"\
 	".\Debug\params.mod"\
 	".\Debug\solver_module.mod"\
 	".\Debug\spaceparams.mod"\
 	".\Debug\wave_timestep_module.mod"\
-	".\nh_pars.inc"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\output.F90
-DEP_F90_OUTPU=\
+NODEP_F90_OUTPU=\
+	".\Debug\config.h"\
 	".\Debug\fortoutput_module.mod"\
 	".\Debug\logging_module.mod"\
+	".\Debug\means_module.mod"\
+	".\Debug\ncoutput_module.mod"\
 	".\Debug\params.mod"\
 	".\Debug\spaceparams.mod"\
 	".\Debug\timestep_module.mod"\
-	
-NODEP_F90_OUTPU=\
-	".\Debug\config.h"\
-	".\Debug\ncoutput_module.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\params.f90
-DEP_F90_PARAM=\
+NODEP_F90_PARAM=\
 	".\Debug\filefunctions.mod"\
 	".\Debug\logging_module.mod"\
 	".\Debug\mnemmodule.mod"\
+	".\Debug\mpi.mod"\
 	".\Debug\readkey_module.mod"\
 	".\Debug\xmpi_module.mod"\
-	
-NODEP_F90_PARAM=\
-	".\Debug\mpi.mod"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=.\postprocess.F90
-DEP_F90_POSTP=\
+NODEP_F90_POSTP=\
 	".\Debug\logging_module.mod"\
 	".\Debug\mnemmodule.mod"\
 	".\Debug\params.mod"\
@@ -362,7 +378,7 @@ DEP_F90_POSTP=\
 # Begin Source File
 
 SOURCE=.\readkey.f90
-DEP_F90_READK=\
+NODEP_F90_READK=\
 	".\Debug\logging_module.mod"\
 	".\Debug\xmpi_module.mod"\
 	
@@ -400,7 +416,7 @@ DEP_F90_READW=\
 # Begin Source File
 
 SOURCE=.\roelvink.f90
-DEP_F90_ROELV=\
+NODEP_F90_ROELV=\
 	".\Debug\params.mod"\
 	".\Debug\spaceparams.mod"\
 	
@@ -409,10 +425,12 @@ DEP_F90_ROELV=\
 
 SOURCE=.\solver.F90
 DEP_F90_SOLVE=\
+	".\nh_pars.inc"\
+	
+NODEP_F90_SOLVE=\
 	".\Debug\logging_module.mod"\
 	".\Debug\params.mod"\
 	".\Debug\xmpi_module.mod"\
-	".\nh_pars.inc"\
 	
 # End Source File
 # Begin Source File
@@ -437,7 +455,7 @@ DEP_F90_SPACE=\
 # Begin Source File
 
 SOURCE=.\timestep.f90
-DEP_F90_TIMES=\
+NODEP_F90_TIMES=\
 	".\Debug\logging_module.mod"\
 	".\Debug\params.mod"\
 	".\Debug\readkey_module.mod"\
@@ -448,7 +466,7 @@ DEP_F90_TIMES=\
 # Begin Source File
 
 SOURCE=.\varianceupdate.F90
-DEP_F90_VARIA=\
+NODEP_F90_VARIA=\
 	".\Debug\logging_module.mod"\
 	".\Debug\mnemmodule.mod"\
 	".\Debug\params.mod"\
@@ -461,7 +479,7 @@ DEP_F90_VARIA=\
 # Begin Source File
 
 SOURCE=.\varoutput.f90
-DEP_F90_VAROU=\
+NODEP_F90_VAROU=\
 	".\Debug\filefunctions.mod"\
 	".\Debug\general_mpi_module.mod"\
 	".\Debug\logging_module.mod"\
@@ -511,7 +529,7 @@ DEP_F90_WAVE_T=\
 # Begin Source File
 
 SOURCE=.\waveparams.f90
-DEP_F90_WAVEP=\
+NODEP_F90_WAVEP=\
 	".\Debug\interp.mod"\
 	".\Debug\logging_module.mod"\
 	".\Debug\math_tools.mod"\
@@ -525,7 +543,12 @@ DEP_F90_WAVEP=\
 
 SOURCE=.\xbeach.f90
 DEP_F90_XBEAC=\
+	".\version.def"\
+	
+NODEP_F90_XBEAC=\
 	".\Debug\boundaryconditions.mod"\
+	".\Debug\config.h"\
+	".\Debug\drifter_module.mod"\
 	".\Debug\flow_timestep_module.mod"\
 	".\Debug\groundwaterflow.mod"\
 	".\Debug\initialize.mod"\
@@ -539,14 +562,10 @@ DEP_F90_XBEAC=\
 	".\Debug\readwind_module.mod"\
 	".\Debug\spaceparams.mod"\
 	".\Debug\timestep_module.mod"\
+	".\Debug\version.dat"\
 	".\Debug\wave_stationary_module.mod"\
 	".\Debug\wave_timestep_module.mod"\
 	".\Debug\xmpi_module.mod"\
-	".\version.dat"\
-	".\version.def"\
-	
-NODEP_F90_XBEAC=\
-	".\Debug\config.h"\
 	
 # End Source File
 # Begin Source File
