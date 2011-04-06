@@ -299,6 +299,8 @@ contains
        call roelvink(par,s,km)
     else if(trim(par%break) == 'baldock')then
        call baldock(par,s,km)
+    else if(trim(par%break) == 'janssen')then
+        call janssen_battjes(par,s,km)
     else if (trim(par%break) == 'roelvink_daly') then
        cgxm = c*dcos(tm) 
        cgym = c*dsin(tm)

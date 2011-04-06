@@ -343,14 +343,16 @@ contains
 
              !
              ! Total dissipation
-             if(trim(par%break)=='roelvink1' .or. trim(par%break)=='roelvink2') THEN
+             if(trim(par%break)=='roelvink1' .or. trim(par%break)=='roelvink2') then
                 call roelvink1(E(i,:),hh(i,:), &
                      par%Trep,par%alpha,par%gamma,par%n, &
                      par%rho,par%g,par%delta,D(i,:),ny+1,par%break)
-             else if(trim(par%break)=='baldock') THEN
+             else if(trim(par%break)=='baldock') then
                 call baldock1(E(i,:),hh(i,:),k(i,:), &
                      par%Trep,par%alpha,par%gamma, &
                      par%rho,par%g,par%delta,D(i,:),ny+1)
+             elseif (trim(par%break)=='janssen') then
+                call janssen_battjes(par,s,km(i,:),i)
              end if
              ! Dissipation by bed friction
              uorb(i,:)=par%px*H(i,:)/par%Trep/sinh(min(max(k(i,:),0.01d0)*max(hh(i,:),par%delta*H(i,:)),10.0d0))

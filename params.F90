@@ -591,10 +591,10 @@ contains
     ! Wave breaking parameters                                                                                                      
     call writelog('l','','--------------------------------')
     call writelog('l','','Wave breaking parameters: ')
-    allocate(allowednames(4),oldnames(4))
-    allowednames=(/'roelvink1    ','baldock      ','roelvink2    ','roelvink_daly'/)
-    oldnames    =(/'1','2','3','4'/)
-    par%break   = readkey_str('params.txt','break','roelvink2',4,4,allowednames,oldnames)
+    allocate(allowednames(5),oldnames(5))
+    allowednames=(/'roelvink1    ','baldock      ','roelvink2    ','roelvink_daly','janssen      '/)
+    oldnames    =(/'1','2','3','4','5'/)
+    par%break   = readkey_str('params.txt','break','roelvink2',5,5,allowednames,oldnames)
     deallocate(allowednames,oldnames)
     par%gamma    = readkey_dbl ('params.txt','gamma',   0.55d0,     0.4d0,     0.9d0)   !changed 28/11
     if (trim(par%break)=='roelvink_daly') then
@@ -988,15 +988,15 @@ contains
     !
     ! Only allow Baldock in stationary mode and Roelvink in non-stationary
     if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
-       if (trim(par%break) .ne. 'baldock') then
-          call writelog('ls','','Warning: Roelvink formulations not allowed in stationary, use Baldock')  
-          call writelog('ls','','         formulation.')
-       endif
+        if (trim(par%break) .ne. 'baldock') then
+            call writelog('ls','','Warning: Roelvink formulations not allowed in stationary, use Baldock')
+            call writelog('ls','','         formulation.')
+        endif
     else
-       if (trim(par%break)=='baldock') then 
-          call writelog('ls','','Warning: Baldock formulation not allowed in non-stationary, use a Roelvink')
-          call writelog('ls','','         formulation.')
-       endif
+        if (trim(par%break)=='baldock') then 
+            call writelog('ls','','Warning: Baldock formulation not allowed in non-stationary, use a Roelvink')
+            call writelog('ls','','         formulation.')
+        endif
     endif
     !
     !
