@@ -1068,7 +1068,6 @@ contains
                 mne = minloc(sqrt((s%xz-xde(i))**2+(s%yz-yde(i))**2))
                 
                 s%pdisch(i,:) = (/mnb(1),mnb(2),0,0/)
-                
             elseif (dxd.gt.dyd) then
             
                 ! discharge through v-points
@@ -1101,6 +1100,11 @@ contains
                 s%pdisch(i,:) = (/m1,n1,m1,n2/)
             endif
         enddo
+        
+        ! incorporate morfac
+        if (par%morfacopt == 1) then
+            s%tdisch = s%tdisch/max(par%morfac,1.d0)
+        endif
     endif
   end subroutine discharge_init
 
@@ -1155,6 +1159,12 @@ contains
                 s%jdrift(i) = mn(2) + dn/dnv(mn(1),mn(2))
             enddo
             close(10)
+            
+            ! incorporate morfac
+            if (par%morfacopt == 1) then
+                s%tdriftb   = s%tdriftb/max(par%morfac,1.d0)
+                s%tdrifte   = s%tdrifte/max(par%morfac,1.d0)
+            endif
         endif
     endif
   end subroutine drifter_init
