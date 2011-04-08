@@ -570,9 +570,9 @@ contains
             if (abs(mod(par%t,par%tintp))<1.d-6) then
                 itd = itd+1
                 do i=1,par%ndrifter
-                    if (    par%t>s%tdriftb(i) .and. par%t<s%tdrifte(i) .and.   &
-                            s%idrift(i)>1      .and. s%idrift(i)<=s%nx  .and.   &
-                            s%jdrift(i)>1      .and. s%jdrift(i)<=s%ny              ) then
+                    if (    par%t>=s%tdriftb(i) .and. par%t<=s%tdrifte(i) .and. &
+                            s%idrift(i)>1       .and. s%idrift(i)<=s%nx   .and. &
+                            s%jdrift(i)>1       .and. s%jdrift(i)<=s%ny             ) then
                 
                         iz = int(s%idrift(i))
                         jz = int(s%jdrift(i))

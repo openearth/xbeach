@@ -1,12 +1,4 @@
 module roelvink_module
-
-    interface janssen_battjes
-        module procedure janssen_battjes_1D
-        module procedure janssen_battjes_2D
-    end interface janssen_battjes
-    
-contains
-subroutine roelvink1(E,hh,Trep,alpha,gamma,n,rho,g,delta,D,ntot,break)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
 ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
@@ -33,196 +25,150 @@ subroutine roelvink1(E,hh,Trep,alpha,gamma,n,rho,g,delta,D,ntot,break)
 ! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307     !
 ! USA                                                                     !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-IMPLICIT NONE
 
-integer                         :: ntot
-character(24)                   :: break
-real*8,dimension(ntot)          :: E,hh,D
-real*8                          :: fac,rho,g,delta,alpha,gamma,n,Trep
+    interface roelvink
+        module procedure roelvink_1D
+        module procedure roelvink_2D
+    end interface roelvink
+    
+    interface baldock
+        module procedure baldock_1D
+        module procedure baldock_2D
+    end interface baldock
+    
+    interface janssen_battjes
+        module procedure janssen_battjes_1D
+        module procedure janssen_battjes_2D
+    end interface janssen_battjes
+    
+contains
 
+subroutine roelvink_1D(par,s,km,i)
 
-real*8,dimension(:),allocatable,save :: H,Qb,hroelvink
+    use params
+    use spaceparams
 
-if (.not. allocated(H)) then
-   allocate(H       (ntot))
-   allocate(Qb      (ntot))
-   allocate(hroelvink(ntot))
-endif
+    implicit none
 
-! Dissipation acc. to Roelvink (1993)
+    type(spacepars)                                 :: s
+    type(parameters)                                :: par
+    
+    integer                                         :: i,j
+    
+    real*8, dimension(s%ny+1)                       :: km,kmr,hr,H,arg
 
-fac=8.0d0/rho/g
-H=sqrt(fac*E)
-hroelvink=hh+delta*H  !add breakerdelay here, to correct for waterdepth, and cancel subroutine breakerdelay
-					  !danojaaprobertap 10/2, also in baldock, roelvink
+    ! Dissipation according to Roelvink (1993)
+    
+    H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
+    hr  = s%hh(i,:) + par%delta*s%H(i,:)
 
-Qb=min(1-exp(-(H/gamma/hroelvink)**n),1.0d0) !gebruik hier Hb = (0.88d0/k)*tanh(gamma*kh/0.88d0)
+    kmr = min(max(km, 0.01d0), 100.d0)
 
-! D=Qb*2.*alpha/Trep*E
+    if (trim(par%break) /= 'roelvink_daly') then
+        if (par%wci==1) then
+            arg = -( H / (par%gamma*tanh(kmr*hr)/kmr))**par%n
+        else
+            arg = -( H / (par%gamma*hr              ))**par%n
+        endif
+        
+        s%Qb(i,:) = min(1.d0 - exp(max(arg,-100.d0)), 1.d0)
+    else
+        do j=1,s%ny+1
+            if (H(j) > par%gamma *hr(j)) s%Qb(i,j) = 1.d0
+            if (H(j) < par%gamma2*hr(j)) s%Qb(i,j) = 0.d0
+        enddo
+        
+        s%Qb(i,:) = max(s%Qb(i,:), 0.d0)
+    endif
 
-! cjaap : two options:
-if (trim(break)=='roelvink1') then
-   D=Qb*2*alpha/Trep*E
-elseif (trim(break)=='roelvink2') then
-   ! D=Qb*2.*alpha/Trep*E*H/hroelvink; !breaker delay depth for dissipation in bore and fraction of breaking waves
-   D=Qb*2*alpha/Trep*E*H/hh            !breaker delay depth for fraction breaking waves and actual water depth for disipation in bore
-end if
+    s%D(i,:) = s%Qb(i,:) * 2.d0 * par%alpha * s%E(i,:)
+    
+    if (trim(par%break) == 'roelvink1') then
+        if (par%wci==1) then
+            s%D(i,:) = s%D(i,:) * s%sigm(i,:)/2.d0/par%px;
+        else
+            s%D(i,:) = s%D(i,:) / par%Trep
+        endif
+    elseif (trim(par%break)=='roelvink2' .or. trim(par%break)=='roelvink_daly') then
+        s%D(i,:)     = s%D(i,:) / par%Trep*H/s%hh(i,:)
+    end if
 
+end subroutine roelvink_1D
 
-end subroutine roelvink1
+subroutine roelvink_2D(par,s,km)
 
-subroutine roelvink(par,s,km)
-use params
-use spaceparams
+    use params
+    use spaceparams
 
-IMPLICIT NONE
+    implicit none
 
-type(spacepars)                 :: s
-type(parameters)                :: par
+    type(spacepars)                                 :: s
+    type(parameters)                                :: par
+    
+    integer                                         :: i
+    
+    real*8, dimension(s%nx+1,s%ny+1)                :: km
+    
+    do i = 1,s%nx+1
+        call roelvink_1D(par,s,km(i,:),i)
+    enddo
+    
+end subroutine roelvink_2D
 
-real*8                          :: fac
-integer                         :: i,j
-real*8,dimension(s%nx+1,s%ny+1) :: km
-real*8,dimension(:,:),allocatable,save :: H,hroelvink,arg,kmr
+subroutine baldock_1D(par,s,km,i)
 
-if (.not. allocated(H)) then
-   allocate(H       (s%nx+1,s%ny+1))
-   allocate(arg     (s%nx+1,s%ny+1))
-   allocate(kmr     (s%nx+1,s%ny+1))
-   allocate(hroelvink(s%nx+1,s%ny+1))
-endif
+    use params
+    use spaceparams
 
-! Dissipation acc. to Roelvink (1993)
+    implicit none
 
-fac=8.0d0/par%rho/par%g
-H=sqrt(fac*s%E)
+    type(spacepars)                 :: s
+    type(parameters)                :: par
+    
+    integer                                         :: i
+    
+    real*8, dimension(s%ny+1)                       :: km,kh,f,k,H,Hb,R
 
-hroelvink=s%hh+par%delta*s%H
+    ! Dissipation according to Baldock et al. (1998)
+    
+    if (par%wci==1) then
+        f = s%sigm(i,:) / 2.d0 / par%px
+        k = km
+    else
+        f = 1.d0 / par%Trep
+        k = s%k(i,:)
+    endif
+    
+    kh  = s%k(i,:) * (s%hh(i,:) + par%delta*s%H(i,:))
+    
+    H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
+    Hb  = tanh(par%gamma*kh/0.88d0)*(0.88d0/k)
+    R   = Hb/max(H,0.00001d0)
+    
+    s%Qb(i,:)   = exp(-R**2)
+    s%D (i,:)   = 0.25d0 * par%alpha * f * par%rho * par%g * (Hb**2+H**2) * s%Qb(i,:)
 
-kmr=km
-where(km<0.01d0)
-   kmr=0.01d0
-elsewhere(km>100.d0)
-   kmr=100.d0
-endwhere
+end subroutine baldock_1D
 
-if (trim(par%break)/='roelvink_daly') then
-   if (par%wci==1) then
-      arg = -(H/(par%gamma*tanh(min(max(km,0.01d0),100.d0)*hroelvink)/min(max(km,0.01d0),100.d0)))**par%n
-      s%Qb = min(1.d0-exp(max(arg,-100.d0)),1.d0)
-   else
-      s%Qb=min(1-exp(-(H/par%gamma/hroelvink)**par%n),1.0d0)
-   endif
-else
-   do j=1,s%ny+1
-      do i=1,s%nx+1
-         if (H(i,j)>par%gamma *hroelvink(i,j)) s%Qb(i,j)=1.d0
-         if (H(i,j)<par%gamma2*hroelvink(i,j)) s%Qb(i,j)=0.d0
-      enddo
-   enddo
-   s%Qb=max(s%Qb,0.d0)
-   
-endif
+subroutine baldock_2D(par,s,km)
 
-! cjaap : two options:
-if (trim(par%break)=='roelvink1') then
-   if (par%wci==1) then
-      s%D=s%Qb*2.d0*par%alpha*s%sigm*s%E/2.d0/par%px;
-!     s%D=Qb*par%alpha*km*s%E*H/par%px*sqrt(par%g*km/tanh(max(km,0.001)*hroelvink));  ! according to CK2002
-   else
-      s%D=s%Qb*2*par%alpha/par%Trep*s%E
-   endif
-elseif (trim(par%break)=='roelvink2' .or. trim(par%break)=='roelvink_daly') then
-   ! s%D=s%Qb*2.*par%alpha/par%Trep*s%E*H/hroelvink; !breaker delay depth for dissipation in bore and fraction of breaking waves
-   s%D=s%Qb*2*par%alpha/par%Trep*s%E*H/s%hh        !breaker delay depth for fraction breaking waves and actual water depth for disipation in bore
-end if
+    use params
+    use spaceparams
 
-end subroutine roelvink
+    implicit none
 
-subroutine baldock1(E,hh,k,Trep,alpha,gamma,rho,g,delta,D,ntot)
-  IMPLICIT NONE
-
-  integer                         :: ntot
-  real*8,dimension(ntot)          :: E,hh,D,k,arg
-  real*8                          :: fac,rho,g,delta,alpha,gamma,Trep
-
-
-  real*8,dimension(:),allocatable,save :: H,Hb,Qb,kh,tkh,hbaldock
-  
-  if (.not. allocated(H)) then
-     allocate(H       (ntot))
-     allocate(Hb      (ntot))
-     allocate(Qb      (ntot))
-     allocate(kh      (ntot))
-     allocate(tkh     (ntot))
-     allocate(hbaldock(ntot))
-  endif
-
-  ! Dissipation acc. to Baldock et al. 1998
-
-  fac=8.0d0/rho/g
-  H=sqrt(fac*E)
-
-  hbaldock=hh+delta*H
-
-  kh=k*hbaldock
-  ! tkh=tanh(kh)   ! tkh not used
-
-  ! Wave dissipation acc. to Baldock et al. 1998
-  Hb = (0.88d0/k)*tanh(gamma*kh/0.88d0)
-  arg = -(Hb/max(H,0.00001d0))**2
-  Qb = exp(max(arg,-100.d0))
-  D = 0.25d0*alpha*Qb*rho*(1.0d0/Trep)*g*(Hb**2+H**2)
-
-end subroutine baldock1
-
-subroutine baldock(par,s,km)
-  use params
-  use spaceparams
-
-  IMPLICIT NONE
-
-  type(spacepars)                 :: s
-  type(parameters)                :: par
-
-  real*8                          :: fac
-  integer                         :: alpha
-  real*8,dimension(s%nx+1,s%ny+1) :: km
-
-  real*8,dimension(:,:),allocatable,save :: H,Hb,kh,hbaldock,arg
-  if (.not. allocated(H)) then
-     allocate(H       (s%nx+1,s%ny+1))
-     allocate(Hb      (s%nx+1,s%ny+1))
-     allocate(kh      (s%nx+1,s%ny+1))
-     allocate(arg     (s%nx+1,s%ny+1))
-     allocate(hbaldock(s%nx+1,s%ny+1))
-  endif
-
-  ! Dissipation acc. to Baldock et al. 1998
-
-  fac=8.d0/par%rho/par%g
-  alpha=1
-  hbaldock=s%hh+par%delta*s%H
-
-  H=sqrt(fac*s%E)
-
-  kh=s%k*hbaldock
-  !tkh=tanh(kh)     ! tkh not used
-
-  ! Wave dissipation acc. to Baldock et al. 1998
-  !arg = -(Hb/max(H,0.00001d0))**2
-  if (par%wci==1) then
-     Hb = (0.88d0/km)*tanh(par%gamma*kh/0.88d0)
-     !s%Qb = exp(max(arg,-100.d0))                                          ! bas: seems not right since arg is computed before Hb
-     s%Qb = exp(-(Hb/max(H,0.00001d0))**2)
-     s%D = 0.25d0*alpha*s%Qb*par%rho*s%sigm*par%g*(Hb**2+H**2)/2.d0/par%px
-  else
-     Hb = (0.88d0/s%k)*tanh(par%gamma*kh/0.88d0)
-     s%Qb = exp(-(Hb/max(H,0.00001d0))**2)
-     s%D = 0.25d0*alpha*s%Qb*par%rho*(1.d0/par%Trep)*par%g*(Hb**2+H**2)
-  endif
-
-end subroutine baldock
+    type(spacepars)                                 :: s
+    type(parameters)                                :: par
+    
+    integer                                         :: i
+    
+    real*8, dimension(s%nx+1,s%ny+1)                :: km
+    
+    do i = 1,s%nx+1
+        call baldock_1D(par,s,km(i,:),i)
+    enddo
+    
+end subroutine baldock_2D
 
 subroutine janssen_battjes_1D(par,s,km,i)
     
@@ -239,7 +185,7 @@ subroutine janssen_battjes_1D(par,s,km,i)
     
     real*8, dimension(s%ny+1)                       :: km,kh,f,k,H,Hb,R
 
-    ! Dissipation according to Janssen and Battjes 2007
+    ! Dissipation according to Janssen and Battjes (2007)
     
     B   = par%alpha
     

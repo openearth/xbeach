@@ -344,13 +344,9 @@ contains
              !
              ! Total dissipation
              if(trim(par%break)=='roelvink1' .or. trim(par%break)=='roelvink2') then
-                call roelvink1(E(i,:),hh(i,:), &
-                     par%Trep,par%alpha,par%gamma,par%n, &
-                     par%rho,par%g,par%delta,D(i,:),ny+1,par%break)
+                call roelvink       (par,s,km(i,:),i)
              else if(trim(par%break)=='baldock') then
-                call baldock1(E(i,:),hh(i,:),k(i,:), &
-                     par%Trep,par%alpha,par%gamma, &
-                     par%rho,par%g,par%delta,D(i,:),ny+1)
+                call baldock        (par,s,km(i,:),i)
              elseif (trim(par%break)=='janssen') then
                 call janssen_battjes(par,s,km(i,:),i)
              end if

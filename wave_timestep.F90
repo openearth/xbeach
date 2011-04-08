@@ -296,22 +296,22 @@ contains
 
     ! Total dissipation
     if(trim(par%break) == 'roelvink1' .or. trim(par%break) == 'roelvink2')then
-       call roelvink(par,s,km)
+        call roelvink(par,s,km)
     else if(trim(par%break) == 'baldock')then
-       call baldock(par,s,km)
+        call baldock(par,s,km)
     else if(trim(par%break) == 'janssen')then
         call janssen_battjes(par,s,km)
     else if (trim(par%break) == 'roelvink_daly') then
-       cgxm = c*dcos(tm) 
-       cgym = c*dsin(tm)
-       call advecqx(cgxm,Qb,xwadvec,nx,ny,dsu)
-       if (ny>0) then
-         call advecqy(cgym,Qb,ywadvec,nx,ny,dnv)
-         Qb=Qb-par%dt*(xwadvec+ywadvec)
-       else
-         Qb=Qb-par%dt*xwadvec
-       endif
-       call roelvink(par,s,km)        
+        cgxm = c*dcos(tm) 
+        cgym = c*dsin(tm)
+        call advecqx(cgxm,Qb,xwadvec,nx,ny,dsu)
+        if (ny>0) then
+            call advecqy(cgym,Qb,ywadvec,nx,ny,dnv)
+            Qb  = Qb-par%dt*(xwadvec+ywadvec)
+        else
+            Qb  = Qb-par%dt*xwadvec
+        endif
+        call roelvink(par,s,km)        
     endif
     ! Dissipation by bed friction
     uorb=par%px*H/par%Trep/sinh(min(max(k,0.01d0)*max(hh,par%delta*H),10.0d0))

@@ -1003,12 +1003,12 @@ contains
     include 's.ind'
     include 's.inp'
     
-    io              = 0
+    io          = 0
 
-    allocate(xdb    (par%ndischarge)      )
-    allocate(ydb    (par%ndischarge)      )
-    allocate(xde    (par%ndischarge)      )
-    allocate(yde    (par%ndischarge)      )
+    allocate(xdb            (par%ndischarge)      )
+    allocate(ydb            (par%ndischarge)      )
+    allocate(xde            (par%ndischarge)      )
+    allocate(yde            (par%ndischarge)      )
     
     allocate(s%pntdisch     (1:par%ndischarge)                      )
     allocate(s%pdisch       (1:par%ndischarge   , 1:4)              )
@@ -1137,10 +1137,10 @@ contains
     allocate(s%jdrift   (par%ndrifter))
     allocate(s%tdriftb  (par%ndrifter))
     allocate(s%tdrifte  (par%ndrifter))
-    if (par%ndrifter>0) then
-   
-        if (xmaster) then
-            
+    
+    if (xmaster) then
+    
+        if (par%ndrifter>0) then
         
             ! read drifter file
             drifterfile = readkey_name('params.txt','drifterfile',bcast=.false.)
@@ -1165,6 +1165,7 @@ contains
                 s%tdriftb   = s%tdriftb/max(par%morfac,1.d0)
                 s%tdrifte   = s%tdrifte/max(par%morfac,1.d0)
             endif
+            
         endif
     endif
   end subroutine drifter_init
