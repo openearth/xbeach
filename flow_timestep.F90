@@ -743,7 +743,8 @@ contains
     if (ny>0) then
       ! RJ: Neumann water levels in case of right = 1 or right = 0
       do i=1,nx+1
-         dzsdnavg=(zs0(i,ny+1)-zs0(i,1))/ndist(i,ny+1)
+         ! Jaap multiply with wetz(i,ny+1)*wetz(i,1) here to prevent prsssure grdaient over land
+         dzsdnavg=wetz(i,ny+1)*wetz(i,1)*(zs0(i,ny+1)-zs0(i,1))/ndist(i,ny+1)
          ! Lateral boundary at y=0
          if (xmpi_isleft) then
            zs(i,1)=max(zs(i,2) - dzsdnavg*dnv(i,1),zb(i,1))
