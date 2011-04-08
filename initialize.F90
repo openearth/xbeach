@@ -1133,14 +1133,14 @@ contains
     include 's.ind'
     include 's.inp'
     
+    allocate(s%idrift   (par%ndrifter))
+    allocate(s%jdrift   (par%ndrifter))
+    allocate(s%tdriftb  (par%ndrifter))
+    allocate(s%tdrifte  (par%ndrifter))
     if (par%ndrifter>0) then
    
         if (xmaster) then
             
-            allocate(s%idrift   (par%ndrifter))
-            allocate(s%jdrift   (par%ndrifter))
-            allocate(s%tdriftb  (par%ndrifter))
-            allocate(s%tdrifte  (par%ndrifter))
         
             ! read drifter file
             drifterfile = readkey_name('params.txt','drifterfile',bcast=.false.)
