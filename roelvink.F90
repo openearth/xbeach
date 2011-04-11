@@ -174,6 +174,7 @@ subroutine janssen_battjes_1D(par,s,km,i)
     
     use params
     use spaceparams
+    use math_tools, only: xerf
 
     implicit none
 
@@ -203,7 +204,7 @@ subroutine janssen_battjes_1D(par,s,km,i)
     Hb  = tanh(par%gamma*kh/0.88d0)*(0.88d0/k)
     R   = Hb/max(H,0.00001d0)
     
-    s%Qb(i,:)   = 1 + 4/(3*sqrt(par%px)) * (R**3 + 3/2*R) * exp(-R**2) - derf(R)
+    s%Qb(i,:)   = 1 + 4/(3*sqrt(par%px)) * (R**3 + 3/2*R) * exp(-R**2) - xerf(R)
     s%D (i,:)   = 3*sqrt(par%px)/16      * B * f * par%rho * par%g * H**3/s%hh(i,:) * s%Qb(i,:)
     
 end subroutine janssen_battjes_1D
