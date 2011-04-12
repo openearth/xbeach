@@ -778,7 +778,7 @@ contains
        par%turb = readkey_str('params.txt','turb','bore_averaged',3,3,allowednames,oldnames)
        deallocate(allowednames,oldnames)
        par%Tbfac    = readkey_dbl ('params.txt','Tbfac  ',1.0d0,     0.00d0,   1.0d0) 
-       par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.2d0,     0.01d0,   10.d0) 
+       par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.5d0,     0.01d0,   10.d0) 
        par%lwt      = readkey_int ('params.txt','lwt    ',0,           0,            1)
        par%betad    = readkey_dbl ('params.txt','betad  ',1.0d0,     0.00d0,   10.0d0)
        par%sus      = readkey_int ('params.txt','sus    ',1,           0,            1)
