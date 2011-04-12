@@ -97,7 +97,7 @@ copy ..\lib\win32\all\zlib\dll\*.dll $(OutDir)
 copy ..\lib\win32\vs\pg\*.dll $(OutDir)"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="netcdf_MPI_Debug|Win32">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="C:\Program Files\MPICH2\include" PreprocessorDefinitions="USEMPI;USENETCDF;HAVE_IFPORT;DLL_NETCDF;HAVE_MPI_WTIME" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ExternalNameInterpretation="extNameLowerCase" CallingConvention="callConventionCVF" StringLengthArgPassing="strLenArgsAfterAll" ExternalNameUnderscore="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="C:\Program Files\MPICH2\include" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ExternalNameInterpretation="extNameLowerCase" CallingConvention="callConventionCVF" StringLengthArgPassing="strLenArgsAfterAll" ExternalNameUnderscore="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" AdditionalLibraryDirectories="C:\Program Files\MPICH2\lib;..\lib\win32\vs\pg" GenerateDebugInformation="true" SubSystem="subSystemConsole" AdditionalDependencies="mpi.lib fmpich2.lib netcdf.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -116,16 +116,19 @@ copy ..\lib\win32\vs\pg\*.dll $(OutDir)"/>
 		<Filter Name="netcdff90">
 		<File RelativePath="..\ncoutput.F90">
 			<FileConfiguration Name="Debug|Win32" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="netcdf_MPI_Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Release|Win32" ExcludedFromBuild="true"/></File>
 		<File RelativePath="..\lib\win32\netcdff90\netcdf.f90">
 			<FileConfiguration Name="Debug|Win32" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="netcdf_MPI_Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Release|Win32" ExcludedFromBuild="true"/></File>
 		<File RelativePath="..\lib\win32\netcdff90\typeSizes.f90">
 			<FileConfiguration Name="Debug|Win32" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="netcdf_MPI_Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Release|Win32" ExcludedFromBuild="true"/></File></Filter>
@@ -159,6 +162,8 @@ copy ..\lib\win32\vs\pg\*.dll $(OutDir)"/>
 		<File RelativePath="..\timestep.F90"/>
 		<File RelativePath="..\varianceupdate.F90"/>
 		<File RelativePath="..\varoutput.F90"/>
+		<File RelativePath="..\wave_functions.F90"/>
+		<File RelativePath="..\wave_instationary.F90"/>
 		<File RelativePath="..\wave_stationary.F90"/>
 		<File RelativePath="..\wave_timestep.F90"/>
 		<File RelativePath="..\waveparams.F90"/>

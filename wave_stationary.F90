@@ -4,7 +4,7 @@ contains
     use params
     use spaceparams
     use roelvink_module
-    use wave_timestep_module
+    use wave_functions_module
     use xmpi_module
     use logging_module
 

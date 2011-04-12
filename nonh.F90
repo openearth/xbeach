@@ -119,7 +119,7 @@ contains
            
     use spaceparams
     use params    
-    use wave_timestep_module, only: dispersion
+    use wave_functions_module, only: dispersion
 
 !--------------------------     ARGUMENTS          ----------------------------
 !

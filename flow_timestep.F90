@@ -1,6 +1,6 @@
 module flow_timestep_module
 contains
-  subroutine flow_timestep(s,par)
+  subroutine flow(s,par)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
     ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
@@ -1005,7 +1005,7 @@ contains
     maxzs=max(zs,maxzs)
     minzs=min(zs,minzs)
 
-  end subroutine flow_timestep
+  end subroutine flow
 
 
 subroutine visc_smagorinsky(s,par)

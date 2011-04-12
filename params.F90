@@ -95,6 +95,7 @@ type parameters
    real*8        :: trepfac                    = -123    !  [-] (advanced) Compute mean wave period over energy band: par%trepfac*maxval(Sf) for instat 4,5,6; converges to Tm01 for trepfac = 0.0 and
    real*8        :: sprdthr                    = -123    !  [-] (advanced) Threshold ratio to maxval of S above which spec dens are read in (default 0.08*maxval)
    integer*4     :: oldwbc                     = -123    !  [-] (advanced) (1) Use old version wave boundary conditions for instat 4,5,6
+   integer*4     :: newstatbc                  = -123    !  [-] (advanced) (1) Use new stationary boundary conditions for instat is 'stat' or 'stat_table'
    integer*4     :: correctHm0                 = -123    !  [-] (advanced) Turn off or on Hm0 correction
    integer*4     :: oldnyq                     = -123    !  [-] (advanced) Turn off or on old nyquist switch
    integer*4     :: Tm01switch                 = -123    !  [-] (advanced) Turn off or on Tm01 or Tm-10 switch
@@ -347,14 +348,20 @@ contains
     use xmpi_module
     use filefunctions
     use logging_module
+    
     implicit none
-    type(parameters)            :: par
-    character(256)              :: testc
-
-    character(24),dimension(:),allocatable :: allowednames,oldnames
-    integer                     :: filetype
+    
+    type(parameters)                                    :: par
+    
+    character(256)                                      :: testc
+    character(len=80)                                   :: dummystring
+    character(24), dimension(:), allocatable            :: allowednames,oldnames
+    
+    integer                                             :: filetype
+    
     call writelog('sl','','Reading input parameters: ')
-
+    !
+    !
     ! Physical processes 
     call writelog('l','','--------------------------------')
     call writelog('l','','Physical processes: ')
@@ -366,8 +373,8 @@ contains
     par%nonh       = readkey_int ('params.txt','nonh',          0,        0,     1)
     par%gwflow     = readkey_int ('params.txt','gwflow',        0,        0,     1)
     par%q3d        = readkey_int ('params.txt','q3d',           0,        0,     1)
-
-
+    !
+    !
     ! Grid parameters
     call writelog('l','','--------------------------------')
     call writelog('l','','Grid parameters: ')
@@ -407,14 +414,12 @@ contains
     par%tstop   = readkey_dbl ('params.txt','tstop', 2000.d0,      1.d0, 1000000.d0,required=.true.)
     !
     ! 
-    !                          Physical constants 
+    ! Physical constants 
     call writelog('l','','--------------------------------')
     call writelog('l','','Physical constants: ')
     par%rho        = readkey_dbl ('params.txt','rho',       1025.0d0,  1000.0d0,  1040.0d0)
     par%g          = readkey_dbl ('params.txt','g',         9.81d0,    9.7d0,     9.9d0)
     par%depthscale = readkey_dbl ('params.txt','depthscale',1.0d0,     1.0d0,     200.d0)
-    !
-    ! 
     !
     !
     ! Initial conditions
@@ -486,29 +491,33 @@ contains
     !
     !
     ! Wave-spectrum boundary condition parameters
-    if (trim(par%instat) == 'jons' .or. &
-         trim(par%instat) == 'swan' .or. &
-         trim(par%instat) == 'vardens'.or. &
-         trim(par%instat) == 'jons_table' &
-         )then
-       call writelog('l','','--------------------------------')
-       call writelog('l','','Wave-spectrum boundary condition parameters: ')
-       par%random   = readkey_int ('params.txt','random',    1,         0,        1)
-       par%fcutoff  = readkey_dbl ('params.txt','fcutoff',   0.d0,      0.d0,     40.d0)
-       par%nspr     = readkey_int ('params.txt','nspr',       0,        0,       1) 
-       par%trepfac  = readkey_dbl ('params.txt','trepfac', 0.01d0,      0.d0,    1.d0) 
-       par%sprdthr  = readkey_dbl ('params.txt','sprdthr', 0.08d0,      0.d0,    1.d0) 
-       par%oldwbc   = readkey_int ('params.txt','oldwbc',       0,        0,     1)
-       par%correctHm0   = readkey_int ('params.txt','correctHm0',       1,        0,     1)
-       par%oldnyq    = readkey_int ('params.txt','oldnyq',       0,        0,     1)
-       par%Tm01switch    = readkey_int ('params.txt','Tm01switch',       0,        0,     1)
-	   if (filetype==0) then
-          par%rt   = readkey_dbl('params.txt','rt'  , 3600.d0, 1200.d0,7200.d0)
-          par%dtbc = readkey_dbl('params.txt','dtbc', 0.5d0,0.1d0,2.0d0)
-       endif
-       if (trim(par%instat)=='swan') then
-          par%dthetaS_XB = readkey_dbl ('params.txt','dthetaS_XB', 0.0d0, -360.0d0, 360.0d0)
-       endif
+    if (    trim(par%instat) == 'jons'          .or.    &
+            trim(par%instat) == 'swan'          .or.    &
+            trim(par%instat) == 'vardens'       .or.    &
+            trim(par%instat) == 'jons_table'                ) then
+            
+        call writelog('l','','--------------------------------')
+        call writelog('l','','Wave-spectrum boundary condition parameters: ')
+       
+        par%random          = readkey_int ('params.txt','random',       1,          0,          1       )
+        par%fcutoff         = readkey_dbl ('params.txt','fcutoff',      0.d0,       0.d0,       40.d0   )
+        par%nspr            = readkey_int ('params.txt','nspr',         0,          0,          1       ) 
+        par%trepfac         = readkey_dbl ('params.txt','trepfac',      0.01d0,     0.d0,       1.d0    ) 
+        par%sprdthr         = readkey_dbl ('params.txt','sprdthr',      0.08d0,     0.d0,       1.d0    ) 
+        par%oldwbc          = readkey_int ('params.txt','oldwbc',       0,          0,          1       )
+        par%newstatbc       = readkey_int ('params.txt','newstatbc',    1,          0,          1       )
+        par%correctHm0      = readkey_int ('params.txt','correctHm0',   1,          0,          1       )
+        par%oldnyq          = readkey_int ('params.txt','oldnyq',       0,          0,          1       )
+        par%Tm01switch      = readkey_int ('params.txt','Tm01switch',   0,          0,          1       )
+       
+        if (filetype==0) then
+            par%rt          = readkey_dbl('params.txt','rt',            3600.d0,    1200.d0,    7200.d0 )
+            par%dtbc        = readkey_dbl('params.txt','dtbc',          0.5d0,      0.1d0,      2.0d0   )
+        endif
+        
+        if (trim(par%instat)=='swan') then
+            par%dthetaS_XB  = readkey_dbl ('params.txt','dthetaS_XB',   0.0d0,      -360.d0,    360.0d0 )
+        endif
     endif
     !
     !
@@ -523,19 +532,18 @@ contains
     deallocate(allowednames,oldnames)
     ! left and right
     allocate(allowednames(4),oldnames(2))
-    ! Dano/Jaap: changed defaults
     allowednames=(/'neumann  ','wall     ','no_advec ','neumann_v'/)
     oldnames=(/'0','1'/)
     par%left   = readkey_str('params.txt','left','neumann',4,2,allowednames,oldnames)
     par%right  = readkey_str('params.txt','right','neumann',4,2,allowednames,oldnames)
     deallocate(allowednames,oldnames)
-    ! Back
+    ! back
     allocate(allowednames(4),oldnames(4))
     allowednames=(/'wall   ', 'abs_1d ','abs_2d ','wlevel '/)
     oldnames=(/'0','1','2','3'/)
     par%back   = readkey_str('params.txt','back','abs_2d',4,4,allowednames,oldnames)
     deallocate(allowednames,oldnames)
-    ! Others
+    ! others
     par%ARC     = readkey_int ('params.txt','ARC',         1,         0,      1)
     par%order   = readkey_dbl ('params.txt','order',       2.d0,         1.d0,      2.d0)
     par%carspan = readkey_int ('params.txt','carspan',        0,         0,      1)
@@ -585,7 +593,6 @@ contains
             call check_file_exist(par%disch_timeseries_file)
         endif
     endif
-    
     !
     !
     ! Wave breaking parameters                                                                                                      
@@ -614,7 +621,8 @@ contains
     par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
     par%beta     = readkey_dbl ('params.txt','beta',    0.10d0,     0.05d0,   0.3d0)
     par%rfb      = readkey_int ('params.txt','rfb',        0,        0,     1)
-    !    
+    !
+    !
     ! Wave-current interaction parameters    
     call writelog('l','','--------------------------------')
     call writelog('l','','Wave-current interaction parameters: ')
@@ -837,7 +845,8 @@ contains
     if (par%tsmean==' ') then
        par%tintm   = readkey_dbl ('params.txt','tintm', par%tstop-par%tstart,     1.d0, par%tstop-par%tstart)  ! Robert
     endif
-!!!!! GLOBAL OUTPUT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    
+    ! global output
     par%nglobalvar  = readkey_int ('params.txt','nglobalvar', -1, -1, 20)
     call readglobalvars(par)
 
@@ -849,7 +858,8 @@ contains
     par%npointvar   = readkey_int ('params.txt','npointvar',   0,  0, 50)
     call readpointvars(par)
     par%rugdepth    = readkey_dbl ('params.txt','rugdepth', 0.0d0,0.d0,0.05d0)
-    ! 
+    
+    ! mean output
     par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
     call readmeans(par)
     par%ncross      = readkey_int ('params.txt','ncross',      0,  0, 50)
@@ -877,7 +887,6 @@ contains
     if (par%ndrifter>0) then
         call check_file_exist(par%drifterfile)
     endif
-    
     ! 
     !   
     ! Wave numerics parameters 
@@ -959,6 +968,8 @@ contains
       call writelog('ls','(a,f0.4)','hswitch = ',par%hswitch)
       call writelog('ls','(a,f0.4)','dzmax = ',  par%dzmax)
     endif
+    !
+    !
     ! Constants
     par%px    = 4.d0*atan(1.d0)
     par%compi = (0.0d0,1.0d0)
@@ -980,6 +991,7 @@ contains
     !
     ! Set taper to non-zero
     par%taper    = max(par%taper,1.d-6)
+    !
     !
     ! Compute Coriolis
     par%lat = par%lat*par%px/180.d0
@@ -1045,24 +1057,6 @@ contains
     endif
     !
     !
-    ! fix tint
-    par%tint    = min(par%tintg,par%tintp,par%tintm,par%tintc)                       ! Robert 
-    !
-    !
-    ! All input time frames converted to XBeach hydrodynamic time
-    if (par%morfacopt==1) then 
-       par%tstart  = par%tstart / max(par%morfac,1.d0)
-       par%tint    = par%tint   / max(par%morfac,1.d0)
-       par%tintg   = par%tintg  / max(par%morfac,1.d0)
-       par%tintp   = par%tintp  / max(par%morfac,1.d0)
-       par%tintc   = par%tintc  / max(par%morfac,1.d0)
-       par%tintm   = par%tintm  / max(par%morfac,1.d0)
-       par%wavint  = par%wavint / max(par%morfac,1.d0)
-       par%tstop   = par%tstop  / max(par%morfac,1.d0)
-       par%morstart= par%morstart / max(par%morfac,1.d0)
-    endif
-    !
-    !
     ! fix minimum runup depth
     if (par%rugdepth<=par%eps) then 
        par%rugdepth = par%eps+tiny(0.d0)
@@ -1112,8 +1106,39 @@ contains
        call writelog('sl','','         1D mode [ny=0]')
        par%front = 'abs_1d '
     endif
-
-
+    !
+    !
+    ! fix tint
+    par%tint    = min(par%tintg,par%tintp,par%tintm,par%tintc)
+    !
+    !
+    ! All input time frames converted to XBeach hydrodynamic time
+    if (par%morfacopt==1) then 
+       par%tstart  = par%tstart / max(par%morfac,1.d0)
+       par%tint    = par%tint   / max(par%morfac,1.d0)
+       par%tintg   = par%tintg  / max(par%morfac,1.d0)
+       par%tintp   = par%tintp  / max(par%morfac,1.d0)
+       par%tintc   = par%tintc  / max(par%morfac,1.d0)
+       par%tintm   = par%tintm  / max(par%morfac,1.d0)
+       par%wavint  = par%wavint / max(par%morfac,1.d0)
+       par%tstop   = par%tstop  / max(par%morfac,1.d0)
+       par%morstart= par%morstart / max(par%morfac,1.d0)
+    endif
+    !
+    !
+    ! Check for unknown parameters
+    if (xmaster) call readkey('params.txt','checkparams',dummystring)
+    !
+    !
+    ! Distribute over MPI processes
+#ifdef USEMPI
+    call distribute_par(par)
+#endif
+    !
+    !
+    ! Write settings to file
+    !include 'parameters.inc'
+    !call outputparameters(par)
 
   end subroutine all_input
 
@@ -1124,7 +1149,7 @@ use mpi
 use xmpi_module
 implicit none
 type(parameters)        :: par
-integer                 :: parlen,w,ierror,i, nvars, npoints
+integer                 :: ierror,i,npoints
 
 ! We're sending these over by hand, because intel fortran + vs2008 breaks things...
 integer, dimension(:), allocatable                     :: pointtypes !  [-] Point types (0 = point, 1=rugauge)

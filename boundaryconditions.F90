@@ -1,6 +1,6 @@
 module boundaryconditions
 contains
-  subroutine wave_bc(sg,sl,par,newstatbc)
+  subroutine wave_bc(sg,sl,par)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
     ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
     ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
@@ -31,7 +31,7 @@ contains
     use waveparams
     use spaceparams
     use interp
-    use wave_timestep_module
+    use wave_functions_module
     use xmpi_module
     use readkey_module
     use logging_module
@@ -67,7 +67,7 @@ contains
     character(256)                              :: ebcfname,qbcfname,fname
     real*8                                      :: E0
     real*8,dimension(:),allocatable,save        :: dist,factor
-    logical                                     :: startbcf,newstatbc
+    logical                                     :: startbcf
 
 
     include 's.ind'
@@ -168,7 +168,7 @@ contains
              if (theta0>par%px) theta0=theta0-2*par%px
              if (theta0<-par%px) theta0=theta0+2*par%px
           endif
-          newstatbc=.true.
+          par%newstatbc=1
 #ifdef USEMPI
           call xmpi_bcast(bcendtime)
           call xmpi_bcast(par%Hrms)
@@ -255,7 +255,7 @@ contains
              endif
              theta0=(1.5d0*par%px-alfa)-par%dir0*atan(1.d0)/45.d0
           endif
-          newstatbc=.true.
+          par%newstatbc=1
 #ifdef USEMPI
           call xmpi_bcast(bcendtime)
           call xmpi_bcast(par%Hrms)

@@ -45,7 +45,7 @@ endif
 
 end subroutine output_init
 
-subroutine output(s,sglobal,par,tpar, update)
+subroutine output(sglobal,s,par,tpar, update)
    
     use means_module
 
@@ -96,6 +96,24 @@ subroutine output(s,sglobal,par,tpar, update)
     endif
    
 end subroutine output
+
+subroutine output_error(s, sglobal, par, tpar)
+    
+    use logging_module
+    use xmpi_module, only: halt_program
+    
+    implicit none
+    
+    type(spacepars)                     :: s,sglobal
+    type(parameters)                    :: par
+    type(timepars)                      :: tpar
+    
+    call output(s, sglobal, par, tpar, update=.false.)
+    call writelog('lse','','An extra output timestep is created to inquire the last timestep')
+    call writelog('lse','','    before an error occured')
+    call halt_program
+    
+end subroutine output_error
 
 subroutine log_progress(par)
 

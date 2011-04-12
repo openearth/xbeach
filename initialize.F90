@@ -68,6 +68,11 @@ contains
     allocate(s%sdist(1:s%nx+1,1:s%ny+1))
     allocate(s%ndist(1:s%nx+1,1:s%ny+1))
   endif
+  
+  call writelog('l','' ,'------------------------------------')
+  call writelog('ls','','Building Grid and Bathymetry')
+  call writelog('l','', '------------------------------------')
+  
   !
   ! Create grid
   !
@@ -201,7 +206,7 @@ contains
     use spaceparams
     use readkey_module
     use xmpi_module
-    use wave_timestep_module
+    use wave_functions_module
 
     IMPLICIT NONE
 

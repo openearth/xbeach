@@ -27,8 +27,10 @@ xbeach_SOURCES= \
 	waveparams.F90 \
 	constants.F90 \
 	roelvink.F90 \
-	wave_timestep.F90 \
+	wave_functions.F90 \
 	wave_stationary.F90 \
+	wave_instationary.F90 \
+	wave_timestep.F90 \
         boundaryconditions.F90 \
 	morphevolution.F90 \
 	groundwater.F90 \

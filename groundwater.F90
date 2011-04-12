@@ -97,7 +97,7 @@ contains
 
 
 
-subroutine gwbc(par,s)
+subroutine gw_bc(s,par)
 
 use params
 use xmpi_module
@@ -140,7 +140,7 @@ end subroutine
 
 
 
-subroutine gwflow(par,s)
+subroutine gwflow(s,par)
 
   use params
   use xmpi_module

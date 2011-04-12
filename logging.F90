@@ -106,7 +106,10 @@ CONTAINS
        endif
     endif ! xmaster
 
-
+    if (error==1) then
+        write(*,*) 'Error: not able to open log file. Stopping simulation'
+        stop
+    endif
   end subroutine start_logfiles
 
 subroutine close_logfiles
@@ -126,6 +129,103 @@ subroutine get_logfileid(lid,eid)
    lid = logfileid
    eid = errorfileid
 endsubroutine
+
+
+subroutine writelog_startup()
+
+    implicit none
+    
+    character(len=8)                                :: date
+    character(len=10)                               :: time
+    character(len=5)                                :: zone
+
+    ! subversion information
+    include 'version.def'
+    
+    ! get current working directory (gcc only) 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+    character(len=155)                              :: cwd
+    call getcwd(cwd)
+#endif
+
+    include 'version.dat'
+
+    call date_and_time(DATE=date, TIME=time, ZONE=zone)
+
+    if (xmaster) then
+        call writelog('ls','','**********************************************************')
+        call writelog('ls','','                   Welcome to XBeach                      ')
+        call writelog('ls','','                                                          ')
+        call writelog('ls','','            revision ',trim(Build_Revision)                )
+        call writelog('ls','','            date ',trim(Build_Date)                        )
+        call writelog('ls','',' URL: ',trim(Build_URL)                                    )
+        call writelog('ls','','**********************************************************')
+        call writelog('ls','','                                                          ')
+        call writelog('ls','','Simulation started: YYYYMMDD    hh:mm:ss     time zone (UTC)')
+        call writelog('ls','','                    '//date //'  '//time(1:2)//':'//time(3:4)//':'//time(5:6)//'     '//zone)
+        call writelog('ls','','                                                          ')
+#ifdef HAVE_CONFIG_H
+        call writelog('ls','',' running in: ',cwd)
+#endif
+        call writelog('ls','','General Input Module')
+#ifdef USEMPI
+        call writelog('ls','','MPI version, running on ',xmpi_size,'processes')
+#endif
+    endif
+    
+end subroutine writelog_startup
+
+
+#ifdef USEMPI
+subroutine writelog_mpi(mpiboundary,error)
+
+    implicit none
+    
+    integer                                         :: error
+    character(4), intent(in)                        :: mpiboundary
+    
+    if (xmaster) then
+        if (error==1) then
+            call writelog('els','','Unknown mpi division ',mpiboundary)
+            call halt_program
+        else
+            call writelog('ls','','processor grid: ',xmpi_m,' X ',xmpi_n)
+        endif
+    endif
+
+end subroutine writelog_mpi
+#endif
+
+subroutine writelog_finalize(tbegin, t0, t01)
+    
+    implicit none
+    
+    real*8                                          :: tbegin,tend
+    real*8, optional                                :: t0,t01
+    
+#ifdef USEMPI
+    real*8                                          :: t1
+#endif
+    
+    if (xmaster) then
+        
+        call cpu_time(tend)
+        call writelog('ls','','Total calculation time: ',tend-tbegin,' seconds')
+
+#ifdef USEMPI
+        if (present(t0) .and. present(t01)) then
+            t1 = MPI_Wtime()
+            call writelog('ls','','Timing: procs: ',xmpi_size,' seconds: total:',t1-t0,'loop: ',t1-t01)
+        endif
+#endif
+
+        call writelog('ls','','End of program xbeach')
+    endif
+
+    call close_logfiles
+
+end subroutine writelog_finalize
 
 
 subroutine writelog_a(destination,form,message_char)

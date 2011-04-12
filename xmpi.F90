@@ -160,10 +160,10 @@ integer mm,nn, borderlength, min_borderlength
   error = 0
   if (trim(divtype)=='y') then   ! Force all subdivisions to run along y-lines
      xmpi_m=xmpi_size
-	 xmpi_n=1
+     xmpi_n=1
   elseif (trim(divtype)=='x') then ! Force all subdivisions to run along x-lines
      xmpi_m=1
-	 xmpi_n=xmpi_size
+     xmpi_n=xmpi_size
   elseif (trim(divtype)=='auto') then
      do mm = 1,xmpi_size
        nn = xmpi_size/mm
@@ -178,21 +178,21 @@ integer mm,nn, borderlength, min_borderlength
      enddo
   else
      error = 1
-	 return
+     return
   endif
 
-! The layout of the processors is as follows:
-! example 12 processors, xmpi_m=3, xmpi_n=4:
+  ! The layout of the processors is as follows:
+  ! example 12 processors, xmpi_m=3, xmpi_n=4:
 
-! 0 3 6  9
-! 1 4 7 10 
-! 2 5 8 11
-  
-!        top
-!   left  X  right
-!        bot
+  ! 0 3 6  9
+  ! 1 4 7 10 
+  ! 2 5 8 11
+    
+  !        top
+  !   left  X  right
+  !        bot
 
-! Left neighbour: 
+  ! Left neighbour: 
   
   xmpi_left   = xmpi_rank - xmpi_m
   xmpi_isleft = .false.
@@ -201,7 +201,7 @@ integer mm,nn, borderlength, min_borderlength
     xmpi_isleft = .true.
   endif
  
-! Right neighbour:
+  ! Right neighbour:
 
   xmpi_right   = xmpi_rank + xmpi_m
   xmpi_isright = .false.
@@ -210,7 +210,7 @@ integer mm,nn, borderlength, min_borderlength
     xmpi_isright = .true.
   endif
 
-! upper neighbour:
+  ! Upper neighbour:
 
   if (mod (xmpi_rank,xmpi_m) .eq. 0) then
      xmpi_top   = MPI_PROC_NULL
@@ -220,7 +220,7 @@ integer mm,nn, borderlength, min_borderlength
      xmpi_istop = .false.
   endif
 
-! Lower neighbour:
+  ! Lower neighbour:
 
   if (mod (xmpi_rank+1,xmpi_m) .eq. 0) then
     xmpi_bot   = MPI_PROC_NULL
@@ -230,7 +230,7 @@ integer mm,nn, borderlength, min_borderlength
     xmpi_isbot = .false.
   endif
 
-! my row and column (starting with 1,1)
+  ! my row and column (starting with 1,1)
   
   xmpi_pcol = xmpi_rank/xmpi_m
   xmpi_prow = xmpi_rank - xmpi_pcol*xmpi_m

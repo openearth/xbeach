@@ -10,7 +10,6 @@ use flow_timestep_module
 use morphevolution
 use readtide_module
 use readwind_module
-use wave_stationary_module
 use wave_timestep_module
 use timestep_module
 use readkey_module
@@ -19,263 +18,140 @@ use logging_module
 use means_module
 use output_module
 
+implicit none
 
-IMPLICIT NONE
+type(parameters)                                    :: par
+type(timepars)                                      :: tpar
+type(spacepars), pointer                            :: s
+type(spacepars), target                             :: sglobal
+type(spacepars), target                             :: slocal
 
-type(parameters)         :: par
-type(timepars)           :: tpar
-type(spacepars), pointer :: s
-type(spacepars), target  :: sglobal
-type(spacepars), target  :: slocal
-character(len=80)        :: dummystring
-character(len=8)         :: date
-character(len=10)        :: time
-character(len=5)         :: zone
+integer                                             :: it,error
+real*8                                              :: tbegin
 
-logical                  :: newstatbc
-
-integer                  :: it,error
-real*8                   :: tbegin,tend
 #ifdef USEMPI
-real*8                   :: t0,t01,t1
+real*8                                              :: t0,t01
 #endif
 
+!-----------------------------------------------------------------------------!
+! Initialize program                                                          !
+!-----------------------------------------------------------------------------!
 
-! ----------------------------
-! Initialize program
-! ----------------------------
+error   = 0
 
-! autotools 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-character(len=155)       :: cwd ! for printing the working dir
-#endif
-
-! subversion information
-include 'version.def'
-include 'version.dat'
-
-! Setup of MPI 
+! setup of MPI 
 #ifdef USEMPI
 s=>slocal
 call xmpi_initialize
 t0 = MPI_Wtime()
 #endif
 
-! Start up log files
-error = 0
+! create log files
 call start_logfiles(error)
-if (error==1) then
-   write(*,*) 'Error: not able to open log file. Please contact XBeach team. Stopping simulation'
-   stop
-endif
-! 
+
+! set starting time and date
 call cpu_time(tbegin)
-call DATE_AND_TIME(DATE=date, TIME=time, ZONE=zone)
-! only run this on linux (gcc function)
-#ifdef HAVE_CONFIG_H
-call getcwd(cwd)
-#endif
 
-if (xmaster) then
-  call writelog('ls','','**********************************************************')
-  call writelog('ls','','                   Welcome to XBeach                      ')
-  call writelog('ls','','                                                          ')
-  call writelog('ls','','            revision ',trim(Build_Revision)                )
-  call writelog('ls','','            date ',trim(Build_Date)                        )
-  call writelog('ls','',' URL: ',trim(Build_URL)                                    )
-  call writelog('ls','','**********************************************************')
-  call writelog('ls','','                                                          ')
-  call writelog('ls','','Simulation started: YYYYMMDD    hh:mm:ss     time zone (UTC)')
-  call writelog('ls','','                    '//date //'  '//time(1:2)//':'//time(3:4)//':'//time(5:6)//'     '//zone)
-  call writelog('ls','','                                                          ')
-#ifdef HAVE_CONFIG_H
-  call writelog('ls','',' running in: ',cwd )
-#endif
-  call writelog('ls','','General Input Module')
-#ifdef USEMPI
-  if(xmaster) then
-    call writelog('ls','','MPI version, running on ',xmpi_size,'processes')
-  endif
-#endif
-endif
+! show statup message
+call writelog_startup()
 
+!-----------------------------------------------------------------------------!
+! Initialize simulation                                                       !
+!-----------------------------------------------------------------------------!
 
-! ----------------------------
-! Initialize simulation
-! ----------------------------
+! initialize time counter
+it      = 0
 
-! TODO: move these to a params structure?
-it=0
-newstatbc=.true. ! This really shouldn't be here.
-
-! General input per module
-!
-! This routine does need all processes, so not just xmaster ! Robert
+! read input from params.txt
 call all_input(par)
-! Do check of params.txt to spot errors 
-! TODO: This shouldn't be in the main
-if (xmaster) call readkey('params.txt','checkparams',dummystring) 
-! TODO: We're not stepping into the timeloop just yet....
-! Add the self-generating function "outputparameters". RM: do once linux okay
-! include 'parameters.inc'
-! call outputparameters(par)
-call writelog('ls','','Stepping into the time loop ....')   ! writelog is xmaster aware
 
-#ifdef USEMPI
-call distribute_par(par)
-#endif
-
-if (xmaster) then
-  call writelog('l','' ,'------------------------------------')
-  call writelog('ls','','Building Grid and Bathymetry and....')
-  call writelog('ls','','Distributing wave energy across the directional space ....')
-  call writelog('l','', '------------------------------------')
-endif
-! Grid and bathymetry
-
-!
-! grid_bathy will allocate x,y,xz,yz,xu,yu,xv,yv,zb,zb0 only
-! on master process 
-!
+! allocate space scalars
 call space_alloc_scalars(sglobal)
 s => sglobal
-call grid_bathy(s,par)  ! s%nx and s%ny are available now
+
+! read grid and bathymetry
+call grid_bathy(s,par)
+
+! distribute grid over processors
 #ifdef USEMPI
 call xmpi_determine_processor_grid(s%nx,s%ny,par%mpiboundary,error)
-if(xmaster) then
-  if (error==1) then
-     call writelog('els','','Unknown mpi division ',par%mpiboundary)
-     call halt_program
-  else
-     call writelog('ls','','processor grid: ',xmpi_m,' X ',xmpi_n)
-  endif
-endif
+call writelog_mpi(par%mpiboundary,error)
 #endif
 
-! initialize timesteps
+! initialize timestep
 call timestep_init(par, tpar)
 
 if (xmaster) then
   
-  ! jump into subroutine readtide
-  call readtide         (s,par)
-  call readwind         (s,par)
-
-  call writelog('ls','','Initializing .....')
+    call writelog('ls','','Initializing .....')
   
-  ! initialisations
-  call flow_init        (s,par)
-  call discharge_init   (s,par)
-  call drifter_init     (s,par)
-  call wave_init        (s,par)
-  call gw_init          (s,par)
-  call sed_init         (s,par)
+    ! initialize physics
+    call readtide           (s,par)
+    call readwind           (s,par)
+
+    call flow_init          (s,par)
+    call discharge_init     (s,par)
+    call drifter_init       (s,par)
+    call wave_init          (s,par)
+    call gw_init            (s,par)
+    call sed_init           (s,par)
   
 endif
 
 #ifdef USEMPI
 call distribute_par(par)
-#endif
-
-#ifdef USEMPI
 s => slocal
-!
-!  determine how to divide the submatrices on the processor grid
-!  distribute all values in sglobal to slocal
-!  nx and ny will be adjusted in slocal
-!  arrays is,js,lm,ln (describing the distribution) will
-!  be filled in slocal
-!  Note: slocal is available on all nodes, including master
-!
-call space_distribute_space(sglobal,slocal,par)
-!call space_consistency(slocal,'ALL')
+call space_distribute_space (sglobal,slocal,par     )
 #endif
-! Output means have to be initialized here after distribute space
-if (par%nmeanvar>0) call means_init(sglobal,slocal,par)
 
-call output_init(sglobal, slocal, par, tpar)
+! initialize output
+call means_init             (sglobal,slocal,par     )
+call output_init            (sglobal,slocal,par,tpar)
 
+! store first timestep
+call output                 (sglobal,slocal,par,tpar)
 
+!-----------------------------------------------------------------------------!
+! Start simulation                                                            !
+!-----------------------------------------------------------------------------!
 
-! Store first timestep (always)
-call output(s,sglobal,par,tpar)
-
-! ----------------------------
-! This is the main time loop
-! ----------------------------
 do while (par%t<par%tstop)
-   ! Calculate timestep
-   call timestep(s,par,tpar, it, ierr=error)
-   if (error .eq. 1) then 
-      ! Write output for this time
-      call output(s,sglobal,par,tpar, update=.false.)
-      call writelog('lse','','An extra output timestep is created to inquire the last timestep')
-      call writelog('lse','','    before an error occured')
-      call halt_program
-   end if
-   ! Wave boundary conditions
-   ! Jaap: if swave = 0 you also set ui of long waves to zero so always call wave_bc
-   ! if (par%swave==1) call wave_bc (sglobal,slocal,par,newstatbc)
-   call wave_bc (sglobal,slocal,par,newstatbc)
-   ! Flow boundary conditions
-   if (par%gwflow==1) call gwbc(par,s)
-   if (par%flow+par%nonh>0) call flow_bc (s,par)
-   !Dano moved here, after (long) wave bc generation
-   if (it==0) then
+   
+   ! determine timestep
+   call timestep(s,par, tpar, it, ierr=error)
+   
+   if (error==1) call output_error(s, sglobal, par, tpar)
+   
+   ! boundary conditions
+                            call wave_bc        (sglobal,slocal,par)
+   if (par%gwflow==1)       call gw_bc          (s,par)
+   if (par%flow+par%nonh>0) call flow_bc        (s,par)
+   
 #ifdef USEMPI
-      t01 = MPI_Wtime()
+   if (it==0) t01 = MPI_Wtime()
 #endif
-   endif
-   ! Wave timestep
-   if (par%swave==1) then
-      if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
-#ifdef USEMPI
-         call wave_timestep(s,par)
-         if ((abs(mod(par%t,par%wavint))<0.000001d0).or.newstatbc) then
-            newstatbc=.false.
-         endif
-#else
-         if ((abs(mod(par%t,par%wavint))<0.000001d0).or.newstatbc) then
-            call wave_stationary(s,par)
-            newstatbc=.false.
-         endif
-#endif
-      else
-         newstatbc=.false.
-         call wave_timestep(s,par)
-      endif
-   endif
-   ! Flow timestep
-   if (par%gwflow==1) call gwflow(par,s)
-   if (par%flow+par%nonh>0) call flow_timestep (s,par)
-   if (par%ndrifter>0) call drifter (s,par)
-   ! Suspended transport
-   if(par%sedtrans==1) call transus(s,par)
-   ! Bed level update
-   if (par%morphology==1) call bed_update(s,par)
-   ! Calculate new output times, so we know when to stop
-   call output(s,sglobal,par,tpar)
+
+   ! compute timestep
+   if (par%swave==1)        call wave           (s,par)
+   if (par%gwflow==1)       call gwflow         (s,par)
+   if (par%flow+par%nonh>0) call flow           (s,par)
+   if (par%ndrifter>0)      call drifter        (s,par)
+   if (par%sedtrans==1)     call transus        (s,par)
+   if (par%morphology==1)   call bed_update     (s,par)
+   
+   ! output
+   call output(sglobal,slocal,par,tpar)
 enddo
-! ------------------------
-! End of main time loop
-! ------------------------
-!
-! Finish files
-if(xmaster) then
-   call cpu_time(tend)
-   call writelog('ls','','Total calculation time: ',tend-tbegin,' seconds')
+
+!-----------------------------------------------------------------------------!
+! Finalize simulation                                                         !
+!-----------------------------------------------------------------------------!
+
 #ifdef USEMPI
-   t1 = MPI_Wtime()
-   call writelog('ls','','Timing: procs: ',xmpi_size,' seconds: total:',t1-t0,'loop: ',t1-t01)
-#endif
-   call writelog('ls','','End of program xbeach')
-endif
-call close_logfiles
-#ifdef USEMPI
+call writelog_finalize(tbegin,t0,t01)
 call xmpi_finalize
+#else
+call writelog_finalize(tbegin)
 #endif
 
 end program
-
-
