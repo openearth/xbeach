@@ -101,15 +101,15 @@ endif
 #ifdef USEMPI
 call distribute_par(par)
 s => slocal
-call space_distribute_space (sglobal,slocal,par     )
+call space_distribute_space (sglobal,s,par     )
 #endif
 
 ! initialize output
-call means_init             (sglobal,slocal,par     )
-call output_init            (sglobal,slocal,par,tpar)
+call means_init             (sglobal,s,par     )
+call output_init            (sglobal,s,par,tpar)
 
 ! store first timestep
-call output                 (sglobal,slocal,par,tpar)
+call output                 (sglobal,s,par,tpar)
 
 !-----------------------------------------------------------------------------!
 ! Start simulation                                                            !
@@ -118,12 +118,12 @@ call output                 (sglobal,slocal,par,tpar)
 do while (par%t<par%tstop)
    
    ! determine timestep
-   call timestep(s,par, tpar, it, ierr=error)
+   call timestep(s,par,tpar,it,ierr=error)
    
-   if (error==1) call output_error(s, sglobal, par, tpar)
+   if (error==1) call output_error(s,sglobal,par,tpar)
    
    ! boundary conditions
-                            call wave_bc        (sglobal,slocal,par)
+                            call wave_bc        (sglobal,s,par)
    if (par%gwflow==1)       call gw_bc          (s,par)
    if (par%flow+par%nonh>0) call flow_bc        (s,par)
    
@@ -140,7 +140,7 @@ do while (par%t<par%tstop)
    if (par%morphology==1)   call bed_update     (s,par)
    
    ! output
-   call output(sglobal,slocal,par,tpar)
+   call output(sglobal,s,par,tpar)
 enddo
 
 !-----------------------------------------------------------------------------!
