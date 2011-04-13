@@ -50,6 +50,8 @@ type parameters
    real*8        :: thetamax                   = -123    !  [deg] Higher directional limit (angle w.r.t computational x-axis)
    real*8        :: dtheta                     = -123    !  [deg] Directional resolution
    integer*4     :: thetanaut                  = -123    !  [-] Thetamin,thetamax in cartesian (0) or nautical convention (1)
+   character(256) :: gridform                  = 'abc'   !  [name] Swicth to read in grid bathy files with 'XBeach' or 'Delft3D' format respectively
+   character(256) :: xyfile                     = 'abc'   !  [name] Name of the file containing (Delft3D) xy-coordinates of the calculation grid
  
    ! [Section] Model time                                                                                                                    
    real*8        :: tstop                      = -123    !  [s] Stop time of simulation, in morphological time
@@ -353,11 +355,12 @@ contains
     
     type(parameters)                                    :: par
     
-    character(256)                                      :: testc
+    character(256)                                      :: testc,line
     character(len=80)                                   :: dummystring
     character(24), dimension(:), allocatable            :: allowednames,oldnames
     
-    integer                                             :: filetype
+    integer                                             :: filetype,mmax,nmax,ier,ic
+    logical                                             :: comment
     
     call writelog('sl','','Reading input parameters: ')
     !
@@ -378,28 +381,77 @@ contains
     ! Grid parameters
     call writelog('l','','--------------------------------')
     call writelog('l','','Grid parameters: ')
-    par%xori  = readkey_dbl('params.txt','xori',  0.d0,   -1d9,      1d9)
-    par%yori  = readkey_dbl('params.txt','yori',  0.d0,   -1d9,      1d9)
-    par%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   0.d0,   360.d0)
-    par%nx    = readkey_int('params.txt','nx',     50,      2,     10000,required=.true.)
-    par%ny    = readkey_int('params.txt','ny',      2,      0,     10000,required=.true.)
-    par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
-    par%depfile = readkey_name('params.txt','depfile',required=.true.)
-    call check_file_exist(par%depfile)
-    call check_file_length(par%depfile,par%nx+1,par%ny+1)
-    par%vardx = readkey_int('params.txt','vardx',   0,      0,         1) 
-    if (par%vardx==0) then
-       par%dx    = readkey_dbl('params.txt','dx',    -1.d0,   0.d0,      1d9,required=.true.)
-       par%dy    = readkey_dbl('params.txt','dy',    -1.d0,   0.d0,      1d9,required=.true.)
+        
+    ! check gridform
+    allocate(allowednames(2),oldnames(2))
+    allowednames=(/'xbeach   ','delft3d  '/)
+    oldnames=(/'0','1'/)
+    par%gridform = readkey_str('params.txt','gridform','xbeach',2,2,allowednames,oldnames)
+    deallocate(allowednames,oldnames)
+    
+    ! gridform switch
+    if (trim(par%gridform)=='xbeach') then
+      ! XBeach grid parameters
+      par%xori  = readkey_dbl('params.txt','xori',  0.d0,   -1d9,      1d9)
+      par%yori  = readkey_dbl('params.txt','yori',  0.d0,   -1d9,      1d9)
+      par%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   0.d0,   360.d0)
+      par%nx    = readkey_int('params.txt','nx',     50,      2,     10000,required=.true.)
+      par%ny    = readkey_int('params.txt','ny',      2,      0,     10000,required=.true.)
+      par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
+      par%depfile = readkey_name('params.txt','depfile',required=.true.)
+      call check_file_exist(par%depfile)
+      call check_file_length(par%depfile,par%nx+1,par%ny+1)
+      par%vardx = readkey_int('params.txt','vardx',   0,      0,         1)
+     
+      if (par%vardx==0) then
+        par%dx    = readkey_dbl('params.txt','dx',    -1.d0,   0.d0,      1d9,required=.true.)
+        par%dy    = readkey_dbl('params.txt','dy',    -1.d0,   0.d0,      1d9,required=.true.)
+      else
+        par%dx = -1.d0   ! Why?
+        par%dy = -1.d0   ! Why?
+        par%xfile = readkey_name('params.txt','xfile')
+        call check_file_exist(par%xfile)
+        call check_file_length(par%xfile,par%nx+1,par%ny+1)
+        par%yfile = readkey_name('params.txt','yfile')
+        call check_file_exist(par%yfile)
+        call check_file_length(par%yfile,par%nx+1,par%ny+1)
+      endif
+    elseif (trim(par%gridform)=='delft3d') then
+      par%depfile = readkey_name('params.txt','depfile',required=.true.)
+      call check_file_exist(par%depfile)
+      par%dx = -1.d0   ! Why?
+      par%dy = -1.d0   ! Why?
+      par%xyfile = readkey_name('params.txt','xyfile')
+      call check_file_exist(par%xyfile)
+      ! read grid properties from xyfile
+      open(31,file=par%xyfile,status='old',iostat=ier)  
+      ! skip comment text in file...
+      comment=.true.
+      do while (comment==.true.)
+        read(31,'(a)')line
+        if (line(1:1)/='*') then 
+          comment=.false.
+        endif
+      enddo
+      ! Check if grid coordinates are Cartesian
+      ic=scan(line,'Cartesian')
+      if (ic<=0) then
+        call writelog('esl','','Delft3D grid is not Cartesian')
+        call halt_program
+      endif
+      ! read grid dimensions
+      read(31,*) mmax,nmax
+      par%nx = mmax-1
+      par%ny = nmax-1
+      ! should we allow this input for gridform == 'Delft3D' 
+      par%xori  = readkey_dbl('params.txt','xori',  0.d0,   -1d9,      1d9)
+      par%yori  = readkey_dbl('params.txt','yori',  0.d0,   -1d9,      1d9)
+      par%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   0.d0,   360.d0)
+      par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
+      close (31) 
     else
-       par%dx = -1.d0   ! Why?
-       par%dy = -1.d0   ! Why?
-       par%xfile = readkey_name('params.txt','xfile')
-       call check_file_exist(par%xfile)
-       call check_file_length(par%xfile,par%nx+1,par%ny+1)
-       par%yfile = readkey_name('params.txt','yfile')
-       call check_file_exist(par%yfile)
-       call check_file_length(par%yfile,par%nx+1,par%ny+1)
+      call writelog('esl','','Invalid value for gridform: ',par%gridform)
+      call halt_program
     endif
     par%thetamin = readkey_dbl ('params.txt','thetamin', -90.d0,    -180.d0,  180.d0,required=(par%swave==1))
     par%thetamax = readkey_dbl ('params.txt','thetamax',  90.d0,    -180.d0,  180.d0,required=(par%swave==1))
@@ -430,7 +482,9 @@ contains
        ! do nothing
     else
        call check_file_exist(par%zsinitfile)
-       call check_file_length(par%zsinitfile,par%nx+1,par%ny+1)
+       if (trim(par%gridform)=='xbeach') then ! nx and ny not known in case of Delft3D
+         call check_file_length(par%zsinitfile,par%nx+1,par%ny+1)
+       endif
     endif
     !
     !
@@ -642,7 +696,9 @@ contains
        par%bedfricfile = readkey_name('params.txt','bedfricfile')
        if (par%bedfricfile .ne. ' ') then
           call check_file_exist(par%bedfricfile)
-          call check_file_length(par%bedfricfile,par%nx+1,par%ny+1)
+          if (trim(par%gridform)=='xbeach') then
+            call check_file_length(par%bedfricfile,par%nx+1,par%ny+1)
+          endif
        else
           if (isSetParameter('params.txt','cf') .and. .not. isSetParameter('params.txt','C')) then
              par%cf      = readkey_dbl ('params.txt','cf',      3.d-3,     0.d0,     0.1d0)
@@ -749,8 +805,8 @@ contains
        par%dzg3     = readkey_dbl ('params.txt','dzg3', par%dzg1,     0.01d0,     1.d0)
        par%por      = readkey_dbl ('params.txt','por',    0.4d0,       0.3d0,    0.5d0)
        !                              file,keyword,size read vector,size vector in par,default,min,max
-       par%D50      = readkey_dblvec('params.txt','D50',par%ngd,size(par%D50),0.0002d0,0.00005d0,0.0008d0)
-       par%D90      = readkey_dblvec('params.txt','D90',par%ngd,size(par%D90),0.0003d0,0.00010d0,0.0015d0)
+       !par%D50      = readkey_dblvec('params.txt','D50',par%ngd,size(par%D50),0.0002d0,0.00005d0,0.0008d0)
+       !par%D90      = readkey_dblvec('params.txt','D90',par%ngd,size(par%D90),0.0003d0,0.00010d0,0.0015d0)
        par%sedcal   = readkey_dblvec('params.txt','sedcal',par%ngd,size(par%sedcal),1.d0,0.d0,2.d0)
        par%ucrcal   = readkey_dblvec('params.txt','ucrcal',par%ngd,size(par%ucrcal),1.d0,0.d0,2.d0)
     endif
@@ -811,7 +867,9 @@ contains
        if (par%struct==1) then
           par%ne_layer = readkey_name('params.txt','ne_layer')
           call check_file_exist(par%ne_layer)
-          call check_file_length(par%ne_layer,par%nx+1,par%ny+1)
+          if (trim(par%gridform)=='xbeach') then
+            call check_file_length(par%ne_layer,par%nx+1,par%ny+1)
+          endif
        endif
     endif
     !

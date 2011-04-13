@@ -14,10 +14,12 @@ contains
   type(spacepars)                :: s               
   type(parameters)               :: par               
 
-  integer                        :: i
+  integer                        :: i,ier,idum,n,m
   integer                        :: j
   integer                        :: itheta
   real*8                         :: degrad
+  character*232                  :: line
+  logical                        :: comment
 
   s%nx      = par%nx
   s%ny      = par%ny
@@ -74,39 +76,88 @@ contains
   call writelog('l','', '------------------------------------')
   
   !
-  ! Create grid
+  ! Create grid and bathymetry
   !
-  if(s%vardx==0)then
-    if (xmaster) then
-      open(31,file=par%depfile)
-      do j=1,s%ny+1
-        read(31,*)(s%zb(i,j),i=1,s%nx+1)
-      end do
-      close(31)
-      do j=1,s%ny+1
-        do i=1,s%nx+1
-          s%x(i,j)=(i-1)*s%dx
-          s%y(i,j)=(j-1)*s%dy
+  ! Jaap make switch here to read XBeach or Delft3D format respectively\
+  if (trim(par%gridform)=='xbeach') then
+    if(s%vardx==0)then
+      if (xmaster) then
+        open(31,file=par%depfile)
+        do j=1,s%ny+1
+          read(31,*)(s%zb(i,j),i=1,s%nx+1)
         end do
-      end do
+        close(31)
+        do j=1,s%ny+1
+          do i=1,s%nx+1
+            s%x(i,j)=(i-1)*s%dx
+            s%y(i,j)=(j-1)*s%dy
+          end do
+        end do
+      endif
+    elseif(s%vardx==1)then   ! Robert keep vardx == 1 for backwards compatibility??
+      if (xmaster) then
+        open(31,file=par%depfile)
+        open(32,file=par%xfile)
+        open(33,file=par%yfile)
+        read(31,*)((s%zb(i,j),i=1,s%nx+1),j=1,s%ny+1)
+        read(32,*)((s%x(i,j),i=1,s%nx+1),j=1,s%ny+1)
+        read(33,*)((s%y(i,j),i=1,s%nx+1),j=1,s%ny+1)
+        close(31)
+        close(32)
+        close(33)
+      endif
+    else 
+      call writelog('esl','','Invalid value for vardx: ',par%vardx)
+      call halt_program
     endif
-  elseif(s%vardx==1)then   ! Robert keep vardx == 1 for backwards compatibility??
-    if (xmaster) then
-      open(31,file=par%depfile)
-      open(32,file=par%xfile)
-      open(33,file=par%yfile)
-      read(31,*)((s%zb(i,j),i=1,s%nx+1),j=1,s%ny+1)
-      read(32,*)((s%x(i,j),i=1,s%nx+1),j=1,s%ny+1)
-      read(33,*)((s%y(i,j),i=1,s%nx+1),j=1,s%ny+1)
-      close(31)
-      close(32)
-      close(33)
-    endif
-  else 
-    call writelog('esl','','Invalid value for vardx: ',par%vardx)
+  elseif (trim(par%gridform)=='delft3d') then
+    ! 
+    ! Gridfile
+    !
+    open(31,file=par%xyfile,status='old',iostat=ier)  
+    ! skip comment text in file...
+    comment=.true.
+    do while (comment==.true.)
+      read(31,'(a)')line
+      if (line(1:1)/='*') then 
+        comment=.false.
+      endif
+    enddo
+    read(31,*) idum,idum
+    read(31,*) idum,idum,idum
+    ! read grid and write to temp file
+    open(32,file='temp')
+    do n=1,1000000
+      read(31,'(a)',end=100,iostat=ier)line
+      if (ier==0) then
+        write(32,'(a)')line(11:232)
+      endif
+    enddo
+    100 continue
+   
+    close(31)
+    close(32)
+    ! now open temp and set xc and yc
+    open(32,file='temp',status='old')
+    do n=1,s%ny+1
+      read(32,*)(s%x(m,n),m=1,s%nx+1)
+    enddo
+    do n=1,s%ny+1
+      read(32,*)(s%y(m,n),m=1,s%nx+1)
+    enddo
+    close(32,status='delete')    
+    !
+    ! Depfile
+    !
+    open(33,file=par%depfile,status='old')
+    do n=1,s%ny+1
+      read(33,*)(s%zb(m,n),m=1,s%nx+1)
+    enddo
+  else
+    call writelog('esl','','Invalid value for gridform: ',par%gridform)
     call halt_program
   endif
-
+  
   if(xmaster) then
       
        s%zb=-s%zb*s%posdwn
@@ -198,6 +249,7 @@ contains
           s%dzbdy(:,s%ny+1)=s%dzbdy(:,s%ny)
        endif
     endif
+    
   end subroutine grid_bathy
 
 
