@@ -1090,7 +1090,12 @@ subroutine visc_smagorinsky(s,par)
         dudx = (uu(i,j)-uu(i-1,j))/dsz(i,j)
         dvdx = (vv(i+1,j) - vv(i-1,j) )/(dsu(i,j)+dsu(i-1,j))
         Tau  = sqrt(2.0d0 * dudx**2 + dvdx**2)
-        l    = dsz(i,j)**2
+        ! 
+        if (par%dy > -1.d0) then
+          l = dsz(i,j)*par%dy
+        else
+          l = dsz(i,j)**2
+        endif
         nuh(i,j) = par%nuh**2 * l * Tau * real(wetu(i,j)*wetu(i-1,j),kind=8)
     enddo
   

@@ -448,7 +448,13 @@ subroutine timestep(s,par, tpar, it, ierr)
               par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j)))))
               
               mdx = min(s%dsu(i,j),s%dsz(i,j))**2
-              par%dt=min(par%dt,0.5d0*mdx*mdx/(mdx+mdx)/max(s%nuh(i,j),1e-6))
+              ! Jaap temporary fix for consistent superfast 1D (only works for shore normal waves) 
+              if (par%dy > -1.d0) then
+                 mdy = par%dy
+              else
+                 mdy = mdx
+              endif
+              par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
            endif
         enddo
      enddo
