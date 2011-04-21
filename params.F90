@@ -407,8 +407,8 @@ contains
         par%dx    = readkey_dbl('params.txt','dx',    -1.d0,   0.d0,      1d9,required=.true.)
         par%dy    = readkey_dbl('params.txt','dy',    -1.d0,   0.d0,      1d9,required=.true.)
       else
-        par%dx = -1.d0   ! Why?
-        par%dy = -1.d0   ! Why?
+        par%dx    = readkey_dbl('params.txt','dx',    -1.d0,   0.d0,      1d9)       ! bas: not required, but can be used in superfast 1D (smagorinsky and timestep)
+        par%dy    = readkey_dbl('params.txt','dy',    -1.d0,   0.d0,      1d9)
         par%xfile = readkey_name('params.txt','xfile')
         call check_file_exist(par%xfile)
         call check_file_length(par%xfile,par%nx+1,par%ny+1)
