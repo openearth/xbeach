@@ -427,7 +427,7 @@ contains
       open(31,file=par%xyfile,status='old',iostat=ier)  
       ! skip comment text in file...
       comment=.true.
-      do while (comment==.true.)
+      do while (comment .eqv. .true.)
         read(31,'(a)')line
         if (line(1:1)/='*') then 
           comment=.false.
