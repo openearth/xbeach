@@ -64,7 +64,6 @@ contains
 
     if (xmaster) then
        call readkey(fname,key,value)
-       write(*,*) fname, key, value
 
        if (value/=' ') then
           read(value,'(f10.0)')value_dbl
