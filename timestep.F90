@@ -123,14 +123,15 @@ use readkey_module
 use logging_module
 implicit none
 
-type(parameters),intent(inout)         :: par
+type(parameters),intent(inout)      :: par
 type(timepars),intent(inout)        :: tpar
 character(80)                       :: tsglobal 
 character(80)                       :: tspoints
 character(80)                       :: tscross
 character(80)                       :: tsmean
 
-integer                             :: i, ii
+real*8                              :: iir
+integer                             :: i,ii
 !character(80)                       :: fname 
 
 
@@ -180,7 +181,8 @@ if (par%nglobalvar/=0) then
       call readkey('params.txt','tsglobal',tsglobal)
       if (tsglobal/=' ') then
          open(10,file=tsglobal)
-         read(10,*)ii
+         read(10,*)iir
+         ii = nint(iir)
          allocate(tpar%tpg(ii))
          do i=1,ii
             read(10,*)tpar%tpg(i)
@@ -212,7 +214,8 @@ if ((par%npoints+par%nrugauge)>0) then
       call readkey('params.txt','tspoints',tspoints)
       if (tspoints/=' ') then
          open(10,file=tspoints)
-         read(10,*)ii
+         read(10,*)iir
+         ii = nint(iir)
          allocate(tpar%tpp(ii))
          do i=1,ii
             read(10,*)tpar%tpp(i)
@@ -244,7 +247,8 @@ if ((par%ncross)>0) then
       call readkey('params.txt','tscross',tscross)
       if (tscross/=' ') then
          open(10,file=tscross)
-         read(10,*)ii
+         read(10,*)iir
+         ii = nint(iir)
          allocate(tpar%tpc(ii))
          do i=1,ii
             read(10,*)tpar%tpc(i)
@@ -275,7 +279,8 @@ if (par%nmeanvar>0) then
       call readkey('params.txt','tsmean',tsmean)
       if (tsmean/=' ') then
          open(10,file=tsmean)
-         read(10,*)ii
+         read(10,*)iir
+         ii = nint(iir)
          allocate(tpar%tpm(ii))
          do i=1,ii
             read(10,*)tpar%tpm(i)
