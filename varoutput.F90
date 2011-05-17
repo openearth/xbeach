@@ -507,9 +507,9 @@ contains
                    endif
                 end select
              enddo
-             par%tintm=tpar%tpm(min(itm+2,stpm))-tpar%tpm(itm+1)  ! Next averaging period (min to stop array out of bounds)
-             par%tintm=max(par%tintm,tiny(0.d0))        ! to prevent par%tintm=0 after last output
-          endif  ! t output
+         endif  ! t output
+         par%tintm=tpar%tpm(min(itm+2,stpm))-tpar%tpm(itm+1)  ! Next averaging period (min to stop array out of bounds)
+         par%tintm=max(par%tintm,tiny(0.d0))        ! to prevent par%tintm=0 after last output
        endif  ! nmeanvar > 0
 
 

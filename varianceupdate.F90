@@ -241,18 +241,21 @@ contains
 
     IMPLICIT NONE
 
-    type(parameters), intent(IN)    :: par
-    type(spacepars), intent(IN)     :: sl
+    type(parameters),   intent(in)                      :: par
+    type(spacepars),    intent(in)                      :: sl
 
     ! keep track of which mean variables are used
-    integer                         :: index 
-    integer                         :: i
-    real*8                          :: mult
-    type(arraytype)                 :: t
-    real*8,dimension(sl%nx+1,sl%ny+1) :: oldmean2d,tvar2d
-    integer,dimension(sl%nx+1,sl%ny+1) :: tvar2di
-    real*8,dimension(:,:,:),allocatable :: oldmean3d,tvar3d
-    real*8,dimension(:,:,:,:),allocatable :: oldmean4d,tvar4d
+    integer                                             :: index 
+    integer                                             :: i
+    real*8                                              :: mult
+    
+    type(arraytype)                                     :: t
+    
+    integer,dimension(sl%nx+1,sl%ny+1)                  :: tvar2di
+    
+    real*8, dimension(sl%nx+1,sl%ny+1)                  :: oldmean2d,tvar2d
+    real*8, dimension(:,:,:),           allocatable     :: oldmean3d,tvar3d
+    real*8, dimension(:,:,:,:),         allocatable     :: oldmean4d,tvar4d
 
 
 

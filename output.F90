@@ -45,7 +45,7 @@ endif
 
 end subroutine output_init
 
-subroutine output(sglobal,s,par,tpar, update)
+subroutine output(sglobal,s,par,tpar,update)
    
     use means_module
 
@@ -54,6 +54,7 @@ subroutine output(sglobal,s,par,tpar, update)
     type(spacepars)                     :: s,sglobal
     type(parameters)                    :: par
     type(timepars)                      :: tpar
+    
     logical, optional                   :: update
     logical                             :: lupdate
 
