@@ -377,9 +377,10 @@ contains
              call linear_interp(tE,databi,nt,tshifted,bi(1),E_idx)
           endif
           ee(1,j,:)=e01*E1/max(Emean,0.000001d0)*min(par%t/par%taper,1.d0)
-          ui(1,j) = cg(1,j)*bi(1)/ht(1,j)*cos(theta0)*min(par%t/par%taper,1.d0)
-          if (par%carspan==1) then
-             ui(1,j) = sqrt(par%g/ht(1,j))*bi(1)! Carrier and Greenspan
+          if (par%freewave==1) then
+            ui(1,j) = sqrt(par%g/ht(1,j))*bi(1)
+          else
+            ui(1,j) = cg(1,j)*bi(1)/ht(1,j)*cos(theta0)*min(par%t/par%taper,1.d0)
           endif
 
        end do
@@ -785,7 +786,7 @@ contains
                umean(1,:) = 0.d0
              endif
              !DAno  uu(1,:)=2.0d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-zs0(2,:)))+umean(1,:)
-             if (par%carspan==1) then
+             if (par%freewave==1) then
                 uu(1,:)=2.0d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-zs0(2,:))) + umean(1,:)
              else
                 uu(1,:)=(1.0d0+sqrt(par%g*hh(1,:))/cg(1,:))*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-zs0(2,:))) + umean(1,:)
@@ -837,7 +838,7 @@ contains
                 do jj=1,50
                    !---------- Lower order bound. cond. ---
 
-                   if (par%carspan==1) then ! assuming incoming long wave propagates at sqrt(g*h)
+                   if (par%freewave==1) then ! assuming incoming long wave propagates at sqrt(g*h)
                       ur = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
                            *(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))) &
                            -ui(1,j)*(dcos(thetai(j))-1.d0)/dcos(thetai(j)))   

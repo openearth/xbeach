@@ -24,12 +24,12 @@ type(parameters)                                    :: par
 type(timepars)                                      :: tpar
 type(spacepars), pointer                            :: s
 type(spacepars), target                             :: sglobal
-type(spacepars), target                             :: slocal
 
 integer                                             :: it,error
 real*8                                              :: tbegin
 
 #ifdef USEMPI
+type(spacepars), target                             :: slocal
 real*8                                              :: t0,t01
 #endif
 

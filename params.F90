@@ -113,7 +113,8 @@ type parameters
    character(24) :: back                       = 'abc'   !  [-] Switch for boundary at bay side, 0 = radiating boundary (Ad), 1 = reflective boundary; uu=0
    integer*4     :: ARC                        = -123    !  [-] (advanced) Switch for active reflection compensation at seaward boundary: 0 = reflective, 1 = weakly (non) reflective
    real*4        :: order                      = -123    !  [-] (advanced) Switch for order of wave steering, 1 = first order wave steering (short wave energy only), 2 = second oder wave steering (bound long wave corresponding to short wave forcing is added)
-   integer*4     :: carspan                    = -123    !  [-] (advanced) Switch for Carrier-Greenspan test 0 = use cg (default); 1 = use sqrt(gh) in instat = 3 for c&g tests
+   integer*4     :: freewave                   = -123    !  [-] (advanced) Switch for free wave propagation 0 = use cg (default); 1 = use sqrt(gh) in instat = 3
+   integer*4     :: carspan                    = -123    !  [-] (deprecated) Switch for Carrier-Greenspan test 0 = use cg (default); 1 = use sqrt(gh) in instat = 3 for c&g tests
    real*8        :: epsi                       = -123    !  [-] (advanced) Ratio of mean current to time varying current through offshore boundary
    character(24) :: tidetype                   = 'abc'   !  [-] (advanced) Switch for offfshore boundary, velocity boundary or instant water level boundary (default)
    
@@ -598,10 +599,11 @@ contains
     par%back   = readkey_str('params.txt','back','abs_2d',4,4,allowednames,oldnames)
     deallocate(allowednames,oldnames)
     ! others
-    par%ARC     = readkey_int ('params.txt','ARC',         1,         0,      1)
-    par%order   = readkey_dbl ('params.txt','order',       2.d0,         1.d0,      2.d0)
-    par%carspan = readkey_int ('params.txt','carspan',        0,         0,      1)
-    par%epsi    = readkey_dbl ('params.txt','epsi',        0.d0,         -1.d0,      0.2d0)
+    par%ARC         = readkey_int ('params.txt','ARC',      1,              0,       1       )
+    par%order       = readkey_dbl ('params.txt','order',    2.d0,           1.d0,    2.d0    )
+    par%carspan     = readkey_int ('params.txt','carspan',  0,              0,       1       )      ! deprecated, added for backwards compatibility
+    par%freewave    = readkey_int ('params.txt','freewave', par%carspan,    0,       1       )
+    par%epsi        = readkey_dbl ('params.txt','epsi',     0.d0,           -1.d0,   0.2d0   )
     allocate(allowednames(2),oldnames(0))
     allowednames=(/'instant ','velocity'/)
     par%tidetype= readkey_str('params.txt','tidetype','velocity',2,0,allowednames,oldnames)
