@@ -119,8 +119,10 @@ elseif (xmpi_isbot) then
    endif
 endif
 
-s%gwhead(:,1)=s%gwhead(:,2)
-s%gwhead(:,s%ny+1)=s%gwhead(:,s%ny)
+if (s%ny>0) then 
+   s%gwhead(:,1)=s%gwhead(:,2)
+   s%gwhead(:,s%ny+1)=s%gwhead(:,s%ny)
+endif
 
 #ifdef USEMPI
    call xmpi_shift(s%gwhead,':1')
