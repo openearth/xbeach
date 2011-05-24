@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{5E53CCA8-D880-4964-8B8C-B3DB057578E7}") = "XBeach", "XBeach\XBeach.pvfproj", "{44E44A95-4FC6-414A-97C0-CAEE6773D748}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F3BCEDC7-82E1-44C2-895A-F142C857BBC3} = {F3BCEDC7-82E1-44C2-895A-F142C857BBC3}
+	EndProjectSection
+EndProject
+Project("{5E53CCA8-D880-4964-8B8C-B3DB057578E7}") = "Makeincludes", "Makeincludes\Makeincludes.pvfproj", "{F3BCEDC7-82E1-44C2-895A-F142C857BBC3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		netcdf_Debug|Win32 = netcdf_Debug|Win32
+		netcdf_MPI_Debug|Win32 = netcdf_MPI_Debug|Win32
+		netcdf_MPI_Release|Win32 = netcdf_MPI_Release|Win32
+		netcdf_Release|Win32 = netcdf_Release|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{44E44A95-4FC6-414A-97C0-CAEE6773D748}.Debug|Win32.ActiveCfg = Debug|Win32
+		{44E44A95-4FC6-414A-97C0-CAEE6773D748}.Debug|Win32.Build.0 = Debug|Win32
+		{44E44A95-4FC6-414A-97C0-CAEE6773D748}.netcdf_Debug|Win32.ActiveCfg = Debug|Win32
+		{44E44A95-4FC6-414A-97C0-CAEE6773D748}.netcdf_Debug|Win32.Build.0 = Debug|Win32
+		{44E44A95-4FC6-414A-97C0-CAEE6773D748}.netcdf_MPI_Debug|Win32.ActiveCfg = Debug|Win32
+		{44E44A95-4FC6-414A-97C0-CAEE6773D748}.netcdf_MPI_Debug|Win32.Build.0 = Debug|Win32
+		{44E44A95-4FC6-414A-97C0-CAEE6773D748}.netcdf_MPI_Release|Win32.ActiveCfg = Release|Win32
+		{44E44A95-4FC6-414A-97C0-CAEE6773D748}.netcdf_MPI_Release|Win32.Build.0 = Release|Win32
+		{44E44A95-4FC6-414A-97C0-CAEE6773D748}.netcdf_Release|Win32.ActiveCfg = Release|Win32
+		{44E44A95-4FC6-414A-97C0-CAEE6773D748}.netcdf_Release|Win32.Build.0 = Release|Win32
+		{44E44A95-4FC6-414A-97C0-CAEE6773D748}.Release|Win32.ActiveCfg = Release|Win32
+		{44E44A95-4FC6-414A-97C0-CAEE6773D748}.Release|Win32.Build.0 = Release|Win32
+		{F3BCEDC7-82E1-44C2-895A-F142C857BBC3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F3BCEDC7-82E1-44C2-895A-F142C857BBC3}.Debug|Win32.Build.0 = Debug|Win32
+		{F3BCEDC7-82E1-44C2-895A-F142C857BBC3}.netcdf_Debug|Win32.ActiveCfg = Debug|Win32
+		{F3BCEDC7-82E1-44C2-895A-F142C857BBC3}.netcdf_Debug|Win32.Build.0 = Debug|Win32
+		{F3BCEDC7-82E1-44C2-895A-F142C857BBC3}.netcdf_MPI_Debug|Win32.ActiveCfg = Debug|Win32
+		{F3BCEDC7-82E1-44C2-895A-F142C857BBC3}.netcdf_MPI_Debug|Win32.Build.0 = Debug|Win32
+		{F3BCEDC7-82E1-44C2-895A-F142C857BBC3}.netcdf_MPI_Release|Win32.ActiveCfg = Release|Win32
+		{F3BCEDC7-82E1-44C2-895A-F142C857BBC3}.netcdf_MPI_Release|Win32.Build.0 = Release|Win32
+		{F3BCEDC7-82E1-44C2-895A-F142C857BBC3}.netcdf_Release|Win32.ActiveCfg = Release|Win32
+		{F3BCEDC7-82E1-44C2-895A-F142C857BBC3}.netcdf_Release|Win32.Build.0 = Release|Win32
+		{F3BCEDC7-82E1-44C2-895A-F142C857BBC3}.Release|Win32.ActiveCfg = Release|Win32
+		{F3BCEDC7-82E1-44C2-895A-F142C857BBC3}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

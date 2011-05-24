@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!--PGI Visual Fortran Project File-->
+<PGIproject Version="2.0">
+	<General ProjectIdGuid="{F3BCEDC7-82E1-44C2-895A-F142C857BBC3}"/>
+	<Configurations>
+		<Config Name="Debug|Win32" OutDir="$(ConfigurationName)" IntDir="$(ConfigurationName)" CfgTyp="0" DbgEnvMerge="0" DbgMPI="0" DbgFmt="0" Optzn="0" LinkOutput="$(OutDir)\$(ProjectName).exe" PostBuildCmd="pwd
+copy..\..\..\*.tmpl .
+copy..\..\..\params.F90 .
+del ..\..\..\parameters.inc
+.\$(ConfigurationName)\makeincludes &lt; nul
+del params.F90
+copy *.gen ..\XBeach\
+copy *.gen ..\..\..\"/>
+		<Config Name="Release|Win32" OutDir="$(ConfigurationName)" IntDir="$(ConfigurationName)" CfgTyp="0" DbgEnvMerge="0" DbgMPI="0" LinkOutput="$(OutDir)\$(ProjectName).exe" PostBuildCmd="pwd
+copy..\..\..\*.tmpl .
+copy..\..\..\params.F90 .
+del ..\..\..\parameters.inc
+.\$(ConfigurationName)\makeincludes &lt; nul
+del params.F90
+copy *.gen ..\XBeach\
+copy *.gen ..\..\..\"/>
+	</Configurations>
+	<Files>
+		<Folder Name="Include Files">
+		</Folder>
+		<Folder Name="Resource Files">
+		</Folder>
+		<Folder Name="Source Files">
+			<File Name="..\..\..\makeincludes.F90" ProjRelPath="T" IsFixedFormat="F" IsIncludeFile="F">
+				<Config Name="Debug|Win32"/>
+				<Config Name="Release|Win32"/>
+			</File>
+		</Folder>
+	</Files>
+	<ProjStartupServices/>
+	<Globals/>
+</PGIproject>
