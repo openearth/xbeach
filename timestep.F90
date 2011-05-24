@@ -444,7 +444,7 @@ subroutine timestep(s,par, tpar, it, ierr)
               mdy = min(s%dnv(i,j),s%dnz(i,j))**2
 
               par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
-           else
+           elseif(s%wetz(i,j)==1 .and. s%ny==0) then
               ! u-points
               mdx=s%dsu(i,j)
               par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j)),abs(s%ueu(i,j))))) !Jaap: include sediment advection velocities
