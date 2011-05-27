@@ -507,10 +507,10 @@ contains
 	! Robert: global boundary at (:,1) edge
 	if (ny>0) then
        if (xmpi_isleft) then
-          viscv(i,1) = viscv(i,2)
+          viscv(:,1) = viscv(:,2)
        endif
        if (xmpi_isright) then
-          viscv(i,ny) = viscv(i,ny-1)
+          viscv(:,ny) = viscv(:,ny-1)
        endif
     endif
 	!

@@ -409,7 +409,9 @@ subroutine timestep(s,par, tpar, it, ierr)
   ! Check when we need next output.
   ! Next time step will be, min(output times, t+dt) 
   
-  ierr = 0
+  if (present(ierr)) then 
+     ierr = 0
+  endif
   tny = tiny(0.d0)
 
   ! Robert new time step criterion
@@ -520,7 +522,9 @@ subroutine timestep(s,par, tpar, it, ierr)
         if (tpar%outputm) tpar%tpm=min(tpar%tpm,par%t)
         if (tpar%outputc) tpar%tpc=min(tpar%tpc,par%t)
         tpar%output = (tpar%outputg .or. tpar%outputp .or. tpar%outputm .or. tpar%outputc)
-        ierr = 1
+        if (present(ierr)) then 
+           ierr = 1
+        endif
     endif
 
 end subroutine timestep
