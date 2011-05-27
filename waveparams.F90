@@ -744,7 +744,8 @@ subroutine swanreader(par,s,wp,fname)
   !par%Trep=1/(m1/m0)
 
   call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac,par%Tm01switch)
-  call writelog('sl','','Trep =',par%Trep)
+  call writelog('sl','','Trep = ',par%Trep)
+  call writelog('sl','','Hm0  = ',wp%hm0gew)
 
   allocate(findline(size(wp%Sf)))
 
@@ -873,7 +874,8 @@ deallocate(temp)
 wp%hm0gew=4*sqrt(m0)
 !par%Trep=1/(m1/m0)
 call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac,par%Tm01switch)
-call writelog('sl','','Trep =',par%Trep)
+call writelog('sl','','Trep = ',par%Trep)
+call writelog('sl','','Hm0  = ',wp%hm0gew)
 !
 allocate(findline(size(wp%Sf)))
 firstp=0
