@@ -1166,6 +1166,12 @@ contains
        call writelog('sl','','         1D mode [ny=0]')
        par%front = 'abs_1d '
     endif
+    if (trim(par%back)=='abs_2d' .and. par%ny<3) then
+       call writelog('sl','','Warning: 2D absorbing boundary condition [back=abs_2d] reduces to a')
+       call writelog('sl','','         1D absoribng boundary condition [back=abs_1d] in')
+       call writelog('sl','','         1D mode [ny=0]')
+       par%back = 'abs_1d '
+    endif
     !
     !
     ! fix tint
