@@ -231,7 +231,7 @@ contains
           e01    = factor*E0;
           e01    = max(e01,0.0d0);
 
-          if (abs(theta0)<1.d-9) theta0=1.d-9
+          !if (abs(theta0)<1.d-9) theta0=1.d-9
           ! Dano Llong=par%Tlong*cg(1,1)/cos(theta0)
           Llong=par%Tlong*cg(1,1)
 
@@ -348,7 +348,7 @@ contains
           ei =  sum(ee(1,j,1:ntheta))*dtheta
           bi(1) = -(2*cg(1,j)/c(1,j)-0.5d0)*(em-ei)/(cg(1,j)**2-par%g*hh(1,j))/par%rho
           ht=zs0(1:2,:)-zb(1:2,:)
-          ui(1,j) = cg(1,j)*bi(1)/ht(1,j)*cos(theta0)
+          ui(1,j) = cg(1,j)*bi(1)/ht(1,j)*cos(theta0-alfaz(1,j))
        end do
     elseif (trim(par%instat)=='ts_1') then
        do j=1,ny+1
@@ -363,7 +363,7 @@ contains
           ei = sum(ee(1,j,:))*dtheta
           bi(1) = -(2*cg(1,j)/c(1,j)-0.5d0)*(em-ei)/(cg(1,j)**2-par%g*hh(1,j))/par%rho
           ht=zs0(1:2,:)-zb(1:2,:)
-          ui(1,j) = cg(1,j)*bi(1)/ht(1,j)*cos(theta0)
+          ui(1,j) = cg(1,j)*bi(1)/ht(1,j)*cos(theta0-alfaz(1,j))
        end do
     elseif (trim(par%instat)=='ts_2') then
        ht=zs0(1:2,:)-zb(1:2,:)
@@ -380,7 +380,7 @@ contains
           if (par%freewave==1) then
             ui(1,j) = sqrt(par%g/ht(1,j))*bi(1)
           else
-            ui(1,j) = cg(1,j)*bi(1)/ht(1,j)*cos(theta0)*min(par%t/par%taper,1.d0)
+            ui(1,j) = cg(1,j)*bi(1)/ht(1,j)*cos(theta0-alfaz(1,j))*min(par%t/par%taper,1.d0)
           endif
 
        end do

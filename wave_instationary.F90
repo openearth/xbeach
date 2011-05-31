@@ -122,6 +122,8 @@ contains
     ! Calculate once velocities used with and without wave current interaction
     wcifacu=u*par%wci*min(hh/par%hwci,1.d0)
     wcifacv=v*par%wci*min(hh/par%hwci,1.d0)
+    
+    tm  = (sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
 
     ! Dispersion relation
     if (par%wci .ne. 0) then
@@ -144,7 +146,6 @@ contains
        arg     = min(100.0d0,km*max(hh,par%delta*H))
        sigm(1,:) = sqrt( par%g*km(1,:)*tanh(arg(1,:))) ! *( 1.d0+ ((km(1,:)*H(1,:)/2.d0)**2)))
        !  calculate change in intrinsic frequency
-       tm  = (sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
        kmx = km*dcos(tm)
        kmy = km*dsin(tm)
        wm = sigm+kmx*umwci*par%wci*min((zswci-zb)/par%hwci,1.d0)+kmy*vmwci*par%wci*min((zswci-zb)/par%hwci,1.d0)
@@ -526,14 +527,14 @@ contains
     !   urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*max(hh,par%delta*H)))
 
     ustw= E/max(c,sqrt(par%hmin*par%g))/par%rho/max(hh,par%hmin)   ! Jaap
-    uwf = ustw*cos(tm-alfaz)
-    vwf = ustw*sin(tm-alfaz)
+    uwf = ustw*cos(thetamean-alfaz)
+    vwf = ustw*sin(thetamean-alfaz)
     ! roller contribution
     ustr=2.*R/max(c,sqrt(par%hmin*par%g))/par%rho/max(hh,par%hmin) ! Jaap
     ! introduce breaker delay
     if (par%breakerdelay == 1) then
        call breakerdelay(par,s)
-       ust=usd+ustw
+       ust = ustw+usd
     else
        ust = ustw+ustr
     endif

@@ -60,6 +60,7 @@ contains
 	real*8                                  :: qin                      !specific discharge entering cell
 	real*8                                  :: dzsdnavg                 !alongshore water level slope
 	real*8,save                             :: fc
+	real*8,dimension(:,:),allocatable       :: sinthm,costhm
 
     integer                                 :: imax,jmax,jmin
 
@@ -114,6 +115,10 @@ contains
        ve      =0.d0
        fc      =2.d0*par%wearth*sin(par%lat)
     endif
+    
+    allocate (sinthm(nx+1,ny+1))
+    allocate (costhm(nx+1,ny+1))
+    
     ! update bedfriction coefficient cf
     if (trim(par%bedfriction)=='white-colebrook') then
        cf = par%g/(18.d0*log10(4.*hh/min(hh,D90top)))**2 ! cf = g/C^2 where C = 18*log(4*hh/D90)
@@ -822,6 +827,10 @@ contains
 #endif
     ! Robert + Jaap: compute derivatives of u and v
     !
+    
+    sinthm = sin(thetamean-alfaz)
+    costhm = cos(thetamean-alfaz)
+    
     ! V-velocities at u-points
     if (ny>0) then
       vu(1:nx,2:ny)= 0.25d0*(vv(1:nx,1:ny-1)+vv(1:nx,2:ny)+ &
@@ -847,8 +856,8 @@ contains
     vu=vu*wetu
     ! V-stokes velocities at U point
     if (ny>0) then
-      vsu(1:nx,2:ny)=0.5d0*(ust(1:nx,2:ny)*sin(thetamean(1:nx,2:ny))+ &
-                            ust(2:nx+1,2:ny)*sin(thetamean(2:nx+1,2:ny)))
+      vsu(1:nx,2:ny)=0.5d0*(ust(1:nx,2:ny)*sinthm(1:nx,2:ny)+ &
+                            ust(2:nx+1,2:ny)*sinthm(2:nx+1,2:ny))
       if(xmpi_isleft) then
         vsu(:,1)=vsu(:,2)
       endif
@@ -856,8 +865,8 @@ contains
         vsu(:,ny+1) = vsu(:,ny)
       endif
     else
-      vsu(1:nx,1)=0.5d0*(ust(1:nx,1)*sin(thetamean(1:nx,1))+ &
-                         ust(2:nx+1,1)*sin(thetamean(2:nx+1,1)))
+      vsu(1:nx,1)=0.5d0*(ust(1:nx,1)*sinthm(1:nx,1)+ &
+                         ust(2:nx+1,1)*sinthm(2:nx+1,1))
     endif !ny>0
     ! wwvv same for vsu
 #ifdef USEMPI
@@ -868,8 +877,8 @@ contains
     vsu = vsu*wetu
     ! U-stokes velocities at U point
     if (ny>0) then
-      usu(1:nx,2:ny)=0.5d0*(ust(1:nx,2:ny)*cos(thetamean(1:nx,2:ny))+ &
-                            ust(2:nx+1,2:ny)*cos(thetamean(2:nx+1,2:ny)))
+      usu(1:nx,2:ny)=0.5d0*(ust(1:nx,2:ny)*costhm(1:nx,2:ny)+ &
+                            ust(2:nx+1,2:ny)*costhm(2:nx+1,2:ny))
       if(xmpi_isleft) then
         usu(:,1)=usu(:,2)
       endif
@@ -877,8 +886,8 @@ contains
         usu(:,ny+1)=usu(:,ny)
       endif
     else
-      usu(1:nx,1)=0.5d0*(ust(1:nx,1)*cos(thetamean(1:nx,1))+ &
-                         ust(2:nx+1,1)*cos(thetamean(2:nx+1,1)))
+      usu(1:nx,1)=0.5d0*(ust(1:nx,1)*costhm(1:nx,1)+ &
+                         ust(2:nx+1,1)*costhm(2:nx+1,1))
     endif !ny>0
     ! wwvv same for usu   
 #ifdef USEMPI
@@ -921,8 +930,8 @@ contains
     uv=uv*wetv
     ! V-stokes velocities at V point
     if (ny>0) then
-      vsv(2:nx,1:ny)=0.5d0*(ust(2:nx,1:ny)*sin(thetamean(2:nx,1:ny))+&
-                            ust(2:nx,2:ny+1)*sin(thetamean(2:nx,2:ny+1)))
+      vsv(2:nx,1:ny)=0.5d0*(ust(2:nx,1:ny)*sinthm(2:nx,1:ny)+&
+                            ust(2:nx,2:ny+1)*sinthm(2:nx,2:ny+1))
       if(xmpi_isleft) then
         vsv(:,1) = vsv(:,2)
       endif
@@ -930,7 +939,7 @@ contains
         vsv(:,ny+1) = vsv(:,ny)
       endif
     else
-      vsv(2:nx,1)= ust(2:nx,1)*sin(thetamean(2:nx,1))
+      vsv(2:nx,1)= ust(2:nx,1)*sinthm(2:nx,1)
     endif !ny>0
     ! wwvv fix vsv(:,1) and vsv(:,ny+1) and vsv(1,:) and vsv(nx+1,:)
 #ifdef USEMPI
@@ -943,8 +952,8 @@ contains
     vsv=vsv*wetv
     ! U-stokes velocities at V point
     if (ny>0) then
-      usv(2:nx,1:ny)=0.5d0*(ust(2:nx,1:ny)*cos(thetamean(2:nx,1:ny))+&
-                            ust(2:nx,2:ny+1)*cos(thetamean(2:nx,2:ny+1)))
+      usv(2:nx,1:ny)=0.5d0*(ust(2:nx,1:ny)*costhm(2:nx,1:ny)+&
+                            ust(2:nx,2:ny+1)*costhm(2:nx,2:ny+1))
       if(xmpi_isleft) then
         usv(:,1) = usv(:,2)
       endif
@@ -952,7 +961,7 @@ contains
         usv(:,ny+1) = usv(:,ny)
       endif
     else
-      usv(2:nx,1)=ust(2:nx,1)*cos(thetamean(2:nx,1))
+      usv(2:nx,1)=ust(2:nx,1)*costhm(2:nx,1)
     endif !ny>0
     ! wwvv fix usv(:,1) and usv(:,ny+1) and usv(1,:) and usv(nx+1,:)
 #ifdef USEMPI

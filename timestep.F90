@@ -497,7 +497,7 @@ subroutine timestep(s,par, tpar, it, ierr)
 #ifdef USEMPI
     call xmpi_allreduce(par%dt,MPI_MIN)
 #endif
-
+    
     par%t=par%t+par%dt
 
     if(par%t>=tpar%tnext) then
