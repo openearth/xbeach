@@ -197,6 +197,7 @@ type parameters
    character(256):: aquiferbotfile             = 'abc'   !  [-] (advanced) Name of the aquifer bottom file
    real*8        :: gw0                        = -123    !  [m] (advanced) Level initial groundwater level
    character(256):: gw0file                    = 'abc'   !  [-] (advanced) Name of initial groundwater level file
+   real*8        :: gwdelay                    = -123    !  [s] (advanced) Duration for pressure smoothing function in groundwater module
 
    
    ! [Section] Q3D sediment transport parameters
@@ -364,6 +365,10 @@ contains
     logical                                             :: comment
     
     call writelog('sl','','Reading input parameters: ')
+    !
+    ! Check params.txt exists
+    !
+    call check_file_exist('params.txt')
     !
     !
     ! Physical processes 
@@ -766,6 +771,8 @@ contains
        else 
           call check_file_exist(par%gw0file)
        endif
+       
+       par%gwdelay    = readkey_dbl ('params.txt','gwdelay'   , 0.2d0    , 0.01d0     , 1.d0)
     endif
     !
     !
