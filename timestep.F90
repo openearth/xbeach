@@ -425,7 +425,8 @@ subroutine timestep(s,par, tpar, it, ierr)
      par%dt=huge(0.0d0)      ! Seed dt
      do j=j1,max(s%ny,1)
         do i=2,s%nx
-           if(s%wetz(i,j)==1 .and. s%ny>0) then     
+           if(s%wetz(i,j)==1) then
+            if (s%ny>2) then     
               ! u-points
               mdx=s%dsu(i+1,j)
               mdy=min(s%dnv(i,j),s%dnv(i,j-1))
@@ -446,7 +447,7 @@ subroutine timestep(s,par, tpar, it, ierr)
               mdy = min(s%dnv(i,j),s%dnz(i,j))**2
 
               par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
-           elseif(s%wetz(i,j)==1 .and. s%ny==0) then
+            else
               ! u-points
               mdx=s%dsu(i,j)
               par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j)),abs(s%ueu(i,j))))) !Jaap: include sediment advection velocities
@@ -455,13 +456,15 @@ subroutine timestep(s,par, tpar, it, ierr)
               par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j)))))
               
               mdx = min(s%dsu(i,j),s%dsz(i,j))**2
-              ! Jaap temporary fix for consistent superfast 1D (only works for shore normal waves) 
-              if (par%dy > -1.d0) then
+              
+              if (par%dy > 0.d0) then
                  mdy = par%dy
               else
                  mdy = mdx
               endif
+              
               par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
+            endif
            endif
         enddo
      enddo
