@@ -29,6 +29,7 @@ type parameters
    integer*4     :: flow                       = -123    !  [-] Include flow calculation (1), or exclude (0)
    integer*4     :: sedtrans                   = -123    !  [-] Include sediment transport (1) or exclude (0)
    integer*4     :: morphology                 = -123    !  [-] Include morphology (1) or exclude (0)
+   integer*4     :: avalanching                = -123    !  [-] Include avalanching (1) or exclude (0)
    integer*4     :: nonh                       = -123    !  [-] (advanced) Non-hydrostatic pressure option: 0 = NSWE, 1 = NSW + non-hydrostatic pressure compensation Stelling & Zijlema, 2003 
    integer*4     :: gwflow                     = -123    !  [-] (advanced) Turn on (1) or off (0) groundwater flow module
    integer*4     :: q3d                        = -123    !  [-] (advanced) Turn on (1) or off (0) quasi-3D sediment transport module
@@ -374,14 +375,15 @@ contains
     ! Physical processes 
     call writelog('l','','--------------------------------')
     call writelog('l','','Physical processes: ')
-    par%swave      = readkey_int ('params.txt','swave',         1,        0,     1)
-    par%lwave      = readkey_int ('params.txt','lwave',         1,        0,     1)
-    par%flow       = readkey_int ('params.txt','flow',          1,        0,     1)
-    par%sedtrans   = readkey_int ('params.txt','sedtrans',      1,        0,     1)
-    par%morphology = readkey_int ('params.txt','morphology',    1,        0,     1)
-    par%nonh       = readkey_int ('params.txt','nonh',          0,        0,     1)
-    par%gwflow     = readkey_int ('params.txt','gwflow',        0,        0,     1)
-    par%q3d        = readkey_int ('params.txt','q3d',           0,        0,     1)
+    par%swave       = readkey_int ('params.txt','swave',         1,        0,     1)
+    par%lwave       = readkey_int ('params.txt','lwave',         1,        0,     1)
+    par%flow        = readkey_int ('params.txt','flow',          1,        0,     1)
+    par%sedtrans    = readkey_int ('params.txt','sedtrans',      1,        0,     1)
+    par%morphology  = readkey_int ('params.txt','morphology',    1,        0,     1)
+    par%avalanching = readkey_int ('params.txt','avalanching',   1,        0,     1)
+    par%nonh        = readkey_int ('params.txt','nonh',          0,        0,     1)
+    par%gwflow      = readkey_int ('params.txt','gwflow',        0,        0,     1)
+    par%q3d         = readkey_int ('params.txt','q3d',           0,        0,     1)
     !
     !
     ! Grid parameters
@@ -418,9 +420,13 @@ contains
         par%xfile = readkey_name('params.txt','xfile')
         call check_file_exist(par%xfile)
         call check_file_length(par%xfile,par%nx+1,par%ny+1)
+        
         par%yfile = readkey_name('params.txt','yfile')
-        call check_file_exist(par%yfile)
-        call check_file_length(par%yfile,par%nx+1,par%ny+1)
+        if (par%ny>0) then
+            call check_file_exist(par%yfile)
+            call check_file_length(par%yfile,par%nx+1,par%ny+1)
+        end if
+        
       endif
     elseif (trim(par%gridform)=='delft3d') then
       par%depfile = readkey_name('params.txt','depfile',required=.true.)

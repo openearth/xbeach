@@ -518,7 +518,7 @@ subroutine breakerdelay(par,s)
             nbr     = 0
             Lbr     = sqrt(par%g*hh(jx,jy))*par%Trep
             i       = jx-1
-            do while (xz(i,jy)>=(xz(jx,jy)-Lbr) .and. i>1)
+            do while (abs(xz(i,jy)-xz(jx,jy))<=Lbr .and. i>1)
                 nbr = nbr+1
                 i   = i-1
             end do

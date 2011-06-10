@@ -96,15 +96,21 @@ contains
           endif
        elseif (s%vardx==1) then   ! Robert keep vardx == 1 for backwards compatibility??
           if (xmaster) then
-             open(31,file=par%depfile)
-             open(32,file=par%xfile)
-             open(33,file=par%yfile)
-             read(31,*)((s%zb(i,j),i=1,s%nx+1),j=1,s%ny+1)
-             read(32,*)((s%x(i,j),i=1,s%nx+1),j=1,s%ny+1)
-             read(33,*)((s%y(i,j),i=1,s%nx+1),j=1,s%ny+1)
+             open (31,file=par%depfile)
+             read (31,*)((s%zb(i,j),i=1,s%nx+1),j=1,s%ny+1)
              close(31)
+             
+             open (32,file=par%xfile)
+             read (32,*)((s%x(i,j),i=1,s%nx+1),j=1,s%ny+1)
              close(32)
-             close(33)
+             
+             if (s%ny>0 .and. par%yfile/=' ') then
+                open (33,file=par%yfile)
+                read (33,*)((s%y(i,j),i=1,s%nx+1),j=1,s%ny+1)
+                close(33)
+             else
+                s%y = 0.d0
+             end if
           endif
        else 
           call writelog('esl','','Invalid value for vardx: ',par%vardx)

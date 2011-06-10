@@ -431,12 +431,6 @@ contains
 #endif
 
     !
-    !
-    ! Compute mean wave direction
-    !
-    thetamean=(sum(ee*thet,3)/size(ee,3))/(max(sum(ee,3),0.00001d0)/size(ee,3))
-
-    !
     ! Energy integrated over wave directions,Hrms
     !
     E  = sum(ee,3)*dtheta
@@ -444,7 +438,12 @@ contains
     DR = sum(drr,3)*dtheta
     H  = sqrt(E/par%rhog8)
     waverr=sum(abs(H-hrmsold))/((nx+1)*(ny+1))
-    !    write(*,*)'waverr=',par%waverr,'t = ',par%t
+
+    !
+    ! Compute mean wave direction
+    !
+    thetamean=(sum(ee*thet,3)/size(ee,3))/(max(sum(ee,3),0.00001d0)/size(ee,3))
+    
     !
     ! Radiation stresses and forcing terms
     !

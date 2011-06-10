@@ -53,6 +53,8 @@ contains
     real*8,dimension(:,:),allocatable,save   :: cub,cvb,Sub,Svb,pbbedu,pbbedv
     real*8,dimension(:,:),allocatable,save   :: suq3d,svq3d,eswmax,eswbed,sigs,deltas
     real*8,dimension(:,:,:),allocatable,save :: dsig,ccv,sdif,cuq3d,cvq3d,fac
+    
+    real*8,dimension(:,:),allocatable       :: sinthm,costhm
 
     include 's.ind'
     include 's.inp'
@@ -109,6 +111,7 @@ contains
           cumchain(isig) = cumchain(isig-1)+chain(isig)
        enddo
     endif
+    
     ! use eulerian velocities
     vmag2     = ue**2+ve**2
     cu        = 0.0d0
@@ -118,6 +121,11 @@ contains
     dcsdx     = 0.0d0
     dcsdy     = 0.0d0
 
+    allocate (sinthm(nx+1,ny+1))
+    allocate (costhm(nx+1,ny+1))
+    
+    sinthm = sin(thetamean-alfaz)
+    costhm = cos(thetamean-alfaz)
 
     ! compute long wave turbulence due to breaking
     if (par%lwt==1) then
@@ -170,8 +178,8 @@ contains
        ! X-direction
        !
        ! Get ua in u points and split out in u and v direction
-       uau(1:nx,:) = 0.5*(ua(1:nx,:)*cos(thetamean(1:nx,:))+ua(2:nx+1,:)*cos(thetamean(1:nx,:)))
-       uav(1:nx,:) = 0.5*(ua(1:nx,:)*sin(thetamean(1:nx,:))+ua(2:nx+1,:)*sin(thetamean(1:nx,:)))
+       uau(1:nx,:) = 0.5*(ua(1:nx,:)*costhm(1:nx,:)+ua(2:nx+1,:)*costhm(1:nx,:))
+       uav(1:nx,:) = 0.5*(ua(1:nx,:)*sinthm(1:nx,:)+ua(2:nx+1,:)*sinthm(1:nx,:))
        ! Compute vmagu including ua
        vmagu = sqrt((uu+uau)**2+(vu+uav)**2)
        ! sediment advection velocity for suspended load and bed load respectively
@@ -244,11 +252,11 @@ contains
        !
        ! Jaap: get ua in v points and split out in u and v direction
        if (ny>0) then
-          uau(:,1:ny) = 0.5*(ua(:,1:ny)*cos(thetamean(:,1:ny))+ua(:,2:ny+1)*cos(thetamean(:,1:ny)))
-          uav(:,1:ny) = 0.5*(ua(:,1:ny)*sin(thetamean(:,1:ny))+ua(:,2:ny+1)*sin(thetamean(:,1:ny)))
+          uau(:,1:ny) = 0.5*(ua(:,1:ny)*costhm(:,1:ny)+ua(:,2:ny+1)*costhm(:,1:ny))
+          uav(:,1:ny) = 0.5*(ua(:,1:ny)*sinthm(:,1:ny)+ua(:,2:ny+1)*sinthm(:,1:ny))
        else
-          uau=ua*cos(thetamean)
-          uav=ua*sin(thetamean)
+          uau=ua*costhm
+          uav=ua*sinthm
        endif
        ! Jaap: compute vmagv including ua
        vmagv = sqrt((uv+uau)**2+(vv+uav)**2)
@@ -621,169 +629,171 @@ contains
        !
        ! Avalanching
        !
-       do ii=1,nint(par%morfac)
+       if (par%avalanching==1) then
+           do ii=1,nint(par%morfac)
 
-          aval=.false.
-          dzbdx=0.d0
-          dzbdy=0.d0
-          do j=1,ny+1
-             do i=1,nx
-                dzbdx(i,j)=(zb(i+1,j)-zb(i,j))/dsu(i,j)
-             enddo
-          enddo
-          !
-          do i=2,nx-1
-             do j=1,ny+1
-                !if (max( max(hh(i,j),par%delta*H(i,j)), max(hh(i+1,j),par%delta*H(i+1,j)) )>par%hswitch+par%eps) then
-                if(max(hh(i,j),hh(i+1,j))>par%hswitch+par%eps) then
-                   dzmax=par%wetslp;
-                else
-                   dzmax=par%dryslp;
-                end if
-                if (dzbdx(i,j)<0) then
-                   dzb = dzb
-                endif
+              aval=.false.
+              dzbdx=0.d0
+              dzbdy=0.d0
+              do j=1,ny+1
+                 do i=1,nx
+                    dzbdx(i,j)=(zb(i+1,j)-zb(i,j))/dsu(i,j)
+                 enddo
+              enddo
+              !
+              do i=2,nx-1
+                 do j=1,ny+1
+                    !if (max( max(hh(i,j),par%delta*H(i,j)), max(hh(i+1,j),par%delta*H(i+1,j)) )>par%hswitch+par%eps) then
+                    if(max(hh(i,j),hh(i+1,j))>par%hswitch+par%eps) then
+                       dzmax=par%wetslp;
+                    else
+                       dzmax=par%dryslp;
+                    end if
+                    if (dzbdx(i,j)<0) then
+                       dzb = dzb
+                    endif
 
-                if(abs(dzbdx(i,j))>dzmax ) then
-                   aval=.true.     
-                   dzb=sign(1.0d0,dzbdx(i,j))*(abs(dzbdx(i,j))-dzmax)*dsu(i,j);
-                   !Dano: Need to make this mass-conserving for curved areas; good enough for now
-                   if (dzb >= 0.d0) then
-                      ie = i+1                                        ! index erosion point
-                      id = i                                          ! index deposition point
-                      dxfac = dsz(i+1,j)/dsz(i,j)                     ! take into account varying gridsize
-                      dzb=min(dzb,par%dzmax*par%dt/dsu(i,j))          ! make sure dzb is not in conflict with maximum erosion rate par%dzmax
-                      dzb=min(dzb,structdepth(i+1,j))                 ! make sure dzb is not larger than sediment layer thickness
-                   else
-                      ie = i                                          ! index erosion point
-                      id = i+1                                        ! index deposition point
-                      dxfac = dsz(i,j)/dsz(i+1,j)                     ! take into account varying gridsize
-                      dzb=max(dzb,-par%dzmax*par%dt/dsu(i,j)) 
-                      dzb=max(dzb,-structdepth(i,j))
-                   endif
+                    if(abs(dzbdx(i,j))>dzmax ) then
+                       aval=.true.     
+                       dzb=sign(1.0d0,dzbdx(i,j))*(abs(dzbdx(i,j))-dzmax)*dsu(i,j);
+                       !Dano: Need to make this mass-conserving for curved areas; good enough for now
+                       if (dzb >= 0.d0) then
+                          ie = i+1                                        ! index erosion point
+                          id = i                                          ! index deposition point
+                          dxfac = dsz(i+1,j)/dsz(i,j)                     ! take into account varying gridsize
+                          dzb=min(dzb,par%dzmax*par%dt/dsu(i,j))          ! make sure dzb is not in conflict with maximum erosion rate par%dzmax
+                          dzb=min(dzb,structdepth(i+1,j))                 ! make sure dzb is not larger than sediment layer thickness
+                       else
+                          ie = i                                          ! index erosion point
+                          id = i+1                                        ! index deposition point
+                          dxfac = dsz(i,j)/dsz(i+1,j)                     ! take into account varying gridsize
+                          dzb=max(dzb,-par%dzmax*par%dt/dsu(i,j)) 
+                          dzb=max(dzb,-structdepth(i,j))
+                       endif
 
-                   ! now fix fractions....
-                   dz => dzbed(ie,j,:) 
-                   pb => pbbed(ie,j,:,:)
+                       ! now fix fractions....
+                       dz => dzbed(ie,j,:) 
+                       pb => pbbed(ie,j,:,:)
 
-                   ! figure out how many depth layers (ndz) are eroded in point iii
-                   sdz = 0
-                   ndz = 0
-                   do while (sdz<abs(dzb))
-                      ndz = ndz+1
-                      sdz = sdz+dz(ndz)
-                   enddo
+                       ! figure out how many depth layers (ndz) are eroded in point iii
+                       sdz = 0
+                       ndz = 0
+                       do while (sdz<abs(dzb))
+                          ndz = ndz+1
+                          sdz = sdz+dz(ndz)
+                       enddo
 
-                   ! now update bed and fractions by stepping through each layer seperately
-                   dzleft = abs(dzb)
-                   dzavt  = 0.d0
+                       ! now update bed and fractions by stepping through each layer seperately
+                       dzleft = abs(dzb)
+                       dzavt  = 0.d0
 
-                   do jdz=1,ndz
+                       do jdz=1,ndz
 
-                      dzt = min(dz(jdz),dzleft)
-                      dzleft = dzleft-dzt;
+                          dzt = min(dz(jdz),dzleft)
+                          dzleft = dzleft-dzt;
 
-                      ! erosion deposition per fraction (upwind or downwind); edg is positive in case of erosion   
-                      do jg=1,par%ngd 
-                         edg2(jg) =  sedcal(jg)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt       ! erosion    (dzt always > 0 )
-                         edg1(jg) = -sedcal(jg)*edg2(jg)*dxfac                             ! deposition (dzt always < 0 )
-                      enddo
+                          ! erosion deposition per fraction (upwind or downwind); edg is positive in case of erosion   
+                          do jg=1,par%ngd 
+                             edg2(jg) =  sedcal(jg)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt       ! erosion    (dzt always > 0 )
+                             edg1(jg) = -sedcal(jg)*edg2(jg)*dxfac                             ! deposition (dzt always < 0 )
+                          enddo
 
-                      dzavt = dzavt + sum(edg2)*par%dt/(1.d0-par%por)
+                          dzavt = dzavt + sum(edg2)*par%dt/(1.d0-par%por)
 
-                      call update_fractions(par,s,ie,j,dzbed(ie,j,:),pbbed(ie,j,:,:),edg2,dzavt)           ! update bed in eroding point
+                          call update_fractions(par,s,ie,j,dzbed(ie,j,:),pbbed(ie,j,:,:),edg2,dzavt)           ! update bed in eroding point
 
-                      call update_fractions(par,s,id,j,dzbed(id,j,:),pbbed(id,j,:,:),edg1,-dzavt*dxfac)    ! update bed in deposition point
+                          call update_fractions(par,s,id,j,dzbed(id,j,:),pbbed(id,j,:,:),edg1,-dzavt*dxfac)    ! update bed in deposition point
 
-                   enddo
+                       enddo
 
-                   ! update water levels and dzav
-                   zs(ie,j)  = zs(ie,j)-dzavt
-                   dzav(ie,j)= dzav(ie,j)-dzavt
+                       ! update water levels and dzav
+                       zs(ie,j)  = zs(ie,j)-dzavt
+                       dzav(ie,j)= dzav(ie,j)-dzavt
 
-                   zs(id,j)  = zs(id,j)+dzavt*dxfac
-                   dzav(id,j)= dzav(id,j)+dzavt*dxfac
+                       zs(id,j)  = zs(id,j)+dzavt*dxfac
+                       dzav(id,j)= dzav(id,j)+dzavt*dxfac
 
-                end if
-             end do
-          end do
-          !JJ: update y slopes after avalanching in X-direction seems more appropriate
-          do j=1,ny
-             do i=1,nx+1
-                dzbdy(i,j)=(zb(i,j+1)-zb(i,j))/dnv(i,j)
-             enddo
-          enddo
+                    end if
+                 end do
+              end do
+              !JJ: update y slopes after avalanching in X-direction seems more appropriate
+              do j=1,ny
+                 do i=1,nx+1
+                    dzbdy(i,j)=(zb(i,j+1)-zb(i,j))/dnv(i,j)
+                 enddo
+              enddo
 
-          do j=2,ny-1
-             do i=1,nx+1
-                if(max(hh(i,j),hh(i,j+1))>par%hswitch+par%eps) then
-                   dzmax=par%wetslp
-                else
-                   dzmax=par%dryslp
-                end if
-                if(abs(dzbdy(i,j))>dzmax ) then 
-                   aval=.true. 
-                   dzb=sign(1.0d0,dzbdy(i,j))*(abs(dzbdy(i,j))-dzmax)*dnv(i,j)
-                   !
-                   if (dzb >= 0.d0) then
-                      je = j+1                                        ! index erosion point
-                      jd = j                                          ! index deposition point
-                      dyfac = dnz(i,j+1)/dnz(i,j)                     ! take into account varying gridsize
-                      dzb=min(dzb,par%dzmax*par%dt/dnv(i,j))
-                      dzb=min(dzb,structdepth(i,j+1))
-                   else
-                      je = j                                          ! index erosion point
-                      jd = j+1                                        ! index deposition point
-                      dyfac = dnz(i,j)/dnz(i,j+1)                     ! take into account varying gridsize
-                      dzb=max(dzb,-par%dzmax*par%dt/dnv(i,j))
-                      dzb=max(dzb,-structdepth(i,j))
-                   endif
+              do j=2,ny-1
+                 do i=1,nx+1
+                    if(max(hh(i,j),hh(i,j+1))>par%hswitch+par%eps) then
+                       dzmax=par%wetslp
+                    else
+                       dzmax=par%dryslp
+                    end if
+                    if(abs(dzbdy(i,j))>dzmax ) then 
+                       aval=.true. 
+                       dzb=sign(1.0d0,dzbdy(i,j))*(abs(dzbdy(i,j))-dzmax)*dnv(i,j)
+                       !
+                       if (dzb >= 0.d0) then
+                          je = j+1                                        ! index erosion point
+                          jd = j                                          ! index deposition point
+                          dyfac = dnz(i,j+1)/dnz(i,j)                     ! take into account varying gridsize
+                          dzb=min(dzb,par%dzmax*par%dt/dnv(i,j))
+                          dzb=min(dzb,structdepth(i,j+1))
+                       else
+                          je = j                                          ! index erosion point
+                          jd = j+1                                        ! index deposition point
+                          dyfac = dnz(i,j)/dnz(i,j+1)                     ! take into account varying gridsize
+                          dzb=max(dzb,-par%dzmax*par%dt/dnv(i,j))
+                          dzb=max(dzb,-structdepth(i,j))
+                       endif
 
-                   dz => dzbed(i,je,:) 
-                   pb => pbbed(i,je,:,:)
+                       dz => dzbed(i,je,:) 
+                       pb => pbbed(i,je,:,:)
 
-                   ! figure out how many depth layers (ndz) are affected
-                   sdz = 0
-                   ndz = 0
-                   do while (sdz<abs(dzb))
-                      ndz = ndz+1
-                      sdz = sdz+dz(ndz)
-                   enddo
+                       ! figure out how many depth layers (ndz) are affected
+                       sdz = 0
+                       ndz = 0
+                       do while (sdz<abs(dzb))
+                          ndz = ndz+1
+                          sdz = sdz+dz(ndz)
+                       enddo
 
-                   ! now update bed and fractions by stepping through each layer seperately
-                   dzleft = abs(dzb)
-                   dzavt  = 0.d0
+                       ! now update bed and fractions by stepping through each layer seperately
+                       dzleft = abs(dzb)
+                       dzavt  = 0.d0
 
-                   do jdz=1,ndz
-                      dzt = min(dz(jdz),dzleft)
-                      dzleft = dzleft-dzt;
+                       do jdz=1,ndz
+                          dzt = min(dz(jdz),dzleft)
+                          dzleft = dzleft-dzt;
 
-                      ! erosion deposition per fraction (upwind or downwind); edg is positive in case of erosion  
-                      do jg=1,par%ngd 
-                         edg2(jg) = sedcal(jg)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt        ! erosion    (dzt always > 0 )
-                         edg1(jg) = -sedcal(jg)*edg2(jg)*dyfac                             ! deposition (dzt always < 0 )
-                      enddo
+                          ! erosion deposition per fraction (upwind or downwind); edg is positive in case of erosion  
+                          do jg=1,par%ngd 
+                             edg2(jg) = sedcal(jg)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt        ! erosion    (dzt always > 0 )
+                             edg1(jg) = -sedcal(jg)*edg2(jg)*dyfac                             ! deposition (dzt always < 0 )
+                          enddo
 
-                      dzavt = dzavt + sum(edg2)*par%dt/(1.d0-par%por)
+                          dzavt = dzavt + sum(edg2)*par%dt/(1.d0-par%por)
 
-                      call update_fractions(par,s,i,je,dzbed(i,je,:),pbbed(i,je,:,:),edg2,dzavt)            ! upwind point
+                          call update_fractions(par,s,i,je,dzbed(i,je,:),pbbed(i,je,:,:),edg2,dzavt)            ! upwind point
 
-                      call update_fractions(par,s,i,jd,dzbed(i,jd,:),pbbed(i,jd,:,:),edg1,-dzavt*dyfac)    ! downwind point
+                          call update_fractions(par,s,i,jd,dzbed(i,jd,:),pbbed(i,jd,:,:),edg1,-dzavt*dyfac)    ! downwind point
 
-                   enddo
+                       enddo
 
-                   ! update water levels and dzav
-                   zs(i,je)  = zs(i,je)-dzavt
-                   dzav(i,je)= dzav(i,je)-dzavt
+                       ! update water levels and dzav
+                       zs(i,je)  = zs(i,je)-dzavt
+                       dzav(i,je)= dzav(i,je)-dzavt
 
-                   zs(i,jd)  = zs(i,jd)+dzavt*dyfac
-                   dzav(i,jd)= dzav(i,jd)+dzavt*dyfac
+                       zs(i,jd)  = zs(i,jd)+dzavt*dyfac
+                       dzav(i,jd)= dzav(i,jd)+dzavt*dyfac
 
-                end if
-             end do
-          end do
-          if (.not.aval) exit
-       end do
+                    end if
+                 end do
+              end do
+              if (.not.aval) exit
+           end do
+       end if
        !
        ! bed boundary conditions
        ! 
