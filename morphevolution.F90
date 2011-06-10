@@ -301,7 +301,7 @@ contains
        Svs = 0.d0
        Svb = 0.d0
        ! Suspended load
-       Svs=par%sus*(cv*vreps*hv-Dc*hv*dcsdy)*wetv
+       Svs=par%sus*(cv*vreps*hv-Dc*hv*dcsdy-par%facsl*cv*vmagv*hv*dzbdy)*wetv
        ! Bed load
        Svb=par%bed*(cvb*vrepb*hv-par%facsl*cvb*vmagv*hv*dzbdy)*wetv
        !
@@ -317,7 +317,6 @@ contains
           end do
        end do
        !
-       Svb = 0.d0
        Svb = pbbedv*Svb
        !
        ! BRJ: implicit concentration update (compute sources first, sink must be computed after updating actual sed.conc.)
@@ -881,10 +880,10 @@ contains
     ! do t_sub=1,nt_sub  !loop over subtimesteps
     do while (abs(dzb_loc) .gt. 0.d0)
        ! dzb can be nan, check...
-       if (isnan(dzb_loc)) then
-          write(*,*) dzbt, dzb_loc
-          write(*,*) 'dzb is nan'
-       end if
+   !    if (isnan(dzb_loc)) then
+    !      write(*,*) dzbt, dzb_loc
+    !      write(*,*) 'dzb is nan'
+    !   end if
        dzbt     = min(dzb_loc,dz(par%nd_var))                 ! make sure erosion (dzg is positive) is limited to thickness of variable layer
        dzbt     = max(dzbt,-par%frac_dz*dz(par%nd_var+1))     ! make sure deposition (dzg is negative) is limited to thickness of first layer below variable layer
 
