@@ -203,17 +203,13 @@ subroutine writelog_mpi(mpiboundary,error)
 end subroutine writelog_mpi
 #endif
 
-subroutine writelog_finalize(par, tbegin, n, t0, t01)
-    
-    use params
+subroutine writelog_finalize(tbegin, n, t, nx, ny, t0, t01)
 
     implicit none
-
-    type(parameters)                                :: par
     
-    integer                                         :: n
+    integer                                         :: n,nx,ny
     real*8                                          :: tbegin,tend
-    real*8                                          :: duration,dt,performance
+    real*8                                          :: t,duration,dt,performance
     real*8, optional                                :: t0,t01
     
 #ifdef USEMPI
@@ -225,8 +221,8 @@ subroutine writelog_finalize(par, tbegin, n, t0, t01)
         call cpu_time(tend)
         
         duration    = tend-tbegin
-        dt          = par%t/n
-        performance = duration/(par%nx+1)/(par%ny+1)/n
+        dt          = t/n
+        performance = duration/(nx+1)/(ny+1)/n
         
         call writelog('ls','','Duration   : ',duration,' seconds'       )
         call writelog('ls','','Timesteps  : ',n                         )

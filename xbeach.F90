@@ -153,10 +153,10 @@ enddo
 !-----------------------------------------------------------------------------!
 
 #ifdef USEMPI
-call writelog_finalize(par,tbegin,n,t0,t01)
+call writelog_finalize(tbegin,n,par%t,par%nx,par%ny,t0,t01)
 call xmpi_finalize
 #else
-call writelog_finalize(par,tbegin,n)
+call writelog_finalize(tbegin,n,par%t,par%nx,par%ny)
 #endif
 
 end program

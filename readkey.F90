@@ -335,10 +335,12 @@ contains
           endif
           do i=1,vlength
              if (value_vec(i)>mxval) then
-                call writelog('lw','(a,a,f0.4,a,f0.4)',(printkey),' = ',value_vec(i),' Warning: value > recommended value of ',mxval)
+                call writelog('lw','(a,a,f0.4,a,f0.4)',(printkey),' = ',value_vec(i), &
+                    ' Warning: value > recommended value of ',mxval)
                 call writelog('s','(a,a,a,f0.4)','Warning: ',trim(printkey),' > recommended value of ',mxval)
              elseif (value_vec(i)<mnval) then
-                call writelog('lw','(a,a,f0.4,a,f0.4)',(printkey),' = ',value_vec(i),' Warning: value < recommended value of ',mnval)
+                call writelog('lw','(a,a,f0.4,a,f0.4)',(printkey),' = ',value_vec(i), &
+                    ' Warning: value < recommended value of ',mnval)
                 call writelog('s','(a,a,a,f0.4)','Warning: ',trim(printkey),' < recommended value of ',mnval)
              else
                 call writelog('l','(a,a,f0.4)',(printkey),' = ',value_vec(i))
