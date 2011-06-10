@@ -203,7 +203,7 @@ subroutine writelog_mpi(mpiboundary,error)
 end subroutine writelog_mpi
 #endif
 
-subroutine writelog_finalize(tbegin, n, t0, t01)
+subroutine writelog_finalize(par, tbegin, n, t0, t01)
     
     use params
 
