@@ -1593,7 +1593,7 @@ do m=1,K-1
     dif = (abs(term2-term2new))
     if (any(dif>0.01*term2 .and. firsttime .eqv. .true.)) then
        firsttime = .false.
-       call writelog('sl','','Warning: shallow water so long wave variance is reduced using par%nmax'); 
+       call writelog('lws','','Warning: shallow water so long wave variance is reduced using par%nmax'); 
     endif 
     
     chk1  = cosh(k1(1:K-m)*wp%h0t0)

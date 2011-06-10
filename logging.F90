@@ -6,6 +6,7 @@ implicit none
 
 integer,save     :: logfileid
 integer,save     :: errorfileid
+integer,save     :: warningfileid
 !integer,save     :: pardatfileid
 
 
@@ -14,6 +15,7 @@ integer,save     :: errorfileid
 ! 's' = screen
 ! 'l' = log file
 ! 'e' = error file
+! 'w' = warning file
 !
 ! Combinations also allowed, f.i.
 ! 'le' = log file and error file
@@ -61,75 +63,79 @@ end interface writelog
 CONTAINS
 
   subroutine start_logfiles(error)
+  
     implicit none
-    integer    :: error
-    integer    :: tryunit = 98
-    logical    :: fileopen
+    
+    integer         :: error
 
     if (xmaster) then 
-       fileopen = .true.    
-       error    = 0
-       do while (fileopen)
-          inquire(tryunit,OPENED=fileopen)
-          if (fileopen) then
-             tryunit=tryunit-1
-          endif
-          if (tryunit<=10) then 
-             tryunit = -1
-             error  = 1
-             fileopen = .false.
-             return
-          endif
-       enddo
-       logfileid = tryunit
-       if (xmaster) then
-          open(logfileid,file='XBlog.txt',status='replace')
-       endif
-
-       fileopen = .true.    
-       error    = 0
-       do while (fileopen)
-          inquire(tryunit,OPENED=fileopen)
-          if (fileopen) then
-             tryunit=tryunit-1
-          endif
-          if (tryunit<=10) then 
-             tryunit = -1
-             error  = 1
-             fileopen = .false.
-             return
-          endif
-       enddo
-       errorfileid = tryunit
-       if (xmaster) then
-          open(errorfileid,file='XBerror.txt',status='replace')
-       endif
+        
+        logfileid       = generate_logfileid()
+        if (xmaster)    open(logfileid,     file='XBlog.txt',       status='replace')
+        
+        errorfileid     = generate_logfileid()
+        if (xmaster)    open(errorfileid,   file='XBerror.txt',     status='replace')
+        
+        warningfileid   = generate_logfileid()
+        if (xmaster)    open(warningfileid, file='XBwarning.txt',   status='replace')
+       
+        if (logfileid < 0 .or. errorfileid < 0 .or. warningfileid < 0) error = 1
+        
     endif ! xmaster
 
     if (error==1) then
         write(*,*) 'Error: not able to open log file. Stopping simulation'
         stop
     endif
+    
   end subroutine start_logfiles
 
 subroutine close_logfiles
 
-if (xmaster) then 
-   close(logfileid)
-   close(errorfileid, STATUS ='DELETE')
-endif
+    if (xmaster) then 
+        close(logfileid                         )
+        close(errorfileid,      STATUS='DELETE' )
+        close(warningfileid                     )
+    endif
 
 end subroutine close_logfiles
 
 
-subroutine get_logfileid(lid,eid)
+subroutine get_logfileid(lid,eid,wid)
+
    implicit none
-   integer    :: lid,eid
+   integer, intent(out)     :: lid,eid,wid
 
    lid = logfileid
    eid = errorfileid
+   wid = warningfileid
+   
 endsubroutine
 
+function generate_logfileid() result (tryunit)
+
+    implicit none
+    
+    integer     :: tryunit,error
+    logical     :: fileopen
+    
+    tryunit  = 98
+    fileopen = .true.    
+    error    = 0
+    
+    do while (fileopen)
+        inquire(tryunit,OPENED=fileopen)
+        if (fileopen) then
+            tryunit=tryunit-1
+        endif
+        if (tryunit<=10) then 
+            tryunit     = -1
+            fileopen    = .false.
+            return
+        endif
+    enddo
+    
+end function generate_logfileid
 
 subroutine writelog_startup()
 
@@ -197,11 +203,17 @@ subroutine writelog_mpi(mpiboundary,error)
 end subroutine writelog_mpi
 #endif
 
-subroutine writelog_finalize(tbegin, t0, t01)
+subroutine writelog_finalize(tbegin, n, t0, t01)
     
+    use params
+
     implicit none
+
+    type(parameters)                                :: par
     
+    integer                                         :: n
     real*8                                          :: tbegin,tend
+    real*8                                          :: duration,dt,performance
     real*8, optional                                :: t0,t01
     
 #ifdef USEMPI
@@ -209,14 +221,24 @@ subroutine writelog_finalize(tbegin, t0, t01)
 #endif
     
     if (xmaster) then
-        
+    
         call cpu_time(tend)
-        call writelog('ls','','Total calculation time: ',tend-tbegin,' seconds')
+        
+        duration    = tend-tbegin
+        dt          = par%t/n
+        performance = duration/(par%nx+1)/(par%ny+1)/n
+        
+        call writelog('ls','','Duration   : ',duration,' seconds'       )
+        call writelog('ls','','Timesteps  : ',n                         )
+        call writelog('ls','','Average dt : ',dt,' seconds'             )
+        call writelog('ls','','Unit speed : ',performance,' seconds/1'  )
 
 #ifdef USEMPI
         if (present(t0) .and. present(t01)) then
             t1 = MPI_Wtime()
-            call writelog('ls','','Timing: procs: ',xmpi_size,' seconds: total:',t1-t0,'loop: ',t1-t01)
+            call writelog('ls','','MPI timing : procs      : ',xmpi_size                )
+            call writelog('ls','','             seconds    : total : ',t1-t0, ' seconds')
+            call writelog('ls','','                          loop  : ',t1-t01,' seconds')
         endif
 #endif
 
@@ -227,11 +249,26 @@ subroutine writelog_finalize(tbegin, t0, t01)
 
 end subroutine writelog_finalize
 
+subroutine writelog_distribute(destination,display)
+
+    implicit none
+    
+    character(*)            :: destination
+    character(1024)         :: display
+    
+    if (xmaster) then 
+        if (scan(destination,'s')>0) write(*,*)             trim(display)
+        if (scan(destination,'l')>0) write(logfileid,*)     trim(display)
+        if (scan(destination,'e')>0) write(errorfileid,*)   trim(display)   
+        if (scan(destination,'w')>0) write(warningfileid,*) trim(display)   
+    endif
+    
+end subroutine writelog_distribute
 
 subroutine writelog_a(destination,form,message_char)
    implicit none
    character(*),intent(in)    ::  form,message_char
-   character(*),intent(in)       ::  destination
+   character(*),intent(in)    ::  destination
    character(1024)            ::  display
 
    if (form=='') then
@@ -240,11 +277,8 @@ subroutine writelog_a(destination,form,message_char)
       write(display,form)message_char
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_a
 
 subroutine writelog_aa(destination,form,message_char1,message_char2)
@@ -259,11 +293,8 @@ subroutine writelog_aa(destination,form,message_char1,message_char2)
       write(display,form)message_char1,message_char2
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aa
 
 subroutine writelog_ai(destination,form,message_char,message_int)
@@ -279,11 +310,8 @@ subroutine writelog_ai(destination,form,message_char,message_int)
       write(display,form)message_char,message_int
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_ai
 
 subroutine writelog_ia(destination,form,mint1,mchar1)
@@ -299,11 +327,8 @@ subroutine writelog_ia(destination,form,mint1,mchar1)
       write(display,form)mint1,mchar1
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_ia
 
 subroutine writelog_aaa(destination,form,message_char1,message_char2,message_char3)
@@ -318,11 +343,8 @@ subroutine writelog_aaa(destination,form,message_char1,message_char2,message_cha
       write(display,form)message_char1,message_char2,message_char3
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aaa
 
 subroutine writelog_aaaa(destination,form,message_char1,message_char2,message_char3,message_char4)
@@ -337,11 +359,8 @@ subroutine writelog_aaaa(destination,form,message_char1,message_char2,message_ch
       write(display,form)message_char1,message_char2,message_char3,message_char4
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aaaa
 
 
@@ -358,11 +377,8 @@ subroutine writelog_aai(destination,form,message_char1,message_char2,message_int
       write(display,form)message_char1,message_char2,message_int
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aai
 
 subroutine writelog_aii(destination,form,message_char1,message_int1,message_int2)
@@ -378,11 +394,8 @@ implicit none
       write(display,form)message_char1,message_int1,message_int2
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aii
 
 subroutine writelog_aia(destination,form,message_char1b,message_intb,message_char2b)
@@ -398,11 +411,8 @@ subroutine writelog_aia(destination,form,message_char1b,message_intb,message_cha
       write(display,form)message_char1b,message_intb,message_char2b
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aia
 
 subroutine writelog_aaai(destination,form,message_char1,message_char2,message_char3,message_int)
@@ -418,17 +428,14 @@ subroutine writelog_aaai(destination,form,message_char1,message_char2,message_ch
       write(display,form)message_char1,message_char2,message_char3,message_int
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aaai
 
-subroutine writelog_aaia(destinationb,formb,message_char1b,message_char2b,message_int,message_char3b)
+subroutine writelog_aaia(destination,formb,message_char1b,message_char2b,message_int,message_char3b)
    implicit none
    character(*),intent(in)    ::  formb,message_char1b,message_char2b,message_char3b
-   character(*),intent(in)    ::  destinationb
+   character(*),intent(in)    ::  destination
    integer,intent(in)         ::  message_int
    character(1024)            ::  display
 
@@ -438,11 +445,8 @@ subroutine writelog_aaia(destinationb,formb,message_char1b,message_char2b,messag
       write(display,formb)message_char1b,message_char2b,message_int,message_char3b
    endif
 
-   if (xmaster) then 
-      if (scan(destinationb,'s')>0) write(*,*)trim(display)
-      if (scan(destinationb,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destinationb,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aaia
 
 subroutine writelog_aiaa(destination,form,message_char1b,message_intb,message_char2b,message_char3b)
@@ -458,11 +462,8 @@ subroutine writelog_aiaa(destination,form,message_char1b,message_intb,message_ch
       write(display,form)message_char1b,message_intb,message_char2b,message_char3b
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aiaa
 
 subroutine writelog_aiaaa(destination,form,message_char1b,message_intb,message_char2b,message_char3b,message_char4b)
@@ -478,11 +479,8 @@ subroutine writelog_aiaaa(destination,form,message_char1b,message_intb,message_c
       write(display,form)message_char1b,message_intb,message_char2b,message_char3b,message_char4b
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aiaaa
 
 
@@ -499,11 +497,8 @@ subroutine writelog_aiai(destination,form,message_char1,message_int1,message_cha
       write(display,form)message_char1,message_int1,message_char2,message_int2
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aiai
 
 subroutine writelog_aiaia(destination,form,mc1,mi1,mc2,mi2,mc3)
@@ -519,11 +514,8 @@ subroutine writelog_aiaia(destination,form,mc1,mi1,mc2,mi2,mc3)
       write(display,form)mc1,mi1,mc2,mi2,mc3
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aiaia
 
 subroutine writelog_aaiai(destination,form,message_char1,message_char2,message_i1,message_char3,message_i2)
@@ -539,11 +531,8 @@ subroutine writelog_aaiai(destination,form,message_char1,message_char2,message_i
       write(display,form)message_char1,message_char2,message_i1,message_char3,message_i2
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aaiai
 
 subroutine writelog_aaaiai(destination,form,message_char1,message_char2,message_char3,message_i1,message_char4,message_i2)
@@ -559,11 +548,8 @@ subroutine writelog_aaaiai(destination,form,message_char1,message_char2,message_
       write(display,form)message_char1,message_char2,message_char3,message_i1,message_char4,message_i2
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aaaiai
 
 subroutine writelog_aiafaf(destination,form,mc1,mi1,mc2,mf1,mc3,mf2)
@@ -580,11 +566,8 @@ subroutine writelog_aiafaf(destination,form,mc1,mi1,mc2,mf1,mc3,mf2)
       write(display,form)mc1,mi1,mc2,mf1,mc3,mf2
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aiafaf
 
 subroutine writelog_aiaiai(destination,form,message_char1,message_i1,message_char2,message_i2,message_char3,message_i3)
@@ -600,11 +583,8 @@ implicit none
       write(display,form)message_char1,message_i1,message_char2,message_i2,message_char3,message_i3
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aiaiai
 
 subroutine writelog_aiaiaia(destination,form,message_char1,message_i1,message_char2,message_i2,message_char3,message_i3, & 
@@ -621,11 +601,8 @@ implicit none
       write(display,form)message_char1,message_i1,message_char2,message_i2,message_char3,message_i3,message_char4
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aiaiaia
 
 subroutine writelog_aiaiaf(destination,form,mc1,mi1,mc2,mi2,mc3,mf1)
@@ -642,11 +619,8 @@ implicit none
       write(display,form)mc1,mi1,mc2,mi2,mc3,mf1
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aiaiaf
 
 subroutine writelog_aiaiafa(destination,form,mc1,mi1,mc2,mi2,mc3,mf1,mc4)
@@ -663,11 +637,8 @@ implicit none
       write(display,form)mc1,mi1,mc2,mi2,mc3,mf1,mc4
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aiaiafa
 
 subroutine writelog_iiiii(destination,form,mi1,mi2,mi3,mi4,mi5)
@@ -683,12 +654,8 @@ implicit none
       write(display,form)mi1,mi2,mi3,mi4,mi5
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
-
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_iiiii
 
 subroutine writelog_af(destination,form,message_char1,message_f1)
@@ -704,11 +671,8 @@ implicit none
       write(display,form)message_char1,message_f1
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_af
 
 subroutine writelog_aaf(destination,form,message_char1,message_char2,message_f1)
@@ -724,11 +688,8 @@ subroutine writelog_aaf(destination,form,message_char1,message_char2,message_f1)
       write(display,form)message_char1,message_char2,message_f1
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aaf
 
 subroutine writelog_afa(destination,form,mc1,mf1,mc2)
@@ -744,11 +705,8 @@ subroutine writelog_afa(destination,form,mc1,mf1,mc2)
       write(display,form)mc1,mf1,mc2
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_afa
 
 subroutine writelog_afaf(destination,form,message_char1,message_f1,message_char2,message_f2)
@@ -764,11 +722,8 @@ subroutine writelog_afaf(destination,form,message_char1,message_f1,message_char2
       write(display,form)message_char1,message_f1,message_char2,message_f2
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_afaf
 
 subroutine writelog_afafa(destination,form,mc1,mf1,mc2,mf2,mc3)
@@ -784,11 +739,8 @@ subroutine writelog_afafa(destination,form,mc1,mf1,mc2,mf2,mc3)
       write(display,form)mc1,mf1,mc2,mf2,mc3
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_afafa
 
 subroutine writelog_aaaf(destination,form,message_char1,message_char2,message_char3,message_f1)
@@ -804,11 +756,8 @@ subroutine writelog_aaaf(destination,form,message_char1,message_char2,message_ch
       write(display,form)message_char1,message_char2,message_char3,message_f1
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aaaf
 
 subroutine writelog_aafa(destination,form,message_char1b,message_char2b,message_f1b,message_char3b)
@@ -824,11 +773,8 @@ subroutine writelog_aafa(destination,form,message_char1b,message_char2b,message_
       write(display,form)message_char1b,message_char2b,message_f1b,message_char3b
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aafa
 
 subroutine writelog_afaaa(destination,form,mc1a,mfa,mc2a,mc3a,mc4a)
@@ -844,11 +790,8 @@ subroutine writelog_afaaa(destination,form,mc1a,mfa,mc2a,mc3a,mc4a)
       write(display,form)mc1a,mfa,mc2a,mc3a,mc4a
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_afaaa
 
 subroutine writelog_aafaf(destination,form,message_char1,message_char2,message_f1,message_char3,message_f2)
@@ -864,11 +807,8 @@ subroutine writelog_aafaf(destination,form,message_char1,message_char2,message_f
       write(display,form)message_char1,message_char2,message_f1,message_char3,message_f2
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aafaf
 
 subroutine writelog_aaafaf(destination,form,message_char1,message_char2,message_char3,message_f1,message_char4,message_f2)
@@ -884,11 +824,8 @@ subroutine writelog_aaafaf(destination,form,message_char1,message_char2,message_
       write(display,form)message_char1,message_char2,message_char3,message_f1,message_char4,message_f2
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_aaafaf
 
 subroutine writelog_afafafaf(destination,form,mc1,mf1,mc2,mf2,mc3,mf3,mc4,mf4)
@@ -904,11 +841,8 @@ subroutine writelog_afafafaf(destination,form,mc1,mf1,mc2,mf2,mc3,mf3,mc4,mf4)
       write(display,form)mc1,mf1,mc2,mf2,mc3,mf3,mc4,mf4
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_afafafaf
 
 subroutine writelog_illll(destination,form,mi1,ml1,ml2,ml3,ml4)
@@ -925,12 +859,8 @@ implicit none
       write(display,form)mi1,ml1,ml2,ml3,ml4
    endif
 
-   if (xmaster) then 
-      if (scan(destination,'s')>0) write(*,*)trim(display)
-      if (scan(destination,'l')>0) write(logfileid,*)trim(display)
-      if (scan(destination,'e')>0) write(errorfileid,*)trim(display)   
-   endif
-
+   call writelog_distribute(destination, display)
+   
 end subroutine writelog_illll
 
 end module logging_module

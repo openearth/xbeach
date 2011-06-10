@@ -25,7 +25,7 @@ type(timepars)                                      :: tpar
 type(spacepars), pointer                            :: s
 type(spacepars), target                             :: sglobal
 
-integer                                             :: it,error
+integer                                             :: n,it,error
 real*8                                              :: tbegin
 
 #ifdef USEMPI
@@ -115,6 +115,8 @@ call output                 (sglobal,s,par,tpar)
 ! Start simulation                                                            !
 !-----------------------------------------------------------------------------!
 
+n = 0
+
 do while (par%t<par%tstop)
    
    ! determine timestep
@@ -141,6 +143,9 @@ do while (par%t<par%tstop)
    
    ! output
    call output(sglobal,s,par,tpar)
+   
+   n = n + 1
+   
 enddo
 
 !-----------------------------------------------------------------------------!
@@ -148,10 +153,10 @@ enddo
 !-----------------------------------------------------------------------------!
 
 #ifdef USEMPI
-call writelog_finalize(tbegin,t0,t01)
+call writelog_finalize(tbegin,n,t0,t01)
 call xmpi_finalize
 #else
-call writelog_finalize(tbegin)
+call writelog_finalize(tbegin,n)
 #endif
 
 end program

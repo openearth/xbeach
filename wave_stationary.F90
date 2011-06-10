@@ -248,8 +248,8 @@ contains
              ! WCI
              if (par%wci==1) then
 			    ! Dano NEED TO CHECK THIS FOR CURVI
-                kmx = km(i-1:i+1,:)*cos(thetamean(i-1:i+1,:))
-                kmy = km(i-1:i+1,:)*sin(thetamean(i-1:i+1,:))
+                kmx = km(i-1:i+1,:)*cos(thetamean(i-1:i+1,:)-alfaz(i-1:i+1,:))
+                kmy = km(i-1:i+1,:)*sin(thetamean(i-1:i+1,:)-alfaz(i-1:i+1,:))
                 wm(i-1:i+1,:) = sigm(i-1:i+1,:)+kmx*wcifacu(i-1:i+1,:)&
                      +kmy*wcifacv(i-1:i+1,:)
 
@@ -263,8 +263,8 @@ contains
                    n(i,:)  = 1.d0
                 endwhere
 
-                cgym = cg(i,:)*dsin(thetamean(i,:)) + wcifacv(i,:)
-                cgxm = cg(i,:)*dcos(thetamean(i,:)) + wcifacu(i,:)
+                cgym = cg(i,:)*dsin(thetamean(i,:)-alfaz(i,:)) + wcifacv(i,:)
+                cgxm = cg(i,:)*dcos(thetamean(i,:)-alfaz(i,:)) + wcifacu(i,:)
 
                 dkmxdx       = (kmx(3,:)-kmx(1,:))/(dsu(i,:)+dsu(i+1,:))
                 dkmxdy(2:ny) = (kmx(2,3:ny+1)-kmx(2,1:ny-1))/(dnv(i,2:ny)+dnv(i,3:ny+1))
@@ -550,8 +550,8 @@ Sxy = Sxy + sum(sinth*costh*rr,3)*dtheta
 
     ! wave induced mass flux
     ustw=E*k/sigm/par%rho/max(hh,.001d0)
-    uwf = ustw*dcos(thetamean)
-    vwf = ustw*dsin(thetamean)
+    uwf = ustw*dcos(thetamean-alfaz)
+    vwf = ustw*dsin(thetamean-alfaz)
     ! roller contribution
     ustr=2.*R*k/sigm/par%rho/max(hh,.001d0)
     ! introduce breaker delay

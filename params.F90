@@ -722,7 +722,7 @@ contains
           elseif (isSetParameter('params.txt','C') .and. isSetParameter('params.txt','cf')) then
              par%C       = readkey_dbl ('params.txt','C',   55.d0 ,     20.d0,    100.d0)
              par%cf      = par%g/par%C**2
-             call writelog('ls','(a)','Warning: C and cf both specified. C will take precedence')
+             call writelog('lws','(a)','Warning: C and cf both specified. C will take precedence')
           else
              par%C       = readkey_dbl ('params.txt','C',   55.d0 ,     20.d0,    100.d0)
              par%cf      = par%g/par%C**2
@@ -1034,12 +1034,12 @@ contains
       par%hswitch = par%hswitch/par%depthscale
       par%dzmax   = par%dzmax/par%depthscale**1.5d0
     
-      call writelog('ls','(a)','Warning: input parameters eps, hmin, hswitch and dzmax are scaled with')
-      call writelog('ls','(a)','         depthscale to:')
-      call writelog('ls','(a,f0.4)','eps = ',    par%eps)
-      call writelog('ls','(a,f0.4)','hmin = ',   par%hmin)
-      call writelog('ls','(a,f0.4)','hswitch = ',par%hswitch)
-      call writelog('ls','(a,f0.4)','dzmax = ',  par%dzmax)
+      call writelog('lws','(a)','Warning: input parameters eps, hmin, hswitch and dzmax are scaled with')
+      call writelog('lws','(a)','         depthscale to:')
+      call writelog('lws','(a,f0.4)','eps = ',    par%eps)
+      call writelog('lws','(a,f0.4)','hmin = ',   par%hmin)
+      call writelog('lws','(a,f0.4)','hswitch = ',par%hswitch)
+      call writelog('lws','(a,f0.4)','dzmax = ',  par%dzmax)
     endif
     !
     !
@@ -1074,13 +1074,13 @@ contains
     ! Only allow Baldock in stationary mode and Roelvink in non-stationary
     if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
         if (trim(par%break) .ne. 'baldock') then
-            call writelog('ls','','Warning: Roelvink formulations not allowed in stationary, use Baldock')
-            call writelog('ls','','         formulation.')
+            call writelog('lws','','Warning: Roelvink formulations not allowed in stationary, use Baldock')
+            call writelog('lws','','         formulation.')
         endif
     else
         if (trim(par%break)=='baldock') then 
-            call writelog('ls','','Warning: Baldock formulation not allowed in non-stationary, use a Roelvink')
-            call writelog('ls','','         formulation.')
+            call writelog('lws','','Warning: Baldock formulation not allowed in non-stationary, use a Roelvink')
+            call writelog('lws','','         formulation.')
         endif
     endif
     !
@@ -1105,8 +1105,8 @@ contains
     ! Source-sink check
     if (par%morfac>1.d0) then
        if (par%sourcesink==1) then
-          call writelog('ls','','Warning: Using source-sink terms for bed level change with morfac can lead to')
-          call writelog('ls','','         loss of sediment mass conservation.')
+          call writelog('lws','','Warning: Using source-sink terms for bed level change with morfac can lead to')
+          call writelog('lws','','         loss of sediment mass conservation.')
        endif
     endif
     !
@@ -1114,7 +1114,7 @@ contains
     ! If using tide, epsi should be on
     if (par%tideloc>0) then
        if (par%epsi<-1.d0) then
-          call writelog('ls','','Automatically computing epsi using offshore boundary conditions')
+          call writelog('lws','','Automatically computing epsi using offshore boundary conditions')
           ! par%epsi = 0.05d0 --> Jaap do this in boundary conditions to account for vary wave conditions during simulation
        endif
     endif
@@ -1123,8 +1123,8 @@ contains
     ! If using nonh, secorder should always be on
     if (par%nonh==1) then
        if (par%secorder==0) then
-          call writelog('ls','','Warning: Automatically turning on 2nd order correction in flow for')
-          call writelog('ls','','         non-hydrostatic module [secorder=1]')
+          call writelog('lws','','Warning: Automatically turning on 2nd order correction in flow for')
+          call writelog('lws','','         non-hydrostatic module [secorder=1]')
           par%secorder = 1
        endif
     endif
@@ -1133,7 +1133,7 @@ contains
     ! fix minimum runup depth
     if (par%rugdepth<=par%eps) then 
        par%rugdepth = par%eps+tiny(0.d0)
-       call writelog('ls','(a,f0.5,a)','Warning: Setting rugdepth to minimum value greater than eps (',par%rugdepth,')')
+       call writelog('lws','(a,f0.5,a)','Warning: Setting rugdepth to minimum value greater than eps (',par%rugdepth,')')
     endif
     !
     !
@@ -1151,38 +1151,38 @@ contains
     ! Lax-Wendroff not yet supported in curvilinear
     if (trim(par%scheme)=='lax_wendroff') then
 	   par%scheme='upwind_2'
-	   call writelog('sl','','Warning: Lax Wendroff [scheme=lax_wendroff] scheme is not supported, changed')
-	   call writelog('sl','','         to 2nd order upwind [scheme=upwind_2]')
+	   call writelog('lws','','Warning: Lax Wendroff [scheme=lax_wendroff] scheme is not supported, changed')
+	   call writelog('lws','','         to 2nd order upwind [scheme=upwind_2]')
     endif
     !
     !
     ! Give warning if using wave stationary in MPI
 #ifdef USEMPI
     if (trim(par%instat)=='stat' .or. trim(par%instat)=='stat_table') then
-       call writelog('sl','','Warning: Stationary wave solver not compatable with MPI, changing to')
-       call writelog('sl','','         instationary solver')
+       call writelog('lws','','Warning: Stationary wave solver not compatable with MPI, changing to')
+       call writelog('lws','','         instationary solver')
     endif
 #endif
     !
     !
     ! Wave-current interaction with non-stationary waves still experimental
     if (trim(par%instat)/='stat' .and. trim(par%instat)/='stat_table' .and. par%wci.ne.0) then
-       call writelog('sl','','Warning: Wave-current interaction with non-stationary waves is still')
-       call writelog('sl','','         experimental, continue with computation nevertheless')
+       call writelog('lws','','Warning: Wave-current interaction with non-stationary waves is still')
+       call writelog('lws','','         experimental, continue with computation nevertheless')
     endif
     !
     !
     ! 2D absorbing boundary limits to 1D absorbing boundary with 1D
     if (trim(par%front)=='abs_2d' .and. par%ny<3) then
-       call writelog('sl','','Warning: 2D absorbing boundary condition [front=abs_2d] reduces to a')
-       call writelog('sl','','         1D absoribng boundary condition [front=abs_1d] in')
-       call writelog('sl','','         1D mode [ny=0]')
+       call writelog('lws','','Warning: 2D absorbing boundary condition [front=abs_2d] reduces to a')
+       call writelog('lws','','         1D absoribng boundary condition [front=abs_1d] in')
+       call writelog('lws','','         1D mode [ny=0]')
        par%front = 'abs_1d '
     endif
     if (trim(par%back)=='abs_2d' .and. par%ny<3) then
-       call writelog('sl','','Warning: 2D absorbing boundary condition [back=abs_2d] reduces to a')
-       call writelog('sl','','         1D absoribng boundary condition [back=abs_1d] in')
-       call writelog('sl','','         1D mode [ny=0]')
+       call writelog('lws','','Warning: 2D absorbing boundary condition [back=abs_2d] reduces to a')
+       call writelog('lws','','         1D absoribng boundary condition [back=abs_1d] in')
+       call writelog('lws','','         1D mode [ny=0]')
        par%back = 'abs_1d '
     endif
     !
@@ -1463,14 +1463,14 @@ subroutine readpointvars(par)
         else
            ! This branch of the else will change to a halt_program statement in later versions (written on 13 January 2011)
            call writelog('ls','','')
-           call writelog('ls','','************************** WARNING  ***************************')
-           call writelog('ls','','In future versions the keyword ''npointvar'' must be specified if ''npoints''>0')
-           call writelog('ls','','Current order of output in all point output files is:')
+           call writelog('lws','','************************** WARNING  ***************************')
+           call writelog('lws','','In future versions the keyword ''npointvar'' must be specified if ''npoints''>0')
+           call writelog('lws','','Current order of output in all point output files is:')
            do i=1,par%npointvar
-              call writelog('ls','',trim(par%pointvars(i)))
+              call writelog('lws','',trim(par%pointvars(i)))
            enddo
-           call writelog('ls','','Order of point output variables stored in ''pointvars.idx''')
-           call writelog('ls','','***************************************************************')
+           call writelog('lws','','Order of point output variables stored in ''pointvars.idx''')
+           call writelog('lws','','***************************************************************')
            call writelog('ls','','')
         endif  ! isSetParameter 
      endif ! par%npoints>0
@@ -1693,18 +1693,18 @@ subroutine readPointPosition(par,readtype,xpoints,ypoints)
               endif ! type point
            else   ! isset npointvar
               read(fullline,*)xpoints(i+imin),ypoints(i+imin),nvar,varline
-              call writelog('ls','','Point output variables specified by ''npointvar'' will be selected over')
-              call writelog('ls','','variables specified on the point location line in params.txt')
+              call writelog('lws','','Point output variables specified by ''npointvar'' will be selected over')
+              call writelog('lws','','variables specified on the point location line in params.txt')
            endif  ! isset npointvar
            call writelog('ls','','')
-           call writelog('ls','','************************** WARNING  ***************************')
-           call writelog('ls','','Unsupported method of defining output',trim(errmes1),'variables')
-           call writelog('ls','',trim(fullline))
-           call writelog('ls','','Please remove "nvar var1#Var2#..." from definition of',trim(errmes1))
-           call writelog('ls','',trim(errmes2))
-           call writelog('ls','','This warning will become and error in future versions of XBeach')
-           call writelog('ls','','Refer to manual for complete documentation')
-           call writelog('ls','','***************************************************************')
+           call writelog('lws','','************************** WARNING  ***************************')
+           call writelog('lws','','Unsupported method of defining output',trim(errmes1),'variables')
+           call writelog('lws','',trim(fullline))
+           call writelog('lws','','Please remove "nvar var1#Var2#..." from definition of',trim(errmes1))
+           call writelog('lws','',trim(errmes2))
+           call writelog('lws','','This warning will become and error in future versions of XBeach')
+           call writelog('lws','','Refer to manual for complete documentation')
+           call writelog('lws','','***************************************************************')
            call writelog('ls','','')
         else ! not old method of setting point output
            read(fullline,*)xpoints(i+imin),ypoints(i+imin)

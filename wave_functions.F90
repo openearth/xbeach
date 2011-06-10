@@ -468,7 +468,7 @@ subroutine dispersion(par,s)
            s%L1(i,j) = (s%L1(i,j)*aphi + L2*bphi)          ! Golden ratio
         end do
         if (it==100) then !jaap check if there is convergence
-           call writelog('ls','','Warning: no convergence in dispersion relation iteration at t = ', &
+           call writelog('lws','','Warning: no convergence in dispersion relation iteration at t = ', &
                 par%t*max(par%morfac*par%morfacopt,1.d0))
         endif
      end do
