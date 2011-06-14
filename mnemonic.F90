@@ -43,9 +43,9 @@ include 'chartoindex.gen'
   end if
 end function chartoindex
 
-subroutine printvar(t,lid,eid)
+subroutine printvar(t,lid,eid,wid)
 type (arraytype) :: t
-integer, intent(in) :: lid,eid
+integer, intent(in) :: lid,eid, wid
 
 write(*,*)'Name:    ',trim(t%name)
 write(*,*)'Type:    ',t%type
@@ -61,6 +61,11 @@ write(eid,*)'Name:    ',trim(t%name)
 write(eid,*)'Type:    ',t%type
 write(eid,*)'Btype:   ',t%btype
 write(eid,*)'Rank:    ',t%rank
+
+write(wid,*)'Name:    ',trim(t%name)
+write(wid,*)'Type:    ',t%type
+write(wid,*)'Btype:   ',t%btype
+write(wid,*)'Rank:    ',t%rank
 
 end subroutine printvar
 end module mnemmodule

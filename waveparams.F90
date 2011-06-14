@@ -1457,7 +1457,8 @@ subroutine build_etdir(par,s,wp,Ebcfname)
   if(xmaster) then
      inquire(iolength=reclen) 1.d0
      reclen=reclen*(wp%Npy)*(Ns)
-     open(12,file=Ebcfname,form='unformatted',access='direct',recl=reclen)
+     write(*,*) 'Opening', Ebcfname
+     open(12,file=trim(Ebcfname),form='unformatted',access='direct',recl=reclen)
      do i=1,wp%Nr+4                                                             ! Bas: why add 4 ??
         write(12,rec=i)E_tdir(:,min(i,wp%Nr),:)
      end do

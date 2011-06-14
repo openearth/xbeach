@@ -641,7 +641,7 @@ subroutine space_distribute_space(sg,sl,par)
   type(spacepars), intent(inout)  :: sl 
   type(parameters)                :: par
 
-  integer                         :: i,j,lid,eid
+  integer                         :: i,j,lid,eid, wid
   real*8, pointer, dimension(:)   :: umean1, umean2
   type (arraytype)                :: tg, tl
 
@@ -863,8 +863,8 @@ subroutine space_distribute_space(sg,sl,par)
 
   100 continue
   call writelog('sel','',xmpi_rank,': Error in space_distribute_space, trying to distribute:')
-  call get_logfileid(lid,eid)
-  call printvar(tl,lid,eid)
+  call get_logfileid(lid,eid, wid)
+  call printvar(tl,lid,eid, wid)
   call halt_program
   return
 
@@ -1080,7 +1080,7 @@ subroutine space_collect_index(sg,sl,index)
   type(spacepars)                 :: sg
   type(spacepars), intent(in)     :: sl
   integer, intent(in)             :: index
-  integer                         :: lid,eid
+  integer                         :: lid,eid, wid
 
   type(arraytype)                 :: tg,tl
 
@@ -1114,7 +1114,11 @@ logical, dimension(numvars)         :: avail      ! .true.: this item is collect
     case('i')
       select case(tl%rank)
         case(0)             ! nothing to do
-        case default     ! case 1, 2, 3 and 4 are not handled
+        case(2)
+           call space_collect(sl, tg%i2, tl%i2)
+        case(3)
+           call space_collect(sl, tg%i3, tl%i3)
+        case default     ! case 1 and 4 are not handled
           goto 100
       end select   ! rank
     case('r')
@@ -1145,8 +1149,8 @@ logical, dimension(numvars)         :: avail      ! .true.: this item is collect
   100 continue
   call writelog('lse','','Problem in space_collect_index with variable ',trim(tg%name ) )
   call writelog('lse','','Don''t know how to collect that on the masternode')
-  call get_logfileid(lid,eid)
-  call printvar(tl,lid,eid)
+  call get_logfileid(lid,eid, wid)
+  call printvar(tl,lid,eid, wid)
   call halt_program
 
 end subroutine space_collect_index

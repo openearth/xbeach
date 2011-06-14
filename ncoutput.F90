@@ -589,6 +589,8 @@ contains
 
     ! some local variables to pass the data through the postprocessing function.
     integer :: i0
+    integer, dimension(:,:), allocatable :: i2
+    integer, dimension(:,:,:), allocatable :: i3
     real*8 :: r0
     real*8, dimension(:), allocatable :: r1
     real*8, dimension(:,:), allocatable :: r2
@@ -633,6 +635,18 @@ contains
                    ! no need to allocate here
                    status = nf90_put_var(ncid, globalvarids(i), i0, start=(/1,tpar%itg/) )
                    if (status /= nf90_noerr) call handle_err(status)
+                case(2)
+                   allocate(i2(size(t%i2,1),size(t%i2,2)))
+                   call gridrotate(s, t, i2)
+                   status = nf90_put_var(ncid, globalvarids(i), i2, start=(/1,1,tpar%itg/) )
+                   deallocate(i2)
+                   if (status /= nf90_noerr) call handle_err(status)
+                case(3)
+                   allocate(i3(size(t%i3,1),size(t%i3,2),size(t%i3,3)))
+                   call gridrotate(s, t, i3)
+                   status = nf90_put_var(ncid, globalvarids(i), i3, start=(/1,1,1,tpar%itg/) )
+                   deallocate(i3)
+                   if (status /= nf90_noerr) call handle_err(status)
                 case default
                    write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
                 end select
@@ -644,6 +658,8 @@ contains
                    if (status /= nf90_noerr) call handle_err(status)
                 case(1)
                    allocate(r1(size(t%r1,1)))
+                   ! no need to rotate here
+                   r1 = t%r1
                    status = nf90_put_var(ncid, globalvarids(i), r1, start=(/1,tpar%itg/) )
                    deallocate(r1)
                    if (status /= nf90_noerr) call handle_err(status)
