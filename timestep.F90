@@ -454,13 +454,13 @@ subroutine timestep(s,par, tpar, it, ierr)
         do i=2,s%nx
           if(s%wetz(i,1)==1) then
             ! u-points
-            mdx=s%dsu(i,j)
-            par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j)),abs(s%ueu(i,j))))) !Jaap: include sediment advection velocities
+            mdx=s%dsu(i,1)
+            par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,1))+abs(s%uu(i,1)),abs(s%ueu(i,1))))) !Jaap: include sediment advection velocities
             ! v-points
-            mdx=min(s%dsu(i,j),s%dsu(i-1,j))
-            par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j)))))
+            mdx=min(s%dsu(i,1),s%dsu(i-1,1))
+            par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,1))+abs(s%uv(i,1)))))
               
-            mdx = min(s%dsu(i,j),s%dsz(i,j))**2
+            mdx = min(s%dsu(i,1),s%dsz(i,1))**2
               
             if (par%dy > 0.d0) then
                mdy = par%dy
@@ -468,7 +468,7 @@ subroutine timestep(s,par, tpar, it, ierr)
                mdy = mdx
             endif
               
-            par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
+            par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,1),1e-6))
           endif
         enddo
      endif

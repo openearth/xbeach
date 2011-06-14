@@ -157,23 +157,28 @@ contains
        call slope2D(kmy,nx,ny,dsu,dnv,dkmydx,dkmydy)
        call advecwx(wm,xwadvec,kmx,nx,ny,dsu)   ! cjaap: xz or xu?
        kmx = kmx -par%dt*xwadvec  -1.0d0*par%dt*cgym*(dkmydx-dkmxdy)
-       kmx(:,ny+1) = kmx(:,ny)  ! lateral bc
-       kmx(:,1) = kmx(:,2)  ! lateral bc
-
-       ! wwvv the following has consequences for the // version todo
+       if (ny>0) then 
+          kmx(:,ny+1) = kmx(:,ny)  ! lateral bc
+          kmx(:,1) = kmx(:,2)  ! lateral bc
+          ! wwvv the following has consequences for the // version todo
 #ifdef USEMPI
-       call xmpi_shift(kmx,':n')  ! get column kml(:ny+1) from right neighbour
-       call xmpi_shift(kmx,':1')
+          call xmpi_shift(kmx,':n')  ! get column kml(:ny+1) from right neighbour
+          call xmpi_shift(kmx,':1')
 #endif
+       endif
+
        call advecwy(wm,ywadvec,kmy,nx,ny,dnv)   ! cjaap: yz or yv?
        kmy = kmy-par%dt*ywadvec  + 1.0*par%dt*cgxm*(dkmydx-dkmxdy)
-       kmy(:,ny+1) = kmy(:,ny)   ! lateral bc
-       kmy(:,1) = kmy(:,2)   ! lateral bc
-       ! wwvv the following has consequences for the // version todo
+       if (ny>0) then 
+          kmy(:,ny+1) = kmy(:,ny)   ! lateral bc
+          kmy(:,1) = kmy(:,2)   ! lateral bc
+          ! wwvv the following has consequences for the // version todo
 #ifdef USEMPI
-       call xmpi_shift(kmy,':n')
-       call xmpi_shift(kmy,':1')
+          call xmpi_shift(kmy,':n')
+          call xmpi_shift(kmy,':1')
 #endif
+       endif
+
        ! update km
        km = sqrt(kmx**2+kmy**2)
        ! non-linear dispersion
