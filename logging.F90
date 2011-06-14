@@ -253,10 +253,18 @@ subroutine writelog_distribute(destination,display)
     character(1024)         :: display
     
     if (xmaster) then 
-        if (scan(destination,'s')>0) write(*,*)             trim(display)
-        if (scan(destination,'l')>0) write(logfileid,*)     trim(display)
-        if (scan(destination,'e')>0) write(errorfileid,*)   trim(display)   
-        if (scan(destination,'w')>0) write(warningfileid,*) trim(display)   
+       if (scan(destination,'l')>0) then
+          write(6,*)     trim(display)
+          write(logfileid,*)     trim(display)
+       end if
+       if (scan(destination,'e')>0) then
+          write(0,*)   trim(display)   
+          write(errorfileid,*)   trim(display)   
+       end if
+        if (scan(destination,'w')>0) then
+           write(0,*) trim(display)   
+           write(warningfileid,*) trim(display)   
+        end if
     endif
     
 end subroutine writelog_distribute
