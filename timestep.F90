@@ -423,10 +423,10 @@ subroutine timestep(s,par, tpar, it, ierr)
      
   else
      par%dt=huge(0.0d0)      ! Seed dt
-     do j=j1,max(s%ny,1)
-        do i=2,s%nx
-           if(s%wetz(i,j)==1) then
-            if (s%ny>2) then     
+     if (s%ny>2) then
+        do j=2,s%ny
+          do i=2,s%nx
+            if(s%wetz(i,j)==1) then
               ! u-points
               mdx=s%dsu(i+1,j)
               mdy=min(s%dnv(i,j),s%dnv(i,j-1))
@@ -447,29 +447,33 @@ subroutine timestep(s,par, tpar, it, ierr)
               mdy = min(s%dnv(i,j),s%dnz(i,j))**2
 
               par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
-            else
-              ! u-points
-              mdx=s%dsu(i,j)
-              par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j)),abs(s%ueu(i,j))))) !Jaap: include sediment advection velocities
-              ! v-points
-              mdx=min(s%dsu(i,j),s%dsu(i-1,j))
-              par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j)))))
-              
-              mdx = min(s%dsu(i,j),s%dsz(i,j))**2
-              
-              if (par%dy > 0.d0) then
-                 mdy = par%dy
-              else
-                 mdy = mdx
-              endif
-              
-              par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
             endif
-           endif
+          enddo
         enddo
-     enddo
+     else
+        do i=2,s%nx
+          if(s%wetz(i,1)==1) then
+            ! u-points
+            mdx=s%dsu(i,j)
+            par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j)),abs(s%ueu(i,j))))) !Jaap: include sediment advection velocities
+            ! v-points
+            mdx=min(s%dsu(i,j),s%dsu(i-1,j))
+            par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j)))))
+              
+            mdx = min(s%dsu(i,j),s%dsz(i,j))**2
+              
+            if (par%dy > 0.d0) then
+               mdy = par%dy
+            else
+               mdy = mdx
+            endif
+              
+            par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
+          endif
+        enddo
+     endif
 
-     par%dt=par%dt*par%CFL*0.5d0
+     if (s%ny>0) par%dt=par%dt*par%CFL*0.5d0
 
 #ifdef USEMPI
 
@@ -484,51 +488,51 @@ subroutine timestep(s,par, tpar, it, ierr)
 
      n = ceiling((tpar%tnext-par%t)/par%dt)
      par%dt = (tpar%tnext-par%t)/n
-  end if
+  end if ! first, or other time step
   
-    if (dtref .eq. 0.0d0) then
-        ! If dtref is not yet set.
-        dtref = par%dt
+  if (dtref .eq. 0.0d0) then
+     ! If dtref is not yet set.
+     dtref = par%dt
 #ifdef USEMPI
-        ! Use the same dtref everywhere.
-        call xmpi_allreduce(dtref,MPI_MIN)
+     ! Use the same dtref everywhere.
+     call xmpi_allreduce(dtref,MPI_MIN)
 #endif
-    end if
+  end if
 
-    ! wwvv: In the mpi version par%dt will be calculated different
-    ! on different processes. So, we take the minimum of all dt's
+  ! wwvv: In the mpi version par%dt will be calculated different
+  ! on different processes. So, we take the minimum of all dt's
 #ifdef USEMPI
-    call xmpi_allreduce(par%dt,MPI_MIN)
+  call xmpi_allreduce(par%dt,MPI_MIN)
 #endif
     
-    par%t=par%t+par%dt
+  par%t=par%t+par%dt
 
-    if(par%t>=tpar%tnext) then
-        par%dt  = par%dt-(par%t-tpar%tnext)
-        par%t   = tpar%tnext
-        it      = it+1
-    end if
+  if(par%t>=tpar%tnext) then
+     par%dt  = par%dt-(par%t-tpar%tnext)
+     par%t   = tpar%tnext
+     it      = it+1
+  end if
   
-    if (dtref/par%dt>50.d0) then
-        call writelog('lse','','Quit XBeach since computational time implodes')
-        call writelog('lse','','Please check the velocities at the end of the simulation')
-        call writelog('lse','','dtref',dtref)
-        call writelog('lse','','par%dt',par%dt)
-        ! Force output before exit in main time loop
-        tpar%outputg = (size(tpar%tpg) .gt. 0)
-        tpar%outputp = (size(tpar%tpp) .gt. 0)
-        tpar%outputm = (size(tpar%tpm) .gt. 0)
-        tpar%outputc = (size(tpar%tpc) .gt. 0)
-        ! set output time to current time
-        if (tpar%outputg) tpar%tpg=min(tpar%tpg,par%t)
-        if (tpar%outputp) tpar%tpp=min(tpar%tpp,par%t)
-        if (tpar%outputm) tpar%tpm=min(tpar%tpm,par%t)
-        if (tpar%outputc) tpar%tpc=min(tpar%tpc,par%t)
-        tpar%output = (tpar%outputg .or. tpar%outputp .or. tpar%outputm .or. tpar%outputc)
-        if (present(ierr)) then 
-           ierr = 1
-        endif
-    endif
+  if (dtref/par%dt>50.d0) then
+     call writelog('lse','','Quit XBeach since computational time implodes')
+     call writelog('lse','','Please check the velocities at the end of the simulation')
+     call writelog('lse','','dtref',dtref)
+     call writelog('lse','','par%dt',par%dt)
+     ! Force output before exit in main time loop
+     tpar%outputg = (size(tpar%tpg) .gt. 0)
+     tpar%outputp = (size(tpar%tpp) .gt. 0)
+     tpar%outputm = (size(tpar%tpm) .gt. 0)
+     tpar%outputc = (size(tpar%tpc) .gt. 0)
+     ! set output time to current time
+     if (tpar%outputg) tpar%tpg=min(tpar%tpg,par%t)
+     if (tpar%outputp) tpar%tpp=min(tpar%tpp,par%t)
+     if (tpar%outputm) tpar%tpm=min(tpar%tpm,par%t)
+     if (tpar%outputc) tpar%tpc=min(tpar%tpc,par%t)
+     tpar%output = (tpar%outputg .or. tpar%outputp .or. tpar%outputm .or. tpar%outputc)
+     if (present(ierr)) then 
+        ierr = 1
+     endif
+  endif
 
 end subroutine timestep
 end module timestep_module
