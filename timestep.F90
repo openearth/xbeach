@@ -476,7 +476,7 @@ subroutine timestep(s,par, tpar, it, ierr)
      if (s%ny>0) then 
         par%dt=par%dt*par%CFL*0.5d0
      else
-        par%dt=par%dt*par%CFL
+        par%dt=par%dt*par%CFL*0.5d0
      endif
 
 #ifdef USEMPI
