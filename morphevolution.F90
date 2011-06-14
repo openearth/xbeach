@@ -54,7 +54,7 @@ contains
     real*8,dimension(:,:),allocatable,save   :: suq3d,svq3d,eswmax,eswbed,sigs,deltas
     real*8,dimension(:,:,:),allocatable,save :: dsig,ccv,sdif,cuq3d,cvq3d,fac
     
-    real*8,dimension(:,:),allocatable       :: sinthm,costhm
+    real*8,dimension(:,:),allocatable,save   :: sinthm,costhm
 
     include 's.ind'
     include 's.inp'
@@ -96,6 +96,8 @@ contains
        allocate(aref(nx+1,ny+1))
        allocate(chain(par%kmax))
        allocate(cumchain(par%kmax))
+       allocate (sinthm(nx+1,ny+1))
+       allocate (costhm(nx+1,ny+1))
        uau       = 0.d0
        uav       = 0.d0
        Dc        = 0.d0
@@ -121,8 +123,7 @@ contains
     dcsdx     = 0.0d0
     dcsdy     = 0.0d0
 
-    allocate (sinthm(nx+1,ny+1))
-    allocate (costhm(nx+1,ny+1))
+    
     
     sinthm = sin(thetamean-alfaz)
     costhm = cos(thetamean-alfaz)
