@@ -60,7 +60,7 @@ contains
 	real*8                                  :: qin                      !specific discharge entering cell
 	real*8                                  :: dzsdnavg                 !alongshore water level slope
 	real*8,save                             :: fc
-	real*8,dimension(:,:),allocatable       :: sinthm,costhm
+	real*8,dimension(:,:),allocatable,save  :: sinthm,costhm
 
     integer                                 :: imax,jmax,jmin
 
@@ -82,6 +82,8 @@ contains
        allocate ( viscv(nx+1,ny+1))
        allocate (    us(nx+1,ny+1))
        allocate (    vs(nx+1,ny+1))
+       allocate (sinthm(nx+1,ny+1))
+       allocate (costhm(nx+1,ny+1))
 
        if (par%secorder == 1) then
           allocate(vv_old(nx+1,ny+1)); vv_old = vv
@@ -115,10 +117,7 @@ contains
        ve      =0.d0
        fc      =2.d0*par%wearth*sin(par%lat)
     endif
-    
-    allocate (sinthm(nx+1,ny+1))
-    allocate (costhm(nx+1,ny+1))
-    
+       
     ! update bedfriction coefficient cf
     if (trim(par%bedfriction)=='white-colebrook') then
        cf = par%g/(18.d0*log10(4.*hh/min(hh,D90top)))**2 ! cf = g/C^2 where C = 18*log(4*hh/D90)
