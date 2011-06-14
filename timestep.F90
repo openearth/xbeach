@@ -473,7 +473,11 @@ subroutine timestep(s,par, tpar, it, ierr)
         enddo
      endif
 
-     if (s%ny>0) par%dt=par%dt*par%CFL*0.5d0
+     if (s%ny>0) then 
+        par%dt=par%dt*par%CFL*0.5d0
+     else
+        par%dt=par%dt*par%CFL
+     endif
 
 #ifdef USEMPI
 
