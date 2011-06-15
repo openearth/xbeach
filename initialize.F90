@@ -1214,9 +1214,9 @@ contains
              mn          = minloc(sqrt((s%xz-xdrift)**2+(s%yz-ydrift)**2))
 
              ds          =  (xdrift - s%xz(mn(1),mn(2)))*cos(s%alfaz(mn(1),mn(2))) &
-                  +(ydrift - s%yz(mn(1),mn(2)))*sin(s%alfaz(mn(1),mn(2)))
+                           +(ydrift - s%yz(mn(1),mn(2)))*sin(s%alfaz(mn(1),mn(2)))
              dn          = -(xdrift - s%xz(mn(1),mn(2)))*sin(s%alfaz(mn(1),mn(2))) &
-                  +(ydrift - s%yz(mn(1),mn(2)))*cos(s%alfaz(mn(1),mn(2)))
+                           +(ydrift - s%yz(mn(1),mn(2)))*cos(s%alfaz(mn(1),mn(2)))
 
              s%idrift(i) = mn(1) + ds/dsu(mn(1),mn(2))
              s%jdrift(i) = mn(2) + dn/dnv(mn(1),mn(2))

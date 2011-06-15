@@ -226,18 +226,18 @@ contains
     !
     do j=j1,max(ny,1)
        do i=2,nx
-          ududx(i,j)=0.d0
-          qin=.5d0*(qx(i,j)+qx(i-1,j))
+          ududx(i,j)        = 0.d0
+          qin               = .5d0*(qx(i,j)+qx(i-1,j))
           if (qin>0) then
-             dalfa=alfau(i,j)-alfau(i-1,j)
-             uin=uu(i-1,j)*cos(dalfa)+vu(i-1,j)*sin(dalfa)
-             ududx(i,j)=ududx(i,j)+qin*(uu(i,j  )-uin)*dnz(i,j)/ hum(i,j)*dsdnui(i,j)
+             dalfa          = alfau(i,j)-alfau(i-1,j)
+             uin            = uu(i-1,j)*cos(dalfa) + vu(i-1,j)*sin(dalfa)
+             ududx(i,j)     = ududx(i,j) + qin*(uu(i,j)-uin)*dnz(i,j)/hum(i,j)*dsdnui(i,j)
           endif
-          qin=-.5d0*(qx(i,j)+qx(i+1,j))
+          qin               = -.5d0*(qx(i,j)+qx(i+1,j))
           if (qin>0) then
-             dalfa=alfau(i,j)-alfau(i+1,j)
-             uin=uu(i+1,j)*cos(dalfa)+vu(i+1,j)*sin(dalfa)
-             ududx(i,j)=ududx(i,j)+qin*(uu(i,j  )-uin)*dnz(i+1,j)/ hum(i,j)*dsdnui(i,j)
+             dalfa          = alfau(i,j)-alfau(i+1,j)
+             uin            = uu(i+1,j)*cos(dalfa) + vu(i+1,j)*sin(dalfa)
+             ududx(i,j)     = ududx(i,j) + qin*(uu(i,j)-uin)*dnz(i+1,j)/hum(i,j)*dsdnui(i,j)
           endif
        end do
     end do
@@ -250,18 +250,18 @@ contains
 #endif
     do j=2,ny
        do i=1,nx
-          vdudy(i,j)=0.d0
-          qin=.5d0*(qy(i,j-1)+qy(i+1,j-1))
+          vdudy(i,j)        = 0.d0
+          qin               = .5d0*(qy(i,j-1)+qy(i+1,j-1))
           if (qin>0) then
-             dalfa=alfau(i,j)-alfau(i,j-1)
-             uin=uu(i,j-1)*cos(dalfa)+vu(i,j-1)*sin(dalfa)
-             vdudy(i,j)=vdudy(i,j)+qin*(uu(i,j  )-uin)*dsc(i,j-1)/ hum(i,j)*dsdnui(i,j)
+             dalfa          = alfau(i,j)-alfau(i,j-1)
+             uin            = uu(i,j-1)*cos(dalfa) + vu(i,j-1)*sin(dalfa)
+             vdudy(i,j)     = vdudy(i,j) + qin*(uu(i,j)-uin)*dsc(i,j-1)/hum(i,j)*dsdnui(i,j)
           endif
-          qin=-.5d0*(qy(i,j)+qy(i+1,j))
+          qin               = -.5d0*(qy(i,j)+qy(i+1,j))
           if (qin>0) then
-             dalfa=alfau(i,j)-alfau(i,j+1)
-             uin=uu(i,j+1)*cos(dalfa)+vu(i,j+1)*sin(dalfa)
-             vdudy(i,j)=vdudy(i,j)+qin*(uu(i,j  )-uin)*dsc(i,j)/ hum(i,j)*dsdnui(i,j)
+             dalfa          = alfau(i,j)-alfau(i,j+1)
+             uin            = uu(i,j+1)*cos(dalfa) + vu(i,j+1)*sin(dalfa)
+             vdudy(i,j)     = vdudy(i,j) + qin*(uu(i,j)-uin)*dsc(i,j)/hum(i,j)*dsdnui(i,j)
           endif
        end do
     end do
@@ -424,17 +424,17 @@ contains
 	! calculate true vdvdy up to ny in central domains and up to ny-1 on isright
 	do j=2,jmax
        do i=2,nx
-          qin=.5d0*(qy(i,j)+qy(i,j-1))
+          qin               = .5d0*(qy(i,j)+qy(i,j-1))
           if (qin>0) then
-             dalfa=alfav(i,j)-alfav(i,j-1)
-             vin=vv(i,j-1)*cos(dalfa)-uv(i,j-1)*sin(dalfa)
-             vdvdy(i,j)=vdvdy(i,j)+qin*(vv(i,j  )-vin)*dsz(i,j)/ hvm(i,j)*dsdnvi(i,j)
+             dalfa          = alfav(i,j)-alfav(i,j-1)
+             vin            = vv(i,j-1)*cos(dalfa) - uv(i,j-1)*sin(dalfa)
+             vdvdy(i,j)     = vdvdy(i,j) + qin*(vv(i,j)-vin)*dsz(i,j)/hvm(i,j)*dsdnvi(i,j)
           endif
-          qin=-.5d0*(qy(i,j)+qy(i,j+1))
+          qin               = -.5d0*(qy(i,j)+qy(i,j+1))
           if (qin>0) then
-             dalfa=alfav(i,j)-alfav(i,j+1)
-             vin=vv(i,j+1)*cos(dalfa)-uv(i,j+1)*sin(dalfa)
-             vdvdy(i,j)=vdvdy(i,j)+qin*(vv(i,j  )-vin)*dsz(i,j+1)/ hvm(i,j)*dsdnvi(i,j)
+             dalfa          = alfav(i,j)-alfav(i,j+1)
+             vin            = vv(i,j+1)*cos(dalfa) - uv(i,j+1)*sin(dalfa)
+             vdvdy(i,j)     = vdvdy(i,j) + qin*(vv(i,j)-vin)*dsz(i,j+1)/hvm(i,j)*dsdnvi(i,j)
           endif
        enddo
     enddo
@@ -443,22 +443,22 @@ contains
        if (xmpi_isleft) then
           ! (vv(:,1)-vv(:,0))/dy == 0 so only second part of the vdvdy equation:
           do i=2,nx
-		     qin=-.5d0*(qy(i,1)+qy(i,2))
+		     qin            = -.5d0*(qy(i,1)+qy(i,2))
              if (qin>0) then
-                dalfa=alfav(i,1)-alfav(i,2)
-                vin=vv(i,2)*cos(dalfa)-uv(i,2)*sin(dalfa)
-                vdvdy(i,1)=vdvdy(i,1)+qin*(vv(i,1  )-vin)*dsz(i,2)/ hvm(i,1)*dsdnvi(i,1)
+                dalfa       = alfav(i,1)-alfav(i,2)
+                vin         = vv(i,2)*cos(dalfa) - uv(i,2)*sin(dalfa)
+                vdvdy(i,1)  = vdvdy(i,1) + qin*(vv(i,1)-vin)*dsz(i,2)/hvm(i,1)*dsdnvi(i,1)
              endif
 		  enddo
        endif
 	   if (xmpi_isright) then
 	      ! (vv(:,ny+1)-vv(:,ny))/dy == 0 so only first part of the vdvdy equation:
 		  do i=2,nx
-		     qin=.5d0*(qy(i,ny)+qy(i,ny-1))
+		     qin            = .5d0*(qy(i,ny)+qy(i,ny-1))
 		     if (qin>0) then
-                dalfa=alfav(i,ny)-alfav(i,ny-1)
-                vin=vv(i,ny-1)*cos(dalfa)-uv(i,ny-1)*sin(dalfa)
-                vdvdy(i,ny)=vdvdy(i,ny)+qin*(vv(i,ny  )-vin)*dsz(i,ny)/ hvm(i,ny)*dsdnvi(i,ny)
+                dalfa       = alfav(i,ny)-alfav(i,ny-1)
+                vin         = vv(i,ny-1)*cos(dalfa) - uv(i,ny-1)*sin(dalfa)
+                vdvdy(i,ny) = vdvdy(i,ny) + qin*(vv(i,ny)-vin)*dsz(i,ny)/hvm(i,ny)*dsdnvi(i,ny)
              endif
           enddo
        endif
@@ -469,33 +469,33 @@ contains
 	   ! Robert: udvdx not usually needed at j = 1
 	   do j=1,ny !1,ny instead of 2,ny
           do i=2,nx
-             qin=.5d0*(qx(i-1,j)+qx(i-1,j+1))
+             qin            = .5d0*(qx(i-1,j)+qx(i-1,j+1))
              if (qin>0) then
-                dalfa=alfav(i,j)-alfav(i-1,j)
-                vin=vv(i-1,j)*cos(dalfa)-uv(i-1,j)*sin(dalfa)
-                udvdx(i,j)=udvdx(i,j)+qin*(vv(i,j  )-vin)*dnc(i-1,j)/ hvm(i,j)*dsdnvi(i,j)
+                dalfa       = alfav(i,j)-alfav(i-1,j)
+                vin         = vv(i-1,j)*cos(dalfa) - uv(i-1,j)*sin(dalfa)
+                udvdx(i,j)  = udvdx(i,j) + qin*(vv(i,j)-vin)*dnc(i-1,j)/hvm(i,j)*dsdnvi(i,j)
              endif
-             qin=-.5d0*(qx(i,j)+qx(i,j+1))
+             qin            = -.5d0*(qx(i,j)+qx(i,j+1))
              if (qin>0) then
-                dalfa=alfav(i,j)-alfav(i+1,j)
-                vin=vv(i+1,j)*cos(dalfa)-uv(i+1,j)*sin(dalfa)
-                udvdx(i,j)=udvdx(i,j)+qin*(vv(i,j  )-vin)*dnc(i,j)/ hvm(i,j)*dsdnvi(i,j)
+                dalfa       = alfav(i,j)-alfav(i+1,j)
+                vin         = vv(i+1,j)*cos(dalfa) - uv(i+1,j)*sin(dalfa)
+                udvdx(i,j)  = udvdx(i,j) + qin*(vv(i,j)-vin)*dnc(i,j)/hvm(i,j)*dsdnvi(i,j)
              endif
           end do
        end do
     else
 	   do i=2,nx
-	      qin=qx(i-1,1)
+	      qin               = qx(i-1,1)
           if (qin>0) then
-             dalfa=alfav(i,1)-alfav(i-1,1)
-             vin=vv(i-1,1)*cos(dalfa)-uv(i-1,1)*sin(dalfa)
-             udvdx(i,1)=udvdx(i,1)+qin*(vv(i,1  )-vin)*dnc(i-1,1)/ hvm(i,1)*dsdnvi(i,1)
+             dalfa          = alfav(i,1)-alfav(i-1,1)
+             vin            = vv(i-1,1)*cos(dalfa) - uv(i-1,1)*sin(dalfa)
+             udvdx(i,1)     = udvdx(i,1) + qin*(vv(i,1)-vin)*dnc(i-1,1)/hvm(i,1)*dsdnvi(i,1)
           endif
-          qin=-qx(i,1)
+          qin               = -qx(i,1)
           if (qin>0) then
-             dalfa=alfav(i,1)-alfav(i+1,1)
-             vin=vv(i+1,1)*cos(dalfa)-uv(i+1,1)*sin(dalfa)
-             udvdx(i,1)=udvdx(i,1)+qin*(vv(i,1  )-vin)*dnc(i,1)/ hvm(i,1)*dsdnvi(i,1)
+             dalfa          = alfav(i,1)-alfav(i+1,1)
+             vin            = vv(i+1,1)*cos(dalfa) - uv(i+1,1)*sin(dalfa)
+             udvdx(i,1)     = udvdx(i,1) + qin*(vv(i,1)-vin)*dnc(i,1)/hvm(i,1)*dsdnvi(i,1)
           endif
        enddo
     endif
@@ -1075,7 +1075,7 @@ subroutine visc_smagorinsky(s,par)
 !-------------------------------------------------------------------------------
 
   !MPI WARNING -> Check loop indices
-  if (ny>2) then
+  if (ny>0) then
     do j=2,ny
       do i=2,nx
         dudx = (uu(i,j)-uu(i-1,j))/dsz(i,j)
@@ -1099,7 +1099,7 @@ subroutine visc_smagorinsky(s,par)
         dvdx = (vv(i+1,j) - vv(i-1,j) )/(dsu(i,j)+dsu(i-1,j))
         Tau  = sqrt(2.0d0 * dudx**2 + dvdx**2)
         ! 
-        if (par%dy > 0.d0) then
+        if (par%dy > -1.d0) then
           l = dsz(i,j)*par%dy
         else
           l = dsz(i,j)**2
