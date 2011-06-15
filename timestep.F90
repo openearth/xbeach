@@ -393,7 +393,7 @@ subroutine timestep(s,par, tpar, it, ierr)
   integer, intent(inout)           :: it
   integer, intent(out), optional   :: ierr 
   integer                     :: i
-  integer                     :: j,j1
+  integer                     :: j,j1,j2
   integer                     :: n
   real*8                                          :: mdx,mdy,tny
   real*8,save                         :: dtref
@@ -451,16 +451,17 @@ subroutine timestep(s,par, tpar, it, ierr)
           enddo
         enddo
      else
+        j2=max(s%ny,1)  ! Robert: hmmm, in sf1D this should be 1, in "old" 1d this should be 2
         do i=2,s%nx
-          if(s%wetz(i,1)==1) then
+          if(s%wetz(i,j2)==1) then
             ! u-points
-            mdx=s%dsu(i,1)
-            par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,1))+abs(s%uu(i,1)),abs(s%ueu(i,1))))) !Jaap: include sediment advection velocities
+            mdx=s%dsu(i,j2)
+            par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,j2))+abs(s%uu(i,j2)),abs(s%ueu(i,j2))))) !Jaap: include sediment advection velocities
             ! v-points
-            mdx=min(s%dsu(i,1),s%dsu(i-1,1))
-            par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,1))+abs(s%uv(i,1)))))
+            mdx=min(s%dsu(i,j2),s%dsu(i-1,j2))
+            par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,j2))+abs(s%uv(i,j2)))))
               
-            mdx = min(s%dsu(i,1),s%dsz(i,1))**2
+            mdx = min(s%dsu(i,j2),s%dsz(i,j2))**2
               
             if (par%dy > 0.d0) then
                mdy = par%dy
@@ -468,7 +469,7 @@ subroutine timestep(s,par, tpar, it, ierr)
                mdy = mdx
             endif
               
-            par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,1),1e-6))
+            par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j2),1e-6))
           endif
         enddo
      endif
