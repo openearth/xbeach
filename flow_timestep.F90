@@ -1075,7 +1075,7 @@ subroutine visc_smagorinsky(s,par)
 !-------------------------------------------------------------------------------
 
   !MPI WARNING -> Check loop indices
-  if (ny>0) then
+  if (ny>2) then
     do j=2,ny
       do i=2,nx
         dudx = (uu(i,j)-uu(i-1,j))/dsz(i,j)
@@ -1087,30 +1087,34 @@ subroutine visc_smagorinsky(s,par)
         nuh(i,j) = par%nuh**2 * l * Tau * real(wetu(i,j)*wetu(i-1,j)*wetv(i,j)*wetv(i,j-1),kind=8)
       enddo
     enddo
-    
-    if (xmpi_isleft)  nuh(:,1)      = nuh(:,2)      ! Bas+Jaap: changed from boundaries=0.d0 to neumann
-    if (xmpi_isright) nuh(:,ny+1)   = nuh(:,ny)
   
   else
   
-    j = 1
+    j = max(ny,1)
+    
     do i=2,nx
         dudx = (uu(i,j)-uu(i-1,j))/dsz(i,j)
         dvdx = (vv(i+1,j) - vv(i-1,j) )/(dsu(i,j)+dsu(i-1,j))
         Tau  = sqrt(2.0d0 * dudx**2 + dvdx**2)
-        ! 
+        
         if (par%dy > -1.d0) then
           l = dsz(i,j)*par%dy
         else
           l = dsz(i,j)**2
         endif
+        
         nuh(i,j) = par%nuh**2 * l * Tau * real(wetu(i,j)*wetu(i-1,j),kind=8)
     enddo
   
-  endif !ny>0
+  endif !ny>2
 
-if (xmpi_istop)   nuh(1,:)      = nuh(2,:)      ! Bas+Jaap: changed from boundaries=0.d0 to neumann
-if (xmpi_isbot)   nuh(nx+1,:)   = nuh(nx,:)
+  if (ny>0) then
+    if (xmpi_isleft)    nuh(:,1)      = nuh(:,2)
+    if (xmpi_isright)   nuh(:,ny+1)   = nuh(:,ny)
+  endif
+  
+  if (xmpi_istop)       nuh(1,:)      = nuh(2,:)
+  if (xmpi_isbot)       nuh(nx+1,:)   = nuh(nx,:)
 
 #ifdef USEMPI
   call xmpi_shift(nuh,'1:')
