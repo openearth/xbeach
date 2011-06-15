@@ -193,7 +193,7 @@ subroutine writelog_mpi(mpiboundary,error)
     
     if (xmaster) then
         if (error==1) then
-            call writelog('els','','Unknown mpi division ',mpiboundary)
+            call writelog('elws','','Unknown mpi division ',mpiboundary)
             call halt_program
         else
             call writelog('ls','','processor grid: ',xmpi_m,' X ',xmpi_n)
