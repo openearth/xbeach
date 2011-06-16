@@ -581,8 +581,8 @@ contains
                         dj = mod(s%jdrift(i),1.d0)
                         
                         write(indextodrifterunit(i),rec=itd)    &
-                            s%xz(iz,jz)+di*s%dsu(iz,jz),        &
-                            s%yz(iz,jz)+dj*s%dnv(iz,jz),        &
+                            s%xz(iz,jz)+di*s%dsu(iz,jz)*cos(s%alfaz(iz,jz))-dj*s%dnv(iz,jz)*sin(s%alfaz(iz,jz)),        &
+                            s%yz(iz,jz)+di*s%dsu(iz,jz)*sin(s%alfaz(iz,jz))+dj*s%dnv(iz,jz)*cos(s%alfaz(iz,jz)),        &
                             par%t
                     else
                         write(indextodrifterunit(i),rec=itd)    &
