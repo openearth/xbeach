@@ -312,7 +312,7 @@ contains
     type(arraytype)                         :: t
     
     integer                                 :: iz,jz
-    real*8                                  :: di,dj
+    real*8                                  :: di,dj,dx,dy
 
     inquire(iolength=wordsize) 1.d0
     !  reclen=wordsize*(s%nx+1)*(s%ny+1)
@@ -580,9 +580,14 @@ contains
                         di = mod(s%idrift(i),1.d0)
                         dj = mod(s%jdrift(i),1.d0)
                         
+                        dx = di*s%dsu(iz,jz)*cos(s%alfaz(iz,jz)) - &
+                             dj*s%dnv(iz,jz)*sin(s%alfaz(iz,jz))
+                        dy = di*s%dsu(iz,jz)*sin(s%alfaz(iz,jz)) + &
+                             dj*s%dnv(iz,jz)*cos(s%alfaz(iz,jz))
+                        
                         write(indextodrifterunit(i),rec=itd)    &
-                            s%xz(iz,jz)+di*s%dsu(iz,jz)*cos(s%alfaz(iz,jz))-dj*s%dnv(iz,jz)*sin(s%alfaz(iz,jz)),        &
-                            s%yz(iz,jz)+di*s%dsu(iz,jz)*sin(s%alfaz(iz,jz))+dj*s%dnv(iz,jz)*cos(s%alfaz(iz,jz)),        &
+                            s%xz(iz,jz)+dx,                     &
+                            s%yz(iz,jz)+dy,                     &
                             par%t
                     else
                         write(indextodrifterunit(i),rec=itd)    &
