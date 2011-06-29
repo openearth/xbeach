@@ -311,9 +311,9 @@ contains
              ! Upwind Euler timestep propagation
              !
              call advecxho(ee(i-1:i+1,:,:),cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),    &
-                           2,ny,ntheta,dsu(i-1:i+1,:),dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_1')
+                           2,ny,ntheta,dnu(i-1:i+1,:),dsu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_1')
              call advecyho(ee(i,:,:),cgy(i,:,:),yadvec(i,:,:),                                  &
-                           0,ny,ntheta,dnv(i,:),dsv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
+                           0,ny,ntheta,dsv(i,:),dnv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
              !call advecx(ee(i-1:i+1,:,:)*cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),2,ny,ntheta,dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:))
              !call advecy(ee(i,:,:)*cgy(i,:,:),yadvec(i,:,:),0,ny,ntheta,dsv(i,:),dsdnzi(i,:))
              call advectheta(ee(i,:,:)*ctheta(i,:,:),thetaadvec(i,:,:),0,ny,ntheta,dtheta)
@@ -374,9 +374,9 @@ contains
              ! calculate roller energy balance
              !
              call advecxho(rr(i-1:i+1,:,:),cx(i-1:i+1,:,:),xradvec(i-1:i+1,:,:),   &
-                           2,ny,ntheta,dsu(i-1:i+1,:),dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_1')
+                           2,ny,ntheta,dnu(i-1:i+1,:),dsu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_1')
              call advecyho(rr(i,:,:),cy(i,:,:),yradvec(i,:,:),                                 &
-                           0,ny,ntheta,dnv(i,:),dsv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
+                           0,ny,ntheta,dsv(i,:),dnv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
              !call advecx(rr(i-1:i+1,:,:)*cx(i-1:i+1,:,:),xradvec(i-1:i+1,:,:),2,ny,ntheta,dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:)) !Robert & Jaap
              !call advecy(rr(i,:,:)*cy(i,:,:),yradvec(i,:,:),0,ny,ntheta,dsv(i,:),dsdnzi(i,:))                   !Robert & Jaap
              call advectheta(rr(i,:,:)*ctheta(i,:,:),thetaradvec(i,:,:),0,ny,ntheta,dtheta)   !Robert & Jaap
