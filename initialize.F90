@@ -876,31 +876,11 @@ contains
     !
     ! Set grain size(s)
     !
-    call readkey('params.txt','D50',line)
-    if (line=='') then
-       s%D50=0.0002d0   ! Default
-    else
-       read(line,*) s%D50(1:par%ngd)
-    endif
-    if (maxval(s%D50)>0.002) call writelog('ls','', 'D50 > 2mm, out of validity range')
-    call readkey('params.txt','D90',line)
-    if (line=='') then
-       s%D90=0.0003d0   ! Default
-    else
-       read(line,*) s%D90(1:par%ngd)
-    endif
-    call readkey('params.txt','sedcal',line)
-    if (line=='') then
-       s%sedcal=1.d0    ! Default
-    else
-       read(line,*) s%sedcal(1:par%ngd)
-    endif
-    call readkey('params.txt','ucrcal',line)
-    if (line=='') then
-       s%ucrcal=1.d0    ! Default
-    else
-       read(line,*) s%ucrcal(1:par%ngd)
-    endif
+    s%D50 = par%D50
+    s%D90 = par%D90
+    s%sedcal = par%sedcal
+    s%ucrcal = par%ucrcal
+    
 
     if (par%ngd==1) then
 
