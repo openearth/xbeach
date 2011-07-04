@@ -159,9 +159,6 @@ contains
        do n=1,s%ny+1
           read(33,*)(s%zb(m,n),m=1,s%nx+1)
        enddo
-    else
-       call writelog('esl','','Invalid value for gridform: ',par%gridform)
-       call halt_program
     endif
 
     if(xmaster) then
