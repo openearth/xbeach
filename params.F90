@@ -461,9 +461,6 @@ contains
       par%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   0.d0,   360.d0)
       par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
       close (31) 
-    else
-      call writelog('esl','','Invalid value for gridform: ',par%gridform)
-      call halt_program
     endif
     par%thetamin = readkey_dbl ('params.txt','thetamin', -90.d0,    -180.d0,  180.d0,required=(par%swave==1))
     par%thetamax = readkey_dbl ('params.txt','thetamax',  90.d0,    -180.d0,  180.d0,required=(par%swave==1))
