@@ -141,11 +141,11 @@ type parameters
                                                          !         (x=N,y=1)
                                                          !      NOTE:  clockwise from (1,1) corner
  
-   ! [Section] Discharge boundary conditions 
-   integer*4     :: ndischarge                 = -123    !  [-] Number of discharge locations
-   integer*4     :: ntdischarge                = -123    !  [-] Length of discharge time series
-   character(256):: disch_loc_file             = 'abc'   !  [-] Name of discharge locations file
-   character(256):: disch_timeseries_file      = 'abc'   !  [-] Name of discharge timeseries file
+   ! [Section] Flow discharge boundary conditions 
+   integer*4     :: ndischarge                 = -123    !  [-] (advanced) Number of discharge locations
+   integer*4     :: ntdischarge                = -123    !  [-] (advanced) Length of discharge time series
+   character(256):: disch_loc_file             = 'abc'   !  [-] (advanced) Name of discharge locations file
+   character(256):: disch_timeseries_file      = 'abc'   !  [-] (advanced) Name of discharge timeseries file
 
    ! [Section] Wave breaking parameters                                                                                                      
    character(24) :: break                      = 'abc'   !  [-] Type of breaker formulation (1=roelvink, 2=baldock, 3=roelvink adapted, 4=roelvink on/off breaking)
