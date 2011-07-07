@@ -428,16 +428,25 @@ subroutine dispersion(par,s)
   ! wwvv moved L1 to spaceparams, in the parallel version
   ! of the program L1 will be resized and distributed
   !
-  integer                             :: i,j,it
+  integer                             :: i,j,it,j1,j2
   real*8                              :: phi
   real*8                              :: aphi
   real*8                              :: bphi
   real*8                              :: twopi
+  real*8                              :: backdis,lback,disfac
+  integer                             :: index
 
   phi    = (1.0d0 + sqrt(5.0d0))/2
   aphi   = 1/(phi+1)
   bphi   = phi/(phi+1)
   twopi  = 8*atan(1.0d0)
+  if (s%ny==0) then
+     j1=1
+     j2=1
+  else
+     j1=2
+     j2=s%ny
+  endif
   !
   ! In the original code, phi, aphi, bphi are saved
   ! variables, and calculated once. I think this is
@@ -447,7 +456,7 @@ subroutine dispersion(par,s)
   ! for variables t and n.
 
   ! cjaap: replaced par%hmin by par%eps
-
+  
   h = max(s%hh + par%delta*s%H,par%eps)
 
   L0 = twopi*par%g/(s%sigm**2)
@@ -459,7 +468,7 @@ subroutine dispersion(par,s)
      end if
   endif
 
-  do j = 1,s%ny+1
+  do j = j1,j2
      do i = 1,s%nx+1
         err = huge(0.0d0)
         it = 0
@@ -475,15 +484,68 @@ subroutine dispersion(par,s)
         endif
      end do
   end do
+  ! boundary copies for non superfast 1D
+  if (s%ny>0) then 
+     s%L1(:,1)=s%L1(:,2)
+     s%L1(:,s%ny+1)=s%L1(:,s%ny)
+  endif
 
   s%k  = 2*par%px/s%L1
   s%c  = s%sigm/s%k
   !kh   = s%k*h
   ! Ad:
-  kh   = min(s%k*h,10.0d0)
+  kh = min(s%k*h,10.0d0)
   s%n=0.5d0+kh/sinh(2*kh)
   s%cg=s%c*s%n
-  !s%cg = s%c*(0.5d0+kh/sinh(2*kh))
+  if (par%shoaldelay==1) then
+     ! find new depth based on wave length
+     do j = j1,j2
+        do i = 2,s%nx+1
+           index = i
+           backdis = 0.d0
+           h(i,j) = 0.d0
+           do while (backdis<1.d0)
+              disfac = s%dsc(index,j)/(par%facsd*s%L1(index,j))
+              disfac = min(disfac,1.d0-backdis)
+              
+              h(i,j) = h(i,j) + disfac*s%hh(index,j)
+              backdis = backdis+disfac
+              
+              index = max(index-1,1)
+           enddo
+        enddo
+     enddo
+     do j = j1,j2
+        do i = 1,s%nx+1
+           err = huge(0.0d0)
+           it = 0
+           do while (err > 0.00001d0 .and. it<100)
+              it        = it+1
+              L2        = L0(i,j)*tanh(2*par%px*h(i,j)/s%L1(i,j))
+              err       = abs(L2 - s%L1(i,j))
+              s%L1(i,j) = (s%L1(i,j)*aphi + L2*bphi)          ! Golden ratio
+           end do
+           if (it==100) then !jaap check if there is convergence
+              call writelog('lws','','Warning: no convergence in dispersion relation iteration at t = ', &
+                   par%t*max(par%morfac*par%morfacopt,1.d0))
+           endif
+        end do
+     end do
+     ! boundary copies for non superfast 1D
+     if (s%ny>0) then 
+        s%L1(:,1)=s%L1(:,2)
+        s%L1(:,s%ny+1)=s%L1(:,s%ny)
+     endif
+
+     s%k  = 2*par%px/s%L1
+     s%c  = s%sigm/s%k
+     ! Ad:
+     kh = min(s%k*h,10.0d0)
+     s%n=0.5d0+kh/sinh(2*kh)
+     s%cg=s%c*s%n
+     
+  endif
+
 
 end subroutine dispersion
 
