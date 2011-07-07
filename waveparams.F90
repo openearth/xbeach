@@ -1254,7 +1254,34 @@ subroutine build_etdir(par,s,wp,Ebcfname)
      Nbox(i)=s%thetamin+(i-1)*s%dtheta
   enddo
   !deallocate (temp)
-
+  
+  ! try to put all wave directions between thetamax and thetamin
+  do i=1,size(wp%theta0)
+     if (wp%theta0(i)>s%thetamax) then
+        F2=1
+     elseif (wp%theta0(i)<s%thetamin) then
+        F2=-1
+     else
+        F2=0
+     endif
+     ! now turn over 2pi 
+     if (F2==1) then
+        do while (F2==1)
+           wp%theta0(i)=wp%theta0(i)-2*par%px
+           if (wp%theta0(i)<=s%thetamax) then
+              F2=0
+           endif
+        enddo
+     elseif (F2==-1) then
+        do while (F2==-1)
+           wp%theta0(i)=wp%theta0(i)+2*par%px
+           if (wp%theta0(i)>=s%thetamin) then
+              F2=0
+           endif
+        enddo
+     endif
+  enddo
+  
   ! Determine computational directional bin for each wave component
   do i=1,size(wp%theta0)
      do ii=1,Ns
