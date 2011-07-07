@@ -342,7 +342,7 @@ contains
                      ero(i,j,jg)))
 
                 cc(i,j)=max(cc(i,j),0.0d0) ! Jaap: negative cc's are possible...   
-                cc(i,j)=min(cc(i,j),0.1*hh(i,j))
+                cc(i,j)=min(cc(i,j),par%cmax*hh(i,j))
                 depo_ex(i,j,jg) = cc(i,j)/Tsg(i,j,jg)  
              enddo
           enddo
@@ -357,7 +357,7 @@ contains
                   ero(i,j,jg)))
 
              cc(i,j)=max(cc(i,j),0.0d0) ! Jaap: negative cc's are possible...   
-             cc(i,j)=min(cc(i,j),0.1*hh(i,j))
+             cc(i,j)=min(cc(i,j),par%cmax*hh(i,j))
 
              depo_ex(i,j,jg) = cc(i,j)/Tsg(i,j,jg)  
           enddo
@@ -1143,10 +1143,10 @@ contains
        call xmpi_shift(term2,'m:')
 #endif
        ceqb = Asb*term2
-       ceqb = min(ceqb/hloc,0.05d0)             ! maximum equilibrium bed concentration
+       ceqb = min(ceqb/hloc,par%cmax/2)             ! maximum equilibrium bed concentration
        ceqbg(:,:,jg) = (1-par%bulk)*ceqb*sedcal(jg)*wetz
        ceqs = Ass*term2
-       ceqs = min(ceqs/hloc,0.05d0)             ! maximum equilibrium suspended concentration
+       ceqs = min(ceqs/hloc,par%cmax/2)             ! maximum equilibrium suspended concentration
        ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*sedcal(jg)*wetz
 
        ! Jaap: old brute method to prevent strong coastline erosion
@@ -1299,9 +1299,9 @@ contains
           end do
        end do
 
-       ceqb = min(ceqb/hloc,0.05) ! maximum equilibrium bed concentration
+       ceqb = min(ceqb/hloc,par%cmax/2) ! maximum equilibrium bed concentration
        ceqbg(:,:,jg) = (1-par%bulk)*ceqb*sedcal(jg)*wetz
-       ceqs = min(ceqs/hloc,0.05) ! maximum equilibrium suspended concentration
+       ceqs = min(ceqs/hloc,par%cmax/2) ! maximum equilibrium suspended concentration
        ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*sedcal(jg)*wetz       
 
        ! Jaap: old brute method to prevent strong coastline erosion

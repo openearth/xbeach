@@ -324,6 +324,7 @@ type parameters
    ! [Section] Sediment transport numerics parameters                                                                                  
    real*8        :: thetanum                   = -123    !  [-] (advanced) Coefficient determining whether upwind (1) or central scheme (0.5) is used.
    integer*4     :: sourcesink                 = -123    !  [-] (advanced) In suspended transport use source-sink terms to calculate bed level change (1) or sus transport gradients (0)
+   real*8        :: cmax                       = -123    !  [-] (advanced) Maximum allowed sediment concentration
 
    ! [Section] Bed update numerics parameters
    real*8        :: frac_dz                    = -123    !  [-] (advanced) Relative thickness to split time step for bed updating
@@ -992,6 +993,7 @@ contains
        call writelog('l','','Sediment transport numerics parameters: ') 
        par%thetanum   = readkey_dbl ('params.txt','thetanum',   1.d0,    0.5d0,   1.d0)
        par%sourcesink = readkey_int ('params.txt','sourcesink    ',0,     0,         1)
+       par%cmax       = readkey_dbl ('params.txt','cmax',      0.1d0,    0.0d0,   1.d0)
     endif
     !
     !
