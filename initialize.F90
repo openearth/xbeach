@@ -873,10 +873,10 @@ contains
     !
     ! Set grain size(s)
     !
-    s%D50 = par%D50
-    s%D90 = par%D90
-    s%sedcal = par%sedcal
-    s%ucrcal = par%ucrcal
+    s%D50 = par%D50(1:par%ngd)
+    s%D90 = par%D90(1:par%ngd)
+    s%sedcal = par%sedcal(1:par%ngd)
+    s%ucrcal = par%ucrcal(1:par%ngd)
     
 
     if (par%ngd==1) then

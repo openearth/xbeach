@@ -28,7 +28,7 @@ dnl DX_PDF_FEATURE(ON)
 dnl DX_PS_FEATURE(OFF) 
 
 # prefer compilers we tested
-AC_PROG_FC([gfortran-mp-4.4 gfortran-mp-4.3 gfortran ifort ifc g95 xlf95 f95 fort  efc pgf95 lf95 ftn xlf90 f90 pgf90 pghpf epcf90 g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77])
+AC_PROG_FC([gfortran-mp-4.6 gfortran-mp-4.5 gfortran-mp-4.4 gfortran-mp-4.3 gfortran ifort ifc g95 xlf95 f95 fort  efc pgf95 lf95 ftn xlf90 f90 pgf90 pghpf epcf90 g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77])
 AC_PROG_INSTALL
 # Checks for libraries.
 
