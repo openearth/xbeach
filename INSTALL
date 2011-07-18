@@ -24,6 +24,15 @@ you can use the cygwin or mingw environment. They both support the
 autotools environment. If you use GNU/Linux, OS X, cygwin or mingw
 then this document is for you.
 
+Version Info
+============
+   Under linux the version info is found using the svnversion command.
+This only works if you use a "checked out copy" of XBeach. If you for
+example export or copy xbeach without including the .svn directories 
+then xbeach no longer knows which version it is. And this information 
+won't be build in. So to include the XBeach version, make sure you can
+type svnversion in the directory where xbeach is build. 
+
 Basic Installation
 ==================
 
