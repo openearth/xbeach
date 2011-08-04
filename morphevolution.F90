@@ -1397,7 +1397,7 @@ contains
        do i=1,nx+1
           if(vv(i,j)>0) then
              kturbv(i,j)=par%thetanum*kturb(i,j)+(1.d0-par%thetanum)*kturb(i,min(j+1,ny))
-          else if(vev(i,j)<0) then
+          else if(vv(i,j)<0) then
              kturbv(i,j)=par%thetanum*kturb(i,j+1)+(1.d0-par%thetanum)*kturb(i,max(j,2))
           else
              kturbv(i,j)=0.5d0*(kturbv(i,j)+kturbv(i,j+1))
