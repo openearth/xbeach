@@ -703,8 +703,11 @@ subroutine makeintpvector(par,s,intpvector,mg,ng)
   
   p=-1
   do i=1,xmpi_size
-     if (mg .ge. s%is(i) .and. mg .le. s%is(i) + s%lm(i) .and. &
-          ng .ge. s%js(i) .and. ng .le. s%js(i) + s%ln(i)) then
+  !    if (mg .ge. s%is(i) .and. mg .le. s%is(i) + s%lm(i) .and. &
+  !         ng .ge. s%js(i) .and. ng .le. s%js(i) + s%ln(i)) then
+  ! Change suggested by Jim Gunson:
+     if (mg .ge. s%is(i) .and. mg .lt. s%is(i) + s%lm(i) .and. &
+         ng .ge. s%js(i) .and. ng .lt. s%js(i) + s%ln(i)) then
         m = mg - s%is(i) + 1  ! m and n now the indices for process p
         n = ng - s%js(i) + 1
         p = i-1
