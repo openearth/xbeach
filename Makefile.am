@@ -23,6 +23,7 @@ xbeach_SOURCES= \
 	math_tools.F90 \
 	general_fileio.F90 \
 	params.F90 \
+	getkey.F90 \
 	spaceparams.F90 \
 	waveparams.F90 \
 	constants.F90 \

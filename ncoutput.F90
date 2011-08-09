@@ -101,6 +101,9 @@ contains
     use means_module
     use postprocessmod
     use logging_module
+    ! This module is awaiting comments from Robert.
+    ! use getkey_module
+    
     implicit none
     integer :: status ! file id and status returned from a file operation
 
@@ -108,6 +111,8 @@ contains
     type(parameters), intent(in)                 :: par 
     type(timepars), intent(in)                   :: tpar
 
+    ! Part of the getkey
+    ! type(parameter)                              :: val
     type(arraytype)                              :: t
     type(meanspars)                              :: meanvar
     integer                                      :: i,j
@@ -119,7 +124,7 @@ contains
     character(256)                               :: coordinates
     character(8)                                 :: cellmethod
 
-
+    character(len=maxnamelen), dimension(:), allocatable       :: keys
     ! subversion information
     include 'version.def'
     include 'version.dat'
@@ -242,17 +247,32 @@ contains
        end if
 
        ! Some metadata attributes
-       status = nf90_put_att(ncid,nf90_global, "Conventions", "CF-1.4");
+       status = nf90_put_att(ncid,nf90_global, "Conventions", "CF-1.4")
        if (status /= nf90_noerr) call handle_err(status)
-       status = nf90_put_att(ncid,nf90_global, "Producer", "XBeach littoral zone wave model (http://www.xbeach.org)");
+       status = nf90_put_att(ncid,nf90_global, "Producer", "XBeach littoral zone wave model (http://www.xbeach.org)")
        if (status /= nf90_noerr) call handle_err(status)
-       status = nf90_put_att(ncid,nf90_global, "Build-Revision", trim(Build_Revision));
+       status = nf90_put_att(ncid,nf90_global, "Build-Revision", trim(Build_Revision))
        if (status /= nf90_noerr) call handle_err(status)
-       status = nf90_put_att(ncid,nf90_global, "Build-Date", trim(Build_Date));
+       status = nf90_put_att(ncid,nf90_global, "Build-Date", trim(Build_Date))
        if (status /= nf90_noerr) call handle_err(status)
-       status = nf90_put_att(ncid,nf90_global, "URL", trim(Build_URL));
+       status = nf90_put_att(ncid,nf90_global, "URL", trim(Build_URL))
        if (status /= nf90_noerr) call handle_err(status)
 
+       ! Store all the parameters
+       ! This part is awaiting comments from Robert McCall
+       ! call getkeys(par, keys)
+       ! do i=1,size(keys)
+       !    call getkey(par, keys(i), val)
+       !    if (val%type == 'i') then
+       !       status = nf90_put_att(ncid,nf90_global, keys(i), val%i0 )
+       !    elseif (val%type == 'c') then
+       !       write(*,*) keys(i), val%c0, associated(val%c0)
+       !       status = nf90_put_att(ncid,nf90_global, keys(i), val%c0 )
+       !    elseif (val%type == 'r') then
+       !       status = nf90_put_att(ncid,nf90_global, keys(i), val%r0 )
+       !    end if
+       !    if (status /= nf90_noerr) call handle_err(status)
+       ! end do
 
        ! global
        if (outputg) then
