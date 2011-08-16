@@ -23,6 +23,9 @@ module ncoutput_module
 
   integer, save :: ncid
 
+  ! parameters
+  integer, save :: parvarid
+
   ! grid
   integer, save :: xdimid, ydimid
   integer, save :: xvarid, yvarid 
@@ -102,7 +105,7 @@ contains
     use postprocessmod
     use logging_module
     ! This module is awaiting comments from Robert.
-    ! use getkey_module
+    use getkey_module
     
     implicit none
     integer :: status ! file id and status returned from a file operation
@@ -112,7 +115,7 @@ contains
     type(timepars), intent(in)                   :: tpar
 
     ! Part of the getkey
-    ! type(parameter)                              :: val
+    type(parameter)                              :: val
     type(arraytype)                              :: t
     type(meanspars)                              :: meanvar
     integer                                      :: i,j
@@ -208,6 +211,9 @@ contains
           if (status /= nf90_noerr) call handle_err(status)
        endif
 
+       ! define empty parameter variable
+       status = nf90_def_var(ncid, 'parameter', NF90_DOUBLE, varid=parvarid)
+       if (status /= nf90_noerr) call handle_err(status)
        ! define space & time variables
        ! grid
        status = nf90_def_var(ncid, 'globalx', NF90_DOUBLE, (/ xdimid, ydimid /), xvarid)
@@ -260,19 +266,19 @@ contains
 
        ! Store all the parameters
        ! This part is awaiting comments from Robert McCall
-       ! call getkeys(par, keys)
-       ! do i=1,size(keys)
-       !    call getkey(par, keys(i), val)
-       !    if (val%type == 'i') then
-       !       status = nf90_put_att(ncid,nf90_global, keys(i), val%i0 )
-       !    elseif (val%type == 'c') then
-       !       write(*,*) keys(i), val%c0, associated(val%c0)
-       !       status = nf90_put_att(ncid,nf90_global, keys(i), val%c0 )
-       !    elseif (val%type == 'r') then
-       !       status = nf90_put_att(ncid,nf90_global, keys(i), val%r0 )
-       !    end if
-       !    if (status /= nf90_noerr) call handle_err(status)
-       ! end do
+       call getkeys(par, keys)
+       do i=1,size(keys)
+          call getkey(par, keys(i), val)
+          if (val%type == 'i') then
+             status = nf90_put_att(ncid, parvarid, keys(i), val%i0 )
+          elseif (val%type == 'c') then
+             write(*,*) keys(i), val%c0, associated(val%c0)
+             status = nf90_put_att(ncid, parvarid, keys(i), val%c0 )
+          elseif (val%type == 'r') then
+             status = nf90_put_att(ncid, parvarid, keys(i), val%r0 )
+          end if
+          if (status /= nf90_noerr) call handle_err(status)
+       end do
 
        ! global
        if (outputg) then
