@@ -123,8 +123,6 @@ contains
     dcsdx     = 0.0d0
     dcsdy     = 0.0d0
 
-    
-    
     sinthm = sin(thetamean-alfaz)
     costhm = cos(thetamean-alfaz)
 
@@ -155,7 +153,7 @@ contains
        do j=1,ny+1
           do i=1,nx+1
              exp_ero = par%morfac*par%dt/(1.d0-par%por)*hh(i,j)*(ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg) &
-                  + ceqbg(i,j,jg)*pbbed(i,j,1,jg)/par%dt) 
+                                                               + ceqbg(i,j,jg)*pbbed(i,j,1,jg)/par%dt) 
              fac(i,j,jg) = min(1.d0,structdepth(i,j)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )         ! limit erosion to available sediment on top of hard layer
              !if (fac(i,j,jg)*exp_ero > dzbed(i,j,1)*pbbed(i,j,1,jg)) then
              !   fac(i,j,jg) = min(fac(i,j,jg),dzbed(i,j,1)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )  ! limit erosion to available sand in top layer
@@ -338,8 +336,8 @@ contains
                 ! BRJ: the volume in the water column is updated and not the volume concentration.
                 cc(i,j) = (par%dt*Tsg(i,j,jg))/(par%dt+Tsg(i,j,jg))* &
                      (hold(i,j)*cc(i,j)/par%dt -((Sus(i,j)*dnu(i,j)-Sus(i-1,j)*dnu(i-1,j)+&
-                     Svs(i,j)*dsv(i,j)-Svs(i,j-1)*dsv(i,j-1) )*dsdnzi(i,j)-&
-                     ero(i,j,jg)))
+                                                  Svs(i,j)*dsv(i,j)-Svs(i,j-1)*dsv(i,j-1))*dsdnzi(i,j)-&
+                                                  ero(i,j,jg)))
 
                 cc(i,j)=max(cc(i,j),0.0d0) ! Jaap: negative cc's are possible...   
                 cc(i,j)=min(cc(i,j),par%cmax*hh(i,j))
@@ -353,8 +351,8 @@ contains
              ! depo_ex(i,j,jg) = max(hold(i,j),0.01d0)*cc(i,j)/Tsg(i,j,jg)                    
              ! BRJ: the volume in the water column is updated and not the volume concentration.
              cc(i,j) = (par%dt*Tsg(i,j,jg))/(par%dt+Tsg(i,j,jg))* &
-                  (hold(i,j)*cc(i,j)/par%dt -((Sus(i,j)*dnu(i,j)-Sus(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)-&
-                  ero(i,j,jg)))
+                       (hold(i,j)*cc(i,j)/par%dt -((Sus(i,j)*dnu(i,j)-Sus(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)-&
+                        ero(i,j,jg)))
 
              cc(i,j)=max(cc(i,j),0.0d0) ! Jaap: negative cc's are possible...   
              cc(i,j)=min(cc(i,j),par%cmax*hh(i,j))
@@ -439,6 +437,7 @@ contains
 
   subroutine bed_update(s,par)
     use params
+    use interp
     use spaceparams
     use xmpi_module
 
@@ -447,10 +446,12 @@ contains
     type(spacepars),target              :: s
     type(parameters)                    :: par
 
-    integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz
+    integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz,indx
+    integer , dimension(s%nx+1)                 :: slopeind,bermind
     integer , dimension(:,:,:),allocatable,save :: indSus,indSub,indSvs,indSvb
     real*8                                      :: dzb,dzmax,dzt,dzleft,sdz,dzavt,fac,Savailable,dxfac,dyfac
-    real*8 , dimension(:,:),allocatable,save    :: dzbtot,Sout
+    real*8                                      :: strucslope,bermwidth,rb,gamB,irrb,runup_old,runup_max,first
+    real*8 , dimension(:,:),allocatable,save    :: dzbtot,Sout,hav
     real*8 , dimension(par%ngd)                 :: edg,edg1,edg2,dzg
     real*8 , dimension(:),pointer               :: dz
     real*8 , dimension(:,:),pointer             :: pb
@@ -462,6 +463,7 @@ contains
     if (.not. allocated(dzbtot)) then 
        allocate(dzbtot(s%nx+1,s%ny+1))
        allocate(Sout(s%nx+1,s%ny+1))
+       allocate(hav(s%nx+1,s%ny+1))
        allocate(indSus(s%nx+1,s%ny+1,par%ngd))
        allocate(indSub(s%nx+1,s%ny+1,par%ngd))
        allocate(indSvs(s%nx+1,s%ny+1,par%ngd))
@@ -492,7 +494,7 @@ contains
              indSvs = 0
              indSvb = 0
              Sout   = 0.d0 
-             do j=2,ny+1
+             do j=j1,ny+1
                 do i=2,nx+1
                    ! fluxes at i,j
                    if (Subg(i,j,jg) > 0.d0) then      ! bed load u-direction
@@ -517,7 +519,7 @@ contains
                 enddo
              enddo
              if (ny>0) then
-                do j=2,ny+1
+                do j=j1,ny+1
                    do i=2,nx+1
                       if (Svbg(i,j,jg) > 0.d0 ) then     ! bed load v-direction
                          indSvb(i,j,jg) = 1
@@ -577,15 +579,16 @@ contains
                 ! positive in case of erosion
                 if (par%sourcesink==0) then
                    dzg=par%morfac*par%dt/(1.d0-par%por)*( & ! Dano, dz from sus transport gradients      
-                        (Susg(i,j,:)*dnu(i,j)-Susg(i-1,j,:)*dnu(i-1,j) +&           
-                        Svsg(i,j,:)*dsv(i,j)-Svsg(i,j-1,:)*dsv(i,j-1) +&
+                        ( Susg(i,j,:)*dnu(i,j)-Susg(i-1,j,:)*dnu(i-1,j) +&           
+                          Svsg(i,j,:)*dsv(i,j)-Svsg(i,j-1,:)*dsv(i,j-1) +&
                                 ! dz from bed load transport gradients
-                        Subg(i,j,:)*dnu(i,j)-Subg(i-1,j,:)*dnu(i-1,j)+&           
-                        Svbg(i,j,:)*dsv(i,j)-Svbg(i,j-1,:)*dsv(i,j-1))*dsdnzi(i,j)    )       
+                          Subg(i,j,:)*dnu(i,j)-Subg(i-1,j,:)*dnu(i-1,j)+&           
+                          Svbg(i,j,:)*dsv(i,j)-Svbg(i,j-1,:)*dsv(i,j-1) )*dsdnzi(i,j)    )       
                 elseif (par%sourcesink==1) then
-                   dzg=par%morfac*par%dt/(1.d0-par%por)*(ero(i,j,:)-depo_ex(i,j,:)   +&
-                        (Subg(i,j,:)*dnu(i,j)-Subg(i-1,j,:)*dnu(i-1,j)+&           
-                        Svbg(i,j,:)*dsv(i,j)-Svbg(i,j-1,:)*dsv(i,j-1))*dsdnzi(i,j)    )
+                   dzg=par%morfac*par%dt/(1.d0-par%por)*( &
+                          ero(i,j,:)-depo_ex(i,j,:)   +&
+                        ( Subg(i,j,:)*dnu(i,j)-Subg(i-1,j,:)*dnu(i-1,j)+&           
+                          Svbg(i,j,:)*dsv(i,j)-Svbg(i,j-1,:)*dsv(i,j-1) )*dsdnzi(i,j)    )
                 endif
 
                 ! erosion/deposition rate of sand mass (m/s)
@@ -605,13 +608,14 @@ contains
              ! bed level changes per fraction in this morphological time step in meters sand including pores
              ! positive in case of erosion
              if (par%sourcesink==0) then
-                dzg=par%morfac*par%dt/(1.d0-par%por)*( & ! Dano, dz from sus transport gradients      
-                     (Susg(i,j,:)*dnu(i,j)-Susg(i-1,j,:)*dnu(i-1,j) +&           
-                                ! dz from bed load transport gradients
-                     Subg(i,j,:)*dnu(i,j)-Subg(i-1,j,:)*dnu(i-1,j))*dsdnzi(i,j)    )           
+                       dzg=par%morfac*par%dt/(1.d0-par%por)*( & ! Dano, dz from sus transport gradients  
+                     ( Susg(i,j,:)*dnu(i,j)-Susg(i-1,j,:)*dnu(i-1,j) +&           
+                       Subg(i,j,:)*dnu(i,j)-Subg(i-1,j,:)*dnu(i-1,j) )*dsdnzi(i,j)    )           
              elseif (par%sourcesink==1) then
-                dzg=par%morfac*par%dt/(1.d0-par%por)*(ero(i,j,:)-depo_ex(i,j,:)       +&
-                     (Subg(i,j,:)*dnu(i,j)-Subg(i-1,j,:)*dnu(i-1,j))*dsdnzi(i,j)    )
+                       dzg=par%morfac*par%dt/(1.d0-par%por)*( &
+                       ero(i,j,:)-depo_ex(i,j,:)       +&
+                      ( Subg(i,j,:)*dnu(i,j)-Subg(i-1,j,:)*dnu(i-1,j) )*dsdnzi(i,j)    )
+                      
              endif
 
              ! erosion/deposition rate of sand mass (m/s)
@@ -630,6 +634,8 @@ contains
        !
        ! Avalanching
        !
+       
+       
        if (par%avalanching==1) then
            do ii=1,nint(par%morfac)
 
@@ -638,21 +644,89 @@ contains
               dzbdy=0.d0
               do j=1,ny+1
                  do i=1,nx
-                    dzbdx(i,j)=(zb(i+1,j)-zb(i,j))/dsu(i,j)
+                    dzbdx(i,j)=(zb(i+1,j)-zb(i,j))/dsu(i,j)  
                  enddo
               enddo
+              
+              ! Include short wave runup
+              
+              ! Jaap crude switch, need to do further testing
+              
+              if (par%struct==0) then
+              
+              hav = hh
+              indx = nx+1
+              
+              elseif (par%struct==0) then
+              
+              
+              do j=1,ny+1
+                 first = 0;
+                 do i=1,nx
+                    if (wetz(i,j)-wetz(max(i-1,1),j)==-1 .and. first==0) then ! transition from wet to dry
+                        ! only consider first dry point
+                        first = 1
+                        ! find wave height for runup at facsd*L1 meter from water line 
+                        call linear_interp(xz(:,j),H(:,j),nx+1,xz(i-1,j)-par%facsd*L1(i-1,j),s%Hrunup(j),indx)
+                        ! Find toe of runup slope if present (dzbdx > 0.15). 
+                        ! If not present Hrunup will converge to H at the water line (where H = 0 per definition)
+                        do j1=indx,i-1
+                          if (dzbdx(j1,j)<0.15d0 .or. structdepth(j1,j)>0.1d0) then
+                             indx = j1
+                          endif
+                        enddo 
+                        ! update Hrunup and runup x-location
+                        s%Hrunup(j) = H(indx,j)
+                        s%xHrunup(j) = xz(indx,j);
+                        ! now itteratively compute runup
+                        hav(:,j) = hh(:,j)
+                        runup_old = huge(0.d0)
+                        s%runup(j) = 0;
+                        do while (abs(s%runup(j)-runup_old)>0.01d0)
+                          runup_old = s%runup(j)
+                          slopeind = 0
+                          where (hav(:,j)>par%eps .and. dzbdx(:,j)>0.15)
+                            slopeind = 1
+                          endwhere
+                          !bermind = 0
+                          !where (slopeind == 0 .and. wetz(:,j) == 0 .and. hav(:,j)>par%eps)
+                          !  bermind = 1
+                          !endwhere
+                          strucslope = sum(dzbdx(indx:nx,j)*dsu(indx:nx,j)*slopeind(indx:nx))/max(par%eps,sum(dsu(indx:nx,j)*slopeind(indx:nx)))
+                          if (strucslope > 0.d0) then         
+                             irrb = strucslope/sqrt(2*par%px*max(s%Hrunup(j),par%eps)/par%g/par%Trep**2)
+                             !bermwidth  = sum(dsu(indx:nx,j)*bermind(indx:nx))
+                             !rb = bermwidth/(bermwidth+sum(dsu(indx:nx,j)*slopeind(indx:nx)))
+                             !gamB = max(0.6d0,1.d0-rb)
+                             !runup_max = (4.3d0-1.6d0/sqrt(irrb))*s%Hrunup(j)
+                             !s%runup(j) = min(runup_max,irrb*s%Hrunup(j))*cos(2*par%px/par%Trep*par%t)
+                             s%runup(j) = min(irrb,2.3d0)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
+                          else
+                             s%runup(j) = 0.d0;
+                          endif
+        
+                          hav(:,j) = hh(:,j) + wetz(:,j)*par%shoaldelay*s%runup(j) + &
+                                              (1.d0-wetz(:,j))*max(par%eps, par%shoaldelay*(s%runup(j)-zb(:,j)));
+                       enddo
+                    endif
+                 enddo
+              enddo
+              
+              endif ! end crude switch
               !
               do i=2,nx-1
+                 first = 0
                  do j=1,ny+1
                     !if (max( max(hh(i,j),par%delta*H(i,j)), max(hh(i+1,j),par%delta*H(i+1,j)) )>par%hswitch+par%eps) then
-                    if(max(hh(i,j),hh(i+1,j))>par%hswitch+par%eps) then
+                    if(max(hav(i,j),hav(i+1,j))>par%hswitch+par%eps) then ! Jaap instead of hh
                        dzmax=par%wetslp;
-                    else
+                       if (i>indx) then ! tricks: seaward of indx (transition from sand to structure) wetslope is set to 0.03;
+                          dzmax = 0.03d0
+                          !dzmax = max(0.01d0,abs(dzbdx(i,j))*0.9d0)
+                       endif
+                    else 
                        dzmax=par%dryslp;
                     end if
-                    if (dzbdx(i,j)<0) then
-                       dzb = dzb
-                    endif
 
                     if(abs(dzbdx(i,j))>dzmax ) then
                        aval=.true.     
