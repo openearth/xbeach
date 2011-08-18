@@ -117,7 +117,6 @@ contains
           call halt_program
        endif
     elseif (trim(par%gridform)=='delft3d') then
-    if(xmaster) then
        ! 
        ! Gridfile
        !
@@ -160,8 +159,8 @@ contains
        do n=1,s%ny+1
           read(33,*)(s%zb(m,n),m=1,s%nx+1)
        enddo
-    endif ! xmaster
-    endif ! delft3d format
+    endif
+
     if(xmaster) then
 
        s%zb=-s%zb*s%posdwn
@@ -866,11 +865,12 @@ contains
     allocate(s%Sutot(1:nx+1,1:ny+1))     ! Only really for easy output 
     allocate(s%Svtot(1:nx+1,1:ny+1))     ! Only really for easy output
     allocate(s%cctot(1:nx+1,1:ny+1))     ! Only really for easy output
+    allocate(s%runup(1:ny+1))
+    allocate(s%Hrunup(1:ny+1))
+    allocate(s%xHrunup(1:ny+1))
 
     ! Initialize so structures can be implemented more easily
     s%pbbed = 0.d0
-
-
     !
     ! Set grain size(s)
     !
@@ -995,6 +995,9 @@ contains
     s%Sutot      = 0.d0
     s%Svtot      = 0.d0
     s%cctot      = 0.d0
+    s%runup      = 0.d0
+    s%Hrunup     = 0.d0
+    s%xHrunup    = 0.d0
 
     ! Initialize dzbdx, dzbdy
     do j=1,ny+1
