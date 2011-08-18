@@ -342,8 +342,9 @@ contains
     elseif (trim(par%instat)=='bichrom') then
        do j=1,ny+1
           ee(1,j,:)=e01*0.5d0 * &
-               & (1.d0+cos(2*par%px*(par%t/par%Tlong-(sin(theta0)*(yz(1,j)-yz(1,1))+cos(theta0)*(xz(1,j)-xz(1,1)))/Llong))) * &
-               & min(par%t/par%taper,1.d0)
+                 (1.d0+cos(2*par%px*(par%t/par%Tlong-(sin(theta0-sum(alfaz(1,1:j))/j)*(yz(1,j)-yz(1,1)) &
+                                                     +cos(theta0-sum(alfaz(1,1:j))/j)*(xz(1,j)-xz(1,1)))/Llong))) * &
+                                                     min(par%t/par%taper,1.d0)
           em = (sum(0.5d0*e01))*dtheta *min(par%t/par%taper,1.d0)
           ei =  sum(ee(1,j,1:ntheta))*dtheta
           bi(1) = -(2*cg(1,j)/c(1,j)-0.5d0)*(em-ei)/(cg(1,j)**2-par%g*hh(1,j))/par%rho
@@ -352,10 +353,13 @@ contains
        end do
     elseif (trim(par%instat)=='ts_1') then
        do j=1,ny+1
-          if (abs(theta0)<1e-3) then
+          if (abs(theta0-sum(alfaz(1,1:j))/j)<1e-3) then
              call linear_interp(tE,dataE,nt,par%t,E1,E_idx)
           else
-             tshifted=max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1),0.d0)
+             ! tshifted=max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1),0.d0)
+             ! jaap this does not work for curvi code
+             tshifted = max(par%t-(yz(1,j)-yz(1,1))*sin(theta0-sum(alfaz(1,1:j))/j)/cg(1,1) & 
+                                 +(xz(1,j)-xz(1,1))*cos(theta0-sum(alfaz(1,1:j))/j)/cg(1,1),0.d0)
              call linear_interp(tE,dataE,nt,tshifted,E1,E_idx) 
           endif
           ee(1,j,:)=e01*E1/max(Emean,0.000001d0)*min(par%t/par%taper,1.d0)
@@ -368,11 +372,14 @@ contains
     elseif (trim(par%instat)=='ts_2') then
        ht=zs0(1:2,:)-zb(1:2,:)
        do j=1,ny+1
-          if (abs(theta0)<1e-3) then
+          if (abs(theta0-sum(alfaz(1,1:j))/j)<1e-3) then
              call linear_interp(tE,dataE,nt,par%t,E1,E_idx) 
              call linear_interp(tE,databi,nt,par%t,bi(1),E_idx)
           else
-             tshifted=max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1),0.d0)
+             ! tshifted=max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1),0.d0)
+             ! jaap this does not work for curvi code
+             tshifted = max(par%t-(yz(1,j)-yz(1,1))*sin(theta0-sum(alfaz(1,1:j))/j)/cg(1,1) & 
+                                 +(xz(1,j)-xz(1,1))*cos(theta0-sum(alfaz(1,1:j))/j)/cg(1,1),0.d0)
              call linear_interp(tE,dataE,nt,tshifted,E1,E_idx) 
              call linear_interp(tE,databi,nt,tshifted,bi(1),E_idx)
           endif
