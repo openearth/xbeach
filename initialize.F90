@@ -117,6 +117,7 @@ contains
           call halt_program
        endif
     elseif (trim(par%gridform)=='delft3d') then
+    if(xmaster) then
        ! 
        ! Gridfile
        !
@@ -159,8 +160,8 @@ contains
        do n=1,s%ny+1
           read(33,*)(s%zb(m,n),m=1,s%nx+1)
        enddo
-    endif
-
+    endif ! xmaster
+    endif ! delft3d format
     if(xmaster) then
 
        s%zb=-s%zb*s%posdwn
