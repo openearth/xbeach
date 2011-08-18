@@ -85,7 +85,6 @@ subroutine getkey(par, key, value)
   if (type == 'c') then
      charvalue = charactervalues(index)
      value%c0 => charvalue
-     write(*,*) value%name, value%c0
   elseif (type == 'i') then
      intvalue = integervalues(index)
      value%i0 => intvalue

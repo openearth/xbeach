@@ -272,7 +272,6 @@ contains
           if (val%type == 'i') then
              status = nf90_put_att(ncid, parvarid, keys(i), val%i0 )
           elseif (val%type == 'c') then
-             write(*,*) keys(i), val%c0, associated(val%c0)
              status = nf90_put_att(ncid, parvarid, keys(i), val%c0 )
           elseif (val%type == 'r') then
              status = nf90_put_att(ncid, parvarid, keys(i), val%r0 )
