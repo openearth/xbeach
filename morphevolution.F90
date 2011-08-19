@@ -657,7 +657,7 @@ contains
               hav = hh
               indx = nx+1
               
-              elseif (par%struct==0) then
+              elseif (par%struct==1) then
               
               
               do j=1,ny+1
