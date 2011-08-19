@@ -142,6 +142,7 @@ copy ..\lib\win32\vs\pg\*.dll $(OutDir)"/>
 		<File RelativePath="..\flow_timestep.F90"/>
 		<File RelativePath="..\general_fileio.F90"/>
 		<File RelativePath="..\general_mpi.F90"/>
+		<File RelativePath="..\getkey.F90"/>
 		<File RelativePath="..\groundwater.F90"/>
 		<File RelativePath="..\initialize.F90"/>
 		<File RelativePath="..\interp.F90"/>
