@@ -305,9 +305,11 @@ contains
           allocate(oldmean3d(size(t%r3,1),size(t%r3,2),size(t%r3,3)))
           allocate(tvar3d(size(t%r3,1),size(t%r3,2),size(t%r3,3)))
           oldmean3d=meansparslocal(i)%mean3d
+          ! bug in elsewere --> memory leak see commet Robert above
           where (oldmean3d<tiny(0.d0) .and. oldmean3d>=0.d0)
              oldmean3d=tiny(0.d0)
-          elsewhere (oldmean3d>-1.d0*tiny(0.d0) .and. oldmean3d<0.d0)
+          endwhere
+          where (oldmean3d>-1.d0*tiny(0.d0) .and. oldmean3d<0.d0)
              oldmean3d=-1.d0*tiny(0.d0)
           endwhere
           call gridrotate(sl,t,tvar3d)
@@ -329,7 +331,8 @@ contains
           oldmean4d=meansparslocal(i)%mean4d
           where (oldmean4d<tiny(0.d0) .and. oldmean4d>=0.d0)
              oldmean4d=tiny(0.d0)
-          elsewhere (oldmean4d>-1.d0*tiny(0.d0) .and. oldmean4d<0.d0)
+          endwhere
+          where (oldmean4d>-1.d0*tiny(0.d0) .and. oldmean4d<0.d0)
              oldmean4d=-1.d0*tiny(0.d0)
           endwhere
           call gridrotate(sl,t,tvar4d)
