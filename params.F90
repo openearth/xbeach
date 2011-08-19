@@ -945,7 +945,7 @@ contains
     ! get the nc output file name from the parameter file
     deallocate(allowednames)
     deallocate(oldnames)
-    par%ncfilename = readkey_name('params.txt','ncoutfile')
+    par%ncfilename = readkey_name('params.txt','ncfilename')
     if (len(trim(par%ncfilename)) .eq. 0) par%ncfilename = 'xboutput.nc'
     call writelog('ls','','netcdf output to:' // par%ncfilename)
     !
