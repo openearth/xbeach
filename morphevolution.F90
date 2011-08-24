@@ -692,7 +692,8 @@ contains
                           !where (slopeind == 0 .and. wetz(:,j) == 0 .and. hav(:,j)>par%eps)
                           !  bermind = 1
                           !endwhere
-                          strucslope = sum(dzbdx(indx:nx,j)*dsu(indx:nx,j)*slopeind(indx:nx))/max(par%eps,sum(dsu(indx:nx,j)*slopeind(indx:nx)))
+                          strucslope = sum(dzbdx(indx:nx,j)*dsu(indx:nx,j)*slopeind(indx:nx))/ &
+                          max(par%eps,sum(dsu(indx:nx,j)*slopeind(indx:nx)))
                           if (strucslope > 0.d0) then         
                              irrb = strucslope/sqrt(2*par%px*max(s%Hrunup(j),par%eps)/par%g/par%Trep**2)
                              !bermwidth  = sum(dsu(indx:nx,j)*bermind(indx:nx))
