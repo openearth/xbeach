@@ -126,15 +126,18 @@ contains
           qbcfname='qjonsw'//char(48+i1)//char(48+i2)//char(48+i3)//'.bcf'
        endif
     else 
-       ! Read rt and dt values
-       wp%rt = readkey_dbl ('params.txt', 'rt', 3600.d0, 1200.d0, 7200.d0, bcast=.false.)
-       if (par%morfacopt==1) wp%rt = wp%rt / max(par%morfac,1.d0)
-       wp%dt = readkey_dbl ('params.txt', 'dtbc', 0.1d0, 0.01d0, 1.0d0, bcast=.false.)
-       fname=par%bcfile
-       ! Create filenames for BCF files
-
-       Ebcfname='E_reuse.bcf'
-       qbcfname='q_reuse.bcf'
+        
+        ! Read rt and dt values in first timestep
+        if (abs(par%t-par%dt)<1.d-6) then
+            wp%rt = readkey_dbl ('params.txt', 'rt', 3600.d0, 1200.d0, 7200.d0, bcast=.false.)
+            if (par%morfacopt==1) wp%rt = wp%rt / max(par%morfac,1.d0)
+            wp%dt = readkey_dbl ('params.txt', 'dtbc', 0.1d0, 0.01d0, 1.0d0, bcast=.false.)
+        end if
+            
+        ! Create filenames for BCF files
+        fname=par%bcfile
+        Ebcfname='E_reuse.bcf'
+        qbcfname='q_reuse.bcf'
     end if
 
     ! (Re)create BCF files if this is the first time step or it is explicitly
