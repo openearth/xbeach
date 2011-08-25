@@ -51,7 +51,7 @@ contains
     integer,save                                :: reuse  ! = 0 used to be in code
     integer,save                                :: counter
     integer                                     :: i1,i2,i3
-
+    
     ! Flag that determines whether new BCF files are created or not
     makefile=.false.
 
@@ -139,7 +139,7 @@ contains
         Ebcfname='E_reuse.bcf'
         qbcfname='q_reuse.bcf'
     end if
-
+    
     ! (Re)create BCF files if this is the first time step or it is explicitly
     ! requested
     if (abs(par%t-par%dt)<1.d-6) then

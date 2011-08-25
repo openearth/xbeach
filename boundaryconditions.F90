@@ -41,7 +41,7 @@ contains
     type(spacepars), target                     :: sg, sl
     type(spacepars), pointer                    :: s
     type(parameters)                            :: par
-    type(waveparameters)                        :: wp
+    type(waveparameters),save                   :: wp
 
     integer, save                               :: nt
     integer                                     :: i,new,reclen,wordsize
