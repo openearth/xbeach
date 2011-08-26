@@ -1178,13 +1178,13 @@ contains
     ! 2D absorbing boundary limits to 1D absorbing boundary with 1D
     if (trim(par%front)=='abs_2d' .and. par%ny<3) then
        call writelog('lws','','Warning: 2D absorbing boundary condition [front=abs_2d] reduces to a')
-       call writelog('lws','','         1D absoribng boundary condition [front=abs_1d] in')
+       call writelog('lws','','         1D absorbing boundary condition [front=abs_1d] in')
        call writelog('lws','','         1D mode [ny=0]')
        par%front = 'abs_1d '
     endif
     if (trim(par%back)=='abs_2d' .and. par%ny<3) then
        call writelog('lws','','Warning: 2D absorbing boundary condition [back=abs_2d] reduces to a')
-       call writelog('lws','','         1D absoribng boundary condition [back=abs_1d] in')
+       call writelog('lws','','         1D absorbing boundary condition [back=abs_1d] in')
        call writelog('lws','','         1D mode [ny=0]')
        par%back = 'abs_1d '
     endif
