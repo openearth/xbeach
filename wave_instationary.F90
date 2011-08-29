@@ -299,6 +299,9 @@ contains
     ! Dissipation by bed friction
     uorb=par%px*H/par%Trep/sinh(min(max(k,0.01d0)*max(hh,par%delta*H),10.0d0))
     Df=0.6666666d0/par%px*par%rho*par%fw*uorb**3
+	where (hh>par%fwcutoff)
+	Df = 0.d0
+	end where
     !
     ! Distribution of dissipation over directions and frequencies
     !
