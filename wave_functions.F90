@@ -243,9 +243,17 @@ do itheta=1,ntheta
     do j=1,ny+1
         do i=1,nx+1
            if (arrin(i,j,itheta)>0) then
-              thetaadvec(i,j,itheta)=(arrin(i,j,itheta)-arrin(i,j,max(itheta-1,1)))/dtheta
+              if (itheta==1) then
+                 thetaadvec(i,j,itheta)=arrin(i,j,itheta)/dtheta               
+              else
+                 thetaadvec(i,j,itheta)=(arrin(i,j,itheta)-arrin(i,j,itheta-1))/dtheta
+              endif
            elseif (arrin(i,j,itheta)<0) then
-              thetaadvec(i,j,itheta)=(arrin(i,j,min(itheta+1,ntheta))-arrin(i,j,itheta))/dtheta
+              if (itheta==ntheta) then
+                 thetaadvec(i,j,itheta)=(-arrin(i,j,itheta))/dtheta
+              else
+                 thetaadvec(i,j,itheta)=(arrin(i,j,itheta+1)-arrin(i,j,itheta))/dtheta
+              endif              
            else
               thetaadvec(i,j,itheta)=(arrin(i,j,min(itheta+1,ntheta))-arrin(i,j,max(itheta-1,1)))/(2*dtheta)
            endif

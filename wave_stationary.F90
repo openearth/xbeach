@@ -180,6 +180,7 @@ contains
           enddo
        enddo
     enddo
+    
     cgxu(nx+1,:,:) = cgxu(nx,:,:)
     cxu(nx+1,:,:) = cxu(nx,:,:)
     
@@ -191,9 +192,10 @@ contains
           enddo
        enddo
     enddo
-    cgyv(:,ny+1,:) = cgyv(:,ny,:)
-    cyv(:,ny+1,:) = cyv(:,ny,:)
-
+    if (ny>0) then
+       cgyv(:,ny+1,:) = cgyv(:,ny,:)
+       cyv(:,ny+1,:) = cyv(:,ny,:)
+    endif
     km = k
 
 #ifdef USEMPI
@@ -310,17 +312,21 @@ contains
              !
              ! Upwind Euler timestep propagation
              !
-             call advecxho(ee(i-1:i+1,:,:),cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),    &
+             if  (i>2) then
+                call advecxho(ee(i-1:i+1,:,:),cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),    &
+                           2,ny,ntheta,dnu(i-1:i+1,:),dsu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_2')
+             else
+                call advecxho(ee(i-1:i+1,:,:),cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),    &
                            2,ny,ntheta,dnu(i-1:i+1,:),dsu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_1')
+             endif
              call advecyho(ee(i,:,:),cgy(i,:,:),yadvec(i,:,:),                                  &
                            0,ny,ntheta,dsv(i,:),dnv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
              !call advecx(ee(i-1:i+1,:,:)*cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),2,ny,ntheta,dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:))
              !call advecy(ee(i,:,:)*cgy(i,:,:),yadvec(i,:,:),0,ny,ntheta,dsv(i,:),dsdnzi(i,:))
              call advectheta(ee(i,:,:)*ctheta(i,:,:),thetaadvec(i,:,:),0,ny,ntheta,dtheta)
 
-             ee(i,:,:)=ee(i,:,:)-dtw*(xadvec(i,:,:) &
-                  +yadvec(i,:,:) &
-                  +thetaadvec(i,:,:))
+             ee(i,:,:)=ee(i,:,:)-dtw*(xadvec(i,:,:) + yadvec(i,:,:) &
+                  + thetaadvec(i,:,:))
              !
              ! transform back to wave energy
              !
@@ -421,7 +427,7 @@ contains
                 end do
              end do
              ! Lateral boundary condition
-             if (xmpi_isleft) then
+             if (xmpi_isleft .and. ny>0) then
                 do itheta=1,ntheta
                    if (sinth(i,1,itheta)>=0.) then
                       ee(i,1,itheta)=ee(i,2,itheta)
@@ -431,7 +437,7 @@ contains
                 km(:,1)=km(:,2)
                 sigm(:,1)=sigm(:,2)
              endif
-             if (xmpi_isright) then
+             if (xmpi_isright .and. ny>0) then
                 do itheta=1,ntheta 
                    if (sinth(i,1,itheta)<=0.) then
                       ee(i,ny+1,itheta)=ee(i,ny,itheta)
@@ -521,19 +527,29 @@ Sxy = Sxy + sum(sinth*costh*rr,3)*dtheta
                    (dnv(i,j-1)+dnv(i,j)+dnv(i+1,j-1)+dnv(i+1,j))
        enddo
    enddo
-
-   do j=1,ny 
-      do i=2,nx
-         Fy(i,j)=-(Syy(i,j+1)-Syy(i,j))/dnv(i,j)                                  &
-                 -(Sxy(i+1,j)+Sxy(i+1,j+1)-Sxy(i-1,j)-Sxy(i-1,j+1))/ &
-                  (dsu(i-1,j)+dsu(i-1,j+1)+dsu(i,j)+dsu(i,j+1))
+    
+   if (ny>0) then 
+      do j=1,ny 
+         do i=2,nx
+            Fy(i,j)=-(Syy(i,j+1)-Syy(i,j))/dnv(i,j)                                  &
+                    -(Sxy(i+1,j)+Sxy(i+1,j+1)-Sxy(i-1,j)-Sxy(i-1,j+1))/ &
+                     (dsu(i-1,j)+dsu(i-1,j+1)+dsu(i,j)+dsu(i,j+1))
+         enddo
       enddo
-   enddo
-
+   else
+      j=1 
+         do i=2,nx
+            Fy(i,j)=-(Sxy(i+1,j)-Sxy(i-1,j))/ &
+                     (dsu(i-1,j)+dsu(i,j))
+         enddo
+   endif      
+   
+   if (ny>0) then
     Fx(:,1)=Fx(:,2)
     Fy(:,1)=Fy(:,2)
     Fx(:,ny+1)=Fx(:,ny)
     Fy(:,ny+1)=Fy(:,ny)
+   endif
     Fx(1,:)=Fx(2,:)
     Fy(1,:)=Fy(2,:)
 
@@ -563,8 +579,10 @@ Sxy = Sxy + sum(sinth*costh*rr,3)*dtheta
     ust=usd+ustw
     !lateral boundaries
     ust(1,:) = ust(2,:)
-    ust(:,1) = ust(:,2)
-    ust(:,ny+1) = ust(:,ny)
+    if (ny>0) then
+       ust(:,1) = ust(:,2)
+       ust(:,ny+1) = ust(:,ny)
+    endif
     ! wwvv
 #ifdef USEMPI
     call xmpi_shift(ust,'1:')

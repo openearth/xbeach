@@ -816,6 +816,8 @@ contains
         endif
         !Ap
         v(nx+1,:)=v(nx,:)
+    else ! Dano
+       v=vv
     endif !ny>0
 
 #ifdef USEMPI

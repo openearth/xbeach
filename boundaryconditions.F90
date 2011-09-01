@@ -212,8 +212,8 @@ contains
             )then
           dist=(cos(theta-theta0))**par%m
           do i=1,ntheta
-             if(abs(theta(i)-theta0)>par%px/2) then
-                dist(i)=0
+             if(cos(theta(i)-theta0)<0.d0) then
+                dist(i)=0.0d0
              end if
           end do
           if (trim(par%instat)=='ts_1' .or. trim(par%instat)=='ts_2') then
