@@ -215,6 +215,9 @@ contains
 
     ! Slopes of water depth
     call slope2D(max(hh,par%delta*H),nx,ny,dsu,dnv,dhdx,dhdy)
+    ! Dano limit slopes used in refraction to avoid unrealistic refraction speeds
+    dhdx=sign(1.d0,dhdx)*min(abs(dhdx),0.1d0)
+    dhdy=sign(1.d0,dhdy)*min(abs(dhdy),0.1d0)
     call slope2D(wcifacu,nx,ny,dsu,dnv,dudx,dudy)
     call slope2D(wcifacv,nx,ny,dsu,dnv,dvdx,dvdy)
     !
