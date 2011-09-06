@@ -128,6 +128,9 @@ contains
 
     ! Slopes of water depth
     call slope2D(max(hh,par%delta*H),nx,ny,dsu,dnv,dhdx,dhdy)
+    ! Dano limit slopes used in refraction to avoid unrealistic refraction speeds
+    dhdx=sign(1.d0,dhdx)*min(abs(dhdx),0.1d0)
+    dhdy=sign(1.d0,dhdy)*min(abs(dhdy),0.1d0)
     call slope2D(u*par%wci,nx,ny,dsu,dnv,dudx,dudy)
     call slope2D(v*par%wci,nx,ny,dsu,dnv,dvdx,dvdy)
 
@@ -170,6 +173,8 @@ contains
             costh(:,:,itheta)*(sinth(:,:,itheta)*dudx - costh(:,:,itheta)*dudy) + &
             sinth(:,:,itheta)*(sinth(:,:,itheta)*dvdx - costh(:,:,itheta)*dvdy))
     END DO
+    ! Dano Limit unrealistic refraction speed to 1/2 pi per wave period
+    ctheta=sign(1.d0,ctheta)*min(abs(ctheta),.5*par%px/par%Trep)
     
     ! convert wave velocities from z to u points using the mean
     do j=1,ny+1
