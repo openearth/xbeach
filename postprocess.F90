@@ -120,7 +120,7 @@ contains
     pi = 4*atan(1.0d0)
     select case(t%name)
     case(mnem_thetamean)
-       x=270-((t%r2+s%alfaz)*(180/pi))
+       x=270-((t%r2+s%alfa)*(180/pi))
     case(mnem_Fx)
        x=t%r2*cos(s%alfaz)-s%Fy*sin(s%alfaz)
     case(mnem_Fy)
