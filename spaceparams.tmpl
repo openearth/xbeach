@@ -238,6 +238,6 @@
       real*8  1  jdrift    par%ndrifter	 b  [-] []    Drifter y-coordinate in grid space
       real*8  1  tdriftb   par%ndrifter	 b  [s] []    Drifter release time
       real*8  1  tdrifte   par%ndrifter  b  [s] []    Drifter retrieval time
-      real*8  1  runup     s%ny+1 d  [m] Short wave runup height
-      real*8  1  Hrunup    s%ny+1 d  [m] Short wave height used in runup formulation
-      real*8  1  xHrunup   s%ny+1 d  [m] Location at which short wave height for runup is taken
+      real*8  2  runup     1 s%ny+1 2  [m] Short wave runup height
+      real*8  2  Hrunup    1 s%ny+1 2  [m] Short wave height used in runup formulation
+      real*8  2  xHrunup   1 s%ny+1 2  [m] Location at which short wave height for runup is taken
