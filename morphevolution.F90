@@ -446,7 +446,7 @@ contains
     type(spacepars),target              :: s
     type(parameters)                    :: par
 
-    integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz,indx
+    integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz,indx,di
     integer , dimension(s%nx+1)                 :: slopeind,bermind
     integer , dimension(:,:,:),allocatable,save :: indSus,indSub,indSvs,indSvb
     real*8                                      :: dzb,dzmax,dzt,dzleft,sdz,dzavt,fac,Savailable,dxfac,dyfac
@@ -652,13 +652,10 @@ contains
               
               ! Jaap crude switch, need to do further testing
               
-              if (par%struct==0) then
-              
               hav = hh
               indx = nx+1
               
-              elseif (par%struct==1) then
-              
+              if (par%struct==1 .and. par%shoaldelay==1) then
               
               do j=1,ny+1
                  first = 0;
@@ -716,7 +713,6 @@ contains
               endif ! end crude switch
               !
               do i=2,nx-1
-                 first = 0
                  do j=1,ny+1
                     !if (max( max(hh(i,j),par%delta*H(i,j)), max(hh(i+1,j),par%delta*H(i+1,j)) )>par%hswitch+par%eps) then
                     if(max(hav(i,j),hav(i+1,j))>par%hswitch+par%eps) then ! Jaap instead of hh
@@ -729,7 +725,7 @@ contains
                        dzmax=par%dryslp;
                     end if
 
-                    if(abs(dzbdx(i,j))>dzmax ) then
+                    if(abs(dzbdx(i,j))>dzmax .and. structdepth(i+nint(max(0.d0,sign(1.d0,dzbdx(i,j)))),j)>par%eps) then 
                        aval=.true.     
                        dzb=sign(1.0d0,dzbdx(i,j))*(abs(dzbdx(i,j))-dzmax)*dsu(i,j);
                        !Dano: Need to make this mass-conserving for curved areas; good enough for now
@@ -746,7 +742,7 @@ contains
                           dzb=max(dzb,-par%dzmax*par%dt/dsu(i,j)) 
                           dzb=max(dzb,-structdepth(i,j))
                        endif
-
+                       
                        ! now fix fractions....
                        dz => dzbed(ie,j,:) 
                        pb => pbbed(ie,j,:,:)
@@ -762,7 +758,7 @@ contains
                        ! now update bed and fractions by stepping through each layer seperately
                        dzleft = abs(dzb)
                        dzavt  = 0.d0
-
+                       
                        do jdz=1,ndz
 
                           dzt = min(dz(jdz),dzleft)
@@ -806,7 +802,7 @@ contains
                     else
                        dzmax=par%dryslp
                     end if
-                    if(abs(dzbdy(i,j))>dzmax ) then 
+                    if(abs(dzbdy(i,j))>dzmax .and. structdepth(i,j+nint(max(0.d0,sign(1.d0,dzbdy(i,j)))))>par%eps) then ! Jaap
                        aval=.true. 
                        dzb=sign(1.0d0,dzbdy(i,j))*(abs(dzbdy(i,j))-dzmax)*dnv(i,j)
                        !
@@ -823,7 +819,7 @@ contains
                           dzb=max(dzb,-par%dzmax*par%dt/dnv(i,j))
                           dzb=max(dzb,-structdepth(i,j))
                        endif
-
+                       
                        dz => dzbed(i,je,:) 
                        pb => pbbed(i,je,:,:)
 
@@ -863,7 +859,7 @@ contains
 
                        zs(i,jd)  = zs(i,jd)+dzavt*dyfac
                        dzav(i,jd)= dzav(i,jd)+dzavt*dyfac
-
+                       
                     end if
                  end do
               end do
