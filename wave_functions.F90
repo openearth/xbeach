@@ -466,14 +466,16 @@ subroutine dispersion(par,s)
 
   L0 = twopi*par%g/(s%sigm**2)
 
-  if (par%t==0) then
+ ! if (par%t==0) then
      if (.not. associated(s%L1)) then
         allocate(s%L1(s%nx+1,s%ny+1))
-        allocate(Ltemp(s%nx+1,s%ny+1))
         s%L1=L0
-        Ltemp = L0 
+     endif
+     if (.not. allocated(Ltemp)) then
+        allocate(Ltemp(s%nx+1,s%ny+1))
+        Ltemp = L0
      end if
-  endif
+ ! endif
   ! cjaap: replaced par%hmin by par%eps
   
   h = max(s%hh + par%delta*s%H,par%eps)
