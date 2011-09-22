@@ -844,7 +844,7 @@ subroutine space_distribute_space(sg,sl,par)
           allocate(umean1(sg%ny+1))
         endif
         allocate(umean2(sl%ny+1))
-        do j=1,2
+        do j=1,size(tg%r2,DIM=1)
           if (xmaster) then
             umean1 = tg%r2(j,:)
           endif

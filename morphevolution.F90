@@ -667,7 +667,7 @@ contains
                         ! only consider first dry point
                         first = 1
                         ! find wave height for runup at facsd*L1 meter from water line 
-                        call linear_interp(xz(:,j),H(:,j),nx+1,xz(i-1,j)-par%facsd*L1(i-1,j),s%Hrunup(j),indx)
+                        call linear_interp(xz(:,j),H(:,j),nx+1,xz(i-1,j)-par%facsd*L1(i-1,j),s%Hrunup(1,j),indx)
                         ! Find toe of runup slope if present (dzbdx > 0.15). 
                         ! If not present Hrunup will converge to H at the water line (where H = 0 per definition)
                         do j1=indx,i-1
@@ -676,14 +676,14 @@ contains
                           endif
                         enddo 
                         ! update Hrunup and runup x-location
-                        s%Hrunup(j) = H(indx,j)
-                        s%xHrunup(j) = xz(indx,j);
+                        s%Hrunup(1,j) = H(indx,j)
+                        s%xHrunup(1,j) = xz(indx,j);
                         ! now itteratively compute runup
                         hav(:,j) = hh(:,j)
                         runup_old = huge(0.d0)
-                        s%runup(j) = 0;
-                        do while (abs(s%runup(j)-runup_old)>0.01d0)
-                          runup_old = s%runup(j)
+                        s%runup(1,j) = 0;
+                        do while (abs(s%runup(1,j)-runup_old)>0.01d0)
+                          runup_old = s%runup(1,j)
                           slopeind = 0
                           where (hav(:,j)>par%eps .and. dzbdx(:,j)>0.15)
                             slopeind = 1
@@ -695,19 +695,19 @@ contains
                           strucslope = sum(dzbdx(indx:nx,j)*dsu(indx:nx,j)*slopeind(indx:nx))/ &
                           max(par%eps,sum(dsu(indx:nx,j)*slopeind(indx:nx)))
                           if (strucslope > 0.d0) then         
-                             irrb = strucslope/sqrt(2*par%px*max(s%Hrunup(j),par%eps)/par%g/par%Trep**2)
+                             irrb = strucslope/sqrt(2*par%px*max(s%Hrunup(1,j),par%eps)/par%g/par%Trep**2)
                              !bermwidth  = sum(dsu(indx:nx,j)*bermind(indx:nx))
                              !rb = bermwidth/(bermwidth+sum(dsu(indx:nx,j)*slopeind(indx:nx)))
                              !gamB = max(0.6d0,1.d0-rb)
-                             !runup_max = (4.3d0-1.6d0/sqrt(irrb))*s%Hrunup(j)
-                             !s%runup(j) = min(runup_max,irrb*s%Hrunup(j))*cos(2*par%px/par%Trep*par%t)
-                             s%runup(j) = min(irrb,2.3d0)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
+                             !runup_max = (4.3d0-1.6d0/sqrt(irrb))*s%Hrunup(1,j)
+                             !s%runup(1,j) = min(runup_max,irrb*s%Hrunup(1,j))*cos(2*par%px/par%Trep*par%t)
+                             s%runup(1,j) = min(irrb,2.3d0)*s%Hrunup(1,j)*cos(2*par%px/par%Trep*par%t)
                           else
-                             s%runup(j) = 0.d0;
+                             s%runup(1,j) = 0.d0;
                           endif
         
-                          hav(:,j) = hh(:,j) + wetz(:,j)*par%shoaldelay*s%runup(j) + &
-                                              (1.d0-wetz(:,j))*max(par%eps, par%shoaldelay*(s%runup(j)-zb(:,j)));
+                          hav(:,j) = hh(:,j) + wetz(:,j)*par%shoaldelay*s%runup(1,j) + &
+                                              (1.d0-wetz(:,j))*max(par%eps, par%shoaldelay*(s%runup(1,j)-zb(:,j)));
                        enddo
                     endif
                  enddo
