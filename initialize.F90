@@ -869,6 +869,7 @@ contains
     allocate(s%runup(1,1:ny+1))
     allocate(s%Hrunup(1,1:ny+1))
     allocate(s%xHrunup(1,1:ny+1))
+    allocate(s%Dc(1:nx+1,1:ny+1))
 
     ! Initialize so structures can be implemented more easily
     s%pbbed = 0.d0
@@ -999,6 +1000,7 @@ contains
     s%runup      = 0.d0
     s%Hrunup     = 0.d0
     s%xHrunup    = 0.d0
+    s%Dc         = 0.d0
 
     ! Initialize dzbdx, dzbdy
     do j=1,ny+1

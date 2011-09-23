@@ -49,7 +49,7 @@ contains
     real*8,dimension(:),allocatable,save     :: chain,cumchain
     real*8,dimension(:,:),allocatable,save   :: vmag2,uau,uav,um,vm
     real*8,dimension(:,:),allocatable,save   :: ccvt,dcdz,dsigt,aref
-    real*8,dimension(:,:),allocatable,save   :: cc,ccb,cu,cv,Sus,Svs,Dc
+    real*8,dimension(:,:),allocatable,save   :: cc,ccb,cu,cv,Sus,Svs
     real*8,dimension(:,:),allocatable,save   :: cub,cvb,Sub,Svb,pbbedu,pbbedv
     real*8,dimension(:,:),allocatable,save   :: suq3d,svq3d,eswmax,eswbed,sigs,deltas
     real*8,dimension(:,:,:),allocatable,save :: dsig,ccv,sdif,cuq3d,cvq3d,fac
@@ -74,7 +74,6 @@ contains
        allocate(cvb (nx+1,ny+1))
        allocate(Sub (nx+1,ny+1))
        allocate(Svb (nx+1,ny+1))
-       allocate(Dc  (nx+1,ny+1))
        allocate(pbbedu (nx+1,ny+1))
        allocate(pbbedv (nx+1,ny+1))
        allocate(ccvt (nx+1,ny+1))
@@ -100,7 +99,6 @@ contains
        allocate (costhm(nx+1,ny+1))
        uau       = 0.d0
        uav       = 0.d0
-       Dc        = 0.d0
        um        = 0.d0
        vm        = 0.d0
        chain     = 0.0d0
