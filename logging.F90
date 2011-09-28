@@ -40,6 +40,7 @@ interface writelog
    module procedure writelog_aiaia
    module procedure writelog_aaiai
    module procedure writelog_aaaiai
+   module procedure writelog_aiafa
    module procedure writelog_aiafaf
    module procedure writelog_aiaiai
    module procedure writelog_aiaiaia
@@ -555,6 +556,24 @@ subroutine writelog_aaaiai(destination,form,message_char1,message_char2,message_
    call writelog_distribute(destination, display)
    
 end subroutine writelog_aaaiai
+
+subroutine writelog_aiafa(destination,form,mc1,mi1,mc2,mf1,mc3)
+   implicit none
+   character(*),intent(in)    ::  form,mc1,mc2,mc3
+   character(*),intent(in)       ::  destination
+   integer*4,intent(in)          ::  mi1
+   real*8,intent(in)             ::  mf1
+   character(1024)            ::  display
+ 
+   if (form=='') then
+      write(display,*)mc1,mi1,mc2,mf1,mc3
+   else
+      write(display,form)mc1,mi1,mc2,mf1,mc3
+   endif
+
+   call writelog_distribute(destination, display)
+   
+end subroutine writelog_aiafa
 
 subroutine writelog_aiafaf(destination,form,mc1,mi1,mc2,mf1,mc3,mf2)
    implicit none

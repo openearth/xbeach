@@ -80,9 +80,10 @@ contains
 
     integer                             :: i,j
     integer                             :: i1,i2,i3
-    integer                             :: reclen,reclenp,wordsize
+    integer                             :: reclen,reclenp,wordsize,reclenm
     integer                             :: fid
     character(99)                       :: fname,fnamemean,fnamevar,fnamemin,fnamemax
+    type(arraytype)                     :: t
 
 
     ! Initialize places in output files
@@ -102,7 +103,7 @@ contains
 
 
     if (xmaster) then
-       open(100,file='xy.dat',form='unformatted',access='direct',recl=reclen)
+       open(100,file='xy.dat',form='unformatted',access='direct',recl=reclen,status='REPLACE')
        write(100,rec=1)s%xz
        write(100,rec=2)s%yz
        write(100,rec=3)s%x
@@ -224,7 +225,7 @@ contains
                 reclenp=wordsize*4*1
              endif
              open(indextopointsunit(i),file=fname,&
-                  form='unformatted',access='direct',recl=reclenp)
+                  form='unformatted',access='direct',recl=reclenp,status='REPLACE')
           enddo
           if (par%npoints>0) then
              ! write index file of point output variables
@@ -252,10 +253,23 @@ contains
              fnamevar =trim(fnamevar)
              fnamemin =trim(fnamemin)
              fnamemax =trim(fnamemax)
-             open(indextomeanunit(i),file=fnamemean,form='unformatted',access='direct',recl=reclen)
-             open(indextovarunit(i) ,file=fnamevar ,form='unformatted',access='direct',recl=reclen)
-             open(indextominunit(i) ,file=fnamemin ,form='unformatted',access='direct',recl=reclen)
-             open(indextomaxunit(i),file=fnamemax,  form='unformatted',access='direct',recl=reclen)
+#ifdef USEMPI
+             call indextos(sg,chartoindex(trim(par%meanvars(i))),t) 
+#else
+             call indextos(s,chartoindex(trim(par%meanvars(i))),t) 
+#endif
+             select case(t%rank)
+                case (2)         
+                   reclenm = wordsize*size(t%r2)
+                case (3)
+                   reclenm=wordsize*size(t%r3)
+                case (4)
+                   reclenm=wordsize*size(t%r4)
+             end select
+             open(indextomeanunit(i),file=fnamemean,form='unformatted',access='direct',recl=reclenm,status='REPLACE')
+             open(indextovarunit(i) ,file=fnamevar ,form='unformatted',access='direct',recl=reclenm,status='REPLACE')
+             open(indextominunit(i) ,file=fnamemin ,form='unformatted',access='direct',recl=reclenm,status='REPLACE')
+             open(indextomaxunit(i),file=fnamemax,  form='unformatted',access='direct',recl=reclenm,status='REPLACE')
           enddo
        endif
     endif ! par%nmeanvar > 0
@@ -273,7 +287,7 @@ contains
                 write(fname(7:10),'(i4)')i+1000
                 fname(1:7)='drifter'
                 fname(11:14)='.dat'
-                open(indextodrifterunit(i), file=fname, form='unformatted', access='direct', recl=reclen)
+                open(indextodrifterunit(i),file=fname,form='unformatted',access='direct',recl=reclen,status='REPLACE')
             enddo
         endif
     endif ! par%ndrifter >0
