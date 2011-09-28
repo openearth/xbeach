@@ -215,7 +215,7 @@ subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,dt,scheme)
               endif
            enddo
            do j=2,ny
-              do i=1,nx+1 
+              do i=2,nx+1 
                  yadvec(i,j,itheta)=(fluxy(i,j)-fluxy(i,j-1))*dsdnzi(i,j)
               enddo
            enddo
@@ -241,7 +241,7 @@ thetaadvec = 0
 ! Ad: include all bins, but use min,max statements
 do itheta=1,ntheta
     do j=1,ny+1
-        do i=1,nx+1
+        do i=2,nx+1
            if (arrin(i,j,itheta)>0) then
               if (itheta==1) then
                  thetaadvec(i,j,itheta)=arrin(i,j,itheta)/dtheta               
