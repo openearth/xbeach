@@ -426,36 +426,17 @@ subroutine dispersion(par,s)
 
   IMPLICIT NONE
 
-  type(spacepars)                          :: s
-  type(parameters)                         :: par
+  type(spacepars)                     :: s
+  type(parameters)                    :: par
 
-  real*8, dimension(s%nx+1,s%ny+1)         :: h,L0,kh
-  real*8, dimension(:,:),allocatable,save  :: Ltemp
-  real*8                                   :: err,L2
+  real*8, dimension(s%nx+1,s%ny+1)    :: h,L0,kh
   !
   ! real*8,dimension(:,:),allocatable,save :: L1
   ! wwvv moved L1 to spaceparams, in the parallel version
   ! of the program L1 will be resized and distributed
   !
-  integer                             :: i,j,it,j1,j2
-  real*8                              :: phi
-  real*8                              :: aphi
-  real*8                              :: bphi
-  real*8                              :: twopi
-  real*8                              :: backdis,lback,disfac
-  integer                             :: index
+  integer                             :: i,j
   
-  phi    = (1.0d0 + sqrt(5.0d0))/2
-  aphi   = 1/(phi+1)
-  bphi   = phi/(phi+1)
-  twopi  = 8*atan(1.0d0)
-  if (s%ny==0) then
-     j1=1
-     j2=1
-  else
-     j1=2
-     j2=s%ny
-  endif
   !
   ! In the original code, phi, aphi, bphi are saved
   ! variables, and calculated once. I think this is
@@ -464,82 +445,79 @@ subroutine dispersion(par,s)
   ! Also I rearranged some formulas, no need anymore
   ! for variables t and n.
 
-  L0 = twopi*par%g/(s%sigm**2)
+  ! cjaap: replaced par%hmin by par%eps
 
- ! if (par%t==0) then
+  h = max(s%hh + par%delta*s%H,par%eps)
+
+  L0 = 2*par%px*par%g/(s%sigm**2)
+
+  if (par%t==0) then
      if (.not. associated(s%L1)) then
         allocate(s%L1(s%nx+1,s%ny+1))
         s%L1=L0
-     endif
-     if (.not. allocated(Ltemp)) then
-        allocate(Ltemp(s%nx+1,s%ny+1))
-        Ltemp = L0
      end if
- ! endif
-  ! cjaap: replaced par%hmin by par%eps
-  
-  h = max(s%hh + par%delta*s%H,par%eps)
-  
-  do j = j1,j2
+  endif
+
+  do j = 1,s%ny+1
      do i = 1,s%nx+1
-        err = huge(0.0d0)
-        it = 0
-        do while (err > 0.00001d0 .and. it<100)
-           it        = it+1
-           L2        = L0(i,j)*tanh(2*par%px*h(i,j)/Ltemp(i,j))
-           err       = abs(L2 - Ltemp(i,j))
-           Ltemp(i,j) = (Ltemp(i,j)*aphi + L2*bphi)          ! Golden ratio
-        end do
-        if (it==100) then !jaap check if there is convergence
+        s%L1(i,j) = iteratedispersion(L0(i,j),s%L1(i,j),par%px,h(i,j))
+        if (s%L1(i,j)<0.d0) then   ! this is an error from iteratedispersion
+           s%L1(i,j) = -s%L1(i,j)
            call writelog('lws','','Warning: no convergence in dispersion relation iteration at t = ', &
                 par%t*max(par%morfac*par%morfacopt,1.d0))
         endif
      end do
   end do
-  
-  if (par%shoaldelay==1) then
-     ! find Lmod looking back over distance par%facsd*L1
-     ! presumes sigma direction is shore normal
-     s%L1 = 0.d0           ! modified wave length, initially set to L1
-     do j = j1,j2
-        do i = 2,s%nx+1
-           index = i       ! start index
-           backdis = 0.d0  ! relative distance backward
-           do while (backdis<1.d0)
-              ! disfac = s%dsc(index,j)/(par%facsd*s%L1(index,j))
-              ! use average wavelength over distance dsc
-              disfac = s%dsc(index,j)/(par%facsd*0.5d0*(Ltemp(index,j)+Ltemp(max(index-1,1),j)))
-              disfac = min(disfac,1.d0-backdis)
-              
-              !h(i,j) = h(i,j) + disfac*s%hh(index,j)
-              s%L1(i,j) = s%L1(i,j)+disfac*0.5d0*(Ltemp(index,j)+Ltemp(max(index-1,1),j))
-              backdis = backdis+disfac
-              
-              index = max(index-1,1)
-           enddo
-        enddo
-     enddo
-     s%L1(1,:) = Ltemp(1,:) 
-  else
-     s%L1 = Ltemp    
-  endif
-
-  ! boundary copies for non superfast 1D
-  if (s%ny>0) then 
-     s%L1(:,1)=s%L1(:,2)
-     s%L1(:,s%ny+1)=s%L1(:,s%ny)
-  endif
 
   s%k  = 2*par%px/s%L1
   s%c  = s%sigm/s%k
-  ! kh   = s%k*h
+  !kh   = s%k*h
   ! Ad:
-  kh = min(s%k*h,10.0d0)
+  kh   = min(s%k*h,10.0d0)
   s%n=0.5d0+kh/sinh(2*kh)
   s%cg=s%c*s%n
-
+  !s%cg = s%c*(0.5d0+kh/sinh(2*kh))
 
 end subroutine dispersion
+
+elemental function iteratedispersion(L0,Lestimate,px,h) result(L)
+
+  implicit none
+  ! input
+  real*8,intent(in)    :: L0
+  real*8,intent(in)    :: Lestimate
+  real*8,intent(in)    :: px
+  real*8,intent(in)    :: h
+  ! output
+  real*8               :: L
+  ! internal
+  real*8               :: L1,L2
+  integer              :: iter
+  real*8               :: err
+  real*8,parameter     :: aphi = 1.d0/(((1.0d0 + sqrt(5.0d0))/2)+1)
+  real*8,parameter     :: bphi = ((1.0d0 + sqrt(5.0d0))/2)/(((1.0d0 + sqrt(5.0d0))/2)+1)
+  integer,parameter    :: itermax = 150
+  real*8,parameter     :: errmax = 0.00001d0
+  
+    
+  err = huge(0.0d0)
+  iter = 0
+  L1 = Lestimate
+  do while (err > errmax .and. iter < itermax)
+     iter  = iter+1
+     L2    = L0*tanh(2*px*h/L1)
+     L1    = (L1*aphi + L2*bphi)          ! Golden ratio
+     err   = abs(L2 - L1)
+  end do
+  
+  if (iter<=itermax) then
+     L = L1
+  else
+     ! signal this went wrong
+     L = -L1
+  endif
+
+end function iteratedispersion
 
 subroutine breakerdelay(par,s)
 

@@ -168,6 +168,7 @@ copy ..\lib\win32\vs\pg\*.dll $(OutDir)"/>
 		<File RelativePath="..\wave_stationary.F90"/>
 		<File RelativePath="..\wave_timestep.F90"/>
 		<File RelativePath="..\waveparams.F90"/>
+		<File RelativePath="..\waveparamsnew.F90"/>
 		<File RelativePath="..\xbeach.F90"/>
 		<File RelativePath="..\xmpi.F90"/></Filter>
 		<File RelativePath=".\chartoindex.gen"/>

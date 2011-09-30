@@ -375,6 +375,11 @@ contains
     !Robert
     ! incorrect values are computed below for instat = 4/5/6/7
     ! in this case right values are computed in wave params.f90
+    if (  trim(par%instat)=='jons' .or. &
+         trim(par%instat)=='swan' .or. &
+         trim(par%instat)=='vardens') then 
+         if(xmaster) call spectral_wave_init (s,par)  ! only used by xmaster
+    endif
     do itheta=1,ntheta
        s%sigt(:,:,itheta) = 2*par%px/par%Trep
     end do
@@ -384,6 +389,97 @@ contains
 
   end subroutine wave_init
 
+
+subroutine spectral_wave_init(s,par)
+use params
+use spaceparams
+use filefunctions
+use logging_module
+use spectral_wave_bc_module
+
+type(spacepars)             :: s
+type(parameters)            :: par
+
+integer                     :: fid,err
+integer                     :: i
+integer,dimension(1)        :: minlocation
+character*7                 :: testline
+real*8,dimension(:),allocatable :: xspec,yspec,mindist
+real*8                      :: mindistr
+
+call writelog('l','','--------------------------------')
+call writelog('l','','Initializing spectral wave boundary conditions ')
+! Initialize that wave boundary conditions need to be calculated (first time at least)
+! Stored and defined in spectral_wave_bc_module
+reuseall = .false.
+! Initialize the number of times wave boundary conditions have been generated.
+! Stored and defined in spectral_wave_bc_module
+bccount  = 0
+! Initialize bcendtime to zero.
+! Stored and defined in spectral_wave_bc_module
+spectrumendtime = 0.d0
+
+if (par%nspectrumloc<1) then
+   call writelog('ewls','','number of boundary spectra (''nspectrumloc'') may not be less than 1')
+   call halt_program
+endif
+
+! open location list file
+fid = create_new_fid()
+open(fid,file=par%bcfile,status='old',form='formatted')
+! check for LOCLIST
+read(fid,*)testline
+if (trim(testline)=='LOCLIST') then
+   allocate(n_index_loc(par%nspectrumloc)) ! stored and defined in spectral_wave_bc_module
+   allocate(bcfiles(par%nspectrumloc))     ! stored and defined in spectral_wave_bc_module
+   allocate(xspec(par%nspectrumloc))
+   allocate(yspec(par%nspectrumloc))
+   allocate(mindist(s%ny+1))
+   do i=1,par%nspectrumloc
+      ! read x,y and file name per location
+      read(fid,*,IOSTAT=err)xspec(i),yspec(i),bcfiles(i)%fname
+      bcfiles(i)%listline = 0
+      if (err /= 0) then
+         ! something has gone wrong during the read of this file
+         call writelog('ewls','a,i0,a,a)','error reading line ',i+1,' of file ',par%bcfile)
+         call writelog('ewls','','check file for format errors and ensure the number of  ',&
+                                 'lines is equal to nspectrumloc')
+         call halt_program
+      endif
+   enddo
+   ! convert x,y locations of the spectra to the nearest grid points on s=1 boundary
+   do i=1,par%nspectrumloc
+      mindist=sqrt((xspec(i)-s%xz(1,:))**2+(yspec(i)-s%yz(1,:))**2)
+      ! look up the location of the found minimum
+      minlocation=minloc(mindist)
+      ! minimum distance
+      mindistr = mindist(minlocation(1))
+      ! store location
+      n_index_loc(i) = minlocation(1)
+      call writelog('ls','(a,i0,a,i0)','Spectrum ',i,' placed at n = ',minlocation(1))
+      call writelog('ls','(a,f0.3)','Distance spectrum to grid: ',mindistr)
+   enddo
+   nspectra = par%nspectrumloc     ! stored and defined in spectral_wave_bc_module
+   deallocate(xspec,yspec,mindist)
+else
+   if (par%nspectrumloc==1) then
+      allocate(n_index_loc(1)) ! stored and defined in spectral_wave_bc_module
+      allocate(bcfiles(1))     ! stored and defined in spectral_wave_bc_module
+      n_index_loc = 1
+      bcfiles(1)%fname = par%bcfile
+      bcfiles(1)%listline = 0      ! for files that have multiple lines, set listline to 0
+      nspectra = 1                 ! stored and defined in spectral_wave_bc_module
+   else
+      call writelog('ewls','','if nspectrumloc>1 then bcfile should contain spectra locations with LOCLIST header')
+      close(fid)
+      call halt_program
+   endif
+endif    
+close(fid)
+
+call writelog('l','','--------------------------------')
+
+endsubroutine spectral_wave_init
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

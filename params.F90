@@ -97,14 +97,16 @@ type parameters
    integer*4     :: nspr                       = -123    !  [-] (advanced) nspr = 1 long wave direction forced into centres of short wave bins, nspr = 0 regular long wave spreadin
    real*8        :: trepfac                    = -123    !  [-] (advanced) Compute mean wave period over energy band: par%trepfac*maxval(Sf) for instat 4,5,6; converges to Tm01 for trepfac = 0.0 and
    real*8        :: sprdthr                    = -123    !  [-] (advanced) Threshold ratio to maxval of S above which spec dens are read in (default 0.08*maxval)
-   integer*4     :: oldwbc                     = -123    !  [-] (advanced) (1) Use old version wave boundary conditions for instat 4,5,6
+   integer*4     :: oldwbc                     = -123    !  [-] (deprecated) (1) Use old version wave boundary conditions for instat 4,5,6
    integer*4     :: newstatbc                  = -123    !  [-] (advanced) (1) Use new stationary boundary conditions for instat is 'stat' or 'stat_table'
    integer*4     :: correctHm0                 = -123    !  [-] (advanced) Turn off or on Hm0 correction
    integer*4     :: oldnyq                     = -123    !  [-] (advanced) Turn off or on old nyquist switch
    integer*4     :: Tm01switch                 = -123    !  [-] (advanced) Turn off or on Tm01 or Tm-10 switch
    real*8        :: rt                         = -123    !  [s] Duration of wave spectrum at offshore boundary, in morphological time 
    real*8        :: dtbc                       = -123    !  [s] (advanced) Timestep used to describe time series of wave energy and long wave flux at offshore boundary (not affected by morfac)
-   real*8        :: dthetaS_XB                 = -123    !  [deg] (advanced) If SWAN input is not in nautical degrees, dthetaS_XB is the angle from SWAN x-axis to XBeach x-axis in cathesian degrees
+   real*8        :: dthetaS_XB                 = -123    !  [deg] (advanced) The (counter-clockwise) angle in the degrees needed to rotate from the x-axis in SWAN to the x-axis pointing East
+   integer*4     :: nspectrumloc               = -123    !  [-] (advanced) Number of input spectrum locations
+   integer*4     :: wbcversion                 = -123    !  [-] (advanced) Version of wave boundary conditions
 
       
    ! [Section] Flow boundary condition parameters
@@ -579,11 +581,20 @@ contains
        
         if (filetype==0) then
             par%rt          = readkey_dbl('params.txt','rt',            3600.d0,    1200.d0,    7200.d0 )
-            par%dtbc        = readkey_dbl('params.txt','dtbc',          0.5d0,      0.1d0,      2.0d0   )
+            par%dtbc        = readkey_dbl('params.txt','dtbc',          1.0d0,      0.1d0,      2.0d0   )
         endif
         
         if (trim(par%instat)=='swan') then
             par%dthetaS_XB  = readkey_dbl ('params.txt','dthetaS_XB',   0.0d0,      -360.d0,    360.0d0 )
+        endif
+        ! wbcversion relates to oldwbc: if oldwbc == 1 then wbcversion = 1
+        !                               if oldwbc == 0 then wbcversion = 2
+        !                               wbcversion defaults to 2
+        par%wbcversion      = readkey_int ('params.txt','wbcversion', (1-par%oldwbc)+1,          1,       3 )
+        if (par%wbcversion>2) then
+           par%nspectrumloc    = readkey_int ('params.txt','nspectrumloc',   1,          1,       par%ny+1 )
+        else 
+           par%nspectrumloc = 1
         endif
     endif
     !
