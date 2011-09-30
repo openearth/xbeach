@@ -253,11 +253,7 @@ contains
              fnamevar =trim(fnamevar)
              fnamemin =trim(fnamemin)
              fnamemax =trim(fnamemax)
-#ifdef USEMPI
-             call indextos(sg,chartoindex(trim(par%meanvars(i))),t) 
-#else
              call indextos(s,chartoindex(trim(par%meanvars(i))),t) 
-#endif
              select case(t%rank)
                 case (2)         
                    reclenm = wordsize*size(t%r2)
