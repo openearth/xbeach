@@ -59,6 +59,7 @@ interface writelog
    module procedure writelog_aaafaf
    module procedure writelog_afafafaf
    module procedure writelog_illll
+   module procedure writelog_fa
 end interface writelog
 
 CONTAINS
@@ -137,6 +138,40 @@ function generate_logfileid() result (tryunit)
     enddo
     
 end function generate_logfileid
+
+subroutine progress_indicator(initialize,curper,dper,dt)
+
+logical,intent(in)      :: initialize    ! initialize current progress indicator
+real*8,intent(in)       :: curper        ! current percentage done
+real*8,intent(in)       :: dper          ! steps in percentage between output
+real*8,intent(in)       :: dt            ! steps in time (s) between output
+                                         ! whichever reached earlier (dper,dt) will determin output
+! internal                                         
+real*8,save             :: lastper,lastt
+real*8                  :: tnow
+integer*4               :: count,count_rate,count_max
+
+
+if (initialize) then
+   lastper = 0.d0
+   call system_clock (count,count_rate,count_max)
+   lastt = dble(count)/count_rate
+else
+   call system_clock (count,count_rate,count_max)
+   tnow = dble(count)/count_rate
+   if (curper>=lastper+dper .or. tnow>=lastt+dt) then
+      call writelog('ls','(f0.1,a)',curper,'% done')
+      if (curper>=lastper+dper) then
+         lastper = curper-mod(curper,dper)
+      else
+         lastper = curper
+      endif
+      lastt = tnow
+   endif
+endif
+
+
+end subroutine progress_indicator
 
 subroutine writelog_startup()
 
@@ -885,5 +920,23 @@ implicit none
    call writelog_distribute(destination, display)
    
 end subroutine writelog_illll
+
+subroutine writelog_fa(destination,form,mf1,mc1)
+implicit none
+   character(*),intent(in)    ::  form, mc1
+   character(*),intent(in)    ::  destination
+   real*8,intent(in)          ::  mf1
+   character(1024)            ::  display
+ 
+   if (form=='') then
+      write(display,*)mf1,mc1
+   else
+      write(display,form)mf1,mc1
+   endif
+
+   call writelog_distribute(destination, display)
+   
+end subroutine writelog_fa
+
 
 end module logging_module

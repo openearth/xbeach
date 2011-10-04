@@ -22,7 +22,7 @@ type waveparamsnew                                      ! These are related to t
    real*8                                 :: h0         ! average water depth on offshore boundary
    integer                                :: K          ! number of wave train components
    real*8                                 :: rtbc,dtbc  ! duration and time step to be written to boundary condition file
-   real*8                                 :: rtin,dtin  ! duration and time step for the internal time axis, based on Fourrier
+   real*8                                 :: rtin,dtin  ! duration and time step for the internal time axis, based on Fourier
                                                         ! limitations and the number of wave train components (wp%K)
    real*8,dimension(:),pointer            :: tin,taper  ! internal time axis and taper function
    integer                                :: tslen      ! internal time axis length (is always even, not odd)
@@ -33,10 +33,14 @@ type waveparamsnew                                      ! These are related to t
    real*8                                 :: dfgen      ! frequency grid size in the generated components
    type(shortspectrum),dimension(:),pointer :: vargen   ! This is where the variance for each wave train at each spectrum location
                                                         ! is stored  
+   type(shortspectrum),dimension(:),pointer :: vargenq  ! This is where the variance for each wave train at each spectrum location
+                                                        ! is stored, which is not scaled and is used for the generation of bound waves                                                          
 !   real*8,dimension(:),pointer            :: danggen    ! Representative integration angle for Srep to Sf, per offshore grid point                                                        
    real*8,dimension(:,:),pointer          :: A          ! Amplitude, per wave train component, per offshore grid point A(ny+1,K)
    real*8,dimension(:,:),pointer          :: Sfinterp   ! S integrated over all directions at frequency locations of fgen, 
                                                         ! per offshore grid point Sfinterp(ny+1,K)
+   real*8,dimension(:,:),pointer          :: Sfinterpq  ! S integrated over all directions at frequency locations of fgen, 
+                                                        ! per offshore grid point Sfinterpq(ny+1,K), uncorrected for generation of bound waves
    real*8,dimension(:),pointer            :: Hm0interp  ! Hm0 per offshore point, based on intergration of Sfinterp and used to scale 
                                                         ! final time series                                                     
    integer, dimension(:),pointer          :: Findex     ! Index of wave train component locations on frequency/Fourier axis
@@ -171,8 +175,9 @@ else
     deallocate(wp%tin,wp%taper)
     deallocate(wp%fgen,wp%thetagen,wp%phigen,wp%kgen,wp%wgen)
     deallocate(wp%vargen)
-!    deallocate(wp%danggen)
+    deallocate(wp%vargenq)
     deallocate(wp%Sfinterp)
+    deallocate(wp%Sfinterpq)
     deallocate(wp%Hm0interp)
     deallocate(wp%A)
     deallocate(wp%Findex)
@@ -1270,7 +1275,7 @@ endsubroutine spectral_wave_bc
        wp%dtchanged = .true.
     endif
     
-    ! The length of the internal time axis should be even (for Fourrier transform) and
+    ! The length of the internal time axis should be even (for Fourier transform) and
     ! depends on the internal time step needed and the internal duration (~1/dfgen):
     wp%tslen = ceiling(1/wp%dfgen/wp%dtin)+1
     if (mod(wp%tslen,2)/=0) then
@@ -1330,10 +1335,12 @@ endsubroutine spectral_wave_bc
    
     ! allocate space for the variance arrays
     allocate(wp%vargen(nspectra))
+    allocate(wp%vargenq(nspectra))
     
     ! Determine variance at each spectrum location
     do i=1,nspectra
        allocate(wp%vargen(i)%Sf(wp%K))
+       allocate(wp%vargenq(i)%Sf(wp%K))
        do ii=1,wp%K
           ! In order to maintain energy density per frequency, an interpolation
           ! is carried out on the input directional variance density spectrum
@@ -1348,10 +1355,18 @@ endsubroutine spectral_wave_bc
        enddo
        ! Correct variance to ensure the total variance remains the same as the total variance in the 
        ! (interpolated) input spectrum
-       if (par%correctHm0 == 1) then
-          hm0post = 4*sqrt(sum(wp%vargen(i)%Sf)*wp%dfgen)
-          wp%vargen(i)%Sf   = (specinterp(i)%hm0/hm0post)**2*wp%vargen(i)%Sf
-       endif 
+       hm0post = 4*sqrt(sum(wp%vargen(i)%Sf)*wp%dfgen)
+       wp%vargen(i)%Sf   = (specinterp(i)%hm0/hm0post)**2*wp%vargen(i)%Sf
+       ! For the generation of long waves we cannot use wp%vargen%Sf, because it contains an overestimation
+       ! of energy in the peak frequencies. We can also not use the standard directionally-integrated spectrum
+       ! because this stores all energy at fgen(K), where it is possible that for this current spectrum, there
+       ! is not no energy at S(f(K),theta(K0)
+       ! The current solution is to take the minimum of both methods
+       do ii=1,wp%K
+          ! Map Sf input to fgen
+          call LINEAR_INTERP(specinterp(i)%f,specinterp(i)%Sf,specinterp(i)%nf,wp%fgen(ii),wp%vargenq(i)%Sf(ii),dummy)
+       enddo
+       wp%vargenq(i)%Sf = min(wp%vargen(i)%Sf,wp%vargenq(i)%Sf)
     enddo    
     
     end subroutine generate_wave_train_variance 
@@ -1380,6 +1395,7 @@ endsubroutine spectral_wave_bc
     allocate(wp%A(s%ny+1,wp%K))
 !    allocate(wp%danggen(s%ny+1))  
     allocate(wp%Sfinterp(s%ny+1,wp%K))
+    allocate(wp%Sfinterpq(s%ny+1,wp%K))
     allocate(wp%Hm0interp(s%ny+1))
     
     ! where necessary, interpolate Sf of each spectrum location
@@ -1435,9 +1451,13 @@ endsubroutine spectral_wave_bc
              sf(1) = wp%vargen(interpindex(1))%Sf(ii)
              sf(2) = wp%vargen(interpindex(2))%Sf(ii)
              call LINEAR_INTERP(positions,sf,2,here,wp%Sfinterp(i,ii),dummy)
+             sf(1) = wp%vargenq(interpindex(1))%Sf(ii)
+             sf(2) = wp%vargenq(interpindex(2))%Sf(ii)
+             call LINEAR_INTERP(positions,sf,2,here,wp%Sfinterpq(i,ii),dummy)
           enddo
           ! Ensure that the total amount of variance has not been reduced/increased
-          ! during interpolation
+          ! during interpolation for short wave energy only. This is not done for
+          ! Sf for bound long wave generation
           sfnow = sum(wp%Sfinterp(i,:))  ! integration over fixed bin df size unnecessary
           sf(1) = sum(wp%vargen(interpindex(1))%Sf)
           sf(2) = sum(wp%vargen(interpindex(2))%Sf)
@@ -1445,6 +1465,7 @@ endsubroutine spectral_wave_bc
           wp%Sfinterp(i,:)=wp%Sfinterp(i,:)*sfimp/sfnow
        else
           wp%Sfinterp(i,:) = wp%vargen(interpindex(1))%Sf
+          wp%Sfinterpq(i,:) = wp%vargenq(interpindex(1))%Sf
        endif
                      
        wp%A(i,:) = sqrt(2*wp%Sfinterp(i,:)*wp%dfgen)
@@ -1464,6 +1485,7 @@ endsubroutine spectral_wave_bc
     use interp
     use math_tools
     use params
+    use logging_module
         
     implicit none
     ! input/output
@@ -1487,7 +1509,10 @@ endsubroutine spectral_wave_bc
     allocate(wp%CompFn(s%ny+1,wp%tslen))
     wp%CompFn=0.d0
     allocate(tempcmplx(wp%tslen/2-2))
+    call writelog('ls','','Calculating Fourier components')
+    call progress_indicator(.true.,0.d0,5.d0,2.d0)
     do i=1,wp%K
+       call progress_indicator(.false.,dble(i)/wp%K*100,5.d0,2.d0)
        do ii=1,s%ny+1
           ! Determine first half of complex Fourier coefficients of wave train
           ! components using random phase and amplitudes from sampled spectrum 
@@ -1957,9 +1982,10 @@ endsubroutine spectral_wave_bc
     halflen = wp%tslen/2
         
     ! Run loop over wave-wave interaction components
+    call progress_indicator(.true.,0.d0,5.d0,2.d0)
     do m=1,K-1
-       call writelog('ls','(a,i0,a,i0)','Wave component ',m,' of ',K-1)
-       
+!       call writelog('ls','(a,i0,a,i0)','Wave component ',m,' of ',K-1)
+       call progress_indicator(.false.,dble(m)/(K-1)*100,5.d0,2.d0)
        ! Allocate memory
        allocate(term1(K-m),term2(K-m),term2new(K-m),dif(K-m),chk1(K-m),chk2(K-m))
        
@@ -1994,7 +2020,7 @@ endsubroutine spectral_wave_bc
        dif = (abs(term2-term2new))
        if (any(dif>0.01*term2) .and. firsttime) then
           firsttime = .false.
-          call writelog('lws','','Warning: shallow water so long wave variance is reduced using par%nmax')
+!          call writelog('lws','','Warning: shallow water so long wave variance is reduced using par%nmax')
        endif 
        chk1  = cosh(wp%kgen(1:K-m)*wp%h0)
        chk2  = cosh(wp%kgen(m+1:K)*wp%h0)
@@ -2007,7 +2033,7 @@ endsubroutine spectral_wave_bc
        ! Correct for surface elevation input and output instead of bottom pressure
        ! so it is consistent with Van Dongeren et al 2003 eq. 18
        D(m,1:K-m) = D(m,1:K-m)*cosh(k3(m,1:K-m)*wp%h0)/(cosh(wp%kgen(1:K-m)*wp%h0)*cosh(wp%kgen(m+1:K)*wp%h0))  
-
+       
        ! Exclude interactions with components smaller than or equal to current
        ! component according to lower limit Herbers 1994 eq. 1
        where(wp%fgen<=deltaf) D(m,:)=0.d0  
@@ -2034,6 +2060,9 @@ endsubroutine spectral_wave_bc
     enddo ! m=1,K-1
     !
     ! Output to screen
+    if (.not. firsttime) then
+       call writelog('lws','','Warning: shallow water so long wave variance is reduced using par%nmax')
+    endif
     call writelog('sl','', 'Calculating flux at boundary')
     !
     ! Allocate temporary arrays for upcoming loop
@@ -2049,7 +2078,7 @@ endsubroutine spectral_wave_bc
        !         E = 2*D**2*Sf**2*df
        Eforc = 0
        do m=1,K-1
-          Eforc(m,1:K-m) = 2*D(m,1:K-m)**2*wp%Sfinterp(j,1:K-m)*wp%Sfinterp(j,m+1:K)*wp%dfgen
+          Eforc(m,1:K-m) = 2*D(m,1:K-m)**2*wp%Sfinterpq(j,1:K-m)*wp%Sfinterpq(j,m+1:K)*wp%dfgen
        enddo
        !
        ! Calculate bound wave amplitude for this offshore grid point

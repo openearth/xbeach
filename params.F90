@@ -108,7 +108,6 @@ type parameters
    real*8        :: dthetaS_XB                 = -123    !  [deg] (advanced) The (counter-clockwise) angle in the degrees needed to rotate from the x-axis in SWAN to the x-axis pointing East
    integer*4     :: nspectrumloc               = -123    !  [-] (advanced) Number of input spectrum locations
    integer*4     :: wbcversion                 = -123    !  [-] (advanced) Version of wave boundary conditions
-
       
    ! [Section] Flow boundary condition parameters
    character(24) :: front                      = 'abc'   !  [-] Switch for seaward flow boundary: 0 = radiating boundary(Ad), 1 = Van Dongeren, 1997
