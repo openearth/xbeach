@@ -962,9 +962,9 @@ endsubroutine spectral_wave_init
     allocate(s%Sutot(1:nx+1,1:ny+1))     ! Only really for easy output 
     allocate(s%Svtot(1:nx+1,1:ny+1))     ! Only really for easy output
     allocate(s%cctot(1:nx+1,1:ny+1))     ! Only really for easy output
-    allocate(s%runup(1,1:ny+1))
-    allocate(s%Hrunup(1,1:ny+1))
-    allocate(s%xHrunup(1,1:ny+1))
+    allocate(s%runup(1:ny+1))
+    allocate(s%Hrunup(1:ny+1))
+    allocate(s%xHrunup(1:ny+1))
     allocate(s%Dc(1:nx+1,1:ny+1))
 
     ! Initialize so structures can be implemented more easily
