@@ -593,6 +593,7 @@ subroutine space_distribute_vector(xy,sl,a,b)
   use xmpi_module
   use general_mpi_module
   implicit none
+  ! Not sure what this xy  is doing here. 
   character, intent(in)             :: xy
   type (spacepars), intent(inout)   :: sl
   real*8, dimension(:), intent(in)  :: a
@@ -821,10 +822,23 @@ subroutine space_distribute_space(sg,sl,par)
       !         Robert: these don't exist anymore?
       !            case(mnem_xz,mnem_xu)
       !              call space_distribute_vector('x',sl,tg%r1,tl%r1)
-      !            case(mnem_yz, mnem_yv, mnem_bi)
+                   !            case(mnem_yz, mnem_yv, mnem_bi)
                   case(mnem_bi)
                     call space_distribute_vector('y',sl,tg%r1,tl%r1)
+                 case(mnem_runup)
+                    ! Not sure why vector expects a name....
+                    ! This name is x or y, it relates to the length of the vector.
+                    call space_distribute_vector('y',sl,tg%r1,tl%r1)
+                 case(mnem_hrunup)
+                    ! Not sure why vector expects a name....
+                    ! This name is x or y, it relates to the length of the vector.
+                    call space_distribute_vector('y',sl,tg%r1,tl%r1)
+                 case(mnem_xhrunup)
+                    ! Not sure why vector expects a name....
+                    ! This name is x or y, it relates to the length of the vector.
+                    call space_distribute_vector('y',sl,tg%r1,tl%r1)
                   case default
+                     write(*,*) 'I am stuck on', tl%name
                     goto 100
                 end select
               case(2)
