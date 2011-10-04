@@ -750,10 +750,10 @@ contains
        end if
        ! If we're not reading a type, just continue to the next line
        if (.not.readtype) then
-          continue
+          cycle
        end if
        if (line(1:1) .eq. '!') then ! not reading comment lines
-          continue
+          cycle
        end if
 
 
@@ -777,7 +777,8 @@ contains
 
        if ((startpar .eq. 0).or.(endpar.eq.0)) then ! we have an invalid parameter
           ! Let's return....
-          continue
+          
+          cycle
        end if
 
 
