@@ -33,6 +33,7 @@ type parameters
    integer*4     :: nonh                       = -123    !  [-] (advanced) Non-hydrostatic pressure option: 0 = NSWE, 1 = NSW + non-hydrostatic pressure compensation Stelling & Zijlema, 2003 
    integer*4     :: gwflow                     = -123    !  [-] (advanced) Turn on (1) or off (0) groundwater flow module
    integer*4     :: q3d                        = -123    !  [-] (advanced) Turn on (1) or off (0) quasi-3D sediment transport module
+   integer*4     :: swrunup                    = -123    !  [-] (advanced) Turn on (1) or off (0) short wave runup
   
    ! [Section] Grid parameters                                                                                                                                                                                                                          
    character(256):: depfile                    = 'abc'   !  [-] Name of the input bathymetry file
@@ -390,6 +391,7 @@ contains
     par%nonh        = readkey_int ('params.txt','nonh',          0,        0,     1)
     par%gwflow      = readkey_int ('params.txt','gwflow',        0,        0,     1)
     par%q3d         = readkey_int ('params.txt','q3d',           0,        0,     1)
+    par%swrunup     = readkey_int ('params.txt','swrunup',       0,        0,     1)
     !
     !
     ! Grid parameters
