@@ -653,7 +653,7 @@ contains
               hav = hh
               indx = nx+1
               
-              if (par%struct==1 .and. par%shoaldelay==1) then
+              if (par%swrunup) then
               
               do j=1,ny+1
                  first = 0;
@@ -676,7 +676,7 @@ contains
                         ! now itteratively compute runup
                         hav(:,j) = hh(:,j)
                         runup_old = huge(0.d0)
-                        s%runup(1,j) = 0;
+                        s%runup(j) = 0;
                         do while (abs(s%runup(1,j)-runup_old)>0.01d0)
                           runup_old = s%runup(1,j)
                           slopeind = 0
