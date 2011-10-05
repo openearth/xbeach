@@ -673,9 +673,7 @@ subroutine matrix_distr_sendmat_real8(a,b,is,lm,js,ln,&
   arowend    = is(root + 1) + mlocal - 1
   acolstart  = js(root + 1)
   acolend    = js(root + 1) + nlocal - 1
-
   if (rank .eq. root) then
-
     ! copy of the the relevant part of A to local submtrix B:
      b(:,:) =  a(arowstart:arowend,acolstart:acolend)
 
@@ -710,7 +708,6 @@ subroutine matrix_distr_sendmat_real8(a,b,is,lm,js,ln,&
 
   else ! above is the root code, now the non-root code
     ! receive the short message from root, so I can start receiving b
-
     call MPI_Recv(i, 1, MPI_INTEGER,&
                   root, tag1, comm, MPI_STATUS_IGNORE, ierror)
 

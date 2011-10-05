@@ -520,9 +520,7 @@ subroutine space_distribute_matrix_real8(sl,a,b)
   type (spacepars), intent(inout)     :: sl
   real*8, dimension(:,:), intent(in)  :: a
   real*8, dimension(:,:), intent(out) :: b
-
   call matrix_distr(a,b,sl%is,sl%lm,sl%js,sl%ln,xmpi_master,xmpi_comm)
-
 end subroutine space_distribute_matrix_real8
 
 subroutine space_distribute_matrix_integer(sl,a,b)
@@ -546,7 +544,6 @@ subroutine space_distribute_block_real8(sl,a,b)
   real*8, dimension(:,:,:), intent(out)          :: b
 
   integer                                        :: i
-
   do i=1,size(b,3)   ! assuming that b is allocated on all processes
     call matrix_distr(a(:,:,i),b(:,:,i),sl%is,sl%lm,sl%js,sl%ln,xmpi_master,xmpi_comm)
   enddo
@@ -643,7 +640,7 @@ subroutine space_distribute_space(sg,sl,par)
   type(parameters)                :: par
 
   integer                         :: i,j,lid,eid, wid
-  real*8, pointer, dimension(:)   :: umean1, umean2
+  real*8, pointer, dimension(:)   :: vectorg, vectorl
   type (arraytype)                :: tg, tl
 
   !
@@ -755,7 +752,6 @@ subroutine space_distribute_space(sg,sl,par)
       call indextos(sg,i,tg)
     endif
     call indextos(sl,i,tl)
-    
     select case (tl%btype)
       case('b')           ! have to broadcast this
         select case (tl%type)
@@ -810,9 +806,9 @@ subroutine space_distribute_space(sg,sl,par)
             select case(tl%rank)
               case(2)
                 call space_distribute(sl,tg%i2,tl%i2)
-				  case(3)
-				    call space_distribute(sl,tg%i3,tl%i3)
-              case default
+             case(3)
+                call space_distribute(sl,tg%i3,tl%i3)
+             case default
                 goto 100
             end select  ! rank
           case ('r')
@@ -838,7 +834,6 @@ subroutine space_distribute_space(sg,sl,par)
                     ! This name is x or y, it relates to the length of the vector.
                     call space_distribute_vector('y',sl,tg%r1,tl%r1)
                   case default
-                     write(*,*) 'I am stuck on', tl%name
                     goto 100
                 end select
               case(2)
@@ -852,27 +847,30 @@ subroutine space_distribute_space(sg,sl,par)
           case default
             goto 100
         end select       ! type
-      case('2')    ! the umean case
-                   ! dimension 2,s%ny+1
-        if(xmaster) then
-          allocate(umean1(sg%ny+1))
-        endif
-        allocate(umean2(sl%ny+1))
-        do j=1,size(tg%r2,DIM=1)
-          if (xmaster) then
-            umean1 = tg%r2(j,:)
-          endif
-          call space_distribute("y", sl,umean1,umean2)
-          tl%r2(j,:) = umean2
-        enddo
-        if(xmaster) then
-          deallocate(umean1)
-        endif
-        deallocate(umean2)
+      case('2')    
+         ! the umean case
+         ! dimension 2,s%ny+1
+         if(xmaster) then
+            allocate(vectorg(sg%ny+1))
+         endif
+         allocate(vectorl(sl%ny+1))
+         ! Let's keep this 2 case explicit. (because tg%r2 is only known on master)
+         ! This one is distributed as 2 vectors.
+         do j=1,2
+            if (xmaster) then
+               vectorg = tg%r2(j,:)
+            endif
+            call space_distribute("y", sl,vectorg,vectorl)
+            tl%r2(j,:) = vectorl
+         enddo
+         if(xmaster) then
+            deallocate(vectorg)
+         endif
+         deallocate(vectorl)
       case default
-        goto 100
-    end select  ! btype
-  enddo  ! numvars
+         goto 100
+      end select  ! btype
+   enddo  ! numvars
   return
 
   100 continue
