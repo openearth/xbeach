@@ -20,6 +20,7 @@ contains
     integer                     :: i
     integer                     :: j
     integer                     :: itheta
+    integer                     :: dummy
 
 
 
@@ -390,20 +391,21 @@ contains
              !
              ee(2:nx+1,1,:)=ee(2:nx+1,2,:)
              rr(2:nx+1,1,:)=rr(2:nx+1,2,:)
-         ! elseif (trim(par%rightwave)=='wavecrest') then
-         !    wcrestpos=xz+tan(thetamean(:,2))*(yz(2)-yz(1))
-         !    do itheta=1,ntheta
-         !       do i=1,nx+1
-         !          call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-         !               (/ee(1,2,itheta),ee(:,2,itheta),ee(nx+1,2,itheta)/),&
-         !               nx+1,xz(i),ee(i,1,itheta),dummy)
-         !          call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-         !               (/rr(1,2,itheta),rr(:,2,itheta),rr(nx+1,2,itheta)/),&
-         !               nx+1,xz(i),rr(i,1,itheta),dummy)
-         !          ee(i,1,itheta)=max(ee(i,1,itheta),0.d0)
-         !          rr(i,1,itheta)=max(rr(i,1,itheta),0.d0)
-         !       enddo
-         !    enddo
+          elseif (trim(par%rightwave)=='wavecrest') then
+         !   wcrestpos=xz+tan(thetamean(:,2))*(yz(2)-yz(1))
+             wcrestpos=sdist(:,1)+tan(thetamean(:,2)-alfaz(:,2))*dnv(:,1)
+             do itheta=1,ntheta
+                do i=1,nx+1
+                   call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+                        (/ee(1,2,itheta),ee(:,2,itheta),ee(nx+1,2,itheta)/),&
+                        nx+1,sdist(i,1),ee(i,1,itheta),dummy)
+                   call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+                        (/rr(1,2,itheta),rr(:,2,itheta),rr(nx+1,2,itheta)/),&
+                        nx+1,sdist(i,1),rr(i,1,itheta),dummy)
+                   ee(i,1,itheta)=max(ee(i,1,itheta),0.d0)
+                   rr(i,1,itheta)=max(rr(i,1,itheta),0.d0)
+                enddo
+             enddo
           endif
        endif
        if (xmpi_isright)then
@@ -413,20 +415,21 @@ contains
              !
              ee(2:nx+1,ny+1,:)=ee(2:nx+1,ny,:)
              rr(2:nx+1,ny+1,:)=rr(2:nx+1,ny,:)
-          !elseif (trim(par%leftwave)=='wavecrest') then
-          !   wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
-          !   do itheta=1,ntheta
-          !      do i=1,nx+1
-          !         call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-          !              (/ee(1,ny,itheta),ee(:,ny,itheta),ee(nx+1,ny,itheta)/),&
-          !              nx+1,xz(i),ee(i,ny+1,itheta),dummy)
-          !         call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-          !              (/rr(1,ny,itheta),rr(:,ny,itheta),rr(nx+1,ny,itheta)/),&
-          !              nx+1,xz(i),rr(i,ny+1,itheta),dummy)
-          !         ee(i,ny+1,itheta)=max(ee(i,ny+1,itheta),0.d0)
-          !         rr(i,ny+1,itheta)=max(rr(i,ny+1,itheta),0.d0)
-          !      enddo
-          !   enddo
+          elseif (trim(par%leftwave)=='wavecrest') then
+          !  wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
+             wcrestpos=sdist(:,ny+1)-tan(thetamean(:,ny)-alfaz(:,ny))*dnv(:,ny)
+             do itheta=1,ntheta
+                do i=1,nx+1
+                   call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+                        (/ee(1,ny,itheta),ee(:,ny,itheta),ee(nx+1,ny,itheta)/),&
+                        nx+1,sdist(i,ny+1),ee(i,ny+1,itheta),dummy)
+                   call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+                        (/rr(1,ny,itheta),rr(:,ny,itheta),rr(nx+1,ny,itheta)/),&
+                        nx+1,sdist(i,ny+1),rr(i,ny+1,itheta),dummy)
+                   ee(i,ny+1,itheta)=max(ee(i,ny+1,itheta),0.d0)
+                   rr(i,ny+1,itheta)=max(rr(i,ny+1,itheta),0.d0)
+                enddo
+             enddo
           endif
        endif
     endif
