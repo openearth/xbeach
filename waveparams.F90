@@ -1541,7 +1541,7 @@ real*8,dimension(:,:,:),allocatable     :: q
 double complex,dimension(:),allocatable       :: Comptemp, Comptemp2
 complex(fftkind),dimension(:,:),  allocatable :: Gn, Ftemp2
 complex(fftkind),dimension(:,:,:),allocatable :: Ftemp
-character(4),dimension(3)               :: qstr
+character(4),dimension(4)               :: qstr
 
 g=par%g
 K=wp%K
@@ -1612,7 +1612,7 @@ do m=1,K-1
     ! Ideetje Robert Jaap: make sure that we don't blow up bound long wave 
     !                      when offshore boundary is too close to shore
     ! cg3 = min(cg3,par%nmax*sqrt(par%g*wp%h0t0))
-    cg3(m,1:K-m) = min(cg3(m,1:K-m),par%nmax*sqrt(g/k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0t0)))
+    !cg3(m,1:K-m) = min(cg3(m,1:K-m),par%nmax*sqrt(g/k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0t0)))
 
     ! Determine difference-interaction coefficient according to Herbers 1994
     ! eq. A5
@@ -1685,21 +1685,22 @@ index2=(/(i,i=1,K-1)/)
 
 ! Determine complex description of bound long wave per interaction pair of
 ! primary waves for first y-coordinate along seaside boundary
-allocate(Ftemp(K-1,K,3)) ! Jaap qx, qy qtot
+allocate(Ftemp(K-1,K,4)) ! Jaap qx, qy qtot
 Ftemp(:,:,1) = Abnd/2*exp(-1*par%compi*dphi3)*cg3*dcos(theta3) ! qx
 Ftemp(:,:,2) = Abnd/2*exp(-1*par%compi*dphi3)*cg3*dsin(theta3) ! qy
 Ftemp(:,:,3) = Abnd/2*exp(-1*par%compi*dphi3)*cg3              ! qtot
+Ftemp(:,:,4) = Abnd/2*exp(-1*par%compi*dphi3)                  ! eta
 
-allocate(q(Npy,Nr,3))           ! qx qy qtot
+allocate(q(Npy,Nr,4))           ! qx qy qtot eta
 allocate(Comptemp(Nr/2-1))
 allocate(Comptemp2(Nr))         ! Allocate mass flux as function of time
 allocate(Ftemp2(K-1,K))
 
 q=0.0d0
 
-qstr = (/'qx  ','qy  ','qtot'/)
+qstr = (/'qx  ','qy  ','qtot','eta '/)
 
-do m=1,3
+do m=1,4
   ! Determine complex description of bound long wave per primary wave component
   ! for first y-coordinate along seaside boundary
   Gn=0
@@ -1768,7 +1769,7 @@ deallocate(index2)
 if(xmaster) then
     call writelog('ls','','writing long wave mass flux to ',trim(qbcfname),' ...')
     inquire(iolength=reclen) 1.d0
-    reclen=reclen*(Npy*3)
+    reclen=reclen*(Npy*4)
     open(21,file=qbcfname,form='unformatted',access='direct',recl=reclen)
     do i=1,wp%Nr+4                                                             ! Bas: why add 4 ??
         write(21,rec=i)q(:,min(i,wp%Nr),:)

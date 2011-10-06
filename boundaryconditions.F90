@@ -464,7 +464,7 @@ contains
              inquire(iolength=wordsize) 1.d0
              reclen=wordsize*(sg%ny+1)*(sg%ntheta)
              open(71,file=ebcfname,status='old',form='unformatted',access='direct',recl=reclen)
-             reclen=wordsize*((sg%ny+1)*3)
+             reclen=wordsize*((sg%ny+1)*4)
              open(72,file=qbcfname,status='old',form='unformatted',access='direct',recl=reclen)
           endif
           !
@@ -474,18 +474,18 @@ contains
           !
           if (xmaster) then
              if (.not. allocated(gq1) ) then
-                allocate(gq1(sg%ny+1,3),gq2(sg%ny+1,3),gq(sg%ny+1,3))
+                allocate(gq1(sg%ny+1,4),gq2(sg%ny+1,4),gq(sg%ny+1,4))
                 allocate(gee1(sg%ny+1,ntheta),gee2(sg%ny+1,ntheta))
              endif
           else
              if (.not. allocated(gq1) ) then ! to get valid addresses for
                 ! gq1, gq2, gq, gee1, gee2
-                allocate(gq1(1,3),gq2(1,3),gq(1,3))
+                allocate(gq1(1,4),gq2(1,4),gq(1,4))
                 allocate(gee1(1,ntheta),gee2(1,ntheta))
              endif
           endif
           if (.not. allocated(q1) ) then
-             allocate(q1(ny+1,3),q2(ny+1,3),q(ny+1,3))
+             allocate(q1(ny+1,4),q2(ny+1,4),q(ny+1,4))
              allocate(ee1(ny+1,ntheta),ee2(ny+1,ntheta))
           end if
           if (xmaster) then

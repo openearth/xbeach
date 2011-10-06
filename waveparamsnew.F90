@@ -1931,7 +1931,6 @@ endsubroutine spectral_wave_bc
     
     
     
-    
     ! This function has changed with respect to previous versions of XBeach, in that 
     ! the bound long wave has to be calculated separately at each longshore point,
     ! owing to longshore varying incident wave spectra
@@ -1956,9 +1955,9 @@ endsubroutine spectral_wave_bc
     ! Allocate variables for amplitude and Fourier coefficients of bound long wave
     allocate(Gn(wp%tslen))
     allocate(Abnd(K-1,K))
-    allocate(Ftemp(K-1,K,3)) ! Jaap qx, qy qtot
+    allocate(Ftemp(K-1,K,4)) ! Jaap qx, qy qtot, zeta
     ! Storage for output discharge
-    allocate(q(s%ny+1,wp%tslen,3))   ! qx qy qtot
+    allocate(q(s%ny+1,wp%tslen,4))   ! qx qy qtot, zeta
     !
     ! Initialize variables as zero
     Eforc = 0
@@ -2010,7 +2009,7 @@ endsubroutine spectral_wave_bc
        ! Modification Robert + Jaap: make sure that the bound long wave amplitude does not 
        !                             explode when offshore boundary is too close to shore,
        !                             by limiting the interaction group velocity
-       cg3(m,1:K-m) = min(cg3(m,1:K-m),par%nmax*sqrt(par%g/k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0)))
+       !cg3(m,1:K-m) = min(cg3(m,1:K-m),par%nmax*sqrt(par%g/k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0)))
           
        ! Determine difference-interaction coefficient according to Herbers 1994
        ! eq. A5
@@ -2089,9 +2088,10 @@ endsubroutine spectral_wave_bc
        Ftemp(:,:,1) = Abnd/2*exp(-1*par%compi*dphi3)*cg3*dcos(theta3) ! qx
        Ftemp(:,:,2) = Abnd/2*exp(-1*par%compi*dphi3)*cg3*dsin(theta3) ! qy
        Ftemp(:,:,3) = Abnd/2*exp(-1*par%compi*dphi3)*cg3              ! qtot
+       Ftemp(:,:,4) = Abnd/2*exp(-1*par%compi*dphi3)                  ! eta
        !
        ! loop over qx,qy and qtot
-       do iq=1,3
+       do iq=1,4
           ! Unroll wave component to correct place along the offshore boundary
           Ftemp(:,:,iq) = Ftemp(:,:,iq)* &
                           exp(-1*par%compi*(KKy*(s%yz(1,j)-s%yz(1,1))+KKx*(s%xz(1,j)-s%xz(1,1))))
@@ -2124,7 +2124,7 @@ endsubroutine spectral_wave_bc
     ! Open file for storage of bound long wave flux 
     call writelog('ls','','Writing long wave mass flux to ',trim(wp%qfilename),' ...')
     inquire(iolength=reclen) 1.d0
-    reclen=reclen*((s%ny+1)*3)
+    reclen=reclen*((s%ny+1)*4)
     fid = create_new_fid()
     open(fid,file=trim(wp%qfilename),form='unformatted',access='direct',recl=reclen,status='REPLACE')
     !
