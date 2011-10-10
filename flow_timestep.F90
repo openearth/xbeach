@@ -138,13 +138,13 @@ contains
     ! Water level slopes
     do j=1,ny+1
        do i=2,nx
-          dzsdx(i,j)=(zs(i+1,j)-zs(i,j))/dsu(i,j)
+          dzsdx(i,j)=(zs(i+1,j)+ph(i+1,j)-zs(i,j)-ph(i,j))/dsu(i,j)
        end do
     end do
     !    do j=2,ny
     do j=1,ny ! Dano need to get correct slope on boundary y=0
        do i=1,nx+1
-          dzsdy(i,j)=(zs(i,j+1)-zs(i,j))/dnv(i,j)
+          dzsdy(i,j)=(zs(i,j+1)+ph(i,j+1)-zs(i,j)-ph(i,j))/dnv(i,j)
        end do
     end do
     

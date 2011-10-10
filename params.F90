@@ -34,6 +34,7 @@ type parameters
    integer*4     :: gwflow                     = -123    !  [-] (advanced) Turn on (1) or off (0) groundwater flow module
    integer*4     :: q3d                        = -123    !  [-] (advanced) Turn on (1) or off (0) quasi-3D sediment transport module
    integer*4     :: swrunup                    = -123    !  [-] (advanced) Turn on (1) or off (0) short wave runup
+   integer*4     :: ships                      = -123    !  [-] (advanced) Turn on (1) or off (0) ship waves
   
    ! [Section] Grid parameters                                                                                                                                                                                                                          
    character(256):: depfile                    = 'abc'   !  [-] Name of the input bathymetry file
@@ -312,6 +313,9 @@ type parameters
    integer*4     :: ndrifter                   = -123    !  [-] Number of drifers
    character(256) :: drifterfile               = 'abc'   !  [-] Name of drifter data file
 
+   ! [Section] Ship parameters
+   character(256) :: shipfile                    = 'abc'   !  [-] Name of drifter data file
+
    ! [Section] Wave numerics parameters                                                                                                      
    character(256):: scheme                     = 'abc'   !  [-] (advanced) Use first-order upwind (upwind_1), second order upwind (upwind_2) or Lax-Wendroff (lax_wendroff)
                                                          !      for wave propagation
@@ -391,6 +395,7 @@ contains
     par%gwflow      = readkey_int ('params.txt','gwflow',        0,        0,     1)
     par%q3d         = readkey_int ('params.txt','q3d',           0,        0,     1)
     par%swrunup     = readkey_int ('params.txt','swrunup',       0,        0,     1)
+    par%ships       = readkey_int ('params.txt','ships',         0,        0,     1)
     !
     !
     ! Grid parameters
@@ -976,6 +981,13 @@ contains
     if (par%ndrifter>0) then
         call check_file_exist(par%drifterfile)
     endif
+    !
+    !
+    ! Shipwaves parameters
+    call writelog('l','','--------------------------------')
+    call writelog('l','','Shipwaves parameters: ')
+    
+    par%shipfile = readkey_name  ('params.txt', 'shipfile'                    )  
     ! 
     !   
     ! Wave numerics parameters 

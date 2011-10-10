@@ -546,6 +546,7 @@ endsubroutine spectral_wave_init
     allocate(s%wb(1:s%nx+1,1:s%ny+1))
     allocate(s%nuh(1:s%nx+1,1:s%ny+1))  
     allocate(s%pres(1:s%nx+1,1:s%ny+1))
+    allocate(s%ph(1:s%nx+1,1:s%ny+1))
     allocate(s%wi(2,1:s%ny+1))
     allocate(s%zi(2,1:s%ny+1))
     allocate(s%cf(1:s%nx+1,1:s%ny+1))
@@ -604,6 +605,7 @@ endsubroutine spectral_wave_init
     s%wb = 0.0d0 
     s%nuh = 0.0d0
     s%pres = 0.0d0 
+    s%ph = 0.0d0 
     s%wi = 0.0d0 
     s%zi = 0.0d0 
     s%cf = 0.0d0
