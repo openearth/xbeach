@@ -1612,7 +1612,7 @@ do m=1,K-1
     ! Ideetje Robert Jaap: make sure that we don't blow up bound long wave 
     !                      when offshore boundary is too close to shore
     ! cg3 = min(cg3,par%nmax*sqrt(par%g*wp%h0t0))
-    !cg3(m,1:K-m) = min(cg3(m,1:K-m),par%nmax*sqrt(g/k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0t0)))
+    cg3(m,1:K-m) = min(cg3(m,1:K-m),par%nmax*sqrt(g/k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0t0)))
 
     ! Determine difference-interaction coefficient according to Herbers 1994
     ! eq. A5
