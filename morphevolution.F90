@@ -1476,22 +1476,35 @@ contains
     kturbv(:,ny+1) = kturb(:,ny+1) !Robert
     !
     Sturbv=kturbv*vv*hv*wetv
-    do j=2,ny+1
+    if (ny>0) then
+       do j=2,ny+1
+          do i=2,nx+1
+             ksource=par%g*rolthick(i,j)*par%beta*c(i,j)      !only important in shallow water, where c=sqrt(gh)  
+             kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*(       &
+	          (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j)+&
+                  Sturbv(i,j)*dsv(i,j)-Sturbv(i,j-1)*dsv(i,j-1))*dsdnzi(i,j)-&
+                  (ksource-par%betad*kturb(i,j)**1.5d0))
+             kturb(i,j)=max(kturb(i,j),0.0d0)
+          enddo
+       enddo
+    else
+       j=1
        do i=2,nx+1
           ksource=par%g*rolthick(i,j)*par%beta*c(i,j)      !only important in shallow water, where c=sqrt(gh)  
           kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*(       &
-	       (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j)+&
-               Sturbv(i,j)*dsv(i,j)-Sturbv(i,j-1)*dsv(i,j-1))*dsdnzi(i,j)-&
+	       (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)-&
                (ksource-par%betad*kturb(i,j)**1.5d0))
           kturb(i,j)=max(kturb(i,j),0.0d0)
        enddo
-    enddo
+    endif
     ! Jaap
     kturb = kturb/max(hh,0.01d0)
     kturb(1,:)=kturb(2,:)
-    kturb(:,1)=kturb(:,2)
     kturb(nx+1,:)=kturb(nx+1-1,:)
-    kturb(:,ny+1)=kturb(:,ny+1-1)
+    if (ny>0) then
+       kturb(:,1)=kturb(:,2)
+       kturb(:,ny+1)=kturb(:,ny+1-1)
+    endif
     ! wwvv fix the first and last rows and columns of kturb in parallel case
 #ifdef USEMPI
     call xmpi_shift(kturb,'1:')
