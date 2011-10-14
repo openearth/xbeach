@@ -163,6 +163,7 @@ type parameters
    integer*4     :: breakerdelay               = -123    !  [-] (advanced) Turn on (1) or off (0) breaker delay model
    integer*4     :: shoaldelay                 = -123    !  [-] (advanced) Turn on (1) or off (0) shoaling delay
    real*8        :: facsd                      = -123    !  [-] (advanced) fraction of the local wave length to use for shoaling delay depth
+   real*8        :: facrun                     = -123    !  [-] (advanced) calibration coefficient for short wave runup 
  
    ! [Section] Roller parameters                                                                                                             
    integer*4     :: roller                     = -123    !  [-] (advanced) Turn on (1) or off(0) roller model
@@ -701,6 +702,7 @@ contains
     par%breakerdelay = readkey_int ('params.txt','breakerdelay',    1,   0,      1)
     par%shoaldelay = readkey_int ('params.txt','shoaldelay',    0,   0,      1)
     par%facsd      = readkey_dbl ('params.txt','facsd',       1.d0,   0d0,      2.0d0)
+    par%facrun     = readkey_dbl ('params.txt','facrun',      1.d0,   0d0,      2.0d0)
     !
     !
     ! Roller parameters                                                                                                      
