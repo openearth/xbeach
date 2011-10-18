@@ -90,7 +90,12 @@ subroutine roelvink_1D(par,s,km,i)
             s%D(i,:) = s%D(i,:) / par%Trep
         endif
     elseif (trim(par%break)=='roelvink2' .or. trim(par%break)=='roelvink_daly') then
-        s%D(i,:)     = s%D(i,:) / par%Trep*H/s%hh(i,:)
+        ! Jaap: also wci switch for roelvink2
+        if (par%wci==1) then
+            s%D(i,:) = s%D(i,:) * s%sigm(i,:)/2.d0/par%px * H/s%hh(i,:);
+        else
+            s%D(i,:) = s%D(i,:) / par%Trep * H/s%hh(i,:)    
+        endif
     end if
 
 end subroutine roelvink_1D
@@ -127,7 +132,7 @@ subroutine baldock_1D(par,s,km,i)
     
     integer                                         :: i
     
-    real*8, dimension(s%ny+1)                       :: km,kh,f,k,H,Hb,R
+    real*8, dimension(s%ny+1)                       :: km,kh,f,k,H,Hb,R,gamma
 
     ! Dissipation according to Baldock et al. (1998)
     
@@ -141,8 +146,14 @@ subroutine baldock_1D(par,s,km,i)
     
     kh  = s%k(i,:) * (s%hh(i,:) + par%delta*s%H(i,:))
     
+    if (par%wci == 1) then
+        gamma = 0.76d0*kh + 0.29d0 !Jaap: spatial varying gamma according to Ruessink et al., 1998
+    else
+        gamma = par%gamma
+    endif
+    
     H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
-    Hb  = tanh(par%gamma*kh/0.88d0)*(0.88d0/k)
+    Hb  = tanh(gamma*kh/0.88d0)*(0.88d0/k)
     R   = Hb/max(H,0.00001d0)
     
     s%Qb(i,:)   = exp(-R**2)
