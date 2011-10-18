@@ -135,7 +135,7 @@ do while (par%t<par%tstop)
 #endif
 
    ! compute timestep
-   if (par%ships==1)         call shipwave       (s,par)
+   if (par%ships==1)        call shipwave       (s,par)
    if (par%swave==1)        call wave           (s,par)
    if (par%gwflow==1)       call gwflow         (s,par)
    if (par%flow+par%nonh>0) call flow           (s,par)
