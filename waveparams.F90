@@ -1533,6 +1533,7 @@ logical                                 :: firsttime
 real*8                                  :: g
 real*8                                  :: df, deltaf
 real*8,dimension(:), allocatable        :: w1, k1
+real*8,dimension(:), allocatable        :: Ebnd
 real*8,dimension(:), allocatable        :: term1, term2, term2new, dif, chk1, chk2
 real*8,dimension(:,:),allocatable       :: Eforc, D, deltheta, KKx, KKy, theta3
 real*8,dimension(:,:),allocatable       :: dphi3, k3, cg3, Abnd
@@ -1677,6 +1678,9 @@ endwhere
 ! Allocate variables for amplitude and Fourier coefficients of bound long wave
 allocate(Gn(Npy,Nr))
 allocate(Abnd(K-1,K))
+allocate(Ebnd(K-1))
+
+Ebnd = sum(Eforc,2)
 
 Abnd = sqrt(2*Eforc*df)
 

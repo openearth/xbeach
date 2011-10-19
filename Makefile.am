@@ -50,6 +50,7 @@ xbeach_SOURCES= \
 	varoutput.F90 \
 	${extra_xbeach_sources} \
 	output.F90 \
+        ship.F90 \
 	xbeach.F90
 
 
