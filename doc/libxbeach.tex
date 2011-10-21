@@ -1,0 +1,191 @@
+\documentclass{article}
+\usepackage{svn}
+\usepackage{graphicx}
+\usepackage[]{subfigure}
+\usepackage[english]{babel}
+\usepackage{grffile}
+\usepackage{textcomp}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage[strings]{underscore}
+\graphicspath{{figures/}}
+\lstset{ %
+language=Fortran,                % the language of the code
+basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+numbers=left,                   % where to put the line-numbers
+numberstyle=\footnotesize,      % the size of the fonts that are used for the line-numbers
+stepnumber=2,                   % the step between two line-numbers. If it's 1, each line 
+                                % will be numbered
+numbersep=5pt,                  % how far the line-numbers are from the code
+backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+showspaces=false,               % show spaces adding particular underscores
+showstringspaces=false,         % underline spaces within strings
+showtabs=false,                 % show tabs within strings adding particular underscores
+frame=single,                   % adds a frame around the code
+tabsize=2,                      % sets default tabsize to 2 spaces
+captionpos=b,                   % sets the caption-position to bottom
+breaklines=true,                % sets automatic line breaking
+breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                % also try caption instead of title
+escapeinside={\%*}{*)},         % if you want to add a comment within your code
+morekeywords={*,...}            % if you want to add more keywords to the set
+}
+
+
+\date{\today}
+\title{From xbeach to libxbeach + xbeach}
+
+\author{
+F. Baart
+}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+  This memo describes some of the considerations in the switch from the xbeach program to the xbeach library + program. 
+  I finish with some code examples and possible applications 
+\end{abstract}
+\section{Introduction}
+We are shifting from modeling single processes to the integrated modeling of several processes at once. 
+
+Several approaches exist for online coupling: 
+\begin{enumerate}
+\item The monolithic-model approach: new processes by extending the model.
+\item The loadable-model approach: new processes can be loaded as functions in the model. 
+\item The micro-model approach: new processes are new models. 
+\end{enumerate}
+
+XBeach can be considered a single (or limited) purpose model and fit's best in the micro model approach. The monolithic approach is bad for XBeach because the model and scope would keep growing, overlapping already existing models, without benefiting. The loadable-model approach makes more sense where there are a lot (say $>10$ of small processes exist that can be described in a simple function. 
+
+\section{The micro-model approach}
+In the micro-model approach the aim is to make a model that does one thing good and be able to exchange information with the outside world. 
+
+In the case of XBeach the goal is to make a model that is very good at computing erosion and other nearshore processes caused by storms. 
+Exchanging information with the outside world is important. There can be other processes that also affect the state of the XBeach model. For example a dune model can also update the bathymetry, a long term sediment model can cause accretion. 
+
+Being able to talk to the outside world can be done in different ways:
+\begin{enumerate}
+\item Model as a file reader
+\item Model as a library
+\item Model as a service
+\end{enumerate}
+
+Reading files can be considered the ugliest way to communicate between programs. It is slow and serial and can generally only be done at the start and end of a model run. This is ok if processes run independently of each other and communicate in one direction (for example in our operational model for dune erosion). 
+Using models as a library is not much more difficult than running a model as a program. The only thing that is different is that one should allow for outside control (the run method should be exposed) and introspection (allow for external functions to read variables from memory). 
+The model as a service approach, where the model exposes methods through the network, introduces complexity into the model that should preferably kept out. This can be considered useful if a monolithic model is running for a long time on multiple computers, but it introduces a lot of complexities and dependencies. % explain. 
+
+For micro models, where exchange of information is important and control and variables should be exposed the library approach is the best way to go. 
+
+\section{from program to library + program}
+XBeach can be changed from a program to a library without much effort. The XBeach code is already split up in three separate areas in the main program.
+
+\subsection{The init section}
+Initializing all the variables. Calling all the init subroutines from the different modules. 
+Preferably you would not keep any global variables (on the main program level). This would allow multiple XBeach programs to be run in one library instance, but that is a detail. 
+\lstinputlisting[linerange={39-45},firstnumber=39]{../xbeach.F90} \lstinputlisting[linerange={110-115},firstnumber=110]{../xbeach.F90}
+\subsection{The run section}
+Running the XBeach model until tstop is reached. Output is also called here. 
+\lstinputlisting[linerange={117-125},firstnumber=117]{../xbeach.F90} \lstinputlisting[linerange={150-155},firstnumber=150]{../xbeach.F90}
+\subsection{The finalize section}
+Cleanup  and close files. Here also all allocated variables should be deallocated but that's another detail.  
+\lstinputlisting[linerange={155-165},firstnumber=155]{../xbeach.F90} 
+
+\section{Restructuring}
+To make a library from XBeach there are a few steps. 
+\begin{enumerate}
+\item Put the init, run (without the while loop), finalize code in an init subroutine
+\item Make a new main program
+\item Make getters and setters
+\item Make the functions c compatible.
+\item Adapt the Makefile.am
+\end{enumerate}
+
+\subsection{Creating subroutines}
+This step is actually quite simple. 
+The program is changed from program to module:
+\lstinputlisting[linerange={1-5},firstnumber=1]{../libxbeach.F90}
+A function name is created just before the start of init, run and finalize:
+\lstinputlisting[linerange={40-50},firstnumber=40]{../libxbeach.F90}
+\lstinputlisting[linerange={133-140},firstnumber=133]{../libxbeach.F90}
+\lstinputlisting[linerange={340-350},firstnumber=340]{../libxbeach.F90}
+
+\subsection{A new main program}
+The new xbeach.F90 program looks something like this:
+\begin{lstlisting}
+  program xbeach
+  using iso_c_bindings
+  using libxbeach_module
+  integer(c_int) :: rc
+  rc = init()
+  do while (par%t<par%tstop)
+    rc = executestep()
+  enddo
+  rc = finalize()
+  end program
+\end{lstlisting}
+
+\subsection{Getters and setters}
+To be able to set and get the variables from XBeach so called getters and setters are created. These can be called from outside of XBeach, for example from matlab. 
+As an example this function returns the c pointer to the 2d double array. This c pointer can be used in c, matlab or python to access the memory of r2. I'm not sure of this is the best approach but it works.  I probably should deallocate this array somehow or save it..
+\lstinputlisting[linerange={311-338},firstnumber=1]{../libxbeach.F90}
+
+\subsection{Make the functions c compatible}
+When you talk to a library that is made in fortran you have to be aware of differences between compilers. 
+A function that is named executestep in fortran, might be named one of the following after compilation:
+\begin{enumerate}
+\item executestep
+\item executestep_
+\item executestep__
+\item _executestep_
+\item _executestep__
+\item __executestep_
+\item __executestep__
+\item EXECUTESTEP
+\item EXECUTESTEP_
+\item EXECUTESTEP__
+\item _EXECUTESTEP_
+\item _EXECUTESTEP__
+\item __EXECUTESTEP_
+\item __EXECUTESTEP__
+\end{enumerate}
+There are other issues when talking to the outside world (precision of integers, doubles can be platform dependent), character arrays may have a length appearing as an argument somewhere. 
+
+To avoid this you can use the iso_c_binding module in fortran, and explicitly set the exported function name and make sure that the types that are exposed are c compatible. When c compatibility is achieved the library can be called from almost any programming language (c, python, c++, matlab, c$\sharp$) without too much effort. The examples earlier show how the function calls change. That's only required for the types and functions that are exposed to the outside world. 
+
+A mnemiso.F90 module is available to allow for any XBeach arraytype to be exposed to the outside world. 
+
+\subsection{Makefile}
+This function approach can be used on both linux and windows. I have tested it on both platforms in the AGU2010 branch. 
+For Visual Studio I think there needs to be an extra project for the library. The old project can stay as is. When the library is build next to the program it will require double the build time. The advantage of this approach is that people can still use the xbeach.exe without any library dependencies. 
+
+For the linux Makefile.am I did make this library dependency. In linux (and OSX) I use libtool to build the libraries (to avoid some platform issues). The xbeach executable depends on the libxbeach library (libxbeach.la). 
+\lstinputlisting[linerange={1-10},firstnumber=1]{../Makefile.am}
+\lstinputlisting[linerange={55-65},firstnumber=55]{../Makefile.am}
+
+
+\section{Applications}
+This library version can be used to debugging, prototyping processes in matlab or python and it allows XBeach to be integrated into one of the modelling frameworks (OpenMI, ESMF and perhaps OpenDA). 
+
+By making XBeach into a library and exposing the internal variables it should be easy to couple XBeach to other models at the coast. A first version with coupled dune (XD_XB_coupling) is working (using ESMF as a coupling framework). Qinghua Ye is working on version with Delft3D + Dune and possibly modflow later. 
+
+Because the ESMF wrapper is now available XBeach can be included in the global model of NOAA and some of the other global models that work with ESMF. 
+
+A c$\sharp$ wrapper for unit tests, OpenMI wrapper and a DeltaShell wrapper is available in the AGU2010 branch. This will be used later for XBeach as a testing tool (in Morphan/Deltashell, planned in november 2011). 
+
+\section{What changes}
+There will be an extra libxbeach.F90 containing most of the code from the current xbeach.F90. Xbeach.F90 will contain only the main while loop and function calls to init/run/finalize. 
+
+In windows you'll have an extra fortran project file that builds a libxbeach.dll. This dll can be used to run XBeach from other programming languages. 
+
+In linux you'll have a libxbeach.la next to your xbeach executable. Make install will put the libxbeach.la in /usr/local/lib by default. The xbeach executable depends on libxbeach.la to be present somewhere in the library path.
+When you want to call programs like gdb, otool, ldd on your executable you should wrap your call in  libtool:
+\begin{lstlisting}
+libtool --mode=execute gdb ./xbeach
+\end{lstlisting}
+
+
+\end{document}
+
