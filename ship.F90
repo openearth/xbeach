@@ -133,7 +133,7 @@ contains
 
         sh(i)%track_dir(1)=atan2(sh(i)%track_y(2)-sh(i)%track_y(1),sh(i)%track_x(2)-sh(i)%track_x(1))
         do it=2,sh(i)%track_nt-1
-           sh(i)%track_dir(i)=atan2(sh(i)%track_y(it+1)-sh(i)%track_y(it-1),sh(i)%track_x(it+1)-sh(i)%track_x(it-1))
+           sh(i)%track_dir(it)=atan2(sh(i)%track_y(it+1)-sh(i)%track_y(it-1),sh(i)%track_x(it+1)-sh(i)%track_x(it-1))
         enddo
         it=sh(i)%track_nt
         sh(i)%track_dir(it)=atan2(sh(i)%track_y(it)-sh(i)%track_y(it-1),sh(i)%track_x(it)-sh(i)%track_x(it-1))
