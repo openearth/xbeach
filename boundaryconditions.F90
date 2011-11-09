@@ -902,7 +902,7 @@ contains
                    ! zs(1,:) is dummy variable
                    ! with a taylor expansion to get to the zs point at index 1 from uu(1) and uu(2)
                    zs(1,j) = 1.5d0*((betanp1(1,j)-uu(1,j))**2/4.d0/par%g+.5d0*(zb(1,j)+zb(2,j)))- &
-                        0.5d0*((beta(2,j)-uu(2,j))**2/4.d0/par%g+.5d0*(zb(2,j)+zb(3,j)))
+                             0.5d0*((beta(2,j)   -uu(2,j))**2/4.d0/par%g+.5d0*(zb(2,j)+zb(3,j)))
                    ! Ad + Jaap: zs does indeed influence hydrodynamics at boundary --> do higher order taylor expansions to check influence
                    ! zs(1,j) = 13.d0/8.d0*((betanp1(1,j)-uu(1,j))**2.d0/4.d0/par%g+.5d0*(zb(1,j)+zb(2,j))) - &
                    !           0.75d0*((beta(2,j)-uu(2,j))**2.d0/4.d0/par%g+.5d0*(zb(2,j)+zb(3,j)))        + &

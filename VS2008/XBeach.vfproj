@@ -158,7 +158,7 @@ copy ..\lib\win32\vs\pg\*.dll $(OutDir)"/>
 		<File RelativePath="..\readtide.F90"/>
 		<File RelativePath="..\readwind.F90"/>
 		<File RelativePath="..\roelvink.F90"/>
-		<File RelativePath="..\ship.f90"/>
+		<File RelativePath="..\ship.F90"/>
 		<File RelativePath="..\solver.F90"/>
 		<File RelativePath="..\spaceparams.F90"/>
 		<File RelativePath="..\timestep.F90"/>
