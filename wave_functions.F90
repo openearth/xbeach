@@ -430,13 +430,23 @@ subroutine dispersion(par,s)
   type(parameters)                    :: par
 
   real*8, dimension(s%nx+1,s%ny+1)    :: h,L0,kh
+  real*8, dimension(:,:),allocatable,save  :: Ltemp
   !
   ! real*8,dimension(:,:),allocatable,save :: L1
   ! wwvv moved L1 to spaceparams, in the parallel version
   ! of the program L1 will be resized and distributed
   !
-  integer                             :: i,j
+  integer                             :: i,j,j1,j2
+  real*8                              :: backdis,lback,disfac
+  integer                             :: index
   
+  if (s%ny==0) then
+     j1=1
+     j2=1
+  else
+     j1=2
+     j2=s%ny
+  endif
   !
   ! In the original code, phi, aphi, bphi are saved
   ! variables, and calculated once. I think this is
@@ -451,24 +461,57 @@ subroutine dispersion(par,s)
 
   L0 = 2*par%px*par%g/(s%sigm**2)
 
-  if (par%t==0) then
      if (.not. associated(s%L1)) then
         allocate(s%L1(s%nx+1,s%ny+1))
         s%L1=L0
+     endif
+     if (.not. allocated(Ltemp)) then
+        allocate(Ltemp(s%nx+1,s%ny+1))
+        Ltemp = L0
      end if
-  endif
 
-  do j = 1,s%ny+1
+  do j = j1,j2
      do i = 1,s%nx+1
-        s%L1(i,j) = iteratedispersion(L0(i,j),s%L1(i,j),par%px,h(i,j))
-        if (s%L1(i,j)<0.d0) then   ! this is an error from iteratedispersion
-           s%L1(i,j) = -s%L1(i,j)
+        Ltemp(i,j) = iteratedispersion(L0(i,j),Ltemp(i,j),par%px,h(i,j))
+        if (Ltemp(i,j)<0.d0) then   ! this is an error from iteratedispersion
+           Ltemp(i,j) = -Ltemp(i,j)
            call writelog('lws','','Warning: no convergence in dispersion relation iteration at t = ', &
                 par%t*max(par%morfac*par%morfacopt,1.d0))
         endif
      end do
   end do
+  if (par%shoaldelay==1) then
+     ! find Lmod looking back over distance par%facsd*L1
+     ! presumes sigma direction is shore normal
+     s%L1 = 0.d0           ! modified wave length, initially set to L1
+     do j = j1,j2
+        do i = 2,s%nx+1
+           index = i       ! start index
+           backdis = 0.d0  ! relative distance backward
+           do while (backdis<1.d0)
+              ! disfac = s%dsc(index,j)/(par%facsd*s%L1(index,j))
+              ! use average wavelength over distance dsc
+              disfac = s%dsc(index,j)/(par%facsd*0.5d0*(Ltemp(index,j)+Ltemp(max(index-1,1),j)))
+              disfac = min(disfac,1.d0-backdis)
+              
+              !h(i,j) = h(i,j) + disfac*s%hh(index,j)
+              s%L1(i,j) = s%L1(i,j)+disfac*0.5d0*(Ltemp(index,j)+Ltemp(max(index-1,1),j))
+              backdis = backdis+disfac
+              
+              index = max(index-1,1)
+           enddo
+        enddo
+     enddo
+     s%L1(1,:) = Ltemp(1,:) 
+  else
+     s%L1 = Ltemp    
+  endif
 
+  ! boundary copies for non superfast 1D
+  if (s%ny>0) then 
+     s%L1(:,1)=s%L1(:,2)
+     s%L1(:,s%ny+1)=s%L1(:,s%ny)
+  endif
   s%k  = 2*par%px/s%L1
   s%c  = s%sigm/s%k
   !kh   = s%k*h
