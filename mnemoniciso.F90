@@ -43,7 +43,22 @@ type(carraytype) function arrayf2c(farray)
   arrayf2c%array = c_loc(a)
 end function arrayf2c
 
+
+
 ! Utility functions
+integer(c_int) function stringlength(char_array)
+    character(c_char), intent(in) :: char_array(:)
+    integer :: inull, i 
+    stringlength = 0
+    do i = 1, size(char_array)
+        if (char_array(i) .eq. C_NULL_CHAR) then
+            stringlength = i
+        end if
+    end do
+    stringlength = size(char_array)
+    
+end function
+
 function char_array_to_string(char_array, length)
    integer(c_int) :: length
     character(c_char) :: char_array(length)
@@ -54,5 +69,25 @@ function char_array_to_string(char_array, length)
     enddo
 end function
 
-
+!   FUNCTION C_F_STRING(CPTR) RESULT(FPTR)
+!      ! Convert a null-terminated C string into a Fortran character array pointer
+!      TYPE(C_PTR), INTENT(IN) :: CPTR ! The C address
+!      CHARACTER(KIND=C_CHAR), DIMENSION(:), POINTER :: FPTR
+!      
+!      INTERFACE ! strlen is a standard C function from <string.h>
+!         ! int strlen(char *string)
+!         FUNCTION strlen(string) RESULT(len) BIND(C,NAME="strlen")
+!            USE ISO_C_BINDING
+!            TYPE(C_PTR), VALUE :: string ! A C pointer
+!         END FUNCTION
+!      END INTERFACE   
+!      
+!      IF(C_ASSOCIATED(CPTR)) THEN
+!         CALL C_F_POINTER(FPTR=FPTR, CPTR=CPTR, SHAPE=[strlen(CPTR)])
+!      ELSE
+!         ! To avoid segfaults, associate FPTR with a dummy target:
+!         FPTR=>dummy_string
+!      END IF
+!            
+!   END FUNCTION
 end module mnemiso_module

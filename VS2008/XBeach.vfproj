@@ -146,9 +146,11 @@ copy ..\lib\win32\vs\pg\*.dll $(OutDir)"/>
 		<File RelativePath="..\groundwater.F90"/>
 		<File RelativePath="..\initialize.F90"/>
 		<File RelativePath="..\interp.F90"/>
+		<File RelativePath="..\libxbeach.F90"/>
 		<File RelativePath="..\logging.F90"/>
 		<File RelativePath="..\math_tools.F90"/>
 		<File RelativePath="..\mnemonic.F90"/>
+		<File RelativePath="..\mnemoniciso.F90"/>
 		<File RelativePath="..\morphevolution.F90"/>
 		<File RelativePath="..\nonh.F90"/>
 		<File RelativePath="..\output.F90"/>

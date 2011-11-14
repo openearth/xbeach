@@ -181,7 +181,7 @@ contains
     ! and we need the string length ....
     integer(c_int),value  ,intent(in)    :: length
     ! String
-    character(kind=c_char),intent(in) :: name(length)
+    character(kind=c_char,len=*),intent(in) :: name
 
     ! Transform name to a fortran character... 
     character(length) :: myname 
