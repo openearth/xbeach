@@ -35,6 +35,11 @@ module libxbeach_module
   real*8                                              :: t0,t01
 #endif
 
+  interface getdoubleparameter
+      module procedure getdoubleparameter_fortran
+      module procedure getdoubleparameter_c
+  end interface getdoubleparameter
+
   !startinit
 
   !-----------------------------------------------------------------------------!
@@ -172,8 +177,27 @@ contains
     ! enddo
   end function executestep
 
+  
 
-  integer(c_int) function getdoubleparameter(name,value, length) bind(C,name="getdoubleparameter")
+  integer(c_int) function getdoubleparameter_fortran(name,value) 
+    USE iso_c_binding
+    ! use inout otherwise things break
+    real(c_double), intent(inout) :: value
+
+    ! String
+    character(kind=c_char,len=*),intent(in) :: name
+
+    ! Transform name to a fortran character... 
+    character(1), dimension(len(name)) :: myname 
+    integer :: i
+    do i = 1,len(name)
+        myname(i) = name(i:i) 
+    enddo
+    getdoubleparameter_fortran = getdoubleparameter_c(myname,value,len(name))
+  end function getdoubleparameter_fortran
+
+
+  integer(c_int) function getdoubleparameter_c(name,value, length) bind(C,name="getdoubleparameter")
     !DEC$ ATTRIBUTES DLLEXPORT::getdoubleparameter
     USE iso_c_binding
     ! use inout otherwise things break
@@ -181,7 +205,7 @@ contains
     ! and we need the string length ....
     integer(c_int),value  ,intent(in)    :: length
     ! String
-    character(kind=c_char,len=*),intent(in) :: name
+    character(kind=c_char),intent(in) :: name(length)
 
     ! Transform name to a fortran character... 
     character(length) :: myname 
@@ -200,8 +224,8 @@ contains
     case default
        value = -99.0d0
     end select
-    getdoubleparameter = 0
-  end function getdoubleparameter
+    getdoubleparameter_c = 0
+  end function getdoubleparameter_c
 
 
   integer(c_int) function setdoubleparameter(name,value, length) bind(C,name="setdoubleparameter")

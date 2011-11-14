@@ -11,11 +11,11 @@ rc = 0
 rc = init()
 
 ! Start simulation                                                            !
-rc = getdoubleparameter("t", t, 1)
-rc = getdoubleparameter("tstop", tstop, 5)
+rc = getdoubleparameter("t", t)
+rc = getdoubleparameter("tstop", tstop)
 do while (t<tstop)
    rc = executestep()
-   rc = getdoubleparameter("t", t, 1)
+   rc = getdoubleparameter("t", t)
    ! output
    rc = outputext()
 enddo
