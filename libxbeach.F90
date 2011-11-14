@@ -1,164 +1,353 @@
-program xbeach
+module libxbeach_module
+  use iso_c_binding
+  use mnemiso_module
 
-use params
-use spaceparams
-use xmpi_module
-use initialize
-use boundaryconditions
-use drifter_module
-use flow_timestep_module
-use morphevolution
-use readtide_module
-use readwind_module
-use wave_timestep_module
-use timestep_module
-use readkey_module
-use groundwaterflow
-use logging_module
-use means_module
-use output_module
-use ship_module
+  use params
+  use spaceparams
+  use xmpi_module
+  use initialize
+  use boundaryconditions
+  use drifter_module
+  use flow_timestep_module
+  use morphevolution
+  use readtide_module
+  use readwind_module
+  use wave_timestep_module
+  use timestep_module
+  use readkey_module
+  use groundwaterflow
+  use logging_module
+  use means_module
+  use output_module
 
-implicit none
+  implicit none
 
-type(parameters)                                    :: par
-type(timepars)                                      :: tpar
-type(spacepars), pointer                            :: s
-type(spacepars), target                             :: sglobal
+  type(parameters), save                              :: par
+  type(timepars), save                                     :: tpar
+  type(spacepars), pointer                            :: s
+  type(spacepars), target                             :: sglobal
 
-integer                                             :: n,it,error
-real*8                                              :: tbegin
+  integer                                             :: n,it,error
+  real*8                                              :: tbegin
 
 #ifdef USEMPI
-type(spacepars), target                             :: slocal
-real*8                                              :: t0,t01
+  type(spacepars), target                             :: slocal
+  real*8                                              :: t0,t01
 #endif
 
-!-----------------------------------------------------------------------------!
-! Initialize program                                                          !
-!-----------------------------------------------------------------------------!
+  !startinit
 
-error   = 0
+  !-----------------------------------------------------------------------------!
+  ! Initialize program                                                          !
+  !-----------------------------------------------------------------------------!
 
-! setup of MPI 
+
+contains
+  integer(c_int) function init() bind(C, name="init")
+    !DEC$ ATTRIBUTES DLLEXPORT::Init
+
+    error   = 0
+
+    ! setup of MPI 
 #ifdef USEMPI
-s=>slocal
-call xmpi_initialize
-t0 = MPI_Wtime()
+    s=>slocal
+    call xmpi_initialize
+    t0 = MPI_Wtime()
 #endif
 
-! create log files
-call start_logfiles(error)
+    ! create log files
+    call start_logfiles(error)
 
-! set starting time and date
-call cpu_time(tbegin)
+    ! set starting time and date
+    call cpu_time(tbegin)
 
-! show statup message
-call writelog_startup()
+    ! show statup message
+    call writelog_startup()
 
-!-----------------------------------------------------------------------------!
-! Initialize simulation                                                       !
-!-----------------------------------------------------------------------------!
+    !-----------------------------------------------------------------------------!
+    ! Initialize simulation                                                       !
+    !-----------------------------------------------------------------------------!
 
-! initialize time counter
-it      = 0
+    ! initialize time counter
+    it      = 0
 
-! read input from params.txt
-call all_input(par)
+    ! read input from params.txt
+    call all_input(par)
 
-! allocate space scalars
-call space_alloc_scalars(sglobal)
-s => sglobal
+    ! allocate space scalars
+    call space_alloc_scalars(sglobal)
+    s => sglobal
 
-! read grid and bathymetry
-call grid_bathy(s,par)
+    ! read grid and bathymetry
+    call grid_bathy(s,par)
 
-! distribute grid over processors
+    ! distribute grid over processors
 #ifdef USEMPI
-call xmpi_determine_processor_grid(s%nx,s%ny,par%mpiboundary,error)
-call writelog_mpi(par%mpiboundary,error)
+    call xmpi_determine_processor_grid(s%nx,s%ny,par%mpiboundary,error)
+    call writelog_mpi(par%mpiboundary,error)
 #endif
 
-! initialize timestep
-call timestep_init(par, tpar)
+    ! initialize timestep
+    call timestep_init(par, tpar)
 
-if (xmaster) then
-  
-    call writelog('ls','','Initializing .....')
-  
-    ! initialize physics
-    call readtide           (s,par)
-    call readwind           (s,par)
+    if (xmaster) then
 
-    call flow_init          (s,par)
-    call discharge_init     (s,par)
-    call drifter_init       (s,par)
-    call wave_init          (s,par)
-    call gw_init            (s,par)
-    call sed_init           (s,par)
-  
-endif
+       call writelog('ls','','Initializing .....')
+
+       ! initialize physics
+       call readtide           (s,par)
+       call readwind           (s,par)
+
+       call flow_init          (s,par)
+       call discharge_init     (s,par)
+       call drifter_init       (s,par)
+       call wave_init          (s,par)
+       call gw_init            (s,par)
+       call sed_init           (s,par)
+
+    endif
 
 #ifdef USEMPI
-call distribute_par(par)
-s => slocal
-call space_distribute_space (sglobal,s,par     )
+    call distribute_par(par)
+    s => slocal
+    call space_distribute_space (sglobal,s,par     )
 #endif
 
-! initialize output
-call means_init             (sglobal,s,par     )
-call output_init            (sglobal,s,par,tpar)
+    ! initialize output
+    call means_init             (sglobal,s,par     )
+    call output_init            (sglobal,s,par,tpar)
 
-! store first timestep
-call output                 (sglobal,s,par,tpar)
 
-!-----------------------------------------------------------------------------!
-! Start simulation                                                            !
-!-----------------------------------------------------------------------------!
+    ! store first timestep
+    call output(sglobal,s,par,tpar)
 
-n = 0
+  end function init
 
-do while (par%t<par%tstop)
-   
-   ! determine timestep
-   call timestep(s,par,tpar,it,ierr=error)
-   
-   if (error==1) call output_error(s,sglobal,par,tpar)
-   
-   ! boundary conditions
-                            call wave_bc        (sglobal,s,par)
-   if (par%gwflow==1)       call gw_bc          (s,par)
-   if (par%flow+par%nonh>0) call flow_bc        (s,par)
-   
+  integer(c_int) function outputext() bind(C, name="outputext")
+    !DEC$ ATTRIBUTES DLLEXPORT::outputext
+    ! store first timestep
+    call output(sglobal,s,par,tpar)
+    outputext = 0
+  end function outputext
+  !-----------------------------------------------------------------------------!
+  ! Start simulation                                                            !
+  !-----------------------------------------------------------------------------!
+
+  integer(c_int) function executestep() bind(C, name="executestep")
+    !DEC$ ATTRIBUTES DLLEXPORT::executestep
+    executestep = 0 
+
+    ! This is now called in output, but timestep depends on it...
+    ! call outputtimes_update(par, tpar)
+    !n = 0
+
+    !do while (par%t<par%tstop)
+    ! determine timestep
+    call timestep(s,par,tpar,it,ierr=error)
+    if (error==1) call output_error(s,sglobal,par,tpar)
+
+    ! boundary conditions
+    call wave_bc        (sglobal,s,par)
+    if (par%gwflow==1)       call gw_bc          (s,par)
+    if (par%flow+par%nonh>0) call flow_bc        (s,par)
+
 #ifdef USEMPI
-   if (it==0) t01 = MPI_Wtime()
+    if (it==0) t01 = MPI_Wtime()
 #endif
 
-   ! compute timestep
-   if (par%ships==1)        call shipwave       (s,par)
-   if (par%swave==1)        call wave           (s,par)
-   if (par%gwflow==1)       call gwflow         (s,par)
-   if (par%flow+par%nonh>0) call flow           (s,par)
-   if (par%ndrifter>0)      call drifter        (s,par)
-   if (par%sedtrans==1)     call transus        (s,par)
-   if (par%morphology==1)   call bed_update     (s,par)
-   
-   ! output
-   call output(sglobal,s,par,tpar)
-   
-   n = n + 1
-   
-enddo
+    ! compute timestep
+    if (par%swave==1)        call wave           (s,par)
+    if (par%gwflow==1)       call gwflow         (s,par)
+    if (par%flow+par%nonh>0) call flow           (s,par)
+    if (par%ndrifter>0)      call drifter        (s,par)
+    if (par%sedtrans==1)     call transus        (s,par)
+    if (par%morphology==1)   call bed_update     (s,par)
 
-!-----------------------------------------------------------------------------!
-! Finalize simulation                                                         !
-!-----------------------------------------------------------------------------!
+    ! output
+    ! This has a nasty dependency on outputtimes_update....
+    ! call output(sglobal,s,par,tpar)
+
+    ! n = n + 1
+
+    ! enddo
+  end function executestep
+
+
+  integer(c_int) function getdoubleparameter(name,value, length) bind(C,name="getdoubleparameter")
+    !DEC$ ATTRIBUTES DLLEXPORT::getdoubleparameter
+    USE iso_c_binding
+    ! use inout otherwise things break
+    real(c_double), intent(inout) :: value
+    ! and we need the string length ....
+    integer(c_int),value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(in) :: name(length)
+
+    ! Transform name to a fortran character... 
+    character(length) :: myname 
+    myname = char_array_to_string(name, length)
+    select case (myname)
+    case ('t')
+       value = par%t
+    case ('tstop')
+       value = par%tstop
+    case ('xori') 
+       value = par%xori
+    case ('yori')
+       value = par%yori
+    case ('alfa')
+       value = par%alfa
+    case default
+       value = -99.0d0
+    end select
+    getdoubleparameter = 0
+  end function getdoubleparameter
+
+
+  integer(c_int) function setdoubleparameter(name,value, length) bind(C,name="setdoubleparameter")
+    !DEC$ ATTRIBUTES DLLEXPORT::setdoubleparameter
+    USE iso_c_binding
+    ! use inout otherwise things break
+    real(c_double), intent(in) :: value
+    ! and we need the string length ....
+    integer(c_int), value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(in) :: name(length)
+
+    ! Transform name to a fortran character... 
+    character(length) :: myname 
+    myname = char_array_to_string(name, length)
+    select case (myname)
+    case ('t')
+       par%t = value
+    case ('tstop')
+       par%tstop = value
+    case ('tnext')
+       tpar%tnext = value
+    case default
+       setdoubleparameter = -1
+       return
+    end select
+    setdoubleparameter = 0
+  end function setdoubleparameter
+
+
+  integer(c_int) function getintparameter(name,value, length) bind(C,name="getintparameter")
+    !DEC$ ATTRIBUTES DLLEXPORT::getintparameter
+
+    USE iso_c_binding
+    ! use inout otherwise things break
+    integer(c_int), intent(inout) :: value
+    ! and we need the string length ....
+    integer(c_int),value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(in) :: name(length)
+
+    ! Transform name to a fortran character... 
+    character(length) :: myname 
+    myname = char_array_to_string(name, length)
+    select case (myname)
+    case ('nx')
+       value = par%nx
+    case ('ny')
+       value = par%ny
+    case default
+       value = -99
+    end select
+    getintparameter = 0
+  end function getintparameter
+
+  integer(c_int) function getarray(name, x, length) bind(C, name="getarray")
+    !DEC$ ATTRIBUTES DLLEXPORT::getarray
+
+    ! use inout otherwise things break
+    type(carraytype), intent(out) :: x
+    ! and we need the string length ....
+    integer(c_int),value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(inout) :: name(length)
+
+    character(length) :: myname 
+    integer :: index
+    type(arraytype) :: array
+    getarray = 1
+
+    myname = char_array_to_string(name, length)
+    index =  chartoindex(myname)
+    call indextos(s,index,array)
+    x = arrayf2c(array)
+    getarray = 0
+  end function getarray
+
+  integer(c_int) function get1ddoublearray(name, x, length) bind(C, name="get1ddoublearray")
+    !DEC$ ATTRIBUTES DLLEXPORT::get1ddoublearray
+
+    ! use inout otherwise things break
+    type (c_ptr), value :: x
+    ! and we need the string length ....
+    integer(c_int),value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(inout) :: name(length)
+
+    character(length) :: myname 
+    integer :: index
+    type(arraytype) :: array
+    real(c_double), target, allocatable, dimension(:)  :: r1
+
+    get1ddoublearray = -1
+
+    myname = char_array_to_string(name, length)
+    index =  chartoindex(myname)
+    call indextos(s,index,array)
+    allocate(r1(size(array%r1,1)))
+    r1 = array%r1
+    ! array%r1 => r1
+    x = c_loc(r1)
+    get1ddoublearray = 0
+  end function get1ddoublearray
+
+
+  integer(c_int) function get2ddoublearray(name, x, length) bind(C, name="get2ddoublearray")
+    !DEC$ ATTRIBUTES DLLEXPORT::get2ddoublearray
+
+    ! use inout otherwise things break
+    type (c_ptr), intent(inout) :: x
+    ! and we need the string length ....
+    integer(c_int),value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(in) :: name(length)
+
+    character(length) :: myname 
+    integer :: index
+    type(arraytype) :: array
+    real(c_double), target, allocatable, dimension(:,:)  :: r2
+
+    get2ddoublearray = -1
+
+    myname = char_array_to_string(name, length)
+    index =  chartoindex(myname)
+    write(*,*) 'Getting', myname
+    call indextos(s,index,array)
+    allocate(r2(size(array%r2,1), size(array%r2,2)))
+    r2 = array%r2
+    ! array%r2 => r2
+    x = c_loc(r2)
+    get2ddoublearray = 0
+  end function get2ddoublearray
+
+  integer(c_int) function finalize() bind(C, name="finalize")
+    !DEC$ ATTRIBUTES DLLEXPORT::finalize
+
+
+    !-----------------------------------------------------------------------------!
+    ! Finalize simulation                                                         !
+    !-----------------------------------------------------------------------------!
 
 #ifdef USEMPI
-call writelog_finalize(tbegin,n,par%t,par%nx,par%ny,t0,t01)
-call xmpi_finalize
+    call writelog_finalize(tbegin,n,par%t,par%nx,par%ny,t0,t01)
+    call xmpi_finalize
 #else
-call writelog_finalize(tbegin,n,par%t,par%nx,par%ny)
+    call writelog_finalize(tbegin,n,par%t,par%nx,par%ny)
 #endif
-
-end program
+  end function finalize
+end module libxbeach_module
