@@ -145,10 +145,10 @@ MODULE math_tools
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC:: fft, fftn, fftkind, flipa, flipv, hilbert, flipiv, xerf
+  PUBLIC:: fft, fftn, fftkind, realkind, flipa, flipv, hilbert, flipiv, xerf
 
   INTEGER, PARAMETER:: fftkind = KIND(0.0d0) !selected_real_kind(14,307) ! !--- adjust here for other precisions
-
+  INTEGER, PARAMETER:: realkind = KIND(0.0)
   REAL(fftkind), PARAMETER:: sin60 = 0.86602540378443865_fftkind
   REAL(fftkind), PARAMETER:: cos72 = 0.30901699437494742_fftkind
   REAL(fftkind), PARAMETER:: sin72 = 0.95105651629515357_fftkind
@@ -1062,8 +1062,8 @@ IMPLICIT NONE
 
 integer                                     :: M, i
 complex(fftkind),dimension(M)                 :: x
-real(kind(0.0)),allocatable,dimension(:)             :: temp1r, temp3r, temp1i, temp3i
-complex(kind(0.0)), parameter                :: compi=(0.,1.)
+real(realkind),allocatable,dimension(:)             :: temp1r, temp3r, temp1i, temp3i
+complex(realkind), parameter                :: compi=(0.,1.)
 allocate(temp1r(M))
 allocate(temp3r(M))
 allocate(temp1i(M))

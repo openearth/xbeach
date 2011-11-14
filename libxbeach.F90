@@ -120,7 +120,7 @@ contains
 
     ! store first timestep
     call output(sglobal,s,par,tpar)
-
+    init = 0
   end function init
 
   integer(c_int) function outputext() bind(C, name="outputext")
@@ -349,5 +349,6 @@ contains
 #else
     call writelog_finalize(tbegin,n,par%t,par%nx,par%ny)
 #endif
+    finalize = 0
   end function finalize
 end module libxbeach_module
