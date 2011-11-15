@@ -40,6 +40,15 @@ module libxbeach_module
       module procedure getdoubleparameter_c
   end interface getdoubleparameter
 
+  interface getintparameter
+      module procedure getintparameter_fortran
+      module procedure getintparameter_c
+  end interface getintparameter
+      
+  interface get2ddoublearray
+      module procedure get2ddoublearray_fortran
+      module procedure get2ddoublearray_c
+  end interface get2ddoublearray
   !startinit
 
   !-----------------------------------------------------------------------------!
@@ -228,7 +237,24 @@ contains
   end function getdoubleparameter_c
 
 
-  integer(c_int) function setdoubleparameter(name,value, length) bind(C,name="setdoubleparameter")
+  integer(c_int) function setdoubleparameter_fortran(name,value) 
+    USE iso_c_binding
+    ! use inout otherwise things break
+    real(c_double), intent(inout) :: value
+
+    ! String
+    character(kind=c_char,len=*),intent(in) :: name
+
+    ! Transform name to a fortran character... 
+    character(1), dimension(len(name)) :: myname 
+    integer :: i
+    do i = 1,len(name)
+        myname(i) = name(i:i) 
+    enddo
+    setdoubleparameter_fortran = setdoubleparameter_c(myname,value,len(name))
+  end function setdoubleparameter_fortran
+
+  integer(c_int) function setdoubleparameter_c(name,value, length) bind(C,name="setdoubleparameter")
     !DEC$ ATTRIBUTES DLLEXPORT::setdoubleparameter
     USE iso_c_binding
     ! use inout otherwise things break
@@ -249,14 +275,30 @@ contains
     case ('tnext')
        tpar%tnext = value
     case default
-       setdoubleparameter = -1
+       setdoubleparameter_c = -1
        return
     end select
-    setdoubleparameter = 0
-  end function setdoubleparameter
+    setdoubleparameter_c = 0
+  end function setdoubleparameter_c
 
+  integer(c_int) function getintparameter_fortran(name,value) 
+    USE iso_c_binding
+    ! use inout otherwise things break
+    integer(c_int), intent(inout) :: value
 
-  integer(c_int) function getintparameter(name,value, length) bind(C,name="getintparameter")
+    ! String
+    character(kind=c_char,len=*),intent(in) :: name
+
+    ! Transform name to a fortran character... 
+    character(1), dimension(len(name)) :: myname 
+    integer :: i
+    do i = 1,len(name)
+        myname(i) = name(i:i) 
+    enddo
+    getintparameter_fortran = getintparameter_c(myname,value,len(name))
+  end function getintparameter_fortran
+
+  integer(c_int) function getintparameter_c(name,value, length) bind(C,name="getintparameter")
     !DEC$ ATTRIBUTES DLLEXPORT::getintparameter
 
     USE iso_c_binding
@@ -278,8 +320,8 @@ contains
     case default
        value = -99
     end select
-    getintparameter = 0
-  end function getintparameter
+    getintparameter_c = 0
+  end function getintparameter_c
 
   integer(c_int) function getarray(name, x, length) bind(C, name="getarray")
     !DEC$ ATTRIBUTES DLLEXPORT::getarray
@@ -330,8 +372,24 @@ contains
     get1ddoublearray = 0
   end function get1ddoublearray
 
+  integer(c_int) function get2ddoublearray_fortran(name,x) 
+    USE iso_c_binding
+    ! use inout otherwise things break
+    type (c_ptr), intent(inout) :: x
 
-  integer(c_int) function get2ddoublearray(name, x, length) bind(C, name="get2ddoublearray")
+    ! String
+    character(kind=c_char,len=*),intent(in) :: name
+
+    ! Transform name to a fortran character... 
+    character(1), dimension(len(name)) :: myname 
+    integer :: i
+    do i = 1,len(name)
+        myname(i) = name(i:i) 
+    enddo
+    get2ddoublearray_fortran = get2ddoublearray_c(myname,x,len(name))
+  end function get2ddoublearray_fortran
+
+  integer(c_int) function get2ddoublearray_c(name, x, length) bind(C, name="get2ddoublearray")
     !DEC$ ATTRIBUTES DLLEXPORT::get2ddoublearray
 
     ! use inout otherwise things break
@@ -346,7 +404,7 @@ contains
     type(arraytype) :: array
     real(c_double), target, allocatable, dimension(:,:)  :: r2
 
-    get2ddoublearray = -1
+    get2ddoublearray_c = -1
 
     myname = char_array_to_string(name, length)
     index =  chartoindex(myname)
@@ -356,8 +414,8 @@ contains
     r2 = array%r2
     ! array%r2 => r2
     x = c_loc(r2)
-    get2ddoublearray = 0
-  end function get2ddoublearray
+    get2ddoublearray_c = 0
+  end function get2ddoublearray_c
 
   integer(c_int) function finalize() bind(C, name="finalize")
     !DEC$ ATTRIBUTES DLLEXPORT::finalize

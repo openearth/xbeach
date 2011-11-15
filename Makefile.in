@@ -15,6 +15,7 @@
 
 @SET_MAKE@
 
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -32,6 +33,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+build_triplet = @build@
+host_triplet = @host@
 bin_PROGRAMS = makeincludes$(EXEEXT) xbeach$(EXEEXT)
 
 # if mpi, then add some flags
@@ -43,11 +46,14 @@ subdir = .
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
 	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
-	config/install-sh config/missing config/texinfo.tex
+	config/config.guess config/config.sub config/install-sh \
+	config/ltmain.sh config/missing config/texinfo.tex
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/acx_mpi.m4 \
-	$(top_srcdir)/m4/fortran.m4 $(top_srcdir)/m4/pkg.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/fortran.m4 $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/m4/pkg.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -56,14 +62,31 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)"
-PROGRAMS = $(bin_PROGRAMS)
-am_makeincludes_OBJECTS = makeincludes.$(OBJEXT)
-makeincludes_OBJECTS = $(am_makeincludes_OBJECTS)
-makeincludes_LDADD = $(LDADD)
-makeincludes_LINK = $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) \
-	$(makeincludes_LDFLAGS) $(LDFLAGS) -o $@
-am__xbeach_SOURCES_DIST = s.ind s.inp xmpi.F90 general_mpi.F90 \
+am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
+am__vpath_adj = case $$p in \
+    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
+    *) f=$$p;; \
+  esac;
+am__strip_dir = f=`echo $$p | sed -e 's|^.*/||'`;
+am__install_max = 40
+am__nobase_strip_setup = \
+  srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*|]/\\\\&/g'`
+am__nobase_strip = \
+  for p in $$list; do echo "$$p"; done | sed -e "s|$$srcdirstrip/||"
+am__nobase_list = $(am__nobase_strip_setup); \
+  for p in $$list; do echo "$$p $$p"; done | \
+  sed "s| $$srcdirstrip/| |;"' / .*\//!s/ .*/ ./; s,\( .*\)/[^/]*$$,\1,' | \
+  $(AWK) 'BEGIN { files["."] = "" } { files[$$2] = files[$$2] " " $$1; \
+    if (++n[$$2] == $(am__install_max)) \
+      { print $$2, files[$$2]; n[$$2] = 0; files[$$2] = "" } } \
+    END { for (dir in files) print dir, files[dir] }'
+am__base_list = \
+  sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
+  sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)"
+LTLIBRARIES = $(lib_LTLIBRARIES)
+libxbeach_la_LIBADD =
+am__libxbeach_la_SOURCES_DIST = s.ind s.inp xmpi.F90 general_mpi.F90 \
 	logging.F90 filefunctions.F90 readkey.F90 mnemonic.F90 \
 	interp.F90 math_tools.F90 general_fileio.F90 params.F90 \
 	getkey.F90 spaceparams.F90 wave_functions.F90 waveparams.F90 \
@@ -73,41 +96,48 @@ am__xbeach_SOURCES_DIST = s.ind s.inp xmpi.F90 general_mpi.F90 \
 	drifters.F90 readtide.F90 readwind.F90 initialize.F90 \
 	timestep.F90 flow_secondorder.F90 solver.F90 nonh.F90 \
 	flow_timestep.F90 postprocess.F90 varianceupdate.F90 \
-	varoutput.F90 ncoutput.F90 output.F90 ship.F90 xbeach.F90
-@USENETCDF_TRUE@am__objects_1 = xbeach-ncoutput.$(OBJEXT)
-am_xbeach_OBJECTS = xbeach-xmpi.$(OBJEXT) xbeach-general_mpi.$(OBJEXT) \
-	xbeach-logging.$(OBJEXT) xbeach-filefunctions.$(OBJEXT) \
-	xbeach-readkey.$(OBJEXT) xbeach-mnemonic.$(OBJEXT) \
-	xbeach-interp.$(OBJEXT) xbeach-math_tools.$(OBJEXT) \
-	xbeach-general_fileio.$(OBJEXT) xbeach-params.$(OBJEXT) \
-	xbeach-getkey.$(OBJEXT) xbeach-spaceparams.$(OBJEXT) \
-	xbeach-wave_functions.$(OBJEXT) xbeach-waveparams.$(OBJEXT) \
-	xbeach-waveparamsnew.$(OBJEXT) xbeach-constants.$(OBJEXT) \
-	xbeach-roelvink.$(OBJEXT) xbeach-wave_stationary.$(OBJEXT) \
-	xbeach-wave_instationary.$(OBJEXT) \
-	xbeach-wave_timestep.$(OBJEXT) \
-	xbeach-boundaryconditions.$(OBJEXT) \
-	xbeach-morphevolution.$(OBJEXT) xbeach-groundwater.$(OBJEXT) \
-	xbeach-drifters.$(OBJEXT) xbeach-readtide.$(OBJEXT) \
-	xbeach-readwind.$(OBJEXT) xbeach-initialize.$(OBJEXT) \
-	xbeach-timestep.$(OBJEXT) xbeach-flow_secondorder.$(OBJEXT) \
-	xbeach-solver.$(OBJEXT) xbeach-nonh.$(OBJEXT) \
-	xbeach-flow_timestep.$(OBJEXT) xbeach-postprocess.$(OBJEXT) \
-	xbeach-varianceupdate.$(OBJEXT) xbeach-varoutput.$(OBJEXT) \
-	$(am__objects_1) xbeach-output.$(OBJEXT) xbeach-ship.$(OBJEXT) \
-	xbeach-xbeach.$(OBJEXT)
+	varoutput.F90 ncoutput.F90 output.F90 ship.F90 mnemoniciso.F90 \
+	libxbeach.F90
+@USENETCDF_TRUE@am__objects_1 = ncoutput.lo
+am_libxbeach_la_OBJECTS = xmpi.lo general_mpi.lo logging.lo \
+	filefunctions.lo readkey.lo mnemonic.lo interp.lo \
+	math_tools.lo general_fileio.lo params.lo getkey.lo \
+	spaceparams.lo wave_functions.lo waveparams.lo \
+	waveparamsnew.lo constants.lo roelvink.lo wave_stationary.lo \
+	wave_instationary.lo wave_timestep.lo boundaryconditions.lo \
+	morphevolution.lo groundwater.lo drifters.lo readtide.lo \
+	readwind.lo initialize.lo timestep.lo flow_secondorder.lo \
+	solver.lo nonh.lo flow_timestep.lo postprocess.lo \
+	varianceupdate.lo varoutput.lo $(am__objects_1) output.lo \
+	ship.lo mnemoniciso.lo libxbeach.lo
+libxbeach_la_OBJECTS = $(am_libxbeach_la_OBJECTS)
+PROGRAMS = $(bin_PROGRAMS)
+am_makeincludes_OBJECTS = makeincludes.$(OBJEXT)
+makeincludes_OBJECTS = $(am_makeincludes_OBJECTS)
+makeincludes_LDADD = $(LDADD)
+makeincludes_LINK = $(LIBTOOL) --tag=FC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) \
+	$(makeincludes_LDFLAGS) $(LDFLAGS) -o $@
+am_xbeach_OBJECTS = xbeach-xbeach.$(OBJEXT)
 xbeach_OBJECTS = $(am_xbeach_OBJECTS)
-xbeach_LDADD = $(LDADD)
-xbeach_LINK = $(FCLD) $(xbeach_FCFLAGS) $(FCFLAGS) $(AM_LDFLAGS) \
+xbeach_DEPENDENCIES = libxbeach.la
+xbeach_LINK = $(LIBTOOL) --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(FCLD) $(xbeach_FCFLAGS) $(FCFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@
 PPFCCOMPILE = $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS)
+LTPPFCCOMPILE = $(LIBTOOL) --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS)
 FCLD = $(FC)
-FCLINK = $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o \
-	$@
-SOURCES = $(makeincludes_SOURCES) $(xbeach_SOURCES)
-DIST_SOURCES = $(makeincludes_SOURCES) $(am__xbeach_SOURCES_DIST)
+FCLINK = $(LIBTOOL) --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+SOURCES = $(libxbeach_la_SOURCES) $(makeincludes_SOURCES) \
+	$(xbeach_SOURCES)
+DIST_SOURCES = $(am__libxbeach_la_SOURCES_DIST) \
+	$(makeincludes_SOURCES) $(xbeach_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-dvi-recursive install-exec-recursive \
@@ -163,34 +193,57 @@ distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+CC = @CC@
+CCDEPMODE = @CCDEPMODE@
+CFLAGS = @CFLAGS@
+CPP = @CPP@
+CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
+DEPDIR = @DEPDIR@
+DLLTOOL = @DLLTOOL@
+DSYMUTIL = @DSYMUTIL@
+DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
+EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FC = @FC@
 FCFLAGS = @FCFLAGS@
+FGREP = @FGREP@
+GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@ $(am__append_3)
+LIBTOOL = @LIBTOOL@
+LIPO = @LIPO@
+LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
+MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 MPIFC = @MPIFC@
 MPILIBS = @MPILIBS@
 NETCDF_CFLAGS = @NETCDF_CFLAGS@
 NETCDF_LIBS = @NETCDF_LIBS@
+NM = @NM@
+NMEDIT = @NMEDIT@
+OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
+OTOOL = @OTOOL@
+OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -202,6 +255,8 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
 PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
 PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
+RANLIB = @RANLIB@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -210,19 +265,32 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
+ac_ct_AR = @ac_ct_AR@
+ac_ct_CC = @ac_ct_CC@
+ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
 ac_ct_FC = @ac_ct_FC@
+am__include = @am__include@
 am__leading_dot = @am__leading_dot@
+am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
+build = @build@
 build_alias = @build_alias@
+build_cpu = @build_cpu@
+build_os = @build_os@
+build_vendor = @build_vendor@
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+host = @host@
 host_alias = @host_alias@
+host_cpu = @host_cpu@
+host_os = @host_os@
+host_vendor = @host_vendor@
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -246,13 +314,14 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-ACLOCAL_AMFLAGS = -I config -I m4
+lib_LTLIBRARIES = libxbeach.la
+ACLOCAL_AMFLAGS = -I m4 -I config
 makeincludes_SOURCES = \
 	makeincludes.F90
 
 makeincludes_LDFLAGS = 
 @USENETCDF_TRUE@extra_xbeach_sources = ncoutput.F90
-xbeach_SOURCES = \
+libxbeach_la_SOURCES = \
 	s.ind \
 	s.inp \
 	xmpi.F90 \
@@ -293,7 +362,14 @@ xbeach_SOURCES = \
 	${extra_xbeach_sources} \
 	output.F90 \
         ship.F90 \
+	mnemoniciso.F90 \
+	libxbeach.F90
+
+xbeach_SOURCES = \
 	xbeach.F90
+
+xbeach_LDADD = \
+	libxbeach.la
 
 BUILT_SOURCES = \
 	spacedecl.gen	\
@@ -329,7 +405,7 @@ all: $(BUILT_SOURCES) config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
 .SUFFIXES:
-.SUFFIXES: .F90 .o .obj
+.SUFFIXES: .F90 .lo .o .obj
 am--refresh:
 	@:
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
@@ -381,13 +457,46 @@ $(srcdir)/config.h.in:  $(am__configure_deps)
 
 distclean-hdr:
 	-rm -f config.h stamp-h1
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	test -z "$(libdir)" || $(MKDIR_P) "$(DESTDIR)$(libdir)"
+	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
+	list2=; for p in $$list; do \
+	  if test -f $$p; then \
+	    list2="$$list2 $$p"; \
+	  else :; fi; \
+	done; \
+	test -z "$$list2" || { \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 '$(DESTDIR)$(libdir)'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 "$(DESTDIR)$(libdir)"; \
+	}
+
+uninstall-libLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
+	for p in $$list; do \
+	  $(am__strip_dir) \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$f'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$f"; \
+	done
+
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+libxbeach.la: $(libxbeach_la_OBJECTS) $(libxbeach_la_DEPENDENCIES) 
+	$(FCLINK) -rpath $(libdir) $(libxbeach_la_OBJECTS) $(libxbeach_la_LIBADD) $(LIBS)
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
 	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
 	for p in $$list; do echo "$$p $$p"; done | \
 	sed 's/$(EXEEXT)$$//' | \
-	while read p p1; do if test -f $$p; \
+	while read p p1; do if test -f $$p || test -f $$p1; \
 	  then echo "$$p"; echo "$$p"; else :; fi; \
 	done | \
 	sed -e 'p;s,.*/,,;n;h' -e 's|.*|.|' \
@@ -401,8 +510,8 @@ install-binPROGRAMS: $(bin_PROGRAMS)
 	while read type dir files; do \
 	    if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
 	    test -z "$$files" || { \
-	      echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(bindir)$$dir'"; \
-	      $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(bindir)$$dir" || exit $$?; \
+	    echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(bindir)$$dir'"; \
+	    $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(bindir)$$dir" || exit $$?; \
 	    } \
 	; done
 
@@ -417,7 +526,13 @@ uninstall-binPROGRAMS:
 	cd "$(DESTDIR)$(bindir)" && rm -f $$files
 
 clean-binPROGRAMS:
-	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+	@list='$(bin_PROGRAMS)'; test -n "$$list" || exit 0; \
+	echo " rm -f" $$list; \
+	rm -f $$list || exit $$?; \
+	test -n "$(EXEEXT)" || exit 0; \
+	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
+	echo " rm -f" $$list; \
+	rm -f $$list
 makeincludes$(EXEEXT): $(makeincludes_OBJECTS) $(makeincludes_DEPENDENCIES) 
 	@rm -f makeincludes$(EXEEXT)
 	$(makeincludes_LINK) $(makeincludes_OBJECTS) $(makeincludes_LDADD) $(LIBS)
@@ -437,239 +552,23 @@ distclean-compile:
 .F90.obj:
 	$(PPFCCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-xbeach-xmpi.o: xmpi.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-xmpi.o `test -f 'xmpi.F90' || echo '$(srcdir)/'`xmpi.F90
-
-xbeach-xmpi.obj: xmpi.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-xmpi.obj `if test -f 'xmpi.F90'; then $(CYGPATH_W) 'xmpi.F90'; else $(CYGPATH_W) '$(srcdir)/xmpi.F90'; fi`
-
-xbeach-general_mpi.o: general_mpi.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-general_mpi.o `test -f 'general_mpi.F90' || echo '$(srcdir)/'`general_mpi.F90
-
-xbeach-general_mpi.obj: general_mpi.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-general_mpi.obj `if test -f 'general_mpi.F90'; then $(CYGPATH_W) 'general_mpi.F90'; else $(CYGPATH_W) '$(srcdir)/general_mpi.F90'; fi`
-
-xbeach-logging.o: logging.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-logging.o `test -f 'logging.F90' || echo '$(srcdir)/'`logging.F90
-
-xbeach-logging.obj: logging.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-logging.obj `if test -f 'logging.F90'; then $(CYGPATH_W) 'logging.F90'; else $(CYGPATH_W) '$(srcdir)/logging.F90'; fi`
-
-xbeach-filefunctions.o: filefunctions.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-filefunctions.o `test -f 'filefunctions.F90' || echo '$(srcdir)/'`filefunctions.F90
-
-xbeach-filefunctions.obj: filefunctions.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-filefunctions.obj `if test -f 'filefunctions.F90'; then $(CYGPATH_W) 'filefunctions.F90'; else $(CYGPATH_W) '$(srcdir)/filefunctions.F90'; fi`
-
-xbeach-readkey.o: readkey.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-readkey.o `test -f 'readkey.F90' || echo '$(srcdir)/'`readkey.F90
-
-xbeach-readkey.obj: readkey.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-readkey.obj `if test -f 'readkey.F90'; then $(CYGPATH_W) 'readkey.F90'; else $(CYGPATH_W) '$(srcdir)/readkey.F90'; fi`
-
-xbeach-mnemonic.o: mnemonic.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-mnemonic.o `test -f 'mnemonic.F90' || echo '$(srcdir)/'`mnemonic.F90
-
-xbeach-mnemonic.obj: mnemonic.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-mnemonic.obj `if test -f 'mnemonic.F90'; then $(CYGPATH_W) 'mnemonic.F90'; else $(CYGPATH_W) '$(srcdir)/mnemonic.F90'; fi`
-
-xbeach-interp.o: interp.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-interp.o `test -f 'interp.F90' || echo '$(srcdir)/'`interp.F90
-
-xbeach-interp.obj: interp.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-interp.obj `if test -f 'interp.F90'; then $(CYGPATH_W) 'interp.F90'; else $(CYGPATH_W) '$(srcdir)/interp.F90'; fi`
-
-xbeach-math_tools.o: math_tools.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-math_tools.o `test -f 'math_tools.F90' || echo '$(srcdir)/'`math_tools.F90
-
-xbeach-math_tools.obj: math_tools.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-math_tools.obj `if test -f 'math_tools.F90'; then $(CYGPATH_W) 'math_tools.F90'; else $(CYGPATH_W) '$(srcdir)/math_tools.F90'; fi`
-
-xbeach-general_fileio.o: general_fileio.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-general_fileio.o `test -f 'general_fileio.F90' || echo '$(srcdir)/'`general_fileio.F90
-
-xbeach-general_fileio.obj: general_fileio.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-general_fileio.obj `if test -f 'general_fileio.F90'; then $(CYGPATH_W) 'general_fileio.F90'; else $(CYGPATH_W) '$(srcdir)/general_fileio.F90'; fi`
-
-xbeach-params.o: params.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-params.o `test -f 'params.F90' || echo '$(srcdir)/'`params.F90
-
-xbeach-params.obj: params.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-params.obj `if test -f 'params.F90'; then $(CYGPATH_W) 'params.F90'; else $(CYGPATH_W) '$(srcdir)/params.F90'; fi`
-
-xbeach-getkey.o: getkey.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-getkey.o `test -f 'getkey.F90' || echo '$(srcdir)/'`getkey.F90
-
-xbeach-getkey.obj: getkey.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-getkey.obj `if test -f 'getkey.F90'; then $(CYGPATH_W) 'getkey.F90'; else $(CYGPATH_W) '$(srcdir)/getkey.F90'; fi`
-
-xbeach-spaceparams.o: spaceparams.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-spaceparams.o `test -f 'spaceparams.F90' || echo '$(srcdir)/'`spaceparams.F90
-
-xbeach-spaceparams.obj: spaceparams.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-spaceparams.obj `if test -f 'spaceparams.F90'; then $(CYGPATH_W) 'spaceparams.F90'; else $(CYGPATH_W) '$(srcdir)/spaceparams.F90'; fi`
-
-xbeach-wave_functions.o: wave_functions.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-wave_functions.o `test -f 'wave_functions.F90' || echo '$(srcdir)/'`wave_functions.F90
-
-xbeach-wave_functions.obj: wave_functions.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-wave_functions.obj `if test -f 'wave_functions.F90'; then $(CYGPATH_W) 'wave_functions.F90'; else $(CYGPATH_W) '$(srcdir)/wave_functions.F90'; fi`
-
-xbeach-waveparams.o: waveparams.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-waveparams.o `test -f 'waveparams.F90' || echo '$(srcdir)/'`waveparams.F90
-
-xbeach-waveparams.obj: waveparams.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-waveparams.obj `if test -f 'waveparams.F90'; then $(CYGPATH_W) 'waveparams.F90'; else $(CYGPATH_W) '$(srcdir)/waveparams.F90'; fi`
-
-xbeach-waveparamsnew.o: waveparamsnew.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-waveparamsnew.o `test -f 'waveparamsnew.F90' || echo '$(srcdir)/'`waveparamsnew.F90
-
-xbeach-waveparamsnew.obj: waveparamsnew.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-waveparamsnew.obj `if test -f 'waveparamsnew.F90'; then $(CYGPATH_W) 'waveparamsnew.F90'; else $(CYGPATH_W) '$(srcdir)/waveparamsnew.F90'; fi`
-
-xbeach-constants.o: constants.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-constants.o `test -f 'constants.F90' || echo '$(srcdir)/'`constants.F90
-
-xbeach-constants.obj: constants.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-constants.obj `if test -f 'constants.F90'; then $(CYGPATH_W) 'constants.F90'; else $(CYGPATH_W) '$(srcdir)/constants.F90'; fi`
-
-xbeach-roelvink.o: roelvink.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-roelvink.o `test -f 'roelvink.F90' || echo '$(srcdir)/'`roelvink.F90
-
-xbeach-roelvink.obj: roelvink.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-roelvink.obj `if test -f 'roelvink.F90'; then $(CYGPATH_W) 'roelvink.F90'; else $(CYGPATH_W) '$(srcdir)/roelvink.F90'; fi`
-
-xbeach-wave_stationary.o: wave_stationary.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-wave_stationary.o `test -f 'wave_stationary.F90' || echo '$(srcdir)/'`wave_stationary.F90
-
-xbeach-wave_stationary.obj: wave_stationary.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-wave_stationary.obj `if test -f 'wave_stationary.F90'; then $(CYGPATH_W) 'wave_stationary.F90'; else $(CYGPATH_W) '$(srcdir)/wave_stationary.F90'; fi`
-
-xbeach-wave_instationary.o: wave_instationary.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-wave_instationary.o `test -f 'wave_instationary.F90' || echo '$(srcdir)/'`wave_instationary.F90
-
-xbeach-wave_instationary.obj: wave_instationary.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-wave_instationary.obj `if test -f 'wave_instationary.F90'; then $(CYGPATH_W) 'wave_instationary.F90'; else $(CYGPATH_W) '$(srcdir)/wave_instationary.F90'; fi`
-
-xbeach-wave_timestep.o: wave_timestep.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-wave_timestep.o `test -f 'wave_timestep.F90' || echo '$(srcdir)/'`wave_timestep.F90
-
-xbeach-wave_timestep.obj: wave_timestep.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-wave_timestep.obj `if test -f 'wave_timestep.F90'; then $(CYGPATH_W) 'wave_timestep.F90'; else $(CYGPATH_W) '$(srcdir)/wave_timestep.F90'; fi`
-
-xbeach-boundaryconditions.o: boundaryconditions.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-boundaryconditions.o `test -f 'boundaryconditions.F90' || echo '$(srcdir)/'`boundaryconditions.F90
-
-xbeach-boundaryconditions.obj: boundaryconditions.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-boundaryconditions.obj `if test -f 'boundaryconditions.F90'; then $(CYGPATH_W) 'boundaryconditions.F90'; else $(CYGPATH_W) '$(srcdir)/boundaryconditions.F90'; fi`
-
-xbeach-morphevolution.o: morphevolution.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-morphevolution.o `test -f 'morphevolution.F90' || echo '$(srcdir)/'`morphevolution.F90
-
-xbeach-morphevolution.obj: morphevolution.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-morphevolution.obj `if test -f 'morphevolution.F90'; then $(CYGPATH_W) 'morphevolution.F90'; else $(CYGPATH_W) '$(srcdir)/morphevolution.F90'; fi`
-
-xbeach-groundwater.o: groundwater.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-groundwater.o `test -f 'groundwater.F90' || echo '$(srcdir)/'`groundwater.F90
-
-xbeach-groundwater.obj: groundwater.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-groundwater.obj `if test -f 'groundwater.F90'; then $(CYGPATH_W) 'groundwater.F90'; else $(CYGPATH_W) '$(srcdir)/groundwater.F90'; fi`
-
-xbeach-drifters.o: drifters.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-drifters.o `test -f 'drifters.F90' || echo '$(srcdir)/'`drifters.F90
-
-xbeach-drifters.obj: drifters.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-drifters.obj `if test -f 'drifters.F90'; then $(CYGPATH_W) 'drifters.F90'; else $(CYGPATH_W) '$(srcdir)/drifters.F90'; fi`
-
-xbeach-readtide.o: readtide.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-readtide.o `test -f 'readtide.F90' || echo '$(srcdir)/'`readtide.F90
-
-xbeach-readtide.obj: readtide.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-readtide.obj `if test -f 'readtide.F90'; then $(CYGPATH_W) 'readtide.F90'; else $(CYGPATH_W) '$(srcdir)/readtide.F90'; fi`
-
-xbeach-readwind.o: readwind.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-readwind.o `test -f 'readwind.F90' || echo '$(srcdir)/'`readwind.F90
-
-xbeach-readwind.obj: readwind.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-readwind.obj `if test -f 'readwind.F90'; then $(CYGPATH_W) 'readwind.F90'; else $(CYGPATH_W) '$(srcdir)/readwind.F90'; fi`
-
-xbeach-initialize.o: initialize.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-initialize.o `test -f 'initialize.F90' || echo '$(srcdir)/'`initialize.F90
-
-xbeach-initialize.obj: initialize.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-initialize.obj `if test -f 'initialize.F90'; then $(CYGPATH_W) 'initialize.F90'; else $(CYGPATH_W) '$(srcdir)/initialize.F90'; fi`
-
-xbeach-timestep.o: timestep.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-timestep.o `test -f 'timestep.F90' || echo '$(srcdir)/'`timestep.F90
-
-xbeach-timestep.obj: timestep.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-timestep.obj `if test -f 'timestep.F90'; then $(CYGPATH_W) 'timestep.F90'; else $(CYGPATH_W) '$(srcdir)/timestep.F90'; fi`
-
-xbeach-flow_secondorder.o: flow_secondorder.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-flow_secondorder.o `test -f 'flow_secondorder.F90' || echo '$(srcdir)/'`flow_secondorder.F90
-
-xbeach-flow_secondorder.obj: flow_secondorder.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-flow_secondorder.obj `if test -f 'flow_secondorder.F90'; then $(CYGPATH_W) 'flow_secondorder.F90'; else $(CYGPATH_W) '$(srcdir)/flow_secondorder.F90'; fi`
-
-xbeach-solver.o: solver.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-solver.o `test -f 'solver.F90' || echo '$(srcdir)/'`solver.F90
-
-xbeach-solver.obj: solver.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-solver.obj `if test -f 'solver.F90'; then $(CYGPATH_W) 'solver.F90'; else $(CYGPATH_W) '$(srcdir)/solver.F90'; fi`
-
-xbeach-nonh.o: nonh.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-nonh.o `test -f 'nonh.F90' || echo '$(srcdir)/'`nonh.F90
-
-xbeach-nonh.obj: nonh.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-nonh.obj `if test -f 'nonh.F90'; then $(CYGPATH_W) 'nonh.F90'; else $(CYGPATH_W) '$(srcdir)/nonh.F90'; fi`
-
-xbeach-flow_timestep.o: flow_timestep.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-flow_timestep.o `test -f 'flow_timestep.F90' || echo '$(srcdir)/'`flow_timestep.F90
-
-xbeach-flow_timestep.obj: flow_timestep.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-flow_timestep.obj `if test -f 'flow_timestep.F90'; then $(CYGPATH_W) 'flow_timestep.F90'; else $(CYGPATH_W) '$(srcdir)/flow_timestep.F90'; fi`
-
-xbeach-postprocess.o: postprocess.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-postprocess.o `test -f 'postprocess.F90' || echo '$(srcdir)/'`postprocess.F90
-
-xbeach-postprocess.obj: postprocess.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-postprocess.obj `if test -f 'postprocess.F90'; then $(CYGPATH_W) 'postprocess.F90'; else $(CYGPATH_W) '$(srcdir)/postprocess.F90'; fi`
-
-xbeach-varianceupdate.o: varianceupdate.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-varianceupdate.o `test -f 'varianceupdate.F90' || echo '$(srcdir)/'`varianceupdate.F90
-
-xbeach-varianceupdate.obj: varianceupdate.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-varianceupdate.obj `if test -f 'varianceupdate.F90'; then $(CYGPATH_W) 'varianceupdate.F90'; else $(CYGPATH_W) '$(srcdir)/varianceupdate.F90'; fi`
-
-xbeach-varoutput.o: varoutput.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-varoutput.o `test -f 'varoutput.F90' || echo '$(srcdir)/'`varoutput.F90
-
-xbeach-varoutput.obj: varoutput.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-varoutput.obj `if test -f 'varoutput.F90'; then $(CYGPATH_W) 'varoutput.F90'; else $(CYGPATH_W) '$(srcdir)/varoutput.F90'; fi`
-
-xbeach-ncoutput.o: ncoutput.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-ncoutput.o `test -f 'ncoutput.F90' || echo '$(srcdir)/'`ncoutput.F90
-
-xbeach-ncoutput.obj: ncoutput.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-ncoutput.obj `if test -f 'ncoutput.F90'; then $(CYGPATH_W) 'ncoutput.F90'; else $(CYGPATH_W) '$(srcdir)/ncoutput.F90'; fi`
-
-xbeach-output.o: output.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-output.o `test -f 'output.F90' || echo '$(srcdir)/'`output.F90
-
-xbeach-output.obj: output.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-output.obj `if test -f 'output.F90'; then $(CYGPATH_W) 'output.F90'; else $(CYGPATH_W) '$(srcdir)/output.F90'; fi`
-
-xbeach-ship.o: ship.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-ship.o `test -f 'ship.F90' || echo '$(srcdir)/'`ship.F90
-
-xbeach-ship.obj: ship.F90
-	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-ship.obj `if test -f 'ship.F90'; then $(CYGPATH_W) 'ship.F90'; else $(CYGPATH_W) '$(srcdir)/ship.F90'; fi`
+.F90.lo:
+	$(LTPPFCCOMPILE) -c -o $@ $<
 
 xbeach-xbeach.o: xbeach.F90
 	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-xbeach.o `test -f 'xbeach.F90' || echo '$(srcdir)/'`xbeach.F90
 
 xbeach-xbeach.obj: xbeach.F90
 	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-xbeach.obj `if test -f 'xbeach.F90'; then $(CYGPATH_W) 'xbeach.F90'; else $(CYGPATH_W) '$(srcdir)/xbeach.F90'; fi`
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
+
+distclean-libtool:
+	-rm -f libtool config.lt
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
@@ -1078,10 +977,12 @@ check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-recursive
-all-am: Makefile $(PROGRAMS) config.h
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) config.h
+install-binPROGRAMS: install-libLTLIBRARIES
+
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -1114,13 +1015,14 @@ maintainer-clean-generic:
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-recursive
 
-clean-am: clean-binPROGRAMS clean-generic clean-local mostlyclean-am
+clean-am: clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
+	clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-hdr distclean-tags
+	distclean-hdr distclean-libtool distclean-tags
 
 dvi: dvi-recursive
 
@@ -1140,7 +1042,7 @@ install-dvi: install-dvi-recursive
 
 install-dvi-am:
 
-install-exec-am: install-binPROGRAMS
+install-exec-am: install-binPROGRAMS install-libLTLIBRARIES
 
 install-html: install-html-recursive
 
@@ -1170,7 +1072,8 @@ maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-recursive
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic
+mostlyclean-am: mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool
 
 pdf: pdf-recursive
 
@@ -1180,7 +1083,7 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS
+uninstall-am: uninstall-binPROGRAMS uninstall-libLTLIBRARIES
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) all check \
 	check-am ctags-recursive install install-am install-strip \
@@ -1188,21 +1091,23 @@ uninstall-am: uninstall-binPROGRAMS
 
 .PHONY: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) CTAGS GTAGS \
 	all all-am am--refresh check check-TESTS check-am clean \
-	clean-binPROGRAMS clean-generic clean-local ctags \
-	ctags-recursive dist dist-all dist-bzip2 dist-gzip dist-lzma \
-	dist-shar dist-tarZ dist-xz dist-zip distcheck distclean \
-	distclean-compile distclean-generic distclean-hdr \
+	clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
+	clean-libtool clean-local ctags ctags-recursive dist dist-all \
+	dist-bzip2 dist-gzip dist-lzma dist-shar dist-tarZ dist-xz \
+	dist-zip distcheck distclean distclean-compile \
+	distclean-generic distclean-hdr distclean-libtool \
 	distclean-tags distcleancheck distdir distuninstallcheck dvi \
 	dvi-am html html-am info info-am install install-am \
 	install-binPROGRAMS install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-compile mostlyclean-generic pdf pdf-am \
-	ps ps-am tags tags-recursive uninstall uninstall-am \
-	uninstall-binPROGRAMS
+	install-html-am install-info install-info-am \
+	install-libLTLIBRARIES install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags tags-recursive uninstall uninstall-am \
+	uninstall-binPROGRAMS uninstall-libLTLIBRARIES
 
 
 version.dat: 
