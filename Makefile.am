@@ -1,7 +1,9 @@
+lib_LTLIBRARIES=libxbeach.la
+
 bin_PROGRAMS=makeincludes xbeach
 
 
-ACLOCAL_AMFLAGS = -I config -I m4
+ACLOCAL_AMFLAGS = -I m4 -I config
 makeincludes_SOURCES= \
 	makeincludes.F90
 makeincludes_LDFLAGS=
@@ -10,7 +12,7 @@ if USENETCDF
 extra_xbeach_sources=ncoutput.F90
 endif
 
-xbeach_SOURCES= \
+libxbeach_la_SOURCES= \
 	s.ind \
 	s.inp \
 	xmpi.F90 \
@@ -51,9 +53,13 @@ xbeach_SOURCES= \
 	${extra_xbeach_sources} \
 	output.F90 \
         ship.F90 \
+	mnemoniciso.F90 \
+	libxbeach.F90
+
+xbeach_SOURCES=\
 	xbeach.F90
-
-
+xbeach_LDADD=\
+	libxbeach.la
 
 BUILT_SOURCES= \
 	spacedecl.gen	\

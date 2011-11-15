@@ -8,6 +8,7 @@ AC_INIT(xbeach, [v18], [d.roelvink@unesco-ihe.org])
 AC_CONFIG_SRCDIR([boundaryconditions.F90])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(m4)
+LT_INIT
 AM_INIT_AUTOMAKE
 
 AC_CONFIG_HEADERS([config.h])
