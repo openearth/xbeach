@@ -36,12 +36,13 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = makeincludes$(EXEEXT) xbeach$(EXEEXT)
-
 # if mpi, then add some flags
 @USEMPI_TRUE@am__append_1 = -DUSEMPI -DHAVE_MPI_WTIME
-@USENETCDF_TRUE@am__append_2 = -DUSENETCDF ${NETCDF_CFLAGS}
+@USEMPI_TRUE@am__append_2 = -DUSEMPI -DHAVE_MPI_WTIME
+@USENETCDF_TRUE@am__append_3 = -DUSENETCDF ${NETCDF_CFLAGS}
+@USENETCDF_TRUE@am__append_4 = -DUSENETCDF ${NETCDF_CFLAGS}
 # Manualy add the netcdff (fortran dll)
-@USENETCDF_TRUE@am__append_3 = ${NETCDF_LIBS}  -lnetcdff
+@USENETCDF_TRUE@am__append_5 = ${NETCDF_LIBS}  -lnetcdff
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
@@ -98,19 +99,33 @@ am__libxbeach_la_SOURCES_DIST = s.ind s.inp xmpi.F90 general_mpi.F90 \
 	flow_timestep.F90 postprocess.F90 varianceupdate.F90 \
 	varoutput.F90 ncoutput.F90 output.F90 ship.F90 mnemoniciso.F90 \
 	libxbeach.F90
-@USENETCDF_TRUE@am__objects_1 = ncoutput.lo
-am_libxbeach_la_OBJECTS = xmpi.lo general_mpi.lo logging.lo \
-	filefunctions.lo readkey.lo mnemonic.lo interp.lo \
-	math_tools.lo general_fileio.lo params.lo getkey.lo \
-	spaceparams.lo wave_functions.lo waveparams.lo \
-	waveparamsnew.lo constants.lo roelvink.lo wave_stationary.lo \
-	wave_instationary.lo wave_timestep.lo boundaryconditions.lo \
-	morphevolution.lo groundwater.lo drifters.lo readtide.lo \
-	readwind.lo initialize.lo timestep.lo flow_secondorder.lo \
-	solver.lo nonh.lo flow_timestep.lo postprocess.lo \
-	varianceupdate.lo varoutput.lo $(am__objects_1) output.lo \
-	ship.lo mnemoniciso.lo libxbeach.lo
+@USENETCDF_TRUE@am__objects_1 = libxbeach_la-ncoutput.lo
+am_libxbeach_la_OBJECTS = libxbeach_la-xmpi.lo \
+	libxbeach_la-general_mpi.lo libxbeach_la-logging.lo \
+	libxbeach_la-filefunctions.lo libxbeach_la-readkey.lo \
+	libxbeach_la-mnemonic.lo libxbeach_la-interp.lo \
+	libxbeach_la-math_tools.lo libxbeach_la-general_fileio.lo \
+	libxbeach_la-params.lo libxbeach_la-getkey.lo \
+	libxbeach_la-spaceparams.lo libxbeach_la-wave_functions.lo \
+	libxbeach_la-waveparams.lo libxbeach_la-waveparamsnew.lo \
+	libxbeach_la-constants.lo libxbeach_la-roelvink.lo \
+	libxbeach_la-wave_stationary.lo \
+	libxbeach_la-wave_instationary.lo \
+	libxbeach_la-wave_timestep.lo \
+	libxbeach_la-boundaryconditions.lo \
+	libxbeach_la-morphevolution.lo libxbeach_la-groundwater.lo \
+	libxbeach_la-drifters.lo libxbeach_la-readtide.lo \
+	libxbeach_la-readwind.lo libxbeach_la-initialize.lo \
+	libxbeach_la-timestep.lo libxbeach_la-flow_secondorder.lo \
+	libxbeach_la-solver.lo libxbeach_la-nonh.lo \
+	libxbeach_la-flow_timestep.lo libxbeach_la-postprocess.lo \
+	libxbeach_la-varianceupdate.lo libxbeach_la-varoutput.lo \
+	$(am__objects_1) libxbeach_la-output.lo libxbeach_la-ship.lo \
+	libxbeach_la-mnemoniciso.lo libxbeach_la-libxbeach.lo
 libxbeach_la_OBJECTS = $(am_libxbeach_la_OBJECTS)
+libxbeach_la_LINK = $(LIBTOOL) --tag=FC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(FCLD) $(libxbeach_la_FCFLAGS) \
+	$(FCFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 PROGRAMS = $(bin_PROGRAMS)
 am_makeincludes_OBJECTS = makeincludes.$(OBJEXT)
 makeincludes_OBJECTS = $(am_makeincludes_OBJECTS)
@@ -226,7 +241,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
-LIBS = @LIBS@ $(am__append_3)
+LIBS = @LIBS@ $(am__append_5)
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
@@ -395,7 +410,8 @@ testdir = ./testbed/tools/autotests
 @USEMPI_TRUE@TESTS = ${testdir}/mpi_autotest_*
 
 # Set flags off by default
-xbeach_FCFLAGS = $(am__append_1) $(am__append_2)
+xbeach_FCFLAGS = $(am__append_1) $(am__append_3)
+libxbeach_la_FCFLAGS = $(am__append_2) $(am__append_4)
 
 # EXTRA_DIST=s.ind s.inp
 EXTRA_DIST = spaceparams.tmpl s.ind s.inp nh_pars.inc version.def VS2008 xbeach.dsp xbeach.dsw
@@ -489,7 +505,7 @@ clean-libLTLIBRARIES:
 	  rm -f "$${dir}/so_locations"; \
 	done
 libxbeach.la: $(libxbeach_la_OBJECTS) $(libxbeach_la_DEPENDENCIES) 
-	$(FCLINK) -rpath $(libdir) $(libxbeach_la_OBJECTS) $(libxbeach_la_LIBADD) $(LIBS)
+	$(libxbeach_la_LINK) -rpath $(libdir) $(libxbeach_la_OBJECTS) $(libxbeach_la_LIBADD) $(LIBS)
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
@@ -554,6 +570,126 @@ distclean-compile:
 
 .F90.lo:
 	$(LTPPFCCOMPILE) -c -o $@ $<
+
+libxbeach_la-xmpi.lo: xmpi.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-xmpi.lo `test -f 'xmpi.F90' || echo '$(srcdir)/'`xmpi.F90
+
+libxbeach_la-general_mpi.lo: general_mpi.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-general_mpi.lo `test -f 'general_mpi.F90' || echo '$(srcdir)/'`general_mpi.F90
+
+libxbeach_la-logging.lo: logging.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-logging.lo `test -f 'logging.F90' || echo '$(srcdir)/'`logging.F90
+
+libxbeach_la-filefunctions.lo: filefunctions.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-filefunctions.lo `test -f 'filefunctions.F90' || echo '$(srcdir)/'`filefunctions.F90
+
+libxbeach_la-readkey.lo: readkey.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-readkey.lo `test -f 'readkey.F90' || echo '$(srcdir)/'`readkey.F90
+
+libxbeach_la-mnemonic.lo: mnemonic.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-mnemonic.lo `test -f 'mnemonic.F90' || echo '$(srcdir)/'`mnemonic.F90
+
+libxbeach_la-interp.lo: interp.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-interp.lo `test -f 'interp.F90' || echo '$(srcdir)/'`interp.F90
+
+libxbeach_la-math_tools.lo: math_tools.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-math_tools.lo `test -f 'math_tools.F90' || echo '$(srcdir)/'`math_tools.F90
+
+libxbeach_la-general_fileio.lo: general_fileio.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-general_fileio.lo `test -f 'general_fileio.F90' || echo '$(srcdir)/'`general_fileio.F90
+
+libxbeach_la-params.lo: params.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-params.lo `test -f 'params.F90' || echo '$(srcdir)/'`params.F90
+
+libxbeach_la-getkey.lo: getkey.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-getkey.lo `test -f 'getkey.F90' || echo '$(srcdir)/'`getkey.F90
+
+libxbeach_la-spaceparams.lo: spaceparams.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-spaceparams.lo `test -f 'spaceparams.F90' || echo '$(srcdir)/'`spaceparams.F90
+
+libxbeach_la-wave_functions.lo: wave_functions.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-wave_functions.lo `test -f 'wave_functions.F90' || echo '$(srcdir)/'`wave_functions.F90
+
+libxbeach_la-waveparams.lo: waveparams.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-waveparams.lo `test -f 'waveparams.F90' || echo '$(srcdir)/'`waveparams.F90
+
+libxbeach_la-waveparamsnew.lo: waveparamsnew.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-waveparamsnew.lo `test -f 'waveparamsnew.F90' || echo '$(srcdir)/'`waveparamsnew.F90
+
+libxbeach_la-constants.lo: constants.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-constants.lo `test -f 'constants.F90' || echo '$(srcdir)/'`constants.F90
+
+libxbeach_la-roelvink.lo: roelvink.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-roelvink.lo `test -f 'roelvink.F90' || echo '$(srcdir)/'`roelvink.F90
+
+libxbeach_la-wave_stationary.lo: wave_stationary.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-wave_stationary.lo `test -f 'wave_stationary.F90' || echo '$(srcdir)/'`wave_stationary.F90
+
+libxbeach_la-wave_instationary.lo: wave_instationary.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-wave_instationary.lo `test -f 'wave_instationary.F90' || echo '$(srcdir)/'`wave_instationary.F90
+
+libxbeach_la-wave_timestep.lo: wave_timestep.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-wave_timestep.lo `test -f 'wave_timestep.F90' || echo '$(srcdir)/'`wave_timestep.F90
+
+libxbeach_la-boundaryconditions.lo: boundaryconditions.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-boundaryconditions.lo `test -f 'boundaryconditions.F90' || echo '$(srcdir)/'`boundaryconditions.F90
+
+libxbeach_la-morphevolution.lo: morphevolution.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-morphevolution.lo `test -f 'morphevolution.F90' || echo '$(srcdir)/'`morphevolution.F90
+
+libxbeach_la-groundwater.lo: groundwater.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-groundwater.lo `test -f 'groundwater.F90' || echo '$(srcdir)/'`groundwater.F90
+
+libxbeach_la-drifters.lo: drifters.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-drifters.lo `test -f 'drifters.F90' || echo '$(srcdir)/'`drifters.F90
+
+libxbeach_la-readtide.lo: readtide.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-readtide.lo `test -f 'readtide.F90' || echo '$(srcdir)/'`readtide.F90
+
+libxbeach_la-readwind.lo: readwind.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-readwind.lo `test -f 'readwind.F90' || echo '$(srcdir)/'`readwind.F90
+
+libxbeach_la-initialize.lo: initialize.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-initialize.lo `test -f 'initialize.F90' || echo '$(srcdir)/'`initialize.F90
+
+libxbeach_la-timestep.lo: timestep.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-timestep.lo `test -f 'timestep.F90' || echo '$(srcdir)/'`timestep.F90
+
+libxbeach_la-flow_secondorder.lo: flow_secondorder.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-flow_secondorder.lo `test -f 'flow_secondorder.F90' || echo '$(srcdir)/'`flow_secondorder.F90
+
+libxbeach_la-solver.lo: solver.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-solver.lo `test -f 'solver.F90' || echo '$(srcdir)/'`solver.F90
+
+libxbeach_la-nonh.lo: nonh.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-nonh.lo `test -f 'nonh.F90' || echo '$(srcdir)/'`nonh.F90
+
+libxbeach_la-flow_timestep.lo: flow_timestep.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-flow_timestep.lo `test -f 'flow_timestep.F90' || echo '$(srcdir)/'`flow_timestep.F90
+
+libxbeach_la-postprocess.lo: postprocess.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-postprocess.lo `test -f 'postprocess.F90' || echo '$(srcdir)/'`postprocess.F90
+
+libxbeach_la-varianceupdate.lo: varianceupdate.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-varianceupdate.lo `test -f 'varianceupdate.F90' || echo '$(srcdir)/'`varianceupdate.F90
+
+libxbeach_la-varoutput.lo: varoutput.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-varoutput.lo `test -f 'varoutput.F90' || echo '$(srcdir)/'`varoutput.F90
+
+libxbeach_la-ncoutput.lo: ncoutput.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-ncoutput.lo `test -f 'ncoutput.F90' || echo '$(srcdir)/'`ncoutput.F90
+
+libxbeach_la-output.lo: output.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-output.lo `test -f 'output.F90' || echo '$(srcdir)/'`output.F90
+
+libxbeach_la-ship.lo: ship.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-ship.lo `test -f 'ship.F90' || echo '$(srcdir)/'`ship.F90
+
+libxbeach_la-mnemoniciso.lo: mnemoniciso.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-mnemoniciso.lo `test -f 'mnemoniciso.F90' || echo '$(srcdir)/'`mnemoniciso.F90
+
+libxbeach_la-libxbeach.lo: libxbeach.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-libxbeach.lo `test -f 'libxbeach.F90' || echo '$(srcdir)/'`libxbeach.F90
 
 xbeach-xbeach.o: xbeach.F90
 	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-xbeach.o `test -f 'xbeach.F90' || echo '$(srcdir)/'`xbeach.F90

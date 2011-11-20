@@ -131,13 +131,15 @@ endif
 
 # Set flags off by default
 xbeach_FCFLAGS=
-
+libxbeach_la_FCFLAGS=
 # if mpi, then add some flags
 if USEMPI
 xbeach_FCFLAGS+=-DUSEMPI -DHAVE_MPI_WTIME
+libxbeach_la_FCFLAGS+=-DUSEMPI -DHAVE_MPI_WTIME
 endif
 if USENETCDF
 xbeach_FCFLAGS+=-DUSENETCDF ${NETCDF_CFLAGS}
+libxbeach_la_FCFLAGS+=-DUSENETCDF ${NETCDF_CFLAGS}
 # Manualy add the netcdff (fortran dll)
 LIBS+=${NETCDF_LIBS}  -lnetcdff
 endif
