@@ -40,6 +40,11 @@ module libxbeach_module
       module procedure getdoubleparameter_c
   end interface getdoubleparameter
 
+  interface setdoubleparameter
+      module procedure setdoubleparameter_fortran
+      module procedure setdoubleparameter_c
+  end interface setdoubleparameter
+
   interface getintparameter
       module procedure getintparameter_fortran
       module procedure getintparameter_c
