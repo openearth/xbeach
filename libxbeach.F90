@@ -25,7 +25,7 @@ module libxbeach_module
   type(parameters), save                              :: par
   type(timepars), save                                     :: tpar
   type(spacepars), pointer                            :: s
-  type(spacepars), target                             :: sglobal
+  type(spacepars), target, save                       :: sglobal
 
   integer                                             :: n,it,error
   real*8                                              :: tbegin
