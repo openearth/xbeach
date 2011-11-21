@@ -330,7 +330,7 @@ contains
     !DEC$ ATTRIBUTES DLLEXPORT::getarray
 
     ! use inout otherwise things break
-    type(carraytype), intent(out) :: x
+    type(carraytype), intent(inout) :: x
     ! and we need the string length ....
     integer(c_int),value  ,intent(in)    :: length
     ! String
@@ -411,7 +411,7 @@ contains
 
     myname = char_array_to_string(name, length)
     index =  chartoindex(myname)
-    write(*,*) 'Getting', myname
+    
     call indextos(s,index,array)
     allocate(r2(size(array%r2,1), size(array%r2,2)))
     r2 = array%r2
