@@ -35,24 +35,22 @@ module libxbeach_module
   real*8                                              :: t0,t01
 #endif
 
+
+  
   interface getdoubleparameter
       module procedure getdoubleparameter_fortran
-      module procedure getdoubleparameter_c
   end interface getdoubleparameter
 
   interface setdoubleparameter
       module procedure setdoubleparameter_fortran
-      module procedure setdoubleparameter_c
   end interface setdoubleparameter
 
   interface getintparameter
       module procedure getintparameter_fortran
-      module procedure getintparameter_c
   end interface getintparameter
       
   interface get2ddoublearray
       module procedure get2ddoublearray_fortran
-      module procedure get2ddoublearray_c
   end interface get2ddoublearray
   !startinit
 
@@ -212,7 +210,7 @@ contains
 
 
   integer(c_int) function getdoubleparameter_c(name,value, length) bind(C,name="getdoubleparameter")
-    !DEC$ ATTRIBUTES DLLEXPORT::getdoubleparameter
+    !DEC$ ATTRIBUTES DLLEXPORT::getdoubleparameter_c
     USE iso_c_binding
     ! use inout otherwise things break
     real(c_double), intent(inout) :: value
@@ -260,7 +258,7 @@ contains
   end function setdoubleparameter_fortran
 
   integer(c_int) function setdoubleparameter_c(name,value, length) bind(C,name="setdoubleparameter")
-    !DEC$ ATTRIBUTES DLLEXPORT::setdoubleparameter
+    !DEC$ ATTRIBUTES DLLEXPORT::setdoubleparameter_c
     USE iso_c_binding
     ! use inout otherwise things break
     real(c_double), intent(in) :: value
@@ -304,7 +302,7 @@ contains
   end function getintparameter_fortran
 
   integer(c_int) function getintparameter_c(name,value, length) bind(C,name="getintparameter")
-    !DEC$ ATTRIBUTES DLLEXPORT::getintparameter
+    !DEC$ ATTRIBUTES DLLEXPORT::getintparameter_c
 
     USE iso_c_binding
     ! use inout otherwise things break
@@ -395,7 +393,7 @@ contains
   end function get2ddoublearray_fortran
 
   integer(c_int) function get2ddoublearray_c(name, x, length) bind(C, name="get2ddoublearray")
-    !DEC$ ATTRIBUTES DLLEXPORT::get2ddoublearray
+    !DEC$ ATTRIBUTES DLLEXPORT::get2ddoublearray_c
 
     ! use inout otherwise things break
     type (c_ptr), intent(inout) :: x
