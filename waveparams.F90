@@ -1237,9 +1237,9 @@ subroutine build_etdir(par,s,wp,Ebcfname)
   ! border in the same manner
   do index2=2,wp%Npy
      wp%CompFn(index2,wp%index_vector)=wp%CompFn(1,wp%index_vector)*exp(-par%compi*k*(dsin(wp%theta0)*(s%yz(1,index2)-s%yz(1,1)) &
-                                                                                      +dcos(wp%theta0)*(s%xz(1,index2)-s%xz(1,1))) )
+                                                                                     +dcos(wp%theta0)*(s%xz(1,index2)-s%xz(1,1))) )
 
-    Comptemp = conjg(wp%CompFn(index2,2:wp%Nr/2))
+     Comptemp = conjg(wp%CompFn(index2,2:wp%Nr/2))
      call flipiv(Comptemp,size(Comptemp))
      wp%CompFn(index2,wp%Nr/2+2:wp%Nr)=Comptemp
   end do
@@ -1762,6 +1762,13 @@ do m=1,4
     
   end do !jj loop
 end do !m loop
+
+! Jaap and Bas: Fix for curvi-grids
+! REMARK: Need to do something about Ftemp?
+do jj=2,Npy
+   q(jj,:,1) = dcos(datan(q(jj,:,2)/max(q(jj,:,1),par%eps))-s%alfaz(1,jj))*q(jj,:,3)
+   q(jj,:,2) = dsin(datan(q(jj,:,2)/max(q(jj,:,1),par%eps))-s%alfaz(1,jj))*q(jj,:,3)
+end do   
 
 deallocate(Comptemp)
 deallocate(Comptemp2)

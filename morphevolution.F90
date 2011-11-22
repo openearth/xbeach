@@ -444,8 +444,9 @@ contains
     type(spacepars),target              :: s
     type(parameters)                    :: par
 
-    integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz,indx,di
+    integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz,indx2,di
     integer , dimension(s%nx+1)                 :: slopeind,bermind
+    integer , dimension(s%ny+1)                 :: indx
     integer , dimension(:,:,:),allocatable,save :: indSus,indSub,indSvs,indSvb
     real*8                                      :: dzb,dzmax,dzt,dzleft,sdz,dzavt,fac,Savailable,dxfac,dyfac
     real*8                                      :: strucslope,bermwidth,rb,gamB,irrb,runup_old,runup_max,first
@@ -662,17 +663,21 @@ contains
                         ! only consider first dry point
                         first = 1
                         ! find wave height for runup at facsd*L1 meter from water line 
-                        call linear_interp(xz(:,j),H(:,j),nx+1,xz(i-1,j)-par%facsd*L1(i-1,j),s%Hrunup(j),indx)
+                        call linear_interp(xz(:,j),H(:,j),nx+1,xz(i-1,j)-L1(i-1,j),s%Hrunup(j),indx(j))
                         ! Find toe of runup slope if present (dzbdx > 0.15). 
                         ! If not present Hrunup will converge to H at the water line (where H = 0 per definition)
-                        do j1=indx,i-1
+                        do j1=indx(j),i-1
+                          ! cross shore location structure toe
                           if (dzbdx(j1,j)<0.15d0 .or. structdepth(j1,j)>0.1d0) then
-                             indx = j1
+                             indx(j) = j1
+                          endif
+                          if (hh(j1,j)>par%hswitch) then
+                             indx2 = j1
                           endif
                         enddo 
                         ! update Hrunup and runup x-location
-                        s%Hrunup(j) = H(indx,j)
-                        s%xHrunup(j) = xz(indx,j);
+                        s%Hrunup(j) = H(indx(j),j)
+                        s%xHrunup(j) = xz(indx(j),j);
                         ! now itteratively compute runup
                         hav(:,j) = hh(:,j)
                         runup_old = huge(0.d0)
@@ -687,22 +692,26 @@ contains
                           !where (slopeind == 0 .and. wetz(:,j) == 0 .and. hav(:,j)>par%eps)
                           !  bermind = 1
                           !endwhere
-                          strucslope = sum(dzbdx(indx:nx,j)*dsu(indx:nx,j)*slopeind(indx:nx))/ &
-                          max(par%eps,sum(dsu(indx:nx,j)*slopeind(indx:nx)))
+                          strucslope = sum(dzbdx(indx(j):nx,j)*dsu(indx(j):nx,j)*slopeind(indx(j):nx))/ &
+                          max(par%eps,sum(dsu(indx(j):nx,j)*slopeind(indx(j):nx)))
                           if (strucslope > 0.d0) then         
                              irrb = strucslope/sqrt(2*par%px*max(s%Hrunup(j),par%eps)/par%g/par%Trep**2)
-                             !bermwidth  = sum(dsu(indx:nx,j)*bermind(indx:nx))
-                             !rb = bermwidth/(bermwidth+sum(dsu(indx:nx,j)*slopeind(indx:nx)))
+                             !bermwidth  = sum(dsu(indx(j):nx,j)*bermind(indx(j):nx))
+                             !rb = bermwidth/(bermwidth+sum(dsu(indx(j):nx,j)*slopeind(indx(j):nx)))
                              !gamB = max(0.6d0,1.d0-rb)
                              !runup_max = (4.3d0-1.6d0/sqrt(irrb))*s%Hrunup(j)
                              !s%runup(j) = min(runup_max,irrb*s%Hrunup(j))*cos(2*par%px/par%Trep*par%t)
-                             s%runup(j) = min(irrb,2.3d0)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
+                             s%runup(j) = par%facrun*min(irrb,2.3d0)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
                           else
                              s%runup(j) = 0.d0;
                           endif
-        
-                          hav(:,j) = hh(:,j) + wetz(:,j)*par%shoaldelay*s%runup(j) + &
-                                              (1.d0-wetz(:,j))*max(par%eps, par%shoaldelay*(s%runup(j)-zb(:,j)));
+                           
+                          !hav(:,j) = hh(:,j) + wetz(:,j)*s%runup(j) + &
+                          !                    (1.d0-wetz(:,j))*max(par%eps,hh(:,j)+s%runup(j)-zb(:,j));
+                                              
+                          hav(:,j) = hh(:,j) + wetz(:,j)*s%runup(j) + &
+                                              (1-wetz(:,j))*max(par%eps,s%runup(j)+zs(i-1,j)-zs(:,j));  !i-1 corresponds to last wet point
+                          
                        enddo
                     endif
                  enddo
@@ -710,12 +719,12 @@ contains
               
               endif ! end crude switch
               !
-              do i=2,nx-1
+              do i=2,nx !-1 Jaap -1 gives issues for bed updating at mpi boundaries
                  do j=1,ny+1
                     !if (max( max(hh(i,j),par%delta*H(i,j)), max(hh(i+1,j),par%delta*H(i+1,j)) )>par%hswitch+par%eps) then
                     if(max(hav(i,j),hav(i+1,j))>par%hswitch+par%eps) then ! Jaap instead of hh
                        dzmax=par%wetslp;
-                       if (i>indx) then ! tricks: seaward of indx (transition from sand to structure) wetslope is set to 0.03;
+                       if (i>indx(j)) then ! tricks: seaward of indx (transition from sand to structure) wetslope is set to 0.03;
                           dzmax = 0.03d0
                           !dzmax = max(0.01d0,abs(dzbdx(i,j))*0.9d0)
                        endif
@@ -793,7 +802,7 @@ contains
                  enddo
               enddo
 
-              do j=2,ny-1
+              do j=2,ny !-1 Jaap -1 gives issues for bed updating at mpi boundaries
                  do i=1,nx+1
                     if(max(hh(i,j),hh(i,j+1))>par%hswitch+par%eps) then
                        dzmax=par%wetslp
@@ -845,7 +854,7 @@ contains
 
                           dzavt = dzavt + sum(edg2)*par%dt/(1.d0-par%por)
 
-                          call update_fractions(par,s,i,je,dzbed(i,je,:),pbbed(i,je,:,:),edg2,dzavt)            ! upwind point
+                          call update_fractions(par,s,i,je,dzbed(i,je,:),pbbed(i,je,:,:),edg2,dzavt)           ! upwind point
 
                           call update_fractions(par,s,i,jd,dzbed(i,jd,:),pbbed(i,jd,:,:),edg1,-dzavt*dyfac)    ! downwind point
 

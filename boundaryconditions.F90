@@ -11,7 +11,7 @@ contains
     ! P.O. Box 3015                                                           !
     ! 2601 DA Delft                                                           !
     ! The Netherlands                                                         !
-    !                                                                         !
+    !                                                                         !factime
     ! This library is free software; you can redistribute it and/or           !
     ! modify it under the terms of the GNU Lesser General Public              !
     ! License as published by the Free Software Foundation; either            !
@@ -371,9 +371,9 @@ contains
     elseif (trim(par%instat)=='bichrom') then
        do j=1,ny+1
           ee(1,j,:)=e01*0.5d0 * &
-                 (1.d0+cos(2*par%px*(par%t/par%Tlong-(sin(theta0-sum(alfaz(1,1:j))/j)*(yz(1,j)-yz(1,1)) &
-                                                     +cos(theta0-sum(alfaz(1,1:j))/j)*(xz(1,j)-xz(1,1)))/Llong))) * &
-                                                     min(par%t/par%taper,1.d0)
+                 (1.d0+cos(2*par%px*(par%t/par%Tlong-( sin(theta0)*(yz(1,j)-yz(1,1)) & !jaap : -sum(alfaz(1,1:j))/j
+                                                      +cos(theta0)*(xz(1,j)-xz(1,1)) )/Llong))) * & !jaap: -sum(alfaz(1,1:j))/j
+                                                      min(par%t/par%taper,1.d0)
           em = (sum(0.5d0*e01))*dtheta *min(par%t/par%taper,1.d0)
           ei =  sum(ee(1,j,1:ntheta))*dtheta
           bi(1) = -(2*cg(1,j)/c(1,j)-0.5d0)*(em-ei)/(cg(1,j)**2-par%g*hh(1,j))/par%rho
@@ -387,8 +387,8 @@ contains
           else
              ! tshifted=max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1),0.d0)
              ! jaap this does not work for curvi code
-             tshifted = max(par%t-(yz(1,j)-yz(1,1))*sin(theta0-sum(alfaz(1,1:j))/j)/cg(1,1) & 
-                                 +(xz(1,j)-xz(1,1))*cos(theta0-sum(alfaz(1,1:j))/j)/cg(1,1),0.d0)
+             tshifted = max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1) & !-sum(alfaz(1,1:j))/j
+                                 +(xz(1,j)-xz(1,1))*cos(theta0)/cg(1,1),0.d0) !-sum(alfaz(1,1:j))/j
              call linear_interp(tE,dataE,nt,tshifted,E1,E_idx) 
           endif
           ee(1,j,:)=e01*E1/max(Emean,0.000001d0)*min(par%t/par%taper,1.d0)
@@ -407,8 +407,8 @@ contains
           else
              ! tshifted=max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1),0.d0)
              ! jaap this does not work for curvi code
-             tshifted = max(par%t-(yz(1,j)-yz(1,1))*sin(theta0-sum(alfaz(1,1:j))/j)/cg(1,1) & 
-                                 +(xz(1,j)-xz(1,1))*cos(theta0-sum(alfaz(1,1:j))/j)/cg(1,1),0.d0)
+             tshifted = max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1) & !-sum(alfaz(1,1:j))/j
+                                 +(xz(1,j)-xz(1,1))*cos(theta0)/cg(1,1),0.d0) !-sum(alfaz(1,1:j))/j
              call linear_interp(tE,dataE,nt,tshifted,E1,E_idx) 
              call linear_interp(tE,databi,nt,tshifted,bi(1),E_idx)
           endif
