@@ -52,6 +52,11 @@ module libxbeach_module
   interface get2ddoublearray
       module procedure get2ddoublearray_fortran
   end interface get2ddoublearray
+
+  interface set2ddoublearray
+      module procedure set2ddoublearray_fortran
+  end interface set2ddoublearray
+
   !startinit
 
   !-----------------------------------------------------------------------------!
@@ -212,6 +217,7 @@ contains
   integer(c_int) function getdoubleparameter_c(name,value, length) bind(C,name="getdoubleparameter")
     !DEC$ ATTRIBUTES DLLEXPORT::getdoubleparameter_c
     USE iso_c_binding
+    use getkey_module
     ! use inout otherwise things break
     real(c_double), intent(inout) :: value
     ! and we need the string length ....
@@ -220,22 +226,11 @@ contains
     character(kind=c_char),intent(in) :: name(length)
 
     ! Transform name to a fortran character... 
+    type(parameter) :: myparam
     character(length) :: myname 
     myname = char_array_to_string(name, length)
-    select case (myname)
-    case ('t')
-       value = par%t
-    case ('tstop')
-       value = par%tstop
-    case ('xori') 
-       value = par%xori
-    case ('yori')
-       value = par%yori
-    case ('alfa')
-       value = par%alfa
-    case default
-       value = -99.0d0
-    end select
+    call getkey(par, myname, myparam)
+    value = myparam%r0
     getdoubleparameter_c = 0
   end function getdoubleparameter_c
 
@@ -305,6 +300,7 @@ contains
     !DEC$ ATTRIBUTES DLLEXPORT::getintparameter_c
 
     USE iso_c_binding
+    use getkey_module
     ! use inout otherwise things break
     integer(c_int), intent(inout) :: value
     ! and we need the string length ....
@@ -314,15 +310,11 @@ contains
 
     ! Transform name to a fortran character... 
     character(length) :: myname 
+    type(parameter) :: myparam
     myname = char_array_to_string(name, length)
-    select case (myname)
-    case ('nx')
-       value = par%nx
-    case ('ny')
-       value = par%ny
-    case default
-       value = -99
-    end select
+    ! Lookup the parameter by name
+    call getkey(par, myname, myparam)
+    value = myparam%i0
     getintparameter_c = 0
   end function getintparameter_c
 
@@ -419,6 +411,54 @@ contains
     x = c_loc(r2)
     get2ddoublearray_c = 0
   end function get2ddoublearray_c
+
+
+  integer(c_int) function set2ddoublearray_fortran(name,x) 
+    USE iso_c_binding
+    ! use inout otherwise things break
+    type (c_ptr), intent(inout) :: x
+
+    ! String
+    character(kind=c_char,len=*),intent(in) :: name
+
+    ! Transform name to a fortran character... 
+    character(1), dimension(len(name)) :: myname 
+    integer :: i
+    do i = 1,len(name)
+        myname(i) = name(i:i) 
+    enddo
+    set2ddoublearray_fortran = set2ddoublearray_c(myname,x,len(name))
+  end function set2ddoublearray_fortran
+
+  integer(c_int) function set2ddoublearray_c(name, x, length) bind(C, name="set2ddoublearray")
+    !DEC$ ATTRIBUTES DLLEXPORT::set2ddoublearray_c
+
+    ! use inout otherwise things break
+    type (c_ptr), intent(inout) :: x
+    ! and we need the string length ....
+    integer(c_int),value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(in) :: name(length)
+
+    character(length) :: myname 
+    integer :: index
+    type(arraytype) :: array
+    real(c_double), pointer, dimension(:,:)  :: r2
+
+    set2ddoublearray_c = -1
+
+    myname = char_array_to_string(name, length)
+    index =  chartoindex(myname)
+    
+    call indextos(s,index,array)
+    ! Transform the c pointer into a fortran pointer
+    call c_f_pointer(x, r2, shape(array%r2))
+    ! Copy the values, or the pointer... not sure.
+    array%r2 = r2
+    
+    set2ddoublearray_c = 0
+  end function set2ddoublearray_c
+
 
   integer(c_int) function finalize() bind(C, name="finalize")
     !DEC$ ATTRIBUTES DLLEXPORT::finalize
