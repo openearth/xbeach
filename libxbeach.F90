@@ -157,12 +157,12 @@ contains
 
   integer(c_int) function executestep() bind(C, name="executestep")
     !DEC$ ATTRIBUTES DLLEXPORT::executestep
-    executestep = 0 
+     
 
     ! This is now called in output, but timestep depends on it...
     ! call outputtimes_update(par, tpar)
     !n = 0
-
+    executestep = -1
     !do while (par%t<par%tstop)
     ! determine timestep
     call timestep(s,par,tpar,it,ierr=error)
@@ -190,7 +190,7 @@ contains
     ! call output(sglobal,s,par,tpar)
 
     ! n = n + 1
-
+    executestep = 0
     ! enddo
   end function executestep
 
@@ -228,8 +228,11 @@ contains
     ! Transform name to a fortran character... 
     type(parameter) :: myparam
     character(length) :: myname 
+    ! Return -1 for invalid parameters
+    getdoubleparameter_c = -1
     myname = char_array_to_string(name, length)
-    call getkey(par, myname, myparam)
+    getdoubleparameter_c =  getkey(par, myname, myparam)
+    if (getdoubleparameter_c) return
     value = myparam%r0
     getdoubleparameter_c = 0
   end function getdoubleparameter_c
@@ -313,7 +316,8 @@ contains
     type(parameter) :: myparam
     myname = char_array_to_string(name, length)
     ! Lookup the parameter by name
-    call getkey(par, myname, myparam)
+    getintparameter_c = getkey(par, myname, myparam)
+    if (getintparameter_c .eq. -1) return
     value = myparam%i0
     getintparameter_c = 0
   end function getintparameter_c
@@ -331,10 +335,10 @@ contains
     character(length) :: myname 
     integer :: index
     type(arraytype) :: array
-    getarray = 1
-
+    getarray = -1
     myname = char_array_to_string(name, length)
     index =  chartoindex(myname)
+    if (index .eq. -1) return
     call indextos(s,index,array)
     x = arrayf2c(array)
     getarray = 0
@@ -359,6 +363,7 @@ contains
 
     myname = char_array_to_string(name, length)
     index =  chartoindex(myname)
+    if (index .eq. -1) return
     call indextos(s,index,array)
     allocate(r1(size(array%r1,1)))
     r1 = array%r1
@@ -403,7 +408,7 @@ contains
 
     myname = char_array_to_string(name, length)
     index =  chartoindex(myname)
-    
+    if (index .eq. -1) return
     call indextos(s,index,array)
     allocate(r2(size(array%r2,1), size(array%r2,2)))
     r2 = array%r2
@@ -449,7 +454,7 @@ contains
 
     myname = char_array_to_string(name, length)
     index =  chartoindex(myname)
-    
+    if (index .eq. -1) return
     call indextos(s,index,array)
     ! Transform the c pointer into a fortran pointer
     call c_f_pointer(x, r2, shape(array%r2))

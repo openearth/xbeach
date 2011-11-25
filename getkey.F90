@@ -34,7 +34,7 @@ subroutine getkey_indextype(par, key, index, type)
   character, intent(out)       :: type
   integer                      :: i
   include 'getkey.gen'
-  index = 0
+  index = -1
   type = ''
   do i=1,nintegerkeys
      if (integerkeys(i) == key) then
@@ -59,7 +59,7 @@ subroutine getkey_indextype(par, key, index, type)
   end do
 end subroutine getkey_indextype
 
-subroutine getkey(par, key, value)
+integer function getkey(par, key, value)
   ! This subroutine returns a value (parameter), given a key (parameter name).
   use params
   use mnemmodule
@@ -79,6 +79,8 @@ subroutine getkey(par, key, value)
   include 'getkey.gen'
   ! This sets index and type
   call getkey_indextype(par, key, index, type)
+  getkey = -1
+  if (index .eq. -1 ) return
   value%name = key
   value%rank = 0
   value%type = type
@@ -92,7 +94,8 @@ subroutine getkey(par, key, value)
      realvalue = realvalues(index)
      value%r0 => realvalue
   end if
-end subroutine getkey
+  getkey = 0
+end function getkey
 
 subroutine getkeys(par, keys)
   ! This subroutine gives a list of all available keys (parameter names)

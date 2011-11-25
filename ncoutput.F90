@@ -119,6 +119,7 @@ contains
     type(arraytype)                              :: t
     type(meanspars)                              :: meanvar
     integer                                      :: i,j
+    integer                                      :: rc ! return code
     character(len=maxnamelen)                    :: mnem
 
     integer                                      :: npointstotal
@@ -268,7 +269,7 @@ contains
        ! This part is awaiting comments from Robert McCall
        call getkeys(par, keys)
        do i=1,size(keys)
-          call getkey(par, keys(i), val)
+          rc = getkey(par, keys(i), val)
           if (val%type == 'i') then
              status = nf90_put_att(ncid, parvarid, keys(i), val%i0 )
           elseif (val%type == 'c') then
