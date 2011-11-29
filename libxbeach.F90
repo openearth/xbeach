@@ -31,7 +31,7 @@ module libxbeach_module
   real*8                                              :: tbegin
 
 #ifdef USEMPI
-  type(spacepars), target                             :: slocal
+  type(spacepars), target, save                       :: slocal
   real*8                                              :: t0,t01
 #endif
 
