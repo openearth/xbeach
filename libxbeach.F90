@@ -232,7 +232,7 @@ contains
     getdoubleparameter_c = -1
     myname = char_array_to_string(name, length)
     getdoubleparameter_c =  getkey(par, myname, myparam)
-    if (getdoubleparameter_c) return
+    if (getdoubleparameter_c .eq. -1) return
     value = myparam%r0
     getdoubleparameter_c = 0
   end function getdoubleparameter_c
