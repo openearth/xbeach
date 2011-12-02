@@ -162,7 +162,7 @@ contains
     enddo
 
     ! compute diffusion coefficient
-    Dc = par%nuh+par%nuhfac*hh*(DR/par%rho)**(1.d0/3.d0)
+    Dc = par%facDc*(par%nuh+par%nuhfac*hh*(DR/par%rho)**(1.d0/3.d0))
 
     do jg = 1,par%ngd
        cc = ccg(:,:,jg)
@@ -203,7 +203,6 @@ contains
                 !cub(i,j)=0.5d0*(ccb(i,j)+ccb(i+1,j))
              endif
              dcsdx(i,j)=(cc(i+1,j)-cc(i,j))/dsu(i,j)
-
           enddo
        enddo
        ! wwvv dcdx(nx:1,:) is still untouched, correct this ofr the parallel case
@@ -726,7 +725,7 @@ contains
                        dzmax=par%wetslp;
                        if (i>indx(j)) then ! tricks: seaward of indx (transition from sand to structure) wetslope is set to 0.03;
                           !dzmax = 0.03d0
-                          dzmax = max(0.03d0,abs(dzbdx(i,j))*0.9d0)
+                          dzmax = max(0.03d0,abs(dzbdx(i,j))*0.95d0)
                        endif
                     else 
                        dzmax=par%dryslp;

@@ -264,6 +264,7 @@ type parameters
    integer*4     :: sus                        = -123    !  [-] (advanced) Calibration factor for suspensions transports [0..1]
    integer*4     :: bed                        = -123    !  [-] (advanced) Calibration factor for bed transports [0..1]
    integer*4     :: bulk                       = -123    !  [-] (advanced) Option to compute bedload and suspended load seperately; 0 = seperately, 1 = bulk (as in previous versions)
+   real*8        :: facDc                      = -123    !  [-] (advanced) Option to control sediment diffusion coefficient [0..1]
    
    ! [Section] Morphology parameters                                                                                                         
    real*8        :: morfac                     = -123    !  [-] Morphological acceleration factor
@@ -886,6 +887,7 @@ contains
        par%sus      = readkey_int ('params.txt','sus    ',1,           0,            1)
        par%bed      = readkey_int ('params.txt','bed    ',1,           0,            1)
        par%bulk     = readkey_int ('params.txt','bulk   ',1,           0,            1)
+       par%facDc    = readkey_dbl ('params.txt','facDc  ',1.0d0,     0.00d0,   1.0d0)
     endif
     !
     !
