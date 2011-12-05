@@ -449,10 +449,8 @@ subroutine timestep(s,par, tpar, it, ierr)
               par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
               
               !Bas: the following criterion is not yet tested for 2D
-              !mdx = s%dsz(i,j);
-              !mdy = s%dnz(i,j);
-              !par%dt=min(par%dt,0.5d0*mdx**2/max(s%Dc(i,j)*s%wetz(i,j),1e-6))
-              !par%dt=min(par%dt,0.5d0*mdy**2/max(s%Dc(i,j)*s%wetz(i,j),1e-6))
+              !par%dt=min(par%dt,0.5d0*mdx/max(s%Dc(i,j)*s%wetz(i,j),1e-6))
+              !par%dt=min(par%dt,0.5d0*mdy/max(s%Dc(i,j)*s%wetz(i,j),1e-6))
             endif
           enddo
         enddo
@@ -476,9 +474,7 @@ subroutine timestep(s,par, tpar, it, ierr)
             endif
               
             par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j2),1e-6))
-            
-            mdx = s%dsz(i,j2);
-            par%dt=min(par%dt,0.5d0*mdx**2/max(s%Dc(i,j2)*s%wetz(i,j2),1e-6))
+            par%dt=min(par%dt,0.5d0*mdx/max(s%Dc(i,j2)*s%wetz(i,j2),1e-6))
           endif
         enddo
      endif

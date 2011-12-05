@@ -1547,15 +1547,15 @@ contains
 
     real*8 , save                            :: m1,m2,m3,m4,m5,m6,alpha,beta
 
-    real*8 , dimension(:,:),allocatable,save   :: Ur,Bm,B1
+    real*8 , dimension(:,:),allocatable,save   :: Urs,Bm,B1
 
     include 's.ind'
     include 's.inp'
 
     ! only in first timestep..
-    if (.not. allocated(Ur)) then
+    if (.not. allocated(Urs)) then
 
-       allocate (Ur    (nx+1,ny+1))
+       allocate (Urs    (nx+1,ny+1))
        allocate (Bm    (nx+1,ny+1))
        allocate (B1    (nx+1,ny+1))
 
@@ -1570,10 +1570,10 @@ contains
 
     endif
 
-    Ur = 3.d0/8.d0*sqrt(2.d0)*H*k/(k*hh)**3                    !Ursell number
-    Ur = max(Ur,0.000000000001d0)
-    Bm = m1 + (m2-m1)/(1.d0+beta*Ur**alpha)                    !Boltzmann sigmoid (eq 6)         
-    B1 = (-90.d0+90.d0*tanh(m5/Ur**m6))*par%px/180.d0
+    Urs = 3.d0/8.d0*sqrt(2.d0)*H*k/(k*hh)**3                    !Ursell number
+    Urs = max(Urs,0.000000000001d0)
+    Bm = m1 + (m2-m1)/(1.d0+beta*Urs**alpha)                    !Boltzmann sigmoid (eq 6)         
+    B1 = (-90.d0+90.d0*tanh(m5/Urs**m6))*par%px/180.d0
     Sk = Bm*cos(B1)                                            !Skewness (eq 8)
     As = Bm*sin(B1)                                            !Asymmetry(eq 9)                                
     ua = par%sws*(par%facSk*Sk-par%facAs*As)*urms
