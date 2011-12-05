@@ -375,18 +375,21 @@ contains
   integer(c_int) function get2ddoublearray_fortran(name,x) 
     USE iso_c_binding
     ! use inout otherwise things break
-    type (c_ptr), intent(inout) :: x
+    real(c_double), intent(inout) :: x(:,:)
+    integer :: index
 
     ! String
     character(kind=c_char,len=*),intent(in) :: name
+    type(arraytype) :: array
 
     ! Transform name to a fortran character... 
     character(1), dimension(len(name)) :: myname 
     integer :: i
-    do i = 1,len(name)
-        myname(i) = name(i:i) 
-    enddo
-    get2ddoublearray_fortran = get2ddoublearray_c(myname,x,len(name))
+    index =  chartoindex(trim(name))
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    x = array%r2
+    get2ddoublearray_fortran = 0
   end function get2ddoublearray_fortran
 
   integer(c_int) function get2ddoublearray_c(name, x, length) bind(C, name="get2ddoublearray")
@@ -411,7 +414,7 @@ contains
     if (index .eq. -1) return
     call indextos(s,index,array)
     allocate(r2(size(array%r2,1), size(array%r2,2)))
-    r2 = array%r2
+    r2(:,:) = array%r2(:,:)
     ! array%r2 => r2
     x = c_loc(r2)
     get2ddoublearray_c = 0
