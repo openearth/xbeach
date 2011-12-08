@@ -1137,9 +1137,9 @@ logical, dimension(numvars)         :: avail      ! .true.: this item is collect
       select case(tl%rank)
         case(0)             ! nothing to do
         case(2)
-          if (tl%name .eq. mnem_umean) then
-            goto 100
-          endif
+          !if (tl%name .eq. mnem_umean) then
+          !  goto 100
+          !endif
           call space_collect(sl,tg%r2,tl%r2)
         case(3)
           call space_collect(sl,tg%r3,tl%r3)
@@ -1395,7 +1395,7 @@ subroutine gridprops (s)
    real*8                                  :: dsdnu   ! surface of cell centered around u-point
    real*8                                  :: dsdnv   ! surface of cell centered around v-point
    real*8                                  :: dsdnz   ! surface of cell centered around z-point
-   real*8                                  :: x1,y1,x2,y2,x3,y3
+   real*8                                  :: x1,y1,x2,y2,x3,y3,x4,y4
 
    include 's.ind'
    include 's.inp'
@@ -1562,13 +1562,15 @@ subroutine gridprops (s)
   
       do j=2,ny+1
          do i=1,nx
-            x1=xv(i  ,j  ) - xv(i,j-1)
-            x2=xv(i+1,j  ) - xv(i,j-1)
-            x3=xv(i+1,j-1) - xv(i,j-1)
-            y1=yv(i  ,j  ) - yv(i,j-1)
-            y2=yv(i+1,j  ) - yv(i,j-1)
-            y3=yv(i+1,j-1) - yv(i,j-1)
-            dsdnu=abs(0.5d0*(x1*y2-x2*y1+x2*y3-x3*y2))
+            x1=xv(i  ,j  ) - xv(i  ,j-1)
+            x3=xv(i+1,j-1) - xv(i  ,j-1)
+            x2=xv(i+1,j  ) - xv(i+1,j-1)
+            x4=xv(i+1,j  ) - xv(i  ,j  )
+            y1=yv(i  ,j  ) - yv(i  ,j-1)
+            y3=yv(i+1,j-1) - yv(i  ,j-1)
+            y2=yv(i+1,j  ) - yv(i+1,j-1)
+            y4=yv(i+1,j  ) - yv(i  ,j  )
+            dsdnu=0.5d0*(abs(x1*y3-x3*y1)+abs(x2*y4-x4*y2))
             dsdnui(i,j)=1.d0/dsdnu
          enddo
       enddo
@@ -1579,13 +1581,15 @@ subroutine gridprops (s)
    
       do j=1,ny
          do i=2,nx+1
-            x1=xu(i-1,j+1) - xu(i-1,j)
-            x2=xu(i  ,j+1) - xu(i-1,j)
-            x3=xu(i  ,j  ) - xu(i-1,j)
-            y1=yu(i-1,j+1) - yu(i-1,j)
-            y2=yu(i  ,j+1) - yu(i-1,j)
-            y3=yu(i  ,j  ) - yu(i-1,j)
-            dsdnv=abs(0.5d0*(x1*y2-x2*y1+x2*y3-x3*y2))
+            x1=xu(i-1,j+1) - xu(i-1,j  )
+            x3=xu(i  ,j  ) - xu(i-1,j  )
+            x2=xu(i  ,j+1) - xu(i  ,j  )
+            x4=xu(i  ,j+1) - xu(i-1,j+1)
+            y1=yu(i-1,j+1) - yu(i-1,j  )
+            y3=yu(i  ,j  ) - yu(i-1,j  )
+            y2=yu(i  ,j+1) - yu(i  ,j  )
+            y4=yu(i  ,j+1) - yu(i-1,j+1)
+            dsdnv=0.5d0*(abs(x1*y3-x3*y1)+abs(x2*y4-x4*y2))
             dsdnvi(i,j)=1.d0/dsdnv
          enddo
       enddo
@@ -1597,12 +1601,14 @@ subroutine gridprops (s)
       do j=2,ny+1
          do i=2,nx+1
             x1=xc(i-1,j  ) - xc(i-1,j-1)
-            x2=xc(i  ,j  ) - xc(i-1,j-1)
             x3=xc(i  ,j-1) - xc(i-1,j-1)
+            x2=xc(i  ,j  ) - xc(i  ,j-1)
+            x4=xc(i  ,j  ) - xc(i-1,j  )
             y1=yc(i-1,j  ) - yc(i-1,j-1)
-            y2=yc(i  ,j  ) - yc(i-1,j-1)
             y3=yc(i  ,j-1) - yc(i-1,j-1)
-            dsdnz=abs(0.5d0*(x1*y2-x2*y1+x2*y3-x3*y2))
+            y2=yc(i  ,j  ) - yc(i  ,j-1)
+            y4=yc(i  ,j  ) - yc(i-1,j  )
+            dsdnz=0.5d0*(abs(x1*y3-x3*y1)+abs(x2*y4-x4*y2))
             dsdnzi(i,j)=1.d0/dsdnz
          enddo
       enddo

@@ -1398,10 +1398,10 @@ subroutine readglobalvars(par)
                  cycle
               elseif (mnemonics(i) .eq. 'tideinpz') then
                  cycle
-              elseif (mnemonics(i) .eq. 'umean') then
-                 cycle
-              elseif (mnemonics(i) .eq. 'vmean') then
-                 cycle
+              !elseif (mnemonics(i) .eq. 'umean') then
+              !   cycle
+              !elseif (mnemonics(i) .eq. 'vmean') then
+              !   cycle
               elseif (mnemonics(i) .eq. 'gw0back') then
                  cycle
               elseif (mnemonics(i) .eq. 'zi') then

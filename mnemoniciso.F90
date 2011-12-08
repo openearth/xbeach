@@ -6,8 +6,7 @@ use mnemmodule
 type, bind(c) :: b_arraytype
 
   character(kind=c_char) type         ! 'i' or 'r': integer or real*8
-  character(kind=c_char) btype        ! 'b' or 'd' '2': broadcast or distribute or 
-                         !                 distribute umean
+  character(kind=c_char) btype        ! 'b' or 'd':
   integer(c_int) rank           ! 0,1,2,3,4
   character(kind=c_char, len=maxnamelen) :: name     ! 'v','ve', .....
   character(kind=c_char, len=20) :: units     ! m, following udunits convention

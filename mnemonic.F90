@@ -4,8 +4,7 @@ include 'mnemonic.gen'
 type arraytype
 
   character type         ! 'i' or 'r': integer or real*8
-  character btype        ! 'b' or 'd' '2': broadcast or distribute or 
-                         !                 distribute umean
+  character btype        ! 'b' or 'd': broadcast or distribute
   integer rank           ! 0,1,2,3,4
   character(len=maxnamelen) :: name     ! 'v','ve', .....
   character(len=20) :: units     ! m, following udunits convention

@@ -553,8 +553,9 @@ endsubroutine spectral_wave_init
     allocate(s%zs0(1:s%nx+1,1:s%ny+1)) 
     allocate(s%zs0fac(1:s%nx+1,1:s%ny+1,2))
     allocate(s%wm(1:s%nx+1,1:s%ny+1))
-    allocate(s%umean(2,1:s%ny+1))
-    allocate(s%vmean(2,1:s%ny+1))
+    allocate(s%umean(1:s%nx+1,1:s%ny+1))
+    allocate(s%vmean(1:s%nx+1,1:s%ny+1))
+    allocate(s%ur(1:s%nx+1,1:s%ny+1))
     allocate(s%xyzs01(2))
     allocate(s%xyzs02(2))
     allocate(s%xyzs03(2))
@@ -614,6 +615,7 @@ endsubroutine spectral_wave_init
     s%wm = 0.0d0
     s%umean = 0.0d0
     s%vmean = 0.0d0
+    s%ur = 0.0d0
     s%xyzs01 = 0.0d0
     s%xyzs02 = 0.0d0
     s%xyzs03 = 0.0d0
@@ -636,8 +638,6 @@ endsubroutine spectral_wave_init
     s%nuh  = 0.0d0
     s%cf   = par%cf
     s%wm   =0.d0
-    s%umean=0.d0
-    s%vmean=0.d0
     s%zs0fac = 0.0d0
 
 
