@@ -589,6 +589,9 @@ contains
                           Svbg(i,j,:)*dsv(i,j)-Svbg(i,j-1,:)*dsv(i,j-1) )*dsdnzi(i,j)    )
                 endif
 
+                ! Jaap check bedlevel changes due to Transport gradients
+                dzS(i,j) = dzS(i,j)-sum(dzg)
+                
                 ! erosion/deposition rate of sand mass (m/s)
                 ! positive in case of erosion
                 edg = dzg*(1.d0-par%por)/par%dt
@@ -725,7 +728,7 @@ contains
                        dzmax=par%wetslp;
                        if (i>indx(j)) then ! tricks: seaward of indx (transition from sand to structure) wetslope is set to 0.03;
                           !dzmax = 0.03d0
-                          dzmax = max(0.03d0,abs(dzbdx(i,j))*0.95d0)
+                          dzmax = max(0.03d0,abs(dzbdx(i,j))*0.99d0)
                        endif
                     else 
                        dzmax=par%dryslp;

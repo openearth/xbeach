@@ -864,8 +864,9 @@ contains
                 alpha2(j)=-theta0 ! Jaap: this is first estimate
                 alphanew = 0.d0
                 if (trim(par%tidetype)=='velocity') then
-                  umean(1,j) = (factime*uu(1,j)+(1-factime)*umean(1,j))
-                  vmean(1,j) = (factime*vu(1,j)+(1-factime)*vmean(1,j)) 
+                  ! Jaap dirty trick to get rid of unrealistic velocity spikes
+                  umean(1,j) = factime*sign(1.d0,uu(1,j))*min(abs(uu(1,j)),sqrt(par%g*ht(1,j))) + (1-factime)*umean(1,j)
+                  vmean(1,j) = factime*sign(1.d0,vu(1,j))*min(abs(vu(1,j)),sqrt(par%g*ht(1,j))) + (1-factime)*vmean(1,j) 
                 else
                   umean(1,j) = 0.d0
                   vmean(1,j) = 0.d0
