@@ -638,8 +638,8 @@ contains
        ! initialize zsmean and dzs0
        zsmean(1,:) = zs(1,:)
        zsmean(2,:) = zs(nx,:)
-       umean = 0.d0
-       vmean = 0.d0
+       umean = uu
+       vmean = vv
        dzs0 = 0.d0 
        thetai = 0.d0
     endif

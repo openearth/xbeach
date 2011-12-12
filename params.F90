@@ -77,6 +77,7 @@ type parameters
    ! [Section] Initial conditions
    real*8        :: zs0                        = -123    !  [m] Inital water level
    character(256):: zsinitfile                 = 'abc'   !  [name] Name of inital condition file zs
+   integer*4     :: hotstartflow               = -123    !  [-] (advanced) Switch to hotstart flow conditions with pressure gradient balanced by wind and bed stress
 
    ! [Section] Wave boundary condition parameters                                                                                            
    character(24) :: instat                     = 'abc'   !  [-] Wave boundary condtion type
@@ -509,6 +510,7 @@ contains
          call check_file_length(par%zsinitfile,par%nx+1,par%ny+1)
        endif
     endif
+    par%hotstartflow = readkey_int ('params.txt','hotstartflow',    0,        0,     1)
     !
     !
     ! Wave boundary condition parameters

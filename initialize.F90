@@ -503,6 +503,8 @@ endsubroutine spectral_wave_init
     integer                                 :: indoff,indbay
 
     real*8,dimension(:),allocatable         :: xzs0,yzs0,szs0
+    real*8,dimension(:,:),allocatable       :: vmagvold,vmaguold
+    real*8                                  :: flowerr
 
     include 's.ind'
     include 's.inp'
@@ -564,7 +566,8 @@ endsubroutine spectral_wave_init
     allocate(szs0(1:2)) 
     allocate(xzs0(1:2)) 
     allocate(yzs0(1:2)) 
-
+    allocate(vmagvold(1:s%nx+1,1:s%ny+1)) 
+    allocate(vmaguold(1:s%nx+1,1:s%ny+1)) 
 
     ! Just to be sure!
     s%zs = 0.0d0
@@ -816,7 +819,7 @@ endsubroutine spectral_wave_init
     else
        s%hv(:,1)=s%zs(:,1)-s%zb(:,1)
     endif
-
+    
     s%hum(1:s%nx,:) = 0.5d0*(s%hh(1:s%nx,:)+s%hh(2:s%nx+1,:))
     s%hum(s%nx+1,:)=s%hh(s%nx+1,:)
 
@@ -852,6 +855,119 @@ endsubroutine spectral_wave_init
        s%wetu=0
        s%wetv=0
     endwhere
+    !
+    ! Start with initial velocities based on balance between water level gradient
+    ! and bed friction term
+    if (par%hotstartflow==1) then
+       call writelog('ls','','Calculating stationary flow field for initial condition')
+       ! water level gradients
+       do j=1,s%ny+1
+          do i=2,s%nx
+             s%dzsdx(i,j)=(s%zs0(i+1,j)-s%zs0(i,j))/s%dsu(i,j)
+          end do
+       end do
+       do j=1,s%ny ! Dano need to get correct slope on boundary y=0
+          do i=1,s%nx+1
+             s%dzsdy(i,j)=(s%zs0(i,j+1)-s%zs0(i,j))/s%dnv(i,j)
+          end do
+       end do
+       ! Water depth in u,v-points mean for wind forcing
+       do j=1,s%ny+1
+          do i=1,s%nx+1 !Ap
+             s%hum(i,j)=max(.5d0*(s%hh(i,j)+s%hh(min(s%nx,i)+1,j)),par%eps) 
+          end do
+       end do
+       do j=1,s%ny+1
+          do i=1,s%nx+1
+             s%hvm(i,j)=max(.5d0*(s%hh(i,j)+s%hh(i,min(s%ny,j)+1)),par%eps)
+          end do
+       end do
+       ! residual error
+       flowerr = huge(0.d0)
+       vmagvold = 0.d0
+       vmaguold = 0.d0
+       do while (flowerr > 0.00001d0)
+          !
+          ! Balance in longshore
+          vmagvold=0.5d0*(vmagvold+sqrt(s%uv**2+s%vv**2))   ! mean needed for convergence
+          ! solve v-balance of pressure gradient, wind forcing and bed friction
+          where (s%wetv==1)
+             s%vv = s%hv/par%cf/max(vmagvold,0.000001d0) &
+                                  *(-par%g*s%dzsdy+par%rhoa*par%Cd*s%windnv**2/(par%rho*s%hvm))
+          elsewhere
+             s%vv = 0.d0
+          endwhere
+          ! update vmagev
+          ! u velocity in v points
+          if (s%ny>0) then
+             s%uv(2:s%nx,1:s%ny)= .25d0*(s%uu(1:s%nx-1,1:s%ny)+s%uu(2:s%nx,1:s%ny)+ &
+                                         s%uu(1:s%nx-1,2:s%ny+1)+s%uu(2:nx,2:s%ny+1))
+             ! boundaries?
+             ! wwvv and what about uv(:,1) ?
+             if(xmpi_isright) then
+                s%uv(:,s%ny+1) = s%uv(:,s%ny)
+             endif
+          else
+             s%uv(2:s%nx,1)= .5d0*(s%uu(1:s%nx-1,1)+s%uu(2:s%nx,1))
+          endif !ny>0
+          s%vmagev = sqrt(s%uv**2+s%vv**2)
+          !
+          ! Balance in cross shore
+          vmaguold= 0.5d0*(vmaguold+sqrt(s%uu**2+s%vu**2)) ! mean needed for convergence
+          ! Solve balance of forces
+          where (s%wetu==1)
+             s%uu = s%hu/par%cf/max(vmaguold,0.000001d0) &
+                                  *(-par%g*s%dzsdx+par%rhoa*par%Cd*windsu**2/(par%rho*s%hum))
+          elsewhere
+             s%uu = 0.d0
+          endwhere
+          ! update vmageu
+          if (s%ny>0) then
+             s%vu(1:s%nx,2:s%ny)= 0.25d0*(s%vv(1:s%nx,1:s%ny-1)+s%vv(1:s%nx,2:s%ny)+ &
+                                          s%vv(2:s%nx+1,1:s%ny-1)+s%vv(2:s%nx+1,2:s%ny))
+             if(xmpi_isleft) then
+                s%vu(:,1) = s%vu(:,2)
+             endif
+             if(xmpi_isright) then
+                s%vu(:,ny+1) = s%vu(:,ny)
+             endif
+          else 
+             s%vu(1:s%nx,1)= 0.5d0*(s%vv(1:s%nx,1)+s%vv(2:s%nx+1,1))
+          endif !ny>0
+          s%vmageu = sqrt(s%uu**2+s%vu**2)
+          !
+          ! Check residual error
+          flowerr = max(maxval(abs(s%vmagev-vmagvold)),maxval(abs(s%vmageu-vmaguold)))          
+       enddo
+       ! calculate all derivatives
+       s%ueu=s%uu
+       s%vev=s%vv
+       s%qx=s%uu*s%hu
+       s%qy=s%vv*s%hv
+       s%vmagu=s%vmageu
+       s%vmagv=s%vmagev
+       s%u(2:s%nx,:)=0.5d0*(s%uu(1:s%nx-1,:)+s%uu(2:s%nx,:))
+       if(xmpi_istop) then
+          s%u(1,:)=s%uu(1,:)
+       endif
+       if(xmpi_isbot) then
+          s%u(s%nx+1,:)=s%u(s%nx,:)
+       endif
+       if (s%ny>0) then
+          s%v(:,2:s%ny)=0.5d0*(s%vv(:,1:s%ny-1)+s%vv(:,2:s%ny))
+          if(xmpi_isleft) then
+             s%v(:,1)=s%vv(:,1)
+          endif
+          if(xmpi_isright) then
+             s%v(:,s%ny+1)=s%v(:,s%ny)
+          endif
+          s%v(s%nx+1,:)=s%v(s%nx,:)
+       else ! Dano
+          s%v=s%vv
+       endif !ny>0
+    endif
+    !
+    ! Initialize for tide instant boundary condition
     !
     if (trim(par%tidetype)=='instant') then
        ! RJ: 22-09-2010
