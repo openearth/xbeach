@@ -374,17 +374,15 @@ contains
 
   integer(c_int) function get2ddoublearray_fortran(name,x) 
     USE iso_c_binding
-    ! use inout otherwise things break
-    real(c_double), intent(inout) :: x(:,:)
-    integer :: index
-
     ! String
     character(kind=c_char,len=*),intent(in) :: name
-    type(arraytype) :: array
+    ! use inout otherwise things break
+    real(c_double), intent(inout) :: x(:,:)
 
-    ! Transform name to a fortran character... 
-    character(1), dimension(len(name)) :: myname 
-    integer :: i
+    type(arraytype) :: array
+    integer :: i, index
+
+    get2ddoublearray_fortran = -1
     index =  chartoindex(trim(name))
     if (index .eq. -1) return
     call indextos(s,index,array)
@@ -423,19 +421,20 @@ contains
 
   integer(c_int) function set2ddoublearray_fortran(name,x) 
     USE iso_c_binding
-    ! use inout otherwise things break
-    type (c_ptr), intent(inout) :: x
-
     ! String
     character(kind=c_char,len=*),intent(in) :: name
+    ! use inout otherwise things break
+    real(c_double), intent(inout) :: x(:,:)
 
-    ! Transform name to a fortran character... 
-    character(1), dimension(len(name)) :: myname 
-    integer :: i
-    do i = 1,len(name)
-        myname(i) = name(i:i) 
-    enddo
-    set2ddoublearray_fortran = set2ddoublearray_c(myname,x,len(name))
+    integer :: i, index
+    type(arraytype) :: array
+
+    set2ddoublearray_fortran = -1
+    index =  chartoindex(trim(name))
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    array%r2 = x
+    set2ddoublearray_fortran = 0
   end function set2ddoublearray_fortran
 
   integer(c_int) function set2ddoublearray_c(name, x, length) bind(C, name="set2ddoublearray")

@@ -1716,11 +1716,6 @@ do m=1,4
   call flipiv(Comptemp,Nr/2-1)
   Gn(1,Nr/2+2:Nr)=Comptemp
 
-  ! Print status message to screen
-  if(xmaster) then
-    call writelog('ls','(A,A,A,I0)','Flux ',qstr(m),' 1 of ',Npy)
-  endif
-
   ! Fourier transformation
   Comptemp2=fft(Gn(1,:),inv=.true.)   
 
@@ -1745,11 +1740,6 @@ do m=1,4
     call flipiv(Comptemp,Nr/2-1)
     Gn(jj,Nr/2+2:Nr) = Comptemp
 
-    ! Print status message to screen
-    if(xmaster) then
-        call writelog('ls','(A,A,A,I0,A,I0)','Flux ',qstr(m),' ',jj,' of ',Npy)
-    endif
-    
     ! Inverse Discrete Fourier transformation to transform back to time space
     ! from frequency space
     Comptemp2=fft(Gn(jj,:),inv=.true.)  
