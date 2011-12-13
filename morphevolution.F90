@@ -588,18 +588,26 @@ contains
                         ( Subg(i,j,:)*dnu(i,j)-Subg(i-1,j,:)*dnu(i-1,j)+&           
                           Svbg(i,j,:)*dsv(i,j)-Svbg(i,j-1,:)*dsv(i,j-1) )*dsdnzi(i,j)    )
                 endif
-
-                ! Jaap check bedlevel changes due to Transport gradients
-                dzS(i,j) = dzS(i,j)-sum(dzg)
                 
-                ! erosion/deposition rate of sand mass (m/s)
-                ! positive in case of erosion
-                edg = dzg*(1.d0-par%por)/par%dt
+                if (par%ngd==1) then ! Simple bed update in case one fraction
+                  
+                  zb(i,j) = zb(i,j)+sum(dzg)
+                  dzbdt(i,j) = s%dzbdt(i,j)+sum(dzg) ! naamgeveing?
+                  sedero(i,j) = s%sedero(i,j)+sum(dzg)
+                  structdepth(i,j) = max(0.d0,s%structdepth(i,j)+sum(dzg))
+                  
+                else
+                  ! erosion/deposition rate of sand mass (m/s)
+                  ! positive in case of erosion
+                  edg = dzg*(1.d0-par%por)/par%dt
 
-                dz=>dzbed(i,j,:)
-                pb=>pbbed(i,j,:,:)           
 
-                call update_fractions(par,s,i,j,dz,pb,edg,sum(dzg))
+                  dz=>dzbed(i,j,:)
+                  pb=>pbbed(i,j,:,:)           
+
+                  call update_fractions(par,s,i,j,dz,pb,edg,sum(dzg))
+                
+                endif
 
              enddo ! nx+1
           enddo ! ny+1
@@ -618,15 +626,25 @@ contains
                       ( Subg(i,j,:)*dnu(i,j)-Subg(i-1,j,:)*dnu(i-1,j) )*dsdnzi(i,j)    )
                       
              endif
+             
+             if (par%ngd==1) then ! Simple bed update in case one fraction
+                  
+               zb(i,j) = zb(i,j)+sum(dzg)
+               dzbdt(i,j) = s%dzbdt(i,j)+sum(dzg) ! naamgeveing?
+               sedero(i,j) = s%sedero(i,j)+sum(dzg)
+               structdepth(i,j) = max(0.d0,s%structdepth(i,j)+sum(dzg))
+                  
+             else ! multiple fractions...
+               ! erosion/deposition rate of sand mass (m/s)
+               ! positive in case of erosion
+               edg = dzg*(1.d0-par%por)/par%dt
 
-             ! erosion/deposition rate of sand mass (m/s)
-             ! positive in case of erosion
-             edg = dzg*(1.d0-par%por)/par%dt
+               dz=>dzbed(i,j,:)
+               pb=>pbbed(i,j,:,:)           
 
-             dz=>dzbed(i,j,:)
-             pb=>pbbed(i,j,:,:)           
-
-             call update_fractions(par,s,i,j,dz,pb,edg,sum(dzg))
+               call update_fractions(par,s,i,j,dz,pb,edg,sum(dzg))
+             
+             endif
 
           enddo ! nx+1
        endif !ny>0      
@@ -701,9 +719,10 @@ contains
                              !bermwidth  = sum(dsu(indx(j):nx,j)*bermind(indx(j):nx))
                              !rb = bermwidth/(bermwidth+sum(dsu(indx(j):nx,j)*slopeind(indx(j):nx)))
                              !gamB = max(0.6d0,1.d0-rb)
-                             !runup_max = (4.3d0-1.6d0/sqrt(irrb))*s%Hrunup(j)
+                             !runup_max = (4.3d0-1.6d0/sqrt(irrb))/1.75d0
                              !s%runup(j) = min(runup_max,irrb*s%Hrunup(j))*cos(2*par%px/par%Trep*par%t)
                              s%runup(j) = par%facrun*min(irrb,2.3d0)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
+                             !s%runup(j) = par%facrun*min(irrb,runup_max)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
                           else
                              s%runup(j) = 0.d0;
                           endif
@@ -737,7 +756,7 @@ contains
                     if(abs(dzbdx(i,j))>dzmax .and. structdepth(i+nint(max(0.d0,sign(1.d0,dzbdx(i,j)))),j)>par%eps) then 
                        aval=.true.     
                        !dzb=sign(1.0d0,dzbdx(i,j))*(abs(dzbdx(i,j))-dzmax)*dsu(i,j);
-                       dzb=sign(1.0d0,dzbdx(i,j))*(abs(dzbdx(i,j))-dzmax)*dsu(i,j);
+                       dzb=sign(1.0d0,dzbdx(i,j))*(abs(dzbdx(i,j))-dzmax)*dsu(i,j)
                        !Dano: Need to make this mass-conserving for curved areas; good enough for now
                        if (dzb >= 0.d0) then
                           ie = i+1                                        ! index erosion point
@@ -754,6 +773,20 @@ contains
                           dzb=max(dzb,-par%dzmax*par%dt/dsu(i,j)) 
                           dzb=max(dzb,-structdepth(i,j))
                        endif
+                       
+                       
+                       if (par%ngd == 1) then ! Simple bed update in case one fraction
+                       
+                         zb(id,j) = zb(id,j)-dzb
+                         zb(ie,j) = zb(id,j)+dzb
+                         dzbdt(id,j) = s%dzbdt(id,j)-dzb ! naamgeveing?
+                         dzbdt(ie,j) = s%dzbdt(ie,j)+dzb 
+                         sedero(id,j) = s%sedero(id,j)-dzb
+                         sedero(ie,j) = s%sedero(ie,j)+dzb
+                         structdepth(id,j) = max(0.d0,s%structdepth(id,j)-dzb)
+                         structdepth(ie,j) = max(0.d0,s%structdepth(ie,j)-dzb)
+                       
+                       else ! multiple fractions...
                        
                        ! now fix fractions....
                        dz => dzbed(ie,j,:) 
@@ -797,6 +830,7 @@ contains
                        zs(id,j)  = zs(id,j)+dzavt*dxfac*dyfac
                        dzav(id,j)= dzav(id,j)+dzavt*dxfac*dyfac
 
+                       end if ! yes/no multiple fractions
                     end if
                  end do
               end do
@@ -834,6 +868,19 @@ contains
                           dzb=max(dzb,-structdepth(i,j))
                        endif
                        
+                       if (par%ngd == 1) then ! Simple bed update in case one fraction
+                       
+                         zb(i,jd) = zb(i,jd)-dzb
+                         zb(i,je) = zb(i,je)+dzb
+                         dzbdt(i,jd) = s%dzbdt(i,jd)-dzb ! naamgeveing?
+                         dzbdt(i,je) = s%dzbdt(i,je)+dzb 
+                         sedero(i,jd) = s%sedero(i,jd)-dzb
+                         sedero(i,je) = s%sedero(i,je)+dzb
+                         structdepth(i,jd) = max(0.d0,s%structdepth(i,jd)-dzb)
+                         structdepth(i,je) = max(0.d0,s%structdepth(i,je)-dzb)
+                       
+                       else ! multiple fractions...
+
                        dz => dzbed(i,je,:) 
                        pb => pbbed(i,je,:,:)
 
@@ -874,6 +921,7 @@ contains
                        zs(i,jd)  = zs(i,jd)+dzavt*dxfac*dyfac
                        dzav(i,jd)= dzav(i,jd)+dzavt*dxfac*dyfac
                        
+                       endif !yes/no multiple fractions
                     end if
                  end do
               end do

@@ -1073,7 +1073,6 @@ endsubroutine spectral_wave_init
     allocate(s%Tbore(1:nx+1,1:ny+1))
     allocate(s%ua(1:nx+1,1:ny+1))  
     allocate(s%dzav(1:nx+1,1:ny+1))  
-    allocate(s%dzS(1:nx+1,1:ny+1)) 
     allocate(s%Sk(1:nx+1,1:ny+1))
     allocate(s%As(1:nx+1,1:ny+1))
     allocate(s%kturb(1:nx+1,1:ny+1))
@@ -1205,7 +1204,6 @@ endsubroutine spectral_wave_init
     s%Tbore      = 0.d0
     s%ua         = 0.d0
     s%dzav       = 0.d0
-    s%dzS        = 0.d0
     s%Sk         = 0.d0
     s%As         = 0.d0
     s%kturb      = 0.d0
