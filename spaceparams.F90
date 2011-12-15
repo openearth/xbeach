@@ -1484,7 +1484,6 @@ contains
           enddo
           dsv(1,j)=dsv(2,j)      ! Robert, need to have this for wave advec
           dsv(nx+1,j)=dsv(nx,j)
-          dsv(1,j)=dsv(2,j)
        enddo
     else
        dsv=dsz
