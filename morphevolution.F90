@@ -591,10 +591,10 @@ contains
 
                 if (par%ngd==1) then ! Simple bed update in case one fraction
 
-                   zb(i,j) = zb(i,j)+sum(dzg)
-                   dzbdt(i,j) = s%dzbdt(i,j)+sum(dzg) ! naamgeveing?
-                   sedero(i,j) = s%sedero(i,j)+sum(dzg)
-                   structdepth(i,j) = max(0.d0,s%structdepth(i,j)+sum(dzg))
+                   zb(i,j) = zb(i,j)-sum(dzg)
+                   dzbdt(i,j) = dzbdt(i,j)-sum(dzg) ! naamgeveing?
+                   sedero(i,j) = sedero(i,j)-sum(dzg)
+                   structdepth(i,j) = max(0.d0,structdepth(i,j)-sum(dzg))
 
                 else
                    ! erosion/deposition rate of sand mass (m/s)
@@ -629,10 +629,10 @@ contains
 
              if (par%ngd==1) then ! Simple bed update in case one fraction
 
-                zb(i,j) = zb(i,j)+sum(dzg)
-                dzbdt(i,j) = s%dzbdt(i,j)+sum(dzg) ! naamgeveing?
-                sedero(i,j) = s%sedero(i,j)+sum(dzg)
-                structdepth(i,j) = max(0.d0,s%structdepth(i,j)+sum(dzg))
+                zb(i,j) = zb(i,j)-sum(dzg)
+                dzbdt(i,j) = dzbdt(i,j)-sum(dzg) ! naamgeveing?
+                sedero(i,j) = sedero(i,j)-sum(dzg)
+                structdepth(i,j) = max(0.d0,structdepth(i,j)-sum(dzg))
 
              else ! multiple fractions...
                 ! erosion/deposition rate of sand mass (m/s)
@@ -777,14 +777,14 @@ contains
 
                       if (par%ngd == 1) then ! Simple bed update in case one fraction
 
-                         zb(id,j) = zb(id,j)-dzb
-                         zb(ie,j) = zb(id,j)+dzb
-                         dzbdt(id,j) = s%dzbdt(id,j)-dzb ! naamgeveing?
-                         dzbdt(ie,j) = s%dzbdt(ie,j)+dzb 
-                         sedero(id,j) = s%sedero(id,j)-dzb
-                         sedero(ie,j) = s%sedero(ie,j)+dzb
-                         structdepth(id,j) = max(0.d0,s%structdepth(id,j)-dzb)
-                         structdepth(ie,j) = max(0.d0,s%structdepth(ie,j)-dzb)
+                         zb(id,j) = zb(id,j)+dzb
+                         zb(ie,j) = zb(ie,j)-dzb
+                         dzbdt(id,j) = dzbdt(id,j)+dzb ! naamgeveing?
+                         dzbdt(ie,j) = dzbdt(ie,j)-dzb 
+                         sedero(id,j) = sedero(id,j)+dzb
+                         sedero(ie,j) = sedero(ie,j)-dzb
+                         structdepth(id,j) = max(0.d0,structdepth(id,j)+dzb)
+                         structdepth(ie,j) = max(0.d0,structdepth(ie,j)-dzb)
 
                       else ! multiple fractions...
 
@@ -870,14 +870,14 @@ contains
 
                       if (par%ngd == 1) then ! Simple bed update in case one fraction
 
-                         zb(i,jd) = zb(i,jd)-dzb
-                         zb(i,je) = zb(i,je)+dzb
-                         dzbdt(i,jd) = s%dzbdt(i,jd)-dzb ! naamgeveing?
-                         dzbdt(i,je) = s%dzbdt(i,je)+dzb 
-                         sedero(i,jd) = s%sedero(i,jd)-dzb
-                         sedero(i,je) = s%sedero(i,je)+dzb
-                         structdepth(i,jd) = max(0.d0,s%structdepth(i,jd)-dzb)
-                         structdepth(i,je) = max(0.d0,s%structdepth(i,je)-dzb)
+                         zb(i,jd) = zb(i,jd)+dzb
+                         zb(i,je) = zb(i,je)-dzb
+                         dzbdt(i,jd) = dzbdt(i,jd)+dzb ! naamgeveing?
+                         dzbdt(i,je) = dzbdt(i,je)-dzb 
+                         sedero(i,jd) = sedero(i,jd)+dzb
+                         sedero(i,je) = sedero(i,je)-dzb
+                         structdepth(i,jd) = max(0.d0,structdepth(i,jd)+dzb)
+                         structdepth(i,je) = max(0.d0,structdepth(i,je)-dzb)
 
                       else ! multiple fractions...
 
@@ -933,6 +933,7 @@ contains
        ! 
        if(xmpi_isleft .and. ny>0) then
           zb(:,1) = zb(:,2)
+          dzbdt(:,1) = dzbdt(:,2)
           sedero(:,1) = sedero(:,2)
           structdepth(:,1) = structdepth(:,2)
           pbbed(:,1,:,:)=pbbed(:,2,:,:)
@@ -942,6 +943,7 @@ contains
 
        if(xmpi_isright .and. ny>0) then
           zb(:,ny+1) = zb(:,ny)
+          dzbdt(:,ny+1) = dzbdt(:,ny)
           sedero(:,ny+1) = sedero(:,ny)
           structdepth(:,ny+1) = structdepth(:,ny)
           pbbed(:,ny+1,:,:)=pbbed(:,ny,:,:)
