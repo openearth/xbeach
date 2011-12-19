@@ -367,8 +367,10 @@ do j=2,ny
     end do
 end do
 
-xwadvec(:,1)= xwadvec(:,2)          !Ap
-xwadvec(:,ny+1) = xwadvec(:,ny)     !Ap
+if(ny>0) then
+  xwadvec(:,1)= xwadvec(:,2)          !Ap
+  xwadvec(:,ny+1) = xwadvec(:,ny)     !Ap
+endif
 
 #ifdef USEMPI
 call xmpi_shift(xwadvec,'m:') ! fill in xwadvec(nx+1,:)
