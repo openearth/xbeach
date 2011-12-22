@@ -777,13 +777,13 @@ contains
 
                       if (par%ngd == 1) then ! Simple bed update in case one fraction
 
-                         zb(id,j) = zb(id,j)+dzb
+                         zb(id,j) = zb(id,j)+dzb*dxfac*dyfac
                          zb(ie,j) = zb(ie,j)-dzb
-                         dzbdt(id,j) = dzbdt(id,j)+dzb ! naamgeveing?
+                         dzbdt(id,j) = dzbdt(id,j)+dzb*dxfac*dyfac ! naamgeveing?
                          dzbdt(ie,j) = dzbdt(ie,j)-dzb 
-                         sedero(id,j) = sedero(id,j)+dzb
+                         sedero(id,j) = sedero(id,j)+dzb*dxfac*dyfac
                          sedero(ie,j) = sedero(ie,j)-dzb
-                         structdepth(id,j) = max(0.d0,structdepth(id,j)+dzb)
+                         structdepth(id,j) = max(0.d0,structdepth(id,j)+dzb*dxfac*dyfac)
                          structdepth(ie,j) = max(0.d0,structdepth(ie,j)-dzb)
 
                       else ! multiple fractions...
@@ -870,13 +870,13 @@ contains
 
                       if (par%ngd == 1) then ! Simple bed update in case one fraction
 
-                         zb(i,jd) = zb(i,jd)+dzb
+                         zb(i,jd) = zb(i,jd)+dzb*dxfac*dyfac
                          zb(i,je) = zb(i,je)-dzb
-                         dzbdt(i,jd) = dzbdt(i,jd)+dzb ! naamgeveing?
+                         dzbdt(i,jd) = dzbdt(i,jd)+dzb*dxfac*dyfac ! naamgeveing?
                          dzbdt(i,je) = dzbdt(i,je)-dzb 
-                         sedero(i,jd) = sedero(i,jd)+dzb
+                         sedero(i,jd) = sedero(i,jd)+dzb*dxfac*dyfac
                          sedero(i,je) = sedero(i,je)-dzb
-                         structdepth(i,jd) = max(0.d0,structdepth(i,jd)+dzb)
+                         structdepth(i,jd) = max(0.d0,structdepth(i,jd)+dzb*dxfac*dyfac)
                          structdepth(i,je) = max(0.d0,structdepth(i,je)-dzb)
 
                       else ! multiple fractions...
