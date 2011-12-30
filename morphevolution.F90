@@ -447,7 +447,7 @@ contains
     integer , dimension(s%nx+1)                 :: slopeind,bermind
     integer , dimension(s%ny+1)                 :: indx
     integer , dimension(:,:,:),allocatable,save :: indSus,indSub,indSvs,indSvb
-    real*8                                      :: dzb,dzmax,dzt,dzleft,sdz,dzavt,fac,Savailable,dxfac,dyfac
+    real*8                                      :: dzb,dzmax,dzt,dzleft,sdz,dzavt,fac,Savailable,dAfac
     real*8                                      :: strucslope,bermwidth,rb,gamB,irrb,runup_old,runup_max,first
     real*8 , dimension(:,:),allocatable,save    :: dzbtot,Sout,hav
     real*8 , dimension(par%ngd)                 :: edg,edg1,edg2,dzg
@@ -754,22 +754,19 @@ contains
                    end if
 
                    if(abs(dzbdx(i,j))>dzmax .and. structdepth(i+nint(max(0.d0,sign(1.d0,dzbdx(i,j)))),j)>par%eps) then 
-                      aval=.true.     
-                      !dzb=sign(1.0d0,dzbdx(i,j))*(abs(dzbdx(i,j))-dzmax)*dsu(i,j);
+                      aval=.true.
                       dzb=sign(1.0d0,dzbdx(i,j))*(abs(dzbdx(i,j))-dzmax)*dsu(i,j)
-                      !Dano: Need to make this mass-conserving for curved areas; good enough for now
+                      
                       if (dzb >= 0.d0) then
                          ie = i+1                                        ! index erosion point
                          id = i                                          ! index deposition point
-                         dxfac = dsz(i+1,j)/dsz(i,j)                     ! take into account varying gridsize
-                         dyfac = dnz(i+1,j)/dnz(i,j)                     ! Jaap: for curvi grids take also into account varying grid size alongshore 
+                         dAfac = dsdnzi(i,j)/dsdnzi(i+1,j)               ! take into account varying grid sizes
                          dzb=min(dzb,par%dzmax*par%dt/dsu(i,j))          ! make sure dzb is not in conflict with maximum erosion rate par%dzmax
                          dzb=min(dzb,structdepth(i+1,j))                 ! make sure dzb is not larger than sediment layer thickness
                       else
                          ie = i                                          ! index erosion point
                          id = i+1                                        ! index deposition point
-                         dxfac = dsz(i,j)/dsz(i+1,j)                     ! take into account varying gridsize
-                         dyfac = dnz(i,j)/dnz(i+1,j)                     ! Jaap: for curvi grids take also into account varying grid size alongshore 
+                         dAfac = dsdnzi(i+1,j)/dsdnzi(i,j)               ! take into account varying grid sizes
                          dzb=max(dzb,-par%dzmax*par%dt/dsu(i,j)) 
                          dzb=max(dzb,-structdepth(i,j))
                       endif
@@ -777,14 +774,16 @@ contains
 
                       if (par%ngd == 1) then ! Simple bed update in case one fraction
 
-                         zb(id,j) = zb(id,j)+dzb*dxfac*dyfac
-                         zb(ie,j) = zb(ie,j)-dzb
-                         dzbdt(id,j) = dzbdt(id,j)+dzb*dxfac*dyfac ! naamgeveing?
-                         dzbdt(ie,j) = dzbdt(ie,j)-dzb 
-                         sedero(id,j) = sedero(id,j)+dzb*dxfac*dyfac
-                         sedero(ie,j) = sedero(ie,j)-dzb
-                         structdepth(id,j) = max(0.d0,structdepth(id,j)+dzb*dxfac*dyfac)
-                         structdepth(ie,j) = max(0.d0,structdepth(ie,j)-dzb)
+                         dzleft = abs(dzb)
+                         
+                         zb(id,j) = zb(id,j)+dzleft*dAfac
+                         zb(ie,j) = zb(ie,j)-dzleft
+                         dzbdt(id,j) = dzbdt(id,j)+dzleft*dAfac ! naamgeveing?
+                         dzbdt(ie,j) = dzbdt(ie,j)-dzleft 
+                         sedero(id,j) = sedero(id,j)+dzleft*dAfac
+                         sedero(ie,j) = sedero(ie,j)-dzleft
+                         structdepth(id,j) = max(0.d0,structdepth(id,j)+dzleft*dAfac)
+                         structdepth(ie,j) = max(0.d0,structdepth(ie,j)-dzleft)
 
                       else ! multiple fractions...
 
@@ -812,14 +811,14 @@ contains
                             ! erosion deposition per fraction (upwind or downwind); edg is positive in case of erosion   
                             do jg=1,par%ngd 
                                edg2(jg) =  sedcal(jg)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt       ! erosion    (dzt always > 0 )
-                               edg1(jg) = -sedcal(jg)*edg2(jg)*dxfac*dyfac                       ! deposition (dzt always < 0 )
+                               edg1(jg) = -sedcal(jg)*edg2(jg)*dAfac                             ! deposition (dzt always < 0 )
                             enddo
 
                             dzavt = dzavt + sum(edg2)*par%dt/(1.d0-par%por)
 
                             call update_fractions(par,s,ie,j,dzbed(ie,j,:),pbbed(ie,j,:,:),edg2,dzavt)           ! update bed in eroding point
 
-                            call update_fractions(par,s,id,j,dzbed(id,j,:),pbbed(id,j,:,:),edg1,-dzavt*dxfac*dyfac)    ! update bed in deposition point
+                            call update_fractions(par,s,id,j,dzbed(id,j,:),pbbed(id,j,:,:),edg1,-dzavt*dAfac)    ! update bed in deposition point
 
                          enddo
 
@@ -827,8 +826,8 @@ contains
                          zs(ie,j)  = zs(ie,j)-dzavt
                          dzav(ie,j)= dzav(ie,j)-dzavt
 
-                         zs(id,j)  = zs(id,j)+dzavt*dxfac*dyfac
-                         dzav(id,j)= dzav(id,j)+dzavt*dxfac*dyfac
+                         zs(id,j)  = zs(id,j)+dzavt*dAfac
+                         dzav(id,j)= dzav(id,j)+dzavt*dAfac
 
                       end if ! yes/no multiple fractions
                    end if
@@ -855,29 +854,29 @@ contains
                       if (dzb >= 0.d0) then
                          je = j+1                                        ! index erosion point
                          jd = j                                          ! index deposition point
-                         dxfac = dsz(i,j+1)/dsz(i,j) 
-                         dyfac = dnz(i,j+1)/dnz(i,j)                     ! take into account varying gridsize
+                         dAfac = dsdnzi(i,j)/dsdnzi(i,j+1)               ! take into account varying grid sizes
                          dzb=min(dzb,par%dzmax*par%dt/dnv(i,j))
                          dzb=min(dzb,structdepth(i,j+1))
                       else
                          je = j                                          ! index erosion point
                          jd = j+1                                        ! index deposition point
-                         dxfac = dsz(i,j)/dsz(i,j+1)
-                         dyfac = dnz(i,j)/dnz(i,j+1)                     ! take into account varying gridsize
+                         dAfac = dsdnzi(i,j+1)/dsdnzi(i,j)               ! take into account varying grid sizes
                          dzb=max(dzb,-par%dzmax*par%dt/dnv(i,j))
                          dzb=max(dzb,-structdepth(i,j))
                       endif
 
                       if (par%ngd == 1) then ! Simple bed update in case one fraction
 
-                         zb(i,jd) = zb(i,jd)+dzb*dxfac*dyfac
-                         zb(i,je) = zb(i,je)-dzb
-                         dzbdt(i,jd) = dzbdt(i,jd)+dzb*dxfac*dyfac ! naamgeveing?
-                         dzbdt(i,je) = dzbdt(i,je)-dzb 
-                         sedero(i,jd) = sedero(i,jd)+dzb*dxfac*dyfac
-                         sedero(i,je) = sedero(i,je)-dzb
-                         structdepth(i,jd) = max(0.d0,structdepth(i,jd)+dzb*dxfac*dyfac)
-                         structdepth(i,je) = max(0.d0,structdepth(i,je)-dzb)
+                         dzleft = abs(dzb)
+                         
+                         zb(i,jd) = zb(i,jd)+dzleft*dAfac
+                         zb(i,je) = zb(i,je)-dzleft
+                         dzbdt(i,jd) = dzbdt(i,jd)+dzleft*dAfac ! naamgeveing?
+                         dzbdt(i,je) = dzbdt(i,je)-dzleft 
+                         sedero(i,jd) = sedero(i,jd)+dzleft*dAfac
+                         sedero(i,je) = sedero(i,je)-dzleft
+                         structdepth(i,jd) = max(0.d0,structdepth(i,jd)+dzleft*dAfac)
+                         structdepth(i,je) = max(0.d0,structdepth(i,je)-dzleft)
 
                       else ! multiple fractions...
 
@@ -903,14 +902,14 @@ contains
                             ! erosion deposition per fraction (upwind or downwind); edg is positive in case of erosion  
                             do jg=1,par%ngd 
                                edg2(jg) = sedcal(jg)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt        ! erosion    (dzt always > 0 )
-                               edg1(jg) = -sedcal(jg)*edg2(jg)*dxfac*dyfac                       ! deposition (dzt always < 0 )
+                               edg1(jg) = -sedcal(jg)*edg2(jg)*dAfac                             ! deposition (dzt always < 0 )
                             enddo
 
                             dzavt = dzavt + sum(edg2)*par%dt/(1.d0-par%por)
 
                             call update_fractions(par,s,i,je,dzbed(i,je,:),pbbed(i,je,:,:),edg2,dzavt)           ! upwind point
 
-                            call update_fractions(par,s,i,jd,dzbed(i,jd,:),pbbed(i,jd,:,:),edg1,-dzavt*dxfac*dyfac)    ! downwind point
+                            call update_fractions(par,s,i,jd,dzbed(i,jd,:),pbbed(i,jd,:,:),edg1,-dzavt*dAfac)    ! downwind point
 
                          enddo
 
@@ -918,8 +917,8 @@ contains
                          zs(i,je)  = zs(i,je)-dzavt
                          dzav(i,je)= dzav(i,je)-dzavt
 
-                         zs(i,jd)  = zs(i,jd)+dzavt*dxfac*dyfac
-                         dzav(i,jd)= dzav(i,jd)+dzavt*dxfac*dyfac
+                         zs(i,jd)  = zs(i,jd)+dzavt*dAfac
+                         dzav(i,jd)= dzav(i,jd)+dzavt*dAfac
 
                       endif !yes/no multiple fractions
                    end if
