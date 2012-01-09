@@ -712,20 +712,52 @@ endsubroutine spectral_wave_init
           s%zs0(1,:)=s%zs01
           s%zs0(s%nx+1,:)=s%zs03
           do j = 1,s%ny+1 
-             do i = 1,s%nx+1
-                if (s%zb(i,j).gt.s%zs0(1,j)+par%eps) goto 302
-                s%zs0(i,j) = s%zs0(1,j)
+             indoff = s%nx+1
+             indbay = 1
+             ! look for intersect of bed with zs offshore
+             do i = 2,s%nx+1
+                if (s%zb(i,j).gt.s%zs0(1,j)+par%eps) then
+                   indoff = i-1
+                   exit
+                endif
              enddo
-
-302          if (i.lt.s%nx+1) then
-                do ig=i+1,s%nx+1
-                   s%zs0(ig,j) = s%zs0(s%nx+1,j) 
+             ! look for intersect of bed with zs bay
+             do i = s%nx,2,-1
+                if (s%zb(i,j).gt.s%zs0(s%nx+1,j)+par%eps) then
+                   indbay = i+1
+                   exit
+                endif
+             enddo
+             ! do both intersects exist?
+             ! apply two water levels in the domain
+             if (indoff<s%nx+1 .and. indbay>1) then
+                s%zs0(2:indoff,j) = s%zs0(1,j)
+                s%zs0(indbay:s%nx,j) = s%zs0(s%nx+1,j)
+                ! linear interpolation between intersects
+                ! maximize to bed level
+                do ig=indoff+1,indbay-1
+                   xzs0(1)=s%sdist(indoff,j)
+                   xzs0(2)=s%sdist(indbay,j)
+                   szs0(1)=s%zs0(indoff,j)
+                   szs0(2)=s%zs0(indbay,j)
+                   call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(ig,j), s%zs0(ig,j), indt)
+                   s%zs0(ig,j)=min(s%zs0(ig,j),s%zb(ig,j))
                 enddo
+             ! only bay intersect exists -> all land below offshore sea level
+             elseif (indoff==s%nx+1 .and. indbay>1) then
+                s%zs0(:,j) = s%zs0(1,j)             
+             ! only offshore intersect exists -> all land below bay sea level
+             elseif (indoff<s%nx+1 .and. indbay==1) then
+                s%zs0(:,j) = s%zs0(s%nx+1,j)
+             ! no intersects exist -> all land below bay and offshore sea level
+             ! linear interpolation between offshore and bay sea level
              else
-                do i = 1,s%nx+1
-                   yzs0(1)=s%sdist(1,j)
-                   yzs0(2)=s%sdist(s%nx+1,j)
-                   call LINEAR_INTERP(yzs0, szs0, 2, s%sdist(i,j), s%zs0(i,j), indt)
+                do ig=1,s%nx+1
+                   xzs0(1)=s%sdist(1,j)
+                   xzs0(2)=s%sdist(s%nx+1,j)
+                   szs0(1)=s%zs0(1,j)
+                   szs0(2)=s%zs0(s%nx+1,j)
+                   call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(ig,j), s%zs0(ig,j), indt)
                 enddo
              endif
           enddo
@@ -748,22 +780,52 @@ endsubroutine spectral_wave_init
           enddo
 
           do j = 1,s%ny+1 
-             do i = 1,s%nx+1
-                if (s%zb(i,j).gt.s%zs0(1,j)+par%eps) goto 303
-                s%zs0(i,j) = s%zs0(1,j)
+             indoff = s%nx+1
+             indbay = 1
+             ! look for intersect of bed with zs offshore
+             do i = 2,s%nx+1
+                if (s%zb(i,j).gt.s%zs0(1,j)+par%eps) then
+                   indoff = i-1
+                   exit
+                endif
              enddo
-
-303          if (i.lt.s%nx+1) then
-                do ig=i+1,s%nx+1
-                   s%zs0(ig,j) = s%zs0(s%nx+1,j) 
+             ! look for intersect of bed with zs bay
+             do i = s%nx,2,-1
+                if (s%zb(i,j).gt.s%zs0(s%nx+1,j)+par%eps) then
+                   indbay = i+1
+                   exit
+                endif
+             enddo
+             ! do both intersects exist?
+             ! apply two water levels in the domain
+             if (indoff<s%nx+1 .and. indbay>1) then
+                s%zs0(2:indoff,j) = s%zs0(1,j)
+                s%zs0(indbay:s%nx,j) = s%zs0(s%nx+1,j)
+                ! linear interpolation between intersects
+                ! maximize to bed level
+                do ig=indoff+1,indbay-1
+                   xzs0(1)=s%sdist(indoff,j)
+                   xzs0(2)=s%sdist(indbay,j)
+                   szs0(1)=s%zs0(indoff,j)
+                   szs0(2)=s%zs0(indbay,j)
+                   call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(ig,j), s%zs0(ig,j), indt)
+                   s%zs0(ig,j)=min(s%zs0(ig,j),s%zb(ig,j))
                 enddo
+             ! only bay intersect exists -> all land below offshore sea level
+             elseif (indoff==s%nx+1 .and. indbay>1) then
+                s%zs0(:,j) = s%zs0(1,j)             
+             ! only offshore intersect exists -> all land below bay sea level
+             elseif (indoff<s%nx+1 .and. indbay==1) then
+                s%zs0(:,j) = s%zs0(s%nx+1,j)
+             ! no intersects exist -> all land below bay and offshore sea level
+             ! linear interpolation between offshore and bay sea level
              else
-                do i = 1,s%nx+1
+                do ig=1,s%nx+1
                    xzs0(1)=s%sdist(1,j)
                    xzs0(2)=s%sdist(s%nx+1,j)
                    szs0(1)=s%zs0(1,j)
                    szs0(2)=s%zs0(s%nx+1,j)
-                   call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(i,j), s%zs0(i,j), indt)
+                   call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(ig,j), s%zs0(ig,j), indt)
                 enddo
              endif
           enddo
