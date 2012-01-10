@@ -62,7 +62,6 @@ contains
 
     integer                                     :: i,j,fid,ix,iy,ier,it,shp_indx,i1,j1
     logical, save                               :: firstship=.true.
-    integer, save                               :: nships
     character(1)                                :: ch
     real*8                                      :: xship,yship,dirship,radius,cosdir,sindir
     real*8                                      :: x1,y1,xrel,yrel
@@ -82,16 +81,16 @@ contains
          read(fid,'(a)',iostat=ier)ch
          if (ier==0)i=i+1
       enddo
-      nships=i
+      par%nship=i
       rewind(fid)
       
-      allocate(sh(nships))
-      do i=1,nships
+      allocate(sh(par%nship))
+      do i=1,par%nship
         read(fid,'(a)')sh(i)%name 
       enddo
       close(fid)
       
-      do i=1,nships
+      do i=1,par%nship
       ! Read ship geometry
         sh(i)%dx  = readkey_dbl(sh(i)%name,'dx',  5.d0,   0.d0,      100.d0)
         sh(i)%dy  = readkey_dbl(sh(i)%name,'dy',  5.d0,   0.d0,      100.d0)
@@ -143,7 +142,7 @@ contains
     endif !  firstship
 
     s%ph = 0.d0
-    do i=1,nships
+    do i=1,par%nship
 
      !  Compute pressure head (m) on XBeach grid
 
