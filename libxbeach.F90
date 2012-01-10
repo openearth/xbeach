@@ -53,6 +53,10 @@ module libxbeach_module
       module procedure get2ddoublearray_fortran
   end interface get2ddoublearray
 
+  interface get2dintarray
+      module procedure get2dintarray_fortran
+   end interface get2dintarray
+
   interface set2ddoublearray
       module procedure set2ddoublearray_fortran
   end interface set2ddoublearray
@@ -390,6 +394,7 @@ contains
     get2ddoublearray_fortran = 0
   end function get2ddoublearray_fortran
 
+
   integer(c_int) function get2ddoublearray_c(name, x, length) bind(C, name="get2ddoublearray")
     !DEC$ ATTRIBUTES DLLEXPORT::get2ddoublearray_c
 
@@ -417,6 +422,54 @@ contains
     x = c_loc(r2)
     get2ddoublearray_c = 0
   end function get2ddoublearray_c
+
+
+  integer(c_int) function get2dintarray_fortran(name,x) 
+    USE iso_c_binding
+    ! String
+    character(kind=c_char,len=*),intent(in) :: name
+    ! use inout otherwise things break
+    real(c_double), intent(inout) :: x(:,:)
+
+    type(arraytype) :: array
+    integer :: i, index
+
+    get2dintarray_fortran = -1
+    index =  chartoindex(trim(name))
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    x = array%i2
+    get2dintarray_fortran = 0
+  end function get2dintarray_fortran
+
+  integer(c_int) function get2dintarray_c(name, x, length) bind(C, name="get2dintarray")
+    !DEC$ ATTRIBUTES DLLEXPORT::get2dintarray_c
+
+    ! use inout otherwise things break
+    type (c_ptr), intent(inout) :: x
+    ! and we need the string length ....
+    integer(c_int),value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(in) :: name(length)
+
+    character(length) :: myname 
+    integer :: index
+    type(arraytype) :: array
+    integer(c_int), target, allocatable, dimension(:,:)  :: i2
+
+    get2dintarray_c = -1
+
+    myname = char_array_to_string(name, length)
+    index =  chartoindex(myname)
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    allocate(i2(size(array%i2,1), size(array%i2,2)))
+    i2(:,:) = array%i2(:,:)
+    ! array%r2 => r2
+    x = c_loc(i2)
+    get2dintarray_c = 0
+  end function get2dintarray_c
+
 
 
   integer(c_int) function set2ddoublearray_fortran(name,x) 
