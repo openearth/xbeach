@@ -35,6 +35,7 @@ type parameters
    integer*4     :: q3d                        = -123    !  [-] (advanced) Turn on (1) or off (0) quasi-3D sediment transport module
    integer*4     :: swrunup                    = -123    !  [-] (advanced) Turn on (1) or off (0) short wave runup
    integer*4     :: ships                      = -123    !  [-] (advanced) Turn on (1) or off (0) ship waves
+   integer*4     :: nship                      = -123    !  [-] (advanced) Number of ships
   
    ! [Section] Grid parameters                                                                                                                                                                                                                          
    character(256):: depfile                    = 'abc'   !  [-] Name of the input bathymetry file
@@ -399,6 +400,9 @@ contains
     par%q3d         = readkey_int ('params.txt','q3d',           0,        0,     1)
     par%swrunup     = readkey_int ('params.txt','swrunup',       0,        0,     1)
     par%ships       = readkey_int ('params.txt','ships',         0,        0,     1)
+    if (par%ships == 0) par%nship = 0
+    ! nship defined by shipfile
+
     !
     !
     ! Grid parameters
@@ -994,6 +998,7 @@ contains
     call writelog('l','','Shipwaves parameters: ')
     
     par%shipfile = readkey_name  ('params.txt', 'shipfile'                    )  
+    ! shipfile routine should set nship
     ! 
     !   
     ! Wave numerics parameters 

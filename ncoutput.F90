@@ -34,6 +34,10 @@ module ncoutput_module
   integer, save :: thetadimid
   ! Sediment
   integer, save :: sedimentclassesdimid, bedlayersdimid
+  ! Drifters
+  integer, save :: drifterdimid
+  ! Ships
+  integer, save :: shipdimid
 
   ! global
   integer, dimension(:), allocatable, save :: globalvarids
@@ -179,6 +183,17 @@ contains
        ! dimensions of length 2.... what is this.... TODO: find out what this is 
        status = nf90_def_dim(ncid, 'inout', 2, inoutdimid)
        if (status /= nf90_noerr) call handle_err(status)
+
+       write(*,*) 'Writing ndrifter', par%ndrifter
+       write(*,*) 'Writing nship', par%nship
+       if (par%ndrifter .gt. 0) then
+          status = nf90_def_dim(ncid, 'ndrifter', par%ndrifter, drifterdimid)
+          if (status /= nf90_noerr) call handle_err(status)
+       end if
+       if (par%nship .gt. 0) then
+          status = nf90_def_dim(ncid, 'nship', par%nship, shipdimid)
+          if (status /= nf90_noerr) call handle_err(status)
+       end if
 
        ! time dimensions are fixed, only defined if there are points
        if (outputg) then
@@ -926,6 +941,10 @@ contains
        dimensionid = inoutdimid
     case('max(par%nd,2)')
        dimensionid = bedlayersdimid
+    case('par%ndrifter')
+       dimensionid = drifterdimid
+    case('par%nship')
+       dimensionid = shipdimid
     case default
        call writelog('els','','Unknown dimension expression:'  // expression)
        stop 1
