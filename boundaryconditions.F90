@@ -815,9 +815,12 @@ contains
        ! the mpi_shift calls in horizontal directions
        if(xmpi_istop) then
           if (trim(par%front)=='abs_1d') then ! Ad's radiating boundary
+             !ht(1:2,:)=max(zs0(1:2,:)-zb(1:2,:),par%eps)
              !uu(1,:)=2.d0*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-zs0(2,:)))
              if (trim(par%tidetype)=='velocity') then
-               umean(1,:) = (factime*uu(1,:)+(1-factime)*umean(1,:))
+               ! umean(1,:) = (factime*uu(1,:)+(1-factime)*umean(1,:))
+               umean(1,:) = (factime*sum(uu(1,:)*dnu(1,:))/sum(dnu(1,:))+(1-factime)*umean(1,:)) ! make sure we have same umean along whole offshore boundary
+               ! idea take average over longshore sections
              else
                umean(1,:) = 0.d0
              endif
@@ -859,18 +862,28 @@ contains
              ! Jaap: Compute angle of incominge wave
              thetai = datan(vi(1,:)/(ui(1,:)+1.d-16))   
              
+             if (trim(par%tidetype)=='velocity') then
+               umean(1,:) = (factime*sum(uu(1,:)*dnu(1,:))/sum(dnu(1,:))+(1-factime)*umean(1,:)) ! make sure we have same umean along whole offshore boundary
+               vmean(1,:) = (factime*sum(vv(1,:)*dnv(1,:))/sum(dnv(1,:))+(1-factime)*vmean(1,:)) ! make sure we have same umean along whole offshore boundary
+             else
+               umean(1,:) = 0.d0
+               vmean(1,:) = 0.d0
+             endif
+             
              do j=j1,max(ny,1)
                 betanp1(1,j) = beta(1,j)+ bn(j)*par%dt
                 alpha2(j)=-theta0 ! Jaap: this is first estimate
                 alphanew = 0.d0
-                if (trim(par%tidetype)=='velocity') then
-                  ! Jaap dirty trick to get rid of unrealistic velocity spikes
-                  umean(1,j) = factime*sign(1.d0,uu(1,j))*min(abs(uu(1,j)),sqrt(par%g*ht(1,j))) + (1-factime)*umean(1,j)
-                  vmean(1,j) = factime*sign(1.d0,vu(1,j))*min(abs(vu(1,j)),sqrt(par%g*ht(1,j))) + (1-factime)*vmean(1,j) 
-                else
-                  umean(1,j) = 0.d0
-                  vmean(1,j) = 0.d0
-                endif
+                
+                ! Jaap moved up does need to be in j loop
+                !if (trim(par%tidetype)=='velocity') then
+                ! ! Jaap dirty trick to get rid of unrealistic velocity spikes
+                !  umean(1,j) = factime*sign(1.d0,uu(1,j))*min(abs(uu(1,j)),sqrt(par%g*ht(1,j))) + (1-factime)*umean(1,j)
+                !  vmean(1,j) = factime*sign(1.d0,vu(1,j))*min(abs(vu(1,j)),sqrt(par%g*ht(1,j))) + (1-factime)*vmean(1,j) 
+                !else
+                !  umean(1,j) = 0.d0
+                !  vmean(1,j) = 0.d0
+                !endif
                 
                 do jj=1,50
                    !---------- Lower order bound. cond. ---
@@ -962,7 +975,8 @@ contains
              !        umean(nx,:) = factime*uu(nx,:)+(1.d0-factime)*umean(nx,:) 
              ! After hack 3/6/2010, return to par%epsi :
              if (trim(par%tidetype)=='velocity') then
-               umean(nx,:) = (factime*uu(nx,:)+(1-factime)*umean(nx,:))
+             !  umean(nx,:) = (factime*uu(nx,:)+(1-factime)*umean(nx,:))
+               umean(1,:) = (factime*sum(uu(nx,:)*dnu(nx,:))/sum(dnu(nx,:))+(1-factime)*umean(nx,:)) ! make sure we have same umean along whole offshore boundary
              else
                umean(nx,:) = 0.d0
              endif
@@ -995,7 +1009,15 @@ contains
                          +par%g*dhdx(2,j)
                 endif    ! Robert: dry back boundary points
              enddo
-
+             
+             if (trim(par%tidetype)=='velocity') then
+               umean(nx,:) = (factime*sum(uu(nx,:)*dnu(nx,:))/sum(dnu(nx,:))+(1-factime)*umean(nx,:)) ! make sure we have same umean along whole offshore boundary
+               vmean(nx,:) = (factime*sum(vv(nx,:)*dnv(nx,:))/sum(dnv(nx,:))+(1-factime)*vmean(nx,:)) ! make sure we have same umean along whole offshore boundary
+             else
+               umean(1,:) = 0.d0
+               vmean(1,:) = 0.d0
+             endif
+             
              do j=j1,max(ny,1)
                 if (wetu(nx,j)==1) then                                                     ! Robert: dry back boundary points
                    betanp1(1,j) = beta(2,j)+ bn(j)*par%dt                                   !Ap toch?
@@ -1003,13 +1025,14 @@ contains
                    alphanew = 0.d0
                    !          umean(nx,j) = (factime*uu(nx,j)+(1-factime)*umean(nx,j))           !Ap 
                    ! After hack 3/6/2010, return to par%epsi :
-                   if (trim(par%tidetype)=='velocity') then
-                      umean(nx,j) = (factime*uu(nx,j)+(1-factime)*umean(nx,j))
-                      vmean(nx,j) = (factime*vu(nx,j)+(1-factime)*vmean(nx,j)) 
-                   else
-                     umean(nx,j) = 0.d0
-                     vmean(nx,j) = 0.d0
-                   endif
+                   ! Jaap moved up does not need to be in j loop
+                   !if (trim(par%tidetype)=='velocity') then
+                   !   umean(nx,j) = (factime*uu(nx,j)+(1-factime)*umean(nx,j))
+                   !   vmean(nx,j) = (factime*vu(nx,j)+(1-factime)*vmean(nx,j)) 
+                   !else
+                   !  umean(nx,j) = 0.d0
+                   !  vmean(nx,j) = 0.d0
+                   !endif
                    do jj=1,50
                       !
                       !---------- Lower order bound. cond. ---
