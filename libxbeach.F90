@@ -429,7 +429,7 @@ contains
     ! String
     character(kind=c_char,len=*),intent(in) :: name
     ! use inout otherwise things break
-    real(c_double), intent(inout) :: x(:,:)
+    integer(c_int), intent(inout) :: x(:,:)
 
     type(arraytype) :: array
     integer :: i, index
