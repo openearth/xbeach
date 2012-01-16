@@ -246,7 +246,11 @@ contains
     !Indices
     integer(kind=iKind)                     :: i               !Index variables
     integer(kind=iKind)                     :: j               !Index variables
+    integer(kind=iKind)                     :: jmin,jmax       !Index variables for superfast1D
     
+    ! logical
+    logical                                 :: sf1d            !Switch for superfast1D
+     
     !Work
 
     real(kind=rKind)                        :: dzs_e,dzs_w
@@ -260,6 +264,16 @@ contains
 !                             IMPLEMENTATION
 !-------------------------------------------------------------------------------   
 !
+  if (s%ny>0) then
+     sf1d = .false.
+     jmin = 2
+     jmax = s%ny
+  else
+     sf1d = .true.
+     jmin = 1
+     jmax = 1
+  endif
+  
   !call timer_start(timer_flow_nonh)
   if (.not. initialized) then
     call nonh_init(s,par)
@@ -276,54 +290,92 @@ contains
   aur(s%nx,:)    = s%uu(s%nx,:)
 
   avr(:,1)      = s%vv(:,1)
-  avr(:,s%ny)   = s%vv(:,s%ny)
+  if (s%ny>0) avr(:,s%ny)   = s%vv(:,s%ny)
 
   !Built pressure coefficients for W
   
   !AW Bottom
-  do j=2,s%ny
+  if (sf1d) then 
     do i=2,s%nx
-      if (nonhZ(i,j) == 1) then
-        if     (nonhU(i,j)*nonhU(i-1,j) == 1) then
-          dzb_e = .5_rKind*(zbu(i,j)-zbu(i-1,j))*ddxz(i)
-          ! FB: this was dzs_e, which was not defined. Assumed it was a typo. TODO: check.
+      if (nonhZ(i,1) == 1) then
+        if     (nonhU(i,1)*nonhU(i-1,1) == 1) then
+          dzb_e = .5_rKind*(zbu(i,1)-zbu(i-1,1))*ddxz(i)
           dzb_w = dzb_e
-        elseif (nonhU(i  ,j) == 0) then
+        elseif (nonhU(i  ,1) == 0) then
           dzb_e = .0_rKind
-          dzb_w = .5_rKind*(s%zb(i,j)-zbu(i-1,j))*ddxz(i)
-        elseif (nonhU(i-1,j) == 0) then
-          dzb_e = .5_rKind*(zbu(i,j)-s%zb(i,j))  *ddxz(i)
+          dzb_w = .5_rKind*(s%zb(i,1)-zbu(i-1,1))*ddxz(i)
+        elseif (nonhU(i-1,1) == 0) then
+          dzb_e = .5_rKind*(zbu(i,1)-s%zb(i,1))  *ddxz(i)
           dzb_w = .0_rKind
         endif
         
-        if     (nonhV(i,j)*nonhV(i,j-1) == 1) then
-          dzb_s = .5_rKind*(zbv(i,j)-zbv(i,j-1))*ddyz(j)
-          dzb_n = dzb_s
-        elseif (nonhV(i  ,j  ) == 0) then
+        if  (nonhV(i,1) == 1) then
           dzb_s = .0_rKind
-          dzb_n = .5_rKind*(s%zb(i,j)-zbv(i,j-1))*ddyz(j)
-        elseif (nonhV(i  ,j-1) == 0) then
-          dzb_s = .5_rKind*(zbv(i,j)-s%zb(i,j))  *ddyz(j)
-          dzb_n = .0_rKind
+          dzb_n = dzb_s
+        elseif (nonhV(i  ,1  ) == 0) then
+          dzb_s = .0_rKind
+          dzb_n = .5_rKind*(s%zb(i,1)-zbv(i,1))*ddyz(1)
         endif
      
-        awb(1,i,j) =  dzb_e * au(0,i  ,j  )+dzb_w*au(1,i-1,j  )  &           !main diagonal
-                   +  dzb_s * av(0,i  ,j  )+dzb_n*av(1,i  ,j-1) 
-        awb(2,i,j) =  dzb_w *  au(0,i-1,j  )                             !west
-        awb(3,i,j) =  dzb_e *  au(1,i  ,j  )                             !east
-        awb(4,i,j) =  dzb_n *  av(0,i  ,j-1)                             !south
-        awb(5,i,j) =  dzb_s *  av(1,i  ,j  )                             !north
+        awb(1,i,1) =  dzb_e * au(0,i  ,1  )+dzb_w*au(1,i-1,1  )  &           !main diagonal
+                   +  dzb_s * av(0,i  ,1  )+dzb_n*av(1,i  ,1) 
+        awb(2,i,1) =  dzb_w *  au(0,i-1,1  )                             !west
+        awb(3,i,1) =  dzb_e *  au(1,i  ,1  )                             !east
+        awb(4,i,1) =  dzb_n *  av(0,i  ,1  )                             !south
+        awb(5,i,1) =  dzb_s *  av(1,i  ,1  )                             !north
 
-        awbr(i,j)  =  dzb_e*s%uu(i,j)+dzb_w*s%uu(i-1,j  ) &
-                   +  dzb_s*s%vv(i,j)+dzb_n*s%vv(i  ,j-1)
+        awbr(i,1)  =  dzb_e*s%uu(i,1)+dzb_w*s%uu(i-1,1  ) &
+                   +  dzb_s*s%vv(i,1)+dzb_n*s%vv(i  ,1  )
       else
-        awb(:,i,j) = 0.0_rKind
-        awbr(i,j)  = 0.0_rKind        
+        awb(:,i,1) = 0.0_rKind
+        awbr(i,1)  = 0.0_rKind        
       endif             
     enddo
-  enddo
+  else
+      do j=2,s%ny
+        do i=2,s%nx
+          if (nonhZ(i,j) == 1) then
+            if     (nonhU(i,j)*nonhU(i-1,j) == 1) then
+              dzb_e = .5_rKind*(zbu(i,j)-zbu(i-1,j))*ddxz(i)
+              ! FB: this was dzs_e, which was not defined. Assumed it was a typo. TODO: check.
+              dzb_w = dzb_e
+            elseif (nonhU(i  ,j) == 0) then
+              dzb_e = .0_rKind
+              dzb_w = .5_rKind*(s%zb(i,j)-zbu(i-1,j))*ddxz(i)
+            elseif (nonhU(i-1,j) == 0) then
+              dzb_e = .5_rKind*(zbu(i,j)-s%zb(i,j))  *ddxz(i)
+              dzb_w = .0_rKind
+            endif
+            
+            if     (nonhV(i,j)*nonhV(i,j-1) == 1) then
+              dzb_s = .5_rKind*(zbv(i,j)-zbv(i,j-1))*ddyz(j)
+              dzb_n = dzb_s
+            elseif (nonhV(i  ,j  ) == 0) then
+              dzb_s = .0_rKind
+              dzb_n = .5_rKind*(s%zb(i,j)-zbv(i,j-1))*ddyz(j)
+            elseif (nonhV(i  ,j-1) == 0) then
+              dzb_s = .5_rKind*(zbv(i,j)-s%zb(i,j))  *ddyz(j)
+              dzb_n = .0_rKind
+            endif
+         
+            awb(1,i,j) =  dzb_e * au(0,i  ,j  )+dzb_w*au(1,i-1,j  )  &           !main diagonal
+                       +  dzb_s * av(0,i  ,j  )+dzb_n*av(1,i  ,j-1) 
+            awb(2,i,j) =  dzb_w *  au(0,i-1,j  )                             !west
+            awb(3,i,j) =  dzb_e *  au(1,i  ,j  )                             !east
+            awb(4,i,j) =  dzb_n *  av(0,i  ,j-1)                             !south
+            awb(5,i,j) =  dzb_s *  av(1,i  ,j  )                             !north
+
+            awbr(i,j)  =  dzb_e*s%uu(i,j)+dzb_w*s%uu(i-1,j  ) &
+                       +  dzb_s*s%vv(i,j)+dzb_n*s%vv(i  ,j-1)
+          else
+            awb(:,i,j) = 0.0_rKind
+            awbr(i,j)  = 0.0_rKind        
+          endif             
+        enddo
+      enddo
+  endif
   
-  do j=2,s%ny
+  do j=jmin,jmax
     do i=2,s%nx
       if (nonhZ(i,j) == 1) then
         aws(1,i,j)   =  wcoef(i,j)*par%dt*2.0_rKind/s%hh(i,j)-awb(1,i,j)
@@ -337,62 +389,116 @@ contains
   enddo
 
   !Substitute in the continuity equation
-  do j=2,s%ny
+  if (sf1d) then
     do i=2,s%nx
-      if (nonhZ(i,j)==1) then
-        if     (nonhU(i,j)*nonhU(i-1,j) == 1) then
-          dzs_e = .5_rKind*(zsu(i,j)-zsu(i-1,j))*dyz(j)
+      if (nonhZ(i,1)==1) then
+        if     (nonhU(i,1)*nonhU(i-1,1) == 1) then
+          dzs_e = .5_rKind*(zsu(i,1)-zsu(i-1,1))*dyz(1)
           dzs_w = dzs_e
-        elseif (nonhU(i  ,j) == 0) then
+        elseif (nonhU(i  ,1) == 0) then
           dzs_e = .0_rKind
-          dzs_w = .5_rKind*(s%zs(i,j)-zsu(i-1,j))*dyz(j)
-        elseif (nonhU(i-1,j) == 0) then
-          dzs_e = .5_rKind*(zsu(i,j)-s%zs(i,j))  *dyz(j)
+          dzs_w = .5_rKind*(s%zs(i,1)-zsu(i-1,1))*dyz(1)
+        elseif (nonhU(i-1,1) == 0) then
+          dzs_e = .5_rKind*(zsu(i,1)-s%zs(i,1))  *dyz(1)
           dzs_w = .0_rKind
         endif
         
-        if     (nonhV(i,j)*nonhV(i,j-1) == 1) then
-          dzs_s = .5_rKind*(zsv(i,j)-zsv(i,j-1))*dxz(i)
-          dzs_n = dzs_s
-        elseif (nonhV(i  ,j  ) == 0) then
+        if     (nonhV(i,1) == 1) then
           dzs_s = .0_rKind
-          dzs_n = .5_rKind*(s%zs(i,j)-zsv(i,j-1))*dxz(i)
-        elseif (nonhV(i  ,j-1) == 0) then
-          dzs_s = .5_rKind*(zsv(i,j)-s%zs(i,j))  *dxz(i)
-          dzs_n = .0_rKind
+          dzs_n = dzs_s
+        elseif (nonhV(i  ,1  ) == 0) then
+          dzs_s = .0_rKind
+          dzs_n = .5_rKind*(s%zs(i,1)-zsv(i,1))*dxz(i)
         endif
       
 
-        mat(1,i,j) =    dyz(j)*( s%hu(i,j)*au(0,i,j) - s%hu(i-1,j  )*au(1,i-1,  j) )  & !subs U left/right face
-                   +    dxz(i)*( s%hv(i,j)*av(0,i,j) - s%hv(i  ,j-1)*av(1,i  ,j-1) )  & !subs V left/rigth face
-                   -    dzs_e*au(0,i,j) - dzs_w*au(1,i-1,j)                           & !kin. boun. top       
-                   -    dzs_s*av(0,i,j) - dzs_n*av(1,i-1,j)                           & !kin. boun. top
-                   +    dxz(i)*dyz(j)*aws(1,i,j)
+        mat(1,i,1) =    dyz(1)*( s%hu(i,1)*au(0,i,1) - s%hu(i-1,1  )*au(1,i-1,  1) )  & !subs U left/right face
+                   +    dxz(i)*( s%hv(i,1)*av(0,i,1) - s%hv(i  ,1  )*av(1,i  ,  1) )  & !subs V left/rigth face
+                   -    dzs_e*au(0,i,1) - dzs_w*au(1,i-1,1)                           & !kin. boun. top       
+                   -    dzs_s*av(0,i,1) - dzs_n*av(1,i-1,1)                           & !kin. boun. top
+                   +    dxz(i)*dyz(1)*aws(1,i,1)
 
-        mat(2,i,j) = -  dyz(j)*s%hu(i-1,j)*au(0,i-1,  j)                              &
-                    -   dzs_w*au(0,i-1,j) + dxz(i)*dyz(j)*aws(2,i,j)
+        mat(2,i,1) = -  dyz(1)*s%hu(i-1,1)*au(0,i-1,  1)                              &
+                    -   dzs_w*au(0,i-1,1) + dxz(i)*dyz(1)*aws(2,i,1)
                   
-        mat(3,i,j) =    dyz(j)*s%hu(i,j)  * au(1,i,  j)                               &
-                   -    dzs_e*au(1,i  ,j) + dxz(i)*dyz(j)*aws(3,i,j)
+        mat(3,i,1) =    dyz(1)*s%hu(i,1)  * au(1,i,  1)                               &
+                   -    dzs_e*au(1,i  ,1) + dxz(i)*dyz(1)*aws(3,i,1)
                   
-        mat(4,i,j) = -  dxz(i)*s%hv(i,j-1)  *av(0,i,j-1)                              &
-                   -    dzs_n*av(0,i,j-1) + dxz(i)*dyz(j)*aws(4,i,j) 
+        mat(4,i,1) = -  dxz(i)*s%hv(i,1)  *av(0,i,1)                              &
+                   -    dzs_n*av(0,i,1) + dxz(i)*dyz(1)*aws(4,i,1) 
 
-        mat(5,i,j) =    dxz(i)*s%hv(i,j)  * av(1,i,j)                                 &
-                   -    dzs_s*av(1,i,j)   + dxz(i)*dyz(j)*aws(5,i,j)
+        mat(5,i,1) =    dxz(i)*s%hv(i,1)  * av(1,i,1)                                 &
+                   -    dzs_s*av(1,i,1)   + dxz(i)*dyz(1)*aws(5,i,1)
        
-        rhs(i,j)   = -  dyz(j)*( s%hu(i,j)*aur(i,j) - s%hu(i-1,j  )*aur(i-1,  j) )    & !subs U left/right face
-                   -    dxz(i)*( s%hv(i,j)*avr(i,j) - s%hv(i  ,j-1)*avr(i  ,j-1) )    & !subs V left/rigth face
-                   +    dzs_e*aur(i,j) + dzs_w*aur(i-1,j)                             & !kin. boun. top
-                   +    dzs_s*avr(i,j) + dzs_n*avr(i,j-1)                             & !kin. boun. top
-                   -    dxz(i)*dyz(j)*awsr(i,j)
+        rhs(i,1)   = -  dyz(1)*( s%hu(i,1)*aur(i,1) - s%hu(i-1,1  )*aur(i-1,  1) )    & !subs U left/right face
+                   -    dxz(i)*( s%hv(i,1)*avr(i,1) - s%hv(i  ,1  )*avr(i  ,  1) )    & !subs V left/rigth face
+                   +    dzs_e*aur(i,1) + dzs_w*aur(i-1,1)                             & !kin. boun. top
+                   +    dzs_s*avr(i,1) + dzs_n*avr(i,  1)                             & !kin. boun. top
+                   -    dxz(i)*dyz(1)*awsr(i,1)
       else
-        mat(1  ,i,j) = 1.0_rKind
-        mat(2:5,i,j) = 0.0_rKind
-        rhs(i,j)     = 0.0_rKind
+        mat(1  ,i,1) = 1.0_rKind
+        mat(2:5,i,1) = 0.0_rKind
+        rhs(i,1)     = 0.0_rKind
       endif
     enddo
-  enddo
+  else
+      do j=2,s%ny
+        do i=2,s%nx
+          if (nonhZ(i,j)==1) then
+            if     (nonhU(i,j)*nonhU(i-1,j) == 1) then
+              dzs_e = .5_rKind*(zsu(i,j)-zsu(i-1,j))*dyz(j)
+              dzs_w = dzs_e
+            elseif (nonhU(i  ,j) == 0) then
+              dzs_e = .0_rKind
+              dzs_w = .5_rKind*(s%zs(i,j)-zsu(i-1,j))*dyz(j)
+            elseif (nonhU(i-1,j) == 0) then
+              dzs_e = .5_rKind*(zsu(i,j)-s%zs(i,j))  *dyz(j)
+              dzs_w = .0_rKind
+            endif
+            
+            if     (nonhV(i,j)*nonhV(i,j-1) == 1) then
+              dzs_s = .5_rKind*(zsv(i,j)-zsv(i,j-1))*dxz(i)
+              dzs_n = dzs_s
+            elseif (nonhV(i  ,j  ) == 0) then
+              dzs_s = .0_rKind
+              dzs_n = .5_rKind*(s%zs(i,j)-zsv(i,j-1))*dxz(i)
+            elseif (nonhV(i  ,j-1) == 0) then
+              dzs_s = .5_rKind*(zsv(i,j)-s%zs(i,j))  *dxz(i)
+              dzs_n = .0_rKind
+            endif
+          
+
+            mat(1,i,j) =    dyz(j)*( s%hu(i,j)*au(0,i,j) - s%hu(i-1,j  )*au(1,i-1,  j) )  & !subs U left/right face
+                       +    dxz(i)*( s%hv(i,j)*av(0,i,j) - s%hv(i  ,j-1)*av(1,i  ,j-1) )  & !subs V left/rigth face
+                       -    dzs_e*au(0,i,j) - dzs_w*au(1,i-1,j)                           & !kin. boun. top       
+                       -    dzs_s*av(0,i,j) - dzs_n*av(1,i-1,j)                           & !kin. boun. top
+                       +    dxz(i)*dyz(j)*aws(1,i,j)
+
+            mat(2,i,j) = -  dyz(j)*s%hu(i-1,j)*au(0,i-1,  j)                              &
+                        -   dzs_w*au(0,i-1,j) + dxz(i)*dyz(j)*aws(2,i,j)
+                      
+            mat(3,i,j) =    dyz(j)*s%hu(i,j)  * au(1,i,  j)                               &
+                       -    dzs_e*au(1,i  ,j) + dxz(i)*dyz(j)*aws(3,i,j)
+                      
+            mat(4,i,j) = -  dxz(i)*s%hv(i,j-1)  *av(0,i,j-1)                              &
+                       -    dzs_n*av(0,i,j-1) + dxz(i)*dyz(j)*aws(4,i,j) 
+
+            mat(5,i,j) =    dxz(i)*s%hv(i,j)  * av(1,i,j)                                 &
+                       -    dzs_s*av(1,i,j)   + dxz(i)*dyz(j)*aws(5,i,j)
+           
+            rhs(i,j)   = -  dyz(j)*( s%hu(i,j)*aur(i,j) - s%hu(i-1,j  )*aur(i-1,  j) )    & !subs U left/right face
+                       -    dxz(i)*( s%hv(i,j)*avr(i,j) - s%hv(i  ,j-1)*avr(i  ,j-1) )    & !subs V left/rigth face
+                       +    dzs_e*aur(i,j) + dzs_w*aur(i-1,j)                             & !kin. boun. top
+                       +    dzs_s*avr(i,j) + dzs_n*avr(i,j-1)                             & !kin. boun. top
+                       -    dxz(i)*dyz(j)*awsr(i,j)
+          else
+            mat(1  ,i,j) = 1.0_rKind
+            mat(2:5,i,j) = 0.0_rKind
+            rhs(i,j)     = 0.0_rKind
+          endif
+        enddo
+      enddo
+  endif
   
   !Solve matrix
   !call timer_start(timer_flow_nonh_solv)
@@ -406,116 +512,197 @@ contains
   !Correct u/v/w
 
   !U
-  do j=2,s%ny
+  do j=jmin,jmax
     do i=2,s%nx-1
       s%uu(i,j) = aur(i,j) + au(1,i,j)*dp(i+1,j)+au(0,i,j)*dp(i,j)
     enddo
   enddo    
 
   !v
-  do j=2,s%ny-1
+  if (sf1d) then 
     do i=2,s%nx
-     s%vv(i,j) = avr(i,j) + av(1,i,j)*dp(i,j+1)+av(0,i,j)*dp(i,j)  
+      s%vv(i,1) = avr(i,1) + av(1,i,1)*dp(i,1)+av(0,i,1)*dp(i,1)  
     enddo
-  enddo    
+  else
+    do j=2,s%ny-1
+      do i=2,s%nx
+        s%vv(i,j) = avr(i,j) + av(1,i,j)*dp(i,j+1)+av(0,i,j)*dp(i,j)  
+      enddo
+    enddo    
+  endif
   
   !W
-  do j=2,s%ny
+  if (sf1d) then
     do i=2,s%nx
-      if    (nonhZ(i,j) == 1) then
-        s%ws(i,j) = awsr(i,j) + dp(i , j)  * aws(1,i,j)                            &
-                              + dp(i-1,j)  * aws(2,i,j) + dp(i+1,j  ) * aws(3,i,j) &
-                              + dp(i  ,j-1)* aws(4,i,j) + dp(i  ,j+1) * aws(5,i,j)
+      if    (nonhZ(i,1) == 1) then
+        s%ws(i,1) = awsr(i,1) + dp(i , 1)  * aws(1,i,1)                            &
+                              + dp(i-1,1)  * aws(2,i,1) + dp(i+1,1  ) * aws(3,i,1) &
+                              + dp(i  ,1)  * aws(4,i,1) + dp(i  ,  1) * aws(5,i,1)
      
       else
         !If the point is excluded in nh then get ws from the kinematic boundary condition
-        if     (s%wetU(i,j)*s%wetU(i-1,j) == 1) then
-          dzs_e = .5_rKind*(zsu(i,j)-zsu(i-1,j))*ddxz(i)
+        if     (s%wetU(i,1)*s%wetU(i-1,1) == 1) then
+          dzs_e = .5_rKind*(zsu(i,1)-zsu(i-1,1))*ddxz(i)
           dzs_w = dzs_e
-        elseif (s%wetU(i  ,j) == 0) then
+        elseif (s%wetU(i  ,1) == 0) then
           dzs_e = .0_rKind
-          dzs_w = .5_rKind*(s%zs(i,j)-zsu(i-1,j))*ddxz(i)
-        elseif (s%wetU(i-1,j) == 0) then
-          dzs_e = .5_rKind*(zsu(i,j)-s%zs(i,j))  *ddxz(i)
+          dzs_w = .5_rKind*(s%zs(i,1)-zsu(i-1,1))*ddxz(i)
+        elseif (s%wetU(i-1,1) == 0) then
+          dzs_e = .5_rKind*(zsu(i,1)-s%zs(i,1))  *ddxz(i)
           dzs_w = .0_rKind
         else  
           dzs_e = .0_rKind        
           dzs_w = .0_rKind        
         endif
         
-        if     (s%wetV(i,j)*s%wetV(i,j-1) == 1) then
-          dzs_s = .5_rKind*(zsv(i,j)-zsv(i,j-1))*ddyz(j)
-          dzs_n = dzb_s
-        elseif (s%wetV(i  ,j  ) == 0) then
+        if     (s%wetV(i,1) == 1) then
           dzs_s = .0_rKind
-          dzs_n = .5_rKind*(s%zs(i,j)-zsv(i,j-1))*ddyz(j)
-        elseif (s%wetV(i  ,j-1) == 0) then
-          dzs_s = .5_rKind*(zsv(i,j)-s%zs(i,j))  *ddyz(j)
-          dzs_n = .0_rKind
-        else  
-          dzs_e = .0_rKind        
-          dzs_w = .0_rKind        
+          dzs_n = dzb_s
+        elseif (s%wetV(i  ,1  ) == 0) then
+          dzs_s = .0_rKind
+          dzs_n = .5_rKind*(s%zs(i,1)-zsv(i,1))*ddyz(1) 
         endif
         
-        s%ws(i,j) = - (s%hu(i,j)*s%uu(i,j)-s%hu(i-1,j  )*s%uu(i-1,j  ))*ddxz(i) &
-                    - (s%hv(i,j)*s%vv(i,j)-s%hv(i  ,j-1)*s%vv(i  ,j-1))*ddyz(j) &
-                    + dzs_e*s%uu(i,j)+dzs_w*s%uu(i-1,j)                         &
-                    + dzs_s*s%vv(i,j)+dzs_n*s%vv(i,j-1)
+        s%ws(i,1) = - (s%hu(i,1)*s%uu(i,1)-s%hu(i-1,1  )*s%uu(i-1,1  ))*ddxz(i) &
+                    - (s%hv(i,1)*s%vv(i,1)-s%hv(i  ,1  )*s%vv(i  ,1  ))*ddyz(1) &
+                    + dzs_e*s%uu(i,1)+dzs_w*s%uu(i-1,1)                         &
+                    + dzs_s*s%vv(i,1)+dzs_n*s%vv(i,  1)
       endif
     enddo
-  enddo
-  
-  do j=2,s%ny
     do i=2,s%nx
-      if (nonhZ(i,j) == 1) then
-        s%wb(i,j) = awbr(i,j) + dp(i , j)  * awb(1,i,j)                            &
-                              + dp(i-1,j)  * awb(2,i,j) + dp(i+1,j  ) * awb(3,i,j) &
-                              + dp(i  ,j-1)* awb(4,i,j) + dp(i  ,j+1) * awb(5,i,j)
+      if (nonhZ(i,1) == 1) then
+        s%wb(i,1) = awbr(i,1) + dp(i , 1)  * awb(1,i,1)                            &
+                              + dp(i-1,1)  * awb(2,i,1) + dp(i+1,1  ) * awb(3,i,1) &
+                              + dp(i  ,1)  * awb(4,i,1) + dp(i  ,1  ) * awb(5,i,1)
       else
-        if     (s%wetU(i,j)*s%wetU(i-1,j) == 1) then
-          dzb_e = .5_rKind*(zbu(i,j)-zbu(i-1,j))*ddxz(i)
+        if     (s%wetU(i,1)*s%wetU(i-1,1) == 1) then
+          dzb_e = .5_rKind*(zbu(i,1)-zbu(i-1,1))*ddxz(i)
           dzb_w = dzs_e
-        elseif (s%wetU(i  ,j) == 0) then
+        elseif (s%wetU(i  ,1) == 0) then
           dzb_e = .0_rKind
-          dzb_w = .5_rKind*(s%zb(i,j)-zbu(i-1,j))*ddxz(i)
-        elseif (s%wetU(i-1,j) == 0) then
-          dzb_e = .5_rKind*(zbu(i,j)-s%zb(i,j))  *ddxz(i)
+          dzb_w = .5_rKind*(s%zb(i,1)-zbu(i-1,1))*ddxz(i)
+        elseif (s%wetU(i-1,1) == 0) then
+          dzb_e = .5_rKind*(zbu(i,1)-s%zb(i,1))  *ddxz(i)
           dzb_w = .0_rKind
         else  
           dzb_e = .0_rKind        
           dzb_w = .0_rKind        
         endif
         
-        if     (s%wetV(i,j)*s%wetV(i,j-1) == 1) then
-          dzb_s = .5_rKind*(zbv(i,j)-zbv(i,j-1))*ddyz(j)
-          dzb_n = dzb_s
-        elseif (s%wetV(i  ,j  ) == 0) then
+        if     (s%wetV(i,1) == 1) then
           dzb_s = .0_rKind
-          dzb_n = .5_rKind*(s%zb(i,j)-zbv(i,j-1))*ddyz(j)
-        elseif (s%wetV(i  ,j-1) == 0) then
-          dzb_s = .5_rKind*(zbv(i,j)-s%zb(i,j))  *ddyz(j)
-          dzb_n = .0_rKind
-        else  
-          dzb_e = .0_rKind        
-          dzb_w = .0_rKind        
+          dzb_n = dzb_s
+        elseif (s%wetV(i  ,1  ) == 0) then
+          dzb_s = .0_rKind
+          dzb_n = .5_rKind*(s%zb(i,1)-zbv(i,1))*ddyz(1)     
         endif
         
-        s%wb(i,j) = + dzb_e*s%uu(i,j)+dzb_w*s%uu(i-1,j) &
-                    + dzb_s*s%vv(i,j)+dzb_n*s%vv(i,j-1)
+        s%wb(i,1) = + dzb_e*s%uu(i,1)+dzb_w*s%uu(i-1,1) &
+                    + dzb_s*s%vv(i,1)+dzb_n*s%vv(i,1)
       endif
     enddo
-  enddo
-  
-  !Assign boundaries
-  s%ws(:,1)      = s%ws(:,2)
-  s%ws(:,s%ny+1) = s%ws(:,s%ny)
-  !s%ws(1,:)      = s%ws(2,:)
-  s%ws(s%nx+1,:) = s%ws(s%nx,:)
-  
-  s%wb(:,1)      = s%wb(:,2)
-  s%wb(:,s%ny+1) = s%wb(:,s%ny)
-  s%wb(1,:)      = s%wb(2,:)
-  s%wb(s%nx+1,:) = s%wb(s%nx,:)  
+    !Assign boundaries
+    s%ws(s%nx+1,:) = s%ws(s%nx,:)
+    s%wb(1,:)      = s%wb(2,:)
+    s%wb(s%nx+1,:) = s%wb(s%nx,:)
+  else
+      do j=2,s%ny
+        do i=2,s%nx
+          if    (nonhZ(i,j) == 1) then
+            s%ws(i,j) = awsr(i,j) + dp(i , j)  * aws(1,i,j)                            &
+                                  + dp(i-1,j)  * aws(2,i,j) + dp(i+1,j  ) * aws(3,i,j) &
+                                  + dp(i  ,j-1)* aws(4,i,j) + dp(i  ,j+1) * aws(5,i,j)
+         
+          else
+            !If the point is excluded in nh then get ws from the kinematic boundary condition
+            if     (s%wetU(i,j)*s%wetU(i-1,j) == 1) then
+              dzs_e = .5_rKind*(zsu(i,j)-zsu(i-1,j))*ddxz(i)
+              dzs_w = dzs_e
+            elseif (s%wetU(i  ,j) == 0) then
+              dzs_e = .0_rKind
+              dzs_w = .5_rKind*(s%zs(i,j)-zsu(i-1,j))*ddxz(i)
+            elseif (s%wetU(i-1,j) == 0) then
+              dzs_e = .5_rKind*(zsu(i,j)-s%zs(i,j))  *ddxz(i)
+              dzs_w = .0_rKind
+            else  
+              dzs_e = .0_rKind        
+              dzs_w = .0_rKind        
+            endif
+            
+            if     (s%wetV(i,j)*s%wetV(i,j-1) == 1) then
+              dzs_s = .5_rKind*(zsv(i,j)-zsv(i,j-1))*ddyz(j)
+              dzs_n = dzb_s
+            elseif (s%wetV(i  ,j  ) == 0) then
+              dzs_s = .0_rKind
+              dzs_n = .5_rKind*(s%zs(i,j)-zsv(i,j-1))*ddyz(j)
+            elseif (s%wetV(i  ,j-1) == 0) then
+              dzs_s = .5_rKind*(zsv(i,j)-s%zs(i,j))  *ddyz(j)
+              dzs_n = .0_rKind
+            else  
+              dzs_e = .0_rKind        
+              dzs_w = .0_rKind        
+            endif
+            
+            s%ws(i,j) = - (s%hu(i,j)*s%uu(i,j)-s%hu(i-1,j  )*s%uu(i-1,j  ))*ddxz(i) &
+                        - (s%hv(i,j)*s%vv(i,j)-s%hv(i  ,j-1)*s%vv(i  ,j-1))*ddyz(j) &
+                        + dzs_e*s%uu(i,j)+dzs_w*s%uu(i-1,j)                         &
+                        + dzs_s*s%vv(i,j)+dzs_n*s%vv(i,j-1)
+          endif
+        enddo
+      enddo
+      
+      do j=2,s%ny
+        do i=2,s%nx
+          if (nonhZ(i,j) == 1) then
+            s%wb(i,j) = awbr(i,j) + dp(i , j)  * awb(1,i,j)                            &
+                                  + dp(i-1,j)  * awb(2,i,j) + dp(i+1,j  ) * awb(3,i,j) &
+                                  + dp(i  ,j-1)* awb(4,i,j) + dp(i  ,j+1) * awb(5,i,j)
+          else
+            if     (s%wetU(i,j)*s%wetU(i-1,j) == 1) then
+              dzb_e = .5_rKind*(zbu(i,j)-zbu(i-1,j))*ddxz(i)
+              dzb_w = dzs_e
+            elseif (s%wetU(i  ,j) == 0) then
+              dzb_e = .0_rKind
+              dzb_w = .5_rKind*(s%zb(i,j)-zbu(i-1,j))*ddxz(i)
+            elseif (s%wetU(i-1,j) == 0) then
+              dzb_e = .5_rKind*(zbu(i,j)-s%zb(i,j))  *ddxz(i)
+              dzb_w = .0_rKind
+            else  
+              dzb_e = .0_rKind        
+              dzb_w = .0_rKind        
+            endif
+            
+            if     (s%wetV(i,j)*s%wetV(i,j-1) == 1) then
+              dzb_s = .5_rKind*(zbv(i,j)-zbv(i,j-1))*ddyz(j)
+              dzb_n = dzb_s
+            elseif (s%wetV(i  ,j  ) == 0) then
+              dzb_s = .0_rKind
+              dzb_n = .5_rKind*(s%zb(i,j)-zbv(i,j-1))*ddyz(j)
+            elseif (s%wetV(i  ,j-1) == 0) then
+              dzb_s = .5_rKind*(zbv(i,j)-s%zb(i,j))  *ddyz(j)
+              dzb_n = .0_rKind
+            else  
+              dzb_e = .0_rKind        
+              dzb_w = .0_rKind        
+            endif
+            
+            s%wb(i,j) = + dzb_e*s%uu(i,j)+dzb_w*s%uu(i-1,j) &
+                        + dzb_s*s%vv(i,j)+dzb_n*s%vv(i,j-1)
+          endif
+        enddo
+      enddo
+      
+      !Assign boundaries
+      s%ws(:,1)      = s%ws(:,2)
+      s%ws(:,s%ny+1) = s%ws(:,s%ny)
+      !s%ws(1,:)      = s%ws(2,:)
+      s%ws(s%nx+1,:) = s%ws(s%nx,:)
+      
+      s%wb(:,1)      = s%wb(:,2)
+      s%wb(:,s%ny+1) = s%wb(:,s%ny)
+      s%wb(1,:)      = s%wb(2,:)
+      s%wb(s%nx+1,:) = s%wb(s%nx,:)
+  endif  
   
   Wm_old = .5_rKind*(s%ws+s%wb)
 end subroutine nonh_cor
@@ -552,7 +739,8 @@ subroutine nonh_explicit(s,par,nuh)
  
     !Indices
     integer(kind=iKind)                     :: i,ie,iee,iw               !Index variables
-    integer(kind=iKind)                     :: j,js       
+    integer(kind=iKind)                     :: j,js  
+    integer(kind=iKind)                     :: jmin,jmax
     
     real(kind=rKind)                        :: dwdx1    !Gradient of vertical velocity in x-dir at i+1/2,j
     real(kind=rKind)                        :: dwdx2    !Gradient of vertical velocity in x-dir at i-1/2,j
@@ -563,6 +751,14 @@ subroutine nonh_explicit(s,par,nuh)
   if (.not. initialized) then
     call nonh_init(s,par)
   endif      
+  
+  if (s%ny>0) then
+     jmin = 2
+     jmax = s%ny
+  else
+     jmin = 1
+     jmax = 1
+  endif
    
 !
 ! Determine if a velocity point will be included in the nonh pressure matrix, do not include if:
@@ -608,49 +804,82 @@ subroutine nonh_explicit(s,par,nuh)
 ! Determine if a velocity point will be included in the nonh pressure matrix, include if
 ! any of the surrounding velocity points is included.
 !
-  do j=2,s%ny
+  if (s%ny>0) then 
+    do j=2,s%ny
+      do i=2,s%nx
+        if (max(nonhV(i,j),nonhV(i,j-1),nonhU(i,j),nonhU(i-1,j)) > 0) then
+          nonhZ(i,j) = 1
+        else
+          nonhZ(i,j) = 0      
+        endif
+      enddo
+    enddo
+  else
     do i=2,s%nx
-      if (max(nonhV(i,j),nonhV(i,j-1),nonhU(i,j),nonhU(i-1,j)) > 0) then
-        nonhZ(i,j) = 1
+      if (max(nonhV(i,1),nonhU(i,1),nonhU(i-1,1)) > 0) then
+        nonhZ(i,1) = 1
       else
-        nonhZ(i,j) = 0      
+        nonhZ(i,1) = 0      
       endif
     enddo
-  enddo
-
-
+  endif
  
  !Calculate explicit part average vertical momentum (advection)
-  do j=2,s%ny
+  if (s%ny>0) then
+    do j=2,s%ny
+      do i=2,s%nx
+        if (nonhZ(i,j) == 1) then
+         Wm(i,j) = Wm_old(i,j) - par%dt*( ddxu(i-1)*max(s%qx(i-1,j  ),0.0_rKind)*(Wm_old(i  ,j  )-Wm_old(i-1,j  ))/s%hh(i,j)   &
+                                        + ddxu(i)  *min(s%qx(i  ,j  ),0.0_rKind)*(Wm_old(i+1,j  )-Wm_old(i  ,j  ))/s%hh(i,j)   &
+                                        + ddyv(j-1)*max(s%qy(i  ,j-1),0.0_rKind)*(Wm_old(i  ,j  )-Wm_old(i  ,j-1))/s%hh(i,j)   &
+                                        + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(Wm_old(i  ,j+1)-Wm_old(i  ,j  ))/s%hh(i,j) )
+        else
+          Wm(i,j) = 0.0_rKind
+          Wm_old(i,j) = 0.0_rKind
+          s%ws(i,j)   = 0.0_rKind
+          s%wb(i,j)   = 0.0_rKind
+          s%pres(i,j) = 0.0_rKind
+        endif
+      enddo
+    enddo
+  else
     do i=2,s%nx
-      if (nonhZ(i,j) == 1) then
-       Wm(i,j) = Wm_old(i,j) - par%dt*( ddxu(i-1)*max(s%qx(i-1,j  ),0.0_rKind)*(Wm_old(i  ,j  )-Wm_old(i-1,j  ))/s%hh(i,j)   &
-                                      + ddxu(i)  *min(s%qx(i  ,j  ),0.0_rKind)*(Wm_old(i+1,j  )-Wm_old(i  ,j  ))/s%hh(i,j)   &
-                                      + ddyv(j-1)*max(s%qy(i  ,j-1),0.0_rKind)*(Wm_old(i  ,j  )-Wm_old(i  ,j-1))/s%hh(i,j)   &
-                                      + ddyv(j  )*min(s%qy(i  ,j  ),0.0_rKind)*(Wm_old(i  ,j+1)-Wm_old(i  ,j  ))/s%hh(i,j) )
+      if (nonhZ(i,1) == 1) then
+       Wm(i,1) = Wm_old(i,1) - par%dt*( ddxu(i-1)*max(s%qx(i-1,1  ),0.0_rKind)*(Wm_old(i  ,1  )-Wm_old(i-1,1  ))/s%hh(i,1)   &
+                                      + ddxu(i)  *min(s%qx(i  ,1  ),0.0_rKind)*(Wm_old(i+1,1  )-Wm_old(i  ,1  ))/s%hh(i,1) )
       else
-        Wm(i,j) = 0.0_rKind
-        Wm_old(i,j) = 0.0_rKind
-        s%ws(i,j)   = 0.0_rKind
-        s%wb(i,j)   = 0.0_rKind
-        s%pres(i,j) = 0.0_rKind
+        Wm(i,1) = 0.0_rKind
+        Wm_old(i,1) = 0.0_rKind
+        s%ws(i,1)   = 0.0_rKind
+        s%wb(i,1)   = 0.0_rKind
+        s%pres(i,1) = 0.0_rKind
       endif
     enddo
-  enddo
+  endif
 
   !Calculate explicit part vertical viscocity
-  do j=2,s%ny
+  if (s%ny>0) then
+    do j=2,s%ny
+      do i=2,s%nx
+        dwdx1 = .5d0*(nuh(i-1,j  )+nuh(i,j  ))*s%hu(i-1,j  )*(Wm_old(i  ,j  )-Wm_old(i-1,j  ))*ddxu(i-1)
+        dwdx2 = .5d0*(nuh(i+1,j  )+nuh(i,j  ))*s%hu(i  ,j  )*(Wm_old(i+1,j  )-Wm_old(i  ,j  ))*ddxu(i)
+        dwdy1 = nuh(i  ,j-1)*s%hu(i  ,j-1)*(Wm_old(i  ,j  )-Wm_old(i  ,j-1))*ddyv(j-1)
+        dwdy2 = nuh(i  ,j  )*s%hu(i  ,j  )*(Wm_old(i  ,j+1)-Wm_old(i  ,j  ))*ddyv(j)
+        Wm(i,j) = Wm(i,j)   + (1.0_rKind/s%hh(i,j))*par%dt*(dwdx2-dwdx1)*ddxz(i)*real(s%wetu(i,j)*s%wetu(i-1,j),rKind) &
+                            + (1.0_rKind/s%hh(i,j))*par%dt*(dwdy2-dwdy1)*ddyz(j)*real(s%wetv(i,j)*s%wetv(i,j-1),rKind)
+      enddo
+    enddo 
+  else
     do i=2,s%nx
-      dwdx1 = .5d0*(nuh(i-1,j  )+nuh(i,j  ))*s%hu(i-1,j  )*(Wm_old(i  ,j  )-Wm_old(i-1,j  ))*ddxu(i-1)
-      dwdx2 = .5d0*(nuh(i+1,j  )+nuh(i,j  ))*s%hu(i  ,j  )*(Wm_old(i+1,j  )-Wm_old(i  ,j  ))*ddxu(i)
-      dwdy1 = nuh(i  ,j-1)*s%hu(i  ,j-1)*(Wm_old(i  ,j  )-Wm_old(i  ,j-1))*ddyv(j-1)
-      dwdy2 = nuh(i  ,j  )*s%hu(i  ,j  )*(Wm_old(i  ,j+1)-Wm_old(i  ,j  ))*ddyv(j)
-      Wm(i,j) = Wm(i,j)   + (1.0_rKind/s%hh(i,j))*par%dt*(dwdx2-dwdx1)*ddxz(i)*real(s%wetu(i,j)*s%wetu(i-1,j),rKind) &
-                          + (1.0_rKind/s%hh(i,j))*par%dt*(dwdy2-dwdy1)*ddyz(j)*real(s%wetv(i,j)*s%wetv(i,j-1),rKind)
+      dwdx1 = .5d0*(nuh(i-1,1  )+nuh(i,1  ))*s%hu(i-1,1  )*(Wm_old(i  ,1  )-Wm_old(i-1,1  ))*ddxu(i-1)
+      dwdx2 = .5d0*(nuh(i+1,1  )+nuh(i,1  ))*s%hu(i  ,1  )*(Wm_old(i+1,1  )-Wm_old(i  ,1  ))*ddxu(i)
+      dwdy1 = 0.d0
+      dwdy2 = 0.d0
+      Wm(i,1) = Wm(i,1)   + (1.0_rKind/s%hh(i,1))*par%dt*(dwdx2-dwdx1)*ddxz(i)*real(s%wetu(i,1)*s%wetu(i-1,1),rKind) 
     enddo
-  enddo 
+  endif
 
-  do j=2,s%ny
+  do j=jmin,jmax
     do i=2,s%nx
       if (nonhU(i,j)==1) then
         vol       = 0.5_rKind*par%dt/(s%hum(i,j)*dxu(i))      
@@ -688,19 +917,25 @@ subroutine nonh_explicit(s,par,nuh)
 
  !Include explicit approximation for pressure in s%uu and s%vv   and Wm
   if (par%secorder == 1) then 
-    do j=2,s%ny
+    do j=jmin,jmax
       do i=2,s%nx-1
         s%uu(i,j) = s%uu(i,j) + au(1,i,j) * s%pres(i+1,j) + au(0,i,j) * s%pres(i  ,j)  
       enddo
     enddo
 
-    do j=2,s%ny-1
-      do i=2,s%nx
-        s%vv(i,j) = s%vv(i,j) + av(1,i,j) * s%pres(i,j+1) + av(0,i,j) * s%pres(i,j  )
+    if (s%ny>0) then 
+      do j=2,s%ny-1
+        do i=2,s%nx
+          s%vv(i,j) = s%vv(i,j) + av(1,i,j) * s%pres(i,j+1) + av(0,i,j) * s%pres(i,j  )
+        enddo
       enddo
-    enddo
+    else
+      do i=2,s%nx
+        s%vv(i,1) = s%vv(i,1) + av(1,i,1) * s%pres(i,1) + av(0,i,1) * s%pres(i,1  )
+      enddo
+    endif
     
-    do j=2,s%ny
+    do j=jmin,jmax
       do i=2,s%nx
         if (nonhZ(i,j) == 1) then
           Wm(i,j) = Wm(i,j)   + Wcoef(i,j)*par%dt * s%pres(i,j)/s%hh(i,j)
@@ -769,9 +1004,9 @@ subroutine zuzv(s)
         enddo
       enddo
     else
-      zsv(:,1) = s%zs(:,2)
-      zsv(:,2) = s%zs(:,2)
-      zsv(:,3) = s%zs(:,2)
+      do j=1,s%ny+1
+        zsv(:,j) = s%zs(:,min(2,s%ny+1))
+      enddo
     endif
 
     !Bottom location in U point

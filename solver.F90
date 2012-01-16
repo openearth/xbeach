@@ -114,7 +114,10 @@ contains
     
     !Check if solution method is appropriate
     if     (par%solver == 1) then   !Solver is SIP     
-
+      if (ny == 0) then
+        call writelog('lse','','SIP solver cannot be used if ny==0')
+        call Halt_program !    
+      endif 
     elseif (par%solver == 2) then   !Solver is TRI-DIAG, check if possible
       if (ny > 2) then
         call writelog('lse','','Tri-diagonal solver cannot be used if ny>2')
@@ -261,25 +264,32 @@ contains
 !--------------------------     LOCAL VARIABLES    ----------------------------
 
     integer(kind=iKind) :: i                                      !Index variable
+    integer(kind=iKind) :: jindex                                 !Index variable for superfast1D
     real   (kind=rKind) :: fac                                    !Auxillary variable
 
 !-------------------------------------------------------------------------------
 !                             IMPLEMENTATION
 !-------------------------------------------------------------------------------          
-    
-       fac    = amat(1,1,2)
-       x(1,2) = rhs(1,2)/fac
+       
+       if (ny>0) then
+          jindex = 2
+       else
+          jindex = 1
+       endif
+
+       fac    = amat(1,1,jindex)
+       x(1,jindex) = rhs(1,jindex)/fac
        
        !forward elimination
        do i=2,nx+1
-         cmat(i)  = amat(3,i-1,2)/fac
-         fac      = amat(1,i,2)-amat(2,i,2)*cmat(i)
-         x(i,2)   = (rhs(i,2)-amat(2,i,2)*x(i-1,2))/fac
+         cmat(i)  = amat(3,i-1,jindex)/fac
+         fac      = amat(1,i,jindex)-amat(2,i,jindex)*cmat(i)
+         x(i,jindex) = (rhs(i,jindex)-amat(2,i,jindex)*x(i-1,jindex))/fac
        enddo
       
        !Backward substitution
        do i=nx,1,-1
-         x(i,2) = x(i,2)-cmat(i+1)*x(i+1,2)
+         x(i,jindex) = x(i,jindex)-cmat(i+1)*x(i+1,jindex)
        enddo
      end subroutine solver_tridiag
 

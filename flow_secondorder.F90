@@ -136,6 +136,7 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
     integer(kind=iKind)        :: j    !Current point
     integer(kind=iKind)        :: js   !j+1
     integer(kind=iKind)        :: jss  !j+2
+    integer(kind=iKind)        :: jmin,jmax  ! index for superfast1D
     
     real(kind=rKind)           :: mindepth ! Near the dry/wet interface the higher order interpolations
                                            ! can cause unwanted effects. To avoid this any extrapolation/interpolation
@@ -154,6 +155,14 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
 !                             IMPLEMENTATION
 !-------------------------------------------------------------------------------
 
+    if (s%ny>0) then 
+      jmin = 2
+      jmax = s%ny
+    else
+      jmin = 1
+      jmax = 1
+    endif
+    
     !== SECOND ORDER EXPLICIT CORRECTION TO U ==
     
     !Initialize/allocate arrays on first entry
@@ -162,7 +171,7 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
     endif  
     
     !-- calculate du in z-points --
-    do j=2,s%ny
+    do j=jmin,jmax
       do i=2,s%nx
         wrk1(i,j) = 0.0_rKind
         ie   = min(i+1,s%nx)
@@ -205,21 +214,29 @@ subroutine flow_secondorder_advUV(s,par,uu_old,vv_old)
       enddo
     enddo
     wrk2(:,1   ) = 0.0_rKind    
-    wrk2(:,s%ny) = 0.0_rKind    
+    if (s%ny>0) wrk2(:,s%ny) = 0.0_rKind    
     
     
     
     !CORRECTION TO U
-    do j=2,s%ny 
-      do i=2,s%nx-1
-        qe = .5*(s%qx(i+1,j  ) + s%qx(i  ,j  ))
-        qw = .5*(s%qx(i  ,j  ) + s%qx(i-1,j  ))
-        qn = .5*(s%qy(i  ,j-1) + s%qy(i+1,j-1))
-        qs = .5*(s%qy(i  ,j  ) + s%qy(i+1,j  ))          
-        s%uu(i,j) = s%uu(i,j)-par%dt/s%hum(i,j)*(  (qe*wrk1(i+1,j)-qw*wrk1(i  ,j  ))/s%dsu(i,1) &
-                                                +  (qs*wrk2(i  ,j)-qn*wrk2(i  ,j-1))/s%dnz(1,j) )
+    if (s%ny>0) then 
+      do j=2,s%ny 
+        do i=2,s%nx-1
+          qe = .5*(s%qx(i+1,j  ) + s%qx(i  ,j  ))
+          qw = .5*(s%qx(i  ,j  ) + s%qx(i-1,j  ))
+          qn = .5*(s%qy(i  ,j-1) + s%qy(i+1,j-1))
+          qs = .5*(s%qy(i  ,j  ) + s%qy(i+1,j  ))          
+          s%uu(i,j) = s%uu(i,j)-par%dt/s%hum(i,j)*(  (qe*wrk1(i+1,j)-qw*wrk1(i  ,j  ))/s%dsu(i,1) &
+                                                  +  (qs*wrk2(i  ,j)-qn*wrk2(i  ,j-1))/s%dnz(1,j) )
+        enddo
       enddo
-    enddo
+    else
+      do i=2,s%nx-1
+        qe = .5*(s%qx(i+1,1  ) + s%qx(i  ,1  ))
+        qw = .5*(s%qx(i  ,1  ) + s%qx(i-1,1  ))
+        s%uu(i,1) = s%uu(i,1)-par%dt/s%hum(i,1)*(  (qe*wrk1(i+1,1)-qw*wrk1(i  ,1  ))/s%dsu(i,1) )
+      enddo
+    endif
      
     !== SECOND ORDER EXPLICIT CORRECTION TO V ==
     if (s%ny>2) then
@@ -333,6 +350,7 @@ subroutine flow_secondorder_advW(s,par,w,w_old)
     integer(kind=iKind)        :: j    !Current point
     integer(kind=iKind)        :: js   !j+1
     integer(kind=iKind)        :: jss  !j+2
+    integer(kind=iKind)        :: jmin,jmax  !index for superfast1D
     
     real(kind=rKind)           :: mindepth
     real(kind=rKind)           :: delta1
@@ -341,13 +359,22 @@ subroutine flow_secondorder_advW(s,par,w,w_old)
 !-------------------------------------------------------------------------------
 !                             IMPLEMENTATION
 !-------------------------------------------------------------------------------
+    
+    if (s%ny>0) then
+      jmin = 2
+      jmax = s%ny
+    else 
+      jmin = 1
+      jmax = 1
+    endif
+    
     !Initialize/allocate arrays on first entry
     if (.not. initialized) then
       call flow_secondorder_init(s)
     endif  
 
    !== SECOND ORDER EXPLICIT CORRECTION TO W ==
-    do j=2,s%ny
+    do j=jmin,jmax
       do i=2,s%nx-1
         wrk1(i,j) = 0.0_rKind
         ie   = min(i+1,s%nx)
@@ -367,8 +394,8 @@ subroutine flow_secondorder_advW(s,par,w,w_old)
         endif
       enddo
     enddo
-    wrk1(: ,1) = 0.0_rKind
-    wrk1(:,s%ny+1) = 0.0_rKind
+    if (s%ny>0) wrk1(: ,1) = 0.0_rKind
+    if (s%ny>0) wrk1(:,s%ny+1) = 0.0_rKind
     wrk1(1,:)  = 0.0_rKind
     wrk1(s%nx,:) = 0.0_rKind
      
@@ -393,15 +420,21 @@ subroutine flow_secondorder_advW(s,par,w,w_old)
       enddo
     enddo    
     wrk2(:,1)      = 0.0_rKind
-    wrk2(:,s%ny)   = 0.0_rKind
+    if (s%ny>0) wrk2(:,s%ny)   = 0.0_rKind
 
     !CORRECTION TO W
-    do j=2,s%ny
-      do i=2,s%nx
-        w(i,j) = w(i,j)-par%dt/s%hh(i,j)*(  (s%qx(i,j)*wrk1(i,j)- s%qx(i-1,j)*wrk1(i-1,j))/ s%dsz(i,1)  &
-                                         +  (s%qy(i,j)*wrk2(i,j)- s%qy(i,j-1)*wrk2(i,j-1))/ s%dnz(1,j)  )
+    if (s%ny>0) then 
+      do j=2,s%ny
+        do i=2,s%nx
+          w(i,j) = w(i,j)-par%dt/s%hh(i,j)*(  (s%qx(i,j)*wrk1(i,j)- s%qx(i-1,j)*wrk1(i-1,j))/ s%dsz(i,1)  &
+                                           +  (s%qy(i,j)*wrk2(i,j)- s%qy(i,j-1)*wrk2(i,j-1))/ s%dnz(1,j)  )
+        enddo
       enddo
-    enddo
+    else
+      do i=2,s%nx
+        w(i,1) = w(i,1)-par%dt/s%hh(i,1)*(  (s%qx(i,1)*wrk1(i,1)- s%qx(i-1,1)*wrk1(i-1,1))/ s%dsz(i,1) )
+      enddo
+    endif
 
 end subroutine flow_secondorder_advW
 
@@ -448,6 +481,7 @@ subroutine flow_secondorder_con(s,par,zs_old)
     integer(kind=iKind)        :: j    !Current point
     integer(kind=iKind)        :: js   !j+1
     integer(kind=iKind)        :: jss  !j+2
+    integer(kind=iKind)        :: jmin,jmax  !index for superfast1D
 
     real(kind=rKind)           :: mindepth    
     real(kind=rKind)           :: delta1
@@ -456,6 +490,14 @@ subroutine flow_secondorder_con(s,par,zs_old)
 !                             IMPLEMENTATION
 !-------------------------------------------------------------------------------
 
+    if (s%ny>0) then
+      jmin = 2
+      jmax = s%ny
+    else 
+      jmin = 1
+      jmax = 1
+    endif
+    
     !== SECOND ORDER EXPLICIT CORRECTION TO CONTINUITY ==
     !Initialize/allocate arrays on first entry
       if (.not. initialized) then
@@ -463,7 +505,7 @@ subroutine flow_secondorder_con(s,par,zs_old)
       endif  
       !return
       !correction to mass flux qx
-      do j=2,s%ny
+      do j=jmin,jmax
         do i=2,s%nx-1
           wrk1(i,j) = 0.0_rkind
           ie  = min(i+1,s%nx)
@@ -515,16 +557,26 @@ subroutine flow_secondorder_con(s,par,zs_old)
       endif
       
       !Update waterlevels
-      do j=2,s%ny
-        do i=2,s%nx
-          s%zs(i,j) = s%zs(i,j)-par%dt*(  (wrk1(i,j)-wrk1(i-1,j))/ s%dsz(i,1)  &
-                                       +  (wrk2(i,j)-wrk2(i,j-1))/ s%dnz(1,j)  )
+      if (s%ny>0) then
+        do j=2,s%ny
+          do i=2,s%nx
+            s%zs(i,j) = s%zs(i,j)-par%dt*(  (wrk1(i,j)-wrk1(i-1,j))/ s%dsz(i,1)  &
+                                         +  (wrk2(i,j)-wrk2(i,j-1))/ s%dnz(1,j)  )
+          enddo
         enddo
-      enddo
+      else
+        do i=2,s%nx
+          s%zs(i,1) = s%zs(i,1)-par%dt*(  (wrk1(i,1)-wrk1(i-1,1))/ s%dsz(i,1) )
+        enddo
+      endif
       
       !Update fluxes
-      s%qx(2:s%nx,2:s%ny) = s%qx(2:s%nx,2:s%ny) +wrk1(2:s%nx,2:s%ny)
-      s%qy(2:s%nx,2:s%ny) = s%qy(2:s%nx,2:s%ny) +wrk2(2:s%nx,2:s%ny)
+      if (s%ny>0) then
+         s%qx(2:s%nx,2:s%ny) = s%qx(2:s%nx,2:s%ny) +wrk1(2:s%nx,2:s%ny)
+         s%qy(2:s%nx,2:s%ny) = s%qy(2:s%nx,2:s%ny) +wrk2(2:s%nx,2:s%ny)
+      else
+        s%qx(2:s%nx,1) = s%qx(2:s%nx,1) +wrk1(2:s%nx,1)
+      endif
 
 end subroutine flow_secondorder_con
 
