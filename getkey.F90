@@ -97,6 +97,15 @@ integer function getkey(par, key, value)
   getkey = 0
 end function getkey
 
+subroutine getnkeys(par, n)
+  use params
+  implicit none
+  type(parameters), intent(in) :: par 
+  integer, intent(out) :: n 
+  include 'getkey.gen'
+  n = ncharacterkeys+nintegerkeys+nrealkeys
+end subroutine getnkeys
+
 subroutine getkeys(par, keys)
   ! This subroutine gives a list of all available keys (parameter names)
   use params

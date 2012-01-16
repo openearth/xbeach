@@ -1,7 +1,8 @@
 module libxbeach_module
   use iso_c_binding
   use mnemiso_module
-
+  use mnemmodule
+  use getkey_module
   use params
   use spaceparams
   use xmpi_module
@@ -35,7 +36,13 @@ module libxbeach_module
   real*8                                              :: t0,t01
 #endif
 
+  interface getnparameter
+     module procedure getnparameter_fortran
+  end interface getnparameter
 
+  interface getparametername
+     module procedure getparametername_fortran
+  end interface getparametername
   
   interface getdoubleparameter
       module procedure getdoubleparameter_fortran
@@ -198,7 +205,50 @@ contains
     ! enddo
   end function executestep
 
-  
+  ! No C for this one, no chars to mess up...
+  integer(c_int) function getnparameter_fortran(n) bind(C, name="getnparameter")
+    integer(c_int), intent(inout) :: n
+    character(len=maxnamelen), allocatable :: keys(:)
+    getnparameter_fortran = -1
+    call getkeys(par, keys)
+    n = size(keys,1)
+    getnparameter_fortran = 0
+  end function getnparameter_fortran
+
+  integer(c_int) function getparametername_fortran(index, name)
+    integer(c_int), intent(in) :: index
+    character(kind=c_char, len=*), intent(out) :: name
+    character(kind=c_char, len=1), pointer :: cname(:)
+    integer :: length
+    getparametername_fortran = getparametername_c(index, cname, length)
+    name = char_array_to_string(cname, length)
+  end function getparametername_fortran
+
+
+  integer(c_int) function getparametername_c(index, name, length) bind(C,name="getparametername")
+    integer(c_int), intent(in) :: index
+    integer(c_int), intent(out) :: length
+    character(kind=c_char, len=1), intent(out) :: name(maxnamelen)
+
+    integer :: i,j
+    character(len=maxnamelen), allocatable :: keys(:)
+    character(kind=c_char,len=maxnamelen) :: key
+    getparametername_c = -1
+    ! These are the keys in fortran format.
+    call getkeys(par, keys)
+    ! We need to conver them to C format (char1's)
+    key = keys(index)
+    do i=1,len(trim(key))
+       name(i) = key(i:i)
+    end do
+    if (i .lt. maxnamelen) then
+       name(i+1) = C_NULL_CHAR
+    else
+       name(i) = C_NULL_CHAR
+    end if
+    length = len(trim(key))
+    getparametername_c = 0
+  end function getparametername_c
 
   integer(c_int) function getdoubleparameter_fortran(name,value) 
     USE iso_c_binding
@@ -209,12 +259,12 @@ contains
     character(kind=c_char,len=*),intent(in) :: name
 
     ! Transform name to a fortran character... 
-    character(1), dimension(len(name)) :: myname 
+    character(1), dimension(len(name)) :: cname 
     integer :: i
     do i = 1,len(name)
-        myname(i) = name(i:i) 
+        cname(i) = name(i:i) 
     enddo
-    getdoubleparameter_fortran = getdoubleparameter_c(myname,value,len(name))
+    getdoubleparameter_fortran = getdoubleparameter_c(cname,value,len(name))
   end function getdoubleparameter_fortran
 
 
