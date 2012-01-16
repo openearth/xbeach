@@ -310,7 +310,9 @@ type parameters
    character(256):: ncfilename                 = 'xboutput.nc' ! [-] (advanced) xbeach netcdf output file name
    ! Projection units (not to be used, only pass to output, this limit is too short for WKT....)
    ! This could be the proj4 string +init=epsg:28992   
-   character*80  :: projection                 = ' '     !  [-] (advanced) projection string 
+   character(1024)  :: projection                 = ' '     !  [-] (advanced) projection string 
+   integer*4     :: rotate              = -123    !  [-] Rotate (1) postprocess output with the rotate function.
+
 
   
    ! [Section] Drifters parameters
@@ -930,6 +932,8 @@ contains
     ! projection string for output netcdf output
     testc = readkey_name('params.txt','projection')
     if (len(trim(testc)) .gt. 0) par%projection = trim(testc)
+
+    par%rotate = readkey_int ('params.txt','rotate',     1,  0, 1)
 
     par%tstart  = readkey_dbl ('params.txt','tstart',   1.d0,      0.d0,1000000.d0)
     par%tint    = readkey_dbl ('params.txt','tint',     1.d0,     .01d0, 100000.d0)  ! Robert

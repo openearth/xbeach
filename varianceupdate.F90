@@ -279,10 +279,10 @@ contains
           endwhere
           ! Some variables (vectors) are rotated to N-S and E-W direction
           if (t%type=='i') then 
-             call gridrotate(sl,t,tvar2di)
+             if (par%rotate .eq. 1) call gridrotate(sl,t,tvar2di)
              tvar2d=dble(tvar2di)
           else
-             call gridrotate(sl,t,tvar2d)
+             if (par%rotate .eq. 1) call gridrotate(sl,t,tvar2d)
           endif
           if (par%meanvars(i)=='thetamean') then
             meansparslocal(i)%mean2d = meansparslocal(i)%mean2d +   &
@@ -312,7 +312,7 @@ contains
           where (oldmean3d>-1.d0*tiny(0.d0) .and. oldmean3d<0.d0)
              oldmean3d=-1.d0*tiny(0.d0)
           endwhere
-          call gridrotate(sl,t,tvar3d)
+          if (par%rotate .eq. 1) call gridrotate(sl,t,tvar3d)
           meansparslocal(i)%mean3d = meansparslocal(i)%mean3d + mult*tvar3d
           meansparslocal(i)%variancecrossterm3d = &
                meansparslocal(i)%variancecrossterm3d/oldmean3d*meansparslocal(i)%mean3d + &
@@ -335,7 +335,7 @@ contains
           where (oldmean4d>-1.d0*tiny(0.d0) .and. oldmean4d<0.d0)
              oldmean4d=-1.d0*tiny(0.d0)
           endwhere
-          call gridrotate(sl,t,tvar4d)
+          if (par%rotate .eq. 1) call gridrotate(sl,t,tvar4d)
           meansparslocal(i)%mean4d = meansparslocal(i)%mean4d + mult*tvar4d
           meansparslocal(i)%variancecrossterm4d = &
                meansparslocal(i)%variancecrossterm4d/oldmean4d*meansparslocal(i)%mean4d + &
