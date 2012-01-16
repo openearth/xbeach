@@ -17,7 +17,7 @@
 !
 module interp
 contains
-     SUBROUTINE linear_interp_2d(X,nx,Y,ny,Z,xx,yy,zz,method,exception)
+     PURE SUBROUTINE linear_interp_2d(X,nx,Y,ny,Z,xx,yy,zz,method,exception)
      
      implicit none
      ! input/output
@@ -99,7 +99,7 @@ contains
      END SUBROUTINE linear_interp_2d
 
 
-     SUBROUTINE LINEAR_INTERP(X, Y, N, XX, YY, INDINT)
+     PURE SUBROUTINE LINEAR_INTERP(X, Y, N, XX, YY, INDINT)
      integer,              intent(in) :: n
      real*8, dimension(n), intent(in) :: x
      real*8, dimension(n), intent(in) :: y
@@ -174,7 +174,7 @@ contains
 !
 ! SOURCE
 !
-      SUBROUTINE BINARY_SEARCH(XX, N, X, J) 
+      PURE SUBROUTINE BINARY_SEARCH(XX, N, X, J) 
         integer,              intent(in) :: N
         real*8, dimension(N), intent(in) :: xx
         real*8, intent(in)               :: x
