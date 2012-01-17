@@ -3,18 +3,19 @@
 !
 program demo
 use spaceparams
+use typesandkinds
 use mnemmodule
 implicit none
 
 type (spacepars) :: s
 
 integer, parameter :: nnames = 4
-character(20), dimension(nnames),parameter :: names=(/'xz','x','cx','nx'/)
+character(slen), dimension(nnames),parameter :: names=(/'xz','x','cx','nx'/)
 integer :: i
 !
 ! alternatively, to let the compiler catch typing errors:
 
-!character(20), dimension(nnames), parameter :: names=(/mnem_xz,mnem_x,mnem_cx,mnem_nx/)
+!character(slen), dimension(nnames), parameter :: names=(/mnem_xz,mnem_x,mnem_cx,mnem_nx/)
 
 ! allocate scalars:
 call space_alloc_scalars(s)

@@ -1,11 +1,10 @@
 module filefunctions
-
+  use typesandkinds
   interface check_file_length
      module procedure check_file_length_1D
      module procedure check_file_length_2D
      module procedure check_file_length_3D
   end interface check_file_length
-
 contains
 
   integer function create_new_fid()
@@ -134,10 +133,10 @@ contains
 
     IMPLICIT NONE
     real*8, intent(in) :: tstop
-    character(24), intent(in):: instat
-    character*80      :: filename,dummy
-    character*8       :: testc
-    character*1       :: ch
+    character(slen), intent(in):: instat
+    character(slen)     :: filename,dummy
+    character(slen)     :: testc
+    character(len=1)    :: ch
     integer           :: i,ier=0,nlines,filetype,fid
     real*8            :: t,dt,total,d1,d2,d3,d4,d5
 
@@ -199,7 +198,7 @@ contains
     
     implicit none
     
-    character*80, intent(in)                :: filename
+    character(slen), intent(in)                :: filename
     integer                                 :: n
     integer                                 :: io, error
     real*8                                  :: temp

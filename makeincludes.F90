@@ -13,26 +13,26 @@
 !          spaceparams.tmpl
 !
 module makemodule
-  integer, parameter             :: slen = 1024
-  character(len=slen), parameter :: templatefilename = 'spaceparams.tmpl'
-  character(len=slen)            :: outputfilename
+  use typesandkinds
+  character(slen), parameter :: templatefilename = 'spaceparams.tmpl'
+  character(slen)            :: outputfilename
   integer             :: infile = 1
   integer             :: outfile = 2
-  character(len=slen), parameter :: spacedeclname = 'spacedecl.gen'
-  character(len=slen), parameter :: mnemonicname = 'mnemonic.gen'
-  character(len=slen), parameter :: indextosname = 'indextos.gen'
-  character(len=slen), parameter :: space_alloc_scalarsname = 'space_alloc_scalars.gen'
-  character(len=slen), parameter :: space_alloc_arraysname = 'space_alloc_arrays.gen'
-  character(len=slen), parameter :: space_indname = 'space_ind.gen'
-  character(len=slen), parameter :: space_inpname = 'space_inp.gen'
-  character(len=slen), parameter :: chartoindexname = 'chartoindex.gen'
+  character(slen), parameter :: spacedeclname = 'spacedecl.gen'
+  character(slen), parameter :: mnemonicname = 'mnemonic.gen'
+  character(slen), parameter :: indextosname = 'indextos.gen'
+  character(slen), parameter :: space_alloc_scalarsname = 'space_alloc_scalars.gen'
+  character(slen), parameter :: space_alloc_arraysname = 'space_alloc_arrays.gen'
+  character(slen), parameter :: space_indname = 'space_ind.gen'
+  character(slen), parameter :: space_inpname = 'space_inp.gen'
+  character(slen), parameter :: chartoindexname = 'chartoindex.gen'
   integer                        :: numvars, maxnamelen, inumvars0, rnumvars0
-  character(len=slen)            :: type, name, comment, line, broadcast, description, units, standardname
+  character(slen)            :: type, name, comment, line, broadcast, description, units, standardname
   integer                        :: rank
   logical                        :: varfound
   logical                        :: endfound
   logical                        :: dimensioned
-  character(20), dimension(10) :: dims       ! dimensions are maximum 10 length statement, maximum 10 different dimensions
+  character(dimnamelen), dimension(10)   :: dims       ! dimensions are maximum 20 length statement, maximum 10 different dimensions
   integer                        :: maxdimlen, maxrank
   character(6),parameter         :: sp = '      '
 
@@ -86,7 +86,7 @@ contains
   subroutine getitems
     implicit none
 
-    character(len=slen)  :: w
+    character(slen)  :: w
     integer              :: j,l,i
 
     l=1
@@ -242,7 +242,7 @@ contains
   !
   subroutine makespacedecl
     implicit none
-    character(len=slen) nullstr,rankstr
+    character(slen) nullstr,rankstr
     call openinfile
     call openoutput
     call warning
@@ -327,14 +327,14 @@ contains
        endif
        call getitems
        if (varfound) then
-          write(outfile,'(a)') sp//'  character(len=maxnamelen),parameter ::  mnem_'// &
+          write(outfile,'(a)') sp//'  character(len=slen),parameter ::  mnem_'// &
                name(1:maxnamelen)//" = '"//name(1:maxnamelen)//"'"
        endif
     enddo
 
     rewind infile
     write (outfile,'(a)') sp//&
-         '  character(len=maxnamelen),dimension(numvars),parameter :: mnemonics= (/ &'
+         '  character(len=slen),dimension(numvars),parameter :: mnemonics= (/ &'
 
     j=1
     do
@@ -396,8 +396,8 @@ contains
     implicit none
     integer             :: i,j
     character           :: ctype
-    character(len=slen) :: rankstr
-    character(len=10) :: extrastr
+    character(slen) :: rankstr
+    character(slen) :: extrastr
     call openinfile
     call openoutput
     call warning
@@ -480,7 +480,9 @@ contains
                 else
                    extrastr = "/)"
                 endif
-                write(outfile,'(a)',advance='no')   "'"//(dims(i))//"'"//trim(extrastr)
+                write(outfile,'(a)',advance='no')   "'"
+                write(outfile,'(a)', advance='no'), dims(i) ! Don't trim this one, we need the spaces...
+                write(outfile,'(a)',advance='no'),  "'" // trim(extrastr)
              enddo
              write(outfile, *) ! empty line
           endif
@@ -542,7 +544,7 @@ contains
 
   subroutine makespaceind
     implicit none
-    character(len=slen) rankstr
+    character(slen) rankstr
     call openinfile
     call openoutput
     call warning
@@ -599,7 +601,7 @@ contains
     implicit none
     integer             :: startpar,endpar,i
     logical             :: readtype
-    character(len=slen) :: parname
+    character(slen) :: parname
 
     infile = 10
     outfile = 11
@@ -724,9 +726,9 @@ contains
     implicit none
     integer             :: startpar,endpar,i, ncharacterkeys, nintegerkeys, nrealkeys
     logical             :: readtype
-    character(len=slen) :: parname
+    character(slen) :: parname
     integer, parameter  :: maxnvar = 1024
-    character(len=slen), dimension(maxnvar) :: characterkeys, integerkeys, realkeys
+    character(slen), dimension(maxnvar) :: characterkeys, integerkeys, realkeys
 
     ncharacterkeys = 0
     nrealkeys = 0
@@ -832,11 +834,11 @@ contains
     write(outfile,*) 'integer, parameter :: nrealkeys=', nrealkeys
     write(outfile,*) 'integer, parameter :: nintegerkeys=', nintegerkeys
     ! key definitions
-    write(outfile,*) 'character(len=', slen, '), dimension(ncharacterkeys) :: characterkeys'
-    write(outfile,*) 'character(len=', slen, '), dimension(nrealkeys) :: realkeys'
-    write(outfile,*) 'character(len=', slen, '), dimension(nintegerkeys) :: integerkeys'
+    write(outfile,*) 'character(slen), dimension(ncharacterkeys) :: characterkeys'
+    write(outfile,*) 'character(slen), dimension(nrealkeys) :: realkeys'
+    write(outfile,*) 'character(slen), dimension(nintegerkeys) :: integerkeys'
     ! value definitions
-    write(outfile,*) 'character(len=', slen, '), dimension(ncharacterkeys) :: charactervalues'
+    write(outfile,*) 'character(slen), dimension(ncharacterkeys) :: charactervalues'
     write(outfile,*) 'real*8, dimension(nrealkeys) :: realvalues'
     write(outfile,*) 'integer*4, dimension(nintegerkeys) :: integervalues'
 
@@ -867,8 +869,9 @@ end module makemodule
 
 program makeincludes
   use makemodule
+  use typesandkinds
   implicit none
-  character(len=slen) :: command
+  character(slen) :: command
   !
   ! count number of variables
   !

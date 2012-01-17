@@ -1,4 +1,5 @@
 module mnemmodule
+use typesandkinds
 include 'mnemonic.gen'
 
 type arraytype
@@ -6,11 +7,11 @@ type arraytype
   character type         ! 'i' or 'r': integer or real*8
   character btype        ! 'b' or 'd': broadcast or distribute
   integer rank           ! 0,1,2,3,4
-  character(len=maxnamelen) :: name     ! 'v','ve', .....
-  character(len=20) :: units     ! m, following udunits convention
-  character(len=1024) :: standardname
-  character(len=1024) :: description
-  character(len=20), dimension(maxrank) :: dimensions ! the dimensions of the variable, for example (s%nx, s%ny)
+  character(slen) :: name     ! 'v','ve', .....
+  character(slen) :: units     ! m, following udunits convention
+  character(slen) :: standardname
+  character(slen) :: description
+  character(slen), dimension(maxrank) :: dimensions ! the dimensions of the variable, for example (s%nx, s%ny)
 
   real*8, pointer             :: r0  ! pointer to real8 scalar
   real*8, dimension(:), pointer :: r1  ! pointer to real8 (:)

@@ -147,26 +147,26 @@ subroutine log_progress(par)
              percnow = 100.d0*par%t/par%tstop
              ! Average time step in the last 5 seconds
              dtavg = sumdt/ndt
-             call writelog('ls','(a,f5.1,a,f5.3,a)','Simulation ',percnow,' percent complete. Average dt ',sumdt/ndt,' seconds')
+             call writelog('ls','(a,f5.1,a,f7.3,a)','Simulation ',percnow,' percent complete. Average dt ',sumdt/ndt,' seconds')
              ndt=0
              sumdt=0.d0
              ! Predict time based on percentage change rate in the last 5 seconds. 
              tpredicted = 100.d0*(1.d0-par%t/par%tstop)/(max(percnow-percprev,0.01d0)/(tnow-tprev))
              ! Percentage complete:
              if (tpredicted>=3600) then 
-                call writelog('ls','(a,I0,a,I2,a)','Time remaining ',&
+                call writelog('ls','(a,I3,a,I3,a)','Time remaining',&
                      floor(tpredicted/3600.0d0),' hours and ',&
                      nint((tpredicted-3600.0d0*floor(tpredicted/3600.0d0))/60.0d0),&
                      ' minutes')
              elseif (tpredicted>=600) then
-                call writelog('ls','(a,I2,a)','Time remaining ',&
+                call writelog('ls','(a,I3,a)','Time remaining ',&
                      floor(tpredicted/60.0d0),' minutes')
              elseif (tpredicted>=60) then
-                call writelog('ls','(a,I2,a,I2,a)','Time remaining ',&
+                call writelog('ls','(a,I3,a,I3,a)','Time remaining ',&
                      floor(tpredicted/60.0d0),' minutes and ',&
                      nint((tpredicted-60.0d0*floor(tpredicted/60.0d0))),' seconds')
              else
-                call writelog('ls','(a,I2,a)','Time remaining ',nint(tpredicted),' seconds')
+                call writelog('ls','(a,I3,a)','Time remaining ',nint(tpredicted),' seconds')
              endif
              tprev=tnow
              percprev=percnow

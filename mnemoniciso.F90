@@ -67,6 +67,17 @@ function char_array_to_string(char_array, length)
         char_array_to_string(i:i) = char_array(i)
     enddo
 end function
+function string_to_char_array(string, length)
+  character(len=length) :: string
+  character(kind=c_char,len=1) :: string_to_char_array(length+1)
+  integer(c_int) :: length
+  integer :: i
+  do i = 1, length
+     string_to_char_array(i) = string(i:i)
+  enddo
+  string_to_char_array(length+1) = C_NULL_CHAR
+end function
+
 
 !   FUNCTION C_F_STRING(CPTR) RESULT(FPTR)
 !      ! Convert a null-terminated C string into a Fortran character array pointer

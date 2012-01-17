@@ -1,4 +1,5 @@
 module readkey_module
+use typesandkinds
 
 contains
   real*8 function readkey_dbl(fname,key,defval,mnval,mxval,bcast,required)
@@ -35,14 +36,14 @@ contains
     use logging_module
     implicit none
     character(len=*)  :: fname,key
-    character(24)     :: printkey
+    character(slen)     :: printkey
     real*8            :: defval,mnval,mxval
     logical, intent(in), optional :: bcast,required
 
-    character(len=256)   :: value
+    character(slen)   :: value
     real*8         :: value_dbl
     logical        :: lbcast,lrequired
-    character(24)  :: fmt
+    character(slen)  :: fmt
 
     fmt = '(a,a,a,f0.4,a,f0.4)'
 
@@ -59,7 +60,8 @@ contains
     endif
 
     !printkey=key
-    printkey(2:24)=key
+    printkey = ' '
+    printkey(2:24)=trim(key)
     printkey(1:1)=' '
 
     if (xmaster) then
@@ -68,13 +70,13 @@ contains
        if (value/=' ') then
           read(value,'(f10.0)')value_dbl
           if (value_dbl>mxval) then
-             call writelog('lw','(a,a,f0.4,a,f0.4)',(printkey),' = ',value_dbl,' Warning: value > recommended value of ',mxval)
-             call writelog('s','(a,a,a,f0.4)','Warning: ',trim(printkey),' > recommended value of ',mxval)
+             call writelog('lw','(a12,a,f0.4,a,f0.4)',(printkey),' = ',value_dbl,' Warning: value > recommended value of ',mxval)
+             call writelog('s','(a12,a,a,f0.4)','Warning: ',trim(printkey),' > recommended value of ',mxval)
           elseif (value_dbl<mnval) then
-             call writelog('lw','(a,a,f0.4,a,f0.4)',(printkey),' = ',value_dbl,' Warning: value < recommended value of ',mnval)
-             call writelog('s','(a,a,a,f0.4)','Warning: ',trim(printkey),' < recommended value of ',mnval)
+             call writelog('lw','(a12,a,f0.4,a,f0.4)',(printkey),' = ',value_dbl,' Warning: value < recommended value of ',mnval)
+             call writelog('s','(a12,a,a,f0.4)','Warning: ',trim(printkey),' < recommended value of ',mnval)
           else
-             call writelog('l','(a,a,f0.4)',(printkey),' = ',value_dbl)
+             call writelog('l','(a12,a,f0.4)',(printkey),' = ',value_dbl)
           endif
        else
           if (lrequired) then
@@ -82,7 +84,7 @@ contains
              call halt_program
           else
              value_dbl=defval
-             call writelog('l','(a,a,f0.4,a)',(printkey),' = ',value_dbl,' (no record found, default value used)')
+             call writelog('l','(a12,a,f0.4,a)',(printkey),' = ',value_dbl,' (no record found, default value used)')
           endif
        endif
        ! write to basic params data file
@@ -103,13 +105,13 @@ contains
     use logging_module
     implicit none
     character*(*)  :: fname,key
-    character(24)  :: printkey
-    character*256   :: value
+    character(slen)  :: printkey
+    character(slen)  :: value
     integer*4      :: value_int
     integer*4      :: defval,mnval,mxval
     logical, intent(in), optional :: bcast, required
     logical        :: lbcast,lrequired
-    character(24)  :: fmt
+    character(slen)  :: fmt
 
     fmt = '(a,a,a,i0,a,i0)'
 
@@ -124,8 +126,8 @@ contains
     else
        lrequired = .false.
     endif
-
-    printkey(2:24)=key
+    printkey = ' '
+    printkey(2:24)=trim(key)
     printkey(1:1)=' '
     if (xmaster) then
        call readkey(fname,key,value)
@@ -134,12 +136,12 @@ contains
           read(value,'(i256)')value_int
           if (value_int>mxval) then
              call writelog('lw',fmt,'Warning: variable ',(printkey),' ',value_int,' > recommended value of ',mxval)
-             call writelog('s','(a,a,a,i0)','Warning: ',trim(printkey),' > recommended value of ',mxval)
+             call writelog('s','(a12,a,a,i0)','Warning: ',trim(printkey),' > recommended value of ',mxval)
           elseif (value_int<mnval) then
              call writelog('lw',fmt,'Warning: variable ',(printkey),' ',value_int,' < recommended value of ',mnval)
-             call writelog('s','(a,a,a,i0)','Warning: ',trim(printkey),' < recommended value of ',mnval)
+             call writelog('s','(a12,a,a,i0)','Warning: ',trim(printkey),' < recommended value of ',mnval)
           else
-             call writelog('l','(a,a,i0)',(printkey),' = ',value_int)
+             call writelog('l','(a12,a,i0)',(printkey),' = ',value_int)
           endif
        else
           if (lrequired) then
@@ -147,7 +149,7 @@ contains
              call halt_program
           else
              value_int=defval
-             call writelog('l','(a,a,i0,a)',(printkey),' = ',value_int,' (no record found, default value used)')
+             call writelog('l','(a12,a,i0,a)',(printkey),' = ',value_int,' (no record found, default value used)')
           endif
        endif
        ! write to basic params data file
@@ -166,16 +168,16 @@ contains
     use logging_module
     implicit none
     character*(*)  :: fname,key,defval
-    character(24)  :: value_str
-    character(24)   :: value
+    character(slen)  :: value_str
+    character(slen)   :: value
     integer*4      :: nv,nov,i,j
-    character(24),dimension(nv) :: allowed
-    character(24),dimension(nov):: old
+    character(slen),dimension(nv) :: allowed
+    character(slen),dimension(nov):: old
     logical, intent(in), optional :: bcast,required
     logical        :: lbcast,lrequired,passed
-    character(24)  :: printkey
+    character(slen)  :: printkey
 
-    printkey(2:24)=key
+    printkey(2:slen)=key
     printkey(1:1)=' '
 
     if (present(bcast)) then
@@ -201,7 +203,7 @@ contains
              call halt_program
           else 
              value_str=defval
-             call writelog('l','(a,a,a,a)',(printkey),' = ',trim(value_str),' (no record found, default value used)')
+             call writelog('l','(a12,a,a,a)',(printkey),' = ',trim(value_str),' (no record found, default value used)')
           endif
        else
           value=adjustl(value)
@@ -218,15 +220,15 @@ contains
              endif
           enddo
           if (passed) then
-             call writelog('l','(a,a,a)',printkey,' = ',trim(value_str))
+             call writelog('l','(a12,a,a)',printkey,' = ',trim(value_str))
           else
-             call writelog('sle','(a,a,a,a)','Invalid option for ',trim(printkey),' : ',trim(value))
-             call writelog('sle','(a,a,a)','Valid options for ',trim(printkey),' are:')
+             call writelog('sle','(a12,a,a,a)','Invalid option for ',trim(printkey),' : ',trim(value))
+             call writelog('sle','(a12,a,a)','Valid options for ',trim(printkey),' are:')
              do i=1,nv
-                call writelog('sle','(a)',trim(allowed(i)))
+                call writelog('sle','(a12)',trim(allowed(i)))
              enddo
              do j=1,nov
-                call writelog('sle','(a)',trim(old(j)))
+                call writelog('sle','(a12)',trim(old(j)))
              enddo
              call halt_program
           endif
@@ -247,13 +249,13 @@ contains
     use logging_module
     implicit none
     character*(*)  :: fname,key
-    character(256)  :: value_str
-    character*256   :: value
+    character(slen)  :: value_str
+    character(slen)   :: value
     logical, intent(in), optional :: bcast,required
     logical        :: lbcast,lrequired
-    character(24)  :: printkey
+    character(slen)  :: printkey
 
-    printkey(2:24)=key
+    printkey(2:slen)=key
     printkey(1:1)=' '
 
     if (present(bcast)) then
@@ -276,13 +278,13 @@ contains
              call halt_program
           else 
              value_str=' '
-             call writelog('l',' (a,a)'    ,printkey,' = None specified')
+             call writelog('l',' (a12,a)'    ,printkey,' = None specified')
              ! write to basic params data file
              !    write(pardatfileid,*)'c ',key,' ','none'
           endif
        else
           value_str=adjustl(value)
-          call writelog('l','(a,a,a)',printkey,' = ',trim(value_str))
+          call writelog('l','(a12,a,a)',printkey,' = ',trim(value_str))
           ! write to basic params data file
           !    write(pardatfileid,*)'c ',printkey,' ',value_str
        endif
@@ -306,10 +308,10 @@ contains
     logical        :: lbcast,lrequired
     
     integer          :: i, ioerr
-    character*256   :: value
-    character(24)  :: printkey
+    character(slen)   :: value
+    character(slen)  :: printkey
   
-    printkey(2:24)=key
+    printkey(2:slen)=key
     printkey(1:1)=' '
 
     if (present(bcast)) then
@@ -335,15 +337,15 @@ contains
           endif
           do i=1,vlength
              if (value_vec(i)>mxval) then
-                call writelog('lw','(a,a,f0.4,a,f0.4)',(printkey),' = ',value_vec(i), &
+                call writelog('lw','(a12,a,f0.4,a,f0.4)',(printkey),' = ',value_vec(i), &
                     ' Warning: value > recommended value of ',mxval)
-                call writelog('s','(a,a,a,f0.4)','Warning: ',trim(printkey),' > recommended value of ',mxval)
+                call writelog('s','(a12,a,a,f0.4)','Warning: ',trim(printkey),' > recommended value of ',mxval)
              elseif (value_vec(i)<mnval) then
-                call writelog('lw','(a,a,f0.4,a,f0.4)',(printkey),' = ',value_vec(i), &
+                call writelog('lw','(a12,a,f0.4,a,f0.4)',(printkey),' = ',value_vec(i), &
                     ' Warning: value < recommended value of ',mnval)
-                call writelog('s','(a,a,a,f0.4)','Warning: ',trim(printkey),' < recommended value of ',mnval)
+                call writelog('s','(a12,a,a,f0.4)','Warning: ',trim(printkey),' < recommended value of ',mnval)
              else
-                call writelog('l','(a,a,f0.4)',(printkey),' = ',value_vec(i))
+                call writelog('l','(a12,a,f0.4)',(printkey),' = ',value_vec(i))
              endif
           enddo
        else
@@ -376,7 +378,7 @@ contains
     character*(*)   :: fname,key
     logical, intent(in), optional :: bcast
     logical         :: isSet
-    character*256   :: value
+    character(slen)   :: value
     logical         :: lbcast
     
     if (present(bcast)) then
@@ -418,10 +420,10 @@ contains
     character*1                                 :: ch
     character(len=*), intent(in)                :: fname,key
     character(len=*), intent(out)               :: value
-    character*80, dimension(1024),save          :: keyword,values
-    character*80                                :: line
+    character(slen), dimension(1024),save          :: keyword,values
+    character(slen)                                :: line
     integer, save                               :: nkeys
-    character*80, save                          :: fnameold=''
+    character(slen), save                          :: fnameold=''
     integer, dimension(:),allocatable,save      :: readindex
 
     ! If the file name of the input file changes, the file should be reread

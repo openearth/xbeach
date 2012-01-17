@@ -88,10 +88,10 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libxbeach_la_LIBADD =
 am__libxbeach_la_SOURCES_DIST = s.ind s.inp xmpi.F90 general_mpi.F90 \
-	logging.F90 filefunctions.F90 readkey.F90 mnemonic.F90 \
-	interp.F90 math_tools.F90 general_fileio.F90 params.F90 \
-	getkey.F90 spaceparams.F90 wave_functions.F90 waveparams.F90 \
-	waveparamsnew.F90 constants.F90 roelvink.F90 \
+	typesandkinds.F90 logging.F90 filefunctions.F90 readkey.F90 \
+	mnemonic.F90 interp.F90 math_tools.F90 general_fileio.F90 \
+	params.F90 getkey.F90 spaceparams.F90 wave_functions.F90 \
+	waveparams.F90 waveparamsnew.F90 constants.F90 roelvink.F90 \
 	wave_stationary.F90 wave_instationary.F90 wave_timestep.F90 \
 	boundaryconditions.F90 morphevolution.F90 groundwater.F90 \
 	drifters.F90 readtide.F90 readwind.F90 initialize.F90 \
@@ -101,15 +101,15 @@ am__libxbeach_la_SOURCES_DIST = s.ind s.inp xmpi.F90 general_mpi.F90 \
 	libxbeach.F90
 @USENETCDF_TRUE@am__objects_1 = libxbeach_la-ncoutput.lo
 am_libxbeach_la_OBJECTS = libxbeach_la-xmpi.lo \
-	libxbeach_la-general_mpi.lo libxbeach_la-logging.lo \
-	libxbeach_la-filefunctions.lo libxbeach_la-readkey.lo \
-	libxbeach_la-mnemonic.lo libxbeach_la-interp.lo \
-	libxbeach_la-math_tools.lo libxbeach_la-general_fileio.lo \
-	libxbeach_la-params.lo libxbeach_la-getkey.lo \
-	libxbeach_la-spaceparams.lo libxbeach_la-wave_functions.lo \
-	libxbeach_la-waveparams.lo libxbeach_la-waveparamsnew.lo \
-	libxbeach_la-constants.lo libxbeach_la-roelvink.lo \
-	libxbeach_la-wave_stationary.lo \
+	libxbeach_la-general_mpi.lo libxbeach_la-typesandkinds.lo \
+	libxbeach_la-logging.lo libxbeach_la-filefunctions.lo \
+	libxbeach_la-readkey.lo libxbeach_la-mnemonic.lo \
+	libxbeach_la-interp.lo libxbeach_la-math_tools.lo \
+	libxbeach_la-general_fileio.lo libxbeach_la-params.lo \
+	libxbeach_la-getkey.lo libxbeach_la-spaceparams.lo \
+	libxbeach_la-wave_functions.lo libxbeach_la-waveparams.lo \
+	libxbeach_la-waveparamsnew.lo libxbeach_la-constants.lo \
+	libxbeach_la-roelvink.lo libxbeach_la-wave_stationary.lo \
 	libxbeach_la-wave_instationary.lo \
 	libxbeach_la-wave_timestep.lo \
 	libxbeach_la-boundaryconditions.lo \
@@ -127,7 +127,8 @@ libxbeach_la_LINK = $(LIBTOOL) --tag=FC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(FCLD) $(libxbeach_la_FCFLAGS) \
 	$(FCFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 PROGRAMS = $(bin_PROGRAMS)
-am_makeincludes_OBJECTS = makeincludes.$(OBJEXT)
+am_makeincludes_OBJECTS = typesandkinds.$(OBJEXT) \
+	makeincludes.$(OBJEXT)
 makeincludes_OBJECTS = $(am_makeincludes_OBJECTS)
 makeincludes_LDADD = $(LDADD)
 makeincludes_LINK = $(LIBTOOL) --tag=FC $(AM_LIBTOOLFLAGS) \
@@ -332,6 +333,7 @@ top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libxbeach.la
 ACLOCAL_AMFLAGS = -I m4 -I config
 makeincludes_SOURCES = \
+	typesandkinds.F90 \
 	makeincludes.F90
 
 makeincludes_LDFLAGS = 
@@ -341,6 +343,7 @@ libxbeach_la_SOURCES = \
 	s.inp \
 	xmpi.F90 \
 	general_mpi.F90 \
+	typesandkinds.F90 \
 	logging.F90 \
 	filefunctions.F90 \
 	readkey.F90 \
@@ -576,6 +579,9 @@ libxbeach_la-xmpi.lo: xmpi.F90
 
 libxbeach_la-general_mpi.lo: general_mpi.F90
 	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-general_mpi.lo `test -f 'general_mpi.F90' || echo '$(srcdir)/'`general_mpi.F90
+
+libxbeach_la-typesandkinds.lo: typesandkinds.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-typesandkinds.lo `test -f 'typesandkinds.F90' || echo '$(srcdir)/'`typesandkinds.F90
 
 libxbeach_la-logging.lo: logging.F90
 	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-logging.lo `test -f 'logging.F90' || echo '$(srcdir)/'`logging.F90

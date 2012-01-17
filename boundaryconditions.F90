@@ -1,4 +1,5 @@
 module boundaryconditions
+  use typesandkinds
 contains
   subroutine wave_bc(sg,sl,par)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
@@ -64,8 +65,8 @@ contains
     real*8,dimension(:,:)   ,allocatable,save   :: ee1, ee2
     real*8,dimension(:,:)   ,allocatable,save   :: gq1,gq2,gq
     real*8,dimension(:,:)   ,allocatable,save   :: gee1, gee2
-    character*1                                 :: bl
-    character(256)                              :: ebcfname,qbcfname,fname
+    character(len=1)                            :: bl
+    character(slen)                              :: ebcfname,qbcfname,fname
     real*8                                      :: E0
     real*8,dimension(:),allocatable,save        :: dist,factor
     logical                                     :: startbcf
@@ -1420,7 +1421,7 @@ subroutine velocity_Boundary(u,z,w,nx,ny,t,zs,ws)
     logical,save                              :: lNH_boun_U  = .false.
     logical,save                              :: initialize  = .true.
     logical                                   :: lExists
-    character(len=6)                          :: string
+    character(slen)                          :: string
     character(len=2),allocatable,dimension(:),save :: header
     integer(kind=ikind)                       :: iAllocErr   
     integer(kind=ikind),save                  :: nvar 

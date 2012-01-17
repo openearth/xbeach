@@ -104,6 +104,7 @@ makeversiondat.bat"/>
 		<File RelativePath="..\solver.F90"/>
 		<File RelativePath="..\spaceparams.F90"/>
 		<File RelativePath="..\timestep.F90"/>
+		<File RelativePath="..\typesandkinds.F90"/>
 		<File RelativePath="..\varianceupdate.F90"/>
 		<File RelativePath="..\varoutput.F90"/>
 		<File RelativePath="..\wave_functions.F90"/>

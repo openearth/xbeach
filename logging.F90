@@ -1,9 +1,7 @@
 MODULE logging_module
-
+use typesandkinds
 use xmpi_module
-
 implicit none
-
 integer,save     :: logfileid
 integer,save     :: errorfileid
 integer,save     :: warningfileid
@@ -187,7 +185,7 @@ subroutine writelog_startup()
     ! get current working directory (gcc only) 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-    character(len=155)                              :: cwd
+    character(slen)                              :: cwd
     call getcwd(cwd)
 #endif
 
@@ -286,7 +284,7 @@ subroutine writelog_distribute(destination,display)
     implicit none
     
     character(*)            :: destination
-    character(1024)         :: display
+    character(slen)         :: display
     
     if (xmaster) then 
        if (scan(destination,'l')>0) then
@@ -309,12 +307,12 @@ subroutine writelog_a(destination,form,message_char)
    implicit none
    character(*),intent(in)    ::  form,message_char
    character(*),intent(in)    ::  destination
-   character(1024)            ::  display
+   character(slen)            ::  display
 
    if (form=='') then
-      write(display,*)message_char
+      write(display,*)trim(message_char)
    else
-      write(display,form)message_char
+      write(display,form)trim(message_char)
    endif
 
    call writelog_distribute(destination, display)
@@ -325,12 +323,12 @@ subroutine writelog_aa(destination,form,message_char1,message_char2)
    implicit none
    character(*),intent(in)    ::  form,message_char1,message_char2
    character(*),intent(in)       ::  destination
-   character(1024)            ::  display
+   character(slen)            ::  display
    
    if (form=='') then
-      write(display,*)message_char1,message_char2
+      write(display,*) trim(message_char1),trim(message_char2)
    else
-      write(display,form)message_char1,message_char2
+      write(display,form) trim(message_char1),trim(message_char2)
    endif
 
    call writelog_distribute(destination, display)
@@ -342,12 +340,12 @@ subroutine writelog_ai(destination,form,message_char,message_int)
    character(*),intent(in)    ::  form,message_char
    character(*),intent(in)    ::  destination
    integer,intent(in)         ::  message_int
-   character(1024)            ::  display
+   character(slen)            ::  display
 
    if (form=='') then
-      write(display,*)message_char,message_int
+      write(display,*)trim(message_char),message_int
    else
-      write(display,form)message_char,message_int
+      write(display,form)trim(message_char),message_int
    endif
 
    call writelog_distribute(destination, display)
@@ -359,12 +357,12 @@ subroutine writelog_ia(destination,form,mint1,mchar1)
    character(*),intent(in)    ::  form,mchar1
    character(*),intent(in)    ::  destination
    integer,intent(in)         ::  mint1
-   character(1024)            ::  display
+   character(slen)            ::  display
 
    if (form=='') then
-      write(display,*)mint1,mchar1
+      write(display,*)mint1,trim(mchar1)
    else
-      write(display,form)mint1,mchar1
+      write(display,form)mint1,trim(mchar1)
    endif
 
    call writelog_distribute(destination, display)
@@ -375,12 +373,12 @@ subroutine writelog_aaa(destination,form,message_char1,message_char2,message_cha
    implicit none
    character(*),intent(in)    ::  form,message_char1,message_char2,message_char3
    character(*),intent(in)       ::  destination
-   character(1024)            ::  display
+   character(slen)            ::  display
    
    if (form=='') then
-      write(display,*)message_char1,message_char2,message_char3
+      write(display,*)trim(message_char1),trim(message_char2),trim(message_char3)
    else
-      write(display,form)message_char1,message_char2,message_char3
+      write(display,form)trim(message_char1),trim(message_char2),trim(message_char3)
    endif
 
    call writelog_distribute(destination, display)
@@ -391,12 +389,12 @@ subroutine writelog_aaaa(destination,form,message_char1,message_char2,message_ch
    implicit none
    character(*),intent(in)    ::  form,message_char1,message_char2,message_char3,message_char4
    character(*),intent(in)       ::  destination
-   character(1024)            ::  display
+   character(slen)            ::  display
    
    if (form=='') then
-      write(display,*)message_char1,message_char2,message_char3,message_char4
+      write(display,*)trim(message_char1),trim(message_char2),trim(message_char3),trim(message_char4)
    else
-      write(display,form)message_char1,message_char2,message_char3,message_char4
+      write(display,form)trim(message_char1),trim(message_char2),trim(message_char3),trim(message_char4)
    endif
 
    call writelog_distribute(destination, display)
@@ -409,12 +407,12 @@ subroutine writelog_aai(destination,form,message_char1,message_char2,message_int
    character(*),intent(in)    ::  form,message_char1,message_char2
    character(*),intent(in)    ::  destination
    integer,intent(in)         ::  message_int
-   character(1024)            ::  display
+   character(slen)            ::  display
 
    if (form=='') then
-      write(display,*)message_char1,message_char2,message_int
+      write(display,*)trim(message_char1),trim(message_char2),message_int
    else
-      write(display,form)message_char1,message_char2,message_int
+      write(display,form)trim(message_char1),trim(message_char2),message_int
    endif
 
    call writelog_distribute(destination, display)
@@ -426,12 +424,12 @@ implicit none
    character(*),intent(in)    ::  form,message_char1
    character(*),intent(in)    ::  destination
    integer,intent(in)         ::  message_int1,message_int2
-   character(1024)            ::  display
+   character(slen)            ::  display
 
    if (form=='') then
-      write(display,*)message_char1,message_int1,message_int2
+      write(display,*)trim(message_char1),message_int1,message_int2
    else
-      write(display,form)message_char1,message_int1,message_int2
+      write(display,form)trim(message_char1),message_int1,message_int2
    endif
 
    call writelog_distribute(destination, display)
@@ -443,12 +441,12 @@ subroutine writelog_aia(destination,form,message_char1b,message_intb,message_cha
    character(*),intent(in)    ::  form,message_char1b,message_char2b
    character(*),intent(in)    ::  destination
    integer,intent(in)         ::  message_intb
-   character(1024)            ::  display
+   character(slen)            ::  display
 
    if (form=='') then
-      write(display,*)message_char1b,message_intb,message_char2b
+      write(display,*)trim(message_char1b),message_intb,trim(message_char2b)
    else
-      write(display,form)message_char1b,message_intb,message_char2b
+      write(display,form)trim(message_char1b),message_intb,trim(message_char2b)
    endif
 
    call writelog_distribute(destination, display)
@@ -460,12 +458,12 @@ subroutine writelog_aaai(destination,form,message_char1,message_char2,message_ch
    character(*),intent(in)    ::  form,message_char1,message_char2,message_char3
    character(*),intent(in)    ::  destination
    integer,intent(in)         ::  message_int
-   character(1024)            ::  display
+   character(slen)            ::  display
 
    if (form=='') then
-      write(display,*)message_char1,message_char2,message_char3,message_int
+      write(display,*)trim(message_char1),trim(message_char2),trim(message_char3),message_int
    else
-      write(display,form)message_char1,message_char2,message_char3,message_int
+      write(display,form)trim(message_char1),trim(message_char2),trim(message_char3),message_int
    endif
 
    call writelog_distribute(destination, display)
@@ -477,12 +475,12 @@ subroutine writelog_aaia(destination,formb,message_char1b,message_char2b,message
    character(*),intent(in)    ::  formb,message_char1b,message_char2b,message_char3b
    character(*),intent(in)    ::  destination
    integer,intent(in)         ::  message_int
-   character(1024)            ::  display
+   character(slen)            ::  display
 
    if (formb=='') then
-      write(display,*)message_char1b,message_char2b,message_int,message_char3b
+      write(display,*)trim(message_char1b),trim(message_char2b),message_int,trim(message_char3b)
    else
-      write(display,formb)message_char1b,message_char2b,message_int,message_char3b
+      write(display,formb)trim(message_char1b),trim(message_char2b),message_int,trim(message_char3b)
    endif
 
    call writelog_distribute(destination, display)
@@ -494,12 +492,12 @@ subroutine writelog_aiaa(destination,form,message_char1b,message_intb,message_ch
    character(*),intent(in)    ::  form,message_char1b,message_char2b,message_char3b
    character(*),intent(in)       ::  destination
    integer,intent(in)         ::  message_intb
-   character(1024)            ::  display
+   character(slen)            ::  display
 
    if (form=='') then
-      write(display,*)message_char1b,message_intb,message_char2b,message_char3b
+      write(display,*)trim(message_char1b),message_intb,trim(message_char2b),trim(message_char3b)
    else
-      write(display,form)message_char1b,message_intb,message_char2b,message_char3b
+      write(display,form)trim(message_char1b),message_intb,trim(message_char2b),trim(message_char3b)
    endif
 
    call writelog_distribute(destination, display)
@@ -511,12 +509,12 @@ subroutine writelog_aiaaa(destination,form,message_char1b,message_intb,message_c
    character(*),intent(in)    ::  form,message_char1b,message_char2b,message_char3b,message_char4b
    character(*),intent(in)       ::  destination
    integer,intent(in)         ::  message_intb
-   character(1024)            ::  display
+   character(slen)            ::  display
 
    if (form=='') then
-      write(display,*)message_char1b,message_intb,message_char2b,message_char3b,message_char4b
+      write(display,*)trim(message_char1b),message_intb,trim(message_char2b),trim(message_char3b),trim(message_char4b)
    else
-      write(display,form)message_char1b,message_intb,message_char2b,message_char3b,message_char4b
+      write(display,form)trim(message_char1b),message_intb,trim(message_char2b),trim(message_char3b),trim(message_char4b)
    endif
 
    call writelog_distribute(destination, display)
@@ -529,12 +527,12 @@ subroutine writelog_aiai(destination,form,message_char1,message_int1,message_cha
    character(*),intent(in)    ::  form,message_char1,message_char2
    character(*),intent(in)       ::  destination
    integer,intent(in)         ::  message_int1,message_int2
-   character(1024)            ::  display
+   character(slen)            ::  display
 
    if (form=='') then
-      write(display,*)message_char1,message_int1,message_char2,message_int2
+      write(display,*)trim(message_char1),message_int1,trim(message_char2),message_int2
    else
-      write(display,form)message_char1,message_int1,message_char2,message_int2
+      write(display,form)trim(message_char1),message_int1,trim(message_char2),message_int2
    endif
 
    call writelog_distribute(destination, display)
@@ -546,12 +544,12 @@ subroutine writelog_aiaia(destination,form,mc1,mi1,mc2,mi2,mc3)
    character(*),intent(in)    ::  form,mc1,mc2,mc3
    character(*),intent(in)       ::  destination
    integer,intent(in)         ::  mi1,mi2
-   character(1024)            ::  display
+   character(slen)            ::  display
 
    if (form=='') then
-      write(display,*)mc1,mi1,mc2,mi2,mc3
+      write(display,*)mc1,mi1,trim(mc2),mi2,trim(mc3)
    else
-      write(display,form)mc1,mi1,mc2,mi2,mc3
+      write(display,form)mc1,mi1,trim(mc2),mi2,trim(mc3)
    endif
 
    call writelog_distribute(destination, display)
@@ -563,12 +561,12 @@ subroutine writelog_aaiai(destination,form,message_char1,message_char2,message_i
    character(*),intent(in)    ::  form,message_char1,message_char2,message_char3
    character(*),intent(in)       ::  destination
    integer*4,intent(in)          ::  message_i1,message_i2
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)message_char1,message_char2,message_i1,message_char3,message_i2
+      write(display,*)trim(message_char1),trim(message_char2),message_i1,trim(message_char3),message_i2
    else
-      write(display,form)message_char1,message_char2,message_i1,message_char3,message_i2
+      write(display,form)trim(message_char1),trim(message_char2),message_i1,trim(message_char3),message_i2
    endif
 
    call writelog_distribute(destination, display)
@@ -580,12 +578,12 @@ subroutine writelog_aaaiai(destination,form,message_char1,message_char2,message_
    character(*),intent(in)    ::  form,message_char1,message_char2,message_char3,message_char4
    character(*),intent(in)       ::  destination
    integer*4,intent(in)          ::  message_i1,message_i2
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)message_char1,message_char2,message_char3,message_i1,message_char4,message_i2
+      write(display,*)trim(message_char1),trim(message_char2),trim(message_char3),message_i1,trim(message_char4),message_i2
    else
-      write(display,form)message_char1,message_char2,message_char3,message_i1,message_char4,message_i2
+      write(display,form)trim(message_char1),trim(message_char2),trim(message_char3),message_i1,trim(message_char4),message_i2
    endif
 
    call writelog_distribute(destination, display)
@@ -598,12 +596,12 @@ subroutine writelog_aiafa(destination,form,mc1,mi1,mc2,mf1,mc3)
    character(*),intent(in)       ::  destination
    integer*4,intent(in)          ::  mi1
    real*8,intent(in)             ::  mf1
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)mc1,mi1,mc2,mf1,mc3
+      write(display,*)trim(mc1),mi1,trim(mc2),mf1,trim(mc3)
    else
-      write(display,form)mc1,mi1,mc2,mf1,mc3
+      write(display,form)trim(mc1),mi1,trim(mc2),mf1,trim(mc3)
    endif
 
    call writelog_distribute(destination, display)
@@ -616,12 +614,12 @@ subroutine writelog_aiafaf(destination,form,mc1,mi1,mc2,mf1,mc3,mf2)
    character(*),intent(in)       ::  destination
    integer*4,intent(in)          ::  mi1
    real*8,intent(in)             ::  mf1,mf2
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)mc1,mi1,mc2,mf1,mc3,mf2
+      write(display,*)trim(mc1),mi1,trim(mc2),mf1,trim(mc3),mf2
    else
-      write(display,form)mc1,mi1,mc2,mf1,mc3,mf2
+      write(display,form)trim(mc1),mi1,trim(mc2),mf1,trim(mc3),mf2
    endif
 
    call writelog_distribute(destination, display)
@@ -633,30 +631,30 @@ implicit none
    character(*),intent(in)    ::  form,message_char1,message_char2,message_char3
    character(*),intent(in)    ::  destination
    integer*4,intent(in)       ::  message_i1,message_i2,message_i3
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)message_char1,message_i1,message_char2,message_i2,message_char3,message_i3
+      write(display,*)trim(message_char1),message_i1,trim(message_char2),message_i2,trim(message_char3),message_i3
    else
-      write(display,form)message_char1,message_i1,message_char2,message_i2,message_char3,message_i3
+      write(display,form)trim(message_char1),message_i1,trim(message_char2),message_i2,trim(message_char3),message_i3
    endif
 
    call writelog_distribute(destination, display)
    
 end subroutine writelog_aiaiai
 
-subroutine writelog_aiaiaia(destination,form,message_char1,message_i1,message_char2,message_i2,message_char3,message_i3, & 
-                            message_char4)
+subroutine writelog_aiaiaia(destination,form,mc1,message_i1,mc2,message_i2,mc3,message_i3, & 
+                            mc4)
 implicit none
-   character(*),intent(in)    ::  form,message_char1,message_char2,message_char3,message_char4
+   character(*),intent(in)    ::  form,mc1,mc2,mc3,mc4
    character(*),intent(in)    ::  destination
    integer*4,intent(in)       ::  message_i1,message_i2,message_i3
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)message_char1,message_i1,message_char2,message_i2,message_char3,message_i3,message_char4
+      write(display,*)trim(mc1),message_i1,trim(mc2),message_i2,trim(mc3),message_i3,trim(mc4)
    else
-      write(display,form)message_char1,message_i1,message_char2,message_i2,message_char3,message_i3,message_char4
+      write(display,form)trim(mc1),message_i1,trim(mc2),message_i2,trim(mc3),message_i3,trim(mc4)
    endif
 
    call writelog_distribute(destination, display)
@@ -669,12 +667,12 @@ implicit none
    character(*),intent(in)    ::  destination
    integer*4,intent(in)       ::  mi1,mi2
    real*8,intent(in)          ::  mf1
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)mc1,mi1,mc2,mi2,mc3,mf1
+      write(display,*)trim(mc1),mi1,trim(mc2),mi2,trim(mc3),mf1
    else
-      write(display,form)mc1,mi1,mc2,mi2,mc3,mf1
+      write(display,form)trim(mc1),mi1,trim(mc2),mi2,trim(mc3),mf1
    endif
 
    call writelog_distribute(destination, display)
@@ -687,12 +685,12 @@ implicit none
    character(*),intent(in)    ::  destination
    integer*4,intent(in)       ::  mi1,mi2
    real*8,intent(in)          ::  mf1
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)mc1,mi1,mc2,mi2,mc3,mf1,mc4
+      write(display,*)trim(mc1),mi1,trim(mc2),mi2,trim(mc3),mf1,mc4
    else
-      write(display,form)mc1,mi1,mc2,mi2,mc3,mf1,mc4
+      write(display,form)trim(mc1),mi1,trim(mc2),mi2,trim(mc3),mf1,mc4
    endif
 
    call writelog_distribute(destination, display)
@@ -704,7 +702,7 @@ implicit none
    character(*),intent(in)    ::  form
    character(*),intent(in)    ::  destination
    integer*4,intent(in)       ::  mi1,mi2,mi3,mi4,mi5
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
       write(display,*)mi1,mi2,mi3,mi4,mi5
@@ -721,12 +719,12 @@ implicit none
    character(*),intent(in)    ::  form, message_char1
    character(*),intent(in)    ::  destination
    real*8,intent(in)          ::  message_f1
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)message_char1,message_f1
+      write(display,*)trim(message_char1),message_f1
    else
-      write(display,form)message_char1,message_f1
+      write(display,form)trim(message_char1),message_f1
    endif
 
    call writelog_distribute(destination, display)
@@ -738,12 +736,12 @@ subroutine writelog_aaf(destination,form,message_char1,message_char2,message_f1)
    character(*),intent(in)    ::  form,message_char1,message_char2
    character(*),intent(in)       ::  destination
    real*8,intent(in)          ::  message_f1
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)message_char1,message_char2,message_f1
+      write(display,*)trim(message_char1),trim(message_char2),message_f1
    else
-      write(display,form)message_char1,message_char2,message_f1
+      write(display,form)trim(message_char1),trim(message_char2),message_f1
    endif
 
    call writelog_distribute(destination, display)
@@ -755,12 +753,12 @@ subroutine writelog_afa(destination,form,mc1,mf1,mc2)
    character(*),intent(in)    ::  form,mc1,mc2
    character(*),intent(in)       ::  destination
    real*8,intent(in)          ::  mf1
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)mc1,mf1,mc2
+      write(display,*)trim(mc1),mf1,trim(mc2)
    else
-      write(display,form)mc1,mf1,mc2
+      write(display,form)trim(mc1),mf1,trim(mc2)
    endif
 
    call writelog_distribute(destination, display)
@@ -772,12 +770,12 @@ subroutine writelog_afaf(destination,form,message_char1,message_f1,message_char2
    character(*),intent(in)    ::  form,message_char1,message_char2
    character(*),intent(in)       ::  destination
    real*8,intent(in)          ::  message_f1,message_f2
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)message_char1,message_f1,message_char2,message_f2
+      write(display,*)trim(message_char1),message_f1,trim(message_char2),message_f2
    else
-      write(display,form)message_char1,message_f1,message_char2,message_f2
+      write(display,form)trim(message_char1),message_f1,trim(message_char2),message_f2
    endif
 
    call writelog_distribute(destination, display)
@@ -789,12 +787,12 @@ subroutine writelog_afafa(destination,form,mc1,mf1,mc2,mf2,mc3)
    character(*),intent(in)    ::  form,mc1,mc2,mc3
    character(*),intent(in)       ::  destination
    real*8,intent(in)          ::  mf1,mf2
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)mc1,mf1,mc2,mf2,mc3
+      write(display,*)trim(mc1),mf1,trim(mc2),mf2,trim(mc3)
    else
-      write(display,form)mc1,mf1,mc2,mf2,mc3
+      write(display,form)trim(mc1),mf1,trim(mc2),mf2,trim(mc3)
    endif
 
    call writelog_distribute(destination, display)
@@ -806,12 +804,12 @@ subroutine writelog_aaaf(destination,form,message_char1,message_char2,message_ch
    character(*),intent(in)    ::  form,message_char1,message_char2,message_char3
    character(*),intent(in)       ::  destination
    real*8,intent(in)          ::  message_f1
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)message_char1,message_char2,message_char3,message_f1
+      write(display,*)trim(message_char1),trim(message_char2),trim(message_char3),message_f1
    else
-      write(display,form)message_char1,message_char2,message_char3,message_f1
+      write(display,form)trim(message_char1),trim(message_char2),trim(message_char3),message_f1
    endif
 
    call writelog_distribute(destination, display)
@@ -823,12 +821,12 @@ subroutine writelog_aafa(destination,form,message_char1b,message_char2b,message_
    character(*),intent(in)    ::  form,message_char1b,message_char2b,message_char3b
    character(*),intent(in)       ::  destination
    real*8,intent(in)          ::  message_f1b
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)message_char1b,message_char2b,message_f1b,message_char3b
+      write(display,*)trim(message_char1b),trim(message_char2b),message_f1b,trim(message_char3b)
    else
-      write(display,form)message_char1b,message_char2b,message_f1b,message_char3b
+      write(display,form)trim(message_char1b),trim(message_char2b),message_f1b,trim(message_char3b)
    endif
 
    call writelog_distribute(destination, display)
@@ -840,12 +838,12 @@ subroutine writelog_afaaa(destination,form,mc1a,mfa,mc2a,mc3a,mc4a)
    character(*),intent(in)    ::  form,mc1a,mc2a,mc3a,mc4a
    character(*),intent(in)       ::  destination
    real*8,intent(in)          ::  mfa
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)mc1a,mfa,mc2a,mc3a,mc4a
+      write(display,*)trim(mc1a),mfa,trim(mc2a),trim(mc3a),trim(mc4a)
    else
-      write(display,form)mc1a,mfa,mc2a,mc3a,mc4a
+      write(display,form)trim(mc1a),mfa,trim(mc2a),trim(mc3a),trim(mc4a)
    endif
 
    call writelog_distribute(destination, display)
@@ -857,12 +855,12 @@ subroutine writelog_aafaf(destination,form,message_char1,message_char2,message_f
    character(*),intent(in)    ::  form,message_char1,message_char2,message_char3
    character(*),intent(in)       ::  destination
    real*8,intent(in)          ::  message_f1,message_f2
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)message_char1,message_char2,message_f1,message_char3,message_f2
+      write(display,*)trim(message_char1),trim(message_char2),message_f1,trim(message_char3),message_f2
    else
-      write(display,form)message_char1,message_char2,message_f1,message_char3,message_f2
+      write(display,form)trim(message_char1),trim(message_char2),message_f1,trim(message_char3),message_f2
    endif
 
    call writelog_distribute(destination, display)
@@ -874,12 +872,12 @@ subroutine writelog_aaafaf(destination,form,message_char1,message_char2,message_
    character(*),intent(in)    ::  form,message_char1,message_char2,message_char3,message_char4
    character(*),intent(in)       ::  destination
    real*8,intent(in)          ::  message_f1,message_f2
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)message_char1,message_char2,message_char3,message_f1,message_char4,message_f2
+      write(display,*)message_char1,trim(message_char2),trim(message_char3),message_f1,trim(message_char4),message_f2
    else
-      write(display,form)message_char1,message_char2,message_char3,message_f1,message_char4,message_f2
+      write(display,form)message_char1,trim(message_char2),trim(message_char3),message_f1,trim(message_char4),message_f2
    endif
 
    call writelog_distribute(destination, display)
@@ -891,12 +889,12 @@ subroutine writelog_afafafaf(destination,form,mc1,mf1,mc2,mf2,mc3,mf3,mc4,mf4)
    character(*),intent(in)    ::  form,mc1,mc2,mc3,mc4
    character(*),intent(in)    ::  destination
    real*8,intent(in)          ::  mf1,mf2,mf3,mf4
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)mc1,mf1,mc2,mf2,mc3,mf3,mc4,mf4
+      write(display,*)trim(mc1),mf1,trim(mc2),mf2,trim(mc3),mf3,trim(mc4),mf4
    else
-      write(display,form)mc1,mf1,mc2,mf2,mc3,mf3,mc4,mf4
+      write(display,form)trim(mc1),mf1,trim(mc2),mf2,trim(mc3),mf3,trim(mc4),mf4
    endif
 
    call writelog_distribute(destination, display)
@@ -909,7 +907,7 @@ implicit none
    character(*),intent(in)    ::  destination
    integer*4,intent(in)       ::  mi1
    logical,intent(in)         ::  ml1,ml2,ml3,ml4
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
       write(display,*)mi1,ml1,ml2,ml3,ml4
@@ -926,12 +924,12 @@ implicit none
    character(*),intent(in)    ::  form, mc1
    character(*),intent(in)    ::  destination
    real*8,intent(in)          ::  mf1
-   character(1024)            ::  display
+   character(slen)            ::  display
  
    if (form=='') then
-      write(display,*)mf1,mc1
+      write(display,*)mf1,trim(mc1)
    else
-      write(display,form)mf1,mc1
+      write(display,form)mf1,trim(mc1)
    endif
 
    call writelog_distribute(destination, display)

@@ -16,7 +16,7 @@ module ncoutput_module
 #endif
   use xmpi_module
   use netcdf
-
+  use typesandkinds
   implicit none
   private
   public ncoutput_init, ncoutput 
@@ -53,7 +53,7 @@ module ncoutput_module
   ! mean
   ! number of variables by number of parameters per variable (mean, sigma^2, min, max)
   integer, dimension(:,:), allocatable, save       :: meanvarids
-  character(8), dimension(:), allocatable, save    :: meanvartypes
+  character(slen), dimension(:), allocatable, save    :: meanvartypes
   integer*4                           :: nmeanvartypes  = 4   ! number of time-average variable types
 
 
@@ -124,15 +124,15 @@ contains
     type(meanspars)                              :: meanvar
     integer                                      :: i,j
     integer                                      :: rc ! return code
-    character(len=maxnamelen)                    :: mnem
+    character(slen)                              :: mnem
 
     integer                                      :: npointstotal
     logical                                      :: outputp, outputg, outputm
     integer, dimension(:), allocatable           :: dimids ! store the dimids in a vector
-    character(256)                               :: coordinates
-    character(8)                                 :: cellmethod
+    character(slen)                              :: coordinates
+    character(slen)                              :: cellmethod
 
-    character(len=maxnamelen), dimension(:), allocatable       :: keys
+    character(slen), dimension(:), allocatable       :: keys
     ! subversion information
     include 'version.def'
     include 'version.dat'
@@ -626,7 +626,7 @@ contains
 
     type(arraytype)                        :: t
     integer                                :: i,j,ii
-    character(len=maxnamelen)              :: mnem
+    character(slen)                        :: mnem
 
     ! some local variables to pass the data through the postprocessing function.
     integer :: i0
@@ -892,12 +892,12 @@ contains
     end if
   end subroutine ncoutput
 
-  character(256) function dimensionnames(dimids)
+  character(slen) function dimensionnames(dimids)
     implicit none
     integer, dimension(:), intent(in)           :: dimids ! store the dimids in a vector
 
     integer :: i, status
-    character(80)  :: dimensionname 
+    character(slen)  :: dimensionname 
     ! combine all the dimensionnames
     ! assumes all dimensions have an accompanying variable that should be used for coordinates.
     ! ",".join would have been nice here....
@@ -918,8 +918,7 @@ contains
     ! makeincludes module
     use logging_module
     implicit none
-    character(len=20),intent(in)                       :: expression
-    
+    character(len=*),intent(in) :: expression
     select case(trim(expression))
     case('s%nx+1')
        dimensionid = xdimid

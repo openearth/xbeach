@@ -44,6 +44,10 @@ module libxbeach_module
      module procedure getparametername_fortran
   end interface getparametername
   
+  interface getparametertype
+     module procedure getparametertype_fortran
+  end interface getparametertype
+
   interface getdoubleparameter
       module procedure getdoubleparameter_fortran
   end interface getdoubleparameter
@@ -208,18 +212,43 @@ contains
   ! No C for this one, no chars to mess up...
   integer(c_int) function getnparameter_fortran(n) bind(C, name="getnparameter")
     integer(c_int), intent(inout) :: n
-    character(len=maxnamelen), allocatable :: keys(:)
+    character(len=slen), allocatable :: keys(:)
     getnparameter_fortran = -1
     call getkeys(par, keys)
     n = size(keys,1)
     getnparameter_fortran = 0
   end function getnparameter_fortran
 
+  integer(c_int) function getparametertype_fortran(name, typecode)
+    character(kind=c_char,len=*),intent(in) :: name
+    character(kind=c_char, len=1), intent(out) :: typecode
+    
+    integer(c_int) :: length
+    character(1), dimension(len(name)) :: cname 
+    integer :: i
+    length  = len(name)
+    cname = string_to_char_array(name,length)
+    
+    getparametertype_fortran = getparametertype_c(cname, typecode, length)
+  end function getparametertype_fortran
+
+  integer(c_int) function getparametertype_c(name, typecode, length) bind(C,name="getparametertype")
+    character(kind=c_char,len=1),intent(in) :: name(length)
+    character(kind=c_char, len=1), intent(out) :: typecode
+    integer(c_int) :: length
+    
+    character(len=length) :: key
+    integer :: index
+    key = char_array_to_string(name, length)
+    call getkey_indextype(par, key, index, typecode)
+  end function getparametertype_c
+
   integer(c_int) function getparametername_fortran(index, name)
     integer(c_int), intent(in) :: index
     character(kind=c_char, len=*), intent(out) :: name
     character(kind=c_char, len=1), pointer :: cname(:)
     integer :: length
+
     getparametername_fortran = getparametername_c(index, cname, length)
     name = char_array_to_string(cname, length)
   end function getparametername_fortran
@@ -228,25 +257,18 @@ contains
   integer(c_int) function getparametername_c(index, name, length) bind(C,name="getparametername")
     integer(c_int), intent(in) :: index
     integer(c_int), intent(out) :: length
-    character(kind=c_char, len=1), intent(out) :: name(maxnamelen)
+    character(kind=c_char, len=1), intent(out) :: name(slen)
 
     integer :: i,j
-    character(len=maxnamelen), allocatable :: keys(:)
-    character(kind=c_char,len=maxnamelen) :: key
+    character(len=slen), allocatable :: keys(:)
+    character(kind=c_char,len=slen) :: key
     getparametername_c = -1
     ! These are the keys in fortran format.
     call getkeys(par, keys)
     ! We need to conver them to C format (char1's)
     key = keys(index)
-    do i=1,len(trim(key))
-       name(i) = key(i:i)
-    end do
-    if (i .lt. maxnamelen) then
-       name(i+1) = C_NULL_CHAR
-    else
-       name(i) = C_NULL_CHAR
-    end if
     length = len(trim(key))
+    name = string_to_char_array(key, length)
     getparametername_c = 0
   end function getparametername_c
 
@@ -375,6 +397,45 @@ contains
     value = myparam%i0
     getintparameter_c = 0
   end function getintparameter_c
+
+  integer(c_int) function getcharparameter_fortran(name,value) 
+    USE iso_c_binding
+
+    ! String
+    character(kind=c_char,len=*),intent(in) :: name
+    character(kind=c_char, len=*), intent(out) :: value
+
+    ! Transform name to a fortran character... 
+    character(1), dimension(len(name)) :: cname 
+    character(kind=c_char,len=1), pointer :: cvalue(:)
+    integer(c_int) :: valuelength
+    cname = string_to_char_array(name, len(name))
+    getcharparameter_fortran = getcharparameter_c(cname,cvalue,len(name),valuelength)
+  end function getcharparameter_fortran
+
+
+  integer(c_int) function getcharparameter_c(name,value, namelength, valuelength) bind(C,name="getcharparameter")
+    !DEC$ ATTRIBUTES DLLEXPORT::getcharparameter_c
+
+    USE iso_c_binding
+    use getkey_module
+    ! String
+    character(kind=c_char),intent(in)         :: name(namelength)
+    character(kind=c_char,len=1), intent(out) :: value(slen)
+    integer(c_int), intent(in)         :: namelength
+    integer(c_int), intent(out)        :: valuelength
+
+    ! Transform name to a fortran character... 
+    character(namelength) :: fname 
+    type(parameter) :: myparam
+    fname = char_array_to_string(name, namelength)
+    ! Lookup the parameter by name
+    getcharparameter_c = getkey(par, fname, myparam)
+    if (getcharparameter_c .eq. -1) return
+    valuelength = len(trim(myparam%c0))
+    value = string_to_char_array(trim(myparam%c0), valuelength)
+    getcharparameter_c = 0
+  end function getcharparameter_c
 
   integer(c_int) function getarray(name, x, length) bind(C, name="getarray")
     !DEC$ ATTRIBUTES DLLEXPORT::getarray

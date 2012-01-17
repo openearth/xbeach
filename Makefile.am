@@ -5,6 +5,7 @@ bin_PROGRAMS=makeincludes xbeach
 
 ACLOCAL_AMFLAGS = -I m4 -I config
 makeincludes_SOURCES= \
+	typesandkinds.F90 \
 	makeincludes.F90
 makeincludes_LDFLAGS=
 
@@ -17,6 +18,7 @@ libxbeach_la_SOURCES= \
 	s.inp \
 	xmpi.F90 \
 	general_mpi.F90 \
+	typesandkinds.F90 \
 	logging.F90 \
 	filefunctions.F90 \
 	readkey.F90 \

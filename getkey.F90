@@ -3,18 +3,19 @@ module getkey_module
 ! You can ask for all available parameters using getkeys 
 ! You can ask for the value of a specific parameter using getkey
 ! The naming is still a bit inconsistent so that might change in the future
+use typesandkinds
 use mnemmodule
 ! analogue to the arraytype in mnemonic
 type parameter
   character type         ! 'c', 'i' or 'r': integer or real*8
   integer rank           ! 0,1,2,3,4
-  character(len=maxnamelen) :: name     ! 'v','ve', .....
-  character(len=20) :: units     ! m, following udunits convention
-  character(len=1024) :: description
-  character(len=20), dimension(maxrank) :: dimensions ! the dimensions of the variable, for example (s%nx, s%ny)
+  character(slen) :: name     ! 'v','ve', .....
+  character(slen) :: units     ! m, following udunits convention
+  character(slen) :: description
+  character(slen), dimension(maxrank) :: dimensions ! the dimensions of the variable, for example (s%nx, s%ny)
 
-  character(len=maxnamelen), pointer :: c0 ! pointer to characters
-  character(len=maxnamelen), dimension(:), pointer :: c1 ! pointer to array of characters
+  character(slen), pointer :: c0 ! pointer to characters
+  character(slen), dimension(:), pointer :: c1 ! pointer to array of characters
 
   real*8, pointer             :: r0  ! pointer to real8 scalar
   real*8, dimension(:), pointer :: r1  ! pointer to real8 (:)
@@ -70,7 +71,7 @@ integer function getkey(par, key, value)
   type(parameter), intent(inout) :: value
   ! Ok this is ugly, I changed the targets to save, so the pointer is still available after the function ends
   ! But this means that if you call getkey twice, then your old value will now refer to the new value
-  character(len=maxnamelen),target, save :: charvalue 
+  character(slen),target, save :: charvalue 
   integer, target, save :: intvalue
   real*8, target, save :: realvalue
   integer :: index
@@ -111,7 +112,7 @@ subroutine getkeys(par, keys)
   use params
   implicit none
   type(parameters), intent(in) :: par 
-  character(len=maxnamelen), dimension(:), allocatable, intent(out) :: keys
+  character(slen), dimension(:), allocatable, intent(out) :: keys
 
   include 'getkey.gen'
   allocate(keys(ncharacterkeys+nintegerkeys+nrealkeys))

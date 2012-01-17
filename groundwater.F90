@@ -25,7 +25,7 @@
 ! USA                                                                     !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 module groundwaterflow
-
+use typesandkinds
 contains
 
 
@@ -41,7 +41,7 @@ contains
     type(parameters)                            :: par
     type(spacepars)                             :: s
 
-    character(256)                              :: fname
+    character(slen)                              :: fname
     real*8                                      :: aquiferbot,temp
     integer                                     :: i,j
 

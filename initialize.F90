@@ -1,4 +1,5 @@
 module initialize 
+use typesandkinds
 contains
   subroutine grid_bathy(s,par)                                         
 
@@ -18,7 +19,7 @@ contains
     integer                        :: j
     integer                        :: itheta
     real*8                         :: degrad
-    character*232                  :: line
+    character(slen)                :: line
     logical                        :: comment
 
     s%nx      = par%nx
@@ -403,7 +404,7 @@ type(parameters)            :: par
 integer                     :: fid,err
 integer                     :: i
 integer,dimension(1)        :: minlocation
-character*7                 :: testline
+character(slen)             :: testline
 real*8,dimension(:),allocatable :: xspec,yspec,mindist
 real*8                      :: mindistr
 
@@ -1093,8 +1094,8 @@ endsubroutine spectral_wave_init
     type(parameters)                    :: par
 
     integer                             :: i,j,m,jg,start
-    character*80                        :: fnameg,line
-    character*4                         :: tempc
+    character(slen)                     :: fnameg,line
+    character(len=4)                    :: tempc
     real*8                              :: tempr
 
     include 's.ind'
@@ -1447,7 +1448,7 @@ endsubroutine spectral_wave_init
     type(spacepars)                         :: s
     type(parameters)                        :: par
 
-    character(256)                          :: drifterfile
+    character(slen)                         :: drifterfile
     integer                                 :: i
     real*8                                  :: xdrift,ydrift
     real*8                                  :: ds,dn
