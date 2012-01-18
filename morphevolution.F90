@@ -785,6 +785,11 @@ contains
                          structdepth(id,j) = max(0.d0,structdepth(id,j)+dzleft*dAfac)
                          structdepth(ie,j) = max(0.d0,structdepth(ie,j)-dzleft)
 
+                         zs(id,j)  = zs(id,j)+dzleft*dAfac
+                         zs(ie,j)  = zs(ie,j)-dzleft
+                         dzav(id,j)= dzav(id,j)+dzleft*dAfac
+                         dzav(ie,j)= dzav(ie,j)-dzleft
+                         
                       else ! multiple fractions...
 
                          ! now fix fractions....
@@ -877,6 +882,11 @@ contains
                          sedero(i,je) = sedero(i,je)-dzleft
                          structdepth(i,jd) = max(0.d0,structdepth(i,jd)+dzleft*dAfac)
                          structdepth(i,je) = max(0.d0,structdepth(i,je)-dzleft)
+                         
+                         zs(i,jd)  = zs(i,jd)+dzleft*dAfac
+                         zs(i,je)  = zs(i,je)-dzleft
+                         dzav(i,jd)= dzav(i,jd)+dzleft*dAfac
+                         dzav(i,je)= dzav(i,je)-dzleft
 
                       else ! multiple fractions...
 
