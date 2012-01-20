@@ -60,6 +60,10 @@ module libxbeach_module
       module procedure getintparameter_fortran
   end interface getintparameter
       
+  interface getarraytype
+     module procedure getarraytype_fortran
+  end interface getarraytype
+
   interface get2ddoublearray
       module procedure get2ddoublearray_fortran
   end interface get2ddoublearray
@@ -437,6 +441,36 @@ contains
     getcharparameter_c = 0
   end function getcharparameter_c
 
+  integer(c_int) function getarraytype_fortran(name, typecode) 
+    !DEC$ ATTRIBUTES DLLEXPORT::getarray_type
+    character(kind=c_char,len=*),intent(in) :: name
+    character(kind=c_char, len=1), intent(out) :: typecode
+
+    ! and we need the string length ....
+    integer(c_int) :: length
+    character(1), dimension(len(name)) :: cname 
+    integer :: i
+    length  = len(name)
+    cname = string_to_char_array(name,length)
+    getarraytype_fortran = getarraytype_c(cname, typecode, length)
+  end function getarraytype_fortran
+
+  integer(c_int) function getarraytype_c(name, typecode, length) bind(C,name="getarraytype")
+    character(kind=c_char,len=1),intent(in) :: name(length)
+    character(kind=c_char, len=1), intent(out) :: typecode
+    integer(c_int) :: length
+    
+    character(len=length) :: key
+    integer :: index
+    type(arraytype) :: array
+    key = char_array_to_string(name, length)
+    getarraytype_c = -1
+    index =  chartoindex(key)
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    typecode = array%type
+  end function getarraytype_c
+
   integer(c_int) function getarray(name, x, length) bind(C, name="getarray")
     !DEC$ ATTRIBUTES DLLEXPORT::getarray
 
@@ -510,7 +544,7 @@ contains
     !DEC$ ATTRIBUTES DLLEXPORT::get2ddoublearray_c
 
     ! use inout otherwise things break
-    type (c_ptr), intent(inout) :: x
+    type(c_ptr), intent(inout) :: x
     ! and we need the string length ....
     integer(c_int),value  ,intent(in)    :: length
     ! String
@@ -522,7 +556,6 @@ contains
     real(c_double), target, allocatable, dimension(:,:)  :: r2
 
     get2ddoublearray_c = -1
-
     myname = char_array_to_string(name, length)
     index =  chartoindex(myname)
     if (index .eq. -1) return
@@ -569,7 +602,6 @@ contains
     integer(c_int), target, allocatable, dimension(:,:)  :: i2
 
     get2dintarray_c = -1
-
     myname = char_array_to_string(name, length)
     index =  chartoindex(myname)
     if (index .eq. -1) return
