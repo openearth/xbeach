@@ -79,95 +79,112 @@ contains
   end subroutine snappointstogrid
 
 
-  subroutine gridrotate_r0(s, t, x)
+  subroutine gridrotate_r0(par, s, t, x)
+    use params
     use spaceparams
     use mnemmodule
 
-    type(spacepars), intent(in) :: s
-    type(arraytype), intent(in) :: t
-    real*8                      :: x
+    type(parameters), intent(in) :: par
+    type(spacepars), intent(in)  :: s
+    type(arraytype), intent(in)  :: t
+    real*8                       :: x
     x = t%r0
   end subroutine gridrotate_r0
 
-  subroutine gridrotate_r1(s, t, x)
+  subroutine gridrotate_r1(par, s, t, x)
+    use params
     use spaceparams
     use mnemmodule
 
-    type(spacepars), intent(in)   :: s
-    type(arraytype), intent(in)   :: t
-    real*8, dimension(:)          :: x
-    real*8                        :: pi
+    type(parameters), intent(in) :: par
+    type(spacepars), intent(in)  :: s
+    type(arraytype), intent(in)  :: t
+    real*8, dimension(:)         :: x
+    real*8                       :: pi
     pi = 4*atan(1.0d0)
-    select case(t%name)
-    case(mnem_theta)
-       x=270-(t%r1*(180/pi))
-    case(mnem_theta0)
-       x=270-(t%r1*(180/pi))
-    case default
+    
+    if (par%rotate .eq. 1) then
+       select case(t%name)
+       case(mnem_theta)
+         x=270-(t%r1*(180/pi))
+       case(mnem_theta0)
+         x=270-(t%r1*(180/pi))
+       case default
+          x=t%r1
+       end select
+    else
        x=t%r1
-    end select
+    endif
   end subroutine gridrotate_r1
 
 
-  subroutine gridrotate_r2(s, t, x)
+  subroutine gridrotate_r2(par, s, t, x)
+    use params
     use spaceparams
     use mnemmodule
 
-    type(spacepars), intent(in)   :: s
-    type(arraytype), intent(in)   :: t
+    type(parameters), intent(in)        :: par
+    type(spacepars), intent(in)         :: s
+    type(arraytype), intent(in)         :: t
     real*8, dimension(:,:), intent(out) :: x
-    real*8                        :: pi
+    real*8                              :: pi
     pi = 4*atan(1.0d0)
-    select case(t%name)
-    case(mnem_thetamean)
-       x=270-((t%r2+s%alfa)*(180/pi))
-    case(mnem_Fx)
-       x=t%r2*cos(s%alfaz)-s%Fy*sin(s%alfaz)
-    case(mnem_Fy)
-       x=s%Fx*sin(s%alfaz)+t%r2*cos(s%alfaz)
-    case(mnem_u)
-       x=t%r2*cos(s%alfaz)-s%v*sin(s%alfaz)
-    case(mnem_gwu)
-       x=t%r2*cos(s%alfaz)-s%gwv*sin(s%alfaz)
-    case(mnem_v)
-       x=s%u*sin(s%alfaz)+t%r2*cos(s%alfaz)
-    case(mnem_gwv)
-       x=s%gwu*sin(s%alfaz)+t%r2*cos(s%alfaz)
-    case(mnem_ue)
-       x=t%r2*cos(s%alfaz)-s%ve*sin(s%alfaz)
-    case(mnem_ve)
-       x=s%ue*sin(s%alfaz)+t%r2*cos(s%alfaz)
-    case(mnem_ui)
-       x=t%r2*cos(s%alfaz)-s%vi*sin(s%alfaz)
-    case(mnem_vi)
-       x=s%ui*sin(s%alfaz)+t%r2*cos(s%alfaz)     
-    case(mnem_umean)
-       x=t%r2*cos(s%alfaz)-s%vmean*sin(s%alfaz)
-    case(mnem_vmean)
-       x=s%umean*sin(s%alfaz)+t%r2*cos(s%alfaz)    
-    case(mnem_uwf)
-       x=t%r2*cos(s%alfaz)-s%vwf*sin(s%alfaz)
-    case(mnem_vwf)
-       x=s%uwf*sin(s%alfaz)+t%r2*cos(s%alfaz)
-    case(mnem_Sutot)
-       x=(sum(s%Subg,dim=3)+sum(s%Susg,dim=3))*cos(s%alfaz) - (sum(s%Svbg,dim=3)+sum(s%Svsg,dim=3))*sin(s%alfaz)
-    case(mnem_Svtot)
-       x=(sum(s%Subg,dim=3)+sum(s%Susg,dim=3))*sin(s%alfaz) + (sum(s%Svbg,dim=3)+sum(s%Svsg,dim=3))*cos(s%alfaz)
-    case(mnem_cctot)
-       x=sum(s%ccg,dim=3)
-    case default
+    if (par%rotate .eq. 1) then
+       select case(t%name)
+       case(mnem_thetamean)
+          x=270-((t%r2+s%alfa)*(180/pi))
+       case(mnem_Fx)
+          x=t%r2*cos(s%alfaz)-s%Fy*sin(s%alfaz)
+       case(mnem_Fy)
+          x=s%Fx*sin(s%alfaz)+t%r2*cos(s%alfaz)
+       case(mnem_u)
+          x=t%r2*cos(s%alfaz)-s%v*sin(s%alfaz)
+       case(mnem_gwu)
+          x=t%r2*cos(s%alfaz)-s%gwv*sin(s%alfaz)
+       case(mnem_v)
+          x=s%u*sin(s%alfaz)+t%r2*cos(s%alfaz)
+       case(mnem_gwv)
+          x=s%gwu*sin(s%alfaz)+t%r2*cos(s%alfaz)
+       case(mnem_ue)
+          x=t%r2*cos(s%alfaz)-s%ve*sin(s%alfaz)
+       case(mnem_ve)
+          x=s%ue*sin(s%alfaz)+t%r2*cos(s%alfaz)
+       case(mnem_ui)
+          x=t%r2*cos(s%alfaz)-s%vi*sin(s%alfaz)
+       case(mnem_vi)
+          x=s%ui*sin(s%alfaz)+t%r2*cos(s%alfaz)     
+       case(mnem_umean)
+          x=t%r2*cos(s%alfaz)-s%vmean*sin(s%alfaz)
+       case(mnem_vmean)
+          x=s%umean*sin(s%alfaz)+t%r2*cos(s%alfaz)    
+       case(mnem_uwf)
+          x=t%r2*cos(s%alfaz)-s%vwf*sin(s%alfaz)
+       case(mnem_vwf)
+          x=s%uwf*sin(s%alfaz)+t%r2*cos(s%alfaz)
+       case(mnem_Sutot)
+          x=(sum(s%Subg,dim=3)+sum(s%Susg,dim=3))*cos(s%alfaz) - (sum(s%Svbg,dim=3)+sum(s%Svsg,dim=3))*sin(s%alfaz)
+       case(mnem_Svtot)
+          x=(sum(s%Subg,dim=3)+sum(s%Susg,dim=3))*sin(s%alfaz) + (sum(s%Svbg,dim=3)+sum(s%Svsg,dim=3))*cos(s%alfaz)
+       case(mnem_cctot)
+          x=sum(s%ccg,dim=3)
+       case default
+          x=t%r2
+       end select
+    else
        x=t%r2
-    end select
+    endif
 
   end subroutine gridrotate_r2
 
-  subroutine gridrotate_r3(s, t, x)
+  subroutine gridrotate_r3(par, s, t, x)
+    use params
     use spaceparams
     use mnemmodule
     use logging_module
 
     implicit none
     
+    type(parameters), intent(in)  :: par
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     real*8, dimension(:,:,:)      :: x
@@ -189,34 +206,40 @@ contains
         alfazr3(:,:,i) = s%alfaz
     end do  
     
-    select case(t%name)
-    case(mnem_cgx)
-       x=t%r3*cos(alfazr3)-s%cgy*sin(alfazr3)
-    case(mnem_cgy)
-       x=s%cgx*sin(alfazr3)+t%r3*cos(alfazr3)
-    case(mnem_cx)
-       x=t%r3*cos(alfazr3)-s%cy*sin(alfazr3)
-    case(mnem_cy)
-       x=s%cx*sin(alfazr3)+t%r3*cos(alfazr3)
-    case(mnem_thet)
-       x=270-((s%thet+alfazr3)*(180/pi))
-    case(mnem_Susg)
-       x=t%r3*cos(alfazr3)-s%Svsg*sin(alfazr3)
-    case(mnem_Svsg)
-       x=s%Susg*sin(alfazr3)+t%r3*cos(alfazr3)
-    case(mnem_Subg)
-       x=t%r3*cos(alfazr3)-s%Svbg*sin(alfazr3)
-    case(mnem_Svbg)
-       x=s%Subg*sin(alfazr3)+t%r3*cos(alfazr3)
-    case default
-       x=t%r3
-    end select
+    if (par%rotate .eq. 1) then
+       select case(t%name)
+       case(mnem_cgx)
+          x=t%r3*cos(alfazr3)-s%cgy*sin(alfazr3)
+       case(mnem_cgy)
+          x=s%cgx*sin(alfazr3)+t%r3*cos(alfazr3)
+       case(mnem_cx)
+          x=t%r3*cos(alfazr3)-s%cy*sin(alfazr3)
+       case(mnem_cy)
+          x=s%cx*sin(alfazr3)+t%r3*cos(alfazr3)
+       case(mnem_thet)
+          x=270-((s%thet+alfazr3)*(180/pi))
+       case(mnem_Susg)
+          x=t%r3*cos(alfazr3)-s%Svsg*sin(alfazr3)
+       case(mnem_Svsg)
+          x=s%Susg*sin(alfazr3)+t%r3*cos(alfazr3)
+       case(mnem_Subg)
+          x=t%r3*cos(alfazr3)-s%Svbg*sin(alfazr3)
+       case(mnem_Svbg)
+          x=s%Subg*sin(alfazr3)+t%r3*cos(alfazr3)
+       case default
+          x=t%r3
+       end select
+    else
+       x = t%r3
+    endif
   end subroutine gridrotate_r3
 
-  subroutine gridrotate_r4(s, t, x)
+  subroutine gridrotate_r4(par, s, t, x)
+    use params
     use spaceparams
     use mnemmodule
 
+    type(parameters), intent(in)  :: par
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     real*8, dimension(:,:,:,:)    :: x
@@ -224,50 +247,62 @@ contains
   end subroutine gridrotate_r4
 
 
-  subroutine gridrotate_i0(s, t, x)
+  subroutine gridrotate_i0(par, s, t, x)
+    use params
     use spaceparams
     use mnemmodule
 
-    type(spacepars), intent(in) :: s
-    type(arraytype), intent(in) :: t
-    integer                     :: x
+    type(parameters), intent(in)  :: par
+    type(spacepars), intent(in)   :: s
+    type(arraytype), intent(in)   :: t
+    integer                       :: x
     x = t%i0
   end subroutine gridrotate_i0
 
-  subroutine gridrotate_i1(s, t, x)
+  subroutine gridrotate_i1(par, s, t, x)
+    use params
     use spaceparams
     use mnemmodule
 
-    type(spacepars), intent(in) :: s
-    type(arraytype), intent(in) :: t
+    type(parameters), intent(in)  :: par
+    type(spacepars), intent(in)   :: s
+    type(arraytype), intent(in)   :: t
     integer, dimension(:),intent(out) :: x
     x = t%i1
   end subroutine gridrotate_i1
 
-  subroutine gridrotate_i2(s, t, x)
+  subroutine gridrotate_i2(par, s, t, x)
+    use params
     use spaceparams
     use mnemmodule
 
-    type(spacepars), intent(in) :: s
-    type(arraytype), intent(in) :: t
+    type(parameters), intent(in)  :: par
+    type(spacepars), intent(in)   :: s
+    type(arraytype), intent(in)   :: t
     integer, dimension(:,:),intent(out) :: x
     x = t%i2
   end subroutine gridrotate_i2
-  subroutine gridrotate_i3(s, t, x)
+
+  subroutine gridrotate_i3(par, s, t, x)
+    use params
     use spaceparams
     use mnemmodule
 
-    type(spacepars), intent(in) :: s
-    type(arraytype), intent(in) :: t
+    type(parameters), intent(in)  :: par
+    type(spacepars), intent(in)   :: s
+    type(arraytype), intent(in)   :: t
     integer, dimension(:,:,:),intent(out) :: x
     x = t%i3
   end subroutine gridrotate_i3
-  subroutine gridrotate_i4(s, t, x)
+
+  subroutine gridrotate_i4(par, s, t, x)
+    use params
     use spaceparams
     use mnemmodule
 
-    type(spacepars), intent(in) :: s
-    type(arraytype), intent(in) :: t
+    type(parameters), intent(in)  :: par
+    type(spacepars), intent(in)   :: s
+    type(arraytype), intent(in)   :: t
     integer, dimension(:,:,:,:),intent(out) :: x
     x = t%i4
   end subroutine gridrotate_i4
