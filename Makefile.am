@@ -56,7 +56,8 @@ libxbeach_la_SOURCES= \
 	output.F90 \
         ship.F90 \
 	mnemoniciso.F90 \
-	libxbeach.F90
+	libxbeach.F90 \
+	introspection.F90
 
 xbeach_SOURCES=\
 	xbeach.F90

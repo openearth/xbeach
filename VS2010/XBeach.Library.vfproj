@@ -59,6 +59,7 @@ copy $(SolutionDir)\lib\win32\all\zlib\*.dll $(TargetDir)"/>
 		<File RelativePath="..\groundwater.F90"/>
 		<File RelativePath="..\initialize.F90"/>
 		<File RelativePath="..\interp.F90"/>
+		<File RelativePath="..\introspection.F90"/>
 		<File RelativePath="..\libxbeach.F90"/>
 		<File RelativePath="..\logging.F90"/>
 		<File RelativePath="..\math_tools.F90"/>

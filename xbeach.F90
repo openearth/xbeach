@@ -1,5 +1,6 @@
 program xbeach
 use libxbeach_module
+use introspection_module
 use iso_c_binding
 implicit none
 
