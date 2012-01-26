@@ -72,9 +72,33 @@ module introspection_module
      module procedure get2dintarray_fortran
   end interface get2dintarray
 
+  interface set0dintarray
+     module procedure set0dintarray_fortran
+  end interface set0dintarray
+
+  interface set1dintarray
+     module procedure set1dintarray_fortran
+  end interface set1dintarray
+
+  interface set0ddoublearray
+     module procedure set0ddoublearray_fortran
+  end interface set0ddoublearray
+
+  interface set1ddoublearray
+     module procedure set1ddoublearray_fortran
+  end interface set1ddoublearray
+
   interface set2ddoublearray
      module procedure set2ddoublearray_fortran
   end interface set2ddoublearray
+
+  interface set3ddoublearray
+     module procedure set3ddoublearray_fortran
+  end interface set3ddoublearray
+
+  interface set4ddoublearray
+     module procedure set4ddoublearray_fortran
+  end interface set4ddoublearray
 contains
   ! No C for this one, no chars to mess up...
   integer(c_int) function getnparameter_fortran(n) bind(C, name="getnparameter")
@@ -842,6 +866,241 @@ contains
   end function get2dintarray_c
 
 
+  integer(c_int) function set0dintarray_fortran(name,x) 
+    USE iso_c_binding
+    ! String
+    character(kind=c_char,len=*),intent(in) :: name
+    ! use inout otherwise things break
+    integer(c_int), intent(inout) :: x
+
+    integer :: i, index
+    type(arraytype) :: array
+
+    set0dintarray_fortran = -1
+    index =  chartoindex(trim(name))
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    array%i0 = x
+    set0dintarray_fortran = 0
+  end function set0dintarray_fortran
+
+  integer(c_int) function set0dintarray_c(name, x, length) bind(C, name="set0dintarray")
+    !DEC$ ATTRIBUTES DLLEXPORT::set0dintarray_c
+
+    ! use inout otherwise things break
+    type (c_ptr), intent(inout) :: x
+    ! and we need the string length ....
+    integer(c_int),value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(in) :: name(length)
+
+    character(length) :: myname 
+    integer :: index
+    type(arraytype) :: array
+    integer(c_int), pointer :: i0
+
+    set0dintarray_c = -1
+
+    myname = char_array_to_string(name, length)
+    index =  chartoindex(myname)
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    ! Transform the c pointer into a fortran pointer
+    call c_f_pointer(x, i0, shape(array%i0))
+    ! Copy the values, or the pointer... not sure.
+    array%i0 = i0
+
+    set0dintarray_c = 0
+  end function set0dintarray_c
+
+  integer(c_int) function set1dintarray_fortran(name,x) 
+    USE iso_c_binding
+    ! String
+    character(kind=c_char,len=*),intent(in) :: name
+    ! use inout otherwise things break
+    integer(c_int), intent(inout) :: x(:)
+
+    integer :: i, index
+    type(arraytype) :: array
+
+    set1dintarray_fortran = -1
+    index =  chartoindex(trim(name))
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    array%i1 = x
+    set1dintarray_fortran = 0
+  end function set1dintarray_fortran
+
+  integer(c_int) function set1dintarray_c(name, x, length) bind(C, name="set1dintarray")
+    !DEC$ ATTRIBUTES DLLEXPORT::set1dintarray_c
+
+    ! use inout otherwise things break
+    type (c_ptr), intent(inout) :: x
+    ! and we need the string length ....
+    integer(c_int),value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(in) :: name(length)
+
+    character(length) :: myname 
+    integer :: index
+    type(arraytype) :: array
+    integer(c_int), pointer, dimension(:)  :: i1
+
+    set1dintarray_c = -1
+
+    myname = char_array_to_string(name, length)
+    index =  chartoindex(myname)
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    ! Transform the c pointer into a fortran pointer
+    call c_f_pointer(x, i1, shape(array%i1))
+    ! Copy the values, or the pointer... not sure.
+    array%i1 = i1
+
+    set1dintarray_c = 0
+  end function set1dintarray_c
+
+  integer(c_int) function set2dintarray_fortran(name,x) 
+    USE iso_c_binding
+    ! String
+    character(kind=c_char,len=*),intent(in) :: name
+    ! use inout otherwise things break
+    integer(c_int), intent(inout) :: x(:,:)
+
+    integer :: i, index
+    type(arraytype) :: array
+
+    set2dintarray_fortran = -1
+    index =  chartoindex(trim(name))
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    array%i2 = x
+    set2dintarray_fortran = 0
+  end function set2dintarray_fortran
+
+  integer(c_int) function set2dintarray_c(name, x, length) bind(C, name="set2dintarray")
+    !DEC$ ATTRIBUTES DLLEXPORT::set2dintarray_c
+
+    ! use inout otherwise things break
+    type (c_ptr), intent(inout) :: x
+    ! and we need the string length ....
+    integer(c_int),value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(in) :: name(length)
+
+    character(length) :: myname 
+    integer :: index
+    type(arraytype) :: array
+    integer(c_int), pointer, dimension(:,:)  :: i2
+
+    set2dintarray_c = -1
+
+    myname = char_array_to_string(name, length)
+    index =  chartoindex(myname)
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    ! Transform the c pointer into a fortran pointer
+    call c_f_pointer(x, i2, shape(array%i2))
+    ! Copy the values, or the pointer... not sure.
+    array%i2 = i2
+
+    set2dintarray_c = 0
+  end function set2dintarray_c
+
+  integer(c_int) function set0ddoublearray_fortran(name,x) 
+    USE iso_c_binding
+    ! String
+    character(kind=c_char,len=*),intent(in) :: name
+    ! use inout otherwise things break
+    real(c_double), intent(inout) :: x
+
+    integer :: i, index
+    type(arraytype) :: array
+
+    set0ddoublearray_fortran = -1
+    index =  chartoindex(trim(name))
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    array%r0 = x
+    set0ddoublearray_fortran = 0
+  end function set0ddoublearray_fortran
+
+  integer(c_int) function set0ddoublearray_c(name, x, length) bind(C, name="set0ddoublearray")
+    !DEC$ ATTRIBUTES DLLEXPORT::set0ddoublearray_c
+
+    ! use inout otherwise things break
+    type (c_ptr), intent(inout) :: x
+    ! and we need the string length ....
+    integer(c_int),value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(in) :: name(length)
+
+    character(length) :: myname 
+    integer :: index
+    type(arraytype) :: array
+    real(c_double), pointer  :: r0
+
+    set0ddoublearray_c = -1
+
+    myname = char_array_to_string(name, length)
+    index =  chartoindex(myname)
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    ! Transform the c pointer into a fortran pointer
+    call c_f_pointer(x, r0, shape(array%r0))
+    ! Copy the values, or the pointer... not sure.
+    array%r0 = r0
+
+    set0ddoublearray_c = 0
+  end function set0ddoublearray_c
+
+  integer(c_int) function set1ddoublearray_fortran(name,x) 
+    USE iso_c_binding
+    ! String
+    character(kind=c_char,len=*),intent(in) :: name
+    ! use inout otherwise things break
+    real(c_double), intent(inout) :: x(:)
+
+    integer :: i, index
+    type(arraytype) :: array
+
+    set1ddoublearray_fortran = -1
+    index =  chartoindex(trim(name))
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    array%r1 = x
+    set1ddoublearray_fortran = 0
+  end function set1ddoublearray_fortran
+
+  integer(c_int) function set1ddoublearray_c(name, x, length) bind(C, name="set1ddoublearray")
+    !DEC$ ATTRIBUTES DLLEXPORT::set1ddoublearray_c
+
+    ! use inout otherwise things break
+    type (c_ptr), intent(inout) :: x
+    ! and we need the string length ....
+    integer(c_int),value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(in) :: name(length)
+
+    character(length) :: myname 
+    integer :: index
+    type(arraytype) :: array
+    real(c_double), pointer, dimension(:)  :: r1
+
+    set1ddoublearray_c = -1
+
+    myname = char_array_to_string(name, length)
+    index =  chartoindex(myname)
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    ! Transform the c pointer into a fortran pointer
+    call c_f_pointer(x, r1, shape(array%r1))
+    ! Copy the values, or the pointer... not sure.
+    array%r1 = r1
+
+    set1ddoublearray_c = 0
+  end function set1ddoublearray_c
+
 
   integer(c_int) function set2ddoublearray_fortran(name,x) 
     USE iso_c_binding
@@ -889,5 +1148,101 @@ contains
 
     set2ddoublearray_c = 0
   end function set2ddoublearray_c
+
+
+  integer(c_int) function set3ddoublearray_fortran(name,x) 
+    USE iso_c_binding
+    ! String
+    character(kind=c_char,len=*),intent(in) :: name
+    ! use inout otherwise things break
+    real(c_double), intent(inout) :: x(:,:,:)
+
+    integer :: i, index
+    type(arraytype) :: array
+
+    set3ddoublearray_fortran = -1
+    index =  chartoindex(trim(name))
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    array%r3 = x
+    set3ddoublearray_fortran = 0
+  end function set3ddoublearray_fortran
+
+  integer(c_int) function set3ddoublearray_c(name, x, length) bind(C, name="set3ddoublearray")
+    !DEC$ ATTRIBUTES DLLEXPORT::set3ddoublearray_c
+
+    ! use inout otherwise things break
+    type (c_ptr), intent(inout) :: x
+    ! and we need the string length ....
+    integer(c_int),value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(in) :: name(length)
+
+    character(length) :: myname 
+    integer :: index
+    type(arraytype) :: array
+    real(c_double), pointer, dimension(:,:,:)  :: r3
+
+    set3ddoublearray_c = -1
+
+    myname = char_array_to_string(name, length)
+    index =  chartoindex(myname)
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    ! Transform the c pointer into a fortran pointer
+    call c_f_pointer(x, r3, shape(array%r3))
+    ! Copy the values, or the pointer... not sure.
+    array%r3 = r3
+
+    set3ddoublearray_c = 0
+  end function set3ddoublearray_c
+
+
+  integer(c_int) function set4ddoublearray_fortran(name,x) 
+    USE iso_c_binding
+    ! String
+    character(kind=c_char,len=*),intent(in) :: name
+    ! use inout otherwise things break
+    real(c_double), intent(inout) :: x(:,:,:,:)
+
+    integer :: i, index
+    type(arraytype) :: array
+
+    set4ddoublearray_fortran = -1
+    index =  chartoindex(trim(name))
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    array%r4 = x
+    set4ddoublearray_fortran = 0
+  end function set4ddoublearray_fortran
+
+  integer(c_int) function set4ddoublearray_c(name, x, length) bind(C, name="set4ddoublearray")
+    !DEC$ ATTRIBUTES DLLEXPORT::set4ddoublearray_c
+
+    ! use inout otherwise things break
+    type (c_ptr), intent(inout) :: x
+    ! and we need the string length ....
+    integer(c_int),value  ,intent(in)    :: length
+    ! String
+    character(kind=c_char),intent(in) :: name(length)
+
+    character(length) :: myname 
+    integer :: index
+    type(arraytype) :: array
+    real(c_double), pointer, dimension(:,:,:,:)  :: r4
+
+    set4ddoublearray_c = -1
+
+    myname = char_array_to_string(name, length)
+    index =  chartoindex(myname)
+    if (index .eq. -1) return
+    call indextos(s,index,array)
+    ! Transform the c pointer into a fortran pointer
+    call c_f_pointer(x, r4, shape(array%r4))
+    ! Copy the values, or the pointer... not sure.
+    array%r4 = r4
+
+    set4ddoublearray_c = 0
+  end function set4ddoublearray_c
 
 end module introspection_module
