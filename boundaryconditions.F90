@@ -170,7 +170,7 @@ contains
              if (theta0>par%px) theta0=theta0-2*par%px
              if (theta0<-par%px) theta0=theta0+2*par%px
           endif
-          par%newstatbc=1
+          s%newstatbc=1
 #ifdef USEMPI
           call xmpi_bcast(bcendtime)
           call xmpi_bcast(par%Hrms)
@@ -273,7 +273,7 @@ contains
              endif
              theta0=(1.5d0*par%px-alfa)-par%dir0*atan(1.d0)/45.d0
           endif
-          par%newstatbc=1
+          s%newstatbc=1
 #ifdef USEMPI
           call xmpi_bcast(bcendtime)
           call xmpi_bcast(par%Hrms)

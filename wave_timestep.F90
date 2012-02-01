@@ -43,18 +43,18 @@ contains
 
 #ifdef USEMPI
         call wave_instationary(s,par)
-        if ((abs(mod(par%t,par%wavint))<0.000001d0) .or. par%newstatbc==1) then
-            par%newstatbc   = 0
+        if ((abs(mod(par%t,par%wavint))<0.000001d0) .or. s%newstatbc==1) then
+            s%newstatbc   = 0
         endif
 #else
-        if ((abs(mod(par%t,par%wavint))<0.000001d0) .or. par%newstatbc==1) then
+        if ((abs(mod(par%t,par%wavint))<0.000001d0) .or. s%newstatbc==1) then
             call wave_stationary(s,par)
-            par%newstatbc   = 0
+            s%newstatbc   = 0
         endif
 #endif
 
     else
-        par%newstatbc       = 0
+        s%newstatbc       = 0
         call wave_instationary(s,par)
     endif
     

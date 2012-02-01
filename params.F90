@@ -103,7 +103,6 @@ type parameters
    real*8        :: trepfac                    = -123    !  [-] (advanced) Compute mean wave period over energy band: par%trepfac*maxval(Sf) for instat 4,5,6; converges to Tm01 for trepfac = 0.0 and
    real*8        :: sprdthr                    = -123    !  [-] (advanced) Threshold ratio to maxval of S above which spec dens are read in (default 0.08*maxval)
    integer*4     :: oldwbc                     = -123    !  [-] (deprecated) (1) Use old version wave boundary conditions for instat 4,5,6
-   integer*4     :: newstatbc                  = -123    !  [-] (advanced) (1) Use new stationary boundary conditions for instat is 'stat' or 'stat_table'
    integer*4     :: correctHm0                 = -123    !  [-] (advanced) Turn off or on Hm0 correction
    integer*4     :: oldnyq                     = -123    !  [-] (advanced) Turn off or on old nyquist switch
    integer*4     :: Tm01switch                 = -123    !  [-] (advanced) Turn off or on Tm01 or Tm-10 switch
@@ -591,7 +590,6 @@ contains
         par%trepfac         = readkey_dbl ('params.txt','trepfac',      0.01d0,     0.d0,       1.d0    ) 
         par%sprdthr         = readkey_dbl ('params.txt','sprdthr',      0.08d0,     0.d0,       1.d0    ) 
         par%oldwbc          = readkey_int ('params.txt','oldwbc',       0,          0,          1       )
-        par%newstatbc       = readkey_int ('params.txt','newstatbc',    1,          0,          1       )
         par%correctHm0      = readkey_int ('params.txt','correctHm0',   1,          0,          1       )
         par%oldnyq          = readkey_int ('params.txt','oldnyq',       0,          0,          1       )
         par%Tm01switch      = readkey_int ('params.txt','Tm01switch',   0,          0,          1       )
