@@ -359,6 +359,7 @@ type parameters
    real*8               :: dt                  = -123    !  [s] Computational time step, in hydrodynamic time
    real*8               :: t                   = -123    !  [s] Computational time, in hydrodynamic time
    real*8               :: tnext               = -123    !  [s] Next time point for output or wave stationary calculation, in hydrodynamic time
+   integer              :: bchwiz              = -123    !  [-] Use beachwizard
 end type parameters
 
 contains
@@ -404,6 +405,7 @@ contains
     par%ships       = readkey_int ('params.txt','ships',         0,        0,     1)
     if (par%ships == 0) par%nship = 0
     ! nship defined by shipfile
+    par%bchwiz      = readkey_int ('params.txt','bchwiz',        0,        0,     1)
 
     !
     !

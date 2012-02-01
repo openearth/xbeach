@@ -16,6 +16,7 @@ module libxbeach_module
   use wave_timestep_module
   use timestep_module
   use readkey_module
+  use beachwizard_module
   use groundwaterflow
   use logging_module
   use means_module
@@ -26,6 +27,9 @@ module libxbeach_module
   type(timepars), save                                     :: tpar
   type(spacepars), pointer                            :: s
   type(spacepars), target, save                       :: sglobal
+  
+  ! Does beachwizard need its own public type?..
+  type(beachwiz), save                                :: bw
 
   integer                                             :: n,it,error
   real*8                                              :: tbegin
@@ -104,6 +108,9 @@ contains
        call drifter_init       (s,par)
        call wave_init          (s,par)
        call gw_init            (s,par)
+       ! TODO, fix ordening of arguments....
+       call bwinit             (par,s)		! works only on master process 
+
        call sed_init           (s,par)
 
     endif
@@ -162,6 +169,13 @@ contains
     if (par%flow+par%nonh>0) call flow           (s,par)
     if (par%ndrifter>0)      call drifter        (s,par)
     if (par%sedtrans==1)     call transus        (s,par)
+    ! Beach wizard
+    if (par%bchwiz>0)        call assim(bw,s,par)
+    ! Bed level update
+    ! TODO put this somewhere else.... (bed_update is independent of bw)....
+    ! if (par%bchwiz/=1)       call bed_update(s,bw,par)
+    ! s%zb=s%zb-bw%dassim  !if we have only beachwizard
+
     if (par%morphology==1)   call bed_update     (s,par)
 
     ! output

@@ -75,6 +75,7 @@ makeversiondat.bat"/>
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
 		<File RelativePath="..\boundaryconditions.F90"/>
+		<File RelativePath="..\beachwizard.F90"/>
 		<File RelativePath="..\constants.F90"/>
 		<File RelativePath="..\drifters.F90"/>
 		<File RelativePath="..\filefunctions.F90"/>

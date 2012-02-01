@@ -47,6 +47,7 @@ copy $(SolutionDir)\lib\win32\all\zlib\*.dll $(TargetDir)"/>
 		<File RelativePath="..\ncoutput.F90"/>
 		<File RelativePath="..\lib\win32\netcdff90\netcdf.f90"/>
 		<File RelativePath="..\lib\win32\netcdff90\typeSizes.f90"/></Filter>
+		<File RelativePath="..\beachwizard.F90"/>
 		<File RelativePath="..\boundaryconditions.F90"/>
 		<File RelativePath="..\constants.F90"/>
 		<File RelativePath="..\drifters.F90"/>

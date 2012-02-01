@@ -39,6 +39,7 @@ libxbeach_la_SOURCES= \
 	wave_timestep.F90 \
         boundaryconditions.F90 \
 	morphevolution.F90 \
+	beachwizard.F90 \
 	groundwater.F90 \
 	drifters.F90 \
 	readtide.F90 \

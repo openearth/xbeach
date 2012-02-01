@@ -245,3 +245,7 @@
       real*8  2  Dc        s%nx+1 s%ny+1 d  [m2/s] []    diffusion coefficient
       real*8  2  ph        s%nx+1 s%ny+1 d  [m] []    pressure head due to ship
       integer  0  newstatbc  b  [-] []       (1) Use new stationary boundary conditions for instat is stat or stat_table
+      real*8  2  dobs     s%nx+1 s%ny+1 d  [W/m2] beachwizard observed dissipation
+      real*8  2  sig2prior s%nx+1 s%ny+1 d  [m2] beachwizard prior std squared
+      real*8  2  zbobs    s%nx+1 s%ny+1 d  [m] beachwizard observed depth
+      real*8  2  shobs    s%nx+1 s%ny+1 d  [m] beachwizard observed shoreline  
