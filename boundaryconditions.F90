@@ -53,7 +53,7 @@ contains
     integer                                     :: itheta
     integer                                     :: E_idx
     real*8                                      :: E1,ei,dum,Hm0, dum1, spreadpar, bcdur, dum2
-    real*8, save                                :: dtbcfile,rt,bcendtime
+    real*8, save                                :: dtbcfile,rt,bcendtime,bcstarttime
     real*8                                      :: em,tshifted,tnew
     real*8, save                                :: Emean,Llong
     real*8,dimension(:)     ,allocatable,save   :: e01       ! [J/m2/rad] directional distribution of wave energy at boundary
@@ -66,10 +66,10 @@ contains
     real*8,dimension(:,:)   ,allocatable,save   :: gq1,gq2,gq
     real*8,dimension(:,:)   ,allocatable,save   :: gee1, gee2
     character(len=1)                            :: bl
-    character(slen)                              :: ebcfname,qbcfname,fname
+    character(slen)                             :: ebcfname,qbcfname,nhbcfname,fname
     real*8                                      :: E0
     real*8,dimension(:),allocatable,save        :: dist,factor
-    logical                                     :: startbcf
+    logical                                     :: startbcf,lexist1,lexist2
 
 
     include 's.ind'
@@ -94,7 +94,7 @@ contains
     ! added for bound long wave comp Ad 28 march 2006
     dtheta = par%dtheta*par%px/180
     startbcf=.false.
-    if(abs(par%t-par%dt)<1.d-6) then
+    if(abs(par%t-par%dt)<1.d-9) then
        if (xmaster) then
           call writelog('ls','','Setting up boundary conditions')
        endif
@@ -216,8 +216,22 @@ contains
           else
              curline = 1
           endif
-       elseif (trim(par%instat)=='nonh'.and.xmaster) then   
-          call velocity_Boundary(ui(1,:),zi(1,:),wi(1,:),nx,ny,par%t,zs,ws)  
+          ! See if this is reusing nonhydrostatic, or hydrostatic boundary conditions
+          inquire(file='ebcflist.bcf',exist=lexist1)
+          inquire(file='nhbcflist.bcf',exist=lexist2)
+          if (lexist1 .and. .not. lexist2) then
+            par%nonhspectrum = 0
+          elseif (.not. lexist1 .and. lexist2) then
+            par%nonhspectrum = 1
+          elseif (lexist1 .and. lexist2) then
+            call writelog('lswe','','If ''instat=reuse'' the model directory may not contain multiple boundary definition files.')
+            call writelog('lswe','','Use either ebcflist.bcf/qbcflist.bcf, or nhbcflist.bcf')
+          else
+            call writelog('lswe','','If ''instat=reuse'' the model directory must contain boundary definition files.')
+            call writelog('lswe','','Use either ebcflist.bcf/qbcflist.bcf, or nhbcflist.bcf')
+          endif
+       elseif (trim(par%instat)=='ts_nonh'.and.xmaster) then   
+          call velocity_Boundary('boun_U.bcf',ui(1,:),zi(1,:),wi(1,:),nx,ny,par%t,zs,ws)  
        endif
        !
        ! Directional distribution
@@ -427,147 +441,163 @@ contains
          (trim(par%instat)=='vardens') .or. &
          (trim(par%instat)=='reuse')  &
          ) then  
-       ! open file if first time
-       if (startbcf) then
-          if(xmaster) then
-             open(53,file='ebcflist.bcf',form='formatted',position='rewind')
-             open(54,file='qbcflist.bcf',form='formatted',position='rewind')
-          endif
-          if (xmaster) then
+       if(par%nonhspectrum==0) then 
+         ! open file if first time
+         if (startbcf) then
+            if(xmaster) then
+               open(53,file='ebcflist.bcf',form='formatted',position='rewind')
+               open(54,file='qbcflist.bcf',form='formatted',position='rewind')
+            endif
+            if (xmaster) then
 
-             do i=1,curline
-                read(53,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,ebcfname
-                read(54,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,qbcfname
-             enddo  ! wwvv strange
-          endif
+               do i=1,curline
+                  read(53,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,ebcfname
+                  read(54,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,qbcfname
+               enddo  ! wwvv strange
+            endif
 #ifdef USEMPI
-          call xmpi_bcast(bcendtime)
-          call xmpi_bcast(rt)
-          call xmpi_bcast(dtbcfile)
-          call xmpi_bcast(par%Trep)
-          call xmpi_bcast(theta0)
-          call xmpi_bcast(ebcfname)
+            call xmpi_bcast(bcendtime)
+            call xmpi_bcast(rt)
+            call xmpi_bcast(dtbcfile)
+            call xmpi_bcast(par%Trep)
+            call xmpi_bcast(theta0)
+            call xmpi_bcast(ebcfname)
 #endif
-          if (xmaster) then
-             close(53)
-             close(54)
-          endif
-          ! Robert and Jaap : Initialize for new wave conditions
-          ! par%Trep = par%Trep
-          ! par%omega = 2*par%px/par%Trep            
-          do itheta=1,ntheta
-             sigt(:,:,itheta) = 2*par%px/par%Trep
-          end do
-          sigm = sum(sigt,3)/ntheta
-          call dispersion(par,s)     
-          ! End initialize
-          if (xmaster) then
-             inquire(iolength=wordsize) 1.d0
-             reclen=wordsize*(sg%ny+1)*(sg%ntheta)
-             open(71,file=ebcfname,status='old',form='unformatted',access='direct',recl=reclen)
-             reclen=wordsize*((sg%ny+1)*4)
-             open(72,file=qbcfname,status='old',form='unformatted',access='direct',recl=reclen)
-          endif
-          !
-          ! wwvv note that we need the global value of ny here
-          !
-          ! masterprocess reads and distributes
-          !
-          if (xmaster) then
-             if (.not. allocated(gq1) ) then
-                allocate(gq1(sg%ny+1,4),gq2(sg%ny+1,4),gq(sg%ny+1,4))
-                allocate(gee1(sg%ny+1,ntheta),gee2(sg%ny+1,ntheta))
-             endif
-          else
-             if (.not. allocated(gq1) ) then ! to get valid addresses for
-                ! gq1, gq2, gq, gee1, gee2
-                allocate(gq1(1,4),gq2(1,4),gq(1,4))
-                allocate(gee1(1,ntheta),gee2(1,ntheta))
-             endif
-          endif
-          if (.not. allocated(q1) ) then
-             allocate(q1(ny+1,4),q2(ny+1,4),q(ny+1,4))
-             allocate(ee1(ny+1,ntheta),ee2(ny+1,ntheta))
-          end if
-          if (xmaster) then
-             read(71,rec=1)gee1       ! Earlier in time
-             read(71,rec=2)gee2       ! Later in time
-             read(72,rec=1)gq1        ! Earlier in time
-             read(72,rec=2)gq2        ! Later in time
-          endif
+            if (xmaster) then
+               close(53)
+               close(54)
+            endif
+            ! Robert and Jaap : Initialize for new wave conditions
+            ! par%Trep = par%Trep
+            ! par%omega = 2*par%px/par%Trep            
+            do itheta=1,ntheta
+               sigt(:,:,itheta) = 2*par%px/par%Trep
+            end do
+            sigm = sum(sigt,3)/ntheta
+            call dispersion(par,s)     
+            ! End initialize
+            if (xmaster) then
+               inquire(iolength=wordsize) 1.d0
+               reclen=wordsize*(sg%ny+1)*(sg%ntheta)
+               open(71,file=ebcfname,status='old',form='unformatted',access='direct',recl=reclen)
+               reclen=wordsize*((sg%ny+1)*4)
+               open(72,file=qbcfname,status='old',form='unformatted',access='direct',recl=reclen)
+            endif
+            !
+            ! wwvv note that we need the global value of ny here
+            !
+            ! masterprocess reads and distributes
+            !
+            if (xmaster) then
+               if (.not. allocated(gq1) ) then
+                  allocate(gq1(sg%ny+1,4),gq2(sg%ny+1,4),gq(sg%ny+1,4))
+                  allocate(gee1(sg%ny+1,ntheta),gee2(sg%ny+1,ntheta))
+               endif
+            else
+               if (.not. allocated(gq1) ) then ! to get valid addresses for
+                  ! gq1, gq2, gq, gee1, gee2
+                  allocate(gq1(1,4),gq2(1,4),gq(1,4))
+                  allocate(gee1(1,ntheta),gee2(1,ntheta))
+               endif
+            endif
+            if (.not. allocated(q1) ) then
+               allocate(q1(ny+1,4),q2(ny+1,4),q(ny+1,4))
+               allocate(ee1(ny+1,ntheta),ee2(ny+1,ntheta))
+            end if
+            if (xmaster) then
+               read(71,rec=1)gee1       ! Earlier in time
+               read(71,rec=2)gee2       ! Later in time
+               read(72,rec=1)gq1        ! Earlier in time
+               read(72,rec=2)gq2        ! Later in time
+            endif
 #ifdef USEMPI
-          !
-          ! wwvv todo
-          ! would be cleaner if we had defined general subroutines 
-          ! for this in spaceparams
-          !
-          call space_distribute("y",sl,gee1,ee1)
-          call space_distribute("y",sl,gee2,ee2)
-          call space_distribute("y",sl,gq1,q1)
-          call space_distribute("y",sl,gq2,q2)
+            !
+            ! wwvv todo
+            ! would be cleaner if we had defined general subroutines 
+            ! for this in spaceparams
+            !
+            call space_distribute("y",sl,gee1,ee1)
+            call space_distribute("y",sl,gee2,ee2)
+            call space_distribute("y",sl,gq1,q1)
+            call space_distribute("y",sl,gq2,q2)
 #else
-          ee1=gee1
-          ee2=gee2
-          q1=gq1
-          q2=gq2
+            ee1=gee1
+            ee2=gee2
+            q1=gq1
+            q2=gq2
 #endif
-          old=floor((par%t/dtbcfile)+1)
-          recpos=1
-       end if
+            old=floor((par%t/dtbcfile)+1)
+            recpos=1
+         end if
 
-       new=floor((par%t/dtbcfile)+1)
+         new=floor((par%t/dtbcfile)+1)
 
-       ! Check for next level in boundary condition file
-       if (new/=old) then
-          recpos=recpos+(new-old)
-          ! Check for how many bcfile steps are jumped
-          if (new-old>1) then  ! Many steps further in the bc file
-             if(xmaster) then
-                read(72,rec=recpos+1)gq2
-                read(71,rec=recpos+1)gee2
-                read(72,rec=recpos)gq1
-                read(71,rec=recpos)gee1
-             endif
+         ! Check for next level in boundary condition file
+         if (new/=old) then
+            recpos=recpos+(new-old)
+            ! Check for how many bcfile steps are jumped
+            if (new-old>1) then  ! Many steps further in the bc file
+               if(xmaster) then
+                  read(72,rec=recpos+1)gq2
+                  read(71,rec=recpos+1)gee2
+                  read(72,rec=recpos)gq1
+                  read(71,rec=recpos)gee1
+               endif
 
 #ifdef USEMPI
-             call space_distribute("y",sl,gee2,ee2)
-             call space_distribute("y",sl,gq2,q2)
-             call space_distribute("y",sl,gee1,ee1)
-             call space_distribute("y",sl,gq1,q1)
+               call space_distribute("y",sl,gee2,ee2)
+               call space_distribute("y",sl,gq2,q2)
+               call space_distribute("y",sl,gee1,ee1)
+               call space_distribute("y",sl,gq1,q1)
 #else
-             ee1=gee1
-             ee2=gee2
-             q1=gq2
-             q2=gq2
+               ee1=gee1
+               ee2=gee2
+               q1=gq2
+               q2=gq2
 #endif 
-          else  ! Only one step further in the bc file
-             ee1=ee2
-             q1=q2
-             if(xmaster) then
-                read(72,rec=recpos+1)gq2
-                read(71,rec=recpos+1)gee2
-             endif
+            else  ! Only one step further in the bc file
+               ee1=ee2
+               q1=q2
+               if(xmaster) then
+                  read(72,rec=recpos+1)gq2
+                  read(71,rec=recpos+1)gee2
+               endif
 #ifdef USEMPI
-             call space_distribute("y",sl,gee2,ee2)
-             call space_distribute("y",sl,gq2,q2)
+               call space_distribute("y",sl,gee2,ee2)
+               call space_distribute("y",sl,gq2,q2)
 #else  
-             ee2=gee2
-             q2=gq2
+               ee2=gee2
+               q2=gq2
 #endif
+            endif
+            old=new
+         end if
+         ht=zs0(1:2,:)-zb(1:2,:)
+         tnew = dble(new)*dtbcfile
+         ee(1,:,:) = (dtbcfile-(tnew-par%t))/dtbcfile*ee2 + & !Jaap
+              (tnew-par%t)/dtbcfile*ee1
+         q = (dtbcfile-(tnew-par%t))/dtbcfile*q2 + &          !Jaap
+              (tnew-par%t)/dtbcfile*q1
+         ui(1,:) = q(:,1)/ht(1,:)*min(par%t/par%taper,1.0d0)
+         vi(1,:) = q(:,2)/ht(1,:)*min(par%t/par%taper,1.0d0)
+         ee(1,:,:)=ee(1,:,:)*min(par%t/par%taper,1.0d0)
+       elseif(par%nonhspectrum==1) then
+          if (startbcf) then
+             if(xmaster) then
+                open(53,file='nhbcflist.bcf',form='formatted',position='rewind')
+                do i=1,curline
+                   read(53,*)bcstarttime,bcendtime,nhbcfname
+                enddo
+                close(53)
+             endif
+             call velocity_Boundary(nhbcfname,ui(1,:),zi(1,:),wi(1,:),nx,ny,par%t,zs,ws, &
+                                                       force_init=.true.,bcst=bcstarttime)
+          else
+             call velocity_Boundary(nhbcfname,ui(1,:),zi(1,:),wi(1,:),nx,ny,par%t,zs,ws,bcst=bcstarttime)
           endif
-          old=new
-       end if
-       ht=zs0(1:2,:)-zb(1:2,:)
-       tnew = dble(new)*dtbcfile
-       ee(1,:,:) = (dtbcfile-(tnew-par%t))/dtbcfile*ee2 + & !Jaap
-            (tnew-par%t)/dtbcfile*ee1
-       q = (dtbcfile-(tnew-par%t))/dtbcfile*q2 + &          !Jaap
-            (tnew-par%t)/dtbcfile*q1
-       ui(1,:) = q(:,1)/ht(1,:)*min(par%t/par%taper,1.0d0)
-       vi(1,:) = q(:,2)/ht(1,:)*min(par%t/par%taper,1.0d0)
-       ee(1,:,:)=ee(1,:,:)*min(par%t/par%taper,1.0d0)
-    elseif (trim(par%instat)=='nonh'.and.xmaster) then   
-       call velocity_Boundary(ui(1,:),zi(1,:),wi(1,:),nx,ny,par%t,zs,ws)
+       endif ! nonhspectrum
+    elseif (trim(par%instat)=='ts_nonh'.and.xmaster) then   
+       call velocity_Boundary('boun_U.bcf',ui(1,:),zi(1,:),wi(1,:),nx,ny,par%t,zs,ws)
     else
        if (xmaster) then
           call writelog('lse','', 'instat = ',trim(par%instat), ' invalid option')
@@ -833,6 +863,7 @@ contains
              endif
              vv(1,:)=vv(2,:)
              zs(1,:)=zs(2,:)
+             if (par%nonh==1) ws(1,:) = ws(2,:)
           elseif (trim(par%front)=='abs_2d') then ! Van Dongeren (1997), weakly reflective boundary condition
              ht(1:2,:)=max(zs0(1:2,:)-zb(1:2,:),par%eps)
              beta=uu(1:2,:)-2.*dsqrt(par%g*hum(1:2,:))
@@ -926,6 +957,7 @@ contains
                 end if
              end do
              vv(1,:)=vv(2,:)
+             if (par%nonh==1) ws(1,:) = ws(2,:)
           else if (trim(par%front)=='wall') then
              !       uu(1,:)=0.d0
              !      zs(1,:)=max(zs(2,:),zb(1,:))
@@ -933,13 +965,20 @@ contains
              zs(1,:)=zs0(1,:)
           else if (trim(par%front)=='nonh_1d') then
              !Timeseries Boundary for nonh, only use in combination with instat=8       
+             if (trim(par%tidetype)=='velocity') then
+                umean(1,:) = (factime*sum(uu(1,:)*dnu(1,:))/sum(dnu(1,:))+(1-factime)*umean(1,:)) 
+                ! make sure we have same umean along whole offshore boundary
+             else
+                umean(1,:) = 0.d0
+             endif
              if (par%ARC==0) then
                 uu(1,:) = ui(1,:)
                 zs(1,:) = zi(1,:)
                 ws(1,:) = wi(1,:)
              else
                 !Radiating boundary for short waves:
-                uu(1,:) = ui(1,:)-sqrt(par%g/hh(2,:))*(zs(2,:)-zi(1,:)-zs0(2,:))
+                uu(1,:) = ui(1,:)-sqrt(par%g/hh(1,:))*(zs(2,:)-zi(1,:)-zs0(2,:)) + umean(1,:)
+!                uu(1,:)=  2*ui(1,:)-sqrt(par%g/hh(1,:))*(zs(2,:)        -zs0(2,:)) 
                 zs(1,:) = zs(2,:)
                 ws(1,:) = ws(2,:)
              endif
@@ -1373,7 +1412,7 @@ contains
 
 !
 !==============================================================================    
-subroutine velocity_Boundary(u,z,w,nx,ny,t,zs,ws)
+subroutine velocity_Boundary(bcfile,u,z,w,nx,ny,t,zs,ws,force_init,bcst)
 !==============================================================================    
 !
     
@@ -1401,6 +1440,7 @@ subroutine velocity_Boundary(u,z,w,nx,ny,t,zs,ws)
 
 !--------------------------     ARGUMENTS          ----------------------------
 !
+    character(len=*)              ,intent(in)  :: bcfile
     integer(kind=iKind)           ,intent(in)  :: nx
     integer(kind=iKind)           ,intent(in)  :: ny
     real(kind=rKind),dimension(ny+1),intent(out) :: u
@@ -1409,18 +1449,19 @@ subroutine velocity_Boundary(u,z,w,nx,ny,t,zs,ws)
     real(kind=rKind),dimension(nx+1,ny+1),intent(in) :: zs
     real(kind=rKind),dimension(nx+1,ny+1),intent(in) :: ws       
     real(kind=rKind)                ,intent(in)  :: t
-
+    logical,intent(in),optional                  :: force_init
+    real(kind=rKind),intent(in),optional         :: bcst
 !
 
 !--------------------------     LOCAL VARIABLES    ----------------------------
-    character(len=iFileNameLen),save          :: filename_U
+    character(len=iFileNameLen),save          :: filename_U = ''
     integer                    ,save          :: unit_U = iUnit_U       
 
     logical,save                              :: lVarU = .false.
     logical,save                              :: lIsEof = .false.
     logical,save                              :: lNH_boun_U  = .false.
     logical,save                              :: initialize  = .true.
-    logical                                   :: lExists
+    logical                                   :: lExists,lOpened
     character(slen)                          :: string
     character(len=2),allocatable,dimension(:),save :: header
     integer(kind=ikind)                       :: iAllocErr   
@@ -1431,6 +1472,9 @@ subroutine velocity_Boundary(u,z,w,nx,ny,t,zs,ws)
     integer(kind=ikind),save                  :: iW = 0
     integer(kind=ikind),save                  :: iT = 0
     integer(kind=ikind)                       :: i    
+    
+    logical                                   :: fi_local
+    real(kind=rKind)                          :: bcstarttime
     
     
     real(kind=rKind),allocatable,dimension(:,:)    :: tmp
@@ -1451,13 +1495,43 @@ subroutine velocity_Boundary(u,z,w,nx,ny,t,zs,ws)
 !                             IMPLEMENTATION
 !-------------------------------------------------------------------------------
     
+    if (present(bcst)) then
+       bcstarttime = bcst
+    else
+       bcstarttime = 0.d0
+    endif
+    
+    if (present(force_init)) then
+       fi_local = force_init
+    else
+       fi_local = .false.
+    endif
+    
+    if (bcfile/=filename_U .or. fi_local) then
+       filename_U=trim(bcfile)
+       initialize = .true.
+    endif
+    
     if (initialize) then
       initialize = .false.        
-      !What is the filename of the file containing the series
-      filename_U = 'boun_U.bcf' !Default filename
       
-      !Does the file exist?
-      inquire(file=trim(filename_U),EXIST=lExists)
+      !Does the file exist and is it already opened (reuse files?)
+      inquire(file=trim(filename_U),EXIST=lExists,OPENED=lOpened)
+      
+      ! Close previous file if needed
+      if(lOpened) then
+         close(unit_U)
+      endif
+      
+      ! Deallocate previous arrays if needed
+      if (allocated(header)) deallocate(header)
+      if (allocated(tmp)) deallocate(tmp)
+      if (allocated(u0)) deallocate(u0)
+      if (allocated(u1)) deallocate(u1)
+      if (allocated(z0)) deallocate(z0)
+      if (allocated(z1)) deallocate(z1)
+      if (allocated(w0)) deallocate(w0)
+      if (allocated(w1)) deallocate(w1)
         
       if (lExists) then
         !If exists, open
@@ -1526,6 +1600,7 @@ subroutine velocity_Boundary(u,z,w,nx,ny,t,zs,ws)
       allocate(tmp(ny+1,nvar-1))
       !Read two first timelevels
       call velocity_Boundary_read(t0,tmp,Unit_U,lVaru,lIsEof,nvar)
+      t0 = t0+bcstarttime
       if (iU >0) u0 = tmp(:,iU-1)
       if (iZ >0) z0 = tmp(:,iZ-1)
       if (iW >0) w0 = tmp(:,iW-1)
@@ -1536,13 +1611,14 @@ subroutine velocity_Boundary(u,z,w,nx,ny,t,zs,ws)
         if (iW >0) w1=w0        
       else
         call velocity_Boundary_read(t1,tmp,Unit_U,lVaru,lIsEof,nvar)
+        t1 = t1+bcstarttime
         if (iU >0) u1 = tmp(:,iU-1)
         if (iZ >0) z1 = tmp(:,iZ-1)
         if (iW >0) w1 = tmp(:,iW-1)
       endif
       deallocate(tmp)      
       return
-    endif
+    endif   ! initialize
 
   if (lNH_boun_U) then
     if (.not. lIsEof) then
@@ -1554,6 +1630,7 @@ subroutine velocity_Boundary(u,z,w,nx,ny,t,zs,ws)
         if (iZ >0) z0 = z1
         if (iW >0) w0 = w1
         call velocity_Boundary_read(t1,tmp,Unit_U,lVaru,lIsEof,nvar)
+        t1 = t1+bcstarttime
         if (iU >0) u1 = tmp(:,iU-1)
         if (iZ >0) z1 = tmp(:,iZ-1)
         if (iW >0) w1 = tmp(:,iW-1)

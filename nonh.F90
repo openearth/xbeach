@@ -79,6 +79,8 @@ module nonh_module
   integer(kind=iKind),allocatable,dimension(:,:)     :: nonhU
   integer(kind=iKind),allocatable,dimension(:,:)     :: nonhV
   integer(kind=iKind),allocatable,dimension(:,:)     :: nonhZ
+  
+  integer(kind=iKind),allocatable,dimension(:,:)     :: breaking
 
   !--- PUBLIC SUBROUTINES ---
   public nonh_init
@@ -161,7 +163,8 @@ contains
     allocate(ddyv (  s%ny+1))       ;  ddyv  = 0.0_rKind          
     allocate(nonhU(  s%nx+1,s%ny+1)); nonhU = 1
     allocate(nonhV(  s%nx+1,s%ny+1)); nonhV = 1
-    allocate(nonhZ(  s%nx+1,s%ny+1)); nonhZ = 1    
+    allocate(nonhZ(  s%nx+1,s%ny+1)); nonhZ = 1  
+    allocate(breaking(  s%nx+1,s%ny+1)); breaking = 0    
     allocate(dp(s%nx+1,s%ny+1))     ; dp = 0.0_rKind
     allocate(Wm(s%nx+1,s%ny+1))     ;Wm     = 0.0_rKind
     allocate(Wm_old(s%nx+1,s%ny+1)) ;Wm_old = 0.0_rKind
@@ -746,7 +749,8 @@ subroutine nonh_explicit(s,par,nuh)
     real(kind=rKind)                        :: dwdx2    !Gradient of vertical velocity in x-dir at i-1/2,j
     real(kind=rKind)                        :: dwdy1    !Gradient of vertical velocity in x-dir at i    ,j+1/2
     real(kind=rKind)                        :: dwdy2    !Gradient of vertical velocity in x-dir at i    ,j-1/2   
-    real(kind=rKind)                        :: Vol    
+    real(kind=rKind)                        :: Vol  
+    real(kind=rKind)                        :: wmax    
 
   if (.not. initialized) then
     call nonh_init(s,par)
@@ -766,7 +770,11 @@ subroutine nonh_explicit(s,par,nuh)
 ! (1)  The point is dry
 ! (2)  The relative wave length kd of the smallest possible wave (L=2dx) is smaller than kdmin 
 ! (3)  The interpolated waterlevel zs is below the bottom (steep cliffs with overwash situations)
-
+! (4)  Where Miche breaker criterium applies -> bores are hydrostatic
+!            max steepness = H/L = maxbrsteep
+!            dz/dx = maxbrsteep
+!            dz/dx = dz/dt/c = w/c = w/sqrt(gh)
+!            wmax = maxbrsteep*sqrt(gh)            
 
   do j=1,s%ny+1
     do i=1,s%nx+1
@@ -816,14 +824,51 @@ subroutine nonh_explicit(s,par,nuh)
     enddo
   else
     do i=2,s%nx
-      if (max(nonhV(i,1),nonhU(i,1),nonhU(i-1,1)) > 0) then
+      if (max(nonhU(i,1),nonhU(i-1,1)) > 0) then
         nonhZ(i,1) = 1
       else
         nonhZ(i,1) = 0      
       endif
     enddo
   endif
- 
+  
+  if (par%nhbreaker == 1) then
+    if (s%ny>0) then 
+      do j=2,s%ny
+        do i=2,s%nx
+          if (breaking(i,j) == 0) then 
+             wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,j))
+             if (s%ws(i,j)>=wmax) then
+                breaking(i,j) = 1
+             endif
+          else
+            if (s%ws(i,j)<0.d0) then
+               breaking(i,j) = 0
+            endif
+          endif
+        enddo
+      enddo
+    else
+      do i=2,s%nx
+        if (breaking(i,1) == 0) then 
+           wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,1))
+           if (abs(s%ws(i,1))>=wmax) then
+              breaking(i,1) = 1
+           endif
+        else
+           if (s%ws(i,1)<0.d0) then
+              breaking(i,1) = 0
+           endif
+        endif
+      enddo
+    endif
+    ! turn off non-hydrostatic pressure correction in areas with breaking and increase viscosity
+    where (breaking==1)
+       nonhZ = 0
+       nuh = par%breakviscfac*nuh
+    endwhere
+  endif
+  
  !Calculate explicit part average vertical momentum (advection)
   if (s%ny>0) then
     do j=2,s%ny

@@ -111,6 +111,7 @@ type parameters
    real*8        :: dthetaS_XB                 = -123    !  [deg] (advanced) The (counter-clockwise) angle in the degrees needed to rotate from the x-axis in SWAN to the x-axis pointing East
    integer*4     :: nspectrumloc               = -123    !  [-] (advanced) Number of input spectrum locations
    integer*4     :: wbcversion                 = -123    !  [-] (advanced) Version of wave boundary conditions
+   integer*4     :: nonhspectrum               = -123    !  [-] (advanced) Switch between spectrum format for wave action balance of nonhydrostatic waves
       
    ! [Section] Flow boundary condition parameters
    character(slen) :: front                      = 'abc'   !  [-] Switch for seaward flow boundary: 0 = radiating boundary(Ad), 1 = Van Dongeren, 1997
@@ -226,6 +227,9 @@ type parameters
    real*8        :: kdmin                      = -123    ! [-] (advanced) Minimum value of kd ( pi/dx > minkd )
    real*8        :: dispc                      = -123    ! [?] (advanced) Coefficient in front of the vertical pressure gradient, Default = 1.
    real*8        :: Topt                       = -123    ! [s] (advanced) Absolute period to optimize coefficient
+   integer*4     :: nhbreaker                  = -123    ! [-] (advanced) Turn on or off nonhydrostatic breaker model
+   real*8        :: breakviscfac               = -123    ! [-] (advanced) Factor to increase viscosity during breaking
+   real*8        :: maxbrsteep                 = -123    ! [-] (advanced) Maximum wave steepness criterium
    
    ! [Section] Bed composition parameters
    real*8        :: rhos                       = -123    !  [kgm^-3] Solid sediment density (no pores)
@@ -526,7 +530,7 @@ contains
     call writelog('l','','Wave boundary condition parameters: ')
     allocate(allowednames(12),oldnames(12))
     allowednames=(/'stat        ','bichrom     ','ts_1        ','ts_2        ','jons        ','swan        ', &
-         'vardens     ','reuse       ','nonh        ','off         ','stat_table  ','jons_table  '/)
+         'vardens     ','reuse       ','ts_nonh        ','off         ','stat_table  ','jons_table  '/)
     oldnames=(/'0 ','1 ','2 ','3 ','4 ','5 ','6 ','7 ','8 ','9 ','40','41'/)
     !             function =   file         key      default  n allowed  n old allowed  allowed names  old allowed names
     par%instat  = readkey_str('params.txt', 'instat', 'bichrom', 12, 12, allowednames, oldnames, required=(par%swave==1))
@@ -586,11 +590,16 @@ contains
         call writelog('l','','--------------------------------')
         call writelog('l','','Wave-spectrum boundary condition parameters: ')
        
+        par%nonhspectrum    = readkey_int ('params.txt','nonhspectrum', par%nonh,          0,       1 )
         par%random          = readkey_int ('params.txt','random',       1,          0,          1       )
         par%fcutoff         = readkey_dbl ('params.txt','fcutoff',      0.d0,       0.d0,       40.d0   )
         par%nspr            = readkey_int ('params.txt','nspr',         0,          0,          1       ) 
         par%trepfac         = readkey_dbl ('params.txt','trepfac',      0.01d0,     0.d0,       1.d0    ) 
-        par%sprdthr         = readkey_dbl ('params.txt','sprdthr',      0.08d0,     0.d0,       1.d0    ) 
+        if (par%nonhspectrum==1) then
+           par%sprdthr         = readkey_dbl ('params.txt','sprdthr',      0.00d0,     0.d0,       1.d0    ) 
+        else
+           par%sprdthr         = readkey_dbl ('params.txt','sprdthr',      0.08d0,     0.d0,       1.d0    ) 
+        endif
         par%oldwbc          = readkey_int ('params.txt','oldwbc',       0,          0,          1       )
         par%correctHm0      = readkey_int ('params.txt','correctHm0',   1,          0,          1       )
         par%oldnyq          = readkey_int ('params.txt','oldnyq',       0,          0,          1       )
@@ -837,6 +846,11 @@ contains
        par%kdmin        = readkey_dbl('params.txt','kdmin' ,0.0d0,0.0d0,0.05d0)  
        par%dispc        = readkey_dbl('params.txt','dispc' ,1.0d0,0.1d0,2.0d0)  
        par%Topt         = readkey_dbl('params.txt','Topt',  10.d0, 1.d0, 20.d0)
+       par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,0,1,1)
+       if (par%nhbreaker==1) then
+          par%breakviscfac = readkey_dbl('params.txt','breakviscfac',1.5d0, 1.d0, 3.d0)
+          par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.6d0, 0.3d0, 0.8d0)
+       endif
     endif
     !
     !
@@ -1172,6 +1186,14 @@ contains
           call writelog('lws','','         non-hydrostatic module [secorder=1]')
           par%secorder = 1
        endif
+    endif
+    !
+    !
+    ! If generating spectral time series for nonhydrostatic waves, you need at least wbcversion 3
+    if (par%nonhspectrum==1 .and. par%wbcversion<3) then
+       call writelog('lws','','Warning: Automatically changing to wbcversion 3 for')
+       call writelog('lws','','         non-hydrostatic spectral boundary condition [nonhspectrum=1]')
+       par%wbcversion=3
     endif
     !
     !

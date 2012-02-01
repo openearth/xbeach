@@ -371,7 +371,7 @@ contains
          trim(par%instat)=='swan' .or. &
          trim(par%instat)=='vardens' .or. &
          trim(par%instat)=='reuse' .or. &
-         trim(par%instat)=='nonh' &
+         trim(par%instat)=='ts_nonh' &
          ) par%Trep=10.d0 
     !Robert
     ! incorrect values are computed below for instat = 4/5/6/7
