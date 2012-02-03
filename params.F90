@@ -530,7 +530,7 @@ contains
     call writelog('l','','Wave boundary condition parameters: ')
     allocate(allowednames(12),oldnames(12))
     allowednames=(/'stat        ','bichrom     ','ts_1        ','ts_2        ','jons        ','swan        ', &
-         'vardens     ','reuse       ','ts_nonh        ','off         ','stat_table  ','jons_table  '/)
+         'vardens     ','reuse       ','ts_nonh     ','off         ','stat_table  ','jons_table  '/)
     oldnames=(/'0 ','1 ','2 ','3 ','4 ','5 ','6 ','7 ','8 ','9 ','40','41'/)
     !             function =   file         key      default  n allowed  n old allowed  allowed names  old allowed names
     par%instat  = readkey_str('params.txt', 'instat', 'bichrom', 12, 12, allowednames, oldnames, required=(par%swave==1))
