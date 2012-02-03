@@ -28,8 +28,6 @@ module libxbeach_module
   type(spacepars), pointer                            :: s
   type(spacepars), target, save                       :: sglobal
   
-  ! Does beachwizard need its own public type?..
-  type(beachwiz), save                                :: bw
 
   integer                                             :: n,it,error
   real*8                                              :: tbegin
@@ -109,7 +107,7 @@ contains
        call wave_init          (s,par)
        call gw_init            (s,par)
        ! TODO, fix ordening of arguments....
-       call bwinit             (par,s)		! works only on master process 
+       call bwinit             (s,par)		! works only on master process 
 
        call sed_init           (s,par)
 
@@ -170,18 +168,10 @@ contains
     if (par%ndrifter>0)      call drifter        (s,par)
     if (par%sedtrans==1)     call transus        (s,par)
     ! Beach wizard
-    if (par%bchwiz>0)        call assim(bw,s,par)
+    if (par%bchwiz>0)        call assim          (s,par)
     ! Bed level update
-    ! TODO put this somewhere else.... (bed_update is independent of bw)....
-    ! if (par%bchwiz/=1)       call bed_update(s,bw,par)
-    ! s%zb=s%zb-bw%dassim  !if we have only beachwizard
-
-    if (par%morphology==1)   call bed_update     (s,par)
-
-    ! output
-    ! This has a nasty dependency on outputtimes_update....
-    ! call output(sglobal,s,par,tpar)
-
+    if ((par%morphology==1) .and. (.not. par%bchwiz == 1)) call bed_update     (s,par)
+    if (par%bchwiz>0)        call assim_update   (s, par)
     ! n = n + 1
     executestep = 0
     ! enddo

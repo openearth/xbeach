@@ -68,9 +68,12 @@ module beachwizard_module
 
   end type beachwiz
 
+  ! Type of beachwizard, stored local. Please store persistent info in s, par.
+  type(beachwiz), save  :: bw
+
 contains      
 
-  subroutine bwinit(par, s)
+  subroutine bwinit(s, par)
     use params
     use spaceparams
     use xmpi_module
@@ -87,9 +90,10 @@ contains
        allocate(s%shobs(1:s%nx+1,1:s%ny+1))
     end if
 
+    
   end subroutine bwinit
 
-  subroutine assim(bw,s,par)
+  subroutine assim(s,par)
 
     use params
     use spaceparams
@@ -100,7 +104,6 @@ contains
 
     type(spacepars), target             :: s 
     type(parameters)                    :: par
-    type(beachwiz)			            :: bw
 
     character*80                        :: fname, infofile
     integer				                :: im,in
@@ -576,6 +579,22 @@ contains
 
   end subroutine assim_rd
 
+  subroutine assim_update(s, par)
+    use params
+    use spaceparams
+    type(spacepars), target             :: s 
+    type(parameters)                    :: par
+    
+    ! These are doing the same thing now
+    if (par%bchwiz .eq. 1) then
+       ! s%dzbdt(i,j) = s%dzbdt(i,j)-bw%dassim(i,j)/par%dt
+       ! Times dt*morfac gives 
+       s%zb = s%zb - bw%dassim
+    endif
+    if (par%bchwiz .eq. 2) then
+       s%zb = s%zb - bw%dassim  !if we have only beachwizard
+    end if
+  end subroutine assim_update
   subroutine comp_depchg(bw, s, par)
 
     use params
