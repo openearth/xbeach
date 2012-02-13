@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VisualStudioProject ProjectType="typeStaticLibrary" ProjectCreator="Intel Fortran" Keyword="Static Library" Version="11.0" ProjectIdGuid="{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}">
+	<Platforms>
+		<Platform Name="Win32"/></Platforms>
+	<Configurations>
+		<Configuration Name="Debug|Win32" OutputDirectory="bin\static\$(ConfigurationName)" IntermediateDirectory="bin\static\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\includefiles\;includes\genfiles\" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\$(ConfigurationName)\" ObjectFile="bin\static\$(ConfigurationName)\" PdbFile="bin\static\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFLibrarianTool"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName)"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Release|Win32" OutputDirectory="bin\static\$(ConfigurationName)" IntermediateDirectory="bin\static\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\includefiles\;includes\genfiles\" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\$(ConfigurationName)\" ObjectFile="bin\static\$(ConfigurationName)\" PdbFile="bin\static\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true"/>
+				<Tool Name="VFLibrarianTool"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName)"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_Debug|Win32" OutputDirectory="bin\static\$(ConfigurationName)" IntermediateDirectory="bin\static\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\..\lib\win32\mpich\include; includes\version\; includes\includefiles\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\$(ConfigurationName)\" ObjectFile="bin\static\$(ConfigurationName)\" PdbFile="bin\static\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\win32\mpich\lib" AdditionalDependencies="mpi.lib fmpich2.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName)"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_Release|Win32" OutputDirectory="bin\static\$(ConfigurationName)" IntermediateDirectory="bin\static\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\..\lib\win32\mpich\include; includes\version\; includes\includefiles\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_IFPORT;HAVE_MPI_WTIME" Diagnostics="diagnosticsShowAll" ModulePath="bin\static\$(ConfigurationName)\" ObjectFile="bin\static\$(ConfigurationName)\" PdbFile="bin\static\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true"/>
+				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\win32\mpich\lib" AdditionalDependencies="mpi.lib fmpich2.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName)"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="netcdf_Debug|Win32" OutputDirectory="bin\static\$(ConfigurationName)" IntermediateDirectory="bin\static\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\includefiles\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ExternalNameInterpretation="extNameLowerCase" CallingConvention="callConventionCVF" StringLengthArgPassing="strLenArgsAfterAll" ExternalNameUnderscore="true" ModulePath="bin\static\$(ConfigurationName)\" ObjectFile="bin\static\$(ConfigurationName)\" PdbFile="bin\static\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\win32\vs\pg" AdditionalDependencies="netcdf.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool" CommandLine="build\copy_netcdf_dlls.bat $(SolutionDir) $(TargetDir)"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName)"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="netcdf_Release|Win32" OutputDirectory="bin\static\$(ConfigurationName)" IntermediateDirectory="bin\static\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\includefiles\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ExternalNameInterpretation="extNameLowerCase" CallingConvention="callConventionCVF" StringLengthArgPassing="strLenArgsAfterAll" ExternalNameUnderscore="true" ModulePath="bin\static\$(ConfigurationName)\" ObjectFile="bin\static\$(ConfigurationName)\" PdbFile="bin\static\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true"/>
+				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\win32\vs\pg" AdditionalDependencies="netcdf.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool" CommandLine="build\copy_netcdf_dlls.bat $(SolutionDir) $(TargetDir)"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName)"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration></Configurations>
+	<Files>
+		<Filter Name="Header Files" Filter="fi;fd;gen"/>
+		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+		<File RelativePath="..\..\lib\win32\netcdff90\netcdf.f90">
+			<FileConfiguration Name="Debug|Win32" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Release|Win32" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="MPI_Debug|Win32" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="MPI_Release|Win32" ExcludedFromBuild="true"/></File>
+		<File RelativePath="..\..\lib\win32\netcdff90\typeSizes.f90">
+			<FileConfiguration Name="Debug|Win32" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Release|Win32" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="MPI_Debug|Win32" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="MPI_Release|Win32" ExcludedFromBuild="true"/></File></Filter>
+		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
+		<File RelativePath=".\beachwizard.F90"/>
+		<File RelativePath="boundaryconditions.F90"/>
+		<File RelativePath="drifters.F90"/>
+		<File RelativePath="filefunctions.F90"/>
+		<File RelativePath="flow_secondorder.F90"/>
+		<File RelativePath="flow_timestep.F90"/>
+		<File RelativePath="general_fileio.F90"/>
+		<File RelativePath="general_mpi.F90"/>
+		<File RelativePath="getkey.F90"/>
+		<File RelativePath="groundwater.F90"/>
+		<File RelativePath="initialize.F90"/>
+		<File RelativePath="interp.F90"/>
+		<File RelativePath="libxbeach.F90"/>
+		<File RelativePath="logging.F90"/>
+		<File RelativePath="math_tools.F90"/>
+		<File RelativePath="mnemonic.F90"/>
+		<File RelativePath="mnemoniciso.F90"/>
+		<File RelativePath="morphevolution.F90"/>
+		<File RelativePath="ncoutput.F90"/>
+		<File RelativePath="nonh.F90"/>
+		<File RelativePath="output.F90"/>
+		<File RelativePath="params.F90"/>
+		<File RelativePath="postprocess.F90"/>
+		<File RelativePath="readkey.F90"/>
+		<File RelativePath="readtide.F90"/>
+		<File RelativePath="readwind.F90"/>
+		<File RelativePath="roelvink.F90"/>
+		<File RelativePath="ship.F90"/>
+		<File RelativePath="solver.F90"/>
+		<File RelativePath="spaceparams.F90"/>
+		<File RelativePath="timestep.F90"/>
+		<File RelativePath=".\typesandkinds.F90"/>
+		<File RelativePath="varianceupdate.F90"/>
+		<File RelativePath="varoutput.F90"/>
+		<File RelativePath="wave_functions.F90"/>
+		<File RelativePath="wave_instationary.F90"/>
+		<File RelativePath="wave_stationary.F90"/>
+		<File RelativePath="wave_timestep.F90"/>
+		<File RelativePath="waveparams.F90"/>
+		<File RelativePath="waveparamsnew.F90"/>
+		<File RelativePath="xmpi.F90"/></Filter></Files>
+	<Globals/></VisualStudioProject>
