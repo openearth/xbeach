@@ -19,3 +19,6 @@ copy %1\src\xbeachlibrary\bin\static\%2\*.dll %1\dist\win32\%2\
 
 rem copy current manual
 copy %1\doc\manual\xbeach_manual.pdf %1\dist\win32\%2\
+
+rem copy license
+copy %1\LICENSE %1\dist\win32\%2\
