@@ -1,22 +1,2 @@
-2009-10-07  Fedor Baart  <fedor.baart@tudelft.nl>
-
-	* gfortran: some changes to make compatible with gfortran (132 width, f90 -> F90 for preprocessing)
-	* svn: use svn:keywords property to update revision in the code
-
-2008-08-19    <willem@sara.nl>
-
-	* timings: added timings: 0: no timings, 1: timings output
-	spaceparams.F90: in the block-collect subroutines, use 3rd dimension  of b, not of a
-	* parallel: Lots of changes, all in the parallel code.	It was necessary to put many parallel code in the subroutines, and I removed the calls to distribution routines between the subroutine calls.
-	* xmpi: The most important parallel routines are now xmpi_shift and xmpi_getrow. The latter is only used in two occasions, but it is possible that the use of that subroutine is needed in more places. See xmpi.F90 for descriptions.
-
-2008-05-22  Fedor Baart  <fedor.baart@deltares.nl>
-
-	* xbeach: setup the gnu autotools build
-	* gfortran: changed file saving from binary to unformatted. Saving	binary files is not supported using the gfortran compiler. 
-
-2008-05-21  Dano Roelvink  <dano.roelvink@deltares.nl>
-
-	* xbeach: initial version.
-
-	
+Please see the subversion log for the latest changes, using the command:
+svn log
