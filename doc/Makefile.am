@@ -1,1 +1,1 @@
-info_TEXINFOS=xbeach.texinfo
+SUBDIRS=man

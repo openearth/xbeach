@@ -71,5 +71,10 @@ AM_CONDITIONAL(USENETCDF, test "x$with_netcdf" != "xno")
 
 
 AC_CONFIG_FILES([Makefile
-		 doc/Makefile])
+		 doc/Makefile
+		 doc/man/Makefile
+		 src/Makefile
+		 src/makeincludes/Makefile
+		 src/xbeachlibrary/Makefile
+		 src/xbeach/Makefile])
 AC_OUTPUT

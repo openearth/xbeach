@@ -1565,6 +1565,10 @@ else
     $ECHO "The $PROJECT build system is now prepared.  To build here, run:"
     $ECHO "  $config"
     $ECHO "  make"
+    $ECHO "If you want to run the executable from a specific directory:"
+    $ECHO "  $config --prefix=/path/to/executable/directory/withoutbin"
+    $ECHO "  make"
+    $ECHO "  make install"
 fi
 
 
