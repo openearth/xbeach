@@ -90,7 +90,8 @@ chartoindex.gen: $(mi)
 	echo $@ | $(mi)
 
 # Set flags off by default
-libxbeach_la_FCFLAGS=
+# include link to top_srcdir so it can find config.h, or should this be builddir
+libxbeach_la_FCFLAGS=-I$(top_builddir)
 # if mpi, then add some flags
 if USEMPI
 libxbeach_la_FCFLAGS+=-DUSEMPI -DHAVE_MPI_WTIME

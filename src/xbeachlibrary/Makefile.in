@@ -328,7 +328,9 @@ BUILT_SOURCES = \
 mi = $(builddir)/../makeincludes/makeincludes$(EXEEXT)
 
 # Set flags off by default
-libxbeach_la_FCFLAGS = $(am__append_1) $(am__append_2)
+# include link to top_srcdir so it can find config.h, or should this be builddir
+libxbeach_la_FCFLAGS = -I$(top_builddir) $(am__append_1) \
+	$(am__append_2)
 
 # EXTRA_DIST=s.ind s.inp
 EXTRA_DIST = spaceparams.tmpl s.ind s.inp nh_pars.inc version.def
