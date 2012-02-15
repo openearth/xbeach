@@ -24,7 +24,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_Debug|Win32" OutputDirectory="bin\dynamic\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="..\..\lib\win32\mpich\include; includes\version\; includes\includefiles\; includes\genfiles\;..\xbeachlibrary\bin\static\$(ConfigurationName)" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\dynamic\$(ConfigurationName)\" ObjectFile="bin\dynamic\$(ConfigurationName)\" PdbFile="bin\dynamic\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="..\..\lib\win32\mpich\include; ..\xbeachlibrary\bin\static\$(ConfigurationName)" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\dynamic\$(ConfigurationName)\" ObjectFile="bin\dynamic\$(ConfigurationName)\" PdbFile="bin\dynamic\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemWindows" LinkDLL="true"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -34,7 +34,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_Release|Win32" OutputDirectory="bin\dynamic\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="..\..\lib\win32\mpich\include; includes\version\; includes\includefiles\; includes\genfiles\;..\xbeachlibrary\bin\static\$(ConfigurationName)" PreprocessorDefinitions="USEMPI;HAVE_IFPORT;HAVE_MPI_WTIME" Diagnostics="diagnosticsDisableAll" ModulePath="bin\dynamic\$(ConfigurationName)\" ObjectFile="bin\dynamic\$(ConfigurationName)\" PdbFile="bin\dynamic\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="..\..\lib\win32\mpich\include; ..\xbeachlibrary\bin\static\$(ConfigurationName)" PreprocessorDefinitions="USEMPI;HAVE_IFPORT;HAVE_MPI_WTIME" Diagnostics="diagnosticsDisableAll" ModulePath="bin\dynamic\$(ConfigurationName)\" ObjectFile="bin\dynamic\$(ConfigurationName)\" PdbFile="bin\dynamic\$(ConfigurationName)\vc100.pdb"/>
 				<Tool Name="VFLinkerTool" SuppressStartupBanner="true" AdditionalLibraryDirectories="..\xbeachlibrary\bin\static\$(ConfigurationName)" SubSystem="subSystemWindows" LinkDLL="true"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
