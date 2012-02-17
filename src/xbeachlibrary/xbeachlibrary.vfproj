@@ -4,7 +4,7 @@
 		<Platform Name="Win32"/></Platforms>
 	<Configurations>
 		<Configuration Name="Debug|Win32" OutputDirectory="bin\static\$(ConfigurationName)" IntermediateDirectory="bin\static\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\genfiles\" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\$(ConfigurationName)\" ObjectFile="bin\static\$(ConfigurationName)\" PdbFile="bin\static\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\genfiles\" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\$(ConfigurationName)\" ObjectFile="bin\static\$(ConfigurationName)\" PdbFile="bin\static\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
 				<Tool Name="VFLibrarianTool"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -14,7 +14,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|Win32" OutputDirectory="bin\static\$(ConfigurationName)" IntermediateDirectory="bin\static\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\genfiles\" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\$(ConfigurationName)\" ObjectFile="bin\static\$(ConfigurationName)\" PdbFile="bin\static\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\genfiles\" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\$(ConfigurationName)\" ObjectFile="bin\static\$(ConfigurationName)\" PdbFile="bin\static\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true"/>
 				<Tool Name="VFLibrarianTool"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
