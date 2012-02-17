@@ -1,0 +1,82 @@
+CODING STRUCTURE GUIDELINES
+-------------------------------------------------------------------------------
+
+* all filenames start with their namespace, except in the category "misc"
+* all filenames are equal to the name of the module they contain
+* all functions have the same namespace as the module they are in
+* all functions have a corresponding test function with the same name, but
+  extended with "_test"
+* the number of functions are maximized, their size minimized
+* variations of the same function, e.g. dissipation formulae, are collected in
+  a separate module
+* typical functions only occur once
+* typical pieces of code only occur once
+
+FILES and NAMESPACES
+-------------------------------------------------------------------------------
+
+general                 libxbeach.F90
+                        libxbeach_dynamic.F90
+                        xbeach.F90
+                        makeincludes.F90
+
+input                   input_generic.F90               getkey.F90, params.F90
+                        input_read.F90                  params.F90, readkey.F90
+                        input_init.F90                  initialize.F90, params.F90
+
+boundary conditions     bc_generic.F90                  ...
+                        bc_wave.F90                     boundaryconditions.F90, waveparams.F90, waveparamsnew.F90
+                        bc_flow.F90                     boundaryconditions.F90
+
+time management         time_generic.F90                ...
+                        time_init.F90                   timestep.F90
+                        time_timestep.F90               timestep.F90
+
+physics                 wave_generic.F90                wave_functions.F90
+                        wave_init.F90                   initialize.F90
+                        wave_timestep.F90               wave_instationary.F90, wave_stationary.F90, wave_timestep.F90
+                        wave_dissipation.F90            roelvink.F90
+                        wave_ship.F90                   ship.F90
+
+                        flow_generic.F90                ...
+                        flow_init.F90                   initialize.F90
+                        flow_timestep.F90               flow_timestep.F90
+                        flow_secondorder.F90            flow_secondorder.F90
+                        flow_nonh.F90                   nonh.F90, solver.F90
+                        flow_discharge.F90              flow_timestep.F90
+                        flow_drifters.F90               drifters.F90
+
+                        gw_generic.F90                  groundwater.F90
+                        gw_init.F90                     groundwater.F90
+                        gw_timestep.F90                 groundwater.F90
+
+                        sedtrans_generic.F90            ...
+                        sedtrans_init.F90               initialize.F90
+                        sedtrans_timestep.F90           morphevolution.F90
+                        sedtrans_waveform.F90           morphevolution.F90
+                        sedtrans_capacity.F90           morphevolution.F90
+
+                        bed_generic.F90                 ...
+                        bed_init.F90                    initialize.F90
+                        bed_timestep.F90                morphevolution.F90
+                        bed_beachwizard.F90             beachwizard.F90
+
+output                  output_generic.F90              ...
+                        output_init.F90                 output.F90, ncoutput.F90
+                        output_timestep.F90             output.F90, ncoutput.F90, varoutput.F90
+                        output_postprocess.F90          postprocess.F90, varianceupdate.F90
+                        output_nc.F90                   ncoutput.F90
+
+file i/o                fileio_generic.F90              filefunctions.F90
+                        fileio_types.F90                readtide.F90, readwind.F90, waveparams.F90, waveparamsnew.F90, initialize.F90
+                        fileio_log.F90                  logging.F90
+
+technical               mpi_generic.F90                 general_mpi.F90
+                        mpi_x.F90                       xmpi.F90
+
+                        c_introspection.F90             introspection.F90
+                        c_mnemonic.F90                  mnemoniciso.F90
+
+misc                    math.F90                        interp.F90, math_tools.F90
+                        mnemonic.F90                    mnemonic.F90
+                        spaceparams.F90                 spaceparams.F90
