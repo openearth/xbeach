@@ -6,6 +6,7 @@ echo solution file	: %3
 echo Configuration name	: %4
 echo Project name	: xbeachlibrary_test
 
+echo on
 echo clean build
 %1\devenv.exe "%2\%3" /Clean %4 /Project xbeachlibrary_test
 
