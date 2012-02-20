@@ -12,10 +12,10 @@ echo devenv		: %devenv_path%
 
 echo on
 echo clean build
-%devenv_path%\devenv.exe "%1\%2" /Clean %3 /Project xbeachlibrary_test
+%devenv_path%\devenv.exe "%1\%2" /Clean "%3|Win32" /Project xbeachlibrary_test
 
 echo build xbech test project
-%devenv_path%\devenv.exe "%1\%2" /Build %3 /Project xbeachlibrary_test
+%devenv_path%\devenv.exe "%1\%2" /Build "%3|Win32" /Project xbeachlibrary_test
 
 echo run tests
 %1\test\xbeachlibrary_test\bin\%3\xbeachlibrary_test.exe
