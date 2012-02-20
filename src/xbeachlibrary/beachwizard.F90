@@ -180,7 +180,7 @@ contains
     bw%ccmco=0.
     bw%scmso=0.
 
-    if (bw%nflagsetobs==0) then !do this oenly oence.
+    if (bw%nflagsetobs==0) then !do this only once.
 
        s%dobs=-999.
        bw%cobs=-999.
@@ -520,13 +520,13 @@ contains
              x1max=(bw%nx-2)*bw%dx
              y1max=(bw%ny-2)*bw%dy
 
-             do in=1,s%nx
-                do im=1,s%ny
+             do in=1,s%nx+1                  !Leo and Roberto changed nx --> nx+1
+                do im=1,s%ny+1               !Leo and Roberto changed ny --> ny+1
                    bw%fobs(in,im)=-999.d0 !Changed by Ap 31/5
                    !		 fobserr(n,m) = 999.d0 ! changed by Ap 31/5
                    !   if (kfs(n,m)>0) then !Ap
-                   xs = s%x(in,im) - bw%xll
-                   ys = s%y(in,im) - bw%yll
+                   xs = s%xz(in,im) - bw%xll     ! Jaap changed x --> xz
+                   ys = s%yz(in,im) - bw%yll
                    x1 = xs*cs + ys*sn
                    y1 =-xs*sn + ys*cs
                    x1 = min(max(x1,bw%dx),x1max)
