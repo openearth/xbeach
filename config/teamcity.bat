@@ -5,8 +5,8 @@ echo solution file	: %2
 echo Configuration name	: %3
 echo Project name	: xbeachlibrary_test
 
-set devenv_path="c:\Program Files\Microsoft Visual Studio 10.0\Common7\IDE"
-IF EXIST "C:\Program Files (x86)\" set devenv_path="c:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE"
+set devenv_path="c:\Program Files\Microsoft Visual Studio 9.0\Common7\IDE"
+IF EXIST "C:\Program Files (x86)\" set devenv_path="c:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\IDE"
 
 echo devenv		: %devenv_path%
 
