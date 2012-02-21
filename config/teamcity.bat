@@ -1,16 +1,21 @@
 echo off
 
-set devenv_path="c:\Program Files\Microsoft Visual Studio 9.0\Common7\IDE"
-IF EXIST "C:\Program Files (x86)\" set devenv_path="c:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\IDE"
-
 echo solution dir	: %1
 echo solution file	: %2
 echo Configuration name	: %3
+exho VS version		: %4
 echo Project name	: xbeachlibrary_test
+
+set vsdir = "Microsoft Visual Studio 9.0"
+IF "%4"=="VS2010" set vsdir = "Microsoft Visual Studio 10.0"
+
+set devenv_path="c:\Program Files\%vsdir%\Common7\IDE"
+IF EXIST "C:\Program Files (x86)\" set devenv_path="c:\Program Files (x86)\%vsdir%\Common7\IDE"
+
 echo devenv		: %devenv_path%
 
 IF EXIST build.log del build.log
-call "c:\Program Files\Microsoft Visual Studio 9.0\Common7\Tools\vsvars32.bat"
+call "c:\Program Files\%vsdir%\Common7\Tools\vsvars32.bat"
 echo on
 echo clean build
 %devenv_path%\devenv.exe "%1\%2" /Clean "%3|Win32" /Project xbeachlibrary_test /Out build.log
