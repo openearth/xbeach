@@ -6,8 +6,8 @@ echo Configuration name	: %3
 exho VS version		: %4
 echo Project name	: xbeachlibrary_test
 
-set vsdir = "Microsoft Visual Studio 9.0"
-IF "%4"=="VS2010" set vsdir = "Microsoft Visual Studio 10.0"
+set vsdir="Microsoft Visual Studio 9.0"
+IF "%4"=="VS2010" set vsdir="Microsoft Visual Studio 10.0"
 
 set devenv_path="c:\Program Files\%vsdir%\Common7\IDE"
 IF EXIST "C:\Program Files (x86)\" set devenv_path="c:\Program Files (x86)\%vsdir%\Common7\IDE"
