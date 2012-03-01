@@ -947,7 +947,7 @@ subroutine build_etdir(par,s,wp,Ebcfname)
   real*8,dimension(size(wp%Dd))           :: Dmean, P
   real*8,dimension(wp%K)                  :: P0, k,phase, Sf0, A, Sf0org,S0org
   real*8,dimension(wp%K*2)                                :: randummy
-  real*8,dimension(:),allocatable         :: temp, temp2, t, Nbox
+  real*8,dimension(:),allocatable         :: temp, temp2, t, Nbox,rD
   real*8,dimension(1:401)                 :: ktemp, ftemp
 
   ! Help arrays
@@ -1077,7 +1077,7 @@ subroutine build_etdir(par,s,wp,Ebcfname)
   
   if (wp%scoeff >= 1000.d0) then
 		wp%theta0 = wp%mainang
-								!Ap longcrested waves
+								!Ap longcrested waves								
   else
 	  do i=1,size(P0)
 		 !call LINEAR_INTERP(P(1:size(P)-1),wp%theta(1:size(P)-1),size(P)-1,P0(i),pp,F2)
@@ -1253,9 +1253,17 @@ subroutine build_etdir(par,s,wp,Ebcfname)
   !temp=(/(i,i=0,Ns)/)
   !temp(Ns+1)=temp(Ns+1)+epsilon(1.d0)          
   allocate(Nbox(Ns+1))
+  allocate(rD(Ns)) 
   do i=1,Ns+1
      Nbox(i)=s%thetamin+(i-1)*s%dtheta
   enddo
+  
+  if (trim(par%instat)=='jons' .or. trim(par%instat)=='jons_table') then  
+     rD = dcos(0.5d0*(Nbox(1:Ns)+Nbox(2:Ns+1))-wp%mainang)**(2*nint(wp%scoeff))
+     rD = rD/sum(rD)
+  endif               
+  
+  
   !deallocate (temp)
   
   ! try to put all wave directions between thetamax and thetamin
@@ -1318,7 +1326,7 @@ subroutine build_etdir(par,s,wp,Ebcfname)
      enddo
   endif
 
-  deallocate(Nbox)
+  ! deallocate(Nbox)
 
   ! Define time window that gradually increases and decreases energy input over
   ! the wave time record according to tanh(fc*t/max(t))^2*tanh(fc*(1-t/max(t)))^2
@@ -1373,7 +1381,7 @@ subroutine build_etdir(par,s,wp,Ebcfname)
         ! Check whether any wave components are in the current computational
         ! directional bin
         if (F2/=0) then
-
+           
            ! Determine for each wave component in the current computational
            ! directional bin it's index in the Fourier coefficients array
            ! ordered from hight to low frequency
@@ -1437,12 +1445,13 @@ subroutine build_etdir(par,s,wp,Ebcfname)
 
               ! Calculate standard deviations of directional and
               ! non-directional instantaneous water level excitation of all
-              ! wave components to be used as weighing factor
+              ! wave components to be used as weighing factor                                   
               stdzeta = sqrt(sum(zeta(index2,:,ii)**2)/(size(zeta(index2,:,ii)-1)))
               stdeta = sqrt(sum(eta(index2,:)**2)/(size(eta(index2,:)-1)))
-
+              
               ! Calculate amplitude of directional wave envelope
-              Ampzeta(index2,:,ii)= Amp(index2,:)*stdzeta/stdeta    
+              Ampzeta(index2,:,ii)= Amp(index2,:)*stdzeta/stdeta  
+                
            endif
 
            ! Print status message to screen
@@ -1470,6 +1479,8 @@ subroutine build_etdir(par,s,wp,Ebcfname)
         deallocate(Gn)
      end do
   end do
+  
+  
 
   ! Print message to screen
   if(xmaster) then
@@ -1479,9 +1490,26 @@ subroutine build_etdir(par,s,wp,Ebcfname)
   ! Determine energy distribution over y-coordinates, computational directional
   ! bins and time using E = 1/2*rho*g*a^2
   allocate(E_tdir(wp%Npy,wp%Nr,Ns))
-  E_tdir=0.0d0
-  E_tdir=0.5d0*(par%rho)*(par%g)*Ampzeta**2
+  
+  ! Jaap: apply symmetric distribution in case of jons or jons_table
+  ! REMARK: in this case printing messages to screen can be erroneous
+  if (trim(par%instat)=='jons' .or. trim(par%instat)=='jons_table') then 
+    call writelog('ls','','Apply symmetric energy distribution w.r.t mean wave direction')
+    do ii=1,Ns
+      do index2=1,wp%Npy
+        E_tdir(index2,:,ii)=0.0d0
+        E_tdir(index2,:,ii)=0.5d0*(par%rho)*(par%g)*Amp(index2,:)**2*rD(ii) 
+      enddo  
+    enddo
+  else
+    E_tdir=0.0d0
+    E_tdir=0.5d0*(par%rho)*(par%g)*Ampzeta**2
+  endif
   E_tdir=E_tdir/s%dtheta
+  
+
+  deallocate(Nbox)
+  deallocate(rD)
 
   ! Write energy distribution to BCF file
   if(xmaster) then

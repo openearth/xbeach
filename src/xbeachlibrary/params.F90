@@ -123,6 +123,7 @@ type parameters
    integer*4     :: freewave                   = -123    !  [-] (advanced) Switch for free wave propagation 0 = use cg (default); 1 = use sqrt(gh) in instat = 3
    integer*4     :: carspan                    = -123    !  [-] (deprecated) Switch for Carrier-Greenspan test 0 = use cg (default); 1 = use sqrt(gh) in instat = 3 for c&g tests
    real*8        :: epsi                       = -123    !  [-] (advanced) Ratio of mean current to time varying current through offshore boundary
+   integer*4     :: nc                         = -123    !  [-] (advanced) Smoothing distance (defined as nr of cells) for estimating umean
    character(slen) :: tidetype                   = 'abc'   !  [-] (advanced) Switch for offfshore boundary, velocity boundary or instant water level boundary (default)
    
 
@@ -653,6 +654,7 @@ contains
     par%carspan     = readkey_int ('params.txt','carspan',  0,              0,       1       )      ! deprecated, added for backwards compatibility
     par%freewave    = readkey_int ('params.txt','freewave', par%carspan,    0,       1       )
     par%epsi        = readkey_dbl ('params.txt','epsi',     0.d0,           -1.d0,   0.2d0   )
+    par%nc          = readkey_int ('params.txt','nc',       par%ny+1,       1,       par%ny+1)
     allocate(allowednames(2),oldnames(0))
     allowednames=(/'instant ','velocity'/)
     par%tidetype= readkey_str('params.txt','tidetype','velocity',2,0,allowednames,oldnames)

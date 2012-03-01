@@ -894,15 +894,17 @@ contains
              ! Jaap: Compute angle of incominge wave
              thetai = datan(vi(1,:)/(ui(1,:)+1.d-16))   
              
-             if (trim(par%tidetype)=='velocity') then
-               umean(1,:) = (factime*sum(uu(1,:)*dnu(1,:))/sum(dnu(1,:))+(1-factime)*umean(1,:)) ! make sure we have same umean along whole offshore boundary
-               vmean(1,:) = (factime*sum(vv(1,:)*dnv(1,:))/sum(dnv(1,:))+(1-factime)*vmean(1,:)) ! make sure we have same umean along whole offshore boundary
-             else
-               umean(1,:) = 0.d0
-               vmean(1,:) = 0.d0
-             endif
-             
              do j=j1,max(ny,1)
+                if (trim(par%tidetype)=='velocity') then
+                   umean(1,j) = (factime*sum(uu(1,max(1,j-par%nc):min(j+par%nc,ny))*dnu(1,max(1,j-par%nc):min(j+par%nc,ny))) &
+                                                                               /sum(dnu(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(1,j)) ! make sure we have same umean along whole offshore boundary
+                   vmean(1,j) = (factime*sum(vv(1,max(1,j-par%nc):min(j+par%nc,ny))*dnv(1,max(1,j-par%nc):min(j+par%nc,ny))) &
+                                                                               /sum(dnv(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(1,j)) ! make sure we have same umean along whole offshore boundary      
+                else
+                  umean(1,:) = 0.d0
+                  vmean(1,:) = 0.d0                                                                               
+                endif
+             
                 betanp1(1,j) = beta(1,j)+ bn(j)*par%dt
                 alpha2(j)=-theta0 ! Jaap: this is first estimate
                 alphanew = 0.d0
