@@ -1052,13 +1052,6 @@ contains
                 endif    ! Robert: dry back boundary points
              enddo
              
-             if (trim(par%tidetype)=='velocity') then
-               umean(nx,:) = (factime*sum(uu(nx,:)*dnu(nx,:))/sum(dnu(nx,:))+(1-factime)*umean(nx,:)) ! make sure we have same umean along whole offshore boundary
-               vmean(nx,:) = (factime*sum(vv(nx,:)*dnv(nx,:))/sum(dnv(nx,:))+(1-factime)*vmean(nx,:)) ! make sure we have same umean along whole offshore boundary
-             else
-               umean(1,:) = 0.d0
-               vmean(1,:) = 0.d0
-             endif
              
              do j=j1,max(ny,1)
                 if (wetu(nx,j)==1) then                                                     ! Robert: dry back boundary points
@@ -1068,13 +1061,15 @@ contains
                    !          umean(nx,j) = (factime*uu(nx,j)+(1-factime)*umean(nx,j))           !Ap 
                    ! After hack 3/6/2010, return to par%epsi :
                    ! Jaap moved up does not need to be in j loop
-                   !if (trim(par%tidetype)=='velocity') then
-                   !   umean(nx,j) = (factime*uu(nx,j)+(1-factime)*umean(nx,j))
-                   !   vmean(nx,j) = (factime*vu(nx,j)+(1-factime)*vmean(nx,j)) 
-                   !else
-                   !  umean(nx,j) = 0.d0
-                   !  vmean(nx,j) = 0.d0
-                   !endif
+                   if (trim(par%tidetype)=='velocity') then
+                     umean(nx,j) = (factime*sum(uu(nx,max(1,j-par%nc):min(j+par%nc,ny))*dnu(nx,max(1,j-par%nc):min(j+par%nc,ny))) &
+                                                                               /sum(dnu(nx,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(nx,j)) ! make sure we have same umean along whole offshore boundary
+                     vmean(nx,j) = (factime*sum(vv(nx,max(1,j-par%nc):min(j+par%nc,ny))*dnv(nx,max(1,j-par%nc):min(j+par%nc,ny))) &
+                                                                               /sum(dnv(nx,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(nx,j)) ! make sure we have same umean along whole offshore boundary      
+                   else
+                     umean(nx,:) = 0.d0
+                     vmean(nx,:) = 0.d0                                                                               
+                   endif
                    do jj=1,50
                       !
                       !---------- Lower order bound. cond. ---
