@@ -378,7 +378,7 @@ contains
     
     implicit none
     
-    type(parameters)                                    :: par
+    type(parameters), intent(inout)                     :: par
     
     character(slen)                                      :: testc,line
     character(slen)                                      :: dummystring
