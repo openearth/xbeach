@@ -1062,10 +1062,12 @@ contains
                    ! After hack 3/6/2010, return to par%epsi :
                    ! Jaap moved up does not need to be in j loop
                    if (trim(par%tidetype)=='velocity') then
+                     ! make sure we have same umean along whole offshore boundary
                      umean(nx,j) = (factime*sum(uu(nx,max(1,j-par%nc):min(j+par%nc,ny))*dnu(nx,max(1,j-par%nc):min(j+par%nc,ny))) &
-                                                                               /sum(dnu(nx,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(nx,j)) ! make sure we have same umean along whole offshore boundary
+                                     /sum(dnu(nx,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(nx,j)) 
+                     ! make sure we have same umean along whole offshore boundary      
                      vmean(nx,j) = (factime*sum(vv(nx,max(1,j-par%nc):min(j+par%nc,ny))*dnv(nx,max(1,j-par%nc):min(j+par%nc,ny))) &
-                                                                               /sum(dnv(nx,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(nx,j)) ! make sure we have same umean along whole offshore boundary      
+                                     /sum(dnv(nx,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(nx,j)) 
                    else
                      umean(nx,:) = 0.d0
                      vmean(nx,:) = 0.d0                                                                               
