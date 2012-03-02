@@ -896,10 +896,12 @@ contains
              
              do j=j1,max(ny,1)
                 if (trim(par%tidetype)=='velocity') then
+                   ! make sure we have same umean along whole offshore boundayr
                    umean(1,j) = (factime*sum(uu(1,max(1,j-par%nc):min(j+par%nc,ny))*dnu(1,max(1,j-par%nc):min(j+par%nc,ny))) &
-                                                                               /sum(dnu(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(1,j)) ! make sure we have same umean along whole offshore boundary
+                        /sum(dnu(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(1,j)) 
+                   ! make sure we have same umean along whole offshore boundary
                    vmean(1,j) = (factime*sum(vv(1,max(1,j-par%nc):min(j+par%nc,ny))*dnv(1,max(1,j-par%nc):min(j+par%nc,ny))) &
-                                                                               /sum(dnv(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(1,j)) ! make sure we have same umean along whole offshore boundary      
+                        /sum(dnv(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(1,j)) 
                 else
                   umean(1,:) = 0.d0
                   vmean(1,:) = 0.d0                                                                               
