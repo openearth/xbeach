@@ -328,7 +328,8 @@ contains
                            0,ny,ntheta,dsv(i,:),dnv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
              !call advecx(ee(i-1:i+1,:,:)*cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),2,ny,ntheta,dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:))
              !call advecy(ee(i,:,:)*cgy(i,:,:),yadvec(i,:,:),0,ny,ntheta,dsv(i,:),dsdnzi(i,:))
-             call advectheta(ee(i,:,:)*ctheta(i,:,:),thetaadvec(i,:,:),0,ny,ntheta,dtheta)
+             !call advectheta(ee(i,:,:)*ctheta(i,:,:),thetaadvec(i,:,:),0,ny,ntheta,dtheta)
+             call advecthetaho(ee(i,:,:),ctheta(i,:,:),thetaadvec(i,:,:),0,ny,ntheta,dtheta,par%scheme)
 
              ee(i,:,:)=ee(i,:,:)-dtw*(xadvec(i,:,:) + yadvec(i,:,:) &
                   + thetaadvec(i,:,:))
@@ -393,8 +394,9 @@ contains
                            0,ny,ntheta,dsv(i,:),dnv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
              !call advecx(rr(i-1:i+1,:,:)*cx(i-1:i+1,:,:),xradvec(i-1:i+1,:,:),2,ny,ntheta,dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:)) !Robert & Jaap
              !call advecy(rr(i,:,:)*cy(i,:,:),yradvec(i,:,:),0,ny,ntheta,dsv(i,:),dsdnzi(i,:))                   !Robert & Jaap
-             call advectheta(rr(i,:,:)*ctheta(i,:,:),thetaradvec(i,:,:),0,ny,ntheta,dtheta)   !Robert & Jaap
-
+             !call advectheta(rr(i,:,:)*ctheta(i,:,:),thetaradvec(i,:,:),0,ny,ntheta,dtheta)   !Robert & Jaap
+             call advecthetaho(rr(i,:,:),ctheta(i,:,:),thetaradvec(i,:,:),0,ny,ntheta,dtheta,par%scheme)
+             
              rr(i,:,:)=rr(i,:,:)-dtw*(xradvec(i,:,:) &
                   +yradvec(i,:,:) &
                   +thetaradvec(i,:,:))

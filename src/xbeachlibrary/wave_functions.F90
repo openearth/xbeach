@@ -134,6 +134,93 @@ subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,dt,scheme)
 
 end subroutine advecxho
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+subroutine advecthetaho(ee,ctheta,thetaadvec,nx,ny,ntheta,dtheta,scheme)
+
+  IMPLICIT NONE
+
+  integer                                         :: i,j,nx,ny,ntheta
+  character(len=*), intent(in)                    :: scheme
+  character(len=10)                               :: scheme_now
+  integer                                         :: itheta
+  real*8 , dimension(ntheta)                      :: fluxtheta
+  real*8 , dimension(nx+1,ny+1,ntheta)            :: thetaadvec,ee,ctheta
+  real*8                                          :: dtheta,ctheta_between,eupw
+
+  thetaadvec = 0.d0
+  fluxtheta  = 0.d0
+
+  ! No refraction caan take place if ntheta==1 
+  if (ntheta>1) then
+
+  ! split into schemes first, less split loops -> more efficiency 
+  scheme_now=scheme
+  select case(trim(scheme_now))
+     case('upwind_1')
+        do j=1,ny+1
+           do i=1,nx+1  
+              do itheta=1,ntheta-1
+                 ctheta_between=.5*(ctheta(i,j,itheta+1)+ctheta(i,j,itheta))
+                 if (ctheta_between>0) then
+                    fluxtheta(itheta)=ee(i,j,itheta)*ctheta_between
+                 else
+                    fluxtheta(itheta)=ee(i,j,itheta+1)*ctheta_between
+                 endif
+              enddo
+              thetaadvec(i,j,1)=(fluxtheta(1)-0.d0)/dtheta ! No flux across lower boundary theta grid
+              do itheta=2,ntheta-1
+                 thetaadvec(i,j,itheta)=(fluxtheta(itheta)-fluxtheta(itheta-1))/dtheta
+              enddo
+              thetaadvec(i,j,ntheta)=(0.d0-fluxtheta(ntheta-1))/dtheta ! No flux across upper boundary theta grid
+           enddo
+        enddo
+     case('upwind_2')
+        do j=1,ny+1
+           do i=1,nx+1  
+              do itheta=2,ntheta-2
+                 ctheta_between=.5*(ctheta(i,j,itheta+1)+ctheta(i,j,itheta))
+                 if (ctheta_between>0) then
+                     eupw=1.5d0*ee(i,j,itheta)-.5*ee(i,j,itheta-1)
+                     if (eupw<0.d0) eupw=ee(i,j,itheta)
+                     fluxtheta(itheta)=eupw*ctheta_between
+                 else
+                     eupw=1.5d0*ee(i,j,itheta+1)-.5*ee(i,j,itheta+2)
+                     if (eupw<0.d0) eupw=ee(i,j,itheta+1)
+                     fluxtheta(itheta)=eupw*ctheta_between
+                 endif
+              enddo
+              itheta=1   ! only compute for itheta==1
+                 ctheta_between=.5*(ctheta(i,j,itheta+1)+ctheta(i,j,itheta))
+                 if (ctheta_between>0) then
+                    fluxtheta(itheta)=ee(i,j,itheta)*ctheta_between
+                 else
+                     eupw=1.5d0*ee(i,j,itheta+1)-.5*ee(i,j,itheta+2)
+                     if (eupw<0.d0) eupw=ee(i,j,itheta+1)
+                     fluxtheta(itheta)=eupw*ctheta_between
+                 endif
+              itheta=ntheta-1  ! only compute for itheta==ntheta-1
+                 ctheta_between=.5*(ctheta(i,j,itheta+1)+ctheta(i,j,itheta))
+                 if (ctheta_between>0) then
+                     eupw=1.5d0*ee(i,j,itheta)-.5*ee(i,j,itheta-1)
+                     if (eupw<0.d0) eupw=ee(i,j,itheta)
+                     fluxtheta(itheta)=eupw*ctheta_between
+                 else
+                     eupw=ee(i,j,itheta+1)
+                     fluxtheta(itheta)=eupw*ctheta_between
+                 endif
+              thetaadvec(i,j,1)=(fluxtheta(1)-0.d0)/dtheta ! No flux across lower boundary theta grid
+              do itheta=2,ntheta-1
+                 thetaadvec(i,j,itheta)=(fluxtheta(itheta)-fluxtheta(itheta-1))/dtheta
+              enddo
+              thetaadvec(i,j,ntheta)=(0.d0-fluxtheta(ntheta-1))/dtheta ! No flux across upper boundary theta grid
+           enddo
+        enddo
+  end select
+  
+  endif !ntheta>1
+end subroutine advecthetaho
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,dt,scheme)
@@ -238,18 +325,23 @@ real*8 ,  dimension(nx+1,ny+1,ntheta)           :: thetaadvec,arrin
 
 thetaadvec = 0
 
+! Dano: make sure no refraction is computed for ntheta==1
+if (ntheta>1) then
+
 ! Ad: include all bins, but use min,max statements
 do itheta=1,ntheta
     do j=1,ny+1
         do i=2,nx+1
            if (arrin(i,j,itheta)>0) then
               if (itheta==1) then
+                 ! Dano: arrin (i,j,theta-1) is over the edge of the theta grid; energy there is zero
                  thetaadvec(i,j,itheta)=arrin(i,j,itheta)/dtheta               
               else
                  thetaadvec(i,j,itheta)=(arrin(i,j,itheta)-arrin(i,j,itheta-1))/dtheta
               endif
            elseif (arrin(i,j,itheta)<0) then
               if (itheta==ntheta) then
+                 ! Dano: arrin (i,j,theta+1) is over the edge of the theta grid; energy there is zero
                  thetaadvec(i,j,itheta)=(-arrin(i,j,itheta))/dtheta
               else
                  thetaadvec(i,j,itheta)=(arrin(i,j,itheta+1)-arrin(i,j,itheta))/dtheta
@@ -260,6 +352,8 @@ do itheta=1,ntheta
         end do
     end do
 end do
+
+endif
 
 end subroutine advectheta
 

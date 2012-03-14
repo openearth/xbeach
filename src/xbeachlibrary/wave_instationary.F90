@@ -261,8 +261,8 @@ contains
     if (ny>0) then
       call advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,par%dt,par%scheme)
     endif
-    call advectheta(ee*ctheta,thetaadvec,nx,ny,ntheta,dtheta)
-    !
+    !call advectheta(ee*ctheta,thetaadvec,nx,ny,ntheta,dtheta)
+    call advecthetaho(ee,ctheta,thetaadvec,nx,ny,ntheta,dtheta,par%scheme)!
     ee=ee-par%dt*(xadvec+yadvec+thetaadvec)
     !
     ! transform back to wave energy
@@ -332,8 +332,8 @@ contains
     if (ny>0) then
        call advecyho(rr,cy,yradvec,nx,ny,ntheta,dsv,dnv,dsdnzi,par%dt,par%scheme)
     endif
-    call advectheta(rr*ctheta,thetaradvec,nx,ny,ntheta,dtheta)
-
+    !call advectheta(rr*ctheta,thetaradvec,nx,ny,ntheta,dtheta)
+    call advecthetaho(rr,ctheta,thetaradvec,nx,ny,ntheta,dtheta,par%scheme)
     rr=rr-par%dt*(xradvec+yradvec+thetaradvec)
     rr=max(rr,0.0d0)
     !
