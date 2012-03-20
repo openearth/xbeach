@@ -225,6 +225,14 @@ contains
     elsewhere
        sinh2kh = 3000.d0
     endwhere
+ 
+    if (ntheta>1) then
+       thetamean=(sum(ee*thet,3)/size(ee,3))/(max(sum(ee,3),0.00001d0)/size(ee,3))
+    else !Dano: Snellius
+       thetamean=asin(sin(theta0-alfaz(1,1))*c/c(1,1))+alfaz(1,1)
+       costh(:,:,1)=cos(thetamean-alfaz)
+       sinth(:,:,1)=sin(thetamean-alfaz)
+    endif
 
     ! split wave velocities in wave grid directions theta
     do j=1,ny+1
@@ -455,8 +463,9 @@ contains
     !
     ! Compute mean wave direction
     !
-    thetamean=(sum(ee*thet,3)/size(ee,3))/(max(sum(ee,3),0.00001d0)/size(ee,3))
-    
+    if (ntheta>1) then
+       thetamean=(sum(ee*thet,3)/size(ee,3))/(max(sum(ee,3),0.00001d0)/size(ee,3))
+    endif
     !
     ! Radiation stresses and forcing terms
     !
