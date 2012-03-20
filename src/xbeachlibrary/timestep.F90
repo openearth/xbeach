@@ -486,8 +486,10 @@ subroutine timestep(s,par, tpar, it, ierr)
      endif
 
 #ifdef USEMPI
-
-     par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tny))
+     ! Dano: no refraction if ntheta==1 so no need for this check
+     if (s%ntheta>1) then
+        par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tny))
+     endif
 #else
      if (par%instat(1:4)/='stat') then
         par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tny))
