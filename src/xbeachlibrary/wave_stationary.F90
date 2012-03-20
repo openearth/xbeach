@@ -16,7 +16,7 @@ contains
     type(spacepars), target     :: s
     type(parameters)            :: par
 
-    integer                     :: i,imax,it
+    integer                     :: i,imax,it,i1
     integer                     :: j
     integer                     :: itheta,iter
     integer, dimension(:,:,:),allocatable,save  :: wete
@@ -153,7 +153,13 @@ contains
        END DO
     endif
 
-    thetamean=(sum(ee*thet,3)/size(ee,3))/(max(sum(ee,3),0.00001d0)/size(ee,3))
+    if (ntheta>1) then
+       thetamean=(sum(ee*thet,3)/size(ee,3))/(max(sum(ee,3),0.00001d0)/size(ee,3))
+    else !Dano: Snellius
+       thetamean=asin(sin(theta0-alfaz(1,1))*c/c(1,1))+alfaz(1,1)
+       costh(:,:,1)=cos(thetamean-alfaz)
+       sinth(:,:,1)=sin(thetamean-alfaz)
+    endif
 #ifdef USEMPI
     call xmpi_shift(thetamean,'1:')
 #endif
@@ -176,31 +182,6 @@ contains
     ! Dano Limit unrealistic refraction speed to 1/2 pi per wave period
     ctheta=sign(1.d0,ctheta)*min(abs(ctheta),.5*par%px/par%Trep)
     
-    ! convert wave velocities from z to u points using the mean
-    do j=1,ny+1
-       do i=1,nx
-          do itheta=1,ntheta
-            cgxu(i,j,itheta) = 0.5*(cgx(i,j,itheta)+cgx(i+1,j,itheta))
-            cxu(i,j,itheta) = 0.5*(cx(i,j,itheta)+cx(i+1,j,itheta))
-          enddo
-       enddo
-    enddo
-    
-    cgxu(nx+1,:,:) = cgxu(nx,:,:)
-    cxu(nx+1,:,:) = cxu(nx,:,:)
-    
-    do j=1,ny
-       do i=1,nx+1
-          do itheta=1,ntheta
-            cgyv(i,j,itheta) = 0.5*(cgy(i,j,itheta)+cgy(i,j+1,itheta))
-            cyv(i,j,itheta) = 0.5*(cy(i,j,itheta)+cy(i,j+1,itheta))
-          enddo
-       enddo
-    enddo
-    if (ny>0) then
-       cgyv(:,ny+1,:) = cgyv(:,ny,:)
-       cyv(:,ny+1,:) = cyv(:,ny,:)
-    endif
     km = k
 
 #ifdef USEMPI
@@ -239,7 +220,6 @@ contains
           else
              i=it+1-nx
           endif
-          !Dano
           dtw=.5*minval(dsu(i:i+1,:))/maxval(cgx(i-1:i+1,:,:))
           dtw=min(dtw,.5*minval(dnv(i,2:ny+1))/maxval(abs(cgy(i,:,:))))
           dtw=min(dtw,.5*dtheta/maxval(abs(ctheta(i,:,:))))
@@ -313,13 +293,14 @@ contains
              !
              ! transform to wave action
              !
-             ee(i-1:i+1,:,:) = ee(i-1:i+1,:,:)/sigt(i-1:i+1,:,:)
+             i1=max(i-2,1)
+             ee(i1:i+1,:,:) = ee(i1:i+1,:,:)/sigt(i1:i+1,:,:)
              !
              ! Upwind Euler timestep propagation
              !
              if  (i>2) then
-                call advecxho(ee(i-1:i+1,:,:),cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),    &
-                           2,ny,ntheta,dnu(i-1:i+1,:),dsu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_2')
+                call advecxho(ee(i-2:i+1,:,:),cgx(i-2:i+1,:,:),xadvec(i-2:i+1,:,:),    &
+                           3,ny,ntheta,dnu(i-2:i+1,:),dsu(i-2:i+1,:),dsdnzi(i-2:i+1,:),par%dt,'upwind_2')
              else
                 call advecxho(ee(i-1:i+1,:,:),cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),    &
                            2,ny,ntheta,dnu(i-1:i+1,:),dsu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_1')
@@ -336,7 +317,7 @@ contains
              !
              ! transform back to wave energy
              !
-             ee(i-1:i+1,:,:) = ee(i-1:i+1,:,:)*sigt(i-1:i+1,:,:)
+             ee(i1:i+1,:,:) = ee(i1:i+1,:,:)*sigt(i1:i+1,:,:)
              ee(i,:,:)=max(ee(i,:,:),0.0d0)
 
 
@@ -351,8 +332,9 @@ contains
              H(i,:)=min(H(i,:),par%gammax*hh(i,:))
              E(i,:)=par%rhog8*H(i,:)**2
 
-             thetamean(i,:) = (sum(ee(i,:,:)*thet(i,:,:),2)/ntheta)/(max(sum(ee(i,:,:),2),0.000010d0)/ntheta)
-
+             if (ntheta>1) then !Dano not for SNellius
+                thetamean(i,:) = (sum(ee(i,:,:)*thet(i,:,:),2)/ntheta)/(max(sum(ee(i,:,:),2),0.000010d0)/ntheta)
+             endif
              !
              ! Total dissipation
              if(trim(par%break)=='roelvink1' .or. trim(par%break)=='roelvink2') then
@@ -468,8 +450,10 @@ contains
              !
              ! Compute mean wave direction
              !
-             thetamean(i,:)=(sum(ee(i,:,:)*thet(i,:,:),2)/size(ee(i,:,:),2)) &
-                  /(max(sum(ee(i,:,:),2),0.000010d0) /size(ee(i,:,:),2))
+             if (ntheta>1) then
+                thetamean(i,:)=(sum(ee(i,:,:)*thet(i,:,:),2)/size(ee(i,:,:),2)) &
+                     /(max(sum(ee(i,:,:),2),0.000010d0) /size(ee(i,:,:),2))
+             endif
              !
              ! Energy integrated over wave directions,Hrms
              !
@@ -527,29 +511,31 @@ Sxx = Sxx + sum((costh**2)*rr,3)*dtheta
 Syy = Syy + sum((costh**2)*rr,3)*dtheta
 Sxy = Sxy + sum(sinth*costh*rr,3)*dtheta
 
-    do j=2,ny 
-       do i=1,nx
-          Fx(i,j)=-(Sxx(i+1,j)-Sxx(i,j))/dsu(i,j)             &
-                  -(Sxy(i,j+1)+Sxy(i+1,j+1)- Sxy(i,j-1)-Sxy(i+1,j-1))/ &
-                   (dnv(i,j-1)+dnv(i,j)+dnv(i+1,j-1)+dnv(i+1,j))
+    if (ny>0) then
+       do j=2,ny 
+          do i=1,nx
+             Fx(i,j)=-(Sxx(i+1,j)-Sxx(i,j))/dsu(i,j)                        &
+                     -(Sxy(i,j+1)+Sxy(i+1,j+1)-Sxy(i,j-1)-Sxy(i+1,j-1))/    &
+                      (dnv(i,j-1)+dnv(i,j)+dnv(i+1,j-1)+dnv(i+1,j))
+          enddo
        enddo
-   enddo
-    
-   if (ny>0) then 
-      do j=1,ny 
-         do i=2,nx
-            Fy(i,j)=-(Syy(i,j+1)-Syy(i,j))/dnv(i,j)                                  &
-                    -(Sxy(i+1,j)+Sxy(i+1,j+1)-Sxy(i-1,j)-Sxy(i-1,j+1))/ &
-                     (dsu(i-1,j)+dsu(i-1,j+1)+dsu(i,j)+dsu(i,j+1))
-         enddo
-      enddo
-   else
-      j=1 
-         do i=2,nx
-            Fy(i,j)=-(Sxy(i+1,j)-Sxy(i-1,j))/ &
-                     (dsu(i-1,j)+dsu(i,j))
-         enddo
-   endif      
+
+       do j=1,ny 
+          do i=2,nx
+             Fy(i,j)=-(Syy(i,j+1)-Syy(i,j))/dnv(i,j)            &
+                     -(Sxy(i+1,j)+Sxy(i+1,j+1)-Sxy(i-1,j)-Sxy(i-1,j+1))/                    &
+                      (dsu(i-1,j)+dsu(i,j)+dsu(i-1,j+1)+dsu(i,j+1))
+          enddo
+       enddo
+    else
+       j=1 
+          do i=1,nx
+             Fx(i,j)=-(Sxx(i+1,j)-Sxx(i,j))/dsu(i,j)          
+          enddo
+          do i=2,nx
+             Fy(i,j)=-(Sxy(i+1,j)-Sxy(i-1,j))/ (dsu(i-1,j)+dsu(i,j))
+          enddo
+   endif
    
    if (ny>0) then
     Fx(:,1)=Fx(:,2)

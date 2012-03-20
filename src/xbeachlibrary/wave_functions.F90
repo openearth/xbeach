@@ -155,7 +155,7 @@ subroutine advecthetaho(ee,ctheta,thetaadvec,nx,ny,ntheta,dtheta,scheme)
   if (ntheta>1) then
 
   ! split into schemes first, less split loops -> more efficiency 
-  scheme_now=scheme
+  scheme_now=trim(scheme)
   select case(trim(scheme_now))
      case('upwind_1')
         do j=1,ny+1
