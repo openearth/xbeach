@@ -755,6 +755,9 @@ contains
           enddo
 		  
 		  zs0(2,:)=zs0(1,:)
+		  ! Dano: fix of Neumann boundaries with tide
+		  zs0(3:nx+1,1)=zs0(1,1)
+		  zs0(3:nx+1,ny+1)=zs0(1,ny+1)
           !do j = 1,ny+1 
           !   do i = 1,nx+1
           !      zs0(i,j) = zs0(1,j)
