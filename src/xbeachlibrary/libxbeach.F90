@@ -21,6 +21,7 @@ module libxbeach_module
   use logging_module
   use means_module
   use output_module
+  use ship_module
   implicit none
 
   type(parameters), save                              :: par
@@ -159,6 +160,7 @@ contains
 #endif
 
     ! compute timestep
+    if (par%ships==1)        call shipwave       (s,par)
     if (par%swave==1)        call wave           (s,par)
     if (par%gwflow==1)       call gwflow         (s,par)
     if (par%flow+par%nonh>0) call flow           (s,par)
