@@ -323,6 +323,11 @@ subroutine outputtimes_update(par, tpar)
   type(timepars), intent(inout)       :: tpar
   real*8               :: t1,t2,t3,t4,t5
 
+  !if (tpar%outputm .or. tpar%itm .eq. 0) then
+  !   par%tintm = tpar%tpm(min(tpar%itm+2,size(tpar%tpm)))-tpar%tpm(tpar%itm+1)
+  !   par%tintm = max(par%tintm,tiny(0.d0))
+  !end if
+  
   ! Current timestep:
   ! check if we need output at the current timestep
   ! do we have anymore  output time points, is it equal to the current?
