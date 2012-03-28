@@ -1135,8 +1135,14 @@ contains
     ! Only allow Baldock in stationary mode and Roelvink in non-stationary
     if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
         if (trim(par%break) .ne. 'baldock') then
-            call writelog('lws','','Warning: Roelvink formulations not allowed in stationary, use Baldock')
-            call writelog('lws','','         formulation.')
+            if(trim(par%break)=='roelvink_daly') then
+               call writelog('lws','','Warning: Roelvink-Daly formulations not implemented in stationary wave mode, use Baldock')
+               call writelog('lws','','         formulation.')
+               call halt_program
+            else
+               call writelog('lws','','Warning: Roelvink formulations not allowed in stationary, use Baldock')
+               call writelog('lws','','         formulation.')
+            endif            
         endif
     else
         if (trim(par%break)=='baldock') then 

@@ -305,6 +305,12 @@ contains
         else
             Qb  = Qb-par%dt*xwadvec
         endif
+#ifdef USEMPI
+        call xmpi_shift(Qb,'m:') 
+        call xmpi_shift(Qb,'1:')  
+        call xmpi_shift(Qb,':1') 
+        call xmpi_shift(Qb,':n')
+#endif
         call roelvink(par,s,km)        
     endif
     ! Dissipation by bed friction
