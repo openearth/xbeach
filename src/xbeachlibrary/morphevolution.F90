@@ -1034,11 +1034,6 @@ contains
 
     ! do t_sub=1,nt_sub  !loop over subtimesteps
     do while (abs(dzb_loc) .gt. 0.d0)
-       ! dzb can be nan, check...
-       !    if (isnan(dzb_loc)) then
-       !      write(*,*) dzbt, dzb_loc
-       !      write(*,*) 'dzb is nan'
-       !   end if
        dzbt     = min(dzb_loc,dz(par%nd_var))                 ! make sure erosion (dzg is positive) is limited to thickness of variable layer
        dzbt     = max(dzbt,-par%frac_dz*dz(par%nd_var+1))     ! make sure deposition (dzg is negative) is limited to thickness of first layer below variable layer
 
@@ -1753,23 +1748,4 @@ contains
     Tbore = par%Tbfac*Tbore
 
   end subroutine vT
-
-#ifdef HAVE_CONFIG_H
-#ifndef HAVE_FORTRAN_ISNAN
-  ! define a isnan function based on the 2003 extension ieee_is_nan for portland group
-  ! If your compiler doesn't support isnan and you are not using portland group, it's probably time to upgrade your compiler (see README/INSTALL for details)
-  logical function isnan(a)
-    use ieee_arithmetic 
-
-    real*8 a
-    if (ieee_is_nan(a)) then
-       isnan = .true.
-    else
-       isnan = .false.
-    end if
-    return
-  end function isnan
-#endif
-#endif
-
 end module morphevolution
