@@ -508,7 +508,7 @@ Sxy=n*sum(sinth*costh*ee,3)*dtheta
 ! add roller contribution
 
 Sxx = Sxx + sum((costh**2)*rr,3)*dtheta
-Syy = Syy + sum((costh**2)*rr,3)*dtheta
+Syy = Syy + sum((sinth**2)*rr,3)*dtheta
 Sxy = Sxy + sum(sinth*costh*rr,3)*dtheta
 
     if (ny>0) then

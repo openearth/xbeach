@@ -1,5 +1,5 @@
 Main improvements of Easter 2012 version over Quatorze Juillet 2010 version
----------------------------------------------------------------------------
+===========================================================================
 
 Usability
 ---------
@@ -39,3 +39,12 @@ Informatics
 Restructured directories and solution files
 Updated default settings (recommendation: try defaults by throwing out all non-model specific input)
 Numerous bug fixes
+
+Known issues
+============
+
+Wind input in timeseries not working well
+Mean output in timeseries not working well with netCDF
+Minor error in computation of upwind water depths (hu and hv)
+Minor error in computation of Smagorinsky viscosity in v-points (viscv)
+Minor deviations between MPI and non-MPI runs

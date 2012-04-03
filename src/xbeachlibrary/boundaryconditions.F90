@@ -100,6 +100,7 @@ contains
        endif
        startbcf=.true.                     ! trigger read from bcf for instat 3,4,5,7
        bcendtime=huge(0.0d0)               ! initial assumption for instat 3,4,5,7
+       s%newstatbc=1
        if (trim(par%instat)=='ts_1') then
           if(xmaster) then
              open( unit=7, file='bc/gen.ezs')
