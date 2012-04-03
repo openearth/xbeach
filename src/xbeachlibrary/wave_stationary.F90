@@ -539,12 +539,12 @@ Sxy = Sxy + sum(sinth*costh*rr,3)*dtheta
    
    if (ny>0) then
     Fx(:,1)=Fx(:,2)
-    Fy(:,1)=Fy(:,2)
+   ! Fy(:,1)=Fy(:,2)
     Fx(:,ny+1)=Fx(:,ny)
-    Fy(:,ny+1)=Fy(:,ny)
+   ! Fy(:,ny+1)=Fy(:,ny)
    endif
-    Fx(1,:)=Fx(2,:)
-    Fy(1,:)=Fy(2,:)
+   Fx(1,:)=Fx(2,:)
+   ! Fy(1,:)=Fy(2,:)
 
     ! wwvv
 #ifdef USEMPI

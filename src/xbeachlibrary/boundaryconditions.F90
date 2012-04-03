@@ -1219,7 +1219,7 @@ contains
                 if (wetv(i,jbc)==1) then 
 				   vbc(i) = vv(i,jbc)- par%dt*(udvdx(i)+vdvdy(i)-viscv(i)& 
                                      + par%g*dzsdy(i,jbc)&
-					                 + tauby(i,jbc)/(par%rho*hvm(i,jbc)) &
+					                           + tauby(i,jbc)/(par%rho*hvm(i,jbc)) &
                                      - par%lwave*Fy(i,jbc)/(par%rho*max(hvm(i,jbc),par%hmin)) &
                                      + fc*uv(i,jbc) &
                                      - par%rhoa*par%Cd*windnv(i,jbc)**2/(par%rho*hvm(i,jbc)))

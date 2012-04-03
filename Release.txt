@@ -1,14 +1,17 @@
 Main improvements of Easter 2012 version over Quatorze Juillet 2010 version
+---------------------------------------------------------------------------
 
 Usability
+---------
 
 Curvilinear grids
 Input grid and depth from Delft3D
 Netcdf output
 Visualization by Quickplot
-Much improved Matlab toolbox under Openearth
+Much improved Matlab toolbox under OpenEarthTools
 
 Waves
+-----
 
 Bed friction in short wave propagation
 Ship waves
@@ -16,23 +19,23 @@ Beach Wizard
 Second order upwind short wave propagation
 Refraction problem with large wave angles solved (no more negative longshore currents)
 Superfast 1D using only 1 grid row for profile models
-Daly et al (2011) breaking model
-Stationary mode optimized, much faster
-
+Daly et al. (2011) breaking model
+Stationary mode optimized: much faster
 
 Flow
+----
 
 Offshore boundary condition (epsi=-1 default) more robust w.r.t. mean flow effects
 Snellius refraction in case of only one directional bin
 
-
 Sediment
+--------
 
 Avalanching for multiple sediment fractions
 
-
 Informatics
+-----------
 
-Restructured directories and make, solution files
+Restructured directories and solution files
 Updated default settings (recommendation: try defaults by throwing out all non-model specific input)
 Numerous bug fixes
