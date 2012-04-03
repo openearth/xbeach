@@ -1281,6 +1281,7 @@ contains
        par%wavint  = par%wavint / max(par%morfac,1.d0)
        par%tstop   = par%tstop  / max(par%morfac,1.d0)
        par%morstart= par%morstart / max(par%morfac,1.d0)
+       par%rt      = par%rt / max(par%morfac,1.d0)
     endif
     !
     !
