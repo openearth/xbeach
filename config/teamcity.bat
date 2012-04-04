@@ -35,6 +35,7 @@ IF EXIST build.log del build.log
 echo on
 echo build xbeach test project
 %devenv_path%\devenv.exe "%1\%2" /Build "%3|Win32" /Project xbeachlibrary_test /Out build.log
+%devenv_path%\devenv.exe "%1\%2" /Build "%3|Win32" /Project xbeach /Out build_exe.log
 type build.log
 echo off
 
