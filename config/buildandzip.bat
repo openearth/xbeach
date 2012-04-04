@@ -34,7 +34,7 @@ EXIT /B 1
 
 :BUILD
 echo on
-echo build xbeach test project
+echo build and zip xbeach executables
 %devenv_path%\devenv.exe "%1\%2" /Build "Release|Win32" /Project xbeach /Out build_exe.log
 type build_exe.log
 %devenv_path%\devenv.exe "%1\%2" /Build "netcdf_Release|Win32" /Project xbeach /Out build_netcdf.log
