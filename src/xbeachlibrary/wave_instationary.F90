@@ -314,6 +314,7 @@ contains
         call roelvink(par,s,km)        
     endif
     ! Dissipation by bed friction
+    uorb=par%px*H/par%Trep/sinh(min(max(k,0.01d0)*max(hh,par%delta*H),10.0d0))
     Df=0.6666666d0/par%px*par%rho*par%fw*uorb**3
 	where (hh>par%fwcutoff)
 	Df = 0.d0
@@ -539,7 +540,7 @@ contains
     if(xmpi_isleft .and. ny>0) then 
        Fx(:,1)=Fx(:,2)     
     !   Fy(:,1)=Fy(:,2)
-       ! where (Fy(:,1)>0.d0) Fy(:,1)=0.d0; !Jaap + Bas: Don't do this before calling Dano :-)
+    !   ! where (Fy(:,1)>0.d0) Fy(:,1)=0.d0; !Jaap + Bas: Don't do this before calling Dano :-)
     endif
     if (xmpi_isright .and. ny>0) then
     !   Fy(:,ny+1)=Fy(:,ny)   ! only a dummy point in non mpi
@@ -549,7 +550,6 @@ contains
 
     ! Ad
     !    urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(min(max(k,0.01d0)*max(hh,par%delta*H),10.0d0)))
-    uorb=par%px*H/par%Trep/sinh(min(max(k,0.01d0)*max(hh,par%delta*H),10.0d0))
     urms=uorb/sqrt(2.d0)
     !   urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*max(hh,par%delta*H)))
 
