@@ -513,7 +513,7 @@ end subroutine advecqy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-subroutine dispersion(par,s)
+subroutine dispersion(par,s,bcast)
   use params
   use spaceparams
   use logging_module
@@ -524,6 +524,7 @@ subroutine dispersion(par,s)
 
   type(spacepars)                     :: s
   type(parameters)                    :: par
+  logical,optional,intent(in)         :: bcast
 
   real*8, dimension(s%nx+1,s%ny+1)    :: h,L0,kh
   real*8, dimension(:,:),allocatable,save  :: Ltemp
@@ -535,13 +536,20 @@ subroutine dispersion(par,s)
   integer                             :: i,j,j1,j2
   real*8                              :: backdis,lback,disfac
   integer                             :: index
+  logical                             :: lbcast
+  
+  if (present(bcast)) then
+     lbcast = bcast
+  else
+     lbcast = .true.
+  endif
   
   if (s%ny==0) then
      j1=1
      j2=1
   else
-     j1=2
-     j2=s%ny
+     j1=1
+     j2=s%ny+1
   endif
   !
   ! In the original code, phi, aphi, bphi are saved
@@ -557,14 +565,14 @@ subroutine dispersion(par,s)
 
   L0 = 2*par%px*par%g/(s%sigm**2)
 
-     if (.not. associated(s%L1)) then
-        allocate(s%L1(s%nx+1,s%ny+1))
-        s%L1=L0
-     endif
-     if (.not. allocated(Ltemp)) then
-        allocate(Ltemp(s%nx+1,s%ny+1))
-        Ltemp = L0
-     end if
+  if (.not. associated(s%L1)) then
+     allocate(s%L1(s%nx+1,s%ny+1))
+     s%L1=L0
+  endif
+  if (.not. allocated(Ltemp)) then
+     allocate(Ltemp(s%nx+1,s%ny+1))
+     Ltemp = L0
+  end if
 
   do j = j1,j2
      do i = 1,s%nx+1
@@ -616,6 +624,20 @@ subroutine dispersion(par,s)
   s%n=0.5d0+kh/sinh(2*kh)
   s%cg=s%c*s%n
   !s%cg = s%c*(0.5d0+kh/sinh(2*kh))
+  
+  if (lbcast) then
+#ifdef USEMPI
+     call xmpi_shift(s%k,':1')
+     call xmpi_shift(s%k,':n')
+     call xmpi_shift(s%c,':1')
+     call xmpi_shift(s%c,':n')
+     call xmpi_shift(s%n,':1')
+     call xmpi_shift(s%n,':n')
+     call xmpi_shift(s%cg,':1')
+     call xmpi_shift(s%cg,':n')
+#endif  
+  endif
+
 
 end subroutine dispersion
 
