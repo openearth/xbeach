@@ -315,7 +315,7 @@ endsubroutine spectral_wave_bc
        fn%listline = fn%listline + 1   ! move one on from the last time we opened this file
        close(fid)
     else
-       wp%rtbc = par%rt  ! already set to morphological time
+       wp%rtbc = par%rt
        wp%dtbc = par%dtbc
        readfile = fn%fname
     endif
@@ -323,15 +323,15 @@ endsubroutine spectral_wave_bc
     ! based on the value of instat, we need to read either Jonswap, Swan or vardens files
     ! note: jons_table is also handeled by read_jonswap_file subroutine
     select case (par%instat(1:4))
-    case ('jons')
-       ! wp type sent in to receive rtbc and dtbc from jons_table file
-       ! fn%listline sent in to find correct row in jons_table file
-       ! pfff..
-       call read_jonswap_file(par,wp,readfile,fn%listline,specin)
-    case ('swan')
-       call read_swan_file(par,readfile,specin)
-    case ('vard')
-       call read_vardens_file(par,readfile,specin)
+      case ('jons')
+        ! wp type sent in to receive rtbc and dtbc from jons_table file
+        ! fn%listline sent in to find correct row in jons_table file
+        ! pfff..
+        call read_jonswap_file(par,wp,readfile,fn%listline,specin)
+      case ('swan')
+        call read_swan_file(par,readfile,specin)
+      case ('vard')
+        call read_vardens_file(par,readfile,specin)
     endselect
 
     endsubroutine read_spectrum_input
@@ -1754,6 +1754,7 @@ endsubroutine spectral_wave_bc
     allocate(tempcmplx(wp%tslen))
     allocate(tempcmplxhalf(size(Gn(wp%tslen/2+2:wp%tslen))))
     do itheta=1,s%ntheta
+       call writelog('ls','(A,I0,A,I0)','Calculating short wave time series for theta bin ',itheta,' of ',s%ntheta)
        ! Select wave components that are in the current computational
        ! directional bin
        tempinclude=0
