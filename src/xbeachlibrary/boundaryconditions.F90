@@ -280,6 +280,7 @@ contains
              call writelog('ls','','Reading new wave conditions')
              read(7,*) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcdur, dum2
              par%Hrms = Hm0/sqrt(2.d0)
+             par%taper = 1.d0 ! Jaap set taper time to 1 second for new conditions (likewise in waveparams)
              par%m = 0.5d0*spreadpar
              if (par%morfacopt==1) then
                 bcendtime=bcendtime+bcdur/max(par%morfac,1.d0)
@@ -287,6 +288,9 @@ contains
                 bcendtime=bcendtime+bcdur
              endif
              theta0=(1.5d0*par%px-alfa)-par%dir0*atan(1.d0)/45.d0
+             ! Jaap; make shore theta0 is also set between -px and px for new wave conditions
+             if (theta0>par%px) theta0=theta0-2*par%px
+             if (theta0<-par%px) theta0=theta0+2*par%px
           endif
           s%newstatbc=1
 #ifdef USEMPI
