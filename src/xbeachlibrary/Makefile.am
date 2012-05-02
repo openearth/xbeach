@@ -97,9 +97,9 @@ if USEMPI
 libxbeach_la_FCFLAGS+=-DUSEMPI -DHAVE_MPI_WTIME
 endif
 if USENETCDF
-libxbeach_la_FCFLAGS+=-DUSENETCDF ${NETCDF_CFLAGS}
+libxbeach_la_FCFLAGS+=-DUSENETCDF ${NETCDF_CFLAGS} ${NETCDF_FORTRAN_CFLAGS}
 # Manualy add the netcdff (fortran dll)
-LIBS+=${NETCDF_LIBS}  -lnetcdff
+LIBS+=${NETCDF_LIBS} ${NETCDF_FORTRAN_LIBS} -lnetcdff
 endif
 
 

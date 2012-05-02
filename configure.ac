@@ -54,9 +54,12 @@ dnl not prefered, but added for compatibility
 AC_PATH_PROG(PKG_CONFIG,pkg-config)
 dnl prefer to use this one:
 dnl PKG_PROG_PKG_CONFIG
+
 AC_ARG_WITH(netcdf,[AS_HELP_STRING([--with-netcdf],[Build with netcdf support @<:@default=no@:>@])], [],[with_netcdf=no])
 AS_IF([test "x$with_netcdf" != "xno"],
 	[
+	# For netcdf >= 4.2 (separate fortran)	
+	PKG_CHECK_MODULES(NETCDF_FORTRAN, netcdf-fortran)
 	PKG_CHECK_MODULES(NETCDF, netcdf >= 4)
         AC_DEFINE(HAVE_NETCDF,1,[Defined if you have NETCDF library.])
 	],

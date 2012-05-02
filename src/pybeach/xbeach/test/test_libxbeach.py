@@ -15,11 +15,11 @@ class TestXBeach(unittest.TestCase):
         "set up test fixtures"
         self.libpath = os.path.join(
             os.path.dirname(__file__),
-            '../../../../trunk/.libs/libxbeach.dylib'
+            '../../../xbeachlibrary/.libs/libxbeach.dylib'
             )
         self.workingdir = os.path.join(
             os.path.dirname(__file__),
-            '../../data/example1'
+            '../../../../../branches/rewind/data/example1'
             )
         self.xb = libxbeach.XBeach(
             libpath=self.libpath,

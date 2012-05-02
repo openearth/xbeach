@@ -620,6 +620,8 @@ USENETCDF_FALSE
 USENETCDF_TRUE
 NETCDF_LIBS
 NETCDF_CFLAGS
+NETCDF_FORTRAN_LIBS
+NETCDF_FORTRAN_CFLAGS
 PKG_CONFIG_LIBDIR
 PKG_CONFIG_PATH
 PKG_CONFIG
@@ -767,6 +769,8 @@ MPIFC
 PKG_CONFIG
 PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
+NETCDF_FORTRAN_CFLAGS
+NETCDF_FORTRAN_LIBS
 NETCDF_CFLAGS
 NETCDF_LIBS'
 
@@ -1425,6 +1429,10 @@ Some influential environment variables:
               directories to add to pkg-config's search path
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
+  NETCDF_FORTRAN_CFLAGS
+              C compiler flags for NETCDF_FORTRAN, overriding pkg-config
+  NETCDF_FORTRAN_LIBS
+              linker flags for NETCDF_FORTRAN, overriding pkg-config
   NETCDF_CFLAGS
               C compiler flags for NETCDF, overriding pkg-config
   NETCDF_LIBS linker flags for NETCDF, overriding pkg-config
@@ -11140,11 +11148,11 @@ MAKEINFO=${MAKEINFO-"${am_missing_run}makeinfo"}
 
 # We need awk for the "check" target.  The system "awk" is bad on
 # some platforms.
-# Always define AMTAR for backward compatibility.
+# Always define AMTAR for backward compatibility.  Yes, it's still used
+# in the wild :-(  We should find a proper way to deprecate it ...
+AMTAR='$${TAR-tar}'
 
-AMTAR=${AMTAR-"${am_missing_run}tar"}
-
-am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
+am__tar='$${TAR-tar} chof - "$$tardir"' am__untar='$${TAR-tar} xf -'
 
 
 
@@ -14737,6 +14745,7 @@ fi
 
 
 
+
 # Check whether --with-netcdf was given.
 if test "${with_netcdf+set}" = set; then :
   withval=$with_netcdf;
@@ -14866,6 +14875,98 @@ $as_echo "no" >&6; }
 fi
 if test "x$with_netcdf" != "xno"; then :
 
+	# For netcdf >= 4.2 (separate fortran)
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for NETCDF_FORTRAN" >&5
+$as_echo_n "checking for NETCDF_FORTRAN... " >&6; }
+
+if test -n "$NETCDF_FORTRAN_CFLAGS"; then
+    pkg_cv_NETCDF_FORTRAN_CFLAGS="$NETCDF_FORTRAN_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"netcdf-fortran\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "netcdf-fortran") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_NETCDF_FORTRAN_CFLAGS=`$PKG_CONFIG --cflags "netcdf-fortran" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$NETCDF_FORTRAN_LIBS"; then
+    pkg_cv_NETCDF_FORTRAN_LIBS="$NETCDF_FORTRAN_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"netcdf-fortran\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "netcdf-fortran") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_NETCDF_FORTRAN_LIBS=`$PKG_CONFIG --libs "netcdf-fortran" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        NETCDF_FORTRAN_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "netcdf-fortran" 2>&1`
+        else
+	        NETCDF_FORTRAN_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "netcdf-fortran" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$NETCDF_FORTRAN_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (netcdf-fortran) were not met:
+
+$NETCDF_FORTRAN_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables NETCDF_FORTRAN_CFLAGS
+and NETCDF_FORTRAN_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables NETCDF_FORTRAN_CFLAGS
+and NETCDF_FORTRAN_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	NETCDF_FORTRAN_CFLAGS=$pkg_cv_NETCDF_FORTRAN_CFLAGS
+	NETCDF_FORTRAN_LIBS=$pkg_cv_NETCDF_FORTRAN_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for NETCDF" >&5
