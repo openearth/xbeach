@@ -111,7 +111,7 @@ am__libxbeach_la_SOURCES_DIST = s.ind s.inp xmpi.F90 general_mpi.F90 \
 	initialize.F90 timestep.F90 flow_secondorder.F90 solver.F90 \
 	nonh.F90 flow_timestep.F90 postprocess.F90 varianceupdate.F90 \
 	varoutput.F90 ncoutput.F90 output.F90 ship.F90 mnemoniciso.F90 \
-	libxbeach.F90 introspection.F90
+	libxbeach.F90 libxbeach_dynamic.F90 introspection.F90
 @USENETCDF_TRUE@am__objects_1 = libxbeach_la-ncoutput.lo
 am_libxbeach_la_OBJECTS = libxbeach_la-xmpi.lo \
 	libxbeach_la-general_mpi.lo libxbeach_la-typesandkinds.lo \
@@ -136,6 +136,7 @@ am_libxbeach_la_OBJECTS = libxbeach_la-xmpi.lo \
 	libxbeach_la-varoutput.lo $(am__objects_1) \
 	libxbeach_la-output.lo libxbeach_la-ship.lo \
 	libxbeach_la-mnemoniciso.lo libxbeach_la-libxbeach.lo \
+	libxbeach_la-libxbeach_dynamic.lo \
 	libxbeach_la-introspection.lo
 libxbeach_la_OBJECTS = $(am_libxbeach_la_OBJECTS)
 libxbeach_la_LINK = $(LIBTOOL) --tag=FC $(AM_LIBTOOLFLAGS) \
@@ -334,6 +335,7 @@ libxbeach_la_SOURCES = \
         ship.F90 \
 	mnemoniciso.F90 \
 	libxbeach.F90 \
+	libxbeach_dynamic.F90 \
 	introspection.F90
 
 BUILT_SOURCES = \
@@ -569,6 +571,9 @@ libxbeach_la-mnemoniciso.lo: mnemoniciso.F90
 
 libxbeach_la-libxbeach.lo: libxbeach.F90
 	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-libxbeach.lo `test -f 'libxbeach.F90' || echo '$(srcdir)/'`libxbeach.F90
+
+libxbeach_la-libxbeach_dynamic.lo: libxbeach_dynamic.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-libxbeach_dynamic.lo `test -f 'libxbeach_dynamic.F90' || echo '$(srcdir)/'`libxbeach_dynamic.F90
 
 libxbeach_la-introspection.lo: introspection.F90
 	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-introspection.lo `test -f 'introspection.F90' || echo '$(srcdir)/'`introspection.F90

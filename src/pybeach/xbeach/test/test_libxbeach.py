@@ -35,6 +35,7 @@ class TestXBeach(unittest.TestCase):
         self.xb.init()
     def tearDown(self):
         "tear down test fixtures"
+        del self.xb
     def test_get_nparameter(self):
         self.assertGreaterEqual(self.xb.get_nparameter(), 224)
     def test_get_parameternamebyindex(self):
@@ -74,6 +75,7 @@ class TestXBeach(unittest.TestCase):
         self.assertGreaterEqual(self.xb.get_parameter('t'), 0.0)
         self.assertEqual(self.xb.set_parameter('t', 1.0), None)
         self.assertEqual(self.xb.get_parameter('t'), 1.0)
+        self.assertEqual(self.xb.set_parameter('t', 0.0), None)
     def test_get_arraynames(self):
         self.assertGreaterEqual(len(self.xb.get_arraynames()), 30)
     def test_get_arraytype(self):
@@ -95,6 +97,29 @@ class TestXBeach(unittest.TestCase):
         arrays = self.xb.get_arrays()
         for name in arrays:
             self.xb.set_array(name, arrays[name])
+    def test_executestep(self):
+        self.xb.executestep()
+        self.assertGreater(self.xb.get_parameter('t'), 0.0)
+
+
+class IntegrationTest(unittest.TestCase):
+    def setUp(self):
+        "set up test fixtures"
+        self.libpath = os.path.join(
+            os.path.dirname(__file__),
+            '../../../xbeachlibrary/.libs/libxbeach' + dllsuffix[sys.platform]
+            )
+        self.workingdir = os.path.join(
+            os.path.dirname(__file__),
+            '../../../../../branches/rewind/data/example1'
+            )
+        self.xb = libxbeach.XBeach(
+            libpath=self.libpath,
+            workingdir=self.workingdir
+            )
+        self.xb.init()
+    def tearDown(self):
+        "tear down test fixtures"
     def test_rewind(self):
         # arrays point directly to XBeach memory....
         # Do a first timestep
@@ -131,7 +156,4 @@ class TestXBeach(unittest.TestCase):
                 maxdiff = np.abs(t1a_arrays[name]- t1b_arrays[name])
             if maxdiff > 0.00001:
                 print name, maxdiff
-    def test_executestep(self):
-        self.xb.executestep()
-        self.assertGreater(self.xb.get_parameter('t'), 0.0)
-
+        

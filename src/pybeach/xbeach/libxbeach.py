@@ -6,6 +6,9 @@ from ctypes import CDLL, string_at, addressof, byref,create_string_buffer
 from numpy.ctypeslib import ndpointer, as_array
 from numpy import float64, zeros, array, int32, ndarray
 
+import logging
+logger = logging.Logger(__name__)
+
 def once(func):
     "A decorator that runs a function only once."
     def decorated(*args, **kwargs):
@@ -243,5 +246,7 @@ class XBeach:
             raise ValueError('Expected value of type {} but got {}'.format((Number,ndarray), type(value)))
         fun(c_name, byref(arrayp), namelength)
 
-        
+    def __del__(self):
+        logger.debug('Explicitly deleting library at {}'.format(self._lib))
+        del self._lib
                              

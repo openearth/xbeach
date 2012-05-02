@@ -49,6 +49,7 @@ libxbeach_la_SOURCES= \
         ship.F90 \
 	mnemoniciso.F90 \
 	libxbeach.F90 \
+	libxbeach_dynamic.F90 \
 	introspection.F90
 BUILT_SOURCES= \
 	spacedecl.gen	\

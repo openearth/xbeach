@@ -59,8 +59,8 @@ AC_ARG_WITH(netcdf,[AS_HELP_STRING([--with-netcdf],[Build with netcdf support @<
 AS_IF([test "x$with_netcdf" != "xno"],
 	[
 	# For netcdf >= 4.2 (separate fortran)	
-	PKG_CHECK_MODULES(NETCDF_FORTRAN, netcdf-fortran)
-	PKG_CHECK_MODULES(NETCDF, netcdf >= 4)
+	# Check for netcdf 4 if not found...
+	PKG_CHECK_MODULES(NETCDF_FORTRAN, netcdf-fortran,[],[PKG_CHECK_MODULES(NETCDF, netcdf >= 4)])
         AC_DEFINE(HAVE_NETCDF,1,[Defined if you have NETCDF library.])
 	],
 	[])
