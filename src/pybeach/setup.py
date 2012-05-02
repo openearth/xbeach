@@ -26,7 +26,8 @@ XBeach is a two-dimensional model for wave propagation, long waves and mean flow
       install_requires=[
           "numpy",
           "matplotlib",
-          "nose"
+          "nose",
+          "teamcity-nose" # needed for Deltares CI.
           # -*- Extra requirements: -*-
       ],
       entry_points="""

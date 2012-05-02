@@ -1,5 +1,7 @@
 import os
+import sys
 import copy
+import collections
 try:
     import unittest2 as unittest
 except ImportError:
@@ -10,12 +12,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.interactive(True)
 import time
+
+dllsuffix = collections.defaultdict(lambda:'.so')
+dllsuffix['darwin'] = '.dylib'
+dllsuffix['win32'] = '.dll'
+dllsuffix['win64'] = '.dll'
 class TestXBeach(unittest.TestCase):
     def setUp(self):
         "set up test fixtures"
         self.libpath = os.path.join(
             os.path.dirname(__file__),
-            '../../../xbeachlibrary/.libs/libxbeach.dylib'
+            '../../../xbeachlibrary/.libs/libxbeach' + dllsuffix[sys.platform]
             )
         self.workingdir = os.path.join(
             os.path.dirname(__file__),
@@ -29,13 +36,13 @@ class TestXBeach(unittest.TestCase):
     def tearDown(self):
         "tear down test fixtures"
     def test_get_nparameter(self):
-        self.assertEqual(self.xb.get_nparameter(), 224)
+        self.assertGreaterEqual(self.xb.get_nparameter(), 224)
     def test_get_parameternamebyindex(self):
         self.assertEqual(self.xb.get_parameternamebyindex(0), 'depfile')
         self.assertEqual(self.xb.get_parameternamebyindex(20), 'disch_timeseries_file')
     def test_get_parameternames(self):
         names = self.xb.get_parameternames()
-        self.assertEqual(len(names), 224)
+        self.assertGreaterEqual(len(names), 224)
         self.assertTrue('disch_loc_file' in names)
     def test_get_parametertype(self):
         name = 'eps'
