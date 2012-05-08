@@ -165,9 +165,9 @@ contains
              ! open( unit=7, file='jonswap1.txt')
              read(7,*) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcendtime, dum2
              par%Hrms = Hm0/sqrt(2.d0)
-             par%m = 0.5d0*spreadpar
+             par%m = 2.0d0*spreadpar
              if (par%morfacopt==1) bcendtime=bcendtime/max(par%morfac,1.d0)
-             theta0=(1.5d0*par%px-alfa)-par%dir0*atan(1.d0)/45.d0
+             theta0=(1.5d0*par%px)-par%dir0*atan(1.d0)/45.d0
              if (theta0>par%px) theta0=theta0-2*par%px
              if (theta0<-par%px) theta0=theta0+2*par%px
           endif
@@ -281,13 +281,13 @@ contains
              read(7,*) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcdur, dum2
              par%Hrms = Hm0/sqrt(2.d0)
              par%taper = 1.d0 ! Jaap set taper time to 1 second for new conditions (likewise in waveparams)
-             par%m = 0.5d0*spreadpar
+             par%m = 2.0d0*spreadpar
              if (par%morfacopt==1) then
                 bcendtime=bcendtime+bcdur/max(par%morfac,1.d0)
              else
                 bcendtime=bcendtime+bcdur
              endif
-             theta0=(1.5d0*par%px-alfa)-par%dir0*atan(1.d0)/45.d0
+             theta0=(1.5d0*par%px)-par%dir0*atan(1.d0)/45.d0
              ! Jaap; make shore theta0 is also set between -px and px for new wave conditions
              if (theta0>par%px) theta0=theta0-2*par%px
              if (theta0<-par%px) theta0=theta0+2*par%px
