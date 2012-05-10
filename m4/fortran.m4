@@ -137,3 +137,32 @@ AC_DEFUN([ACX_FORTRAN_ISNAN], [
       AC_MSG_RESULT(no)
     ])
 ])
+
+###############################################
+# ACX_FORTRAN_IEEE_ARITHMETIC checks for the presence of the IEEE_ARITHMETIC module
+# --------------------------
+AC_DEFUN([ACX_FORTRAN_IEEE_ARITHMETIC], [
+    AC_MSG_CHECKING(for IEEE_ARITHMETIC)
+    AC_LINK_IFELSE(
+    [
+    AC_LANG_PROGRAM(,
+      [   
+          use ieee_arithmetic 
+          implicit none
+      
+          real :: a
+          logical :: b
+          a = 0.0
+          b = ieee_is_nan(a)
+          
+      ])
+    ],
+    [
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(HAVE_FORTRAN_IEEE_ARITHMETIC, 1,
+                [Define if the compiler provides the IEEE_ARITHMETIC module])
+    ],
+    [
+      AC_MSG_RESULT(no)
+    ])
+])

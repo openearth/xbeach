@@ -47,6 +47,7 @@ AM_CONDITIONAL(USEMPI, test "x$with_mpi" != "xno")
 # check for functions
 AC_LANG_PUSH([Fortran])
 ACX_FORTRAN_ISNAN
+ACX_FORTRAN_IEEE_ARITHMETIC
 AC_LANG_POP
 #AC_SUBST(with_netcdf)
 

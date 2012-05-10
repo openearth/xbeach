@@ -14735,6 +14735,42 @@ fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for IEEE_ARITHMETIC" >&5
+$as_echo_n "checking for IEEE_ARITHMETIC... " >&6; }
+    cat > conftest.$ac_ext <<_ACEOF
+
+          program main
+
+          use ieee_arithmetic
+          implicit none
+
+          real :: a
+          logical :: b
+          a = 0.0
+          b = ieee_is_nan(a)
+
+
+      end
+
+_ACEOF
+if ac_fn_fc_try_link "$LINENO"; then :
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_FORTRAN_IEEE_ARITHMETIC 1" >>confdefs.h
+
+
+else
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'

@@ -17,17 +17,19 @@ dllsuffix = collections.defaultdict(lambda:'.so')
 dllsuffix['darwin'] = '.dylib'
 dllsuffix['win32'] = '.dll'
 dllsuffix['win64'] = '.dll'
+XBEACHLIB = os.path.join(
+    os.path.dirname(__file__),
+    '../../../xbeachlibrary/.libs/libxbeach' + dllsuffix[sys.platform]
+    )
+WD = os.path.join(
+    os.path.dirname(__file__),
+    '../../../../../branches/rewind/data/example1'
+    )
 class TestXBeach(unittest.TestCase):
     def setUp(self):
         "set up test fixtures"
-        self.libpath = os.path.join(
-            os.path.dirname(__file__),
-            '../../../xbeachlibrary/.libs/libxbeach' + dllsuffix[sys.platform]
-            )
-        self.workingdir = os.path.join(
-            os.path.dirname(__file__),
-            '../../../../../branches/rewind/data/example1'
-            )
+        self.libpath = XBEACHLIB
+        self.workingdir = WD
         self.xb = libxbeach.XBeach(
             libpath=self.libpath,
             workingdir=self.workingdir

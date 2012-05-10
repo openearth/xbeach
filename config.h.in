@@ -3,6 +3,9 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
+/* Define if the compiler provides the IEEE_ARITHMETIC module */
+#undef HAVE_FORTRAN_IEEE_ARITHMETIC
+
 /* Define if the compiler provides the isnan instrinsic */
 #undef HAVE_FORTRAN_ISNAN
 
