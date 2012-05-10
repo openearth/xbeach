@@ -66,6 +66,7 @@ AS_IF([test "x$with_netcdf" != "xno"],
 	[])
 AM_CONDITIONAL(USENETCDF, test "x$with_netcdf" != "xno")
 
+
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
