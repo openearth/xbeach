@@ -7,14 +7,14 @@ module fortoutput_module
   use xmpi_module
   use mnemmodule
   use means_module
-  
+
   implicit none
   private
   public var_output_init, var_output
-  
+
   ! Robert: Add choice of output variables
   !logical,dimension(999)              :: outputindex ! [-]      tracks which  global variables are to be outputted.
-  
+
   integer*4,dimension(:),allocatable,save  :: crosstype   ! 0 = cross shore (x), 1 = longshore (y)
   integer*4,dimension(:),allocatable,save  :: xpoints     ! model x-coordinate of output points
   integer*4,dimension(:),allocatable,save  :: ypoints     ! model y-coordinate of output points
@@ -24,7 +24,7 @@ module fortoutput_module
   integer*4,dimension(:,:),allocatable,save:: Avarpoint   ! Array with associated index of output variables per point
   integer*4,dimension(:,:),allocatable,save:: Avarcross   ! Array with associated index of output variables per cross section
   integer*4,dimension(:,:),allocatable,save:: rugmaskg,rugmaskl   ! Mask with 1 for row with runup gauge, 0 without. Dimensions: nx+1,ny+1
-                                                             ! One for global field, one for mpi subdomain if using MPI
+  ! One for global field, one for mpi subdomain if using MPI
   integer*4,dimension(:),allocatable,save  :: rugrowindex ! Array with row index where runup gauge can be found                                                              
   ! Only alive at xmaster
   integer*4,save                           :: stpm        ! size of tpm
@@ -32,11 +32,11 @@ module fortoutput_module
   ! Store the global variables in numbers....
   integer,save                             :: noutnumbers = 0  ! the number of outnumbers
   integer, dimension(numvars),save         :: outnumbers  ! numbers, corrsponding to mnemonics, which are to be output
- 
-  
+
+
   integer                             :: itg,itp,itc,itm,itd,day,ot
   type(arraytype)                     :: At
-  
+
   interface outarray
      module procedure outarray_r0
      module procedure outarray_r1
@@ -49,17 +49,17 @@ module fortoutput_module
      module procedure outarray_i3
      module procedure outarray_i4
   end interface outarray
-  
+
 contains
-  
-  
-  
+
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!   INITIALISE OUTPUT    !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  
-  
+
+
+
   subroutine var_output_init(s,sl,par,tpar)
     use params
     use spaceparams
@@ -169,28 +169,28 @@ contains
           ! Make rugrowindex with row number (per subprocess) with runup gauge
           do i=1,par%nrugauge
 #ifndef USEMPI
-            ! very easy
-            rugrowindex(i)=ypoints(par%npoints+i)
+             ! very easy
+             rugrowindex(i)=ypoints(par%npoints+i)
 #else
-            ! very complicated
-            if (xmaster) then 
-               ! generate rugmask on global grid
-               do j=1,s%ny+1
-                  if (j==ypoints(par%npoints+i)) then
-                     rugmaskg(:,j)=1
-                  else
-                     rugmaskg(:,j)=0
-                  endif
-               enddo
-            endif
-            ! now distribute rugmask global to rugmask local on all subgrids
-            call matrix_distr(rugmaskg,rugmaskl,sl%is,sl%lm,sl%js,sl%ln,xmpi_master,xmpi_comm)
-            ! everybody has their own rugmaskl. Look to see if your domain has "1" in rugmaskl
-            ! first assume that no runup gauge exists in this domain, so we set rowindex to zero
-            rugrowindex(i)=0    ! rugrowindex is local on all subgrid
-            do j=1,sl%ny+1
-               if (rugmaskl(1,j)==1) rugrowindex(i)=j   ! okay, there is a runup gauge this row
-            enddo
+             ! very complicated
+             if (xmaster) then 
+                ! generate rugmask on global grid
+                do j=1,s%ny+1
+                   if (j==ypoints(par%npoints+i)) then
+                      rugmaskg(:,j)=1
+                   else
+                      rugmaskg(:,j)=0
+                   endif
+                enddo
+             endif
+             ! now distribute rugmask global to rugmask local on all subgrids
+             call matrix_distr(rugmaskg,rugmaskl,sl%is,sl%lm,sl%js,sl%ln,xmpi_master,xmpi_comm)
+             ! everybody has their own rugmaskl. Look to see if your domain has "1" in rugmaskl
+             ! first assume that no runup gauge exists in this domain, so we set rowindex to zero
+             rugrowindex(i)=0    ! rugrowindex is local on all subgrid
+             do j=1,sl%ny+1
+                if (rugmaskl(1,j)==1) rugrowindex(i)=j   ! okay, there is a runup gauge this row
+             enddo
 #endif
           enddo  ! i=1,par%nrugauge
 #ifdef USEMPI
@@ -255,12 +255,12 @@ contains
              fnamemax =trim(fnamemax)
              call indextos(s,chartoindex(trim(par%meanvars(i))),t) 
              select case(t%rank)
-                case (2)         
-                   reclenm = wordsize*size(t%r2)
-                case (3)
-                   reclenm=wordsize*size(t%r3)
-                case (4)
-                   reclenm=wordsize*size(t%r4)
+             case (2)         
+                reclenm = wordsize*size(t%r2)
+             case (3)
+                reclenm=wordsize*size(t%r3)
+             case (4)
+                reclenm=wordsize*size(t%r4)
              end select
              open(indextomeanunit(i),file=fnamemean,form='unformatted',access='direct',recl=reclenm,status='REPLACE')
              open(indextovarunit(i) ,file=fnamevar ,form='unformatted',access='direct',recl=reclenm,status='REPLACE')
@@ -269,32 +269,32 @@ contains
           enddo
        endif
     endif ! par%nmeanvar > 0
-    
-    
+
+
     !
     ! drifter output files
     !
     if (par%ndrifter>0) then
-        if (xmaster) then
-            inquire(iolength=wordsize) 1.d0
-            
-            reclen=wordsize*3
-            do i=1,par%ndrifter
-                write(fname(7:10),'(i4)')i+1000
-                fname(1:7)='drifter'
-                fname(11:14)='.dat'
-                open(indextodrifterunit(i),file=fname,form='unformatted',access='direct',recl=reclen,status='REPLACE')
-            enddo
-        endif
+       if (xmaster) then
+          inquire(iolength=wordsize) 1.d0
+
+          reclen=wordsize*3
+          do i=1,par%ndrifter
+             write(fname(7:10),'(i4)')i+1000
+             fname(1:7)='drifter'
+             fname(11:14)='.dat'
+             open(indextodrifterunit(i),file=fname,form='unformatted',access='direct',recl=reclen,status='REPLACE')
+          enddo
+       endif
     endif ! par%ndrifter >0
 
   end subroutine var_output_init
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!   OUTPUT AT EVERY TIMESTEP    !!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  
+
+
   subroutine var_output(s,sl,par,tpar)
     use params
     use spaceparams
@@ -320,7 +320,7 @@ contains
     real*8,dimension(:),allocatable         :: tempvectorr
     real*8,dimension(size(tpar%tpg)+size(tpar%tpp)+size(tpar%tpc)+size(tpar%tpm)) :: outputtimes
     type(arraytype)                         :: t
-    
+
     integer                                 :: iz,jz
     real*8                                  :: di,dj,dx,dy
 
@@ -347,13 +347,13 @@ contains
                    ! local index of minimum location where hh<rugdepth
                    do ii=2,xmax
                       if ((sl%hh(ii,rugrowindex(i))<=par%rugdepth) .and. &
-                          (sl%hh(ii-1,rugrowindex(i))>par%rugdepth) ) then
+                           (sl%hh(ii-1,rugrowindex(i))>par%rugdepth) ) then
                          idumhl= ii-1
                          xrank = xmpi_rank  ! the row number of this process in the MPI grid of subdomains
                          exit
                       endif
                    enddo
-               endif
+                endif
 #else
                 xmax = s%nx+1
                 idumhl = xmax        ! Set default
@@ -361,12 +361,12 @@ contains
                    ! local index of minimum location where hh<rugdepth
                    do ii=2,xmax
                       if ((s%hh(ii,rugrowindex(i))<=par%rugdepth) .and. &
-                          (s%hh(ii-1,rugrowindex(i))>par%rugdepth) ) then
+                           (s%hh(ii-1,rugrowindex(i))>par%rugdepth) ) then
                          idumhl=ii-1
                          exit
                       endif
                    enddo
-               endif
+                endif
 #endif
                 !
                 ! Set up runup gauge output vector
@@ -402,9 +402,9 @@ contains
                 if (xmaster) write(indextopointsunit(i+par%npoints),rec=itp)tempvectorr
                 deallocate(tempvectorr)
              enddo  ! i=1,par%nrugauge
-             
+
              do i=1,par%npoints
-                !!! Make vector of all s% values at n,m grid coordinate
+!!! Make vector of all s% values at n,m grid coordinate
                 call makeintpvector(par,sl,intpvector,xpoints(i),ypoints(i))
                 if (xmaster) then
                    allocate(tempvectori(par%npointvar))
@@ -418,7 +418,7 @@ contains
                       tempvectorr(1)=par%t*max(par%morfac,1.d0)
                    else
                       tempvectorr(1)=par%t
-                   endif                  
+                   endif
                    write(indextopointsunit(i),rec=itp)tempvectorr
                    deallocate(tempvectori)
                    deallocate(tempvectorr)
@@ -475,7 +475,7 @@ contains
                          write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
                       elseif (trim(par%meanvars(i))=='thetamean') then       ! thetamean
                          write(indextomeanunit(i),rec=itm)atan2(int(meansparsglobal(i)%mean2d)/0.d000000001-1, &
-                                                                mod(meansparsglobal(i)%mean2d,1.d0)*0.d001-1)
+                              mod(meansparsglobal(i)%mean2d,1.d0)*0.d001-1)
                       else                                                    ! non-rms variables
                          write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean2d
                       endif
@@ -517,9 +517,9 @@ contains
                    endif
                 end select
              enddo
-         endif  ! t output
-         par%tintm=tpar%tpm(min(itm+2,stpm))-tpar%tpm(itm+1)  ! Next averaging period (min to stop array out of bounds)
-         par%tintm=max(par%tintm,tiny(0.d0))        ! to prevent par%tintm=0 after last output
+          endif  ! t output
+          par%tintm=tpar%tpm(min(itm+2,stpm))-tpar%tpm(itm+1)  ! Next averaging period (min to stop array out of bounds)
+          par%tintm=max(par%tintm,tiny(0.d0))        ! to prevent par%tintm=0 after last output
        endif  ! nmeanvar > 0
 
 
@@ -566,49 +566,49 @@ contains
           endif
        endif  ! end global file writing
 
-        !
-        ! write drifter output
-        !
+       !
+       ! write drifter output
+       !
 
-        if (xmaster) then
-        
+       if (xmaster) then
+
 #ifdef USEMPI
-            s%idrift = sl%idrift
-            s%jdrift = sl%jdrift
+          s%idrift = sl%idrift
+          s%jdrift = sl%jdrift
 #endif
 
-            if (abs(mod(par%t,par%tintp))<1.d-6) then
-                itd = itd+1
-                do i=1,par%ndrifter
-                    if (    par%t>=s%tdriftb(i) .and. par%t<=s%tdrifte(i) .and. &
-                            s%idrift(i)>1       .and. s%idrift(i)<=s%nx   .and. &
-                            s%jdrift(i)>1       .and. s%jdrift(i)<=s%ny             ) then
-                
-                        iz = int(s%idrift(i))
-                        jz = int(s%jdrift(i))
-                        
-                        di = mod(s%idrift(i),1.d0)
-                        dj = mod(s%jdrift(i),1.d0)
-                        
-                        dx = di*s%dsu(iz,jz)*cos(s%alfaz(iz,jz)) - &
-                             dj*s%dnv(iz,jz)*sin(s%alfaz(iz,jz))
-                        dy = di*s%dsu(iz,jz)*sin(s%alfaz(iz,jz)) + &
-                             dj*s%dnv(iz,jz)*cos(s%alfaz(iz,jz))
-                        
-                        write(indextodrifterunit(i),rec=itd)    &
-                            s%xz(iz,jz)+dx,                     &
-                            s%yz(iz,jz)+dy,                     &
-                            par%t
-                    else
-                        write(indextodrifterunit(i),rec=itd)    &
-                            -999d0,                             &
-                            -999d0,                             &
-                            par%t
-                    endif
-                enddo
-            endif
-        endif
-        
+          if (abs(mod(par%t,par%tintp))<1.d-6) then
+             itd = itd+1
+             do i=1,par%ndrifter
+                if (    par%t>=s%tdriftb(i) .and. par%t<=s%tdrifte(i) .and. &
+                     s%idrift(i)>1       .and. s%idrift(i)<=s%nx   .and. &
+                     s%jdrift(i)>1       .and. s%jdrift(i)<=s%ny             ) then
+
+                   iz = int(s%idrift(i))
+                   jz = int(s%jdrift(i))
+
+                   di = mod(s%idrift(i),1.d0)
+                   dj = mod(s%jdrift(i),1.d0)
+
+                   dx = di*s%dsu(iz,jz)*cos(s%alfaz(iz,jz)) - &
+                        dj*s%dnv(iz,jz)*sin(s%alfaz(iz,jz))
+                   dy = di*s%dsu(iz,jz)*sin(s%alfaz(iz,jz)) + &
+                        dj*s%dnv(iz,jz)*cos(s%alfaz(iz,jz))
+
+                   write(indextodrifterunit(i),rec=itd)    &
+                        s%xz(iz,jz)+dx,                     &
+                        s%yz(iz,jz)+dy,                     &
+                        par%t
+                else
+                   write(indextodrifterunit(i),rec=itd)    &
+                        -999d0,                             &
+                        -999d0,                             &
+                        par%t
+                endif
+             enddo
+          endif
+       endif
+
        if(xmaster) then
           outputtimes=-999.d0
           outputtimes(1:itg)=tpar%tpg(1:itg)
@@ -640,7 +640,7 @@ contains
           ! outputtimes
           ! close(999)
        endif  !xmaster
-    
+
     end if  !
 
 !!! Close files
@@ -657,7 +657,7 @@ contains
              close(indextominunit(i))
              close(indextomaxunit(i))
           enddo
-          
+
           do i=1,par%ndrifter
              close (indextodrifterunit(i))
           enddo
@@ -676,433 +676,433 @@ contains
 
 
 
-subroutine makeintpvector(par,s,intpvector,mg,ng)
-  
-  use params
-  use spaceparams
-  use logging_module
-  
-  IMPLICIT NONE
-  
-  type(parameters), intent(in)   :: par
-  type(spacepars), intent(in)    :: s    ! need slocal here, because
-  ! the is,js lm and ln arrays
-  ! on the not-master nodes
-  ! are only in slocal
-  real*8,dimension(:)            :: intpvector
-  integer,intent(in)             :: mg,ng
-  
-  type(arraytype)                :: t
-  integer                        :: j,m,n
-  real*8                         :: value
-  
+  subroutine makeintpvector(par,s,intpvector,mg,ng)
+
+    use params
+    use spaceparams
+    use logging_module
+
+    IMPLICIT NONE
+
+    type(parameters), intent(in)   :: par
+    type(spacepars), intent(in)    :: s    ! need slocal here, because
+    ! the is,js lm and ln arrays
+    ! on the not-master nodes
+    ! are only in slocal
+    real*8,dimension(:)            :: intpvector
+    integer,intent(in)             :: mg,ng
+
+    type(arraytype)                :: t
+    integer                        :: j,m,n
+    real*8                         :: value
+
 #ifdef USEMPI
-  integer                        :: i,p,ierr
+    integer                        :: i,p,ierr
 #endif
-  
-  m = mg
-  n = ng
-  
+
+    m = mg
+    n = ng
+
 #ifdef USEMPI
-  !
-  ! wwvv argh! for performance, we will not collect each
-  ! matrix or block to master. Each process has to
-  ! determine if it has the values, and then send them.
-  !
-  ! locate the process who has index m
-  
-  p=-1
-  do i=1,xmpi_size
-  !    if (mg .ge. s%is(i) .and. mg .le. s%is(i) + s%lm(i) .and. &
-  !         ng .ge. s%js(i) .and. ng .le. s%js(i) + s%ln(i)) then
-  ! Change suggested by Jim Gunson:
-     if (mg .ge. s%is(i) .and. mg .lt. s%is(i) + s%lm(i) .and. &
-         ng .ge. s%js(i) .and. ng .lt. s%js(i) + s%ln(i)) then
-        m = mg - s%is(i) + 1  ! m and n now the indices for process p
-        n = ng - s%js(i) + 1
-        p = i-1
-        exit
-     endif
-  enddo
-  if (p .lt. 0) then
-     call writelog('els','','Catastrophic error in makeintpvector')
-     call writelog('els','(a,i0,i0)','Cannot find processor for indexes',mg,ng)
-     call halt_program
-  endif
-  
-  
-  if (xmpi_rank .eq. p) then
+    !
+    ! wwvv argh! for performance, we will not collect each
+    ! matrix or block to master. Each process has to
+    ! determine if it has the values, and then send them.
+    !
+    ! locate the process who has index m
+
+    p=-1
+    do i=1,xmpi_size
+       !    if (mg .ge. s%is(i) .and. mg .le. s%is(i) + s%lm(i) .and. &
+       !         ng .ge. s%js(i) .and. ng .le. s%js(i) + s%ln(i)) then
+       ! Change suggested by Jim Gunson:
+       if (mg .ge. s%is(i) .and. mg .lt. s%is(i) + s%lm(i) .and. &
+            ng .ge. s%js(i) .and. ng .lt. s%js(i) + s%ln(i)) then
+          m = mg - s%is(i) + 1  ! m and n now the indices for process p
+          n = ng - s%js(i) + 1
+          p = i-1
+          exit
+       endif
+    enddo
+    if (p .lt. 0) then
+       call writelog('els','','Catastrophic error in makeintpvector')
+       call writelog('els','(a,i0,i0)','Cannot find processor for indexes',mg,ng)
+       call halt_program
+    endif
+
+
+    if (xmpi_rank .eq. p) then
 #endif
-     do j=1,numvars
-        call indextos(s,j,t)
-        value = -999   ! default
-        select case (t%name)
-        case(mnem_thetamean)
-        !   value = 270-((s%thetamean(m,n)+s%alfaz(m,n))*(180/par%px))  ! iwwvv thetamean: is that
-           value = 270-((s%thetamean(m,n))*(180/par%px))  ! iwwvv thetamean: is that
-           ! different on each
-           ! process?
-        case(mnem_Fx) 
-           value = s%Fx(m,n)*cos(s%alfaz(m,n))-s%Fy(m,n)*sin(s%alfaz(m,n))
-        case(mnem_Fy)
-           value = s%Fx(m,n)*sin(s%alfaz(m,n))+s%Fy(m,n)*cos(s%alfaz(m,n))
-        case(mnem_u)
-           value = s%u(m,n)*cos(s%alfaz(m,n))-s%v(m,n)*sin(s%alfaz(m,n))
-        case(mnem_gwu)
-           value = s%gwu(m,n)*cos(s%alfaz(m,n))-s%gwv(m,n)*sin(s%alfaz(m,n))
-        case(mnem_v)
-           value = s%u(m,n)*sin(s%alfaz(m,n))+s%v(m,n)*cos(s%alfaz(m,n))
-        case(mnem_gwv)
-           value = s%gwu(m,n)*sin(s%alfaz(m,n))+s%gwv(m,n)*cos(s%alfaz(m,n))
-        case(mnem_ue)
-           value = s%ue(m,n)*cos(s%alfaz(m,n))-s%ve(m,n)*sin(s%alfaz(m,n))
-        case(mnem_ve)
-           value = s%ue(m,n)*sin(s%alfaz(m,n))+s%ve(m,n)*cos(s%alfaz(m,n))
-        case(mnem_uwf)
-           value = s%uwf(m,n)*cos(s%alfaz(m,n))-s%vwf(m,n)*sin(s%alfaz(m,n))
-        case(mnem_vwf)
-           value = s%uwf(m,n)*sin(s%alfaz(m,n))+s%vwf(m,n)*cos(s%alfaz(m,n))
-        case(mnem_ui)
-           value = s%ui(m,n)*cos(s%alfaz(m,n))-s%vi(m,n)*sin(s%alfaz(m,n))
-        case(mnem_vi)
-           value = s%ui(m,n)*sin(s%alfaz(m,n))+s%vi(m,n)*cos(s%alfaz(m,n))
-        case(mnem_umean)
-           value = s%umean(m,n)*cos(s%alfaz(m,n))-s%vmean(m,n)*sin(s%alfaz(m,n))
-        case(mnem_vmean)
-           value = s%umean(m,n)*sin(s%alfaz(m,n))+s%vmean(m,n)*cos(s%alfaz(m,n))
-        case default
-           select case(t%rank)
-           case (0)
-              if (t%type .eq.'i') then
-                 value = dble(t%i0)
-              else
-                 value = t%r0
-              endif
-           case(1)
-              if (t%type .eq. 'r') then
-                 select case(t%name)
- !                case (mnem_yz,mnem_yv)
- !                   value = t%r1(n)
- !                case (mnem_xz,mnem_xu)
- !                   value = t%r1(m)
-                 end select
-              endif
-           case (2)
-              if (t%type .eq. 'i') then
-                 if (m .le. size(t%i2,1) .and. n .le. size(t%i2,2)) then
-                    value = dble(t%i2(m,n))
-                 endif
-              else
-                 if (m .le. size(t%r2,1) .and. n .le. size(t%r2,2)) then
-                    value = t%r2(m,n)
-                 endif
-              endif
-           end select
-        end select
-        intpvector(j) = value
-     enddo
+       do j=1,numvars
+          call indextos(s,j,t)
+          value = -999   ! default
+          select case (t%name)
+          case(mnem_thetamean)
+             !   value = 270-((s%thetamean(m,n)+s%alfaz(m,n))*(180/par%px))  ! iwwvv thetamean: is that
+             value = 270-((s%thetamean(m,n))*(180/par%px))  ! iwwvv thetamean: is that
+             ! different on each
+             ! process?
+          case(mnem_Fx) 
+             value = s%Fx(m,n)*cos(s%alfaz(m,n))-s%Fy(m,n)*sin(s%alfaz(m,n))
+          case(mnem_Fy)
+             value = s%Fx(m,n)*sin(s%alfaz(m,n))+s%Fy(m,n)*cos(s%alfaz(m,n))
+          case(mnem_u)
+             value = s%u(m,n)*cos(s%alfaz(m,n))-s%v(m,n)*sin(s%alfaz(m,n))
+          case(mnem_gwu)
+             value = s%gwu(m,n)*cos(s%alfaz(m,n))-s%gwv(m,n)*sin(s%alfaz(m,n))
+          case(mnem_v)
+             value = s%u(m,n)*sin(s%alfaz(m,n))+s%v(m,n)*cos(s%alfaz(m,n))
+          case(mnem_gwv)
+             value = s%gwu(m,n)*sin(s%alfaz(m,n))+s%gwv(m,n)*cos(s%alfaz(m,n))
+          case(mnem_ue)
+             value = s%ue(m,n)*cos(s%alfaz(m,n))-s%ve(m,n)*sin(s%alfaz(m,n))
+          case(mnem_ve)
+             value = s%ue(m,n)*sin(s%alfaz(m,n))+s%ve(m,n)*cos(s%alfaz(m,n))
+          case(mnem_uwf)
+             value = s%uwf(m,n)*cos(s%alfaz(m,n))-s%vwf(m,n)*sin(s%alfaz(m,n))
+          case(mnem_vwf)
+             value = s%uwf(m,n)*sin(s%alfaz(m,n))+s%vwf(m,n)*cos(s%alfaz(m,n))
+          case(mnem_ui)
+             value = s%ui(m,n)*cos(s%alfaz(m,n))-s%vi(m,n)*sin(s%alfaz(m,n))
+          case(mnem_vi)
+             value = s%ui(m,n)*sin(s%alfaz(m,n))+s%vi(m,n)*cos(s%alfaz(m,n))
+          case(mnem_umean)
+             value = s%umean(m,n)*cos(s%alfaz(m,n))-s%vmean(m,n)*sin(s%alfaz(m,n))
+          case(mnem_vmean)
+             value = s%umean(m,n)*sin(s%alfaz(m,n))+s%vmean(m,n)*cos(s%alfaz(m,n))
+          case default
+             select case(t%rank)
+             case (0)
+                if (t%type .eq.'i') then
+                   value = dble(t%i0)
+                else
+                   value = t%r0
+                endif
+             case(1)
+                if (t%type .eq. 'r') then
+                   select case(t%name)
+                      !                case (mnem_yz,mnem_yv)
+                      !                   value = t%r1(n)
+                      !                case (mnem_xz,mnem_xu)
+                      !                   value = t%r1(m)
+                   end select
+                endif
+             case (2)
+                if (t%type .eq. 'i') then
+                   if (m .le. size(t%i2,1) .and. n .le. size(t%i2,2)) then
+                      value = dble(t%i2(m,n))
+                   endif
+                else
+                   if (m .le. size(t%r2,1) .and. n .le. size(t%r2,2)) then
+                      value = t%r2(m,n)
+                   endif
+                endif
+             end select
+          end select
+          intpvector(j) = value
+       enddo
 #ifdef USEMPI
-  endif
-  !
-  ! process p has now the intptvector (hopefully!)
-  ! send it now to the master with a simpel send,
-  ! master will receive this
-  ! This is not necessary if master has everything
-  !
-  if (p .ne. xmpi_master) then
-     if (xmpi_rank .eq. p) then
-        call MPI_Send(intpvector, numvars, MPI_DOUBLE_PRECISION, xmpi_master, &
-             311, xmpi_comm,                    ierr)
-     endif
-     if (xmaster) then
-        call MPI_Recv(intpvector, numvars, MPI_DOUBLE_PRECISION, p, &
-             311, xmpi_comm, MPI_STATUS_IGNORE, ierr)
-     endif
-     ! this barrier is really needed:
-     call xmpi_barrier
-  endif
+    endif
+    !
+    ! process p has now the intptvector (hopefully!)
+    ! send it now to the master with a simpel send,
+    ! master will receive this
+    ! This is not necessary if master has everything
+    !
+    if (p .ne. xmpi_master) then
+       if (xmpi_rank .eq. p) then
+          call MPI_Send(intpvector, numvars, MPI_DOUBLE_PRECISION, xmpi_master, &
+               311, xmpi_comm,                    ierr)
+       endif
+       if (xmaster) then
+          call MPI_Recv(intpvector, numvars, MPI_DOUBLE_PRECISION, p, &
+               311, xmpi_comm, MPI_STATUS_IGNORE, ierr)
+       endif
+       ! this barrier is really needed:
+       call xmpi_barrier
+    endif
 #endif
-end subroutine makeintpvector
+  end subroutine makeintpvector
 
 
 
 
 
 
-subroutine outarray_r0(index,x)
-  implicit none
-  integer                       :: index
-  real*8,intent(in)             :: x
-  integer                       :: unit,reclen,jtg
-  
-  if(xmaster) then
-     inquire(iolength=reclen) x
-     call checkfile(index,unit,reclen,jtg)
-     
-     write(unit,rec=jtg) x
-  endif
-  
-end subroutine outarray_r0
+  subroutine outarray_r0(index,x)
+    implicit none
+    integer                       :: index
+    real*8,intent(in)             :: x
+    integer                       :: unit,reclen,jtg
 
-subroutine outarray_r1(index,x)
-  implicit none
-  integer                       :: index
-  real*8, dimension(:), pointer :: x
-  integer                       :: unit,reclen,jtg
-  character*20                  :: mnem
-  real*8                        :: pi
-  
-  pi = 4*atan(1.0d0)
-  
-  if(xmaster) then
-     inquire(iolength=reclen) x
-     call checkfile(index,unit,reclen,jtg)
-  endif
-  
-  mnem = mnemonics(outnumbers(index))
-  ! wwvv todo theta0 is scalar
-  if (mnem .eq. 'theta' .or. &
-       mnem .eq. 'theta0' ) then
-     write(unit,rec=jtg) 270-(x*(180/pi))
-  else
-     write(unit,rec=jtg) x
-  endif
-  
-end subroutine outarray_r1
+    if(xmaster) then
+       inquire(iolength=reclen) x
+       call checkfile(index,unit,reclen,jtg)
 
-subroutine outarray_r2(s,index,x)
-  use spaceparams
-  implicit none
-  type(spacepars),intent(in)    :: s
-  integer                       :: index
-  real*8, dimension(:,:), pointer :: x
-  integer                       :: unit,reclen,jtg
-  character*20                  :: mnem
-  real*8                        :: pi
-  
-  pi = 4*atan(1.0d0)
-  
-  inquire(iolength=reclen) x
-  call checkfile(index,unit,reclen,jtg)
-  
-  mnem = mnemonics(outnumbers(index))
-  
-  select case(mnem)
-  case(mnem_thetamean)
-     write(unit,rec=jtg)270-((x)*(180/pi))
-  case(mnem_Fx)
-     write(unit,rec=jtg)x*cos(s%alfaz)-s%Fy*sin(s%alfaz)
-  case(mnem_Fy)
-     write(unit,rec=jtg)s%Fx*sin(s%alfaz)+x*cos(s%alfaz)
-  case(mnem_u)
-     write(unit,rec=jtg)x*cos(s%alfaz)-s%v*sin(s%alfaz)
-  case(mnem_gwu)
-     write(unit,rec=jtg)x*cos(s%alfaz)-s%gwv*sin(s%alfaz)
-  case(mnem_v)
-     write(unit,rec=jtg)s%u*sin(s%alfaz)+x*cos(s%alfaz)
-  case(mnem_gwv)
-     write(unit,rec=jtg)s%gwu*sin(s%alfaz)+x*cos(s%alfaz)
-  case(mnem_ue)
-     write(unit,rec=jtg)x*cos(s%alfaz)-s%ve*sin(s%alfaz)
-  case(mnem_ve)
-     write(unit,rec=jtg)s%ue*sin(s%alfaz)+x*cos(s%alfaz)
-  case(mnem_ui)
-     write(unit,rec=jtg)x*cos(s%alfaz)-s%vi*sin(s%alfaz)
-  case(mnem_vi)
-     write(unit,rec=jtg)s%ui*sin(s%alfaz)+x*cos(s%alfaz)
-  case(mnem_umean)
-     write(unit,rec=jtg)x*cos(s%alfaz)-s%vmean*sin(s%alfaz)
-  case(mnem_vmean)
-     write(unit,rec=jtg)s%umean*sin(s%alfaz)+x*cos(s%alfaz)
-  case(mnem_uwf)
-     write(unit,rec=jtg)x*cos(s%alfaz)-s%vwf*sin(s%alfaz)
-  case(mnem_vwf)
-     write(unit,rec=jtg)s%uwf*sin(s%alfaz)+x*cos(s%alfaz)
-  case(mnem_Sutot)
-     write(unit,rec=jtg)(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*cos(s%alfaz) - (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*sin(s%alfaz)
-  case(mnem_Svtot)
-     write(unit,rec=jtg)(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*sin(s%alfaz) + (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*cos(s%alfaz)
-  case(mnem_cctot)
-     write(unit,rec=jtg)sum(s%ccg,DIM=3)
-  case default
-     write(unit,rec=jtg) x
-  end select
-  
-end subroutine outarray_r2
+       write(unit,rec=jtg) x
+    endif
 
-subroutine outarray_r3(s,index,x)
-  use spaceparams
-  implicit none
-  type(spacepars),intent(in)    :: s
-  integer index
-  real*8, dimension(:,:,:), pointer :: x
-  integer                       :: unit,reclen,jtg
-  character*20                  :: mnem
-  real*8                        :: pi
-  
-  pi=4*atan(1.0d0)
-  
-  inquire(iolength=reclen) x
-  call checkfile(index,unit,reclen,jtg)
-  
-  mnem = mnemonics(outnumbers(index))
-!!
-!! Dano: need to find elegant way to multiply 3d array woth 2d alfaz
-!  select case(mnem)
-!  case(mnem_cgx)
-!     write(unit,rec=jtg)x*cos(s%alfaz)-s%cgy*sin(s%alfaz)
-!  case(mnem_cgy)
-!     write(unit,rec=jtg)s%cgx*sin(s%alfaz)+x*cos(s%alfaz)
-!  case(mnem_cx)
-!     write(unit,rec=jtg)x*cos(s%alfaz)-s%cy*sin(s%alfaz)
-!  case(mnem_cy)
-!     write(unit,rec=jtg)s%cx*sin(s%alfaz)+x*cos(s%alfaz)
-!  case(mnem_thet)
-!     write(unit,rec=jtg)270-((s%thet+s%alfaz)*(180/pi))
-!  case(mnem_Susg)
-!     write(unit,rec=jtg)x*cos(s%alfaz)-s%Svsg*sin(s%alfaz)
-!  case(mnem_Svsg)
-!     write(unit,rec=jtg)s%Susg*sin(s%alfaz)+x*cos(s%alfaz)
-!  case(mnem_Subg)
-!     write(unit,rec=jtg)x*cos(s%alfaz)-s%Svbg*sin(s%alfaz)
-!  case(mnem_Svbg)
-!     write(unit,rec=jtg)s%Subg*sin(s%alfaz)+x*cos(s%alfaz)
-!  case default
-     write(unit,rec=jtg) x
-!  end select
-end subroutine outarray_r3
+  end subroutine outarray_r0
 
-subroutine outarray_r4(index,x)
-  implicit none
-  integer index
-  real*8, dimension(:,:,:,:), pointer :: x
-  integer                       :: unit,reclen,jtg
-  
-  inquire(iolength=reclen) x
-  call checkfile(index,unit,reclen,jtg)
-  write(unit,rec=jtg) x
-end subroutine outarray_r4
+  subroutine outarray_r1(index,x)
+    implicit none
+    integer                       :: index
+    real*8, dimension(:), pointer :: x
+    integer                       :: unit,reclen,jtg
+    character*20                  :: mnem
+    real*8                        :: pi
 
-subroutine outarray_i0(index,x)
-  implicit none
-  integer                       :: index
-  integer,intent(in)            :: x
-  integer                       :: unit,reclen,jtg
-  
-  inquire(iolength=reclen) x
-  call checkfile(index,unit,reclen,jtg)
-  
-  write(unit,rec=jtg) x
-  
-end subroutine outarray_i0
+    pi = 4*atan(1.0d0)
 
-subroutine outarray_i1(index,x)
-  implicit none
-  integer index
-  integer, dimension(:), pointer :: x
-  integer                       :: unit,reclen,jtg
-  
-  inquire(iolength=reclen) x
-  call checkfile(index,unit,reclen,jtg)
-  write(unit,rec=jtg) x
-end subroutine outarray_i1
+    if(xmaster) then
+       inquire(iolength=reclen) x
+       call checkfile(index,unit,reclen,jtg)
+    endif
 
-subroutine outarray_i2(index,x)
-  implicit none
-  integer index
-  integer, dimension(:,:), pointer :: x
-  integer                       :: unit,reclen,jtg
-  
-  inquire(iolength=reclen) x
-  call checkfile(index,unit,reclen,jtg)
-  write(unit,rec=jtg) x
-end subroutine outarray_i2
+    mnem = mnemonics(outnumbers(index))
+    ! wwvv todo theta0 is scalar
+    if (mnem .eq. 'theta' .or. &
+         mnem .eq. 'theta0' ) then
+       write(unit,rec=jtg) 270-(x*(180/pi))
+    else
+       write(unit,rec=jtg) x
+    endif
 
-subroutine outarray_i3(index,x)
-  implicit none
-  integer index
-  integer, dimension(:,:,:), pointer :: x
-  integer                       :: unit,reclen,jtg
-  
-  inquire(iolength=reclen) x
-  call checkfile(index,unit,reclen,jtg)
-  write(unit,rec=jtg) x
-end subroutine outarray_i3
+  end subroutine outarray_r1
 
-subroutine outarray_i4(index,x)
-  implicit none
-  integer index
-  integer, dimension(:,:,:,:), pointer :: x
-  integer                       :: unit,reclen,jtg
-  
-  inquire(iolength=reclen) x
-  call checkfile(index,unit,reclen,jtg)
-  write(unit,rec=jtg) x
-end subroutine outarray_i4
+  subroutine outarray_r2(s,index,x)
+    use spaceparams
+    implicit none
+    type(spacepars),intent(in)    :: s
+    integer                       :: index
+    real*8, dimension(:,:), pointer :: x
+    integer                       :: unit,reclen,jtg
+    character*20                  :: mnem
+    real*8                        :: pi
 
-subroutine checkfile(index,unit,reclen,jtg)
-  implicit none
-  integer, intent(in)  :: index,reclen
-  integer, intent(out) :: unit,jtg
-  logical              :: lopen
-  character(len=1000)  :: filename
-  
-  unit = indextoglobalunit(index)
-  inquire(unit=unit, opened=lopen)
-  if ( .not. lopen ) then
-     filename = trim(mnemonics(outnumbers(index)))//'.dat'
-     open(unit, file=trim(filename),form='unformatted',&
-          access='direct',recl=reclen)
-  endif
-  inquire(unit=unit,nextrec=jtg)
-end subroutine checkfile
+    pi = 4*atan(1.0d0)
 
-integer function indextoglobalunit(index)
-  implicit none
-  integer, intent(in) :: index
-  indextoglobalunit = 100+index
-end function indextoglobalunit
+    inquire(iolength=reclen) x
+    call checkfile(index,unit,reclen,jtg)
 
-integer function indextomeanunit(index)
-  implicit none
-  integer, intent(in) :: index
-  indextomeanunit = 100+numvars+index
-end function indextomeanunit
+    mnem = mnemonics(outnumbers(index))
 
-integer function indextopointsunit(index)
-  implicit none
-  integer, intent(in) :: index
-  indextopointsunit = 100+20*numvars+index
-end function indextopointsunit
+    select case(mnem)
+    case(mnem_thetamean)
+       write(unit,rec=jtg)270-((x)*(180/pi))
+    case(mnem_Fx)
+       write(unit,rec=jtg)x*cos(s%alfaz)-s%Fy*sin(s%alfaz)
+    case(mnem_Fy)
+       write(unit,rec=jtg)s%Fx*sin(s%alfaz)+x*cos(s%alfaz)
+    case(mnem_u)
+       write(unit,rec=jtg)x*cos(s%alfaz)-s%v*sin(s%alfaz)
+    case(mnem_gwu)
+       write(unit,rec=jtg)x*cos(s%alfaz)-s%gwv*sin(s%alfaz)
+    case(mnem_v)
+       write(unit,rec=jtg)s%u*sin(s%alfaz)+x*cos(s%alfaz)
+    case(mnem_gwv)
+       write(unit,rec=jtg)s%gwu*sin(s%alfaz)+x*cos(s%alfaz)
+    case(mnem_ue)
+       write(unit,rec=jtg)x*cos(s%alfaz)-s%ve*sin(s%alfaz)
+    case(mnem_ve)
+       write(unit,rec=jtg)s%ue*sin(s%alfaz)+x*cos(s%alfaz)
+    case(mnem_ui)
+       write(unit,rec=jtg)x*cos(s%alfaz)-s%vi*sin(s%alfaz)
+    case(mnem_vi)
+       write(unit,rec=jtg)s%ui*sin(s%alfaz)+x*cos(s%alfaz)
+    case(mnem_umean)
+       write(unit,rec=jtg)x*cos(s%alfaz)-s%vmean*sin(s%alfaz)
+    case(mnem_vmean)
+       write(unit,rec=jtg)s%umean*sin(s%alfaz)+x*cos(s%alfaz)
+    case(mnem_uwf)
+       write(unit,rec=jtg)x*cos(s%alfaz)-s%vwf*sin(s%alfaz)
+    case(mnem_vwf)
+       write(unit,rec=jtg)s%uwf*sin(s%alfaz)+x*cos(s%alfaz)
+    case(mnem_Sutot)
+       write(unit,rec=jtg)(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*cos(s%alfaz) - (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*sin(s%alfaz)
+    case(mnem_Svtot)
+       write(unit,rec=jtg)(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*sin(s%alfaz) + (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*cos(s%alfaz)
+    case(mnem_cctot)
+       write(unit,rec=jtg)sum(s%ccg,DIM=3)
+    case default
+       write(unit,rec=jtg) x
+    end select
 
-integer function indextocrossunit(index)
-  implicit none
-  integer, intent(in) :: index
-  indextocrossunit = 100+30*numvars+index
-end function indextocrossunit
+  end subroutine outarray_r2
 
-integer function indextominunit(index)
-  implicit none
-  integer, intent(in) :: index
-  indextominunit = 100+40*numvars+index
-end function indextominunit
+  subroutine outarray_r3(s,index,x)
+    use spaceparams
+    implicit none
+    type(spacepars),intent(in)    :: s
+    integer index
+    real*8, dimension(:,:,:), pointer :: x
+    integer                       :: unit,reclen,jtg
+    character*20                  :: mnem
+    real*8                        :: pi
 
-integer function indextomaxunit(index)
-  implicit none
-  integer, intent(in) :: index
-  indextomaxunit = 100+50*numvars+index
-end function indextomaxunit
+    pi=4*atan(1.0d0)
 
-integer function indextovarunit(index)
-  implicit none
-  integer, intent(in) :: index
-  indextovarunit = 100+60*numvars+index
-end function indextovarunit
+    inquire(iolength=reclen) x
+    call checkfile(index,unit,reclen,jtg)
 
-integer function indextodrifterunit(index)
-  implicit none
-  integer, intent(in) :: index
-  indextodrifterunit = 700+index
-end function indextodrifterunit
+    mnem = mnemonics(outnumbers(index))
+    !!
+    !! Dano: need to find elegant way to multiply 3d array woth 2d alfaz
+    !  select case(mnem)
+    !  case(mnem_cgx)
+    !     write(unit,rec=jtg)x*cos(s%alfaz)-s%cgy*sin(s%alfaz)
+    !  case(mnem_cgy)
+    !     write(unit,rec=jtg)s%cgx*sin(s%alfaz)+x*cos(s%alfaz)
+    !  case(mnem_cx)
+    !     write(unit,rec=jtg)x*cos(s%alfaz)-s%cy*sin(s%alfaz)
+    !  case(mnem_cy)
+    !     write(unit,rec=jtg)s%cx*sin(s%alfaz)+x*cos(s%alfaz)
+    !  case(mnem_thet)
+    !     write(unit,rec=jtg)270-((s%thet+s%alfaz)*(180/pi))
+    !  case(mnem_Susg)
+    !     write(unit,rec=jtg)x*cos(s%alfaz)-s%Svsg*sin(s%alfaz)
+    !  case(mnem_Svsg)
+    !     write(unit,rec=jtg)s%Susg*sin(s%alfaz)+x*cos(s%alfaz)
+    !  case(mnem_Subg)
+    !     write(unit,rec=jtg)x*cos(s%alfaz)-s%Svbg*sin(s%alfaz)
+    !  case(mnem_Svbg)
+    !     write(unit,rec=jtg)s%Subg*sin(s%alfaz)+x*cos(s%alfaz)
+    !  case default
+    write(unit,rec=jtg) x
+    !  end select
+  end subroutine outarray_r3
+
+  subroutine outarray_r4(index,x)
+    implicit none
+    integer index
+    real*8, dimension(:,:,:,:), pointer :: x
+    integer                       :: unit,reclen,jtg
+
+    inquire(iolength=reclen) x
+    call checkfile(index,unit,reclen,jtg)
+    write(unit,rec=jtg) x
+  end subroutine outarray_r4
+
+  subroutine outarray_i0(index,x)
+    implicit none
+    integer                       :: index
+    integer,intent(in)            :: x
+    integer                       :: unit,reclen,jtg
+
+    inquire(iolength=reclen) x
+    call checkfile(index,unit,reclen,jtg)
+
+    write(unit,rec=jtg) x
+
+  end subroutine outarray_i0
+
+  subroutine outarray_i1(index,x)
+    implicit none
+    integer index
+    integer, dimension(:), pointer :: x
+    integer                       :: unit,reclen,jtg
+
+    inquire(iolength=reclen) x
+    call checkfile(index,unit,reclen,jtg)
+    write(unit,rec=jtg) x
+  end subroutine outarray_i1
+
+  subroutine outarray_i2(index,x)
+    implicit none
+    integer index
+    integer, dimension(:,:), pointer :: x
+    integer                       :: unit,reclen,jtg
+
+    inquire(iolength=reclen) x
+    call checkfile(index,unit,reclen,jtg)
+    write(unit,rec=jtg) x
+  end subroutine outarray_i2
+
+  subroutine outarray_i3(index,x)
+    implicit none
+    integer index
+    integer, dimension(:,:,:), pointer :: x
+    integer                       :: unit,reclen,jtg
+
+    inquire(iolength=reclen) x
+    call checkfile(index,unit,reclen,jtg)
+    write(unit,rec=jtg) x
+  end subroutine outarray_i3
+
+  subroutine outarray_i4(index,x)
+    implicit none
+    integer index
+    integer, dimension(:,:,:,:), pointer :: x
+    integer                       :: unit,reclen,jtg
+
+    inquire(iolength=reclen) x
+    call checkfile(index,unit,reclen,jtg)
+    write(unit,rec=jtg) x
+  end subroutine outarray_i4
+
+  subroutine checkfile(index,unit,reclen,jtg)
+    implicit none
+    integer, intent(in)  :: index,reclen
+    integer, intent(out) :: unit,jtg
+    logical              :: lopen
+    character(len=1000)  :: filename
+
+    unit = indextoglobalunit(index)
+    inquire(unit=unit, opened=lopen)
+    if ( .not. lopen ) then
+       filename = trim(mnemonics(outnumbers(index)))//'.dat'
+       open(unit, file=trim(filename),form='unformatted',&
+            access='direct',recl=reclen)
+    endif
+    inquire(unit=unit,nextrec=jtg)
+  end subroutine checkfile
+
+  integer function indextoglobalunit(index)
+    implicit none
+    integer, intent(in) :: index
+    indextoglobalunit = 100+index
+  end function indextoglobalunit
+
+  integer function indextomeanunit(index)
+    implicit none
+    integer, intent(in) :: index
+    indextomeanunit = 100+numvars+index
+  end function indextomeanunit
+
+  integer function indextopointsunit(index)
+    implicit none
+    integer, intent(in) :: index
+    indextopointsunit = 100+20*numvars+index
+  end function indextopointsunit
+
+  integer function indextocrossunit(index)
+    implicit none
+    integer, intent(in) :: index
+    indextocrossunit = 100+30*numvars+index
+  end function indextocrossunit
+
+  integer function indextominunit(index)
+    implicit none
+    integer, intent(in) :: index
+    indextominunit = 100+40*numvars+index
+  end function indextominunit
+
+  integer function indextomaxunit(index)
+    implicit none
+    integer, intent(in) :: index
+    indextomaxunit = 100+50*numvars+index
+  end function indextomaxunit
+
+  integer function indextovarunit(index)
+    implicit none
+    integer, intent(in) :: index
+    indextovarunit = 100+60*numvars+index
+  end function indextovarunit
+
+  integer function indextodrifterunit(index)
+    implicit none
+    integer, intent(in) :: index
+    indextodrifterunit = 700+index
+  end function indextodrifterunit
 
 end module fortoutput_module

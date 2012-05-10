@@ -102,9 +102,9 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libxbeach_la_LIBADD =
 am__libxbeach_la_SOURCES_DIST = s.ind s.inp xmpi.F90 general_mpi.F90 \
 	typesandkinds.F90 logging.F90 filefunctions.F90 readkey.F90 \
-	mnemonic.F90 interp.F90 math_tools.F90 general_fileio.F90 \
-	params.F90 getkey.F90 spaceparams.F90 wave_functions.F90 \
-	waveparams.F90 waveparamsnew.F90 constants.F90 roelvink.F90 \
+	mnemonic.F90 interp.F90 math_tools.F90 params.F90 getkey.F90 \
+	spaceparams.F90 wave_functions.F90 waveparams.F90 \
+	waveparamsnew.F90 constants.F90 roelvink.F90 \
 	wave_stationary.F90 wave_instationary.F90 wave_timestep.F90 \
 	boundaryconditions.F90 morphevolution.F90 beachwizard.F90 \
 	groundwater.F90 drifters.F90 readtide.F90 readwind.F90 \
@@ -118,11 +118,11 @@ am_libxbeach_la_OBJECTS = libxbeach_la-xmpi.lo \
 	libxbeach_la-logging.lo libxbeach_la-filefunctions.lo \
 	libxbeach_la-readkey.lo libxbeach_la-mnemonic.lo \
 	libxbeach_la-interp.lo libxbeach_la-math_tools.lo \
-	libxbeach_la-general_fileio.lo libxbeach_la-params.lo \
-	libxbeach_la-getkey.lo libxbeach_la-spaceparams.lo \
-	libxbeach_la-wave_functions.lo libxbeach_la-waveparams.lo \
-	libxbeach_la-waveparamsnew.lo libxbeach_la-constants.lo \
-	libxbeach_la-roelvink.lo libxbeach_la-wave_stationary.lo \
+	libxbeach_la-params.lo libxbeach_la-getkey.lo \
+	libxbeach_la-spaceparams.lo libxbeach_la-wave_functions.lo \
+	libxbeach_la-waveparams.lo libxbeach_la-waveparamsnew.lo \
+	libxbeach_la-constants.lo libxbeach_la-roelvink.lo \
+	libxbeach_la-wave_stationary.lo \
 	libxbeach_la-wave_instationary.lo \
 	libxbeach_la-wave_timestep.lo \
 	libxbeach_la-boundaryconditions.lo \
@@ -302,7 +302,6 @@ libxbeach_la_SOURCES = \
 	mnemonic.F90 \
 	interp.F90 \
 	math_tools.F90 \
-	general_fileio.F90 \
 	params.F90 \
 	getkey.F90 \
 	spaceparams.F90 \
@@ -474,9 +473,6 @@ libxbeach_la-interp.lo: interp.F90
 
 libxbeach_la-math_tools.lo: math_tools.F90
 	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-math_tools.lo `test -f 'math_tools.F90' || echo '$(srcdir)/'`math_tools.F90
-
-libxbeach_la-general_fileio.lo: general_fileio.F90
-	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-general_fileio.lo `test -f 'general_fileio.F90' || echo '$(srcdir)/'`general_fileio.F90
 
 libxbeach_la-params.lo: params.F90
 	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-params.lo `test -f 'params.F90' || echo '$(srcdir)/'`params.F90

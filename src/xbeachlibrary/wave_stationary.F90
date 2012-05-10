@@ -33,7 +33,7 @@ contains
     logical                                     :: stopiterate
 
 #ifdef USEMPI
-! some variables used for mpi only
+    ! some variables used for mpi only
     real*8                      :: imaxr
     integer                     :: iimpi
 #endif
@@ -51,12 +51,12 @@ contains
        allocate(thetaradvec(nx+1,ny+1,ntheta))
        allocate(dd        (nx+1,ny+1,ntheta))
        allocate(drr       (nx+1,ny+1,ntheta))
-       
+
        allocate(cgxu        (nx+1,ny+1,ntheta))
        allocate(cgyv        (nx+1,ny+1,ntheta))
        allocate(cxu         (nx+1,ny+1,ntheta))
        allocate(cyv         (nx+1,ny+1,ntheta))
-       
+
        allocate(dhdx(nx+1,ny+1))
        allocate(dhdy(nx+1,ny+1))
        allocate(dudx(nx+1,ny+1))
@@ -181,7 +181,7 @@ contains
     END DO
     ! Dano Limit unrealistic refraction speed to 1/2 pi per wave period
     ctheta=sign(1.d0,ctheta)*min(abs(ctheta),.5*par%px/par%Trep)
-    
+
     km = k
 
 #ifdef USEMPI
@@ -234,7 +234,7 @@ contains
              Hprev=H(i,:)
              ! WCI
              if (par%wci==1) then
-			    ! Dano NEED TO CHECK THIS FOR CURVI
+                ! Dano NEED TO CHECK THIS FOR CURVI
                 kmx = km(i-1:i+1,:)*cos(thetamean(i-1:i+1,:)-alfaz(i-1:i+1,:))
                 kmy = km(i-1:i+1,:)*sin(thetamean(i-1:i+1,:)-alfaz(i-1:i+1,:))
                 wm(i-1:i+1,:) = sigm(i-1:i+1,:)+kmx*wcifacu(i-1:i+1,:)&
@@ -300,13 +300,13 @@ contains
              !
              if  (i>2) then
                 call advecxho(ee(i-2:i+1,:,:),cgx(i-2:i+1,:,:),xadvec(i-2:i+1,:,:),    &
-                           3,ny,ntheta,dnu(i-2:i+1,:),dsu(i-2:i+1,:),dsdnzi(i-2:i+1,:),par%dt,'upwind_2')
+                     3,ny,ntheta,dnu(i-2:i+1,:),dsu(i-2:i+1,:),dsdnzi(i-2:i+1,:),par%dt,'upwind_2')
              else
                 call advecxho(ee(i-1:i+1,:,:),cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),    &
-                           2,ny,ntheta,dnu(i-1:i+1,:),dsu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_1')
+                     2,ny,ntheta,dnu(i-1:i+1,:),dsu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_1')
              endif
              call advecyho(ee(i,:,:),cgy(i,:,:),yadvec(i,:,:),                                  &
-                           0,ny,ntheta,dsv(i,:),dnv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
+                  0,ny,ntheta,dsv(i,:),dnv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
              !call advecx(ee(i-1:i+1,:,:)*cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),2,ny,ntheta,dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:))
              !call advecy(ee(i,:,:)*cgy(i,:,:),yadvec(i,:,:),0,ny,ntheta,dsv(i,:),dsdnzi(i,:))
              !call advectheta(ee(i,:,:)*ctheta(i,:,:),thetaadvec(i,:,:),0,ny,ntheta,dtheta)
@@ -347,9 +347,9 @@ contains
              ! Dissipation by bed friction
              uorb(i,:)=par%px*H(i,:)/par%Trep/sinh(min(max(k(i,:),0.01d0)*max(hh(i,:),par%delta*H(i,:)),10.0d0))
              Df(i,:)=0.6666666d0/par%px*par%rho*par%fw*uorb(i,:)**3
-			 where (hh>par%fwcutoff)
-					Df = 0.d0
-			 end where
+             where (hh>par%fwcutoff)
+                Df = 0.d0
+             end where
 
              !
              ! Distribution of dissipation over directions and frequencies
@@ -371,14 +371,14 @@ contains
              ! calculate roller energy balance
              !
              call advecxho(rr(i-1:i+1,:,:),cx(i-1:i+1,:,:),xradvec(i-1:i+1,:,:),   &
-                           2,ny,ntheta,dnu(i-1:i+1,:),dsu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_1')
+                  2,ny,ntheta,dnu(i-1:i+1,:),dsu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_1')
              call advecyho(rr(i,:,:),cy(i,:,:),yradvec(i,:,:),                                 &
-                           0,ny,ntheta,dsv(i,:),dnv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
+                  0,ny,ntheta,dsv(i,:),dnv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
              !call advecx(rr(i-1:i+1,:,:)*cx(i-1:i+1,:,:),xradvec(i-1:i+1,:,:),2,ny,ntheta,dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:)) !Robert & Jaap
              !call advecy(rr(i,:,:)*cy(i,:,:),yradvec(i,:,:),0,ny,ntheta,dsv(i,:),dsdnzi(i,:))                   !Robert & Jaap
              !call advectheta(rr(i,:,:)*ctheta(i,:,:),thetaradvec(i,:,:),0,ny,ntheta,dtheta)   !Robert & Jaap
              call advecthetaho(rr(i,:,:),ctheta(i,:,:),thetaradvec(i,:,:),0,ny,ntheta,dtheta,par%scheme)
-             
+
              rr(i,:,:)=rr(i,:,:)-dtw*(xradvec(i,:,:) &
                   +yradvec(i,:,:) &
                   +thetaradvec(i,:,:))
@@ -500,51 +500,51 @@ contains
     !
     ! Radiation stresses and forcing terms
     !
-n=cg/c
-Sxx=(n*sum((1.d0+costh**2.d0)*ee,3)-.5d0*sum(ee,3))*dtheta
-Syy=(n*sum((1.d0+sinth**2.d0)*ee,3)-.5d0*sum(ee,3))*dtheta
-Sxy=n*sum(sinth*costh*ee,3)*dtheta
+    n=cg/c
+    Sxx=(n*sum((1.d0+costh**2.d0)*ee,3)-.5d0*sum(ee,3))*dtheta
+    Syy=(n*sum((1.d0+sinth**2.d0)*ee,3)-.5d0*sum(ee,3))*dtheta
+    Sxy=n*sum(sinth*costh*ee,3)*dtheta
 
-! add roller contribution
+    ! add roller contribution
 
-Sxx = Sxx + sum((costh**2)*rr,3)*dtheta
-Syy = Syy + sum((sinth**2)*rr,3)*dtheta
-Sxy = Sxy + sum(sinth*costh*rr,3)*dtheta
+    Sxx = Sxx + sum((costh**2)*rr,3)*dtheta
+    Syy = Syy + sum((sinth**2)*rr,3)*dtheta
+    Sxy = Sxy + sum(sinth*costh*rr,3)*dtheta
 
     if (ny>0) then
        do j=2,ny 
           do i=1,nx
              Fx(i,j)=-(Sxx(i+1,j)-Sxx(i,j))/dsu(i,j)                        &
-                     -(Sxy(i,j+1)+Sxy(i+1,j+1)-Sxy(i,j-1)-Sxy(i+1,j-1))/    &
-                      (dnv(i,j-1)+dnv(i,j)+dnv(i+1,j-1)+dnv(i+1,j))
+                  -(Sxy(i,j+1)+Sxy(i+1,j+1)-Sxy(i,j-1)-Sxy(i+1,j-1))/    &
+                  (dnv(i,j-1)+dnv(i,j)+dnv(i+1,j-1)+dnv(i+1,j))
           enddo
        enddo
 
        do j=1,ny 
           do i=2,nx
              Fy(i,j)=-(Syy(i,j+1)-Syy(i,j))/dnv(i,j)            &
-                     -(Sxy(i+1,j)+Sxy(i+1,j+1)-Sxy(i-1,j)-Sxy(i-1,j+1))/                    &
-                      (dsu(i-1,j)+dsu(i,j)+dsu(i-1,j+1)+dsu(i,j+1))
+                  -(Sxy(i+1,j)+Sxy(i+1,j+1)-Sxy(i-1,j)-Sxy(i-1,j+1))/                    &
+                  (dsu(i-1,j)+dsu(i,j)+dsu(i-1,j+1)+dsu(i,j+1))
           enddo
        enddo
     else
        j=1 
-          do i=1,nx
-             Fx(i,j)=-(Sxx(i+1,j)-Sxx(i,j))/dsu(i,j)          
-          enddo
-          do i=2,nx
-             Fy(i,j)=-(Sxy(i+1,j)-Sxy(i-1,j))/ (dsu(i-1,j)+dsu(i,j))
-          enddo
-   endif
-   
-   if (ny>0) then
-    Fx(:,1)=Fx(:,2)
-   ! Fy(:,1)=Fy(:,2)
-    Fx(:,ny+1)=Fx(:,ny)
-   ! Fy(:,ny+1)=Fy(:,ny)
-   endif
-   Fx(1,:)=Fx(2,:)
-   ! Fy(1,:)=Fy(2,:)
+       do i=1,nx
+          Fx(i,j)=-(Sxx(i+1,j)-Sxx(i,j))/dsu(i,j)          
+       enddo
+       do i=2,nx
+          Fy(i,j)=-(Sxy(i+1,j)-Sxy(i-1,j))/ (dsu(i-1,j)+dsu(i,j))
+       enddo
+    endif
+
+    if (ny>0) then
+       Fx(:,1)=Fx(:,2)
+       ! Fy(:,1)=Fy(:,2)
+       Fx(:,ny+1)=Fx(:,ny)
+       ! Fy(:,ny+1)=Fy(:,ny)
+    endif
+    Fx(1,:)=Fx(2,:)
+    ! Fy(1,:)=Fy(2,:)
 
     ! wwvv
 #ifdef USEMPI

@@ -90,7 +90,7 @@ contains
        allocate(s%shobs(1:s%nx+1,1:s%ny+1))
     end if
 
-    
+
   end subroutine bwinit
 
   subroutine assim(s,par)
@@ -584,7 +584,7 @@ contains
     use spaceparams
     type(spacepars), target             :: s 
     type(parameters)                    :: par
-    
+
     ! These are doing the same thing now
     if (par%bchwiz .eq. 1) then
        ! s%dzbdt(i,j) = s%dzbdt(i,j)-bw%dassim(i,j)/par%dt

@@ -40,7 +40,7 @@ contains
        if (xmaster) then
           call writelog('sle','','File ''',trim(filename),''' not found. Terminating simulation')
        endif
-	   call halt_program
+       call halt_program
     endif
   end subroutine check_file_exist
 
@@ -56,11 +56,11 @@ contains
     integer                        ::  fid,iost
     integer                        ::  i
     real,dimension(:),allocatable  ::  dat
-    
+
     if (xmaster) then
-	   allocate(dat(d1))
+       allocate(dat(d1))
        fid = create_new_fid()
-	   open(fid,file=trim(fname))
+       open(fid,file=trim(fname))
        read(fid,*,iostat=iost)(dat(i),i=1,d1)
        if (iost .ne. 0) then
           call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', & 
@@ -68,9 +68,9 @@ contains
           call halt_program
        endif
        close(fid)
-	   deallocate(dat)
-	endif
-    
+       deallocate(dat)
+    endif
+
   end subroutine check_file_length_1D
 
   subroutine check_file_length_2D(fname,d1,d2)
@@ -84,9 +84,9 @@ contains
     integer                          :: i,j
     real,dimension(:,:),allocatable  :: dat
 
-   
+
     if (xmaster) then 
-	   allocate(dat(d1,d2))
+       allocate(dat(d1,d2))
        fid = create_new_fid()
        open(fid,file=trim(fname))
        read(fid,*,iostat=iost)((dat(i,j),i=1,d1),j=1,d2)
@@ -96,7 +96,7 @@ contains
           call halt_program
        endif
        close(fid)
-	   deallocate(dat)
+       deallocate(dat)
     endif
   end subroutine check_file_length_2D
 
@@ -111,9 +111,9 @@ contains
     integer                            ::  i,j,k
     real,dimension(:,:,:),allocatable  ::  dat
 
-    
+
     if (xmaster) then 
-	   allocate(dat(d1,d2,d3))
+       allocate(dat(d1,d2,d3))
        fid = create_new_fid()
        open(fid,file=trim(fname))
        read(fid,*,iostat=iost)(((dat(i,j,k),i=1,d1),j=1,d2),k=1,d3)
@@ -122,9 +122,9 @@ contains
                ' Terminating simulation')
           call halt_program
        endif
-	   close(fid)
-	   deallocate(dat)
-    endif    
+       close(fid)
+       deallocate(dat)
+    endif
   end subroutine check_file_length_3D
 
   subroutine checkbcfilelength(tstop,instat,filename,filetype)
@@ -193,38 +193,38 @@ contains
     endif ! xmaster
 
   end subroutine checkbcfilelength
-  
+
   function get_file_length(filename) result (n)
-    
+
     implicit none
-    
+
     character(slen), intent(in)                :: filename
     integer                                 :: n
     integer                                 :: io, error
     real*8                                  :: temp
-    
+
     n   = 0
     io  = 0
-    
+
     if (filename==' ') then
-        n = 0
+       n = 0
     else
-        call check_file_exist_generic(filename, error)
-        
-        if (error == 1) then
-            n = 0
-        else
-            open(11,file=filename)
-            do while (io==0)
-                n = n + 1
-                read(11,*,IOSTAT=io) temp
-            enddo
-            close(11)
-            n = n - 1
-        endif
+       call check_file_exist_generic(filename, error)
+
+       if (error == 1) then
+          n = 0
+       else
+          open(11,file=filename)
+          do while (io==0)
+             n = n + 1
+             read(11,*,IOSTAT=io) temp
+          enddo
+          close(11)
+          n = n - 1
+       endif
     endif
-    
-  end function
+
+  end function get_file_length
 
   subroutine check_file_exist_generic(filename,error)
     implicit none

@@ -3,7 +3,7 @@ module wave_instationary_module
 contains
 
   subroutine wave_instationary(s,par)
-  
+
     use params
     use spaceparams
     use roelvink_module
@@ -34,7 +34,7 @@ contains
     real*8 , dimension(:)    ,allocatable,save  :: wcrestpos
     real*8                                      :: factime,cs,sn
     real*8 , save                               :: waverr  
- 
+
 
     include 's.ind'
     include 's.inp'
@@ -49,7 +49,7 @@ contains
        allocate(yradvec     (nx+1,ny+1,ntheta))
        allocate(thetaradvec (nx+1,ny+1,ntheta))
        allocate(dd          (nx+1,ny+1,ntheta))
-       
+
        allocate(dhdx        (nx+1,ny+1))
        allocate(dhdy        (nx+1,ny+1))
        allocate(dudx        (nx+1,ny+1))
@@ -123,7 +123,7 @@ contains
     ! Calculate once velocities used with and without wave current interaction
     wcifacu=u*par%wci*min(hh/par%hwci,1.d0)
     wcifacv=v*par%wci*min(hh/par%hwci,1.d0)
-    
+
     tm  = (sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
 
     ! Dispersion relation
@@ -225,7 +225,7 @@ contains
     elsewhere
        sinh2kh = 3000.d0
     endwhere
- 
+
     if (ntheta>1) then
        thetamean=(sum(ee*thet,3)/size(ee,3))/(max(sum(ee,3),0.00001d0)/size(ee,3))
     else !Dano: Snellius
@@ -238,21 +238,21 @@ contains
     do j=1,ny+1
        do i=1,nx+1
           do itheta=1,ntheta
-            ! wave grid directions theta with respect to spatial grid s,n
-            cs=costh(i,j,itheta)
-            sn=sinth(i,j,itheta)
-            
-            ! split wave velocities over theta bins
-            cgx(i,j,itheta)= cg(i,j)*cs+wcifacu(i,j)
-            cgy(i,j,itheta)= cg(i,j)*sn+wcifacv(i,j)
-            cx(i,j,itheta) =  c(i,j)*cs+wcifacu(i,j)
-            cy(i,j,itheta) =  c(i,j)*sn+wcifacv(i,j)
-            
-            ! compute refraction velocity
-            ctheta(i,j,itheta)=                                             &
-            sigm(i,j)/sinh2kh(i,j)*(dhdx(i,j)*sn-dhdy(i,j)*cs) + par%wci*   &
-            ( cs*(sn*dudx(i,j) - cs*dudy(i,j)) +                            &
-              sn*(sn*dvdx(i,j) - cs*dvdy(i,j)) )
+             ! wave grid directions theta with respect to spatial grid s,n
+             cs=costh(i,j,itheta)
+             sn=sinth(i,j,itheta)
+
+             ! split wave velocities over theta bins
+             cgx(i,j,itheta)= cg(i,j)*cs+wcifacu(i,j)
+             cgy(i,j,itheta)= cg(i,j)*sn+wcifacv(i,j)
+             cx(i,j,itheta) =  c(i,j)*cs+wcifacu(i,j)
+             cy(i,j,itheta) =  c(i,j)*sn+wcifacv(i,j)
+
+             ! compute refraction velocity
+             ctheta(i,j,itheta)=                                             &
+                  sigm(i,j)/sinh2kh(i,j)*(dhdx(i,j)*sn-dhdy(i,j)*cs) + par%wci*   &
+                  ( cs*(sn*dudx(i,j) - cs*dudy(i,j)) +                            &
+                  sn*(sn*dvdx(i,j) - cs*dvdy(i,j)) )
           enddo
        enddo
     enddo
@@ -267,7 +267,7 @@ contains
     !
     call advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,par%dt,par%scheme)
     if (ny>0) then
-      call advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,par%dt,par%scheme)
+       call advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,par%dt,par%scheme)
     endif
     !call advectheta(ee*ctheta,thetaadvec,nx,ny,ntheta,dtheta)
     call advecthetaho(ee,ctheta,thetaadvec,nx,ny,ntheta,dtheta,par%scheme)!
@@ -290,35 +290,35 @@ contains
 
     ! Total dissipation
     if(trim(par%break) == 'roelvink1' .or. trim(par%break) == 'roelvink2')then
-        call roelvink(par,s,km)
+       call roelvink(par,s,km)
     else if(trim(par%break) == 'baldock')then
-        call baldock(par,s,km)
+       call baldock(par,s,km)
     else if(trim(par%break) == 'janssen')then
-        call janssen_battjes(par,s,km)
+       call janssen_battjes(par,s,km)
     else if (trim(par%break) == 'roelvink_daly') then
-        cgxm = c*dcos(tm) 
-        cgym = c*dsin(tm)
-        call advecqx(cgxm,Qb,xwadvec,nx,ny,dsu)
-        if (ny>0) then
-            call advecqy(cgym,Qb,ywadvec,nx,ny,dnv)
-            Qb  = Qb-par%dt*(xwadvec+ywadvec)
-        else
-            Qb  = Qb-par%dt*xwadvec
-        endif
+       cgxm = c*dcos(tm) 
+       cgym = c*dsin(tm)
+       call advecqx(cgxm,Qb,xwadvec,nx,ny,dsu)
+       if (ny>0) then
+          call advecqy(cgym,Qb,ywadvec,nx,ny,dnv)
+          Qb  = Qb-par%dt*(xwadvec+ywadvec)
+       else
+          Qb  = Qb-par%dt*xwadvec
+       endif
 #ifdef USEMPI
-        call xmpi_shift(Qb,'m:') 
-        call xmpi_shift(Qb,'1:')  
-        call xmpi_shift(Qb,':1') 
-        call xmpi_shift(Qb,':n')
+       call xmpi_shift(Qb,'m:') 
+       call xmpi_shift(Qb,'1:')  
+       call xmpi_shift(Qb,':1') 
+       call xmpi_shift(Qb,':n')
 #endif
-        call roelvink(par,s,km)        
+       call roelvink(par,s,km)        
     endif
     ! Dissipation by bed friction
     uorb=par%px*H/par%Trep/sinh(min(max(k,0.01d0)*max(hh,par%delta*H),10.0d0))
     Df=0.6666666d0/par%px*par%rho*par%fw*uorb**3
-	where (hh>par%fwcutoff)
-	Df = 0.d0
-	end where
+    where (hh>par%fwcutoff)
+       Df = 0.d0
+    end where
     !
     ! Distribution of dissipation over directions and frequencies
     !
@@ -359,7 +359,7 @@ contains
              if(wete(i,j,itheta)==1) then
                 ee(i,j,itheta)=ee(i,j,itheta)-par%dt*dd(i,j,itheta)
                 if(par%roller==1) then
-				   drr(i,j,itheta) = 2*par%g*BR(i,j)*max(rr(i,j,itheta),0.0d0)/   &
+                   drr(i,j,itheta) = 2*par%g*BR(i,j)*max(rr(i,j,itheta),0.0d0)/   &
                         sqrt(cx(i,j,itheta)**2 +cy(i,j,itheta)**2)
                    rr(i,j,itheta)=rr(i,j,itheta)+par%dt*(dd(i,j,itheta)           &
                         -drr(i,j,itheta))
@@ -386,10 +386,10 @@ contains
     ! get valid values for ee(nx+1,:,:) and rr(nx+1,:,:) from
     ! the neighbour below. We cannot postpone this until this
     ! subroutine ends, because ee and rr are used in this subroutine
-    
+
     if (xmpi_isbot) then
-      ee(nx+1,:,:) =ee(nx,:,:)
-      rr(nx+1,:,:) =rr(nx,:,:)
+       ee(nx+1,:,:) =ee(nx,:,:)
+       rr(nx+1,:,:) =rr(nx,:,:)
     endif
 #ifdef USEMPI
     call xmpi_shift(ee,'m:')  ! fill in ee(nx+1,:,:)
@@ -397,57 +397,57 @@ contains
 #endif
 
     if (par%t>0.0d0) then
-      if (ny>0) then
-       if (xmpi_isleft)then ! Jaap
-          if (trim(par%rightwave)=='neumann') then
-             !
-             ! Lateral boundary at y=0;
-             !
-             ee(2:nx+1,1,:)=ee(2:nx+1,2,:)
-             rr(2:nx+1,1,:)=rr(2:nx+1,2,:)
-          elseif (trim(par%rightwave)=='wavecrest') then
-         !   wcrestpos=xz+tan(thetamean(:,2))*(yz(2)-yz(1))
-             wcrestpos=sdist(:,1)+tan(thetamean(:,2)-alfaz(:,2))*dnv(:,1)
-             do itheta=1,ntheta
-                do i=1,nx+1
-                   call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-                        (/ee(1,2,itheta),ee(:,2,itheta),ee(nx+1,2,itheta)/),&
-                        nx+1,sdist(i,1),ee(i,1,itheta),dummy)
-                   call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-                        (/rr(1,2,itheta),rr(:,2,itheta),rr(nx+1,2,itheta)/),&
-                        nx+1,sdist(i,1),rr(i,1,itheta),dummy)
-                   ee(i,1,itheta)=max(ee(i,1,itheta),0.d0)
-                   rr(i,1,itheta)=max(rr(i,1,itheta),0.d0)
+       if (ny>0) then
+          if (xmpi_isleft)then ! Jaap
+             if (trim(par%rightwave)=='neumann') then
+                !
+                ! Lateral boundary at y=0;
+                !
+                ee(2:nx+1,1,:)=ee(2:nx+1,2,:)
+                rr(2:nx+1,1,:)=rr(2:nx+1,2,:)
+             elseif (trim(par%rightwave)=='wavecrest') then
+                !   wcrestpos=xz+tan(thetamean(:,2))*(yz(2)-yz(1))
+                wcrestpos=sdist(:,1)+tan(thetamean(:,2)-alfaz(:,2))*dnv(:,1)
+                do itheta=1,ntheta
+                   do i=1,nx+1
+                      call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+                           (/ee(1,2,itheta),ee(:,2,itheta),ee(nx+1,2,itheta)/),&
+                           nx+1,sdist(i,1),ee(i,1,itheta),dummy)
+                      call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+                           (/rr(1,2,itheta),rr(:,2,itheta),rr(nx+1,2,itheta)/),&
+                           nx+1,sdist(i,1),rr(i,1,itheta),dummy)
+                      ee(i,1,itheta)=max(ee(i,1,itheta),0.d0)
+                      rr(i,1,itheta)=max(rr(i,1,itheta),0.d0)
+                   enddo
                 enddo
-             enddo
+             endif
           endif
-       endif
-       if (xmpi_isright)then
-          if (trim(par%leftwave)=='neumann') then
-             !
-             ! lateral; boundary at y=ny*dy
-             !
-             ee(2:nx+1,ny+1,:)=ee(2:nx+1,ny,:)
-             rr(2:nx+1,ny+1,:)=rr(2:nx+1,ny,:)
-          elseif (trim(par%leftwave)=='wavecrest') then
-          !  wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
-             wcrestpos=sdist(:,ny+1)-tan(thetamean(:,ny)-alfaz(:,ny))*dnv(:,ny)
-             do itheta=1,ntheta
-                do i=1,nx+1
-                   call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-                        (/ee(1,ny,itheta),ee(:,ny,itheta),ee(nx+1,ny,itheta)/),&
-                        nx+1,sdist(i,ny+1),ee(i,ny+1,itheta),dummy)
-                   call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
-                        (/rr(1,ny,itheta),rr(:,ny,itheta),rr(nx+1,ny,itheta)/),&
-                        nx+1,sdist(i,ny+1),rr(i,ny+1,itheta),dummy)
-                   ee(i,ny+1,itheta)=max(ee(i,ny+1,itheta),0.d0)
-                   rr(i,ny+1,itheta)=max(rr(i,ny+1,itheta),0.d0)
+          if (xmpi_isright)then
+             if (trim(par%leftwave)=='neumann') then
+                !
+                ! lateral; boundary at y=ny*dy
+                !
+                ee(2:nx+1,ny+1,:)=ee(2:nx+1,ny,:)
+                rr(2:nx+1,ny+1,:)=rr(2:nx+1,ny,:)
+             elseif (trim(par%leftwave)=='wavecrest') then
+                !  wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
+                wcrestpos=sdist(:,ny+1)-tan(thetamean(:,ny)-alfaz(:,ny))*dnv(:,ny)
+                do itheta=1,ntheta
+                   do i=1,nx+1
+                      call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+                           (/ee(1,ny,itheta),ee(:,ny,itheta),ee(nx+1,ny,itheta)/),&
+                           nx+1,sdist(i,ny+1),ee(i,ny+1,itheta),dummy)
+                      call Linear_interp((/-huge(0.d0)   ,wcrestpos     ,huge(0.d0)/),&
+                           (/rr(1,ny,itheta),rr(:,ny,itheta),rr(nx+1,ny,itheta)/),&
+                           nx+1,sdist(i,ny+1),rr(i,ny+1,itheta),dummy)
+                      ee(i,ny+1,itheta)=max(ee(i,ny+1,itheta),0.d0)
+                      rr(i,ny+1,itheta)=max(rr(i,ny+1,itheta),0.d0)
+                   enddo
                 enddo
-             enddo
+             endif
           endif
        endif
     endif
-  endif
     ! wwvv communicate ee(:,1,:)
 #ifdef USEMPI
     call xmpi_shift(ee,':1')
@@ -490,27 +490,27 @@ contains
        do j=2,ny 
           do i=1,nx
              Fx(i,j)=-(Sxx(i+1,j)-Sxx(i,j))/dsu(i,j)                        &
-                     -(Sxy(i,j+1)+Sxy(i+1,j+1)-Sxy(i,j-1)-Sxy(i+1,j-1))/    &
-                      (dnv(i,j-1)+dnv(i,j)+dnv(i+1,j-1)+dnv(i+1,j))
+                  -(Sxy(i,j+1)+Sxy(i+1,j+1)-Sxy(i,j-1)-Sxy(i+1,j-1))/    &
+                  (dnv(i,j-1)+dnv(i,j)+dnv(i+1,j-1)+dnv(i+1,j))
           enddo
        enddo
 
        do j=1,ny 
           do i=2,nx
              Fy(i,j)=-(Syy(i,j+1)-Syy(i,j))/dnv(i,j)            &
-                     -(Sxy(i+1,j)+Sxy(i+1,j+1)-Sxy(i-1,j)-Sxy(i-1,j+1))/                    &
-                      (dsu(i-1,j)+dsu(i,j)+dsu(i-1,j+1)+dsu(i,j+1))
+                  -(Sxy(i+1,j)+Sxy(i+1,j+1)-Sxy(i-1,j)-Sxy(i-1,j+1))/                    &
+                  (dsu(i-1,j)+dsu(i,j)+dsu(i-1,j+1)+dsu(i,j+1))
           enddo
        enddo
     else
        j=1 
-          do i=1,nx
-             Fx(i,j)=-(Sxx(i+1,j)-Sxx(i,j))/dsu(i,j)          
-          enddo
-          do i=2,nx
-             Fy(i,j)=-(Sxy(i+1,j)-Sxy(i-1,j))/ (dsu(i-1,j)+dsu(i,j))
-          enddo
-   endif
+       do i=1,nx
+          Fx(i,j)=-(Sxx(i+1,j)-Sxx(i,j))/dsu(i,j)          
+       enddo
+       do i=2,nx
+          Fy(i,j)=-(Sxy(i+1,j)-Sxy(i-1,j))/ (dsu(i-1,j)+dsu(i,j))
+       enddo
+    endif
     ! wwvv in the previous, Fx and Fy are computed. The missing elements
     !  elements are Fx(:,1), Fx(nx+1,:), Fx(:,ny+1)
     !               Fy(1,:), Fy(nx+1,:), Fy(:,ny+1)
@@ -539,13 +539,13 @@ contains
     endif
     if(xmpi_isleft .and. ny>0) then 
        Fx(:,1)=Fx(:,2)     
-    !   Fy(:,1)=Fy(:,2)
-    !   ! where (Fy(:,1)>0.d0) Fy(:,1)=0.d0; !Jaap + Bas: Don't do this before calling Dano :-)
+       !   Fy(:,1)=Fy(:,2)
+       !   ! where (Fy(:,1)>0.d0) Fy(:,1)=0.d0; !Jaap + Bas: Don't do this before calling Dano :-)
     endif
     if (xmpi_isright .and. ny>0) then
-    !   Fy(:,ny+1)=Fy(:,ny)   ! only a dummy point in non mpi
+       !   Fy(:,ny+1)=Fy(:,ny)   ! only a dummy point in non mpi
        Fx(:,ny+1)=Fx(:,ny)   ! only a dummy point in non mpi
-    !   ! where (Fy(:,ny+1)<0.d0) Fy(:,ny+1)=0.d0; !Jaap + Bas: Don't do this before calling Dano :-)
+       !   ! where (Fy(:,ny+1)<0.d0) Fy(:,ny+1)=0.d0; !Jaap + Bas: Don't do this before calling Dano :-)
     endif
 
     ! Ad
@@ -583,5 +583,5 @@ contains
     call xmpi_shift(ust,':n')  ! get ust(:,ny+1) from right
 #endif
   end subroutine wave_instationary
-  
+
 end module wave_instationary_module

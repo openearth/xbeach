@@ -756,7 +756,7 @@ contains
                    if(abs(dzbdx(i,j))>dzmax .and. structdepth(i+nint(max(0.d0,sign(1.d0,dzbdx(i,j)))),j)>par%eps) then 
                       aval=.true.
                       dzb=sign(1.0d0,dzbdx(i,j))*(abs(dzbdx(i,j))-dzmax)*dsu(i,j)
-                      
+
                       if (dzb >= 0.d0) then
                          ie = i+1                                        ! index erosion point
                          id = i                                          ! index deposition point
@@ -775,7 +775,7 @@ contains
                       if (par%ngd == 1) then ! Simple bed update in case one fraction
 
                          dzleft = abs(dzb)
-                         
+
                          zb(id,j) = zb(id,j)+dzleft*dAfac
                          zb(ie,j) = zb(ie,j)-dzleft
                          dzbdt(id,j) = dzbdt(id,j)+dzleft*dAfac ! naamgeveing?
@@ -789,7 +789,7 @@ contains
                          zs(ie,j)  = zs(ie,j)-dzleft
                          dzav(id,j)= dzav(id,j)+dzleft*dAfac
                          dzav(ie,j)= dzav(ie,j)-dzleft
-                         
+
                       else ! multiple fractions...
 
                          ! now fix fractions....
@@ -873,7 +873,7 @@ contains
                       if (par%ngd == 1) then ! Simple bed update in case one fraction
 
                          dzleft = abs(dzb)
-                         
+
                          zb(i,jd) = zb(i,jd)+dzleft*dAfac
                          zb(i,je) = zb(i,je)-dzleft
                          dzbdt(i,jd) = dzbdt(i,jd)+dzleft*dAfac ! naamgeveing?
@@ -882,7 +882,7 @@ contains
                          sedero(i,je) = sedero(i,je)-dzleft
                          structdepth(i,jd) = max(0.d0,structdepth(i,jd)+dzleft*dAfac)
                          structdepth(i,je) = max(0.d0,structdepth(i,je)-dzleft)
-                         
+
                          zs(i,jd)  = zs(i,jd)+dzleft*dAfac
                          zs(i,je)  = zs(i,je)-dzleft
                          dzav(i,jd)= dzav(i,jd)+dzleft*dAfac

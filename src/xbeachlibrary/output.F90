@@ -3,50 +3,50 @@ module output_module
 #include "config.h"
 #endif
 #ifdef USENETCDF
-use ncoutput_module
+  use ncoutput_module
 #endif
-use params
-use spaceparams
-use timestep_module
-use logging_module
-use fortoutput_module
-! IFDEF used in case netcdf support is not compiled, f.i. Windows (non-Cygwin)
+  use params
+  use spaceparams
+  use timestep_module
+  use logging_module
+  use fortoutput_module
+  ! IFDEF used in case netcdf support is not compiled, f.i. Windows (non-Cygwin)
 
 
 contains
-subroutine output_init(sglobal, slocal, par, tpar)
-  type(spacepars), target, intent(in)  :: sglobal
-  type(spacepars), target, intent(in)  :: slocal
-  type(parameters), intent(in)         :: par
-  type(timepars), intent(in)           :: tpar
+  subroutine output_init(sglobal, slocal, par, tpar)
+    type(spacepars), target, intent(in)  :: sglobal
+    type(spacepars), target, intent(in)  :: slocal
+    type(parameters), intent(in)         :: par
+    type(timepars), intent(in)           :: tpar
 
-  
-! initialize the correct output module (clean this up?, move to another module?)
-if (par%outputformat=='fortran') then
-   ! only fortran
-   call writelog('ls', '', 'Fortran outputformat')
-   call var_output_init(sglobal,slocal,par,tpar)
-elseif (par%outputformat=='netcdf') then
-   ! only netcdf, stop if it's not build
-   call writelog('ls', '', 'NetCDF outputformat')
+
+    ! initialize the correct output module (clean this up?, move to another module?)
+    if (par%outputformat=='fortran') then
+       ! only fortran
+       call writelog('ls', '', 'Fortran outputformat')
+       call var_output_init(sglobal,slocal,par,tpar)
+    elseif (par%outputformat=='netcdf') then
+       ! only netcdf, stop if it's not build
+       call writelog('ls', '', 'NetCDF outputformat')
 #ifdef USENETCDF
-   call ncoutput_init(sglobal,slocal,par,tpar)
+       call ncoutput_init(sglobal,slocal,par,tpar)
 #else
-   call writelog('lse', '', 'This xbeach executable has no netcdf support. Rebuild with netcdf or outputformat=fortran')
-   call halt_program
+       call writelog('lse', '', 'This xbeach executable has no netcdf support. Rebuild with netcdf or outputformat=fortran')
+       call halt_program
 #endif
-elseif (par%outputformat=='debug') then
-   call writelog('ls', '', 'Debug outputformat, writing both netcdf and fortran output')
+    elseif (par%outputformat=='debug') then
+       call writelog('ls', '', 'Debug outputformat, writing both netcdf and fortran output')
 #ifdef USENETCDF
-   call ncoutput_init(sglobal,slocal,par,tpar)
+       call ncoutput_init(sglobal,slocal,par,tpar)
 #endif
-   call var_output_init(sglobal,slocal,par,tpar)
-endif
+       call var_output_init(sglobal,slocal,par,tpar)
+    endif
 
-end subroutine output_init
+  end subroutine output_init
 
-subroutine output(sglobal,s,par,tpar,update)
-   
+  subroutine output(sglobal,s,par,tpar,update)
+
     use means_module
 
     implicit none
@@ -54,78 +54,78 @@ subroutine output(sglobal,s,par,tpar,update)
     type(spacepars)                     :: s,sglobal
     type(parameters)                    :: par
     type(timepars)                      :: tpar
-    
+
     logical, optional                   :: update
     logical                             :: lupdate
 
     if (present(update)) then
-        lupdate = update
+       lupdate = update
     else
-        lupdate = .true.
+       lupdate = .true.
     endif
-    
+
     ! update output times
     if (lupdate) call outputtimes_update(par, tpar)
-    
+
     ! update log
     call log_progress(par)
-   
+
     ! update meanvars in current averaging period with current timestep
     if (par%nmeanvar/=0) then
-        if (par%t>tpar%tpm(1) .and. par%t<=tpar%tpm(size(tpar%tpm))) then
-            call makeaverage(s,par)
-        endif
+       if (par%t>tpar%tpm(1) .and. par%t<=tpar%tpm(size(tpar%tpm))) then
+          call makeaverage(s,par)
+       endif
     endif
-   
+
     ! output
     if (par%outputformat=='fortran') then
-        call var_output(sglobal,s,par,tpar)
+       call var_output(sglobal,s,par,tpar)
     elseif (par%outputformat=='netcdf') then
 #ifdef USENETCDF
-        call ncoutput(sglobal,s,par, tpar)
+       call ncoutput(sglobal,s,par, tpar)
 #endif
     elseif (par%outputformat=='debug') then
 #ifdef USENETCDF
-        call ncoutput(sglobal,s,par, tpar)
+       call ncoutput(sglobal,s,par, tpar)
 #endif
-        call var_output(sglobal,s,par,tpar)
+       call var_output(sglobal,s,par,tpar)
     endif
-   
+
     ! clear averages after output of means
     if (tpar%outputm .and. tpar%itm>1) then
-        call clearaverage(par)
+       call clearaverage(par)
     endif
-   
-end subroutine output
 
-subroutine output_error(s, sglobal, par, tpar)
-    
+  end subroutine output
+
+  subroutine output_error(s, sglobal, par, tpar)
+
     use logging_module
     use xmpi_module, only: halt_program
-    
+
     implicit none
-    
+
     type(spacepars)                     :: s,sglobal
     type(parameters)                    :: par
     type(timepars)                      :: tpar
-    
+
     call output(s, sglobal, par, tpar, update=.false.)
     call writelog('lse','','An extra output timestep is created to inquire the last timestep')
     call writelog('lse','','    before an error occured')
     call halt_program
-    
-end subroutine output_error
 
-subroutine log_progress(par)
+  end subroutine output_error
 
-   type(parameters)                    :: par
-   logical,save                        :: firsttime = .true.
-   integer,save                        :: day, ndt
-   real*8,save                         :: tprev,percprev,sumdt,dtavg
-   real*8                              :: tnow,percnow,tpredicted
-   integer,dimension(8)                :: datetime
-   
-   
+  subroutine log_progress(par)
+
+    type(parameters)                    :: par
+    logical,save                        :: firsttime = .true.
+    integer,save                        :: day, ndt
+    real*8,save                         :: tprev,percprev,sumdt,dtavg
+    real*8                              :: tnow,percnow,tpredicted
+    integer,dimension(8)                :: datetime
+
+
     if (firsttime) then 
        day=0
        call date_and_time(VALUES=datetime)
@@ -175,7 +175,7 @@ subroutine log_progress(par)
           endif
        endif ! timings on
     endif ! firsttime logical
-end subroutine log_progress
-   
+  end subroutine log_progress
+
 end module output_module
 

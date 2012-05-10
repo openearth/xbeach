@@ -25,7 +25,7 @@
 ! USA                                                                     !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 module groundwaterflow
-use typesandkinds
+  use typesandkinds
 contains
 
 
@@ -97,260 +97,260 @@ contains
 
 
 
-subroutine gw_bc(s,par)
+  subroutine gw_bc(s,par)
 
-use params
-use xmpi_module
-use spaceparams
+    use params
+    use xmpi_module
+    use spaceparams
 
-IMPLICIT NONE
+    IMPLICIT NONE
 
-type(parameters)                            :: par
-type(spacepars)                             :: s
+    type(parameters)                            :: par
+    type(spacepars)                             :: s
 
 
-if(xmpi_istop) then
-   s%gwhead(1,:)=s%zs(1,:)
-elseif (xmpi_isbot) then
-   if (par%tideloc==4 .or. (par%tideloc==2 .and. trim(par%paulrevere)=='land')) then
-       s%gwhead(s%nx+1,:)=s%zs(s%nx+1,:)
-   else
-      s%gwhead(s%nx+1,:)=s%gw0back(2,:)
-   endif
-endif
+    if(xmpi_istop) then
+       s%gwhead(1,:)=s%zs(1,:)
+    elseif (xmpi_isbot) then
+       if (par%tideloc==4 .or. (par%tideloc==2 .and. trim(par%paulrevere)=='land')) then
+          s%gwhead(s%nx+1,:)=s%zs(s%nx+1,:)
+       else
+          s%gwhead(s%nx+1,:)=s%gw0back(2,:)
+       endif
+    endif
 
-if (s%ny>0) then 
-   s%gwhead(:,1)=s%gwhead(:,2)
-   s%gwhead(:,s%ny+1)=s%gwhead(:,s%ny)
-endif
+    if (s%ny>0) then 
+       s%gwhead(:,1)=s%gwhead(:,2)
+       s%gwhead(:,s%ny+1)=s%gwhead(:,s%ny)
+    endif
 
 #ifdef USEMPI
-   call xmpi_shift(s%gwhead,':1')
-   call xmpi_shift(s%gwhead,':n')
-   call xmpi_shift(s%gwhead,'1:')
-   call xmpi_shift(s%gwhead,'m:')
+    call xmpi_shift(s%gwhead,':1')
+    call xmpi_shift(s%gwhead,':n')
+    call xmpi_shift(s%gwhead,'1:')
+    call xmpi_shift(s%gwhead,'m:')
 #endif
 
-s%gwlevel(1,:)=min(s%gwhead(1,:),s%zb(1,:))
-s%gwlevel(s%nx+1,:)=min(s%gwhead(s%nx+1,:),s%zb(s%nx+1,:))
-s%gwlevel(:,1)=min(s%gwhead(:,1),s%zb(:,1))
-s%gwlevel(:,s%ny+1)=min(s%gwhead(:,s%ny+1),s%zb(:,s%ny+1))
+    s%gwlevel(1,:)=min(s%gwhead(1,:),s%zb(1,:))
+    s%gwlevel(s%nx+1,:)=min(s%gwhead(s%nx+1,:),s%zb(s%nx+1,:))
+    s%gwlevel(:,1)=min(s%gwhead(:,1),s%zb(:,1))
+    s%gwlevel(:,s%ny+1)=min(s%gwhead(:,s%ny+1),s%zb(:,s%ny+1))
 
-s%gwbottom=min(s%gwbottom,s%zb-par%eps)
+    s%gwbottom=min(s%gwbottom,s%zb-par%eps)
 
-end subroutine
-
-
-
-subroutine gwflow(s,par)
-
-  use params
-  use xmpi_module
-  use spaceparams
-
-  IMPLICIT NONE
-
-  type(parameters)                            :: par
-  type(spacepars)                             :: s
-
-  integer                                     :: i,j
-  real*8,dimension(:,:),allocatable           :: dheaddx,dheaddy,dleveldt,gwqx,gwqy,gwhu,gwhv
-  real*8,dimension(:,:),allocatable           :: c1,c2,r,fsh
-
-  if (.not. allocated(dheaddx)) then
-     allocate(dheaddx(s%nx+1,s%ny+1))
-     allocate(dheaddy(s%nx+1,s%ny+1))
-     allocate(dleveldt(s%nx+1,s%ny+1))
-     allocate(gwqx(s%nx+1,s%ny+1))
-     allocate(gwqy(s%nx+1,s%ny+1))
-     allocate(gwhu(s%nx+1,s%ny+1))
-     allocate(gwhv(s%nx+1,s%ny+1))
-     allocate(c1(s%nx+1,s%ny+1))
-     allocate(c2(s%nx+1,s%ny+1))
-     allocate(r(s%nx+1,s%ny+1))
-     allocate(fsh(s%nx+1,s%ny+1))
-  endif
-
-  ! Free surface head and ratio free surface to groundwater head to be used
-  fsh=(s%zs-s%zb)
-  r=(s%zb-s%gwhead)/(par%dwetlayer)
-  where (r<0.d0)
-     r=0.d0
-  elsewhere (r>1.d0)
-     r=1.d0
-  endwhere
+  end subroutine gw_bc
 
 
-  ! Momentum balance
-  ! Determine pressure gradients
 
-  ! Update groundwater head
+  subroutine gwflow(s,par)
 
-  where (s%wetz==1 .and. s%gwlevel>s%zb-par%dwetlayer)
-     s%gwhead=s%gwlevel+(s%zs-s%gwlevel)*(1.d0-r)
-  elsewhere
-     s%gwhead=s%gwlevel
-  endwhere
+    use params
+    use xmpi_module
+    use spaceparams
 
-  dheaddx=0.d0
-  dheaddy=0.d0
+    IMPLICIT NONE
 
-  do j=1,s%ny+1
-     do i=1,s%nx
-        dheaddx(i,j)=(s%gwhead(i+1,j)-s%gwhead(i,j))/s%dsu(i,j)  
-     end do
-  end do
+    type(parameters)                            :: par
+    type(spacepars)                             :: s
 
-  do j=1,s%ny
-     do i=1,s%nx+1
-        dheaddy(i,j)=(s%gwhead(i,j+1)-s%gwhead(i,j))/s%dnv(i,j)   
-     end do
-  end do
+    integer                                     :: i,j
+    real*8,dimension(:,:),allocatable           :: dheaddx,dheaddy,dleveldt,gwqx,gwqy,gwhu,gwhv
+    real*8,dimension(:,:),allocatable           :: c1,c2,r,fsh
 
-  s%gwheight=s%gwlevel-s%gwbottom
+    if (.not. allocated(dheaddx)) then
+       allocate(dheaddx(s%nx+1,s%ny+1))
+       allocate(dheaddy(s%nx+1,s%ny+1))
+       allocate(dleveldt(s%nx+1,s%ny+1))
+       allocate(gwqx(s%nx+1,s%ny+1))
+       allocate(gwqy(s%nx+1,s%ny+1))
+       allocate(gwhu(s%nx+1,s%ny+1))
+       allocate(gwhv(s%nx+1,s%ny+1))
+       allocate(c1(s%nx+1,s%ny+1))
+       allocate(c2(s%nx+1,s%ny+1))
+       allocate(r(s%nx+1,s%ny+1))
+       allocate(fsh(s%nx+1,s%ny+1))
+    endif
 
-  ! Determine intermediate aquifer depths
-  gwhu(1:s%nx,:)=0.5d0*(s%gwheight(1:s%nx,:)+s%gwheight(2:s%nx+1,:))
-  gwhv(:,1:s%ny)=0.5d0*(s%gwheight(:,1:s%ny)+s%gwheight(:,2:s%ny+1))
+    ! Free surface head and ratio free surface to groundwater head to be used
+    fsh=(s%zs-s%zb)
+    r=(s%zb-s%gwhead)/(par%dwetlayer)
+    where (r<0.d0)
+       r=0.d0
+    elsewhere (r>1.d0)
+       r=1.d0
+    endwhere
 
-  ! Determine fluxes
-  s%gwu=-par%kx*dheaddx
-  s%gwv=-par%ky*dheaddy
 
-  ! Limit for stability in case of very high kx values
-  !s%gwu(1:s%nx,1:s%ny)=min(s%gwu(1:s%nx,1:s%ny),0.5d0*(s%xz(2:s%nx+1,1:s%ny)-s%xz(1:s%nx,1:s%ny))/par%dt)
-  !s%gwv(1:s%nx,1:s%ny)=min(s%gwv(1:s%nx,1:s%ny),0.5d0*(s%yz(1:s%nx,2:s%ny+1)-s%yz(1:s%nx,1:s%ny))/par%dt)
+    ! Momentum balance
+    ! Determine pressure gradients
 
-  gwqx=s%gwu*gwhu
-  gwqy=s%gwv*gwhv
+    ! Update groundwater head
 
-  ! Stop cells from drying up
-  where(s%gwlevel(2:s%nx,2:s%ny)<=s%gwbottom(2:s%nx,2:s%ny)+par%eps)
-     gwqx(2:s%nx,2:s%ny)=min(gwqx(2:s%nx,2:s%ny),0.d0)
-     gwqx(1:s%nx-1,2:s%ny)=max(gwqx(1:s%nx-1,2:s%ny),0.d0)
-     gwqy(2:s%nx,2:s%ny)=min(gwqy(2:s%nx,2:s%ny),0.d0)
-     gwqy(2:s%nx,1:s%ny-1)=max(gwqy(2:s%nx,1:s%ny-1),0.d0)
-  end where
+    where (s%wetz==1 .and. s%gwlevel>s%zb-par%dwetlayer)
+       s%gwhead=s%gwlevel+(s%zs-s%gwlevel)*(1.d0-r)
+    elsewhere
+       s%gwhead=s%gwlevel
+    endwhere
 
-  ! Based on old groundwater levels, interaction with free water calculated
-  ! This could be done by a double do-loop with if statements, but logical indexing prob. faster
-  c1=0.d0
-  c2=0.d0
-  !c3=0.d0
+    dheaddx=0.d0
+    dheaddy=0.d0
 
-  where (s%gwlevel>=s%zb)   ! Water permeates out
-     c1=1.d0
-  elsewhere (s%wetz==1)    ! Water can permeate in
-     c2=1.d0
-  endwhere
+    do j=1,s%ny+1
+       do i=1,s%nx
+          dheaddx(i,j)=(s%gwhead(i+1,j)-s%gwhead(i,j))/s%dsu(i,j)  
+       end do
+    end do
 
-  ! Assume that infiltration layers with no water on top drain out of the way of subsequent infiltration actions
-  ! But maintain minimum layer thickness to prevent numerical instability
-  where(s%wetz==0)
-     s%dinfil=par%dwetlayer/3.d0        ! Centroid of area influenced instantly by free surface level lies at dwetlayer/3
-  elsewhere
-     s%dinfil=min(s%dinfil,s%zb-s%gwlevel)
-     s%dinfil=max(s%dinfil,par%dwetlayer/3.d0)
-  endwhere
+    do j=1,s%ny
+       do i=1,s%nx+1
+          dheaddy(i,j)=(s%gwhead(i,j+1)-s%gwhead(i,j))/s%dnv(i,j)   
+       end do
+    end do
 
-  !! Implicit calculation of w:
-  !!
-  !!    w(n) = k(1+dp(n)/dinfil(n))   &   dinfil(n) = dinfil(n-1)+dt/por*w(n)
-  !!   
-  !!    dt/por*(w(n))^2 + (dinfil(n-1)-k*dt/por)*w(n)-k(dp(n)+dinfil(n-1))=0
+    s%gwheight=s%gwlevel-s%gwbottom
+
+    ! Determine intermediate aquifer depths
+    gwhu(1:s%nx,:)=0.5d0*(s%gwheight(1:s%nx,:)+s%gwheight(2:s%nx+1,:))
+    gwhv(:,1:s%ny)=0.5d0*(s%gwheight(:,1:s%ny)+s%gwheight(:,2:s%ny+1))
+
+    ! Determine fluxes
+    s%gwu=-par%kx*dheaddx
+    s%gwv=-par%ky*dheaddy
+
+    ! Limit for stability in case of very high kx values
+    !s%gwu(1:s%nx,1:s%ny)=min(s%gwu(1:s%nx,1:s%ny),0.5d0*(s%xz(2:s%nx+1,1:s%ny)-s%xz(1:s%nx,1:s%ny))/par%dt)
+    !s%gwv(1:s%nx,1:s%ny)=min(s%gwv(1:s%nx,1:s%ny),0.5d0*(s%yz(1:s%nx,2:s%ny+1)-s%yz(1:s%nx,1:s%ny))/par%dt)
+
+    gwqx=s%gwu*gwhu
+    gwqy=s%gwv*gwhv
+
+    ! Stop cells from drying up
+    where(s%gwlevel(2:s%nx,2:s%ny)<=s%gwbottom(2:s%nx,2:s%ny)+par%eps)
+       gwqx(2:s%nx,2:s%ny)=min(gwqx(2:s%nx,2:s%ny),0.d0)
+       gwqx(1:s%nx-1,2:s%ny)=max(gwqx(1:s%nx-1,2:s%ny),0.d0)
+       gwqy(2:s%nx,2:s%ny)=min(gwqy(2:s%nx,2:s%ny),0.d0)
+       gwqy(2:s%nx,1:s%ny-1)=max(gwqy(2:s%nx,1:s%ny-1),0.d0)
+    end where
+
+    ! Based on old groundwater levels, interaction with free water calculated
+    ! This could be done by a double do-loop with if statements, but logical indexing prob. faster
+    c1=0.d0
+    c2=0.d0
+    !c3=0.d0
+
+    where (s%gwlevel>=s%zb)   ! Water permeates out
+       c1=1.d0
+    elsewhere (s%wetz==1)    ! Water can permeate in
+       c2=1.d0
+    endwhere
+
+    ! Assume that infiltration layers with no water on top drain out of the way of subsequent infiltration actions
+    ! But maintain minimum layer thickness to prevent numerical instability
+    where(s%wetz==0)
+       s%dinfil=par%dwetlayer/3.d0        ! Centroid of area influenced instantly by free surface level lies at dwetlayer/3
+    elsewhere
+       s%dinfil=min(s%dinfil,s%zb-s%gwlevel)
+       s%dinfil=max(s%dinfil,par%dwetlayer/3.d0)
+    endwhere
+
+    !! Implicit calculation of w:
+    !!
+    !!    w(n) = k(1+dp(n)/dinfil(n))   &   dinfil(n) = dinfil(n-1)+dt/por*w(n)
+    !!   
+    !!    dt/por*(w(n))^2 + (dinfil(n-1)-k*dt/por)*w(n)-k(dp(n)+dinfil(n-1))=0
+    !
+    ! where(s%wetz==0)
+    !    s%dinfil= 0.d0
+    ! endwhere
+    !
+    ! do j=2,s%ny
+    !   do i=2,s%nx
+    !      if (wetz(i,j)==1 .and. c2(i,j)==1) then
+    !          a = par%dt/par%por
+    !          b = dinfil(i,j)-par%kz*par%dt/par%por
+    !          c = -par%kz*(fsh(i,j)+dinfil(i,j))
+    !          w(i,j) = (-b+sqrt(b**2-4*a*c))/2/a
+    !          w(i,j) = min(w(i,j),fsh(i,j)/par%dt)
+    !      endif
+    !   enddo
+    ! enddo
+
+    s%gww=0.d0 ! w defined positive from sea to groundwater in volumes of surface water (no pores).
+    s%gww=par%por*(&
+         -( c1* (s%gwlevel-s%zb) / par%dt                                      )&
+         +( c2* ((1.d0-r)*(s%zb-s%gwlevel) / par%dt + r*(par%kz*(1.d0 + fsh/s%dinfil))/par%por ) ) ) ! Jaap: add effect gravity for computing gww
+    !             +(case2*((1.d0-r)*max((s%zb-s%gwhead),0.d0)+r*(fsh*gw%kper)))&
+    ! +(case3*fsh*gw%kper)&
+
+    ! ensure that water extracted from surface layer is not more than available
+    where (s%gww*par%dt>s%hh)
+       s%gww=s%hh/par%dt
+    endwhere
+
+    dleveldt=0.d0
+    ! Mass balance
+    do j=2,s%ny
+       do i=2,s%nx
+          dleveldt(i,j)=-1.d0*(gwqx(i,j)*s%dnu(i,j)-gwqx(i-1,j)*s%dnu(i-1,j) + &
+               gwqy(i,j)*s%dsv(i,j)-gwqy(i,j-1)*s%dsv(i,j-1))*s%dsdnzi(i,j)/par%por &
+               +1.d0*s%gww(i,j)/par%por
+       enddo
+    enddo
+
+    s%gwlevel=s%gwlevel+dleveldt*par%dt
+
+    ! Update quasi vertical model infiltration layer thickness
+    s%dinfil=s%dinfil+s%gww*par%dt/par%por
+
+
+
+
+
+
+  end subroutine gwflow
+
+
+  !subroutine gwoutput(par,s,it,gw)
   !
-  ! where(s%wetz==0)
-  !    s%dinfil= 0.d0
-  ! endwhere
+  !use params
+  !use xmpi_module
+  !use spaceparams
   !
-  ! do j=2,s%ny
-  !   do i=2,s%nx
-  !      if (wetz(i,j)==1 .and. c2(i,j)==1) then
-  !          a = par%dt/par%por
-  !          b = dinfil(i,j)-par%kz*par%dt/par%por
-  !          c = -par%kz*(fsh(i,j)+dinfil(i,j))
-  !          w(i,j) = (-b+sqrt(b**2-4*a*c))/2/a
-  !          w(i,j) = min(w(i,j),fsh(i,j)/par%dt)
-  !      endif
-  !   enddo
-  ! enddo
-
-  s%gww=0.d0 ! w defined positive from sea to groundwater in volumes of surface water (no pores).
-  s%gww=par%por*(&
-       -( c1* (s%gwlevel-s%zb) / par%dt                                      )&
-       +( c2* ((1.d0-r)*(s%zb-s%gwlevel) / par%dt + r*(par%kz*(1.d0 + fsh/s%dinfil))/par%por ) ) ) ! Jaap: add effect gravity for computing gww
-  !             +(case2*((1.d0-r)*max((s%zb-s%gwhead),0.d0)+r*(fsh*gw%kper)))&
-  ! +(case3*fsh*gw%kper)&
-
-  ! ensure that water extracted from surface layer is not more than available
-  where (s%gww*par%dt>s%hh)
-     s%gww=s%hh/par%dt
-  endwhere
-
-  dleveldt=0.d0
-  ! Mass balance
-  do j=2,s%ny
-     do i=2,s%nx
-        dleveldt(i,j)=-1.d0*(gwqx(i,j)*s%dnu(i,j)-gwqx(i-1,j)*s%dnu(i-1,j) + &
-                             gwqy(i,j)*s%dsv(i,j)-gwqy(i,j-1)*s%dsv(i,j-1))*s%dsdnzi(i,j)/par%por &
-             +1.d0*s%gww(i,j)/par%por
-     enddo
-  enddo
-
-  s%gwlevel=s%gwlevel+dleveldt*par%dt
-
-  ! Update quasi vertical model infiltration layer thickness
-  s%dinfil=s%dinfil+s%gww*par%dt/par%por
+  !IMPLICIT NONE
+  !
+  !type(parameters)                            :: par
+  !type(gwpars)                                :: gw
+  !type(spacepars)								:: s
+  !
+  !integer										:: i,j,reclen,it
+  !
+  !
+  !
+  !reclen=2*(s%nx+1)*(s%ny+1)
+  !
+  !if (it==1) then
+  !    open(1102,file='gwhead.dat',form='unformatted',access='direct',recl=reclen)
+  !	open(1103,file='gwu.dat',form='unformatted',access='direct',recl=reclen)
+  !	open(1104,file='gwv.dat',form='unformatted',access='direct',recl=reclen)
+  !	open(1105,file='gww.dat',form='unformatted',access='direct',recl=reclen)
+  !	open(1106,file='gwlevel.dat',form='unformatted',access='direct',recl=reclen)
+  !endif
+  !
+  !write(1102,rec=it)s%gwhead
+  !write(1103,rec=it)s%gwu
+  !write(1104,rec=it)s%gwv
+  !write(1105,rec=it)s%gww
+  !write(1106,rec=it)s%gwlevel
+  !
+  !if(par%t>=par%tstop) then
+  !    close(1102)
+  !    close(1103)
+  !	close(1104)
+  !	close(1105)
+  !	close(1106)
+  !endif
+  !
+  !end subroutine
 
 
-
-
-
-
-end subroutine gwflow
-
-
-!subroutine gwoutput(par,s,it,gw)
-!
-!use params
-!use xmpi_module
-!use spaceparams
-!
-!IMPLICIT NONE
-!
-!type(parameters)                            :: par
-!type(gwpars)                                :: gw
-!type(spacepars)								:: s
-!
-!integer										:: i,j,reclen,it
-!
-!
-!
-!reclen=2*(s%nx+1)*(s%ny+1)
-!
-!if (it==1) then
-!    open(1102,file='gwhead.dat',form='unformatted',access='direct',recl=reclen)
-!	open(1103,file='gwu.dat',form='unformatted',access='direct',recl=reclen)
-!	open(1104,file='gwv.dat',form='unformatted',access='direct',recl=reclen)
-!	open(1105,file='gww.dat',form='unformatted',access='direct',recl=reclen)
-!	open(1106,file='gwlevel.dat',form='unformatted',access='direct',recl=reclen)
-!endif
-!
-!write(1102,rec=it)s%gwhead
-!write(1103,rec=it)s%gwu
-!write(1104,rec=it)s%gwv
-!write(1105,rec=it)s%gww
-!write(1106,rec=it)s%gwlevel
-!
-!if(par%t>=par%tstop) then
-!    close(1102)
-!    close(1103)
-!	close(1104)
-!	close(1105)
-!	close(1106)
-!endif
-!
-!end subroutine
-
-
-end module
+end module groundwaterflow

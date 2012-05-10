@@ -1,5 +1,5 @@
 module initialize 
-use typesandkinds
+  use typesandkinds
 contains
   subroutine grid_bathy(s,par)                                         
 
@@ -100,11 +100,11 @@ contains
              open (31,file=par%depfile)
              read (31,*)((s%zb(i,j),i=1,s%nx+1),j=1,s%ny+1)
              close(31)
-             
+
              open (32,file=par%xfile)
              read (32,*)((s%x(i,j),i=1,s%nx+1),j=1,s%ny+1)
              close(32)
-             
+
              if (s%ny>0 .and. par%yfile/=' ') then
                 open (33,file=par%yfile)
                 read (33,*)((s%y(i,j),i=1,s%nx+1),j=1,s%ny+1)
@@ -118,50 +118,50 @@ contains
           call halt_program
        endif
     elseif (trim(par%gridform)=='delft3d') then
-    if(xmaster) then
-       ! 
-       ! Gridfile
-       !
-       open(31,file=par%xyfile,status='old',iostat=ier)  
-       ! skip comment text in file...
-       comment=.true.
-       do while (comment .eqv. .true.)
-          read(31,'(a)')line
-          if (line(1:1)/='*') then 
-             comment=.false.
-          endif
-       enddo
-       read(31,*) idum,idum
-       read(31,*) idum,idum,idum
-       ! read grid and write to temp file
-       open(32,file='temp')
-       do n=1,1000000
-          read(31,'(a)',end=100,iostat=ier)line
-          if (ier==0) then
-             write(32,'(a)')line(11:232)
-          endif
-       enddo
-100    continue
+       if(xmaster) then
+          ! 
+          ! Gridfile
+          !
+          open(31,file=par%xyfile,status='old',iostat=ier)  
+          ! skip comment text in file...
+          comment=.true.
+          do while (comment .eqv. .true.)
+             read(31,'(a)')line
+             if (line(1:1)/='*') then 
+                comment=.false.
+             endif
+          enddo
+          read(31,*) idum,idum
+          read(31,*) idum,idum,idum
+          ! read grid and write to temp file
+          open(32,file='temp')
+          do n=1,1000000
+             read(31,'(a)',end=100,iostat=ier)line
+             if (ier==0) then
+                write(32,'(a)')line(11:232)
+             endif
+          enddo
+100       continue
 
-       close(31)
-       close(32)
-       ! now open temp and set xc and yc
-       open(32,file='temp',status='old')
-       do n=1,s%ny+1
-          read(32,*)(s%x(m,n),m=1,s%nx+1)
-       enddo
-       do n=1,s%ny+1
-          read(32,*)(s%y(m,n),m=1,s%nx+1)
-       enddo
-       close(32,status='delete')    
-       !
-       ! Depfile
-       !
-       open(33,file=par%depfile,status='old')
-       do n=1,s%ny+1
-          read(33,*)(s%zb(m,n),m=1,s%nx+1)
-       enddo
-    endif ! xmaster
+          close(31)
+          close(32)
+          ! now open temp and set xc and yc
+          open(32,file='temp',status='old')
+          do n=1,s%ny+1
+             read(32,*)(s%x(m,n),m=1,s%nx+1)
+          enddo
+          do n=1,s%ny+1
+             read(32,*)(s%y(m,n),m=1,s%nx+1)
+          enddo
+          close(32,status='delete')    
+          !
+          ! Depfile
+          !
+          open(33,file=par%depfile,status='old')
+          do n=1,s%ny+1
+             read(33,*)(s%zb(m,n),m=1,s%nx+1)
+          enddo
+       endif ! xmaster
     endif ! delft3d format
     if(xmaster) then
 
@@ -379,7 +379,7 @@ contains
     if (  trim(par%instat)=='jons' .or. &
          trim(par%instat)=='swan' .or. &
          trim(par%instat)=='vardens') then 
-         if(xmaster) call spectral_wave_init (s,par)  ! only used by xmaster
+       if(xmaster) call spectral_wave_init (s,par)  ! only used by xmaster
     endif
     do itheta=1,ntheta
        s%sigt(:,:,itheta) = 2*par%px/par%Trep
@@ -391,96 +391,96 @@ contains
   end subroutine wave_init
 
 
-subroutine spectral_wave_init(s,par)
-use params
-use spaceparams
-use filefunctions
-use logging_module
-use spectral_wave_bc_module
+  subroutine spectral_wave_init(s,par)
+    use params
+    use spaceparams
+    use filefunctions
+    use logging_module
+    use spectral_wave_bc_module
 
-type(spacepars)             :: s
-type(parameters)            :: par
+    type(spacepars)             :: s
+    type(parameters)            :: par
 
-integer                     :: fid,err
-integer                     :: i
-integer,dimension(1)        :: minlocation
-character(slen)             :: testline
-real*8,dimension(:),allocatable :: xspec,yspec,mindist
-real*8                      :: mindistr
+    integer                     :: fid,err
+    integer                     :: i
+    integer,dimension(1)        :: minlocation
+    character(slen)             :: testline
+    real*8,dimension(:),allocatable :: xspec,yspec,mindist
+    real*8                      :: mindistr
 
-call writelog('l','','--------------------------------')
-call writelog('l','','Initializing spectral wave boundary conditions ')
-! Initialize that wave boundary conditions need to be calculated (first time at least)
-! Stored and defined in spectral_wave_bc_module
-reuseall = .false.
-! Initialize the number of times wave boundary conditions have been generated.
-! Stored and defined in spectral_wave_bc_module
-bccount  = 0
-! Initialize bcendtime to zero.
-! Stored and defined in spectral_wave_bc_module
-spectrumendtime = 0.d0
+    call writelog('l','','--------------------------------')
+    call writelog('l','','Initializing spectral wave boundary conditions ')
+    ! Initialize that wave boundary conditions need to be calculated (first time at least)
+    ! Stored and defined in spectral_wave_bc_module
+    reuseall = .false.
+    ! Initialize the number of times wave boundary conditions have been generated.
+    ! Stored and defined in spectral_wave_bc_module
+    bccount  = 0
+    ! Initialize bcendtime to zero.
+    ! Stored and defined in spectral_wave_bc_module
+    spectrumendtime = 0.d0
 
-if (par%nspectrumloc<1) then
-   call writelog('ewls','','number of boundary spectra (''nspectrumloc'') may not be less than 1')
-   call halt_program
-endif
+    if (par%nspectrumloc<1) then
+       call writelog('ewls','','number of boundary spectra (''nspectrumloc'') may not be less than 1')
+       call halt_program
+    endif
 
-! open location list file
-fid = create_new_fid()
-open(fid,file=par%bcfile,status='old',form='formatted')
-! check for LOCLIST
-read(fid,*)testline
-if (trim(testline)=='LOCLIST') then
-   allocate(n_index_loc(par%nspectrumloc)) ! stored and defined in spectral_wave_bc_module
-   allocate(bcfiles(par%nspectrumloc))     ! stored and defined in spectral_wave_bc_module
-   allocate(xspec(par%nspectrumloc))
-   allocate(yspec(par%nspectrumloc))
-   allocate(mindist(s%ny+1))
-   do i=1,par%nspectrumloc
-      ! read x,y and file name per location
-      read(fid,*,IOSTAT=err)xspec(i),yspec(i),bcfiles(i)%fname
-      bcfiles(i)%listline = 0
-      if (err /= 0) then
-         ! something has gone wrong during the read of this file
-         call writelog('ewls','a,i0,a,a)','error reading line ',i+1,' of file ',par%bcfile)
-         call writelog('ewls','','check file for format errors and ensure the number of  ',&
-                                 'lines is equal to nspectrumloc')
-         call halt_program
-      endif
-   enddo
-   ! convert x,y locations of the spectra to the nearest grid points on s=1 boundary
-   do i=1,par%nspectrumloc
-      mindist=sqrt((xspec(i)-s%xz(1,:))**2+(yspec(i)-s%yz(1,:))**2)
-      ! look up the location of the found minimum
-      minlocation=minloc(mindist)
-      ! minimum distance
-      mindistr = mindist(minlocation(1))
-      ! store location
-      n_index_loc(i) = minlocation(1)
-      call writelog('ls','(a,i0,a,i0)','Spectrum ',i,' placed at n = ',minlocation(1))
-      call writelog('ls','(a,f0.3)','Distance spectrum to grid: ',mindistr)
-   enddo
-   nspectra = par%nspectrumloc     ! stored and defined in spectral_wave_bc_module
-   deallocate(xspec,yspec,mindist)
-else
-   if (par%nspectrumloc==1) then
-      allocate(n_index_loc(1)) ! stored and defined in spectral_wave_bc_module
-      allocate(bcfiles(1))     ! stored and defined in spectral_wave_bc_module
-      n_index_loc = 1
-      bcfiles(1)%fname = par%bcfile
-      bcfiles(1)%listline = 0      ! for files that have multiple lines, set listline to 0
-      nspectra = 1                 ! stored and defined in spectral_wave_bc_module
-   else
-      call writelog('ewls','','if nspectrumloc>1 then bcfile should contain spectra locations with LOCLIST header')
-      close(fid)
-      call halt_program
-   endif
-endif    
-close(fid)
+    ! open location list file
+    fid = create_new_fid()
+    open(fid,file=par%bcfile,status='old',form='formatted')
+    ! check for LOCLIST
+    read(fid,*)testline
+    if (trim(testline)=='LOCLIST') then
+       allocate(n_index_loc(par%nspectrumloc)) ! stored and defined in spectral_wave_bc_module
+       allocate(bcfiles(par%nspectrumloc))     ! stored and defined in spectral_wave_bc_module
+       allocate(xspec(par%nspectrumloc))
+       allocate(yspec(par%nspectrumloc))
+       allocate(mindist(s%ny+1))
+       do i=1,par%nspectrumloc
+          ! read x,y and file name per location
+          read(fid,*,IOSTAT=err)xspec(i),yspec(i),bcfiles(i)%fname
+          bcfiles(i)%listline = 0
+          if (err /= 0) then
+             ! something has gone wrong during the read of this file
+             call writelog('ewls','a,i0,a,a)','error reading line ',i+1,' of file ',par%bcfile)
+             call writelog('ewls','','check file for format errors and ensure the number of  ',&
+                  'lines is equal to nspectrumloc')
+             call halt_program
+          endif
+       enddo
+       ! convert x,y locations of the spectra to the nearest grid points on s=1 boundary
+       do i=1,par%nspectrumloc
+          mindist=sqrt((xspec(i)-s%xz(1,:))**2+(yspec(i)-s%yz(1,:))**2)
+          ! look up the location of the found minimum
+          minlocation=minloc(mindist)
+          ! minimum distance
+          mindistr = mindist(minlocation(1))
+          ! store location
+          n_index_loc(i) = minlocation(1)
+          call writelog('ls','(a,i0,a,i0)','Spectrum ',i,' placed at n = ',minlocation(1))
+          call writelog('ls','(a,f0.3)','Distance spectrum to grid: ',mindistr)
+       enddo
+       nspectra = par%nspectrumloc     ! stored and defined in spectral_wave_bc_module
+       deallocate(xspec,yspec,mindist)
+    else
+       if (par%nspectrumloc==1) then
+          allocate(n_index_loc(1)) ! stored and defined in spectral_wave_bc_module
+          allocate(bcfiles(1))     ! stored and defined in spectral_wave_bc_module
+          n_index_loc = 1
+          bcfiles(1)%fname = par%bcfile
+          bcfiles(1)%listline = 0      ! for files that have multiple lines, set listline to 0
+          nspectra = 1                 ! stored and defined in spectral_wave_bc_module
+       else
+          call writelog('ewls','','if nspectrumloc>1 then bcfile should contain spectra locations with LOCLIST header')
+          close(fid)
+          call halt_program
+       endif
+    endif
+    close(fid)
 
-call writelog('l','','--------------------------------')
+    call writelog('l','','--------------------------------')
 
-endsubroutine spectral_wave_init
+  endsubroutine spectral_wave_init
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -744,14 +744,14 @@ endsubroutine spectral_wave_init
                    call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(ig,j), s%zs0(ig,j), indt)
                    s%zs0(ig,j)=min(s%zs0(ig,j),s%zb(ig,j))
                 enddo
-             ! only bay intersect exists -> all land below offshore sea level
+                ! only bay intersect exists -> all land below offshore sea level
              elseif (indoff==s%nx+1 .and. indbay>1) then
                 s%zs0(:,j) = s%zs0(1,j)             
-             ! only offshore intersect exists -> all land below bay sea level
+                ! only offshore intersect exists -> all land below bay sea level
              elseif (indoff<s%nx+1 .and. indbay==1) then
                 s%zs0(:,j) = s%zs0(s%nx+1,j)
-             ! no intersects exist -> all land below bay and offshore sea level
-             ! linear interpolation between offshore and bay sea level
+                ! no intersects exist -> all land below bay and offshore sea level
+                ! linear interpolation between offshore and bay sea level
              else
                 do ig=1,s%nx+1
                    xzs0(1)=s%sdist(1,j)
@@ -812,14 +812,14 @@ endsubroutine spectral_wave_init
                    call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(ig,j), s%zs0(ig,j), indt)
                    s%zs0(ig,j)=min(s%zs0(ig,j),s%zb(ig,j))
                 enddo
-             ! only bay intersect exists -> all land below offshore sea level
+                ! only bay intersect exists -> all land below offshore sea level
              elseif (indoff==s%nx+1 .and. indbay>1) then
                 s%zs0(:,j) = s%zs0(1,j)             
-             ! only offshore intersect exists -> all land below bay sea level
+                ! only offshore intersect exists -> all land below bay sea level
              elseif (indoff<s%nx+1 .and. indbay==1) then
                 s%zs0(:,j) = s%zs0(s%nx+1,j)
-             ! no intersects exist -> all land below bay and offshore sea level
-             ! linear interpolation between offshore and bay sea level
+                ! no intersects exist -> all land below bay and offshore sea level
+                ! linear interpolation between offshore and bay sea level
              else
                 do ig=1,s%nx+1
                    xzs0(1)=s%sdist(1,j)
@@ -882,7 +882,7 @@ endsubroutine spectral_wave_init
     else
        s%hv(:,1)=s%zs(:,1)-s%zb(:,1)
     endif
-    
+
     s%hum(1:s%nx,:) = 0.5d0*(s%hh(1:s%nx,:)+s%hh(2:s%nx+1,:))
     s%hum(s%nx+1,:)=s%hh(s%nx+1,:)
 
@@ -956,7 +956,7 @@ endsubroutine spectral_wave_init
           ! solve v-balance of pressure gradient, wind forcing and bed friction
           where (s%wetv==1)
              s%vv = s%hv/par%cf/max(vmagvold,0.000001d0) &
-                                  *(-par%g*s%dzsdy+par%rhoa*par%Cd*s%windnv**2/(par%rho*s%hvm))
+                  *(-par%g*s%dzsdy+par%rhoa*par%Cd*s%windnv**2/(par%rho*s%hvm))
           elsewhere
              s%vv = 0.d0
           endwhere
@@ -964,7 +964,7 @@ endsubroutine spectral_wave_init
           ! u velocity in v points
           if (s%ny>0) then
              s%uv(2:s%nx,1:s%ny)= .25d0*(s%uu(1:s%nx-1,1:s%ny)+s%uu(2:s%nx,1:s%ny)+ &
-                                         s%uu(1:s%nx-1,2:s%ny+1)+s%uu(2:nx,2:s%ny+1))
+                  s%uu(1:s%nx-1,2:s%ny+1)+s%uu(2:nx,2:s%ny+1))
              ! boundaries?
              ! wwvv and what about uv(:,1) ?
              if(xmpi_isright) then
@@ -980,14 +980,14 @@ endsubroutine spectral_wave_init
           ! Solve balance of forces
           where (s%wetu==1)
              s%uu = s%hu/par%cf/max(vmaguold,0.000001d0) &
-                                  *(-par%g*s%dzsdx+par%rhoa*par%Cd*windsu**2/(par%rho*s%hum))
+                  *(-par%g*s%dzsdx+par%rhoa*par%Cd*windsu**2/(par%rho*s%hum))
           elsewhere
              s%uu = 0.d0
           endwhere
           ! update vmageu
           if (s%ny>0) then
              s%vu(1:s%nx,2:s%ny)= 0.25d0*(s%vv(1:s%nx,1:s%ny-1)+s%vv(1:s%nx,2:s%ny)+ &
-                                          s%vv(2:s%nx+1,1:s%ny-1)+s%vv(2:s%nx+1,2:s%ny))
+                  s%vv(2:s%nx+1,1:s%ny-1)+s%vv(2:s%nx+1,2:s%ny))
              if(xmpi_isleft) then
                 s%vu(:,1) = s%vu(:,2)
              endif
@@ -1157,7 +1157,7 @@ endsubroutine spectral_wave_init
     s%D90 = par%D90(1:par%ngd)
     s%sedcal = par%sedcal(1:par%ngd)
     s%ucrcal = par%ucrcal(1:par%ngd)
-    
+
 
     if (par%ngd==1) then
 
@@ -1475,9 +1475,9 @@ endsubroutine spectral_wave_init
              mn          = minloc(sqrt((s%xz-xdrift)**2+(s%yz-ydrift)**2))
 
              ds          =  (xdrift - s%xz(mn(1),mn(2)))*cos(s%alfaz(mn(1),mn(2))) &
-                           +(ydrift - s%yz(mn(1),mn(2)))*sin(s%alfaz(mn(1),mn(2)))
+                  +(ydrift - s%yz(mn(1),mn(2)))*sin(s%alfaz(mn(1),mn(2)))
              dn          = -(xdrift - s%xz(mn(1),mn(2)))*sin(s%alfaz(mn(1),mn(2))) &
-                           +(ydrift - s%yz(mn(1),mn(2)))*cos(s%alfaz(mn(1),mn(2)))
+                  +(ydrift - s%yz(mn(1),mn(2)))*cos(s%alfaz(mn(1),mn(2)))
 
              s%idrift(i) = mn(1) + ds/dsu(mn(1),mn(2))
              s%jdrift(i) = mn(2) + dn/dnv(mn(1),mn(2))

@@ -1,5 +1,5 @@
 module readkey_module
-use typesandkinds
+  use typesandkinds
 
 contains
   real*8 function readkey_dbl(fname,key,defval,mnval,mxval,bcast,required)
@@ -295,7 +295,7 @@ contains
     endif
 #endif   
   end function readkey_name
-  
+
   function readkey_dblvec(fname,key,vlength,tlength,defval,mnval,mxval,bcast,required) result (value_vec)
     use xmpi_module
     use logging_module
@@ -306,11 +306,11 @@ contains
     real*8            :: defval,mnval,mxval
     logical, intent(in), optional :: bcast,required
     logical        :: lbcast,lrequired
-    
+
     integer          :: i, ioerr
     character(slen)   :: value
     character(slen)  :: printkey
-  
+
     printkey(2:slen)=key
     printkey(1:1)=' '
 
@@ -325,7 +325,7 @@ contains
     else
        lrequired = .false.
     endif
-    
+
     if (xmaster) then
        call readkey(fname,key,value)
        if (value/=' ') then
@@ -338,11 +338,11 @@ contains
           do i=1,vlength
              if (value_vec(i)>mxval) then
                 call writelog('lw','(a12,a,f0.4,a,f0.4)',(printkey),' = ',value_vec(i), &
-                    ' Warning: value > recommended value of ',mxval)
+                     ' Warning: value > recommended value of ',mxval)
                 call writelog('s','(a12,a,a,f0.4)','Warning: ',trim(printkey),' > recommended value of ',mxval)
              elseif (value_vec(i)<mnval) then
                 call writelog('lw','(a12,a,f0.4,a,f0.4)',(printkey),' = ',value_vec(i), &
-                    ' Warning: value < recommended value of ',mnval)
+                     ' Warning: value < recommended value of ',mnval)
                 call writelog('s','(a12,a,a,f0.4)','Warning: ',trim(printkey),' < recommended value of ',mnval)
              else
                 call writelog('l','(a12,a,f0.4)',(printkey),' = ',value_vec(i))
@@ -380,13 +380,13 @@ contains
     logical         :: isSet
     character(slen)   :: value
     logical         :: lbcast
-    
+
     if (present(bcast)) then
        lbcast = bcast
     else
        lbcast = .true.
     endif
-    
+
     if (xmaster) then
        call readkey(fname,key,value)
        if (value == ' ') then
@@ -445,8 +445,8 @@ contains
        nlines=i
        ! reset keyword values and readindex 
        keyword = ''
-	   values = '' 
-	   if (allocated(readindex)) deallocate(readindex)
+       values = '' 
+       if (allocated(readindex)) deallocate(readindex)
        ! Read through the file to fill all the keyword = value combinations
        open(lun,file=fname)
        ikey=0
@@ -547,7 +547,7 @@ contains
 
   END SUBROUTINE LOWERCASE
 
-! End of code taken from CHCASE
+  ! End of code taken from CHCASE
 
 
 

@@ -162,13 +162,13 @@ MODULE math_tools
      MODULE PROCEDURE fft5d
      MODULE PROCEDURE fft6d
      MODULE PROCEDURE fft7d
-  END INTERFACE
+  END INTERFACE fft
 
-  CONTAINS
+CONTAINS
 
   FUNCTION fft1d(array, dim, inv, stat) RESULT(ft)
-! wwvv not used: dim
-!  this whole function is not used, but I put dim in the fftn call
+    ! wwvv not used: dim
+    !  this whole function is not used, but I put dim in the fftn call
     !--- formal parameters
     COMPLEX(fftkind), DIMENSION(:), INTENT(IN)           :: array
     INTEGER,          DIMENSION(:), INTENT(IN),  OPTIONAL:: dim
@@ -389,7 +389,7 @@ MODULE math_tools
     pi2 = pi2 * 2.0_fftkind !-- use 2 PI from here on
 
     CALL factorize
-    
+
     maxfactor = MAXVAL(factor (:nfactor))
     IF (nfactor - ISHFT(kt, 1) > 0) THEN
        nperm = MAX(nfactor + 1, PRODUCT(factor(kt+1: nfactor-kt)) - 1)
@@ -486,7 +486,7 @@ MODULE math_tools
 
          SELECT CASE (factor (ii))
          CASE (2)
-        
+
             !-- transform for factor of 2 (including rotation factor)
             kspan = kspan / 2
             k1 = kspan + 2
@@ -533,7 +533,7 @@ MODULE math_tools
                kk = (k1 - kspan) / 2 + jc
                IF (kk > jc + jc) EXIT
             END DO
-            
+
 
          CASE (4) !-- transform for factor of 4
             ispan = kspan
@@ -597,7 +597,7 @@ MODULE math_tools
             k = factor (ii)
             ispan = kspan
             kspan = kspan / k
-             
+
 
             SELECT CASE (k)
             CASE (3) !-- transform for factor of 3 (optional code)
@@ -650,7 +650,7 @@ MODULE math_tools
                END DO
 
             CASE default
-                
+
                IF (k /= jf) THEN
                   jf = k
                   s1 = pi2 / k
@@ -962,299 +962,299 @@ MODULE math_tools
 
     END SUBROUTINE permute
 
-   END SUBROUTINE fftradix
+  END SUBROUTINE fftradix
 
-!
-!       2) Hilbert transform
-!
+  !
+  !       2) Hilbert transform
+  !
 
-!%HILBERT Hilbert transform.
+  !%HILBERT Hilbert transform.
 
-subroutine hilbert(xi,m)
+  subroutine hilbert(xi,m)
 
-! use math_tools
+    ! use math_tools
 
-IMPLICIT NONE
+    IMPLICIT NONE
 
-integer                             :: m,n
-complex(fftkind),dimension(m)                :: xi
-complex(fftkind),dimension(:),allocatable    :: x
-integer,dimension(:),allocatable    :: h
-real                                :: p
+    integer                             :: m,n
+    complex(fftkind),dimension(m)                :: xi
+    complex(fftkind),dimension(:),allocatable    :: x
+    integer,dimension(:),allocatable    :: h
+    real                                :: p
 
 
-p=log(real(m))/log(2.)
-n=ceiling(p)
-n=2**n
+    p=log(real(m))/log(2.)
+    n=ceiling(p)
+    n=2**n
 
-allocate(x(n))
-x=0
-x(1:m)=real(xi)
+    allocate(x(n))
+    x=0
+    x(1:m)=real(xi)
 
-x=fft(x, inv=.false.)
-x=x*sqrt(real(n))           ! Scale factor
+    x=fft(x, inv=.false.)
+    x=x*sqrt(real(n))           ! Scale factor
 
-allocate(h(n))
+    allocate(h(n))
 
-h(1)=1
-h(2:(n/2))=2
-h((n/2)+1)=1
-h((n/2)+2:n)=0
+    h(1)=1
+    h(2:(n/2))=2
+    h((n/2)+1)=1
+    h((n/2)+2:n)=0
 
-x=x*h
+    x=x*h
 
-deallocate(h)
+    deallocate(h)
 
-x=fft(x,inv=.true.)
-x=x/sqrt(real(n))           ! Scale factor
+    x=fft(x,inv=.true.)
+    x=x/sqrt(real(n))           ! Scale factor
 
-xi=x(1:m)
-deallocate(x)
+    xi=x(1:m)
+    deallocate(x)
 
-return
+    return
 
-end subroutine hilbert
+  end subroutine hilbert
 
-!
-!     3) Matrix flip up to down and/or left to right
-!
-subroutine flipv(x,M)
+  !
+  !     3) Matrix flip up to down and/or left to right
+  !
+  subroutine flipv(x,M)
 
-IMPLICIT NONE
+    IMPLICIT NONE
 
-! x is input vector
-! M is size vector
+    ! x is input vector
+    ! M is size vector
 
-integer                             :: M, i
-real*8, dimension(M)                :: x
-real*8, dimension(:),allocatable    :: temp1, temp3
-integer,dimension(:),allocatable    :: temp2
+    integer                             :: M, i
+    real*8, dimension(M)                :: x
+    real*8, dimension(:),allocatable    :: temp1, temp3
+    integer,dimension(:),allocatable    :: temp2
 
-allocate(temp1(M))
-allocate(temp2(M))
-allocate(temp3(M))
+    allocate(temp1(M))
+    allocate(temp2(M))
+    allocate(temp3(M))
 
-i=0 ! wwvv to quiet the compiler
+    i=0 ! wwvv to quiet the compiler
 
-temp1=0
-temp2=0
-temp3=0
-    
-temp1=x
-temp2=(/(i,i=0,M-1)/)
-temp3=temp1(M-temp2)
-x=temp3
+    temp1=0
+    temp2=0
+    temp3=0
 
-deallocate(temp1)
-deallocate(temp2)
-deallocate(temp3)
+    temp1=x
+    temp2=(/(i,i=0,M-1)/)
+    temp3=temp1(M-temp2)
+    x=temp3
 
-return
+    deallocate(temp1)
+    deallocate(temp2)
+    deallocate(temp3)
 
-end subroutine flipv
+    return
 
-subroutine flipiv(x,M)
+  end subroutine flipv
 
-IMPLICIT NONE
+  subroutine flipiv(x,M)
 
-! x is input vector
-! M is size vector
+    IMPLICIT NONE
 
-integer                                     :: M, i
-complex(fftkind),dimension(M)                 :: x
-real(realkind),allocatable,dimension(:)             :: temp1r, temp3r, temp1i, temp3i
-complex(realkind), parameter                :: compi=(0.,1.)
-allocate(temp1r(M))
-allocate(temp3r(M))
-allocate(temp1i(M))
-allocate(temp3i(M))
-temp1r=0.d0
-temp1i=0.d0
-temp3r=0.d0
-temp3i=0.d0
-temp1r=real(x)
-temp1i=aimag(x)
-do i=0,M-1
-    temp3r(i+1)=temp1r(M-i)
-    temp3i(i+1)=temp1i(M-i)
-enddo
+    ! x is input vector
+    ! M is size vector
 
-x=temp3r+compi*temp3i
-deallocate(temp1r)
-deallocate(temp3r)
-deallocate(temp1i)
-deallocate(temp3i)
+    integer                                     :: M, i
+    complex(fftkind),dimension(M)                 :: x
+    real(realkind),allocatable,dimension(:)             :: temp1r, temp3r, temp1i, temp3i
+    complex(realkind), parameter                :: compi=(0.,1.)
+    allocate(temp1r(M))
+    allocate(temp3r(M))
+    allocate(temp1i(M))
+    allocate(temp3i(M))
+    temp1r=0.d0
+    temp1i=0.d0
+    temp3r=0.d0
+    temp3i=0.d0
+    temp1r=real(x)
+    temp1i=aimag(x)
+    do i=0,M-1
+       temp3r(i+1)=temp1r(M-i)
+       temp3i(i+1)=temp1i(M-i)
+    enddo
 
-return
+    x=temp3r+compi*temp3i
+    deallocate(temp1r)
+    deallocate(temp3r)
+    deallocate(temp1i)
+    deallocate(temp3i)
 
-end subroutine flipiv
+    return
 
-subroutine flipa(x,M1,M2,flip)
-use xmpi_module
+  end subroutine flipiv
 
-IMPLICIT NONE
+  subroutine flipa(x,M1,M2,flip)
+    use xmpi_module
 
-! x is  2D array
-! flip (1 or 2) is flip rows(1) or columns(2)
+    IMPLICIT NONE
 
-integer                             :: M1, M2, flip, ii
-real*8, dimension(M1,M2)            :: x
-real*8, dimension(:,:),allocatable  :: temp1a, temp3a
+    ! x is  2D array
+    ! flip (1 or 2) is flip rows(1) or columns(2)
 
-allocate(temp1a(M1,M2))
-allocate(temp3a(M1,M2))
+    integer                             :: M1, M2, flip, ii
+    real*8, dimension(M1,M2)            :: x
+    real*8, dimension(:,:),allocatable  :: temp1a, temp3a
 
-temp1a=0
-temp3a=0
+    allocate(temp1a(M1,M2))
+    allocate(temp3a(M1,M2))
+
+    temp1a=0
+    temp3a=0
 
     if (flip==1) then       ! flip rows
-        temp1a=x
-        do ii=1,M1
-            temp3a(:,ii)=temp1a(:,M1+1-ii)
-        end do
-        x=temp3a
+       temp1a=x
+       do ii=1,M1
+          temp3a(:,ii)=temp1a(:,M1+1-ii)
+       end do
+       x=temp3a
     else if (flip==2) then  ! flip columns
-        temp1a=x
-        do ii=1,M2
-            temp3a(:,ii)=temp1a(:,M2+1-ii)
-        end do
-        x=temp3a
+       temp1a=x
+       do ii=1,M2
+          temp3a(:,ii)=temp1a(:,M2+1-ii)
+       end do
+       x=temp3a
     else
-        write(*,*) 'Catastrophe in flipa: flip must be set to 1 or 2'
-        call halt_program
+       write(*,*) 'Catastrophe in flipa: flip must be set to 1 or 2'
+       call halt_program
     end if
-    
-deallocate(temp1a)
-deallocate(temp3a)
 
-return
+    deallocate(temp1a)
+    deallocate(temp3a)
 
-end subroutine flipa
+    return
 
-function xerf(x) result (y)
+  end subroutine flipa
+
+  function xerf(x) result (y)
 
     implicit none
-    
+
     integer                                         :: i
     real*8, dimension(:)                            :: x
     real*8, dimension(size(x))                      :: w,y
     integer                                         :: k
     real*8                                          :: t
     real*8, dimension(0:64)                         :: a,b
-    
+
     ! based on derf.f from http://www.kurims.kyoto-u.ac.jp/~ooura/
-    
+
     data (a(i), i = 0, 12) /                                    &
-        0.00000000005958930743d0, -0.00000000113739022964d0,    &
-        0.00000001466005199839d0, -0.00000016350354461960d0,    &
-        0.00000164610044809620d0, -0.00001492559551950604d0,    &
-        0.00012055331122299265d0, -0.00085483269811296660d0,    &
-        0.00522397762482322257d0, -0.02686617064507733420d0,    &
-        0.11283791670954881569d0, -0.37612638903183748117d0,    &
-        1.12837916709551257377d0 /
+         0.00000000005958930743d0, -0.00000000113739022964d0,    &
+         0.00000001466005199839d0, -0.00000016350354461960d0,    &
+         0.00000164610044809620d0, -0.00001492559551950604d0,    &
+         0.00012055331122299265d0, -0.00085483269811296660d0,    &
+         0.00522397762482322257d0, -0.02686617064507733420d0,    &
+         0.11283791670954881569d0, -0.37612638903183748117d0,    &
+         1.12837916709551257377d0 /
     data (a(i), i = 13, 25) /                                   &
-        0.00000000002372510631d0, -0.00000000045493253732d0,    &
-        0.00000000590362766598d0, -0.00000006642090827576d0,    &
-        0.00000067595634268133d0, -0.00000621188515924000d0,    &
-        0.00005103883009709690d0, -0.00037015410692956173d0,    &
-        0.00233307631218880978d0, -0.01254988477182192210d0,    &
-        0.05657061146827041994d0, -0.21379664776456006580d0,    &
-        0.84270079294971486929d0 / 
+         0.00000000002372510631d0, -0.00000000045493253732d0,    &
+         0.00000000590362766598d0, -0.00000006642090827576d0,    &
+         0.00000067595634268133d0, -0.00000621188515924000d0,    &
+         0.00005103883009709690d0, -0.00037015410692956173d0,    &
+         0.00233307631218880978d0, -0.01254988477182192210d0,    &
+         0.05657061146827041994d0, -0.21379664776456006580d0,    &
+         0.84270079294971486929d0 / 
     data (a(i), i = 26, 38) /                                   &
-        0.00000000000949905026d0, -0.00000000018310229805d0,    &
-        0.00000000239463074000d0, -0.00000002721444369609d0,    &
-        0.00000028045522331686d0, -0.00000261830022482897d0,    &
-        0.00002195455056768781d0, -0.00016358986921372656d0,    &
-        0.00107052153564110318d0, -0.00608284718113590151d0,    &
-        0.02986978465246258244d0, -0.13055593046562267625d0,    &
-        0.67493323603965504676d0 / 
+         0.00000000000949905026d0, -0.00000000018310229805d0,    &
+         0.00000000239463074000d0, -0.00000002721444369609d0,    &
+         0.00000028045522331686d0, -0.00000261830022482897d0,    &
+         0.00002195455056768781d0, -0.00016358986921372656d0,    &
+         0.00107052153564110318d0, -0.00608284718113590151d0,    &
+         0.02986978465246258244d0, -0.13055593046562267625d0,    &
+         0.67493323603965504676d0 / 
     data (a(i), i = 39, 51) /                                   &
-        0.00000000000382722073d0, -0.00000000007421598602d0,    &
-        0.00000000097930574080d0, -0.00000001126008898854d0,    &
-        0.00000011775134830784d0, -0.00000111992758382650d0,    &
-        0.00000962023443095201d0, -0.00007404402135070773d0,    &
-        0.00050689993654144881d0, -0.00307553051439272889d0,    &
-        0.01668977892553165586d0, -0.08548534594781312114d0,    &
-        0.56909076642393639985d0 / 
+         0.00000000000382722073d0, -0.00000000007421598602d0,    &
+         0.00000000097930574080d0, -0.00000001126008898854d0,    &
+         0.00000011775134830784d0, -0.00000111992758382650d0,    &
+         0.00000962023443095201d0, -0.00007404402135070773d0,    &
+         0.00050689993654144881d0, -0.00307553051439272889d0,    &
+         0.01668977892553165586d0, -0.08548534594781312114d0,    &
+         0.56909076642393639985d0 / 
     data (a(i), i = 52, 64) /                                   &
-        0.00000000000155296588d0, -0.00000000003032205868d0,    &
-        0.00000000040424830707d0, -0.00000000471135111493d0,    &
-        0.00000005011915876293d0, -0.00000048722516178974d0,    &
-        0.00000430683284629395d0, -0.00003445026145385764d0,    &
-        0.00024879276133931664d0, -0.00162940941748079288d0,    &
-        0.00988786373932350462d0, -0.05962426839442303805d0,    &
-        0.49766113250947636708d0 / 
+         0.00000000000155296588d0, -0.00000000003032205868d0,    &
+         0.00000000040424830707d0, -0.00000000471135111493d0,    &
+         0.00000005011915876293d0, -0.00000048722516178974d0,    &
+         0.00000430683284629395d0, -0.00003445026145385764d0,    &
+         0.00024879276133931664d0, -0.00162940941748079288d0,    &
+         0.00988786373932350462d0, -0.05962426839442303805d0,    &
+         0.49766113250947636708d0 / 
     data (b(i), i = 0, 12) /                                    &
-        -0.00000000029734388465d0, 0.00000000269776334046d0,    &
-        -0.00000000640788827665d0, -0.00000001667820132100d0,   &
-        -0.00000021854388148686d0, 0.00000266246030457984d0,    &
-        0.00001612722157047886d0, -0.00025616361025506629d0,    &
-        0.00015380842432375365d0, 0.00815533022524927908d0,     &
-        -0.01402283663896319337d0, -0.19746892495383021487d0,   &
-        0.71511720328842845913d0 / 
+         -0.00000000029734388465d0, 0.00000000269776334046d0,    &
+         -0.00000000640788827665d0, -0.00000001667820132100d0,   &
+         -0.00000021854388148686d0, 0.00000266246030457984d0,    &
+         0.00001612722157047886d0, -0.00025616361025506629d0,    &
+         0.00015380842432375365d0, 0.00815533022524927908d0,     &
+         -0.01402283663896319337d0, -0.19746892495383021487d0,   &
+         0.71511720328842845913d0 / 
     data (b(i), i = 13, 25) /                                   &
-        -0.00000000001951073787d0, -0.00000000032302692214d0,   &
-        0.00000000522461866919d0, 0.00000000342940918551d0,     &
-        -0.00000035772874310272d0, 0.00000019999935792654d0,    &
-        0.00002687044575042908d0, -0.00011843240273775776d0,    &
-        -0.00080991728956032271d0, 0.00661062970502241174d0,    &
-        0.00909530922354827295d0, -0.20160072778491013140d0,    &
-        0.51169696718727644908d0 / 
+         -0.00000000001951073787d0, -0.00000000032302692214d0,   &
+         0.00000000522461866919d0, 0.00000000342940918551d0,     &
+         -0.00000035772874310272d0, 0.00000019999935792654d0,    &
+         0.00002687044575042908d0, -0.00011843240273775776d0,    &
+         -0.00080991728956032271d0, 0.00661062970502241174d0,    &
+         0.00909530922354827295d0, -0.20160072778491013140d0,    &
+         0.51169696718727644908d0 / 
     data (b(i), i = 26, 38) /                                   &
-        0.00000000003147682272d0, -0.00000000048465972408d0,    &
-        0.00000000063675740242d0, 0.00000003377623323271d0,     &
-        -0.00000015451139637086d0, -0.00000203340624738438d0,   &
-        0.00001947204525295057d0, 0.00002854147231653228d0,     &
-        -0.00101565063152200272d0, 0.00271187003520095655d0,    &
-        0.02328095035422810727d0, -0.16725021123116877197d0,    &
-        0.32490054966649436974d0 / 
+         0.00000000003147682272d0, -0.00000000048465972408d0,    &
+         0.00000000063675740242d0, 0.00000003377623323271d0,     &
+         -0.00000015451139637086d0, -0.00000203340624738438d0,   &
+         0.00001947204525295057d0, 0.00002854147231653228d0,     &
+         -0.00101565063152200272d0, 0.00271187003520095655d0,    &
+         0.02328095035422810727d0, -0.16725021123116877197d0,    &
+         0.32490054966649436974d0 / 
     data (b(i), i = 39, 51) /                                   &
-        0.00000000002319363370d0, -0.00000000006303206648d0,    &
-        -0.00000000264888267434d0, 0.00000002050708040581d0,    &
-        0.00000011371857327578d0, -0.00000211211337219663d0,    &
-        0.00000368797328322935d0, 0.00009823686253424796d0,     &
-        -0.00065860243990455368d0, -0.00075285814895230877d0,   &
-        0.02585434424202960464d0, -0.11637092784486193258d0,    &
-        0.18267336775296612024d0 / 
+         0.00000000002319363370d0, -0.00000000006303206648d0,    &
+         -0.00000000264888267434d0, 0.00000002050708040581d0,    &
+         0.00000011371857327578d0, -0.00000211211337219663d0,    &
+         0.00000368797328322935d0, 0.00009823686253424796d0,     &
+         -0.00065860243990455368d0, -0.00075285814895230877d0,   &
+         0.02585434424202960464d0, -0.11637092784486193258d0,    &
+         0.18267336775296612024d0 / 
     data (b(i), i = 52, 64) /                                   &
-        -0.00000000000367789363d0, 0.00000000020876046746d0,    &
-        -0.00000000193319027226d0, -0.00000000435953392472d0,   &
-        0.00000018006992266137d0, -0.00000078441223763969d0,    &
-        -0.00000675407647949153d0, 0.00008428418334440096d0,    &
-        -0.00017604388937031815d0, -0.00239729611435071610d0,   &
-        0.02064129023876022970d0, -0.06905562880005864105d0,    &
-        0.09084526782065478489d0 /
-        
+         -0.00000000000367789363d0, 0.00000000020876046746d0,    &
+         -0.00000000193319027226d0, -0.00000000435953392472d0,   &
+         0.00000018006992266137d0, -0.00000078441223763969d0,    &
+         -0.00000675407647949153d0, 0.00008428418334440096d0,    &
+         -0.00017604388937031815d0, -0.00239729611435071610d0,   &
+         0.02064129023876022970d0, -0.06905562880005864105d0,    &
+         0.09084526782065478489d0 /
+
     w = abs(x)
-    
+
     do i = 1,size(x)
-        if (w(i) .lt. 2.2d0) then
-            t       = w(i) * w(i)
-            k       = int(t)
-            t       = t - k
-            k       = k * 13
-            y(i)    = ((((((((((((a(k) * t + a(k + 1)) * t +        &
-                a(k + 2)) * t + a(k + 3)) * t + a(k + 4)) * t +     &
-                a(k + 5)) * t + a(k + 6)) * t + a(k + 7)) * t +     &
-                a(k + 8)) * t + a(k + 9)) * t + a(k + 10)) * t +    &
-                a(k + 11)) * t + a(k + 12)) * w(i)
-        else if (w(i) .lt. 6.9d0) then
-            k       = int(w(i))
-            t       = w(i) - k
-            k       = 13 * (k - 2)
-            y(i)    = (((((((((((b(k) * t + b(k + 1)) * t +         &
-                b(k + 2)) * t + b(k + 3)) * t + b(k + 4)) * t +     &
-                b(k + 5)) * t + b(k + 6)) * t + b(k + 7)) * t +     &
-                b(k + 8)) * t + b(k + 9)) * t + b(k + 10)) * t +    &
-                b(k + 11)) * t + b(k + 12)
-            y(i)    = 1 - y(i)**16
-        else
-            y(i)    = 1
-        end if
-    
-        if (x(i) .lt. 0) y(i) = -y(i)
+       if (w(i) .lt. 2.2d0) then
+          t       = w(i) * w(i)
+          k       = int(t)
+          t       = t - k
+          k       = k * 13
+          y(i)    = ((((((((((((a(k) * t + a(k + 1)) * t +        &
+               a(k + 2)) * t + a(k + 3)) * t + a(k + 4)) * t +     &
+               a(k + 5)) * t + a(k + 6)) * t + a(k + 7)) * t +     &
+               a(k + 8)) * t + a(k + 9)) * t + a(k + 10)) * t +    &
+               a(k + 11)) * t + a(k + 12)) * w(i)
+       else if (w(i) .lt. 6.9d0) then
+          k       = int(w(i))
+          t       = w(i) - k
+          k       = 13 * (k - 2)
+          y(i)    = (((((((((((b(k) * t + b(k + 1)) * t +         &
+               b(k + 2)) * t + b(k + 3)) * t + b(k + 4)) * t +     &
+               b(k + 5)) * t + b(k + 6)) * t + b(k + 7)) * t +     &
+               b(k + 8)) * t + b(k + 9)) * t + b(k + 10)) * t +    &
+               b(k + 11)) * t + b(k + 12)
+          y(i)    = 1 - y(i)**16
+       else
+          y(i)    = 1
+       end if
+
+       if (x(i) .lt. 0) y(i) = -y(i)
     enddo
-    
-end function xerf
+
+  end function xerf
 
 END MODULE math_tools

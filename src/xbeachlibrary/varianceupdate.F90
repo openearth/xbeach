@@ -58,174 +58,174 @@ contains
     integer                           :: i,index,d1,d2,d3,d4
 
     if (par%nmeanvar>0) then
-    
-        allocate(meansparsglobal(par%nmeanvar))
-        allocate(meansparslocal(par%nmeanvar))
-        
-        do i=1,par%nmeanvar
-           index=chartoindex(trim(par%meanvars(i)))
-           call indextos(sg,index,t)
-           meansparsglobal(i)%name=t%name
-           meansparsglobal(i)%rank=t%rank
-           meansparsglobal(i)%t = t
-           select case (t%rank)
-           case (2)
-              if (t%type == 'r') then
-                 d1 = size(t%r2,1)
-                 d2 = size(t%r2,2)
-              elseif (t%type == 'i') then
-                 d1 = size(t%i2,1)
-                 d2 = size(t%i2,2)
-              else
-                 call halt_program
-              end if
-              allocate(meansparsglobal(i)%mean2d(d1,d2))
-              allocate(meansparsglobal(i)%variance2d(d1,d2))
-              allocate(meansparsglobal(i)%variancecrossterm2d(d1,d2))
-              allocate(meansparsglobal(i)%variancesquareterm2d(d1,d2))
-              allocate(meansparsglobal(i)%min2d(d1,d2))
-              allocate(meansparsglobal(i)%max2d(d1,d2))
-              meansparsglobal(i)%mean2d = 0.d0
-              meansparsglobal(i)%variance2d = 0.d0
-              meansparsglobal(i)%variancecrossterm2d = 0.d0
-              meansparsglobal(i)%variancesquareterm2d = 0.d0
-              meansparsglobal(i)%min2d = huge(0.d0)
-              meansparsglobal(i)%max2d = -1.d0*huge(0.d0)
-           case (3)
-              if (t%type == 'r') then
-                 d1 = size(t%r3,1)
-                 d2 = size(t%r3,2)
-                 d3 = size(t%r3,3)
-              elseif (t%type == 'i') then
-                 d1 = size(t%r3,1)
-                 d2 = size(t%r3,2)
-                 d3 = size(t%r3,3)
-              else
-                 call halt_program
-              end if
-              allocate(meansparsglobal(i)%mean3d(d1,d2,d3))
-              allocate(meansparsglobal(i)%variance3d(d1,d2,d3))
-              allocate(meansparsglobal(i)%variancecrossterm3d(d1,d2,d3))
-              allocate(meansparsglobal(i)%variancesquareterm3d(d1,d2,d3))
-              allocate(meansparsglobal(i)%min3d(d1,d2,d3))
-              allocate(meansparsglobal(i)%max3d(d1,d2,d3))
-              meansparsglobal(i)%mean3d = 0.d0
-              meansparsglobal(i)%variance3d = 0.d0
-              meansparsglobal(i)%variancecrossterm3d = 0.d0
-              meansparsglobal(i)%variancesquareterm3d = 0.d0
-              meansparsglobal(i)%min3d = huge(0.d0)
-              meansparsglobal(i)%max3d = -1.d0*huge(0.d0)
-           case (4)
-              if (t%type == 'r') then
-                 d1 = size(t%r4,1)
-                 d2 = size(t%r4,2)
-                 d3 = size(t%r4,3)
-                 d4 = size(t%r4,4)
-              elseif (t%type == 'i') then
-                 d1 = size(t%r4,1)
-                 d2 = size(t%r4,2)
-                 d3 = size(t%r4,3)
-                 d4 = size(t%r4,4)
-              else
-                 call halt_program
-              end if
-              allocate(meansparsglobal(i)%mean4d(d1,d2,d3,d4))
-              allocate(meansparsglobal(i)%variance4d(d1,d2,d3,d4))
-              allocate(meansparsglobal(i)%variancecrossterm4d(d1,d2,d3,d4))
-              allocate(meansparsglobal(i)%variancesquareterm4d(d1,d2,d3,d4))
-              allocate(meansparsglobal(i)%min4d(d1,d2,d3,d4))
-              allocate(meansparsglobal(i)%max4d(d1,d2,d3,d4))
-              meansparsglobal(i)%mean4d = 0.d0
-              meansparsglobal(i)%variance4d = 0.d0
-              meansparsglobal(i)%variancecrossterm4d = 0.d0
-              meansparsglobal(i)%variancesquareterm4d = 0.d0
-              meansparsglobal(i)%min4d = huge(0.d0)
-              meansparsglobal(i)%max4d = -1.d0*huge(0.d0)
-           end select
-#ifdef USEMPI
-           call indextos(sl,index,t)
-#else
-           ! do nothing, we use s global here, no local s available
-#endif
-           meansparslocal(i)%name=t%name
-           meansparslocal(i)%rank=t%rank
-           meansparslocal(i)%t = t
-           select case (t%rank)
-           case (2)
-              if (t%type == 'r') then
-                 d1 = size(t%r2,1)
-                 d2 = size(t%r2,2)
-              elseif (t%type == 'i') then
-                 d1 = size(t%r2,1)
-                 d2 = size(t%r2,2)
-              else
-                 call halt_program
-              end if
-              allocate(meansparslocal(i)%mean2d(d1,d2))
-              allocate(meansparslocal(i)%variance2d(d1,d2))
-              allocate(meansparslocal(i)%variancecrossterm2d(d1,d2))
-              allocate(meansparslocal(i)%variancesquareterm2d(d1,d2))
-              allocate(meansparslocal(i)%min2d(d1,d2))
-              allocate(meansparslocal(i)%max2d(d1,d2))
-              meansparslocal(i)%mean2d = 0.d0
-              meansparslocal(i)%variance2d = 0.d0
-              meansparslocal(i)%variancecrossterm2d = 0.d0
-              meansparslocal(i)%variancesquareterm2d = 0.d0
-              meansparslocal(i)%min2d = huge(0.d0)
-              meansparslocal(i)%max2d = -1.d0*huge(0.d0)
-           case (3)
-              if (t%type == 'r') then
-                 d1 = size(t%r3,1)
-                 d2 = size(t%r3,2)
-                 d3 = size(t%r3,3)
-              elseif (t%type == 'i') then
-                 d1 = size(t%r3,1)
-                 d2 = size(t%r3,2)
-                 d3 = size(t%r3,3)
-              else
-                 call halt_program
-              end if
-              allocate(meansparslocal(i)%mean3d(d1,d2,d3))
-              allocate(meansparslocal(i)%variance3d(d1,d2,d3))
-              allocate(meansparslocal(i)%variancecrossterm3d(d1,d2,d3))
-              allocate(meansparslocal(i)%variancesquareterm3d(d1,d2,d3))
-              allocate(meansparslocal(i)%min3d(d1,d2,d3))
-              allocate(meansparslocal(i)%max3d(d1,d2,d3))
-              meansparslocal(i)%mean3d = 0.d0
-              meansparslocal(i)%variance3d = 0.d0
-              meansparslocal(i)%variancecrossterm3d = 0.d0
-              meansparslocal(i)%variancesquareterm3d = 0.d0
-              meansparslocal(i)%min3d = huge(0.d0)
-              meansparslocal(i)%max3d = -1.d0*huge(0.d0)
-           case (4)
-              if (t%type == 'r') then
-                 d1 = size(t%r4,1)
-                 d2 = size(t%r4,2)
-                 d3 = size(t%r4,3)
-                 d4 = size(t%r4,4)
-              elseif (t%type == 'i') then
-                 d1 = size(t%r4,1)
-                 d2 = size(t%r4,2)
-                 d3 = size(t%r4,3)
-                 d4 = size(t%r4,4)
-              else
-                 call halt_program
-              end if
-              allocate(meansparslocal(i)%mean4d(d1,d2,d3,d4))
-              allocate(meansparslocal(i)%variance4d(d1,d2,d3,d4))
-              allocate(meansparslocal(i)%variancecrossterm4d(d1,d2,d3,d4))
-              allocate(meansparslocal(i)%variancesquareterm4d(d1,d2,d3,d4))
-              allocate(meansparslocal(i)%min4d(d1,d2,d3,d4))
-              allocate(meansparslocal(i)%max4d(d1,d2,d3,d4))
-              meansparslocal(i)%mean4d = 0.d0
-              meansparslocal(i)%variance4d = 0.d0
-              meansparslocal(i)%variancecrossterm4d = 0.d0
-              meansparslocal(i)%variancesquareterm4d = 0.d0
-              meansparslocal(i)%min4d = huge(0.d0)
-              meansparslocal(i)%max4d = -1.d0*huge(0.d0)
-           end select
 
-        enddo
+       allocate(meansparsglobal(par%nmeanvar))
+       allocate(meansparslocal(par%nmeanvar))
+
+       do i=1,par%nmeanvar
+          index=chartoindex(trim(par%meanvars(i)))
+          call indextos(sg,index,t)
+          meansparsglobal(i)%name=t%name
+          meansparsglobal(i)%rank=t%rank
+          meansparsglobal(i)%t = t
+          select case (t%rank)
+          case (2)
+             if (t%type == 'r') then
+                d1 = size(t%r2,1)
+                d2 = size(t%r2,2)
+             elseif (t%type == 'i') then
+                d1 = size(t%i2,1)
+                d2 = size(t%i2,2)
+             else
+                call halt_program
+             end if
+             allocate(meansparsglobal(i)%mean2d(d1,d2))
+             allocate(meansparsglobal(i)%variance2d(d1,d2))
+             allocate(meansparsglobal(i)%variancecrossterm2d(d1,d2))
+             allocate(meansparsglobal(i)%variancesquareterm2d(d1,d2))
+             allocate(meansparsglobal(i)%min2d(d1,d2))
+             allocate(meansparsglobal(i)%max2d(d1,d2))
+             meansparsglobal(i)%mean2d = 0.d0
+             meansparsglobal(i)%variance2d = 0.d0
+             meansparsglobal(i)%variancecrossterm2d = 0.d0
+             meansparsglobal(i)%variancesquareterm2d = 0.d0
+             meansparsglobal(i)%min2d = huge(0.d0)
+             meansparsglobal(i)%max2d = -1.d0*huge(0.d0)
+          case (3)
+             if (t%type == 'r') then
+                d1 = size(t%r3,1)
+                d2 = size(t%r3,2)
+                d3 = size(t%r3,3)
+             elseif (t%type == 'i') then
+                d1 = size(t%r3,1)
+                d2 = size(t%r3,2)
+                d3 = size(t%r3,3)
+             else
+                call halt_program
+             end if
+             allocate(meansparsglobal(i)%mean3d(d1,d2,d3))
+             allocate(meansparsglobal(i)%variance3d(d1,d2,d3))
+             allocate(meansparsglobal(i)%variancecrossterm3d(d1,d2,d3))
+             allocate(meansparsglobal(i)%variancesquareterm3d(d1,d2,d3))
+             allocate(meansparsglobal(i)%min3d(d1,d2,d3))
+             allocate(meansparsglobal(i)%max3d(d1,d2,d3))
+             meansparsglobal(i)%mean3d = 0.d0
+             meansparsglobal(i)%variance3d = 0.d0
+             meansparsglobal(i)%variancecrossterm3d = 0.d0
+             meansparsglobal(i)%variancesquareterm3d = 0.d0
+             meansparsglobal(i)%min3d = huge(0.d0)
+             meansparsglobal(i)%max3d = -1.d0*huge(0.d0)
+          case (4)
+             if (t%type == 'r') then
+                d1 = size(t%r4,1)
+                d2 = size(t%r4,2)
+                d3 = size(t%r4,3)
+                d4 = size(t%r4,4)
+             elseif (t%type == 'i') then
+                d1 = size(t%r4,1)
+                d2 = size(t%r4,2)
+                d3 = size(t%r4,3)
+                d4 = size(t%r4,4)
+             else
+                call halt_program
+             end if
+             allocate(meansparsglobal(i)%mean4d(d1,d2,d3,d4))
+             allocate(meansparsglobal(i)%variance4d(d1,d2,d3,d4))
+             allocate(meansparsglobal(i)%variancecrossterm4d(d1,d2,d3,d4))
+             allocate(meansparsglobal(i)%variancesquareterm4d(d1,d2,d3,d4))
+             allocate(meansparsglobal(i)%min4d(d1,d2,d3,d4))
+             allocate(meansparsglobal(i)%max4d(d1,d2,d3,d4))
+             meansparsglobal(i)%mean4d = 0.d0
+             meansparsglobal(i)%variance4d = 0.d0
+             meansparsglobal(i)%variancecrossterm4d = 0.d0
+             meansparsglobal(i)%variancesquareterm4d = 0.d0
+             meansparsglobal(i)%min4d = huge(0.d0)
+             meansparsglobal(i)%max4d = -1.d0*huge(0.d0)
+          end select
+#ifdef USEMPI
+          call indextos(sl,index,t)
+#else
+          ! do nothing, we use s global here, no local s available
+#endif
+          meansparslocal(i)%name=t%name
+          meansparslocal(i)%rank=t%rank
+          meansparslocal(i)%t = t
+          select case (t%rank)
+          case (2)
+             if (t%type == 'r') then
+                d1 = size(t%r2,1)
+                d2 = size(t%r2,2)
+             elseif (t%type == 'i') then
+                d1 = size(t%r2,1)
+                d2 = size(t%r2,2)
+             else
+                call halt_program
+             end if
+             allocate(meansparslocal(i)%mean2d(d1,d2))
+             allocate(meansparslocal(i)%variance2d(d1,d2))
+             allocate(meansparslocal(i)%variancecrossterm2d(d1,d2))
+             allocate(meansparslocal(i)%variancesquareterm2d(d1,d2))
+             allocate(meansparslocal(i)%min2d(d1,d2))
+             allocate(meansparslocal(i)%max2d(d1,d2))
+             meansparslocal(i)%mean2d = 0.d0
+             meansparslocal(i)%variance2d = 0.d0
+             meansparslocal(i)%variancecrossterm2d = 0.d0
+             meansparslocal(i)%variancesquareterm2d = 0.d0
+             meansparslocal(i)%min2d = huge(0.d0)
+             meansparslocal(i)%max2d = -1.d0*huge(0.d0)
+          case (3)
+             if (t%type == 'r') then
+                d1 = size(t%r3,1)
+                d2 = size(t%r3,2)
+                d3 = size(t%r3,3)
+             elseif (t%type == 'i') then
+                d1 = size(t%r3,1)
+                d2 = size(t%r3,2)
+                d3 = size(t%r3,3)
+             else
+                call halt_program
+             end if
+             allocate(meansparslocal(i)%mean3d(d1,d2,d3))
+             allocate(meansparslocal(i)%variance3d(d1,d2,d3))
+             allocate(meansparslocal(i)%variancecrossterm3d(d1,d2,d3))
+             allocate(meansparslocal(i)%variancesquareterm3d(d1,d2,d3))
+             allocate(meansparslocal(i)%min3d(d1,d2,d3))
+             allocate(meansparslocal(i)%max3d(d1,d2,d3))
+             meansparslocal(i)%mean3d = 0.d0
+             meansparslocal(i)%variance3d = 0.d0
+             meansparslocal(i)%variancecrossterm3d = 0.d0
+             meansparslocal(i)%variancesquareterm3d = 0.d0
+             meansparslocal(i)%min3d = huge(0.d0)
+             meansparslocal(i)%max3d = -1.d0*huge(0.d0)
+          case (4)
+             if (t%type == 'r') then
+                d1 = size(t%r4,1)
+                d2 = size(t%r4,2)
+                d3 = size(t%r4,3)
+                d4 = size(t%r4,4)
+             elseif (t%type == 'i') then
+                d1 = size(t%r4,1)
+                d2 = size(t%r4,2)
+                d3 = size(t%r4,3)
+                d4 = size(t%r4,4)
+             else
+                call halt_program
+             end if
+             allocate(meansparslocal(i)%mean4d(d1,d2,d3,d4))
+             allocate(meansparslocal(i)%variance4d(d1,d2,d3,d4))
+             allocate(meansparslocal(i)%variancecrossterm4d(d1,d2,d3,d4))
+             allocate(meansparslocal(i)%variancesquareterm4d(d1,d2,d3,d4))
+             allocate(meansparslocal(i)%min4d(d1,d2,d3,d4))
+             allocate(meansparslocal(i)%max4d(d1,d2,d3,d4))
+             meansparslocal(i)%mean4d = 0.d0
+             meansparslocal(i)%variance4d = 0.d0
+             meansparslocal(i)%variancecrossterm4d = 0.d0
+             meansparslocal(i)%variancesquareterm4d = 0.d0
+             meansparslocal(i)%min4d = huge(0.d0)
+             meansparslocal(i)%max4d = -1.d0*huge(0.d0)
+          end select
+
+       enddo
     endif
   end subroutine means_init
 
@@ -248,11 +248,11 @@ contains
     integer                                             :: index 
     integer                                             :: i
     real*8                                              :: mult
-    
+
     type(arraytype)                                     :: t
-    
+
     integer,dimension(sl%nx+1,sl%ny+1)                  :: tvar2di
-    
+
     real*8, dimension(sl%nx+1,sl%ny+1)                  :: oldmean2d,tvar2d
     real*8, dimension(:,:,:),           allocatable     :: oldmean3d,tvar3d
     real*8, dimension(:,:,:,:),         allocatable     :: oldmean4d,tvar4d
@@ -285,11 +285,11 @@ contains
              call gridrotate(par, sl,t,tvar2d)
           endif
           if (par%meanvars(i)=='thetamean') then
-            meansparslocal(i)%mean2d = meansparslocal(i)%mean2d +   &
-                nint((1+mult*sin(tvar2d))*1e6)*1e3              +   &
-                nint((1+mult*cos(tvar2d))*1e6)/1e9
+             meansparslocal(i)%mean2d = meansparslocal(i)%mean2d +   &
+                  nint((1+mult*sin(tvar2d))*1e6)*1e3              +   &
+                  nint((1+mult*cos(tvar2d))*1e6)/1e9
           else
-            meansparslocal(i)%mean2d = meansparslocal(i)%mean2d + mult*tvar2d
+             meansparslocal(i)%mean2d = meansparslocal(i)%mean2d + mult*tvar2d
           endif
           meansparslocal(i)%variancecrossterm2d = &
                meansparslocal(i)%variancecrossterm2d/oldmean2d*meansparslocal(i)%mean2d + &
@@ -352,41 +352,41 @@ contains
     enddo ! par%nmeanvar
 
   end subroutine makeaverage
-  
+
   ! clear averages for new averaging period
   subroutine clearaverage(par)
-  
+
     use params
-    
+
     implicit none
 
     integer                         :: i
     type(parameters), intent(in)    :: par
-    
+
     do i=1,par%nmeanvar
-      select case (meansparsglobal(i)%rank)
-        case (2)
+       select case (meansparsglobal(i)%rank)
+       case (2)
           meansparslocal(i)%mean2d = 0.d0
           meansparslocal(i)%variance2d = 0.d0
           meansparslocal(i)%variancecrossterm2d = 0.d0
           meansparslocal(i)%variancesquareterm2d = 0.d0
           meansparslocal(i)%min2d = huge(0.d0)
           meansparslocal(i)%max2d = -1.d0*huge(0.d0)
-        case (3)
+       case (3)
           meansparslocal(i)%mean3d = 0.d0
           meansparslocal(i)%variance3d = 0.d0
           meansparslocal(i)%variancecrossterm3d = 0.d0
           meansparslocal(i)%variancesquareterm3d = 0.d0
           meansparslocal(i)%min3d = huge(0.d0)
           meansparslocal(i)%max3d = -1.d0*huge(0.d0)
-        case (4)
+       case (4)
           meansparslocal(i)%mean4d = 0.d0
           meansparslocal(i)%variance4d = 0.d0
           meansparslocal(i)%variancecrossterm4d = 0.d0
           meansparslocal(i)%variancesquareterm4d = 0.d0
           meansparslocal(i)%min4d = huge(0.d0)
           meansparslocal(i)%max4d = -1.d0*huge(0.d0)
-      end select
+       end select
     enddo
   end subroutine clearaverage
 

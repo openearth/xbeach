@@ -5,7 +5,7 @@
 ! This module contains transformation routines from xbeach internal data structures to output data structures.
 
 module postprocessmod
-    implicit none
+  implicit none
   interface gridrotate
      ! rotate grids, given s, t and outputs x
      module procedure gridrotate_r0
@@ -67,8 +67,8 @@ contains
           else
              xpoints(i)=minlocation(1)
              if (scrprint) call writelog('ls','(a,i0,a,i0,a,f0.2,a)',' Distance output point to nearest grid point ('&
-                                                                    ,minlocation(1),',',minlocation(2),') is '&
-                                                                    ,mindistr(i), ' meters')
+                  ,minlocation(1),',',minlocation(2),') is '&
+                  ,mindistr(i), ' meters')
           endif
        end do
     end if
@@ -102,13 +102,13 @@ contains
     real*8, dimension(:)         :: x
     real*8                       :: pi
     pi = 4*atan(1.0d0)
-    
+
     if (par%rotate .eq. 1) then
        select case(t%name)
        case(mnem_theta)
-         x=270-(t%r1*(180/pi))
+          x=270-(t%r1*(180/pi))
        case(mnem_theta0)
-         x=270-(t%r1*(180/pi))
+          x=270-(t%r1*(180/pi))
        case default
           x=t%r1
        end select
@@ -183,7 +183,7 @@ contains
     use logging_module
 
     implicit none
-    
+
     type(parameters), intent(in)  :: par
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
@@ -193,19 +193,19 @@ contains
     real*8                        :: pi
     integer                       :: i
     pi = 4*atan(1.0d0)
-    
+
     ! fill variable alfazr3. We presume first 2 dimension are related to nx+1, ny+1 respectively
     ! Better double check    
     if (size(s%alfaz,1) .ne. size(t%r3,1)) call writelog('ls', '', &
-           & 'Assertion error, s%alfaz and t%r3 do not align on 1st dimension', size(s%alfaz,1), size(t%r3,1))
+         & 'Assertion error, s%alfaz and t%r3 do not align on 1st dimension', size(s%alfaz,1), size(t%r3,1))
     if (size(s%alfaz,2) .ne. size(t%r3,2)) call writelog('ls', '', & 
-           & 'Assertion error, s%alfaz and t%r3 do not align on 2nd dimension', size(s%alfaz,2), size(t%r3,2))
+         & 'Assertion error, s%alfaz and t%r3 do not align on 2nd dimension', size(s%alfaz,2), size(t%r3,2))
     ! This should be something like:
     ! alfazr3 = (/(s%alfaz, i=1,size(t%r3,3)) /)
     do i=1,size(t%r3,3)
-        alfazr3(:,:,i) = s%alfaz
-    end do  
-    
+       alfazr3(:,:,i) = s%alfaz
+    end do
+
     if (par%rotate .eq. 1) then
        select case(t%name)
        case(mnem_cgx)

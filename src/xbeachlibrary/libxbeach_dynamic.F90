@@ -1,38 +1,38 @@
 module libxbeach_dynamic
 
-use libxbeach_module
-USE iso_c_binding
+  use libxbeach_module
+  USE iso_c_binding
 
-implicit none
+  implicit none
 
 contains
 
-integer(c_int) function xbeach_init() bind(C, name="init")
-!DEC$ ATTRIBUTES DLLEXPORT::xbeach_init
+  integer(c_int) function xbeach_init() bind(C, name="init")
+    !DEC$ ATTRIBUTES DLLEXPORT::xbeach_init
 
-xbeach_init = init()
+    xbeach_init = init()
 
-end function xbeach_init
+  end function xbeach_init
 
-integer(c_int) function xbeach_outputext() bind(C, name="outputext")
-!DEC$ ATTRIBUTES DLLEXPORT::xbeach_outputext
-    
-xbeach_outputext = outputext()
+  integer(c_int) function xbeach_outputext() bind(C, name="outputext")
+    !DEC$ ATTRIBUTES DLLEXPORT::xbeach_outputext
 
-end function xbeach_outputext
+    xbeach_outputext = outputext()
 
-integer(c_int) function xbeach_executestep() bind(C, name="executestep")
-!DEC$ ATTRIBUTES DLLEXPORT::xbeach_executestep
+  end function xbeach_outputext
 
-xbeach_executestep = executestep()
+  integer(c_int) function xbeach_executestep() bind(C, name="executestep")
+    !DEC$ ATTRIBUTES DLLEXPORT::xbeach_executestep
 
-end function xbeach_executestep
+    xbeach_executestep = executestep()
 
-integer(c_int) function xbeach_finalize() bind(C, name="finalize")
-!DEC$ ATTRIBUTES DLLEXPORT::xbeach_finalize
+  end function xbeach_executestep
 
-xbeach_finalize = finalize()
+  integer(c_int) function xbeach_finalize() bind(C, name="finalize")
+    !DEC$ ATTRIBUTES DLLEXPORT::xbeach_finalize
 
- end function xbeach_finalize
+    xbeach_finalize = finalize()
 
-end module
+  end function xbeach_finalize
+
+end module libxbeach_dynamic

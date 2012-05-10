@@ -110,7 +110,7 @@ contains
     use logging_module
     ! This module is awaiting comments from Robert.
     use getkey_module
-    
+
     implicit none
     integer :: status ! file id and status returned from a file operation
 
@@ -366,8 +366,8 @@ contains
              status = nf90_put_att(ncid, globalvarids(i), 'units', trim(t%units))
              if (status /= nf90_noerr) call handle_err(status)
              if (.not.(trim(t%standardname) .eq. '')) then
-               status = nf90_put_att(ncid, globalvarids(i), 'standard_name', trim(t%standardname))
-               if (status /= nf90_noerr) call handle_err(status)
+                status = nf90_put_att(ncid, globalvarids(i), 'standard_name', trim(t%standardname))
+                if (status /= nf90_noerr) call handle_err(status)
              endif
              status = nf90_put_att(ncid, globalvarids(i), 'long_name', trim(t%description))
              if (status /= nf90_noerr) call handle_err(status)
@@ -472,8 +472,8 @@ contains
              status = nf90_put_att(ncid, pointsvarids(i), 'units', trim(t%units))
              if (status /= nf90_noerr) call handle_err(status)
              if (.not.(trim(t%standardname) .eq. '')) then
-               status = nf90_put_att(ncid, pointsvarids(i), 'standard_name', trim(t%standardname))
-               if (status /= nf90_noerr) call handle_err(status)
+                status = nf90_put_att(ncid, pointsvarids(i), 'standard_name', trim(t%standardname))
+                if (status /= nf90_noerr) call handle_err(status)
              endif
              status = nf90_put_att(ncid, pointsvarids(i), 'long_name', trim(t%description))
              if (status /= nf90_noerr) call handle_err(status)
@@ -492,12 +492,12 @@ contains
           ! default global output variables
           do i=1,par%nmeanvar
              ! Not sure if this is required here, but it is used in varoutput
-! #ifdef USEMPI
-!              ! No need to collect here, we're just using the types
-!              ! call means_collect(sl,meansparsglobal(i),meansparslocal(i))
-! #else
-!              meansparsglobal(i)=meansparslocal(i)
-! #endif
+             ! #ifdef USEMPI
+             !              ! No need to collect here, we're just using the types
+             !              ! call means_collect(sl,meansparsglobal(i),meansparslocal(i))
+             ! #else
+             !              meansparsglobal(i)=meansparslocal(i)
+             ! #endif
              coordinates = ''
              meanvar = meansparsglobal(i)
              t = meanvar%t
@@ -542,8 +542,8 @@ contains
                    status = nf90_put_att(ncid, meanvarids(i,j), 'units', trim(t%units))
                    if (status /= nf90_noerr) call handle_err(status)
                    if (.not.(trim(t%standardname) .eq. '')) then
-                     status = nf90_put_att(ncid, meanvarids(i,j), 'standard_name', trim(t%standardname))
-                     if (status /= nf90_noerr) call handle_err(status)
+                      status = nf90_put_att(ncid, meanvarids(i,j), 'standard_name', trim(t%standardname))
+                      if (status /= nf90_noerr) call handle_err(status)
                    endif
                    status = nf90_put_att(ncid, meanvarids(i,j), 'long_name', trim(t%description))
                    if (status /= nf90_noerr) call handle_err(status)
@@ -571,7 +571,7 @@ contains
        ! Grid
        j = chartoindex('xz')
        call indextos(s,j,t)
-       
+
        status = nf90_put_var(ncid, xvarid, t%r2)
        if (status /= nf90_noerr) call handle_err(status)
 

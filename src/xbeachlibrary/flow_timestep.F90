@@ -55,12 +55,12 @@ contains
     real*8                                  :: nuh1,nuh2
     real*8                                  :: dudx1,dudx2,dudy1,dudy2
     real*8                                  :: dvdy1,dvdy2,dvdx1,dvdx2  !Jaap
-	real*8                                  :: dalfa                    !difference in grid angles
-	real*8                                  :: uin,vin                  !u resp v-velocity corrected for grid angle change
-	real*8                                  :: qin                      !specific discharge entering cell
-	real*8                                  :: dzsdnavg                 !alongshore water level slope
-	real*8,save                             :: fc
-	real*8,dimension(:,:),allocatable,save  :: sinthm,costhm
+    real*8                                  :: dalfa                    !difference in grid angles
+    real*8                                  :: uin,vin                  !u resp v-velocity corrected for grid angle change
+    real*8                                  :: qin                      !specific discharge entering cell
+    real*8                                  :: dzsdnavg                 !alongshore water level slope
+    real*8,save                             :: fc
+    real*8,dimension(:,:),allocatable,save  :: sinthm,costhm
 
     integer                                 :: imax,jmax,jmin
 
@@ -117,7 +117,7 @@ contains
        ve      =0.d0
        fc      =2.d0*par%wearth*sin(par%lat)
     endif
-       
+
     ! update bedfriction coefficient cf
     if (trim(par%bedfriction)=='white-colebrook') then
        cf = par%g/(18.d0*log10(4.*hh/min(hh,D90top)))**2 ! cf = g/C^2 where C = 18*log(4*hh/D90)
@@ -125,14 +125,14 @@ contains
 
     ! Super fast 1D
     if (ny==0) then
-      j1 = 1
+       j1 = 1
     else
-      j1 = 2
+       j1 = 2
     endif
-    
+
     ! Add vertical discharges
     call discharge_boundary_v(s,par)
-    
+
     !
     ! zs=zs*wetz
     ! Water level slopes
@@ -147,7 +147,7 @@ contains
           dzsdy(i,j)=(zs(i,j+1)+ph(i,j+1)-zs(i,j)-ph(i,j))/dnv(i,j)
        end do
     end do
-    
+
     ! wwvv in the next lines
     !  hu(i,j) is more or less a function of hh(i+1,j)
     !  In the parallel case, this needs some action because
@@ -160,9 +160,9 @@ contains
     do j=1,ny+1
        do i=1,nx+1 !Ap
           ! Water depth in u-points do momentum equation: mean
-		  !!
-		  !! ARBJ: mean water depth or weighted water depth? How to deal with this in curvi-linear?
-		  !!
+          !!
+          !! ARBJ: mean water depth or weighted water depth? How to deal with this in curvi-linear?
+          !!
           hum(i,j)=max(.5d0*(hh(i,j)+hh(min(nx,i)+1,j)),par%eps) 
        end do
     end do
@@ -290,7 +290,7 @@ contains
 
     do j=j1,max(ny,1)
        do i=2,nx
-       !write(*,*)i,j,2
+          !write(*,*)i,j,2
           dudx1 = nuh(i+1,j)*hh(i+1,j)*(uu(i+1,j)-uu(i,j))/dsz(i+1,j)         
           dudx2 = nuh(i,j)  *hh(i  ,j)*(uu(i,j)-uu(i-1,j))/dsz(i,j)           
           viscu(i,j) = (1.0d0/hum(i,j))*( 2*(dudx1-dudx2)/(dsz(i,j)+dsz(i+1,j)) )
@@ -345,11 +345,11 @@ contains
     endif !smag ==1 and ny>0
     !
     ! Bed friction term
-	where (wetu==1)
-	   taubx=cf*par%rho*ueu*sqrt((1.16d0*urms)**2+vmageu**2) !Ruessink et al, 2001
-	elsewhere
-	   taubx = 0.d0
-	endwhere
+    where (wetu==1)
+       taubx=cf*par%rho*ueu*sqrt((1.16d0*urms)**2+vmageu**2) !Ruessink et al, 2001
+    elsewhere
+       taubx = 0.d0
+    endwhere
     !
     ! Explicit Euler step momentum u-direction
     !
@@ -375,13 +375,13 @@ contains
           end if
        end do
     end do
-   	! Lateral boundary conditions for uu
-   	if (ny>0) then
-	   if (xmpi_isleft) then !Dano/Robert only on outer boundary
+    ! Lateral boundary conditions for uu
+    if (ny>0) then
+       if (xmpi_isleft) then !Dano/Robert only on outer boundary
           uu(1:nx+1,1)=uu(1:nx+1,2) ! RJ: can also be done after continuity but more appropriate here
        endif
-	   ! Lateral boundary at y=ny*dy 
-	   if (xmpi_isright) then !Dano/Robert only at outer boundary
+       ! Lateral boundary at y=ny*dy 
+       if (xmpi_isright) then !Dano/Robert only at outer boundary
           uu(1:nx+1,ny+1)=uu(1:nx+1,ny) ! RJ: can also be done after continuity but more appropriate here
        endif
     endif
@@ -396,33 +396,33 @@ contains
     !
     ! Y-direction
     !
-	! Robert: Complicated
-	!         In overall model (not mpi-subdomains) vv(:,ny+1) is never calculated and has dummy values
-	!         In overall model vv(:,1) and vv(:,ny) are used as boundary conditions
-	!                          vv(:,1) and vv(:,ny) = 0 for wall boundary conditions
-	!                          vv(:,1) and vv(:,ny) = copied from internal in Neumann conditions
-	!                          vv(:,1) and vv(:,ny) = calculated without advection terms in no_advec conditions
-	!                          vv(:,1) and vv(:,ny) = calculated with advection terms in free conditions 
-	!         In overall model (or in non-MPI) vv is calculated over j=2,ny-1
-	!
-	!         In mpi subdomain vv(:,1) and vv(:,ny+1) are communicated and no boundary conditions are given.
-	!         In mpi subdomain vv(:,ny+1) is NOT a dummy and can be used to calculate advection terms
-	!         In mpi subdomain vv is calculated over j=2,ny
+    ! Robert: Complicated
+    !         In overall model (not mpi-subdomains) vv(:,ny+1) is never calculated and has dummy values
+    !         In overall model vv(:,1) and vv(:,ny) are used as boundary conditions
+    !                          vv(:,1) and vv(:,ny) = 0 for wall boundary conditions
+    !                          vv(:,1) and vv(:,ny) = copied from internal in Neumann conditions
+    !                          vv(:,1) and vv(:,ny) = calculated without advection terms in no_advec conditions
+    !                          vv(:,1) and vv(:,ny) = calculated with advection terms in free conditions 
+    !         In overall model (or in non-MPI) vv is calculated over j=2,ny-1
+    !
+    !         In mpi subdomain vv(:,1) and vv(:,ny+1) are communicated and no boundary conditions are given.
+    !         In mpi subdomain vv(:,ny+1) is NOT a dummy and can be used to calculate advection terms
+    !         In mpi subdomain vv is calculated over j=2,ny
 
-	! Advection term vdvdy
-	! Robert: in MPI every model subdomain has vv(:,ny+1) from other domain
-	!         at overall model boundaries vv(:,ny+1) assumed to be vv(:,ny) and vv(:,0) = vv(:,1)
-	!         so calculate vdvdy where we can
+    ! Advection term vdvdy
+    ! Robert: in MPI every model subdomain has vv(:,ny+1) from other domain
+    !         at overall model boundaries vv(:,ny+1) assumed to be vv(:,ny) and vv(:,0) = vv(:,1)
+    !         so calculate vdvdy where we can
     if (xmpi_isright .and. ny>0) then  ! no such condition needed for _isleft, because vdvdy(:,1) not needed in mpi subdomain
        jmax = ny-1
     elseif (xmpi_isright .and. ny==0) then
-	   jmax = 1
-	else
+       jmax = 1
+    else
        jmax = ny
     endif
-	vdvdy=0.d0
-	! calculate true vdvdy up to ny in central domains and up to ny-1 on isright
-	do j=2,jmax
+    vdvdy=0.d0
+    ! calculate true vdvdy up to ny in central domains and up to ny-1 on isright
+    do j=2,jmax
        do i=2,nx
           qin               = .5d0*(qy(i,j)+qy(i,j-1))
           if (qin>0) then
@@ -438,24 +438,24 @@ contains
           endif
        enddo
     enddo
-	if (ny>0) then 
+    if (ny>0) then 
        ! Global boundary conditions for vdvdy(:,1) and vdvdy(:,ny), global vdvdy(:,ny+1) not needed anywhere
        if (xmpi_isleft) then
           ! (vv(:,1)-vv(:,0))/dy == 0 so only second part of the vdvdy equation:
           do i=2,nx
-		     qin            = -.5d0*(qy(i,1)+qy(i,2))
+             qin            = -.5d0*(qy(i,1)+qy(i,2))
              if (qin>0) then
                 dalfa       = alfav(i,1)-alfav(i,2)
                 vin         = vv(i,2)*cos(dalfa) - uv(i,2)*sin(dalfa)
                 vdvdy(i,1)  = vdvdy(i,1) + qin*(vv(i,1)-vin)*dsz(i,2)/hvm(i,1)*dsdnvi(i,1)
              endif
-		  enddo
+          enddo
        endif
-	   if (xmpi_isright) then
-	      ! (vv(:,ny+1)-vv(:,ny))/dy == 0 so only first part of the vdvdy equation:
-		  do i=2,nx
-		     qin            = .5d0*(qy(i,ny)+qy(i,ny-1))
-		     if (qin>0) then
+       if (xmpi_isright) then
+          ! (vv(:,ny+1)-vv(:,ny))/dy == 0 so only first part of the vdvdy equation:
+          do i=2,nx
+             qin            = .5d0*(qy(i,ny)+qy(i,ny-1))
+             if (qin>0) then
                 dalfa       = alfav(i,ny)-alfav(i,ny-1)
                 vin         = vv(i,ny-1)*cos(dalfa) - uv(i,ny-1)*sin(dalfa)
                 vdvdy(i,ny) = vdvdy(i,ny) + qin*(vv(i,ny)-vin)*dsz(i,ny)/hvm(i,ny)*dsdnvi(i,ny)
@@ -466,8 +466,8 @@ contains
 
     udvdx=0.d0
     if (ny>0) then
-	   ! Robert: udvdx not usually needed at j = 1
-	   do j=1,ny !1,ny instead of 2,ny
+       ! Robert: udvdx not usually needed at j = 1
+       do j=1,ny !1,ny instead of 2,ny
           do i=2,nx
              qin            = .5d0*(qx(i-1,j)+qx(i-1,j+1))
              if (qin>0) then
@@ -484,8 +484,8 @@ contains
           end do
        end do
     else
-	   do i=2,nx
-	      qin               = qx(i-1,1)
+       do i=2,nx
+          qin               = qx(i-1,1)
           if (qin>0) then
              dalfa          = alfav(i,1)-alfav(i-1,1)
              vin            = vv(i-1,1)*cos(dalfa) - uv(i-1,1)*sin(dalfa)
@@ -499,8 +499,8 @@ contains
           endif
        enddo
     endif
-	!
-	viscv =0.d0	
+    !
+    viscv =0.d0	
     do j=2,ny
        do i=2,nx
           dvdy1 = nuh(i,j+1)*hh(i,j+1)*(vv(i,j+1)-vv(i,j))/dnz(i,j+1)
@@ -508,8 +508,8 @@ contains
           viscv(i,j) = (1.0d0/hvm(i,j))* 2*(dvdy1-dvdy2)/(dnz(i,j)+dnz(i,j+1))*wetv(i,j+1)*wetv(i,j-1)
        end do
     end do
-	! Robert: global boundary at (:,1) edge
-	if (ny>0) then
+    ! Robert: global boundary at (:,1) edge
+    if (ny>0) then
        if (xmpi_isleft) then
           viscv(:,1) = viscv(:,2)
        endif
@@ -517,9 +517,9 @@ contains
           viscv(:,ny) = viscv(:,ny-1)
        endif
     endif
-	!
-	! Viscosity
-	!
+    !
+    ! Viscosity
+    !
     if (par%smag == 1) then
        viscv = 2.0d0*viscv
     endif
@@ -548,31 +548,31 @@ contains
 
              dudy1 = nuh1 *.5d0*(hum(i  ,j)+hum(i  ,jp1))*(uu(i,jp1  )-uu(i,j  ))/dnc(i,j)
              dudy2 = nuh2 *.5d0*(hum(i-1,j)+hum(i-1,jp1))*(uu(i-1,jp1)-uu(i-1,j))/dnc(i-1,j)
-             
+
              viscv(i,j) = viscv(i,j) + (1.d0/hvm(i,j))*(dudy1-dudy2)/dsz(i,j)  &
                   * real(wetu(i,jp1)*wetu(i,j)*wetu(i-1,jp1)*wetv(i-1,j),8)
           enddo
        enddo
     endif
-	!
+    !
     ! Bed friction term
     !
-	where (wetv==1)
-	   tauby=cf*par%rho*vev*sqrt((1.16d0*urms)**2+vmagev**2) !Ruessink et al, 2001
-	elsewhere
-	   tauby = 0.d0
-	endwhere
+    where (wetv==1)
+       tauby=cf*par%rho*vev*sqrt((1.16d0*urms)**2+vmagev**2) !Ruessink et al, 2001
+    elsewhere
+       tauby = 0.d0
+    endwhere
     !
     ! Explicit Euler step momentum v-direction
     !
-	if (ny==0) then
-	   jmin = 1
-	else
-	   jmin = 2
-	   if (ny==2) then
-	      jmax = 2 ! Robert: very special case of ny=2 and xmpi_isright would otherwise lead to no calculation of vv with Neumann boundaries
-	   endif
-	endif
+    if (ny==0) then
+       jmin = 1
+    else
+       jmin = 2
+       if (ny==2) then
+          jmax = 2 ! Robert: very special case of ny=2 and xmpi_isright would otherwise lead to no calculation of vv with Neumann boundaries
+       endif
+    endif
     !
     do j=jmin,jmax
        do i=2,nx !jaap instead of nx+1
@@ -598,16 +598,16 @@ contains
     call xmpi_shift(vv,':n')
 #endif
     ! Robert: Boundary conditions along the global boundaries
-	! Function flow_lat_bc located in boundaryconditions.F90
-	! function call takes care of 1D vs 2D models and boundary condition types
-	if (ny>0) then
+    ! Function flow_lat_bc located in boundaryconditions.F90
+    ! function call takes care of 1D vs 2D models and boundary condition types
+    if (ny>0) then
        if (xmpi_isleft) then
-	      vv(:,1)=flow_lat_bc(s,par,par%right,1,2,udvdx(:,1),vdvdy(:,1),viscv(:,1))
-	   endif
+          vv(:,1)=flow_lat_bc(s,par,par%right,1,2,udvdx(:,1),vdvdy(:,1),viscv(:,1))
+       endif
        if (xmpi_isright) then
-	      vv(:,ny)=flow_lat_bc(s,par,par%left,ny,ny-1,udvdx(:,ny),vdvdy(:,ny),viscv(:,ny))
-	   endif
-	endif
+          vv(:,ny)=flow_lat_bc(s,par,par%left,ny,ny-1,udvdx(:,ny),vdvdy(:,ny),viscv(:,ny))
+       endif
+    endif
 
 #ifndef USEMPI
     if (par%nonh==1) then
@@ -621,7 +621,7 @@ contains
     end if
 #endif
 
-! Robert: include again when 2nd order returned
+    ! Robert: include again when 2nd order returned
 #ifdef USEMPI
     call xmpi_shift(uu,':1')
     call xmpi_shift(uu,':n')
@@ -639,16 +639,16 @@ contains
           ! Water depth in u-points do continuity equation: upwind
           if (uu(i,j)>par%umin) then
              if (par%oldhu == 1) then 
-			    hu(i,j)=hh(i,j)
-			 else
+                hu(i,j)=hh(i,j)
+             else
                 hu(i,j)=zs(i,j)-max(zb(i,j),zb(min(nx,i)+1,j))
-			 endif
+             endif
           elseif (uu(i,j)<-par%umin) then
-		     if (par%oldhu == 1) then 
+             if (par%oldhu == 1) then 
                 hu(i,j)=hh(min(nx,i)+1,j)
-			 else
+             else
                 hu(i,j)=zs(min(nx,i)+1,j)-max(zb(i,j),zb(min(nx,i)+1,j))
-		     endif
+             endif
           else
              hu(i,j)=max(max(zs(i,j),zs(min(nx,i)+1,j))-max(zb(i,j),zb(min(nx,i)+1,j)),par%eps)
           end if
@@ -661,17 +661,17 @@ contains
        do i=1,nx+1
           ! Water depth in v-points do continuity equation: upwind
           if (vv(i,j)>par%umin) then
-		     if (par%oldhu == 1) then 
+             if (par%oldhu == 1) then 
                 hv(i,j)=hh(i,j)
-			 else
+             else
                 hv(i,j)=zs(i,j)-max(zb(i,j),zb(i,min(ny,j)+1))
-			 endif
+             endif
           elseif (vv(i,j)<-par%umin) then
-		     if (par%oldhu == 1) then 
+             if (par%oldhu == 1) then 
                 hv(i,j)=hh(i,min(ny,j)+1)
-			 else
+             else
                 hv(i,j)=zs(i,min(ny,j)+1)-max(zb(i,j),zb(i,min(ny,j)+1))
-			 endif
+             endif
           else
              hv(i,j)=max(max(zs(i,j),zs(i,min(ny,j)+1))-max(zb(i,j),zb(i,min(ny,j)+1)),par%eps)
           end if
@@ -700,7 +700,7 @@ contains
     qy=vv*hv
     !
     ! Add horizontal discharges
-	!
+    !
     call discharge_boundary_h(s,par)
     !
     ! Update water level using continuity eq.
@@ -716,19 +716,19 @@ contains
        imax=nx+1
     endif
     if (ny>0) then
-      do j=2,jmax
-        do i=2,imax
-          dzsdt(i,j) = (-1.d0)*( qx(i,j)*dnu(i,j)-qx(i-1,j)*dnu(i-1,j)  &
-                               + qy(i,j)*dsv(i,j)-qy(i,j-1)*dsv(i,j-1) )*dsdnzi(i,j) &
-                        - gww(i,j)
-        end do
-      end do
-      zs(2:nx,2:ny) = zs(2:nx,2:ny)+dzsdt(2:nx,2:ny)*par%dt !Jaap nx instead of nx+1
+       do j=2,jmax
+          do i=2,imax
+             dzsdt(i,j) = (-1.d0)*( qx(i,j)*dnu(i,j)-qx(i-1,j)*dnu(i-1,j)  &
+                  + qy(i,j)*dsv(i,j)-qy(i,j-1)*dsv(i,j-1) )*dsdnzi(i,j) &
+                  - gww(i,j)
+          end do
+       end do
+       zs(2:nx,2:ny) = zs(2:nx,2:ny)+dzsdt(2:nx,2:ny)*par%dt !Jaap nx instead of nx+1
     else
        j=1
        do i=2,imax
           dzsdt(i,j) = (-1.d0)*( qx(i,j)*dnu(i,j)-qx(i-1,j)*dnu(i-1,j) )*dsdnzi(i,j) &
-                        - gww(i,j)
+               - gww(i,j)
        end do
        zs(2:nx,1) = zs(2:nx,1)+dzsdt(2:nx,1)*par%dt !Jaap nx instead of nx+1
     endif !ny>0
@@ -745,18 +745,18 @@ contains
     ! Lateral boundary conditions
     !
     if (ny>0) then
-      ! RJ: Neumann water levels in case of right = 1 or right = 0
-      do i=1,nx+1
-         ! Jaap multiply with wetz(i,ny+1)*wetz(i,1) here to prevent prsssure grdaient over land
-         dzsdnavg=wetz(i,ny+1)*wetz(i,1)*(zs0(i,ny+1)-zs0(i,1))/(ndist(i,ny+1)-ndist(i,1))
-         ! Lateral boundary at y=0
-         if (xmpi_isleft) then
-           zs(i,1)=max(zs(i,2) - dzsdnavg*dnv(i,1),zb(i,1))
-         endif
-		 ! Lateral boundary at y=ny+1
-         if (xmpi_isright) then
-            zs(i,ny+1)=max(zs(i,ny) + dzsdnavg*dnv(i,ny),zb(i,ny+1))
-         endif
+       ! RJ: Neumann water levels in case of right = 1 or right = 0
+       do i=1,nx+1
+          ! Jaap multiply with wetz(i,ny+1)*wetz(i,1) here to prevent prsssure grdaient over land
+          dzsdnavg=wetz(i,ny+1)*wetz(i,1)*(zs0(i,ny+1)-zs0(i,1))/(ndist(i,ny+1)-ndist(i,1))
+          ! Lateral boundary at y=0
+          if (xmpi_isleft) then
+             zs(i,1)=max(zs(i,2) - dzsdnavg*dnv(i,1),zb(i,1))
+          endif
+          ! Lateral boundary at y=ny+1
+          if (xmpi_isright) then
+             zs(i,ny+1)=max(zs(i,ny) + dzsdnavg*dnv(i,ny),zb(i,ny+1))
+          endif
        enddo
     endif !ny>0
 
@@ -798,7 +798,7 @@ contains
     if(xmpi_isbot) then
        u(nx+1,:)=u(nx,:)
     endif
-    
+
 #ifdef USEMPI
     call xmpi_shift(u,'1:')
     call xmpi_shift(u,'m:')
@@ -807,15 +807,15 @@ contains
 #endif
 
     if (ny>0) then
-        v(:,2:ny)=0.5d0*(vv(:,1:ny-1)+vv(:,2:ny))
-        if(xmpi_isleft) then
-           v(:,1)=vv(:,1)
-        endif
-        if(xmpi_isright) then
-           v(:,ny+1)=v(:,ny)        ! bas: need this for calculation of ee in wci routine
-        endif
-        !Ap
-        v(nx+1,:)=v(nx,:)
+       v(:,2:ny)=0.5d0*(vv(:,1:ny-1)+vv(:,2:ny))
+       if(xmpi_isleft) then
+          v(:,1)=vv(:,1)
+       endif
+       if(xmpi_isright) then
+          v(:,ny+1)=v(:,ny)        ! bas: need this for calculation of ee in wci routine
+       endif
+       !Ap
+       v(nx+1,:)=v(nx,:)
     else ! Dano
        v=vv
     endif !ny>0
@@ -828,23 +828,23 @@ contains
 #endif
     ! Robert + Jaap: compute derivatives of u and v
     !
-    
+
     sinthm = sin(thetamean-alfaz)
     costhm = cos(thetamean-alfaz)
-    
+
     ! V-velocities at u-points
     if (ny>0) then
-      vu(1:nx,2:ny)= 0.25d0*(vv(1:nx,1:ny-1)+vv(1:nx,2:ny)+ &
-                             vv(2:nx+1,1:ny-1)+vv(2:nx+1,2:ny))
-      ! how about boundaries?
-      if(xmpi_isleft) then
-        vu(:,1) = vu(:,2)
-      endif
-      if(xmpi_isright) then
-        vu(:,ny+1) = vu(:,ny)
-      endif
+       vu(1:nx,2:ny)= 0.25d0*(vv(1:nx,1:ny-1)+vv(1:nx,2:ny)+ &
+            vv(2:nx+1,1:ny-1)+vv(2:nx+1,2:ny))
+       ! how about boundaries?
+       if(xmpi_isleft) then
+          vu(:,1) = vu(:,2)
+       endif
+       if(xmpi_isright) then
+          vu(:,ny+1) = vu(:,ny)
+       endif
     else 
-      vu(1:nx,1)= 0.5d0*(vv(1:nx,1)+vv(2:nx+1,1))
+       vu(1:nx,1)= 0.5d0*(vv(1:nx,1)+vv(2:nx+1,1))
     endif !ny>0
     ! wwvv fill in vu(:1) and vu(:ny+1) for non-left and non-right processes
     !  and vu(nx+1,:)
@@ -857,17 +857,17 @@ contains
     vu=vu*wetu
     ! V-stokes velocities at U point
     if (ny>0) then
-      vsu(1:nx,2:ny)=0.5d0*(ust(1:nx,2:ny)*sinthm(1:nx,2:ny)+ &
-                            ust(2:nx+1,2:ny)*sinthm(2:nx+1,2:ny))
-      if(xmpi_isleft) then
-        vsu(:,1)=vsu(:,2)
-      endif
-      if(xmpi_isright) then
-        vsu(:,ny+1) = vsu(:,ny)
-      endif
+       vsu(1:nx,2:ny)=0.5d0*(ust(1:nx,2:ny)*sinthm(1:nx,2:ny)+ &
+            ust(2:nx+1,2:ny)*sinthm(2:nx+1,2:ny))
+       if(xmpi_isleft) then
+          vsu(:,1)=vsu(:,2)
+       endif
+       if(xmpi_isright) then
+          vsu(:,ny+1) = vsu(:,ny)
+       endif
     else
-      vsu(1:nx,1)=0.5d0*(ust(1:nx,1)*sinthm(1:nx,1)+ &
-                         ust(2:nx+1,1)*sinthm(2:nx+1,1))
+       vsu(1:nx,1)=0.5d0*(ust(1:nx,1)*sinthm(1:nx,1)+ &
+            ust(2:nx+1,1)*sinthm(2:nx+1,1))
     endif !ny>0
     ! wwvv same for vsu
 #ifdef USEMPI
@@ -878,17 +878,17 @@ contains
     vsu = vsu*wetu
     ! U-stokes velocities at U point
     if (ny>0) then
-      usu(1:nx,2:ny)=0.5d0*(ust(1:nx,2:ny)*costhm(1:nx,2:ny)+ &
-                            ust(2:nx+1,2:ny)*costhm(2:nx+1,2:ny))
-      if(xmpi_isleft) then
-        usu(:,1)=usu(:,2)
-      endif
-      if(xmpi_isright) then
-        usu(:,ny+1)=usu(:,ny)
-      endif
+       usu(1:nx,2:ny)=0.5d0*(ust(1:nx,2:ny)*costhm(1:nx,2:ny)+ &
+            ust(2:nx+1,2:ny)*costhm(2:nx+1,2:ny))
+       if(xmpi_isleft) then
+          usu(:,1)=usu(:,2)
+       endif
+       if(xmpi_isright) then
+          usu(:,ny+1)=usu(:,ny)
+       endif
     else
-      usu(1:nx,1)=0.5d0*(ust(1:nx,1)*costhm(1:nx,1)+ &
-                         ust(2:nx+1,1)*costhm(2:nx+1,1))
+       usu(1:nx,1)=0.5d0*(ust(1:nx,1)*costhm(1:nx,1)+ &
+            ust(2:nx+1,1)*costhm(2:nx+1,1))
     endif !ny>0
     ! wwvv same for usu   
 #ifdef USEMPI
@@ -909,15 +909,15 @@ contains
 
     ! U-velocities at v-points
     if (ny>0) then
-      uv(2:nx,1:ny)= .25d0*(uu(1:nx-1,1:ny)+uu(2:nx,1:ny)+ &
-                            uu(1:nx-1,2:ny+1)+uu(2:nx,2:ny+1))
-      ! boundaries?
-      ! wwvv and what about uv(:,1) ?
-      if(xmpi_isright) then
-        uv(:,ny+1) = uv(:,ny)
-      endif
+       uv(2:nx,1:ny)= .25d0*(uu(1:nx-1,1:ny)+uu(2:nx,1:ny)+ &
+            uu(1:nx-1,2:ny+1)+uu(2:nx,2:ny+1))
+       ! boundaries?
+       ! wwvv and what about uv(:,1) ?
+       if(xmpi_isright) then
+          uv(:,ny+1) = uv(:,ny)
+       endif
     else
-      uv(2:nx,1)= .5d0*(uu(1:nx-1,1)+uu(2:nx,1))
+       uv(2:nx,1)= .5d0*(uu(1:nx-1,1)+uu(2:nx,1))
     endif !ny>0
     ! wwvv fix uv(:,ny+1) for non-right processes
     ! uv(1,:) and uv(nx+1,:) need to be filled in for
@@ -931,16 +931,16 @@ contains
     uv=uv*wetv
     ! V-stokes velocities at V point
     if (ny>0) then
-      vsv(2:nx,1:ny)=0.5d0*(ust(2:nx,1:ny)*sinthm(2:nx,1:ny)+&
-                            ust(2:nx,2:ny+1)*sinthm(2:nx,2:ny+1))
-      if(xmpi_isleft) then
-        vsv(:,1) = vsv(:,2)
-      endif
-      if(xmpi_isright) then
-        vsv(:,ny+1) = vsv(:,ny)
-      endif
+       vsv(2:nx,1:ny)=0.5d0*(ust(2:nx,1:ny)*sinthm(2:nx,1:ny)+&
+            ust(2:nx,2:ny+1)*sinthm(2:nx,2:ny+1))
+       if(xmpi_isleft) then
+          vsv(:,1) = vsv(:,2)
+       endif
+       if(xmpi_isright) then
+          vsv(:,ny+1) = vsv(:,ny)
+       endif
     else
-      vsv(2:nx,1)= ust(2:nx,1)*sinthm(2:nx,1)
+       vsv(2:nx,1)= ust(2:nx,1)*sinthm(2:nx,1)
     endif !ny>0
     ! wwvv fix vsv(:,1) and vsv(:,ny+1) and vsv(1,:) and vsv(nx+1,:)
 #ifdef USEMPI
@@ -953,16 +953,16 @@ contains
     vsv=vsv*wetv
     ! U-stokes velocities at V point
     if (ny>0) then
-      usv(2:nx,1:ny)=0.5d0*(ust(2:nx,1:ny)*costhm(2:nx,1:ny)+&
-                            ust(2:nx,2:ny+1)*costhm(2:nx,2:ny+1))
-      if(xmpi_isleft) then
-        usv(:,1) = usv(:,2)
-      endif
-      if(xmpi_isleft) then
-        usv(:,ny+1) = usv(:,ny)
-      endif
+       usv(2:nx,1:ny)=0.5d0*(ust(2:nx,1:ny)*costhm(2:nx,1:ny)+&
+            ust(2:nx,2:ny+1)*costhm(2:nx,2:ny+1))
+       if(xmpi_isleft) then
+          usv(:,1) = usv(:,2)
+       endif
+       if(xmpi_isleft) then
+          usv(:,ny+1) = usv(:,ny)
+       endif
     else
-      usv(2:nx,1)=ust(2:nx,1)*costhm(2:nx,1)
+       usv(2:nx,1)=ust(2:nx,1)*costhm(2:nx,1)
     endif !ny>0
     ! wwvv fix usv(:,1) and usv(:,ny+1) and usv(1,:) and usv(nx+1,:)
 #ifdef USEMPI
@@ -995,10 +995,10 @@ contains
 #endif
 
     if (ny>0) then
-      ve(:,2:ny)=0.5d0*(vev(:,1:ny-1)+vev(:,2:ny)) !Jaap ny+1
-      ve(:,1)=vev(:,1)
+       ve(:,2:ny)=0.5d0*(vev(:,1:ny-1)+vev(:,2:ny)) !Jaap ny+1
+       ve(:,1)=vev(:,1)
     else
-      ve(:,1) = vev(:,1)
+       ve(:,1) = vev(:,1)
     endif !ny>0
     ! wwvv vev(nx+1,:) ?
 #ifdef USEMPI
@@ -1018,112 +1018,112 @@ contains
   end subroutine flow
 
 
-subroutine visc_smagorinsky(s,par)
-  use params
-  use spaceparams
-  use xmpi_module
+  subroutine visc_smagorinsky(s,par)
+    use params
+    use spaceparams
+    use xmpi_module
 
-  IMPLICIT NONE
+    IMPLICIT NONE
 
-! DATE               AUTHOR               CHANGES
-!
-! December 2010       Pieter Bart Smit     New Subroutine
-! March    2010       Pieter Bart Smit     Changed formulation to standard smag. model
+    ! DATE               AUTHOR               CHANGES
+    !
+    ! December 2010       Pieter Bart Smit     New Subroutine
+    ! March    2010       Pieter Bart Smit     Changed formulation to standard smag. model
 
-!-------------------------------------------------------------------------------
-!                             DECLARATIONS
-!-------------------------------------------------------------------------------
+    !-------------------------------------------------------------------------------
+    !                             DECLARATIONS
+    !-------------------------------------------------------------------------------
 
-!--------------------------        PURPOSE         ----------------------------
-!
-!  Calculates the turbulent viscocity coefficient nuh according to the smagorinsky
-!  subgrid model.
-!
-!--------------------------        METHOD          ----------------------------
-!
-! The turbulent viscocity is given as:
-!
-! nuh = C^2*dx*dy*Tau
-!
-! Tau =2^(1/2) *  [ (du/dx)^2 + (dv/dy)^2 + 1/2 * (du/dy + dv/dx)^2 ] ^ (1/2)
-!
-! Where
-!
-! dx,dy : grid size
-! C     : Constant ~0.15 (set by par%nuh)
-! Tau   : Measure for the magnitude of the turbulent stresses
-!
-!--------------------------     ARGUMENTS          ----------------------------
+    !--------------------------        PURPOSE         ----------------------------
+    !
+    !  Calculates the turbulent viscocity coefficient nuh according to the smagorinsky
+    !  subgrid model.
+    !
+    !--------------------------        METHOD          ----------------------------
+    !
+    ! The turbulent viscocity is given as:
+    !
+    ! nuh = C^2*dx*dy*Tau
+    !
+    ! Tau =2^(1/2) *  [ (du/dx)^2 + (dv/dy)^2 + 1/2 * (du/dy + dv/dx)^2 ] ^ (1/2)
+    !
+    ! Where
+    !
+    ! dx,dy : grid size
+    ! C     : Constant ~0.15 (set by par%nuh)
+    ! Tau   : Measure for the magnitude of the turbulent stresses
+    !
+    !--------------------------     ARGUMENTS          ----------------------------
 
-  type(spacepars),target                   ,intent(inout) :: s
-  type(parameters)                         ,intent(in)    :: par
+    type(spacepars),target                   ,intent(inout) :: s
+    type(parameters)                         ,intent(in)    :: par
 
-!--------------------------     LOCAL VARIABLES    ----------------------------
+    !--------------------------     LOCAL VARIABLES    ----------------------------
 
-  real*8                                                  :: dudx !U Velocity gradient in x-dir
-  real*8                                                  :: dudy !U Velocity gradient in y-dir
-  real*8                                                  :: dvdx !V Velocity gradient in x-dir
-  real*8                                                  :: dvdy !V Velocity gradient in y-dir
-  real*8                                                  :: Tau  !Measure for magnitude viscous stresses
-  real*8                                                  :: l    !Local gridcell area
-  integer                                                 :: i    !Index variable
-  integer                                                 :: j    !Index variable
+    real*8                                                  :: dudx !U Velocity gradient in x-dir
+    real*8                                                  :: dudy !U Velocity gradient in y-dir
+    real*8                                                  :: dvdx !V Velocity gradient in x-dir
+    real*8                                                  :: dvdy !V Velocity gradient in y-dir
+    real*8                                                  :: Tau  !Measure for magnitude viscous stresses
+    real*8                                                  :: l    !Local gridcell area
+    integer                                                 :: i    !Index variable
+    integer                                                 :: j    !Index variable
 
-  include 's.ind'
-  include 's.inp'
+    include 's.ind'
+    include 's.inp'
 
-!-------------------------------------------------------------------------------
-!                             IMPLEMENTATION
-!-------------------------------------------------------------------------------
+    !-------------------------------------------------------------------------------
+    !                             IMPLEMENTATION
+    !-------------------------------------------------------------------------------
 
-  !MPI WARNING -> Check loop indices
-  if (ny>2) then
-    do j=2,ny
-      do i=2,nx
-        dudx = (uu(i,j)-uu(i-1,j))/dsz(i,j)
-        dudy = .5d0*(uu(i,j+1) - uu(i,j-1) + uu(i-1,j+1) - uu(i-1,j-1))/(dnv(i,j)+dnv(i,j-1))
-        dvdx = .5d0*(vv(i+1,j) - vv(i-1,j) + vv(i+1,j-1) - vv(i-1,j-1))/(dsu(i,j)+dsu(i-1,j))
-        dvdy = (vv(i,j)-vv(i,j-1))/dnz(i,j)
-        Tau  = sqrt(2.0d0 * dudx**2+2.0d0 * dvdy**2 + (dvdx+dudy)**2)
-        l    = 1.d0/dsdnzi(i,j)
-        nuh(i,j) = par%nuh**2 * l * Tau * real(wetu(i,j)*wetu(i-1,j)*wetv(i,j)*wetv(i,j-1),kind=8)
-      enddo
-    enddo
-  
-  else
-  
-    j = max(ny,1)
-    
-    do i=2,nx
-        dudx = (uu(i,j)-uu(i-1,j))/dsz(i,j)
-        dvdx = (vv(i+1,j) - vv(i-1,j) )/(dsu(i,j)+dsu(i-1,j))
-        Tau  = sqrt(2.0d0 * dudx**2 + dvdx**2)
-        
-        if (par%dy > -1.d0) then
-          l = dsz(i,j)*par%dy
-        else
-          l = dsz(i,j)**2
-        endif
-        
-        nuh(i,j) = par%nuh**2 * l * Tau * real(wetu(i,j)*wetu(i-1,j),kind=8)
-    enddo
-  
-  endif !ny>2
+    !MPI WARNING -> Check loop indices
+    if (ny>2) then
+       do j=2,ny
+          do i=2,nx
+             dudx = (uu(i,j)-uu(i-1,j))/dsz(i,j)
+             dudy = .5d0*(uu(i,j+1) - uu(i,j-1) + uu(i-1,j+1) - uu(i-1,j-1))/(dnv(i,j)+dnv(i,j-1))
+             dvdx = .5d0*(vv(i+1,j) - vv(i-1,j) + vv(i+1,j-1) - vv(i-1,j-1))/(dsu(i,j)+dsu(i-1,j))
+             dvdy = (vv(i,j)-vv(i,j-1))/dnz(i,j)
+             Tau  = sqrt(2.0d0 * dudx**2+2.0d0 * dvdy**2 + (dvdx+dudy)**2)
+             l    = 1.d0/dsdnzi(i,j)
+             nuh(i,j) = par%nuh**2 * l * Tau * real(wetu(i,j)*wetu(i-1,j)*wetv(i,j)*wetv(i,j-1),kind=8)
+          enddo
+       enddo
 
-  if (ny>0) then
-    if (xmpi_isleft)    nuh(:,1)      = nuh(:,2)
-    if (xmpi_isright)   nuh(:,ny+1)   = nuh(:,ny)
-  endif
-  
-  if (xmpi_istop)       nuh(1,:)      = nuh(2,:)
-  if (xmpi_isbot)       nuh(nx+1,:)   = nuh(nx,:)
+    else
+
+       j = max(ny,1)
+
+       do i=2,nx
+          dudx = (uu(i,j)-uu(i-1,j))/dsz(i,j)
+          dvdx = (vv(i+1,j) - vv(i-1,j) )/(dsu(i,j)+dsu(i-1,j))
+          Tau  = sqrt(2.0d0 * dudx**2 + dvdx**2)
+
+          if (par%dy > -1.d0) then
+             l = dsz(i,j)*par%dy
+          else
+             l = dsz(i,j)**2
+          endif
+
+          nuh(i,j) = par%nuh**2 * l * Tau * real(wetu(i,j)*wetu(i-1,j),kind=8)
+       enddo
+
+    endif !ny>2
+
+    if (ny>0) then
+       if (xmpi_isleft)    nuh(:,1)      = nuh(:,2)
+       if (xmpi_isright)   nuh(:,ny+1)   = nuh(:,ny)
+    endif
+
+    if (xmpi_istop)       nuh(1,:)      = nuh(2,:)
+    if (xmpi_isbot)       nuh(nx+1,:)   = nuh(nx,:)
 
 #ifdef USEMPI
-  call xmpi_shift(nuh,'1:')
-  call xmpi_shift(nuh,'m:')
-  call xmpi_shift(nuh,':1')
-  call xmpi_shift(nuh,':n')
+    call xmpi_shift(nuh,'1:')
+    call xmpi_shift(nuh,'m:')
+    call xmpi_shift(nuh,':1')
+    call xmpi_shift(nuh,':n')
 #endif  
-end subroutine visc_smagorinsky
+  end subroutine visc_smagorinsky
 
 end module flow_timestep_module

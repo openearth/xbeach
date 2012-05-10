@@ -28,7 +28,7 @@ module libxbeach_module
   type(timepars), save                                     :: tpar
   type(spacepars), pointer                            :: s
   type(spacepars), target, save                       :: sglobal
-  
+
 
   integer                                             :: n,it,error
   real*8                                              :: tbegin
@@ -139,7 +139,7 @@ contains
   !-----------------------------------------------------------------------------!
 
   integer(c_int) function executestep()
-     
+
 
     ! This is now called in output, but timestep depends on it...
     ! call outputtimes_update(par, tpar)
