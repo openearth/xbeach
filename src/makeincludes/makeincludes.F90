@@ -45,7 +45,7 @@ contains
   !
   subroutine getline
     implicit none
-    character(slen) :: s
+    ! character(slen) :: s
     integer         :: i
     do
        read(infile,'(a)',end=100) line
@@ -58,8 +58,8 @@ contains
           end select
        enddo
 
-       s = adjustl(line)
-       if (s(1:2) .ne. '!*') then
+       line = adjustl(line)
+       if (line(1:2) .ne. '!*') then
           exit
        endif
     enddo

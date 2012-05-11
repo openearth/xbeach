@@ -59,6 +59,7 @@ BUILT_SOURCES= \
 	space_ind.gen \
 	space_inp.gen \
 	chartoindex.gen \
+	getkey.gen \
 	s.ind \
 	s.inp \
 	version.dat
@@ -70,7 +71,7 @@ version.dat:
 
 s.ind: space_ind.gen
 s.inp: space_inp.gen
-
+# We should also specify the dependencies of source files and gen files. If we want the source to be rebuild when gen files get updated
 mi=$(builddir)/../makeincludes/makeincludes$(EXEEXT)
 spacedecl.gen: $(mi)
 	echo $@ | $(mi)
@@ -87,6 +88,8 @@ space_ind.gen: $(mi)
 space_inp.gen: $(mi)
 	echo $@ | $(mi)
 chartoindex.gen: $(mi)
+	echo $@ | $(mi)
+getkey.gen: $(mi)
 	echo $@ | $(mi)
 
 # Set flags off by default

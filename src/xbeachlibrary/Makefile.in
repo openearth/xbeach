@@ -346,10 +346,12 @@ BUILT_SOURCES = \
 	space_ind.gen \
 	space_inp.gen \
 	chartoindex.gen \
+	getkey.gen \
 	s.ind \
 	s.inp \
 	version.dat
 
+# We should also specify the dependencies of source files and gen files. If we want the source to be rebuild when gen files get updated
 mi = $(builddir)/../makeincludes/makeincludes$(EXEEXT)
 
 # Set flags off by default
@@ -827,6 +829,8 @@ space_ind.gen: $(mi)
 space_inp.gen: $(mi)
 	echo $@ | $(mi)
 chartoindex.gen: $(mi)
+	echo $@ | $(mi)
+getkey.gen: $(mi)
 	echo $@ | $(mi)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
