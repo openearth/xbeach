@@ -128,6 +128,11 @@ contains
     type(arraytype), intent(in)         :: t
     real*8, dimension(:,:), intent(out) :: x
     real*8                              :: pi
+    real*8, dimension(size(s%alfaz,1), size(s%alfaz,2)) :: Sutot, Svtot
+    
+    Sutot = 0;
+    Svtot = 0;
+    
     pi = 4*atan(1.0d0)
     if (par%rotate .eq. 1) then
        select case(t%name)
@@ -162,9 +167,18 @@ contains
        case(mnem_vwf)
           x=s%uwf*sin(s%alfaz)+t%r2*cos(s%alfaz)
        case(mnem_Sutot)
-          x=(sum(s%Subg,dim=3)+sum(s%Susg,dim=3))*cos(s%alfaz) - (sum(s%Svbg,dim=3)+sum(s%Svsg,dim=3))*sin(s%alfaz)
+          ! Jaap interpolate transports to water level points before rotating to real world
+          Sutot = sum(s%Subg,dim=3)+sum(s%Susg,dim=3)
+          Svtot = sum(s%Svbg,dim=3)+sum(s%Svsg,dim=3)
+          Sutot(2:s%nx,:)=0.5d0*(Sutot(1:s%nx-1,:)+Sutot(2:s%nx,:))
+          Svtot(:,2:s%ny)=0.5d0*(Svtot(:,1:s%ny-1)+Svtot(:,2:s%ny)) 
+          x=Sutot*cos(s%alfaz) - Svtot*sin(s%alfaz)
        case(mnem_Svtot)
-          x=(sum(s%Subg,dim=3)+sum(s%Susg,dim=3))*sin(s%alfaz) + (sum(s%Svbg,dim=3)+sum(s%Svsg,dim=3))*cos(s%alfaz)
+          Sutot = sum(s%Subg,dim=3)+sum(s%Susg,dim=3)
+          Svtot = sum(s%Svbg,dim=3)+sum(s%Svsg,dim=3)
+          Sutot(2:s%nx,:)=0.5d0*(Sutot(1:s%nx-1,:)+Sutot(2:s%nx,:))
+          Svtot(:,2:s%ny)=0.5d0*(Svtot(:,1:s%ny-1)+Svtot(:,2:s%ny)) 
+          x=Sutot*sin(s%alfaz) + Svtot*cos(s%alfaz)
        case(mnem_cctot)
           x=sum(s%ccg,dim=3)
        case default
@@ -189,10 +203,16 @@ contains
     type(arraytype), intent(in)   :: t
     real*8, dimension(:,:,:)      :: x
     ! no need to allocate
-    real*8, dimension(size(s%alfaz,1), size(s%alfaz,2), size(t%r3,3)) :: alfazr3
+    real*8, dimension(size(s%alfaz,1), size(s%alfaz,2), size(t%r3,3)) :: alfazr3,Susg,Svsg,Subg,Svbg
     real*8                        :: pi
     integer                       :: i
     pi = 4*atan(1.0d0)
+    
+    ! Jaap: initialize local transport variables (used for interpolation to water level points)
+    Susg = 0;
+    Svsg = 0;
+    Subg = 0;
+    Svbg = 0;
 
     ! fill variable alfazr3. We presume first 2 dimension are related to nx+1, ny+1 respectively
     ! Better double check    
@@ -219,13 +239,30 @@ contains
        case(mnem_thet)
           x=270-((s%thet+alfazr3)*(180/pi))
        case(mnem_Susg)
-          x=t%r3*cos(alfazr3)-s%Svsg*sin(alfazr3)
+          ! Jaap: interpolate transports to water level points before rotating to world coordinates 
+          Susg = t%r3
+          Svsg = s%Svsg
+          Susg(2:s%nx,:,:)=0.5d0*(t%r3(1:s%nx-1,:,:)+t%r3(2:s%nx,:,:))
+          Svsg(:,2:s%ny,:)=0.5d0*(s%Svsg(:,1:s%ny-1,:)+s%Svsg(:,2:s%ny,:)) 
+          x=Susg*cos(alfazr3)-Svsg*sin(alfazr3)
        case(mnem_Svsg)
+          Susg = s%Susg
+          Svsg = t%r3
+          Susg(2:s%nx,:,:)=0.5d0*(s%Susg(1:s%nx-1,:,:)+s%Susg(2:s%nx,:,:))
+          Svsg(:,2:s%ny,:)=0.5d0*(t%r3(:,1:s%ny-1,:)+t%r3(:,2:s%ny,:)) 
           x=s%Susg*sin(alfazr3)+t%r3*cos(alfazr3)
        case(mnem_Subg)
-          x=t%r3*cos(alfazr3)-s%Svbg*sin(alfazr3)
+          Subg = t%r3
+          Svbg = s%Svbg
+          Subg(2:s%nx,:,:)=0.5d0*(t%r3(1:s%nx-1,:,:)+t%r3(2:s%nx,:,:))
+          Svbg(:,2:s%ny,:)=0.5d0*(s%Svbg(:,1:s%ny-1,:)+s%Svbg(:,2:s%ny,:)) 
+          x=Subg*cos(alfazr3)-Svbg*sin(alfazr3)
        case(mnem_Svbg)
-          x=s%Subg*sin(alfazr3)+t%r3*cos(alfazr3)
+          Subg = s%Subg
+          Svbg = t%r3
+          Subg(2:s%nx,:,:)=0.5d0*(s%Subg(1:s%nx-1,:,:)+s%Subg(2:s%nx,:,:))
+          Svbg(:,2:s%ny,:)=0.5d0*(t%r3(:,1:s%ny-1,:)+t%r3(:,2:s%ny,:)) 
+          x=Subg*sin(alfazr3)+Svbg*cos(alfazr3)
        case default
           x=t%r3
        end select
