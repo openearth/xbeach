@@ -1,24 +1,49 @@
 import os
+import sys
+import collections
 from numbers import Number
 from ctypes import c_void_p, c_char_p, c_int, c_double, c_char
 from ctypes import POINTER, pointer
 from ctypes import CDLL, string_at, addressof, byref,create_string_buffer
 from numpy.ctypeslib import ndpointer, as_array
 from numpy import float64, zeros, array, int32, ndarray
+import subprocess
 
 import logging
-logger = logging.Logger(__name__)
+#logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.setLevel( logging.DEBUG )
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('%(levelname)s - %(name)s: %(message)s'))
+logger.addHandler(handler)
 
-def once(func):
-    "A decorator that runs a function only once."
-    def decorated(*args, **kwargs):
-        try:
-            return decorated._once_result
-        except AttributeError:
-            decorated._once_result = func(*args, **kwargs)
-            return decorated._once_result
-    return decorated
-        
+
+dllsuffix = collections.defaultdict(lambda:'.so')
+dllsuffix['darwin'] = '.dylib'
+dllsuffix['win32'] = '.dll'
+dllsuffix['win64'] = '.dll'
+
+def dlclose(handle):
+    name = 'libdl' + dllsuffix[sys.platform]
+    libdl = CDLL(name)
+    libdl.dlerror.restype = c_char_p
+    logger.debug('Closing dll (%x)',handle)
+    rc = libdl.dlclose(handle)
+    if rc!=0:
+        logger.debug('Closing failed, looking up error message')
+        error = libdl.dlerror()
+        logger.debug('Closing dll returned %s (%s)', rc, error)
+        if error == 'invalid handle passed to dlclose()':
+            raise ValueError(error)
+    else:
+        logger.debug('Closed')
+
+
+def isloaded(lib):
+    """return true if library is loaded"""
+    libp = os.path.abspath(lib)
+    ret = os.system("lsof -p %d | grep %s > /dev/null" % (os.getpid(), libp))
+    return (ret == 0)
 # We might want to run this part in a proxy....
 class XBeach:
     """Proxy to the libxbeach library"""
@@ -31,10 +56,13 @@ class XBeach:
         os.chdir(self.workingdir)
         self.libpath = os.path.abspath(libpath)
         self._lib = CDLL(self.libpath)
-    @once
+        self.shouldinitialize = True
     def init(self):
         """Initialise XBeach (only run once)"""
-        self._lib.init()
+        logger.debug('Initializing...')
+        if self.shouldinitialize:
+            self._lib.init()
+        self.shouldinitialize = False
     def executestep(self):
         """Execute a timestep, stops before or on tnext"""
         self._lib.executestep()
@@ -246,7 +274,16 @@ class XBeach:
             raise ValueError('Expected value of type {} but got {}'.format((Number,ndarray), type(value)))
         fun(c_name, byref(arrayp), namelength)
 
-    def __del__(self):
+    def finalize(self):
         logger.debug('Explicitly deleting library at {}'.format(self._lib))
+        handle = self._lib._handle
         del self._lib
+        logger.debug('Checking if %s is loaded %s', self.libpath, isloaded(self.libpath))
+        while isloaded(self.libpath):
+            dlclose(handle)
+            logger.debug('Checking if %s is loaded %s', self.libpath, isloaded(self.libpath))
+        openfiles = subprocess.check_output(['lsof', '-p', str(os.getpid())])
+        logger.debug('Open files:\n%s',  openfiles)
+        # reset the init method
+        self.shouldinitialize = True
                              

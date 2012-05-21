@@ -71,6 +71,8 @@ contains
     real*8,dimension(:),allocatable,save        :: dist,factor
     logical                                     :: startbcf,lexist1,lexist2
 
+    ! Initialize to false only once....
+    logical, save                               :: bccreated = .false.
 
     include 's.ind'
     s=>sl
@@ -78,7 +80,7 @@ contains
     s=>sg
 #endif
     include 's.inp'
-
+    
     if (.not. allocated(fac1)) then
        allocate(ht      (2,ny+1))
        allocate(fac1    (nx))
@@ -94,10 +96,12 @@ contains
     ! added for bound long wave comp Ad 28 march 2006
     dtheta = par%dtheta*par%px/180
     startbcf=.false.
-    if(abs(par%t-par%dt)<1.d-9) then
+    
+    if(.not. bccreated ) then
        if (xmaster) then
           call writelog('ls','','Setting up boundary conditions')
        endif
+       bccreated=.true.
        startbcf=.true.                     ! trigger read from bcf for instat 3,4,5,7
        bcendtime=huge(0.0d0)               ! initial assumption for instat 3,4,5,7
        s%newstatbc=1

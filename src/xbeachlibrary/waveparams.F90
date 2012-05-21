@@ -1417,10 +1417,11 @@ contains
              ! current y-coordinate and computational diretional bin on
              ! instantaneous water level excitation
              zeta(index2,:,ii)=dble(Comptemp*wp%Nr)*wp%window
-             Comptemp=zeta(index2,:,ii)
+             Comptemp(:)=zeta(index2,:,ii)
 
              ! Hilbert tranformation to determine envelope for each directional ! Bas: should be located after par%oldwbc==1
              ! bin seperately
+
              call hilbert(Comptemp,size(Comptemp))
 
              ! Check whether the old or new type of wave boundary conditions

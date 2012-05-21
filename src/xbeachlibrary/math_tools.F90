@@ -981,9 +981,13 @@ CONTAINS
     complex(fftkind),dimension(:),allocatable    :: x
     integer,dimension(:),allocatable    :: h
     real                                :: p
+    real                                :: two, logtwo
 
-
-    p=log(real(m))/log(2.)
+    ! Avoid a bug in gfortran...http://stackoverflow.com/questions/10673701/can-i-call-the-fortran-log-function-with-a-number
+    two = 2.0
+    logtwo = log(two)
+    
+    p=log(real(m))/logtwo
     n=ceiling(p)
     n=2**n
 

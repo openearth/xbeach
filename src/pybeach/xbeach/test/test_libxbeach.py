@@ -9,6 +9,16 @@ except ImportError:
 from nose import with_setup
 from .. import libxbeach
 import numpy as np
+import logging
+#logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.setLevel( logging.DEBUG )
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('%(levelname)s - %(name)s: %(message)s'))
+logger.addHandler(handler)
+
+
+
 import matplotlib.pyplot as plt
 plt.interactive(True)
 import time
@@ -19,7 +29,7 @@ dllsuffix['win32'] = '.dll'
 dllsuffix['win64'] = '.dll'
 XBEACHLIB = os.path.join(
     os.path.dirname(__file__),
-    '../../../xbeachlibrary/.libs/libxbeach' + dllsuffix[sys.platform]
+    '../../../xbeachlibrary/.libs/libxbeach.0' + dllsuffix[sys.platform]
     )
 WD = os.path.join(
     os.path.dirname(__file__),
@@ -37,7 +47,6 @@ class TestXBeach(unittest.TestCase):
         self.xb.init()
     def tearDown(self):
         "tear down test fixtures"
-        del self.xb
     def test_get_nparameter(self):
         self.assertGreaterEqual(self.xb.get_nparameter(), 224)
     def test_get_parameternamebyindex(self):
@@ -107,14 +116,8 @@ class TestXBeach(unittest.TestCase):
 class IntegrationTest(unittest.TestCase):
     def setUp(self):
         "set up test fixtures"
-        self.libpath = os.path.join(
-            os.path.dirname(__file__),
-            '../../../xbeachlibrary/.libs/libxbeach' + dllsuffix[sys.platform]
-            )
-        self.workingdir = os.path.join(
-            os.path.dirname(__file__),
-            '../../../../../branches/rewind/data/example1'
-            )
+        self.libpath = XBEACHLIB
+        self.workingdir = WD
         self.xb = libxbeach.XBeach(
             libpath=self.libpath,
             workingdir=self.workingdir
@@ -122,32 +125,41 @@ class IntegrationTest(unittest.TestCase):
         self.xb.init()
     def tearDown(self):
         "tear down test fixtures"
+        self.xb.finalize()
     def test_rewind(self):
         # arrays point directly to XBeach memory....
         # Do a first timestep
+        logger.debug('step')
         self.xb.executestep()
         t0_arrays = copy.deepcopy(self.xb.get_arrays())
         told = self.xb.get_parameter('t')
+        logger.debug('t0 = %s', self.xb.get_parameter('t'))
+
+                
         tnext = 10
         self.xb.set_parameter('tnext', tnext)
         while self.xb.get_parameter('t') < tnext:
             self.xb.executestep()
             self.xb.output()
             self.xb.set_parameter('tnext', tnext)
-
         t1a = self.xb.get_parameter('t')
+        logger.debug('t1 = %s', self.xb.get_parameter('t'))
         t1a_arrays = copy.deepcopy(self.xb.get_arrays())
         
         self.xb.set_parameter('t', told)
         for name in t0_arrays:
             self.xb.set_array(name, t0_arrays[name])
-
+        logger.debug('t2 = %s', self.xb.get_parameter('t'))
+            
         self.xb.set_parameter('tnext', tnext)
         while self.xb.get_parameter('t') < tnext:
             self.xb.executestep()
             self.xb.output()
             self.xb.set_parameter('tnext', tnext)
         t1b = self.xb.get_parameter('t')
+        logger.debug('t3 = %s', self.xb.get_parameter('t'))
+        
+
         t1b_arrays = copy.deepcopy(self.xb.get_arrays())
 
         self.assertEqual(set(t1a_arrays), set(t1b_arrays))
