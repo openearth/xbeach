@@ -47,6 +47,7 @@ class TestXBeach(unittest.TestCase):
         self.xb.init()
     def tearDown(self):
         "tear down test fixtures"
+        self.xb.finalize()
     def test_get_nparameter(self):
         self.assertGreaterEqual(self.xb.get_nparameter(), 224)
     def test_get_parameternamebyindex(self):
@@ -95,6 +96,7 @@ class TestXBeach(unittest.TestCase):
     def test_get_array(self):
         self.assertEqual(self.xb.get_array('zb')[0,0], -19.96)
         self.assertEqual(self.xb.get_array('wetz')[0,0], 1)
+        self.assertEqual(self.xb.get_array('dy'), 0.0)
         self.assertEqual(self.xb.get_array('dx'), 0.0)
     def test_get_arraydimsize(self):
         self.assertEqual(self.xb.get_arraydimsize('zb',0), 708)

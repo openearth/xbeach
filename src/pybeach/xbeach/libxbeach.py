@@ -27,6 +27,7 @@ def dlclose(handle):
     name = 'libdl' + dllsuffix[sys.platform]
     libdl = CDLL(name)
     libdl.dlerror.restype = c_char_p
+    libdl.dlclose.argtypes = [c_void_p]
     logger.debug('Closing dll (%x)',handle)
     rc = libdl.dlclose(handle)
     if rc!=0:
@@ -282,8 +283,8 @@ class XBeach:
         while isloaded(self.libpath):
             dlclose(handle)
             logger.debug('Checking if %s is loaded %s', self.libpath, isloaded(self.libpath))
-        openfiles = subprocess.check_output(['lsof', '-p', str(os.getpid())])
-        logger.debug('Open files:\n%s',  openfiles)
+        # openfiles = subprocess.check_output(['lsof', '-p', str(os.getpid())])
+        # logger.debug('Open files:\n%s',  openfiles)
         # reset the init method
         self.shouldinitialize = True
                              
