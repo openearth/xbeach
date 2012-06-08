@@ -6,10 +6,12 @@ echo VS version		: %3
 
 echo ##teamcity[progressMessage 'Removing old builds']
 IF EXIST "%1\dist\win32" (
-rmdir "%1\dist\win32\*.*" \s
+rmdir "%1\dist\win32" /s /q
+mkdir "%1\dist\win32"
 )
 IF EXIST "%1\dist\x64" (
-rmdir "%1\dist\x64\*.*" \s
+rmdir "%1\dist\x64" /s /q
+mkdir "%1\dist\x64"
 )
 
 IF %3==VS2010 GOTO VS2010
