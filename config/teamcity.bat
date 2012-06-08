@@ -49,4 +49,4 @@ type build.log
 
 echo on
 echo run tests
-%1\test\xbeachlibrary_test\bin\%3\xbeachlibrary_test.exe
+%1\test\xbeachlibrary_test\bin\%5\%3\xbeachlibrary_test.exe
