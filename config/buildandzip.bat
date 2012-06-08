@@ -22,9 +22,13 @@ echo on
 echo clean build
 %devenv_path%\devenv.exe "%1\%2" /Clean "Release|Win32" /Project xbeach /Out clean_release.log
 type clean_release.log
-%devenv_path%\devenv.exe "%1\%2" /Clean "Release|Win32" /Project xbeach /Out clean_netcdf.log
+%devenv_path%\devenv.exe "%1\%2" /Clean "netcdf_Release|Win32" /Project xbeach /Out clean_netcdf.log
 type clean_netcdf.log
-%devenv_path%\devenv.exe "%1\%2" /Clean "Release|Win32" /Project xbeach /Out clean_mpi.log
+%devenv_path%\devenv.exe "%1\%2" /Clean "MPI_Release|Win32" /Project xbeach /Out clean_mpi.log
+type clean_mpi.log
+%devenv_path%\devenv.exe "%1\%2" /Clean "Release|x64" /Project xbeach /Out clean_release_x64.log
+type clean_release_x64.log
+%devenv_path%\devenv.exe "%1\%2" /Clean "MPI_Release|x64" /Project xbeach /Out clean_mpi.log
 type clean_mpi.log
 
 echo off
@@ -41,6 +45,10 @@ type build_exe.log
 type build_netcdf.log
 %devenv_path%\devenv.exe "%1\%2" /Build "MPI_Release|Win32" /Project xbeach /Out build_mpi.log
 type build_mpi.log
+%devenv_path%\devenv.exe "%1\%2" /Build "Release|x64" /Project xbeach /Out build_release_x64.log
+type build_release_x64.log
+%devenv_path%\devenv.exe "%1\%2" /Build "MPI_Release|x64" /Project xbeach /Out build_mpi_x64.log
+type build_mpi_x64.log
 echo off
 
 IF %ERRORLEVEL% == 0 GOTO END
