@@ -4,6 +4,7 @@ echo solution dir	: %1
 echo solution file	: %2
 echo Configuration name	: %3
 echo VS version		: %4
+echo Platform (Win32/x64): %5
 echo Project name	: xbeachlibrary_test
 
 IF %4==VS2010 GOTO VS2010
@@ -22,7 +23,7 @@ echo devenv		: %devenv_path%
 IF EXIST build.log del build.log
 echo on
 echo clean build
-%devenv_path%\devenv.exe "%1\%2" /Clean "%3|Win32" /Project xbeachlibrary_test /Out build.log
+%devenv_path%\devenv.exe "%1\%2" /Clean "%3|%5" /Project xbeachlibrary_test /Out build.log
 type build.log
 
 echo off
@@ -34,8 +35,8 @@ EXIT /B 1
 IF EXIST build.log del build.log
 echo on
 echo build xbeach test project
-%devenv_path%\devenv.exe "%1\%2" /Build "%3|Win32" /Project xbeachlibrary_test /Out build.log
-%devenv_path%\devenv.exe "%1\%2" /Build "%3|Win32" /Project xbeach /Out build_exe.log
+%devenv_path%\devenv.exe "%1\%2" /Build "%3|%5" /Project xbeachlibrary_test /Out build.log
+%devenv_path%\devenv.exe "%1\%2" /Build "%3|%5" /Project xbeach /Out build_exe.log
 type build.log
 echo off
 
