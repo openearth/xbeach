@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <VisualStudioProject ProjectCreator="Intel Fortran" Keyword="Console Application" Version="11.0" ProjectIdGuid="{00429065-5672-4461-86AF-39FCFAC53DAF}">
 	<Platforms>
-		<Platform Name="Win32"/></Platforms>
+		<Platform Name="Win32"/>
+		<Platform Name="x64"/></Platforms>
 	<Configurations>
-		<Configuration Name="Debug|Win32" OutputDirectory="bin\$(ConfigurationName)" IntermediateDirectory="bin\$(ConfigurationName)">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\ftnunit\$(ConfigurationName)" Interfaces="true" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+		<Configuration Name="Debug|Win32" OutputDirectory="bin\win32\$(ConfigurationName)" IntermediateDirectory="bin\win32\$(ConfigurationName)">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\win32\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\win32\ftnunit\$(ConfigurationName)" Interfaces="true" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -13,8 +14,8 @@
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
-		<Configuration Name="Release|Win32" OutputDirectory="bin\$(ConfigurationName)" IntermediateDirectory="bin\$(ConfigurationName)">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\ftnunit\$(ConfigurationName)"/>
+		<Configuration Name="Release|Win32" OutputDirectory="bin\win32\$(ConfigurationName)" IntermediateDirectory="bin\win32\$(ConfigurationName)">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\win32\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\win32\ftnunit\$(ConfigurationName)"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -23,8 +24,8 @@
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
-		<Configuration Name="netcdf_Debug|Win32" OutputDirectory="bin\$(ConfigurationName)" IntermediateDirectory="bin\$(ConfigurationName)">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\ftnunit\$(ConfigurationName)" Interfaces="true" WarnInterfaces="true" ExternalNameInterpretation="extNameLowerCase" CallingConvention="callConventionCVF" StringLengthArgPassing="strLenArgsAfterAll" ExternalNameUnderscore="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+		<Configuration Name="netcdf_Debug|Win32" OutputDirectory="bin\win32\$(ConfigurationName)" IntermediateDirectory="bin\win32\$(ConfigurationName)">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\win32\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\win32\ftnunit\$(ConfigurationName)" Interfaces="true" WarnInterfaces="true" ExternalNameInterpretation="extNameLowerCase" CallingConvention="callConventionCVF" StringLengthArgPassing="strLenArgsAfterAll" ExternalNameUnderscore="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -33,8 +34,8 @@
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
-		<Configuration Name="netcdf_Release|Win32" OutputDirectory="bin\$(ConfigurationName)" IntermediateDirectory="bin\$(ConfigurationName)">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\ftnunit\$(ConfigurationName)" ExternalNameInterpretation="extNameLowerCase" CallingConvention="callConventionCVF" StringLengthArgPassing="strLenArgsAfterAll" ExternalNameUnderscore="true"/>
+		<Configuration Name="netcdf_Release|Win32" OutputDirectory="bin\win32\$(ConfigurationName)" IntermediateDirectory="bin\win32\$(ConfigurationName)">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\win32\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\win32\ftnunit\$(ConfigurationName)" ExternalNameInterpretation="extNameLowerCase" CallingConvention="callConventionCVF" StringLengthArgPassing="strLenArgsAfterAll" ExternalNameUnderscore="true"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -43,8 +44,8 @@
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
-		<Configuration Name="MPI_Debug|Win32" OutputDirectory="bin\$(ConfigurationName)" IntermediateDirectory="bin\$(ConfigurationName)">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\ftnunit\$(ConfigurationName)" Interfaces="true" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+		<Configuration Name="MPI_Debug|Win32" OutputDirectory="bin\win32\$(ConfigurationName)" IntermediateDirectory="bin\win32\$(ConfigurationName)">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\win32\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\win32\ftnunit\$(ConfigurationName)" Interfaces="true" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -53,11 +54,51 @@
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
-		<Configuration Name="MPI_Release|Win32" OutputDirectory="bin\$(ConfigurationName)" IntermediateDirectory="bin\$(ConfigurationName)">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\ftnunit\$(ConfigurationName)"/>
+		<Configuration Name="MPI_Release|Win32" OutputDirectory="bin\win32\$(ConfigurationName)" IntermediateDirectory="bin\win32\$(ConfigurationName)">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\win32\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\win32\ftnunit\$(ConfigurationName)"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Debug|x64" OutputDirectory="bin\x64\$(ConfigurationName)" IntermediateDirectory="bin\x64\$(ConfigurationName)">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\x64\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\x64\ftnunit\$(ConfigurationName)" Interfaces="true" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Release|x64" OutputDirectory="bin\x64\$(ConfigurationName)" IntermediateDirectory="bin\x64\$(ConfigurationName)">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\x64\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\x64\ftnunit\$(ConfigurationName)"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_Debug|x64" OutputDirectory="bin\x64\$(ConfigurationName)" IntermediateDirectory="bin\x64\$(ConfigurationName)">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\x64\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\ftnunit\x64\$(ConfigurationName)" Interfaces="true" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_Release|x64" OutputDirectory="bin\x64\$(ConfigurationName)" IntermediateDirectory="bin\x64\$(ConfigurationName)">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="$(SolutionDir)\src\xbeachlibrary\bin\static\x64\$(ConfigurationName);$(SolutionDir)\test\ftnunit\bin\x64\ftnunit\$(ConfigurationName)"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool"/>
 				<Tool Name="VFPreBuildEventTool"/>
