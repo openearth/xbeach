@@ -20,14 +20,19 @@ echo devenv		: %devenv_path%
 IF EXIST build.log del build.log
 echo on
 echo clean build
+echo ##teamcity[progressMessage 'Clean Release|Win32']
 %devenv_path%\devenv.exe "%1\%2" /Clean "Release|Win32" /Project xbeach /Out clean_release.log
 type clean_release.log
+echo ##teamcity[progressMessage 'Clean netcdf_Release|Win32']
 %devenv_path%\devenv.exe "%1\%2" /Clean "netcdf_Release|Win32" /Project xbeach /Out clean_netcdf.log
 type clean_netcdf.log
+echo ##teamcity[progressMessage 'Clean MPI_Release|Win32']
 %devenv_path%\devenv.exe "%1\%2" /Clean "MPI_Release|Win32" /Project xbeach /Out clean_mpi.log
 type clean_mpi.log
+echo ##teamcity[progressMessage 'Clean Release|x64']
 %devenv_path%\devenv.exe "%1\%2" /Clean "Release|x64" /Project xbeach /Out clean_release_x64.log
 type clean_release_x64.log
+echo ##teamcity[progressMessage 'Clean MPI_Release|x64']
 %devenv_path%\devenv.exe "%1\%2" /Clean "MPI_Release|x64" /Project xbeach /Out clean_mpi.log
 type clean_mpi.log
 
@@ -39,14 +44,19 @@ EXIT /B 1
 :BUILD
 echo on
 echo build and zip xbeach executables
+echo ##teamcity[progressMessage 'Build Release|Win32']
 %devenv_path%\devenv.exe "%1\%2" /Build "Release|Win32" /Project xbeach /Out build_exe.log
 type build_exe.log
+echo ##teamcity[progressMessage 'Build netcdf_Release|Win32']
 %devenv_path%\devenv.exe "%1\%2" /Build "netcdf_Release|Win32" /Project xbeach /Out build_netcdf.log
 type build_netcdf.log
+echo ##teamcity[progressMessage 'Build MPI_Release|Win32']
 %devenv_path%\devenv.exe "%1\%2" /Build "MPI_Release|Win32" /Project xbeach /Out build_mpi.log
 type build_mpi.log
+echo ##teamcity[progressMessage 'Build Release|x64']
 %devenv_path%\devenv.exe "%1\%2" /Build "Release|x64" /Project xbeach /Out build_release_x64.log
 type build_release_x64.log
+echo ##teamcity[progressMessage 'Build MPI_Release|x64']
 %devenv_path%\devenv.exe "%1\%2" /Build "MPI_Release|x64" /Project xbeach /Out build_mpi_x64.log
 type build_mpi_x64.log
 echo off
