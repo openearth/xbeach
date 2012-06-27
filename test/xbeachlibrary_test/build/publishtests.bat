@@ -1,9 +1,16 @@
 echo off
-rem %1 = SolutionDir
-rem %2 = ConfigurationName
+
+rem read command line parameters
+set SolutionDir=%1
+set ConfigurationName=%2
+
+rem replace quotes
+set SolutionDir=%SolutionDir:"=%
+set ConfigurationName=%ConfigurationName:"=%
+
 echo on
 
-cd %1test\xbeachlibrary_test\bin\%2
+cd "%SolutionDir%test\xbeachlibrary_test\bin\%ConfigurationName%"
 
 rem run tests and create html
 start xbeachlibrary_test.exe
@@ -15,4 +22,4 @@ if "%ERRORLEVEL%"=="0" goto loopbusy
 
 ftnunit.html
 
-cd %1test\xbeachlibrary_test
+cd "%SolutionDir%test\xbeachlibrary_test"

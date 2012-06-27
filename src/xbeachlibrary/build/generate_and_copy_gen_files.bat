@@ -1,29 +1,37 @@
 echo off
-rem 1: SolutionDir
-rem 2: ConfigurationName
-rem 3: platform (win32 / x64)
 
-set type=%2
+rem read command line parameters
+set SolutionDir=%1
+set ConfigurationName=%2
+set Platform=%3
+
+rem replace quotes
+set SolutionDir=%SolutionDir:"=%
+set ConfigurationName=%ConfigurationName:"=%
+set Platform=%Platform:"=%
+
+set type=%ConfigurationName%
 set type=%type:netcdf_=%
 set type=%type:MPI_=%
+
 echo on
 
-cd %1src\makeincludes\bin\%3
+cd "%SolutionDir%src\makeincludes\bin\%Platform%"
 
 rem copy input files
-copy %1src\xbeachlibrary\params.F90 %1src\makeincludes\bin\%3
-copy %1src\xbeachlibrary\*.tmpl %1src\makeincludes\bin\%3
+copy "%SolutionDir%src\xbeachlibrary\params.F90" "%SolutionDir%src\makeincludes\bin\%Platform%"
+copy "%SolutionDir%src\xbeachlibrary\*.tmpl" "%SolutionDir%src\makeincludes\bin\%Platform%"
 
 rem del intermediate output
-del %1src\makeincludes\bin\%3\parameters.inc
+del "%SolutionDir%src\makeincludes\bin\%Platform%\parameters.inc"
 
 rem create gen files
-%1src\makeincludes\bin\%3\%type%\makeincludes
+"%SolutionDir%src\makeincludes\bin\%Platform%\%type%\makeincludes"
 
 rem delete input
-del %1src\makeincludes\bin\%3\params.F90
+del "%SolutionDir%src\makeincludes\bin\%Platform%\params.F90"
 
 rem copy gen files to right location
-copy %1src\makeincludes\bin\%3\*.gen %1src\xbeachlibrary\includes\genfiles\
+copy "%SolutionDir%src\makeincludes\bin\%Platform%\*.gen" "%SolutionDir%src\xbeachlibrary\includes\genfiles\"
 
-cd %1src\xbeachlibrary\
+cd "%SolutionDir%src\xbeachlibrary\"
