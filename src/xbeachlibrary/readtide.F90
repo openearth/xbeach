@@ -32,13 +32,14 @@ contains
     use xmpi_module
     use readkey_module
     use logging_module
+    use typesandkinds
 
     IMPLICIT NONE
 
     type(spacepars),target                  :: s
     type(parameters)                        :: par
 
-    character*80                        :: fnamezs0
+    character(slen)                     :: fnamezs0
     integer                             :: i
     integer                             :: io,ntide
     real*8,dimension(par%tideloc+1)     :: temp

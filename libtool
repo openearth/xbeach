@@ -2,7 +2,7 @@
 
 # libtool - Provide generalized library-building support services.
 # Generated automatically by config.status (xbeach) v18
-# Libtool was configured on host wlan-145-94-174-031.wlan.tudelft.nl:
+# Libtool was configured on host Fedor-Baarts-MacBook-Pro.local:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 #
 #   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005,
@@ -66,16 +66,16 @@ PATH_SEPARATOR=":"
 
 # The host system.
 host_alias=
-host=x86_64-apple-darwin11.3.0
-host_os=darwin11.3.0
+host=x86_64-apple-darwin11.4.0
+host_os=darwin11.4.0
 
 # The build system.
 build_alias=
-build=x86_64-apple-darwin11.3.0
-build_os=darwin11.3.0
+build=x86_64-apple-darwin11.4.0
+build_os=darwin11.4.0
 
 # A sed program that does not truncate output.
-SED="/usr/bin/sed"
+SED="/opt/local/bin/gsed"
 
 # Sed that helps us avoid accidentally triggering echo(1) options like -n.
 Xsed="$SED -e 1s/^X//"
@@ -272,7 +272,7 @@ finish_eval=""
 hardcode_into_libs=no
 
 # Compile-time system search path for libraries.
-sys_lib_search_path_spec="/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin11/4.2.1/x86_64 /Applications/Xcode.app/Contents/Developer/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin11/4.2.1/x86_64 /usr/lib /usr/llvm-gcc-4.2/lib/gcc /usr/llvm-gcc-4.2/lib /Applications/Xcode.app/Contents/Developer/usr/llvm-gcc-4.2/lib  /usr/local/lib"
+sys_lib_search_path_spec="/opt/local/lib/gcc45/gcc/x86_64-apple-darwin11/4.5.4 /opt/local/lib/gcc45 /usr/lib  /usr/local/lib"
 
 # Run-time system search path for libraries.
 sys_lib_dlsearch_path_spec="/usr/local/lib /lib /usr/lib"
@@ -292,7 +292,7 @@ striplib="strip -x"
 
 
 # The linker used to build libraries.
-LD="/usr/llvm-gcc-4.2/libexec/gcc/i686-apple-darwin11/4.2.1/ld"
+LD="/opt/local/bin/ld"
 
 # How to create reloadable object files.
 reload_flag=" -r"
@@ -10090,7 +10090,7 @@ build_old_libs=`case $build_libtool_libs in yes) echo no;; *) echo yes;; esac`
 # ### BEGIN LIBTOOL TAG CONFIG: FC
 
 # The linker used to build libraries.
-LD="/usr/llvm-gcc-4.2/libexec/gcc/i686-apple-darwin11/4.2.1/ld"
+LD="/opt/local/bin/ld"
 
 # How to create reloadable object files.
 reload_flag=" -r"

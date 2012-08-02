@@ -456,7 +456,7 @@ contains
           if (ic>0) then
              ikey=ikey+1
              keyword(ikey)=adjustl(line(1:ic-1))
-             values(ikey)=adjustl(line(ic+1:80))
+             values(ikey)=adjustl(line(ic+1:slen))
           endif
        enddo
        nkeys=ikey
