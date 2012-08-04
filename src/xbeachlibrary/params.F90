@@ -926,8 +926,8 @@ contains
        call writelog('l','','Morphology parameters: ')
        par%morfac   = readkey_dbl ('params.txt','morfac', 1.0d0,        0.d0,  1000.d0)
        par%morfacopt= readkey_int ('params.txt','morfacopt', 1,        0,        1)
-       par%morstart = readkey_dbl ('params.txt','morstart',120.d0,      0.d0, 10000.d0)
-       par%morstop  = readkey_dbl ('params.txt','morstop', par%tstop,      0.d0, 10000.d0)
+       par%morstart = readkey_dbl ('params.txt','morstart',120.d0,      0.d0, 10000000.d0)
+       par%morstop  = readkey_dbl ('params.txt','morstop', par%tstop,      0.d0, 10000000.d0)
        par%wetslp   = readkey_dbl ('params.txt','wetslp', 0.3d0,       0.1d0,     1.d0)
        par%dryslp   = readkey_dbl ('params.txt','dryslp', 1.0d0,       0.1d0,     2.d0)
        par%hswitch  = readkey_dbl ('params.txt','hswitch',0.1d0,      0.01d0,    1.0d0)   
@@ -1281,6 +1281,7 @@ contains
        par%wavint  = par%wavint / max(par%morfac,1.d0)
        par%tstop   = par%tstop  / max(par%morfac,1.d0)
        par%morstart= par%morstart / max(par%morfac,1.d0)
+       par%morstop = par%morstop / max(par%morfac,1.d0)
        par%rt      = par%rt / max(par%morfac,1.d0)
     endif
     !

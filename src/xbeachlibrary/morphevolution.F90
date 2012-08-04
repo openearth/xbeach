@@ -477,8 +477,7 @@ contains
     dzbtot = 0.d0
     dzbdt  = 0.d0
     dzb    = 0.d0
-
-    if (par%t>=par%morstart .and. par%morfac > .999d0) then
+    if (par%t>=par%morstart .and. par%t < par%morstop .and. par%morfac > .999d0) then
        !
        ! bed_predict
        !
