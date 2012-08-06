@@ -36,7 +36,7 @@ contains
     use spaceparams
     use readkey_module
     use xmpi_module
-
+    use typesandkinds
     IMPLICIT NONE
 
     ! Input / output variables
@@ -45,7 +45,7 @@ contains
 
     type(waveparameters), intent(inout)         :: wp
     real*8,save                                 :: bcendtime
-    character(len=256)                          :: fname,Ebcfname,qbcfname
+    character(len=slen)                         :: fname,Ebcfname,qbcfname
     character*8                                 :: testc
     logical                                     :: makefile
     integer,save                                :: reuse  ! = 0 used to be in code
@@ -119,11 +119,8 @@ contains
           qbcfname='q_'//trim(fname)
        else
           counter=counter+1
-          i1=floor(real(counter)/100.d0)
-          i2=floor(real(counter-i1*100)/10.d0)
-          i3=counter-i1*100-i2*10
-          Ebcfname='Ejonsw'//char(48+i1)//char(48+i2)//char(48+i3)//'.bcf'
-          qbcfname='qjonsw'//char(48+i1)//char(48+i2)//char(48+i3)//'.bcf'
+          write(Ebcfname, '(A,I0.6,A)') 'Ejonsw', counter, '.bcf'
+          write(qbcfname, '(A,I0.6,A)') 'qjonsw', counter, '.bcf'
        endif
     else 
 
@@ -1516,7 +1513,7 @@ contains
     if(xmaster) then
        inquire(iolength=reclen) 1.d0
        reclen=reclen*(wp%Npy)*(Ns)
-       write(*,*) 'Opening', Ebcfname
+       write(*,*) 'Opening', trim(Ebcfname)
        open(12,file=trim(Ebcfname),form='unformatted',access='direct',recl=reclen)
        do i=1,wp%Nr+4                                                             ! Bas: why add 4 ??
           write(12,rec=i)E_tdir(:,min(i,wp%Nr),:)
