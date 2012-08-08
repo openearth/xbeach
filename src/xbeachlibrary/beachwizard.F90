@@ -88,6 +88,9 @@ contains
        allocate(s%zbobs(1:s%nx+1,1:s%ny+1)) 
        allocate(s%sig2prior(1:s%nx+1,1:s%ny+1))
        allocate(s%shobs(1:s%nx+1,1:s%ny+1))
+       allocate(s%bwalpha(1:s%nx+1,1:s%ny+1))
+       allocate(s%dcmdo(1:s%nx+1,1:s%ny+1))
+       allocate(s%dassim(1:s%nx+1,1:s%ny+1))
     end if
 
 
@@ -196,8 +199,8 @@ contains
        inquire (file='sigpr.dep', exist=exists)
        if  (exists) then
           open(444,file='sigpr.dep',err=999)
-          do im = 1,s%ny
-             read(444,*)(s%sig2prior(in,im),in =1,s%nx)
+          do im = 1,s%ny+1
+             read(444,*)(s%sig2prior(in,im),in =1,s%nx+1)  !Leo: nx and ny --> nx+1 ny+1
           enddo
           close(444)
        else
@@ -245,7 +248,9 @@ contains
        end if
        if (bw%statuserr(srcnr) ==0) then 
           h1 = max(s%hh+par%delta*s%H,par%hmin)
-          bw%sigD=50.+(999.-50.)*(0.5+0.5*tanh((s%dobs/h1-50.)/10.))
+         !! bw%sigD=bw%sigDdef+(999.-bw%sigDdef)*(0.5+0.5*tanh((s%dobs/h1-bw%sigDdef)/10.)) ! change 50 --> bw%sigDdef 
+          bw%sigD = bw%sigDdef               !!using only default dissipation uncertainty for now...     
+     
        end if
     end if
 
@@ -337,7 +342,7 @@ contains
        end if
     end if
 
-    inquire (file='imageinfoibathy',exist=exists) !read file for shoreline
+    inquire (file='imageinfoibathy',exist=exists) !read file for shorelines
     if (exists) then
        infofile='imageinfoibathy'
        srcnr = 5
@@ -369,22 +374,28 @@ contains
           bw%sigS=bw%sigSdef
        end if
     end if !if exists
+    
+    !expose variables to output module
+    
+    s%dcmdo = bw%dcmdo
 
     call comp_depchg(bw, s, par)
 
   end subroutine assim
 
   subroutine assim_rd(bw, s, par, infofile,   srcnr)
+  
+    
 
     use params
     use spaceparams
-
+    implicit none
     !     Global variables
     type(spacepars), target             :: s 
     type(parameters)                    :: par
     type(beachwiz)						:: bw
     character*80                        :: fname, infofile
-    integer								:: im,in
+    integer								:: im,in,iy,ix
     integer								:: srcnr
 
     !     Local variables
@@ -596,10 +607,10 @@ contains
     end if
   end subroutine assim_update
   subroutine comp_depchg(bw, s, par)
-
+    
     use params
     use spaceparams
-
+    implicit none
     !     Global variables
     type(spacepars), target             :: s 
     type(parameters)                    :: par
@@ -607,8 +618,9 @@ contains
 
 
     !     Local variables
-    integer  :: in
-    integer  :: im 
+    integer  :: in,i
+    integer  :: im,j 
+    integer  :: ind
     real*8 :: Hrmsmax 
     real*8 :: mxdDdh
     real*8 :: alp_as
@@ -626,9 +638,13 @@ contains
     real*8, allocatable, dimension(:,:)  :: h1
     real*8, allocatable, dimension(:,:)  :: dDdh
     real*8, allocatable, dimension(:,:)  :: sig2obs 
-    real*8, allocatable, dimension(:,:)  :: alpha
+!    real*8, allocatable, dimension(:,:)  :: alpha
     real*8, allocatable, dimension(:,:)  :: Hrms
+    real*8, allocatable, dimension(:,:)  :: alphafac
     !
+    real*8                              :: backdis,disfac
+    integer                             :: index
+    real*8, allocatable, dimension(:,:)  :: h2
     if (.not.(allocated(errD))) then
        allocate (errD(1:s%nx+1,1:s%ny+1))
        allocate (errC(1:s%nx+1,1:s%ny+1))
@@ -643,45 +659,75 @@ contains
        allocate (h1(1:s%nx+1,1:s%ny+1))
        allocate (dDdh(1:s%nx+1,1:s%ny+1))
        allocate (sig2obs(1:s%nx+1,1:s%ny+1))
-       allocate (alpha(1:s%nx+1,1:s%ny+1))
+      ! allocate (alpha(1:s%nx+1,1:s%ny+1))
        allocate (Hrms(1:s%nx+1,1:s%ny+1))
+       allocate (h2(1:s%nx+1,1:s%ny+1))
+       allocate (alphafac(1:s%nx+1,1:s%ny+1))
     end if
 
 
     ! general
     Hrms = max(s%H,0.01d0);
-    h1 = max(s%hh+par%delta*Hrms,par%hmin)
+    h2 = 0.d0           ! modified wave length, initially set to L1
+     do j = 2,s%ny
+        do i = 2,s%nx+1
+           index = i       ! start index
+           backdis = 0.d0  ! relative distance backward
+           do while (backdis<1.d0)
+              ! disfac = s%dsc(index,j)/(par%facsd*s%L1(index,j))
+              ! use average wavelength over distance dsc
+              disfac = s%dsc(index,j)/(0.5d0*(s%L1(index,j)+s%L1(max(index-1,1),j)))
+              disfac = min(disfac,1.d0-backdis)
+              
+              h2(i,j) = h2(i,j) + disfac*s%hh(index,j)
+              backdis = backdis+disfac
+              
+              index = max(index-1,1)
+           enddo
+        enddo
+     enddo
+     h2(:,1)=h2(:,2)
+     h2(:,s%ny+1)=h2(:,s%ny)
+    h1 = max(s%hh+par%delta*Hrms,par%hmin)     !total water depth
     kh = min(10.0, s%k*h1) 
-
+    
+                                ! ! The following equation numbers and variables follow the Beach Wizard Paper 
+                                                !!       (Van Dongeren et al., 2008)
 
     ! derivatives for dissipation assimilation
     gambal = 0.29+0.76*kh
-    Hb = 0.88/s%k*tanh(gambal*kh/0.88)
-
+    Hb = 0.88/s%k*tanh(gambal*kh/0.88)          ! eq. (A4)
     Hrmsmax = maxval(Hrms)
+    Ga = (Hb/Hrms)**2        
 
-    Ga = (Hb/Hrms)**2
-
-    dDdGa = -0.25*par%rho*par%g/par%Trep*(Hrms**2)*Ga*exp(-Ga)
-
+    dDdGa = -0.25*par%rho*par%g/par%Trep*(Hrms**2)*Ga*exp(-Ga)   !eq. (A5)
     dGadHb = 2*Hb/(Hrms**2)
-    dHbdh = ((0.29+2*0.76*kh)*(1.-(kh/(sinh(kh)*cosh(kh)+kh)))) &
+    
+    dHbdh = ((0.29+2*0.76*kh)*(1.-(kh/(sinh(kh)*cosh(kh)+kh)))) &      ! eq. (A6)
          & /(cosh((0.29*kh+0.76*kh**2)/0.88)**2) + &
          & 0.88*tanh((0.29*kh+0.76*kh**2)/0.88)/(sinh(kh)*cosh(kh)+kh)
 
-    dDdh = dDdGa*dGadHb*dHbdh
+    dDdh = dDdGa*dGadHb*dHbdh                 ! eq. (A3), derivative of dissipation with respect to water depth
+
+                                                
+    mxdDdh = maxval(dDdh**2)    
 
 
-
-    mxdDdh = maxval(dDdh**2)
-
-
-    bw%sigD =  bw%sigD+(100.d0-bw%sigD)*(1-tanh((3.7*Hrmsmax/h1)**20))
-
-
-    alp_as = 0.005
-    errD = ((bw%dcmdo**2+bw%sigD**2)/(dDdh**2+alp_as*mxdDdh+1.e-16)) !this is sig2_obs for D
-
+   !! bw%sigD =  bw%sigD+(100.d0-bw%sigD)*(1-tanh((3.7*Hrmsmax/h1)**20))  !measurement error for dissipatiopn, used in eq. (6)
+    !bw%sigD above is commented out for now to use default value of measurement error (Roberto)
+    
+        
+    bw%sigD = 0.15*maxval(s%dobs)!! dissipation measurement error equal to a percentage (15%) of the maximum observed Dissipation.
+    
+  !!  do in=1,s%nx+1
+  !!    do im=1,s%ny+1  !! here the measurement error is spatially varied, increasing for shallow waters where sandy areas or persistent foam may be. (Roberto)
+  !!      if (bw%sigD(in,im)/(h1(in,im)+1.e-16)>bw%sigD(in,im)) bw%sigD(in,im)=bw%sigD(in,im)/(h1(in,im)+1.e-16)
+  !!    end do
+  !!  end do
+                                                    
+    alp_as = 0.005                                                  
+    errD = ((bw%dcmdo**2+bw%sigD**2)/(dDdh**2+alp_as*mxdDdh+1.e-16)) !eq.(6)  uncertainty in observed data (Dissipation)
+                                                                      
     do in=1,s%nx+1
        do im=1,s%ny+1
           if (s%dobs(in,im)<-990) errD(in,im)=999
@@ -697,8 +743,8 @@ contains
     end do
 
 
-    errS = ((bw%scmso**2+bw%sigS**2)/(1.d0))			   !this is sig2_obs for S	
-    do in=1,s%nx+1
+    errS = ((bw%scmso**2+bw%sigS**2)/(1.d0))			   !eq.(6)  uncertainty in observed data (ibathy)
+    do in=1,s%nx+1                             
        do im=1,s%ny+1
           if (s%shobs(in,im)<-990) errS(in,im)=999
        end do
@@ -706,13 +752,28 @@ contains
 
 
 
-    Nassim = par%tstop/par%dt
+    Nassim = par%tstop/par%dt    !! changed par%tstop/par%dt -->par%tstop/par%wavint
 
     sig2obs = 1.0d0/(1./errD+1./errS)
-    alpha = s%sig2prior/(s%sig2prior+Nassim*sig2obs)
-    !ap2 alpha = alpha*tanh(h1**20)
+    s%bwalpha = s%sig2prior/(s%sig2prior+Nassim*sig2obs)  ! eq.(2) optimal weighting of prior and observed estimates
+    !ap2 s%bwalpha = s%bwalpha*tanh(h1**20)                   ! tanh(h1**20) included to reduce effect at shallow waters...
 
-    bw%dassim = -alpha*tanh(h1**20)*((dDdh-sqrt(alp_as*mxdDdh))/(dDdh**2+alp_as*mxdDdh)*bw%dcmdo  )
+     
+     
+    do in=1,s%nx+1
+       do im=1,s%ny+1
+         alphafac(in,im) = (cosh(s%sdist(in,im)/100.d0-0.65*par%t*s%sdist(s%nx+1,im)/par%tstop/100.d0-2.d0))**-10.d0
+       enddo
+    enddo
+    ! max left hand to 1
+    do im=1,s%ny+1
+       ind = minval(maxloc(alphafac(:,im)))
+       alphafac(1:ind,im)=1.d0
+    enddo
+        
+!    s%bwalpha = s%bwalpha*alphafac       
+            
+    bw%dassim = -s%bwalpha*tanh((h1/0.85)**5)*((dDdh-sqrt(alp_as*mxdDdh))/(dDdh**2+alp_as*mxdDdh)*bw%dcmdo  )*alphafac !eq.(5) depth change
     !ap2			
     !& +dcdh(nm)/(dcdh(nm)**2+alp_as*dcdhmean**2)*ccmco(nm))
 
@@ -729,13 +790,16 @@ contains
     end do
 
 
-    bw%dassim = bw%dassim + alpha*bw%scmso !!! in xbeach zb=zb-bw%dassim, so zb=zb-alpha*(zbcomp-zbobs)
+    bw%dassim = bw%dassim + s%bwalpha*bw%scmso !!! in xbeach zb=zb-bw%dassim, so zb=zb-s%bwalpha*(zbcomp-zbobs)
     !  bw%dassim = bw%dassim - 0.0001*bw%scmso
 
+    !expose to output
+    s%dassim = bw%dassim
 
     do in=1,s%nx+1
-       do im=1,s%ny+1
-          if (s%dobs(in,im)>-990) s%sig2prior(in,im) = alpha(in,im)*tanh(h1(in,im)**20)*Nassim*sig2obs(in,im) 
+       do im=1,s%ny+1                                               !!Roberto changed tanh term below
+          if (s%dobs(in,im)>-990) s%sig2prior(in,im) = s%bwalpha(in,im)*tanh((h1(in,im)/0.85)**5)*Nassim*sig2obs(in,im) 
+          !!  if (s%dobs(in,im)>-990) s%sig2prior(in,im) = s%bwalpha(in,im)*tanh((h2(in,im)/0.85)**5)*Nassim*sig2obs(in,im) 
        end do
     end do
 
