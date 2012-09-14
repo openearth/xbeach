@@ -88,6 +88,9 @@ contains
           allocate(s%windyts(s%windlen))
           do i=1,s%windlen
              read(31,*,IOSTAT=io) s%windinpt(i),s%windvelts(i),s%winddirts(i)
+             if (io .ne. 0) then
+                call report_file_read_error(par%windfile)
+             endif
           enddo
           ! to cartesian radians
           s%winddirts=(270.d0-s%winddirts-s%alfa)*par%px/180.d0

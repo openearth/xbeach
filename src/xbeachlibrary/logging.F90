@@ -138,7 +138,9 @@ CONTAINS
   end function generate_logfileid
 
   subroutine progress_indicator(initialize,curper,dper,dt)
-
+    
+    implicit none
+     
     logical,intent(in)      :: initialize    ! initialize current progress indicator
     real*8,intent(in)       :: curper        ! current percentage done
     real*8,intent(in)       :: dper          ! steps in percentage between output
@@ -170,6 +172,18 @@ CONTAINS
 
 
   end subroutine progress_indicator
+  
+  subroutine report_file_read_error(filename)
+  
+     implicit none
+     
+     character(*)    :: filename
+     
+     call writelog('lswe','','Error reading file ''',trim(filename),'''')
+     call writelog('lswe','','Check file for incorrect decimal format, line breaks and tab characters')
+     call halt_program
+  
+  end subroutine report_file_read_error
 
   subroutine writelog_startup()
 

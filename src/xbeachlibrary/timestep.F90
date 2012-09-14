@@ -131,7 +131,7 @@ contains
     character(80)                       :: tsmean
 
     real*8                              :: iir
-    integer                             :: i,ii
+    integer                             :: i,ii,ier
     !character(80)                       :: fname 
 
 
@@ -178,14 +178,19 @@ contains
     ! If we want global output then
     if (par%nglobalvar/=0) then
        if(xmaster) then
-          call readkey('params.txt','tsglobal',tsglobal)
-          if (tsglobal/=' ') then
-             open(10,file=tsglobal)
-             read(10,*)iir
+          if (par%tsglobal/=' ') then
+             open(10,file=par%tsglobal)
+             read(10,*,iostat=ier)iir
+             if (ier .ne. 0) then
+                call report_file_read_error(par%tsglobal)
+             endif
              ii = nint(iir)
              allocate(tpar%tpg(ii))
              do i=1,ii
-                read(10,*)tpar%tpg(i)
+                read(10,*,iostat=ier)tpar%tpg(i)
+                if (ier .ne. 0) then
+                   call report_file_read_error(par%tsglobal)
+                endif
              enddo
              tpar%tpg=tpar%tpg/max(par%morfac,1.d0)
              close(10)
@@ -211,14 +216,19 @@ contains
     ! If we want point output then
     if ((par%npoints+par%nrugauge)>0) then 
        if (xmaster) then
-          call readkey('params.txt','tspoints',tspoints)
-          if (tspoints/=' ') then
-             open(10,file=tspoints)
-             read(10,*)iir
+          if (par%tspoints/=' ') then
+             open(10,file=par%tspoints)
+             read(10,*,iostat=ier)iir
+             if (ier .ne. 0) then
+                call report_file_read_error(par%tspoints)
+             endif
              ii = nint(iir)
              allocate(tpar%tpp(ii))
              do i=1,ii
-                read(10,*)tpar%tpp(i)
+                read(10,*,iostat=ier)tpar%tpp(i)
+                if (ier .ne. 0) then
+                   call report_file_read_error(par%tspoints)
+                endif
              enddo
              tpar%tpp=tpar%tpp/max(par%morfac,1.d0)
              close(10)
@@ -244,14 +254,19 @@ contains
     ! If we want cross section output then
     if ((par%ncross)>0) then 
        if (xmaster) then
-          call readkey('params.txt','tscross',tscross)
-          if (tscross/=' ') then
-             open(10,file=tscross)
-             read(10,*)iir
+          if (par%tscross/=' ') then
+             open(10,file=par%tscross)
+             read(10,*,iostat=ier)iir
+             if (ier .ne. 0) then
+                call report_file_read_error(par%tscross)
+             endif
              ii = nint(iir)
              allocate(tpar%tpc(ii))
              do i=1,ii
-                read(10,*)tpar%tpc(i)
+                read(10,*,iostat=ier)tpar%tpc(i)
+                if (ier .ne. 0) then
+                   call report_file_read_error(par%tscross)
+                endif
              enddo
              close(10)
           else
@@ -276,14 +291,19 @@ contains
     ! If we want time-average output then
     if (par%nmeanvar>0) then
        if(xmaster) then
-          call readkey('params.txt','tsmean',tsmean)
-          if (tsmean/=' ') then
-             open(10,file=tsmean)
-             read(10,*)iir
+          if (par%tsmean/=' ') then
+             open(10,file=par%tsmean)
+             read(10,*,iostat=ier)iir
+             if (ier .ne. 0) then
+                call report_file_read_error(par%tsmean)
+             endif
              ii = nint(iir)
              allocate(tpar%tpm(ii))
              do i=1,ii
-                read(10,*)tpar%tpm(i)
+                read(10,*,iostat=ier)tpar%tpm(i)
+                if (ier .ne. 0) then
+                   call report_file_read_error(par%tsmean)
+                endif
              enddo
              tpar%tpm=tpar%tpm/max(par%morfac,1.d0)
              close(10)

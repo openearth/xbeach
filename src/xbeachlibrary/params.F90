@@ -386,6 +386,7 @@ contains
 
     integer                                             :: filetype,mmax,nmax,ier,ic
     logical                                             :: comment
+    logical                                             :: fe1,fe2,fe3
 
     call writelog('sl','','Reading input parameters: ')
     !
@@ -468,7 +469,10 @@ contains
        ! skip comment text in file...
        comment=.true.
        do while (comment .eqv. .true.)
-          read(31,'(a)')line
+          read(31,'(a)',iostat=ier)line
+          if (ier .ne. 0) then
+             call report_file_read_error(par%xyfile)
+          endif
           if (line(1:1)/='*') then 
              comment=.false.
           endif
@@ -480,7 +484,10 @@ contains
           call halt_program
        endif
        ! read grid dimensions
-       read(31,*) mmax,nmax
+       read(31,*,iostat=ier) mmax,nmax
+       if (ier .ne. 0) then
+          call report_file_read_error(par%xyfile)
+       endif
        par%nx = mmax-1
        par%ny = nmax-1
        ! should we allow this input for gridform == 'Delft3D' 
@@ -549,6 +556,45 @@ contains
 #ifdef USEMPI
        call xmpi_bcast(filetype)
 #endif
+    elseif (trim(par%instat)=='reuse') then
+       ! See if this is reusing nonhydrostatic, or hydrostatic boundary conditions
+       if (xmaster) then 
+          inquire(file='ebcflist.bcf',exist=fe1)
+          inquire(file='qbcflist.bcf',exist=fe2)
+          inquire(file='nhbcflist.bcf',exist=fe3)
+       endif
+#ifdef USEMPI
+       call xmpi_bcast(fe1)
+       call xmpi_bcast(fe2)
+       call xmpi_bcast(fe3)
+#endif       
+       if (fe3 .and. .not. (fe1 .or. fe2)) then
+             par%nonhspectrum = 1
+             dummystring='nhbcflist.bcf'
+             call checkbcfilelength(par%tstop,par%instat,dummystring,filetype)
+       elseif (.not. fe3 .and. (fe1 .and. fe2)) then
+             par%nonhspectrum = 0
+             dummystring='ebcflist.bcf'
+             call checkbcfilelength(par%tstop,par%instat,dummystring,filetype)
+             dummystring='qbcflist.bcf'
+             call checkbcfilelength(par%tstop,par%instat,dummystring,filetype)
+       elseif (fe3 .and. (fe1 .or. fe2)) then
+             call writelog('lswe','','If ''instat=reuse'' the model directory may not contain multiple boundary definition files.')
+             call writelog('lswe','','Use either ebcflist.bcf/qbcflist.bcf, or nhbcflist.bcf')
+             call halt_program
+       elseif (.not. fe3 .and. .not. (fe1 .and. fe2)) then
+             call writelog('lswe','','If ''instat=reuse'' the model directory may not contain sufficient boundary definition files.')
+             if (.not. fe1) then
+                call writelog('lswe','','Model currently missing ebcflist.bcf') 
+             elseif (.not. fe2) then
+                call writelog('lswe','','Model currently missing qbcflist.bcf')  
+             endif
+             call halt_program
+       else
+             call writelog('lswe','','If ''instat=reuse'' the model directory must contain boundary definition files.')
+             call writelog('lswe','','Use either ebcflist.bcf/qbcflist.bcf, or nhbcflist.bcf')
+             call halt_program
+       endif
     else
        filetype=-1
     endif
@@ -573,6 +619,9 @@ contains
        par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
        par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
        par%m     = readkey_int ('params.txt','m',        10,         2,      128)
+       call check_file_exist('bc/gen.ezs')
+    elseif (trim(par%instat) == 'ts_nonh') then   
+       call check_file_exist('boun_U.bcf')
     endif
     allocate(allowednames(2),oldnames(2))
     allowednames=(/'neumann  ','wavecrest'/)
@@ -1616,7 +1665,8 @@ contains
 
     character(slen)                           :: okline,errline
     character(slen)                            :: line,keyword,keyread
-    integer                                  :: i,imax,id,ic,index
+    character(slen)                          :: tempout
+    integer                                  :: i,imax,id,ic,index,ier
     character(slen),dimension(numvars) :: tempnames
 
     select case (trim(readtype))
@@ -1651,7 +1701,11 @@ contains
        id=0
        open(10,file='params.txt')   ! (this is done by xmaster only)
        do while (id == 0)
-          read(10,'(a)')line
+          read(10,'(a)',iostat=ier)line
+          if (ier .ne. 0) then
+             tempout = 'params.txt (looking for '//keyword//')'
+             call report_file_read_error(tempout)
+          endif
           ic=scan(line,'=')
           if (ic>0) then
              keyread=adjustl(line(1:ic-1))
@@ -1660,7 +1714,11 @@ contains
        enddo
        ! Read through the variables lines, 
        do i=1,imax
-          read(10,'(a)')line
+          read(10,'(a)',iostat=ier)line
+          if (ier .ne. 0) then
+             tempout = 'params.txt (reading '//keyword//')'
+             call report_file_read_error(tempout)
+          endif
           line = trim(line)
           ! Check if this is a valid variable name
           index = chartoindex(trim(line))

@@ -53,6 +53,7 @@ contains
     use readkey_module
     use filefunctions
     use interp
+    use logging_module, only: report_file_read_error
 
     IMPLICIT NONE
 
@@ -86,7 +87,10 @@ contains
 
        allocate(sh(par%nship))
        do i=1,par%nship
-          read(fid,'(a)')sh(i)%name 
+          read(fid,'(a)',iostat=ier)sh(i)%name 
+          if (ier .ne. 0) then
+             call report_file_read_error(par%shipfile)
+          endif
        enddo
        close(fid)
 
@@ -103,7 +107,10 @@ contains
           fid=create_new_fid()
           open(fid,file=sh(i)%shipgeom)
           do iy=1,sh(i)%ny+1
-             read(fid,*)(sh(i)%depth(ix,iy),ix=1,sh(i)%nx+1)
+             read(fid,*,iostat=ier)(sh(i)%depth(ix,iy),ix=1,sh(i)%nx+1)
+             if (ier .ne. 0) then
+                call report_file_read_error(sh(i)%shipgeom)
+             endif
           end do
           close(fid)
 
@@ -124,7 +131,10 @@ contains
           allocate(sh(i)%track_y(sh(i)%track_nt))
           allocate(sh(i)%track_dir(sh(i)%track_nt))
           do it=1,sh(i)%track_nt
-             read(fid,*)sh(i)%track_t(it),sh(i)%track_x(it),sh(i)%track_y(it)
+             read(fid,*,iostat=ier)sh(i)%track_t(it),sh(i)%track_x(it),sh(i)%track_y(it)
+             if (ier .ne. 0) then
+                call report_file_read_error(sh(i)%shiptrack)
+             endif
           enddo
           close(fid)
 

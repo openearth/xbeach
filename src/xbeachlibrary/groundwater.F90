@@ -35,6 +35,7 @@ contains
     use xmpi_module
     use spaceparams
     use readkey_module
+    use logging_module
 
     IMPLICIT NONE
 
@@ -43,7 +44,7 @@ contains
 
     character(slen)                              :: fname
     real*8                                      :: aquiferbot,temp
-    integer                                     :: i,j
+    integer                                     :: i,j,ier
 
 
     allocate (s%gwhead(s%nx+1,s%ny+1))
@@ -67,7 +68,10 @@ contains
        else
           open(31,file=fname)
           do j=1,s%ny+1
-             read(31,*)(s%gwbottom(i,j),i=1,s%nx+1)
+             read(31,*,iostat=ier)(s%gwbottom(i,j),i=1,s%nx+1)
+             if (ier .ne. 0) then
+                call report_file_read_error(fname)
+             endif 
           end do
           close(31)
        endif
@@ -79,7 +83,10 @@ contains
        else
           open(31,file=fname)
           do j=1,s%ny+1
-             read(31,*)(s%gwhead(i,j),i=1,s%nx+1)
+             read(31,*,iostat=ier)(s%gwhead(i,j),i=1,s%nx+1)
+             if (ier .ne. 0) then
+                call report_file_read_error(fname)
+             endif
           end do
           close(31)
        endif

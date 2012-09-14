@@ -276,12 +276,15 @@ contains
     character(8)                :: testline
     character(256)              :: readfile
     logical                     :: filelist
-    integer                     :: i
+    integer                     :: i,ier
 
     ! check the first line of the boundary condition file for FILELIST keyword
     fid = create_new_fid()
     open(fid,file=fn%fname,status='old',form='formatted')
-    read(fid,*)testline
+    read(fid,*,iostat=ier)testline
+    if (ier .ne. 0) then
+       call report_file_read_error(fn%fname)
+    endif
     if (trim(testline)=='FILELIST') then
        filelist = .true.
        ! move listline off its default position of zero to the first row
@@ -307,7 +310,10 @@ contains
        do i=1,fn%listline
           read(fid,*)testline  ! old stuff, not needed anymore
        enddo
-       read(fid,*)wp%rtbc,wp%dtbc,readfile  ! new boundary condition
+       read(fid,*,iostat=ier)wp%rtbc,wp%dtbc,readfile  ! new boundary condition
+       if (ier .ne. 0) then
+          call report_file_read_error(fn%fname)
+       endif
        ! we have to adjust this to morphological time, as done in params.txt
        if (par%morfacopt==1) then 
           wp%rtbc = wp%rtbc/max(par%morfac,1.d0)
@@ -396,7 +402,10 @@ contains
        open(fid,file=readfile,status='old',form='formatted')
        ! read junk up to the correct line in the file
        do i=1,listline
-          read(fid,*)dummystring
+          read(fid,*,iostat=ier)dummystring
+          if (ier .ne. 0) then
+             call report_file_read_error(readfile)
+          endif
        enddo
        read(fid,*,iostat=ier)specin%hm0,Tp,specin%dir0,gam,specin%scoeff,wp%rtbc,wp%dtbc
        if (ier .ne. 0) then
@@ -569,7 +578,7 @@ contains
     character(6)                            :: rtext
     real*8                                  :: factor,exc
     integer                                 :: fid,switch
-    integer                                 :: i
+    integer                                 :: i,ier,ier2,ier3
     logical                                 :: flipped
     integer                                 :: nt,Ashift
     real*8, dimension(:),allocatable        :: temp
@@ -584,7 +593,10 @@ contains
 
     ! Read file until RFREQ or AFREQ is found
     do while (switch==0)
-       read(fid,'(a)')rtext
+       read(fid,'(a)',iostat=ier)rtext
+       if (ier .ne. 0) then
+          call report_file_read_error(readfile)
+       endif
        if (rtext == 'RFREQ ') then
           switch = 1
        elseif (rtext == 'AFREQ ') then
@@ -594,10 +606,16 @@ contains
 
     ! Read nfreq and f
     ! Note f is not monotonically increasing in most simulations
-    read(fid,*)specin%nf
+    read(fid,*,iostat=ier)specin%nf
+    if (ier .ne. 0) then
+       call report_file_read_error(readfile)
+    endif
     allocate(specin%f(specin%nf))
     do i=1,specin%nf
-       read(fid,*)specin%f(i)
+       read(fid,*,iostat=ier)specin%f(i)
+       if (ier .ne. 0) then
+          call report_file_read_error(readfile)
+       endif
     end do
 
     ! Convert to absolute frequencies: 
@@ -609,7 +627,10 @@ contains
     end if
 
     ! Read CDIR or NDIR
-    read(fid,'(a)')rtext
+    read(fid,'(a)',iostat=ier)rtext
+    if (ier .ne. 0) then
+       call report_file_read_error(readfile)
+    endif
     if (rtext == 'NDIR  ') then
        switch = 1
     elseif (rtext == 'CDIR  ') then
@@ -620,10 +641,16 @@ contains
     endif
 
     ! Read ndir, theta
-    read(fid,*)specin%nang
+    read(fid,*,iostat=ier)specin%nang
+    if (ier .ne. 0) then
+       call report_file_read_error(readfile)
+    endif
     allocate(specin%ang(specin%nang))
     do i=1,specin%nang
-       read(fid,*)specin%ang(i)
+       read(fid,*,iostat=ier)specin%ang(i)
+       if (ier .ne. 0) then
+          call report_file_read_error(readfile)
+       endif
     end do
 
     ! Convert angles to cartesian degrees relative to East
@@ -681,9 +708,12 @@ contains
     specin%dang=specin%ang(2)-specin%ang(1)
 
     ! Skip Quant, next line, read VaDens or EnDens
-    read(fid,'(a)')rtext
-    read(fid,'(a)')rtext
-    read(fid,'(a)')rtext
+    read(fid,'(a)',iostat=ier)rtext
+    read(fid,'(a)',iostat=ier2)rtext
+    read(fid,'(a)',iostat=ier3)rtext
+    if (ier+ier2+ier3 .ne. 0) then
+       call report_file_read_error(readfile)
+    endif
     if (rtext == 'VaDens') then
        switch = 1
     elseif (rtext == 'EnDens') then
@@ -692,13 +722,19 @@ contains
        call writelog('slwe','', 'SWAN VaDens/EnDens keyword not found')
        call halt_program
     end if
-    read(fid,'(a)')rtext
-    read(fid,*)exc
+    read(fid,'(a)',iostat=ier)rtext
+    read(fid,*,iostat=ier2)exc
+    if (ier+ier2 .ne. 0) then
+       call report_file_read_error(readfile)
+    endif
 
     i=0
     ! Find FACTOR keyword
     do while (i==0)
-       read(fid,'(a)')rtext
+       read(fid,'(a)',iostat=ier)rtext
+       if (ier .ne. 0) then
+          call report_file_read_error(readfile)
+       endif
        if (rtext == 'FACTOR') then
           i=1
        elseif (rtext == 'ZERO  ') then
@@ -709,12 +745,18 @@ contains
           call halt_program
        end if
     end do
-    read(fid,*)factor
+    read(fid,*,iostat=ier)factor
+    if (ier .ne. 0) then
+       call report_file_read_error(readfile)
+    endif
 
     ! Read 2D S array
     allocate(specin%S(specin%nf,specin%nang))
     do i=1,specin%nf
-       read(fid,*)specin%S(i,:)
+       read(fid,*,iostat=ier)specin%S(i,:)
+       if (ier .ne. 0) then
+          call report_file_read_error(readfile)
+       endif
     end do
 
     ! Finished reading file
@@ -787,7 +829,7 @@ contains
     type(spectrum),intent(inout)            :: specin
 
     ! Internal variables
-    integer                                 :: fid,i,nnz
+    integer                                 :: fid,i,nnz,ier
     real*8,dimension(:),allocatable         :: Sd
 
     ! Open file to start read
@@ -796,17 +838,29 @@ contains
     open(fid,file=readfile,form='formatted',status='old')
 
     ! Read number of frequencies and frequency vector
-    read(fid,*)specin%nf
+    read(fid,*,iostat=ier)specin%nf
+    if (ier .ne. 0) then
+       call report_file_read_error(readfile)
+    endif
     allocate(specin%f(specin%nf))
     do i=1,specin%nf
-       read(fid,*)specin%f(i)
+       read(fid,*,iostat=ier)specin%f(i)
+       if (ier .ne. 0) then
+          call report_file_read_error(readfile)
+       endif
     end do
 
     ! Read number of angles and angles vector
-    read(fid,*)specin%nang
+    read(fid,*,iostat=ier)specin%nang
+    if (ier .ne. 0) then
+       call report_file_read_error(readfile)
+    endif
     allocate(specin%ang(specin%nang))
     do i=1,specin%nang
-       read(fid,*)specin%ang(i)
+       read(fid,*,iostat=ier)specin%ang(i)
+       if (ier .ne. 0) then
+          call report_file_read_error(readfile)
+       endif
     end do
 
     ! Convert from degrees to rad
@@ -816,7 +870,10 @@ contains
     ! Read 2D S array
     allocate(specin%S(specin%nf,specin%nang))
     do i=1,specin%nf
-       read(fid,*)specin%S(i,:)
+       read(fid,*,iostat=ier)specin%S(i,:)
+       if (ier .ne. 0) then
+          call report_file_read_error(readfile)
+       endif
     end do
 
     ! Finished reading file

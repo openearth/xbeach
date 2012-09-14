@@ -15,7 +15,7 @@ contains
     type(spacepars)                :: s               
     type(parameters)               :: par               
 
-    integer                        :: i,ier,idum,n,m
+    integer                        :: i,ier,idum,n,m,ier2,ier3
     integer                        :: j
     integer                        :: itheta
     real*8                         :: degrad
@@ -85,7 +85,10 @@ contains
           if (xmaster) then
              open(31,file=par%depfile)
              do j=1,s%ny+1
-                read(31,*)(s%zb(i,j),i=1,s%nx+1)
+                read(31,*,iostat=ier)(s%zb(i,j),i=1,s%nx+1)
+                if (ier .ne. 0) then
+                   call report_file_read_error(par%depfile)
+                endif
              end do
              close(31)
              do j=1,s%ny+1
@@ -98,16 +101,25 @@ contains
        elseif (s%vardx==1) then   ! Robert keep vardx == 1 for backwards compatibility??
           if (xmaster) then
              open (31,file=par%depfile)
-             read (31,*)((s%zb(i,j),i=1,s%nx+1),j=1,s%ny+1)
+             read (31,*,iostat=ier)((s%zb(i,j),i=1,s%nx+1),j=1,s%ny+1)
+             if (ier .ne. 0) then
+                call report_file_read_error(par%depfile)
+             endif
              close(31)
 
              open (32,file=par%xfile)
-             read (32,*)((s%x(i,j),i=1,s%nx+1),j=1,s%ny+1)
+             read (32,*,iostat=ier)((s%x(i,j),i=1,s%nx+1),j=1,s%ny+1)
+             if (ier .ne. 0) then
+                call report_file_read_error(par%xfile)
+             endif
              close(32)
 
              if (s%ny>0 .and. par%yfile/=' ') then
                 open (33,file=par%yfile)
-                read (33,*)((s%y(i,j),i=1,s%nx+1),j=1,s%ny+1)
+                read (33,*,iostat=ier)((s%y(i,j),i=1,s%nx+1),j=1,s%ny+1)
+                if (ier .ne. 0) then
+                   call report_file_read_error(par%yfile)
+                endif
                 close(33)
              else
                 s%y = 0.d0
@@ -126,13 +138,16 @@ contains
           ! skip comment text in file...
           comment=.true.
           do while (comment .eqv. .true.)
-             read(31,'(a)')line
+             read(31,'(a)',iostat=ier)line
              if (line(1:1)/='*') then 
                 comment=.false.
              endif
           enddo
-          read(31,*) idum,idum
-          read(31,*) idum,idum,idum
+          read(31,*,iostat=ier2) idum,idum
+          read(31,*,iostat=ier3) idum,idum,idum
+          if (ier+ier2+ier3 .ne. 0) then
+             call report_file_read_error(par%xyfile)
+          endif
           ! read grid and write to temp file
           open(32,file='temp')
           do n=1,1000000
@@ -159,7 +174,10 @@ contains
           !
           open(33,file=par%depfile,status='old')
           do n=1,s%ny+1
-             read(33,*)(s%zb(m,n),m=1,s%nx+1)
+             read(33,*,iostat=ier)(s%zb(m,n),m=1,s%nx+1)
+             if (ier .ne. 0) then
+                call report_file_read_error(par%depfile)
+             endif
           enddo
        endif ! xmaster
     endif ! delft3d format
@@ -501,7 +519,7 @@ contains
     integer*4                               :: i,j,ig,indt
     logical                                 :: exists
     logical                                 :: offshoreregime
-    integer                                 :: indoff,indbay
+    integer                                 :: indoff,indbay,ier
 
     real*8,dimension(:),allocatable         :: xzs0,yzs0,szs0
     real*8,dimension(:,:),allocatable       :: vmagvold,vmaguold
@@ -839,7 +857,10 @@ contains
     if (exists) then
        open(723,file=par%zsinitfile)
        do j=1,s%ny+1
-          read(723,*)(s%zs0(i,j),i=1,s%nx+1)
+          read(723,*,iostat=ier)(s%zs0(i,j),i=1,s%nx+1)
+          if (ier .ne. 0) then
+             call report_file_read_error(par%zsinitfile)
+          endif
        enddo
        close(723)
     endif
@@ -848,7 +869,10 @@ contains
     if ((exists) .and. trim(par%bedfriction)=='chezy') then
        open(723,file=par%bedfricfile)
        do j=1,s%ny+1
-          read(723,*)(s%cf(i,j),i=1,s%nx+1)
+          read(723,*,iostat=ier)(s%cf(i,j),i=1,s%nx+1)
+          if (ier .ne. 0) then
+             call report_file_read_error(par%bedfricfile)
+          endif
        enddo
        close(723)
        ! convert from C to cf
@@ -1093,7 +1117,7 @@ contains
     type(spacepars)                     :: s
     type(parameters)                    :: par
 
-    integer                             :: i,j,m,jg,start
+    integer                             :: i,j,m,jg,start,ier
     character(slen)                     :: fnameg,line
     character(len=4)                    :: tempc
     real*8                              :: tempr
@@ -1181,7 +1205,10 @@ contains
           open(31,file=fnameg)
           do m=1,par%nd
              do j=1,ny+1
-                read(31,*)(s%pbbed(i,j,m,jg),i=1,nx+1)
+                read(31,*,iostat=ier)(s%pbbed(i,j,m,jg),i=1,nx+1)
+                if (ier .ne. 0) then
+                   call report_file_read_error(fnameg)
+                endif
              enddo
           enddo
           close(31)
@@ -1234,7 +1261,10 @@ contains
        open(31,file=par%ne_layer)
 
        do j=1,ny+1
-          read(31,*)(s%structdepth(i,j),i=1,nx+1)
+          read(31,*,iostat=ier)(s%structdepth(i,j),i=1,nx+1)
+          if (ier .ne. 0) then
+             call report_file_read_error(par%ne_layer)
+          endif
        end do
 
        close(31)
@@ -1318,7 +1348,7 @@ contains
     type(parameters)                        :: par
 
     integer                                 :: i,j
-    integer                                 :: io
+    integer                                 :: io,ier
     integer                                 :: m1,m2,n1,n2
     real*8                                  :: dxd,dyd
     real*8, dimension(:),allocatable        :: xdb,ydb,xde,yde
@@ -1351,7 +1381,9 @@ contains
           open(10,file=par%disch_loc_file)
           do i=1,par%ndischarge
              read(10,*,IOSTAT=io) xdb(i),ydb(i),xde(i),yde(i)
-
+             if (io .ne. 0) then
+                call report_file_read_error(par%disch_loc_file)
+             endif
              ! distinguish between horizontal and vertical discharge
              if (xdb(i).eq.xde(i) .and. ydb(i).eq.yde(i)) then
                 s%pntdisch(i) = 1
@@ -1368,6 +1400,9 @@ contains
              open(10,file=par%disch_timeseries_file)
              do i=1,par%ntdischarge
                 read(10,*,IOSTAT=io) s%tdisch(i),(s%qdisch(i,j),j=1,par%ndischarge)
+                if (io .ne. 0) then
+                   call report_file_read_error(par%disch_timeseries_file)
+                endif
              enddo
              close(10)
           endif
@@ -1449,7 +1484,7 @@ contains
     type(parameters)                        :: par
 
     character(slen)                         :: drifterfile
-    integer                                 :: i
+    integer                                 :: i,ier
     real*8                                  :: xdrift,ydrift
     real*8                                  :: ds,dn
     integer,dimension(2)                    :: mn
@@ -1467,10 +1502,12 @@ contains
        if (par%ndrifter>0) then
 
           ! read drifter file
-          drifterfile = readkey_name('params.txt','drifterfile',bcast=.false.)
-          open(10,file=drifterfile)
+          open(10,file=par%drifterfile)
           do i=1,par%ndrifter
-             read(10,*)xdrift,ydrift,s%tdriftb(i),s%tdrifte(i)
+             read(10,*,iostat=ier)xdrift,ydrift,s%tdriftb(i),s%tdrifte(i)
+             if (ier .ne. 0) then
+                call report_file_read_error(par%drifterfile)
+             endif
 
              mn          = minloc(sqrt((s%xz-xdrift)**2+(s%yz-ydrift)**2))
 

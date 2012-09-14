@@ -59,9 +59,8 @@ contains
        io = 0
        ntide = 0
 
-       call readkey('params.txt','zs0file',fnamezs0)
-       call writelog('ls','','readtide: reading tide time series from ',trim(fnamezs0),' ...')
-       open(31,file=fnamezs0)
+       call writelog('ls','','readtide: reading tide time series from ',trim(par%zs0file),' ...')
+       open(31,file=par%zs0file)
        do while (io==0)
           ntide=ntide+1
           read(31,*,IOSTAT=io) temp
@@ -74,7 +73,10 @@ contains
        allocate(s%tideinpz(s%tidelen,par%tideloc))
        s%tideinpz = 0.0d0
        do i=1,s%tidelen
-          read(31,*)s%tideinpt(i),s%tideinpz(i,:)
+          read(31,*,iostat=io)s%tideinpt(i),s%tideinpz(i,:)
+          if (io .ne. 0) then
+             call report_file_read_error(par%zs0file)
+          endif
        end do
        close(31)
 

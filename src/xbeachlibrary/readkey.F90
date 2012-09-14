@@ -40,10 +40,11 @@ contains
     real*8            :: defval,mnval,mxval
     logical, intent(in), optional :: bcast,required
 
-    character(slen)   :: value
+    character(slen)   :: value,tempout
     real*8         :: value_dbl
     logical        :: lbcast,lrequired
     character(slen)  :: fmt
+    integer          :: ier
 
     fmt = '(a,a,a,f0.4,a,f0.4)'
 
@@ -68,7 +69,11 @@ contains
        call readkey(fname,key,value)
 
        if (value/=' ') then
-          read(value,'(f10.0)')value_dbl
+          read(value,'(f10.0)',iostat=ier)value_dbl
+          if (ier .ne. 0) then
+             tempout = trim(fname)//' (value of '''//trim(printkey)//''' cannot be interpreted)'
+             call report_file_read_error(tempout)
+          endif
           if (value_dbl>mxval) then
              call writelog('lw','(a12,a,f0.4,a,f0.4)',(printkey),' = ',value_dbl,' Warning: value > recommended value of ',mxval)
              call writelog('s','(a12,a,a,f0.4)','Warning: ',trim(printkey),' > recommended value of ',mxval)
@@ -108,10 +113,10 @@ contains
     character(slen)  :: printkey
     character(slen)  :: value
     integer*4      :: value_int
-    integer*4      :: defval,mnval,mxval
+    integer*4      :: defval,mnval,mxval,ier
     logical, intent(in), optional :: bcast, required
     logical        :: lbcast,lrequired
-    character(slen)  :: fmt
+    character(slen)  :: fmt,tempout
 
     fmt = '(a,a,a,i0,a,i0)'
 
@@ -133,7 +138,11 @@ contains
        call readkey(fname,key,value)
 
        if (value/=' ') then
-          read(value,'(i256)')value_int
+          read(value,'(i256)',iostat=ier)value_int
+          if (ier .ne. 0) then
+             tempout = trim(fname)//' (value of '''//trim(printkey)//''' cannot be interpreted)'
+             call report_file_read_error(tempout)
+          endif
           if (value_int>mxval) then
              call writelog('lw',fmt,'Warning: variable ',(printkey),' ',value_int,' > recommended value of ',mxval)
              call writelog('s','(a12,a,a,i0)','Warning: ',trim(printkey),' > recommended value of ',mxval)
@@ -309,7 +318,7 @@ contains
 
     integer          :: i, ioerr
     character(slen)   :: value
-    character(slen)  :: printkey
+    character(slen)  :: printkey,tempout
 
     printkey(2:slen)=key
     printkey(1:1)=' '

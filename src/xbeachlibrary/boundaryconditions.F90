@@ -52,6 +52,7 @@ contains
     integer                                     :: j
     integer                                     :: itheta
     integer                                     :: E_idx
+    integer                                     :: ier,ier2
     real*8                                      :: E1,ei,dum,Hm0, dum1, spreadpar, bcdur, dum2
     real*8, save                                :: dtbcfile,rt,bcendtime,bcstarttime
     real*8                                      :: em,tshifted,tnew
@@ -111,9 +112,15 @@ contains
           endif
           if (xmaster) then
 5            continue
-             read(7,'(a)')bl
+             read(7,'(a)',iostat=ier)bl
+             if (ier .ne. 0) then
+                call report_file_read_error('bc/gen.ezs')
+             endif
              if(bl.eq.'*') goto 5
-             read(7,*)nt
+             read(7,*,iostat=ier)nt
+             if (ier .ne. 0) then
+                call report_file_read_error('bc/gen.ezs')
+             endif
           endif
 #ifdef USEMPI
           call xmpi_bcast(nt)
@@ -122,7 +129,10 @@ contains
           allocate(tE     (nt))
           do i=1,nt
              if(xmaster) then
-                read(7,*) tE(i),dum,dataE(i)
+                read(7,*,iostat=ier) tE(i),dum,dataE(i)
+                if (ier .ne. 0) then
+                   call report_file_read_error('bc/gen.ezs')
+                endif
              endif
 #ifdef USEMPI
              call xmpi_bcast(tE(i))
@@ -137,9 +147,15 @@ contains
           if (xmaster) then
              open( unit=7, file='bc/gen.ezs')
 6            continue
-             read(7,'(a)')bl
+             read(7,'(a)',iostat=ier)bl
+             if (ier .ne. 0) then
+                call report_file_read_error('bc/gen.ezs')
+             endif
              if(bl.eq.'*') goto 6
-             read(7,*)nt
+             read(7,*,iostat=ier)nt
+             if (ier .ne. 0) then
+                call report_file_read_error('bc/gen.ezs')
+             endif
           endif
 #ifdef USEMPI
           call xmpi_bcast(nt)
@@ -149,7 +165,10 @@ contains
           allocate(tE     (nt))
           do i=1,nt
              if(xmaster) then
-                read(7,*) tE(i),databi(i),dataE(i)
+                read(7,*,iostat=ier) tE(i),databi(i),dataE(i)
+                if (ier .ne. 0) then
+                   call report_file_read_error('bc/gen.ezs')
+                endif
              endif
 #ifdef USEMPI
              call xmpi_bcast(tE(i))
@@ -163,11 +182,12 @@ contains
           Emean=sum(dataE)/nt
        elseif (trim(par%instat)=='stat_table') then
           if (xmaster) then
-             fname = readkey_name('params.txt','bcfile',bcast=.false.)
-             ! call checkbcfilelength(par,fname)
-             open( unit=7, file=fname)
+             open( unit=7, file=par%bcfile)
              ! open( unit=7, file='jonswap1.txt')
-             read(7,*) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcendtime, dum2
+             read(7,*,iostat=ier) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcendtime, dum2
+             if (ier .ne. 0) then
+                call report_file_read_error(par%bcfile)
+             endif
              par%Hrms = Hm0/sqrt(2.d0)
              par%m = 2.0d0*spreadpar
              if (par%morfacopt==1) bcendtime=bcendtime/max(par%morfac,1.d0)
@@ -221,20 +241,6 @@ contains
           else
              curline = 1
           endif
-          ! See if this is reusing nonhydrostatic, or hydrostatic boundary conditions
-          inquire(file='ebcflist.bcf',exist=lexist1)
-          inquire(file='nhbcflist.bcf',exist=lexist2)
-          if (lexist1 .and. .not. lexist2) then
-             par%nonhspectrum = 0
-          elseif (.not. lexist1 .and. lexist2) then
-             par%nonhspectrum = 1
-          elseif (lexist1 .and. lexist2) then
-             call writelog('lswe','','If ''instat=reuse'' the model directory may not contain multiple boundary definition files.')
-             call writelog('lswe','','Use either ebcflist.bcf/qbcflist.bcf, or nhbcflist.bcf')
-          else
-             call writelog('lswe','','If ''instat=reuse'' the model directory must contain boundary definition files.')
-             call writelog('lswe','','Use either ebcflist.bcf/qbcflist.bcf, or nhbcflist.bcf')
-          endif
        elseif (trim(par%instat)=='ts_nonh'.and.xmaster) then   
           call velocity_Boundary('boun_U.bcf',ui(1,:),zi(1,:),wi(1,:),nx,ny,par%t,zs,ws)  
        endif
@@ -282,7 +288,10 @@ contains
        if (trim(par%instat)=='stat_table') then
           if (xmaster) then
              call writelog('ls','','Reading new wave conditions')
-             read(7,*) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcdur, dum2
+             read(7,*,iostat=ier) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcdur, dum2
+             if (ier .ne. 0) then
+                call report_file_read_error(par%bcfile)
+             endif
              par%Hrms = Hm0/sqrt(2.d0)
              par%taper = 1.d0 ! Jaap set taper time to 1 second for new conditions (likewise in waveparams)
              par%m = 2.0d0*spreadpar
@@ -460,8 +469,14 @@ contains
              if (xmaster) then
 
                 do i=1,curline
-                   read(53,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,ebcfname
-                   read(54,*)bcendtime,rt,dtbcfile,par%Trep,s%theta0,qbcfname
+                   read(53,*,iostat=ier)bcendtime,rt,dtbcfile,par%Trep,s%theta0,ebcfname
+                   if (ier .ne. 0) then
+                      call report_file_read_error('ebcflist.bcf')
+                   endif
+                   read(54,*,iostat=ier)bcendtime,rt,dtbcfile,par%Trep,s%theta0,qbcfname
+                   if (ier .ne. 0) then
+                      call report_file_read_error('qbcflist.bcf')
+                   endif
                 enddo  ! wwvv strange
              endif
 #ifdef USEMPI
@@ -514,10 +529,16 @@ contains
                 allocate(ee1(ny+1,ntheta),ee2(ny+1,ntheta))
              end if
              if (xmaster) then
-                read(71,rec=1)gee1       ! Earlier in time
-                read(71,rec=2)gee2       ! Later in time
-                read(72,rec=1)gq1        ! Earlier in time
-                read(72,rec=2)gq2        ! Later in time
+                read(71,rec=1,iostat=ier)gee1       ! Earlier in time
+                read(71,rec=2,iostat=ier2)gee2       ! Later in time
+                if (ier+ier2 .ne. 0) then
+                   call report_file_read_error(ebcfname)
+                endif                
+                read(72,rec=1,iostat=ier)gq1        ! Earlier in time
+                read(72,rec=2,iostat=ier2)gq2        ! Later in time
+                if (ier+ier2 .ne. 0) then
+                   call report_file_read_error(qbcfname)
+                endif                
              endif
 #ifdef USEMPI
              !
@@ -547,10 +568,22 @@ contains
              ! Check for how many bcfile steps are jumped
              if (new-old>1) then  ! Many steps further in the bc file
                 if(xmaster) then
-                   read(72,rec=recpos+1)gq2
-                   read(71,rec=recpos+1)gee2
-                   read(72,rec=recpos)gq1
-                   read(71,rec=recpos)gee1
+                   read(72,rec=recpos+1,iostat=ier)gq2
+                   if (ier .ne. 0) then
+                      call report_file_read_error(qbcfname)
+                   endif 
+                   read(71,rec=recpos+1,iostat=ier)gee2
+                   if (ier .ne. 0) then
+                      call report_file_read_error(ebcfname)
+                   endif 
+                   read(72,rec=recpos,iostat=ier)gq1
+                   if (ier .ne. 0) then
+                      call report_file_read_error(qbcfname)
+                   endif 
+                   read(71,rec=recpos,iostat=ier)gee1
+                   if (ier .ne. 0) then
+                      call report_file_read_error(ebcfname)
+                   endif 
                 endif
 
 #ifdef USEMPI
@@ -568,8 +601,14 @@ contains
                 ee1=ee2
                 q1=q2
                 if(xmaster) then
-                   read(72,rec=recpos+1)gq2
-                   read(71,rec=recpos+1)gee2
+                   read(72,rec=recpos+1,iostat=ier)gq2
+                   if (ier .ne. 0) then
+                      call report_file_read_error(qbcfname)
+                   endif 
+                   read(71,rec=recpos+1,iostat=ier)gee2
+                   if (ier .ne. 0) then
+                      call report_file_read_error(ebcfname)
+                   endif 
                 endif
 #ifdef USEMPI
                 call space_distribute("y",sl,gee2,ee2)
@@ -595,7 +634,10 @@ contains
              if(xmaster) then
                 open(53,file='nhbcflist.bcf',form='formatted',position='rewind')
                 do i=1,curline
-                   read(53,*)bcstarttime,bcendtime,nhbcfname
+                   read(53,*,iostat=ier)bcstarttime,bcendtime,nhbcfname
+                   if (ier .ne. 0) then
+                      call report_file_read_error('nhbcflist.bcf')
+                   endif 
                 enddo
                 close(53)
              endif
@@ -1445,7 +1487,8 @@ contains
     !--------------------------     DEPENDENCIES       ----------------------------
 
     use params
-    use xmpi_module, only: Halt_Program  
+    use xmpi_module, only: Halt_Program 
+    use logging_module, only: report_file_read_error
 
     implicit none
 
@@ -1477,7 +1520,7 @@ contains
     logical                                   :: lExists,lOpened
     character(slen)                          :: string
     character(len=2),allocatable,dimension(:),save :: header
-    integer(kind=ikind)                       :: iAllocErr   
+    integer(kind=ikind)                       :: iAllocErr,ier   
     integer(kind=ikind),save                  :: nvar 
 
     integer(kind=ikind),save                  :: iZ = 0
@@ -1558,7 +1601,10 @@ contains
 
 
        !SCALAR OR VECTOR INPUT?
-       read(unit_U,fmt=*) string
+       read(unit_U,fmt=*,iostat=ier) string
+       if (ier .ne. 0) then
+          call report_file_read_error(filename_U)
+       endif
        if   (string == 'SCALAR') then
           lVaru = .false.
        elseif (string == 'VECTOR') then
@@ -1568,11 +1614,17 @@ contains
        endif
 
        !READ NUMBER OF VARIABLES
-       read(unit_U,fmt=*) nvar
+       read(unit_U,fmt=*,iostat=ier) nvar
+       if (ier .ne. 0) then
+          call report_file_read_error(filename_U)
+       endif
 
        !READ HEADER LINES
        allocate(header(nvar))
-       read(unit_U,fmt=*) header
+       read(unit_U,fmt=*,iostat=ier) header
+       if (ier .ne. 0) then
+          call report_file_read_error(filename_U)
+       endif
 
        do i=1,nvar
           if (header(i) == 'z' .or. header(i) == 'Z') then
@@ -1702,6 +1754,7 @@ contains
     !--------------------------     DEPENDENCIES       ----------------------------
 
     use xmpi_module, only: Halt_Program  
+    use logging_module, only: report_file_read_error
 
     implicit none
 
@@ -1720,6 +1773,7 @@ contains
     real(kind=rKind)                            :: scalar(nvar-1)    
     integer(kind=iKind)                         :: i
     integer(kind=iKind)                         :: ioStat
+    character(len=1024)                         :: ername
 
     !-------------------------------------------------------------------------------
     !                             IMPLEMENTATION
@@ -1738,7 +1792,8 @@ contains
     endif
 
     if (iostat /= 0) then
-       call halt_program
+       inquire(iUnit,name=ername)
+       call report_file_read_error(ername)
     endif
 
     return

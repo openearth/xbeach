@@ -24,23 +24,40 @@ contains
     create_new_fid = fileunit   
   end function create_new_fid
 
-  subroutine check_file_exist(filename)
+  subroutine check_file_exist(filename,exist,forceclose)
     use xmpi_module
     use logging_module
 
     implicit none
 
     character(*)               :: filename
+    logical,intent(out),optional :: exist
+    logical,intent(in), optional :: forceclose
+    logical                    :: endsim
     integer                    :: error
+    
+    if (present(forceclose)) then
+       endsim = forceclose
+    else
+       endsim = .true.
+    endif
 
     error = 0
     if (xmaster) call check_file_exist_generic(filename,error)
 
-    if (error==1) then
+    if (error==1 .and. endsim) then
        if (xmaster) then
           call writelog('sle','','File ''',trim(filename),''' not found. Terminating simulation')
        endif
        call halt_program
+    endif
+    
+    if (present(exist)) then
+       if (error==1) then
+          exist = .false.
+       else
+          exist = .true.
+       endif 
     endif
   end subroutine check_file_exist
 
@@ -132,13 +149,19 @@ contains
     use xmpi_module
 
     IMPLICIT NONE
+    type fileinfo
+      character(slen)  :: fname
+      integer          :: nlines
+    end type
+
     real*8, intent(in) :: tstop
     character(slen), intent(in):: instat
     character(slen)     :: filename,dummy
     character(slen)     :: testc
     character(len=1)    :: ch
-    integer           :: i,ier=0,nlines,filetype,fid
+    integer           :: i,ier=0,nlines,filetype,fid,nlocs,ifid,fid2
     real*8            :: t,dt,total,d1,d2,d3,d4,d5
+    type(fileinfo),dimension(:),allocatable :: bcfiles
 
 
     if (xmaster) then 
@@ -153,43 +176,100 @@ contains
        nlines=i
        rewind(fid)    
 
-       if (trim(instat)=='jons' .or. trim(instat)=='swan' .or. trim(instat)=='vardens') then 
-          read(fid,*)testc
-          if (testc=='FILELIST') then
-             filetype = 1
-             nlines=nlines-1
-          else
-             filetype = 0
-          endif
-       elseif (trim(instat)=='stat_table' .or. trim(instat)=='jons_table') then
-          filetype = 2
+       ! test for multiple locations setting
+       read(fid,*,iostat=ier)testc
+       if (ier .ne. 0) then
+          call report_file_read_error(filename)
        endif
-
-       total=0.d0
-       i=0
-       select case (filetype)
-       case(0)
-          total=2.d0*tstop
-       case(1)
-          do while (total<tstop .and. i<nlines)
-             read(fid,*)t,dt,dummy
-             total=total+t
-             i=i+1
+       if (trim(testc)=='LOCLIST') then
+          nlocs = nlines-1
+          allocate(bcfiles(nlocs))
+          do ifid = 1,nlocs
+             read(fid,*,iostat=ier)d1,d2,bcfiles(ifid)%fname
+             if (ier .ne. 0) then
+                call report_file_read_error(filename)
+             endif
+             call check_file_exist(trim(bcfiles(ifid)%fname))
+             open(fid2,file=trim(bcfiles(ifid)%fname))
+             i=0
+             ier = 0
+             do while (ier==0)
+                read(fid2,'(a)',iostat=ier)ch
+                if (ier==0)i=i+1
+             enddo
+             close(fid2)
+             bcfiles(ifid)%nlines=i
           enddo
-       case(2)
-          do while (total<tstop .and. i<nlines)
-             read(fid,*)d1,d2,d3,d4,d5,t,dt
-             total=total+t
-             i=i+1
-          enddo
-       end select
+       else 
+          nlocs = 1 
+          allocate(bcfiles(1))
+          bcfiles(1)%fname = filename
+          bcfiles(1)%nlines = nlines
+       endif
        close(fid)
-       if (total<tstop) then
-          call writelog('sle',' ','Error: Wave boundary condition time series too short in ',trim(filename))
-          call writelog('sle','(a,f0.2,a,f0.2)',' Total wave condition time series is ',total, ' but simulation length is ',tstop)
-          call writelog('sle',' ','Stopping calculation')
-          call halt_program
-       endif
+          
+       do ifid=1,nlocs
+          fid = create_new_fid()
+          open(fid,file=trim(bcfiles(ifid)%fname))
+          if (trim(instat)=='jons' .or. trim(instat)=='swan' .or. trim(instat)=='vardens') then 
+             read(fid,*,iostat=ier)testc
+             if (ier .ne. 0) then
+                call report_file_read_error(bcfiles(ifid)%fname)
+             endif
+             if (trim(testc)=='FILELIST') then
+                filetype = 1
+                bcfiles(ifid)%nlines=bcfiles(ifid)%nlines-1
+             else
+                filetype = 0
+             endif
+          elseif (trim(instat)=='stat_table' .or. trim(instat)=='jons_table') then
+             filetype = 2
+          elseif (trim(instat)=='reuse') then
+             filetype = 3
+          endif
+
+          total=0.d0
+          i=0
+          select case (filetype)
+          case(0)
+             total=2.d0*tstop
+          case(1)
+             do while (total<tstop .and. i<bcfiles(ifid)%nlines)
+                read(fid,*,iostat=ier)t,dt,dummy
+                if (ier .ne. 0) then
+                   call report_file_read_error(bcfiles(ifid)%fname)
+                endif 
+                total=total+t
+                i=i+1
+                call check_file_exist(trim(dummy))
+             enddo
+          case(2)
+             do while (total<tstop .and. i<bcfiles(ifid)%nlines)
+                read(fid,*,iostat=ier)d1,d2,d3,d4,d5,t,dt
+                if (ier .ne. 0) then
+                   call report_file_read_error(bcfiles(ifid)%fname)
+                endif
+                total=total+t
+                i=i+1
+             enddo
+          case (3)
+             do while (total<tstop .and. i<bcfiles(ifid)%nlines)
+                read(fid,*,iostat=ier)total,d2,d3,d4,d5,dummy
+                if (ier .ne. 0) then
+                   call report_file_read_error(bcfiles(ifid)%fname)
+                endif
+                call check_file_exist(trim(dummy))
+                i=i+1
+             enddo
+          end select
+          close(fid)
+          if (total<tstop) then
+             call writelog('sle',' ','Error: Wave boundary condition time series too short in ',trim(bcfiles(ifid)%fname))
+             call writelog('sle','(a,f0.2,a,f0.2)',' Total wave condition time series is ',total, ' but simulation length is ',tstop)
+             call writelog('sle',' ','Stopping calculation')
+             call halt_program
+          endif
+       enddo ! nlocs
     endif ! xmaster
 
   end subroutine checkbcfilelength
