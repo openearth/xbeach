@@ -530,7 +530,7 @@ contains
        it      = it+1
     end if
 
-    if (dtref/par%dt>50.d0) then
+    if (dtref/par%dt>50.d0 .and. par%dt<par%tint) then
        call writelog('lse','','Quit XBeach since computational time implodes')
        call writelog('lse','','Please check the velocities at the end of the simulation')
        call writelog('lse','','dtref',dtref)
