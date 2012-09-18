@@ -2053,16 +2053,26 @@ contains
        call progress_indicator(.false.,dble(it)/wp%tslen*100,5.d0,2.d0)
        do ik=1,wp%K
           do j=1,s%ny+1
-             do iz=1,nzlayers
-                wp%uits(j,it)=wp%uits(j,it)+1.d0/nzlayers* &
-                     wp%wgen(ik)*wp%A(j,ik)*cosh(wp%kgen(ik)*zz(iz))/sinh(wp%kgen(ik)*wp%h0)* &
-                     dsin( &
-                     +wp%wgen(ik)*wp%tin(it)&
-                     -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
-                     +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
-                     +wp%phigen(ik) &
-                     )
-             enddo
+             wp%uits(j,it) = wp%uits(j,it) + &
+                             1.d0/wp%h0*wp%wgen(ik)*wp%A(j,ik)/sinh(wp%kgen(ik)*wp%h0) * &
+                                                dsin( &
+                                                      +wp%wgen(ik)*wp%tin(it)&
+                                                      -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
+                                                                    +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
+                                                      +wp%phigen(ik) &
+                                                     ) * &
+                                                1.d0/wp%kgen(ik)*sinh(wp%kgen(ik)*wp%h0)
+
+!             do iz=1,nzlayers
+!                wp%uits(j,it)=wp%uits(j,it)+1.d0/nzlayers* &
+!                                             wp%wgen(ik)*wp%A(j,ik)*cosh(wp%kgen(ik)*zz(iz))/sinh(wp%kgen(ik)*wp%h0)* &
+!                                                     dsin( &
+!                                                           +wp%wgen(ik)*wp%tin(it)&
+!                                                           -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
+!                                                                         +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
+!                                                           +wp%phigen(ik) &
+!                                                          )
+!             enddo
           enddo
        enddo
     enddo
