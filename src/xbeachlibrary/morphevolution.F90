@@ -250,6 +250,8 @@ contains
        if (ny>0) then
           uau(:,1:ny) = 0.5*(ua(:,1:ny)*costhm(:,1:ny)+ua(:,2:ny+1)*costhm(:,1:ny))
           uav(:,1:ny) = 0.5*(ua(:,1:ny)*sinthm(:,1:ny)+ua(:,2:ny+1)*sinthm(:,1:ny))
+          uau(:,ny+1) = uau(:,ny) ! Jaap
+          uav(:,ny+1) = uav(:,ny) ! Jaap         
        else
           uau=ua*costhm
           uav=ua*sinthm
@@ -259,7 +261,7 @@ contains
        ! sediment advection velocity for suspended load and bed load respectively
        ! REMARK: when vreps does not equal vv; no mass conservation 
        vreps = vev+uav   
-       vrepb = vev+uav   ! RJ maybe reduce this velocity?
+       vrepb = vev+uav   ! RJ maybe reduce this velocity? Should be vv instead of vev?
        !
        if (ny>0) then
           do j=1,ny
