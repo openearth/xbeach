@@ -91,6 +91,7 @@ contains
        allocate(s%bwalpha(1:s%nx+1,1:s%ny+1))
        allocate(s%dcmdo(1:s%nx+1,1:s%ny+1))
        allocate(s%dassim(1:s%nx+1,1:s%ny+1))
+       allocate(s%cobs(1:s%nx+1,1:s%ny+1))
     end if
 
 
@@ -742,7 +743,9 @@ contains
        end do
     end do
 
-
+    ! for output 
+    s%cobs = bw%cobs
+    
     errS = ((bw%scmso**2+bw%sigS**2)/(1.d0))			   !eq.(6)  uncertainty in observed data (ibathy)
     do in=1,s%nx+1                             
        do im=1,s%ny+1
