@@ -1264,7 +1264,7 @@ contains
        ! term1=sqrt(vmag2+0.018d0/Cd*urms2)     ! nearbed-velocity
        ! the two above lines are comment out and replaced by a limit on total velocity u2+urms2, robert 1/9 and ap 28/11
 
-       term1=min(term1,par%smax*par%g/par%cf*s%D50(jg)*delta)
+       term1=min(term1,par%smax*par%g/cf*s%D50(jg)*delta)
        term1=sqrt(term1)      
 
        term2 = 0.d0
@@ -1425,7 +1425,7 @@ contains
        ! Jaap: Van Rijn use Peak orbital flow velocity --> 0.64 corresponds to 0.4 coefficient regular waves Van Rijn (2007)
        term1=vmg**2+0.64d0*par%sws*urms2
        ! reduce sediment suspensions for (inundation) overwash conditions with critical flow velocitties
-       term1=min(term1,par%smax*par%g/par%cf*s%D50(jg)*delta)
+       term1=min(term1,par%smax*par%g/cf*s%D50(jg)*delta)
        term1=sqrt(term1)                                        
 
        ceqb = 0.d0*term1                                                                     !initialize ceqb

@@ -979,7 +979,7 @@ contains
           vmagvold=0.5d0*(vmagvold+sqrt(s%uv**2+s%vv**2))   ! mean needed for convergence
           ! solve v-balance of pressure gradient, wind forcing and bed friction
           where (s%wetv==1)
-             s%vv = s%hv/par%cf/max(vmagvold,0.000001d0) &
+             s%vv = s%hv/s%cf/max(vmagvold,0.000001d0) &
                   *(-par%g*s%dzsdy+par%rhoa*par%Cd*s%windnv**2/(par%rho*s%hvm))
           elsewhere
              s%vv = 0.d0
@@ -1003,7 +1003,7 @@ contains
           vmaguold= 0.5d0*(vmaguold+sqrt(s%uu**2+s%vu**2)) ! mean needed for convergence
           ! Solve balance of forces
           where (s%wetu==1)
-             s%uu = s%hu/par%cf/max(vmaguold,0.000001d0) &
+             s%uu = s%hu/s%cf/max(vmaguold,0.000001d0) &
                   *(-par%g*s%dzsdx+par%rhoa*par%Cd*windsu**2/(par%rho*s%hum))
           elsewhere
              s%uu = 0.d0
