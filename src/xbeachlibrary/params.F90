@@ -579,11 +579,13 @@ contains
              dummystring='qbcflist.bcf'
              call checkbcfilelength(par%tstop,par%instat,dummystring,filetype)
        elseif (fe3 .and. (fe1 .or. fe2)) then
-             call writelog('lswe','','If ''instat=reuse'' the model directory may not contain multiple boundary definition files.')
+             call writelog('lswe','', &
+                    'If ''instat=reuse'' the model directory may not contain multiple boundary definition files.')
              call writelog('lswe','','Use either ebcflist.bcf/qbcflist.bcf, or nhbcflist.bcf')
              call halt_program
        elseif (.not. fe3 .and. .not. (fe1 .and. fe2)) then
-             call writelog('lswe','','If ''instat=reuse'' the model directory may not contain sufficient boundary definition files.')
+             call writelog('lswe','', &
+                    'If ''instat=reuse'' the model directory may not contain sufficient boundary definition files.')
              if (.not. fe1) then
                 call writelog('lswe','','Model currently missing ebcflist.bcf') 
              elseif (.not. fe2) then

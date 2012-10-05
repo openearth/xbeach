@@ -265,7 +265,8 @@ contains
           close(fid)
           if (total<tstop) then
              call writelog('sle',' ','Error: Wave boundary condition time series too short in ',trim(bcfiles(ifid)%fname))
-             call writelog('sle','(a,f0.2,a,f0.2)',' Total wave condition time series is ',total, ' but simulation length is ',tstop)
+             call writelog('sle','(a,f0.2,a,f0.2)',' Total wave condition time series is ',total, &
+                                                   ' but simulation length is ',tstop)
              call writelog('sle',' ','Stopping calculation')
              call halt_program
           endif
