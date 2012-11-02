@@ -385,7 +385,8 @@ contains
 
 
     ! introduce intrinsic frequencies for wave action
-    if (  trim(par%instat)=='jons' .or. &
+    if ( trim(par%instat)=='jons' .or. &
+         trim(par%instat)=='jons_table' .or. &
          trim(par%instat)=='swan' .or. &
          trim(par%instat)=='vardens' .or. &
          trim(par%instat)=='reuse' .or. &
@@ -394,7 +395,8 @@ contains
     !Robert
     ! incorrect values are computed below for instat = 4/5/6/7
     ! in this case right values are computed in wave params.f90
-    if (  trim(par%instat)=='jons' .or. &
+    if ( trim(par%instat)=='jons' .or. &
+         trim(par%instat)=='jons_table' .or. &
          trim(par%instat)=='swan' .or. &
          trim(par%instat)=='vardens') then 
        if(xmaster) call spectral_wave_init (s,par)  ! only used by xmaster
@@ -866,7 +868,7 @@ contains
     endif
 
     inquire(file=par%bedfricfile,exist=exists)
-    if ((exists) .and. trim(par%bedfriction)=='chezy') then
+    if ((exists)) then
        open(723,file=par%bedfricfile)
        do j=1,s%ny+1
           read(723,*,iostat=ier)(s%cf(i,j),i=1,s%nx+1)
@@ -876,7 +878,9 @@ contains
        enddo
        close(723)
        ! convert from C to cf
-       s%cf=par%g/s%cf**2
+       if (trim(par%bedfriction)=='chezy') then
+          s%cf=par%g/s%cf**2
+       endif
     endif
     !
     ! set zs, hh, wetu, wetv, wetz
