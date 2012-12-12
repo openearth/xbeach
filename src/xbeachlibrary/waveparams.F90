@@ -744,10 +744,10 @@ contains
     !par%Trep=1/(m1/m0)
 
     call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac,par%Tm01switch)
-    call writelog('sl','','Trep = ',par%Trep)
-    call writelog('sl','','Hm0  = ',wp%hm0gew)
-    call writelog('sl','','Peak dir  = ',wp%mainang*180/par%px)
-
+    call writelog('sl','','Trep = ',par%Trep,'s')
+    call writelog('sl','','Hm0  = ',wp%hm0gew,'m')
+    call writelog('sl','','Peak dir  = ',wp%mainang*180/par%px,' Cartesian degrees relative to x-axis')
+    
     allocate(findline(size(wp%Sf)))
 
     firstp=0
@@ -875,9 +875,9 @@ contains
     wp%hm0gew=4*sqrt(m0)
     !par%Trep=1/(m1/m0)
     call tpDcalc(wp%Sf,wp%f,par%Trep,par%trepfac,par%Tm01switch)
-    call writelog('sl','','Trep = ',par%Trep)
-    call writelog('sl','','Hm0  = ',wp%hm0gew)
-    call writelog('sl','','Peak dir  = ',wp%mainang*180/par%px)
+    call writelog('sl','','Trep = ',par%Trep,'s')
+    call writelog('sl','','Hm0  = ',wp%hm0gew,'m')
+    call writelog('sl','','Peak dir  = ',wp%mainang*180/par%px,' Cartesian degrees relative to x-axis')
     !
     allocate(findline(size(wp%Sf)))
     firstp=0
