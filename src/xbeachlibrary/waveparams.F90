@@ -747,7 +747,8 @@ contains
     call writelog('sl','','Trep = ',par%Trep,'s')
     call writelog('sl','','Hm0  = ',wp%hm0gew,'m')
     call writelog('sl','','Peak dir  = ',wp%mainang*180/par%px,' Cartesian degrees relative to x-axis')
-    
+    call writelog('sl','','Peak dir  = ',270-wp%mainang*180/par%px,' Nautical degrees')
+
     allocate(findline(size(wp%Sf)))
 
     firstp=0

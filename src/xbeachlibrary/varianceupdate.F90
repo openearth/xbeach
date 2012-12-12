@@ -286,8 +286,8 @@ contains
           endif
           if (par%meanvars(i)=='thetamean') then
              meansparslocal(i)%mean2d = meansparslocal(i)%mean2d +   &
-                  nint((1+mult*sin(tvar2d))*1e6)*1e3              +   &
-                  nint((1+mult*cos(tvar2d))*1e6)/1e9
+                  nint((1+mult*sin(tvar2d))*1e6)*1e1             +   &
+                  nint((1+mult*cos(tvar2d))*1e6)/1e7
           else
              meansparslocal(i)%mean2d = meansparslocal(i)%mean2d + mult*tvar2d
           endif
