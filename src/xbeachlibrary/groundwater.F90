@@ -58,6 +58,15 @@ contains
     allocate (s%gw0back(2,s%ny+1))
 
     s%gww=0.d0
+    s%gw0back=0.d0
+    s%gwlevel=0.d0
+    s%gwheight=0.d0
+    s%gwhead=0.d0
+    s%gwu=0.d0
+    s%gwv=0.d0
+    s%gww=0.d0
+    s%dinfil=0.d0
+    s%gwbottom=0.d0
 
     if (par%gwflow==1) then
        fname = readkey_name('params.txt','aquiferbotfile',bcast=.false.)
