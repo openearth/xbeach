@@ -79,8 +79,8 @@ module nonh_module
   integer(kind=iKind),allocatable,dimension(:,:)     :: nonhU
   integer(kind=iKind),allocatable,dimension(:,:)     :: nonhV
   integer(kind=iKind),allocatable,dimension(:,:)     :: nonhZ
-
-  integer(kind=iKind),allocatable,dimension(:,:)     :: breaking
+  
+  integer(kind=iKind),allocatable,dimension(:,:),save    :: breaking
 
   !--- PUBLIC SUBROUTINES ---
   public nonh_init
@@ -750,7 +750,7 @@ contains
     real(kind=rKind)                        :: dwdy1    !Gradient of vertical velocity in x-dir at i    ,j+1/2
     real(kind=rKind)                        :: dwdy2    !Gradient of vertical velocity in x-dir at i    ,j-1/2   
     real(kind=rKind)                        :: Vol  
-    real(kind=rKind)                        :: wmax    
+    real(kind=rKind)                        :: wmax,reformfac    
 
     if (.not. initialized) then
        call nonh_init(s,par)
@@ -833,16 +833,23 @@ contains
     endif
 
     if (par%nhbreaker == 1) then
+       reformfac = par%reformsteep/par%maxbrsteep
        if (s%ny>0) then 
           do j=2,s%ny
              do i=2,s%nx
+                wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,j))
                 if (breaking(i,j) == 0) then 
-                   wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,j))
                    if (s%ws(i,j)>=wmax) then
                       breaking(i,j) = 1
+                   elseif (s%ws(i,j)<=-wmax) then
+                      breaking(i,j) = -1
                    endif
-                else
-                   if (s%ws(i,j)<0.d0) then
+                elseif (breaking(i,j)==1) then
+                   if (s%ws(i,j)<reformfac*wmax) then
+                      breaking(i,j) = 0
+                   endif
+                elseif (breaking(i,j)==-1) then
+                   if (s%ws(i,j)>reformfac*-wmax) then
                       breaking(i,j) = 0
                    endif
                 endif
@@ -850,21 +857,28 @@ contains
           enddo
        else
           do i=2,s%nx
+             wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,1))
              if (breaking(i,1) == 0) then 
-                wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,1))
-                if (abs(s%ws(i,1))>=wmax) then
+                if (s%ws(i,1)>=wmax) then
                    breaking(i,1) = 1
+                elseif (s%ws(i,1)<=-wmax) then
+                   breaking(i,1) = -1
                 endif
-             else
-                if (s%ws(i,1)<0.d0) then
+             elseif (breaking(i,1)==1) then
+                if (s%ws(i,1)<reformfac*wmax) then
+                   breaking(i,1) = 0
+                endif
+             elseif (breaking(i,1)==-1) then
+                if (s%ws(i,1)>reformfac*-wmax) then
                    breaking(i,1) = 0
                 endif
              endif
           enddo
        endif
        ! turn off non-hydrostatic pressure correction in areas with breaking and increase viscosity
-       where (breaking==1)
+       where (breaking/=0)
           nonhZ = 0
+          s%pres = 0
           nuh = par%breakviscfac*nuh
        endwhere
     endif

@@ -231,6 +231,7 @@ module params
      integer*4     :: nhbreaker                  = -123    ! [-] (advanced) Turn on or off nonhydrostatic breaker model
      real*8        :: breakviscfac               = -123    ! [-] (advanced) Factor to increase viscosity during breaking
      real*8        :: maxbrsteep                 = -123    ! [-] (advanced) Maximum wave steepness criterium
+     real*8        :: reformsteep                = -123    ! [-] (advanced) Wave steepness criterium to reform after breaking
 
      ! [Section] Bed composition parameters
      real*8        :: rhos                       = -123    !  [kgm^-3] Solid sediment density (no pores)
@@ -462,32 +463,39 @@ contains
        call check_file_exist(par%depfile)
        par%dx = -1.d0   ! Why?
        par%dy = -1.d0   ! Why?
-       par%xyfile = readkey_name('params.txt','xyfile')
+       par%xyfile = readkey_name('params.txt','xyfile',required=.true.)
        call check_file_exist(par%xyfile)
        ! read grid properties from xyfile
-       open(31,file=par%xyfile,status='old',iostat=ier)  
-       ! skip comment text in file...
-       comment=.true.
-       do while (comment .eqv. .true.)
-          read(31,'(a)',iostat=ier)line
+       if (xmaster) then
+          open(31,file=par%xyfile,status='old',iostat=ier)  
+          ! skip comment text in file...
+          comment=.true.
+          do while (comment .eqv. .true.)
+             read(31,'(a)',iostat=ier)line
+             if (ier .ne. 0) then
+                call report_file_read_error(par%xyfile)
+             endif
+             if (line(1:1)/='*') then 
+                comment=.false.
+             endif
+          enddo
+          ! Check if grid coordinates are Cartesian
+          ic=scan(line,'Cartesian')
+          if (ic<=0) then
+             call writelog('esl','','Delft3D grid is not Cartesian')
+             call halt_program
+          endif
+          ! read grid dimensions
+          read(31,*,iostat=ier) mmax,nmax
           if (ier .ne. 0) then
              call report_file_read_error(par%xyfile)
           endif
-          if (line(1:1)/='*') then 
-             comment=.false.
-          endif
-       enddo
-       ! Check if grid coordinates are Cartesian
-       ic=scan(line,'Cartesian')
-       if (ic<=0) then
-          call writelog('esl','','Delft3D grid is not Cartesian')
-          call halt_program
+          close (31) 
        endif
-       ! read grid dimensions
-       read(31,*,iostat=ier) mmax,nmax
-       if (ier .ne. 0) then
-          call report_file_read_error(par%xyfile)
-       endif
+#ifdef USEMPI
+       call xmpi_bcast(mmax)
+       call xmpi_bcast(nmax)
+#endif       
        par%nx = mmax-1
        par%ny = nmax-1
        ! should we allow this input for gridform == 'Delft3D' 
@@ -495,7 +503,6 @@ contains
        par%yori  = readkey_dbl('params.txt','yori',  0.d0,   -1d9,      1d9)
        par%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   0.d0,   360.d0)
        par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
-       close (31) 
     endif
     par%thetamin = readkey_dbl ('params.txt','thetamin', -90.d0,    -180.d0,  180.d0,required=(par%swave==1))
     par%thetamax = readkey_dbl ('params.txt','thetamax',  90.d0,    -180.d0,  180.d0,required=(par%swave==1))
@@ -903,10 +910,11 @@ contains
        par%kdmin        = readkey_dbl('params.txt','kdmin' ,0.0d0,0.0d0,0.05d0)  
        par%dispc        = readkey_dbl('params.txt','dispc' ,1.0d0,0.1d0,2.0d0)  
        par%Topt         = readkey_dbl('params.txt','Topt',  10.d0, 1.d0, 20.d0)
-       par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,0,1,1)
+       par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,0,0,1)
        if (par%nhbreaker==1) then
           par%breakviscfac = readkey_dbl('params.txt','breakviscfac',1.5d0, 1.d0, 3.d0)
           par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.6d0, 0.3d0, 0.8d0)
+          par%reformsteep  = readkey_dbl('params.txt','reformsteep',0.25d0*par%maxbrsteep,0.d0,0.95d0*par%maxbrsteep)
        endif
     endif
     !
