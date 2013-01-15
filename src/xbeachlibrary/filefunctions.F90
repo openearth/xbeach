@@ -49,8 +49,8 @@ contains
        if (xmaster) then
           call writelog('sle','','File ''',trim(filename),''' not found. Terminating simulation')
        endif
-       call halt_program
-    endif
+          call halt_program
+       endif
     
     if (present(exist)) then
        if (error==1) then
@@ -144,7 +144,7 @@ contains
     endif
   end subroutine check_file_length_3D
 
-  subroutine checkbcfilelength(tstop,instat,filename,filetype)
+  subroutine checkbcfilelength(tstop,instat,filename,filetype,nonh)
     use logging_module
     use xmpi_module
 
@@ -162,7 +162,14 @@ contains
     integer           :: i,ier=0,nlines,filetype,fid,nlocs,ifid,fid2
     real*8            :: t,dt,total,d1,d2,d3,d4,d5
     type(fileinfo),dimension(:),allocatable :: bcfiles
-
+    logical,intent(in),optional :: nonh
+    logical                     :: lnonh
+    
+    if (present(nonh)) then
+       lnonh=nonh
+    else
+       lnonh = .false.
+    endif
 
     if (xmaster) then 
        ier = 0
@@ -254,7 +261,11 @@ contains
              enddo
           case (3)
              do while (total<tstop .and. i<bcfiles(ifid)%nlines)
-                read(fid,*,iostat=ier)total,d2,d3,d4,d5,dummy
+                if (lnonh) then
+                   read(fid,*,iostat=ier)d1,total,dummy
+                else
+                   read(fid,*,iostat=ier)total,d2,d3,d4,d5,dummy
+                endif
                 if (ier .ne. 0) then
                    call report_file_read_error(bcfiles(ifid)%fname)
                 endif
@@ -279,7 +290,7 @@ contains
 
     implicit none
 
-    character(slen), intent(in)                :: filename
+    character(slen), intent(in)             :: filename
     integer                                 :: n
     integer                                 :: io, error
     real*8                                  :: temp

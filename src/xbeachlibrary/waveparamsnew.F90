@@ -2381,7 +2381,7 @@ contains
 
     fid = create_new_fid()
     open(fid,file=trim(wp%nhfilename),status='REPLACE')
-    write(fid,'(a)')'Vector'
+    write(fid,'(a)')'VECTOR'
     write(fid,'(a)')'3'
     write(fid,'(a)')'t,U,Z'
     do it=1,wp%tslen

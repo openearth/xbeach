@@ -71,6 +71,8 @@ contains
     real*8                                      :: E0
     real*8,dimension(:),allocatable,save        :: dist,factor
     logical                                     :: startbcf,lexist1,lexist2
+    logical                                     :: isSet_U,isSet_Z,isSet_W
+    real*8,dimension(:)     ,allocatable,save   :: uig,zig,wig
 
     ! Initialize to false only once....
     logical, save                               :: bccreated = .false.
@@ -241,8 +243,22 @@ contains
           else
              curline = 1
           endif
-       elseif (trim(par%instat)=='ts_nonh'.and.xmaster) then   
-          call velocity_Boundary('boun_U.bcf',ui(1,:),zi(1,:),wi(1,:),nx,ny,par%t,zs,ws)  
+       elseif (trim(par%instat)=='ts_nonh') then 
+!          call velocity_Boundary('boun_U.bcf',ui(1,:),zi(1,:),wi(1,:),nx,ny,sg%ny,sl,par%t,zs(2,:),ws(2,:))
+           if (.not. allocated(uig)) then
+              if (xmaster) then
+                 allocate(uig(sg%ny+1))
+                 allocate(zig(sg%ny+1))
+                 allocate(wig(sg%ny+1))
+              else  ! only need valid address for MPI-distribution
+                 allocate(uig(1))
+                 allocate(zig(1))
+                 allocate(wig(1))
+              endif
+           endif
+           if (xmaster) then  
+              call velocity_Boundary('boun_U.bcf',uig,zig,wig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W)
+           endif
        endif
        !
        ! Directional distribution
@@ -383,7 +399,6 @@ contains
        call xmpi_bcast(startbcf)
 #endif
     end if
-
     !
     ! COMPUTE WAVE BOUNDARY CONDITIONS CURRENT TIMESTEP
     !
@@ -641,19 +656,82 @@ contains
                 enddo
                 close(53)
              endif
-             call velocity_Boundary(nhbcfname,ui(1,:),zi(1,:),wi(1,:),nx,ny,par%t,zs,ws, &
-                  force_init=.true.,bcst=bcstarttime)
+!             call velocity_Boundary(nhbcfname,ui(1,:),zi(1,:),wi(1,:),nx,ny,sg%ny,sl,par%t,zs(2,:),ws(2,:), &
+!                               force_init=.true.,bcst=bcstarttime)
+             if (.not. allocated(uig)) then
+                if (xmaster) then
+                   allocate(uig(sg%ny+1))
+                   allocate(zig(sg%ny+1))
+                   allocate(wig(sg%ny+1))
+                else  ! only need valid address for MPI-distribution
+                   allocate(uig(1))
+                   allocate(zig(1))
+                   allocate(wig(1))
+                endif
+             endif
+             if (xmaster) then  
+                call velocity_Boundary(nhbcfname,uig,zig,wig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W, &
+                                       force_init=.true.,bcst=bcstarttime)
+             endif
+#ifdef USEMPI
+             call space_distribute("y",sl,uig,ui(1,:))
+             call space_distribute("y",sl,zig,zi(1,:))
+             call space_distribute("y",sl,wig,wi(1,:))
+             call xmpi_bcast(isSet_U)
+             call xmpi_bcast(isSet_Z)
+             call xmpi_bcast(isSet_W)
+#else
+             ui(1,:) = uig
+             zi(1,:) = zig
+             wi(1,:) = wig
+#endif     
+             if (.not. isSet_U) ui(1,:) = 0.d0
+             if (.not. isSet_Z) zi(1,:) = zs(2,:)
+             if (.not. isSet_W) wi(1,:) = ws(2,:)
           else
-             call velocity_Boundary(nhbcfname,ui(1,:),zi(1,:),wi(1,:),nx,ny,par%t,zs,ws,bcst=bcstarttime)
+!             call velocity_Boundary(nhbcfname,ui(1,:),zi(1,:),wi(1,:),nx,ny,sg%ny,sl,par%t,zs(2,:),ws(2,:), &
+!                               bcst=bcstarttime)
+             if (xmaster) then  
+                call velocity_Boundary(nhbcfname,uig,zig,wig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W, &
+                                       bcst=bcstarttime)
+             endif
+#ifdef USEMPI
+             call space_distribute("y",sl,uig,ui(1,:))
+             call space_distribute("y",sl,zig,zi(1,:))
+             call space_distribute("y",sl,wig,wi(1,:))
+             call xmpi_bcast(isSet_U)
+             call xmpi_bcast(isSet_Z)
+             call xmpi_bcast(isSet_W)
+#else
+             ui(1,:) = uig
+             zi(1,:) = zig
+             wi(1,:) = wig
+#endif     
+             if (.not. isSet_U) ui(1,:) = 0.d0
+             if (.not. isSet_Z) zi(1,:) = zs(2,:)
+             if (.not. isSet_W) wi(1,:) = ws(2,:)
           endif
        endif ! nonhspectrum
-    elseif (trim(par%instat)=='ts_nonh'.and.xmaster) then   
-       call velocity_Boundary('boun_U.bcf',ui(1,:),zi(1,:),wi(1,:),nx,ny,par%t,zs,ws)
-    else
-       if (xmaster) then
-          call writelog('lse','', 'instat = ',trim(par%instat), ' invalid option')
-       endif
-       call halt_program
+    elseif (trim(par%instat)=='ts_nonh') then   
+!       call velocity_Boundary('boun_U.bcf',ui(1,:),zi(1,:),wi(1,:),nx,ny,sg%ny,sl,par%t,zs(2,:),ws(2,:))
+        if (xmaster) then  
+           call velocity_Boundary('boun_U.bcf',uig,zig,wig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W)
+        endif     
+#ifdef USEMPI
+        call space_distribute("y",sl,uig,ui(1,:))
+        call space_distribute("y",sl,zig,zi(1,:))
+        call space_distribute("y",sl,wig,wi(1,:))
+        call xmpi_bcast(isSet_U)
+        call xmpi_bcast(isSet_Z)
+        call xmpi_bcast(isSet_W)
+#else
+        ui(1,:) = uig
+        zi(1,:) = zig
+        wi(1,:) = wig
+#endif     
+        if (.not. isSet_U) ui(1,:) = 0.d0
+        if (.not. isSet_Z) zi(1,:) = zs(2,:)
+        if (.not. isSet_W) wi(1,:) = ws(2,:)          
     endif
     ! Jaap: set incoming short wave energy to zero
     ee(1,:,:) = par%swave*ee(1,:,:)
@@ -663,6 +741,10 @@ contains
     ! subroutine
 #ifdef USEMPI
     call xmpi_shift(ui,'1:')
+    if (trim(par%instat)=='ts_nonh' .or. par%nonhspectrum==1) then 
+       call xmpi_shift(zi,'1:')
+       call xmpi_shift(wi,'1:')
+    endif
     ! wwvv also fill in ee(1,:,:)
     call xmpi_shift(ee,'1:')
 #endif
@@ -1165,13 +1247,12 @@ contains
           call xmpi_shift(zs,':1')
           call xmpi_shift(zs,':n')
 #endif
-       endif !xmpi_istop
+       endif !xmpi_isbot
 #ifdef USEMPI
        call xmpi_shift(uu,'m:')
        call xmpi_shift(zs,'m:')
        call xmpi_shift(vv,'m:')
 #endif
-
     endif   ! par%instat
 
 
@@ -1467,7 +1548,7 @@ contains
 
   !
   !==============================================================================    
-  subroutine velocity_Boundary(bcfile,u,z,w,nx,ny,t,zs,ws,force_init,bcst)
+  subroutine velocity_Boundary(bcfile,ug,zg,wg,nyg,t,isSet_U,isSet_Z,isSet_W,force_init,bcst)
     !==============================================================================    
     !
 
@@ -1487,8 +1568,10 @@ contains
     !--------------------------     DEPENDENCIES       ----------------------------
 
     use params
-    use xmpi_module, only: Halt_Program 
-    use logging_module, only: report_file_read_error
+    use xmpi_module, only: Halt_Program
+    use spaceparams
+    use logging_module
+    use readkey_module, only: lowercase
 
     implicit none
 
@@ -1497,21 +1580,18 @@ contains
     !--------------------------     ARGUMENTS          ----------------------------
     !
     character(len=*)              ,intent(in)  :: bcfile
-    integer(kind=iKind)           ,intent(in)  :: nx
-    integer(kind=iKind)           ,intent(in)  :: ny
-    real(kind=rKind),dimension(ny+1),intent(out) :: u
-    real(kind=rKind),dimension(ny+1),intent(inout) :: z
-    real(kind=rKind),dimension(ny+1),intent(inout) :: w
-    real(kind=rKind),dimension(nx+1,ny+1),intent(in) :: zs
-    real(kind=rKind),dimension(nx+1,ny+1),intent(in) :: ws       
+    integer(kind=iKind)           ,intent(in)  :: nyg
+    real(kind=rKind),dimension(nyg+1)            :: ug,zg,wg
     real(kind=rKind)                ,intent(in)  :: t
+    logical,intent(out)                          :: isSet_U,isSet_Z,isSet_W
     logical,intent(in),optional                  :: force_init
     real(kind=rKind),intent(in),optional         :: bcst
     !
 
     !--------------------------     LOCAL VARIABLES    ----------------------------
     character(len=iFileNameLen),save          :: filename_U = ''
-    integer                    ,save          :: unit_U = iUnit_U       
+    integer                    ,save          :: unit_U = iUnit_U
+    integer                    ,save          :: nygl       
 
     logical,save                              :: lVarU = .false.
     logical,save                              :: lIsEof = .false.
@@ -1551,188 +1631,196 @@ contains
     !                             IMPLEMENTATION
     !-------------------------------------------------------------------------------
 
-    if (present(bcst)) then
-       bcstarttime = bcst
-    else
-       bcstarttime = 0.d0
-    endif
-
-    if (present(force_init)) then
-       fi_local = force_init
-    else
-       fi_local = .false.
-    endif
-
-    if (bcfile/=filename_U .or. fi_local) then
-       filename_U=trim(bcfile)
-       initialize = .true.
-    endif
-
-    if (initialize) then
-       initialize = .false.        
-
-       !Does the file exist and is it already opened (reuse files?)
-       inquire(file=trim(filename_U),EXIST=lExists,OPENED=lOpened)
-
-       ! Close previous file if needed
-       if(lOpened) then
-          close(unit_U)
-       endif
-
-       ! Deallocate previous arrays if needed
-       if (allocated(header)) deallocate(header)
-       if (allocated(tmp)) deallocate(tmp)
-       if (allocated(u0)) deallocate(u0)
-       if (allocated(u1)) deallocate(u1)
-       if (allocated(z0)) deallocate(z0)
-       if (allocated(z1)) deallocate(z1)
-       if (allocated(w0)) deallocate(w0)
-       if (allocated(w1)) deallocate(w1)
-
-       if (lExists) then
-          !If exists, open
-          open(unit_U,file=filename_U,access='SEQUENTIAL',action='READ',form='FORMATTED')
-          lNH_boun_U = .true.
-       else  
-          lNH_boun_U = .false.
-          return
-       endif
-
-
-
-       !SCALAR OR VECTOR INPUT?
-       read(unit_U,fmt=*,iostat=ier) string
-       if (ier .ne. 0) then
-          call report_file_read_error(filename_U)
-       endif
-       if   (string == 'SCALAR') then
-          lVaru = .false.
-       elseif (string == 'VECTOR') then
-          lVaru = .true.
-       else 
-
-       endif
-
-       !READ NUMBER OF VARIABLES
-       read(unit_U,fmt=*,iostat=ier) nvar
-       if (ier .ne. 0) then
-          call report_file_read_error(filename_U)
-       endif
-
-       !READ HEADER LINES
-       allocate(header(nvar))
-       read(unit_U,fmt=*,iostat=ier) header
-       if (ier .ne. 0) then
-          call report_file_read_error(filename_U)
-       endif
-
-       do i=1,nvar
-          if (header(i) == 'z' .or. header(i) == 'Z') then
-             iZ = i;
-          elseif (header(i) == 't' .or. header(i) == 'T') then
-             iT = i;
-          elseif (header(i) == 'u' .or. header(i) == 'U') then
-             iU = i;
-          elseif (header(i) == 'w' .or. header(i) == 'W') then
-             iW = i;
-          endif
-       enddo
-
-
-       !Allocate arrays at old and new timelevel
-       if (iU > 0) then     
-          allocate(u0(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
-          allocate(u1(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
-          u0 = 0.0d0
-          u1 = 0.0d0
-       endif
-
-
-       if (iZ > 0) then
-          allocate(z0(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
-          allocate(z1(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
-          z0 = 0.0d0
-          z1 = 0.0d0
-       endif
-
-       if (iW > 0) then
-          allocate(w0(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
-          allocate(w1(ny+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program      
-          w0 = 0.0d0
-          w1 = 0.0d0
-       endif
-
-       allocate(tmp(ny+1,nvar-1))
-       !Read two first timelevels
-       call velocity_Boundary_read(t0,tmp,Unit_U,lVaru,lIsEof,nvar)
-       t0 = t0+bcstarttime
-       if (iU >0) u0 = tmp(:,iU-1)
-       if (iZ >0) z0 = tmp(:,iZ-1)
-       if (iW >0) w0 = tmp(:,iW-1)
-       if (lIsEof) then
-          t1=t0
-          if (iU >0) u1=u0
-          if (iZ >0) z1=z0
-          if (iW >0) w1=w0        
+    if (xmaster) then
+       if (present(bcst)) then
+          bcstarttime = bcst
        else
-          call velocity_Boundary_read(t1,tmp,Unit_U,lVaru,lIsEof,nvar)
-          t1 = t1+bcstarttime
-          if (iU >0) u1 = tmp(:,iU-1)
-          if (iZ >0) z1 = tmp(:,iZ-1)
-          if (iW >0) w1 = tmp(:,iW-1)
+          bcstarttime = 0.d0
        endif
-       deallocate(tmp)      
-       return
-    endif   ! initialize
 
-    if (lNH_boun_U) then
-       if (.not. lIsEof) then
-          allocate(tmp(ny+1,nvar-1))    
-          !If current time not located within interval read next line    
-          do while (.not. (t>=t0 .and. t<t1))
-             t0 = t1
-             if (iU >0) u0 = u1
-             if (iZ >0) z0 = z1
-             if (iW >0) w0 = w1
+       if (present(force_init)) then
+          fi_local = force_init
+       else
+          fi_local = .false.
+       endif
+       
+       if (bcfile/=filename_U .or. fi_local) then
+          filename_U=trim(bcfile)
+          initialize = .true.
+       endif
+
+       if (initialize) then
+          initialize = .false.        
+
+          !Does the file exist and is it already opened (reuse files?)
+          inquire(file=trim(filename_U),EXIST=lExists,OPENED=lOpened)
+
+          ! Close previous file if needed
+          if(lOpened) then
+             close(unit_U)
+          endif
+
+          ! Deallocate previous arrays if needed
+          if (allocated(header)) deallocate(header)
+          if (allocated(tmp)) deallocate(tmp)
+          if (allocated(u0)) deallocate(u0)
+          if (allocated(u1)) deallocate(u1)
+          if (allocated(z0)) deallocate(z0)
+          if (allocated(z1)) deallocate(z1)
+          if (allocated(w0)) deallocate(w0)
+          if (allocated(w1)) deallocate(w1)
+
+          if (lExists) then
+             !If exists, open
+             open(unit_U,file=filename_U,access='SEQUENTIAL',action='READ',form='FORMATTED')
+             lNH_boun_U = .true.
+          else  
+             lNH_boun_U = .false.
+             call writelog('lswe','','Error bc file does not exist: ',trim(filename_U))
+             call halt_program
+             return
+          endif
+
+
+          !SCALAR OR VECTOR INPUT?
+          read(unit_U,fmt=*,iostat=ier) string
+          if (ier .ne. 0) then
+             call report_file_read_error(filename_U)
+          endif
+          call lowercase(string)
+          if   (string == 'scalar') then
+             lVaru = .false.
+          elseif (string == 'vector') then
+             lVaru = .true.
+          else 
+
+          endif
+
+          !READ NUMBER OF VARIABLES
+          read(unit_U,fmt=*,iostat=ier) nvar
+          if (ier .ne. 0) then
+             call report_file_read_error(filename_U)
+          endif
+
+          !READ HEADER LINES
+          allocate(header(nvar))
+          read(unit_U,fmt=*,iostat=ier) header
+          if (ier .ne. 0) then
+             call report_file_read_error(filename_U)
+          endif
+
+          do i=1,nvar
+             if (header(i) == 'z' .or. header(i) == 'Z') then
+                iZ = i;
+             elseif (header(i) == 't' .or. header(i) == 'T') then
+                iT = i;
+             elseif (header(i) == 'u' .or. header(i) == 'U') then
+                iU = i;
+             elseif (header(i) == 'w' .or. header(i) == 'W') then
+                iW = i;
+             endif
+          enddo
+
+          !Allocate arrays at old and new timelevel
+          if (iU > 0) then     
+             allocate(u0(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+             allocate(u1(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+             u0 = 0.0d0
+             u1 = 0.0d0
+          endif
+
+
+          if (iZ > 0) then
+             allocate(z0(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+             allocate(z1(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+             z0 = 0.0d0
+             z1 = 0.0d0
+          endif
+
+          if (iW > 0) then
+             allocate(w0(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+             allocate(w1(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program      
+             w0 = 0.0d0
+             w1 = 0.0d0
+          endif
+
+          allocate(tmp(nyg+1,nvar-1))
+          !Read two first timelevels
+          call velocity_Boundary_read(t0,tmp,Unit_U,lVaru,lIsEof,nvar)
+          t0 = t0+bcstarttime
+          if (iU >0) u0 = tmp(:,iU-1)
+          if (iZ >0) z0 = tmp(:,iZ-1)
+          if (iW >0) w0 = tmp(:,iW-1)
+          if (lIsEof) then
+             t1=t0
+             if (iU >0) u1=u0
+             if (iZ >0) z1=z0
+             if (iW >0) w1=w0        
+          else
              call velocity_Boundary_read(t1,tmp,Unit_U,lVaru,lIsEof,nvar)
              t1 = t1+bcstarttime
              if (iU >0) u1 = tmp(:,iU-1)
              if (iZ >0) z1 = tmp(:,iZ-1)
              if (iW >0) w1 = tmp(:,iW-1)
-             if (lIsEof) exit !Exit on end of file condition
-          end do
-          deallocate(tmp)
-
-          if(lIsEof) then
-             if (iU >0) u = u1
-             if (iZ >0) z = z1
-             if (iW >0) w = w1
-             return
-          else
-             !Linear interpolation of u in time
-             if (iU > 0) then
-                u  = u0 + (u1-u0)*(t-t0)/(t1-t0)
-             else
-                u = 0
-             endif
-
-             if (iZ > 0) then
-                z = z0 + (z1-z0)*(t-t0)/(t1-t0)
-             else
-                z = zs(2,:)
-             endif
-             if (iW > 0) then
-                w = w0 + (w1-w0)*(t-t0)/(t1-t0)
-             else
-                w = ws(2,:)
-             endif
           endif
-       else
-          !If end of file the last value which was available is used until the end of the computation
-          u = u1
-       endif
-    endif
+          deallocate(tmp)
+          return
+       endif   ! initialize
 
+       if (lNH_boun_U) then
+          if (.not. lIsEof) then
+             allocate(tmp(nyg+1,nvar-1))    
+             !If current time not located within interval read next line    
+             do while (.not. (t>=t0 .and. t<t1))
+                t0 = t1
+                if (iU >0) u0 = u1
+                if (iZ >0) z0 = z1
+                if (iW >0) w0 = w1
+                call velocity_Boundary_read(t1,tmp,Unit_U,lVaru,lIsEof,nvar)
+                t1 = t1+bcstarttime
+                if (iU >0) u1 = tmp(:,iU-1)
+                if (iZ >0) z1 = tmp(:,iZ-1)
+                if (iW >0) w1 = tmp(:,iW-1)
+                if (lIsEof) exit !Exit on end of file condition
+             end do
+             deallocate(tmp)
+
+             if(lIsEof) then
+                if (iU >0) ug = u1
+                if (iZ >0) zg = z1
+                if (iW >0) wg = w1
+                return
+             else
+                !Linear interpolation of u in time
+                if (iU > 0) then
+                   ug  = u0 + (u1-u0)*(t-t0)/(t1-t0)
+                   isSet_U = .true.
+                else
+                   ug = 0
+                   isSet_U = .false.
+                endif
+
+                if (iZ > 0) then
+                   zg = z0 + (z1-z0)*(t-t0)/(t1-t0)
+                   isSet_Z = .true.
+                else
+                   zg = 0
+                   isSet_Z = .false.
+                endif
+                if (iW > 0) then
+                   wg = w0 + (w1-w0)*(t-t0)/(t1-t0)
+                   isSet_W = .true.
+                else
+                   wg = 0
+                   isSet_W = .false.
+                endif
+             endif
+          else
+             !If end of file the last value which was available is used until the end of the computation
+             ug = u1
+          endif ! .not. lIsEof
+       endif ! lNH_boun_U
+    endif ! xmaster
   end subroutine velocity_Boundary
 
   !==============================================================================  

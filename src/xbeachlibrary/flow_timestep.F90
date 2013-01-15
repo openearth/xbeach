@@ -31,12 +31,8 @@ contains
     use spaceparams
     use xmpi_module
     use boundaryconditions
-
-#ifndef USEMPI
     use flow_secondorder_module
     use nonh_module
-#endif
-
 
     IMPLICIT NONE
 
@@ -609,7 +605,6 @@ contains
        endif
     endif
 
-#ifndef USEMPI
     if (par%nonh==1) then
        !Do explicit predictor step with pressure
        call nonh_explicit(s,par,nuh)
@@ -619,7 +614,6 @@ contains
        !Call second order correction to the advection
        call flow_secondorder_advUV(s,par,uu_old,vv_old)
     end if
-#endif
 
     ! Robert: include again when 2nd order returned
 #ifdef USEMPI
@@ -684,13 +678,10 @@ contains
     call xmpi_shift(hv ,':n')
 #endif
 
-
-#ifndef USEMPI
     if (par%nonh==1) then
        ! do non-hydrostatic pressure compensation to solve short waves
        call nonh_cor(s,par)
     end if
-#endif
 
     ! Flux in u-point
     qx=uu*hu
@@ -735,12 +726,11 @@ contains
     ! call discharge_boundary(s,par)
     !
 
-#ifndef USEMPI
     if (par%secorder == 1) then
        !Second order correction
        call flow_secondorder_con(s,par,zs_old)
     endif
-#endif
+
     !
     ! Lateral boundary conditions
     !
