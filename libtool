@@ -2,7 +2,7 @@
 
 # libtool - Provide generalized library-building support services.
 # Generated automatically by config.status (xbeach) v18
-# Libtool was configured on host Fedor-Baarts-MacBook-Pro.local:
+# Libtool was configured on host phone.fritz.box:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 #
 #   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005,
@@ -272,7 +272,7 @@ finish_eval=""
 hardcode_into_libs=no
 
 # Compile-time system search path for libraries.
-sys_lib_search_path_spec="/opt/local/lib/gcc45/gcc/x86_64-apple-darwin11/4.5.4 /opt/local/lib/gcc45 /usr/lib  /usr/local/lib"
+sys_lib_search_path_spec="/opt/local/lib/gcc47/gcc/x86_64-apple-darwin11/4.7.2 /opt/local/lib/gcc47 /usr/lib  /usr/local/lib"
 
 # Run-time system search path for libraries.
 sys_lib_dlsearch_path_spec="/usr/local/lib /lib /usr/lib"
@@ -10101,7 +10101,7 @@ reload_cmds="\$LTCC \$LTCFLAGS -nostdlib \${wl}-r -o \$output\$reload_objs"
 old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs~\$RANLIB \$tool_oldlib"
 
 # A language specific compiler.
-CC="gfortran-mp-4.5"
+CC="gfortran"
 
 # Is the compiler the GNU compiler?
 with_gcc=yes

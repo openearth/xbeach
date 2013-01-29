@@ -11334,7 +11334,7 @@ ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
 ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 if test -n "$ac_tool_prefix"; then
-  for ac_prog in gfortran-mp-4.6 gfortran-mp-4.5 gfortran-mp-4.4 gfortran-mp-4.3 gfortran ifort ifc g95 xlf95 f95 fort  efc pgf95 lf95 ftn xlf90 f90 pgf90 pghpf epcf90 g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77
+  for ac_prog in gfortran ifort ifc g95 xlf95 f95 fort  efc pgf95 lf95 ftn xlf90 f90 pgf90 pghpf epcf90 g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77
   do
     # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
 set dummy $ac_tool_prefix$ac_prog; ac_word=$2
@@ -11378,7 +11378,7 @@ fi
 fi
 if test -z "$FC"; then
   ac_ct_FC=$FC
-  for ac_prog in gfortran-mp-4.6 gfortran-mp-4.5 gfortran-mp-4.4 gfortran-mp-4.3 gfortran ifort ifc g95 xlf95 f95 fort  efc pgf95 lf95 ftn xlf90 f90 pgf90 pghpf epcf90 g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77
+  for ac_prog in gfortran ifort ifc g95 xlf95 f95 fort  efc pgf95 lf95 ftn xlf90 f90 pgf90 pghpf epcf90 g77 xlf f77 frt pgf77 cf77 fort77 fl32 af77
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -14676,13 +14676,13 @@ $as_echo "#define HAVE_MPI 1" >>confdefs.h
         :
 fi
 
- 	    ac_ext=c
+            ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
- 	    FC=$MPIFC
+            FC=$MPIFC
 fi
 # define usempi (same as HAVE_MPI)
  if test "x$with_mpi" != "xno"; then
@@ -14950,8 +14950,8 @@ $as_echo "no" >&6; }
 fi
 if test "x$with_netcdf" != "xno"; then :
 
-	# For netcdf >= 4.2 (separate fortran)
-	# Check for netcdf 4 if not found...
+        # For netcdf >= 4.2 (separate fortran)
+        # Check for netcdf 4 if not found...
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for NETCDF_FORTRAN" >&5

@@ -18,14 +18,21 @@ you can use the cygwin or mingw environment. They both support the
 autotools environment. If you use GNU/Linux, OS X, cygwin or mingw
 then this document is for you.
 
+OSX (tm) users
+==================
+   We recommend using macports to install gfortran. After install a
+recent version of gfortran (>=gcc43, higher recommended) make sure you
+use port select to set the compiler as default, for example:
+sudo port select --set gcc mp-gcc47
+
 Version Info
 ============
    Under linux the version info is found using the svnversion command.
 This only works if you use a "checked out copy" of XBeach. If you for
-example export or copy xbeach without including the .svn directories 
-then xbeach no longer knows which version it is. And this information 
+example export or copy xbeach without including the .svn directories
+then xbeach no longer knows which version it is. And this information
 won't be build in. So to include the XBeach version, make sure you can
-type svnversion in the directory where xbeach is build. 
+type svnversion in the directory where xbeach is build.
 
 Basic Installation
 ==================
@@ -319,4 +326,3 @@ operates.
 
 `configure' also accepts some other, not widely useful, options.  Run
 `configure --help' for more details.
-
