@@ -25,7 +25,7 @@ module fortoutput_module
   integer*4,dimension(:,:),allocatable,save:: Avarcross   ! Array with associated index of output variables per cross section
   integer*4,dimension(:,:),allocatable,save:: rugmaskg,rugmaskl   ! Mask with 1 for row with runup gauge, 0 without. Dimensions: nx+1,ny+1
   ! One for global field, one for mpi subdomain if using MPI
-  integer*4,dimension(:),allocatable,save  :: rugrowindex ! Array with row index where runup gauge can be found                                                              
+  integer*4,dimension(:),allocatable,save  :: rugrowindex ! Array with row index where runup gauge can be found
   ! Only alive at xmaster
   integer*4,save                           :: stpm        ! size of tpm
 
@@ -141,7 +141,7 @@ contains
        ypoints=0.d0
 
        ! Convert world coordinates of points to nearest (lsm) grid point
-       if (xmaster) then 
+       if (xmaster) then
           call snappointstogrid(par, s, xpoints, ypoints)
           do i=1,par%npoints
              do j=1,par%npointvar
@@ -157,15 +157,15 @@ contains
 #ifdef USEMPI
        call xmpi_bcast(xpoints)
        call xmpi_bcast(ypoints)
-       call xmpi_bcast(Avarpoint)   
+       call xmpi_bcast(Avarpoint)
 #endif
-       ! make mask for grid rows which include 
+       ! make mask for grid rows which include
        if (par%nrugauge>0) then
           allocate(rugrowindex(par%nrugauge))
 #ifdef USEMPI
           allocate(rugmaskg(s%nx+1,s%ny+1))
           allocate(rugmaskl(sl%nx+1,sl%ny+1))
-#endif    
+#endif
           ! Make rugrowindex with row number (per subprocess) with runup gauge
           do i=1,par%nrugauge
 #ifndef USEMPI
@@ -173,7 +173,7 @@ contains
              rugrowindex(i)=ypoints(par%npoints+i)
 #else
              ! very complicated
-             if (xmaster) then 
+             if (xmaster) then
                 ! generate rugmask on global grid
                 do j=1,s%ny+1
                    if (j==ypoints(par%npoints+i)) then
@@ -196,7 +196,7 @@ contains
 #ifdef USEMPI
           deallocate(rugmaskg)   ! not needed anymore
           deallocate(rugmaskl)   ! not needed anymore
-#endif          
+#endif
        endif  ! runup gauge > 0
        !
        ! First time file opening for point output
@@ -244,7 +244,7 @@ contains
 
 
 
-    if (par%nmeanvar>0) then    
+    if (par%nmeanvar>0) then
        !! First time file opening for time-average output
        if(xmaster) then
           do i=1,par%nmeanvar
@@ -253,9 +253,9 @@ contains
              fnamevar =trim(fnamevar)
              fnamemin =trim(fnamemin)
              fnamemax =trim(fnamemax)
-             call indextos(s,chartoindex(trim(par%meanvars(i))),t) 
+             call indextos(s,chartoindex(trim(par%meanvars(i))),t)
              select case(t%rank)
-             case (2)         
+             case (2)
                 reclenm = wordsize*size(t%r2)
              case (3)
                 reclenm=wordsize*size(t%r3)
@@ -373,7 +373,7 @@ contains
                 allocate(tempvectorr(4))
                 tempvectorr=huge(0.d0)
 #ifdef USEMPI
-                ! In MPI multiple domains may have a non-zero value for idumhl, so we choose the one with the 
+                ! In MPI multiple domains may have a non-zero value for idumhl, so we choose the one with the
                 ! lowest MPI rank (closest to xmpi_top, or the offshore boundary)
                 call xmpi_allreduce(xrank,MPI_MIN)
                 ! now only look at this process
@@ -397,7 +397,7 @@ contains
                 endif
                 tempvectorr(2)=s%xz(idumhl,rugrowindex(i))
                 tempvectorr(3)=s%yz(idumhl,rugrowindex(i))
-                tempvectorr(4)=s%zs(idumhl,rugrowindex(i))                   
+                tempvectorr(4)=s%zs(idumhl,rugrowindex(i))
 #endif
                 if (xmaster) write(indextopointsunit(i+par%npoints),rec=itp)tempvectorr
                 deallocate(tempvectorr)
@@ -435,7 +435,7 @@ contains
              do i=1,par%ncross
 !!! Make array of all s% values at n or m grid line
                 if (crosstype(i)==0) then
-                   !    makecrossvector(par, s, local s, output array, no of variables, index of variables in output, m or n coordinate, cross section type) 
+                   !    makecrossvector(par, s, local s, output array, no of variables, index of variables in output, m or n coordinate, cross section type)
                    call makecrossvector(s,sl,crossvararray0,nvarcross(i),Avarcross(i,1:nvarcross(i)),ycross(i),0)
                    if (xmaster) write(indextocrossunit(i),rec=itc)crossvararray0(1:nvarcross(i),:)
                 else
@@ -474,8 +474,9 @@ contains
                       elseif (trim(par%meanvars(i))=='urms') then       ! urms
                          write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
                       elseif (trim(par%meanvars(i))=='thetamean') then       ! thetamean
-                         write(indextomeanunit(i),rec=itm)atan2(int(meansparsglobal(i)%mean2d)/1e7, &
-                              mod(meansparsglobal(i)%mean2d,1.d0)*1e1)
+                         write(indextomeanunit(i),rec=itm) &
+                              atan2(meansparsglobal(i)%mean2d/1d7, &
+                              mod(meansparsglobal(i)%mean2d,1.d0)*1d1)
                       else                                                    ! non-rms variables
                          write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean2d
                       endif
@@ -526,13 +527,13 @@ contains
 !!! Write global variables
        if (par%nglobalvar/=0) then
           if (tpar%outputg) then
-             itg=itg+1      
+             itg=itg+1
              do i = 1,par%nglobalvar
 #ifdef USEMPI
                 call space_collect_index(s,sl,outnumbers(i))
 #endif
                 if(xmaster) then
-                   call indextos(s,outnumbers(i),t) 
+                   call indextos(s,outnumbers(i),t)
                    select case(t%type)
                    case ('r')
                       select case(t%rank)
@@ -742,7 +743,7 @@ contains
              value = 270-((s%thetamean(m,n))*(180/par%px))  ! iwwvv thetamean: is that
              ! different on each
              ! process?
-          case(mnem_Fx) 
+          case(mnem_Fx)
              value = s%Fx(m,n)*cos(s%alfaz(m,n))-s%Fy(m,n)*sin(s%alfaz(m,n))
           case(mnem_Fy)
              value = s%Fx(m,n)*sin(s%alfaz(m,n))+s%Fy(m,n)*cos(s%alfaz(m,n))

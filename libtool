@@ -2,7 +2,7 @@
 
 # libtool - Provide generalized library-building support services.
 # Generated automatically by config.status (xbeach) v18
-# Libtool was configured on host wlan-145-94-172-051.wlan.tudelft.nl:
+# Libtool was configured on host Fedor-Baarts-MacBook-Pro.local:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 #
 #   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005,
@@ -66,13 +66,13 @@ PATH_SEPARATOR=":"
 
 # The host system.
 host_alias=
-host=x86_64-apple-darwin11.4.0
-host_os=darwin11.4.0
+host=x86_64-apple-darwin11.4.2
+host_os=darwin11.4.2
 
 # The build system.
 build_alias=
-build=x86_64-apple-darwin11.4.0
-build_os=darwin11.4.0
+build=x86_64-apple-darwin11.4.2
+build_os=darwin11.4.2
 
 # A sed program that does not truncate output.
 SED="/opt/local/bin/gsed"
@@ -6284,9 +6284,10 @@ func_mode_link ()
       # -tp=*                Portland pgcc target processor selection
       # --sysroot=*          for sysroot support
       # -O*, -flto*, -fwhopr*, -fuse-linker-plugin GCC link-time optimization
+      # -stdlib=*            select c++ std lib with clang
       -64|-mips[0-9]|-r[0-9][0-9]*|-xarch=*|-xtarget=*|+DA*|+DD*|-q*|-m*| \
       -t[45]*|-txscale*|-p|-pg|--coverage|-fprofile-*|-F*|@*|-tp=*|--sysroot=*| \
-      -O*|-flto*|-fwhopr*|-fuse-linker-plugin)
+      -O*|-flto*|-fwhopr*|-fuse-linker-plugin|-stdlib=*)
         func_quote_for_eval "$arg"
 	arg="$func_quote_for_eval_result"
         compile_command+=" $arg"
