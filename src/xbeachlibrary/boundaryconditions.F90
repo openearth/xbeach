@@ -680,6 +680,7 @@ contains
              call xmpi_bcast(isSet_U)
              call xmpi_bcast(isSet_Z)
              call xmpi_bcast(isSet_W)
+             call xmpi_bcast(bcendtime)
 #else
              ui(1,:) = uig
              zi(1,:) = zig
