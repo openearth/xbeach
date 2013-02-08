@@ -73,27 +73,35 @@ contains
     if (firstship) then
 
        ! Read ship names (== filenames with ship geometry and track data)
-
-       fid=create_new_fid()
-       open(fid,file=par%shipfile)
-       ier=0
-       i=0
-       do while (ier==0)
-          read(fid,'(a)',iostat=ier)ch
-          if (ier==0)i=i+1
-       enddo
-       par%nship=i
-       rewind(fid)
-
+       if (xmaster) then
+          fid=create_new_fid()
+          open(fid,file=par%shipfile)
+          ier=0
+          i=0
+          do while (ier==0)
+             read(fid,'(a)',iostat=ier)ch
+             if (ier==0)i=i+1
+          enddo
+          par%nship=i
+          rewind(fid)
+       endif
+#ifdef USEMPI
+       call xmpi_bcast(par%nship)
+#endif       
        allocate(sh(par%nship))
        do i=1,par%nship
-          read(fid,'(a)',iostat=ier)sh(i)%name 
-          if (ier .ne. 0) then
-             call report_file_read_error(par%shipfile)
+          if (xmaster) then
+             read(fid,'(a)',iostat=ier)sh(i)%name 
+             if (ier .ne. 0) then
+                call report_file_read_error(par%shipfile)
+             endif
           endif
+#ifdef USEMPI   
+              
+          call xmpi_bcast(sh(i)%name)          
+#endif        
        enddo
-       close(fid)
-
+       if (xmaster)close(fid)
        do i=1,par%nship
           ! Read ship geometry
           sh(i)%dx  = readkey_dbl(sh(i)%name,'dx',  5.d0,   0.d0,      100.d0)
@@ -102,42 +110,57 @@ contains
           sh(i)%ny  = readkey_int(sh(i)%name,'ny',  20,        1,      1000  )
           sh(i)%shipgeom = readkey_name(sh(i)%name,'shipgeom',required=.true.)
           sh(i)%shiptrack = readkey_name(sh(i)%name,'shiptrack',required=.true.)
-
           allocate (sh(i)%depth(sh(i)%nx+1,sh(i)%ny+1))
-          fid=create_new_fid()
-          open(fid,file=sh(i)%shipgeom)
-          do iy=1,sh(i)%ny+1
-             read(fid,*,iostat=ier)(sh(i)%depth(ix,iy),ix=1,sh(i)%nx+1)
-             if (ier .ne. 0) then
-                call report_file_read_error(sh(i)%shipgeom)
-             endif
-          end do
-          close(fid)
+          if (xmaster) then
+             fid=create_new_fid()
+             open(fid,file=sh(i)%shipgeom)
+             do iy=1,sh(i)%ny+1
+                read(fid,*,iostat=ier)(sh(i)%depth(ix,iy),ix=1,sh(i)%nx+1)
+                if (ier .ne. 0) then
+                   call report_file_read_error(sh(i)%shipgeom)
+                endif
+             end do
+             close(fid)
+          endif
+#ifdef USEMPI
+          call xmpi_bcast(sh(i)%depth)
+#endif                       
 
           ! Read t,x,y of ship position
 
-          fid=create_new_fid()
-          open(fid,file=sh(i)%shiptrack)
-          ier=0
-          it=0
-          do while (ier==0)
-             read(fid,'(a)',iostat=ier)ch
-             if (ier==0)it=it+1
-          enddo
-          sh(i)%track_nt=it
-          rewind(fid)
+          if (xmaster) then
+             fid=create_new_fid()
+             open(fid,file=sh(i)%shiptrack)
+             ier=0
+             it=0
+             do while (ier==0)
+                read(fid,'(a)',iostat=ier)ch
+                if (ier==0)it=it+1
+             enddo
+             sh(i)%track_nt=it
+             rewind(fid)
+          endif
+#ifdef USEMPI
+          call xmpi_bcast(sh(i)%track_nt)
+#endif
           allocate(sh(i)%track_t(sh(i)%track_nt))
           allocate(sh(i)%track_x(sh(i)%track_nt))
           allocate(sh(i)%track_y(sh(i)%track_nt))
           allocate(sh(i)%track_dir(sh(i)%track_nt))
-          do it=1,sh(i)%track_nt
-             read(fid,*,iostat=ier)sh(i)%track_t(it),sh(i)%track_x(it),sh(i)%track_y(it)
-             if (ier .ne. 0) then
-                call report_file_read_error(sh(i)%shiptrack)
-             endif
-          enddo
-          close(fid)
-
+          if (xmaster) then
+             do it=1,sh(i)%track_nt
+                read(fid,*,iostat=ier)sh(i)%track_t(it),sh(i)%track_x(it),sh(i)%track_y(it)
+                if (ier .ne. 0) then
+                   call report_file_read_error(sh(i)%shiptrack)
+                endif
+             enddo
+             close(fid)
+          endif
+#ifdef USEMPI  
+          call xmpi_bcast(sh(i)%track_t)
+          call xmpi_bcast(sh(i)%track_x)
+          call xmpi_bcast(sh(i)%track_y)
+#endif      
           !  Compute ship direction
 
           sh(i)%track_dir(1)=atan2(sh(i)%track_y(2)-sh(i)%track_y(1),sh(i)%track_x(2)-sh(i)%track_x(1))
