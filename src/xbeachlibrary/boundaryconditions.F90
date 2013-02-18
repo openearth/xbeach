@@ -670,8 +670,18 @@ contains
                 endif
              endif
              if (xmaster) then  
+                if (trim(nhbcfname)=='nh_reuse.bcf') then  
+                   ! Reuse time series will start at t=0, so we need to add the offset time to 
+                   ! the time vector in the boundary condition file using the optional bcst variable
                 call velocity_Boundary(nhbcfname,uig,zig,wig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W, &
                                        force_init=.true.,bcst=bcstarttime)
+                else
+                   ! If individual spectra are read, then the time vector in the boundary condition
+                   ! file will already be corrected for the start of the spectrum condition. No need
+                   ! to add the optional bcst variable
+                   call velocity_Boundary(nhbcfname,uig,zig,wig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W, &
+                                                       force_init=.true.)
+                endif
              endif
 #ifdef USEMPI
              call space_distribute("y",sl,uig,ui(1,:))
@@ -690,11 +700,18 @@ contains
              if (.not. isSet_Z) zi(1,:) = zs(2,:)
              if (.not. isSet_W) wi(1,:) = ws(2,:)
           else
-!             call velocity_Boundary(nhbcfname,ui(1,:),zi(1,:),wi(1,:),nx,ny,sg%ny,sl,par%t,zs(2,:),ws(2,:), &
-!                               bcst=bcstarttime)
              if (xmaster) then  
+                if (trim(nhbcfname)=='nh_reuse.bcf') then  
+                   ! Reuse time series will start at t=0, so we need to add the offset time to 
+                   ! the time vector in the boundary condition file using the optional bcst variable
                 call velocity_Boundary(nhbcfname,uig,zig,wig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W, &
                                        bcst=bcstarttime)
+                else
+                   ! If individual spectra are read, then the time vector in the boundary condition
+                   ! file will already be corrected for the start of the spectrum condition. No need
+                   ! to add the optional bcst variable
+                   call velocity_Boundary(nhbcfname,uig,zig,wig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W)
+                endif
              endif
 #ifdef USEMPI
              call space_distribute("y",sl,uig,ui(1,:))
@@ -1649,7 +1666,9 @@ contains
           filename_U=trim(bcfile)
           initialize = .true.
        endif
-
+       !
+       ! INITIALIZE NEW FILE
+       !
        if (initialize) then
           initialize = .false.        
 
@@ -1767,7 +1786,9 @@ contains
           deallocate(tmp)
           return
        endif   ! initialize
-
+       !
+       ! REGULAR TIMESTEP READ BOUNDARY CONDITIONS
+       !
        if (lNH_boun_U) then
           if (.not. lIsEof) then
              allocate(tmp(nyg+1,nvar-1))    
