@@ -154,7 +154,7 @@ contains
     endif
 
     if (ntheta>1) then
-       thetamean=(sum(ee*thet,3)/size(ee,3))/(max(sum(ee,3),0.00001d0)/size(ee,3))
+       thetamean=(sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
     else !Dano: Snellius
        thetamean=asin(sin(theta0-alfaz(1,1))*c/c(1,1))+alfaz(1,1)
        costh(:,:,1)=cos(thetamean-alfaz)

@@ -32,7 +32,7 @@ contains
     real*8 , dimension(:,:)  ,allocatable,save  :: dkmxdx,dkmxdy,dkmydx,dkmydy,cgxm,cgym,arg,fac
     real*8 , dimension(:,:)  ,allocatable,save  :: wcifacu,wcifacv,hrmsold,uorb
     real*8 , dimension(:)    ,allocatable,save  :: wcrestpos
-    real*8                                      :: factime,cs,sn
+    real*8                                      :: factime,cs,sn,coffshore
     real*8 , save                               :: waverr  
 
 
@@ -124,7 +124,18 @@ contains
     wcifacu=u*par%wci*min(hh/par%hwci,1.d0)
     wcifacv=v*par%wci*min(hh/par%hwci,1.d0)
 
-    tm  = (sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
+    if (ntheta>1) then
+       thetamean=(sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
+    else !Dano: Snellius
+       ! Check for borderline cases where critical c/c(1,1) is reached....
+       if (xmaster) coffshore = c(1,1)
+#ifdef USEMPI
+       call xmpi_bcast(coffshore)
+#endif       
+       thetamean=asin(max(-1.0d0, min(1.0d0, sin(theta0-alfaz(1,1))*c/coffshore)))+alfaz(1,1)
+       costh(:,:,1)=cos(thetamean-alfaz)
+       sinth(:,:,1)=sin(thetamean-alfaz)
+    endif
 
     ! Dispersion relation
     if (par%wci .ne. 0) then
@@ -147,12 +158,12 @@ contains
        arg     = min(100.0d0,km*max(hh,par%delta*H))
        sigm(1,:) = sqrt( par%g*km(1,:)*tanh(arg(1,:))) ! *( 1.d0+ ((km(1,:)*H(1,:)/2.d0)**2)))
        !  calculate change in intrinsic frequency
-       kmx = km*dcos(tm)
-       kmy = km*dsin(tm)
+       kmx = km*dcos(thetamean)
+       kmy = km*dsin(thetamean)
        wm = sigm+kmx*umwci*par%wci*min((zswci-zb)/par%hwci,1.d0)+kmy*vmwci*par%wci*min((zswci-zb)/par%hwci,1.d0)
 
-       cgym = cg*dsin(tm) + vmwci*min((zswci-zb)/par%hwci,1.d0)
-       cgxm = cg*dcos(tm) + umwci*min((zswci-zb)/par%hwci,1.d0)
+       cgym = cg*dsin(thetamean) + vmwci*min((zswci-zb)/par%hwci,1.d0)
+       cgxm = cg*dcos(thetamean) + umwci*min((zswci-zb)/par%hwci,1.d0)
 
        call slope2D(kmx,nx,ny,dsu,dnv,dkmxdx,dkmxdy)
        call slope2D(kmy,nx,ny,dsu,dnv,dkmydx,dkmydy)
@@ -226,15 +237,6 @@ contains
        sinh2kh = 3000.d0
     endwhere
 
-    if (ntheta>1) then
-       thetamean=(sum(ee*thet,3)/size(ee,3))/(max(sum(ee,3),0.00001d0)/size(ee,3))
-    else !Dano: Snellius
-       ! Check for borderline cases where critical c/c(1,1) is reached....
-       thetamean=asin(max(-1.0d0, min(1.0d0, sin(theta0-alfaz(1,1))*c/c(1,1))))+alfaz(1,1)
-       costh(:,:,1)=cos(thetamean-alfaz)
-       sinth(:,:,1)=sin(thetamean-alfaz)
-    endif
-
     ! split wave velocities in wave grid directions theta
     do j=1,ny+1
        do i=1,nx+1
@@ -297,8 +299,8 @@ contains
     else if(trim(par%break) == 'janssen')then
        call janssen_battjes(par,s,km)
     else if (trim(par%break) == 'roelvink_daly') then
-       cgxm = c*dcos(tm) 
-       cgym = c*dsin(tm)
+       cgxm = c*dcos(thetamean) 
+       cgym = c*dsin(thetamean)
        call advecqx(cgxm,Qb,xwadvec,nx,ny,dsu)
        if (ny>0) then
           call advecqy(cgym,Qb,ywadvec,nx,ny,dnv)
@@ -471,7 +473,10 @@ contains
     ! Compute mean wave direction
     !
     if (ntheta>1) then
-       thetamean=(sum(ee*thet,3)/size(ee,3))/(max(sum(ee,3),0.00001d0)/size(ee,3))
+       thetamean=(sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
+    else !Dano: Snellius
+       ! Check for borderline cases where critical c/c(1,1) is reached....
+       thetamean=asin(max(-1.0d0, min(1.0d0, sin(theta0-alfaz(1,1))*c/coffshore)))+alfaz(1,1)
     endif
     !
     ! Radiation stresses and forcing terms
