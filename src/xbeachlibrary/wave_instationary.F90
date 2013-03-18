@@ -474,9 +474,6 @@ contains
     !
     if (ntheta>1) then
        thetamean=(sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
-    else !Dano: Snellius
-       ! Check for borderline cases where critical c/c(1,1) is reached....
-       thetamean=asin(max(-1.0d0, min(1.0d0, sin(theta0-alfaz(1,1))*c/coffshore)))+alfaz(1,1)
     endif
     !
     ! Radiation stresses and forcing terms
