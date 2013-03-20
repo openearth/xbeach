@@ -510,6 +510,32 @@ contains
           par%dt=par%dt*par%CFL*0.5d0
        endif
 
+     ! groundwater stability
+     if (par%gwflow==1) then   ! .and.  par%gwnonh==0
+        j2=max(s%ny,1)
+        do j=j1,j2
+           do i=2,s%nx
+              ! Vreugdenhil:
+              ! 2*kx*gwheight*dt/dx2 < CFL   -> dt = (CFL*dx2)/(2*kx*gwheight)
+              ! par%dt=min(par%dt,par%CFL*s%dsc(i,j)**2/(2*par%kx*s%gwheight(i,j)))
+              !
+              ! Wikipedia: http://en.wikipedia.org/wiki/Von_Neumann_stability_analysis for FTCS:
+              ! 2*a*dt/dx2 < 1 , where dh/dt = a *d2h/dx2 -> a = k/por
+              ! 2*k/por*dt/dx2 = CFL -> dt = CFL*dx2*por/2/k
+              par%dt=min(par%dt,par%CFL*s%dsc(i,j)**2*par%por/(2*par%kx))              
+           enddo
+        enddo
+        if (par%ny>2) then
+           do j=j1,j2
+              do i=2,s%nx
+                 ! 2*ky*gwheight*dt/dy2 < CFL   -> dt = (CFL*dy2)/(2*ky*gwheight)
+                 ! par%dt=min(par%dt,par%CFL*s%dnc(i,j)**2/(2*par%ky*s%gwheight(i,j)))
+                 par%dt=min(par%dt,par%CFL*s%dnc(i,j)**2*par%por/(2*par%ky)) 
+              enddo
+           enddo
+        endif
+     endif
+     
 #ifdef USEMPI
        ! Dano: no refraction if ntheta==1 so no need for this check
        if (s%ntheta>1) then
