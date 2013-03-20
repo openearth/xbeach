@@ -410,8 +410,8 @@ contains
                 vel = max(vel, &
                           -(s%gwlevel(i,j)-s%gwbottom(i,j))*s%dsz(i,j)*par%por/par%dt/dz)
              endif                                           
-             infilhorgw(i,j) = infilhorgw(i+1,j)+vel*scaleareab
-             infilhorsw(i+1,j) = infilhorsw(i,j)+vel*scaleareas
+             infilhorgw(i,j) = infilhorgw(i,j)+vel*scaleareab
+             infilhorsw(i+1,j) = infilhorsw(i+1,j)+vel*scaleareas
           else                ! equal bed height
              ! nothing
           endif
@@ -476,8 +476,8 @@ contains
                 vel = max(vel, &
                           -(s%gwlevel(i,j)-s%gwbottom(i,j))*s%dnz(i,j)*par%por/par%dt/dz)
              endif                                           
-             infilhorgw(i,j) = infilhorgw(i,j+1)+vel*scaleareab
-             infilhorsw(i,j+1) = infilhorsw(i,j)+vel*scaleareas
+             infilhorgw(i,j) = infilhorgw(i,j)+vel*scaleareab
+             infilhorsw(i,j+1) = infilhorsw(i,j+1)+vel*scaleareas
           else                ! equal bed height
              ! nothing
           endif
