@@ -172,8 +172,9 @@ contains
     type(spacepars)                             :: s
 
     integer                                     :: i,j
-    real*8,dimension(:,:),allocatable           :: dheaddx,dheaddy,dleveldt,gwqx,gwqy,gwhu,gwhv
-    real*8,dimension(:,:),allocatable           :: c1,c2,r,fsh
+    real*8,dimension(:,:),allocatable,save      :: dheaddx,dheaddy,dleveldt,gwqx,gwqy,gwhu,gwhv
+    real*8,dimension(:,:),allocatable,save      :: infilhorgw,infilhorsw
+    real*8,dimension(:,:),allocatable,save      :: c1,c2,r,fsh
 
     if (.not. allocated(dheaddx)) then
        allocate(dheaddx(s%nx+1,s%ny+1))
@@ -187,6 +188,8 @@ contains
        allocate(c2(s%nx+1,s%ny+1))
        allocate(r(s%nx+1,s%ny+1))
        allocate(fsh(s%nx+1,s%ny+1))
+       allocate(infilhorgw(1:s%nx+1,1:s%ny+1))
+       allocate(infilhorsw(1:s%nx+1,1:s%ny+1))
     endif
 
     ! Free surface head and ratio free surface to groundwater head to be used
@@ -203,11 +206,11 @@ contains
     ! Determine pressure gradients
 
     ! Update groundwater head
-
+    ! note smoothing over 2 timesteps
     where (s%wetz==1 .and. s%gwlevel>s%zb-par%dwetlayer)
-       s%gwhead=s%gwlevel+(s%zs-s%gwlevel)*(1.d0-r)
+       s%gwhead=(s%gwhead+s%gwlevel+(s%zs-s%gwlevel)*(1.d0-r))/2
     elsewhere
-       s%gwhead=s%gwlevel
+       s%gwhead=(s%gwhead+s%gwlevel)/2
     endwhere
 
     dheaddx=0.d0
@@ -315,107 +318,172 @@ contains
 
     ! Update quasi vertical model infiltration layer thickness
     s%dinfil=s%dinfil+s%gww*par%dt/par%por
-    dleveldt = 0.d0
+    
+    if (par%gwhorinfil==1) then
+       ! post-update horizontal infiltration computation
+       dleveldt = 0.d0
+       infilhorgw = 0.d0
+       infilhorsw = 0.d0
+       call gw_horizontal_infil_exfil(s,par,infilhorgw,infilhorsw,par%kx,par%ky)
+       ! update water levels
+       s%gwlevel=s%gwlevel+infilhorgw*par%dt
+       ! update for mass balance in flow
+       s%gww = s%gww+infilhorsw
+    endif
 
   end subroutine gwflow
 
 
-!  subroutine gw_horizontal_infil_exfil(s,par,infilhorgw,infilhorsw,Kx,Ky,dynpres)
-!     ! compute horizontal part of infiltration/exfiltration
-!     use params
-!     use xmpi_module
-!     use spaceparams
-!     
-!     type(parameters),intent(in)                 :: par
-!     type(spacepars)                             :: s
-!     real*8,dimension(s%nx+1,s%ny+1),intent(in)  :: Kx,Ky,dynpres
-!     real*8,dimension(s%nx+1,s%ny+1),intent(out) :: infilhorgw,infilhorsw
-!     ! internal
-!     real*8,dimension(s%nx+1,s%ny+1)             :: dheaddx,dheaddy
-!     integer                                     :: i,j
-!     real*8                                      :: dz,dx,dy,vel,hsurf,hgw,dhead
-!     real*8,parameter                            :: visc = 1.0d-6
-!     real*8                                      :: vcr,dum,scaleareab,scaleareas
-!     
-!     infilhorgw = 0.d0
-!     infilhorsw = 0.d0
-!     vcr = par%gwReturb/par%D50(1)*par%por*visc
-!     !
-!     ! compute horizontal flow velocity between bed and surface water VERTICAL interfaces
-!     ! 
-!     ! loop over all u-interfaces
-!     do i=1,s%nx
-!        do j=1,max(s%ny,1)
-!          dz = s%zb(i+1,j)-s%zb(i,j)
-!          if (dz>0.d0 .and. s%wetz(i,j)==1) then ! jump up
-!             hsurf = s%zs(i,j)+dynpres(i,j)/par%g
-!             hgw = s%gwhead(i+1,j)
-!             dx = s%dsz(i+1,j)
-!             dhead = hsurf-hgw         ! positive gradient if hsurf>hgw
-!                                       ! negative velocitity if infiltration
-!             call gw_calculate_velocities_local(vel,dum,dhead/dx,Kx(i+1,j),0.d0,par%gwscheme, &
-!                                                .false.,.false.,par%gwheadmodel,dum,dum,vcr)
-!             vel = -vel                ! convert negative down velocity into positive if infiltration,
-!                                       ! negative if exfiltration 
-!             ! horizontal infiltration occurs along small side section, so scale the horizontal
-!             ! infiltration area by the vertical area of the cell used in the mass balance equation
-!             ! and infiltration velocities
-!             ! 
-!             ! Scale area for bed cell and surface water cell
-!             scaleareab = dz/s%dsz(i+1,j)
-!             scaleareas = dz/s%dsz(i,j)
-!             ! Limit  flow to that available in space in ground and 
-!             ! in surface water volume
-!             if (vel>0.d0) then  ! infiltration
-!                vel = min(vel, &
-!                          s%hh(i,j)*s%dsz(i,j)/par%dt/dz, &
-!                          max(s%zb(i+1,j)-s%gwlevel(i+1,j),0.d0)*par%por*s%dsz(i+1,j)/par%dt/dz)
-!             else
-!                vel = max(vel, &
-!                          -(s%gwlevel(i+1,j)-s%gwbottom(i+1,j))*s%dsz(i+1,j)*par%por/par%dt/dz)
-!             endif                                           
-!             infilhorgw(i+1,j) = infilhorgw(i+1,j)+vel*scaleareab
-!             infilhorsw(i,j) = infilhorsw(i,j)+vel*scaleareas
-!          elseif (dz<0.d0 .and. s%wetz(i+1,j)==1) then  ! jump down
-!             dz = -dz
-!             hsurf = s%zs(i+1,j)+dynpres(i+1,j)/par%g
-!             hgw = s%gwhead(i,j)
-!             dx = s%dsz(i,j)
-!             dhead = hsurf-hgw         ! positive gradient if hsurf>hgw
-!                                       ! negative velocitity if infiltration
-!             call gw_calculate_velocities_local(vel,dum,dhead/dx,Kx(i,j),0.d0,par%gwscheme, &
-!                                                .false.,.false.,par%gwheadmodel,dum,dum,vcr)
-!             vel = -vel                ! convert negative down velocity into positive if infiltration,
-!                                       ! negative if exfiltration 
-!             ! horizontal infiltration occurs along small side section, so scale the horizontal
-!             ! infiltration area by the vertical area of the cell used in the mass balance equation
-!             ! and infiltration velocities
-!             ! 
-!             ! Scale area for bed cell and surface water cell
-!             scaleareab = dz/s%dsz(i,j)
-!             scaleareas = dz/s%dsz(i+1,j)
-!             ! Limit  flow to that available in space in ground and 
-!             ! in surface water volume
-!             if (vel>0.d0) then  ! infiltration
-!                vel = min(vel, &
-!                          s%hh(i+1,j)*s%dsz(i+1,j)/par%dt/dz, &
-!                          max(s%zb(i,j)-s%gwlevel(i,j),0.d0)*par%por*s%dsz(i,j)/par%dt/dz)
-!             else
-!                vel = max(vel, &
-!                          -(s%gwlevel(i,j)-s%gwbottom(i,j))*s%dsz(i,j)*par%por/par%dt/dz)
-!             endif                                           
-!             infilhorgw(i,j) = infilhorgw(i+1,j)+vel*scaleareab
-!             infilhorsw(i+1,j) = infilhorsw(i,j)+vel*scaleareas
-!          else                ! equal bed height
-!             ! nothing
-!          endif
-!       enddo
-!    enddo
-!    !
-!    !
-!    ! loop over all v-interfaces
-!  
-!
-!  end subroutine gw_horizontal_infil_exfil
+  subroutine gw_horizontal_infil_exfil(s,par,infilhorgw,infilhorsw,Kx,Ky)
+     ! compute horizontal part of infiltration/exfiltration
+     use params
+     use xmpi_module
+     use spaceparams
+     
+     type(parameters),intent(in)                 :: par
+     type(spacepars)                             :: s
+     real*8,intent(in)                           :: Kx,Ky
+     real*8,dimension(s%nx+1,s%ny+1),intent(out) :: infilhorgw,infilhorsw
+     ! internal
+     real*8,dimension(s%nx+1,s%ny+1)             :: dheaddx,dheaddy
+     integer                                     :: i,j
+     real*8                                      :: dz,dx,dy,vel,hsurf,hgw,dhead
+     real*8                                      :: scaleareab,scaleareas
+     
+     !
+     ! compute horizontal flow velocity between bed and surface water VERTICAL interfaces
+     ! 
+     ! loop over all u-interfaces
+     do i=1,s%nx
+        do j=1,s%ny+1
+          dz = s%zb(i+1,j)-s%zb(i,j)
+          if (dz>0.d0 .and. s%wetz(i,j)==1) then ! jump up
+             hsurf = s%zs(i,j)
+             hgw = s%gwhead(i+1,j)
+             dx = s%dsz(i+1,j)
+             dhead = hsurf-hgw         ! positive gradient if hsurf>hgw
+                                       ! negative velocitity if infiltration
+             vel = dhead/dx*Kx         ! convert negative down velocity into positive if infiltration,
+                                       ! negative if exfiltration 
+             ! horizontal infiltration occurs along small side section, so scale the horizontal
+             ! infiltration area by the vertical area of the cell used in the mass balance equation
+             ! and infiltration velocities
+             ! 
+             ! Scale area for bed cell and surface water cell
+             scaleareab = dz/s%dsz(i+1,j)
+             scaleareas = dz/s%dsz(i,j)
+             ! Limit  flow to that available in space in ground and 
+             ! in surface water volume
+             if (vel>0.d0) then  ! infiltration
+                vel = min(vel, &
+                          s%hh(i,j)*s%dsz(i,j)/par%dt/dz, &
+                          max(s%zb(i+1,j)-s%gwlevel(i+1,j),0.d0)*par%por*s%dsz(i+1,j)/par%dt/dz)
+             else
+                vel = max(vel, &
+                          -(s%gwlevel(i+1,j)-s%gwbottom(i+1,j))*s%dsz(i+1,j)*par%por/par%dt/dz)
+             endif                                           
+             infilhorgw(i+1,j) = infilhorgw(i+1,j)+vel*scaleareab
+             infilhorsw(i,j) = infilhorsw(i,j)+vel*scaleareas
+          elseif (dz<0.d0 .and. s%wetz(i+1,j)==1) then  ! jump down
+             dz = -dz
+             hsurf = s%zs(i+1,j)
+             hgw = s%gwhead(i,j)
+             dx = s%dsz(i,j)
+             dhead = hsurf-hgw         ! positive gradient if hsurf>hgw
+                                       ! negative velocitity if infiltration
+             vel = dhead/dx*Kx         ! convert negative down velocity into positive if infiltration,
+                                       ! negative if exfiltration 
+             ! horizontal infiltration occurs along small side section, so scale the horizontal
+             ! infiltration area by the vertical area of the cell used in the mass balance equation
+             ! and infiltration velocities
+             ! 
+             ! Scale area for bed cell and surface water cell
+             scaleareab = dz/s%dsz(i,j)
+             scaleareas = dz/s%dsz(i+1,j)
+             ! Limit  flow to that available in space in ground and 
+             ! in surface water volume
+             if (vel>0.d0) then  ! infiltration
+                vel = min(vel, &
+                          s%hh(i+1,j)*s%dsz(i+1,j)/par%dt/dz, &
+                          max(s%zb(i,j)-s%gwlevel(i,j),0.d0)*par%por*s%dsz(i,j)/par%dt/dz)
+             else
+                vel = max(vel, &
+                          -(s%gwlevel(i,j)-s%gwbottom(i,j))*s%dsz(i,j)*par%por/par%dt/dz)
+             endif                                           
+             infilhorgw(i,j) = infilhorgw(i+1,j)+vel*scaleareab
+             infilhorsw(i+1,j) = infilhorsw(i,j)+vel*scaleareas
+          else                ! equal bed height
+             ! nothing
+          endif
+       enddo
+    enddo
+    !
+    !
+    ! loop over all v-interfaces
+    do i=1,s%nx+1
+        do j=1,s%ny
+          dz = s%zb(i,j+1)-s%zb(i,j)
+          if (dz>0.d0 .and. s%wetz(i,j)==1) then ! jump up
+             hsurf = s%zs(i,j)
+             hgw = s%gwhead(i,j+1)
+             dy = s%dnz(i,j+1)
+             dhead = hsurf-hgw         ! positive gradient if hsurf>hgw
+                                       ! negative velocitity if infiltration
+             vel = dhead/dy*Ky         ! convert negative down velocity into positive if infiltration,
+                                       ! negative if exfiltration 
+             ! horizontal infiltration occurs along small side section, so scale the horizontal
+             ! infiltration area by the vertical area of the cell used in the mass balance equation
+             ! and infiltration velocities
+             ! 
+             ! Scale area for bed cell and surface water cell
+             scaleareab = dz/s%dnz(i,j+1)
+             scaleareas = dz/s%dnz(i,j)
+             ! Limit  flow to that available in space in ground and 
+             ! in surface water volume
+             if (vel>0.d0) then  ! infiltration
+                vel = min(vel, &
+                          s%hh(i,j)*s%dnz(i,j)/par%dt/dz, &
+                          max(s%zb(i,j+1)-s%gwlevel(i,j+1),0.d0)*par%por*s%dnz(i,j+1)/par%dt/dz)
+             else
+                vel = max(vel, &
+                          -(s%gwlevel(i,j+1)-s%gwbottom(i,j+1))*s%dnz(i,j+1)*par%por/par%dt/dz)
+             endif                                           
+             infilhorgw(i,j+1) = infilhorgw(i,j+1)+vel*scaleareab
+             infilhorsw(i,j) = infilhorsw(i,j)+vel*scaleareas
+          elseif (dz<0.d0 .and. s%wetz(i,j+1)==1) then  ! jump down
+             dz = -dz
+             hsurf = s%zs(i,j+1)
+             hgw = s%gwhead(i,j)
+             dy = s%dsz(i,j)
+             dhead = hsurf-hgw         ! positive gradient if hsurf>hgw
+                                       ! negative velocitity if infiltration
+             vel = dhead/dy*Ky         ! convert negative down velocity into positive if infiltration,
+                                       ! negative if exfiltration 
+             ! horizontal infiltration occurs along small side section, so scale the horizontal
+             ! infiltration area by the vertical area of the cell used in the mass balance equation
+             ! and infiltration velocities
+             ! 
+             ! Scale area for bed cell and surface water cell
+             scaleareab = dz/s%dnz(i,j)
+             scaleareas = dz/s%dnz(i,j+1)
+             ! Limit  flow to that available in space in ground and 
+             ! in surface water volume
+             if (vel>0.d0) then  ! infiltration
+                vel = min(vel, &
+                          s%hh(i,j+1)*s%dnz(i,j+1)/par%dt/dz, &
+                          max(s%zb(i,j)-s%gwlevel(i,j),0.d0)*par%por*s%dnz(i,j)/par%dt/dz)
+             else
+                vel = max(vel, &
+                          -(s%gwlevel(i,j)-s%gwbottom(i,j))*s%dnz(i,j)*par%por/par%dt/dz)
+             endif                                           
+             infilhorgw(i,j) = infilhorgw(i,j+1)+vel*scaleareab
+             infilhorsw(i,j+1) = infilhorsw(i,j)+vel*scaleareas
+          else                ! equal bed height
+             ! nothing
+          endif
+       enddo
+    enddo
+
+  end subroutine gw_horizontal_infil_exfil
 
 end module groundwaterflow

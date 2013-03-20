@@ -210,7 +210,7 @@ module params
      real*8        :: gw0                        = -123    !  [m] (advanced) Level initial groundwater level
      character(slen):: gw0file                   = 'abc'   !  [-] (advanced) Name of initial groundwater level file
      real*8        :: gwdelay                    = -123    !  [s] (advanced) Duration for pressure smoothing function in groundwater module
-
+     integer*4     :: gwhorinfil                 = -123    !  [-] (advanced) switch to include horizontal infiltration from surface water to groundwater (default = 0)
 
      ! [Section] Q3D sediment transport parameters
      real*8        :: vonkar                     = -123    !   (advanced) von Karman constant
@@ -885,6 +885,7 @@ contains
        endif
 
        par%gwdelay    = readkey_dbl ('params.txt','gwdelay'   , 0.2d0    , 0.01d0     , 1.d0)
+       par%gwhorinfil = readkey_int ('params.txt','gwhorinfil',      0,           0,        1)
     endif
     !
     !
