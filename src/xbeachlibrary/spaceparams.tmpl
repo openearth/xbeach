@@ -253,3 +253,15 @@
 	  real*8  2  dcmdo    s%nx+1 s%ny+1 d  [W/m2] beachwizard computed minus observed dissipation
 	  real*8  2  dassim   s%nx+1 s%ny+1 d  [m] beachwizard depth change
 	  real*8  2  cobs     s%nx+1 s%ny+1 d  [m/s] beachwizard observed wave celerity
+      real*8  1  shipxCG   par%nship  b [m] [] x-coordinate of ship center of gravity
+      real*8  1  shipyCG   par%nship  b [m] [] y-coordinate of ship center of gravity
+      real*8  1  shipzCG   par%nship  b [m] [] z-coordinate of ship center of gravity
+      real*8  1  shipFx    par%nship  b [m] [] force on ship in x-direction
+      real*8  1  shipFy    par%nship  b [m] [] force on ship in y-direction
+      real*8  1  shipFz    par%nship  b [m] [] force on ship in z-direction
+      real*8  1  shipMx    par%nship  b [m] [] moment on ship around x-axis
+      real*8  1  shipMy    par%nship  b [m] [] moment on ship around y-axis
+      real*8  1  shipMz    par%nship  b [m] [] moment on ship around z-axis
+      real*8  1  shipphi   par%nship  b [m] [] turning angle arround x-axis
+      real*8  1  shipchi   par%nship  b [m] [] turning angle arround y-axis
+      real*8  1  shippsi   par%nship  b [m] [] turning angle arround z-axis

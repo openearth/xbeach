@@ -28,7 +28,7 @@ module libxbeach_module
   type(timepars), save                                     :: tpar
   type(spacepars), pointer                            :: s
   type(spacepars), target, save                       :: sglobal
-
+  type(ship), dimension(:), pointer                   :: sh
 
   integer                                             :: n,it,error
   real*8                                              :: tbegin
@@ -110,6 +110,7 @@ contains
        call bwinit             (s,par)		! works only on master process 
 
        call sed_init           (s,par)
+       if (par%ships==1)        call ship_init (s,par,sh)
 
     endif
 
@@ -160,7 +161,7 @@ contains
 #endif
 
     ! compute timestep
-    if (par%ships==1)        call shipwave       (s,par)
+    if (par%ships==1)        call shipwave       (s,par,sh)
     if (par%swave==1)        call wave           (s,par)
     if (par%gwflow==1)       call gwflow         (s,par)
     if (par%flow+par%nonh>0) call flow           (s,par)
