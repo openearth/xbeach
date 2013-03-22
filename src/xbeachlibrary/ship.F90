@@ -256,7 +256,6 @@ contains
         
         ! Compute pressures on ship based on water levels from XBeach
         !------------------------------------------------------------
-        if (sh(i)%compute_force==1) then
            ! Update locations of x ship grid points
            do iy=1,sh(i)%ny+1
               do ix=1,sh(i)%nx+1
@@ -268,7 +267,8 @@ contains
            n1=(s%nx+1)*(s%ny+1)
            n2=(sh(i)%nx+1)*(sh(i)%ny+1)
            ! Only carry out (costly) MKMAP once when ship is not moving
-           if (firstship .or. abs(shipxCG(i)-shipx_old)>.1*sh(i)%dx .or. abs(shipyCG(i)-shipy_old)<.1*sh(i)%dy) then
+           !! If XBeach grid is regular rectangular a more efficient mapper can be used; TBD
+           if (firstship .or. abs(shipxCG(i)-shipx_old)>.01*sh(i)%dx .or. abs(shipyCG(i)-shipy_old)<.1*sh(i)%dy) then
               call MKMAP (s%wetz    ,s%xz      ,s%yz          ,s%nx+1     ,s%ny+1  , &
                         & sh(i)%x   ,sh(i)%y   ,n2            ,sh(i)%xs   ,sh(i)%ys, &
                         & sh(i)%nrx ,sh(i)%nry ,sh(i)%iflag   ,sh(i)%nrin ,sh(i)%w , &
@@ -277,7 +277,8 @@ contains
            call GRMAP (zsvirt   ,n1      ,sh(i)%zs      ,n2         ,sh(i)%iref, &
                      & sh(i)%w     ,4       ,iprint    )
         
-           ! Compute pressure head (m) on ship grid including small-scale motions
+         if (sh(i)%compute_force==1) then
+          ! Compute pressure head (m) on ship grid including small-scale motions
            !-----------------------------------------------------
            sh(i)%ph = sh(i)%zs-sh(i)%zhull 
 
@@ -315,29 +316,32 @@ contains
         
         ! Compute pressure head (m) on XBeach grid
         !-----------------------------------------
-        do iy=1,s%ny+1
-           do ix=1,s%nx+1
-              ! Convert XBeach cell center coordinates to coordinates in local ship grid  
-              x1 =  (xz(ix,iy)-shipxCG(i))*cosdir + (yz(ix,iy)-shipyCG(i))*sindir
-              y1 = -(xz(ix,iy)-shipxCG(i))*sindir + (yz(ix,iy)-shipyCG(i))*cosdir
-              ! Convert to (float) grid number
-              xrel=x1/sh(i)%dx+sh(i)%nx/2
-              yrel=y1/sh(i)%dy+sh(i)%ny/2
-              i1=floor(xrel)
-              j1=floor(yrel)
-              ! Carry out bilinear interpolation
-              if (i1>=0 .and. i1<SH(i)%nx .and. j1>=0 .and. j1<sh(i)%ny) then
+        call grmap2(s%ph,  s%dsdnzi ,n1      ,sh(i)%ph, sh(i)%dx*sh(i)%dy      ,n2         ,sh(i)%iref, &
+                     & sh(i)%w     ,4          )
+!        do iy=1,s%ny+1
+!           do ix=1,s%nx+1
+!              ! Convert XBeach cell center coordinates to coordinates in local ship grid  
+!              x1 =  (xz(ix,iy)-shipxCG(i))*cosdir + (yz(ix,iy)-shipyCG(i))*sindir!
+!              y1 = -(xz(ix,iy)-shipxCG(i))*sindir + (yz(ix,iy)-shipyCG(i))*cosdir
+!              ! Convert to (float) grid number
+!              xrel=x1/sh(i)%dx+sh(i)%nx/2
+!              yrel=y1/sh(i)%dy+sh(i)%ny/2
+!              i1=floor(xrel)
+!              j1=floor(yrel)
+!              ! Carry out bilinear interpolation
+!              if (i1>=0 .and. i1<SH(i)%nx .and. j1>=0 .and. j1<sh(i)%ny) then
 !                 s%ph(ix,iy)=s%ph(ix,iy)+(1.d0-(xrel-float(i1)))*(1.d0-(yrel-float(j1)))*sh(i)%depth(i1+1,j1+1)  &
 !                                        +(      xrel-float(i1) )*(1.d0-(yrel-float(j1)))*sh(i)%depth(i1+2,j1+1  )  &
 !                                        +(1.d0-(xrel-float(i1)))*(      yrel-float(j1) )*sh(i)%depth(i1+1,j1+2)  &
 !                                        +(      xrel-float(i1) )*(      yrel-float(j1) )*sh(i)%depth(i1+2,j1+2)
-                 s%ph(ix,iy)=s%ph(ix,iy)+(1.d0-(xrel-float(i1)))*(1.d0-(yrel-float(j1)))*sh(i)%ph(i1+1,j1+1)  &
-                                        +(      xrel-float(i1) )*(1.d0-(yrel-float(j1)))*sh(i)%ph(i1+2,j1+1  )  &
-                                        +(1.d0-(xrel-float(i1)))*(      yrel-float(j1) )*sh(i)%ph(i1+1,j1+2)  &
-                                        +(      xrel-float(i1) )*(      yrel-float(j1) )*sh(i)%ph(i1+2,j1+2)
-              endif
-           enddo
-        enddo
+!                 s%ph(ix,iy)=s%ph(ix,iy)+(1.d0-(xrel-float(i1)))*(1.d0-(yrel-float(j1)))*sh(i)%ph(i1+1,j1+1)  &
+!                                        +(      xrel-float(i1) )*(1.d0-(yrel-float(j1)))*sh(i)%ph(i1+2,j1+1  )  &
+!                                        +(1.d0-(xrel-float(i1)))*(      yrel-float(j1) )*sh(i)%ph(i1+1,j1+2)  &
+!                                        +(      xrel-float(i1) )*(      yrel-float(j1) )*sh(i)%ph(i1+2,j1+2)
+
+ !             endif
+ !          enddo
+ !       enddo
     enddo
      
      
