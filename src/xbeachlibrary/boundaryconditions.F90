@@ -37,6 +37,7 @@ contains
     use readkey_module
     use logging_module
     use spectral_wave_bc_module
+    use nonh_module, only: nonh_init_wcoef
 
     IMPLICIT NONE
 
@@ -699,6 +700,7 @@ contains
              if (.not. isSet_U) ui(1,:) = 0.d0
              if (.not. isSet_Z) zi(1,:) = zs(2,:)
              if (.not. isSet_W) wi(1,:) = ws(2,:)
+             call nonh_init_wcoef(s,par)
           else
              if (xmaster) then  
                 if (trim(nhbcfname)=='nh_reuse.bcf') then  

@@ -829,9 +829,10 @@ contains
     type(spectrum),intent(inout)            :: specin
 
     ! Internal variables
-    integer                                 :: fid,i,nnz,ier
-    real*8,dimension(:),allocatable         :: Sd
-
+    integer                                 :: fid,i,nnz,ier,nt,Ashift
+    real*8,dimension(:),allocatable         :: Sd,temp
+    real*8, dimension(:,:),allocatable      :: tempA
+    
     ! Open file to start read
     call writelog('sl','','Reading from vardens file ',trim(readfile),' ...')
     fid = create_new_fid()
@@ -862,6 +863,39 @@ contains
           call report_file_read_error(readfile)
        endif
     end do
+    ! Directions should span 0-360 degrees, not negative
+    nt = 0
+    Ashift = 0
+    ! Make sure that all angles are in range of 0 to 360 degrees
+    if(minval(specin%ang)<0.d0)then
+       allocate (temp(specin%nang))
+       Ashift=-1
+       temp=0.d0
+       do i=1,specin%nang
+          if (specin%ang(i)<0.d0) then
+             specin%ang(i)=specin%ang(i)+360.0d0
+             nt = nt+1
+          endif
+       enddo
+       temp(1:specin%nang-nt)=specin%ang(nt+1:specin%nang)
+       temp(specin%nang-nt+1:specin%nang)=specin%ang(1:nt)
+       specin%ang=temp
+       deallocate(temp)
+    elseif(maxval(specin%ang)>360.0d0)then
+       allocate (temp(specin%nang))
+       Ashift=1
+       temp=0.d0
+       do i=1,specin%nang
+          if (specin%ang(i)>360.d0) then
+             specin%ang(i)=specin%ang(i)-360.0d0
+             nt = nt+1
+          endif
+       enddo
+       temp(nt+1:specin%nang)=specin%ang(1:specin%nang-nt)
+       temp(1:nt)=specin%ang(specin%nang-nt+1:specin%nang)
+       specin%ang=temp
+       deallocate(temp)
+    endif
 
     ! Convert from degrees to rad
     specin%ang=specin%ang*par%px/180
@@ -875,6 +909,24 @@ contains
           call report_file_read_error(readfile)
        endif
     end do
+    
+    ! If the order of the angles in specin%ang was reordered, so the same in 
+    ! specin%S array
+    if(Ashift==-1)then
+       allocate(tempA(specin%nf,specin%nang))
+       tempA=0
+       tempA(:,1:specin%nang-nt)=specin%S(:,nt+1:specin%nang)
+       tempA(:,specin%nang-nt+1:specin%nang)=specin%S(:,1:nt)
+       specin%S=tempA
+       deallocate(tempA)
+    elseif (Ashift==1) then
+       allocate(tempA(specin%nf,specin%nang))
+       tempA=0
+       tempA(:,nt+1:specin%nang)=specin%S(:,1:specin%nang-nt)
+       tempA(:,1:nt)=specin%S(:,specin%nang-nt+1:specin%nang)
+       specin%S=tempA
+       deallocate(tempA)
+    endif
 
     ! Finished reading file
     close(fid)                               
@@ -901,7 +953,9 @@ contains
 
     ! We need to know if hm0 was set explicitly, not the case for vardens files
     specin%hm0 = -1.d0
-
+    
+    ! Free memory
+    deallocate(Sd)
   end subroutine read_vardens_file
 
 

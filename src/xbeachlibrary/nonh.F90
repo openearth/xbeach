@@ -32,8 +32,8 @@ module nonh_module
 
 
   !--- PUBLIC VARIABLES ---
-  character(len=80)            :: PrintFileName = 'Print'
-  integer(kind=iKind),public   :: PrintFileUnit = iPrint
+!  character(len=80)            :: PrintFileName = 'Print'
+!  integer(kind=iKind),public   :: PrintFileUnit = iPrint
   
   logical                      :: initialized   = .false.
   
@@ -80,12 +80,14 @@ module nonh_module
   integer(kind=iKind),allocatable,dimension(:,:)     :: nonhZ
   
   integer(kind=iKind),allocatable,dimension(:,:),save    :: breaking
+  real (kind=rKind), allocatable, dimension(:,:)     :: lbreakcond
 
   !--- PUBLIC SUBROUTINES ---
   public nonh_init
   public nonh_cor
   public nonh_free
   public nonh_explicit
+  public nonh_init_wcoef
   
   !--- PRIVATE SUBROUTINES
   
@@ -136,7 +138,7 @@ contains
 !                             IMPLEMENTATION
 !-------------------------------------------------------------------------------
    
-    open(unit=PrintFileUnit,file=trim(PrintFileName))
+!    open(unit=PrintFileUnit,file=trim(PrintFileName))
         
     allocate(au (0:1,s%nx+1,s%ny+1)); au = 0.0_rKind
     allocate(av (0:1,s%nx+1,s%ny+1)); av = 0.0_rKind  
@@ -163,7 +165,8 @@ contains
     allocate(nonhU(  s%nx+1,s%ny+1)); nonhU = 1
     allocate(nonhV(  s%nx+1,s%ny+1)); nonhV = 1
     allocate(nonhZ(  s%nx+1,s%ny+1)); nonhZ = 1  
-    allocate(breaking(  s%nx+1,s%ny+1)); breaking = 0    
+    allocate(breaking(s%nx+1,s%ny+1)); breaking = 0 
+    allocate(lbreakcond(s%nx+1,s%ny+1)); lbreakcond = par%maxbrsteep 
     allocate(dp(s%nx+1,s%ny+1))     ; dp = 0.0_rKind
     allocate(Wm(s%nx+1,s%ny+1))     ;Wm     = 0.0_rKind
     allocate(Wm_old(s%nx+1,s%ny+1)) ;Wm_old = 0.0_rKind
@@ -194,27 +197,77 @@ contains
     
     initialized   = .true. 
     
-    sigma = 2.0_rkind*par%px/par%Topt
-    if (par%dispc <= 0.0_rKind) then
-      !Calculate the optimum value of the dispersion coeficiant.
-      do j=1,s%ny+1
-        do i=1,s%nx+1      
-          d          = par%zs0-s%zb(i,j)
-          k = disper(sigma,d,par%g,2.0_rKind*par%px,0.0001_rKind)
-          if (d>0.0_rKind) then          
-            wcoef(i,j) = 1.0_rKind / (  4.0_rKind*par%g / (d*sigma**2) - 4.0_rKind / ((k*d)**2)  )
-          else
-            wcoef(i,j) = par%dispc
-          endif  
-        enddo
-      enddo
-    endif
+    ! Compute wcoef
+    call nonh_init_wcoef(s,par)
    
     !Initialize levels at u/v points (zu,zbu etc.)
     call zuzv(s)
 
   end subroutine nonh_init
 
+!
+!==============================================================================
+  subroutine nonh_init_wcoef(s,par)
+!==============================================================================
+!
+
+! DATE               AUTHOR               CHANGES        
+!
+! March 2013         Robert McCall        Move computation of wcoef to own function so callable separately
+
+!-------------------------------------------------------------------------------
+!                             DECLARATIONS
+!-------------------------------------------------------------------------------
+
+!--------------------------        PURPOSE         ----------------------------
+
+!  Recompute wcoef optimisation
+
+!--------------------------     DEPENDENCIES       ----------------------------  
+    use spaceparams
+    use params
+    use wave_functions_module, only: dispersion
+
+!--------------------------     ARGUMENTS          ----------------------------
+
+    type(spacepars) ,intent(in)                          :: s
+    type(parameters),intent(in)                          :: par 
+
+!--------------------------     LOCAL VARIABLES    ----------------------------
+ 
+    integer(kind=iKind)        :: i,j
+    real   (kind=rKind)        :: d,sigma,k
+   
+
+!
+!-------------------------------------------------------------------------------
+!                             IMPLEMENTATION
+!-------------------------------------------------------------------------------   
+!
+
+if (allocated(wcoef)) then
+    sigma = 2.0_rkind*par%px/par%Topt
+    if (par%dispc <= 0.0_rKind) then
+       !Calculate the optimum value of the dispersion coeficiant.
+       do j=1,s%ny+1
+          do i=1,s%nx+1      
+             d = s%zs0(i,j)-s%zb(i,j)
+             k = disper(sigma,d,par%g,2.0_rKind*par%px,0.0001_rKind)
+             if (d>0.0_rKind) then          
+                wcoef(i,j) = 1.0_rKind / (  4.0_rKind*par%g / (d*sigma**2) - 4.0_rKind / ((k*d)**2)  )
+             else
+                wcoef(i,j) = 1.d0
+             endif  
+          enddo
+       enddo
+    else
+       wcoef = par%dispc
+    endif
+endif
+   
+
+end subroutine nonh_init_wcoef
+!
 !
 !==============================================================================
   subroutine nonh_cor(s,par)
@@ -872,54 +925,98 @@ subroutine nonh_explicit(s,par,nuh)
   endif
   
   if (par%nhbreaker == 1) then
-    reformfac = par%reformsteep/par%maxbrsteep
-    if (s%ny>0) then 
-      do j=2,s%ny
-        do i=2,s%nx
-          wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,j))
-          if (breaking(i,j) == 0) then 
-             if (s%ws(i,j)>=wmax) then
-                breaking(i,j) = 1
-             elseif (s%ws(i,j)<=-wmax) then
-                breaking(i,j) = -1
-             endif
-          elseif (breaking(i,j)==1) then
-             if (s%ws(i,j)<reformfac*wmax) then
-                breaking(i,j) = 0
-             endif
-          elseif (breaking(i,j)==-1) then
-             if (s%ws(i,j)>reformfac*-wmax) then
-                breaking(i,j) = 0
-             endif
-          endif
+     reformfac = par%reformsteep/par%maxbrsteep
+     if (s%ny>0) then 
+        do j=2,s%ny
+           do i=2,s%nx
+              wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,j))
+              if (breaking(i,j) == 0) then 
+                 if (s%ws(i,j)>=wmax) then
+                    breaking(i,j) = 1
+                 elseif (s%ws(i,j)<=-wmax) then
+                    breaking(i,j) = -1
+                 endif
+              elseif (breaking(i,j)==1) then
+                 if (s%ws(i,j)<reformfac*wmax) then
+                    breaking(i,j) = 0
+                 endif
+              elseif (breaking(i,j)==-1) then
+                 if (s%ws(i,j)>reformfac*-wmax) then
+                    breaking(i,j) = 0
+                 endif
+              endif
+           enddo
         enddo
-      enddo
-    else
-      do i=2,s%nx
-        wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,1))
-        if (breaking(i,1) == 0) then 
-           if (s%ws(i,1)>=wmax) then
-              breaking(i,1) = 1
-           elseif (s%ws(i,1)<=-wmax) then
-              breaking(i,1) = -1
+     else
+        do i=2,s%nx
+           wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,1))
+           if (breaking(i,1) == 0) then 
+              if (s%ws(i,1)>=wmax) then
+                 breaking(i,1) = 1
+              elseif (s%ws(i,1)<=-wmax) then
+                 breaking(i,1) = -1
+              endif
+           elseif (breaking(i,1)==1) then
+              if (s%ws(i,1)<reformfac*wmax) then
+                 breaking(i,1) = 0
+              endif
+           elseif (breaking(i,1)==-1) then
+              if (s%ws(i,1)>reformfac*-wmax) then
+                 breaking(i,1) = 0
+              endif
            endif
-        elseif (breaking(i,1)==1) then
-           if (s%ws(i,1)<reformfac*wmax) then
-              breaking(i,1) = 0
+        enddo
+     endif
+     ! turn off non-hydrostatic pressure correction in areas with breaking and increase viscosity
+     where (breaking/=0)
+        nonhZ = 0
+        s%pres = 0
+        nuh = par%breakviscfac*nuh
+     endwhere
+  elseif (par%nhbreaker == 2) then
+     ! First determine local breaker criterion
+     lbreakcond = par%maxbrsteep
+     if (s%ny>0) then
+        do i=2,s%nx
+           if (breaking(i,1)) then
+              lbreakcond(i-1:i+1,1) = par%secbrsteep
            endif
-        elseif (breaking(i,1)==-1) then
-           if (s%ws(i,1)>reformfac*-wmax) then
-              breaking(i,1) = 0
+        enddo
+     else
+        do j=jmin,jmax
+           do i=2,s%nx
+              if (breaking(i,j)) then
+                 lbreakcond(i-1:i+1,j-1:j+1) = par%secbrsteep
+              endif
+           enddo
+        enddo
+     endif           
+     ! Now find areas where main breaking criterion is exceeded
+     do j=jmin,jmax
+        do i=2,s%nx
+           if (breaking(i,j)==1) then
+              if(s%ws(i,j)<=0.d0) then
+                 breaking(i,j) = 0
+              endif
+           else
+              wmax = lbreakcond(i,j)*sqrt(par%g*s%hh(i,j))  ! add current term in here too
+              if (s%ws(i,j)>=wmax) then
+                 breaking(i,j) = 1
+              endif
            endif
-        endif
-      enddo
-    endif
-    ! turn off non-hydrostatic pressure correction in areas with breaking and increase viscosity
-    where (breaking/=0)
-       nonhZ = 0
-       s%pres = 0
-       nuh = par%breakviscfac*nuh
-    endwhere
+        enddo
+     enddo
+     ! turn off non-hydrostatic pressure correction in areas with breaking and increase viscosity
+     do j=jmin,jmax
+        do i=2,s%nx
+           if (breaking(i,j)) then
+              nonhZ(i,j) = 0
+              s%pres(i,j) = 0.d0
+              ! compute local extra viscosity
+              nuh(i,j) = nuh(i,j)+(par%breakvisclen*s%hh(i,j))**2
+           endif
+        enddo
+     enddo
   endif
   
  !Calculate explicit part average vertical momentum (advection)

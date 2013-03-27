@@ -231,7 +231,9 @@ module params
      integer*4     :: nhbreaker                  = -123    ! [-] (advanced) Turn on or off nonhydrostatic breaker model
      real*8        :: breakviscfac               = -123    ! [-] (advanced) Factor to increase viscosity during breaking
      real*8        :: maxbrsteep                 = -123    ! [-] (advanced) Maximum wave steepness criterium
+     real*8        :: secbrsteep                 = -123    ! [-] (advanced) Secondary maximum wave steepness criterium
      real*8        :: reformsteep                = -123    ! [-] (advanced) Wave steepness criterium to reform after breaking
+     real*8        :: breakvisclen               = -123    ! [-] (advanced) Ratio between local depth and length scale in extra breaking viscosity
 
      ! [Section] Bed composition parameters
      real*8        :: rhos                       = -123    !  [kgm^-3] Solid sediment density (no pores)
@@ -926,6 +928,10 @@ contains
           par%breakviscfac = readkey_dbl('params.txt','breakviscfac',1.5d0, 1.d0, 3.d0)
           par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.6d0, 0.3d0, 0.8d0)
           par%reformsteep  = readkey_dbl('params.txt','reformsteep',0.25d0*par%maxbrsteep,0.d0,0.95d0*par%maxbrsteep)
+       elseif (par%nhbreaker==2) then
+          par%breakvisclen = readkey_dbl('params.txt','breakviscfac',1.0d0, 0.75d0, 3.d0)
+          par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.6d0, 0.3d0, 0.8d0)
+          par%secbrsteep   = readkey_dbl('params.txt','secbrsteep',0.5d0*par%maxbrsteep,0.d0,0.95d0*par%maxbrsteep)
        endif
     endif
     !
