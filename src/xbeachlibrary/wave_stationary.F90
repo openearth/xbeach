@@ -582,7 +582,7 @@ contains
     call xmpi_shift(ust,':1')
     call xmpi_shift(ust,':n')
 #endif
-    D=2*par%g*par%beta*sum(rr/sqrt(cx**2+cy**2),3)*dtheta
+    !D=2*par%g*par%beta*sum(rr/sqrt(cx**2+cy**2),3)*dtheta ! Arnold: commented this line, seems like a copy/paste error.
 
   end subroutine wave_stationary
 end module wave_stationary_module
