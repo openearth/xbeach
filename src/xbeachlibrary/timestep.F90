@@ -511,7 +511,7 @@ contains
        endif
 
      ! groundwater stability
-     if (par%gwflow==1) then   ! .and.  par%gwnonh==0
+     if (par%gwflow==1 .and. par%gwnonh==0) then
         j2=max(s%ny,1)
         do j=j1,j2
            do i=2,s%nx
@@ -536,6 +536,7 @@ contains
         endif
      endif
      
+     if (par%swave==1) then
 #ifdef USEMPI
        ! Dano: no refraction if ntheta==1 so no need for this check
        if (s%ntheta>1) then
@@ -546,6 +547,7 @@ contains
           par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tny))
        end if
 #endif
+     endif
        !To avoid large timestep differences due to output, which can cause instabities
        !in the hanssen (leapfrog) scheme, we smooth the timestep.
 

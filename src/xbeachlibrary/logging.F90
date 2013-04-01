@@ -58,7 +58,8 @@ MODULE logging_module
      module procedure writelog_afafafaf
      module procedure writelog_illll
      module procedure writelog_fa
-  end interface writelog
+   module procedure writelog_afaiaaa
+end interface writelog
 
 CONTAINS
 
@@ -950,5 +951,22 @@ CONTAINS
 
   end subroutine writelog_fa
 
+  subroutine writelog_afaiaaa(destination,form,mc1,mf1,mc2,mi1,mc3,mc4,mc5)
+    implicit none
+    character(*),intent(in)    ::  form, mc1,mc2,mc3,mc4,mc5
+    character(*),intent(in)    ::  destination
+    real*8,intent(in)          ::  mf1
+    integer,intent(in)         ::  mi1
+    character(1024)            ::  display
+ 
+    if (form=='') then
+       write(display,*)mc1,mf1,mc2,mi1,mc3,mc4,mc5
+    else
+       write(display,form)mc1,mf1,mc2,mi1,mc3,mc4,mc5
+    endif
+
+    call writelog_distribute(destination, display)
+
+  end subroutine writelog_afaiaaa
 
 end module logging_module

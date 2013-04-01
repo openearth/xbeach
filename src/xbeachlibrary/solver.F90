@@ -223,7 +223,7 @@ contains
   
 !
 !==============================================================================
-     subroutine solver_tridiag  ( amat  , rhs   , x     ,cmat ,nx ,ny )
+     subroutine solver_tridiag  ( amat  , rhs   , x     ,cmat ,nx ,ny,fixshallow )
 !==============================================================================    
 !
  
@@ -255,6 +255,7 @@ contains
 !
     integer, intent(in)                                   :: nx   !Number of x-meshes
     integer, intent(in)                                   :: ny   !Number of y-meshes    
+    logical, intent(in),optional                          :: fixshallow   
           
     real(kind=rKind),dimension(5,nx+1,ny+1),intent(in)    :: amat !the coefficient matrix used in the linear system
     real(kind=rKind),dimension(nx+1,ny+1)  ,intent(in)    :: rhs  !the right-hand side vector of the system of equations
@@ -267,6 +268,7 @@ contains
     integer(kind=iKind) :: i                                      !Index variable
     integer(kind=iKind) :: jindex                                 !Index variable for superfast1D
     real   (kind=rKind) :: fac                                    !Auxillary variable
+    logical             :: lfixshallow
 
 !-------------------------------------------------------------------------------
 !                             IMPLEMENTATION
@@ -278,13 +280,25 @@ contains
           jindex = 1
        endif
 
+       if (present(fixshallow)) then
+          lfixshallow = fixshallow
+       else
+          lfixshallow = .false.
+       endif
+
        fac    = amat(1,1,jindex)
+       if (abs(fac)<tiny(0.d0) .and. lfixshallow) then
+          fac = sign(tiny(0.d0),fac)
+       endif
        x(1,jindex) = rhs(1,jindex)/fac
        
        !forward elimination
        do i=2,nx+1
          cmat(i)  = amat(3,i-1,jindex)/fac
          fac      = amat(1,i,jindex)-amat(2,i,jindex)*cmat(i)
+          if (abs(fac)<tiny(0.d0) .and. lfixshallow) then
+             fac = sign(tiny(0.d0),fac)
+          endif
          x(i,jindex) = (rhs(i,jindex)-amat(2,i,jindex)*x(i-1,jindex))/fac
        enddo
       

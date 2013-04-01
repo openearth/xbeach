@@ -209,7 +209,11 @@ module params
      character(slen):: aquiferbotfile            = 'abc'   !  [-] (advanced) Name of the aquifer bottom file
      real*8        :: gw0                        = -123    !  [m] (advanced) Level initial groundwater level
      character(slen):: gw0file                   = 'abc'   !  [-] (advanced) Name of initial groundwater level file
-     real*8        :: gwdelay                    = -123    !  [s] (advanced) Duration for pressure smoothing function in groundwater module
+     integer*4     :: gwnonh                     = -123    !  [-] (advanced) Switch to turn on or off non-hydrostatic pressure for groundwater
+     integer*4     :: gwfastsolve                = -123    !  [-] (advanced) Reduce full 2D non-hydrostatic solution to quasi-explicit in longshore direction
+     character(slen):: gwscheme                  = 'abc'   !  [-] (advanced) Scheme for momentum equation (laminar, turbulent)
+     real*8        :: gwReturb                   = -123    !  [-] (advanced) Reynolds number for start of turbulent flow in case of gwscheme = turbulent
+     character(slen):: gwheadmodel               = 'abc'   !  [-] (advanced) Model to use for vertical groundwater head: 'parabolic' (default), or 'exponential'
      integer*4     :: gwhorinfil                 = -123    !  [-] (advanced) switch to include horizontal infiltration from surface water to groundwater (default = 0)
 
      ! [Section] Q3D sediment transport parameters
@@ -406,7 +410,7 @@ contains
     par%flow        = readkey_int ('params.txt','flow',          1,        0,     1)
     par%sedtrans    = readkey_int ('params.txt','sedtrans',      1,        0,     1)
     par%morphology  = readkey_int ('params.txt','morphology',    1,        0,     1)
-    par%avalanching = readkey_int ('params.txt','avalanching',   1,        0,     1)
+    par%avalanching = readkey_int ('params.txt','avalanching',   par%morphology,0,1)
     par%nonh        = readkey_int ('params.txt','nonh',          0,        0,     1)
     par%gwflow      = readkey_int ('params.txt','gwflow',        0,        0,     1)
     par%q3d         = readkey_int ('params.txt','q3d',           0,        0,     1)
@@ -763,47 +767,47 @@ contains
     !
     !
     ! Wave breaking parameters                                                                                                      
-    call writelog('l','','--------------------------------')
-    call writelog('l','','Wave breaking parameters: ')
-    allocate(allowednames(5),oldnames(5))
-    allowednames=(/'roelvink1    ','baldock      ','roelvink2    ','roelvink_daly','janssen      '/)
-    oldnames    =(/'1','2','3','4','5'/)
-    if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
-       par%break   = readkey_str('params.txt','break','baldock',5,5,allowednames,oldnames)
-    else 
-       par%break   = readkey_str('params.txt','break','roelvink2',5,5,allowednames,oldnames)
-    endif
-    deallocate(allowednames,oldnames)
-    par%gamma    = readkey_dbl ('params.txt','gamma',   0.55d0,     0.4d0,     0.9d0)   !changed 28/11
-    if (trim(par%break)=='roelvink_daly') then
-       par%gamma2   = readkey_dbl ('params.txt','gamma2',   0.3d0,     0.0d0,     0.5d0)
-    endif
-    par%alpha    = readkey_dbl ('params.txt','alpha',   1.0d0,     0.5d0,     2.0d0)
-    par%n        = readkey_dbl ('params.txt','n',       10.0d0,     5.0d0,    20.0d0)   !changed 28/11
-    par%gammax   = readkey_dbl ('params.txt','gammax',   2.d0,      .4d0,      5.d0)    !changed 28/11
-    par%delta    = readkey_dbl ('params.txt','delta',   0.0d0,     0.0d0,     1.0d0)
-    par%fw       = readkey_dbl ('params.txt','fw',       0.d0,   0d0,      1.0d0)
-    par%fwcutoff = readkey_dbl ('params.txt','fwcutoff',  1000.d0,   0d0,      1000.d0)
-    par%breakerdelay = readkey_int ('params.txt','breakerdelay',    1,   0,      1)
-    par%shoaldelay = readkey_int ('params.txt','shoaldelay',    0,   0,      1)
-    par%facsd      = readkey_dbl ('params.txt','facsd',       1.d0,   0d0,      2.0d0)
-    par%facrun     = readkey_dbl ('params.txt','facrun',      1.d0,   0d0,      2.0d0)
-    !
-    !
-    ! Roller parameters                                                                                                      
-    call writelog('l','','--------------------------------')
-    call writelog('l','','Roller parameters: ')
-    par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
-    par%beta     = readkey_dbl ('params.txt','beta',    0.10d0,     0.05d0,   0.3d0)
-    par%rfb      = readkey_int ('params.txt','rfb',        0,        0,     1)
-    !
-    !
-    ! Wave-current interaction parameters    
-    call writelog('l','','--------------------------------')
-    call writelog('l','','Wave-current interaction parameters: ')
-    par%wci      = readkey_int ('params.txt','wci',        0,        0,     1)
-    par%hwci     = readkey_dbl ('params.txt','hwci',   0.1d0,   0.001d0,      1.d0)
-    par%cats     = readkey_dbl ('params.txt','cats',   4.d0,     1.d0,      50.d0)
+       call writelog('l','','--------------------------------')
+       call writelog('l','','Wave breaking parameters: ')
+       allocate(allowednames(5),oldnames(5))
+       allowednames=(/'roelvink1    ','baldock      ','roelvink2    ','roelvink_daly','janssen      '/)
+       oldnames    =(/'1','2','3','4','5'/)
+       if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
+          par%break   = readkey_str('params.txt','break','baldock',5,5,allowednames,oldnames)
+      else 
+          par%break   = readkey_str('params.txt','break','roelvink2',5,5,allowednames,oldnames)
+       endif
+       deallocate(allowednames,oldnames)
+       par%gamma    = readkey_dbl ('params.txt','gamma',   0.55d0,     0.4d0,     0.9d0)   !changed 28/11
+       if (trim(par%break)=='roelvink_daly') then
+          par%gamma2   = readkey_dbl ('params.txt','gamma2',   0.3d0,     0.0d0,     0.5d0)
+       endif
+       par%alpha    = readkey_dbl ('params.txt','alpha',   1.0d0,     0.5d0,     2.0d0)
+       par%n        = readkey_dbl ('params.txt','n',       10.0d0,     5.0d0,    20.0d0)   !changed 28/11
+       par%gammax   = readkey_dbl ('params.txt','gammax',   2.d0,      .4d0,      5.d0)    !changed 28/11
+       par%delta    = readkey_dbl ('params.txt','delta',   0.0d0,     0.0d0,     1.0d0)
+       par%fw       = readkey_dbl ('params.txt','fw',       0.d0,   0d0,      1.0d0)
+       par%fwcutoff = readkey_dbl ('params.txt','fwcutoff',  1000.d0,   0d0,      1000.d0)
+       par%breakerdelay = readkey_int ('params.txt','breakerdelay',    1,   0,      1)
+       par%shoaldelay = readkey_int ('params.txt','shoaldelay',    0,   0,      1)
+       par%facsd      = readkey_dbl ('params.txt','facsd',       1.d0,   0d0,      2.0d0)
+       par%facrun     = readkey_dbl ('params.txt','facrun',      1.d0,   0d0,      2.0d0)
+       !
+       !
+       ! Roller parameters                                                                                                      
+       call writelog('l','','--------------------------------')
+       call writelog('l','','Roller parameters: ')
+       par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
+       par%beta     = readkey_dbl ('params.txt','beta',    0.10d0,     0.05d0,   0.3d0)
+       par%rfb      = readkey_int ('params.txt','rfb',        0,        0,     1)
+       !
+       !
+       ! Wave-current interaction parameters    
+       call writelog('l','','--------------------------------')
+       call writelog('l','','Wave-current interaction parameters: ')
+       par%wci      = readkey_int ('params.txt','wci',        0,        0,     1)
+       par%hwci     = readkey_dbl ('params.txt','hwci',   0.1d0,   0.001d0,      1.d0)
+       par%cats     = readkey_dbl ('params.txt','cats',   4.d0,     1.d0,      50.d0)
     !
     !
     ! Flow parameters          
@@ -868,10 +872,10 @@ contains
     if (par%gwflow==1) then
        call writelog('l','','--------------------------------')
        call writelog('l','','Groundwater parameters: ')
-       par%kx         = readkey_dbl ('params.txt','kx'        , 0.0001d0 , 0.00001d0, 0.01d0)
-       par%ky         = readkey_dbl ('params.txt','ky'        , par%kx   , 0.00001d0, 0.01d0)
-       par%kz         = readkey_dbl ('params.txt','kz'        , par%kx   , 0.00001d0, 0.01d0)
-       par%dwetlayer  = readkey_dbl ('params.txt','dwetlayer' , 0.2d0    , 0.01d0     , 1.d0)
+       par%kx         = readkey_dbl ('params.txt','kx'        , 0.0001d0 , 0.00001d0, 0.1d0)
+       par%ky         = readkey_dbl ('params.txt','ky'        , par%kx   , 0.00001d0, 0.1d0)
+       par%kz         = readkey_dbl ('params.txt','kz'        , par%kx   , 0.00001d0, 0.1d0)
+       par%dwetlayer  = readkey_dbl ('params.txt','dwetlayer' , 0.1d0    , 0.01d0     , 1.d0)
        par%aquiferbotfile = readkey_name('params.txt','aquiferbotfile')
        if (par%aquiferbotfile==' ') then
           !also read in groundwater.f90 which determines value
@@ -885,8 +889,27 @@ contains
        else 
           call check_file_exist(par%gw0file)
        endif
-
-       par%gwdelay    = readkey_dbl ('params.txt','gwdelay'   , 0.2d0    , 0.01d0     , 1.d0)
+       par%gwnonh     = readkey_int ('params.txt','gwnonh',      0,           0,        1)
+       if (par%gwnonh==1) then 
+          if (par%ny>2) then
+             par%gwfastsolve = readkey_int ('params.txt','gwfastsolve',      0,    0,      1)
+          endif
+       endif
+       ! Type of momentum equation
+       allocate(allowednames(2))
+       allocate(oldnames(2))
+       allowednames = (/'laminar  ','turbulent'/)
+       oldnames     = (/'darcy    ','modflow  '/)
+       par%gwscheme    = readkey_str('params.txt','gwscheme','laminar',2,2,allowednames,oldnames)
+       deallocate(allowednames,oldnames)
+       if (trim(par%gwscheme)=='turbulent') then
+          par%gwReturb    = readkey_dbl ('params.txt','gwReturb'   , 100.d0    , 1.d0     , 600.d0)
+       endif
+       allocate(allowednames(2))
+       allocate(oldnames(0))
+       allowednames=(/'parabolic  ','exponential'/)
+       par%gwheadmodel   = readkey_str('params.txt','gwheadmodel','parabolic  ',2,0,allowednames,oldnames)
+       deallocate(allowednames,oldnames)
        par%gwhorinfil = readkey_int ('params.txt','gwhorinfil',      0,           0,        1)
     endif
     !
@@ -1198,6 +1221,11 @@ contains
        call writelog('lse','(a)','Error: Morphology cannot be computed without sediment transport.')
        call writelog('lse','(a)','       Set sedtrans=1 or morphology=0')
        call halt_program
+    endif
+    if (par%morphology==0 .and. par%avalanching==1) then
+       call writelog('lsw','(a)','Warning: Avalanching cannot be computed without morphology.')
+       call writelog('lsw','(a)','         Avalanching has been turned off')
+       par%avalanching=0
     endif
     !
     !

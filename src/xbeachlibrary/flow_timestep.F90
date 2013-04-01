@@ -711,7 +711,7 @@ contains
           do i=2,imax
              dzsdt(i,j) = (-1.d0)*( qx(i,j)*dnu(i,j)-qx(i-1,j)*dnu(i-1,j)  &
                   + qy(i,j)*dsv(i,j)-qy(i,j-1)*dsv(i,j-1) )*dsdnzi(i,j) &
-                  - gww(i,j)
+                  - infil(i,j)
           end do
        end do
        zs(2:nx,2:ny) = zs(2:nx,2:ny)+dzsdt(2:nx,2:ny)*par%dt !Jaap nx instead of nx+1
@@ -719,7 +719,7 @@ contains
        j=1
        do i=2,imax
           dzsdt(i,j) = (-1.d0)*( qx(i,j)*dnu(i,j)-qx(i-1,j)*dnu(i-1,j) )*dsdnzi(i,j) &
-               - gww(i,j)
+                        - infil(i,j)
        end do
        zs(2:nx,1) = zs(2:nx,1)+dzsdt(2:nx,1)*par%dt !Jaap nx instead of nx+1
     endif !ny>0
