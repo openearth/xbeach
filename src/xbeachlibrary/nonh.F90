@@ -976,7 +976,7 @@ subroutine nonh_explicit(s,par,nuh)
   elseif (par%nhbreaker == 2) then
      ! First determine local breaker criterion
      lbreakcond = par%maxbrsteep
-     if (s%ny>0) then
+     if (s%ny==0) then
         do i=2,s%nx
            if (breaking(i,1)) then
               lbreakcond(i-1:i+1,1) = par%secbrsteep
