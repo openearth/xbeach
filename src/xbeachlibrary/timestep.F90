@@ -420,7 +420,7 @@ contains
     integer                     :: i
     integer                     :: j,j1,j2
     integer                     :: n
-    real*8                              :: mdx,mdy,tny
+    real*8                              :: mdx,mdy,tny,fac
     real*8,save                         :: dtref
 
     ! Super fast 1D
@@ -577,6 +577,13 @@ contains
        par%t   = tpar%tnext
        it      = it+1
     end if
+    
+    ! Sometimes dtref is set incorrectly in intialization. We want to stop sudden changes 
+    ! in time step size, so allow dtref to change slowely to current situations. If simulation
+    ! requires smaller timestep due to e.g. overwash, this should not stop the simulation.
+    ! Errors occur in O(1-10) timesteps. Therefore filter on O(1000-10000) timesteps
+    fac = 1.d0/5000
+    dtref = (1.d0-fac)*dtref + fac*par%dt
 
     if ((dtref/par%dt>50.d0 .and. par%dt<par%tint) .or. par%dt/dtref>50.d0) then
        call writelog('lse','','Quit XBeach since computational time implodes/explodes')

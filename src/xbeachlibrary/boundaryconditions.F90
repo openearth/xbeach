@@ -838,7 +838,12 @@ contains
     ! factime=1.d0/par%cats/par%Trep*par%dt !Jaap: not used anymore
     ! jaap: compute epsi based on offshore boundary conditions if epsi = -1
     if (par%epsi==-1.d0) then
-       factime = 1.d0/par%cats/par%Trep*par%dt
+       if (par%swave==1) then
+          factime = 1.d0/par%cats/par%Trep*par%dt
+       else
+          ! need to do something here
+          factime = 1.d0/60*par%dt
+       endif
     else
        factime = par%epsi
     endif

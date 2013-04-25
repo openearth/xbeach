@@ -316,9 +316,12 @@ subroutine gwflow(s,par)
   ! of timestep is returned which was required to reach connection
   if (par%gwnonh==1) then
      call gw_unconnected_infil(s,par,Kz,connected,fracdt,infiluncon)
-     where ((.not. connected) .and. (gwlevel>zb))
+!     where ((.not. connected) .and. (gwlevel>zb))
+!        infiluncon = infiluncon - (gwlevel-zb)/par%dt*par%por
+!        fracdt = 1.d0
+!     endwhere
+     where (gwlevel>zb)
         infiluncon = infiluncon - (gwlevel-zb)/par%dt*par%por
-        fracdt = 1.d0
      endwhere
   endif
   !
