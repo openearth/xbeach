@@ -227,13 +227,25 @@ contains
           if (qin>0) then
              dalfa          = alfau(i,j)-alfau(i-1,j)
              uin            = uu(i-1,j)*cos(dalfa) + vu(i-1,j)*sin(dalfa)
-             ududx(i,j)     = ududx(i,j) + qin*(uu(i,j)-uin)*dnz(i,j)/hum(i,j)*dsdnui(i,j)
+             if ((uu(i,j)-uu(i-1,j))>par%eps_sd) then
+                ! Conservation of energy head
+                ududx(i,j)     = ududx(i,j) + 0.5d0*(uu(i-1,j)+uu(i,j))*(uu(i,j)-uin)*dnz(i,j)*dsdnui(i,j)
+             else
+                ! Conservation of momentum
+                ududx(i,j)     = ududx(i,j) +        qin/hum(i,j)      *(uu(i,j)-uin)*dnz(i,j)*dsdnui(i,j)
+             endif
           endif
           qin               = -.5d0*(qx(i,j)+qx(i+1,j))
           if (qin>0) then
              dalfa          = alfau(i,j)-alfau(i+1,j)
              uin            = uu(i+1,j)*cos(dalfa) + vu(i+1,j)*sin(dalfa)
-             ududx(i,j)     = ududx(i,j) + qin*(uu(i,j)-uin)*dnz(i+1,j)/hum(i,j)*dsdnui(i,j)
+             if ((uu(i+1,j)-uu(i,j))>par%eps_sd) then
+                ! Conservation of energy head
+                ududx(i,j)     = ududx(i,j) - 0.5d0*(uu(i+1,j)+uu(i,j))*(uu(i,j)-uin)*dnz(i+1,j)*dsdnui(i,j)
+             else
+                ! Conservation of momentum
+                ududx(i,j)     = ududx(i,j) +        qin/hum(i,j)      *(uu(i,j)-uin)*dnz(i+1,j)*dsdnui(i,j)
+             endif
           endif
        end do
     end do
@@ -251,13 +263,25 @@ contains
           if (qin>0) then
              dalfa          = alfau(i,j)-alfau(i,j-1)
              uin            = uu(i,j-1)*cos(dalfa) + vu(i,j-1)*sin(dalfa)
-             vdudy(i,j)     = vdudy(i,j) + qin*(uu(i,j)-uin)*dsc(i,j-1)/hum(i,j)*dsdnui(i,j)
+             if ((vv(i,j)-vv(i,j-1))>par%eps_sd) then
+                ! Conservation of energy head
+                vdudy(i,j)     = vdudy(i,j) + 0.5d0*(vv(i,j-1)+vv(i+1,j-1))*(uu(i,j)-uin)*dsc(i,j-1)*dsdnui(i,j)
+             else
+                ! Conservation of momentum
+                vdudy(i,j)     = vdudy(i,j) +        qin/hum(i,j)          *(uu(i,j)-uin)*dsc(i,j-1)*dsdnui(i,j)
+             endif
           endif
           qin               = -.5d0*(qy(i,j)+qy(i+1,j))
           if (qin>0) then
              dalfa          = alfau(i,j)-alfau(i,j+1)
              uin            = uu(i,j+1)*cos(dalfa) + vu(i,j+1)*sin(dalfa)
-             vdudy(i,j)     = vdudy(i,j) + qin*(uu(i,j)-uin)*dsc(i,j)/hum(i,j)*dsdnui(i,j)
+             if ((vv(i,j+1)-vv(i,j))>par%eps_sd) then
+                ! Conservation of energy head
+                vdudy(i,j)     = vdudy(i,j) - 0.5d0*(vv(i,j)+vv(i+1,j))*(uu(i,j)-uin)*dsc(i,j)*dsdnui(i,j)
+             else
+                ! Conservation of momentum
+                vdudy(i,j)     = vdudy(i,j) +        qin/hum(i,j)       *(uu(i,j)-uin)*dsc(i,j)*dsdnui(i,j)
+             endif
           endif
        end do
     end do
@@ -424,13 +448,25 @@ contains
           if (qin>0) then
              dalfa          = alfav(i,j)-alfav(i,j-1)
              vin            = vv(i,j-1)*cos(dalfa) - uv(i,j-1)*sin(dalfa)
-             vdvdy(i,j)     = vdvdy(i,j) + qin*(vv(i,j)-vin)*dsz(i,j)/hvm(i,j)*dsdnvi(i,j)
+             if ((vv(i,j)-vv(i,j-1))>par%eps_sd) then
+                ! Conservation of energy head
+                vdvdy(i,j)     = vdvdy(i,j) + 0.5d0*(vv(i,j-1)+vv(i,j))*(vv(i,j)-vin)*dsz(i,j)*dsdnvi(i,j)
+             else
+                ! Conservation of momentum
+                vdvdy(i,j)     = vdvdy(i,j) +        qin/hvm(i,j)      *(vv(i,j)-vin)*dsz(i,j)*dsdnvi(i,j)
+             endif
           endif
           qin               = -.5d0*(qy(i,j)+qy(i,j+1))
           if (qin>0) then
              dalfa          = alfav(i,j)-alfav(i,j+1)
              vin            = vv(i,j+1)*cos(dalfa) - uv(i,j+1)*sin(dalfa)
-             vdvdy(i,j)     = vdvdy(i,j) + qin*(vv(i,j)-vin)*dsz(i,j+1)/hvm(i,j)*dsdnvi(i,j)
+             if ((vv(i,j+1)-vv(i,j))>par%eps_sd) then
+                ! Conservation of energy head
+                vdvdy(i,j)     = vdvdy(i,j) - 0.5d0*(vv(i,j+1)+vv(i,j))*(vv(i,j)-vin)*dsz(i,j+1)*dsdnvi(i,j)
+             else
+                ! Conservation of momentum
+                vdvdy(i,j)     = vdvdy(i,j) +        qin/hvm(i,j)      *(vv(i,j)-vin)*dsz(i,j+1)*dsdnvi(i,j)
+             endif
           endif
        enddo
     enddo
@@ -469,13 +505,25 @@ contains
              if (qin>0) then
                 dalfa       = alfav(i,j)-alfav(i-1,j)
                 vin         = vv(i-1,j)*cos(dalfa) - uv(i-1,j)*sin(dalfa)
-                udvdx(i,j)  = udvdx(i,j) + qin*(vv(i,j)-vin)*dnc(i-1,j)/hvm(i,j)*dsdnvi(i,j)
+                if ((uu(i,j)-uu(i-1,j))>par%eps_sd) then
+                   ! Conservation of energy head
+                   udvdx(i,j)     = udvdx(i,j) + 0.5d0*(uu(i-1,j)+uu(i-1,j+1))*(vv(i,j)-vin)*dnc(i-1,j)*dsdnvi(i,j)
+                else
+                   ! Conservation of momentum
+                   udvdx(i,j)     = udvdx(i,j) +        qin/hvm(i,j)          *(vv(i,j)-vin)*dnc(i-1,j)*dsdnvi(i,j)
+                endif
              endif
              qin            = -.5d0*(qx(i,j)+qx(i,j+1))
              if (qin>0) then
                 dalfa       = alfav(i,j)-alfav(i+1,j)
                 vin         = vv(i+1,j)*cos(dalfa) - uv(i+1,j)*sin(dalfa)
-                udvdx(i,j)  = udvdx(i,j) + qin*(vv(i,j)-vin)*dnc(i,j)/hvm(i,j)*dsdnvi(i,j)
+                if ((uu(i+1,j)-uu(i,j))>par%eps_sd) then
+                   ! Conservation of energy head
+                   udvdx(i,j)  = udvdx(i,j) - 0.5d0*(uu(i,j)+uu(i,j+1))*(vv(i,j)-vin)*dnc(i,j)*dsdnvi(i,j)
+                else
+                   ! Conservation of momentum
+                   udvdx(i,j)  = udvdx(i,j) +        qin/hvm(i,j)      *(vv(i,j)-vin)*dnc(i,j)*dsdnvi(i,j)
+                endif
              endif
           end do
        end do

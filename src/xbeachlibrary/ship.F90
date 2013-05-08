@@ -268,11 +268,16 @@ contains
            n2=(sh(i)%nx+1)*(sh(i)%ny+1)
            ! Only carry out (costly) MKMAP once when ship is not moving
            !! If XBeach grid is regular rectangular a more efficient mapper can be used; TBD
-           if (firstship .or. abs(shipxCG(i)-shipx_old)>.01*sh(i)%dx .or. abs(shipyCG(i)-shipy_old)<.1*sh(i)%dy) then
+           if (firstship) then 
               call MKMAP (s%wetz    ,s%xz      ,s%yz          ,s%nx+1     ,s%ny+1  , &
                         & sh(i)%x   ,sh(i)%y   ,n2            ,sh(i)%xs   ,sh(i)%ys, &
                         & sh(i)%nrx ,sh(i)%nry ,sh(i)%iflag   ,sh(i)%nrin ,sh(i)%w , &
                         & sh(i)%iref,iprint    ,sh(i)%covered ,xymiss)
+           elseif(abs(shipxCG(i)-shipx_old)>.01*sh(i)%dx .or. abs(shipyCG(i)-shipy_old)<.1*sh(i)%dy) then
+              call MKMAP_STEP (s%xz      ,s%yz          ,s%nx+1     ,s%ny+1  , &
+                        & s%alfaz   ,s%dsu     ,s%dnv         ,                &
+                        & sh(i)%x   ,sh(i)%y   ,n2            , &
+                        & sh(i)%w   ,sh(i)%iref        )
            endif
            call GRMAP (zsvirt   ,n1      ,sh(i)%zs      ,n2         ,sh(i)%iref, &
                      & sh(i)%w     ,4       ,iprint    )

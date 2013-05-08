@@ -343,6 +343,7 @@ module params
 
      ! [Section] Flow numerics parameters                                                                                                      
      real*8        :: eps                        = -123    !  [m] Threshold water depth above which cells are considered wet
+     real*8        :: eps_sd                     = -123    !  [m/s] Threshold velocity difference to determine conservation of energy head vs momentum
      real*8        :: umin                       = -123    !  [m/s] Threshold velocity for upwind velocity detection and for vmag2 in eq. sediment concentration
      real*8        :: hmin                       = -123    !  [m] Threshold water depth above which Stokes drift is included
      integer*4     :: secorder                   = -123    !  [-] (advanced) Use second order corrections to advection/non-linear terms based on mcCormack scheme
@@ -1144,6 +1145,7 @@ contains
     call writelog('l','','--------------------------------')
     call writelog('l','','Flow numerics parameters: ') 
     par%eps     = readkey_dbl ('params.txt','eps',     0.005d0,   0.001d0,      0.1d0)
+    par%eps_sd  = readkey_dbl ('params.txt','eps_sd',  0.5d0,     0.000d0,      1.0d0)
     par%umin    = readkey_dbl ('params.txt','umin',    0.0d0,     0.0d0,        0.2d0)
     par%hmin    = readkey_dbl ('params.txt','hmin',    0.2d0,     0.001d0,      1.d0)
     par%secorder = readkey_int('params.txt','secorder' ,0,0,1)

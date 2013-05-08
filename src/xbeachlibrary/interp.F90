@@ -483,6 +483,86 @@ contains
         enddo
     end subroutine mkmap
   
+    subroutine mkmap_step (x1        ,y1        ,m1        ,n1        ,    &
+                   &       alfaz     ,dsu       ,dnv       ,               &
+                   &       x2        ,y2        ,n2        ,w         ,  iref      )
+    !!--description-----------------------------------------------------------------
+    !
+    !
+    !     SUBROUTINE MKMAP_STEP
+    !     Interpolation of curvilinear, numerically ordered grid (grid1) 
+    !     to random points, with weighting points (grid2). 
+    !
+    !     J.A. Roelvink
+    !     UNESCO-IHE / Deltares
+    !     8 May 2013 
+        !
+    !     Given: numerically ordered grid M1*N1
+    !     with (new)coordinates X1 (1:M1,1:N1)
+    !                  and Y1 (1:M1,1:N1)
+    !
+    !     Also given: random points X2(1:N2)
+    !                           and Y2(1:N2)
+    !                 previous iref
+    !
+    !     To be determined:  weighting factors and updated pointers for bilinear interpolation
+    !     Weighting factors and locations of the requested (random) points in the
+    !     ordered grid are saved in resp.
+    !     W(1:4,1:N2) and Iref(1:4,1:N2)
+    !
+    !!--pseudo code and references--------------------------------------------------
+    ! NONE
+    !!--declarations----------------------------------------------------------------
+        !
+        implicit none
+    !
+    ! Global variables
+    !
+        integer                    , intent(in)  :: m1
+        integer                    , intent(in)  :: n1
+        integer                                  :: n2
+        integer , dimension(4 , n2)              :: iref
+        real*8  , dimension(4 , n2)              :: w       
+        real*8  , dimension(m1, n1), intent(in)  :: x1
+        real*8  , dimension(m1, n1), intent(in)  :: y1
+        real*8  , dimension(m1, n1), intent(in)  :: alfaz
+        real*8  , dimension(m1, n1), intent(in)  :: dsu
+        real*8  , dimension(m1, n1), intent(in)  :: dnv
+        real*8  , dimension(n2)                  :: x2
+        real*8  , dimension(n2)                  :: y2
+        real*8                                   :: dx
+        real*8                                   :: dy
+        real*8                                   :: ds
+        real*8                                   :: dn
+        real*8                                   :: dsrel
+        real*8                                   :: dnrel
+        integer                                  :: i1,j1,i2
+        
+        do i2=1,n2
+           i1=mod(iref(1,i2),m1)
+           j1=(iref(1,i2)-i1)/m1+1
+           dx=x2(i2)-x1(i1,j1)
+           dy=y2(i2)-y1(i1,j1)
+           ds= dx*cos(alfaz(i1,j1))+dy*sin(alfaz(i1,j1))
+           dn=-dx*sin(alfaz(i1,j1))+dy*cos(alfaz(i1,j1))
+           dsrel=ds/dsu(i1,j1)
+           dnrel=dn/dnv(i1,j1)
+           i1=i1+floor(dsrel)
+           j1=j1+floor(dnrel)
+           dsrel=dsrel-floor(dsrel)
+           dnrel=dnrel-floor(dnrel)
+           iref(1, i2) = i1 + (j1 - 1)*m1
+           iref(2, i2) = i1 + 1 + (j1 - 1)*m1
+           iref(3, i2) = i1 + 1 + j1*m1
+           iref(4, i2) = i1 + j1*m1
+           w(1, i2) = (1.d0-dsrel)*(1.d0-dnrel)
+           w(2, i2) =       dsrel *(1.d0-dnrel)
+           w(3, i2) =       dsrel *      dnrel 
+           w(4, i2) = (1.d0-dsrel)*      dnrel 
+        enddo
+        
+    end subroutine mkmap_step
+  
   subroutine grmap(f1        ,n1        ,f2        ,n2        ,iref      , &
                  & w         ,np        ,iprint    )
   !!--description-----------------------------------------------------------------
