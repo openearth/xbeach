@@ -539,26 +539,28 @@ contains
         integer                                  :: i1,j1,i2
         
         do i2=1,n2
-           i1=mod(iref(1,i2),m1)
-           j1=(iref(1,i2)-i1)/m1+1
-           dx=x2(i2)-x1(i1,j1)
-           dy=y2(i2)-y1(i1,j1)
-           ds= dx*cos(alfaz(i1,j1))+dy*sin(alfaz(i1,j1))
-           dn=-dx*sin(alfaz(i1,j1))+dy*cos(alfaz(i1,j1))
-           dsrel=ds/dsu(i1,j1)
-           dnrel=dn/dnv(i1,j1)
-           i1=i1+floor(dsrel)
-           j1=j1+floor(dnrel)
-           dsrel=dsrel-floor(dsrel)
-           dnrel=dnrel-floor(dnrel)
-           iref(1, i2) = i1 + (j1 - 1)*m1
-           iref(2, i2) = i1 + 1 + (j1 - 1)*m1
-           iref(3, i2) = i1 + 1 + j1*m1
-           iref(4, i2) = i1 + j1*m1
-           w(1, i2) = (1.d0-dsrel)*(1.d0-dnrel)
-           w(2, i2) =       dsrel *(1.d0-dnrel)
-           w(3, i2) =       dsrel *      dnrel 
-           w(4, i2) = (1.d0-dsrel)*      dnrel 
+           if (iref(1,i2)>0) then
+              i1=mod(iref(1,i2)-1,m1)+1
+              j1=(iref(1,i2)-i1)/m1+1
+              dx=x2(i2)-x1(i1,j1)
+              dy=y2(i2)-y1(i1,j1)
+              ds= dx*cos(alfaz(i1,j1))+dy*sin(alfaz(i1,j1))
+              dn=-dx*sin(alfaz(i1,j1))+dy*cos(alfaz(i1,j1))
+              dsrel=ds/dsu(i1,j1)
+              dnrel=dn/dnv(i1,j1)
+              i1=i1+floor(dsrel)
+              j1=j1+floor(dnrel)
+              dsrel=dsrel-floor(dsrel)
+              dnrel=dnrel-floor(dnrel)
+              iref(1, i2) = i1 + (j1 - 1)*m1
+              iref(2, i2) = i1 + 1 + (j1 - 1)*m1
+              iref(3, i2) = i1 + 1 + j1*m1
+              iref(4, i2) = i1 + j1*m1
+              w(1, i2) = (1.d0-dsrel)*(1.d0-dnrel)
+              w(2, i2) =       dsrel *(1.d0-dnrel)
+              w(3, i2) =       dsrel *      dnrel 
+              w(4, i2) = (1.d0-dsrel)*      dnrel 
+           endif
         enddo
         
     end subroutine mkmap_step
@@ -606,22 +608,25 @@ contains
       if (iprint==1) write (*, *) 'in grmap n1 n2', n1, n2
       do i2 = 1, n2
          i = iref(1, i2)
-         i1 = max(i, 1)
-         ifac = 1 - i/i1
-         f2(i2) = f2(i2)*ifac
+         if (i>0) then
+            f2(i2)=0.d0
+   !        i1 = max(i, 1)
+   !        ifac = 1 - i/i1
+   !        f2(i2) = f2(i2)*ifac
          !
          ! Function values at grid 2 are expressed as weighted average
          ! of function values in Np surrounding points of grid 1
          !
-         if (iprint==1 .and. i2<=n2) &
+            if (iprint==1 .and. i2<=n2) &
           & write (*, '(1X,A,I6,4(1X,E10.4))') ' i2 w ', i2, (w(ip, i2) , ip = 1,  &
           & np)
-         do ip = 1, np
-            i = iref(ip, i2)
-            i1 = max(i, 1)
-            if (iprint==1 .and. i2<=n2) write (*, *) ' i1,f1(i1) ', i1, f1(i1)
-            f2(i2) = f2(i2) + w(ip, i2)*f1(i1)
-         enddo
+            do ip = 1, np
+               i = iref(ip, i2)
+               i1 = max(i, 1)
+               if (iprint==1 .and. i2<=n2) write (*, *) ' i1,f1(i1) ', i1, f1(i1)
+               f2(i2) = f2(i2) + w(ip, i2)*f1(i1)
+            enddo       
+         endif
       enddo
   end subroutine grmap
  
