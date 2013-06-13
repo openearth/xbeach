@@ -957,7 +957,7 @@ CONTAINS
     character(*),intent(in)    ::  destination
     real*8,intent(in)          ::  mf1
     integer,intent(in)         ::  mi1
-    character(1024)            ::  display
+    character(slen)            ::  display
  
     if (form=='') then
        write(display,*)mc1,mf1,mc2,mi1,mc3,mc4,mc5

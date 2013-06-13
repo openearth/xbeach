@@ -1890,7 +1890,7 @@ contains
     real(kind=rKind)                            :: scalar(nvar-1)    
     integer(kind=iKind)                         :: i
     integer(kind=iKind)                         :: ioStat
-    character(len=1024)                         :: ername
+    character(len=slen)                         :: ername
 
     !-------------------------------------------------------------------------------
     !                             IMPLEMENTATION

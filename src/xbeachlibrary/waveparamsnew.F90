@@ -1,6 +1,6 @@
 ! Everything in this module should be handled by xmaster, so only call using xmaster
 module spectral_wave_bc_module
-
+  use typesandkinds 
   implicit none
 
   type spectrum                                         ! These are related to input spectra
@@ -46,13 +46,13 @@ module spectral_wave_bc_module
      integer, dimension(:),pointer          :: Findex     ! Index of wave train component locations on frequency/Fourier axis
      integer, dimension(:),pointer          :: WDindex    ! Index of wave train component locations on wave directional bin axis
      double complex,dimension(:,:),pointer  :: CompFn     ! Fourier components of the wave trains                                           
-     character(256)                         :: Efilename,qfilename,nhfilename
+     character(slen)                        :: Efilename,qfilename,nhfilename
      real*8,dimension(:,:),pointer          :: zsits      ! time series of total surface elevation for nonhspectrum==1
      real*8,dimension(:,:),pointer          :: uits       ! time series of depth-averaged horizontal velocity nonhspectrum==1
      real*8,dimension(:,:),pointer          :: wits       ! time series of depth-averaged vertical velocity for nonhspectrum==1  ??
   endtype waveparamsnew
   type filenames                                      ! Place to store multiple file names
-     character(256)                         :: fname  ! file name of boundary condition file
+     character(slen)                        :: fname  ! file name of boundary condition file
      integer                                :: listline ! read position in FILELIST files
      logical                                :: reuse = .false. ! indicate to reuse this file every rtbc cycle
   endtype filenames
@@ -274,7 +274,7 @@ contains
     ! internal
     integer                     :: fid
     character(8)                :: testline
-    character(256)              :: readfile
+    character(slen)             :: readfile
     logical                     :: filelist
     integer                     :: i,ier
 

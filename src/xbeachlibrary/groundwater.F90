@@ -25,6 +25,7 @@
 ! USA                                                                     !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 module groundwaterflow
+   use typesandkinds
    private    ! set private default
    ! set these public to users of groundwater module
    public gw_init
@@ -46,7 +47,7 @@ subroutine gw_init(s,par)
    type(parameters)                            :: par
    type(spacepars)                             :: s
 
-   character(256)                              :: fname
+   character(slen)                             :: fname
    real*8                                      :: aquiferbot,temp
    integer                                     :: i,j
 
