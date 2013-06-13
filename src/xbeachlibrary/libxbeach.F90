@@ -110,7 +110,10 @@ contains
        call bwinit             (s,par)		! works only on master process 
 
        call sed_init           (s,par)
-       if (par%ships==1)        call ship_init (s,par,sh)
+       call ship_init          (s,par,sh)   ! always need to call initialise in order
+                                            ! to reserve memory on MPI subprocesses.
+                                            ! Note: if par%ships==0 then don't allocate
+                                            ! and read stuff for sh structures
 
     endif
 

@@ -332,7 +332,7 @@ module params
      character(slen) :: drifterfile              = 'abc'   !  [-] Name of drifter data file
 
      ! [Section] Ship parameters
-     character(slen) :: shipfile                 = 'abc'   !  [-] Name of drifter data file
+     character(slen) :: shipfile                 = 'abc'   !  [-] Name of ship data file
 
      ! [Section] Wave numerics parameters                                                                                                      
      character(slen):: scheme                    = 'abc'   !  [-] (advanced) Use first-order upwind (upwind_1), second order upwind (upwind_2) or Lax-Wendroff (lax_wendroff)
@@ -1118,10 +1118,13 @@ contains
     !
     !
     ! Shipwaves parameters
-    call writelog('l','','--------------------------------')
-    call writelog('l','','Shipwaves parameters: ')
-    par%shipfile = readkey_name  ('params.txt', 'shipfile'                    )  
-    ! shipfile routine should set nship
+    if (par%ships==1) then
+       call writelog('l','','--------------------------------')
+       call writelog('l','','Shipwaves parameters: ')
+       par%shipfile = readkey_name  ('params.txt', 'shipfile')  
+       call check_file_exist(par%shipfile)
+       ! shipfile routine should set nship
+    endif
     ! 
     !   
     ! Wave numerics parameters 

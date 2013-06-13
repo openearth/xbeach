@@ -25,16 +25,17 @@
 ! USA                                                                     !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 module ship_module
+use typesandkinds
 implicit none
 type ship
-   character*256                   :: name
+   character(slen)                 :: name
    real*8                          :: dx
    real*8                          :: dy
    integer                         :: nx
    integer                         :: ny
    integer                         :: compute_force  ! option (0/1) to compute forces on ship (can be switched on/off per ship)
    integer                         :: compute_motion ! option (0/1) to compute ship motion due to waves
-   character*256                   :: shipgeom
+   character(slen)                 :: shipgeom
    real*8                          :: xCG            ! x location of center of gravity w.r.t. ship grid
    real*8                          :: yCG            ! y location of center of gravity w.r.t. ship grid
    real*8                          :: zCG            ! z location of center of gravity w.r.t. ship grid
@@ -44,7 +45,7 @@ type ship
    real*8, dimension(:,:), pointer :: zhull        ! actual z-coordinate of ship hull relative to horizontal reference plane
    real*8, dimension(:,:), pointer :: zs           ! water level defined on ship grid, interpolated from XBeach
    real*8, dimension(:,:), pointer :: ph           ! pressure head at ship hull = zs-zhull
-   character*256                   :: shiptrack
+   character(slen)                 :: shiptrack
    integer                         :: track_nt
    real*8 , dimension(:)  , pointer :: track_t
    real*8 , dimension(:)  , pointer :: track_x
@@ -91,7 +92,8 @@ contains
     include 's.ind'
     include 's.inp'
     
-    ! Read ship names (== filenames with ship geometry and track data)
+    if(par%ships==1) then
+      ! Read ship names (== filenames with ship geometry and track data)
 
       fid=create_new_fid()
       open(fid,file=par%shipfile)
@@ -157,7 +159,7 @@ contains
            sh(i)%ph=sh(i)%depth
         endif
 
-      ! Read t,x,y of ship position
+        ! Read t,x,y of ship position
 
         fid=create_new_fid()
         open(fid,file=sh(i)%shiptrack)
@@ -178,7 +180,7 @@ contains
         enddo
         close(fid)
         
-     !  Compute ship direction
+       !  Compute ship direction
 
         sh(i)%track_dir(1)=atan2(sh(i)%track_y(2)-sh(i)%track_y(1),sh(i)%track_x(2)-sh(i)%track_x(1))
         do it=2,sh(i)%track_nt-1
@@ -189,7 +191,7 @@ contains
 
       enddo ! loop over ships
 
-    ! Initialize ship-related global variables
+      ! Initialize ship-related global variables
       allocate(s%shipxCG (par%nship)) 
       allocate(s%shipyCG (par%nship)) 
       allocate(s%shipzCG (par%nship)) 
@@ -207,8 +209,22 @@ contains
       s%shipzCG=0.d0
       s%shipFx=0.d0   
       s%shipFy=0.d0   
-      s%shipFz=0.d0   
-
+      s%shipFz=0.d0
+    else
+      ! just allocate address for memory
+      allocate(s%shipxCG (par%nship)) 
+      allocate(s%shipyCG (par%nship)) 
+      allocate(s%shipzCG (par%nship)) 
+      allocate(s%shipFx  (par%nship)) 
+      allocate(s%shipFy  (par%nship)) 
+      allocate(s%shipFz  (par%nship)) 
+      allocate(s%shipMx  (par%nship)) 
+      allocate(s%shipMy  (par%nship)) 
+      allocate(s%shipMz  (par%nship)) 
+      allocate(s%shipphi (par%nship)) 
+      allocate(s%shipchi (par%nship)) 
+      allocate(s%shippsi (par%nship)) 
+    endif
   end subroutine ship_init  
     
   subroutine shipwave(s,par,sh)
