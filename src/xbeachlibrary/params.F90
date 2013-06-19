@@ -695,10 +695,10 @@ contains
     ! front
     call writelog('l','','--------------------------------')
     call writelog('l','','Flow boundary condition parameters: ')
-    allocate(allowednames(5),oldnames(5))
-    allowednames=(/'abs_1d ','abs_2d ','wall   ','wlevel ','nonh_1d'/)
-    oldnames=(/'0','1','2','3','4'/)
-    par%front  = readkey_str('params.txt','front','abs_2d',5,5,allowednames,oldnames)
+    allocate(allowednames(6),oldnames(6))
+    allowednames=(/'abs_1d   ','abs_2d   ','wall     ','wlevel   ','nonh_1d  ','waveflume'/)
+    oldnames=(/'0','1','2','3','4','5'/)
+    par%front  = readkey_str('params.txt','front','abs_2d',6,6,allowednames,oldnames)
     deallocate(allowednames,oldnames)
     ! left and right
     allocate(allowednames(4),oldnames(2))

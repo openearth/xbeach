@@ -1025,6 +1025,14 @@ contains
              vv(1,:)=vv(2,:)
              zs(1,:)=zs(2,:)
              if (par%nonh==1) ws(1,:) = ws(2,:)
+          elseif (trim(par%front)=='waveflume') then ! Ad's radiating boundary
+             if (trim(par%tidetype)=='velocity') then
+                zsmean(1,:) = factime*zs(1,:)+(1-factime)*zsmean(1,:)
+             endif
+             uu(1,:)=(1.0d0+sqrt(par%g*hh(1,:))/cg(1,:))*ui(1,:)-(sqrt(par%g/hh(1,:))*(zs(2,:)-zsmean(1,:)))
+             vv(1,:)=vv(2,:)
+             zs(1,:)=zs(2,:)
+             if (par%nonh==1) ws(1,:) = ws(2,:)
           elseif (trim(par%front)=='abs_2d') then ! Van Dongeren (1997), weakly reflective boundary condition
              ht(1:2,:)=max(zs0(1:2,:)-zb(1:2,:),par%eps)
              beta=uu(1:2,:)-2.*dsqrt(par%g*hum(1:2,:))
