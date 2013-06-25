@@ -1,7 +1,6 @@
 !==============================================================================
 !                               MODULE NH_MAIN                        
 !==============================================================================
-
 ! DATE               AUTHOR               CHANGES        
 !
 ! october 2009       Pieter Bart Smit     New module
@@ -39,48 +38,48 @@ module nonh_module
   
   !        NONE
 
-  real (kind=rKind), allocatable, dimension(:,:,:)   :: au     !Pressure coeficients for u(i,j)
-  real (kind=rKind), allocatable, dimension(:,:,:)   :: av     !Pressure coeficients for v(i,j)
-  real (kind=rKind), allocatable, dimension(:,:,:)   :: aws    !Pressure coeficients for ws(k,i,j)
-  real (kind=rKind), allocatable, dimension(:,:,:)   :: awb    !Pressure coeficients for wb(k,i,j)
+  real (kind=rKind), allocatable, dimension(:,:,:) :: au     !Pressure coeficients for u(i,j)
+  real (kind=rKind), allocatable, dimension(:,:,:) :: av     !Pressure coeficients for v(i,j)
+  real (kind=rKind), allocatable, dimension(:,:,:) :: aws    !Pressure coeficients for ws(k,i,j)
+  real (kind=rKind), allocatable, dimension(:,:,:) :: awb    !Pressure coeficients for wb(k,i,j)
 
   
-  real (kind=rKind), allocatable, dimension(:,:)     :: aur    !RHS for u(i,j)
-  real (kind=rKind), allocatable, dimension(:,:)     :: avr    !RHS for v(i,j)
-  real (kind=rKind), allocatable, dimension(:,:)     :: awbr   !Pressure coeficients for wb(k,i,j)  
-  real (kind=rKind), allocatable, dimension(:,:)     :: awsr   !Pressure coeficients for ws(k,i,j)
+  real (kind=rKind), allocatable, dimension(:,:)   :: aur    !RHS for u(i,j)
+  real (kind=rKind), allocatable, dimension(:,:)   :: avr    !RHS for v(i,j)
+  real (kind=rKind), allocatable, dimension(:,:)   :: awbr   !Pressure coeficients for wb(k,i,j)  
+  real (kind=rKind), allocatable, dimension(:,:)   :: awsr   !Pressure coeficients for ws(k,i,j)
     
-  real (kind=rKind), allocatable, dimension(:,:,:)   :: mat   !Pressure matrix
-  real (kind=rKind), allocatable, dimension(:,:)     :: rhs   !RHS of the pressure matrix
+  real (kind=rKind), allocatable, dimension(:,:,:) :: mat   !Pressure matrix
+  real (kind=rKind), allocatable, dimension(:,:)   :: rhs   !RHS of the pressure matrix
   
-  real (kind=rKind), allocatable, dimension(:,:)     :: zsu    !free surface/bottom in velocity points
-  real (kind=rKind), allocatable, dimension(:,:)     :: zsv    !free surface/bottom in velocity points
+  real (kind=rKind), allocatable, dimension(:,:)   :: zsu    !free surface/bottom in velocity points
+  real (kind=rKind), allocatable, dimension(:,:)   :: zsv    !free surface/bottom in velocity points
   
-  real (kind=rKind), allocatable, dimension(:,:)     :: zbu    !free surface/bottom in velocity points
-  real (kind=rKind), allocatable, dimension(:,:)     :: zbv    !free surface/bottom in velocity points
+  real (kind=rKind), allocatable, dimension(:,:)   :: zbu    !free surface/bottom in velocity points
+  real (kind=rKind), allocatable, dimension(:,:)   :: zbv    !free surface/bottom in velocity points
   
-  real (kind=rKind), allocatable, dimension(:,:)     :: dp     !Change in pressure
+  real (kind=rKind), allocatable, dimension(:,:)   :: dp     !Change in pressure
     
-  real (kind=rKind), allocatable, dimension(:)       ::  dxz   
-  real (kind=rKind), allocatable, dimension(:)       ::  dyz   
-  real (kind=rKind), allocatable, dimension(:)       ::  dxu   
-  real (kind=rKind), allocatable, dimension(:)       ::  dyv   
-  real (kind=rKind), allocatable, dimension(:)       ::  ddxz  
-  real (kind=rKind), allocatable, dimension(:)       ::  ddyz   
-  real (kind=rKind), allocatable, dimension(:)       ::  ddxu  
-  real (kind=rKind), allocatable, dimension(:)       ::  ddyv   
+  real (kind=rKind), allocatable, dimension(:)     ::  dxz   
+  real (kind=rKind), allocatable, dimension(:)     ::  dyz   
+  real (kind=rKind), allocatable, dimension(:)     ::  dxu   
+  real (kind=rKind), allocatable, dimension(:)     ::  dyv   
+  real (kind=rKind), allocatable, dimension(:)     ::  ddxz  
+  real (kind=rKind), allocatable, dimension(:)     ::  ddyz   
+  real (kind=rKind), allocatable, dimension(:)     ::  ddxu  
+  real (kind=rKind), allocatable, dimension(:)     ::  ddyv   
   
-  real (kind=rKind), allocatable, dimension(:,:)     :: wcoef
+  real (kind=rKind), allocatable, dimension(:,:)   :: wcoef
   
-  real (kind=rKind), allocatable, dimension(:,:)     :: Wm
-  real (kind=rKind), allocatable, dimension(:,:)     :: Wm_old
+  real (kind=rKind), allocatable, dimension(:,:)   :: Wm
+  real (kind=rKind), allocatable, dimension(:,:)   :: Wm_old
   
-  integer(kind=iKind),allocatable,dimension(:,:)     :: nonhU
-  integer(kind=iKind),allocatable,dimension(:,:)     :: nonhV
-  integer(kind=iKind),allocatable,dimension(:,:)     :: nonhZ
+  integer(kind=iKind),allocatable,dimension(:,:)   :: nonhU
+  integer(kind=iKind),allocatable,dimension(:,:)   :: nonhV
+  integer(kind=iKind),allocatable,dimension(:,:)   :: nonhZ
   
-  integer(kind=iKind),allocatable,dimension(:,:),save    :: breaking
-  real (kind=rKind), allocatable, dimension(:,:)     :: lbreakcond
+  integer(kind=iKind),allocatable,dimension(:,:)   :: breaking
+  real (kind=rKind), allocatable, dimension(:,:)   :: lbreakcond
 
   !--- PUBLIC SUBROUTINES ---
   public nonh_init
@@ -941,7 +940,7 @@ subroutine nonh_explicit(s,par,nuh)
                     breaking(i,j) = 0
                  endif
               elseif (breaking(i,j)==-1) then
-                 if (s%ws(i,j)>reformfac*-wmax) then
+                 if (s%ws(i,j)>reformfac*(-wmax)) then
                     breaking(i,j) = 0
                  endif
               endif
@@ -961,7 +960,7 @@ subroutine nonh_explicit(s,par,nuh)
                  breaking(i,1) = 0
               endif
            elseif (breaking(i,1)==-1) then
-              if (s%ws(i,1)>reformfac*-wmax) then
+              if (s%ws(i,1)>reformfac*(-wmax)) then
                  breaking(i,1) = 0
               endif
            endif
@@ -978,14 +977,14 @@ subroutine nonh_explicit(s,par,nuh)
      lbreakcond = par%maxbrsteep
      if (s%ny==0) then
         do i=2,s%nx
-           if (breaking(i,1)) then
+           if (breaking(i,1) .ne. 0) then
               lbreakcond(i-1:i+1,1) = par%secbrsteep
            endif
         enddo
      else
         do j=jmin,jmax
            do i=2,s%nx
-              if (breaking(i,j)) then
+              if (breaking(i,j) .ne. 0) then
                  lbreakcond(i-1:i+1,j-1:j+1) = par%secbrsteep
               endif
            enddo
@@ -1009,7 +1008,7 @@ subroutine nonh_explicit(s,par,nuh)
      ! turn off non-hydrostatic pressure correction in areas with breaking and increase viscosity
      do j=jmin,jmax
         do i=2,s%nx
-           if (breaking(i,j)) then
+           if (breaking(i,j) .ne. 0) then
               nonhZ(i,j) = 0
               s%pres(i,j) = 0.d0
               ! compute local extra viscosity

@@ -27,6 +27,9 @@ libxbeach_la_SOURCES= \
 	wave_stationary.F90 \
 	wave_instationary.F90 \
 	wave_timestep.F90 \
+	solver.F90 \
+	flow_secondorder.F90 \
+	nonh.F90 \
         boundaryconditions.F90 \
 	morphevolution.F90 \
 	beachwizard.F90 \
@@ -36,9 +39,6 @@ libxbeach_la_SOURCES= \
 	readwind.F90 \
 	initialize.F90 \
 	timestep.F90 \
-	flow_secondorder.F90 \
-	solver.F90 \
-	nonh.F90 \
 	flow_timestep.F90 \
 	postprocess.F90 \
 	varianceupdate.F90 \
