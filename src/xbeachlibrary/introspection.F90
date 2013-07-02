@@ -576,13 +576,15 @@ contains
     character(length) :: myname 
     integer :: index
     type(arraytype) :: array
-    real(c_double), target, allocatable, dimension(:)  :: r1
+    real(c_double), target, allocatable, save, dimension(:)  :: r1
 
     get1ddoublearray_c = -1
     myname = char_array_to_string(name, length)
     index =  chartoindex(myname)
     if (index .eq. -1) return
     call indextos(s,index,array)
+    
+    if (allocated (r1)) deallocate (r1)
     allocate(r1(size(array%r1,1)))
     r1(:) = array%r1(:)
 
@@ -622,13 +624,14 @@ contains
     character(length) :: myname 
     integer :: index
     type(arraytype) :: array
-    real(c_double), target, allocatable, dimension(:,:)  :: r2
+    real(c_double), target, allocatable, save, dimension(:,:)  :: r2
 
     get2ddoublearray_c = -1
     myname = char_array_to_string(name, length)
     index =  chartoindex(myname)
     if (index .eq. -1) return
     call indextos(s,index,array)
+    if (allocated (r2)) deallocate (r2)
     allocate(r2(size(array%r2,1), size(array%r2,2)))
     r2(:,:) = array%r2(:,:)
     ! array%r2 => r2
@@ -668,13 +671,14 @@ contains
     character(length) :: myname 
     integer :: index
     type(arraytype) :: array
-    real(c_double), target, allocatable, dimension(:,:,:)  :: r3
+    real(c_double), target, allocatable, save, dimension(:,:,:)  :: r3
 
     get3ddoublearray_c = -1
     myname = char_array_to_string(name, length)
     index =  chartoindex(myname)
     if (index .eq. -1) return
     call indextos(s,index,array)
+    if (allocated (r3)) deallocate (r3)
     allocate(r3(size(array%r3,1), size(array%r3,2), size(array%r3,3)))
     r3(:,:,:) = array%r3(:,:,:)
     ! array%r3 => r3
@@ -715,13 +719,14 @@ contains
     character(length) :: myname 
     integer :: index
     type(arraytype) :: array
-    real(c_double), target, allocatable, dimension(:,:,:,:)  :: r4
+    real(c_double), target, allocatable, save, dimension(:,:,:,:)  :: r4
 
     get4ddoublearray_c = -1
     myname = char_array_to_string(name, length)
     index =  chartoindex(myname)
     if (index .eq. -1) return
     call indextos(s,index,array)
+    if (allocated (r4)) deallocate (r4)
     allocate(r4(size(array%r4,1), size(array%r4,2), size(array%r4,3), size(array%r4,4)))
     r4(:,:,:,:) = array%r4(:,:,:,:)
     ! array%r4 => r4
@@ -804,13 +809,14 @@ contains
     character(length) :: myname 
     integer :: index
     type(arraytype) :: array
-    integer(c_int), target, allocatable, dimension(:)  :: i1
+    integer(c_int), target, allocatable, save, dimension(:)  :: i1
 
     get1dintarray_c = -1
     myname = char_array_to_string(name, length)
     index =  chartoindex(myname)
     if (index .eq. -1) return
     call indextos(s,index,array)
+    if (allocated (i1)) deallocate (i1)
     allocate(i1(size(array%i1,1)))
     i1(:) = array%i1(:)
     ! array%r2 => r2
@@ -851,13 +857,14 @@ contains
     character(length) :: myname 
     integer :: index
     type(arraytype) :: array
-    integer(c_int), target, allocatable, dimension(:,:)  :: i2
+    integer(c_int), target, allocatable, save, dimension(:,:)  :: i2
 
     get2dintarray_c = -1
     myname = char_array_to_string(name, length)
     index =  chartoindex(myname)
     if (index .eq. -1) return
     call indextos(s,index,array)
+    if (allocated (i2)) deallocate (i2)
     allocate(i2(size(array%i2,1), size(array%i2,2)))
     i2(:,:) = array%i2(:,:)
     ! array%r2 => r2
