@@ -24,8 +24,8 @@ GOTO:EOF
 
 rem copy files in tree
 if %3==x64 (
-echo copy included files from "%1\lib\win64\mpich\*.*" to %2\mpich\
-xcopy "%1\lib\win64\mpich\*.*" %2\mpich\ /s
+echo copy included files from "%1\lib\x64\mpich\*.*" to %2\mpich\
+xcopy "%1\lib\x64\mpich\*.*" %2\mpich\ /s
 GOTO:EOF
 )
 

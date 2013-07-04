@@ -45,22 +45,22 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="netcdf_Debug|Win32" OutputDirectory="bin\static\win32\$(ConfigurationName)" IntermediateDirectory="bin\static\win32\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ExternalNameInterpretation="extNameLowerCase" CallingConvention="callConventionCVF" StringLengthArgPassing="strLenArgsAfterAll" ExternalNameUnderscore="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
-				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\win32\vs\pg" AdditionalDependencies="netcdf.lib"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
+				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\win32\netcdf\Debug\" AdditionalDependencies="f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
-				<Tool Name="VFPreLinkEventTool" CommandLine="build\copy_netcdf_dlls.bat $(SolutionDir) $(TargetDir)"/>
+				<Tool Name="VFPreLinkEventTool" CommandLine="build\copy_netcdf_dlls.bat $(SolutionDir) $(TargetDir) Win32 Debug"/>
 				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName) win32"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="netcdf_Release|Win32" OutputDirectory="bin\static\win32\$(ConfigurationName)" IntermediateDirectory="bin\static\win32\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ExternalNameInterpretation="extNameLowerCase" CallingConvention="callConventionCVF" StringLengthArgPassing="strLenArgsAfterAll" ExternalNameUnderscore="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" Interfaces="true"/>
-				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\win32\vs\pg" AdditionalDependencies="netcdf.lib"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" Interfaces="true"/>
+				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\win32\netcdf\Debug\" AdditionalDependencies="f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
-				<Tool Name="VFPreLinkEventTool" CommandLine="build\copy_netcdf_dlls.bat $(SolutionDir) $(TargetDir)"/>
+				<Tool Name="VFPreLinkEventTool" CommandLine="build\copy_netcdf_dlls.bat $(SolutionDir) $(TargetDir) Win32 Debug"/>
 				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName) win32"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
@@ -82,6 +82,26 @@
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool"/>
 				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName) x64"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="netcdf_Debug|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
+				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\x64\netcdf\Debug\" AdditionalDependencies="f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool" CommandLine="build\copy_netcdf_dlls.bat $(SolutionDir) $(TargetDir) x64 Debug"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName) x64"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="netcdf_Release|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" Interfaces="true"/>
+				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\x64\netcdf\Debug\" AdditionalDependencies="f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool" CommandLine="build\copy_netcdf_dlls.bat $(SolutionDir) $(TargetDir) x64 Debug"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName) win32"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_Debug|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">

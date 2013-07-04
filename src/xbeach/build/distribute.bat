@@ -18,15 +18,12 @@ rem clear output dir
 if exist "%SolutionDir%\dist\%Platform%\%ConfigurationName%\" rmdir "%SolutionDir%\dist\%Platform%\%ConfigurationName%\" /q /s
 mkdir "%SolutionDir%\dist\%Platform%\%ConfigurationName%\"
 
-rem copy exe
-copy "%TargetDir%\*.exe" "%SolutionDir%\dist\%Platform%\%ConfigurationName%\"
-copy "%TargetDir%\*.dll" "%SolutionDir%\dist\%Platform%\%ConfigurationName%\"
-
-rem copy additional dll files from static output folder
-copy "%SolutionDir%\src\xbeachlibrary\bin\static\%Platform%\%ConfigurationName%\*.dll" "%SolutionDir%\dist\%Platform%\%ConfigurationName%\"
-
 rem copy additional dll files from static to bin folder
 copy "%SolutionDir%\src\xbeachlibrary\bin\static\%Platform%\%ConfigurationName%\*.dll" "%TargetDir%\"
+
+rem copy exe and dll
+copy "%TargetDir%\*.exe" "%SolutionDir%\dist\%Platform%\%ConfigurationName%\"
+copy "%TargetDir%\*.dll" "%SolutionDir%\dist\%Platform%\%ConfigurationName%\"
 
 rem copy current manual
 copy "%SolutionDir%\doc\manual\xbeach_manual.pdf" "%SolutionDir%\dist\%Platform%\%ConfigurationName%\"

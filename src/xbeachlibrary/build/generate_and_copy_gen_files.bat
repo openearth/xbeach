@@ -16,6 +16,8 @@ set type=%type:MPI_=%
 
 echo on
 
+set currentDir=%cd%
+
 cd "%SolutionDir%src\makeincludes\bin\%Platform%"
 
 if not EXIST "%SolutionDir%src\makeincludes\bin\%Platform%\params.F90" goto creategen
@@ -45,3 +47,4 @@ xcopy "%SolutionDir%src\makeincludes\bin\%Platform%\*.gen" "%SolutionDir%src\xbe
 cd "%SolutionDir%src\xbeachlibrary\"
 
 :end
+cd "%currentDir%"

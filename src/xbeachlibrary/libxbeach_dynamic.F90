@@ -1,7 +1,7 @@
 module libxbeach_dynamic
 
   use libxbeach_module
-  USE iso_c_binding
+  use iso_c_binding
 
   implicit none
 
