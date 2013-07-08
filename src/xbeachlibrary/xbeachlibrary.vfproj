@@ -64,6 +64,26 @@
 				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName) win32"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_netcdf_Debug|Win32" OutputDirectory="bin\static\win32\$(ConfigurationName)" IntermediateDirectory="bin\static\win32\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\win32\MPI_netcdf_Debug\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT;USENETCDF;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
+				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="bin\static\win32\MPI_netcdf_Debug\mpich\lib;..\..\lib\win32\netcdf\Debug\" AdditionalDependencies="mpi.lib fmpich2.lib f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool" CommandLine="build\copy_netcdf_dlls.bat $(SolutionDir) $(TargetDir) Win32 Debug"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName) win32 &amp;&amp; build\copy_mpich.bat $(SolutionDir) $(TargetDir) win32"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_netcdf_Release|Win32" OutputDirectory="bin\static\win32\$(ConfigurationName)" IntermediateDirectory="bin\static\win32\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\win32\MPI_netcdf_Release\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT;USENETCDF;DLL_NETCDF" Diagnostics="diagnosticsShowAll" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true"/>
+				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="bin\static\win32\MPI_netcdf_Release\mpich\lib;..\..\lib\win32\netcdf\Release\" AdditionalDependencies="mpi.lib fmpich2.lib f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool" CommandLine="build\copy_netcdf_dlls.bat $(SolutionDir) $(TargetDir) Win32 Release"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName) win32 &amp;&amp; build\copy_mpich.bat $(SolutionDir) $(TargetDir) win32"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Debug|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
 				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\genfiles\" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
 				<Tool Name="VFLibrarianTool"/>
@@ -121,6 +141,26 @@
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName) x64 &amp;&amp; build\copy_mpich.bat $(SolutionDir) $(TargetDir) x64"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_netcdf_Debug|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\x64\MPI_netcdf_Debug\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT;USENETCDF;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
+				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="bin\static\x64\MPI_netcdf_Debug\mpich\lib;..\..\lib\x64\netcdf\Debug\" AdditionalDependencies="mpi.lib fmpich2.lib f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool" CommandLine="build\copy_netcdf_dlls.bat $(SolutionDir) $(TargetDir) x64 Debug"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName) x64 &amp;&amp; build\copy_mpich.bat $(SolutionDir) $(TargetDir) x64"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_netcdf_Release|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\x64\MPI_netcdf_Release\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT;USENETCDF;DLL_NETCDF" Diagnostics="diagnosticsShowAll" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true"/>
+				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="bin\static\x64\MPI_netcdf_Release\mpich\lib;..\..\lib\x64\netcdf\Release\" AdditionalDependencies="mpi.lib fmpich2.lib f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool" CommandLine="build\copy_netcdf_dlls.bat $(SolutionDir) $(TargetDir) x64 Release"/>
 				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName) x64 &amp;&amp; build\copy_mpich.bat $(SolutionDir) $(TargetDir) x64"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration></Configurations>

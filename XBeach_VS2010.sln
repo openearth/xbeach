@@ -1,5 +1,5 @@
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{6989167D-11E4-40FE-8C1A-2192A86A7E90}") = "makeincludes", "src\makeincludes\makeincludes.vfproj", "{E16E9B65-2758-4331-95FA-6A9FEC944CC8}"
 EndProject
 Project("{6989167D-11E4-40FE-8C1A-2192A86A7E90}") = "xbeach", "src\xbeach\xbeach.vfproj", "{72E3F77D-F93B-44E1-B765-F01069CE7394}"
@@ -35,6 +35,10 @@ Global
 		Debug|x64 = Debug|x64
 		MPI_Debug|Win32 = MPI_Debug|Win32
 		MPI_Debug|x64 = MPI_Debug|x64
+		MPI_netcdf_Debug|Win32 = MPI_netcdf_Debug|Win32
+		MPI_netcdf_Debug|x64 = MPI_netcdf_Debug|x64
+		MPI_netcdf_Release|Win32 = MPI_netcdf_Release|Win32
+		MPI_netcdf_Release|x64 = MPI_netcdf_Release|x64
 		MPI_Release|Win32 = MPI_Release|Win32
 		MPI_Release|x64 = MPI_Release|x64
 		netcdf_Debug|Win32 = netcdf_Debug|Win32
@@ -53,6 +57,14 @@ Global
 		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_Debug|Win32.Build.0 = Debug|Win32
 		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_Debug|x64.ActiveCfg = Debug|x64
 		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_Debug|x64.Build.0 = Debug|x64
+		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_netcdf_Debug|Win32.ActiveCfg = Debug|Win32
+		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_netcdf_Debug|Win32.Build.0 = Debug|Win32
+		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_netcdf_Debug|x64.ActiveCfg = Debug|x64
+		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_netcdf_Debug|x64.Build.0 = Debug|x64
+		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_netcdf_Release|Win32.ActiveCfg = Release|Win32
+		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_netcdf_Release|Win32.Build.0 = Release|Win32
+		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_netcdf_Release|x64.ActiveCfg = Release|x64
+		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_netcdf_Release|x64.Build.0 = Release|x64
 		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_Release|Win32.ActiveCfg = Release|Win32
 		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_Release|Win32.Build.0 = Release|Win32
 		{E16E9B65-2758-4331-95FA-6A9FEC944CC8}.MPI_Release|x64.ActiveCfg = Release|x64
@@ -77,6 +89,14 @@ Global
 		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_Debug|Win32.Build.0 = MPI_Debug|Win32
 		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_Debug|x64.ActiveCfg = MPI_Debug|x64
 		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_Debug|x64.Build.0 = MPI_Debug|x64
+		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_netcdf_Debug|Win32.ActiveCfg = MPI_netcdf_Debug|Win32
+		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_netcdf_Debug|Win32.Build.0 = MPI_netcdf_Debug|Win32
+		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_netcdf_Debug|x64.ActiveCfg = MPI_netcdf_Debug|x64
+		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_netcdf_Debug|x64.Build.0 = MPI_netcdf_Debug|x64
+		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_netcdf_Release|Win32.ActiveCfg = MPI_netcdf_Release|Win32
+		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_netcdf_Release|Win32.Build.0 = MPI_netcdf_Release|Win32
+		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_netcdf_Release|x64.ActiveCfg = MPI_netcdf_Release|x64
+		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_netcdf_Release|x64.Build.0 = MPI_netcdf_Release|x64
 		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_Release|Win32.ActiveCfg = MPI_Release|Win32
 		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_Release|Win32.Build.0 = MPI_Release|Win32
 		{72E3F77D-F93B-44E1-B765-F01069CE7394}.MPI_Release|x64.ActiveCfg = MPI_Release|x64
@@ -101,6 +121,14 @@ Global
 		{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}.MPI_Debug|Win32.Build.0 = MPI_Debug|Win32
 		{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}.MPI_Debug|x64.ActiveCfg = MPI_Debug|x64
 		{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}.MPI_Debug|x64.Build.0 = MPI_Debug|x64
+		{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}.MPI_netcdf_Debug|Win32.ActiveCfg = MPI_netcdf_Debug|Win32
+		{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}.MPI_netcdf_Debug|Win32.Build.0 = MPI_netcdf_Debug|Win32
+		{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}.MPI_netcdf_Debug|x64.ActiveCfg = MPI_netcdf_Debug|x64
+		{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}.MPI_netcdf_Debug|x64.Build.0 = MPI_netcdf_Debug|x64
+		{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}.MPI_netcdf_Release|Win32.ActiveCfg = MPI_netcdf_Release|Win32
+		{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}.MPI_netcdf_Release|Win32.Build.0 = MPI_netcdf_Release|Win32
+		{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}.MPI_netcdf_Release|x64.ActiveCfg = MPI_netcdf_Release|x64
+		{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}.MPI_netcdf_Release|x64.Build.0 = MPI_netcdf_Release|x64
 		{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}.MPI_Release|Win32.ActiveCfg = MPI_Release|Win32
 		{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}.MPI_Release|Win32.Build.0 = MPI_Release|Win32
 		{4BD9BE9F-E0F6-4977-B042-D44A63283AE3}.MPI_Release|x64.ActiveCfg = MPI_Release|x64
@@ -125,6 +153,14 @@ Global
 		{00429065-5672-4461-86AF-39FCFAC53DAF}.MPI_Debug|Win32.Build.0 = Debug|Win32
 		{00429065-5672-4461-86AF-39FCFAC53DAF}.MPI_Debug|x64.ActiveCfg = Debug|x64
 		{00429065-5672-4461-86AF-39FCFAC53DAF}.MPI_Debug|x64.Build.0 = Debug|x64
+		{00429065-5672-4461-86AF-39FCFAC53DAF}.MPI_netcdf_Debug|Win32.ActiveCfg = Debug|Win32
+		{00429065-5672-4461-86AF-39FCFAC53DAF}.MPI_netcdf_Debug|Win32.Build.0 = Debug|Win32
+		{00429065-5672-4461-86AF-39FCFAC53DAF}.MPI_netcdf_Debug|x64.ActiveCfg = Debug|x64
+		{00429065-5672-4461-86AF-39FCFAC53DAF}.MPI_netcdf_Debug|x64.Build.0 = Debug|x64
+		{00429065-5672-4461-86AF-39FCFAC53DAF}.MPI_netcdf_Release|Win32.ActiveCfg = Release|Win32
+		{00429065-5672-4461-86AF-39FCFAC53DAF}.MPI_netcdf_Release|Win32.Build.0 = Release|Win32
+		{00429065-5672-4461-86AF-39FCFAC53DAF}.MPI_netcdf_Release|x64.ActiveCfg = Release|x64
+		{00429065-5672-4461-86AF-39FCFAC53DAF}.MPI_netcdf_Release|x64.Build.0 = Release|x64
 		{00429065-5672-4461-86AF-39FCFAC53DAF}.MPI_Release|Win32.ActiveCfg = Release|Win32
 		{00429065-5672-4461-86AF-39FCFAC53DAF}.MPI_Release|Win32.Build.0 = Release|Win32
 		{00429065-5672-4461-86AF-39FCFAC53DAF}.MPI_Release|x64.ActiveCfg = Release|x64
@@ -149,6 +185,14 @@ Global
 		{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}.MPI_Debug|Win32.Build.0 = MPI_Debug|Win32
 		{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}.MPI_Debug|x64.ActiveCfg = MPI_Debug|x64
 		{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}.MPI_Debug|x64.Build.0 = MPI_Debug|x64
+		{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}.MPI_netcdf_Debug|Win32.ActiveCfg = MPI_netcdf_Debug|Win32
+		{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}.MPI_netcdf_Debug|Win32.Build.0 = MPI_netcdf_Debug|Win32
+		{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}.MPI_netcdf_Debug|x64.ActiveCfg = MPI_netcdf_Debug|x64
+		{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}.MPI_netcdf_Debug|x64.Build.0 = MPI_netcdf_Debug|x64
+		{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}.MPI_netcdf_Release|Win32.ActiveCfg = MPI_netcdf_Release|Win32
+		{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}.MPI_netcdf_Release|Win32.Build.0 = MPI_netcdf_Release|Win32
+		{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}.MPI_netcdf_Release|x64.ActiveCfg = MPI_netcdf_Release|x64
+		{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}.MPI_netcdf_Release|x64.Build.0 = MPI_netcdf_Release|x64
 		{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}.MPI_Release|Win32.ActiveCfg = MPI_Release|Win32
 		{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}.MPI_Release|Win32.Build.0 = MPI_Release|Win32
 		{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}.MPI_Release|x64.ActiveCfg = MPI_Release|x64
@@ -173,6 +217,14 @@ Global
 		{10382558-3C7B-4BED-BEE8-C89EDCAE740B}.MPI_Debug|Win32.Build.0 = Debug|Win32
 		{10382558-3C7B-4BED-BEE8-C89EDCAE740B}.MPI_Debug|x64.ActiveCfg = Debug|x64
 		{10382558-3C7B-4BED-BEE8-C89EDCAE740B}.MPI_Debug|x64.Build.0 = Debug|x64
+		{10382558-3C7B-4BED-BEE8-C89EDCAE740B}.MPI_netcdf_Debug|Win32.ActiveCfg = Debug|Win32
+		{10382558-3C7B-4BED-BEE8-C89EDCAE740B}.MPI_netcdf_Debug|Win32.Build.0 = Debug|Win32
+		{10382558-3C7B-4BED-BEE8-C89EDCAE740B}.MPI_netcdf_Debug|x64.ActiveCfg = Debug|x64
+		{10382558-3C7B-4BED-BEE8-C89EDCAE740B}.MPI_netcdf_Debug|x64.Build.0 = Debug|x64
+		{10382558-3C7B-4BED-BEE8-C89EDCAE740B}.MPI_netcdf_Release|Win32.ActiveCfg = Release|Win32
+		{10382558-3C7B-4BED-BEE8-C89EDCAE740B}.MPI_netcdf_Release|Win32.Build.0 = Release|Win32
+		{10382558-3C7B-4BED-BEE8-C89EDCAE740B}.MPI_netcdf_Release|x64.ActiveCfg = Release|x64
+		{10382558-3C7B-4BED-BEE8-C89EDCAE740B}.MPI_netcdf_Release|x64.Build.0 = Release|x64
 		{10382558-3C7B-4BED-BEE8-C89EDCAE740B}.MPI_Release|Win32.ActiveCfg = Release|Win32
 		{10382558-3C7B-4BED-BEE8-C89EDCAE740B}.MPI_Release|Win32.Build.0 = Release|Win32
 		{10382558-3C7B-4BED-BEE8-C89EDCAE740B}.MPI_Release|x64.ActiveCfg = Release|x64
