@@ -1,5 +1,5 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{6989167D-11E4-40FE-8C1A-2192A86A7E90}") = "makeincludes", "src\makeincludes\makeincludes.vfproj", "{E16E9B65-2758-4331-95FA-6A9FEC944CC8}"
 EndProject
 Project("{6989167D-11E4-40FE-8C1A-2192A86A7E90}") = "xbeach", "src\xbeach\xbeach.vfproj", "{72E3F77D-F93B-44E1-B765-F01069CE7394}"
