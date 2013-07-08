@@ -5,6 +5,7 @@ echo solution file	: %2
 echo Configuration name	: %3
 echo VS version		: %4
 echo Platform (Win32/x64): %5
+echo Debug level        : %6
 echo Project name	: xbeachlibrary_test
 
 IF %4==VS2010 GOTO VS2010
@@ -49,4 +50,4 @@ type build.log
 
 echo on
 echo run tests
-%1\test\xbeachlibrary_test\bin\%5\%3\xbeachlibrary_test.exe
+%1\test\xbeachlibrary_test\bin\%5\%6\xbeachlibrary_test.exe
