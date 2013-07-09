@@ -341,9 +341,11 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*) trim(message_char1),trim(message_char2)
+       write(display,*) message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                        trim(message_char2)
     else
-       write(display,form) trim(message_char1),trim(message_char2)
+       write(display,form) message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                        trim(message_char2)
     endif
 
     call writelog_distribute(destination, display)
@@ -358,9 +360,11 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char),message_int
+       write(display,*)message_char(1:min(len(message_char),len_trim(message_char)+1)), &
+                       message_int
     else
-       write(display,form)trim(message_char),message_int
+       write(display,form)message_char(1:min(len(message_char),len_trim(message_char)+1)), &
+                          message_int
     endif
 
     call writelog_distribute(destination, display)
@@ -391,9 +395,13 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1),trim(message_char2),trim(message_char3)
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                       trim(message_char3)
     else
-       write(display,form)trim(message_char1),trim(message_char2),trim(message_char3)
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                          trim(message_char3)
     endif
 
     call writelog_distribute(destination, display)
@@ -407,9 +415,15 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1),trim(message_char2),trim(message_char3),trim(message_char4)
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                       message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                       trim(message_char4)
     else
-       write(display,form)trim(message_char1),trim(message_char2),trim(message_char3),trim(message_char4)
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                          message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                          trim(message_char4)
     endif
 
     call writelog_distribute(destination, display)
@@ -425,9 +439,13 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1),trim(message_char2),message_int
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                       message_int
     else
-       write(display,form)trim(message_char1),trim(message_char2),message_int
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                          message_int 
     endif
 
     call writelog_distribute(destination, display)
@@ -442,9 +460,11 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1),message_int1,message_int2
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_int1,message_int2
     else
-       write(display,form)trim(message_char1),message_int1,message_int2
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_int1,message_int2
     endif
 
     call writelog_distribute(destination, display)
@@ -459,9 +479,11 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1b),message_intb,trim(message_char2b)
+       write(display,*)message_char1b(1:min(len(message_char1b),len_trim(message_char1b)+1)), &
+                       message_intb,trim(message_char2b)
     else
-       write(display,form)trim(message_char1b),message_intb,trim(message_char2b)
+       write(display,form)message_char1b(1:min(len(message_char1b),len_trim(message_char1b)+1)), &
+                          message_intb,trim(message_char2b)
     endif
 
     call writelog_distribute(destination, display)
@@ -476,9 +498,15 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1),trim(message_char2),trim(message_char3),message_int
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                       message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                       message_int
     else
-       write(display,form)trim(message_char1),trim(message_char2),trim(message_char3),message_int
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                          message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                          message_int
     endif
 
     call writelog_distribute(destination, display)
@@ -493,9 +521,13 @@ CONTAINS
     character(slen)            ::  display
 
     if (formb=='') then
-       write(display,*)trim(message_char1b),trim(message_char2b),message_int,trim(message_char3b)
+       write(display,*)message_char1b(1:min(len(message_char1b),len_trim(message_char1b)+1)), &
+                       message_char2b(1:min(len(message_char2b),len_trim(message_char2b)+1)), &
+                       message_int,trim(message_char3b)
     else
-       write(display,formb)trim(message_char1b),trim(message_char2b),message_int,trim(message_char3b)
+       write(display,formb)message_char1b(1:min(len(message_char1b),len_trim(message_char1b)+1)), &
+                           message_char2b(1:min(len(message_char2b),len_trim(message_char2b)+1)), &
+                           message_int,trim(message_char3b)
     endif
 
     call writelog_distribute(destination, display)
@@ -510,9 +542,15 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1b),message_intb,trim(message_char2b),trim(message_char3b)
+       write(display,*)message_char1b(1:min(len(message_char1b),len_trim(message_char1b)+1)), &
+                       message_intb, &
+                       message_char2b(1:min(len(message_char2b),len_trim(message_char2b)+1)), &
+                       trim(message_char3b)
     else
-       write(display,form)trim(message_char1b),message_intb,trim(message_char2b),trim(message_char3b)
+       write(display,form)message_char1b(1:min(len(message_char1b),len_trim(message_char1b)+1)), &
+                          message_intb, &
+                          message_char2b(1:min(len(message_char2b),len_trim(message_char2b)+1)), &
+                          trim(message_char3b)
     endif
 
     call writelog_distribute(destination, display)
@@ -527,9 +565,17 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1b),message_intb,trim(message_char2b),trim(message_char3b),trim(message_char4b)
+       write(display,*)message_char1b(1:min(len(message_char1b),len_trim(message_char1b)+1)), &
+                       message_intb, &
+                       message_char2b(1:min(len(message_char2b),len_trim(message_char2b)+1)), &
+                       message_char3b(1:min(len(message_char3b),len_trim(message_char3b)+1)), &
+                       trim(message_char4b)
     else
-       write(display,form)trim(message_char1b),message_intb,trim(message_char2b),trim(message_char3b),trim(message_char4b)
+       write(display,form)message_char1b(1:min(len(message_char1b),len_trim(message_char1b)+1)), &
+                          message_intb, &
+                          message_char2b(1:min(len(message_char2b),len_trim(message_char2b)+1)), &
+                          message_char3b(1:min(len(message_char3b),len_trim(message_char3b)+1)), &
+                          trim(message_char4b)
     endif
 
     call writelog_distribute(destination, display)
@@ -545,9 +591,15 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1),message_int1,trim(message_char2),message_int2
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_int1, &
+                       message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                       message_int2
     else
-       write(display,form)trim(message_char1),message_int1,trim(message_char2),message_int2
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_int1, &
+                          message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                          message_int2
     endif
 
     call writelog_distribute(destination, display)
@@ -562,9 +614,17 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)mc1,mi1,trim(mc2),mi2,trim(mc3)
+       write(display,*)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                       mi1, &
+                       mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                       mi2, &
+                       trim(mc3)
     else
-       write(display,form)mc1,mi1,trim(mc2),mi2,trim(mc3)
+       write(display,form)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                          mi1, &
+                          mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                          mi2, &
+                          trim(mc3)
     endif
 
     call writelog_distribute(destination, display)
@@ -579,9 +639,17 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1),trim(message_char2),message_i1,trim(message_char3),message_i2
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                       message_i1, & 
+                       message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                       message_i2
     else
-       write(display,form)trim(message_char1),trim(message_char2),message_i1,trim(message_char3),message_i2
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                          message_i1, & 
+                          message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                          message_i2
     endif
 
     call writelog_distribute(destination, display)
@@ -596,9 +664,19 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1),trim(message_char2),trim(message_char3),message_i1,trim(message_char4),message_i2
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                       message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                       message_i1, & 
+                       message_char4(1:min(len(message_char4),len_trim(message_char4)+1)), &
+                       message_i2
     else
-       write(display,form)trim(message_char1),trim(message_char2),trim(message_char3),message_i1,trim(message_char4),message_i2
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                          message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                          message_i1, & 
+                          message_char4(1:min(len(message_char4),len_trim(message_char4)+1)), &
+                          message_i2
     endif
 
     call writelog_distribute(destination, display)
@@ -614,9 +692,15 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(mc1),mi1,trim(mc2),mf1,trim(mc3)
+       write(display,*)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                       mi1, & 
+                       mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                       mf1,trim(mc3)
     else
-       write(display,form)trim(mc1),mi1,trim(mc2),mf1,trim(mc3)
+       write(display,form)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                          mi1, & 
+                          mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                          mf1,trim(mc3)
     endif
 
     call writelog_distribute(destination, display)
@@ -632,9 +716,19 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(mc1),mi1,trim(mc2),mf1,trim(mc3),mf2
+       write(display,*)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                       mi1, &
+                       mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                       mf1, &
+                       mc3(1:min(len(mc3),len_trim(mc3)+1)), &
+                       mf2
     else
-       write(display,form)trim(mc1),mi1,trim(mc2),mf1,trim(mc3),mf2
+       write(display,form)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                          mi1, &
+                          mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                          mf1, &
+                          mc3(1:min(len(mc3),len_trim(mc3)+1)), &
+                          mf2
     endif
 
     call writelog_distribute(destination, display)
@@ -649,9 +743,19 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1),message_i1,trim(message_char2),message_i2,trim(message_char3),message_i3
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_i1, &
+                       message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                       message_i2, &
+                       message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                       message_i3
     else
-       write(display,form)trim(message_char1),message_i1,trim(message_char2),message_i2,trim(message_char3),message_i3
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_i1, &
+                          message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                          message_i2, &
+                          message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                          message_i3
     endif
 
     call writelog_distribute(destination, display)
@@ -667,9 +771,19 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(mc1),message_i1,trim(mc2),message_i2,trim(mc3),message_i3,trim(mc4)
+       write(display,*)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                       message_i1, &
+                       mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                       message_i2, &
+                       mc3(1:min(len(mc3),len_trim(mc3)+1)), &
+                       message_i3,trim(mc4)
     else
-       write(display,form)trim(mc1),message_i1,trim(mc2),message_i2,trim(mc3),message_i3,trim(mc4)
+       write(display,form)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                          message_i1, &
+                          mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                          message_i2, &
+                          mc3(1:min(len(mc3),len_trim(mc3)+1)), &
+                          message_i3,trim(mc4)
     endif
 
     call writelog_distribute(destination, display)
@@ -685,9 +799,19 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(mc1),mi1,trim(mc2),mi2,trim(mc3),mf1
+       write(display,*)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                       mi1, &
+                       mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                       mi2, &
+                       mc3(1:min(len(mc3),len_trim(mc3)+1)), &
+                       mf1
     else
-       write(display,form)trim(mc1),mi1,trim(mc2),mi2,trim(mc3),mf1
+       write(display,form)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                          mi1, &
+                          mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                          mi2, &
+                          mc3(1:min(len(mc3),len_trim(mc3)+1)), &
+                          mf1
     endif
 
     call writelog_distribute(destination, display)
@@ -703,9 +827,19 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(mc1),mi1,trim(mc2),mi2,trim(mc3),mf1,mc4
+       write(display,*)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                       mi1, &
+                       mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                       mi2, & 
+                       mc3(1:min(len(mc3),len_trim(mc3)+1)), &
+                       mf1,trim(mc4)
     else
-       write(display,form)trim(mc1),mi1,trim(mc2),mi2,trim(mc3),mf1,mc4
+       write(display,form)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                          mi1, &
+                          mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                          mi2, & 
+                          mc3(1:min(len(mc3),len_trim(mc3)+1)), &
+                          mf1,trim(mc4)
     endif
 
     call writelog_distribute(destination, display)
@@ -737,9 +871,11 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1),message_f1
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_f1
     else
-       write(display,form)trim(message_char1),message_f1
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_f1
     endif
 
     call writelog_distribute(destination, display)
@@ -754,9 +890,13 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1),trim(message_char2),message_f1
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                       message_f1
     else
-       write(display,form)trim(message_char1),trim(message_char2),message_f1
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                          message_f1
     endif
 
     call writelog_distribute(destination, display)
@@ -771,9 +911,11 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(mc1),mf1,trim(mc2)
+       write(display,*)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                       mf1,trim(mc2)
     else
-       write(display,form)trim(mc1),mf1,trim(mc2)
+       write(display,form)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                          mf1,trim(mc2)
     endif
 
     call writelog_distribute(destination, display)
@@ -788,9 +930,15 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1),message_f1,trim(message_char2),message_f2
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_f1, &
+                       message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                       message_f2
     else
-       write(display,form)trim(message_char1),message_f1,trim(message_char2),message_f2
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_f1, &
+                          message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                          message_f2
     endif
 
     call writelog_distribute(destination, display)
@@ -805,9 +953,15 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(mc1),mf1,trim(mc2),mf2,trim(mc3)
+       write(display,*)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                       mf1, & 
+                       mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                       mf2,trim(mc3)
     else
-       write(display,form)trim(mc1),mf1,trim(mc2),mf2,trim(mc3)
+       write(display,form)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                          mf1, & 
+                          mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                          mf2,trim(mc3)
     endif
 
     call writelog_distribute(destination, display)
@@ -822,9 +976,15 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1),trim(message_char2),trim(message_char3),message_f1
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                       message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                       message_f1
     else
-       write(display,form)trim(message_char1),trim(message_char2),trim(message_char3),message_f1
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                          message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                          message_f1
     endif
 
     call writelog_distribute(destination, display)
@@ -839,9 +999,13 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1b),trim(message_char2b),message_f1b,trim(message_char3b)
+       write(display,*)message_char1b(1:min(len(message_char1b),len_trim(message_char1b)+1)), &
+                       message_char2b(1:min(len(message_char2b),len_trim(message_char2b)+1)), &
+                       message_f1b,trim(message_char3b)
     else
-       write(display,form)trim(message_char1b),trim(message_char2b),message_f1b,trim(message_char3b)
+       write(display,form)message_char1b(1:min(len(message_char1b),len_trim(message_char1b)+1)), &
+                          message_char2b(1:min(len(message_char2b),len_trim(message_char2b)+1)), &
+                          message_f1b,trim(message_char3b)
     endif
 
     call writelog_distribute(destination, display)
@@ -856,9 +1020,17 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(mc1a),mfa,trim(mc2a),trim(mc3a),trim(mc4a)
+       write(display,*)mc1a(1:min(len(mc1a),len_trim(mc1a)+1)), &
+                       mfa, & 
+                       mc2a(1:min(len(mc2a),len_trim(mc2a)+1)), &
+                       mc3a(1:min(len(mc3a),len_trim(mc3a)+1)), &
+                       trim(mc4a)
     else
-       write(display,form)trim(mc1a),mfa,trim(mc2a),trim(mc3a),trim(mc4a)
+       write(display,form)mc1a(1:min(len(mc1a),len_trim(mc1a)+1)), &
+                          mfa, & 
+                          mc2a(1:min(len(mc2a),len_trim(mc2a)+1)), &
+                          mc3a(1:min(len(mc3a),len_trim(mc3a)+1)), &
+                          trim(mc4a)
     endif
 
     call writelog_distribute(destination, display)
@@ -873,9 +1045,17 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(message_char1),trim(message_char2),message_f1,trim(message_char3),message_f2
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                       message_f1, & 
+                       message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                       message_f2
     else
-       write(display,form)trim(message_char1),trim(message_char2),message_f1,trim(message_char3),message_f2
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                          message_f1, & 
+                          message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                          message_f2
     endif
 
     call writelog_distribute(destination, display)
@@ -890,9 +1070,19 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)message_char1,trim(message_char2),trim(message_char3),message_f1,trim(message_char4),message_f2
+       write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                       message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                       message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                       message_f1, &
+                       message_char4(1:min(len(message_char4),len_trim(message_char4)+1)), &
+                       message_f2
     else
-       write(display,form)message_char1,trim(message_char2),trim(message_char3),message_f1,trim(message_char4),message_f2
+       write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
+                          message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
+                          message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
+                          message_f1, &
+                          message_char4(1:min(len(message_char4),len_trim(message_char4)+1)), &
+                          message_f2
     endif
 
     call writelog_distribute(destination, display)
@@ -907,9 +1097,23 @@ CONTAINS
     character(slen)            ::  display
 
     if (form=='') then
-       write(display,*)trim(mc1),mf1,trim(mc2),mf2,trim(mc3),mf3,trim(mc4),mf4
+       write(display,*)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                       mf1, &
+                       mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                       mf2, &
+                       mc3(1:min(len(mc3),len_trim(mc3)+1)), &
+                       mf3, &
+                       mc4(1:min(len(mc4),len_trim(mc4)+1)), &
+                       mf4
     else
-       write(display,form)trim(mc1),mf1,trim(mc2),mf2,trim(mc3),mf3,trim(mc4),mf4
+       write(display,form)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                          mf1, &
+                          mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                          mf2, &
+                          mc3(1:min(len(mc3),len_trim(mc3)+1)), &
+                          mf3, &
+                          mc4(1:min(len(mc4),len_trim(mc4)+1)), &
+                          mf4
     endif
 
     call writelog_distribute(destination, display)
@@ -960,9 +1164,21 @@ CONTAINS
     character(slen)            ::  display
  
     if (form=='') then
-       write(display,*)mc1,mf1,mc2,mi1,mc3,mc4,mc5
+       write(display,*)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                       mf1, & 
+                       mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                       mi1, &
+                       mc3(1:min(len(mc3),len_trim(mc3)+1)), &
+                       mc4(1:min(len(mc4),len_trim(mc4)+1)), &
+                       trim(mc5)
     else
-       write(display,form)mc1,mf1,mc2,mi1,mc3,mc4,mc5
+       write(display,form)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
+                          mf1, & 
+                          mc2(1:min(len(mc2),len_trim(mc2)+1)), &
+                          mi1, &
+                          mc3(1:min(len(mc3),len_trim(mc3)+1)), &
+                          mc4(1:min(len(mc4),len_trim(mc4)+1)), &
+                          trim(mc5)
     endif
 
     call writelog_distribute(destination, display)
