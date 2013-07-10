@@ -12,7 +12,7 @@
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool"/>
 				<Tool Name="VFPreBuildEventTool"/>
-				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  &quot;$(SolutionDir)&quot; &quot;$(ConfigurationName)&quot; &quot;$(TargetDir)&quot; win32 &amp;&amp; build\zip.bat &quot;$(SolutionDir)&quot; &quot;$(ConfigurationName)&quot; win32"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) win32 &amp;&amp; build\zip.bat  $(SolutionDir) $(ConfigurationName) win32"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|Win32" OutputDirectory="bin\win32\$(ConfigurationName)" IntermediateDirectory="bin\win32\$(ConfigurationName)">
 				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\xbeachlibrary\bin\static\win32\$(ConfigurationName)" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\win32\$(ConfigurationName)\" ObjectFile="bin\win32\$(ConfigurationName)\" PdbFile="bin\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" Interfaces="true"/>
