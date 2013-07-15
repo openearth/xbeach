@@ -1149,7 +1149,7 @@ contains
              endif
              if (par%ARC==0) then
                 uu(1,:) = ui(1,:)
-                zs(1,:) = zi(1,:)
+                zs(1,:) = zi(1,:)+zs0(1,:)
                 ws(1,:) = wi(1,:)
              else
                 !Radiating boundary for short waves:
@@ -1802,6 +1802,28 @@ contains
              if (iW >0) w1 = tmp(:,iW-1)
           endif
           deallocate(tmp)
+          if (iU > 0) then
+             ug  = u0 + (u1-u0)*(t-t0)/(t1-t0)
+             isSet_U = .true.
+          else
+             ug = 0
+             isSet_U = .false.
+          endif
+
+          if (iZ > 0) then
+             zg = z0 + (z1-z0)*(t-t0)/(t1-t0)
+             isSet_Z = .true.
+          else
+             zg = 0
+             isSet_Z = .false.
+          endif
+          if (iW > 0) then
+             wg = w0 + (w1-w0)*(t-t0)/(t1-t0)
+             isSet_W = .true.
+          else
+             wg = 0
+             isSet_W = .false.
+          endif
           return
        endif   ! initialize
        !

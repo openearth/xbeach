@@ -672,26 +672,28 @@ contains
     ! I: read zs0 at model corners using zs0file
     if (par%tideloc>0) then
 
-       s%zs01=s%tideinpz(1,1)
+       ! Need to interpolate to the correct moment in time. First point in tidal 
+       ! record not necessarily == 0.0
+       call LINEAR_INTERP(s%tideinpt,s%tideinpz(:,1),s%tidelen,0.d0, s%zs01, indt)
 
        if(par%tideloc.eq.1) s%zs02=s%zs01
 
        if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='land') then
-          s%zs03=s%tideinpz(1,2)
+          call LINEAR_INTERP(s%tideinpt,s%tideinpz(:,2),s%tidelen,0.d0, s%zs03, indt)
           s%zs02=s%zs01
           s%zs04=s%zs03
        endif
 
        if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='sea') then
-          s%zs02=s%tideinpz(1,2)
+          call LINEAR_INTERP(s%tideinpt,s%tideinpz(:,2),s%tidelen,0.d0, s%zs02, indt)
           s%zs03=0.d0
           s%zs04=0.d0
        endif
 
        if(par%tideloc.eq.4) then
-          s%zs02=s%tideinpz(1,2)
-          s%zs03=s%tideinpz(1,3)
-          s%zs04=s%tideinpz(1,4)
+          call LINEAR_INTERP(s%tideinpt,s%tideinpz(:,2),s%tidelen,0.d0, s%zs02, indt)
+          call LINEAR_INTERP(s%tideinpt,s%tideinpz(:,3),s%tidelen,0.d0, s%zs03, indt)
+          call LINEAR_INTERP(s%tideinpt,s%tideinpz(:,4),s%tidelen,0.d0, s%zs04, indt)
        endif
 
        ! Set global domain corners for MPI simulations
