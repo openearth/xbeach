@@ -731,6 +731,9 @@ contains
              if (.not. isSet_Z) zi(1,:) = zs(2,:)
              if (.not. isSet_W) wi(1,:) = ws(2,:)
           endif
+          ui(1,:) = ui(1,:)*min(par%t/par%taper,1.0d0)
+	      zi(1,:) = zi(1,:)*min(par%t/par%taper,1.0d0)
+          wi(1,:) = wi(1,:)*min(par%t/par%taper,1.0d0)
        endif ! nonhspectrum
     elseif (trim(par%instat)=='ts_nonh') then   
 !       call velocity_Boundary('boun_U.bcf',ui(1,:),zi(1,:),wi(1,:),nx,ny,sg%ny,sl,par%t,zs(2,:),ws(2,:))
