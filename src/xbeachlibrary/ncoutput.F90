@@ -824,6 +824,11 @@ contains
                          if ((t%name .eq. 'H') .or. (t%name .eq. 'urms'))  then
                             status = nf90_put_var(ncid, meanvarids(i,j), sqrt(meansparsglobal(i)%variancesquareterm2d), &
                                  start=(/1,1,tpar%itm-1/) )
+                         elseif (t%name .eq. 'thetamean') then
+                             status = nf90_put_var(ncid, meanvarids(i,j), &
+                                         mod(2.d0*par%px + atan2(nint(meansparsglobal(i)%mean2d)/1d7, &
+                                                                 mod(meansparsglobal(i)%mean2d,1.d0)*1d1), 2.d0*par%px) / par%px * 180, &
+                                         start=(/1,1,tpar%itm-1/) ) 
                          else
                             status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean2d, start=(/1,1,tpar%itm-1/) )
                          end if

@@ -248,10 +248,12 @@ contains
     integer                                             :: index 
     integer                                             :: i
     real*8                                              :: mult
-
+    
     type(arraytype)                                     :: t
 
     integer,dimension(sl%nx+1,sl%ny+1)                  :: tvar2di
+    real*8,dimension(sl%nx+1,sl%ny+1)                  :: tvar2d_sin
+    real*8,dimension(sl%nx+1,sl%ny+1)                  :: tvar2d_cos
 
     real*8, dimension(sl%nx+1,sl%ny+1)                  :: oldmean2d,tvar2d
     real*8, dimension(:,:,:),           allocatable     :: oldmean3d,tvar3d
@@ -285,9 +287,9 @@ contains
              call gridrotate(par, sl,t,tvar2d)
           endif
           if (par%meanvars(i)=='thetamean') then
-             meansparslocal(i)%mean2d = meansparslocal(i)%mean2d +   &
-                  nint((1+mult*sin(tvar2d))*1e6)*1e1             +   &
-                  nint((1+mult*cos(tvar2d))*1e6)/1e7
+             tvar2d_sin = nint(meansparsglobal(i)%mean2d) / 1d1 + nint(mult*sind(tvar2d)*1e6)
+             tvar2d_cos = mod(meansparsglobal(i)%mean2d,1.d0) * 1d7 + nint(mult*cosd(tvar2d)*1e6)
+             meansparslocal(i)%mean2d = tvar2d_sin*1e1 + tvar2d_cos/1e7
           else
              meansparslocal(i)%mean2d = meansparslocal(i)%mean2d + mult*tvar2d
           endif

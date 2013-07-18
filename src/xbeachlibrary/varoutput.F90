@@ -475,8 +475,8 @@ contains
                          write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
                       elseif (trim(par%meanvars(i))=='thetamean') then       ! thetamean
                          write(indextomeanunit(i),rec=itm) &
-                              atan2(meansparsglobal(i)%mean2d/1d7, &
-                              mod(meansparsglobal(i)%mean2d,1.d0)*1d1)
+                              mod(2.d0*par%px + atan2(nint(meansparsglobal(i)%mean2d)/1d7, &
+                                                      mod(meansparsglobal(i)%mean2d,1.d0)*1d1), 2.d0*par%px) / par%px * 180
                       else                                                    ! non-rms variables
                          write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean2d
                       endif
