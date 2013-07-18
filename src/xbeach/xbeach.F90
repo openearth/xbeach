@@ -2,6 +2,7 @@ program xbeach
 use libxbeach_module
 use introspection_module
 use iso_c_binding
+use process_input
 implicit none
 
 integer                                             :: rc
@@ -9,6 +10,7 @@ real(c_double)                                      :: t, tstop
 
 ! Initialize program                                                          !
 rc = 0
+rc = readinput()
 rc = init()
 
 ! Start simulation                                                            !
