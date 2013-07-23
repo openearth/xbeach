@@ -493,8 +493,8 @@ contains
     if (key .eq. 'checkparams') then
        do ikey=1,nkeys
           if (readindex(ikey)==0) then
-             call writelog('slw','','Unknown, unused or multiple statements of parameter ',trim(keyword(ikey)),&
-                  ' in ',trim(fname))
+             call writelog('slw','','Unknown, unused or multiple statements of parameter ', &
+                                    trim(uppercase(keyword(ikey))),' in ',trim(fname))
           endif
        enddo
     endif
@@ -512,27 +512,28 @@ contains
   !  Language:     Fortran-90
   !
   !  Version:      1.00a
+  !                1.1 : Modified uppercase into function form by R.T. McCall 23/7/2013
   !
 
-  SUBROUTINE UPPERCASE(STR)
+  pure function UPPERCASE(STR) result(upperstr)
 
     IMPLICIT NONE
 
-    CHARACTER(LEN=*), INTENT(IN OUT) :: STR
-    INTEGER :: I, DEL
+    CHARACTER(LEN=*),intent(in) :: STR
+    character(slen)             :: upperstr
+    INTEGER                     :: I, DEL
 
+    upperstr = STR
 
     DEL = IACHAR('a') - IACHAR('A')
-
-    DO I = 1, LEN_TRIM(STR)
-       IF (LGE(STR(I:I),'a') .AND. LLE(STR(I:I),'z')) THEN
-          STR(I:I) = ACHAR(IACHAR(STR(I:I)) - DEL)
+    
+    DO I = 1, LEN_TRIM(upperstr)
+       IF (LGE(upperstr(I:I),'a') .AND. LLE(upperstr(I:I),'z')) THEN
+          upperstr(I:I) = ACHAR(IACHAR(upperstr(I:I)) - DEL)
        END IF
     END DO
 
-    RETURN
-
-  END SUBROUTINE UPPERCASE
+  end function UPPERCASE
   !
   !  LOWERCASE
   !
