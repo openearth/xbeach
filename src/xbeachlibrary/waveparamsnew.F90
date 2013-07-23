@@ -172,11 +172,14 @@ contains
           ! Distribute all wave train components among the wave direction bins. Also rearrage
           ! the randomly drawn wave directions to match the centres of the wave bins if the 
           ! user-defined nspr is set on.
-          call distribute_wave_train_directions(wp,s,par%px,par%nspr)
+       call distribute_wave_train_directions(wp,s,par%px,par%nspr,.false.)
 
           ! Calculate the wave energy envelope per offshore grid point and write to output file
           call generate_ebcf(wp,s,par)
        else
+       ! If user set nspr on, then force all short wave components to head along computational
+       ! x-axis.
+       call distribute_wave_train_directions(wp,s,par%px,par%nspr,.true.)    
           ! Generate time series of surface elevation, horizontal velocity and vertical velocity
           call generate_swts(wp,s,par)
        endif
@@ -327,7 +330,7 @@ contains
        fn%listline = fn%listline + 1   ! move one on from the last time we opened this file
        close(fid)
     else
-       wp%rtbc = par%rt
+       wp%rtbc = par%rt  ! already set to morphological time
        wp%dtbc = par%dtbc
        readfile = fn%fname
     endif
@@ -368,12 +371,21 @@ contains
     type(spectrum),intent(inout)            :: specin
 
     ! Internal variables
-    integer                                 :: i,ii,ier
+        integer                                 :: i,ii,ier,ip,ind
+        integer                                 :: nmodal
     integer                                 :: fid
-    real*8,dimension(:),allocatable         :: x, y, Dd, temp
-    real*8                                  :: dfj, fnyq, Tp
-    real*8                                  :: gam, mainang
+        integer                                 :: forcepartition
+        integer,dimension(2)                    :: indvec
+        real*8,dimension(:),allocatable         :: x, y, Dd, tempdir
+        real*8,dimension(:),allocatable         :: Hm0,fp,gam,mainang,scoeff
+        real*8                                  :: dfj, fnyq
+        real*8                                  :: gammajsp,Tp
     character(len=80)                       :: dummystring
+        type(spectrum),dimension(:),allocatable :: multinomalspec,scaledspec
+        logical                                 :: cont
+        real*8,dimension(:),allocatable         :: scalefac1,scalefac2,tempmax,avgscale
+        real*8,dimension(:),allocatable         :: oldvariance,newvariance
+        real*8                                  :: newconv,oldconv
 
     ! First part: read JONSWAP parameter data
 
@@ -381,27 +393,86 @@ contains
     if (trim(par%instat) /= 'jons_table') then
        ! Use spectrum characteristics
        call writelog('sl','','waveparams: Reading from ',trim(readfile),' ...')
-       specin%hm0 = readkey_dbl (readfile, 'Hm0',      0.0d0,      0.00d0,     5.0d0,      bcast=.false. )
+       !
+       ! First read if the spectrum is multinodal, and how many peaks there should be
+       !
+       nmodal     = readkey_int (readfile, 'nmodal',  1,  1, 4, bcast=.false.)
+       if (nmodal<1) then
+          call writelog('lswe','','Error: number of spectral partions may not be less than 1 in ',trim(readfile))
+          call halt_program
+       endif
+       !
+       ! Allocate space for all spectral parameters
+       !
+       allocate(Hm0(nmodal))
+       allocate(fp(nmodal))
+       allocate(gam(nmodal))
+       allocate(mainang(nmodal))
+       allocate(scoeff(nmodal))
+       !
+       ! Read the spectral parameters for all spectrum components
+       !
+       ! Wave height (required)
+       Hm0    = readkey_dblvec(readfile, 'Hm0',nmodal,nmodal, 0.0d0, 0.0d0, 5.0d0, bcast=.false.,required=.true. )
+       ! 
+       ! Wave period (required)
        ! allow both Tp and fp specification to bring in line with params.txt
-       Tp         = readkey_dbl (readfile, 'Tp',       12.5d0,     2.5d0,      20.d0,      bcast=.false. )
-       specin%fp  = readkey_dbl (readfile, 'fp',       1/Tp,       0.0625d0,   0.4d0,      bcast=.false. )
+       if (isSetParameter(readfile,'Tp') .and. .not. isSetParameter(readfile,'fp')) then
+          fp     = 1.d0/readkey_dblvec(readfile, 'Tp',nmodal,nmodal, 12.5d0, 2.5d0, 20.0d0, bcast=.false.)
+       elseif (isSetParameter(readfile,'fp') .and. .not. isSetParameter(readfile,'Tp')) then
+          fp     = readkey_dblvec(readfile, 'fp',nmodal,nmodal, 0.08d0,0.0625d0,   0.4d0, bcast=.false.)
+       elseif (.not. isSetParameter(readfile,'fp') .and. .not. isSetParameter(readfile,'Tp')) then
+          call writelog('lswe','','Error: missing required value for parameter ''Tp'' or ''fp'' in ',trim(readfile))
+          call halt_program
+       else
+          fp     = 1.d0/readkey_dblvec(readfile, 'Tp',nmodal,nmodal, 12.5d0, 2.5d0, 20.0d0, bcast=.false.)
+          call writelog('lsw','','Warning: selecting to read peak period (Tp) instead of frequency (fp) in ',trim(readfile))
+       endif
+       !
+       ! Wave spreading in frequency domain (peakedness)
+       ! 
+       gam    = readkey_dblvec(readfile, 'gammajsp',nmodal,nmodal, 3.3d0, 1.0d0, 5.0d0, bcast=.false.)
+       !
+       ! Wave spreading in directional domain
+       !
+       scoeff = readkey_dblvec(readfile, 's',nmodal,nmodal, 10.0d0, 1.0d0, 1000.0d0, bcast=.false.)
+       !
+       ! Main wave direction
+       ! allow both mainang and dir0 specification to bring in line with params.txt
+       if (isSetParameter(readfile,'mainang') .and. .not. isSetParameter(readfile,'dir0')) then
+          mainang = readkey_dblvec(readfile, 'mainang',nmodal,nmodal, 270.0d0, 0.0d0, 360.0d0, bcast=.false.)
+       elseif (isSetParameter(readfile,'dir0') .and. .not. isSetParameter(readfile,'mainang')) then
+          mainang = readkey_dblvec(readfile, 'dir0',nmodal,nmodal, 270.0d0, 0.0d0, 360.0d0, bcast=.false.)
+       elseif (.not. isSetParameter(readfile,'dir0') .and. .not. isSetParameter(readfile,'mainang')) then
+          mainang = 270.d0
+       else
+          mainang = readkey_dblvec(readfile, 'mainang',nmodal,nmodal, 270.0d0, 0.0d0, 360.0d0, bcast=.false.)
+          call writelog('lsw','','Warning: selecting to read ''mainang'' instead of ''dir0'' in ',trim(readfile))
+       endif
+       !
        ! Nyquist parameters used only in this subroutine
+       ! are not read individually for each spectrum partition
        if (par%oldnyq==1) then
           fnyq    = readkey_dbl (readfile, 'fnyq',       0.3d0,    0.2d0,      1.0d0,      bcast=.false. )
        else 
-          fnyq    = readkey_dbl (readfile, 'fnyq',max(0.3d0,3.d0*specin%fp), 0.2d0,   1.0d0,      bcast=.false. )
+         fnyq    = readkey_dbl (readfile, 'fnyq',max(0.3d0,3.d0*maxval(fp)), 0.2d0, 1.0d0, bcast=.false. )
        endif
        dfj        = readkey_dbl (readfile, 'dfj',      fnyq/200,   fnyq/1000,  fnyq/20,    bcast=.false. )
-       ! spreading in frequency and directional dimensions
-       gam        = readkey_dbl (readfile, 'gammajsp', 3.3d0,      1.0d0,      5.0d0,      bcast=.false. )
-       specin%scoeff = readkey_dbl(readfile, 's',      10.0d0,     1.0d0,      1000.0d0,   bcast=.false. )
-       ! allow specification of mainang or dir0 to bring in line with params.txt
-       mainang    = readkey_dbl (readfile,  'mainang',  270.0d0,    0.0d0,      360.0d0,    bcast=.false. )
-       specin%dir0 = readkey_dbl (readfile, 'dir0',     mainang,    0.0d0,      360.0d0,    bcast=.false. )
-
+       !
+       ! Finally check if XBeach should accept even the most stupid partioning (sets error level to warning
+       ! level when computing partition overlap
+       if (nmodal>1) then
+          forcepartition = readkey_int (readfile, 'forcepartition',  0,  0, 1, bcast=.false.)
+       endif
        ! check for other strange values in this file
        call readkey(readfile,'checkparams',dummystring)
     else
+       nmodal = 1
+       allocate(Hm0(nmodal))
+       allocate(fp(nmodal))
+       allocate(gam(nmodal))
+       allocate(mainang(nmodal))
+       allocate(scoeff(nmodal))
        ! Use spectrum table
        fid = create_new_fid()
        call writelog('sl','','waveparams: Reading from table ',trim(readfile),' ...')
@@ -413,7 +484,7 @@ contains
              call report_file_read_error(readfile)
           endif
        enddo
-       read(fid,*,iostat=ier)specin%hm0,Tp,specin%dir0,gam,specin%scoeff,wp%rtbc,wp%dtbc
+            read(fid,*,iostat=ier)Hm0(1),Tp,mainang(1),gam(1),scoeff(1),wp%rtbc,wp%dtbc
        if (ier .ne. 0) then
           call writelog('lswe','','Error reading file ',trim(readfile))
           close(fid)
@@ -425,91 +496,265 @@ contains
        if (par%morfacopt==1) then 
           wp%rtbc = wp%rtbc/max(par%morfac,1.d0)
        endif
-       specin%fp=1.d0/Tp
-       fnyq=3.d0*specin%fp
-       dfj=specin%fp/20
+            fp(1)=1.d0/Tp
+            fnyq=3.d0*fp(1)
+            dfj=fp(1)/50
        close(fid)
     endif
-
+        !
     ! Second part: generate 2D spectrum from input parameters
-
+        !
     ! Define number of frequency bins by defining an array of the necessary length
     ! using the Nyquist frequency and frequency step size
     specin%nf = ceiling((fnyq-dfj)/dfj)
     specin%df = dfj 
+        !
     ! Define array with actual eqidistant frequency bins
     allocate(specin%f(specin%nf))
     do i=1,specin%nf
        specin%f(i)=i*dfj
     enddo
-
-    ! Determine frequency bins relative to peak frequency
+    !
+    ! we need a normalised frequency and variance vector for JONSWAP generation
     allocate(x(size(specin%f)))
-    x=specin%f/specin%fp
-    ! Calculate unscaled and non-directional JONSWAP spectrum using
-    ! peak-enhancement factor and pre-determined frequency bins
     allocate(y(size(specin%f)))
-    call jonswapgk(x,gam,y)
-    deallocate (x)
-
-    ! Determine scaled and non-directional JONSWAP spectrum using the JONSWAP
-    ! characteristics
-    y=(specin%hm0/(4.d0*sqrt(sum(y)*dfj)))**2*y
-
+        ! 
     ! Define 200 directions relative to main angle running from 0 to 2*pi
+    ! we also need a temporary vector for direction distribution
     specin%nang = naint
+    allocate(tempdir(specin%nang))
+    allocate(Dd(specin%nang))
     allocate(specin%ang(specin%nang))
     specin%dang = 2*par%px/(naint-1) 
     do i=1,specin%nang
        specin%ang(i)=(i-1)*specin%dang
     enddo
-
-    ! Convert main angle from degrees to radians and from nautical convention to
-    ! internal grid
-    specin%dir0=(1.5d0*par%px)-specin%dir0*par%px/180
-
-    ! Make sure the main angle is defined between 0 and 2*pi
-    do while (specin%dir0>2*par%px .or. specin%dir0<0.d0) !Robert en Ap
-       if (specin%dir0>2*par%px) then
-          specin%dir0=specin%dir0-2*par%px
-       elseif (specin%dir0<0.d0) then
-          specin%dir0=specin%dir0+2*par%px
-       endif
-    enddo
-
-    ! Convert 200 directions relative to main angle to directions relative to
-    ! internal grid            ! Bas: apparently division by 2 for cosine law happens already here
-    allocate(temp(specin%nang))
-    temp = (specin%ang-specin%dir0)/2
-    ! Make sure all directions around the main angle are defined between 0 and 2*pi
-    do while (any(temp>2*par%px) .or. any(temp<0.d0))
-       where (temp>2*par%px)
-          temp=temp-2*par%px
-       elsewhere (temp<0.d0)
-          temp=temp+2*par%px
-       endwhere
-    enddo
-
-    ! Define 200 directional distribution bins accordingly
-    allocate (Dd(specin%nang))
-    ! Calculate directional spreading based on cosine law
-    Dd = dcos(temp)**(2*nint(specin%scoeff))     ! Robert: apparently nint is needed here, else MATH domain error
-    deallocate(temp)
-
-    ! Scale directional spreading to have a surface of unity by dividing by its
-    ! own surface
-    Dd = Dd / (sum(Dd)*specin%dang)
-
-    ! Define two-dimensional variance density spectrum array and distribute
-    ! variance density for each frequency over directional bins
-    allocate(specin%S(specin%nf,specin%nang))
-    do i=1,specin%nang
-       do ii=1,specin%nf
-          specin%S(ii,i)=y(ii)*Dd(i)
+    !
+    ! Generate density spectrum for each spectrum partition
+    !
+    allocate(multinomalspec(nmodal))
+    !
+    do ip=1,nmodal
+       ! relative frequenct vector
+       x=specin%f/fp(ip)
+       ! Calculate unscaled and non-directional JONSWAP spectrum using
+       ! peak-enhancement factor and pre-determined frequency bins
+       call jonswapgk(x,gam(ip),y)
+       ! Determine scaled and non-directional JONSWAP spectrum using the JONSWAP
+       ! characteristics
+       y=(Hm0(ip)/(4.d0*sqrt(sum(y)*dfj)))**2*y
+       ! Convert main angle from degrees to radians and from nautical convention to
+       ! internal grid
+       mainang(ip)=(1.5d0*par%px)-mainang(ip)*par%px/180
+       ! Make sure the main angle is defined between 0 and 2*pi
+       do while (mainang(ip)>2*par%px .or. mainang(ip)<0.d0) !Robert en Ap
+          if (mainang(ip)>2*par%px) then
+             mainang(ip)=mainang(ip)-2*par%px
+          elseif (mainang(ip)<0.d0) then
+             mainang(ip)=mainang(ip)+2*par%px
+          endif
+       enddo
+       ! Convert 200 directions relative to main angle to directions relative to
+       ! internal grid
+       ! Bas: apparently division by 2 for cosine law happens already here
+       tempdir = (specin%ang-mainang(ip))/2
+       ! Make sure all directions around the main angle are defined between 0 and 2*pi
+       do while (any(tempdir>2*par%px) .or. any(tempdir<0.d0))
+          where (tempdir>2*par%px)
+             tempdir=tempdir-2*par%px
+          elsewhere (tempdir<0.d0)
+             tempdir=tempdir+2*par%px
+          endwhere
+       enddo
+       ! Calculate directional spreading based on cosine law
+       Dd = dcos(tempdir)**(2*nint(scoeff(ip)))  ! Robert: apparently nint is needed here, else MATH error
+       ! Scale directional spreading to have a surface of unity by dividing by its
+       ! own surface
+       Dd = Dd / (sum(Dd)*specin%dang)
+       ! Define two-dimensional variance density spectrum array and distribute
+       ! variance density for each frequency over directional bins
+       allocate(multinomalspec(ip)%S(specin%nf,specin%nang))
+       do i=1,specin%nang
+          do ii=1,specin%nf
+             multinomalspec(ip)%S(ii,i)=y(ii)*Dd(i)
+          end do
        end do
-    end do
-    deallocate (y)
+     enddo  ! 1,nmodal
+     do ip=1,nmodal
+        write(*,*)'Hm0 = ',4*sqrt(sum(multinomalspec(ip)%S)*specin%dang*specin%df)
+     enddo
+     !
+     ! Combine spectrum partitions so that the total spectrum is correct
+     !
+     if (nmodal==1) then
+        ! Set all the useful parameters and arrays
+        specin%Hm0 = Hm0(1)
+        specin%fp = fp(1)
+        specin%dir0 = mainang(1)
+        specin%scoeff = scoeff(1)
+        allocate(specin%S(specin%nf,specin%nang))
+        specin%S = multinomalspec(1)%S
+     else
+        specin%Hm0 = sqrt(sum(Hm0**2))  ! total wave height
+        ind = maxval(maxloc(Hm0))       ! spectrum that is largest
+        specin%fp = fp(ind)             ! not really used in further calculation
+        specin%dir0 = mainang(ind)      ! again not really used in further calculation
+        ! if all scoeff>1000 then all waves should be in the same direction exactly
+        if (all(scoeff>=1024.d0) .and. all(mainang==mainang(ind))) then    
+           specin%scoeff = 1024.d0       
+        else
+           specin%scoeff = min(scoeff(ind),999.d0)
+        endif
+        ! Now we have to loop over all partitioned spectra. Where two or more spectra
+        ! overlap, only the largest is counted, and all others are set to zero. Afterwards
+        ! all spectra are scaled so that the total energy is maintained. Since the scaling
+        ! affects where spectra overlap, this loop is repeated until only minor changes
+        ! in the scaling occur. Warnings or errors are given if the spectrum is scaled too
+        ! much, i.e. spectra overlap too much.
+        !
+        ! Allocate space
+        allocate(scaledspec(nmodal)) ! used to store scaled density spectra
+        do ip=1,nmodal
+           allocate(scaledspec(ip)%S(specin%nf,specin%nang))
+           scaledspec(ip)%S = multinomalspec(ip)%S
+        enddo
+        allocate(scalefac1(nmodal))  ! this is the scaling factor required to maintain Hm0
+                                     ! including that parts of the spectrum are set to zero
+        scalefac1 = 1.d0                                        
+        allocate(scalefac2(nmodal))  ! this is the scaling factor required to maintain Hm0
+                                     ! in the previous iteration
+        scalefac2 = 1.d0      
+        allocate(avgscale(nmodal))
+        avgscale = 1.d0      
+        ! these are convergence criteria                            
+        newconv = 0.d0
+        oldconv = huge(0.d0)            
+        cont = .true.  
+        allocate(tempmax(nmodal))     ! used to store maximum value in f,theta space     
+        allocate(oldvariance(nmodal)) ! used to store the sum of variance in the original partitions
+        do ip=1,nmodal
+           oldvariance(ip) = sum(multinomalspec(ip)%S)
+        enddo
+        allocate(newvariance(nmodal)) ! used to store the sum of variance in the new partitions         
+        !
+        ! Start convergence loop
+        do while (cont)
+           avgscale = (avgscale+scalefac1)/2
+           ! First scale the spectra
+           do ip=1,nmodal
+              ! scale the spectrum using less than half the additional scale factor, this to
+              ! ensure the method does not become unstable
+              ! scaledspec(ip)%S = multinomalspec(ip)%S*(0.51d0+scalefac1(ip)*0.49d0)
+              ! scaledspec(ip)%S = multinomalspec(ip)%S*(scalefac1(ip)+scalefac2(ip))/2
+              scaledspec(ip)%S = multinomalspec(ip)%S*avgscale(ip)
+                
+           enddo
+           do i=1,specin%nang
+              do ii=1,specin%nf
+                 ! vector of variance densities at this point in f,theta space
+                 do ip=1,nmodal
+                    tempmax(ip) = scaledspec(ip)%S(ii,i)
+                 end do
+                 ! All spectra other than the one that is greatest in this point
+                 ! is set to zero. In case multiple spectra are equal largest,
+                 ! the first spectrum in the list is chosen (minval(maxloc))
+                 ind = minval(maxloc(tempmax))
+                 do ip=1,nmodal
+                    if (ip/=ind) then
+                       scaledspec(ip)%S(ii,i) = 0.d0
+                    endif
+                 enddo
+              enddo
+           end do
+           !
+           ! Now rescale adjusted partition spectra so that they match the incident Hm0
+           scalefac2 = scalefac1  ! keep previous results
+           do ip=1,nmodal
+              newvariance(ip) = sum(scaledspec(ip)%S)
+              if (newvariance(ip)>0.01d0*oldvariance(ip)) then
+                 scalefac1(ip) = oldvariance(ip)/newvariance(ip) ! want to maximise to a factor 2
+                                                                    ! else can generate rediculous results
+              else
+                 scalefac1(ip) = 0.d0                            ! completely remove this spectrum
+              endif
+           enddo
+           ! 
+           ! check convergence criteria (if error is increasing, we have passed best fit)
+           newconv = maxval(abs(scalefac2-scalefac1)/scalefac1)
+           if (newconv<0.0001d0 .or. abs(newconv-oldconv)<0.0001d0) then
+              cont = .false.
+           endif
+           oldconv = newconv
+        end do
+        ! Ensure full energy conservation by scaling now according to full scalefac, not just the
+        ! half used in the iteration loop
+        do ip=1,nmodal
+           scaledspec(ip)%S = multinomalspec(ip)%S*scalefac1(ip)
+        enddo
+        !
+        ! Now check the total scaling that has taken place across the spectrum, also accounting
+        ! for the fact that some parts of the spectra are set to zero. This differs from the
+        ! scalefac1 and scalefac2 vectors in the loop that only adjust the part of the spectrum
+        ! that is not zero.
+        do ip=1,nmodal
+           write(*,*)'Hm0m = ',4*sqrt(sum(scaledspec(ip)%S)*specin%dang*specin%df)
+        enddo
+        do ip=1,nmodal
+           indvec = maxloc(scaledspec(ip)%S)
+           scalefac1(ip) = scaledspec(ip)%S(indvec(1),indvec(2)) / &
+                           multinomalspec(ip)%S(indvec(1),indvec(2))-1.d0
+        enddo
+        !
+        ! Warning and/or error criteria here if spectra overlap each other too much
+        do ip=1,nmodal
+           if(scalefac1(ip)>0.5d0) then
+              if (forcepartition==1) then
+                 call writelog('lsw','(a,f0.0,a,i0,a,a,a)', &
+                               'Warning: ',scalefac1(ip)*100,'% of energy in spectrum partition ''',ip, &
+                               ''' in  ', trim(readfile),' is overlapped by other partitions')
+                 call writelog('lsw','',' Check spectral partitioning in ',trim(readfile))
+              else
+                 call writelog('lswe','(a,f0.0,a,i0,a,a,a)', &
+                               'Error: ',scalefac1(ip)*100,'% of energy in spectrum partition ''',ip, &
+                               ''' in  ', trim(readfile),' is overlapped by other partitions')
+                 call writelog('lswe','','This spectrum overlaps too much with another spectrum partition.', &
+                                         ' Check spectral partitioning in ',trim(readfile))
+                 call writelog('lswe','','If the partitioning should be carried out regardles of energy loss, ', &
+                                          'set ''forcepartition = 1'' in ',trim(readfile))
+                 call halt_program
+              endif
+           elseif (scalefac1(ip)>0.2d0 .and. scalefac1(ip)<=0.5d0) then
+              call writelog('lsw','(a,f0.0,a,i0,a,a,a)', &
+                            'Warning: ',scalefac1(ip)*100,'% of energy in spectrum partition ''',ip, &
+                            ''' in  ', trim(readfile),' is overlapped by other partitions')
+              call writelog('lsw','',' Check spectral partitioning in ',trim(readfile))
+           elseif (scalefac1(ip)<0.d0) then
+              call writelog('lsw','(a,i0,a,a,a)','Warning: spectrum partition ''',ip,''' in  ',trim(readfile), &
+                                   ' has been removed')
+              call writelog('lsw','','This spectrum is entirely overlapped by another spectrum partition.',&
+                                     ' Check spectral partitioning in ',trim(readfile))
+           endif
+        enddo
+        !
+        ! Now set total spectrum
+        allocate(specin%S(specin%nf,specin%nang))
+        specin%S = 0.d0
+        do ip=1,nmodal
+           specin%S = specin%S+scaledspec(ip)%S
+        enddo
+        
+        deallocate(scaledspec)
+        deallocate(tempmax)
+        deallocate(scalefac1,scalefac2)
+        deallocate(newvariance,oldvariance)
+     endif   
+        
     deallocate (Dd)
+    deallocate(Hm0,fp,gam,mainang,scoeff)
+    deallocate (x,y)
+    deallocate(tempdir)
+    deallocate(multinomalspec)
+
 
   end subroutine read_jonswap_file
 
@@ -1730,7 +1975,7 @@ contains
   ! --------------------------------------------------------------
   ! --------- Calculate in which computational wave bin ----------
   ! ------------- each wave train component belongs --------------
-  subroutine distribute_wave_train_directions(wp,s,px,nspr)
+    subroutine distribute_wave_train_directions(wp,s,px,nspr,nonhspec)
 
     use spaceparams
     use logging_module
@@ -1742,17 +1987,31 @@ contains
     type(spacepars),intent(in)                   :: s
     real*8,intent(in)                            :: px
     integer,intent(in)                           :: nspr
+    logical,intent(in)                           :: nonhspec
     ! internal
     integer                                      :: i,ii
     real*8,dimension(:),allocatable              :: binedges
     logical                                      :: toosmall,toolarge
     real*8                                       :: lostvar,keptvar,perclost
+    integer                                      :: lntheta              ! local copies that can be changed without 
+    real*8                                       :: lthetamin,ldtheta    ! damage to the rest of the model
+    
+    ! Set basic parameters for comparison if using nonh spectrum
+    if (nonhspec) then
+       lntheta = 1
+       lthetamin = -0.5d0*px
+       ldtheta = px
+    else
+       lntheta = s%ntheta
+       lthetamin = s%thetamin
+       ldtheta = s%dtheta
+    endif
 
     ! Calculate the bin edges of all the computational wave bins in the 
     ! XBeach model (not the input spectrum)
-    allocate(binedges(s%ntheta+1))
-    do i=1,s%ntheta+1
-       binedges(i) = s%thetamin+(i-1)*s%dtheta
+    allocate(binedges(lntheta+1))
+    do i=1,lntheta+1
+       binedges(i) = lthetamin+(i-1)*ldtheta
     enddo
 
     ! Try to fit as many wave train components as possible between the 
@@ -1790,16 +2049,18 @@ contains
     allocate(wp%WDindex(wp%K))
     wp%WDindex = 0
     do i=1,wp%K
-       if ( (wp%thetagen(i) > maxval(binedges)) .or. (wp%thetagen(i) < minval(binedges)) ) then
+       if (wp%thetagen(i) < minval(binedges)) then
           ! remove from computation if wave direction still not within computational
           ! bounds
           wp%WDindex(i) = 0
-       elseif (wp%thetagen(i) == binedges(s%ntheta+1) ) then
+       elseif (wp%thetagen(i) > maxval(binedges)) then
+          wp%WDindex(i) = lntheta+1
+       elseif (wp%thetagen(i) == binedges(lntheta+1) ) then
           ! catch upper boundary, and add to upper bin
-          wp%WDindex(i) = s%ntheta
+          wp%WDindex(i) = lntheta
        else
           ! fit this wave train component into one of the lower bins
-          do ii=1,s%ntheta
+          do ii=1,lntheta
              if (wp%thetagen(i)>=binedges(ii) .and. wp%thetagen(i)<binedges(ii+1)) then
                 wp%WDindex(i) = ii
              endif
@@ -1812,16 +2073,26 @@ contains
     ! Also move all wave energy falling outside the computational bins, into
     ! the computational domain (in the outer wave direction bins)
     if (nspr==1) then
-       do i=1,wp%K
-          if (wp%WDindex(i)==0) then 
-             wp%WDindex(i)=1
-          elseif (wp%WDindex(i)>s%ntheta) then
-             wp%WDindex(i)=s%ntheta
-          endif
-          ! reset the direction of this wave train to the centre of the bin
-          wp%thetagen(i)=s%theta(wp%WDindex(i))
-       enddo
-    endif
+       if (nonhspec) then
+          ! We only really want to include all energy between -90 and +90 degrees.
+          ! Waves outside this direction are sent out of the model
+          where(wp%WDindex==1)
+             wp%thetagen = 0.d0
+          elsewhere
+             wp%thetagen = -px
+          endwhere
+       else
+          do i=1,wp%K
+             if (wp%WDindex(i)==0) then 
+                wp%WDindex(i)=1
+             elseif (wp%WDindex(i)>lntheta) then
+                wp%WDindex(i)=lntheta
+             endif
+             ! reset the direction of this wave train to the centre of the bin
+             wp%thetagen(i)=s%theta(wp%WDindex(i))
+          enddo
+       endif
+    endif    
 
     ! Check the amount of energy lost to wave trains falling outside the computational
     ! domain
@@ -2450,7 +2721,7 @@ contains
 
     fid = create_new_fid()
     open(fid,file=trim(wp%nhfilename),status='REPLACE')
-    write(fid,'(a)')'VECTOR'
+    write(fid,'(a)')'vector'
     write(fid,'(a)')'3'
     write(fid,'(a)')'t,U,Z'
     do it=1,wp%tslen
