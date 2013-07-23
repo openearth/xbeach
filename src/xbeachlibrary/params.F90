@@ -36,7 +36,7 @@ module params
      integer*4     :: q3d                        = -123    !  [-] (advanced) Turn on (1) or off (0) quasi-3D sediment transport module
      integer*4     :: swrunup                    = -123    !  [-] (advanced) Turn on (1) or off (0) short wave runup
      integer*4     :: ships                      = -123    !  [-] (advanced) Turn on (1) or off (0) ship waves
-     integer*4     :: nship                      = -123    !  [-] (advanced) Number of ships
+     integer*4     :: vegetation                 = -123    !  [-] (advanced) Turn on (1) or off (0) interaction of waves and flow with vegetation
 
      ! [Section] Grid parameters                                                                                                                                                                                                                          
      character(slen):: depfile                   = 'abc'   !  [-] Name of the input bathymetry file
@@ -333,6 +333,12 @@ module params
 
      ! [Section] Ship parameters
      character(slen) :: shipfile                 = 'abc'   !  [-] Name of ship data file
+     integer*4       :: nship                    = -123    !  [-] (advanced) Number of ships
+     
+     ! [Section] Vegetation parameters
+     character(slen) :: vegiefile                = 'abc'   !  [-] Name of vegie species list file
+     character(slen) :: vegiemapfile             = 'abc'   !  [-] Name of vegie species map file
+     integer*4       :: nveg                     = -123    !  [-] Number of vegetation species
 
      ! [Section] Wave numerics parameters                                                                                                      
      character(slen):: scheme                    = 'abc'   !  [-] (advanced) Use first-order upwind (upwind_1), second order upwind (upwind_2) or Lax-Wendroff (lax_wendroff)
@@ -420,6 +426,7 @@ contains
     if (par%ships == 0) par%nship = 0
     ! nship defined by shipfile
     par%bchwiz      = readkey_int ('params.txt','bchwiz',        0,        0,     1)
+    par%vegetation  = readkey_int ('params.txt','vegetation',    0,        0,     1)
 
     !
     !
@@ -1126,7 +1133,15 @@ contains
        ! shipfile routine should set nship
     endif
     ! 
-    !   
+    !
+    ! Vegetation parameters
+    call writelog('l','','--------------------------------')
+    call writelog('l','','Vegetation parameters: ')
+    par%vegiefile    = readkey_name  ('params.txt', 'vegiefile'                       ) 
+    par%vegiemapfile = readkey_name  ('params.txt', 'vegiemapfile'                    )   
+    ! vegiefile routine should set nveg
+    ! 
+    !      
     ! Wave numerics parameters 
     call writelog('l','','--------------------------------')
     call writelog('l','','Wave numerics parameters: ')

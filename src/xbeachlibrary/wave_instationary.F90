@@ -11,6 +11,7 @@ contains
     use xmpi_module
     use mnemmodule
     use interp
+    use vegetation_module
 
     IMPLICIT NONE
 
@@ -322,12 +323,16 @@ contains
     where (hh>par%fwcutoff)
        Df = 0.d0
     end where
+    ! Dissipation by vegetation
+    if (par%vegetation == 1) then
+       call swvegatt(s,par)
+    endif
     !
     ! Distribution of dissipation over directions and frequencies
     !
     do itheta=1,ntheta
        ! Only calculate for E>0 FB
-       dd(:,:,itheta)=ee(:,:,itheta)*(D+Df)/max(E,0.00001d0)
+       dd(:,:,itheta)=ee(:,:,itheta)*(D+Df+Dveg)/max(E,0.00001d0)
     enddo
 
     do j=1,ny+1

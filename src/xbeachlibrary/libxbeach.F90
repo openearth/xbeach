@@ -22,10 +22,11 @@ module libxbeach_module
   use means_module
   use output_module
   use ship_module
+  use vegetation_module
   implicit none
 
   type(parameters), save                              :: par
-  type(timepars), save                                     :: tpar
+  type(timepars), save                                :: tpar
   type(spacepars), pointer                            :: s
   type(spacepars), target, save                       :: sglobal
   type(ship), dimension(:), pointer                   :: sh
@@ -114,6 +115,7 @@ contains
                                             ! to reserve memory on MPI subprocesses.
                                             ! Note: if par%ships==0 then don't allocate
                                             ! and read stuff for sh structures
+       if (par%vegetation==1)   call vegie_init (s,par)
 
     endif
 
