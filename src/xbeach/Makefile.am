@@ -2,6 +2,7 @@ ACLOCAL_AMFLAGS = -I m4 -I config
 bin_PROGRAMS=xbeach
 
 xbeach_SOURCES=\
+	input.F90\
 	xbeach.F90
 xbeach_LDADD=\
 	$(builddir)/../xbeachlibrary/libxbeach.la
