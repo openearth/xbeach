@@ -24,6 +24,7 @@ libxbeach_la_SOURCES= \
 	waveparamsnew.F90 \
 	constants.F90 \
 	roelvink.F90 \
+	vegetation.F90 \
 	wave_stationary.F90 \
 	wave_instationary.F90 \
 	wave_timestep.F90 \
