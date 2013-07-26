@@ -287,8 +287,8 @@ contains
              call gridrotate(par, sl,t,tvar2d)
           endif
           if (par%meanvars(i)=='thetamean') then
-             tvar2d_sin = nint(meansparsglobal(i)%mean2d) / 1d1 + nint(mult*sind(tvar2d)*1e6)
-             tvar2d_cos = mod(meansparsglobal(i)%mean2d,1.d0) * 1d7 + nint(mult*cosd(tvar2d)*1e6)
+             tvar2d_sin = nint(meansparsglobal(i)%mean2d) / 1d1 + nint(mult*sin(tvar2d)*1e6)
+             tvar2d_cos = mod(meansparsglobal(i)%mean2d,1.d0) * 1d7 + nint(mult*cos(tvar2d)*1e6)
              meansparslocal(i)%mean2d = tvar2d_sin*1e1 + tvar2d_cos/1e7
           else
              meansparslocal(i)%mean2d = meansparslocal(i)%mean2d + mult*tvar2d
