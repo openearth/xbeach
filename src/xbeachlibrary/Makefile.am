@@ -31,7 +31,7 @@ libxbeach_la_SOURCES= \
 	solver.F90 \
 	flow_secondorder.F90 \
 	nonh.F90 \
-        boundaryconditions.F90 \
+	boundaryconditions.F90 \
 	morphevolution.F90 \
 	beachwizard.F90 \
 	groundwater.F90 \
@@ -46,7 +46,7 @@ libxbeach_la_SOURCES= \
 	varoutput.F90 \
 	${extra_xbeach_sources} \
 	output.F90 \
-        ship.F90 \
+	ship.F90 \
 	mnemoniciso.F90 \
 	libxbeach.F90 \
 	libxbeach_dynamic.F90 \
