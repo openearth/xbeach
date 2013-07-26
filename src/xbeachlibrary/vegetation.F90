@@ -169,7 +169,7 @@ subroutine swvegatt(s,par)
              ! compute dissipation based on aht
              hterm = sinh(kmr(i,j)*aht)**3+3*sinh(kmr(i,j)*aht)/(3.d0*kmr(i,j)*cosh(kmr(i,j)*hh(i,j))**3)
              ! correct for lower elevated dissipation layers 
-             Dvgt = veg(ind).Dragterm(m)*(kmr(i,j)*par%g/s%sigm(i,j)/2.d0)**3*(hterm-htermold)*s%H(i,j)**3
+             Dvgt = veg(ind)%Dragterm(m)*(kmr(i,j)*par%g/s%sigm(i,j)/2.d0)**3*(hterm-htermold)*s%H(i,j)**3
              ! update htermold
              htermold = hterm
              ! set dissipation per layer
