@@ -6,9 +6,6 @@ xbeach_SOURCES=\
 	xbeach.F90
 xbeach_LDADD=\
 	$(builddir)/../xbeachlibrary/libxbeach.la
-BUILT_SOURCES= \
-	$(builddir)/../xbeachlibrary/version.def\
-	$(builddir)/../xbeachlibrary/version.dat
 
 # Set flags off by default
 xbeach_FCFLAGS=-I$(builddir)/../xbeachlibrary

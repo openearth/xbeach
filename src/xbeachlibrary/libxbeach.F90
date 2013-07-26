@@ -199,4 +199,14 @@ contains
 #endif
     finalize = 0
   end function finalize
+  
+  subroutine getversion(version)
+    character(kind=c_char,len=*),intent(inout) :: version
+    
+    include 'version.def'
+    include 'version.dat'
+    
+    version = trim(Build_Revision)
+  end subroutine
+    
 end module libxbeach_module

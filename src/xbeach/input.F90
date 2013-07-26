@@ -1,14 +1,12 @@
 module process_input
 use iso_c_binding
-
+use libxbeach_module
 
     contains
     ! Reads command line input
     integer(c_int) function readinput()
     character(len=100) :: arg
-    
-    include 'version.def'
-    include 'version.dat'
+    character(len=500) :: version
     
     readinput = 0
     
@@ -19,7 +17,8 @@ use iso_c_binding
                 call get_command_argument(iarg,arg)
                 
                 if (arg=='-V') then
-                    write(*,*)trim(Build_Revision)
+                    call getversion(version)
+                    write(*,*)trim(version)
                     readinput = 1
                 endif
                 
@@ -33,7 +32,6 @@ use iso_c_binding
                     write(*,*)'    xbeach.exe [options]'
                     write(*,*)' '
                     write(*,*)'Options:'
-                    write(*,*)'    -i Shows information about the xbeach version on hand'
                     write(*,*)'    -V SHows the version of this xbeach executable'
                     write(*,*)'**********************************************************'
                     write(*,*)' '
