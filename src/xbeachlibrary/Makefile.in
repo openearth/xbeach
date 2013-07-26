@@ -80,8 +80,8 @@ libxbeach_la_LIBADD =
 am__libxbeach_la_SOURCES_DIST = s.ind s.inp xmpi.F90 general_mpi.F90 \
 	typesandkinds.F90 logging.F90 filefunctions.F90 readkey.F90 \
 	mnemonic.F90 interp.F90 math_tools.F90 params.F90 getkey.F90 \
-	spaceparams.F90 wave_functions.F90 waveparams.F90 \
-	waveparamsnew.F90 constants.F90 roelvink.F90 \
+	spaceparams.F90 vegetation.F90 wave_functions.F90 \
+	waveparams.F90 waveparamsnew.F90 constants.F90 roelvink.F90 \
 	wave_stationary.F90 wave_instationary.F90 wave_timestep.F90 \
 	solver.F90 flow_secondorder.F90 nonh.F90 \
 	boundaryconditions.F90 morphevolution.F90 beachwizard.F90 \
@@ -97,10 +97,10 @@ am_libxbeach_la_OBJECTS = libxbeach_la-xmpi.lo \
 	libxbeach_la-readkey.lo libxbeach_la-mnemonic.lo \
 	libxbeach_la-interp.lo libxbeach_la-math_tools.lo \
 	libxbeach_la-params.lo libxbeach_la-getkey.lo \
-	libxbeach_la-spaceparams.lo libxbeach_la-wave_functions.lo \
-	libxbeach_la-waveparams.lo libxbeach_la-waveparamsnew.lo \
-	libxbeach_la-constants.lo libxbeach_la-roelvink.lo \
-	libxbeach_la-wave_stationary.lo \
+	libxbeach_la-spaceparams.lo libxbeach_la-vegetation.lo \
+	libxbeach_la-wave_functions.lo libxbeach_la-waveparams.lo \
+	libxbeach_la-waveparamsnew.lo libxbeach_la-constants.lo \
+	libxbeach_la-roelvink.lo libxbeach_la-wave_stationary.lo \
 	libxbeach_la-wave_instationary.lo \
 	libxbeach_la-wave_timestep.lo libxbeach_la-solver.lo \
 	libxbeach_la-flow_secondorder.lo libxbeach_la-nonh.lo \
@@ -277,6 +277,7 @@ libxbeach_la_SOURCES = \
 	params.F90 \
 	getkey.F90 \
 	spaceparams.F90 \
+	vegetation.F90 \
 	wave_functions.F90 \
 	waveparams.F90 \
 	waveparamsnew.F90 \
@@ -288,7 +289,7 @@ libxbeach_la_SOURCES = \
 	solver.F90 \
 	flow_secondorder.F90 \
 	nonh.F90 \
-        boundaryconditions.F90 \
+	boundaryconditions.F90 \
 	morphevolution.F90 \
 	beachwizard.F90 \
 	groundwater.F90 \
@@ -303,7 +304,7 @@ libxbeach_la_SOURCES = \
 	varoutput.F90 \
 	${extra_xbeach_sources} \
 	output.F90 \
-        ship.F90 \
+	ship.F90 \
 	mnemoniciso.F90 \
 	libxbeach.F90 \
 	libxbeach_dynamic.F90 \
@@ -453,6 +454,9 @@ libxbeach_la-getkey.lo: getkey.F90
 
 libxbeach_la-spaceparams.lo: spaceparams.F90
 	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-spaceparams.lo `test -f 'spaceparams.F90' || echo '$(srcdir)/'`spaceparams.F90
+
+libxbeach_la-vegetation.lo: vegetation.F90
+	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-vegetation.lo `test -f 'vegetation.F90' || echo '$(srcdir)/'`vegetation.F90
 
 libxbeach_la-wave_functions.lo: wave_functions.F90
 	$(LIBTOOL)  --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-wave_functions.lo `test -f 'wave_functions.F90' || echo '$(srcdir)/'`wave_functions.F90

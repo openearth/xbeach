@@ -272,7 +272,7 @@ finish_eval=""
 hardcode_into_libs=yes
 
 # Compile-time system search path for libraries.
-sys_lib_search_path_spec="/opt/intel/Compiler/11.0/081/mkl/lib/em64t /usr/lib/gcc/x86_64-redhat-linux/4.1.2 /usr/lib64 /lib64 "
+sys_lib_search_path_spec="/opt/intel/Compiler/11.0/081/mkl/lib/32 /opt/intel/Compiler/11.0/081/mkl/lib/em64t /usr/lib/gcc/x86_64-redhat-linux/4.1.2 /usr/lib64 /lib64 "
 
 # Run-time system search path for libraries.
 sys_lib_dlsearch_path_spec="/lib /usr/lib /usr/lib64/mysql /opt/netcdf-4.1.1/lib /usr/lib64/openais /usr/lib/opencryptoki /usr/lib/opencryptoki/stdll /usr/lib64/opencryptoki/stdll /usr/lib64/opencryptoki /usr/local/ssl/lib /usr/lib/qt-3.3/lib /usr/lib64/qt-3.3/lib /usr/lib/qt4/lib /usr/lib64/qt4/lib64 /usr/lib/xulrunner-1.9.2 /usr/lib64/xulrunner-1.9.2 "

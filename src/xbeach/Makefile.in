@@ -56,7 +56,7 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_xbeach_OBJECTS = xbeach-xbeach.$(OBJEXT)
+am_xbeach_OBJECTS = xbeach-input.$(OBJEXT) xbeach-xbeach.$(OBJEXT)
 xbeach_OBJECTS = $(am_xbeach_OBJECTS)
 xbeach_DEPENDENCIES = $(builddir)/../xbeachlibrary/libxbeach.la
 xbeach_LINK = $(LIBTOOL) --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -204,17 +204,23 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4 -I config
 xbeach_SOURCES = \
+	input.F90\
 	xbeach.F90
 
 xbeach_LDADD = \
 	$(builddir)/../xbeachlibrary/libxbeach.la
+
+BUILT_SOURCES = \
+	$(builddir)/../xbeachlibrary/version.def \
+	$(builddir)/../xbeachlibrary/includes/version/version.dat
 
 
 # Set flags off by default
 xbeach_FCFLAGS = -I$(builddir)/../xbeachlibrary $(am__append_1) \
 	$(am__append_2)
 CLEANFILES = *.mod *.MOD *.gen version.dat 
-all: all-am
+all: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
 .SUFFIXES: .F90 .lo .o .obj
@@ -309,6 +315,12 @@ distclean-compile:
 
 .F90.lo:
 	$(LTPPFCCOMPILE) -c -o $@ $<
+
+xbeach-input.o: input.F90
+	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-input.o `test -f 'input.F90' || echo '$(srcdir)/'`input.F90
+
+xbeach-input.obj: input.F90
+	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-input.obj `if test -f 'input.F90'; then $(CYGPATH_W) 'input.F90'; else $(CYGPATH_W) '$(srcdir)/input.F90'; fi`
 
 xbeach-xbeach.o: xbeach.F90
 	$(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(xbeach_FCFLAGS) $(FCFLAGS) -c -o xbeach-xbeach.o `test -f 'xbeach.F90' || echo '$(srcdir)/'`xbeach.F90
@@ -405,13 +417,15 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
-check: check-am
+check: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(PROGRAMS)
 installdirs:
 	for dir in "$(DESTDIR)$(bindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: install-am
+install: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -437,6 +451,7 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
@@ -505,7 +520,7 @@ ps-am:
 
 uninstall-am: uninstall-binPROGRAMS
 
-.MAKE: install-am install-strip
+.MAKE: all check install install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-binPROGRAMS \
 	clean-generic clean-libtool ctags distclean distclean-compile \
