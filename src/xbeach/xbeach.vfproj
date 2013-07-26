@@ -168,7 +168,7 @@
 		<Filter Name="Header Files" Filter="fi;fd;gen"/>
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
-		<File RelativePath="..\xbeachlibrary\input.f90"/>
+		<File RelativePath=".\input.F90"/>
 		<File RelativePath="..\xbeachlibrary\introspection.F90"/>
 		<File RelativePath=".\xbeach.F90"/></Filter></Files>
 	<Globals/></VisualStudioProject>

@@ -16,7 +16,7 @@ use iso_c_binding
         if (n > 0) then
             do iarg=1,n
                 
-                call get_commang_argument(iarg,arg)
+                call get_command_argument(iarg,arg)
                 
                 if (arg=='-V') then
                     write(*,*)trim(Build_Revision)

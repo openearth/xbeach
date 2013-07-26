@@ -18,3 +18,6 @@ IF NOT DEFINED RevisionNumber (
 IF %ok%==0 (
   copy "%cd%\includes\version\version.000" "%cd%\includes\version\version.dat"
 )
+
+copy "%cd%\includes\version\version.dat" "%cd%\..\xbeach\version.dat"
+copy "%cd%\version.def" "%cd%\..\xbeach\version.def"
