@@ -1,4 +1,4 @@
-MODULE logging_module
+module logging_module
   use typesandkinds
   use xmpi_module
   implicit none
@@ -69,7 +69,7 @@ CONTAINS
 
     integer         :: error
 
-    if (xmaster) then 
+    if (xmaster) then
 
        logfileid       = generate_logfileid()
        if (xmaster)    open(logfileid,     file='XBlog.txt',       status='replace')
@@ -93,7 +93,7 @@ CONTAINS
 
   subroutine close_logfiles
 
-    if (xmaster) then 
+    if (xmaster) then
        close(logfileid                         )
        close(errorfileid,      STATUS='DELETE' )
        close(warningfileid                     )
@@ -121,7 +121,7 @@ CONTAINS
     logical     :: fileopen
 
     tryunit  = 98
-    fileopen = .true.    
+    fileopen = .true.
     error    = 0
 
     do while (fileopen)
@@ -129,7 +129,7 @@ CONTAINS
        if (fileopen) then
           tryunit=tryunit-1
        endif
-       if (tryunit<=10) then 
+       if (tryunit<=10) then
           tryunit     = -1
           fileopen    = .false.
           return
@@ -139,15 +139,15 @@ CONTAINS
   end function generate_logfileid
 
   subroutine progress_indicator(initialize,curper,dper,dt)
-    
+
     implicit none
-     
+
     logical,intent(in)      :: initialize    ! initialize current progress indicator
     real*8,intent(in)       :: curper        ! current percentage done
     real*8,intent(in)       :: dper          ! steps in percentage between output
     real*8,intent(in)       :: dt            ! steps in time (s) between output
     ! whichever reached earlier (dper,dt) will determin output
-    ! internal                                         
+    ! internal
     real*8,save             :: lastper,lastt
     real*8                  :: tnow
     integer*4               :: count,count_rate,count_max
@@ -173,21 +173,22 @@ CONTAINS
 
 
   end subroutine progress_indicator
-  
+
   subroutine report_file_read_error(filename)
-  
+
      implicit none
-     
+
      character(*)    :: filename
-     
+
      call writelog('lswe','','Error reading file ''',trim(filename),'''')
      call writelog('lswe','','Check file for incorrect decimal format, line breaks and tab characters')
      call halt_program
-  
+
   end subroutine report_file_read_error
 
   subroutine writelog_startup()
 
+    use xmpi_module
     implicit none
 
     character(len=8)                                :: date
@@ -197,7 +198,7 @@ CONTAINS
     ! subversion information
     include 'version.def'
 
-    ! get current working directory (gcc only) 
+    ! get current working directory (gcc only)
 #ifdef HAVE_CONFIG_H
 #include "config.h"
     character(slen)                              :: cwd
@@ -234,6 +235,7 @@ CONTAINS
 
 #ifdef USEMPI
   subroutine writelog_mpi(mpiboundary,error)
+    use xmpi_module
 
     implicit none
 
@@ -254,6 +256,7 @@ CONTAINS
 
   subroutine writelog_finalize(tbegin, n, t, nx, ny, t0, t01)
 
+    use xmpi_module
     implicit none
 
     integer                                         :: n,nx,ny
@@ -301,18 +304,18 @@ CONTAINS
     character(*)            :: destination
     character(slen)         :: display
 
-    if (xmaster) then 
+    if (xmaster) then
        if (scan(destination,'l')>0) then
           write(6,*)     trim(display)
           write(logfileid,*)     trim(display)
        end if
        if (scan(destination,'e')>0) then
-          write(0,*)   trim(display)   
-          write(errorfileid,*)   trim(display)   
+          write(0,*)   trim(display)
+          write(errorfileid,*)   trim(display)
        end if
        if (scan(destination,'w')>0) then
-          write(0,*) trim(display)   
-          write(warningfileid,*) trim(display)   
+          write(0,*) trim(display)
+          write(warningfileid,*) trim(display)
        end if
     endif
 
@@ -445,7 +448,7 @@ CONTAINS
     else
        write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
                           message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
-                          message_int 
+                          message_int
     endif
 
     call writelog_distribute(destination, display)
@@ -641,13 +644,13 @@ CONTAINS
     if (form=='') then
        write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
                        message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
-                       message_i1, & 
+                       message_i1, &
                        message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
                        message_i2
     else
        write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
                           message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
-                          message_i1, & 
+                          message_i1, &
                           message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
                           message_i2
     endif
@@ -667,14 +670,14 @@ CONTAINS
        write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
                        message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
                        message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
-                       message_i1, & 
+                       message_i1, &
                        message_char4(1:min(len(message_char4),len_trim(message_char4)+1)), &
                        message_i2
     else
        write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
                           message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
                           message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
-                          message_i1, & 
+                          message_i1, &
                           message_char4(1:min(len(message_char4),len_trim(message_char4)+1)), &
                           message_i2
     endif
@@ -693,12 +696,12 @@ CONTAINS
 
     if (form=='') then
        write(display,*)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
-                       mi1, & 
+                       mi1, &
                        mc2(1:min(len(mc2),len_trim(mc2)+1)), &
                        mf1,trim(mc3)
     else
        write(display,form)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
-                          mi1, & 
+                          mi1, &
                           mc2(1:min(len(mc2),len_trim(mc2)+1)), &
                           mf1,trim(mc3)
     endif
@@ -762,7 +765,7 @@ CONTAINS
 
   end subroutine writelog_aiaiai
 
-  subroutine writelog_aiaiaia(destination,form,mc1,message_i1,mc2,message_i2,mc3,message_i3, & 
+  subroutine writelog_aiaiaia(destination,form,mc1,message_i1,mc2,message_i2,mc3,message_i3, &
        mc4)
     implicit none
     character(*),intent(in)    ::  form,mc1,mc2,mc3,mc4
@@ -830,14 +833,14 @@ CONTAINS
        write(display,*)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
                        mi1, &
                        mc2(1:min(len(mc2),len_trim(mc2)+1)), &
-                       mi2, & 
+                       mi2, &
                        mc3(1:min(len(mc3),len_trim(mc3)+1)), &
                        mf1,trim(mc4)
     else
        write(display,form)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
                           mi1, &
                           mc2(1:min(len(mc2),len_trim(mc2)+1)), &
-                          mi2, & 
+                          mi2, &
                           mc3(1:min(len(mc3),len_trim(mc3)+1)), &
                           mf1,trim(mc4)
     endif
@@ -954,12 +957,12 @@ CONTAINS
 
     if (form=='') then
        write(display,*)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
-                       mf1, & 
+                       mf1, &
                        mc2(1:min(len(mc2),len_trim(mc2)+1)), &
                        mf2,trim(mc3)
     else
        write(display,form)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
-                          mf1, & 
+                          mf1, &
                           mc2(1:min(len(mc2),len_trim(mc2)+1)), &
                           mf2,trim(mc3)
     endif
@@ -1021,13 +1024,13 @@ CONTAINS
 
     if (form=='') then
        write(display,*)mc1a(1:min(len(mc1a),len_trim(mc1a)+1)), &
-                       mfa, & 
+                       mfa, &
                        mc2a(1:min(len(mc2a),len_trim(mc2a)+1)), &
                        mc3a(1:min(len(mc3a),len_trim(mc3a)+1)), &
                        trim(mc4a)
     else
        write(display,form)mc1a(1:min(len(mc1a),len_trim(mc1a)+1)), &
-                          mfa, & 
+                          mfa, &
                           mc2a(1:min(len(mc2a),len_trim(mc2a)+1)), &
                           mc3a(1:min(len(mc3a),len_trim(mc3a)+1)), &
                           trim(mc4a)
@@ -1047,13 +1050,13 @@ CONTAINS
     if (form=='') then
        write(display,*)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
                        message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
-                       message_f1, & 
+                       message_f1, &
                        message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
                        message_f2
     else
        write(display,form)message_char1(1:min(len(message_char1),len_trim(message_char1)+1)), &
                           message_char2(1:min(len(message_char2),len_trim(message_char2)+1)), &
-                          message_f1, & 
+                          message_f1, &
                           message_char3(1:min(len(message_char3),len_trim(message_char3)+1)), &
                           message_f2
     endif
@@ -1162,10 +1165,10 @@ CONTAINS
     real*8,intent(in)          ::  mf1
     integer,intent(in)         ::  mi1
     character(slen)            ::  display
- 
+
     if (form=='') then
        write(display,*)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
-                       mf1, & 
+                       mf1, &
                        mc2(1:min(len(mc2),len_trim(mc2)+1)), &
                        mi1, &
                        mc3(1:min(len(mc3),len_trim(mc3)+1)), &
@@ -1173,7 +1176,7 @@ CONTAINS
                        trim(mc5)
     else
        write(display,form)mc1(1:min(len(mc1),len_trim(mc1)+1)), &
-                          mf1, & 
+                          mf1, &
                           mc2(1:min(len(mc2),len_trim(mc2)+1)), &
                           mi1, &
                           mc3(1:min(len(mc3),len_trim(mc3)+1)), &

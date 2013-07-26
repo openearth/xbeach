@@ -779,7 +779,8 @@ contains
                    case(4)
                       allocate(r4(size(t%r4,1),size(t%r4,2),size(t%r4,3),size(t%r4,4)))
                       call gridrotate(par, s, t, r4)
-                      status = nf90_put_var(ncid, pointsvarids(i), r4(xpoints(ii), ypoints(ii),:,:), start=(/ii,1,1,tpar%itp/) )
+                      status = nf90_put_var(ncid, pointsvarids(i), r4(xpoints(ii), ypoints(ii),:,:), &
+                           start=(/ii,1,1,tpar%itp/) )
                       deallocate(r4)
                       if (status /= nf90_noerr) call handle_err(status)
                    case default
@@ -826,8 +827,9 @@ contains
                                  start=(/1,1,tpar%itm-1/) )
                          elseif (t%name .eq. 'thetamean') then
                              status = nf90_put_var(ncid, meanvarids(i,j), &
-                                         mod(2.d0*par%px + atan2(nint(meansparsglobal(i)%mean2d)/1d7, &
-                                                                 mod(meansparsglobal(i)%mean2d,1.d0)*1d1), 2.d0*par%px) / par%px * 180, &
+                                         mod(2.d0*par%px &
+                                         + atan2(nint(meansparsglobal(i)%mean2d)/1d7, &
+                                         mod(meansparsglobal(i)%mean2d,1.d0)*1d1), 2.d0*par%px) / par%px * 180, &
                                          start=(/1,1,tpar%itm-1/) ) 
                          else
                             status = nf90_put_var(ncid, meanvarids(i,j), meansparsglobal(i)%mean2d, start=(/1,1,tpar%itm-1/) )
