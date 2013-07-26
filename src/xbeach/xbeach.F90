@@ -13,7 +13,8 @@ rc = 0
 rc = readinput()
 if (rc.eq.1) then
     call halt_program
-
+endif
+    
 rc = init()
 
 ! Start simulation                                                            !
