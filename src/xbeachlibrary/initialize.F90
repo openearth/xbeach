@@ -323,6 +323,7 @@ contains
     allocate(s%D(1:nx+1,1:ny+1)) 
     allocate(s%Df(1:nx+1,1:ny+1)) 
     allocate(s%Dveg(1:nx+1,1:ny+1))
+    allocate(s%Fveg(1:nx+1,1:ny+1))
     allocate(s%Dp(1:nx+1,1:ny+1)) 
     allocate(s%Qb(1:nx+1,1:ny+1)) 
     allocate(s%ust(1:nx+1,1:ny+1)) 
@@ -384,6 +385,7 @@ contains
     s%DR        = 0.d0
     s%Df        = 0.d0
     s%Dveg      = 0.d0
+    s%Fveg      = 0.d0
     s%BR        = par%Beta
 
 

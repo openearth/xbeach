@@ -266,13 +266,15 @@ module params
      real*8        :: facua                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave skewness and asymmetry
      real*8        :: facSk                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave skewness 
      real*8        :: facAs                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave asymmetry
-     character(slen) :: turb                     = 'abc'   !  [-] (advanced) Equlibrium sediment concentration is computed as function of:
+     real*8        :: turbadv                    = -123    !  [-] (advanced) Switch 0/1 to activate turbulence advection model for short and or long wave turbulence
+     character(slen) :: turb                     = 'abc'   !  [-] (advanced) Switch to include short wave turbulence:
                                                            !      none = no turbulence, 
                                                            !      wave_averaged = wave averaged turbulence
                                                            !      bore_averaged = maximum turbulence
      real*8        :: Tbfac                      = -123    !  [-] (advanced) Calibration factor for bore interval Tbore: Tbore = Tbfac*Tbore
      real*8        :: Tsmin                      = -123    !  [s] (advanced) Minimum adaptation time scale in advection diffusion equation sediment    
-     integer*4     :: lwt                        = -123    !  [-] (advanced) Switch 0/1 long wave turbulence model
+     integer*4     :: lwt                        = -123    !  [-] (advanced) Switch 0/1 long wave turbulence
+     
      real*8        :: betad                      = -123    !  [-] (advanced) Dissipation parameter long wave breaking turbulence
      character(slen) :: swtable                  = 'abc'   !  [-] (deprecated)Name of intra short wave assymetry and skewness table
      integer*4     :: sus                        = -123    !  [-] (advanced) Calibration factor for suspensions transports [0..1]
@@ -1015,6 +1017,7 @@ contains
        par%facua    = readkey_dbl ('params.txt','facua  ',0.10d0,    0.00d0,   1.0d0) 
        par%facSk    = readkey_dbl ('params.txt','facSk  ',par%facua,    0.00d0,   1.0d0) 
        par%facAs    = readkey_dbl ('params.txt','facAs  ',par%facua,    0.00d0,   1.0d0) 
+       par%turbadv  = readkey_int ('params.txt','turbadv',0,           0,            1)
        allocate(allowednames(3),oldnames(3))
        allowednames=(/'none         ','wave_averaged','bore_averaged'/)
        oldnames=(/'0','1','2'/)

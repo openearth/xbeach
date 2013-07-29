@@ -356,7 +356,7 @@ contains
                 call swvegatt(s,par)
              endif
              !
-             ! Distribution of dissipation over directions and frequencies
+             ! Distribution of dissipation ovater directions and frequencies
              !
              do itheta=1,ntheta
                 dd(i,:,itheta)=ee(i,:,itheta)*(D(i,:)+Df(i,:))/max(E(i,:),0.00001d0)

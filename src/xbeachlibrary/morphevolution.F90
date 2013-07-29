@@ -124,9 +124,9 @@ contains
     sinthm = sin(thetamean-alfaz)
     costhm = cos(thetamean-alfaz)
 
-    ! compute long wave turbulence due to breaking
-    if (par%lwt==1) then
-       call longwaveturb(s,par)
+    ! compute turbulence due to wave breaking
+    if (par%lwt==1 .or. trim(par%turb) == 'bore_averaged' .or. trim(par%turb) == 'wave_averaged') then
+       call waveturb(s,par)
     endif
 
     if (par%swave==1) then
@@ -1211,12 +1211,10 @@ contains
              ! exponential decay turbulence over depth
              dcfin = exp(min(100.d0,hloc(i,j)/max(ML,0.01d0)))
              dcf = min(1.d0,1.d0/(dcfin-1.d0))
+             ! Jaap: depth averaged turbulence is computed in waveturb
+             kb(i,j) = kturb(i,j)*dcf
              if (trim(par%turb) == 'bore_averaged') then
-                kb(i,j) = par%nuhfac*(DR(i,j)/par%rho)**twothird*dcf*par%Trep/Tbore(i,j)
-             elseif (trim(par%turb) == 'wave_averaged') then
-                kb(i,j) = par%nuhfac*(DR(i,j)/par%rho)**twothird*dcf
-             elseif (trim(par%turb) == 'none') then
-                kb(i,j) = 0.0d0
+                kb(i,j) = kb(i,j)*par%Trep/Tbore(i,j)
              endif
           enddo
        enddo
@@ -1230,7 +1228,7 @@ contains
        vmg = (1.d0-1.d0/par%cats/par%Trep*par%dt)*vmg + (1.d0/par%cats/par%Trep*par%dt)*dsqrt(ue**2+ve**2) 
     endif
 
-    urms2  = urms**2+1.45d0*(kb+kturb)
+    urms2  = urms**2+1.45d0*kb
 
     do jg = 1,par%ngd
 
@@ -1376,12 +1374,10 @@ contains
              ! exponential decay turbulence over depth
              dcfin = exp(min(100.d0,hloc(i,j)/max(ML,0.01d0)))
              dcf = min(1.d0,1.d0/(dcfin-1.d0))
+             ! Jaap: new approach: compute kb based on waveturb result 
+             kb(i,j) = kturb(i,j)*dcf
              if (trim(par%turb) == 'bore_averaged') then
-                kb(i,j) = par%nuhfac*(DR(i,j)/par%rho)**twothird*dcf*par%Trep/Tbore(i,j)
-             elseif (trim(par%turb) == 'wave_averaged') then
-                kb(i,j) = par%nuhfac*(DR(i,j)/par%rho)**twothird*dcf
-             elseif (trim(par%turb) == 'none') then
-                kb(i,j) = 0.0d0
+                kb(i,j) = kb(i,j)*par%Trep/Tbore(i,j)
              endif
           enddo
        enddo
@@ -1395,7 +1391,7 @@ contains
        vmg = (1.d0-1.d0/par%cats/par%Trep*par%dt)*vmg + (1.d0/par%cats/par%Trep*par%dt)*dsqrt(ue**2+ve**2) 
     endif
 
-    urms2 = urms**2.d0+1.45d0*(kb+kturb)
+    urms2 = urms**2.d0+1.45d0*kb
 
     do jg = 1,par%ngd
 
@@ -1452,7 +1448,7 @@ contains
 
   end subroutine sednew
 
-  subroutine longwaveturb(s,par)
+  subroutine waveturb(s,par)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
     ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
     ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
@@ -1490,18 +1486,20 @@ contains
 
     integer                                  :: i
     integer                                  :: j
-    real                                     :: ksource
-    real*8,dimension(:,:),allocatable,save   :: kturbu,kturbv,Sturbu,Sturbv,dzsdt_cr
+    real*8, save                             :: twothird
+    real*8,dimension(:,:),allocatable,save   :: ksource, kturbu,kturbv,Sturbu,Sturbv,dzsdt_cr
 
     include 's.ind'
     include 's.inp'
 
     if (.not. allocated(kturbu)) then
+       allocate(ksource (nx+1,ny+1))
        allocate(kturbu (nx+1,ny+1))
        allocate(kturbv (nx+1,ny+1))
        allocate(Sturbu (nx+1,ny+1))
        allocate(Sturbv (nx+1,ny+1))
        allocate(dzsdt_cr (nx+1,ny+1))
+       twothird=2.d0/3.d0
     endif
     ! use lagrangian velocities
     kturbu       = 0.0d0  !Jaap
@@ -1510,8 +1508,21 @@ contains
     ! Update roller thickness
     rolthick=rolthick+par%dt*(abs(dzsdt)-dzsdt_cr)
     rolthick=max(rolthick,0.d0)
+    
+    ! Jaap compute sources and sinks
+    ! long wave source
+    ksource = 0
+    if (par%lwt == 1) then
+       ksource = par%g*rolthick*par%beta*c      !only important in shallow water, where c=sqrt(gh)  
+    endif
+    if (trim(par%turb) == 'bore_averaged' .or. trim(par%turb) == 'wave_averaged') then
+       ksource = ksource + (DR/par%rho)
+    endif   
+    
+    ! Jaap do long wave turb approach for both short waves and long waves
     !
-    !  X-direction
+    ! X-direction
+    !
     do j=1,ny+1
        do i=1,nx
           if(uu(i,j)>0.d0) then
@@ -1524,11 +1535,13 @@ contains
        enddo
     enddo
     kturbu(nx+1,:) = kturb(nx+1,:) !Robert
+    
     ! wwvv fix this in parallel case
 #ifdef USEMPI
-    call xmpi_shift(kturbu,'m:')
+   call xmpi_shift(kturbu,'m:')
 #endif
-    !
+    
+    ! Jaap ueu or uu?
     Sturbu=kturbu*uu*hu*wetu   !
     !
     ! Y-direction
@@ -1541,41 +1554,47 @@ contains
              kturbv(i,j)=par%thetanum*kturb(i,j+1)+(1.d0-par%thetanum)*kturb(i,max(j,2))
           else
              kturbv(i,j)=0.5d0*(kturbv(i,j)+kturbv(i,j+1))
-          end if
-       end do
-    end do
+          endif
+       enddo
+    enddo
     kturbv(:,ny+1) = kturb(:,ny+1) !Robert
     !
     Sturbv=kturbv*vv*hv*wetv
+    
     if (ny>0) then
        do j=2,ny+1
           do i=2,nx+1
-             ksource=par%g*rolthick(i,j)*par%beta*c(i,j)      !only important in shallow water, where c=sqrt(gh)  
+             
              kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*(       &
-	          (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j)+&
-                  Sturbv(i,j)*dsv(i,j)-Sturbv(i,j-1)*dsv(i,j-1))*dsdnzi(i,j)-&
-                  (ksource-par%betad*kturb(i,j)**1.5d0))
+	                      par%turbadv*(Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j)+&
+                                       Sturbv(i,j)*dsv(i,j)-Sturbv(i,j-1)*dsv(i,j-1))*dsdnzi(i,j)-&
+                          (ksource(i,j)-par%betad*kturb(i,j)**1.5d0))
              kturb(i,j)=max(kturb(i,j),0.0d0)
+               
           enddo
        enddo
     else
        j=1
        do i=2,nx+1
-          ksource=par%g*rolthick(i,j)*par%beta*c(i,j)      !only important in shallow water, where c=sqrt(gh)  
+            
           kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*(       &
-	       (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)-&
-               (ksource-par%betad*kturb(i,j)**1.5d0))
+	                   par%turbadv*(Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)-&
+                      (ksource(i,j)-par%betad*kturb(i,j)**1.5d0))
           kturb(i,j)=max(kturb(i,j),0.0d0)
+            
        enddo
     endif
-    ! Jaap
+       
     kturb = kturb/max(hh,0.01d0)
+       
+    ! Jaap only required for advection mode?
     kturb(1,:)=kturb(2,:)
     kturb(nx+1,:)=kturb(nx+1-1,:)
     if (ny>0) then
-       kturb(:,1)=kturb(:,2)
-       kturb(:,ny+1)=kturb(:,ny+1-1)
+        kturb(:,1)=kturb(:,2)
+        kturb(:,ny+1)=kturb(:,ny+1-1)
     endif
+       
     ! wwvv fix the first and last rows and columns of kturb in parallel case
 #ifdef USEMPI
     call xmpi_shift(kturb,'1:')
@@ -1583,10 +1602,11 @@ contains
     call xmpi_shift(kturb,':1')   ! Maybe not necessary as zb calculated from 1:ny+1, but just in case...
     call xmpi_shift(kturb,':n')   ! Dito
 #endif
+
     kturb=kturb*wetz
     !
 
-  end subroutine longwaveturb
+  end subroutine waveturb
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
