@@ -1,7 +1,7 @@
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Copyright (C) 2011 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
 ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
-! Jaap van Thiel de Vries, Robert McCall                                  !       
+! Jaap van Thiel de Vries, Robert McCall                                  !
 !                                                                         !
 ! d.roelvink@unesco-ihe.org                                               !
 ! UNESCO-IHE Institute for Water Education                                !
@@ -30,12 +30,12 @@ private
 type vegie
    character*256                      :: name
    integer ,                  pointer :: nsec        ! Number of vegetation stands per unit horizontal area [m-2]
-   real*8 , dimension(:)    , pointer :: ah          ! Vegetation height [m] 
+   real*8 , dimension(:)    , pointer :: ah          ! Vegetation height [m]
    real*8 , dimension(:)    , pointer :: Cd          ! Vertically integrated drag coefficient [-]
    real*8 , dimension(:)    , pointer :: bv          ! Width of vegetation stands
    integer , dimension(:)   , pointer :: N           ! Number of vegetation stands per unit horizontal area [m-2]
    real*8 , dimension(:)    , pointer :: Dragterm1   ! Dragterm in short wave attenuation []
-   real*8 , dimension(:)    , pointer :: Dragterm2   ! Dragterm in long wave attenuation [] 
+   real*8 , dimension(:)    , pointer :: Dragterm2   ! Dragterm in long wave attenuation []
    integer , dimension(:,:) , pointer :: vegtype     ! spatial mapping of vegetation types [-]
 end type
 
@@ -64,52 +64,52 @@ subroutine vegie_init(s,par)
     integer                                     :: i,j,fid,ier
     integer, save                               :: nsec           ! Number of vegetation sections in the vertical per specie [-]
     !integer, dimension(s%nx+1,s%ny+1)           :: vegtype
-    
+
     include 's.ind'
     include 's.inp'
-    
+
     ! Read files with vegetation properties:
     ! file 1: list of species
     ! file 2: vegetation properties per specie (could be multiple files)
     ! file 3: distribution of species oevr space
-    
+
     fid=create_new_fid() ! see filefunctions.F90
     call check_file_exist(par%vegiefile)
-    open(fid,file=par%vegiefile)     
+    open(fid,file=par%vegiefile)
     ier=0
     i=0
     do while (ier==0)
        read(fid,'(a)',iostat=ier)ch
        if (ier==0)i=i+1
     enddo
-    par%nveg=i                        
-    rewind(fid)   
-      
+    par%nveg=i
+    rewind(fid)
+
     allocate(veg(par%nveg))
     do i=1,par%nveg
-       read(fid,'(a)')veg(i)%name      ! set vegetation name 
+       read(fid,'(a)')veg(i)%name      ! set vegetation name
     enddo
     close(fid)
-    
+
     ! allocate and read specie specific vegetation properties
     do i=1,par%nveg  ! for each specie
        call check_file_exist(veg(i)%name)
-       allocate (veg(i)%nsec) 
+       allocate (veg(i)%nsec)
        veg(i)%nsec = readkey_int(veg(i)%name,'nsec',  1,        1,      10  )
-       allocate (veg(i)%ah(veg(i)%nsec)) 
+       allocate (veg(i)%ah(veg(i)%nsec))
        allocate (veg(i)%Cd(veg(i)%nsec))
        allocate (veg(i)%bv(veg(i)%nsec))
        allocate (veg(i)%N(veg(i)%nsec))
        allocate (veg(i)%Dragterm1(veg(i)%nsec))
        allocate (veg(i)%Dragterm2(veg(i)%nsec))
        veg(i)%ah   = readkey_dblvec(veg(i)%name,'ah',veg(i)%nsec,size(veg(i)%ah),0.1d0,0.05d0,20.d0)       ! Think about default values...
-       veg(i)%Cd   = readkey_dblvec(veg(i)%name,'Cd',veg(i)%nsec,size(veg(i)%Cd),0.1d0,0.05d0,20.d0)       ! Think about default values... 
+       veg(i)%Cd   = readkey_dblvec(veg(i)%name,'Cd',veg(i)%nsec,size(veg(i)%Cd),0.1d0,0.05d0,20.d0)       ! Think about default values...
        veg(i)%bv   = readkey_dblvec(veg(i)%name,'bv',veg(i)%nsec,size(veg(i)%bv),0.1d0,0.05d0,20.d0)       ! Think about default values...
        veg(i)%N    = nint(readkey_dblvec(veg(i)%name,'N',veg(i)%nsec,size(veg(i)%bv),0.1d0,0.05d0,20.d0))  ! Jaap: quick&dirt transform real into integer
        veg(i)%Dragterm1 = 0.5d0/sqrt(par%px)*par%rho*veg(i)%Cd*veg(i)%bv*veg(i)%N ! Drag coefficient based on first part equation 6.5 Suzuki, 2011
        veg(i)%Dragterm2 = 0.5d0*par%rho*veg(i)%Cd*veg(i)%bv*veg(i)%N
     enddo
-    
+
     ! read spatial distribution of species:
     ! vegtype = 1 corresponds to first vegetation specified in vegiefile
     allocate (veg(1)%vegtype(s%nx+1,s%ny+1))
@@ -124,16 +124,16 @@ subroutine vegie_init(s,par)
        endif
     end do
     close(fid)
-    
+
     !distrubue vegtype over species
     !allocate (veg(i)%vegtype(s%nx+1,s%ny+1))
     !do i=1,par%nveg
     !   where (vegtype == i)
     !      veg(i)%vegtype = i
     !   endwhere
-    !enddo   
-  
-end subroutine vegie_init  
+    !enddo
+
+end subroutine vegie_init
 
 subroutine swvegatt(s,par)
     use params
@@ -141,25 +141,25 @@ subroutine swvegatt(s,par)
     use readkey_module
     use filefunctions
     use interp
-    
+
     type(parameters)                            :: par
     type(spacepars)                             :: s
 
     integer                                     :: i,j,m,ind  ! indices of actual x,y point
     real*8                                      :: aht,hterm,htermold,Dvgt
     real*8, dimension(s%nx+1,s%ny+1)            :: Dvg,kmr
-    integer, dimension(s%nx+1,s%ny+1)           :: vegtype    
-    
+    integer, dimension(s%nx+1,s%ny+1)           :: vegtype
+
     include 's.ind'
     include 's.inp'
-       
-    kmr = min(max(s%k, 0.01d0), 100.d0)      
-    
+
+    kmr = min(max(s%k, 0.01d0), 100.d0)
+
     !vegtype = 0
     !do i = 1,par%nveg
     !   vegtype = vegtype + veg(i)%vegtype;
     !enddo
-    
+
     ! Set dissipation in vegetation to zero everywhere for a start
     Dvg = 0.d0
     do j=1,ny+1
@@ -168,11 +168,11 @@ subroutine swvegatt(s,par)
           htermold = 0.d0
           do m=1,veg(ind)%nsec
              ! restrict vegetation height to water depth
-             aht = min(veg(ind)%ah(m),hh(i,j)) 
+             aht = min(veg(ind)%ah(m),hh(i,j))
              ! compute hterm based on ah
              hterm = (sinh(kmr(i,j)*aht)**3+3*sinh(kmr(i,j)*aht))/(3.d0*kmr(i,j)*cosh(kmr(i,j)*hh(i,j))**3)
-             ! compute dissipation based on aht and correct for lower elevated dissipation layers 
-             Dvgt = veg(ind).Dragterm1(m)*(0.5d0*kmr(i,j)*par%g/s%sigm(i,j))**3*(hterm-htermold)*H(i,j)**3
+             ! compute dissipation based on aht and correct for lower elevated dissipation layers
+             Dvgt = veg(ind)%Dragterm1(m)*(0.5d0*kmr(i,j)*par%g/s%sigm(i,j))**3*(hterm-htermold)*H(i,j)**3
              ! save hterm to htermold to correct possibly in next vegetation section
              htermold = hterm
              ! add dissipation current layer
@@ -182,7 +182,7 @@ subroutine swvegatt(s,par)
     enddo
     ! store dissipation due to vegetation in s%
     s%Dveg = Dvg
-    
+
 end subroutine swvegatt
 
 subroutine lwvegatt(s,par)
@@ -191,23 +191,23 @@ subroutine lwvegatt(s,par)
     use readkey_module
     use filefunctions
     use interp
-    
+
     type(parameters)                            :: par
     type(spacepars)                             :: s
-    
+
     integer                                     :: i,j,m,ind  ! indices of actual x,y point
     real*8                                      :: aht,ahtold,Fvgt
     real*8, dimension(s%nx+1,s%ny+1)            :: Fvg
-    
 
-    !integer                                     :: 
-    !real*8                                      :: 
-    
+
+    !integer                                     ::
+    !real*8                                      ::
+
     include 's.ind'
     include 's.inp'
-    
+
     Fvg = 0.d0
-    
+
     do j=1,ny+1
        do i=1,nx+1
           ind = veg(1)%vegtype(i,j)
@@ -216,19 +216,19 @@ subroutine lwvegatt(s,par)
              ! restrict vegetation height to water depth
              aht = min(veg(ind)%ah(m),hh(i,j))
              ! compute forcing current layer based on aht and correct for previous layers
-             Fvgt = (aht-ahtold)/hh(i,j)*veg(ind).Dragterm2(m)
+             Fvgt = (aht-ahtold)/hh(i,j)*veg(ind)%Dragterm2(m)
              ! save aht to ahtold to correct possibly in next vegetation section
              ahtold = aht
              ! add Forcing current layer
              Fvg(i,j) = Fvg(i,j) + Fvgt
           enddo
        enddo
-    enddo   
-    
+    enddo
+
     s%Fveg = Fvg
-    
+
 end subroutine lwvegatt
-    
-    
- 
+
+
+
 end module vegetation_module

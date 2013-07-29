@@ -1,6 +1,6 @@
 ! Everything in this module should be handled by xmaster, so only call using xmaster
 module spectral_wave_bc_module
-  use typesandkinds 
+  use typesandkinds
   implicit none
 
   type spectrum                                         ! These are related to input spectra
@@ -9,7 +9,7 @@ module spectral_wave_bc_module
      real*8,dimension(:),pointer            :: Sf       ! S integrated over all directions
      integer                                :: nf,nang  ! number of frequencies and angles
      real*8                                 :: df,dang  ! frequency and angle step size
-     real*8                                 :: hm0,fp,dir0,scoeff  ! imposed significant wave height, peak frequency, 
+     real*8                                 :: hm0,fp,dir0,scoeff  ! imposed significant wave height, peak frequency,
      ! main wave angle and spreading coefficient
      real*8                                 :: trep,dirm ! representative period and mean wave direction
   endtype spectrum
@@ -28,24 +28,24 @@ module spectral_wave_bc_module
      integer                                :: tslen      ! internal time axis length (is always even, not odd)
      integer                                :: tslenbc    ! time axis length for boundary condition file
      logical                                :: dtchanged  ! quick check to see if dtin == dtbc (useful for interpolation purpose)
-     real*8,dimension(:),pointer            :: fgen,thetagen,phigen,kgen,wgen ! frequency, angle, phase, wave number, radian frequency 
+     real*8,dimension(:),pointer            :: fgen,thetagen,phigen,kgen,wgen ! frequency, angle, phase, wave number, radian frequency
      ! of wavetrain components for boundary signal
      real*8                                 :: dfgen      ! frequency grid size in the generated components
      type(shortspectrum),dimension(:),pointer :: vargen   ! This is where the variance for each wave train at each spectrum location
-     ! is stored  
+     ! is stored
      type(shortspectrum),dimension(:),pointer :: vargenq  ! This is where the variance for each wave train at each spectrum location
-     ! is stored, which is not scaled and is used for the generation of bound waves                                                          
-     !   real*8,dimension(:),pointer            :: danggen    ! Representative integration angle for Srep to Sf, per offshore grid point                                                        
+     ! is stored, which is not scaled and is used for the generation of bound waves
+     !   real*8,dimension(:),pointer            :: danggen    ! Representative integration angle for Srep to Sf, per offshore grid point
      real*8,dimension(:,:),pointer          :: A          ! Amplitude, per wave train component, per offshore grid point A(ny+1,K)
-     real*8,dimension(:,:),pointer          :: Sfinterp   ! S integrated over all directions at frequency locations of fgen, 
+     real*8,dimension(:,:),pointer          :: Sfinterp   ! S integrated over all directions at frequency locations of fgen,
      ! per offshore grid point Sfinterp(ny+1,K)
-     real*8,dimension(:,:),pointer          :: Sfinterpq  ! S integrated over all directions at frequency locations of fgen, 
+     real*8,dimension(:,:),pointer          :: Sfinterpq  ! S integrated over all directions at frequency locations of fgen,
      ! per offshore grid point Sfinterpq(ny+1,K), uncorrected for generation of bound waves
-     real*8,dimension(:),pointer            :: Hm0interp  ! Hm0 per offshore point, based on intergration of Sfinterp and used to scale 
-     ! final time series                                                     
+     real*8,dimension(:),pointer            :: Hm0interp  ! Hm0 per offshore point, based on intergration of Sfinterp and used to scale
+     ! final time series
      integer, dimension(:),pointer          :: Findex     ! Index of wave train component locations on frequency/Fourier axis
      integer, dimension(:),pointer          :: WDindex    ! Index of wave train component locations on wave directional bin axis
-     double complex,dimension(:,:),pointer  :: CompFn     ! Fourier components of the wave trains                                           
+     double complex,dimension(:,:),pointer  :: CompFn     ! Fourier components of the wave trains
      character(slen)                        :: Efilename,qfilename,nhfilename
      real*8,dimension(:,:),pointer          :: zsits      ! time series of total surface elevation for nonhspectrum==1
      real*8,dimension(:,:),pointer          :: uits       ! time series of depth-averaged horizontal velocity nonhspectrum==1
@@ -69,7 +69,7 @@ module spectral_wave_bc_module
   integer,parameter,private                 :: nfint = 401   ! size of standard 2D spectrum in frequency dimension
   integer,parameter,private                 :: naint = 201   ! size of standard 2D spectrum in angular dimension
   integer,parameter,private                 :: Kmin  = 200   ! minimum number of wave train components
-  real*8,parameter,private                  :: wdmax = 5.d0  ! maximum depth*reliable angular wave frequency that can be resolved by 
+  real*8,parameter,private                  :: wdmax = 5.d0  ! maximum depth*reliable angular wave frequency that can be resolved by
                                                              ! nonhydrostatic wave model. All frequencies above this are removed
                                                              ! from nonhspectrum generation
 
@@ -105,7 +105,7 @@ contains
        call writelog('l','','--------------------------------')
 
        ! allocate temporary input storage
-       if (.not. allocated(specin)) then 
+       if (.not. allocated(specin)) then
           allocate(specin(nspectra))
           allocate(specinterp(nspectra))
        endif
@@ -113,7 +113,7 @@ contains
        ! Read through input spectra files
        do iloc = 1,nspectra
           call writelog('sl','(a,i0)','Interpreting spectrum at location ',iloc)
-          ! Read input file 
+          ! Read input file
           call read_spectrum_input(par,wp,bcfiles(iloc),specin(iloc))
           ! Interpolate input 2D spectrum to standard 2D spectrum
           call interpolate_spectrum(specin(iloc),specinterp(iloc),par)
@@ -123,7 +123,7 @@ contains
           call writelog('sl','(a,f0.2,a)','Mean dir  = ',specinterp(iloc)%dirm,' degN')
        enddo
 
-       ! Determine whether all the spectra are to be reused, which implies that the global reuseall should be 
+       ! Determine whether all the spectra are to be reused, which implies that the global reuseall should be
        ! set to true (no further computations required in future calls)
        call set_reuseall
 
@@ -138,14 +138,14 @@ contains
 
        ! calculate the average offshore water depth, which is used in various
        ! computation in this module
-       wp%h0 = calculate_average_water_depth(s) 
+       wp%h0 = calculate_average_water_depth(s)
 
        ! Wave trains that are used by XBeach. The number of wave trains, their frequencies and directions
-       ! are based on the combined spectra of all the locations to ensure all wave conditions are 
+       ! are based on the combined spectra of all the locations to ensure all wave conditions are
        ! represented in the XBeach model
        call generate_wavetrain_components(combspec,wp,par)
 
-       ! We can now apply a correction to the wave train components if necessary. This section can be 
+       ! We can now apply a correction to the wave train components if necessary. This section can be
        ! improved later
        if (nspectra==1 .and. specin(1)%scoeff>1000.d0) then
           ! this can be used both for Jonswap and vardens input
@@ -159,7 +159,7 @@ contains
        ! Determine the variance for each wave train component, at every spectrum location point
        call generate_wave_train_variance(wp,specinterp,par)
 
-       ! Determine the amplitude of each wave train component, at every point along the 
+       ! Determine the amplitude of each wave train component, at every point along the
        ! offshore boundary
        call generate_wave_train_properties_per_offshore_point(wp,s)
 
@@ -170,7 +170,7 @@ contains
        ! time series of short wave energy or surface elevation
        if (par%nonhspectrum==0) then
           ! Distribute all wave train components among the wave direction bins. Also rearrage
-          ! the randomly drawn wave directions to match the centres of the wave bins if the 
+          ! the randomly drawn wave directions to match the centres of the wave bins if the
           ! user-defined nspr is set on.
        call distribute_wave_train_directions(wp,s,par%px,par%nspr,.false.)
 
@@ -179,7 +179,7 @@ contains
        else
        ! If user set nspr on, then force all short wave components to head along computational
        ! x-axis.
-       call distribute_wave_train_directions(wp,s,par%px,par%nspr,.true.)    
+       call distribute_wave_train_directions(wp,s,par%px,par%nspr,.true.)
           ! Generate time series of surface elevation, horizontal velocity and vertical velocity
           call generate_swts(wp,s,par)
        endif
@@ -204,7 +204,7 @@ contains
        deallocate(wp%A)
        deallocate(wp%Findex)
        deallocate(wp%CompFn)
-       if (par%nonhspectrum==0) then 
+       if (par%nonhspectrum==0) then
           deallocate(wp%WDindex)
        else
           deallocate(wp%zsits)
@@ -216,7 +216,7 @@ contains
        call writelog('l','','--------------------------------')
     endif ! reuseall
     !
-    ! The end time for the boundary conditions calculated in the last call 
+    ! The end time for the boundary conditions calculated in the last call
     ! is equal to the old end time, plus the duration of the boundary conditions
     ! created at the last call
     spectrumendtimeold = spectrumendtime ! Robert: need this in case new run with
@@ -224,7 +224,7 @@ contains
                                          ! time steps as original simulation
     spectrumendtime = spectrumendtime + wp%rtbc
 
-    ! Collect new file identifiers for administration list files 
+    ! Collect new file identifiers for administration list files
     if (bccount==1) then
        if (par%nonhspectrum==0) then
           fidelist = create_new_fid()
@@ -248,7 +248,7 @@ contains
     endif
     ! Write new line
     if (par%nonhspectrum==0) then
-       write(fidelist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') & 
+       write(fidelist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
             & spectrumendtime,' ',wp%rtbc,' ',wp%dtbc,' ',par%Trep,' ',combspec%dir0,' '//trim(wp%Efilename)
        write(fidqlist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
             & spectrumendtime,' ',wp%rtbc,' ',wp%dtbc,' ',par%Trep,' ',combspec%dir0,' '//trim(wp%qfilename)
@@ -256,7 +256,7 @@ contains
        close(fidelist)
        close(fidqlist)
     else
-       write(fidnhlist,'(f12.3,a,f12.3,a)',iostat=iostat) & 
+       write(fidnhlist,'(f12.3,a,f12.3,a)',iostat=iostat) &
            & spectrumendtimeold,'   ',spectrumendtime,' '//trim(wp%nhfilename)
        close(fidnhlist)
     endif
@@ -324,7 +324,7 @@ contains
           call report_file_read_error(fn%fname)
        endif
        ! we have to adjust this to morphological time, as done in params.txt
-       if (par%morfacopt==1) then 
+       if (par%morfacopt==1) then
           wp%rtbc = wp%rtbc/max(par%morfac,1.d0)
        endif
        fn%listline = fn%listline + 1   ! move one on from the last time we opened this file
@@ -414,7 +414,7 @@ contains
        !
        ! Wave height (required)
        Hm0    = readkey_dblvec(readfile, 'Hm0',nmodal,nmodal, 0.0d0, 0.0d0, 5.0d0, bcast=.false.,required=.true. )
-       ! 
+       !
        ! Wave period (required)
        ! allow both Tp and fp specification to bring in line with params.txt
        if (isSetParameter(readfile,'Tp') .and. .not. isSetParameter(readfile,'fp')) then
@@ -430,7 +430,7 @@ contains
        endif
        !
        ! Wave spreading in frequency domain (peakedness)
-       ! 
+       !
        gam    = readkey_dblvec(readfile, 'gammajsp',nmodal,nmodal, 3.3d0, 1.0d0, 5.0d0, bcast=.false.)
        !
        ! Wave spreading in directional domain
@@ -454,7 +454,7 @@ contains
        ! are not read individually for each spectrum partition
        if (par%oldnyq==1) then
           fnyq    = readkey_dbl (readfile, 'fnyq',       0.3d0,    0.2d0,      1.0d0,      bcast=.false. )
-       else 
+       else
          fnyq    = readkey_dbl (readfile, 'fnyq',max(0.3d0,3.d0*maxval(fp)), 0.2d0, 1.0d0, bcast=.false. )
        endif
        dfj        = readkey_dbl (readfile, 'dfj',      fnyq/200,   fnyq/1000,  fnyq/20,    bcast=.false. )
@@ -493,7 +493,7 @@ contains
        ! move the line pointer in the file
        listline = listline+1
        ! convert to morphological time
-       if (par%morfacopt==1) then 
+       if (par%morfacopt==1) then
           wp%rtbc = wp%rtbc/max(par%morfac,1.d0)
        endif
             fp(1)=1.d0/Tp
@@ -507,7 +507,7 @@ contains
     ! Define number of frequency bins by defining an array of the necessary length
     ! using the Nyquist frequency and frequency step size
     specin%nf = ceiling((fnyq-dfj)/dfj)
-    specin%df = dfj 
+    specin%df = dfj
         !
     ! Define array with actual eqidistant frequency bins
     allocate(specin%f(specin%nf))
@@ -518,14 +518,14 @@ contains
     ! we need a normalised frequency and variance vector for JONSWAP generation
     allocate(x(size(specin%f)))
     allocate(y(size(specin%f)))
-        ! 
+        !
     ! Define 200 directions relative to main angle running from 0 to 2*pi
     ! we also need a temporary vector for direction distribution
     specin%nang = naint
     allocate(tempdir(specin%nang))
     allocate(Dd(specin%nang))
     allocate(specin%ang(specin%nang))
-    specin%dang = 2*par%px/(naint-1) 
+    specin%dang = 2*par%px/(naint-1)
     do i=1,specin%nang
        specin%ang(i)=(i-1)*specin%dang
     enddo
@@ -600,8 +600,8 @@ contains
         specin%fp = fp(ind)             ! not really used in further calculation
         specin%dir0 = mainang(ind)      ! again not really used in further calculation
         ! if all scoeff>1000 then all waves should be in the same direction exactly
-        if (all(scoeff>=1024.d0) .and. all(mainang==mainang(ind))) then    
-           specin%scoeff = 1024.d0       
+        if (all(scoeff>=1024.d0) .and. all(mainang==mainang(ind))) then
+           specin%scoeff = 1024.d0
         else
            specin%scoeff = min(scoeff(ind),999.d0)
         endif
@@ -620,22 +620,22 @@ contains
         enddo
         allocate(scalefac1(nmodal))  ! this is the scaling factor required to maintain Hm0
                                      ! including that parts of the spectrum are set to zero
-        scalefac1 = 1.d0                                        
+        scalefac1 = 1.d0
         allocate(scalefac2(nmodal))  ! this is the scaling factor required to maintain Hm0
                                      ! in the previous iteration
-        scalefac2 = 1.d0      
+        scalefac2 = 1.d0
         allocate(avgscale(nmodal))
-        avgscale = 1.d0      
-        ! these are convergence criteria                            
+        avgscale = 1.d0
+        ! these are convergence criteria
         newconv = 0.d0
-        oldconv = huge(0.d0)            
-        cont = .true.  
-        allocate(tempmax(nmodal))     ! used to store maximum value in f,theta space     
+        oldconv = huge(0.d0)
+        cont = .true.
+        allocate(tempmax(nmodal))     ! used to store maximum value in f,theta space
         allocate(oldvariance(nmodal)) ! used to store the sum of variance in the original partitions
         do ip=1,nmodal
            oldvariance(ip) = sum(multinomalspec(ip)%S)
         enddo
-        allocate(newvariance(nmodal)) ! used to store the sum of variance in the new partitions         
+        allocate(newvariance(nmodal)) ! used to store the sum of variance in the new partitions
         !
         ! Start convergence loop
         do while (cont)
@@ -647,7 +647,7 @@ contains
               ! scaledspec(ip)%S = multinomalspec(ip)%S*(0.51d0+scalefac1(ip)*0.49d0)
               ! scaledspec(ip)%S = multinomalspec(ip)%S*(scalefac1(ip)+scalefac2(ip))/2
               scaledspec(ip)%S = multinomalspec(ip)%S*avgscale(ip)
-                
+
            enddo
            do i=1,specin%nang
               do ii=1,specin%nf
@@ -678,7 +678,7 @@ contains
                  scalefac1(ip) = 0.d0                            ! completely remove this spectrum
               endif
            enddo
-           ! 
+           !
            ! check convergence criteria (if error is increasing, we have passed best fit)
            newconv = maxval(abs(scalefac2-scalefac1)/scalefac1)
            if (newconv<0.0001d0 .or. abs(newconv-oldconv)<0.0001d0) then
@@ -742,17 +742,21 @@ contains
         do ip=1,nmodal
            specin%S = specin%S+scaledspec(ip)%S
         enddo
-        
+
         deallocate(scaledspec)
         deallocate(tempmax)
         deallocate(scalefac1,scalefac2)
         deallocate(newvariance,oldvariance)
-     endif   
-        
+     endif
+
     deallocate (Dd)
     deallocate(Hm0,fp,gam,mainang,scoeff)
     deallocate (x,y)
     deallocate(tempdir)
+    ! TODO dereference pointers first....
+    do ip=1,nmodal
+       deallocate(multinomalspec(ip)%S)
+    end do
     deallocate(multinomalspec)
 
 
@@ -779,17 +783,17 @@ contains
 
     xa=abs(x)
 
-    where (xa==0) 
+    where (xa==0)
        xa=1e-20
     end where
 
     sigma=xa
 
-    where (sigma<1.) 
+    where (sigma<1.)
        sigma=0.07
     end where
 
-    where (sigma>=1.) 
+    where (sigma>=1.)
        sigma=0.09
     end where
 
@@ -869,11 +873,11 @@ contains
        endif
     end do
 
-    ! Convert to absolute frequencies: 
+    ! Convert to absolute frequencies:
     ! STILL TO BE DONE
     if (switch == 1) then
        specin%f = specin%f
-    else 
+    else
        specin%f = specin%f
     end if
 
@@ -912,7 +916,7 @@ contains
        ! cartesian to cartesian East
        specin%ang = specin%ang-par%dthetaS_XB
        ! dthetaS_XB is the (counter-clockwise) angle in the degrees to rotate from the x-axis in SWAN to the
-       ! x-axis pointing East 
+       ! x-axis pointing East
     end if
 
     ! Ensure angles are increasing instead of decreasing
@@ -1014,7 +1018,7 @@ contains
     close(fid)
 
     ! Replace exception value
-    where (specin%S == exc) 
+    where (specin%S == exc)
        specin%S = 0.d0
     endwhere
 
@@ -1023,7 +1027,7 @@ contains
        call flipa(specin%S,specin%nf,specin%nang,2)
     end if
 
-    ! If the order of the angles in specin%ang was reordered, so the same in 
+    ! If the order of the angles in specin%ang was reordered, so the same in
     ! specin%S array
     if(Ashift==-1)then
        allocate(tempA(specin%nf,specin%nang))
@@ -1083,7 +1087,7 @@ contains
     integer                                 :: fid,i,nnz,ier,nt,Ashift
     real*8,dimension(:),allocatable         :: Sd,temp
     real*8, dimension(:,:),allocatable      :: tempA
-    
+
     ! Open file to start read
     call writelog('sl','','Reading from vardens file ',trim(readfile),' ...')
     fid = create_new_fid()
@@ -1160,8 +1164,8 @@ contains
           call report_file_read_error(readfile)
        endif
     end do
-    
-    ! If the order of the angles in specin%ang was reordered, so the same in 
+
+    ! If the order of the angles in specin%ang was reordered, so the same in
     ! specin%S array
     if(Ashift==-1)then
        allocate(tempA(specin%nf,specin%nang))
@@ -1180,7 +1184,7 @@ contains
     endif
 
     ! Finished reading file
-    close(fid)                               
+    close(fid)
 
     ! Convert to m2/Hz/rad
     specin%S=specin%S*180/par%px
@@ -1190,21 +1194,21 @@ contains
     ! we assume the model requires long crested waves, and wp%thetagen should be exactly
     ! equal to the input direction. We then also need to find the dominant angle.
     ! First flatten spectrum to direction only, then determine if all but one are zero,
-    ! use the direction of the non-zero as the main wave direction, set spreading to 
+    ! use the direction of the non-zero as the main wave direction, set spreading to
     ! a high value (greater than 1000). Else set spreading to a negative value.
     allocate(Sd(specin%nang))
     Sd = sum(specin%S,DIM = 1)
     nnz = count(Sd>0.d0)
-    if (nnz == 1) then 
+    if (nnz == 1) then
        specin%scoeff = 1024.d0
        specin%dir0 = specin%ang(minval(maxloc(Sd)))
-    else   
+    else
        specin%scoeff = -1.d0
     endif
 
     ! We need to know if hm0 was set explicitly, not the case for vardens files
     specin%hm0 = -1.d0
-    
+
     ! Free memory
     deallocate(Sd)
   end subroutine read_vardens_file
@@ -1291,7 +1295,7 @@ contains
     specinterp%fp = specinterp%f(i)
     call tpDcalc(specinterp%Sf,specinterp%f,specinterp%trep,par%trepfac,par%Tm01switch)
     specinterp%dirm = 270.d0-180.d0/par%px*atan2( sum(sin(specinterp%ang)*Sd)/sum(Sd),&
-         sum(cos(specinterp%ang)*Sd)/sum(Sd) )   
+         sum(cos(specinterp%ang)*Sd)/sum(Sd) )
 
   end subroutine interpolate_spectrum
 
@@ -1338,8 +1342,8 @@ contains
        i4=floor(real(bccount-i1*10000-i2*1000-i3*100)/10)
        i5=bccount-i1*10000-i2*1000-i3*100-i4*10
        wp%Efilename='E_series'//char(48+i1)//char(48+i2)//char(48+i3)//char(48+i4)//char(48+i5)//'.bcf'
-       wp%qfilename='q_series'//char(48+i1)//char(48+i2)//char(48+i3)//char(48+i4)//char(48+i5)//'.bcf'    
-       wp%nhfilename='nh_series'//char(48+i1)//char(48+i2)//char(48+i3)//char(48+i4)//char(48+i5)//'.bcf'    
+       wp%qfilename='q_series'//char(48+i1)//char(48+i2)//char(48+i3)//char(48+i4)//char(48+i5)//'.bcf'
+       wp%nhfilename='nh_series'//char(48+i1)//char(48+i2)//char(48+i3)//char(48+i4)//char(48+i5)//'.bcf'
     endif
 
   end subroutine set_bcfilenames
@@ -1404,13 +1408,13 @@ contains
     elseif (combspec%dir0<0) then
        combspec%dir0 = combspec%dir0+2*px
     endif
-    ! 
+    !
     ! Compute peak wave frequency
     !
     allocate(tempSf(size(combspec%Sf)))
-    tempSf=0*combspec%Sf                           
+    tempSf=0*combspec%Sf
     ! find frequency range of 95% wave energy around peak
-    where (combspec%Sf>0.95d0*maxval(combspec%Sf)) 
+    where (combspec%Sf>0.95d0*maxval(combspec%Sf))
        tempSf=combspec%Sf
     end where
     ! smoothed peak is weighted mean frequency of 95% range
@@ -1427,7 +1431,7 @@ contains
 
     implicit none
 
-    ! input 
+    ! input
     type(spacepars),intent(in)     :: s
     ! output
     real*8                         :: h
@@ -1460,7 +1464,7 @@ contains
     real*8                                       :: L0,L,kmax,fmax
 
 
-    ! If we are running non-hydrostatic boundary conditions, we want to remove 
+    ! If we are running non-hydrostatic boundary conditions, we want to remove
     ! very high frequency components, as these will not be computed well anyway
     if (par%nonhspectrum==1) then
        kmax = wdmax/wp%h0
@@ -1470,25 +1474,25 @@ contains
        ! by specifying par%sprdthr
        fmax = 2*maxval(combspec%f)
     endif
-    
+
     ! Determine frequencies around peak frequency of one-dimensional
     ! non-directional variance density spectrum, based on factor sprdthr, which
     ! should be included in the determination of the wave boundary conditions
     call frange(par,combspec%f,combspec%Sf,fmax,ind1,ind2)
-    
+
     ! Calculate number of wave components to be included in determination of the
     ! wave boundary conditions based on the wave record length and width of the
     ! wave frequency range
-    wp%K = ceiling(wp%rtbc*(combspec%f(ind2)-combspec%f(ind1))+1) 
+    wp%K = ceiling(wp%rtbc*(combspec%f(ind2)-combspec%f(ind1))+1)
     ! also include minimum number of components
     wp%K = max(wp%K,Kmin)
 
     ! Allocate space in waveparams for all wave train components
     allocate(wp%fgen(wp%K))
     allocate(wp%thetagen(wp%K))
-    allocate(wp%phigen(wp%K))    
-    allocate(wp%kgen(wp%K)) 
-    allocate(wp%wgen(wp%K))   
+    allocate(wp%phigen(wp%K))
+    allocate(wp%kgen(wp%K))
+    allocate(wp%wgen(wp%K))
 
     ! Select equidistant wave components between the earlier selected range of
     ! frequencies around the peak frequency in the frange subfunction
@@ -1500,9 +1504,9 @@ contains
     ! This subroutine needs to generate random phase / directions for the individual
     ! wave trains. Due to some strange Fortran properties, it is better to select
     ! one long vector with random numbers for both the phase and the direction, than
-    ! one vector for each. 
+    ! one vector for each.
     ! Update random seed, if requested
-    if (par%random==1) CALL init_seed     
+    if (par%random==1) CALL init_seed
     allocate(randnums(2*wp%K))
     call random_number(randnums)
 
@@ -1523,18 +1527,18 @@ contains
        ! convert to pdf by ensuring total integral == 1, assuming constant directional bin size
        pdflocal = pdflocal/sum(pdflocal)
        ! convert to cdf by trapezoidal integration, which is not biased for integration
-       ! direction. 
+       ! direction.
        ! Boundary condition, which may be nonzero:
        cdflocal(1) = pdflocal(1)
        do ii=2,naint
-          cdflocal(ii) = cdflocal(ii-1) + (pdflocal(ii)+pdflocal(ii-1))/2  
-          ! Note: this only works if the directional 
+          cdflocal(ii) = cdflocal(ii-1) + (pdflocal(ii)+pdflocal(ii-1))/2
+          ! Note: this only works if the directional
           ! bins are constant in size. Assumed multiplication
           ! by one.
        enddo
        ! interpolate random number draw across the cdf. Note that cdf(1) is not assumed to be zero and
-       ! there is a posibility of drawing less than cdf(1). Therefore, if the random number is .lt. cdf(1), 
-       ! interpolation should take place across the back of the angle spectrum 
+       ! there is a posibility of drawing less than cdf(1). Therefore, if the random number is .lt. cdf(1),
+       ! interpolation should take place across the back of the angle spectrum
        ! (i.e., from theta(end)-2pi : theta(1)).
        ! Note that we are using the second half of randnums now (K+1:end)
        if (randnums(wp%K+i)>=cdflocal(1)) then
@@ -1586,7 +1590,7 @@ contains
 
     allocate(temp(size(Sf)))
     temp=0.d0
-    where (Sf>=trepfac*maxval(Sf)) 
+    where (Sf>=trepfac*maxval(Sf))
        temp=1.d0
     end where
 
@@ -1613,20 +1617,20 @@ contains
     type(parameters),intent(in)             :: par
     real*8, dimension(:), intent(in)        :: f,Sf
     real*8,intent(in)                       :: fmax
-    
+
     integer, intent(out)                    :: firstp, lastp
 
     real*8, dimension(:), intent(out),allocatable,optional  :: findlineout
     real*8, dimension(:),allocatable        :: temp, findline
-    integer                                 :: i = 0 
+    integer                                 :: i = 0
 
     ! find frequency range around peak
     allocate(findline(size(Sf)))
-    findline=0*Sf                           
-    where (Sf>par%sprdthr*maxval(Sf)) 
+    findline=0*Sf
+    where (Sf>par%sprdthr*maxval(Sf))
        findline=1
     end where
-    
+
     ! find frequency range below fmax
     where(f>fmax)
        findline = 0
@@ -1655,7 +1659,7 @@ contains
     ! RANDOM_SEED does not result in a random seed for each compiler, so we better make sure that we have a pseudo random seed.
     ! I am not sure what is a good n
     n = 40
-    i = 1 
+    i = 1
     ! not sure what size means here
     ! first call with size
     CALL RANDOM_SEED(size = n)
@@ -1664,7 +1668,7 @@ contains
     ! what time is it
     CALL SYSTEM_CLOCK(COUNT=clock)
     ! define the seed vector based on a prime, the clock and the set of integers
-    seed = clock + 37 * (/ (i - 1, i = 1, n) /) 
+    seed = clock + 37 * (/ (i - 1, i = 1, n) /)
     ! if mpi do we need a different seed on each node or the same???
     ! if we do need different seeds on each node
     ! seed *= some big prime * rank ?
@@ -1675,7 +1679,7 @@ contains
 
   ! --------------------------------------------------------------
   ! ---------------- Setup time axis for waves -------------------
-  ! --------------------------------------------------------------    
+  ! --------------------------------------------------------------
   subroutine generate_wave_time_axis(par,wp)
 
     use params
@@ -1752,7 +1756,7 @@ contains
 
   ! --------------------------------------------------------------
   ! -------- Calculate variance at each spectrum location --------
-  ! -------------------------------------------------------------- 
+  ! --------------------------------------------------------------
   subroutine generate_wave_train_variance(wp,specinterp,par)
 
     use params
@@ -1778,8 +1782,8 @@ contains
        do ii=1,wp%K
           ! In order to maintain energy density per frequency, an interpolation
           ! is carried out on the input directional variance density spectrum
-          ! at the frequency and direction locations in fgen. This must be done 
-          ! over the 2D spectrum, not 1D spectrum. 
+          ! at the frequency and direction locations in fgen. This must be done
+          ! over the 2D spectrum, not 1D spectrum.
           call linear_interp_2d(specinterp(i)%f,nfint, &              ! input frequency, size
                specinterp(i)%ang,naint, &            ! input angles, size
                specinterp(i)%S, &                    ! input variance density
@@ -1787,7 +1791,7 @@ contains
                wp%vargen(i)%Sf(ii), &                ! output variance density
                'interp',0.d0)                        ! method and exception return value
        enddo
-       ! Correct variance to ensure the total variance remains the same as the total variance in the 
+       ! Correct variance to ensure the total variance remains the same as the total variance in the
        ! (interpolated) input spectrum
        hm0post = 4*sqrt(sum(wp%vargen(i)%Sf)*wp%dfgen)
        wp%vargen(i)%Sf   = (specinterp(i)%hm0/hm0post)**2*wp%vargen(i)%Sf
@@ -1827,7 +1831,7 @@ contains
 
     ! allocate space for the amplitude array and representative integration angle
     allocate(wp%A(s%ny+1,wp%K))
-    !    allocate(wp%danggen(s%ny+1))  
+    !    allocate(wp%danggen(s%ny+1))
     allocate(wp%Sfinterp(s%ny+1,wp%K))
     allocate(wp%Sfinterpq(s%ny+1,wp%K))
     allocate(wp%Hm0interp(s%ny+1))
@@ -1835,7 +1839,7 @@ contains
     ! where necessary, interpolate Sf of each spectrum location
     ! to the current grid cell, and use this to calculate A
     do i=1,s%ny+1
-       ! Four possibilities: 
+       ! Four possibilities:
        ! 1: this exact point has an input spectrum
        ! 2: this point lies between two input spectra
        ! 3: this point lies before any input spectrum
@@ -1930,7 +1934,7 @@ contains
     integer                                      :: i,ii,tempi
     complex(fftkind),dimension(:),allocatable    :: tempcmplx
 
-    ! Determine indices of wave train components in frequency axis and 
+    ! Determine indices of wave train components in frequency axis and
     ! Fourier transform result
     allocate(wp%Findex(wp%K))
     tempi = floor(wp%fgen(1)/wp%dfgen)
@@ -1949,11 +1953,11 @@ contains
        call progress_indicator(.false.,dble(i)/wp%K*100,5.d0,2.d0)
        do ii=1,s%ny+1
           ! Determine first half of complex Fourier coefficients of wave train
-          ! components using random phase and amplitudes from sampled spectrum 
+          ! components using random phase and amplitudes from sampled spectrum
           ! until Nyquist frequency. The amplitudes are represented in a
           ! two-sided spectrum, which results in the factor 1/2.
-          ! Unroll Fourier components along offshore boundary, assuming all wave trains 
-          ! start at x(1,1), y(1,1). 
+          ! Unroll Fourier components along offshore boundary, assuming all wave trains
+          ! start at x(1,1), y(1,1).
           wp%CompFn(ii,wp%Findex(i)) = wp%A(ii,i)/2*exp(par%compi*wp%phigen(i))* &    ! Bas: wp%Findex used in time dimension because t=j*dt in frequency space
                exp(-par%compi*wp%kgen(i)*(dsin(wp%thetagen(i))*(s%yz(1,ii)-s%yz(1,1)) &
                +dcos(wp%thetagen(i))*(s%xz(1,ii)-s%xz(1,1))) )
@@ -1993,9 +1997,9 @@ contains
     real*8,dimension(:),allocatable              :: binedges
     logical                                      :: toosmall,toolarge
     real*8                                       :: lostvar,keptvar,perclost
-    integer                                      :: lntheta              ! local copies that can be changed without 
+    integer                                      :: lntheta              ! local copies that can be changed without
     real*8                                       :: lthetamin,ldtheta    ! damage to the rest of the model
-    
+
     ! Set basic parameters for comparison if using nonh spectrum
     if (nonhspec) then
        lntheta = 1
@@ -2007,20 +2011,20 @@ contains
        ldtheta = s%dtheta
     endif
 
-    ! Calculate the bin edges of all the computational wave bins in the 
+    ! Calculate the bin edges of all the computational wave bins in the
     ! XBeach model (not the input spectrum)
     allocate(binedges(lntheta+1))
     do i=1,lntheta+1
        binedges(i) = lthetamin+(i-1)*ldtheta
     enddo
 
-    ! Try to fit as many wave train components as possible between the 
+    ! Try to fit as many wave train components as possible between the
     ! minimum and maximum bin edges by adding/subtracting 2pi rad. This
     ! solves the problem of XBeach not including energy in the computation
     ! than should be in there. For instance XBeach does not realize that
-    ! 90 degrees == -270 degrees == 450 degrees. 
-    ! Note: this does not ensure all energy is included in the wave bins, 
-    ! as wave energy may still fall outside the computational domain. 
+    ! 90 degrees == -270 degrees == 450 degrees.
+    ! Note: this does not ensure all energy is included in the wave bins,
+    ! as wave energy may still fall outside the computational domain.
     do i=1,wp%K
        if (wp%thetagen(i)>maxval(binedges)) then
           toosmall = .false.
@@ -2033,7 +2037,7 @@ contains
           toolarge = .false.
        endif
        ! Continue to reduce/increase wave direction until
-       ! condition is not met. 
+       ! condition is not met.
        do while (toosmall)
           wp%thetagen(i) = wp%thetagen(i) + 2*px
           toosmall = wp%thetagen(i) < minval(binedges)
@@ -2083,7 +2087,7 @@ contains
           endwhere
        else
           do i=1,wp%K
-             if (wp%WDindex(i)==0) then 
+             if (wp%WDindex(i)==0) then
                 wp%WDindex(i)=1
              elseif (wp%WDindex(i)>lntheta) then
                 wp%WDindex(i)=lntheta
@@ -2092,7 +2096,7 @@ contains
              wp%thetagen(i)=s%theta(wp%WDindex(i))
           enddo
        endif
-    endif    
+    endif
 
     ! Check the amount of energy lost to wave trains falling outside the computational
     ! domain
@@ -2126,9 +2130,9 @@ contains
 
     use params
     use spaceparams
-    use math_tools  
-    use interp 
-    use logging_module 
+    use math_tools
+    use interp
+    use logging_module
     use filefunctions, only: create_new_fid
 
     implicit none
@@ -2232,7 +2236,7 @@ contains
     ! Calculate energy envelope amplitude
 
     ! Note Robert: oldwbc should be deprecated for wbcversion>2
-    if (par%oldwbc==1) then 
+    if (par%oldwbc==1) then
        do itheta=1,s%ntheta
           ! Print message to screen
           call writelog('ls','(A,I0,A,I0)','Calculating wave energy for theta bin ',itheta,' of ',s%ntheta)
@@ -2269,19 +2273,19 @@ contains
           ! the absolute value of the complex wave envelope descriptions
           Amp(iy,:)=abs(tempcmplx)
 
-          ! Calculate standard deviation of non-directional 
+          ! Calculate standard deviation of non-directional
           ! instantaneous water level excitation of all
           ! wave components to be used as weighing factor
           stdeta = sqrt(sum(eta(iy,:)**2)/(size(eta(iy,:))-1))
           do itheta=1,s%ntheta
              if (nwc(itheta)>0) then
-                ! Calculate standard deviations of directional 
+                ! Calculate standard deviations of directional
                 ! instantaneous water level excitation of all
                 ! wave components to be used as weighing factor
                 stdzeta = sqrt(sum(zeta(iy,:,itheta)**2)/(size(zeta(iy,:,itheta))-1))
 
                 ! Calculate amplitude of directional wave envelope
-                Ampzeta(iy,:,itheta)= Amp(iy,:)*stdzeta/stdeta    
+                Ampzeta(iy,:,itheta)= Amp(iy,:)*stdzeta/stdeta
              else  !  nwc==0
                 ! Current computational directional bin does not contain any wave
                 ! components, so print message to screen
@@ -2308,9 +2312,9 @@ contains
     !    do iy=1,s%ny+1
     !       stdeta = sum(E_tdir(iy,:,:))*s%dtheta   ! sum energy
     !       stdeta = stdeta/wp%tslen       ! mean energy
-    !       
+    !
     !       stdzeta = (wp%Hm0interp(iy)/sqrt(2.d0))**2 * par%rhog8
-    !       
+    !
     !       E_tdir(iy,:,:) = E_tdir(iy,:,:)*stdzeta/stdeta
     !    enddo
 
@@ -2336,25 +2340,25 @@ contains
        do itheta=1,s%ntheta
           do it=1,wp%tslenbc
              do iy=1,s%ny+1
-                call linear_interp(wp%tin,E_tdir(iy,:,itheta),wp%tslen,(it-1)*wp%dtbc,E_interp(iy,it,itheta),status) 
+                call linear_interp(wp%tin,E_tdir(iy,:,itheta),wp%tslen,(it-1)*wp%dtbc,E_interp(iy,it,itheta),status)
              enddo
           enddo
        enddo
        ! write to file
-       do irec=1,wp%tslenbc+1                                 
+       do irec=1,wp%tslenbc+1
           write(fid,rec=irec)E_interp(:,min(irec,wp%tslenbc),:)
        end do
        deallocate(E_interp)
     else
        ! no need for interpolation
-       do irec=1,wp%tslenbc+1                                 
+       do irec=1,wp%tslenbc+1
           write(fid,rec=irec)E_tdir(:,min(irec,wp%tslenbc),:)
        end do
     endif
     close(fid)
     call writelog('sl','','file done')
 
-    ! Free memory   
+    ! Free memory
     deallocate(zeta,Ampzeta,E_tdir, Amp, eta)
 
   end subroutine generate_ebcf
@@ -2461,7 +2465,7 @@ contains
 
 
 
-    ! This function has changed with respect to previous versions of XBeach, in that 
+    ! This function has changed with respect to previous versions of XBeach, in that
     ! the bound long wave has to be calculated separately at each longshore point,
     ! owing to longshore varying incident wave spectra
 
@@ -2533,10 +2537,10 @@ contains
        k3(m,1:K-m) =sqrt(wp%kgen(1:K-m)**2+wp%kgen(m+1:K)**2+ &
             2*wp%kgen(1:K-m)*wp%kgen(m+1:K)*dcos(deltheta(m,1:K-m)))
 
-       ! Determine group velocity of difference waves 
+       ! Determine group velocity of difference waves
        cg3(m,1:K-m)= 2.d0*par%px*deltaf/k3(m,1:K-m)
 
-       ! Modification Robert + Jaap: make sure that the bound long wave amplitude does not 
+       ! Modification Robert + Jaap: make sure that the bound long wave amplitude does not
        !                             explode when offshore boundary is too close to shore,
        !                             by limiting the interaction group velocity
        !cg3(m,1:K-m) = min(cg3(m,1:K-m),par%nmax*sqrt(par%g/k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0)))
@@ -2561,11 +2565,11 @@ contains
 
        ! Correct for surface elevation input and output instead of bottom pressure
        ! so it is consistent with Van Dongeren et al 2003 eq. 18
-       D(m,1:K-m) = D(m,1:K-m)*cosh(k3(m,1:K-m)*wp%h0)/(cosh(wp%kgen(1:K-m)*wp%h0)*cosh(wp%kgen(m+1:K)*wp%h0))  
+       D(m,1:K-m) = D(m,1:K-m)*cosh(k3(m,1:K-m)*wp%h0)/(cosh(wp%kgen(1:K-m)*wp%h0)*cosh(wp%kgen(m+1:K)*wp%h0))
 
        ! Exclude interactions with components smaller than or equal to current
        ! component according to lower limit Herbers 1994 eq. 1
-       where(wp%fgen<=deltaf) D(m,:)=0.d0  
+       where(wp%fgen<=deltaf) D(m,:)=0.d0
 
        ! Exclude interactions with components that are cut-off by the fcutoff
        ! parameter
@@ -2579,10 +2583,10 @@ contains
        Comptemp=conjg(wp%CompFn(1,wp%Findex(1)+m:wp%Findex(1)+K-1))
        Comptemp2=conjg(wp%CompFn(1,wp%Findex(1):wp%Findex(1)+K-m-1))
        dphi3(m,1:K-m) = par%px+imag(log(Comptemp))-imag(log(Comptemp2))
-       deallocate (Comptemp,Comptemp2) 
+       deallocate (Comptemp,Comptemp2)
        !
        ! Determine angle of bound long wave according to Van Dongeren et al. 2003 eq. 22
-       theta3 = atan2(KKy,KKx)    
+       theta3 = atan2(KKy,KKx)
        !
        ! free memory
        deallocate(term1,term2,term2new,dif,chk1,chk2)
@@ -2598,7 +2602,7 @@ contains
     allocate(Comptemp(halflen-1))
     allocate(Comptemp2(wp%tslen))
     !
-    ! Run a loop over the offshore boundary  
+    ! Run a loop over the offshore boundary
     do j=1,s%ny+1
        ! Determine energy of bound long wave according to Herbers 1994 eq. 1 based
        ! on difference-interaction coefficient and energy density spectra of
@@ -2626,7 +2630,7 @@ contains
           Ftemp(:,:,iq) = Ftemp(:,:,iq)* &
                exp(-1*par%compi*(KKy*(s%yz(1,j)-s%yz(1,1))+KKx*(s%xz(1,j)-s%xz(1,1))))
           ! Determine Fourier coefficients
-          Gn(2:K) = sum(Ftemp(:,:,iq),DIM=2) 
+          Gn(2:K) = sum(Ftemp(:,:,iq),DIM=2)
           Comptemp = conjg(Gn(2:halflen))
           call flipiv(Comptemp,halflen-1)
           Gn(halflen+2:wp%tslen) = Comptemp
@@ -2635,24 +2639,24 @@ contains
           if (iq==3) then
              call writelog('ls','(A,I0,A,I0)','Flux ',j,' of ',s%ny+1)
           endif
-          !   
+          !
           ! Inverse Discrete Fourier transformation to transform back to time space
           ! from frequency space
-          Comptemp2=fft(Gn,inv=.true.)  
+          Comptemp2=fft(Gn,inv=.true.)
           !
           ! Determine mass flux as function of time and let the flux gradually
           ! increase and decrease in and out the wave time record using the earlier
           ! specified window
           Comptemp2=Comptemp2/sqrt(dble(wp%tslen))
           q(j,:,iq)=dreal(Comptemp2*wp%tslen)*wp%taper
-       enddo ! iq=1,3           
+       enddo ! iq=1,3
     enddo ! j=1,s%ny+1
     !
     ! free memory
     deallocate(Comptemp,Comptemp2,Ftemp)
     !
     if (par%nonhspectrum==0) then
-       ! Open file for storage of bound long wave flux 
+       ! Open file for storage of bound long wave flux
        call writelog('ls','','Writing long wave mass flux to ',trim(wp%qfilename),' ...')
        inquire(iolength=reclen) 1.d0
        reclen=reclen*((s%ny+1)*4)
@@ -2666,18 +2670,18 @@ contains
           do iq=1,3
              do it=1,wp%tslenbc
                 do j=1,s%ny+1
-                   call linear_interp(wp%tin,q(j,:,iq),wp%tslen,(it-1)*wp%dtbc,qinterp(j,it,iq),status) 
+                   call linear_interp(wp%tin,q(j,:,iq),wp%tslen,(it-1)*wp%dtbc,qinterp(j,it,iq),status)
                 enddo
              enddo
           enddo
           ! write to file
-          do irec=1,wp%tslenbc+1                                 
+          do irec=1,wp%tslenbc+1
              write(fid,rec=irec)qinterp(:,min(irec,wp%tslenbc),:)
           end do
           deallocate(qinterp)
        else
           ! no need for interpolation
-          do irec=1,wp%tslenbc+1                                 
+          do irec=1,wp%tslenbc+1
              write(fid,rec=irec)q(:,min(irec,wp%tslenbc),:)
           end do
        endif
@@ -2687,12 +2691,12 @@ contains
        do j=1,s%ny+1
           ! add to velocity time series
           wp%uits(j,:)=wp%uits(j,:)+q(j,:,1)/wp%h0
-          ! add to surface elevation time series     
+          ! add to surface elevation time series
           wp%zsits(j,:)=wp%zsits(j,:)+q(j,:,4)
        enddo
     endif ! par%nonhspectrum==1
 
-    ! Free memory   
+    ! Free memory
     deallocate(Eforc,D,deltheta,KKx,KKy,dphi3,k3,cg3,theta3,Gn,Abnd,q)
 
   end subroutine generate_qbcf
