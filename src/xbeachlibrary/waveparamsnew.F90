@@ -172,14 +172,14 @@ contains
           ! Distribute all wave train components among the wave direction bins. Also rearrage
           ! the randomly drawn wave directions to match the centres of the wave bins if the
           ! user-defined nspr is set on.
-       call distribute_wave_train_directions(wp,s,par%px,par%nspr,.false.)
+          call distribute_wave_train_directions(wp,s,par%px,par%nspr,.false.)
 
           ! Calculate the wave energy envelope per offshore grid point and write to output file
           call generate_ebcf(wp,s,par)
        else
-       ! If user set nspr on, then force all short wave components to head along computational
-       ! x-axis.
-       call distribute_wave_train_directions(wp,s,par%px,par%nspr,.true.)
+          ! If user set nspr on, then force all short wave components to head along computational
+          ! x-axis.
+          call distribute_wave_train_directions(wp,s,par%px,par%nspr,.true.)    
           ! Generate time series of surface elevation, horizontal velocity and vertical velocity
           call generate_swts(wp,s,par)
        endif
@@ -371,21 +371,21 @@ contains
     type(spectrum),intent(inout)            :: specin
 
     ! Internal variables
-        integer                                 :: i,ii,ier,ip,ind
-        integer                                 :: nmodal
+    integer                                 :: i,ii,ier,ip,ind
+    integer                                 :: nmodal
     integer                                 :: fid
-        integer                                 :: forcepartition
-        integer,dimension(2)                    :: indvec
-        real*8,dimension(:),allocatable         :: x, y, Dd, tempdir
-        real*8,dimension(:),allocatable         :: Hm0,fp,gam,mainang,scoeff
-        real*8                                  :: dfj, fnyq
-        real*8                                  :: gammajsp,Tp
+    integer                                 :: forcepartition
+    integer,dimension(2)                    :: indvec
+    real*8,dimension(:),allocatable         :: x, y, Dd, tempdir
+    real*8,dimension(:),allocatable         :: Hm0,fp,gam,mainang,scoeff
+    real*8                                  :: dfj, fnyq
+    real*8                                  :: gammajsp,Tp
     character(len=80)                       :: dummystring
-        type(spectrum),dimension(:),allocatable :: multinomalspec,scaledspec
-        logical                                 :: cont
-        real*8,dimension(:),allocatable         :: scalefac1,scalefac2,tempmax,avgscale
-        real*8,dimension(:),allocatable         :: oldvariance,newvariance
-        real*8                                  :: newconv,oldconv
+    type(spectrum),dimension(:),allocatable :: multinomalspec,scaledspec
+    logical                                 :: cont
+    real*8,dimension(:),allocatable         :: scalefac1,scalefac2,tempmax,avgscale
+    real*8,dimension(:),allocatable         :: oldvariance,newvariance
+    real*8                                  :: newconv,oldconv
 
     ! First part: read JONSWAP parameter data
 
