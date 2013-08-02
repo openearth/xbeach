@@ -24,7 +24,8 @@ module spectral_wave_bc_module
      real*8                                 :: rtbc,dtbc  ! duration and time step to be written to boundary condition file
      real*8                                 :: rtin,dtin  ! duration and time step for the internal time axis, based on Fourier
      ! limitations and the number of wave train components (wp%K)
-     real*8,dimension(:),pointer            :: tin,taper  ! internal time axis and taper function
+     real*8,dimension(:),pointer            :: tin        ! internal time axis
+     real*8,dimension(:),pointer            :: taperf,taperw  ! internal taper function for flow and waves
      integer                                :: tslen      ! internal time axis length (is always even, not odd)
      integer                                :: tslenbc    ! time axis length for boundary condition file
      logical                                :: dtchanged  ! quick check to see if dtin == dtbc (useful for interpolation purpose)
@@ -64,6 +65,8 @@ module spectral_wave_bc_module
   logical,save                                  :: reuseall        ! switch to reuse all of the wave boundary conditions
   integer,save                                  :: bccount         ! number of times boundary conditions have been generated, set in init spectrum
   real*8,save                                   :: spectrumendtime ! end time of boundary condition written to administration file
+  real*8,dimension(:,:),allocatable,save        :: lastwaveelevation ! wave height at the end of the last spectrum
+  integer,save                                  :: ind_end_taper   ! index of where the taper function equals rtbc
   ! These parameters control a lot how the spectra are handled. They could be put in params.txt,
   ! but most users will want to keep these at their default values anyway
   integer,parameter,private                 :: nfint = 401   ! size of standard 2D spectrum in frequency dimension
@@ -194,7 +197,7 @@ contains
 
        ! Deallocate a lot of memory
        deallocate(specin,specinterp)
-       deallocate(wp%tin,wp%taper)
+       deallocate(wp%tin,wp%taperf,wp%taperw)
        deallocate(wp%fgen,wp%thetagen,wp%phigen,wp%kgen,wp%wgen)
        deallocate(wp%vargen)
        deallocate(wp%vargenq)
@@ -1730,15 +1733,23 @@ contains
     ! Make a taper function to slowly increase and decrease the boundary condition forcing
     ! at the start and the end of the boundary condition file (including any time beyond
     ! the external rtbc
-    allocate(wp%taper(wp%tslen))
+    allocate(wp%taperf(wp%tslen))
+    allocate(wp%taperw(wp%tslen))
     ! fill majority with unity
-    wp%taper = 1.d0
-    ! begin taper by building up the wave conditions over 2.5 wave periods (so 5 wave periods
-    ! of tapering if you include the taper down of the previous boundary condition file)
-    ntaper = nint((2.5d0*par%Trep)/wp%dtin)
-    do i=1,min(ntaper,size(wp%taper))
-       wp%taper(i) = tanh(5.d0*i/ntaper)     ! multiplied by five because tanh(5)=~1
+    wp%taperf = 1.d0
+    wp%taperw = 1.d0
+    if (par%nonhspectrum==1) then
+       ! begin taper by building up the wave conditions over 2 wave periods
+       ntaper = nint((2.0d0*par%Trep)/wp%dtin)
+    else
+       ntaper = nint((5.d0*par%Trep)/wp%dtin)
+    endif
+    do i=1,min(ntaper,size(wp%taperf))
+       wp%taperf(i) = tanh(5.d0*i/ntaper)     ! multiplied by five because tanh(5)=~1
+       wp%taperw(i) = tanh(5.d0*i/ntaper)
     enddo
+    ! We do not want to taperw the end anymore. Instead we pass the wave height at the end of rtbc to
+    ! the next wave generation iteration.
     ! end taper by finding where tin=rtbc, taper before that and set everything to zero after
     ! that.
     if (wp%tin(wp%tslen)>wp%rtbc) then
@@ -1747,10 +1758,10 @@ contains
        indend = wp%tslen
     endif
     do i=1,min(ntaper,indend)
-       wp%taper(indend+1-i) = min(wp%taper(indend+1-i),tanh(5.d0*i/ntaper))
+       wp%taperf(indend+1-i) = min(wp%taperf(indend+1-i),tanh(5.d0*i/ntaper))
     enddo
-    wp%taper(indend:wp%tslen) = 0.d0
-
+    wp%taperf(indend:wp%tslen) = 0.d0
+    ind_end_taper = indend
   end subroutine generate_wave_time_axis
 
 
@@ -2224,7 +2235,15 @@ contains
              ! Superimpose gradual increase and decrease of energy input for
              ! current y-coordinate and computational diretional bin on
              ! instantaneous water level excitation
-             zeta(iy,:,itheta)=dble(tempcmplx*wp%tslen)*wp%taper
+             ! zeta(iy,:,itheta)=dble(tempcmplx*wp%tslen)*wp%taperw
+             ! Robert: use final wave elevation from last iteration to startup
+             ! this boundary condition
+             zeta(iy,:,itheta)=dble(tempcmplx*wp%tslen)
+             zeta(iy,:,itheta)=zeta(iy,:,itheta)*wp%taperw+(1-wp%taperw)*lastwaveelevation(iy,itheta)
+             ! note that taperw is only zero at the start, not the end of the time series, so we
+             ! can safely copy zeta at the point in time where t=rtbc to lastwaveelevation for use
+             ! in the generation of the next time series
+             lastwaveelevation(:,itheta) = zeta(iy,ind_end_taper,itheta)
           enddo ! iy=1,ny+1
        endif  ! nwc>0
        deallocate(tempindex)
@@ -2427,8 +2446,8 @@ contains
     !
     ! Apply tapering to time series
     do j=1,s%ny+1
-       wp%uits(j,:)=wp%uits(j,:)*wp%taper
-       wp%zsits(j,:)=wp%zsits(j,:)*wp%taper
+       wp%uits(j,:)=wp%uits(j,:)*wp%taperf
+       wp%zsits(j,:)=wp%zsits(j,:)*wp%taperf
     enddo
   end subroutine generate_swts
 
@@ -2648,7 +2667,7 @@ contains
           ! increase and decrease in and out the wave time record using the earlier
           ! specified window
           Comptemp2=Comptemp2/sqrt(dble(wp%tslen))
-          q(j,:,iq)=dreal(Comptemp2*wp%tslen)*wp%taper
+          q(j,:,iq)=dreal(Comptemp2*wp%tslen)*wp%taperf
        enddo ! iq=1,3
     enddo ! j=1,s%ny+1
     !

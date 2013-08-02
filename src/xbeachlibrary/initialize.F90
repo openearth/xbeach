@@ -444,6 +444,10 @@ contains
     ! Initialize bcendtime to zero.
     ! Stored and defined in spectral_wave_bc_module
     spectrumendtime = 0.d0
+    ! Initialise lastwaveheight to zero
+    ! Stored and defined in spectral_wave_bc_module
+    allocate(lastwaveelevation(s%ny+1,s%ntheta))
+    lastwaveelevation = 0.d0
 
     if (par%nspectrumloc<1) then
        call writelog('ewls','','number of boundary spectra (''nspectrumloc'') may not be less than 1')
