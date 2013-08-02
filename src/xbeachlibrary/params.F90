@@ -1426,6 +1426,14 @@ contains
        par%back = 'abs_1d '
     endif
     !
+    ! 
+    ! Mean output time fix
+    if(par%tintm>(par%tstop-par%tstart) .and. par%nmeanvar>0) then
+       call writelog('lws','','Warning: ''tintm'' is larger than output duration in the simulation.')
+       call writelog('lws','','         Settting ''tintm'' = tstop-tstart = ',par%tstop-par%tstart,'s')
+       par%tintm=par%tstop-par%tstart
+    endif
+    !
     !
     ! fix tint
     par%tint    = min(par%tintg,par%tintp,par%tintm,par%tintc)
