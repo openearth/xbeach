@@ -581,6 +581,8 @@ contains
 #endif
     elseif (trim(par%instat)=='reuse') then
        ! See if this is reusing nonhydrostatic, or hydrostatic boundary conditions
+       ! Note, check file length is done after recomputation of tstop due to morfacopt
+       ! at the end of this subroutine.
        if (xmaster) then 
           inquire(file='ebcflist.bcf',exist=fe1)
           inquire(file='qbcflist.bcf',exist=fe2)
@@ -593,14 +595,8 @@ contains
 #endif       
        if (fe3 .and. .not. (fe1 .or. fe2)) then
              par%nonhspectrum = 1
-             dummystring='nhbcflist.bcf'
-             call checkbcfilelength(par%tstop,par%instat,dummystring,filetype,nonh=.true.)
        elseif (.not. fe3 .and. (fe1 .and. fe2)) then
              par%nonhspectrum = 0
-             dummystring='ebcflist.bcf'
-             call checkbcfilelength(par%tstop,par%instat,dummystring,filetype)
-             dummystring='qbcflist.bcf'
-             call checkbcfilelength(par%tstop,par%instat,dummystring,filetype)
        elseif (fe3 .and. (fe1 .or. fe2)) then
              call writelog('lswe','', &
                     'If ''instat=reuse'' the model directory may not contain multiple boundary definition files.')
@@ -1452,6 +1448,21 @@ contains
        par%morstart= par%morstart / max(par%morfac,1.d0)
        par%morstop = par%morstop / max(par%morfac,1.d0)
        par%rt      = par%rt / max(par%morfac,1.d0)
+    endif
+    !
+    !
+    ! Check bc file length in case of instat = reuse. In this case time is defined by
+    ! morfacopt, which is not known at earlier stage
+    if (trim(par%instat)=='reuse') then
+       if (par%nonhspectrum==1) then
+             dummystring='nhbcflist.bcf'
+             call checkbcfilelength(par%tstop,par%instat,dummystring,filetype,nonh=.true.)
+       else
+             dummystring='ebcflist.bcf'
+             call checkbcfilelength(par%tstop,par%instat,dummystring,filetype)
+             dummystring='qbcflist.bcf'
+             call checkbcfilelength(par%tstop,par%instat,dummystring,filetype)
+       endif
     endif
     !
     !
