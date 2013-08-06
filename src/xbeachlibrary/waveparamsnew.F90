@@ -1571,7 +1571,7 @@ contains
 
     ! Angular frequency
     wp%wgen = 2*par%px*wp%fgen
-
+       
     ! Free memory
     deallocate(pdflocal,cdflocal,randnums)
 
@@ -1795,12 +1795,17 @@ contains
           ! is carried out on the input directional variance density spectrum
           ! at the frequency and direction locations in fgen. This must be done
           ! over the 2D spectrum, not 1D spectrum.
-          call linear_interp_2d(specinterp(i)%f,nfint, &              ! input frequency, size
-               specinterp(i)%ang,naint, &            ! input angles, size
-               specinterp(i)%S, &                    ! input variance density
-               wp%fgen(ii),wp%thetagen(ii), &        ! output frquency/angle
-               wp%vargen(i)%Sf(ii), &                ! output variance density
-               'interp',0.d0)                        ! method and exception return value
+!          call linear_interp_2d(specinterp(i)%f,nfint, &   ! input frequency, size
+!               specinterp(i)%ang,naint, &                  ! input angles, size
+!               specinterp(i)%S*specinterp(i)%dang, &       ! input variance density times grid angle resolution
+!               wp%fgen(ii),wp%thetagen(ii), &              ! output frquency/angle
+!               wp%vargen(i)%Sf(ii), &                      ! output variance density
+!               'interp',0.d0)                              ! method and exception return value
+          call linear_interp(specinterp(i)%f, &
+                             specinterp(i)%Sf, &
+                             nfint, &
+                             wp%fgen(ii), &
+                             wp%vargen(i)%Sf(ii),dummy)
        enddo
        ! Correct variance to ensure the total variance remains the same as the total variance in the
        ! (interpolated) input spectrum
@@ -1809,7 +1814,7 @@ contains
        ! For the generation of long waves we cannot use wp%vargen%Sf, because it contains an overestimation
        ! of energy in the peak frequencies. We can also not use the standard directionally-integrated spectrum
        ! because this stores all energy at fgen(K), where it is possible that for this current spectrum, there
-       ! is not no energy at S(f(K),theta(K0)
+       ! is no energy at S(f(K),theta(K0))
        ! The current solution is to take the minimum of both methods
        do ii=1,wp%K
           ! Map Sf input to fgen
@@ -1817,7 +1822,7 @@ contains
        enddo
        wp%vargenq(i)%Sf = min(wp%vargen(i)%Sf,wp%vargenq(i)%Sf)
     enddo
-
+ 
   end subroutine generate_wave_train_variance
 
   ! --------------------------------------------------------------
@@ -2562,7 +2567,7 @@ contains
        ! Modification Robert + Jaap: make sure that the bound long wave amplitude does not
        !                             explode when offshore boundary is too close to shore,
        !                             by limiting the interaction group velocity
-       !cg3(m,1:K-m) = min(cg3(m,1:K-m),par%nmax*sqrt(par%g/k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0)))
+       cg3(m,1:K-m) = min(cg3(m,1:K-m),par%nmax*sqrt(par%g/k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0)))
 
        ! Determine difference-interaction coefficient according to Herbers 1994
        ! eq. A5
