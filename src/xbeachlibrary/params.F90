@@ -690,7 +690,7 @@ contains
        if (par%oldwbc==1) then
           par%wbcversion = 1
        else
-          par%wbcversion = readkey_int ('params.txt','wbcversion', 3, 1, 3)
+          par%wbcversion = readkey_int ('params.txt','wbcversion', 2, 1, 3)
        endif
        if (par%wbcversion>2) then
           par%nspectrumloc    = readkey_int ('params.txt','nspectrumloc',   1,          1,       par%ny+1 )
