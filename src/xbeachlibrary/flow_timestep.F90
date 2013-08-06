@@ -949,7 +949,9 @@ contains
     ! U-euler velocties at u-point
     ueu = uu - usu
     ! Velocity magnitude at u-points
-    ! vmagu=sqrt(uu**2+vu**2)
+    if (par%sedtrans == 0) then
+       vmagu=sqrt(uu**2+vu**2)
+    endif
     ! Eulerian velocity magnitude at u-points
     vmageu=sqrt(ueu**2+veu**2)
 
@@ -1024,7 +1026,9 @@ contains
     ! U-euler velocties at V-point
     uev = uv - usv
     ! Velocity magnitude at v-points
-    ! vmagv=sqrt(uv**2+vv**2)
+    if (par%sedtrans==0) then
+       vmagv=sqrt(uv**2+vv**2)
+    endif
     ! Eulerian velocity magnitude at v-points
     vmagev=sqrt(uev**2+vev**2)
 

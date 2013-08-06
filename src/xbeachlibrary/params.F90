@@ -266,7 +266,7 @@ module params
      real*8        :: facua                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave skewness and asymmetry
      real*8        :: facSk                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave skewness 
      real*8        :: facAs                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave asymmetry
-     real*8        :: turbadv                    = -123    !  [-] (advanced) Switch 0/1 to activate turbulence advection model for short and or long wave turbulence
+     character(slen) :: turbadv                  = 'abc'   !  [-] (advanced) Switch 0/1 to activate turbulence advection model for short and or long wave turbulence
      character(slen) :: turb                     = 'abc'   !  [-] (advanced) Switch to include short wave turbulence:
                                                            !      none = no turbulence, 
                                                            !      wave_averaged = wave averaged turbulence
@@ -1013,7 +1013,10 @@ contains
        par%facua    = readkey_dbl ('params.txt','facua  ',0.10d0,    0.00d0,   1.0d0) 
        par%facSk    = readkey_dbl ('params.txt','facSk  ',par%facua,    0.00d0,   1.0d0) 
        par%facAs    = readkey_dbl ('params.txt','facAs  ',par%facua,    0.00d0,   1.0d0) 
-       par%turbadv  = readkey_int ('params.txt','turbadv',0,           0,            1)
+       allocate(allowednames(3),oldnames(0))
+       allowednames=(/'none','lagrangian','eulerian'/)
+       par%turbadv  = readkey_str('params.txt','turbadv','none',3,0,allowednames,oldnames)
+       deallocate(allowednames,oldnames)
        allocate(allowednames(3),oldnames(3))
        allowednames=(/'none         ','wave_averaged','bore_averaged'/)
        oldnames=(/'0','1','2'/)

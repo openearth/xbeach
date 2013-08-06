@@ -107,7 +107,7 @@ subroutine vegie_init(s,par)
        veg(i)%bv   = readkey_dblvec(veg(i)%name,'bv',veg(i)%nsec,size(veg(i)%bv),0.1d0,0.05d0,20.d0)       ! Think about default values...
        veg(i)%N    = nint(readkey_dblvec(veg(i)%name,'N',veg(i)%nsec,size(veg(i)%bv),0.1d0,0.05d0,20.d0))  ! Jaap: quick&dirt transform real into integer
        veg(i)%Dragterm1 = 0.5d0/sqrt(par%px)*par%rho*veg(i)%Cd*veg(i)%bv*veg(i)%N ! Drag coefficient based on first part equation 6.5 Suzuki, 2011
-       veg(i)%Dragterm2 = 0.5d0*par%rho*veg(i)%Cd*veg(i)%bv*veg(i)%N
+       veg(i)%Dragterm2 = 0.5d0*veg(i)%Cd*veg(i)%bv*veg(i)%N
     enddo
 
     ! read spatial distribution of species:
@@ -166,7 +166,8 @@ subroutine swvegatt(s,par)
        do i=1,nx+1
           ind = veg(1)%vegtype(i,j)
           htermold = 0.d0
-          do m=1,veg(ind)%nsec
+          if (ind>0) then
+           do m=1,veg(ind)%nsec
              ! restrict vegetation height to water depth
              aht = min(veg(ind)%ah(m),hh(i,j))
              ! compute hterm based on ah
@@ -177,7 +178,8 @@ subroutine swvegatt(s,par)
              htermold = hterm
              ! add dissipation current layer
              Dvg(i,j) = Dvg(i,j) + Dvgt
-          enddo
+           enddo
+          endif
        enddo
     enddo
     ! store dissipation due to vegetation in s%
@@ -212,7 +214,8 @@ subroutine lwvegatt(s,par)
        do i=1,nx+1
           ind = veg(1)%vegtype(i,j)
           ahtold = 0.d0
-          do m=1,veg(ind)%nsec
+          if (ind>0) then
+           do m=1,veg(ind)%nsec
              ! restrict vegetation height to water depth
              aht = min(veg(ind)%ah(m),hh(i,j))
              ! compute forcing current layer based on aht and correct for previous layers
@@ -221,7 +224,8 @@ subroutine lwvegatt(s,par)
              ahtold = aht
              ! add Forcing current layer
              Fvg(i,j) = Fvg(i,j) + Fvgt
-          enddo
+           enddo
+          endif
        enddo
     enddo
 

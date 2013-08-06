@@ -1521,7 +1521,7 @@ contains
     
     ! Jaap do long wave turb approach for both short waves and long waves
     !
-    ! X-direction
+    ! Turbulence in uu-points
     !
     do j=1,ny+1
        do i=1,nx
@@ -1540,11 +1540,8 @@ contains
 #ifdef USEMPI
    call xmpi_shift(kturbu,'m:')
 #endif
-    
-    ! Jaap ueu or uu?
-    Sturbu=kturbu*uu*hu*wetu   !
     !
-    ! Y-direction
+    ! Turbulence in vv-points
     !
     do j=1,ny
        do i=1,nx+1
@@ -1559,15 +1556,28 @@ contains
     enddo
     kturbv(:,ny+1) = kturb(:,ny+1) !Robert
     !
-    Sturbv=kturbv*vv*hv*wetv
-    
+    ! Turbulence advection in X and Y direction
+    !
+    if (trim(par%turbadv) == 'langrangian') then
+       Sturbu=kturbu*uu*hu*wetu
+       Sturbv=kturbv*vv*hv*wetv
+    elseif (trim(par%turbadv) == 'eulerian') then
+       Sturbu=kturbu*ueu*hu*wetu
+       Sturbv=kturbv*vev*hv*wetv
+    elseif (trim(par%turbadv) == 'none') then
+       Sturbu=0.d0
+       Sturbv=0.d0
+    endif
+    !
+    ! Update turbulence
+    !
     if (ny>0) then
        do j=2,ny+1
           do i=2,nx+1
              
              kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*(       &
-	                      par%turbadv*(Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j)+&
-                                       Sturbv(i,j)*dsv(i,j)-Sturbv(i,j-1)*dsv(i,j-1))*dsdnzi(i,j)-&
+	                     (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j)+&
+                          Sturbv(i,j)*dsv(i,j)-Sturbv(i,j-1)*dsv(i,j-1))*dsdnzi(i,j)-&
                           (ksource(i,j)-par%betad*kturb(i,j)**1.5d0))
              kturb(i,j)=max(kturb(i,j),0.0d0)
                
@@ -1578,7 +1588,7 @@ contains
        do i=2,nx+1
             
           kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*(       &
-	                   par%turbadv*(Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)-&
+	                  (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)-&
                       (ksource(i,j)-par%betad*kturb(i,j)**1.5d0))
           kturb(i,j)=max(kturb(i,j),0.0d0)
             
