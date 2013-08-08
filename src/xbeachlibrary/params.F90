@@ -1014,7 +1014,7 @@ contains
        par%facSk    = readkey_dbl ('params.txt','facSk  ',par%facua,    0.00d0,   1.0d0) 
        par%facAs    = readkey_dbl ('params.txt','facAs  ',par%facua,    0.00d0,   1.0d0) 
        allocate(allowednames(3),oldnames(0))
-       allowednames=(/'none','lagrangian','eulerian'/)
+       allowednames=(/'none      ','lagrangian','eulerian  '/)
        par%turbadv  = readkey_str('params.txt','turbadv','none',3,0,allowednames,oldnames)
        deallocate(allowednames,oldnames)
        allocate(allowednames(3),oldnames(3))
