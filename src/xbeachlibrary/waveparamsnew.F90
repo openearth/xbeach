@@ -1962,7 +1962,7 @@ contains
     ! each time step
     allocate(wp%CompFn(s%ny+1,wp%tslen))
     wp%CompFn=0.d0
-    allocate(tempcmplx(wp%tslen/2-2))
+    allocate(tempcmplx(wp%tslen/2-1))
     call writelog('ls','','Calculating Fourier components')
     call progress_indicator(.true.,0.d0,5.d0,2.d0)
     do i=1,wp%K
