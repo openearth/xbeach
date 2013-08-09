@@ -599,6 +599,13 @@ contains
     allocate(vmagvold(1:s%nx+1,1:s%ny+1)) 
     allocate(vmaguold(1:s%nx+1,1:s%ny+1)) 
 
+    allocate(s%ududx(1:s%nx+1,1:s%ny+1))
+    allocate(s%vdvdy(1:s%nx+1,1:s%ny+1))
+    allocate(s%udvdx(1:s%nx+1,1:s%ny+1))
+    allocate(s%vdudy(1:s%nx+1,1:s%ny+1))
+    allocate(s%viscu(1:s%nx+1,1:s%ny+1))
+    allocate(s%viscv(1:s%nx+1,1:s%ny+1))
+
     ! Just to be sure!
     s%zs = 0.0d0
     s%dzsdt = 0.0d0
@@ -673,6 +680,12 @@ contains
     s%wm   =0.d0
     s%zs0fac = 0.0d0
 
+    s%ududx = 0.d0
+    s%vdvdy = 0.d0
+    s%udvdx = 0.d0
+    s%vdudy = 0.d0
+    s%viscu = 0.d0
+    s%viscv = 0.d0   
 
 
     !

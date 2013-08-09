@@ -46,8 +46,6 @@ contains
     real*8,dimension(:,:),allocatable,save  :: uu_old                   !Velocity at previous timestep
     real*8,dimension(:,:),allocatable,save  :: zs_old
     real*8,dimension(:,:),allocatable,save  :: vsu,usu,vsv,usv,veu,uev
-    real*8,dimension(:,:),allocatable,save  :: ududx,vdvdy,udvdx,vdudy
-    real*8,dimension(:,:),allocatable,save  :: viscu,viscv
     real*8,dimension(:,:),allocatable,save  :: us,vs
     real*8                                  :: nuh1,nuh2
     real*8                                  :: dudx1,dudx2,dudy1,dudy2
@@ -71,12 +69,6 @@ contains
        allocate (   usv(nx+1,ny+1))
        allocate (   veu(nx+1,ny+1))
        allocate (   uev(nx+1,ny+1))
-       allocate ( ududx(nx+1,ny+1))
-       allocate ( vdvdy(nx+1,ny+1))
-       allocate ( udvdx(nx+1,ny+1))
-       allocate ( vdudy(nx+1,ny+1))
-       allocate ( viscu(nx+1,ny+1))
-       allocate ( viscv(nx+1,ny+1))
        allocate (    us(nx+1,ny+1))
        allocate (    vs(nx+1,ny+1))
        allocate (sinthm(nx+1,ny+1))

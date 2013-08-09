@@ -1302,7 +1302,7 @@ contains
     endif
   end subroutine flow_bc
 
-  function flow_lat_bc(s,par,bctype,jbc,jn,udvdx,vdvdy,viscv) result(vbc)
+  function flow_lat_bc(s,par,bctype,jbc,jn,udvdxb,vdvdyb,viscvb) result(vbc)
     use params
     use spaceparams
     use xmpi_module
@@ -1312,7 +1312,7 @@ contains
     character*(*)                           :: bctype
     integer                                 :: jbc,jn ! j-index of boundary and j-index of neighbouring cell
     ! varies for xmpi_isleft and xmpi_isright
-    real*8,dimension(s%nx+1)                :: udvdx,vdvdy,viscv   ! advection terms from flow timestep
+    real*8,dimension(s%nx+1)                :: udvdxb,vdvdyb,viscvb   ! advection terms from flow timestep
 
     real*8,dimension(s%nx+1)                :: vbc    ! result vector for boundary flow
 
@@ -1360,7 +1360,7 @@ contains
           ! they decrease the flow velocity
           do i=2,nx
              if (wetv(i,jbc)==1) then
-                advterm = udvdx(i)+vdvdy(i)-viscv(i)+ fc*uv(i,jbc)
+                advterm = udvdxb(i)+vdvdyb(i)-viscvb(i)+ fc*uv(i,jbc)
                 if (vv(i,jbc)>0.d0) then
                    advterm = max(advterm,0.d0)
                 elseif (vv(i,jbc)<0.d0) then
@@ -1385,7 +1385,7 @@ contains
           ! We allow vv at the boundary to be calulated from NLSWE without any limitations
           do i=2,nx
              if (wetv(i,jbc)==1) then 
-                vbc(i) = vv(i,jbc)- par%dt*(udvdx(i)+vdvdy(i)-viscv(i)& 
+                vbc(i) = vv(i,jbc)- par%dt*(udvdxb(i)+vdvdyb(i)-viscvb(i)& 
                      + par%g*dzsdy(i,jbc)&
                      + tauby(i,jbc)/(par%rho*hvm(i,jbc)) &
                      - par%lwave*Fy(i,jbc)/(par%rho*max(hvm(i,jbc),par%hmin)) &
