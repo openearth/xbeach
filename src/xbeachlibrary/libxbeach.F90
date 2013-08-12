@@ -115,7 +115,7 @@ contains
                                             ! to reserve memory on MPI subprocesses.
                                             ! Note: if par%ships==0 then don't allocate
                                             ! and read stuff for sh structures
-       if (par%vegetation==1)   call vegie_init (s,par)
+       call vegie_init         (s,par)
 
     endif
 
@@ -168,6 +168,7 @@ contains
     ! compute timestep
     if (par%ships==1)        call shipwave       (s,par,sh)
     if (par%swave==1)        call wave           (s,par)
+    if (par%vegetation==1)   call vegatt         (s,par)
     if (par%gwflow==1)       call gwflow         (s,par)
     if (par%flow+par%nonh>0) call flow           (s,par)
     if (par%ndrifter>0)      call drifter        (s,par)

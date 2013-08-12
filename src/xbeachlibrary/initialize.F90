@@ -1198,6 +1198,8 @@ contains
     allocate(s%runup(1:ny+1))
     allocate(s%Hrunup(1:ny+1))
     allocate(s%xHrunup(1:ny+1))
+    allocate(s%istruct(1:ny+1))
+    allocate(s%iwl(1:ny+1))
     allocate(s%Dc(1:nx+1,1:ny+1))
 
     ! Initialize so structures can be implemented more easily

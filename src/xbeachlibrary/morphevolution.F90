@@ -123,6 +123,11 @@ contains
 
     sinthm = sin(thetamean-alfaz)
     costhm = cos(thetamean-alfaz)
+    
+    ! short wave runup
+    if (par%swrunup==1) then
+       call hybrid(s,par)
+    endif
 
     ! compute turbulence due to wave breaking
     if (par%lwt==1 .or. trim(par%turb) == 'bore_averaged' .or. trim(par%turb) == 'wave_averaged') then
@@ -445,12 +450,10 @@ contains
     type(spacepars),target              :: s
     type(parameters)                    :: par
 
-    integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz,indx2,di
-    integer , dimension(s%nx+1)                 :: slopeind,bermind
+    integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz,di
     integer , dimension(s%ny+1)                 :: indx
     integer , dimension(:,:,:),allocatable,save :: indSus,indSub,indSvs,indSvb
     real*8                                      :: dzb,dzmax,dzt,dzleft,sdz,dzavt,fac,Savailable,dAfac
-    real*8                                      :: strucslope,bermwidth,rb,gamB,irrb,runup_old,runup_max,first
     real*8 , dimension(:,:),allocatable,save    :: dzbtot,Sout,hav
     real*8 , dimension(par%ngd)                 :: edg,edg1,edg2,dzg
     real*8 , dimension(:),pointer               :: dz
@@ -667,79 +670,15 @@ contains
                    dzbdx(i,j)=(zb(i+1,j)-zb(i,j))/dsu(i,j)  
                 enddo
              enddo
-
-             ! Include short wave runup
-
-             ! Jaap crude switch, need to do further testing
-
+             !
              hav = hh
-             indx = nx+1
-
+             ! Fix Hav for short wave runup:
              if (par%swrunup == 1) then
-
-                do j=1,ny+1
-                   first = 0;
-                   do i=1,nx
-                      if (wetz(i,j)-wetz(max(i-1,1),j)==-1 .and. first==0) then ! transition from wet to dry
-                         ! only consider first dry point
-                         first = 1
-                         ! find wave height for runup at L1 meter from water line 
-                         call linear_interp(xz(:,j),H(:,j),nx+1,xz(i-1,j)-L1(i-1,j),s%Hrunup(j),indx(j))
-                         ! Find toe of runup slope if present (dzbdx > 0.15). 
-                         ! If not present Hrunup will converge to H at the water line (where H = 0 per definition)
-                         do j1=indx(j),i-1
-                            ! cross shore location structure toe
-                            if (dzbdx(j1,j)<0.15d0 .or. structdepth(j1,j)>0.1d0) then
-                               indx(j) = j1
-                            endif
-                            if (hh(j1,j)>par%hswitch) then
-                               indx2 = j1
-                            endif
-                         enddo
-                         ! update Hrunup and runup x-location
-                         s%Hrunup(j) = H(indx(j),j)
-                         s%xHrunup(j) = xz(indx(j),j);
-                         ! now itteratively compute runup
-                         hav(:,j) = hh(:,j)
-                         runup_old = huge(0.d0)
-                         s%runup(j) = 0;
-                         do while (abs(s%runup(j)-runup_old)>0.01d0)
-                            runup_old = s%runup(j)
-                            slopeind = 0
-                            where (hav(:,j)>par%eps .and. dzbdx(:,j)>0.15)
-                               slopeind = 1
-                            endwhere
-                            !bermind = 0
-                            !where (slopeind == 0 .and. wetz(:,j) == 0 .and. hav(:,j)>par%eps)
-                            !  bermind = 1
-                            !endwhere
-                            strucslope = sum(dzbdx(indx(j):nx,j)*dsu(indx(j):nx,j)*slopeind(indx(j):nx))/ &
-                                 max(par%eps,sum(dsu(indx(j):nx,j)*slopeind(indx(j):nx)))
-                            if (strucslope > 0.d0) then         
-                               irrb = strucslope/sqrt(2*par%px*max(s%Hrunup(j),par%eps)/par%g/par%Trep**2)
-                               !bermwidth  = sum(dsu(indx(j):nx,j)*bermind(indx(j):nx))
-                               !rb = bermwidth/(bermwidth+sum(dsu(indx(j):nx,j)*slopeind(indx(j):nx)))
-                               !gamB = max(0.6d0,1.d0-rb)
-                               !runup_max = (4.3d0-1.6d0/sqrt(irrb))/1.75d0
-                               !s%runup(j) = min(runup_max,irrb*s%Hrunup(j))*cos(2*par%px/par%Trep*par%t)
-                               s%runup(j) = par%facrun*min(irrb,2.3d0)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
-                               !s%runup(j) = par%facrun*min(irrb,runup_max)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
-                            else
-                               s%runup(j) = 0.d0;
-                            endif
-
-                            !hav(:,j) = hh(:,j) + wetz(:,j)*s%runup(j) + &
-                            !                    (1.d0-wetz(:,j))*max(par%eps,hh(:,j)+s%runup(j)-zb(:,j));
-
-                         enddo
-
-                         hav(:,j) =  wetz(:,j)*(hh(:,j) + s%runup(j)) + &
+                do j = 1,ny+1
+                   hav(:,j) =  wetz(:,j)*(hh(:,j) + s%runup(j)) + &
                               (1.d0-wetz(:,j))*max(par%eps,s%runup(j)+zs(i-1,j)-zb(:,j) )   
-                      endif
-                   enddo
                 enddo
-
-             endif ! end crude switch
+             endif
              !
              do i=2,nx !-1 Jaap -1 gives issues for bed updating at mpi boundaries
                 do j=1,ny+1
@@ -1380,6 +1319,8 @@ contains
                 kb(i,j) = kb(i,j)*par%Trep/Tbore(i,j)
              endif
           enddo
+          ! Jaap: rundown jet creating additional turbulence
+          kb(istruct(j),j) = kb(istruct(j),j) + par%jetfac*(E(istruct(j),j)/par%rho/par%Trep)**twothird
        enddo
     endif !par%swave == 1
 
@@ -1516,7 +1457,7 @@ contains
        ksource = par%g*rolthick*par%beta*c      !only important in shallow water, where c=sqrt(gh)  
     endif
     if (trim(par%turb) == 'bore_averaged' .or. trim(par%turb) == 'wave_averaged') then
-       ksource = ksource + (DR/par%rho)
+       ksource = ksource + DR/par%rho
     endif   
     
     ! Jaap do long wave turb approach for both short waves and long waves
@@ -1779,4 +1720,105 @@ contains
     Tbore = par%Tbfac*Tbore
 
   end subroutine vT
+  
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+  
+  subroutine hybrid(s,par)
+  
+  use params
+  use interp
+  use spaceparams
+  use xmpi_module
+  
+  IMPLICIT NONE
+  
+  type(spacepars),target                   :: s
+  type(parameters)                         :: par
+  
+  integer                                  :: i,j,j1,indx,indx2,first
+  integer , dimension(:), allocatable,save :: slopeind,bermind
+  real , dimension(:), allocatable,save    :: hav1d
+  real*8                                   :: strucslope,irrb,runup_old
+  real*8                                   :: bermwidth,rb,gamB,runup_max
+
+  include 's.ind'
+  include 's.inp'
+  
+  if (.not. allocated(hav1d)) then
+    allocate(hav1d (nx+1))
+    allocate(slopeind (nx+1))
+    allocate(bermind (nx+1))
+  endif
+           
+  do j=1,ny+1
+     indx = nx+1
+     first = 0;
+     do i=1,nx
+        if (wetz(i,j)-wetz(max(i-1,1),j)==-1 .and. first==0) then ! transition from wet to dry
+        ! only consider first dry point
+        first = 1
+        ! find wave height for runup at L1 meter from water line 
+        call linear_interp(xz(:,j),H(:,j),nx+1,xz(i-1,j)-L1(i-1,j),s%Hrunup(j),indx)
+        ! Find toe of runup slope if present (dzbdx > 0.15). 
+        ! If not present Hrunup will converge to H at the water line (where H = 0 per definition)
+        do j1=indx,i-1
+           ! cross shore location structure toe
+           if (dzbdx(j1,j)<0.15d0 .or. structdepth(j1,j)>0.1d0) then
+              indx = j1
+           endif
+           if (hh(j1,j)>par%hswitch) then
+              indx2 = j1
+           endif
+        enddo
+        ! update Hrunup and runup x-location
+        s%Hrunup(j) = H(indx,j)       ! short wave height at revetment toe
+        s%xHrunup(j) = xz(indx,j)     ! cross-shore location revetment toe
+        s%istruct(j) = indx           ! cross-shore index revetment toe
+        s%iwl(j) = i-1                ! cross-shore location waterline (inlcuding lw-runup)
+        
+        ! now itteratively compute runup
+        hav1d = hh(:,j)
+        runup_old = huge(0.d0)
+        s%runup(j) = 0;
+        do while (abs(s%runup(j)-runup_old)>0.01d0)
+           runup_old = s%runup(j)
+           slopeind = 0
+           where (hav1d>par%eps .and. dzbdx(:,j)>0.15)
+              slopeind = 1
+           endwhere
+           !bermind = 0
+           !where (slopeind == 0 .and. wetz(:,j) == 0 .and. hav(:,j)>par%eps)
+           !  bermind = 1
+           !endwhere
+           strucslope = sum(dzbdx(indx:nx,j)*dsu(indx:nx,j)*slopeind(indx:nx))/ &
+                        max(par%eps,sum(dsu(indx:nx,j)*slopeind(indx:nx)))
+           if (strucslope > 0.d0) then         
+              irrb = strucslope/sqrt(2*par%px*max(s%Hrunup(j),par%eps)/par%g/par%Trep**2)
+              !bermwidth  = sum(dsu(indx(j):nx,j)*bermind(indx(j):nx))
+              !rb = bermwidth/(bermwidth+sum(dsu(indx(j):nx,j)*slopeind(indx(j):nx)))
+              !gamB = max(0.6d0,1.d0-rb)
+              !runup_max = (4.3d0-1.6d0/sqrt(irrb))/1.75d0
+              !s%runup(j) = min(runup_max,irrb*s%Hrunup(j))*cos(2*par%px/par%Trep*par%t)
+              s%runup(j) = par%facrun*min(irrb,2.3d0)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
+              !s%runup(j) = par%facrun*min(irrb,runup_max)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
+              else
+                 s%runup(j) = 0.d0;
+              endif
+
+              !hav(:,j) = hh(:,j) + wetz(:,j)*s%runup(j) + &
+              !                    (1.d0-wetz(:,j))*max(par%eps,hh(:,j)+s%runup(j)-zb(:,j));
+
+           enddo
+
+           hav1d =  wetz(:,j)*(hh(:,j) + s%runup(j)) + &
+                    (1.d0-wetz(:,j))*max(par%eps,s%runup(j)+zs(i-1,j)-zb(:,j) )   
+        endif
+     enddo
+  enddo
+
+  
+  
+  end subroutine hybrid
+  
 end module morphevolution

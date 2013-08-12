@@ -7,7 +7,6 @@ contains
     use wave_functions_module
     use xmpi_module
     use logging_module
-    use vegetation_module
 
     ! wwvv in my testcase, this routine was not called, so it is not
     ! tested. Nevertheless, I put in code for the parallel version.
@@ -351,10 +350,6 @@ contains
              where (hh>par%fwcutoff)
                 Df = 0.d0
              end where
-             ! Dissipation by vegetation
-             if (par%vegetation == 1) then
-                call swvegatt(s,par)
-             endif
              !
              ! Distribution of dissipation ovater directions and frequencies
              !
@@ -561,6 +556,7 @@ contains
     call xmpi_shift(Fx,'m:')
     call xmpi_shift(Fy,'m:')
 #endif
+    
     urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*max(hh,par%delta*H)))
     !ust=E*k/sigm/par%rho/max(hh,0.001)
 

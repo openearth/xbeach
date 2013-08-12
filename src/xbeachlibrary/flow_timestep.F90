@@ -33,7 +33,6 @@ contains
     use boundaryconditions
     use flow_secondorder_module
     use nonh_module
-    use vegetation_module
 
     IMPLICIT NONE
 
@@ -364,11 +363,6 @@ contains
        taubx = 0.d0
     endwhere
     !
-    ! Vegetation attenuation
-    if (par%vegetation == 1) then
-       call lwvegatt(s,par)
-    endif
-    !
     ! Explicit Euler step momentum u-direction
     !
     do j=j1,max(ny,1)
@@ -385,7 +379,7 @@ contains
              uu(i,j)=uu(i,j)-par%dt*(ududx(i,j)+vdudy(i,j)-viscu(i,j) & !Ap,Robert,Jaap
                   + par%g*dzsdx(i,j) &
                   + taubx(i,j)/(par%rho*hu(i,j)) &  ! Dano: changed hum to hu NOT cf volume approach
-                  + Fveg(i,j)*uu(i,j)*vmagu(i,j) &  
+                  + Fveg(i,j) &  
                   - par%lwave*Fx(i,j)/(par%rho*max(hum(i,j),par%hmin)) &
                   - fc*vu(i,j) &
                   - par%rhoa*par%Cd*windsu(i,j)**2/(par%rho*hum(i,j)))
@@ -625,7 +619,7 @@ contains
              vv(i,j)=vv(i,j)-par%dt*(udvdx(i,j)+vdvdy(i,j)-viscv(i,j)& !Ap,Robert,Jaap
                   + par%g*dzsdy(i,j)&
                   + tauby(i,j)/(par%rho*hv(i,j)) &  ! Dano: hv instead of hvm, NOT cf volume approach
-                  + Fveg(i,j)*vv(i,j)*vmagv(i,j) &
+                  + Fveg(i,j) &
                   - par%lwave*Fy(i,j)/(par%rho*max(hvm(i,j),par%hmin)) &
                   + fc*uv(i,j) &
                   - par%rhoa*par%Cd*windnv(i,j)**2/(par%rho*hvm(i,j)))

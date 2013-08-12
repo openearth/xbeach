@@ -11,7 +11,6 @@ contains
     use xmpi_module
     use mnemmodule
     use interp
-    use vegetation_module
 
     IMPLICIT NONE
 
@@ -323,10 +322,6 @@ contains
     where (hh>par%fwcutoff)
        Df = 0.d0
     end where
-    ! Dissipation by vegetation
-    if (par%vegetation == 1) then
-       call swvegatt(s,par)
-    endif
     !
     ! Distribution of dissipation over directions and frequencies
     !

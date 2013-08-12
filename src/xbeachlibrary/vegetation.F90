@@ -28,22 +28,21 @@ module vegetation_module
 implicit none
 private
 type vegie
-   character*256                      :: name
-   integer ,                  pointer :: nsec        ! Number of vegetation stands per unit horizontal area [m-2]
-   real*8 , dimension(:)    , pointer :: ah          ! Vegetation height [m]
-   real*8 , dimension(:)    , pointer :: Cd          ! Vertically integrated drag coefficient [-]
-   real*8 , dimension(:)    , pointer :: bv          ! Width of vegetation stands
-   integer , dimension(:)   , pointer :: N           ! Number of vegetation stands per unit horizontal area [m-2]
-   real*8 , dimension(:)    , pointer :: Dragterm1   ! Dragterm in short wave attenuation []
-   real*8 , dimension(:)    , pointer :: Dragterm2   ! Dragterm in long wave attenuation []
-   integer , dimension(:,:) , pointer :: vegtype     ! spatial mapping of vegetation types [-]
+   character*256                          :: name
+   integer ,                  allocatable :: nsec        ! Number of vegetation stands per unit horizontal area [m-2]
+   real*8 , dimension(:)    , allocatable :: ah          ! Vegetation height [m]
+   real*8 , dimension(:)    , allocatable :: Cd          ! Vertically integrated drag coefficient [-]
+   real*8 , dimension(:)    , allocatable :: bv          ! Width of vegetation stands
+   integer , dimension(:)   , allocatable :: N           ! Number of vegetation stands per unit horizontal area [m-2]
+   real*8 , dimension(:)    , allocatable :: Dragterm1   ! Dragterm in short wave attenuation []
+   real*8 , dimension(:)    , allocatable :: Dragterm2   ! Dragterm in long wave attenuation []
+   integer , dimension(:,:) , allocatable :: vegtype     ! spatial mapping of vegetation types [-]
 end type
 
 type(vegie), dimension(:), allocatable, save            :: veg
 
 public vegie_init
-public swvegatt
-public lwvegatt
+public vegatt
 
 contains
 
@@ -72,7 +71,11 @@ subroutine vegie_init(s,par)
     ! file 1: list of species
     ! file 2: vegetation properties per specie (could be multiple files)
     ! file 3: distribution of species oevr space
-
+    
+    if (par%vegetation == 0) then
+        return
+    endif
+    
     fid=create_new_fid() ! see filefunctions.F90
     call check_file_exist(par%vegiefile)
     open(fid,file=par%vegiefile)
@@ -135,6 +138,25 @@ subroutine vegie_init(s,par)
 
 end subroutine vegie_init
 
+subroutine vegatt(s,par)
+    
+    use params
+    use spaceparams
+    use readkey_module
+    use filefunctions
+    use interp
+
+    type(parameters)                            :: par
+    type(spacepars)                             :: s
+    
+    ! Attenuation by vegetation is computed in wave action balance (swvegatt) and the momentum balance (lwvegatt); 
+     
+    call swvegatt(s,par)
+    
+    call lwvegatt(s,par)
+
+end subroutine
+
 subroutine swvegatt(s,par)
     use params
     use spaceparams
@@ -148,17 +170,11 @@ subroutine swvegatt(s,par)
     integer                                     :: i,j,m,ind  ! indices of actual x,y point
     real*8                                      :: aht,hterm,htermold,Dvgt
     real*8, dimension(s%nx+1,s%ny+1)            :: Dvg,kmr
-    integer, dimension(s%nx+1,s%ny+1)           :: vegtype
 
     include 's.ind'
     include 's.inp'
 
     kmr = min(max(s%k, 0.01d0), 100.d0)
-
-    !vegtype = 0
-    !do i = 1,par%nveg
-    !   vegtype = vegtype + veg(i)%vegtype;
-    !enddo
 
     ! Set dissipation in vegetation to zero everywhere for a start
     Dvg = 0.d0
@@ -198,15 +214,13 @@ subroutine lwvegatt(s,par)
     type(spacepars)                             :: s
 
     integer                                     :: i,j,m,ind  ! indices of actual x,y point
-    real*8                                      :: aht,ahtold,Fvgt
-    real*8, dimension(s%nx+1,s%ny+1)            :: Fvg
-
-
-    !integer                                     ::
-    !real*8                                      ::
+    real*8                                      :: aht,ahtold,hterm,htermold,Fvgt
+    real*8, dimension(s%nx+1,s%ny+1)            :: Fvg,kmr
 
     include 's.ind'
     include 's.inp'
+
+    kmr = min(max(s%k, 0.01d0), 100.d0)
 
     Fvg = 0.d0
 
@@ -214,14 +228,22 @@ subroutine lwvegatt(s,par)
        do i=1,nx+1
           ind = veg(1)%vegtype(i,j)
           ahtold = 0.d0
+          htermold   = 0.d0
           if (ind>0) then
            do m=1,veg(ind)%nsec
              ! restrict vegetation height to water depth
              aht = min(veg(ind)%ah(m),hh(i,j))
+             ! mean and long wave flow
              ! compute forcing current layer based on aht and correct for previous layers
-             Fvgt = (aht-ahtold)/hh(i,j)*veg(ind)%Dragterm2(m)
+             Fvgt = (aht-ahtold)/hh(i,j)*veg(ind)%Dragterm2(m)*uu(i,j)*vmagu(i,j)
+             ! short wave flow (approach according to Myrhaug and Holmedal, 2011 Coastal Engineering)
+             ! Here we assume linear waves for a start
+             ! hterm = 1.d0(2.d0*cosh(kmr(i,j)*hh(i,j))**2)* &
+             !       (1.d0/(2.d0*kmr(i,j))*sinh(2.d0*kmr(i,j)*aht) + aht) ! eq 19
+             ! Fvgt = Fvgt - veg(ind)%Dragterm2(m)*(hterm-htermold)*urms(i,j)**2
              ! save aht to ahtold to correct possibly in next vegetation section
              ahtold = aht
+             htermold = hterm
              ! add Forcing current layer
              Fvg(i,j) = Fvg(i,j) + Fvgt
            enddo
