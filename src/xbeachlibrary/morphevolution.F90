@@ -1320,7 +1320,7 @@ contains
              endif
           enddo
           ! Jaap: rundown jet creating additional turbulence
-          kb(istruct(j),j) = kb(istruct(j),j) + par%jetfac*(E(istruct(j),j)/par%rho/par%Trep)**twothird
+          kb(istruct(j),j) = kb(istruct(j),j) + par%jetfac*(E(istruct(j),j)*strucslope(j)*sqrt(par%g/hh(istruct(j),j)))**twothird
        enddo
     endif !par%swave == 1
 
@@ -1739,7 +1739,7 @@ contains
   integer                                  :: i,j,j1,indx,indx2,first
   integer , dimension(:), allocatable,save :: slopeind,bermind
   real , dimension(:), allocatable,save    :: hav1d
-  real*8                                   :: strucslope,irrb,runup_old
+  real*8                                   :: irrb,runup_old
   real*8                                   :: bermwidth,rb,gamB,runup_max
 
   include 's.ind'
@@ -1791,10 +1791,10 @@ contains
            !where (slopeind == 0 .and. wetz(:,j) == 0 .and. hav(:,j)>par%eps)
            !  bermind = 1
            !endwhere
-           strucslope = sum(dzbdx(indx:nx,j)*dsu(indx:nx,j)*slopeind(indx:nx))/ &
-                        max(par%eps,sum(dsu(indx:nx,j)*slopeind(indx:nx)))
-           if (strucslope > 0.d0) then         
-              irrb = strucslope/sqrt(2*par%px*max(s%Hrunup(j),par%eps)/par%g/par%Trep**2)
+           s%strucslope(j) = sum(dzbdx(indx:nx,j)*dsu(indx:nx,j)*slopeind(indx:nx))/ &
+                             max(par%eps,sum(dsu(indx:nx,j)*slopeind(indx:nx)))
+           if (s%strucslope(j) > 0.d0) then         
+              irrb = s%strucslope(j)/sqrt(2*par%px*max(s%Hrunup(j),par%eps)/par%g/par%Trep**2)
               !bermwidth  = sum(dsu(indx(j):nx,j)*bermind(indx(j):nx))
               !rb = bermwidth/(bermwidth+sum(dsu(indx(j):nx,j)*slopeind(indx(j):nx)))
               !gamB = max(0.6d0,1.d0-rb)

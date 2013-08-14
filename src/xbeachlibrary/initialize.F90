@@ -1200,6 +1200,7 @@ contains
     allocate(s%xHrunup(1:ny+1))
     allocate(s%istruct(1:ny+1))
     allocate(s%iwl(1:ny+1))
+    allocate(s%strucslope(1:ny+1))
     allocate(s%Dc(1:nx+1,1:ny+1))
 
     ! Initialize so structures can be implemented more easily
@@ -1337,6 +1338,7 @@ contains
     s%runup      = 0.d0
     s%Hrunup     = 0.d0
     s%xHrunup    = 0.d0
+    s%strucslope = 0.d0
     s%Dc         = 0.d0
 
     ! Initialize dzbdx, dzbdy
