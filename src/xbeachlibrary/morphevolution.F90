@@ -451,7 +451,6 @@ contains
     type(parameters)                    :: par
 
     integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz,di
-    integer , dimension(s%ny+1)                 :: indx
     integer , dimension(:,:,:),allocatable,save :: indSus,indSub,indSvs,indSvb
     real*8                                      :: dzb,dzmax,dzt,dzleft,sdz,dzavt,fac,Savailable,dAfac
     real*8 , dimension(:,:),allocatable,save    :: dzbtot,Sout,hav
@@ -675,8 +674,10 @@ contains
              ! Fix Hav for short wave runup:
              if (par%swrunup == 1) then
                 do j = 1,ny+1
-                   hav(:,j) =  wetz(:,j)*(hh(:,j) + s%runup(j)) + &
-                              (1.d0-wetz(:,j))*max(par%eps,s%runup(j)+zs(i-1,j)-zb(:,j) )   
+                   hav(:,j) =  wetz(:,j)*max(par%eps,(hh(:,j) + s%runup(j))) + &
+                              (1.d0-wetz(:,j))*max(par%eps,s%runup(j)+zs(iwl(j),j)-zb(:,j) )   
+                              
+                              
                 enddo
              endif
              !
@@ -685,7 +686,7 @@ contains
                    !if (max( max(hh(i,j),par%delta*H(i,j)), max(hh(i+1,j),par%delta*H(i+1,j)) )>par%hswitch+par%eps) then
                    if(max(hav(i,j),hav(i+1,j))>par%hswitch+par%eps) then ! Jaap instead of hh
                       dzmax=par%wetslp;
-                      if (i>indx(j)) then ! tricks: seaward of indx (transition from sand to structure) wetslope is set to 0.03;
+                      if (i>istruct(j)) then ! tricks: seaward of istruct (transition from sand to structure) wetslope is set to 0.03;
                          !dzmax = 0.03d0
                          dzmax = max(0.03d0,abs(dzbdx(i,j))*0.99d0)
                       endif
@@ -1315,12 +1316,15 @@ contains
              dcf = min(1.d0,1.d0/(dcfin-1.d0))
              ! Jaap: new approach: compute kb based on waveturb result 
              kb(i,j) = kturb(i,j)*dcf
+             ! 
              if (trim(par%turb) == 'bore_averaged') then
                 kb(i,j) = kb(i,j)*par%Trep/Tbore(i,j)
              endif
           enddo
           ! Jaap: rundown jet creating additional turbulence
-          kb(istruct(j),j) = kb(istruct(j),j) + par%jetfac*(E(istruct(j),j)*strucslope(j)*sqrt(par%g/hh(istruct(j),j)))**twothird
+          if (par%swrunup==1)then
+             kb(istruct(j),j) = kb(istruct(j),j) + par%jetfac*(E(istruct(j),j)*strucslope(j)*sqrt(par%g/hh(istruct(j),j)))**twothird
+          endif
        enddo
     endif !par%swave == 1
 
@@ -1753,7 +1757,7 @@ contains
            
   do j=1,ny+1
      indx = nx+1
-     first = 0;
+     first = 0
      do i=1,nx
         if (wetz(i,j)-wetz(max(i-1,1),j)==-1 .and. first==0) then ! transition from wet to dry
         ! only consider first dry point
@@ -1811,7 +1815,7 @@ contains
 
            enddo
 
-           hav1d =  wetz(:,j)*(hh(:,j) + s%runup(j)) + &
+           hav1d =  wetz(:,j)*max(par%eps,(hh(:,j) + s%runup(j))) + &
                     (1.d0-wetz(:,j))*max(par%eps,s%runup(j)+zs(i-1,j)-zb(:,j) )   
         endif
      enddo
