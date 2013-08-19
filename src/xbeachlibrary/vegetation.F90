@@ -29,7 +29,7 @@ implicit none
 private
 type vegie
    character*256                          :: name
-   integer ,                  allocatable :: nsec        ! Number of vegetation stands per unit horizontal area [m-2]
+   integer                                :: nsec        ! Number of vegetation stands per unit horizontal area [m-2]
    real*8 , dimension(:)    , allocatable :: ah          ! Vegetation height [m]
    real*8 , dimension(:)    , allocatable :: Cd          ! Vertically integrated drag coefficient [-]
    real*8 , dimension(:)    , allocatable :: bv          ! Width of vegetation stands
@@ -61,7 +61,6 @@ subroutine vegie_init(s,par)
 
     character(1)                                :: ch
     integer                                     :: i,j,fid,ier
-    integer, save                               :: nsec           ! Number of vegetation sections in the vertical per specie [-]
     !integer, dimension(s%nx+1,s%ny+1)           :: vegtype
 
     include 's.ind'
@@ -97,7 +96,6 @@ subroutine vegie_init(s,par)
     ! allocate and read specie specific vegetation properties
     do i=1,par%nveg  ! for each specie
        call check_file_exist(veg(i)%name)
-       allocate (veg(i)%nsec)
        veg(i)%nsec = readkey_int(veg(i)%name,'nsec',  1,        1,      10  )
        allocate (veg(i)%ah(veg(i)%nsec))
        allocate (veg(i)%Cd(veg(i)%nsec))
