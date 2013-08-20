@@ -804,6 +804,15 @@ contains
           select case(tl%type)
           case ('i')
              select case(tl%rank)
+             case(1)
+                 select case(tl%name)
+                    case(mnem_istruct)
+                        call space_distribute_vector('y',sl,tg%r1,tl%r1)
+                    case(mnem_iwl)
+                        call space_distribute_vector('y',sl,tg%r1,tl%r1)
+                    case default
+                        goto 100
+                 end select
              case(2)
                 call space_distribute(sl,tg%i2,tl%i2)
              case(3)
@@ -832,6 +841,8 @@ contains
                 case(mnem_xhrunup)
                    ! Not sure why vector expects a name....
                    ! This name is x or y, it relates to the length of the vector.
+                   call space_distribute_vector('y',sl,tg%r1,tl%r1)
+                case(mnem_strucslope)
                    call space_distribute_vector('y',sl,tg%r1,tl%r1)
                 case default
                    goto 100

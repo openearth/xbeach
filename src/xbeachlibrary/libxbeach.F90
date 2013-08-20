@@ -87,7 +87,7 @@ contains
 
     ! distribute grid over processors
 #ifdef USEMPI
-    call xmpi_determine_processor_grid(s%nx,s%ny,par%mpiboundary,error)
+    call xmpi_determine_processor_grid(s%nx,s%ny,par%mpiboundary,par%mmpi,par%nmpi,error)
     call writelog_mpi(par%mpiboundary,error)
 #endif
 

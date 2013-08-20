@@ -246,6 +246,9 @@ CONTAINS
        if (error==1) then
           call writelog('elws','','Unknown mpi division ',mpiboundary)
           call halt_program
+       elseif (error==2) then
+          call writelog('elws','','Number of domains specified does not match available number of computation cores ')
+          call halt_program
        else
           call writelog('ls','','processor grid: ',xmpi_m,' X ',xmpi_n)
        endif

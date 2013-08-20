@@ -370,7 +370,9 @@ module params
      real*8        :: merge                      = -123    !  [-] (advanced) Merge threshold for variable sediment layer (ratio to nominal thickness)
 
      ! [Section] MPI parameters
-     character(slen)   :: mpiboundary            = 'abc'   ! [-] (advanced) Fix mpi boundaries along y-lines ('y'), x-lines ('x'), or find shortest boundary ('auto')
+     character(slen)   :: mpiboundary            = 'abc'   ! [-] (advanced) Fix mpi boundaries along y-lines ('y'), x-lines ('x'), use manual defined domains ('man') or find shortest boundary ('auto')
+     integer*4     :: mmpi                       = -123    ! [-] (advanced) Number of domains in m direction (cross-shore) when manually specifying mpi domains
+     integer*4     :: nmpi                       = -123    ! [-] (advanced) Number of domains in n direction (alongshore) when manually specifying mpi domains
 
      ! [Section] Constants, not read in params.txt
      real*8               :: px                  = -123    !  [-] Pi
@@ -1202,9 +1204,11 @@ contains
     ! MPI parameters
     call writelog('l','','--------------------------------')
     call writelog('l','','MPI parameters: ') 
-    allocate(allowednames(3),oldnames(0))
-    allowednames=(/'auto','x   ','y   '/)
-    par%mpiboundary= readkey_str('params.txt','mpiboundary','auto',3,0,allowednames,oldnames)
+    allocate(allowednames(4),oldnames(0))
+    allowednames=(/'auto','x   ','y   ','man '/)
+    par%mpiboundary= readkey_str('params.txt','mpiboundary','auto',4,0,allowednames,oldnames)
+    par%mmpi= readkey_int('params.txt','mmpi',2,1,100)
+    par%nmpi= readkey_int('params.txt','nmpi',4,1,100)
     deallocate(allowednames,oldnames)
     !
     !

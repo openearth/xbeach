@@ -144,9 +144,9 @@ contains
     call MPI_Abort(xmpi_comm,1,ierr)
   end subroutine xmpi_abort
 
-  subroutine xmpi_determine_processor_grid(m,n,divtype,error)
+  subroutine xmpi_determine_processor_grid(m,n,divtype,mmanual,nmanual,error)
     implicit none
-    integer, intent(in) :: m,n  ! the dimensions of the global domain
+    integer, intent(in) :: m,n,mmanual,nmanual  ! the dimensions of the global domain
     integer             :: error
     character(4),intent(in) :: divtype
 
@@ -176,6 +176,13 @@ contains
              endif
           endif
        enddo
+    elseif (trim(divtype)=='man') then
+        if (mmanual * nmanual .ne. xmpi_size) then
+            error = 2
+            return
+        endif
+        xmpi_m = mmanual
+        xmpi_n = nmanual
     else
        error = 1
        return
