@@ -1558,7 +1558,7 @@ contains
     call xmpi_shift(kturb,':n')   ! Dito
 #endif
 
-    kturb=kturb*wetz
+    !kturb=kturb*wetz
     !
 
   end subroutine waveturb
