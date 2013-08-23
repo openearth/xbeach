@@ -64,7 +64,7 @@ type ship
    integer, dimension(:,:), pointer :: iref
    real*8 , dimension(:,:), pointer :: w
    integer, dimension(:)  , pointer :: covered
-end type
+end type ship
 
 contains
 
@@ -80,7 +80,7 @@ contains
 
     type(parameters)                            :: par
     type(spacepars)                             :: s
-    type(ship), dimension(:), pointer           :: sh
+    type(ship), dimension(:), pointer :: sh
 
     integer                                     :: i,fid,ix,iy,ier,it,shp_indx,i1,j1
     character(1)                                :: ch
@@ -239,7 +239,7 @@ contains
 
     type(parameters)                            :: par
     type(spacepars)                             :: s
-    type(ship), dimension(:), pointer           :: sh
+    type(ship), dimension(:), pointer :: sh
 
     integer                                     :: i,fid,ix,iy,ier,it,shp_indx,i1,j1
     logical, save                               :: firstship=.true.
@@ -382,11 +382,11 @@ contains
   subroutine ship_force(i,sh,s,par)
      use params
      use spaceparams
-     type (ship)       :: sh
-     type (parameters) :: par
-     type (spacepars)  :: s
-     integer           :: ix,iy,i
-     real*8            :: dFx,dFy,dFz,hdx,hdy
+     type (ship)           :: sh
+     type (parameters)     :: par
+     type (spacepars)      :: s
+     integer               :: ix,iy,i
+     real*8                :: dFx,dFy,dFz,hdx,hdy
   
      include 's.ind'
      include 's.inp'

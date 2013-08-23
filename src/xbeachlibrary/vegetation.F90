@@ -37,7 +37,7 @@ type vegie
    real*8 , dimension(:)    , allocatable :: Dragterm1   ! Dragterm in short wave attenuation []
    real*8 , dimension(:)    , allocatable :: Dragterm2   ! Dragterm in long wave attenuation []
    integer , dimension(:,:) , allocatable :: vegtype     ! spatial mapping of vegetation types [-]
-end type
+end type vegie
 
 type(vegie), dimension(:), allocatable, save            :: veg
 

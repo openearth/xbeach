@@ -727,29 +727,53 @@ contains
 
   subroutine makegetkeygen
     implicit none
-    integer             :: startpar,endpar,i, ncharacterkeys, nintegerkeys, nrealkeys
+    integer             :: temp,startpar,endpar,i,j, ncharacterkeys, nintegerkeys, nrealkeys, ndblveckeys, nintveckeys !Jaap add ndblvec
     logical             :: readtype
-    character(slen) :: parname
-    integer, parameter  :: maxnvar = 1024
-    character(slen), dimension(maxnvar) :: characterkeys, integerkeys, realkeys
+    character(slen)                     :: parname
+    character(slen), dimension(1)       :: fortfiles, typenames
+    integer, parameter                  :: maxnvar = 1024
+    character(slen), dimension(maxnvar) :: characterkeys, integerkeys, realkeys 
+    character(slen), dimension(maxnvar) :: charactertypenames, integertypenames, realtypenames
+    character(slen), dimension(maxnvar) :: dblveckeys, intveckeys !Jaap add dblveckeys
+    character(slen), dimension(maxnvar) :: dblvectypenames, intvectypenames !Jaap add dblveckeys
 
     ncharacterkeys = 0
     nrealkeys = 0
     nintegerkeys = 0
+    ndblveckeys = 0 ! Jaap
+    nintveckeys = 0 ! Jaap
     infile = 10
     outfile = 11
     endfound = .false.
     readtype = .false.
-    open(infile,file='params.F90')
-    do
+    
+    ! Jaap and Fedor other modules could be added here, though realize the type is assumed singleton (like par%)
+    ! So for sh% (from ship_module and veg% vegetation_module tha approach here is not qualified
+    fortfiles = (/'params.F90    '/)
+    
+    typenames = (/'par%'/)
+    
+    temp = size(fortfiles,1)  
+                  
+    do i=1,size(fortfiles,1)              
+       
+       open(infile,file=fortfiles(i)) !Jaap add vegetation.F90
+      
+       do
+       
        call getline
        if (endfound) then
           exit
        endif
-       if (line(1:15) == 'type parameters') then
+       ! Jaap: add other files
+       if (line(1:20) == 'type parameters     ' .or. &
+           line(1:20) == 'type vegieparameters' .or. &
+           line(1:20) == 'type shipparameters ') then
           readtype = .true.
           ! look for end of type declaration
-       elseif (line(1:19) == 'end type parameters') then
+       elseif (line(1:24) == 'end type parameters     ' .or. &
+               line(1:24) == 'end type vegieparameters' .or. &
+               line(1:24) == 'end type shipparameters ') then
           readtype = .false.
           exit
        end if
@@ -767,15 +791,15 @@ contains
        endpar = 0
        line=adjustl(line)
 
-       do i=1,slen-1
-          if (line(i:i+1) == '::') then
-             startpar = i+2
+       do j=1,slen-1
+          if (line(j:j+1) == '::') then
+             startpar = j+2
              exit
           endif
        enddo
-       do i=1,slen-1
-          if ((line(i:i) == '=') .and. (i>startpar) )then
-             endpar = i-1
+       do j=startpar+1,slen-1
+          if ((line(j:j) == '=') .or. (line(j:j) == ' ')  )then
+             endpar = j-1
              exit
           endif
        enddo
@@ -789,8 +813,8 @@ contains
 
        dimensioned = .false.
        parname = trim(adjustl(line(startpar:endpar)))
-       do i=1,startpar-1-9
-          if (line(i:i+8)=='dimension') then
+       do j=1,startpar-1-9
+          if (line(j:j+8)=='dimension') then
              dimensioned=.true.
              exit
           endif
@@ -803,32 +827,41 @@ contains
              elseif(parname(1:9)=='meanvars') then
              elseif(parname(1:9)=='pointvars') then
              endif
-          else
-             if(parname(1:3)=='D50') then
-             elseif(parname(1:3)=='D90') then
-             elseif(parname(1:6)=='ucrcal') then
-             elseif(parname(1:6)=='sedcal') then
-             elseif(parname(1:7)=='npoints') then
-             elseif(parname(1:8)=='nrugauge') then
-             end if
+          ! Jaap removed old elseif (vec variables params.F90 are included now) 
           endif
+          !Jaap
+          if (line(1:4) ==  'real') then
+             ndblveckeys = ndblveckeys + 1
+             dblveckeys(ndblveckeys) = trim(parname)
+             dblvectypenames(ndblveckeys) = trim(typenames(i))
+          elseif (line(1:7) ==  'integer') then  
+             nintveckeys = nintveckeys + 1
+             intveckeys(nintveckeys) = trim(parname) 
+             intvectypenames(nintveckeys) = trim(typenames(i))
+          endif
+             
        else  ! not character, i.e. real/integer/logical
           if (line(1:9) == 'character') then
              ncharacterkeys = ncharacterkeys + 1
              characterkeys(ncharacterkeys) = trim(parname)
+             charactertypenames(ncharacterkeys) = trim(typenames(i))
           elseif (line(1:4) ==  'real') then
              nrealkeys = nrealkeys + 1
              realkeys(nrealkeys) = trim(parname)
+             realtypenames(nrealkeys) = trim(typenames(i))
           elseif (line(1:7) == 'integer') then
              nintegerkeys = nintegerkeys + 1
              integerkeys(nintegerkeys) = trim(parname)
+             integertypenames(nintegerkeys) = trim(typenames(i))
           end if
 
        endif
 
 
+       enddo
+       close(infile)
+       
     enddo
-    close(infile)
 
     ! Write the getkey.gen
     open(outfile,file='getkey.gen')
@@ -836,33 +869,50 @@ contains
     write(outfile,*) 'integer, parameter :: ncharacterkeys=', ncharacterkeys
     write(outfile,*) 'integer, parameter :: nrealkeys=', nrealkeys
     write(outfile,*) 'integer, parameter :: nintegerkeys=', nintegerkeys
+    write(outfile,*) 'integer, parameter :: ndblveckeys=', ndblveckeys !Jaap
     ! key definitions
     write(outfile,*) 'character(slen), dimension(ncharacterkeys) :: characterkeys'
     write(outfile,*) 'character(slen), dimension(nrealkeys) :: realkeys'
     write(outfile,*) 'character(slen), dimension(nintegerkeys) :: integerkeys'
+    write(outfile,*) 'character(slen), dimension(ndblvec) :: dblveckeys' !Jaap
     ! value definitions
     write(outfile,*) 'character(slen), dimension(ncharacterkeys) :: charactervalues'
     write(outfile,*) 'real*8, dimension(nrealkeys) :: realvalues'
     write(outfile,*) 'integer*4, dimension(nintegerkeys) :: integervalues'
+    write(outfile,*) 'integer*4, dimension(ndblvec) :: dblvecvalues' !Jaap
 
-    do i=1,ncharacterkeys
-       write(outfile,*) 'characterkeys(', i, ') = "', trim(characterkeys(i)),  '"'
+    do j=1,ncharacterkeys
+       write(outfile,*) 'characterkeys(', j, ') = "', trim(characterkeys(j)),  '"'
     end do
-    do i=1,ncharacterkeys
-       write(outfile,*) 'charactervalues(', i, ') = par%', trim(characterkeys(i))
+    do j=1,ncharacterkeys
+       write(outfile,*) 'charactervalues(', j, ') = ',trim(charactertypenames(j)),trim(characterkeys(j))
     end do
-    do i=1,nrealkeys
-       write(outfile,*) 'realkeys(', i, ') = "', trim(realkeys(i)),  '"'
+    do j=1,nrealkeys
+       write(outfile,*) 'realkeys(', j, ') = "', trim(realkeys(j)),  '"'
     end do
-    do i=1,nrealkeys
-       write(outfile,*) 'realvalues(',i, ') = par%', trim(realkeys(i))
+    do j=1,nrealkeys
+       write(outfile,*) 'realvalues(',j, ') = ',trim(realtypenames(j)),trim(realkeys(j))
     end do
-    do i=1,nintegerkeys
-       write(outfile,*) 'integerkeys(', i, ') = "', trim(integerkeys(i)),  '"'
+    do j=1,nintegerkeys
+       write(outfile,*) 'integerkeys(', j, ') = "', trim(integerkeys(j)),  '"'
     end do
-    do i=1,nintegerkeys
-       write(outfile,*) 'integervalues(', i, ') = par%', trim(integerkeys(i))
+    do j=1,nintegerkeys
+       write(outfile,*) 'integervalues(', j, ') = ',trim(integertypenames(j)),trim(integerkeys(j))
     end do
+    ! Jaap
+    do j=1,ndblveckeys
+       write(outfile,*) 'dblveckeys(', j, ') = "', trim(dblveckeys(j)),  '"'
+    end do
+    do j=1,ndblveckeys
+       write(outfile,*) 'dblvecvalues(', j, ') = ',trim(dblvectypenames(j)),trim(dblveckeys(j))
+    end do
+    do j=1,nintveckeys
+       write(outfile,*) 'intveckeys(', j, ') = "', trim(intveckeys(j)),  '"'
+    end do
+    do j=1,nintveckeys
+       write(outfile,*) 'intvecvalues(', j, ') = ',trim(intvectypenames(j)),trim(intveckeys(j))
+    end do
+    ! ...
     close(outfile)
 
   end subroutine makegetkeygen
