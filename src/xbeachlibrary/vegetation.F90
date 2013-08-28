@@ -212,15 +212,16 @@ subroutine lwvegatt(s,par)
     type(spacepars)                             :: s
 
     integer                                     :: i,j,m,ind  ! indices of actual x,y point
-    real*8                                      :: aht,ahtold,hterm,htermold,Fvgt
-    real*8, dimension(s%nx+1,s%ny+1)            :: Fvg,kmr
+    real*8                                      :: aht,ahtold,hterm,htermold,Fvgtu,Fvgtv
+    real*8, dimension(s%nx+1,s%ny+1)            :: Fvgu,Fvgv,kmr
 
     include 's.ind'
     include 's.inp'
 
     kmr = min(max(s%k, 0.01d0), 100.d0)
 
-    Fvg = 0.d0
+    Fvgu = 0.d0
+    Fvgv = 0.d0
 
     do j=1,ny+1
        do i=1,nx+1
@@ -233,7 +234,8 @@ subroutine lwvegatt(s,par)
              aht = min(veg(ind)%ah(m),hh(i,j))
              ! mean and long wave flow
              ! compute forcing current layer based on aht and correct for previous layers
-             Fvgt = (aht-ahtold)/hh(i,j)*veg(ind)%Dragterm2(m)*uu(i,j)*vmagu(i,j)
+             Fvgtu = (aht-ahtold)/hh(i,j)*veg(ind)%Dragterm2(m)*uu(i,j)*vmagu(i,j)
+             Fvgtv = (aht-ahtold)/hh(i,j)*veg(ind)%Dragterm2(m)*vv(i,j)*vmagv(i,j)
              ! short wave flow (approach according to Myrhaug and Holmedal, 2011 Coastal Engineering)
              ! Here we assume linear waves for a start
              ! hterm = 1.d0(2.d0*cosh(kmr(i,j)*hh(i,j))**2)* &
@@ -243,13 +245,15 @@ subroutine lwvegatt(s,par)
              ahtold = aht
              htermold = hterm
              ! add Forcing current layer
-             Fvg(i,j) = Fvg(i,j) + Fvgt
+             Fvgu(i,j) = Fvgu(i,j) + Fvgtu
+             Fvgv(i,j) = Fvgv(i,j) + Fvgtv
            enddo
           endif
        enddo
     enddo
 
-    s%Fveg = Fvg
+    s%Fvegu = Fvgu
+    s%Fvegv = Fvgv
 
 end subroutine lwvegatt
 
