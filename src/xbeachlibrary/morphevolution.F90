@@ -1460,36 +1460,38 @@ contains
     if (par%lwt == 1) then
        ksource = par%g*rolthick*par%beta*c      !only important in shallow water, where c=sqrt(gh)  
     endif
-    if (trim(par%turb) == 'bore_averaged' .or. trim(par%turb) == 'wave_averaged') then
+    if (trim(par%turbadv) == 'none') then
+       kturb = (DR/par%rho)**twothird           ! See Battjes, 1975 / 1985
+    else
        ksource = ksource + DR/par%rho
-    endif   
+     
     
-    ! Jaap do long wave turb approach for both short waves and long waves
-    !
-    ! Turbulence in uu-points
-    !
-    do j=1,ny+1
-       do i=1,nx
-          if(uu(i,j)>0.d0) then
+       ! Jaap do long wave turb approach for both short waves and long waves
+       !
+       ! Turbulence in uu-points
+       !
+       do j=1,ny+1
+         do i=1,nx
+           if(uu(i,j)>0.d0) then
              kturbu(i,j)=par%thetanum*kturb(i,j)+(1.d0-par%thetanum)*kturb(min(i+1,nx),j)
-          elseif(uu(i,j)<0.d0) then
+           elseif(uu(i,j)<0.d0) then
              kturbu(i,j)=par%thetanum*kturb(i+1,j)+(1.d0-par%thetanum)*kturb(max(i,2),j)
-          else
+           else
              kturbu(i,j)=0.5d0*(kturb(i,j)+kturb(i+1,j))
-          endif
+           endif
+         enddo
        enddo
-    enddo
-    kturbu(nx+1,:) = kturb(nx+1,:) !Robert
+       kturbu(nx+1,:) = kturb(nx+1,:) !Robert
     
-    ! wwvv fix this in parallel case
+       ! wwvv fix this in parallel case
 #ifdef USEMPI
    call xmpi_shift(kturbu,'m:')
 #endif
-    !
-    ! Turbulence in vv-points
-    !
-    do j=1,ny
-       do i=1,nx+1
+       !
+       ! Turbulence in vv-points
+       !
+       do j=1,ny
+         do i=1,nx+1
           if(vv(i,j)>0) then
              kturbv(i,j)=par%thetanum*kturb(i,j)+(1.d0-par%thetanum)*kturb(i,min(j+1,ny))
           else if(vv(i,j)<0) then
@@ -1497,28 +1499,25 @@ contains
           else
              kturbv(i,j)=0.5d0*(kturbv(i,j)+kturbv(i,j+1))
           endif
+         enddo
        enddo
-    enddo
-    kturbv(:,ny+1) = kturb(:,ny+1) !Robert
-    !
-    ! Turbulence advection in X and Y direction
-    !
-    if (trim(par%turbadv) == 'langrangian') then
-       Sturbu=kturbu*uu*hu*wetu
-       Sturbv=kturbv*vv*hv*wetv
-    elseif (trim(par%turbadv) == 'eulerian') then
-       Sturbu=kturbu*ueu*hu*wetu
-       Sturbv=kturbv*vev*hv*wetv
-    elseif (trim(par%turbadv) == 'none') then
-       Sturbu=0.d0
-       Sturbv=0.d0
-    endif
-    !
-    ! Update turbulence
-    !
-    if (ny>0) then
-       do j=2,ny+1
-          do i=2,nx+1
+       kturbv(:,ny+1) = kturb(:,ny+1) !Robert
+       !
+       ! Turbulence advection in X and Y direction
+       !
+       if (trim(par%turbadv) == 'langrangian') then
+          Sturbu=kturbu*uu*hu*wetu
+          Sturbv=kturbv*vv*hv*wetv
+       elseif (trim(par%turbadv) == 'eulerian') then
+          Sturbu=kturbu*ueu*hu*wetu
+          Sturbv=kturbv*vev*hv*wetv
+       endif
+       !
+       ! Update turbulence
+       !
+       if (ny>0) then
+         do j=2,ny+1
+           do i=2,nx+1
              
              kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*(       &
 	                     (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j)+&
@@ -1526,38 +1525,39 @@ contains
                           (ksource(i,j)-par%betad*kturb(i,j)**1.5d0))
              kturb(i,j)=max(kturb(i,j),0.0d0)
                
-          enddo
-       enddo
-    else
-       j=1
-       do i=2,nx+1
+            enddo
+         enddo
+       else
+         j=1
+         do i=2,nx+1
             
-          kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*(       &
-	                  (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)-&
-                      (ksource(i,j)-par%betad*kturb(i,j)**1.5d0))
-          kturb(i,j)=max(kturb(i,j),0.0d0)
+           kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*(       &
+	                   (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)-&
+                       (ksource(i,j)-par%betad*kturb(i,j)**1.5d0))
+           kturb(i,j)=max(kturb(i,j),0.0d0)
             
-       enddo
-    endif
+         enddo
+       endif
        
-    kturb = kturb/max(hh,0.01d0)
+       kturb = kturb/max(hh,0.01d0)
        
-    ! Jaap only required for advection mode?
-    kturb(1,:)=kturb(2,:)
-    kturb(nx+1,:)=kturb(nx+1-1,:)
-    if (ny>0) then
-        kturb(:,1)=kturb(:,2)
-        kturb(:,ny+1)=kturb(:,ny+1-1)
-    endif
+       ! Jaap only required for advection mode?
+       kturb(1,:)=kturb(2,:)
+       kturb(nx+1,:)=kturb(nx+1-1,:)
+       if (ny>0) then
+         kturb(:,1)=kturb(:,2)
+         kturb(:,ny+1)=kturb(:,ny+1-1)
+       endif
        
-    ! wwvv fix the first and last rows and columns of kturb in parallel case
+       ! wwvv fix the first and last rows and columns of kturb in parallel case
 #ifdef USEMPI
-    call xmpi_shift(kturb,'1:')
-    call xmpi_shift(kturb,'m:')
-    call xmpi_shift(kturb,':1')   ! Maybe not necessary as zb calculated from 1:ny+1, but just in case...
-    call xmpi_shift(kturb,':n')   ! Dito
+       call xmpi_shift(kturb,'1:')
+       call xmpi_shift(kturb,'m:')
+       call xmpi_shift(kturb,':1')   ! Maybe not necessary as zb calculated from 1:ny+1, but just in case...
+       call xmpi_shift(kturb,':n')   ! Dito
 #endif
-
+    
+    endif ! turbadv == 'none'
     !kturb=kturb*wetz
     !
 
