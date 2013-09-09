@@ -409,7 +409,9 @@ contains
            shipFz(i)=shipFz(i)+dFz
            shipMx(i)=shipMx(i)+((sh%y(ix,iy)+hdy)-sh%yCG)*dFz-(.5d0*(sh%zhull(ix,iy)+sh%zhull(ix,iy+1))-sh%zCG)*dFy   
            shipMy(i)=shipMy(i)-((sh%x(ix,iy)+hdx)-sh%xCG)*dFz+(.5d0*(sh%zhull(ix,iy)+sh%zhull(ix+1,iy))-sh%zCG)*dFx   
-           shipMz(i)=shipMz(i)-((sh%y(ix,iy)+hdy)-sh%yCG)*dFx+((sh%x(ix,iy)+hdx)-sh%xCG)*dFy
+           !shipMz(i)=shipMz(i)-((sh%y(ix,iy)+hdy)-sh%yCG)*dFx+((sh%x(ix,iy)+hdx)-sh%xCG)*dFy
+           shipMz(i)=shipMz(i)-(.5*(((iy-sh%ny/2-1)*sh%dy-sh%yCG)+((iy+1-sh%ny/2-1)*sh%dy-sh%yCG)))*dFx &
+           & +(.5*(((ix-sh%nx/2-1)*sh%dx-sh%xCG)+((ix+1-sh%nx/2-1)*sh%dx-sh%xCG)))*dFy
         enddo
      enddo
      shipFx(i)=shipFx(i)      *par%rho*par%g
