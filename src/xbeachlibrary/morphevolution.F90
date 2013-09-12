@@ -157,9 +157,11 @@ contains
           do i=1,nx+1
              exp_ero = par%morfac*par%dt/(1.d0-par%por)*hh(i,j)*(ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg) &
                   + ceqbg(i,j,jg)*pbbed(i,j,1,jg)/par%dt) 
-             fac(i,j,jg) = min(1.d0,structdepth(i,j)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )         ! limit erosion to available sediment on top of hard layer
+             ! limit erosion to available sediment on top of hard layer
+             fac(i,j,jg) = min(1.d0,structdepth(i,j)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )         
              !if (fac(i,j,jg)*exp_ero > dzbed(i,j,1)*pbbed(i,j,1,jg)) then
-             !   fac(i,j,jg) = min(fac(i,j,jg),dzbed(i,j,1)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )  ! limit erosion to available sand in top layer
+             !   limit erosion to available sand in top layer
+             !   fac(i,j,jg) = min(fac(i,j,jg),dzbed(i,j,1)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )  
              !   write(*,*)'WARNING: expected erosion from top layer is larger than available sand in top layer'
              !endif
           enddo
@@ -335,7 +337,8 @@ contains
        if (ny>0) then
           do j=2,ny
              do i=2,nx
-                ero(i,j,jg) = fac(i,j,jg)*hh(i,j)*ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg)    ! Changed to hh from hold by RJ (13072009) !**2/max(hh(i,j),par%hmin)
+             ! Changed to hh from hold by RJ (13072009) !**2/max(hh(i,j),par%hmin)
+                ero(i,j,jg) = fac(i,j,jg)*hh(i,j)*ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg)    
                 ! depo_ex(i,j,jg) = max(hold(i,j),0.01d0)*cc(i,j)/Tsg(i,j,jg)                    
                 ! BRJ: the volume in the water column is updated and not the volume concentration.
                 cc(i,j) = (par%dt*Tsg(i,j,jg))/(par%dt+Tsg(i,j,jg))* &
@@ -351,7 +354,8 @@ contains
        else
           j=1
           do i=2,nx
-             ero(i,j,jg) = fac(i,j,jg)*hh(i,j)*ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg)    ! Changed to hh from hold by RJ (13072009) !**2/max(hh(i,j),par%hmin)
+             ! Changed to hh from hold by RJ (13072009) !**2/max(hh(i,j),par%hmin)
+             ero(i,j,jg) = fac(i,j,jg)*hh(i,j)*ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg)    
              ! depo_ex(i,j,jg) = max(hold(i,j),0.01d0)*cc(i,j)/Tsg(i,j,jg)                    
              ! BRJ: the volume in the water column is updated and not the volume concentration.
              cc(i,j) = (par%dt*Tsg(i,j,jg))/(par%dt+Tsg(i,j,jg))* &
@@ -675,7 +679,7 @@ contains
              if (par%swrunup == 1) then
                 do j = 1,ny+1
                    hav(:,j) =  wetz(:,j)*max(par%eps,(hh(:,j) + s%runup(j))) + &
-                              (1.d0-wetz(:,j))*max(par%eps,s%runup(j)+zs(iwl(j),j)-zb(:,j) )   
+                              (1.d0-wetz(:,j))*max(par%eps,s%runup(j)+zs(nint(iwl(j)),j)-zb(:,j) )   
                               
                               
                 enddo
@@ -687,7 +691,7 @@ contains
                    if(max(hav(i,j),hav(i+1,j))>par%hswitch+par%eps) then ! Jaap instead of hh
                       dzmax=par%wetslp;
                       ! tricks: seaward of istruct (transition from sand to structure) wetslope is set to 0.03;
-                      if (i>istruct(j)) then 
+                      if (i>nint(istruct(j))) then 
                          !dzmax = 0.03d0
                          dzmax = max(0.03d0,abs(dzbdx(i,j))*0.99d0)
                       endif
@@ -703,7 +707,7 @@ contains
                          ie = i+1                                        ! index erosion point
                          id = i                                          ! index deposition point
                          dAfac = dsdnzi(i,j)/dsdnzi(i+1,j)               ! take into account varying grid sizes
-                         dzb=min(dzb,par%dzmax*par%dt/dsu(i,j))          ! make sure dzb is not in conflict with maximum erosion rate par%dzmax
+                         dzb=min(dzb,par%dzmax*par%dt/dsu(i,j))          ! make sure dzb is not in conflict with par%dzmax
                          dzb=min(dzb,structdepth(i+1,j))                 ! make sure dzb is not larger than sediment layer thickness
                       else
                          ie = i                                          ! index erosion point
@@ -1324,8 +1328,8 @@ contains
           enddo
           ! Jaap: rundown jet creating additional turbulence
           if (par%swrunup==1)then
-             kb(istruct(j),j) = kb(istruct(j),j) + par%jetfac* & 
-                               (E(istruct(j),j)*strucslope(j)*sqrt(par%g/hh(istruct(j),j)))**twothird
+             kb(nint(istruct(j)),j) = kb(nint(istruct(j)),j) + par%jetfac* & 
+                               (E(nint(istruct(j)),j)*strucslope(j)*sqrt(par%g/hh(nint(istruct(j)),j)))**twothird
           endif
        enddo
     endif !par%swave == 1
@@ -1780,8 +1784,8 @@ contains
         ! update Hrunup and runup x-location
         s%Hrunup(j) = H(indx,j)       ! short wave height at revetment toe
         s%xHrunup(j) = xz(indx,j)     ! cross-shore location revetment toe
-        s%istruct(j) = indx           ! cross-shore index revetment toe
-        s%iwl(j) = i-1                ! cross-shore location waterline (inlcuding lw-runup)
+        s%istruct(j) = indx*1.d0      ! cross-shore index revetment toe
+        s%iwl(j) = (i-1)*1.d0         ! cross-shore location waterline (inlcuding lw-runup)
         
         ! now itteratively compute runup
         hav1d = hh(:,j)

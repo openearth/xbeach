@@ -247,8 +247,8 @@
       real*8  1  runup     s%ny+1 d  [m] [] Short wave runup height
       real*8  1  Hrunup    s%ny+1 d  [m] [] Short wave height used in runup formulation
       real*8  1  xHrunup   s%ny+1 d  [m] [] Location at which short wave height for runup is taken
-      integer 1  istruct   s%ny+1 d  [-] [] location of revetments toe
-      integer 1  iwl       s%ny+1 d  [-] [] location of water line (including long wave runup)
+      real*8  1  istruct   s%ny+1 d  [-] [] location of revetments toe
+      real*8  1  iwl       s%ny+1 d  [-] [] location of water line (including long wave runup)
       real*8  1  strucslope s%ny+1 d [-] [] slope of structure
       real*8  2  Dc        s%nx+1 s%ny+1 d  [m2/s] []    diffusion coefficient
       real*8  2  ph        s%nx+1 s%ny+1 d  [m] []    pressure head due to ship
