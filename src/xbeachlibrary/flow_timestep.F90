@@ -992,7 +992,7 @@ contains
        if(xmpi_isleft) then
           usv(:,1) = usv(:,2)
        endif
-       if(xmpi_isleft) then
+       if(xmpi_isright) then
           usv(:,ny+1) = usv(:,ny)
        endif
     else
