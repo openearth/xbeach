@@ -1323,7 +1323,8 @@ contains
           enddo
           ! Jaap: rundown jet creating additional turbulence
           if (par%swrunup==1)then
-             kb(istruct(j),j) = kb(istruct(j),j) + par%jetfac*(E(istruct(j),j)*strucslope(j)*sqrt(par%g/hh(istruct(j),j)))**twothird
+             kb(istruct(j),j) = kb(istruct(j),j) + par%jetfac* & 
+                               (E(istruct(j),j)*strucslope(j)*sqrt(par%g/hh(istruct(j),j)))**twothird
           endif
        enddo
     endif !par%swave == 1
