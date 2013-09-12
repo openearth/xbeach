@@ -686,7 +686,8 @@ contains
                    !if (max( max(hh(i,j),par%delta*H(i,j)), max(hh(i+1,j),par%delta*H(i+1,j)) )>par%hswitch+par%eps) then
                    if(max(hav(i,j),hav(i+1,j))>par%hswitch+par%eps) then ! Jaap instead of hh
                       dzmax=par%wetslp;
-                      if (i>istruct(j)) then ! tricks: seaward of istruct (transition from sand to structure) wetslope is set to 0.03;
+                      ! tricks: seaward of istruct (transition from sand to structure) wetslope is set to 0.03;
+                      if (i>istruct(j)) then 
                          !dzmax = 0.03d0
                          dzmax = max(0.03d0,abs(dzbdx(i,j))*0.99d0)
                       endif
