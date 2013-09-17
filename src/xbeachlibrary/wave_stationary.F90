@@ -153,7 +153,7 @@ contains
        END DO
     endif
 
-    if (ntheta>1) then
+    if (par%snells==0) then
        thetamean=(sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
     else !Dano: Snellius
        thetamean=asin(sin(theta0-alfaz(1,1))*c/c(1,1))+alfaz(1,1)
@@ -332,7 +332,7 @@ contains
              H(i,:)=min(H(i,:),par%gammax*hh(i,:))
              E(i,:)=par%rhog8*H(i,:)**2
 
-             if (ntheta>1) then !Dano not for SNellius
+             if (par%snells==0) then !Dano not for SNellius
                 thetamean(i,:) = (sum(ee(i,:,:)*thet(i,:,:),2)/ntheta)/(max(sum(ee(i,:,:),2),0.000010d0)/ntheta)
              endif
              !
@@ -449,7 +449,7 @@ contains
              !
              ! Compute mean wave direction
              !
-             if (ntheta>1) then
+             if (par%snells==0) then
                 thetamean(i,:)=(sum(ee(i,:,:)*thet(i,:,:),2)/size(ee(i,:,:),2)) &
                      /(max(sum(ee(i,:,:),2),0.000010d0) /size(ee(i,:,:),2))
              endif

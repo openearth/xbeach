@@ -124,17 +124,26 @@ contains
     wcifacu=u*par%wci*min(hh/par%hwci,1.d0)
     wcifacv=v*par%wci*min(hh/par%hwci,1.d0)
 
-    if (ntheta>1) then
+    if (par%snells==0) then
        thetamean=(sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
-    else !Dano: Snellius
+    elseif(par%snells==1) then  !Dano: Snellius
        ! Check for borderline cases where critical c/c(1,1) is reached....
-       if (xmaster) coffshore = c(1,1)
 #ifdef USEMPI
-       call xmpi_bcast(coffshore)
+       if (xmpi_istop .and. xmpi_isleft) then 
+          coffshore = c(1,1)
+       else
+          coffshore = -huge(0.d0)
+       endif
+       call xmpi_allreduce(coffshore,MPI_MAX)
+#else
+       coffshore = c(1,1)
 #endif       
        thetamean=asin(max(-1.0d0, min(1.0d0, sin(theta0-alfaz(1,1))*c/coffshore)))+alfaz(1,1)
        costh(:,:,1)=cos(thetamean-alfaz)
        sinth(:,:,1)=sin(thetamean-alfaz)
+!       thetamean = modulo(thetamean,2*par%px)
+!       costh(:,:,1) = modulo(costh(:,:,1),2*par%px)
+!       sinth(:,:,1) = modulo(sinth(:,:,1),2*par%px)
     endif
 
     ! Dispersion relation
@@ -406,8 +415,8 @@ contains
                 !
                 ! Lateral boundary at y=0;
                 !
-                ee(2:nx+1,1,:)=ee(2:nx+1,2,:)
-                rr(2:nx+1,1,:)=rr(2:nx+1,2,:)
+                ee(1:nx+1,1,:)=ee(1:nx+1,2,:)
+                rr(1:nx+1,1,:)=rr(1:nx+1,2,:)
              elseif (trim(par%rightwave)=='wavecrest') then
                 !   wcrestpos=xz+tan(thetamean(:,2))*(yz(2)-yz(1))
                 wcrestpos=sdist(:,1)+tan(thetamean(:,2)-alfaz(:,2))*dnv(:,1)
@@ -430,8 +439,8 @@ contains
                 !
                 ! lateral; boundary at y=ny*dy
                 !
-                ee(2:nx+1,ny+1,:)=ee(2:nx+1,ny,:)
-                rr(2:nx+1,ny+1,:)=rr(2:nx+1,ny,:)
+                ee(1:nx+1,ny+1,:)=ee(1:nx+1,ny,:)
+                rr(1:nx+1,ny+1,:)=rr(1:nx+1,ny,:)
              elseif (trim(par%leftwave)=='wavecrest') then
                 !  wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
                 wcrestpos=sdist(:,ny+1)-tan(thetamean(:,ny)-alfaz(:,ny))*dnv(:,ny)
@@ -472,7 +481,7 @@ contains
     !
     ! Compute mean wave direction
     !
-    if (ntheta>1) then
+    if (par%snells==0) then
        thetamean=(sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
     endif
     !

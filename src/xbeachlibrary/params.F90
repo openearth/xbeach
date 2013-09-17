@@ -37,6 +37,7 @@ module params
      integer*4     :: swrunup                    = -123    !  [-] (advanced) Turn on (1) or off (0) short wave runup
      integer*4     :: ships                      = -123    !  [-] (advanced) Turn on (1) or off (0) ship waves
      integer*4     :: vegetation                 = -123    !  [-] (advanced) Turn on (1) or off (0) interaction of waves and flow with vegetation
+     integer*4     :: snells                     = -123    !  [-] (advanced) Turn on (1) or off (0) Snell's law for wave refraction
 
      ! [Section] Grid parameters                                                                                                                                                                                                                          
      character(slen):: depfile                   = 'abc'   !  [-] Name of the input bathymetry file
@@ -1166,6 +1167,12 @@ contains
        par%wavint     = readkey_dbl ('params.txt','wavint',    60.d0,      1.d0,  3600.d0)
        par%maxerror   = readkey_dbl ('params.txt','maxerror', 0.00005d0, 0.00001d0, 0.001d0)
        par%maxiter    = readkey_int ('params.txt','maxiter',    500,         2,      1000)
+    endif
+    ! only default to Snell's Law if in 1D and only one directional bin
+    if (par%ny==0 .and. nint(abs(par%thetamax-par%thetamin)/par%dtheta)<2) then
+       par%snells      = readkey_int ('params.txt','snells',    1,        0,     1)
+    else
+       par%snells      = readkey_int ('params.txt','snells',    0,        0,     1)
     endif
     !
     ! 
