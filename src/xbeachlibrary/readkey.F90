@@ -462,7 +462,7 @@ contains
        do i=1,nlines
           read(lun,'(a)')line
           do itab=1,slen
-              if (ichar(line(itab:itab))<32 .or. ichar(line(itab:itab))>122) then  ! this is anything not in standard
+              if (ichar(line(itab:itab))<32 .or. ichar(line(itab:itab))>126) then  ! this is anything not in standard
                                                                                    ! alphanumeric
                   lineWithoutSpecials(itab:itab) = ' '
               else
