@@ -425,12 +425,12 @@ contains
     ! combinations in params.txt
     use xmpi_module
     use logging_module
-    integer                                     :: lun,i,ier,nlines,ic,ikey
+    integer                                     :: lun,i,ier,nlines,ic,ikey,itab
     character*1                                 :: ch
     character(len=*), intent(in)                :: fname,key
     character(len=*), intent(out)               :: value
     character(slen), dimension(1024),save          :: keyword,values
-    character(slen)                                :: line
+    character(slen)                                :: line,lineWithoutSpecials
     integer, save                               :: nkeys
     character(slen), save                          :: fnameold=''
     integer, dimension(:),allocatable,save      :: readindex
@@ -461,6 +461,15 @@ contains
        ikey=0
        do i=1,nlines
           read(lun,'(a)')line
+          do itab=1,slen
+              if (ichar(line(itab:itab))<32 .or. ichar(line(itab:itab))>122) then  ! this is anything not in standard
+                                                                                   ! alphanumeric
+                  lineWithoutSpecials(itab:itab) = ' '
+              else
+                  lineWithoutSpecials(itab:itab) = line(itab:itab)
+              endif
+          enddo
+          line = lineWithoutSpecials
           ic=scan(line,'=')
           if (ic>0) then
              ikey=ikey+1
