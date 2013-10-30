@@ -420,7 +420,7 @@ contains
     integer                     :: i
     integer                     :: j,j1,j2
     integer                     :: n
-    real*8                              :: mdx,mdy,tny,fac
+    real*8                              :: mdx,mdy,tny,fac, maxfac
     real*8,save                         :: dtref
 
     ! Super fast 1D
@@ -585,7 +585,10 @@ contains
     fac = 1.d0/5000
     dtref = (1.d0-fac)*dtref + fac*par%dt
 
-    if ((dtref/par%dt>50.d0 .and. par%dt<par%tint) .or. par%dt/dtref>50.d0) then
+    maxfac = 50.d0
+    if (par%nonh==1) maxfac = 500.d0
+    
+    if ((dtref/par%dt>maxfac .and. par%dt<par%tint) .or. par%dt/dtref>maxfac) then
        call writelog('lse','','Quit XBeach since computational time implodes/explodes')
        call writelog('lse','','Please check the velocities at the end of the simulation')
        call writelog('lse','','dtref',dtref)
