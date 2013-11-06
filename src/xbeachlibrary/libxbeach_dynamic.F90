@@ -2,10 +2,11 @@ module libxbeach_dynamic
 
   use libxbeach_module
   use iso_c_binding
+  use logging_module
 
   implicit none
-
-contains
+ 
+  contains
 
   integer(c_int) function xbeach_init() bind(C, name="init")
     !DEC$ ATTRIBUTES DLLEXPORT::xbeach_init
@@ -34,5 +35,31 @@ contains
     xbeach_finalize = finalize()
 
   end function xbeach_finalize
+  
+  subroutine assignlogdelegate(fPtr) bind(C,name="assignlogdelegate")
+    !DEC$ ATTRIBUTES DLLEXPORT::assignlogdelegate
+    use logging_module
 
-end module libxbeach_dynamic
+    procedure(distributeloginterface) :: fPtr
+    
+    call assignlogdelegate_internal(fPtr)
+    
+  end subroutine assignlogdelegate
+  
+  integer(c_int) function writetolog()  bind(C, name="writetolog")
+    !DEC$ ATTRIBUTES DLLEXPORT::writetolog
+    use logging_module
+    
+    integer :: i, tmp
+
+    writetolog = -1
+    
+    do i = 1, 10
+        tmp = i
+        call distributelog(tmp,"test iets anders",16)
+    end do
+    
+    writetolog = 0
+  end function writetolog
+  
+    end module libxbeach_dynamic

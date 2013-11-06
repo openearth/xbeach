@@ -1,13 +1,29 @@
 module logging_module
   use typesandkinds
   use xmpi_module
+
   implicit none
   integer,save     :: logfileid
   integer,save     :: errorfileid
   integer,save     :: warningfileid
+  logical,save     :: islogdelegatesubcribed = .false.
   !integer,save     :: pardatfileid
 
 
+  procedure(distributeloginterface), pointer :: distributelog => null()
+
+  abstract interface
+  
+    subroutine distributeloginterface(code,message,len)
+
+        integer, intent(in) :: code
+        integer, intent(in) :: len
+        character(*),intent(in) :: message
+        
+    end subroutine distributeloginterface
+
+  end interface
+  
   !
   ! Options for destiantion in writelog
   ! 's' = screen
@@ -59,8 +75,10 @@ module logging_module
      module procedure writelog_illll
      module procedure writelog_fa
    module procedure writelog_afaiaaa
-end interface writelog
+  end interface writelog
 
+  
+  
 CONTAINS
 
   subroutine start_logfiles(error)
@@ -306,20 +324,31 @@ CONTAINS
 
     character(*)            :: destination
     character(slen)         :: display
-
+    integer                 :: level
+    
     if (xmaster) then
-       if (scan(destination,'l')>0) then
-          write(6,*)     trim(display)
-          write(logfileid,*)     trim(display)
-       end if
-       if (scan(destination,'e')>0) then
-          write(0,*)   trim(display)
-          write(errorfileid,*)   trim(display)
-       end if
-       if (scan(destination,'w')>0) then
-          write(0,*) trim(display)
-          write(warningfileid,*) trim(display)
-       end if
+        level = -1
+        if (scan(destination,'s')>0) then
+            level = 3
+        end if
+        if (scan(destination,'l')>0) then
+           level = 2
+           write(6,*)     trim(display)
+           write(logfileid,*)     trim(display)
+        end if
+        if (scan(destination,'w')>0) then
+           level = 1
+           write(0,*) trim(display)
+           write(warningfileid,*) trim(display)
+        end if
+        if (scan(destination,'e')>0) then
+           level = 0
+           write(0,*)   trim(display)
+           write(errorfileid,*)   trim(display)
+        end if
+        if (islogdelegatesubcribed) then
+           call distributelog(level,trim(display), len(trim(display)))
+        endif
     endif
 
   end subroutine writelog_distribute
@@ -1191,4 +1220,13 @@ CONTAINS
 
   end subroutine writelog_afaiaaa
 
+  subroutine assignlogdelegate_internal(fPtr)
+
+    procedure(distributeloginterface) :: fPtr
+    integer :: i
+    
+    distributelog => fPtr
+    islogdelegatesubcribed = .true.
+    
+  end subroutine assignlogdelegate_internal
 end module logging_module
