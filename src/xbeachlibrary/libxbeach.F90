@@ -52,7 +52,8 @@ contains
   integer(c_int) function init()
 
     error   = 0
-
+    n = 0
+    
     ! setup of MPI 
 #ifdef USEMPI
     s=>slocal
@@ -153,7 +154,6 @@ contains
 
     ! This is now called in output, but timestep depends on it...
     ! call outputtimes_update(par, tpar)
-    !n = 0
     executestep = -1
     !do while (par%t<par%tstop)
     ! determine timestep
@@ -183,7 +183,8 @@ contains
     if ((par%morphology==1) .and. (.not. par%bchwiz == 1)) call bed_update     (s,par)
     if (par%bchwiz>0)        call assim_update   (s, par)
     if (par%setbathy==1)     call setbathy_update(s, par)
-    ! n = n + 1
+    
+    n = n + 1
     executestep = 0
     ! enddo
   end function executestep
