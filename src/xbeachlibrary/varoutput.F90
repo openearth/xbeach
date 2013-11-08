@@ -136,7 +136,8 @@ contains
     if (par%npoints + par%nrugauge > 0) then
        allocate(xpoints(par%npoints+par%nrugauge))
        allocate(ypoints(par%npoints+par%nrugauge))
-       allocate(Avarpoint(par%npoints+par%nrugauge,max(par%npointvar,3)))  ! 3 for rugauge, npointvar for points
+       ! 3 for rugauge, npointvar for points
+       allocate(Avarpoint(par%npoints+par%nrugauge,max(par%npointvar,par%nrugdepth*3)))  
        xpoints=0.d0
        ypoints=0.d0
 
@@ -222,7 +223,7 @@ contains
              if (par%pointtypes(i)==0) then
                 reclenp=wordsize*(par%npointvar+1)*1
              else
-                reclenp=wordsize*4*1
+                reclenp=wordsize*(1+par%nrugdepth*3)*1
              endif
              open(indextopointsunit(i),file=fname,&
                   form='unformatted',access='direct',recl=reclenp,status='REPLACE')
@@ -309,7 +310,7 @@ contains
     type(spacepars)                         :: s,sl
     type(parameters)                        :: par
     type(timepars),intent(in)               :: tpar
-    integer                                 :: i,ii
+    integer                                 :: i,ii,ird
     !  integer                                 :: i1,i2,i3
     integer                                 :: wordsize,idumhl
     integer                                 :: xrank,xmax
@@ -335,76 +336,85 @@ contains
 !!! Write point variables
 !!! Only write if it is output time for points
        if (par%npoints+par%nrugauge>0) then
+       
+          !! Runup gauge depth
+          
           if (tpar%outputp) then
              itp=itp+1
+             !
+             ! Set up runup gauge output vector
+             allocate(tempvectorr(1+par%nrugdepth*3))
+             tempvectorr=huge(0.d0)
              do i=1,par%nrugauge
-                ! in MPI we only want to cycle through sub matrix, else through whole matrix
+                do ird=1,par%nrugdepth
+                   ! in MPI we only want to cycle through sub matrix, else through whole matrix
 #ifdef USEMPI
-                xmax = sl%nx+1
-                xrank  = huge(xrank) ! Set default, so processes not involved in runup gauge do not affect all_reduce statement
-                idumhl = xmax        ! Set default
-                if (rugrowindex(i)>0) then  ! this (sub) domain contains this runup gauge
-                   ! local index of minimum location where hh<rugdepth
-                   do ii=2,xmax
-                      if ((sl%hh(ii,rugrowindex(i))<=par%rugdepth) .and. &
-                           (sl%hh(ii-1,rugrowindex(i))>par%rugdepth) ) then
-                         idumhl= ii-1
-                         xrank = xmpi_rank  ! the row number of this process in the MPI grid of subdomains
-                         exit
-                      endif
-                   enddo
-                endif
+                   xmax = sl%nx+1
+                   xrank  = huge(xrank) ! Set default, so processes not involved in 
+                                        ! runup gauge do not affect all_reduce statement
+                   idumhl = xmax        ! Set default
+                   if (rugrowindex(i)>0) then  ! this (sub) domain contains this runup gauge
+                      ! local index of minimum location where hh<rugdepth
+                      do ii=2,xmax
+                         if ((sl%hh(ii,rugrowindex(i))<=par%rugdepth(ird)) .and. &
+                              (sl%hh(ii-1,rugrowindex(i))>par%rugdepth(ird)) ) then
+                            idumhl= ii-1
+                            xrank = xmpi_rank  ! the row number of this process in the MPI grid of subdomains
+                            exit
+                         endif
+                      enddo
+                   endif
 #else
-                xmax = s%nx+1
-                idumhl = xmax        ! Set default
-                if (rugrowindex(i)>0) then  ! master domain always contains this runup gauge
-                   ! local index of minimum location where hh<rugdepth
-                   do ii=2,xmax
-                      if ((s%hh(ii,rugrowindex(i))<=par%rugdepth) .and. &
-                           (s%hh(ii-1,rugrowindex(i))>par%rugdepth) ) then
-                         idumhl=ii-1
-                         exit
-                      endif
-                   enddo
-                endif
+                   xmax = s%nx+1
+                   idumhl = xmax        ! Set default
+                   if (rugrowindex(i)>0) then  ! master domain always contains this runup gauge
+                      ! local index of minimum location where hh<rugdepth
+                      do ii=2,xmax
+                         if ((s%hh(ii,rugrowindex(i))<=par%rugdepth(ird)) .and. &
+                              (s%hh(ii-1,rugrowindex(i))>par%rugdepth(ird)) ) then
+                            idumhl=ii-1
+                            exit
+                         endif
+                      enddo
+                   endif
 #endif
-                !
-                ! Set up runup gauge output vector
-                allocate(tempvectorr(4))
-                tempvectorr=huge(0.d0)
+                                   
 #ifdef USEMPI
-                ! In MPI multiple domains may have a non-zero value for idumhl, so we choose the one with the
-                ! lowest MPI rank (closest to xmpi_top, or the offshore boundary)
-                call xmpi_allreduce(xrank,MPI_MIN)
-                ! now only look at this process
-                if (xmpi_rank==xrank) then
+                   ! In MPI multiple domains may have a non-zero value for idumhl, so we choose the one with the
+                   ! lowest MPI rank (closest to xmpi_top, or the offshore boundary)
+                   call xmpi_allreduce(xrank,MPI_MIN)
+                   ! now only look at this process
+                   if (xmpi_rank==xrank) then
+                      if (par%morfacopt==1) then
+                         tempvectorr(1)=par%t*max(par%morfac,1.d0)
+                      else
+                         tempvectorr(1)=par%t
+                      endif
+                      tempvectorr((ird-1)*3+2)=sl%x(idumhl,rugrowindex(i))
+                      tempvectorr((ird-1)*3+3)=sl%y(idumhl,rugrowindex(i))
+                      tempvectorr((ird-1)*3+4)=sl%zs(idumhl,rugrowindex(i))
+                   endif
+                   ! Reduce the whole set to only the real numbers in tempvectori in xmpi_rank
+                   call xmpi_allreduce(tempvectorr,MPI_MIN)
+#else
                    if (par%morfacopt==1) then
                       tempvectorr(1)=par%t*max(par%morfac,1.d0)
                    else
                       tempvectorr(1)=par%t
                    endif
-                   tempvectorr(2)=sl%x(idumhl,rugrowindex(i))
-                   tempvectorr(3)=sl%y(idumhl,rugrowindex(i))
-                   tempvectorr(4)=sl%zs(idumhl,rugrowindex(i))
-                endif
-                ! Reduce the whole set to only the real numbers in tempvectori in xmpi_rank
-                call xmpi_allreduce(tempvectorr,MPI_MIN)
-#else
-                if (par%morfacopt==1) then
-                   tempvectorr(1)=par%t*max(par%morfac,1.d0)
-                else
-                   tempvectorr(1)=par%t
-                endif
-                tempvectorr(2)=s%xz(idumhl,rugrowindex(i))
-                tempvectorr(3)=s%yz(idumhl,rugrowindex(i))
-                tempvectorr(4)=s%zs(idumhl,rugrowindex(i))
+                   tempvectorr((ird-1)*3+2)=s%xz(idumhl,rugrowindex(i))
+                   tempvectorr((ird-1)*3+3)=s%yz(idumhl,rugrowindex(i))
+                   tempvectorr((ird-1)*3+4)=s%zs(idumhl,rugrowindex(i))
 #endif
+                   enddo ! ii=1,par%nrugdepth
                 if (xmaster) write(indextopointsunit(i+par%npoints),rec=itp)tempvectorr
-                deallocate(tempvectorr)
              enddo  ! i=1,par%nrugauge
-
+             deallocate(tempvectorr)
+             
+             !! point output
+             
              do i=1,par%npoints
-!!! Make vector of all s% values at n,m grid coordinate
+                !!! Make vector of all s% values at n,m grid coordinate
                 call makeintpvector(par,sl,intpvector,xpoints(i),ypoints(i))
                 if (xmaster) then
                    allocate(tempvectori(par%npointvar))

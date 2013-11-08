@@ -16,7 +16,7 @@ contains
     type(parameters)               :: par               
 
     integer                        :: i,ier,idum,n,m,ier2,ier3
-    integer                        :: j
+    integer                        :: j,it
     integer                        :: itheta
     real*8                         :: degrad
     character(slen)                :: line
@@ -83,6 +83,7 @@ contains
     if (trim(par%gridform)=='xbeach') then
        if (s%vardx==0) then
           if (xmaster) then
+             if (par%setbathy .ne. 1) then
              open(31,file=par%depfile)
              do j=1,s%ny+1
                 read(31,*,iostat=ier)(s%zb(i,j),i=1,s%nx+1)
@@ -91,6 +92,7 @@ contains
                 endif
              end do
              close(31)
+             endif
              do j=1,s%ny+1
                 do i=1,s%nx+1
                    s%x(i,j)=(i-1)*s%dx
@@ -100,12 +102,14 @@ contains
           endif
        elseif (s%vardx==1) then   ! Robert keep vardx == 1 for backwards compatibility??
           if (xmaster) then
+             if (par%setbathy .ne. 1) then
              open (31,file=par%depfile)
              read (31,*,iostat=ier)((s%zb(i,j),i=1,s%nx+1),j=1,s%ny+1)
              if (ier .ne. 0) then
                 call report_file_read_error(par%depfile)
              endif
              close(31)
+             endif
 
              open (32,file=par%xfile)
              read (32,*,iostat=ier)((s%x(i,j),i=1,s%nx+1),j=1,s%ny+1)
@@ -172,6 +176,7 @@ contains
           !
           ! Depfile
           !
+          if (par%setbathy .ne. 1) then
           open(33,file=par%depfile,status='old')
           do n=1,s%ny+1
              read(33,*,iostat=ier)(s%zb(m,n),m=1,s%nx+1)
@@ -179,6 +184,8 @@ contains
                 call report_file_read_error(par%depfile)
              endif
           enddo
+             close(33)
+          endif
        endif ! xmaster
     endif ! delft3d format
     if(xmaster) then
@@ -275,6 +282,51 @@ contains
 
   end subroutine grid_bathy
 
+  subroutine setbathy_init(s,par)
+    use params
+    use spaceparams
+    use filefunctions
+    use logging_module
+    use interp
+    
+    type(spacepars)                     :: s
+    type(parameters)                    :: par
+    
+    integer                             :: i,j,it
+    integer                             :: ier,fid,dummy
+    
+    if (par%setbathy==1) then
+       allocate(s%setbathy(s%nx+1,s%ny+1,par%nsetbathy))
+       allocate(s%tsetbathy(par%nsetbathy))
+       ! start file read
+       fid = create_new_fid()
+       open (fid,file=par%setbathyfile)
+       do it=1,par%nsetbathy
+          read(fid,*,iostat=ier)s%tsetbathy(it)
+          if (ier .ne. 0) then
+             call report_file_read_error(par%setbathyfile)
+          endif
+          do j=1,s%ny+1
+             read(fid,*,iostat=ier)(s%setbathy(i,j,it),i=1,s%nx+1)
+             if (ier .ne. 0) then
+                call report_file_read_error(par%setbathyfile)
+             endif
+          enddo
+       enddo
+       close(fid)
+       ! Interpolate initial bathymetry
+       do j=1,s%ny+1
+          do i=1,s%nx+1
+             call LINEAR_INTERP(s%tsetbathy,s%setbathy(i,j,:),par%nsetbathy, &
+                                 0.d0,s%zb(i,j),dummy)  
+          enddo
+       enddo 
+    else
+       ! give MPI bcast a memory address 
+       allocate(s%setbathy(0,0,0))
+       allocate(s%tsetbathy(0))
+    endif
+  end subroutine setbathy_init
 
   subroutine wave_init (s,par)
     use params
@@ -577,6 +629,7 @@ contains
     allocate(s%taubx(1:s%nx+1,1:s%ny+1))
     allocate(s%tauby(1:s%nx+1,1:s%ny+1))
     allocate(s%ws(1:s%nx+1,1:s%ny+1))
+    allocate(s%wscrit(1:s%nx+1,1:s%ny+1))
     allocate(s%wb(1:s%nx+1,1:s%ny+1))
     allocate(s%nuh(1:s%nx+1,1:s%ny+1))  
     allocate(s%pres(1:s%nx+1,1:s%ny+1))
@@ -607,6 +660,8 @@ contains
     allocate(s%vdudy(1:s%nx+1,1:s%ny+1))
     allocate(s%viscu(1:s%nx+1,1:s%ny+1))
     allocate(s%viscv(1:s%nx+1,1:s%ny+1))
+    ! nonh hydrostatic flow initialisation
+    allocate(s%breaking(1:s%nx+1,1:s%ny+1))    
 
     ! Just to be sure!
     s%zs = 0.0d0
@@ -673,6 +728,7 @@ contains
     s%ue   = 0.0d0
     s%ve   = 0.0d0
     s%ws   = 0.0d0
+    s%wscrit = 0.d0
     s%wb   = 0.0d0
     s%pres = 0.0d0
     s%zi   = 0.0d0
@@ -689,6 +745,9 @@ contains
     s%viscu = 0.d0
     s%viscv = 0.d0   
 
+    if (par%nonh==1) then
+       s%breaking = 0
+    endif
 
     !
     ! set-up tide and surge waterlevels

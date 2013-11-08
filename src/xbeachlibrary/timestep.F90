@@ -499,7 +499,9 @@ contains
                 endif
 
                 par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j2),1e-6))
-                par%dt=min(par%dt,0.5d0*mdx/max(s%Dc(i,j2)*s%wetz(i,j2),1e-6))
+                if (par%sedtrans==1) then
+                   par%dt=min(par%dt,0.5d0*mdx/max(s%Dc(i,j2)*s%wetz(i,j2),1e-6))
+                endif
              endif
           enddo
        endif

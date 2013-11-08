@@ -221,6 +221,7 @@
       real*8  2  pres      s%nx+1 s%ny+1 d  [m^2/s^2] [] normalized dynamic pressure
       real*8  2  wb        s%nx+1 s%ny+1 d  [m/s] []    vertical velocity at the bottom
       real*8  2  ws        s%nx+1 s%ny+1 d  [m/s] []    vertical velocity at the free surface
+      real*8  2  wscrit    s%nx+1 s%ny+1 d  [m/s] []    critial vertical velocity at the free surface for breaking
       real*8  2  taubx     s%nx+1 s%ny+1 d  [N/m^2] []  bed shear stress, x-component
       real*8  2  tauby     s%nx+1 s%ny+1 d  [N/m^2] []  bed shear stress, y-component
       real*8  2  Df        s%nx+1 s%ny+1 d  [W/m^2] []  dissipation rate due to bed friction
@@ -282,3 +283,6 @@
       real*8  2  vdudy      s%nx+1 s%ny+1 d  [m^2/s^2] [] advection
       real*8  2  viscu      s%nx+1 s%ny+1 d  [m^2/s^2] [] viscosity
       real*8  2  viscv      s%nx+1 s%ny+1 d  [m^2/s^2] [] viscosity
+      real*8  3  setbathy  s%nx+1 s%ny+1 par%nsetbathy d  [m] []   prescribed bed levels
+      real*8  1  tsetbathy par%nsetbathy b [s] [] points in time of prescibed bed levels
+      integer 2  breaking  s%nx+1 s%ny+1 d  [-] [] indicator whether cell has breaking nonh waves

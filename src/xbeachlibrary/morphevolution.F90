@@ -1731,6 +1731,38 @@ contains
 
   end subroutine vT
   
+  subroutine setbathy_update(s, par)
+  
+    use params
+    use spaceparams
+    use interp
+    
+    type(spacepars)                     :: s
+    type(parameters)                    :: par
+    
+    integer                             :: i,j,dummy
+    real*8,dimension(s%nx+1,s%ny+1)     :: zbnew
+    
+    ! interpolate from file
+    do j=1,s%ny+1
+       do i=1,s%nx+1
+          call LINEAR_INTERP(s%tsetbathy,s%setbathy(i,j,:),par%nsetbathy, &
+                              par%t,zbnew(i,j),dummy)  
+       enddo
+    enddo    
+    ! update water level
+    s%zs = s%zs+zbnew-s%zb
+    ! update bed level
+    s%zb = zbnew
+    ! update wet and dry cells
+    where (s%zs<s%zb+par%eps)
+       s%wetz=0
+       s%zs = s%zb+par%eps
+       s%hh = par%eps
+    endwhere    
+  
+  end subroutine setbathy_update
+
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
   

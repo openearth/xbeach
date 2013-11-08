@@ -38,6 +38,8 @@ module params
      integer*4     :: ships                      = -123    !  [-] (advanced) Turn on (1) or off (0) ship waves
      integer*4     :: vegetation                 = -123    !  [-] (advanced) Turn on (1) or off (0) interaction of waves and flow with vegetation
      integer*4     :: snells                     = -123    !  [-] (advanced) Turn on (1) or off (0) Snell's law for wave refraction
+     integer*4     :: bchwiz                     = -123    !  [-] Use beachwizard, 0 = beachwizard off, 1 beachwizard on, bed update off, 2 beachwiz on, bed update on. (also requires morphology == 1)
+     integer*4     :: setbathy                   = -123    !  [-] Provide timeseries of prescribed bathy input, 0 = off (default), 1 = on
 
      ! [Section] Grid parameters                                                                                                                                                                                                                          
      character(slen):: depfile                   = 'abc'   !  [-] Name of the input bathymetry file
@@ -320,7 +322,9 @@ module params
      real*8 ,dimension(:), pointer                      :: xpointsw => NULL()  ! (advanced) world x-coordinate of output points
      real*8 ,dimension(:), pointer                     :: ypointsw => NULL()  ! (advanced) world y-coordinate of output points
 
-     real*8        :: rugdepth                   = -123    !  [m] (advanced) Minimum depth for determination of last wet point in runup gauge 
+     integer*4     :: nrugdepth                  = -123    !  [-] (advanced) Number of depths to compute runup in runup gauge
+     real*8,dimension(99) :: rugdepth            = -123    !  [m] (advanced) Minimum depth for determination of last wet point in runup gauge 
+!     real*8        :: rugdepth                   = -123    !  [m] (advanced) Minimum depth for determination of last wet point in runup gauge 
      integer*4     :: ncross                     = -123    !  [-] (advanced) Number of output cross sections
      character(slen) :: outputformat             = 'debug' !  [-] (advanced) Choice of output file format: 'netcdf', 'fortran', or 'debug'
      character(slen):: ncfilename                = 'xboutput.nc' ! [-] (advanced) xbeach netcdf output file name
@@ -356,7 +360,7 @@ module params
      real*8        :: eps_sd                     = -123    !  [m/s] Threshold velocity difference to determine conservation of energy head vs momentum
      real*8        :: umin                       = -123    !  [m/s] Threshold velocity for upwind velocity detection and for vmag2 in eq. sediment concentration
      real*8        :: hmin                       = -123    !  [m] Threshold water depth above which Stokes drift is included
-     integer*4     :: secorder                   = -123    !  [-] (advanced) Use second order corrections to advection/non-linear terms based on mcCormack scheme
+     integer*4     :: secorder                   = -123    !  [-] (advanced) Use second order corrections to advection/non-linear terms based on MacCormack scheme
      integer*4     :: oldhu                      = -123    !  [-] (advanced) Turn on / off old hu calculation
 
      ! [Section] Sediment transport numerics parameters                                                                                  
@@ -369,6 +373,10 @@ module params
      integer*4     :: nd_var                     = -123    !  [-] (advanced) Index of layer with variable thickness 
      real*8        :: split                      = -123    !  [-] (advanced) Split threshold for variable sediment layer (ratio to nominal thickness)
      real*8        :: merge                      = -123    !  [-] (advanced) Merge threshold for variable sediment layer (ratio to nominal thickness)
+
+     ! Prescribed bed evolution parameters
+     integer*4     :: nsetbathy                  = -123    !  [-] (advanced) Number of prescribed bed updates
+     character(slen) :: setbathyfile             = 'abc'   !  [-] (advanced) Name of prescribed bed update file 
 
      ! [Section] MPI parameters
      character(slen)   :: mpiboundary            = 'abc'   ! [-] (advanced) Fix mpi boundaries along y-lines ('y'), x-lines ('x'), use manual defined domains ('man') or find shortest boundary ('auto')
@@ -384,7 +392,6 @@ module params
      real*8               :: dt                  = -123    !  [s] Computational time step, in hydrodynamic time
      real*8               :: t                   = -123    !  [s] Computational time, in hydrodynamic time
      real*8               :: tnext               = -123    !  [s] Next time point for output or wave stationary calculation, in hydrodynamic time
-     integer              :: bchwiz              = -123    !  [-] Use beachwizard, 0 = beachwizard off, 1 beachwizard on, bed update off, 2 beachwiz on, bed update on. (also requires morphology == 1)
   end type parameters
 
 contains
@@ -433,7 +440,7 @@ contains
     ! nship defined by shipfile
     par%bchwiz      = readkey_int ('params.txt','bchwiz',        0,        0,     1)
     par%vegetation  = readkey_int ('params.txt','vegetation',    0,        0,     1)
-
+    par%setbathy    = readkey_int ('params.txt','setbathy',      0,        0,     1)
     !
     !
     ! Grid parameters
@@ -456,9 +463,13 @@ contains
        par%nx    = readkey_int('params.txt','nx',     50,      2,     10000,required=.true.)
        par%ny    = readkey_int('params.txt','ny',      2,      0,     10000,required=.true.)
        par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
-       par%depfile = readkey_name('params.txt','depfile',required=.true.)
-       call check_file_exist(par%depfile)
-       call check_file_length(par%depfile,par%nx+1,par%ny+1)
+       if (par%setbathy .ne. 1) then
+          par%depfile = readkey_name('params.txt','depfile',required=.true.)
+          call check_file_exist(par%depfile)
+          call check_file_length(par%depfile,par%nx+1,par%ny+1)
+       else 
+          par%depfile = readkey_name('params.txt','depfile')
+       endif
        par%vardx = readkey_int('params.txt','vardx',   0,      0,         1)
 
        if (par%vardx==0) then
@@ -502,7 +513,7 @@ contains
           ! Check if grid coordinates are Cartesian
           ic=scan(line,'Cartesian')
           if (ic<=0) then
-             call writelog('esl','','Delft3D grid is not Cartesian')
+             call writelog('ewsl','','Delft3D grid is not Cartesian')
              call halt_program
           endif
           ! read grid dimensions
@@ -646,6 +657,8 @@ contains
        par%m     = readkey_int ('params.txt','m',        10,         2,      128)
        call check_file_exist('bc/gen.ezs')
     elseif (trim(par%instat) == 'ts_nonh') then   
+       par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
+       par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
        call check_file_exist('boun_U.bcf')
     endif
     allocate(allowednames(2),oldnames(2))
@@ -780,7 +793,9 @@ contains
     endif
     !
     !
-    ! Wave breaking parameters                                                                                                      
+    ! Wave breaking parameters   
+    par%beta     = readkey_dbl ('params.txt','beta',    0.10d0,     0.05d0,   0.3d0)
+    if (par%swave==1) then                                                                                                  
        call writelog('l','','--------------------------------')
        call writelog('l','','Wave breaking parameters: ')
        allocate(allowednames(5),oldnames(5))
@@ -812,7 +827,6 @@ contains
        call writelog('l','','--------------------------------')
        call writelog('l','','Roller parameters: ')
        par%roller   = readkey_int ('params.txt','roller',     1,        0,     1)
-       par%beta     = readkey_dbl ('params.txt','beta',    0.10d0,     0.05d0,   0.3d0)
        par%rfb      = readkey_int ('params.txt','rfb',        0,        0,     1)
        !
        !
@@ -822,6 +836,7 @@ contains
        par%wci      = readkey_int ('params.txt','wci',        0,        0,     1)
        par%hwci     = readkey_dbl ('params.txt','hwci',   0.1d0,   0.001d0,      1.d0)
        par%cats     = readkey_dbl ('params.txt','cats',   4.d0,     1.d0,      50.d0)
+    endif
     !
     !
     ! Flow parameters          
@@ -854,6 +869,8 @@ contains
              par%cf      = par%g/par%C**2
           endif
        endif
+    else
+       par%bedfricfile = ''  ! empty string so doesn't go searching for file called 'abc'
     endif
     par%nuh     = readkey_dbl ('params.txt','nuh',       0.1d0,     0.0d0,   1.0d0)
     par%nuhfac  = readkey_dbl ('params.txt','nuhfac',    1.0d0,     0.0d0,   1.0d0)
@@ -960,7 +977,7 @@ contains
        par%kdmin        = readkey_dbl('params.txt','kdmin' ,0.0d0,0.0d0,0.05d0)  
        par%dispc        = readkey_dbl('params.txt','dispc' ,1.0d0,0.1d0,2.0d0)  
        par%Topt         = readkey_dbl('params.txt','Topt',  10.d0, 1.d0, 20.d0)
-       par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,0,0,1)
+       par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,2,0,3)
        if (par%nhbreaker==1) then
           par%breakviscfac = readkey_dbl('params.txt','breakviscfac',1.5d0, 1.d0, 3.d0)
           par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.6d0, 0.3d0, 0.8d0)
@@ -969,6 +986,10 @@ contains
           par%breakvisclen = readkey_dbl('params.txt','breakvisclen',1.0d0, 0.75d0, 3.d0)
           par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.6d0, 0.3d0, 0.8d0)
           par%secbrsteep   = readkey_dbl('params.txt','secbrsteep',0.5d0*par%maxbrsteep,0.d0,0.95d0*par%maxbrsteep)
+       elseif (par%nhbreaker==3) then
+          !par%avis    = readkey_dbl ('params.txt','avis',       0.3d0,     0.0d0,   1.0d0)
+          !par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.6d0, 0.3d0, 0.8d0)
+          !par%secbrsteep   = readkey_dbl('params.txt','secbrsteep',0.5d0*par%maxbrsteep,0.d0,0.95d0*par%maxbrsteep)
        endif
     endif
     !
@@ -1098,7 +1119,9 @@ contains
     ! Robert: to deal with MPI some changes here
     par%npointvar   = readkey_int ('params.txt','npointvar',   0,  0, 50)
     call readpointvars(par)
-    par%rugdepth    = readkey_dbl ('params.txt','rugdepth', 0.0d0,0.d0,0.05d0)
+!    par%rugdepth    = readkey_dbl ('params.txt','rugdepth', 0.0d0,0.d0,0.05d0)
+    par%nrugdepth   = readkey_int('params.txt','nrugdepth',1,1,10)
+    par%rugdepth    = readkey_dblvec('params.txt','rugdepth',par%nrugdepth,size(par%rugdepth),0.0d0,0.0d0,0.1d0)
 
     ! mean output
     par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
@@ -1207,6 +1230,13 @@ contains
        par%merge     = readkey_dbl ('params.txt','merge',    0.01d0,  0.005d0,   0.10d0)
     endif
     !
+    ! Prescribed bathy update
+    if (par%setbathy==1) then
+      par%nsetbathy    = readkey_int ('params.txt','nsetbathy',1,1,1000)
+      par%setbathyfile = readkey_name  ('params.txt', 'setbathyfile',required=.true. )
+      call check_file_exist(par%setbathyfile)
+    endif
+    !
     !
     ! MPI parameters
     call writelog('l','','--------------------------------')
@@ -1264,6 +1294,11 @@ contains
     if (par%morphology==0 .and. par%avalanching==1) then
        call writelog('lsw','(a)','Warning: Avalanching cannot be computed without morphology.')
        call writelog('lsw','(a)','         Avalanching has been turned off')
+       par%avalanching=0
+    endif
+    if (par%setbathy == 1 .and. par%morphology==1) then
+       call writelog('lsw','(a)','Morphology and avalanching has been turned off for prescibed bed update (setbathy=1)')
+       par%morphology=0
        par%avalanching=0
     endif
     !
@@ -1383,9 +1418,12 @@ contains
     !
     !
     ! fix minimum runup depth
-    if (par%rugdepth<=par%eps) then 
-       par%rugdepth = par%eps+tiny(0.d0)
-       call writelog('lws','(a,f0.5,a)','Warning: Setting rugdepth to minimum value greater than eps (',par%rugdepth,')')
+    if (minval(par%rugdepth(1:par%nrugdepth))<=par%eps) then 
+       where(par%rugdepth(1:par%nrugdepth)<par%eps)
+          par%rugdepth = par%eps+tiny(0.d0)
+       endwhere
+       call writelog('lws','(a,f0.5,a)','Warning: Setting rugdepth to minimum value greater than eps (', &
+                                         minval(par%rugdepth),')')
     endif
     !
     !

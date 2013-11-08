@@ -45,6 +45,7 @@ contains
     real*8,dimension(:,:),allocatable,save  :: uu_old                   !Velocity at previous timestep
     real*8,dimension(:,:),allocatable,save  :: zs_old
     real*8,dimension(:,:),allocatable,save  :: vsu,usu,vsv,usv,veu,uev
+    real*8,dimension(:,:),allocatable,save  :: dudx,dvdy
     real*8,dimension(:,:),allocatable,save  :: us,vs
     real*8                                  :: nuh1,nuh2
     real*8                                  :: dudx1,dudx2,dudy1,dudy2
@@ -68,6 +69,8 @@ contains
        allocate (   usv(nx+1,ny+1))
        allocate (   veu(nx+1,ny+1))
        allocate (   uev(nx+1,ny+1))
+       allocate (  dudx(nx+1,ny+1))
+       allocate (  dvdy(nx+1,ny+1))
        allocate (    us(nx+1,ny+1))
        allocate (    vs(nx+1,ny+1))
        allocate (sinthm(nx+1,ny+1))
@@ -89,7 +92,9 @@ contains
        uev     =0.d0
        ueu     =0.d0
        vev     =0.d0
+       dudx    =0.d0
        ududx   =0.d0
+       dvdy    =0.d0
        vdvdy   =0.d0
        udvdx   =0.d0
        vdudy   =0.d0
@@ -108,7 +113,10 @@ contains
 
     ! update bedfriction coefficient cf
     if (trim(par%bedfriction)=='white-colebrook') then
-       cf = par%g/(18.d0*log10(4.*hh/min(hh,D90top)))**2 ! cf = g/C^2 where C = 18*log(4*hh/D90)
+       cf = par%g/max(10.d0,18*log10(4*max(hh,par%eps)/D90top))**2 
+                                      ! Where: cf = g/C^2 where C = 18*log(4*hh/D90).
+                                      ! Limit to C>10 in case of shallow water
+                                      ! depth and/or large sediment
     endif
 
     ! Super fast 1D
@@ -210,6 +218,26 @@ contains
     end do
 
     !
+    ! Compute velocity gradients for viscosity terms. 
+    ! Robert: Check whether should be same gradients as advection terms?
+    do j=j1,max(ny,1)
+       do i=2,nx+1
+          dudx(i,j) = (uu(i,j)-uu(i-1,j))/dsz(i,j)
+       enddo
+    enddo
+    dudx(1,:) = 0.d0 ! Robert: by defintion of Neumann boundary
+    if (ny>2) then
+       do j=2,ny+1
+          do i=1,nx+1
+             dvdy(i,j) = (vv(i,j)-vv(i,j-1))/dnz(i,j)
+          enddo
+       enddo
+       dvdy(:,1) = 0.d0 ! Robert: by defintion of Neumann boundary
+    else
+       dvdy = 0.d0  ! Robert: by definition of 1D model
+    endif
+
+    !
     ! X-direction
     !
     do j=j1,max(ny,1)
@@ -293,12 +321,31 @@ contains
     else
        nuh = par%nuh
     endif
-
-    do j=j1,max(ny,1)
-       do i=2,nx
-          nuh(i,j) = max(nuh(i,j),par%nuhfac*hh(i,j)*(DR(i,j)/par%rho)**(1.0d0/3.0d0)) ! Ad: change to max
+    ! Add viscosity for wave breaking effects
+    if (par%swave == 1) then
+       do j=j1,max(ny,1)
+          do i=2,nx
+             nuh(i,j) = max(nuh(i,j),par%nuhfac*hh(i,j)*(DR(i,j)/par%rho)**(1.0d0/3.0d0)) ! Ad: change to max
+          end do
        end do
-    end do
+    elseif (par%swave==0 .and. par%nonh==1) then
+       select case (par%nhbreaker)
+          case (1) 
+             where (breaking/=0)
+                nuh = par%breakviscfac*nuh
+             endwhere
+          case (2)
+             where (breaking==1)
+                nuh = nuh + (par%nuh*par%breakvisclen*hh)**2*sqrt(dudx**2+dvdy**2)
+             endwhere
+          case (3)
+             ! Ad en Arnold: Battjes 1975 formulation to smoothen front of lf wave bore in the swash
+             ! compute (long) wave turbulence due to breaking
+             !nuh = max(par%nuh, par%avis*hloc*sqrt(kturb))
+          case default
+             ! do nothing to increase viscosity
+       end select
+    endif
 
     do j=j1,max(ny,1)
        do i=2,nx
@@ -649,7 +696,7 @@ contains
 
     if (par%nonh==1) then
        !Do explicit predictor step with pressure
-       call nonh_explicit(s,par,nuh)
+       call nonh_explicit(s,par)
     end if
 
     if (par%secorder==1) then

@@ -263,6 +263,9 @@ subroutine gwflow(s,par)
      
      dynpresupd = 0.d0
      
+     gwhu = 0.d0
+     gwhv = 0.d0
+     
      initial = .true.
      if (par%gwnonh==0) then
         connectcrit = par%dwetlayer

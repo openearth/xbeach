@@ -22,6 +22,7 @@ module libxbeach_module
   use means_module
   use output_module
   use ship_module
+  use nonh_module
   use vegetation_module
   implicit none
 
@@ -97,7 +98,7 @@ contains
     if (xmaster) then
 
        call writelog('ls','','Initializing .....')
-
+       call setbathy_init      (s,par)
        ! initialize physics
        call readtide           (s,par)
        call readwind           (s,par)
@@ -125,6 +126,9 @@ contains
     call space_distribute_space (sglobal,s,par     )
 #endif
 
+    ! nonh_init does not always need to be called
+    if (par%nonh==1) call nonh_init(s,par)
+       
     ! initialize output
     call means_init             (sglobal,s,par     )
     call output_init            (sglobal,s,par,tpar)
@@ -178,6 +182,7 @@ contains
     ! Bed level update
     if ((par%morphology==1) .and. (.not. par%bchwiz == 1)) call bed_update     (s,par)
     if (par%bchwiz>0)        call assim_update   (s, par)
+    if (par%setbathy==1)     call setbathy_update(s, par)
     ! n = n + 1
     executestep = 0
     ! enddo

@@ -1,6 +1,7 @@
 !==============================================================================
 !                               MODULE NH_MAIN                        
 !==============================================================================
+
 ! DATE               AUTHOR               CHANGES        
 !
 ! october 2009       Pieter Bart Smit     New module
@@ -78,7 +79,6 @@ module nonh_module
   integer(kind=iKind),allocatable,dimension(:,:)   :: nonhV
   integer(kind=iKind),allocatable,dimension(:,:)   :: nonhZ
   
-  integer(kind=iKind),allocatable,dimension(:,:)   :: breaking
   real (kind=rKind), allocatable, dimension(:,:)   :: lbreakcond
 
   !--- PUBLIC SUBROUTINES ---
@@ -164,7 +164,6 @@ contains
     allocate(nonhU(  s%nx+1,s%ny+1)); nonhU = 1
     allocate(nonhV(  s%nx+1,s%ny+1)); nonhV = 1
     allocate(nonhZ(  s%nx+1,s%ny+1)); nonhZ = 1  
-    allocate(breaking(s%nx+1,s%ny+1)); breaking = 0 
     allocate(lbreakcond(s%nx+1,s%ny+1)); lbreakcond = par%maxbrsteep 
     allocate(dp(s%nx+1,s%ny+1))     ; dp = 0.0_rKind
     allocate(Wm(s%nx+1,s%ny+1))     ;Wm     = 0.0_rKind
@@ -175,6 +174,7 @@ contains
       allocate(s%pres(s%nx+1,s%ny+1)); s%pres = 0.0_rKind   
       allocate(s%ws(s%nx+1,s%ny+1)); s%ws = 0.0_rKind
       allocate(s%wb(s%nx+1,s%ny+1)); s%wb = 0.0_rKind
+      allocate(s%wscrit(s%nx+1,s%ny+1)); s%wscrit = 0.0_rKind
     endif  
     
     
@@ -801,7 +801,7 @@ end subroutine nonh_init_wcoef
   Wm_old = .5_rKind*(s%ws+s%wb)
 end subroutine nonh_cor
 
-subroutine nonh_explicit(s,par,nuh)
+subroutine nonh_explicit(s,par)
 !==============================================================================
 !
 
@@ -827,8 +827,6 @@ subroutine nonh_explicit(s,par,nuh)
     type(spacepars) ,intent(inout)                       :: s
     type(parameters),intent(in)                          :: par 
     
-    real(kind=rKind),dimension(s%nx+1,s%ny+1)            :: nuh
-
 !--------------------------     LOCAL VARIABLES    ----------------------------
  
     !Indices
@@ -929,19 +927,19 @@ subroutine nonh_explicit(s,par,nuh)
         do j=2,s%ny
            do i=2,s%nx
               wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,j))
-              if (breaking(i,j) == 0) then 
+              if (s%breaking(i,j) == 0) then 
                  if (s%ws(i,j)>=wmax) then
-                    breaking(i,j) = 1
+                    s%breaking(i,j) = 1
                  elseif (s%ws(i,j)<=-wmax) then
-                    breaking(i,j) = -1
+                    s%breaking(i,j) = -1
                  endif
-              elseif (breaking(i,j)==1) then
+              elseif (s%breaking(i,j)==1) then
                  if (s%ws(i,j)<reformfac*wmax) then
-                    breaking(i,j) = 0
+                    s%breaking(i,j) = 0
                  endif
-              elseif (breaking(i,j)==-1) then
-                 if (s%ws(i,j)>reformfac*(-wmax)) then
-                    breaking(i,j) = 0
+              elseif (s%breaking(i,j)==-1) then
+                 if (s%ws(i,j)>reformfac*-wmax) then
+                    s%breaking(i,j) = 0
                  endif
               endif
            enddo
@@ -949,42 +947,41 @@ subroutine nonh_explicit(s,par,nuh)
      else
         do i=2,s%nx
            wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,1))
-           if (breaking(i,1) == 0) then 
+           if (s%breaking(i,1) == 0) then 
               if (s%ws(i,1)>=wmax) then
-                 breaking(i,1) = 1
+                 s%breaking(i,1) = 1
               elseif (s%ws(i,1)<=-wmax) then
-                 breaking(i,1) = -1
+                 s%breaking(i,1) = -1
               endif
-           elseif (breaking(i,1)==1) then
+           elseif (s%breaking(i,1)==1) then
               if (s%ws(i,1)<reformfac*wmax) then
-                 breaking(i,1) = 0
+                 s%breaking(i,1) = 0
               endif
-           elseif (breaking(i,1)==-1) then
-              if (s%ws(i,1)>reformfac*(-wmax)) then
-                 breaking(i,1) = 0
+           elseif (s%breaking(i,1)==-1) then
+              if (s%ws(i,1)>reformfac*-wmax) then
+                 s%breaking(i,1) = 0
               endif
            endif
         enddo
      endif
      ! turn off non-hydrostatic pressure correction in areas with breaking and increase viscosity
-     where (breaking/=0)
+     where (s%breaking/=0)
         nonhZ = 0
         s%pres = 0
-        nuh = par%breakviscfac*nuh
      endwhere
   elseif (par%nhbreaker == 2) then
      ! First determine local breaker criterion
      lbreakcond = par%maxbrsteep
      if (s%ny==0) then
         do i=2,s%nx
-           if (breaking(i,1) .ne. 0) then
+           if (s%breaking(i,1)==1) then
               lbreakcond(i-1:i+1,1) = par%secbrsteep
            endif
         enddo
      else
         do j=jmin,jmax
            do i=2,s%nx
-              if (breaking(i,j) .ne. 0) then
+              if (s%breaking(i,j)==1) then
                  lbreakcond(i-1:i+1,j-1:j+1) = par%secbrsteep
               endif
            enddo
@@ -993,14 +990,14 @@ subroutine nonh_explicit(s,par,nuh)
      ! Now find areas where main breaking criterion is exceeded
      do j=jmin,jmax
         do i=2,s%nx
-           if (breaking(i,j)==1) then
+           if (s%breaking(i,j)==1) then
               if(s%ws(i,j)<=0.d0) then
-                 breaking(i,j) = 0
+                 s%breaking(i,j) = 0
               endif
            else
               wmax = lbreakcond(i,j)*sqrt(par%g*s%hh(i,j))  ! add current term in here too
               if (s%ws(i,j)>=wmax) then
-                 breaking(i,j) = 1
+                 s%breaking(i,j) = 1
               endif
            endif
         enddo
@@ -1008,11 +1005,51 @@ subroutine nonh_explicit(s,par,nuh)
      ! turn off non-hydrostatic pressure correction in areas with breaking and increase viscosity
      do j=jmin,jmax
         do i=2,s%nx
-           if (breaking(i,j) .ne. 0) then
+           if (s%breaking(i,j)==1) then
               nonhZ(i,j) = 0
               s%pres(i,j) = 0.d0
-              ! compute local extra viscosity
-              nuh(i,j) = nuh(i,j)+(par%breakvisclen*s%hh(i,j))**2
+           endif
+        enddo
+     enddo
+  elseif (par%nhbreaker == 3) then
+     ! First determine local breaker criterion
+     lbreakcond = par%maxbrsteep
+     if (s%ny==0) then
+        do i=2,s%nx
+           if (s%breaking(i,1)==1) then
+              lbreakcond(i-1:i+1,1) = par%secbrsteep
+           endif
+        enddo
+     else
+        do j=jmin,jmax
+           do i=2,s%nx
+              if (s%breaking(i,j)==1) then
+                 lbreakcond(i-1:i+1,j-1:j+1) = par%secbrsteep
+              endif
+           enddo
+        enddo
+     endif           
+     ! Now find areas where main breaking criterion is exceeded
+     do j=jmin,jmax
+        do i=2,s%nx
+           s%wscrit(i,j) = lbreakcond(i,j)*sqrt(par%g*s%hh(i,j))  ! add current term in here too
+           if (s%breaking(i,j)==1) then
+              if(s%ws(i,j)<=0.d0) then
+                 s%breaking(i,j) = 0
+              endif
+           else
+              if (s%ws(i,j)>=s%wscrit(i,j)) then
+                 s%breaking(i,j) = 1
+              endif
+           endif
+        enddo
+     enddo
+     ! turn off non-hydrostatic pressure correction in areas with breaking and increase viscosity
+     do j=jmin,jmax
+        do i=2,s%nx
+           if (s%breaking(i,j)==1) then
+              nonhZ(i,j) = 0
+              s%pres(i,j) = 0.d0
            endif
         enddo
      enddo
@@ -1057,18 +1094,18 @@ subroutine nonh_explicit(s,par,nuh)
   if (s%ny>0) then
     do j=2,s%ny
       do i=2,s%nx
-        dwdx1 = .5d0*(nuh(i-1,j  )+nuh(i,j  ))*s%hu(i-1,j  )*(Wm_old(i  ,j  )-Wm_old(i-1,j  ))*ddxu(i-1)
-        dwdx2 = .5d0*(nuh(i+1,j  )+nuh(i,j  ))*s%hu(i  ,j  )*(Wm_old(i+1,j  )-Wm_old(i  ,j  ))*ddxu(i)
-        dwdy1 = nuh(i  ,j-1)*s%hu(i  ,j-1)*(Wm_old(i  ,j  )-Wm_old(i  ,j-1))*ddyv(j-1)
-        dwdy2 = nuh(i  ,j  )*s%hu(i  ,j  )*(Wm_old(i  ,j+1)-Wm_old(i  ,j  ))*ddyv(j)
+        dwdx1 = .5d0*(s%nuh(i-1,j  )+s%nuh(i,j  ))*s%hu(i-1,j  )*(Wm_old(i  ,j  )-Wm_old(i-1,j  ))*ddxu(i-1)
+        dwdx2 = .5d0*(s%nuh(i+1,j  )+s%nuh(i,j  ))*s%hu(i  ,j  )*(Wm_old(i+1,j  )-Wm_old(i  ,j  ))*ddxu(i)
+        dwdy1 = s%nuh(i  ,j-1)*s%hu(i  ,j-1)*(Wm_old(i  ,j  )-Wm_old(i  ,j-1))*ddyv(j-1)
+        dwdy2 = s%nuh(i  ,j  )*s%hu(i  ,j  )*(Wm_old(i  ,j+1)-Wm_old(i  ,j  ))*ddyv(j)
         Wm(i,j) = Wm(i,j)   + (1.0_rKind/s%hh(i,j))*par%dt*(dwdx2-dwdx1)*ddxz(i)*real(s%wetu(i,j)*s%wetu(i-1,j),rKind) &
                             + (1.0_rKind/s%hh(i,j))*par%dt*(dwdy2-dwdy1)*ddyz(j)*real(s%wetv(i,j)*s%wetv(i,j-1),rKind)
       enddo
     enddo 
   else
     do i=2,s%nx
-      dwdx1 = .5d0*(nuh(i-1,1  )+nuh(i,1  ))*s%hu(i-1,1  )*(Wm_old(i  ,1  )-Wm_old(i-1,1  ))*ddxu(i-1)
-      dwdx2 = .5d0*(nuh(i+1,1  )+nuh(i,1  ))*s%hu(i  ,1  )*(Wm_old(i+1,1  )-Wm_old(i  ,1  ))*ddxu(i)
+      dwdx1 = .5d0*(s%nuh(i-1,1  )+s%nuh(i,1  ))*s%hu(i-1,1  )*(Wm_old(i  ,1  )-Wm_old(i-1,1  ))*ddxu(i-1)
+      dwdx2 = .5d0*(s%nuh(i+1,1  )+s%nuh(i,1  ))*s%hu(i  ,1  )*(Wm_old(i+1,1  )-Wm_old(i  ,1  ))*ddxu(i)
       dwdy1 = 0.d0
       dwdy2 = 0.d0
       Wm(i,1) = Wm(i,1)   + (1.0_rKind/s%hh(i,1))*par%dt*(dwdx2-dwdx1)*ddxz(i)*real(s%wetu(i,1)*s%wetu(i-1,1),rKind) 
