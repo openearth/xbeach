@@ -5,14 +5,16 @@ use libxbeach_module
     contains
     ! Reads command line input
     integer(c_int) function readinput()
+    
     character(len=100) :: arg
     character(len=500) :: version
+    integer         :: narguments
     
     readinput = 0
     
-        n = command_argument_count()
-        if (n > 0) then
-            do iarg=1,n
+        narguments = command_argument_count()
+        if (narguments > 0) then
+            do iarg=1,narguments
                 
                 call get_command_argument(iarg,arg)
                 
@@ -37,7 +39,6 @@ use libxbeach_module
                     write(*,*)' '
                     readinput = 1
                 endif
-
             enddo            
         endif
     end function readinput
