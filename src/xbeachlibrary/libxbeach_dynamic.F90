@@ -39,8 +39,8 @@ module libxbeach_dynamic
   subroutine assignlogdelegate(fPtr) bind(C,name="assignlogdelegate")
     !DEC$ ATTRIBUTES DLLEXPORT::assignlogdelegate
     use logging_module
-
-    procedure(distributeloginterface) :: fPtr
+    type(c_funptr) :: fPtr
+    !procedure(distributeloginterface) :: fPtr
     
     call assignlogdelegate_internal(fPtr)
     

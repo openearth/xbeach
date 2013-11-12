@@ -67,7 +67,7 @@ BUILT_SOURCES= \
 
 version.dat: 
 	echo "Build_Revision = '`svnversion`'" > version.dat
-	echo "Build_URL = '`svn info | grep URL`'" >> version.dat
+	echo "Build_URL = '`svn info | grep ^URL`'" >> version.dat
 	echo "Build_Date = '`date`'" >> version.dat
 
 s.ind: space_ind.gen

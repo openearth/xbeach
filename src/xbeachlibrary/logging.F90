@@ -1221,11 +1221,12 @@ CONTAINS
   end subroutine writelog_afaiaaa
 
   subroutine assignlogdelegate_internal(fPtr)
-
-    procedure(distributeloginterface) :: fPtr
+    use iso_c_binding
+    type(c_funptr) :: fPtr
+    !procedure(distributeloginterface) :: fPtr
     integer :: i
     
-    distributelog => fPtr
+    call c_f_procpointer (fPtr, distributelog )
     islogdelegatesubcribed = .true.
     
   end subroutine assignlogdelegate_internal
