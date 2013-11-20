@@ -6,7 +6,6 @@ module logging_module
   integer,save     :: logfileid
   integer,save     :: errorfileid
   integer,save     :: warningfileid
-  logical,save     :: islogdelegatesubcribed = .false.
   !integer,save     :: pardatfileid
 
 
@@ -346,7 +345,7 @@ CONTAINS
            write(0,*)   trim(display)
            write(errorfileid,*)   trim(display)
         end if
-        if (islogdelegatesubcribed) then
+        if (associated(distributelog)) then
            call distributelog(level,trim(display), len(trim(display)))
         endif
     endif
@@ -1222,12 +1221,14 @@ CONTAINS
 
   subroutine assignlogdelegate_internal(fPtr)
     use iso_c_binding
-    type(c_funptr) :: fPtr
-    !procedure(distributeloginterface) :: fPtr
+    type(c_funptr), VALUE :: fPtr
+    
     integer :: i
     
-    call c_f_procpointer (fPtr, distributelog )
-    islogdelegatesubcribed = .true.
+    distributelog => null()
+    if (c_associated(fPtr)) then
+        call c_f_procpointer (fPtr, distributelog )
+    endif
     
   end subroutine assignlogdelegate_internal
 end module logging_module
