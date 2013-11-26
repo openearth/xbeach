@@ -744,7 +744,7 @@ contains
     par%order       = readkey_dbl ('params.txt','order',    2.d0,           1.d0,    2.d0    )
     par%carspan     = readkey_int ('params.txt','carspan',  0,              0,       1       )      ! deprecated, added for backwards compatibility
     par%freewave    = readkey_int ('params.txt','freewave', par%carspan,    0,       1       )
-    par%epsi        = readkey_dbl ('params.txt','epsi',     0.d0,           -1.d0,   0.2d0   )
+    par%epsi        = readkey_dbl ('params.txt','epsi',     -1.d0,           -1.d0,   0.2d0   )
     par%nc          = readkey_int ('params.txt','nc',       par%ny+1,       1,       par%ny+1)
     allocate(allowednames(2),oldnames(0))
     allowednames=(/'instant ','velocity'/)
