@@ -20,7 +20,9 @@ use libxbeach_module
                 
                 if (arg=='-V') then
                     call getversion(version)
-                    write(*,*)trim(version)
+                    write(*,*)'**********************************************************'
+                    write(*,*)'You are using XBeach version 1.20.',version,'.'
+                    write(*,*)'**********************************************************'
                     readinput = 1
                 endif
                 
