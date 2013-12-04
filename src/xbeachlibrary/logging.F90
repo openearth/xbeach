@@ -226,13 +226,13 @@ CONTAINS
 
     call date_and_time(DATE=date, TIME=time, ZONE=zone)
 
-    if (xmaster) then
+    if (xmaster) then'You are using XBeach version 1.20.',trim(version),' December 2013 Sinterklaas release'
        call writelog('ls','','**********************************************************')
        call writelog('ls','','                   Welcome to XBeach                      ')
        call writelog('ls','','                                                          ')
-       call writelog('ls','','            revision ',trim(Build_Revision)                )
-       call writelog('ls','','            date ',trim(Build_Date)                        )
-       call writelog('ls','',' URL: ',trim(Build_URL)                                    )
+       call writelog('ls','','  version 1.20.',trim(Build_Revision),'Sinterklaas release')
+       call writelog('ls','','  date ',trim(Build_Date)                                  )
+       call writelog('ls','','  URL: ',trim(Build_URL)                                   )
        call writelog('ls','','**********************************************************')
        call writelog('ls','','                                                          ')
        call writelog('ls','','Simulation started: YYYYMMDD    hh:mm:ss     time zone (UTC)')
