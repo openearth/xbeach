@@ -226,7 +226,7 @@ CONTAINS
 
     call date_and_time(DATE=date, TIME=time, ZONE=zone)
 
-    if (xmaster) then'You are using XBeach version 1.20.',trim(version),' December 2013 Sinterklaas release'
+    if (xmaster) then
        call writelog('ls','','**********************************************************')
        call writelog('ls','','                   Welcome to XBeach                      ')
        call writelog('ls','','                                                          ')
