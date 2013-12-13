@@ -721,9 +721,9 @@ contains
     ! front
     call writelog('l','','--------------------------------')
     call writelog('l','','Flow boundary condition parameters: ')
-    allocate(allowednames(6),oldnames(6))
-    allowednames=(/'abs_1d   ','abs_2d   ','wall     ','wlevel   ','nonh_1d  ','waveflume'/)
-    oldnames=(/'0','1','2','3','4','5'/)
+    allocate(allowednames(7),oldnames(7))
+    allowednames=(/'abs_1d   ','abs_2d   ','wall     ','wlevel   ','nonh_1d  ','waveflume','abs_2d_alt'/)
+    oldnames=(/'0','1','2','3','4','5','6'/)
     par%front  = readkey_str('params.txt','front','abs_2d',6,6,allowednames,oldnames)
     deallocate(allowednames,oldnames)
     ! left and right
@@ -734,9 +734,9 @@ contains
     par%right  = readkey_str('params.txt','right','neumann',4,2,allowednames,oldnames)
     deallocate(allowednames,oldnames)
     ! back
-    allocate(allowednames(4),oldnames(4))
-    allowednames=(/'wall   ', 'abs_1d ','abs_2d ','wlevel '/)
-    oldnames=(/'0','1','2','3'/)
+    allocate(allowednames(5),oldnames(5))
+    allowednames=(/'wall   ', 'abs_1d ','abs_2d ','wlevel ','abs_2d_alt'/)
+    oldnames=(/'0','1','2','3','4'/)
     par%back   = readkey_str('params.txt','back','abs_2d',4,4,allowednames,oldnames)
     deallocate(allowednames,oldnames)
     ! others

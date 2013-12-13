@@ -1043,11 +1043,11 @@ contains
              do j=j1,max(ny,1)
                 ! compute gradients in u-points
                 dhdx   (1,j) = ( ht  (2,j) - ht  (1,j) ) / dsu(1,j)
-                dbetadx(1,j) = ( beta(2,j) - beta(1,j) ) / dsz(2,j)
+                dbetadx(1,j) = ( beta(2,j) - beta(1,j) ) / dsz(2,j)  !!!waarom is de index hier 2? ap en joost 10/12/13
 
                 if (ny>0) then
-                   dvdy   (1,j) = ( vu  (1,j+1) - vu  (1,j-1) ) / ( 2.d0*dnu(1,j) ) 
-                   dbetady(1,j) = ( beta(1,j+1) - beta(1,j-1) ) / ( 2.d0*dnu(1,j) )
+                   dvdy   (1,j) = ( vu  (1,j+1) - vu  (1,j-1) ) / ( 2.d0*dnu(1,j) ) !!! dnz? ap with joost 10/12/13
+                   dbetady(1,j) = ( beta(1,j+1) - beta(1,j-1) ) / ( 2.d0*dnu(1,j) ) !!! dnz? ap with joost 10/12/13
                 else
                    dvdy   (1,j) = 0.d0
                    dbetady(1,j) = 0.d0
@@ -1134,6 +1134,51 @@ contains
              end do
              vv(1,:)=vv(2,:)
              if (par%nonh==1) ws(1,:) = ws(2,:)
+          else if (trim(par%front)=='abs_2d_alt') then ! abs_1d extended to 2D
+              ! Compute angle of incominge wave
+              thetai = datan(vi(1,:)/(ui(1,:)+1.d-16))   
+              
+
+              
+              do j=j1,max(ny,1)
+                  
+                umean(1,j) = (factime*sum(uu(1,max(1,j-par%nc):min(j+par%nc,ny))*dnu(1,max(1,j-par%nc):min(j+par%nc,ny))) &
+                        /sum(dnu(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(1,j)) 
+                
+                vmean(1,j) = (factime*sum(vv(1,max(1,j-par%nc):min(j+par%nc,ny))*dnv(1,max(1,j-par%nc):min(j+par%nc,ny))) &
+                        /sum(dnv(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(1,j))   
+                  
+                ur(1,j) = uu(1,j)-umean(1,j)-ui(1,j) ! needed for first iteration
+                alpha2(j)=-theta0 ! estimate for first iteration
+                alphanew = 0.d0
+              
+                do jj=1,50 ! determine alpha2 (=thetar, angle of returning wave) by iteration
+                   !vert = velocity of the reflected wave = total-specified
+                   vert = vu(1,j)-vmean(1,j)-vi(1,j)
+                   alphanew = datan(vert/(ur(1,j)+1.d-16))
+                   if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
+                   if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
+                   if(dabs(alphanew-alpha2(j)).lt.0.001d0) EXIT
+                   alpha2(j) = alphanew 
+                   
+                   if (par%freewave==1) then ! assuming incoming long wave propagates at sqrt(g*h)
+                      uu(1,j) = (1.0d0+cosd(alpha2)/cosd(thetai(j)))*ui(1,j)-(sqrt(par%g/hh(1,j)*cosd(alpha2)* &
+                        (zs(2,j)-zs0(2,j))) + umean(1,j) 
+                   else                     ! assuming incoming long wave propagates at cg
+                      uu(1,j) = (1.0d0+(sqrt(par%g*hh(1,j))*cosd(alpha2))/(cg(1,j)*cosd(thetai(j))))*ui(1,j)- &
+                        (sqrt(par%g/hh(1,j)*cosd(alpha2)*(zs(2,j)-zs0(2,j))) + umean(1,j) 
+                   endif
+                   
+                   ur(1,j) = uu(1,j)-umean(1,j)-ui(1,j)
+                   
+                end do
+              end do              
+              ! not needed, uu needs to be calculated inside the j-loop, to make sure ur changes and thetar actually converges
+              ! if (par%freewave==1) then ! assuming incoming long wave propagates at sqrt(g*h)
+              !        uu(1,:) = (1.0d0+cosd(alpha2)/cosd(thetai(j)))*ui(1,:)-(sqrt(par%g/hh(1,:)*cosd(alpha2)*(zs(2,:)-zs0(2,:))) + umean(1,:) 
+              ! else                     ! assuming incoming long wave propagates at cg
+              !         uu(1,:) = (1.0d0+(sqrt(par%g*hh(1,:))*cosd(alpha2))/(cg(1,:)*cosd(thetai(j))))*ui(1,:)-(sqrt(par%g/hh(1,:)*cosd(alpha2)*(zs(2,:)-zs0(2,:))) + umean(1,:) 
+              ! endif
           else if (trim(par%front)=='wall') then
              !       uu(1,:)=0.d0
              !      zs(1,:)=max(zs(2,:),zb(1,:))
