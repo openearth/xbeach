@@ -1138,23 +1138,25 @@ contains
               ! Compute angle of incominge wave
               thetai = datan(vi(1,:)/(ui(1,:)+1.d-16))   
               
-
-              
+              ! Compute mean velocities (before uu is changed)
               do j=j1,max(ny,1)
-                  
                 umean(1,j) = (factime*sum(uu(1,max(1,j-par%nc):min(j+par%nc,ny))*dnu(1,max(1,j-par%nc):min(j+par%nc,ny))) &
-                        /sum(dnu(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(1,j)) 
+                        /sum(dnu(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(1,j))  ! JPdB: uu(1,j) changes every iteration in the jj loop, so probably do this in a separate loop??
                 
                 vmean(1,j) = (factime*sum(vv(1,max(1,j-par%nc):min(j+par%nc,ny))*dnv(1,max(1,j-par%nc):min(j+par%nc,ny))) &
                         /sum(dnv(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(1,j))   
-                  
+              enddo
+              
+              ! Iterate to correct ur & thetar over y
+              do j=j1,max(ny,1)
                 ur(1,j) = uu(1,j)-umean(1,j)-ui(1,j) ! needed for first iteration
                 alpha2(j)=-theta0 ! estimate for first iteration
                 alphanew = 0.d0
+                
+                !vert = velocity of the reflected wave = total-specified
+                vert = vu(1,j)-vmean(1,j)-vi(1,j)
               
-                do jj=1,50 ! determine alpha2 (=thetar, angle of returning wave) by iteration
-                   !vert = velocity of the reflected wave = total-specified
-                   vert = vu(1,j)-vmean(1,j)-vi(1,j)
+                do jj=1,50 ! determine alpha2 (=thetar, angle of returning wave) by iteration  
                    alphanew = datan(vert/(ur(1,j)+1.d-16))
                    if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
                    if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
@@ -1162,17 +1164,22 @@ contains
                    alpha2(j) = alphanew 
                    
                    if (par%freewave==1) then ! assuming incoming long wave propagates at sqrt(g*h)
-                      uu(1,j) = (1.0d0+cosd(alpha2)/cosd(thetai(j)))*ui(1,j)-(sqrt(par%g/hh(1,j)*cosd(alpha2)* &
+                      uu(1,j) = (1.0d0+cosd(alpha2(j))/cosd(thetai(j)))*ui(1,j)-(sqrt(par%g/hh(1,j))*cosd(alpha2(j))* &
                         (zs(2,j)-zs0(2,j))) + umean(1,j) 
                    else                     ! assuming incoming long wave propagates at cg
-                      uu(1,j) = (1.0d0+(sqrt(par%g*hh(1,j))*cosd(alpha2))/(cg(1,j)*cosd(thetai(j))))*ui(1,j)- &
-                        (sqrt(par%g/hh(1,j)*cosd(alpha2)*(zs(2,j)-zs0(2,j))) + umean(1,j) 
+                      uu(1,j) = (1.0d0+(sqrt(par%g*hh(1,j))*cosd(alpha2(j)))/(cg(1,j)*cosd(thetai(j))))*ui(1,j)- &
+                        (sqrt(par%g/hh(1,j))*cosd(alpha2(j))*(zs(2,j)-zs0(2,j))) + umean(1,j) 
                    endif
                    
                    ur(1,j) = uu(1,j)-umean(1,j)-ui(1,j)
                    
                 end do
-              end do              
+              end do  
+              
+              vv(1,:)=vv(2,:)
+              zs(1,:)=zs(2,:)
+              
+              ! TODO: remove when abs_2d_alt works
               ! not needed, uu needs to be calculated inside the j-loop, to make sure ur changes and thetar actually converges
               ! if (par%freewave==1) then ! assuming incoming long wave propagates at sqrt(g*h)
               !        uu(1,:) = (1.0d0+cosd(alpha2)/cosd(thetai(j)))*ui(1,:)-(sqrt(par%g/hh(1,:)*cosd(alpha2)*(zs(2,:)-zs0(2,:))) + umean(1,:) 
