@@ -2,10 +2,10 @@ module boundaryconditions
   use typesandkinds
 contains
   subroutine wave_bc(sg,sl,par)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
     ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
-    ! Jaap van Thiel de Vries, Robert McCall                                  !       
+    ! Jaap van Thiel de Vries, Robert McCall                                  !
     !                                                                         !
     ! d.roelvink@unesco-ihe.org                                               !
     ! UNESCO-IHE Institute for Water Education                                !
@@ -84,7 +84,7 @@ contains
     s=>sg
 #endif
     include 's.inp'
-    
+
     if (.not. allocated(fac1)) then
        allocate(ht      (2,ny+1))
        allocate(fac1    (nx))
@@ -100,7 +100,7 @@ contains
     ! added for bound long wave comp Ad 28 march 2006
     dtheta = par%dtheta*par%px/180
     startbcf=.false.
-    
+
     if(.not. bccreated ) then
        if (xmaster) then
           call writelog('ls','','Setting up boundary conditions')
@@ -205,12 +205,12 @@ contains
           call xmpi_bcast(par%Trep)
           call xmpi_bcast(par%m)
           call xmpi_bcast(theta0)
-#endif  
+#endif
           do itheta=1,ntheta
              sigt(:,:,itheta) = 2.d0*par%px/par%Trep
           end do
           sigm = sum(sigt,3)/ntheta
-          call dispersion(par,s)     
+          call dispersion(par,s)
 
        elseif ((trim(par%instat)=='jons'.or.trim(par%instat)=='jons_table').and.xmaster) then
           ! wp is not saved and we only know about the current line which is called listline in wp....
@@ -244,7 +244,7 @@ contains
           else
              curline = 1
           endif
-       elseif (trim(par%instat)=='ts_nonh') then 
+       elseif (trim(par%instat)=='ts_nonh') then
 !          call velocity_Boundary('boun_U.bcf',ui(1,:),zi(1,:),wi(1,:),nx,ny,sg%ny,sl,par%t,zs(2,:),ws(2,:))
            if (.not. allocated(uig)) then
               if (xmaster) then
@@ -257,7 +257,7 @@ contains
                  allocate(wig(1))
               endif
            endif
-           if (xmaster) then  
+           if (xmaster) then
               call velocity_Boundary('boun_U.bcf',uig,zig,wig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W)
            endif
        endif
@@ -283,7 +283,7 @@ contains
 
           ! energy density distribution
 
-          if (sum(dist)>0.d0) then 
+          if (sum(dist)>0.d0) then
              factor = (dist/sum(dist))/dtheta
           else
              factor=0.d0
@@ -301,7 +301,7 @@ contains
        endif
     end if
 
-    if (par%t .ge. bcendtime) then  ! Recalculate bcf-file 
+    if (par%t .ge. bcendtime) then  ! Recalculate bcf-file
        if (trim(par%instat)=='stat_table') then
           if (xmaster) then
              call writelog('ls','','Reading new wave conditions')
@@ -347,7 +347,7 @@ contains
 
           ! energy density distribution
 
-          if (sum(dist)>0.d0) then 
+          if (sum(dist)>0.d0) then
              factor = (dist/sum(dist))/dtheta
           else
              factor=0.d0
@@ -366,7 +366,7 @@ contains
              call spectral_wave_bc(sg,par,curline)
           endif
           startbcf=.true.
-       elseif (trim(par%instat)=='swan'.and.xmaster) then 
+       elseif (trim(par%instat)=='swan'.and.xmaster) then
           close(71)
           close(72)
           if (par%wbcversion<3) then
@@ -377,7 +377,7 @@ contains
              call spectral_wave_bc(sg,par,curline)
           endif
           startbcf=.true.
-       elseif (trim(par%instat)=='vardens'.and.xmaster) then 
+       elseif (trim(par%instat)=='vardens'.and.xmaster) then
           close(71)
           close(72)
           if (par%wbcversion<3) then
@@ -408,7 +408,7 @@ contains
     ! instat = 2 => wave energy time series from Gen.ezs; bound long wave from LHS 1962
     ! instat = 3 => wave energy time series and (bound) long waves from Gen.ezs
     ! instat = 4 or 41 => directional wave energy time series for Jonswap spectrum from user specified file; bound long wave from van Dongeren, 19??
-    ! instat = 5 => directional wave energy time series from SWAN 2D spectrum file; bound long wave from van Dongeren, 19??    
+    ! instat = 5 => directional wave energy time series from SWAN 2D spectrum file; bound long wave from van Dongeren, 19??
     ! instat = 6 => directional wave energy time series from spectrum file; bound long wave from van Dongeren, 19??
     ! instat = 7 => as instat = 4/5/6; reading from previously computed wave boundary condition file.
     if (trim(par%instat)=='stat' .or. trim(par%instat)=='stat_table') then
@@ -438,7 +438,7 @@ contains
              ! jaap this does not work for curvi code
              tshifted = max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1) & !-sum(alfaz(1,1:j))/j
                   +(xz(1,j)-xz(1,1))*cos(theta0)/cg(1,1),0.d0) !-sum(alfaz(1,1:j))/j
-             call linear_interp(tE,dataE,nt,tshifted,E1,E_idx) 
+             call linear_interp(tE,dataE,nt,tshifted,E1,E_idx)
           endif
           ee(1,j,:)=e01*E1/max(Emean,0.000001d0)*min(par%t/par%taper,1.d0)
           em = Emean *min(par%t/par%taper,1.d0)
@@ -451,14 +451,14 @@ contains
        ht=zs0(1:2,:)-zb(1:2,:)
        do j=1,ny+1
           if (abs(theta0-sum(alfaz(1,1:j))/j)<1e-3) then
-             call linear_interp(tE,dataE,nt,par%t,E1,E_idx) 
+             call linear_interp(tE,dataE,nt,par%t,E1,E_idx)
              call linear_interp(tE,databi,nt,par%t,bi(1),E_idx)
           else
              ! tshifted=max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1),0.d0)
              ! jaap this does not work for curvi code
              tshifted = max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1) & !-sum(alfaz(1,1:j))/j
                   +(xz(1,j)-xz(1,1))*cos(theta0)/cg(1,1),0.d0) !-sum(alfaz(1,1:j))/j
-             call linear_interp(tE,dataE,nt,tshifted,E1,E_idx) 
+             call linear_interp(tE,dataE,nt,tshifted,E1,E_idx)
              call linear_interp(tE,databi,nt,tshifted,bi(1),E_idx)
           endif
           ee(1,j,:)=e01*E1/max(Emean,0.000001d0)*min(par%t/par%taper,1.d0)
@@ -474,8 +474,8 @@ contains
          (trim(par%instat)=='swan') .or. &
          (trim(par%instat)=='vardens') .or. &
          (trim(par%instat)=='reuse')  &
-         ) then  
-       if(par%nonhspectrum==0) then 
+         ) then
+       if(par%nonhspectrum==0) then
           ! open file if first time
           if (startbcf) then
              if(xmaster) then
@@ -509,12 +509,12 @@ contains
              endif
              ! Robert and Jaap : Initialize for new wave conditions
              ! par%Trep = par%Trep
-             ! par%omega = 2*par%px/par%Trep            
+             ! par%omega = 2*par%px/par%Trep
              do itheta=1,ntheta
                 sigt(:,:,itheta) = 2*par%px/par%Trep
              end do
              sigm = sum(sigt,3)/ntheta
-             call dispersion(par,s)     
+             call dispersion(par,s)
              ! End initialize
              if (xmaster) then
                 inquire(iolength=wordsize) 1.d0
@@ -549,17 +549,17 @@ contains
                 read(71,rec=2,iostat=ier2)gee2       ! Later in time
                 if (ier+ier2 .ne. 0) then
                    call report_file_read_error(ebcfname)
-                endif                
+                endif
                 read(72,rec=1,iostat=ier)gq1        ! Earlier in time
                 read(72,rec=2,iostat=ier2)gq2        ! Later in time
                 if (ier+ier2 .ne. 0) then
                    call report_file_read_error(qbcfname)
-                endif                
+                endif
              endif
 #ifdef USEMPI
              !
              ! wwvv todo
-             ! would be cleaner if we had defined general subroutines 
+             ! would be cleaner if we had defined general subroutines
              ! for this in spaceparams
              !
              call space_distribute("y",sl,gee1,ee1)
@@ -587,19 +587,19 @@ contains
                    read(72,rec=recpos+1,iostat=ier)gq2
                    if (ier .ne. 0) then
                       call report_file_read_error(qbcfname)
-                   endif 
+                   endif
                    read(71,rec=recpos+1,iostat=ier)gee2
                    if (ier .ne. 0) then
                       call report_file_read_error(ebcfname)
-                   endif 
+                   endif
                    read(72,rec=recpos,iostat=ier)gq1
                    if (ier .ne. 0) then
                       call report_file_read_error(qbcfname)
-                   endif 
+                   endif
                    read(71,rec=recpos,iostat=ier)gee1
                    if (ier .ne. 0) then
                       call report_file_read_error(ebcfname)
-                   endif 
+                   endif
                 endif
 
 #ifdef USEMPI
@@ -612,7 +612,7 @@ contains
                 ee2=gee2
                 q1=gq2
                 q2=gq2
-#endif 
+#endif
              else  ! Only one step further in the bc file
                 ee1=ee2
                 q1=q2
@@ -620,16 +620,16 @@ contains
                    read(72,rec=recpos+1,iostat=ier)gq2
                    if (ier .ne. 0) then
                       call report_file_read_error(qbcfname)
-                   endif 
+                   endif
                    read(71,rec=recpos+1,iostat=ier)gee2
                    if (ier .ne. 0) then
                       call report_file_read_error(ebcfname)
-                   endif 
+                   endif
                 endif
 #ifdef USEMPI
                 call space_distribute("y",sl,gee2,ee2)
                 call space_distribute("y",sl,gq2,q2)
-#else  
+#else
                 ee2=gee2
                 q2=gq2
 #endif
@@ -653,7 +653,7 @@ contains
                    read(53,*,iostat=ier)bcstarttime,bcendtime,nhbcfname
                    if (ier .ne. 0) then
                       call report_file_read_error('nhbcflist.bcf')
-                   endif 
+                   endif
                 enddo
                 close(53)
              endif
@@ -670,9 +670,9 @@ contains
                    allocate(wig(1))
                 endif
              endif
-             if (xmaster) then  
-                if (trim(nhbcfname)=='nh_reuse.bcf') then  
-                   ! Reuse time series will start at t=0, so we need to add the offset time to 
+             if (xmaster) then
+                if (trim(nhbcfname)=='nh_reuse.bcf') then
+                   ! Reuse time series will start at t=0, so we need to add the offset time to
                    ! the time vector in the boundary condition file using the optional bcst variable
                 call velocity_Boundary(nhbcfname,uig,zig,wig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W, &
                                        force_init=.true.,bcst=bcstarttime)
@@ -696,15 +696,15 @@ contains
              ui(1,:) = uig
              zi(1,:) = zig
              wi(1,:) = wig
-#endif     
+#endif
              if (.not. isSet_U) ui(1,:) = 0.d0
              if (.not. isSet_Z) zi(1,:) = zs(2,:)
              if (.not. isSet_W) wi(1,:) = ws(2,:)
              call nonh_init_wcoef(s,par)
           else
-             if (xmaster) then  
-                if (trim(nhbcfname)=='nh_reuse.bcf') then  
-                   ! Reuse time series will start at t=0, so we need to add the offset time to 
+             if (xmaster) then
+                if (trim(nhbcfname)=='nh_reuse.bcf') then
+                   ! Reuse time series will start at t=0, so we need to add the offset time to
                    ! the time vector in the boundary condition file using the optional bcst variable
                 call velocity_Boundary(nhbcfname,uig,zig,wig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W, &
                                        bcst=bcstarttime)
@@ -726,20 +726,20 @@ contains
              ui(1,:) = uig
              zi(1,:) = zig
              wi(1,:) = wig
-#endif     
+#endif
              if (.not. isSet_U) ui(1,:) = 0.d0
              if (.not. isSet_Z) zi(1,:) = zs(2,:)
              if (.not. isSet_W) wi(1,:) = ws(2,:)
           endif
           ui(1,:) = ui(1,:)*min(par%t/par%taper,1.0d0)
-	      zi(1,:) = zi(1,:)*min(par%t/par%taper,1.0d0)
+              zi(1,:) = zi(1,:)*min(par%t/par%taper,1.0d0)
           wi(1,:) = wi(1,:)*min(par%t/par%taper,1.0d0)
        endif ! nonhspectrum
-    elseif (trim(par%instat)=='ts_nonh') then   
+    elseif (trim(par%instat)=='ts_nonh') then
 !       call velocity_Boundary('boun_U.bcf',ui(1,:),zi(1,:),wi(1,:),nx,ny,sg%ny,sl,par%t,zs(2,:),ws(2,:))
-        if (xmaster) then  
+        if (xmaster) then
            call velocity_Boundary('boun_U.bcf',uig,zig,wig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W)
-        endif     
+        endif
 #ifdef USEMPI
         call space_distribute("y",sl,uig,ui(1,:))
         call space_distribute("y",sl,zig,zi(1,:))
@@ -751,10 +751,10 @@ contains
         ui(1,:) = uig
         zi(1,:) = zig
         wi(1,:) = wig
-#endif     
+#endif
         if (.not. isSet_U) ui(1,:) = 0.d0
         if (.not. isSet_Z) zi(1,:) = zs(2,:)
-        if (.not. isSet_W) wi(1,:) = ws(2,:)          
+        if (.not. isSet_W) wi(1,:) = ws(2,:)
     endif
     ! Jaap: set incoming short wave energy to zero
     ee(1,:,:) = par%swave*ee(1,:,:)
@@ -764,7 +764,7 @@ contains
     ! subroutine
 #ifdef USEMPI
     call xmpi_shift(ui,'1:')
-    if (trim(par%instat)=='ts_nonh' .or. par%nonhspectrum==1) then 
+    if (trim(par%instat)=='ts_nonh' .or. par%nonhspectrum==1) then
        call xmpi_shift(zi,'1:')
        call xmpi_shift(wi,'1:')
     endif
@@ -827,7 +827,7 @@ contains
        zsmean(2,:) = zs(nx,:)
        umean = uu
        vmean = vv
-       dzs0 = 0.d0 
+       dzs0 = 0.d0
        thetai = 0.d0
     endif
 
@@ -852,22 +852,22 @@ contains
     endif
 
     !allocate(szs0(1:2))  ! wwvv changed this, now defined as an automatic array
-    !allocate(yzs0(1:2)) 
+    !allocate(yzs0(1:2))
     !
     ! Sea boundary at x=0;
     !
     !
     ! UPDATE TIDE AND SURGE
-    ! 
-    ! Need to interpolate input tidal signal to xbeach par%t to 
-    ! compute proper tide contribution 
+    !
+    ! Need to interpolate input tidal signal to xbeach par%t to
+    ! compute proper tide contribution
 
     if (par%tideloc>0) then
 
-       ! read in first water surface time series 
+       ! read in first water surface time series
        call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,1), s%tidelen, par%t, s%zs01, indt)
 
-       if(par%tideloc.eq.1) then 
+       if(par%tideloc.eq.1) then
           s%zs02=s%zs01
        end if
 
@@ -904,7 +904,7 @@ contains
 
           ! for MPI look at water level gradient over each subdomain
 
-          ! lonsghore water level difference over whole model domain at offshore boundary    
+          ! lonsghore water level difference over whole model domain at offshore boundary
           dzs0dy = (s%zs02-s%zs01)/(s%xyzs02(2)-s%xyzs01(2));
 
           ! estimate water level at corners sub-domain
@@ -919,7 +919,7 @@ contains
           ! Dano: fix of Neumann boundaries with tide
           zs0(3:nx+1,1)=zs0(1,1)
           zs0(3:nx+1,ny+1)=zs0(1,ny+1)
-          !do j = 1,ny+1 
+          !do j = 1,ny+1
           !   do i = 1,nx+1
           !      zs0(i,j) = zs0(1,j)
           !   enddo
@@ -984,16 +984,16 @@ contains
        !
        zsmean(1,:) = factime*zs(1,:)+(1-factime)*zsmean(1,:)
        zsmean(2,:) = factime*zs(nx,:)+(1-factime)*zsmean(2,:)
-       ! compute difference between offshore/bay mean water level and imposed on tide   
+       ! compute difference between offshore/bay mean water level and imposed on tide
        dzs0(1,:) = zs0(1,:)-zsmean(1,:)
        dzs0(2,:) = zs0(nx,:)-zsmean(2,:)
-#ifdef USEMPI    
+#ifdef USEMPI
        call xmpi_getrow(dzs0,ny+1,'1',1,dzs0(1,:))
        call xmpi_getrow(dzs0,ny+1,'m',xmpi_m,dzs0(2,:))
-#endif    
+#endif
 
-       do j = 1,ny+1 
-          do i = 1,nx+1 
+       do j = 1,ny+1
+          do i = 1,nx+1
              zs(i,j) = zs(i,j) + (zs0fac(i,j,1)*dzs0(1,j) + zs0fac(i,j,2)*dzs0(2,j))*wetz(i,j)
           enddo
        enddo
@@ -1064,19 +1064,19 @@ contains
              end do
 
              ! Jaap: Compute angle of incominge wave
-             thetai = datan(vi(1,:)/(ui(1,:)+1.d-16))   
+             thetai = datan(vi(1,:)/(ui(1,:)+1.d-16))
 
              do j=j1,max(ny,1)
                 if (trim(par%tidetype)=='velocity') then
                    ! make sure we have same umean along whole offshore boundayr
                    umean(1,j) = (factime*sum(uu(1,max(1,j-par%nc):min(j+par%nc,ny))*dnu(1,max(1,j-par%nc):min(j+par%nc,ny))) &
-                        /sum(dnu(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(1,j)) 
+                        /sum(dnu(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(1,j))
                    ! make sure we have same umean along whole offshore boundary
                    vmean(1,j) = (factime*sum(vv(1,max(1,j-par%nc):min(j+par%nc,ny))*dnv(1,max(1,j-par%nc):min(j+par%nc,ny))) &
-                        /sum(dnv(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(1,j)) 
+                        /sum(dnv(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(1,j))
                 else
                    umean(1,:) = 0.d0
-                   vmean(1,:) = 0.d0                                                                               
+                   vmean(1,:) = 0.d0
                 endif
 
                 betanp1(1,j) = beta(1,j)+ bn(j)*par%dt
@@ -1087,7 +1087,7 @@ contains
                 !if (trim(par%tidetype)=='velocity') then
                 ! ! Jaap dirty trick to get rid of unrealistic velocity spikes
                 !  umean(1,j) = factime*sign(1.d0,uu(1,j))*min(abs(uu(1,j)),sqrt(par%g*ht(1,j))) + (1-factime)*umean(1,j)
-                !  vmean(1,j) = factime*sign(1.d0,vu(1,j))*min(abs(vu(1,j)),sqrt(par%g*ht(1,j))) + (1-factime)*vmean(1,j) 
+                !  vmean(1,j) = factime*sign(1.d0,vu(1,j))*min(abs(vu(1,j)),sqrt(par%g*ht(1,j))) + (1-factime)*vmean(1,j)
                 !else
                 !  umean(1,j) = 0.d0
                 !  vmean(1,j) = 0.d0
@@ -1099,12 +1099,12 @@ contains
                    if (par%freewave==1) then ! assuming incoming long wave propagates at sqrt(g*h)
                       ur(1,j) = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
                            *(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))) &
-                           -ui(1,j)*(dcos(thetai(j))-1.d0)/dcos(thetai(j)))   
+                           -ui(1,j)*(dcos(thetai(j))-1.d0)/dcos(thetai(j)))
                    else                     ! assuming incoming long wave propagates at cg
                       ur(1,j) = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
-                           *(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j)))&  
+                           *(betanp1(1,j)-umean(1,j)+2.d0*DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j)))&
                            -ui(1,j)*(cg(1,j)*dcos(thetai(j))- DSQRT(par%g*0.5d0*(ht(1,j)+ht(2,j))) )/&
-                           (cg(1,j)*dcos(thetai(j)))) 
+                           (cg(1,j)*dcos(thetai(j))))
                    endif
 
                    !vert = velocity of the reflected wave = total-specified
@@ -1113,7 +1113,7 @@ contains
                    if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
                    if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
                    if(dabs(alphanew-alpha2(j)).lt.0.001d0) goto 1000    ! wwvv can use exit here
-                   alpha2(j) = alphanew 
+                   alpha2(j) = alphanew
                 end do
 1000            continue
                 if (par%ARC==0) then
@@ -1136,55 +1136,55 @@ contains
              if (par%nonh==1) ws(1,:) = ws(2,:)
           else if (trim(par%front)=='abs_2d_alt') then ! abs_1d extended to 2D
               ! Compute angle of incominge wave
-              thetai = datan(vi(1,:)/(ui(1,:)+1.d-16))   
-              
+              thetai = datan(vi(1,:)/(ui(1,:)+1.d-16))
+
               ! Compute mean velocities (before uu is changed)
               do j=j1,max(ny,1)
                 umean(1,j) = (factime*sum(uu(1,max(1,j-par%nc):min(j+par%nc,ny))*dnu(1,max(1,j-par%nc):min(j+par%nc,ny))) &
                         /sum(dnu(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(1,j))  ! JPdB: uu(1,j) changes every iteration in the jj loop, so probably do this in a separate loop??
-                
+
                 vmean(1,j) = (factime*sum(vv(1,max(1,j-par%nc):min(j+par%nc,ny))*dnv(1,max(1,j-par%nc):min(j+par%nc,ny))) &
-                        /sum(dnv(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(1,j))   
+                        /sum(dnv(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(1,j))
               enddo
-              
+
               ! Iterate to correct ur & thetar over y
               do j=j1,max(ny,1)
                 ur(1,j) = uu(1,j)-umean(1,j)-ui(1,j) ! needed for first iteration
                 alpha2(j)=-theta0 ! estimate for first iteration
                 alphanew = 0.d0
-                
+
                 !vert = velocity of the reflected wave = total-specified
                 vert = vu(1,j)-vmean(1,j)-vi(1,j)
-              
-                do jj=1,50 ! determine alpha2 (=thetar, angle of returning wave) by iteration  
+
+                do jj=1,50 ! determine alpha2 (=thetar, angle of returning wave) by iteration
                    alphanew = datan(vert/(ur(1,j)+1.d-16))
                    if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
                    if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
                    if(dabs(alphanew-alpha2(j)).lt.0.001d0) EXIT
-                   alpha2(j) = alphanew 
-                   
+                   alpha2(j) = alphanew
+
                    if (par%freewave==1) then ! assuming incoming long wave propagates at sqrt(g*h)
-                      uu(1,j) = (1.0d0+cosd(alpha2(j))/cosd(thetai(j)))*ui(1,j)-(sqrt(par%g/hh(1,j))*cosd(alpha2(j))* &
-                        (zs(2,j)-zs0(2,j))) + umean(1,j) 
+                      uu(1,j) = (1.0d0+dcos(alpha2(j))/dcos(thetai(j)))*ui(1,j)-(sqrt(par%g/hh(1,j))*dcos(alpha2(j))* &
+                        (zs(2,j)-zs0(2,j))) + umean(1,j)
                    else                     ! assuming incoming long wave propagates at cg
-                      uu(1,j) = (1.0d0+(sqrt(par%g*hh(1,j))*cosd(alpha2(j)))/(cg(1,j)*cosd(thetai(j))))*ui(1,j)- &
-                        (sqrt(par%g/hh(1,j))*cosd(alpha2(j))*(zs(2,j)-zs0(2,j))) + umean(1,j) 
+                      uu(1,j) = (1.0d0+(sqrt(par%g*hh(1,j))*dcos(alpha2(j)))/(cg(1,j)*dcos(thetai(j))))*ui(1,j)- &
+                        (sqrt(par%g/hh(1,j))*dcos(alpha2(j))*(zs(2,j)-zs0(2,j))) + umean(1,j)
                    endif
-                   
+
                    ur(1,j) = uu(1,j)-umean(1,j)-ui(1,j)
-                   
+
                 end do
-              end do  
-              
+              end do
+
               vv(1,:)=vv(2,:)
               zs(1,:)=zs(2,:)
-              
+
               ! TODO: remove when abs_2d_alt works
               ! not needed, uu needs to be calculated inside the j-loop, to make sure ur changes and thetar actually converges
               ! if (par%freewave==1) then ! assuming incoming long wave propagates at sqrt(g*h)
-              !        uu(1,:) = (1.0d0+cosd(alpha2)/cosd(thetai(j)))*ui(1,:)-(sqrt(par%g/hh(1,:)*cosd(alpha2)*(zs(2,:)-zs0(2,:))) + umean(1,:) 
+              !        uu(1,:) = (1.0d0+dcos(alpha2)/dcos(thetai(j)))*ui(1,:)-(sqrt(par%g/hh(1,:)*dcos(alpha2)*(zs(2,:)-zs0(2,:))) + umean(1,:)
               ! else                     ! assuming incoming long wave propagates at cg
-              !         uu(1,:) = (1.0d0+(sqrt(par%g*hh(1,:))*cosd(alpha2))/(cg(1,:)*cosd(thetai(j))))*ui(1,:)-(sqrt(par%g/hh(1,:)*cosd(alpha2)*(zs(2,:)-zs0(2,:))) + umean(1,:) 
+              !         uu(1,:) = (1.0d0+(sqrt(par%g*hh(1,:))*dcos(alpha2))/(cg(1,:)*dcos(thetai(j))))*ui(1,:)-(sqrt(par%g/hh(1,:)*dcos(alpha2)*(zs(2,:)-zs0(2,:))) + umean(1,:)
               ! endif
           else if (trim(par%front)=='wall') then
              !       uu(1,:)=0.d0
@@ -1192,9 +1192,9 @@ contains
           else if (trim(par%front)=='wlevel') then
              zs(1,:)=zs0(1,:)
           else if (trim(par%front)=='nonh_1d') then
-             !Timeseries Boundary for nonh, only use in combination with instat=8       
+             !Timeseries Boundary for nonh, only use in combination with instat=8
              if (trim(par%tidetype)=='velocity') then
-                umean(1,:) = (factime*sum(uu(1,:)*dnu(1,:))/sum(dnu(1,:))+(1-factime)*umean(1,:)) 
+                umean(1,:) = (factime*sum(uu(1,:)*dnu(1,:))/sum(dnu(1,:))+(1-factime)*umean(1,:))
                 ! make sure we have same umean along whole offshore boundary
              else
                 umean(1,:) = 0.d0
@@ -1206,7 +1206,7 @@ contains
              else
                 !Radiating boundary for short waves:
                 uu(1,:) = ui(1,:)-sqrt(par%g/hh(1,:))*(zs(2,:)-zi(1,:)-zs0(2,:)) + umean(1,:)
-                !                uu(1,:)=  2*ui(1,:)-sqrt(par%g/hh(1,:))*(zs(2,:)        -zs0(2,:)) 
+                !                uu(1,:)=  2*ui(1,:)-sqrt(par%g/hh(1,:))*(zs(2,:)        -zs0(2,:))
                 zs(1,:) = zs(2,:)
                 ws(1,:) = ws(2,:)
              endif
@@ -1225,7 +1225,7 @@ contains
           call xmpi_shift(zs,':n')
 #endif
        endif  ! xmpi_istop
-       ! wwvv uu and zs and vv need to be communicated vertically 
+       ! wwvv uu and zs and vv need to be communicated vertically
 #ifdef USEMPI
        call xmpi_shift(uu,'1:')
        call xmpi_shift(zs,'1:')
@@ -1235,12 +1235,12 @@ contains
        ! Radiating boundary at x=nx*dx
        !
        if (xmpi_isbot) then
-          if (trim(par%back)=='wall') then ! leave uu(nx+1,:)=0 
-             !  uu(nx,:) = 0.d0   
+          if (trim(par%back)=='wall') then ! leave uu(nx+1,:)=0
+             !  uu(nx,:) = 0.d0
              !  zs(nx+1,:) = zs(nx,:)
              !  zs(nx+1,2:ny) = zs(nx+1,2:ny) + par%dt*hh(nx,2:ny)*uu(nx,2:ny)/(xu(nx+1)-xu(nx)) -par%dt*(hv(nx+1,2:ny+1)*vv(nx+1,2:ny+1)-hv(nx+1,1:ny)*vv(nx+1,1:ny))/(yv(2:ny+1)-yv(1:ny))
           elseif (trim(par%back)=='abs_1d') then
-             !        umean(nx,:) = factime*uu(nx,:)+(1.d0-factime)*umean(nx,:) 
+             !        umean(nx,:) = factime*uu(nx,:)+(1.d0-factime)*umean(nx,:)
              ! After hack 3/6/2010, return to par%epsi :
              if (trim(par%tidetype)=='velocity') then
                 !  umean(nx,:) = (factime*uu(nx,:)+(1-factime)*umean(nx,:))
@@ -1248,8 +1248,8 @@ contains
              else
                 umean(nx,:) = 0.d0
              endif
-             uu(nx,:)=sqrt(par%g/hh(nx,:))*(zs(nx,:)-max(zb(nx,:),zs0(nx,:)))+umean(nx,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
-             !uu(nx,:)=cg(nx,:)/hh(nx,:)*(zs(nx,:)-max(zb(nx,:),zs0(nx,:)))+umean(nx,:)   ! cjaap: make sure if the last cell is dry no radiating flow is computed... 
+             uu(nx,:)=sqrt(par%g/hh(nx,:))*(zs(nx,:)-max(zb(nx,:),zs0(nx,:)))+umean(nx,:) ! cjaap: make sure if the last cell is dry no radiating flow is computed...
+             !uu(nx,:)=cg(nx,:)/hh(nx,:)*(zs(nx,:)-max(zb(nx,:),zs0(nx,:)))+umean(nx,:)   ! cjaap: make sure if the last cell is dry no radiating flow is computed...
              !uu(nx,:)=sqrt(par%g/(zs0(nx,:)-zb(nx,:)))*(zs(nx,:)-max(zb(nx,:),zs0(nx,:)))
              !umean(nx,:) = factime*uu(nx,:)+(1-factime)*umean(nx,:)    !Ap
              !zs(nx+1,:)=max(zs0(nx+1,:),zb(nx+1,:))+(uu(nx,:)-umean(nx,:))*sqrt(max((zs0(nx+1,:)-zb(nx+1,:)),par%eps)/par%g)    !Ap
@@ -1267,13 +1267,13 @@ contains
                    dbetadx(2,j)=(beta(2,j)-beta(1,j))/dsz(nx,j)
                    dbetady(2,j)=(beta(1,j+1)-beta(1,j-1))/(2.0*dnu(nx,j))
 
-                   inv_ht(j) = 1.d0/hum(nx,j)                                           
+                   inv_ht(j) = 1.d0/hum(nx,j)
 
-                   bn(j)=-(uu(nx,j)+dsqrt(par%g*hum(nx,j)))*dbetadx(2,j) &       
+                   bn(j)=-(uu(nx,j)+dsqrt(par%g*hum(nx,j)))*dbetadx(2,j) &
                         -vu(nx,j)*dbetady(2,j)& !Ap vu
-                        -dsqrt(par%g*hum(nx,j))*dvdy(2,j)&                            
-                        +Fx(nx,j)*inv_ht(j)/par%rho-par%g/par%C**2.d0&               
-                        *sqrt(uu(nx,j)**2+vu(nx,j)**2)*uu(nx,j)/hum(nx,j)&       
+                        -dsqrt(par%g*hum(nx,j))*dvdy(2,j)&
+                        +Fx(nx,j)*inv_ht(j)/par%rho-par%g/par%C**2.d0&
+                        *sqrt(uu(nx,j)**2+vu(nx,j)**2)*uu(nx,j)/hum(nx,j)&
                         +par%g*dhdx(2,j)
                 endif    ! Robert: dry back boundary points
              enddo
@@ -1284,26 +1284,26 @@ contains
                    betanp1(1,j) = beta(2,j)+ bn(j)*par%dt                                   !Ap toch?
                    alpha2(j)= theta0
                    alphanew = 0.d0
-                   !          umean(nx,j) = (factime*uu(nx,j)+(1-factime)*umean(nx,j))           !Ap 
+                   !          umean(nx,j) = (factime*uu(nx,j)+(1-factime)*umean(nx,j))           !Ap
                    ! After hack 3/6/2010, return to par%epsi :
                    ! Jaap moved up does not need to be in j loop
                    if (trim(par%tidetype)=='velocity') then
                       ! make sure we have same umean along whole offshore boundary
                       umean(nx,j) = (factime*sum(uu(nx,max(1,j-par%nc):min(j+par%nc,ny))*dnu(nx,max(1,j-par%nc):min(j+par%nc,ny))) &
-                           /sum(dnu(nx,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(nx,j)) 
-                      ! make sure we have same umean along whole offshore boundary      
+                           /sum(dnu(nx,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(nx,j))
+                      ! make sure we have same umean along whole offshore boundary
                       vmean(nx,j) = (factime*sum(vv(nx,max(1,j-par%nc):min(j+par%nc,ny))*dnv(nx,max(1,j-par%nc):min(j+par%nc,ny))) &
-                           /sum(dnv(nx,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(nx,j)) 
+                           /sum(dnv(nx,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(nx,j))
                    else
                       umean(nx,:) = 0.d0
-                      vmean(nx,:) = 0.d0                                                                               
+                      vmean(nx,:) = 0.d0
                    endif
                    do jj=1,50
                       !
                       !---------- Lower order bound. cond. ---
                       !
-                      ur(nx,j) = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&  
-                           *((betanp1(1,j)-umean(nx,j)-2.d0*DSQRT(par%g*0.5*(ht(1,j)+ht(2,j))))) 
+                      ur(nx,j) = dcos(alpha2(j))/(dcos(alpha2(j))+1.d0)&
+                           *((betanp1(1,j)-umean(nx,j)-2.d0*DSQRT(par%g*0.5*(ht(1,j)+ht(2,j)))))
 
                       !vert = velocity of the reflected wave = total-specified
                       vert = vu(nx,j)-vmean(nx,j)                              !Jaap included vmean
@@ -1311,10 +1311,10 @@ contains
                       if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
                       if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
                       if(dabs(alphanew-alpha2(j)).lt.0.001) goto 2000    ! wwvv can use exit here
-                      alpha2(j) = alphanew 
+                      alpha2(j) = alphanew
                    end do
 2000               continue
-                   uu(nx,j) = ur(nx,j) + umean(nx,j)                     
+                   uu(nx,j) = ur(nx,j) + umean(nx,j)
                    ! Ap replaced zs with extrapolation.
                    zs(nx+1,j) = 1.5*((betanp1(1,j)-uu(nx,j))**2.d0/4.d0/par%g+.5*(zb(nx,j)+zb(nx+1,j)))-&
                         0.5*((beta(1,j)-uu(nx-1,j))**2.d0/4.d0/par%g+.5*(zb(nx-1,j)+zb(nx,j)))
@@ -1369,8 +1369,8 @@ contains
     real*8,dimension(s%nx+1)                :: vbc    ! result vector for boundary flow
 
     integer                                 :: i      ! internal variables
-    real*8                                  :: advterm 
-    real*8,save                             :: fc 
+    real*8                                  :: advterm
+    real*8,save                             :: fc
 
     include 's.ind'                                   ! pointers
     include 's.inp'
@@ -1378,7 +1378,7 @@ contains
     if (par%t<=par%dt) fc =2.d0*par%wearth*sin(par%lat)
 
     if (ny==0) then      ! 1D models have special case
-       if (trim(bctype)=='wall') then 
+       if (trim(bctype)=='wall') then
           vbc(:) = 0.d0 ! Only this bc scheme can be applied to ny==0 models
        else
           vbc(:) = vv(:,jbc)  ! return whatever was already calculated in the flow routine for the cross shore row
@@ -1402,9 +1402,9 @@ contains
           !   -> vv(jbc) = vv(jn) + dt(gDZS(jn)) - dt(gDZS(jbc)) + dt(R(jn)) - dt(R(jn))
           !   -> vv(jbc) = vv(jn) + dt(gDZS(jn)-gDZS(jbc))
           !   -> vv(jbc) = vv(jn) + dtg(DZS(jn)-DZS(jbc))
-          !		     vbc(:) = (vv(:,jn)+par%dt*par%g*(dzsdy(i,jn)-dzsdy(i,jbc))) * wetv(:,jbc)
+          !                  vbc(:) = (vv(:,jn)+par%dt*par%g*(dzsdy(i,jn)-dzsdy(i,jbc))) * wetv(:,jbc)
           ! AANPASSING: Neumann zonder getij
-          ! Dano/Jaap: Je kunt niet druk gradient a.g.v getij meenemen zonder ook andere forcerings termen (bijv bodem wrijving) 
+          ! Dano/Jaap: Je kunt niet druk gradient a.g.v getij meenemen zonder ook andere forcerings termen (bijv bodem wrijving)
           ! uit te rekenen. In geval van getij gradient heb je een meer complexe neumann rvw die jij "free" noemt
           vbc(:) = vv(:,jn)
        case ('no_advec')
@@ -1436,8 +1436,8 @@ contains
           ! Dano/Jaap: En dit is dan dus complexe vorm van Neumann (zoals in Delft3D) met getij
           ! We allow vv at the boundary to be calulated from NLSWE without any limitations
           do i=2,nx
-             if (wetv(i,jbc)==1) then 
-                vbc(i) = vv(i,jbc)- par%dt*(udvdxb(i)+vdvdyb(i)-viscvb(i)& 
+             if (wetv(i,jbc)==1) then
+                vbc(i) = vv(i,jbc)- par%dt*(udvdxb(i)+vdvdyb(i)-viscvb(i)&
                      + par%g*dzsdy(i,jbc)&
                      + tauby(i,jbc)/(par%rho*hvm(i,jbc)) &
                      - par%lwave*Fy(i,jbc)/(par%rho*max(hvm(i,jbc),par%hmin)) &
@@ -1635,9 +1635,9 @@ contains
   end subroutine discharge_boundary_v
 
   !
-  !==============================================================================    
+  !==============================================================================
   subroutine velocity_Boundary(bcfile,ug,zg,wg,nyg,t,isSet_U,isSet_Z,isSet_W,force_init,bcst)
-    !==============================================================================    
+    !==============================================================================
     !
 
     !-------------------------------------------------------------------------------
@@ -1679,7 +1679,7 @@ contains
     !--------------------------     LOCAL VARIABLES    ----------------------------
     character(len=iFileNameLen),save          :: filename_U = ''
     integer                    ,save          :: unit_U = iUnit_U
-    integer                    ,save          :: nygl       
+    integer                    ,save          :: nygl
 
     logical,save                              :: lVarU = .false.
     logical,save                              :: lIsEof = .false.
@@ -1688,14 +1688,14 @@ contains
     logical                                   :: lExists,lOpened
     character(slen)                          :: string
     character(len=2),allocatable,dimension(:),save :: header
-    integer(kind=ikind)                       :: iAllocErr,ier   
-    integer(kind=ikind),save                  :: nvar 
+    integer(kind=ikind)                       :: iAllocErr,ier
+    integer(kind=ikind),save                  :: nvar
 
     integer(kind=ikind),save                  :: iZ = 0
     integer(kind=ikind),save                  :: iU = 0
     integer(kind=ikind),save                  :: iW = 0
     integer(kind=ikind),save                  :: iT = 0
-    integer(kind=ikind)                       :: i    
+    integer(kind=ikind)                       :: i
 
     logical                                   :: fi_local
     real(kind=rKind)                          :: bcstarttime
@@ -1707,10 +1707,10 @@ contains
     real(kind=rKind),allocatable,dimension(:),save :: u1 !
 
     real(kind=rKind),allocatable,dimension(:),save :: z0 !
-    real(kind=rKind),allocatable,dimension(:),save :: z1 !    
+    real(kind=rKind),allocatable,dimension(:),save :: z1 !
 
     real(kind=rKind),allocatable,dimension(:),save :: w0 !
-    real(kind=rKind),allocatable,dimension(:),save :: w1 !        
+    real(kind=rKind),allocatable,dimension(:),save :: w1 !
 
     real(kind=rKind),save                          :: t0 = 0.
     real(kind=rKind),save                          :: t1 = 0.
@@ -1731,7 +1731,7 @@ contains
        else
           fi_local = .false.
        endif
-       
+
        if (bcfile/=filename_U .or. fi_local) then
           filename_U=trim(bcfile)
           initialize = .true.
@@ -1740,7 +1740,7 @@ contains
        ! INITIALIZE NEW FILE
        !
        if (initialize) then
-          initialize = .false.        
+          initialize = .false.
 
           !Does the file exist and is it already opened (reuse files?)
           inquire(file=trim(filename_U),EXIST=lExists,OPENED=lOpened)
@@ -1764,7 +1764,7 @@ contains
              !If exists, open
              open(unit_U,file=filename_U,access='SEQUENTIAL',action='READ',form='FORMATTED')
              lNH_boun_U = .true.
-          else  
+          else
              lNH_boun_U = .false.
              call writelog('lswe','','Error bc file does not exist: ',trim(filename_U))
              call halt_program
@@ -1782,7 +1782,7 @@ contains
              lVaru = .false.
           elseif (string == 'vector') then
              lVaru = .true.
-          else 
+          else
 
           endif
 
@@ -1812,7 +1812,7 @@ contains
           enddo
 
           !Allocate arrays at old and new timelevel
-          if (iU > 0) then     
+          if (iU > 0) then
              allocate(u0(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
              allocate(u1(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
              u0 = 0.0d0
@@ -1829,7 +1829,7 @@ contains
 
           if (iW > 0) then
              allocate(w0(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
-             allocate(w1(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program      
+             allocate(w1(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
              w0 = 0.0d0
              w1 = 0.0d0
           endif
@@ -1845,7 +1845,7 @@ contains
              t1=t0
              if (iU >0) u1=u0
              if (iZ >0) z1=z0
-             if (iW >0) w1=w0        
+             if (iW >0) w1=w0
           else
              call velocity_Boundary_read(t1,tmp,Unit_U,lVaru,lIsEof,nvar)
              t1 = t1+bcstarttime
@@ -1883,8 +1883,8 @@ contains
        !
        if (lNH_boun_U) then
           if (.not. lIsEof) then
-             allocate(tmp(nyg+1,nvar-1))    
-             !If current time not located within interval read next line    
+             allocate(tmp(nyg+1,nvar-1))
+             !If current time not located within interval read next line
              do while (.not. (t>=t0 .and. t<t1))
                 t0 = t1
                 if (iU >0) u0 = u1
@@ -1937,9 +1937,9 @@ contains
     endif ! xmaster
   end subroutine velocity_Boundary
 
-  !==============================================================================  
+  !==============================================================================
   subroutine velocity_Boundary_read(t,vector,iUnit,isvec,iseof,nvar)
-    !==============================================================================    
+    !==============================================================================
 
     !--------------------------        PURPOSE         ----------------------------
 
@@ -1955,7 +1955,7 @@ contains
 
     !--------------------------     DEPENDENCIES       ----------------------------
 
-    use xmpi_module, only: Halt_Program  
+    use xmpi_module, only: Halt_Program
     use logging_module, only: report_file_read_error
 
     implicit none
@@ -1972,14 +1972,14 @@ contains
 
     !--------------------------     LOCAL VARIABLES    ----------------------------
 
-    real(kind=rKind)                            :: scalar(nvar-1)    
+    real(kind=rKind)                            :: scalar(nvar-1)
     integer(kind=iKind)                         :: i
     integer(kind=iKind)                         :: ioStat
     character(len=slen)                         :: ername
 
     !-------------------------------------------------------------------------------
     !                             IMPLEMENTATION
-    !-------------------------------------------------------------------------------   
+    !-------------------------------------------------------------------------------
 
 
     iseof = .false.
