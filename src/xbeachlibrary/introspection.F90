@@ -115,7 +115,7 @@ contains
     character(kind=c_char, len=1), intent(out) :: typecode
 
     integer(c_int) :: length
-    character(1), dimension(len(name)) :: cname 
+    character(1), dimension(len(name)) :: cname
     integer :: i
     length  = len(name)
     cname = string_to_char_array(name,length)
@@ -163,7 +163,7 @@ contains
     getparametername_c = 0
   end function getparametername_c
 
-  integer(c_int) function getdoubleparameter_fortran(name,value) 
+  integer(c_int) function getdoubleparameter_fortran(name,value)
     USE iso_c_binding
     ! use inout otherwise things break
     real(c_double), intent(inout) :: value
@@ -171,11 +171,11 @@ contains
     ! String
     character(kind=c_char,len=*),intent(in) :: name
 
-    ! Transform name to a fortran character... 
-    character(1), dimension(len(name)) :: cname 
+    ! Transform name to a fortran character...
+    character(1), dimension(len(name)) :: cname
     integer :: i
     do i = 1,len(name)
-       cname(i) = name(i:i) 
+       cname(i) = name(i:i)
     enddo
     getdoubleparameter_fortran = getdoubleparameter_c(cname,value,len(name))
   end function getdoubleparameter_fortran
@@ -192,9 +192,9 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    ! Transform name to a fortran character... 
+    ! Transform name to a fortran character...
     type(parameter) :: myparam
-    character(length) :: myname 
+    character(length) :: myname
     ! Return -1 for invalid parameters
     getdoubleparameter_c = -1
     myname = char_array_to_string(name, length)
@@ -205,7 +205,7 @@ contains
   end function getdoubleparameter_c
 
 
-  integer(c_int) function setdoubleparameter_fortran(name,value) 
+  integer(c_int) function setdoubleparameter_fortran(name,value)
     USE iso_c_binding
     ! use inout otherwise things break
     real(c_double), intent(inout) :: value
@@ -213,11 +213,11 @@ contains
     ! String
     character(kind=c_char,len=*),intent(in) :: name
 
-    ! Transform name to a fortran character... 
-    character(1), dimension(len(name)) :: myname 
+    ! Transform name to a fortran character...
+    character(1), dimension(len(name)) :: myname
     integer :: i
     do i = 1,len(name)
-       myname(i) = name(i:i) 
+       myname(i) = name(i:i)
     enddo
     setdoubleparameter_fortran = setdoubleparameter_c(myname,value,len(name))
   end function setdoubleparameter_fortran
@@ -232,8 +232,8 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    ! Transform name to a fortran character... 
-    character(length) :: myname 
+    ! Transform name to a fortran character...
+    character(length) :: myname
     myname = char_array_to_string(name, length)
     select case (myname)
     case ('t')
@@ -249,7 +249,7 @@ contains
     setdoubleparameter_c = 0
   end function setdoubleparameter_c
 
-  integer(c_int) function getintparameter_fortran(name,value) 
+  integer(c_int) function getintparameter_fortran(name,value)
     USE iso_c_binding
     ! use inout otherwise things break
     integer(c_int), intent(inout) :: value
@@ -257,11 +257,11 @@ contains
     ! String
     character(kind=c_char,len=*),intent(in) :: name
 
-    ! Transform name to a fortran character... 
-    character(1), dimension(len(name)) :: myname 
+    ! Transform name to a fortran character...
+    character(1), dimension(len(name)) :: myname
     integer :: i
     do i = 1,len(name)
-       myname(i) = name(i:i) 
+       myname(i) = name(i:i)
     enddo
     getintparameter_fortran = getintparameter_c(myname,value,len(name))
   end function getintparameter_fortran
@@ -278,8 +278,8 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    ! Transform name to a fortran character... 
-    character(length) :: myname 
+    ! Transform name to a fortran character...
+    character(length) :: myname
     type(parameter) :: myparam
     myname = char_array_to_string(name, length)
     ! Lookup the parameter by name
@@ -289,15 +289,15 @@ contains
     getintparameter_c = 0
   end function getintparameter_c
 
-  integer(c_int) function getcharparameter_fortran(name,value) 
+  integer(c_int) function getcharparameter_fortran(name,value)
     USE iso_c_binding
 
     ! String
     character(kind=c_char,len=*),intent(in) :: name
     character(kind=c_char, len=*), intent(out) :: value
 
-    ! Transform name to a fortran character... 
-    character(1), dimension(len(name)) :: cname 
+    ! Transform name to a fortran character...
+    character(1), dimension(len(name)) :: cname
     character(kind=c_char,len=1), pointer :: cvalue(:)
     integer(c_int) :: valuelength
     cname = string_to_char_array(name, len(name))
@@ -316,8 +316,8 @@ contains
     integer(c_int), intent(in)         :: namelength
     integer(c_int), intent(out)        :: valuelength
 
-    ! Transform name to a fortran character... 
-    character(namelength) :: fname 
+    ! Transform name to a fortran character...
+    character(namelength) :: fname
     type(parameter) :: myparam
     fname = char_array_to_string(name, namelength)
     ! Lookup the parameter by name
@@ -368,14 +368,14 @@ contains
     getarrayname_c = 0
   end function getarrayname_c
 
-  integer(c_int) function getarraytype_fortran(name, typecode) 
+  integer(c_int) function getarraytype_fortran(name, typecode)
     !DEC$ ATTRIBUTES DLLEXPORT::getarray_type
     character(kind=c_char,len=*),intent(in) :: name
     character(kind=c_char, len=1), intent(out) :: typecode
 
     ! and we need the string length ....
     integer(c_int) :: length
-    character(1), dimension(len(name)) :: cname 
+    character(1), dimension(len(name)) :: cname
     integer :: i
     length  = len(name)
     cname = string_to_char_array(name,length)
@@ -398,14 +398,14 @@ contains
     typecode = array%type
   end function getarraytype_c
 
-  integer(c_int) function getarrayrank_fortran(name, rank) 
+  integer(c_int) function getarrayrank_fortran(name, rank)
     !DEC$ ATTRIBUTES DLLEXPORT::getarray_rank
     character(kind=c_char,len=*),intent(in) :: name
     integer(c_int), intent(out) :: rank
 
     ! and we need the string length ....
     integer(c_int) :: length
-    character(1), dimension(len(name)) :: cname 
+    character(1), dimension(len(name)) :: cname
     integer :: i
     length  = len(name)
     cname = string_to_char_array(name,length)
@@ -429,7 +429,7 @@ contains
   end function getarrayrank_c
 
 
-  integer(c_int) function getarraydimsize_fortran(name, dim, size) 
+  integer(c_int) function getarraydimsize_fortran(name, dim, size)
     !DEC$ ATTRIBUTES DLLEXPORT::getarray_dimsize
     character(kind=c_char,len=*),intent(in) :: name
     integer(c_int), intent(in) :: dim ! dimension number
@@ -437,7 +437,7 @@ contains
 
     ! and we need the string length ....
     integer(c_int) :: length
-    character(1), dimension(len(name)) :: cname 
+    character(1), dimension(len(name)) :: cname
     integer :: i
     length  = len(name)
     cname = string_to_char_array(name,length)
@@ -486,7 +486,7 @@ contains
     ! String
     character(kind=c_char),intent(inout) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     getarray = -1
@@ -499,7 +499,7 @@ contains
   end function getarray
 
 
-  integer(c_int) function get0ddoublearray_fortran(name,x) 
+  integer(c_int) function get0ddoublearray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -528,7 +528,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     real(c_double), target  :: r0
@@ -544,7 +544,7 @@ contains
   end function get0ddoublearray_c
 
 
-  integer(c_int) function get1ddoublearray_fortran(name,x) 
+  integer(c_int) function get1ddoublearray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -573,7 +573,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     real(c_double), target, allocatable, save, dimension(:)  :: r1
@@ -583,7 +583,7 @@ contains
     index =  chartoindex(myname)
     if (index .eq. -1) return
     call indextos(s,index,array)
-    
+
     if (allocated (r1)) deallocate (r1)
     allocate(r1(size(array%r1,1)))
     r1(:) = array%r1(:)
@@ -592,7 +592,7 @@ contains
     get1ddoublearray_c = 0
   end function get1ddoublearray_c
 
-  integer(c_int) function get2ddoublearray_fortran(name,x) 
+  integer(c_int) function get2ddoublearray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -621,7 +621,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     real(c_double), target, allocatable, save, dimension(:,:)  :: r2
@@ -639,7 +639,7 @@ contains
     get2ddoublearray_c = 0
   end function get2ddoublearray_c
 
-  integer(c_int) function get3ddoublearray_fortran(name,x) 
+  integer(c_int) function get3ddoublearray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -668,7 +668,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     real(c_double), target, allocatable, save, dimension(:,:,:)  :: r3
@@ -687,7 +687,7 @@ contains
   end function get3ddoublearray_c
 
 
-  integer(c_int) function get4ddoublearray_fortran(name,x) 
+  integer(c_int) function get4ddoublearray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -716,7 +716,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     real(c_double), target, allocatable, save, dimension(:,:,:,:)  :: r4
@@ -735,7 +735,7 @@ contains
   end function get4ddoublearray_c
 
 
-  integer(c_int) function get0dintarray_fortran(name,x) 
+  integer(c_int) function get0dintarray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -763,7 +763,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     integer(c_int), target  :: i0
@@ -778,7 +778,7 @@ contains
     get0dintarray_c = 0
   end function get0dintarray_c
 
-  integer(c_int) function get1dintarray_fortran(name,x) 
+  integer(c_int) function get1dintarray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -806,7 +806,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     integer(c_int), target, allocatable, save, dimension(:)  :: i1
@@ -826,7 +826,7 @@ contains
 
 
 
-  integer(c_int) function get2dintarray_fortran(name,x) 
+  integer(c_int) function get2dintarray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -854,7 +854,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     integer(c_int), target, allocatable, save, dimension(:,:)  :: i2
@@ -873,7 +873,7 @@ contains
   end function get2dintarray_c
 
 
-  integer(c_int) function set0dintarray_fortran(name,x) 
+  integer(c_int) function set0dintarray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -901,7 +901,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     integer(c_int), pointer :: i0
@@ -913,14 +913,14 @@ contains
     if (index .eq. -1) return
     call indextos(s,index,array)
     ! Transform the c pointer into a fortran pointer
-    call c_f_pointer(x, i0, shape(array%i0))
+    call c_f_pointer(x, i0)
     ! Copy the values, or the pointer... not sure.
     array%i0 = i0
 
     set0dintarray_c = 0
   end function set0dintarray_c
 
-  integer(c_int) function set1dintarray_fortran(name,x) 
+  integer(c_int) function set1dintarray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -948,7 +948,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     integer(c_int), pointer, dimension(:)  :: i1
@@ -967,7 +967,7 @@ contains
     set1dintarray_c = 0
   end function set1dintarray_c
 
-  integer(c_int) function set2dintarray_fortran(name,x) 
+  integer(c_int) function set2dintarray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -995,7 +995,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     integer(c_int), pointer, dimension(:,:)  :: i2
@@ -1014,7 +1014,7 @@ contains
     set2dintarray_c = 0
   end function set2dintarray_c
 
-  integer(c_int) function set0ddoublearray_fortran(name,x) 
+  integer(c_int) function set0ddoublearray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -1042,7 +1042,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     real(c_double), pointer  :: r0
@@ -1054,14 +1054,14 @@ contains
     if (index .eq. -1) return
     call indextos(s,index,array)
     ! Transform the c pointer into a fortran pointer
-    call c_f_pointer(x, r0, shape(array%r0))
+    call c_f_pointer(x, r0)
     ! Copy the values, or the pointer... not sure.
     array%r0 = r0
 
     set0ddoublearray_c = 0
   end function set0ddoublearray_c
 
-  integer(c_int) function set1ddoublearray_fortran(name,x) 
+  integer(c_int) function set1ddoublearray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -1089,7 +1089,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     real(c_double), pointer, dimension(:)  :: r1
@@ -1109,7 +1109,7 @@ contains
   end function set1ddoublearray_c
 
 
-  integer(c_int) function set2ddoublearray_fortran(name,x) 
+  integer(c_int) function set2ddoublearray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -1137,7 +1137,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     real(c_double), pointer, dimension(:,:)  :: r2
@@ -1157,7 +1157,7 @@ contains
   end function set2ddoublearray_c
 
 
-  integer(c_int) function set3ddoublearray_fortran(name,x) 
+  integer(c_int) function set3ddoublearray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -1185,7 +1185,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     real(c_double), pointer, dimension(:,:,:)  :: r3
@@ -1205,7 +1205,7 @@ contains
   end function set3ddoublearray_c
 
 
-  integer(c_int) function set4ddoublearray_fortran(name,x) 
+  integer(c_int) function set4ddoublearray_fortran(name,x)
     USE iso_c_binding
     ! String
     character(kind=c_char,len=*),intent(in) :: name
@@ -1233,7 +1233,7 @@ contains
     ! String
     character(kind=c_char),intent(in) :: name(length)
 
-    character(length) :: myname 
+    character(length) :: myname
     integer :: index
     type(arraytype) :: array
     real(c_double), pointer, dimension(:,:,:,:)  :: r4
