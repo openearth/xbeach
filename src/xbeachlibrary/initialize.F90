@@ -235,9 +235,14 @@ contains
           s%thetamax=s%thetamax+2*par%px
           s%thetamin=s%thetamin+2*par%px
        endif
-
-       s%dtheta=par%dtheta*degrad
-       s%ntheta=nint((s%thetamax-s%thetamin)/s%dtheta)
+      
+       if (par%swave==1) then
+          s%dtheta=par%dtheta*degrad
+          s%ntheta=nint((s%thetamax-s%thetamin)/s%dtheta)
+       else
+          s%dtheta=par%dtheta*degrad
+          s%ntheta = 1
+       endif
 
        allocate(s%theta(1:s%ntheta))
        allocate(s%thet(1:s%nx+1,1:s%ny+1,1:s%ntheta))

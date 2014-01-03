@@ -746,7 +746,25 @@ contains
 #endif
        if (xmaster) then
           status = nf90_put_var(ncid, pointtimevarid, par%t*max(par%morfac,1.d0), (/tpar%itp/))
-          if (status /= nf90_noerr) call handle_err(status) 
+          if (status /= nf90_noerr) call handle_err(status)
+          ! quick and easy, but slow way to get runup gauge in netcdf
+          if (par%nrugauge>0) then
+#ifdef USEMPI  
+             j = chartoindex('hh')
+             call space_collect_index(s,sl,j)
+#endif             
+             do i=1,(par%npoints + par%nrugauge)
+                if (par%pointtypes(i)==1) then
+                   do ii=2,s%nx+1
+                      if ((s%hh(ii,ypoints(i))<=par%rugdepth(1)) .and. &
+                          (s%hh(ii-1,ypoints(i))>par%rugdepth(1)) ) then
+                         xpoints(i)= ii-1
+                         exit
+                      endif
+                   enddo
+                endif
+             enddo
+          endif
           do i=1,par%npointvar
              mnem = trim(par%pointvars(i))
              j = chartoindex(mnem)
