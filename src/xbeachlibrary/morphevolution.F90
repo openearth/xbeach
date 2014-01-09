@@ -882,6 +882,19 @@ contains
              end do
              if (.not.aval) exit
           end do
+       else
+          dzbdx=0.d0
+          dzbdy=0.d0
+          do j=1,ny+1
+             do i=1,nx
+                dzbdx(i,j)=(zb(i+1,j)-zb(i,j))/dsu(i,j)  
+             enddo
+          enddo
+          do j=1,ny
+             do i=1,nx+1
+                dzbdy(i,j)=(zb(i,j+1)-zb(i,j))/dnv(i,j)
+             enddo
+          enddo
        end if
        !
        ! bed boundary conditions
