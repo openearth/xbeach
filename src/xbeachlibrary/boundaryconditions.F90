@@ -642,8 +642,9 @@ contains
                (tnew-par%t)/dtbcfile*ee1
           q = (dtbcfile-(tnew-par%t))/dtbcfile*q2 + &          !Jaap
                (tnew-par%t)/dtbcfile*q1
-          ui(1,:) = q(:,1)/ht(1,:)*min(par%t/par%taper,1.0d0)
-          vi(1,:) = q(:,2)/ht(1,:)*min(par%t/par%taper,1.0d0)
+          ! be aware: ui and vi are defined w.r.t. the grid, not w.r.t. the coordinate system
+          ui(1,:) = (q(:,1)*dcos(alfaz(1,:)) + q(:,2)*dsin(alfaz(1,:)))/ht(1,:)*min(par%t/par%taper,1.0d0)
+          vi(1,:) = (-q(:,1)*dsin(alfaz(1,:)) + q(:,2)*dcos(alfaz(1,:)))/ht(1,:)*min(par%t/par%taper,1.0d0)
           ee(1,:,:)=ee(1,:,:)*min(par%t/par%taper,1.0d0)
        elseif(par%nonhspectrum==1) then
           if (startbcf) then
@@ -1080,7 +1081,7 @@ contains
                 endif
 
                 betanp1(1,j) = beta(1,j)+ bn(j)*par%dt
-                alpha2(j)=-theta0 ! Jaap: this is first estimate
+                alpha2(j)=-(theta0-alfaz(1,j)) ! Jaap: this is first estimate
                 alphanew = 0.d0
 
                 ! Jaap moved up does need to be in j loop
@@ -1133,7 +1134,7 @@ contains
                 end if
              end do
              vv(1,:)=vv(2,:)
-             if (par%nonh==1) ws(1,:) = ws(2,:)
+             if (par%nonh==1) ws(1,:) = ws(2,:)       
           else if (trim(par%front)=='abs_2d_alt') then ! abs_1d extended to 2D
               ! Compute angle of incominge wave
               thetai = datan(vi(1,:)/(ui(1,:)+1.d-16))
@@ -1150,19 +1151,14 @@ contains
               ! Iterate to correct ur & thetar over y
               do j=j1,max(ny,1)
                 ur(1,j) = uu(1,j)-umean(1,j)-ui(1,j) ! needed for first iteration
-                alpha2(j)=-theta0 ! estimate for first iteration
+                ! Estimate needs to be relative to grid, not to coordinate system
+                alpha2(j)=-(theta0-alfaz(1,j)) ! Jaap: this is first estimate
                 alphanew = 0.d0
 
                 !vert = velocity of the reflected wave = total-specified
                 vert = vu(1,j)-vmean(1,j)-vi(1,j)
 
                 do jj=1,50 ! determine alpha2 (=thetar, angle of returning wave) by iteration
-                   alphanew = datan(vert/(ur(1,j)+1.d-16))
-                   if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
-                   if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
-                   if(dabs(alphanew-alpha2(j)).lt.0.001d0) EXIT
-                   alpha2(j) = alphanew
-
                    if (par%freewave==1) then ! assuming incoming long wave propagates at sqrt(g*h)
                       uu(1,j) = (1.0d0+dcos(alpha2(j))/dcos(thetai(j)))*ui(1,j)-(sqrt(par%g/hh(1,j))*dcos(alpha2(j))* &
                         (zs(2,j)-zs0(2,j))) + umean(1,j)
@@ -1172,20 +1168,17 @@ contains
                    endif
 
                    ur(1,j) = uu(1,j)-umean(1,j)-ui(1,j)
-
+                   
+                   alphanew = datan(vert/(ur(1,j)+1.d-16))
+                   if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
+                   if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
+                   if(dabs(alphanew-alpha2(j)).lt.0.001d0) EXIT
+                   alpha2(j) = alphanew
                 end do
               end do
 
               vv(1,:)=vv(2,:)
               zs(1,:)=zs(2,:)
-
-              ! TODO: remove when abs_2d_alt works
-              ! not needed, uu needs to be calculated inside the j-loop, to make sure ur changes and thetar actually converges
-              ! if (par%freewave==1) then ! assuming incoming long wave propagates at sqrt(g*h)
-              !        uu(1,:) = (1.0d0+dcos(alpha2)/dcos(thetai(j)))*ui(1,:)-(sqrt(par%g/hh(1,:)*dcos(alpha2)*(zs(2,:)-zs0(2,:))) + umean(1,:)
-              ! else                     ! assuming incoming long wave propagates at cg
-              !         uu(1,:) = (1.0d0+(sqrt(par%g*hh(1,:))*dcos(alpha2))/(cg(1,:)*dcos(thetai(j))))*ui(1,:)-(sqrt(par%g/hh(1,:)*dcos(alpha2)*(zs(2,:)-zs0(2,:))) + umean(1,:)
-              ! endif
           else if (trim(par%front)=='wall') then
              !       uu(1,:)=0.d0
              !      zs(1,:)=max(zs(2,:),zb(1,:))
