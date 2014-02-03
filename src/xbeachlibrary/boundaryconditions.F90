@@ -642,7 +642,7 @@ contains
                (tnew-par%t)/dtbcfile*ee1
           q = (dtbcfile-(tnew-par%t))/dtbcfile*q2 + &          !Jaap
                (tnew-par%t)/dtbcfile*q1
-          ! be aware: ui and vi are defined w.r.t. the grid, not w.r.t. the coordinate system
+          ! be aware: ui and vi are defined w.r.t. the grid, not w.r.t. the coordinate system!
           ui(1,:) = (q(:,1)*dcos(alfaz(1,:)) + q(:,2)*dsin(alfaz(1,:)))/ht(1,:)*min(par%t/par%taper,1.0d0)
           vi(1,:) = (-q(:,1)*dsin(alfaz(1,:)) + q(:,2)*dcos(alfaz(1,:)))/ht(1,:)*min(par%t/par%taper,1.0d0)
           ee(1,:,:)=ee(1,:,:)*min(par%t/par%taper,1.0d0)
