@@ -727,9 +727,8 @@ contains
                    'wall      ',&
                    'wlevel    ',&
                    'nonh_1d   ',&
-                   'waveflume ',&
-                   'abs_2d_alt'/)
-    oldnames=(/'0','1','2','3','4','5','6'/)
+                   'waveflume '/)
+    oldnames=(/'0','1','2','3','4','5'/)
     par%front  = readkey_str('params.txt','front','abs_2d',6,6,allowednames,oldnames)
     deallocate(allowednames,oldnames)
     ! left and right
@@ -744,9 +743,8 @@ contains
     allowednames=(/'wall      ',&
                    'abs_1d    ',&
                    'abs_2d    ',&
-                   'wlevel    ',&
-                   'abs_2d_alt'/)
-    oldnames=(/'0','1','2','3','4'/)
+                   'wlevel    '/)
+    oldnames=(/'0','1','2','3'/)
     par%back   = readkey_str('params.txt','back','abs_2d',4,4,allowednames,oldnames)
     deallocate(allowednames,oldnames)
     ! others

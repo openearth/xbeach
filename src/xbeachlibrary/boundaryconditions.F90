@@ -1044,7 +1044,7 @@ contains
              do j=j1,max(ny,1)
                 ! compute gradients in u-points
                 dhdx   (1,j) = ( ht  (2,j) - ht  (1,j) ) / dsu(1,j)
-                dbetadx(1,j) = ( beta(2,j) - beta(1,j) ) / dsz(2,j)  !!!waarom is de index hier 2? ap en joost 10/12/13
+                dbetadx(1,j) = ( beta(2,j) - beta(1,j) ) / dsz(2,j)  !!! why index 2? ap en joost 10/12/13
 
                 if (ny>0) then
                    dvdy   (1,j) = ( vu  (1,j+1) - vu  (1,j-1) ) / ( 2.d0*dnu(1,j) ) !!! dnz? ap with joost 10/12/13
@@ -1069,7 +1069,7 @@ contains
 
              do j=j1,max(ny,1)
                 if (trim(par%tidetype)=='velocity') then
-                   ! make sure we have same umean along whole offshore boundayr
+                   ! make sure we have same umean along whole offshore boundary
                    umean(1,j) = (factime*sum(uu(1,max(1,j-par%nc):min(j+par%nc,ny))*dnu(1,max(1,j-par%nc):min(j+par%nc,ny))) &
                         /sum(dnu(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(1,j))
                    ! make sure we have same umean along whole offshore boundary
@@ -1135,50 +1135,6 @@ contains
              end do
              vv(1,:)=vv(2,:)
              if (par%nonh==1) ws(1,:) = ws(2,:)       
-          else if (trim(par%front)=='abs_2d_alt') then ! abs_1d extended to 2D
-              ! Compute angle of incominge wave
-              thetai = datan(vi(1,:)/(ui(1,:)+1.d-16))
-
-              ! Compute mean velocities (before uu is changed)
-              do j=j1,max(ny,1)
-                umean(1,j) = (factime*sum(uu(1,max(1,j-par%nc):min(j+par%nc,ny))*dnu(1,max(1,j-par%nc):min(j+par%nc,ny))) &
-                        /sum(dnu(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*umean(1,j))  ! JPdB: uu(1,j) changes every iteration in the jj loop, so probably do this in a separate loop??
-
-                vmean(1,j) = (factime*sum(vv(1,max(1,j-par%nc):min(j+par%nc,ny))*dnv(1,max(1,j-par%nc):min(j+par%nc,ny))) &
-                        /sum(dnv(1,max(1,j-par%nc):min(j+par%nc,ny)))+(1-factime)*vmean(1,j))
-              enddo
-
-              ! Iterate to correct ur & thetar over y
-              do j=j1,max(ny,1)
-                ur(1,j) = uu(1,j)-umean(1,j)-ui(1,j) ! needed for first iteration
-                ! Estimate needs to be relative to grid, not to coordinate system
-                alpha2(j)=-(theta0-alfaz(1,j)) ! Jaap: this is first estimate
-                alphanew = 0.d0
-
-                !vert = velocity of the reflected wave = total-specified
-                vert = vu(1,j)-vmean(1,j)-vi(1,j)
-
-                do jj=1,50 ! determine alpha2 (=thetar, angle of returning wave) by iteration
-                   if (par%freewave==1) then ! assuming incoming long wave propagates at sqrt(g*h)
-                      uu(1,j) = (1.0d0+dcos(alpha2(j))/dcos(thetai(j)))*ui(1,j)-(sqrt(par%g/hh(1,j))*dcos(alpha2(j))* &
-                        (zs(2,j)-zs0(2,j))) + umean(1,j)
-                   else                     ! assuming incoming long wave propagates at cg
-                      uu(1,j) = (1.0d0+(sqrt(par%g*hh(1,j))*dcos(alpha2(j)))/(cg(1,j)*dcos(thetai(j))))*ui(1,j)- &
-                        (sqrt(par%g/hh(1,j))*dcos(alpha2(j))*(zs(2,j)-zs0(2,j))) + umean(1,j)
-                   endif
-
-                   ur(1,j) = uu(1,j)-umean(1,j)-ui(1,j)
-                   
-                   alphanew = datan(vert/(ur(1,j)+1.d-16))
-                   if (alphanew .gt. (par%px*0.5d0)) alphanew=alphanew-par%px
-                   if (alphanew .le. (-par%px*0.5d0)) alphanew=alphanew+par%px
-                   if(dabs(alphanew-alpha2(j)).lt.0.001d0) EXIT
-                   alpha2(j) = alphanew
-                end do
-              end do
-
-              vv(1,:)=vv(2,:)
-              zs(1,:)=zs(2,:)
           else if (trim(par%front)=='wall') then
              !       uu(1,:)=0.d0
              !      zs(1,:)=max(zs(2,:),zb(1,:))
