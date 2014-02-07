@@ -701,13 +701,11 @@ contains
        if (trim(par%instat)=='swan') then
           par%dthetaS_XB  = readkey_dbl ('params.txt','dthetaS_XB',   0.0d0,      -360.d0,    360.0d0 )
        endif
-       ! wbcversion relates to oldwbc: if oldwbc == 1 then wbcversion = 1
-       !                               if oldwbc == 0 then wbcversion = 2
-       !                               wbcversion defaults to 2
+       !                               wbcversion defaults to 3
        if (par%oldwbc==1) then
           par%wbcversion = 1
        else
-          par%wbcversion = readkey_int ('params.txt','wbcversion', 2, 1, 3)
+          par%wbcversion = readkey_int ('params.txt','wbcversion', 3, 1, 3)
        endif
        if (par%wbcversion>2) then
           par%nspectrumloc    = readkey_int ('params.txt','nspectrumloc',   1,          1,       par%ny+1 )
@@ -1405,10 +1403,11 @@ contains
        par%wbcversion=3
     endif
     if (par%wbcversion<3) then
-       call writelog('lws','','************************** WARNING  ***************************')
-       call writelog('lws','','In future versions wbcversion 1 and 2 will not be supported')
+       call writelog('lws','','************************** ERROR ******************************')
+       call writelog('lws','','wbcversion 1 and 2 are no longer supported, from v1.21 onwards')
        call writelog('lws','','The current default wbcversion is 3')
        call writelog('lws','','***************************************************************')
+       call halt_program
     endif
     !
     !

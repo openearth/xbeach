@@ -214,36 +214,13 @@ contains
 
        elseif ((trim(par%instat)=='jons'.or.trim(par%instat)=='jons_table').and.xmaster) then
           ! wp is not saved and we only know about the current line which is called listline in wp....
-          if (par%wbcversion<3) then
-             wp%listline = curline
-             call makebcf(par,sg,wp)
-             curline = wp%listline
-          else
-             call spectral_wave_bc(sg,par,curline)
-          endif
+          call spectral_wave_bc(sg,par,curline)
        elseif (trim(par%instat)=='swan'.and.xmaster) then
-          if (par%wbcversion<3) then
-             wp%listline = curline
-             call makebcf(par,sg,wp)
-             curline = wp%listline
-          else
-             call spectral_wave_bc(sg,par,curline)
-          endif
+           call spectral_wave_bc(sg,par,curline)
        elseif (trim(par%instat)=='vardens'.and.xmaster) then
-          if (par%wbcversion<3) then
-             wp%listline = curline
-             call makebcf(par,sg,wp)
-             curline = wp%listline
-          else
-             call spectral_wave_bc(sg,par,curline)
-          endif
+           call spectral_wave_bc(sg,par,curline)
        elseif (trim(par%instat)=='reuse'.and.xmaster) then
-          if (par%wbcversion<3) then
-             wp%listline=1
-             curline = wp%listline
-          else
-             curline = 1
-          endif
+           curline = 1
        elseif (trim(par%instat)=='ts_nonh') then
 !          call velocity_Boundary('boun_U.bcf',ui(1,:),zi(1,:),wi(1,:),nx,ny,sg%ny,sl,par%t,zs(2,:),ws(2,:))
            if (.not. allocated(uig)) then
@@ -358,35 +335,17 @@ contains
           !    if ((par%instat==4.or.par%instat==41).and.xmaster) then
           close(71)
           close(72)
-          if (par%wbcversion<3) then
-             wp%listline = curline
-             call makebcf(par,sg,wp)
-             curline = wp%listline
-          else
-             call spectral_wave_bc(sg,par,curline)
-          endif
+          call spectral_wave_bc(sg,par,curline)
           startbcf=.true.
        elseif (trim(par%instat)=='swan'.and.xmaster) then
           close(71)
           close(72)
-          if (par%wbcversion<3) then
-             wp%listline = curline
-             call makebcf(par,sg,wp)
-             curline = wp%listline
-          else
-             call spectral_wave_bc(sg,par,curline)
-          endif
+          call spectral_wave_bc(sg,par,curline)
           startbcf=.true.
        elseif (trim(par%instat)=='vardens'.and.xmaster) then
           close(71)
           close(72)
-          if (par%wbcversion<3) then
-             wp%listline = curline
-             call makebcf(par,sg,wp)
-             curline = wp%listline
-          else
-             call spectral_wave_bc(sg,par,curline)
-          endif
+          call spectral_wave_bc(sg,par,curline)
           startbcf=.true.
        elseif (trim(par%instat)=='reuse'.and.xmaster) then
           close(71)
