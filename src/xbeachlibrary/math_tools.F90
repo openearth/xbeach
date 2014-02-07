@@ -3,6 +3,7 @@ MODULE math_tools
   !     1) Singleton fft transform
   !     2) Hilbert transform
   !     3) Matrix flip up to down and/or left to right
+  !     4) Random function
 
   !
   ! 1) Singleton fft transform: 
@@ -145,10 +146,10 @@ MODULE math_tools
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC:: fft, fftn, fftkind, realkind, flipa, flipv, hilbert, flipiv, xerf
+  PUBLIC:: fft, fftn, fftkind, realkind, flipa, flipv, hilbert, flipiv, xerf, random
 
   INTEGER, PARAMETER:: fftkind = KIND(0.0d0) !selected_real_kind(14,307) ! !--- adjust here for other precisions
-  INTEGER, PARAMETER:: realkind = KIND(0.0)
+  INTEGER, PARAMETER:: realkind = KIND(0.0d0)
   REAL(fftkind), PARAMETER:: sin60 = 0.86602540378443865_fftkind
   REAL(fftkind), PARAMETER:: cos72 = 0.30901699437494742_fftkind
   REAL(fftkind), PARAMETER:: sin72 = 0.95105651629515357_fftkind
@@ -1260,5 +1261,41 @@ CONTAINS
     enddo
 
   end function xerf
+
+
+      real*8 function random(j)
+      implicit none
+!
+! From Communications of the ACM, Vol 31 Oct 1988 number 10
+! pp 1192..1201
+! Stephen K. Park and Keith W. Miller
+!
+! Input parameter j:
+!  j .ne. 0: random sequence is initialised, using iabs(j) as seed
+!            first random number of new series is returned
+!  j .eq. 0: function returns next random number
+!
+! Not thread-safe because of seed
+!
+ 
+      integer a,m,q,r,lo,hi,test,seed,j
+      real*8 rm
+      parameter(a=16807,m=2147483647,q=127773,r=2836,rm=m)
+      save seed
+      data seed/1/
+      if (j.ne.0) then
+        seed=mod(iabs(j),m)
+      endif
+      hi=seed/q
+      lo=mod(seed,q)
+      test=a*lo-r*hi
+      if (test .gt. 0) then
+        seed=test
+       else
+        seed=test+m
+      endif
+      random=seed/rm
+      return
+      end function random
 
 END MODULE math_tools
