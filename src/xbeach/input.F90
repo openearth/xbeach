@@ -21,7 +21,7 @@ use libxbeach_module
                 if (arg=='-V') then
                     call getversion(version)
                     write(*,*)'**********************************************************'
-                    write(*,*)'You are using XBeach version 1.20.',trim(version)
+                    write(*,*)'You are using XBeach version 1.21.',trim(version)
                     write(*,*)'**********************************************************'
                     readinput = 1
                 endif
