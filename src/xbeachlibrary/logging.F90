@@ -230,7 +230,7 @@ CONTAINS
        call writelog('ls','','**********************************************************')
        call writelog('ls','','                   Welcome to XBeach                      ')
        call writelog('ls','','                                                          ')
-       call writelog('ls','','            version 1.21.',trim(Build_Revision)            )
+       call writelog('ls','','            version 1.21.',trim(Build_Revision),' Groundhog Day release')
        call writelog('ls','','            date ',trim(Build_Date)                        )
        call writelog('ls','','  URL: ',trim(Build_URL)                                   )
        call writelog('ls','','**********************************************************')
