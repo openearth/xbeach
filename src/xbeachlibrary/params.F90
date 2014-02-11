@@ -1402,7 +1402,7 @@ contains
        call writelog('lws','','         non-hydrostatic spectral boundary condition [nonhspectrum=1]')
        par%wbcversion=3
     endif
-    if (par%wbcversion<3) then
+    if (par%wbcversion==1 .or. par%wbcversion==2) then
        call writelog('lws','','************************** ERROR ******************************')
        call writelog('lws','','wbcversion 1 and 2 are no longer supported, from v1.21 onwards')
        call writelog('lws','','The current default wbcversion is 3')
