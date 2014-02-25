@@ -96,6 +96,8 @@ contains
     integer                     :: fidelist,fidqlist,fidnhlist ! file identifiers for ebcflist and qbcflist
     integer                     :: iostat
     real*8                      :: spectrumendtimeold,fmax
+    real*8,save                 :: rtbc_local,dtbc_local
+    real*8,save                 :: maindir_local
 
     fidqlist  = -123
     fidnhlist = -123
@@ -208,7 +210,14 @@ contains
        if (par%nonhspectrum==1) then
           call generate_nhtimeseries_file(wp,par)
        endif
-
+       !
+       !
+       ! Save key variables to memory, in case of 'reuseall'
+       rtbc_local = wp%rtbc
+       dtbc_local = wp%dtbc
+       maindir_local = combspec%dir0
+       !
+       !
        ! Deallocate a lot of memory
        deallocate(specin,specinterp)
        deallocate(wp%tin,wp%taperf,wp%taperw)
@@ -239,7 +248,7 @@ contains
     spectrumendtimeold = spectrumendtime ! Robert: need this in case new run with
                                          ! instat='reuse' does not have exact same
                                          ! time steps as original simulation
-    spectrumendtime = spectrumendtime + wp%rtbc
+    spectrumendtime = spectrumendtime + rtbc_local
 
     ! Collect new file identifiers for administration list files
     if (bccount==1) then
@@ -266,9 +275,9 @@ contains
     ! Write new line
     if (par%nonhspectrum==0) then
        write(fidelist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
-            & spectrumendtime,' ',wp%rtbc,' ',wp%dtbc,' ',par%Trep,' ',combspec%dir0,' '//trim(wp%Efilename)
+            & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%Efilename)
        write(fidqlist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
-            & spectrumendtime,' ',wp%rtbc,' ',wp%dtbc,' ',par%Trep,' ',combspec%dir0,' '//trim(wp%qfilename)
+            & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%qfilename)
        ! Close administation files
        close(fidelist)
        close(fidqlist)
