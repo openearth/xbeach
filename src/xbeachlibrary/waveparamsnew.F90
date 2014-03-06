@@ -637,148 +637,155 @@ contains
         else
            specin%scoeff = min(scoeff(ind),999.d0)
         endif
-        ! Now we have to loop over all partitioned spectra. Where two or more spectra
-        ! overlap, only the largest is counted, and all others are set to zero. Afterwards
-        ! all spectra are scaled so that the total energy is maintained. Since the scaling
-        ! affects where spectra overlap, this loop is repeated until only minor changes
-        ! in the scaling occur. Warnings or errors are given if the spectrum is scaled too
-        ! much, i.e. spectra overlap too much.
         !
-        ! Allocate space
-        allocate(scaledspec(nmodal)) ! used to store scaled density spectra
-        do ip=1,nmodal
-           allocate(scaledspec(ip)%S(specin%nf,specin%nang))
-           scaledspec(ip)%S = multinomalspec(ip)%S
-        enddo
-        allocate(scalefac1(nmodal))  ! this is the scaling factor required to maintain Hm0
-                                     ! including that parts of the spectrum are set to zero
-        scalefac1 = 1.d0
-        allocate(scalefac2(nmodal))  ! this is the scaling factor required to maintain Hm0
-                                     ! in the previous iteration
-        scalefac2 = 1.d0
-        allocate(avgscale(nmodal))
-        avgscale = 1.d0
-        ! these are convergence criteria
-        newconv = 0.d0
-        oldconv = huge(0.d0)
-        cont = .true.
-        allocate(tempmax(nmodal))     ! used to store maximum value in f,theta space
-        allocate(oldvariance(nmodal)) ! used to store the sum of variance in the original partitions
-        do ip=1,nmodal
-           oldvariance(ip) = sum(multinomalspec(ip)%S)
-        enddo
-        allocate(newvariance(nmodal)) ! used to store the sum of variance in the new partitions
-        !
-        ! Start convergence loop
-        do while (cont)
-           avgscale = (avgscale+scalefac1)/2
-           ! First scale the spectra
-           do ip=1,nmodal
-              ! scale the spectrum using less than half the additional scale factor, this to
-              ! ensure the method does not become unstable
-              ! scaledspec(ip)%S = multinomalspec(ip)%S*(0.51d0+scalefac1(ip)*0.49d0)
-              ! scaledspec(ip)%S = multinomalspec(ip)%S*(scalefac1(ip)+scalefac2(ip))/2
-              scaledspec(ip)%S = multinomalspec(ip)%S*avgscale(ip)
-
-           enddo
-           do i=1,specin%nang
-              do ii=1,specin%nf
-                 ! vector of variance densities at this point in f,theta space
-                 do ip=1,nmodal
-                    tempmax(ip) = scaledspec(ip)%S(ii,i)
-                 end do
-                 ! All spectra other than the one that is greatest in this point
-                 ! is set to zero. In case multiple spectra are equal largest,
-                 ! the first spectrum in the list is chosen (minval(maxloc))
-                 ind = minval(maxloc(tempmax))
-                 do ip=1,nmodal
-                    if (ip/=ind) then
-                       scaledspec(ip)%S(ii,i) = 0.d0
-                    endif
-                 enddo
-              enddo
-           end do
-           !
-           ! Now rescale adjusted partition spectra so that they match the incident Hm0
-           scalefac2 = scalefac1  ! keep previous results
-           do ip=1,nmodal
-              newvariance(ip) = sum(scaledspec(ip)%S)
-              if (newvariance(ip)>0.01d0*oldvariance(ip)) then
-                 scalefac1(ip) = oldvariance(ip)/newvariance(ip) ! want to maximise to a factor 2
-                                                                    ! else can generate rediculous results
-              else
-                 scalefac1(ip) = 0.d0                            ! completely remove this spectrum
-              endif
-           enddo
-           !
-           ! check convergence criteria (if error is increasing, we have passed best fit)
-           newconv = maxval(abs(scalefac2-scalefac1)/scalefac1)
-           if (newconv<0.0001d0 .or. abs(newconv-oldconv)<0.0001d0) then
-              cont = .false.
-           endif
-           oldconv = newconv
-        end do
-        ! Ensure full energy conservation by scaling now according to full scalefac, not just the
-        ! half used in the iteration loop
-        do ip=1,nmodal
-           scaledspec(ip)%S = multinomalspec(ip)%S*scalefac1(ip)
-        enddo
-        !
-        ! Now check the total scaling that has taken place across the spectrum, also accounting
-        ! for the fact that some parts of the spectra are set to zero. This differs from the
-        ! scalefac1 and scalefac2 vectors in the loop that only adjust the part of the spectrum
-        ! that is not zero.
-        do ip=1,nmodal
-           write(*,*)'Hm0m = ',4*sqrt(sum(scaledspec(ip)%S)*specin%dang*specin%df)
-        enddo
-        do ip=1,nmodal
-           indvec = maxloc(scaledspec(ip)%S)
-           scalefac1(ip) = scaledspec(ip)%S(indvec(1),indvec(2)) / &
-                           multinomalspec(ip)%S(indvec(1),indvec(2))-1.d0
-        enddo
-        !
-        ! Warning and/or error criteria here if spectra overlap each other too much
-        do ip=1,nmodal
-           if(scalefac1(ip)>0.5d0) then
-              if (forcepartition==1) then
-                 call writelog('lsw','(a,f0.0,a,i0,a,a,a)', &
-                               'Warning: ',scalefac1(ip)*100,'% of energy in spectrum partition ''',ip, &
-                               ''' in  ', trim(readfile),' is overlapped by other partitions')
-                 call writelog('lsw','',' Check spectral partitioning in ',trim(readfile))
-              else
-                 call writelog('lswe','(a,f0.0,a,i0,a,a,a)', &
-                               'Error: ',scalefac1(ip)*100,'% of energy in spectrum partition ''',ip, &
-                               ''' in  ', trim(readfile),' is overlapped by other partitions')
-                 call writelog('lswe','','This spectrum overlaps too much with another spectrum partition.', &
-                                         ' Check spectral partitioning in ',trim(readfile))
-                 call writelog('lswe','','If the partitioning should be carried out regardles of energy loss, ', &
-                                          'set ''forcepartition = 1'' in ',trim(readfile))
-                 call halt_program
-              endif
-           elseif (scalefac1(ip)>0.2d0 .and. scalefac1(ip)<=0.5d0) then
-              call writelog('lsw','(a,f0.0,a,i0,a,a,a)', &
-                            'Warning: ',scalefac1(ip)*100,'% of energy in spectrum partition ''',ip, &
-                            ''' in  ', trim(readfile),' is overlapped by other partitions')
-              call writelog('lsw','',' Check spectral partitioning in ',trim(readfile))
-           elseif (scalefac1(ip)<0.d0) then
-              call writelog('lsw','(a,i0,a,a,a)','Warning: spectrum partition ''',ip,''' in  ',trim(readfile), &
-                                   ' has been removed')
-              call writelog('lsw','','This spectrum is entirely overlapped by another spectrum partition.',&
-                                     ' Check spectral partitioning in ',trim(readfile))
-           endif
-        enddo
-        !
-        ! Now set total spectrum
+        ! Now set total spectrum by summation of all subspectra, no checks
         allocate(specin%S(specin%nf,specin%nang))
         specin%S = 0.d0
         do ip=1,nmodal
-           specin%S = specin%S+scaledspec(ip)%S
+           specin%S = specin%S+multinomalspec(ip)%S
         enddo
-
-        deallocate(scaledspec)
-        deallocate(tempmax)
-        deallocate(scalefac1,scalefac2)
-        deallocate(newvariance,oldvariance)
+        !! Now we have to loop over all partitioned spectra. Where two or more spectra
+        !! overlap, only the largest is counted, and all others are set to zero. Afterwards
+        !! all spectra are scaled so that the total energy is maintained. Since the scaling
+        !! affects where spectra overlap, this loop is repeated until only minor changes
+        !! in the scaling occur. Warnings or errors are given if the spectrum is scaled too
+        !! much, i.e. spectra overlap too much.
+        !!
+        !! Allocate space
+        !allocate(scaledspec(nmodal)) ! used to store scaled density spectra
+        !do ip=1,nmodal
+        !   allocate(scaledspec(ip)%S(specin%nf,specin%nang))
+        !   scaledspec(ip)%S = multinomalspec(ip)%S
+        !enddo
+        !allocate(scalefac1(nmodal))  ! this is the scaling factor required to maintain Hm0
+        !                             ! including that parts of the spectrum are set to zero
+        !scalefac1 = 1.d0
+        !allocate(scalefac2(nmodal))  ! this is the scaling factor required to maintain Hm0
+        !                             ! in the previous iteration
+        !scalefac2 = 1.d0
+        !allocate(avgscale(nmodal))
+        !avgscale = 1.d0
+        !! these are convergence criteria
+        !newconv = 0.d0
+        !oldconv = huge(0.d0)
+        !cont = .true.
+        !allocate(tempmax(nmodal))     ! used to store maximum value in f,theta space
+        !allocate(oldvariance(nmodal)) ! used to store the sum of variance in the original partitions
+        !do ip=1,nmodal
+        !   oldvariance(ip) = sum(multinomalspec(ip)%S)
+        !enddo
+        !allocate(newvariance(nmodal)) ! used to store the sum of variance in the new partitions
+        !!
+        !! Start convergence loop
+        !do while (cont)
+        !   avgscale = (avgscale+scalefac1)/2
+        !   ! First scale the spectra
+        !   do ip=1,nmodal
+        !      ! scale the spectrum using less than half the additional scale factor, this to
+        !      ! ensure the method does not become unstable
+        !      ! scaledspec(ip)%S = multinomalspec(ip)%S*(0.51d0+scalefac1(ip)*0.49d0)
+        !      ! scaledspec(ip)%S = multinomalspec(ip)%S*(scalefac1(ip)+scalefac2(ip))/2
+        !      scaledspec(ip)%S = multinomalspec(ip)%S*avgscale(ip)
+        !
+        !   enddo
+        !   do i=1,specin%nang
+        !      do ii=1,specin%nf
+        !         ! vector of variance densities at this point in f,theta space
+        !         do ip=1,nmodal
+        !            tempmax(ip) = scaledspec(ip)%S(ii,i)
+        !         end do
+        !         ! All spectra other than the one that is greatest in this point
+        !         ! is set to zero. In case multiple spectra are equal largest,
+        !         ! the first spectrum in the list is chosen (minval(maxloc))
+        !         ind = minval(maxloc(tempmax))
+        !         do ip=1,nmodal
+        !            if (ip/=ind) then
+        !               scaledspec(ip)%S(ii,i) = 0.d0
+        !            endif
+        !         enddo
+        !      enddo
+        !   end do
+        !   !
+        !   ! Now rescale adjusted partition spectra so that they match the incident Hm0
+        !   scalefac2 = scalefac1  ! keep previous results
+        !   do ip=1,nmodal
+        !      newvariance(ip) = sum(scaledspec(ip)%S)
+        !      if (newvariance(ip)>0.01d0*oldvariance(ip)) then
+        !         scalefac1(ip) = oldvariance(ip)/newvariance(ip) ! want to maximise to a factor 2
+        !                                                            ! else can generate rediculous results
+        !      else
+        !         scalefac1(ip) = 0.d0                            ! completely remove this spectrum
+        !      endif
+        !   enddo
+        !   !
+        !   ! check convergence criteria (if error is increasing, we have passed best fit)
+        !   newconv = maxval(abs(scalefac2-scalefac1)/scalefac1)
+        !   if (newconv<0.0001d0 .or. abs(newconv-oldconv)<0.0001d0) then
+        !      cont = .false.
+        !   endif
+        !   oldconv = newconv
+        !end do
+        !! Ensure full energy conservation by scaling now according to full scalefac, not just the
+        !! half used in the iteration loop
+        !do ip=1,nmodal
+        !   scaledspec(ip)%S = multinomalspec(ip)%S*scalefac1(ip)
+        !enddo
+        !!
+        !! Now check the total scaling that has taken place across the spectrum, also accounting
+        !! for the fact that some parts of the spectra are set to zero. This differs from the
+        !! scalefac1 and scalefac2 vectors in the loop that only adjust the part of the spectrum
+        !! that is not zero.
+        !do ip=1,nmodal
+        !   write(*,*)'Hm0m = ',4*sqrt(sum(scaledspec(ip)%S)*specin%dang*specin%df)
+        !enddo
+        !do ip=1,nmodal
+        !   indvec = maxloc(scaledspec(ip)%S)
+        !   scalefac1(ip) = scaledspec(ip)%S(indvec(1),indvec(2)) / &
+        !                   multinomalspec(ip)%S(indvec(1),indvec(2))-1.d0
+        !enddo
+        !!
+        !! Warning and/or error criteria here if spectra overlap each other too much
+        !do ip=1,nmodal
+        !   if(scalefac1(ip)>0.5d0) then
+        !      if (forcepartition==1) then
+        !         call writelog('lsw','(a,f0.0,a,i0,a,a,a)', &
+        !                       'Warning: ',scalefac1(ip)*100,'% of energy in spectrum partition ''',ip, &
+        !                       ''' in  ', trim(readfile),' is overlapped by other partitions')
+        !         call writelog('lsw','',' Check spectral partitioning in ',trim(readfile))
+        !      else
+        !         call writelog('lswe','(a,f0.0,a,i0,a,a,a)', &
+        !                       'Error: ',scalefac1(ip)*100,'% of energy in spectrum partition ''',ip, &
+        !                       ''' in  ', trim(readfile),' is overlapped by other partitions')
+        !         call writelog('lswe','','This spectrum overlaps too much with another spectrum partition.', &
+        !                                 ' Check spectral partitioning in ',trim(readfile))
+        !         call writelog('lswe','','If the partitioning should be carried out regardles of energy loss, ', &
+        !                                  'set ''forcepartition = 1'' in ',trim(readfile))
+        !         call halt_program
+        !      endif
+        !   elseif (scalefac1(ip)>0.2d0 .and. scalefac1(ip)<=0.5d0) then
+        !      call writelog('lsw','(a,f0.0,a,i0,a,a,a)', &
+        !                    'Warning: ',scalefac1(ip)*100,'% of energy in spectrum partition ''',ip, &
+        !                    ''' in  ', trim(readfile),' is overlapped by other partitions')
+        !      call writelog('lsw','',' Check spectral partitioning in ',trim(readfile))
+        !   elseif (scalefac1(ip)<0.d0) then
+        !      call writelog('lsw','(a,i0,a,a,a)','Warning: spectrum partition ''',ip,''' in  ',trim(readfile), &
+        !                           ' has been removed')
+        !      call writelog('lsw','','This spectrum is entirely overlapped by another spectrum partition.',&
+        !                             ' Check spectral partitioning in ',trim(readfile))
+        !   endif
+        !enddo
+        !!
+        !! Now set total spectrum
+        !allocate(specin%S(specin%nf,specin%nang))
+        !specin%S = 0.d0
+        !do ip=1,nmodal
+        !   specin%S = specin%S+scaledspec(ip)%S
+        !enddo
+        !
+        !deallocate(scaledspec)
+        !deallocate(tempmax)
+        !deallocate(scalefac1,scalefac2)
+        !deallocate(newvariance,oldvariance)
      endif
      
     ! We need frequency spectrum to ensure Sf remains correct between interpoloation
