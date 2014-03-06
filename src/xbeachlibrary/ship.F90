@@ -35,6 +35,7 @@ type ship
    integer                         :: ny
    integer                         :: compute_force  ! option (0/1) to compute forces on ship (can be switched on/off per ship)
    integer                         :: compute_motion ! option (0/1) to compute ship motion due to waves
+   integer                         :: flying
    character(slen)                 :: shipgeom
    real*8                          :: xCG            ! x location of center of gravity w.r.t. ship grid
    real*8                          :: yCG            ! y location of center of gravity w.r.t. ship grid
@@ -50,6 +51,7 @@ type ship
    real*8 , dimension(:)  , pointer :: track_t
    real*8 , dimension(:)  , pointer :: track_x
    real*8 , dimension(:)  , pointer :: track_y
+   real*8 , dimension(:)  , pointer :: track_z
    real*8 , dimension(:)  , pointer :: track_dir
    real*8                           :: mass
    real*8                           :: Jx
@@ -79,15 +81,12 @@ contains
     IMPLICIT NONE
 
     type(parameters)                            :: par
-    type(spacepars)                             :: s
-    type(ship), dimension(:), pointer :: sh
+    type(spacepars),target                      :: s
+    type(ship), dimension(:), pointer           :: sh
 
-    integer                                     :: i,fid,ix,iy,ier,it,shp_indx,i1,j1
+    integer                                     :: i,fid,ix,iy,ier,it
     character(1)                                :: ch
-    real*8                                      :: shipx_old,shipy_old,dirship,radius,cosdir,sindir
-    real*8                                      :: x1,y1,xrel,yrel
-    integer                                     :: n1,n2,iprint=0
-    real*4                                      :: xymiss=-999
+    integer                                     :: n2
 
     include 's.ind'
     include 's.inp'
@@ -125,6 +124,7 @@ contains
         sh(i)%shiptrack = readkey_name(sh(i)%name,'shiptrack',required=.true.)
         sh(i)%compute_force  = readkey_int(sh(i)%name,'compute_force' ,  0,  0, 1)
         sh(i)%compute_motion = readkey_int(sh(i)%name,'compute_motion',  0,  0, 1)
+        sh(i)%flying         = readkey_int(sh(i)%name,'flying',  0,  0, 1)
 
         allocate (sh(i)%depth(sh(i)%nx+1,sh(i)%ny+1))
         allocate (sh(i)%zhull(sh(i)%nx+1,sh(i)%ny+1))
@@ -174,10 +174,17 @@ contains
         allocate(sh(i)%track_t(sh(i)%track_nt))
         allocate(sh(i)%track_x(sh(i)%track_nt))
         allocate(sh(i)%track_y(sh(i)%track_nt))
+        allocate(sh(i)%track_z(sh(i)%track_nt))
         allocate(sh(i)%track_dir(sh(i)%track_nt))
-        do it=1,sh(i)%track_nt
-           read(fid,*)sh(i)%track_t(it),sh(i)%track_x(it),sh(i)%track_y(it)
-        enddo
+        if (sh(i)%flying==0) then
+           do it=1,sh(i)%track_nt
+              read(fid,*)sh(i)%track_t(it),sh(i)%track_x(it),sh(i)%track_y(it)
+           enddo
+        else
+           do it=1,sh(i)%track_nt
+              read(fid,*)sh(i)%track_t(it),sh(i)%track_x(it),sh(i)%track_y(it),sh(i)%track_z(it)
+           enddo
+        endif
         close(fid)
         
        !  Compute ship direction
@@ -238,14 +245,12 @@ contains
     IMPLICIT NONE
 
     type(parameters)                            :: par
-    type(spacepars)                             :: s
-    type(ship), dimension(:), pointer :: sh
+    type(spacepars),target                      :: s
+    type(ship), dimension(:), pointer           :: sh
 
-    integer                                     :: i,fid,ix,iy,ier,it,shp_indx,i1,j1
+    integer                                     :: i,ix,iy,shp_indx
     logical, save                               :: firstship=.true.
-    character(1)                                :: ch
     real*8                                      :: shipx_old,shipy_old,dirship,radius,cosdir,sindir
-    real*8                                      :: x1,y1,xrel,yrel
     integer                                     :: n1,n2,iprint=0
     real*4                                      :: xymiss=-999
     
@@ -265,6 +270,7 @@ contains
         shipy_old = shipyCG(i)
         call linear_interp(sh(i)%track_t,sh(i)%track_x,sh(i)%track_nt,par%t,shipxCG(i),shp_indx)
         call linear_interp(sh(i)%track_t,sh(i)%track_y,sh(i)%track_nt,par%t,shipyCG(i),shp_indx)
+        call linear_interp(sh(i)%track_t,sh(i)%track_z,sh(i)%track_nt,par%t,shipzCG(i),shp_indx)
         call linear_interp(sh(i)%track_t,sh(i)%track_dir,sh(i)%track_nt,par%t,dirship,shp_indx)
         radius=max(sh(i)%nx*sh(i)%dx,sh(i)%ny*sh(i)%dy)/2
         cosdir=cos(dirship)
@@ -332,7 +338,9 @@ contains
                  if (sh(i)%depth(ix,iy)==0) sh(i)%ph(ix,iy)=0.d0
               enddo
            enddo
-           
+        else
+           sh(i)%ph = -sh(i)%zhull-shipzCG(i)
+           sh(i)%ph = max(sh(i)%ph,0.d0)        
         endif ! compute_forces     
         
         ! Compute pressure head (m) on XBeach grid
@@ -382,11 +390,11 @@ contains
   subroutine ship_force(i,sh,s,par)
      use params
      use spaceparams
-     type (ship)           :: sh
-     type (parameters)     :: par
-     type (spacepars)      :: s
-     integer               :: ix,iy,i
-     real*8                :: dFx,dFy,dFz,hdx,hdy
+     type (ship)              :: sh
+     type (parameters)        :: par
+     type (spacepars),target  :: s
+     integer                  :: ix,iy,i
+     real*8                   :: dFx,dFy,dFz,hdx,hdy
   
      include 's.ind'
      include 's.inp'
