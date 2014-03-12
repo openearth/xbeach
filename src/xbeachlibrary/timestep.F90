@@ -417,11 +417,11 @@ contains
     type(timepars), intent(inout)    :: tpar
     integer, intent(inout)           :: it
     integer, intent(out), optional   :: ierr 
-    integer                     :: i
-    integer                     :: j,j1,j2
-    integer                     :: n
+    integer                     :: i,ilim
+    integer                     :: j,j1,j2,jlim
+    integer                     :: n,limtype
     real*8                              :: mdx,mdy,tny,fac, maxfac
-    real*8,save                         :: dtref
+    real*8,save                         :: dtref,dtold
 
     ! Super fast 1D
     if (s%ny==0) then
@@ -445,9 +445,12 @@ contains
             minval(s%dnv(1:s%nx+1,1:s%ny+1)))   &
             /sqrt(maxval(s%hh)*par%g)
        dtref = 0.d0
+       n = ceiling((tpar%tnext-par%t)/par%dt)
+       par%dt = (tpar%tnext-par%t)/n
 
     else
        par%dt=huge(0.0d0)      ! Seed dt
+       dtold = par%dt
        if (s%ny>2) then
           do j=2,s%ny
              do i=2,s%nx
@@ -459,7 +462,12 @@ contains
                    par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,j))+abs(s%uu(i,j)),abs(s%ueu(i,j))))) !Jaap: include sediment advection velocities
                    ! y-component
                    par%dt=min(par%dt,mdy/max(tny,(sqrt(par%g*s%hu(i,j))+abs(s%vu(i,j)))))
-
+                   if (par%dt<dtold) then
+                      ilim = i
+                      jlim = j
+                      limtype = 1
+                   endif
+                   
                    ! v-points
                    mdx=min(s%dsu(i,j),s%dsu(i-1,j))
                    mdy=s%dnv(i,j)
@@ -467,11 +475,23 @@ contains
                    par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,j))+abs(s%uv(i,j)))))
                    ! y-component
                    par%dt=min(par%dt,mdy/max(tny,max(sqrt(par%g*s%hv(i,j))+abs(s%vv(i,j)),abs(s%vev(i,j))))) !Jaap: include sediment advection velocities
+                   
+                   if (par%dt<dtold) then
+                      ilim = i
+                      jlim = j
+                      limtype = 2
+                   endif
 
                    mdx = min(s%dsu(i,j),s%dsz(i,j))**2
                    mdy = min(s%dnv(i,j),s%dnz(i,j))**2
 
                    par%dt=min(par%dt,0.5d0*mdx*mdy/(mdx+mdy)/max(s%nuh(i,j),1e-6))
+                   
+                   if (par%dt<dtold) then
+                      ilim = i
+                      jlim = j
+                      limtype = 3
+                   endif
 
                    !Bas: the following criterion is not yet tested for 2D
                    !par%dt=min(par%dt,0.5d0*mdx/max(s%Dc(i,j)*s%wetz(i,j),1e-6))
@@ -524,7 +544,12 @@ contains
               ! Wikipedia: http://en.wikipedia.org/wiki/Von_Neumann_stability_analysis for FTCS:
               ! 2*a*dt/dx2 < 1 , where dh/dt = a *d2h/dx2 -> a = k/por
               ! 2*k/por*dt/dx2 = CFL -> dt = CFL*dx2*por/2/k
-              par%dt=min(par%dt,par%CFL*s%dsc(i,j)**2*par%por/(2*par%kx))              
+              par%dt=min(par%dt,par%CFL*s%dsc(i,j)**2*par%por/(2*par%kx)) 
+              if (par%dt<dtold) then
+                 ilim = i
+                 jlim = j
+                 limtype = 4
+              endif
            enddo
         enddo
         if (par%ny>2) then
@@ -532,7 +557,12 @@ contains
               do i=2,s%nx
                  ! 2*ky*gwheight*dt/dy2 < CFL   -> dt = (CFL*dy2)/(2*ky*gwheight)
                  ! par%dt=min(par%dt,par%CFL*s%dnc(i,j)**2/(2*par%ky*s%gwheight(i,j)))
-                 par%dt=min(par%dt,par%CFL*s%dnc(i,j)**2*par%por/(2*par%ky)) 
+                 par%dt=min(par%dt,par%CFL*s%dnc(i,j)**2*par%por/(2*par%ky))
+                 if (par%dt<dtold) then
+                    ilim = i
+                    jlim = j
+                    limtype = 1
+                 endif
               enddo
            enddo
         endif
@@ -591,10 +621,21 @@ contains
     if (par%nonh==1) maxfac = 500.d0
     
     if ((dtref/par%dt>maxfac .and. par%dt<par%tint) .or. par%dt/dtref>maxfac) then
-       call writelog('lse','','Quit XBeach since computational time implodes/explodes')
-       call writelog('lse','','Please check the velocities at the end of the simulation')
-       call writelog('lse','','dtref',dtref)
-       call writelog('lse','','par%dt',par%dt)
+       call writelog('lswe','','Quit XBeach since computational time implodes/explodes')
+       call writelog('lswe','','Please check output at the end of the simulation')
+       select case (limtype)
+       case (1)
+          call writelog('lswe','a,i0,a,i0,a','U-velocities are too high in cell (',ilim,',',jlim,')(M,N)')
+       case (2)
+          call writelog('lswe','a,i0,a,i0,a','V-velocities are too high in cell (',ilim,',',jlim,')(M,N)')
+       case (3)
+          call writelog('lswe','a,i0,a,i0,a','Viscosity condition is too high in cell (',ilim,',',jlim,')(M,N)')
+       case (4)
+          call writelog('lswe','a,i0,a,i0,a','Groundwater condition is too high in cell (',ilim,',',jlim,')(M,N)')
+       end select
+       call writelog('lswe','','dtref: ',dtref)
+       call writelog('lswe','','par%dt: ',par%dt)
+                 
        ! Force output before exit in main time loop
        tpar%outputg = (size(tpar%tpg) .gt. 0)
        tpar%outputp = (size(tpar%tpp) .gt. 0)
