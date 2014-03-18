@@ -1425,12 +1425,16 @@ contains
     !
     !
     ! fix minimum runup depth
-    if (minval(par%rugdepth(1:par%nrugdepth))<=par%eps) then
-       where(par%rugdepth(1:par%nrugdepth)<par%eps)
-          par%rugdepth = par%eps+tiny(0.d0)
-       endwhere
-       call writelog('lws','(a,f0.5,a)','Warning: Setting rugdepth to minimum value greater than eps (', &
-                                         minval(par%rugdepth),')')
+    if (par%nrugauge>0) then
+       ! Fill up remaining part of the array with minimum value
+       par%rugdepth(par%nrugdepth+1:99) = par%eps+tiny(0.d0)
+       if (minval(par%rugdepth)<=par%eps)) then
+          where(par%rugdepth<=par%eps)
+             par%rugdepth = par%eps+tiny(0.d0)
+          endwhere
+          call writelog('lws','(a,f0.5,a)','Warning: Setting rugdepth to minimum value greater than eps (', &
+                                            par%eps+tiny(0.d0),')')
+       endif
     endif
     !
     !
