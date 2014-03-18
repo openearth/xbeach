@@ -1428,7 +1428,7 @@ contains
     if (par%nrugauge>0) then
        ! Fill up remaining part of the array with minimum value
        par%rugdepth(par%nrugdepth+1:99) = par%eps+tiny(0.d0)
-       if (minval(par%rugdepth)<=par%eps)) then
+       if (minval(par%rugdepth)<=par%eps) then
           where(par%rugdepth<=par%eps)
              par%rugdepth = par%eps+tiny(0.d0)
           endwhere
