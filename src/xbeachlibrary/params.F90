@@ -1175,12 +1175,13 @@ contains
     !
     !
     ! Vegetation parameters
+    if (par%vegetation==1) then
     call writelog('l','','--------------------------------')
     call writelog('l','','Vegetation parameters: ')
     par%vegiefile    = readkey_name  ('params.txt', 'vegiefile'                       )
     par%vegiemapfile = readkey_name  ('params.txt', 'vegiemapfile'                    )
     ! vegiefile routine should set nveg
-    !
+    endif
     !
     ! Wave numerics parameters
     call writelog('l','','--------------------------------')
