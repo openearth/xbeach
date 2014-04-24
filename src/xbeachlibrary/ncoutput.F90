@@ -539,7 +539,11 @@ contains
                    if (status /= nf90_noerr) call handle_err(status)
                    status = nf90_put_att(ncid, meanvarids(i,j), 'coordinates', trim(coordinates))
                    if (status /= nf90_noerr) call handle_err(status)
-                   status = nf90_put_att(ncid, meanvarids(i,j), 'units', trim(t%units))
+                   if (cellmethod .eq. 'var') then
+                      status = nf90_put_att(ncid, meanvarids(i,j), 'units', '(' // trim(t%units) // ')^2')
+                   else
+                      status = nf90_put_att(ncid, meanvarids(i,j), 'units', trim(t%units))
+                   endif
                    if (status /= nf90_noerr) call handle_err(status)
                    if (.not.(trim(t%standardname) .eq. '')) then
                       status = nf90_put_att(ncid, meanvarids(i,j), 'standard_name', trim(t%standardname))
