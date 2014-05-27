@@ -610,8 +610,14 @@ contains
 #endif
        if (fe3 .and. .not. (fe1 .or. fe2)) then
              par%nonhspectrum = 1
+             dummystring='nhbcflist.bcf'
+             call checkbcfilelength(par%tstop,par%instat,dummystring,filetype,nonh=.true.)
        elseif (.not. fe3 .and. (fe1 .and. fe2)) then
              par%nonhspectrum = 0
+             dummystring='ebcflist.bcf'
+             call checkbcfilelength(par%tstop,par%instat,dummystring,filetype)
+             dummystring='qbcflist.bcf'
+             call checkbcfilelength(par%tstop,par%instat,dummystring,filetype)
        elseif (fe3 .and. (fe1 .or. fe2)) then
              call writelog('lswe','', &
                     'If ''instat=reuse'' the model directory may not contain multiple boundary definition files.')
