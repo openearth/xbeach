@@ -250,7 +250,7 @@ if (allocated(wcoef)) then
        !Calculate the optimum value of the dispersion coeficiant.
        do j=1,s%ny+1
           do i=1,s%nx+1      
-             d = s%zs0(i,j)-s%zb(i,j)
+             d = max(s%zs0(i,j)-s%zb(i,j),par%eps)
              k = disper(sigma,d,par%g,2.0_rKind*par%px,0.0001_rKind)
              if (d>0.0_rKind) then          
                 wcoef(i,j) = 1.0_rKind / (  4.0_rKind*par%g / (d*sigma**2) - 4.0_rKind / ((k*d)**2)  )

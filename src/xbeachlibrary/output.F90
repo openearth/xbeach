@@ -121,8 +121,8 @@ contains
     type(parameters)                    :: par
     logical,save                        :: firsttime = .true.
     integer,save                        :: day, ndt
-    real*8,save                         :: tprev,percprev,sumdt,dtavg
-    real*8                              :: tnow,percnow,tpredicted
+    real*8,save                         :: tprev,percprev,sumdt,dtavg,t0
+    real*8                              :: tnow,percnow,tpredicted,tpredicted2,tpredmean
     integer,dimension(8)                :: datetime
 
 
@@ -131,6 +131,7 @@ contains
        call date_and_time(VALUES=datetime)
        tprev = day*24.d0*3600.d0+datetime(5)*3600.d0+60.d0*datetime(6)+1.d0*datetime(7)+0.001d0*datetime(8)
        percprev = 0.d0
+       t0 = tprev
        firsttime = .false.
        ndt = 0
        sumdt = 0.d0
@@ -152,21 +153,23 @@ contains
              sumdt=0.d0
              ! Predict time based on percentage change rate in the last 5 seconds. 
              tpredicted = 100.d0*(1.d0-par%t/par%tstop)/(max(percnow-percprev,0.01d0)/(tnow-tprev))
+             tpredicted2 = 100.d0*(1.d0-par%t/par%tstop)/(max(percnow,0.01d0)/(tnow-t0))
+             tpredmean = (tpredicted+tpredicted2)/2.d0
              ! Percentage complete:
-             if (tpredicted>=3600) then 
+             if (tpredmean>=3600) then 
                 call writelog('ls','(a,I3,a,I3,a)','Time remaining',&
-                     floor(tpredicted/3600.0d0),' hours and ',&
-                     nint((tpredicted-3600.0d0*floor(tpredicted/3600.0d0))/60.0d0),&
+                     floor(tpredmean/3600.0d0),' hours and ',&
+                     nint((tpredmean-3600.0d0*floor(tpredmean/3600.0d0))/60.0d0),&
                      ' minutes')
-             elseif (tpredicted>=600) then
+             elseif (tpredmean>=600) then
                 call writelog('ls','(a,I3,a)','Time remaining ',&
-                     floor(tpredicted/60.0d0),' minutes')
-             elseif (tpredicted>=60) then
+                     floor(tpredmean/60.0d0),' minutes')
+             elseif (tpredmean>=60) then
                 call writelog('ls','(a,I3,a,I3,a)','Time remaining ',&
-                     floor(tpredicted/60.0d0),' minutes and ',&
-                     nint((tpredicted-60.0d0*floor(tpredicted/60.0d0))),' seconds')
+                     floor(tpredmean/60.0d0),' minutes and ',&
+                     nint((tpredmean-60.0d0*floor(tpredmean/60.0d0))),' seconds')
              else
-                call writelog('ls','(a,I3,a)','Time remaining ',nint(tpredicted),' seconds')
+                call writelog('ls','(a,I3,a)','Time remaining ',nint(tpredmean),' seconds')
              endif
              tprev=tnow
              percprev=percnow

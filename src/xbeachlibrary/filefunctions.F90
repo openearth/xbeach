@@ -262,7 +262,7 @@ contains
           case (3)
              do while (total<tstop .and. i<bcfiles(ifid)%nlines)
                 if (lnonh) then
-                   read(fid,*,iostat=ier)d1,total,dummy
+                   read(fid,*,iostat=ier)d1,total,d2,dummy
                 else
                    read(fid,*,iostat=ier)total,d2,d3,d4,d5,dummy
                 endif

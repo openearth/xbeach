@@ -58,7 +58,7 @@ contains
     real*8, save                                :: dtbcfile,rt,bcendtime,bcstarttime
     real*8                                      :: em,tshifted,tnew
     real*8, save                                :: Emean,Llong
-    real*8,dimension(:)     ,allocatable,save   :: e01       ! [J/m2/rad] directional distribution of wave energy at boundary
+    real*8,dimension(:)     ,allocatable,save   :: e01,L0,L,Lest,kbw,wbw       ! e01 = [J/m2/rad] directional distribution of wave energy at boundary
     real*8,dimension(:)     ,allocatable,save   :: fac1,fac2
     real*8,dimension(:)     ,allocatable,save   :: tE,dataE,databi
     real*8,dimension(:,:)   ,allocatable,save   :: ht
@@ -93,6 +93,14 @@ contains
        allocate(dist(1:ntheta))
        allocate(factor(1:ntheta))
        allocate(wcrestpos(nx+1))
+       allocate(L(ny+1))
+       allocate(L0(ny+1))
+       allocate(Lest(ny+1))
+       L0 = par%g*par%Trep**2/2/par%px
+       L = L0
+       allocate(kbw(ny+1))
+       allocate(wbw(ny+1))
+       wbw = 2*par%px/par%Trep
     endif
     !
     !  GENERATE AND READ-IN WAVE BOUNDARY CONDITIONS
@@ -100,7 +108,7 @@ contains
     ! added for bound long wave comp Ad 28 march 2006
     dtheta = par%dtheta*par%px/180
     startbcf=.false.
-
+    
     if(.not. bccreated ) then
        if (xmaster) then
           call writelog('ls','','Setting up boundary conditions')
@@ -205,7 +213,7 @@ contains
           call xmpi_bcast(par%Trep)
           call xmpi_bcast(par%m)
           call xmpi_bcast(theta0)
-#endif
+#endif  
           do itheta=1,ntheta
              sigt(:,:,itheta) = 2.d0*par%px/par%Trep
           end do
@@ -371,11 +379,27 @@ contains
     ! instat = 6 => directional wave energy time series from spectrum file; bound long wave from van Dongeren, 19??
     ! instat = 7 => as instat = 4/5/6; reading from previously computed wave boundary condition file.
     if (trim(par%instat)=='stat' .or. trim(par%instat)=='stat_table') then
-       do j=1,ny+1
-          ee(1,j,:)=e01*min(par%t/par%taper,1.0d0)
-          bi(1) = 0.0d0
-          ui(1,j) = 0.0d0
-       end do
+       if(par%nonhspectrum==0) then
+          do j=1,ny+1
+             ee(1,j,:)=e01*min(par%t/par%taper,1.0d0)
+             bi(1) = 0.0d0
+             ui(1,j) = 0.0d0
+          end do
+       else
+          zi(1,:) = par%Hrms/2*sin(2*par%px*par%t/par%Trep)
+          do j=1,ny+1
+             Lest(j) = L(j)
+             L(j) = iteratedispersion(L0(j),Lest(j),par%px,hh(1,j))
+          enddo
+          kbw = 2*par%px/L
+          ui(1,:) = 1.d0/hh(1,:)*2*par%px/par%Trep*par%Hrms/2/sinh(kbw*hh(1,:)) * &
+                                                dsin(wbw*par%t &
+                                                     -kbw*( dsin(theta0)*(s%yz(1,:)-s%yz(1,1)) &
+                                                           +dcos(theta0)*(s%xz(1,:)-s%xz(1,1)) &
+                                                          ) &
+                                                     ) * &
+                                                1.d0/kbw*sinh(kbw*hh(1,:))
+       endif
     elseif (trim(par%instat)=='bichrom') then
        do j=1,ny+1
           ee(1,j,:)=e01*0.5d0 * &
@@ -610,7 +634,7 @@ contains
              if(xmaster) then
                 open(53,file='nhbcflist.bcf',form='formatted',position='rewind')
                 do i=1,curline
-                   read(53,*,iostat=ier)bcstarttime,bcendtime,nhbcfname
+                   read(53,*,iostat=ier)bcstarttime,bcendtime,par%Trep,nhbcfname
                    if (ier .ne. 0) then
                       call report_file_read_error('nhbcflist.bcf')
                    endif
@@ -692,7 +716,7 @@ contains
              if (.not. isSet_W) wi(1,:) = ws(2,:)
           endif
           ui(1,:) = ui(1,:)*min(par%t/par%taper,1.0d0)
-              zi(1,:) = zi(1,:)*min(par%t/par%taper,1.0d0)
+          zi(1,:) = zi(1,:)*min(par%t/par%taper,1.0d0)
           wi(1,:) = wi(1,:)*min(par%t/par%taper,1.0d0)
        endif ! nonhspectrum
     elseif (trim(par%instat)=='ts_nonh') then

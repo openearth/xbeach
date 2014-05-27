@@ -90,10 +90,10 @@ subroutine gw_init(s,par)
          end do
          close(31)
       endif
-      where(s%wetz==1)
-         s%gwhead = s%zs0
-      endwhere
-      
+      !where(s%wetz==1)
+      !   s%gwhead = s%zs0
+      !endwhere
+      !
       if (xmpi_istop) then
          s%gwbottom(1,:) = s%gwbottom(2,:)
       endif
@@ -198,12 +198,12 @@ subroutine gwflow(s,par)
   
   ! internal variables
   integer                                     :: i,j
-  integer                                     :: count
+  integer                                     :: count,incl
   integer,parameter                           :: maxiter = 50
   real*8                                      :: err,errx,erry,errz
   real*8                                      :: flux,dzr,wdt
   real*8,dimension(:,:),allocatable,save      :: gwhu,gwhv,gwheadtop
-  real*8,dimension(:,:),allocatable,save      :: Kx,Ky,Kz
+  real*8,dimension(:,:),allocatable,save      :: Kx,Ky,Kz,Kzinf
   real*8,dimension(:,:),allocatable,save      :: Kxupd,Kyupd,Kzupd
   logical,dimension(:,:),allocatable,save     :: connected
   real*8,dimension(:,:),allocatable,save      :: fracdt
@@ -231,6 +231,7 @@ subroutine gwflow(s,par)
      allocate(Kx(1:nx+1,1:ny+1))
      allocate(Ky(1:nx+1,1:ny+1))
      allocate(Kz(1:nx+1,1:ny+1))
+     allocate(Kzinf(1:nx+1,1:ny+1))
      allocate(Kxupd(1:nx+1,1:ny+1))
      allocate(Kyupd(1:nx+1,1:ny+1))
      allocate(Kzupd(1:nx+1,1:ny+1))
@@ -252,6 +253,7 @@ subroutine gwflow(s,par)
      Kx = par%kx
      Ky = par%ky
      Kz = par%kz
+     Kzinf = par%kz
      
      Kxupd = Kx
      Kyupd = Ky
@@ -319,7 +321,7 @@ subroutine gwflow(s,par)
   ! unconnected for only part of the timestep, therefore a fraction
   ! of timestep is returned which was required to reach connection
   if (par%gwnonh==1) then
-     call gw_unconnected_infil(s,par,Kz,connected,fracdt,infiluncon)
+     call gw_unconnected_infil(s,par,Kzinf,connected,fracdt,infiluncon)
 !     where ((.not. connected) .and. (gwlevel>zb))
 !        infiluncon = infiluncon - (gwlevel-zb)/par%dt*par%por
 !        fracdt = 1.d0
@@ -394,6 +396,23 @@ subroutine gwflow(s,par)
   !             used in the Poisson solver
   ! Output Kxupd is the new updated hydraulic conductivity for the next time step  
   call gw_calculate_velocities(s,par,fracdt,s%gwu,s%gwv,s%gww,Kx,Ky,Kz,Kxupd,Kyupd,Kzupd)
+  !
+  !
+  ! For next time step do some smoothing of Kx,Ky,Kx
+  do j=1,ny+1
+     do i=1,nx+1
+        incl = min(i+3,nx+1)-max(1,i-3)
+        Kx(i,j) = sum(Kxupd(max(1,i-3):min(i+3,nx+1),j))/incl
+        Kz(i,j) = sum(Kzupd(max(1,i-3):min(i+3,nx+1),j))/incl
+        Ky(i,j) = sum(Kyupd(max(1,i-3):min(i+3,nx+1),j))/incl
+     enddo
+  enddo
+  Kxupd = Kx
+  Kzupd = Kz
+  Kyupd = Ky
+  Kx = par%kx
+  Ky = par%ky
+  Kz = par%kz  
   !
   !
   ! Calculate horizontal fluxes
@@ -565,7 +584,7 @@ subroutine gwflow(s,par)
   gwheadb(nx+1,:) = gwheadb(nx,:)
 end subroutine gwflow
 
-subroutine gw_unconnected_infil(s,par,Kz,connected,fracdt,infil)
+subroutine gw_unconnected_infil(s,par,Kzinf,connected,fracdt,infil)
   use params
   use xmpi_module
   use spaceparams
@@ -574,12 +593,13 @@ subroutine gw_unconnected_infil(s,par,Kz,connected,fracdt,infil)
   
   type(parameters),intent(in)                 :: par
   type(spacepars)                             :: s
-  real*8,dimension(s%nx+1,s%ny+1),intent(in)  :: Kz
+  real*8,dimension(s%nx+1,s%ny+1),intent(inout):: Kzinf
   logical,dimension(s%nx+1,s%ny+1),intent(in) :: connected
   real*8,dimension(s%nx+1,s%ny+1),intent(out) :: fracdt,infil
   ! local
   integer                                     :: i,j
   logical                                     :: turbapprox
+  real*8,dimension(s%nx+1,s%ny+1)             :: Kzupd
 
   ! initialise
   fracdt = 0.d0
@@ -593,13 +613,16 @@ subroutine gw_unconnected_infil(s,par,Kz,connected,fracdt,infil)
         turbapprox = .true.
   end select
   !   
+  !
+  ! Start Kzupd by seeding with Kz.
+  Kzupd = Kzinf     
   do j=1,s%ny+1
      do i=1,s%nx+1
         if (.not. connected(i,j)) then
            if (s%wetz(i,j)==1 .and. s%gwlevel(i,j)<s%zb(i,j)) then
-              call gw_calc_local_infil(par,s%zb(i,j),s%hh(i,j),s%gwlevel(i,j),s%dinfil(i,j), &
-                                       s%D50top(i,j),turbapprox, &
-                                       fracdt(i,j),infil(i,j))
+              call gw_calc_local_infil(par,s%zb(i,j),s%hh(i,j),s%gwlevel(i,j),Kzinf(i,j),&
+                                       s%dinfil(i,j),s%D50top(i,j),turbapprox, &
+                                       fracdt(i,j),infil(i,j),Kzupd(i,j))
            endif
         endif
      enddo
@@ -611,9 +634,12 @@ subroutine gw_unconnected_infil(s,par,Kz,connected,fracdt,infil)
   elsewhere 
 !     s%dinfil = max(s%dinfil-par%dt*par%kz/par%por,0.d0)
      s%dinfil = 0.d0
+     Kzupd = par%kz
   endwhere
   ! Ensure nothing went wrong here with fracdt
   fracdt = min(max(fracdt,0.d0),1.d0)
+  ! Update Kz
+  Kzinf = Kzupd
 end subroutine gw_unconnected_infil
 
 subroutine gw_calculate_interfaceheight(s,gwhu,gwhv,initial)
@@ -1421,7 +1447,7 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
   real*8,dimension(s%nx+1,s%ny+1)             :: ratio
   ! local
   integer                                     :: i,j
-  real*8                                      :: flux,w1,w2,w3,dummy
+  real*8                                      :: flux,w1,w2,w3,dummy,dummy2
   logical                                     :: turbapprox
  
   ! shortcut pointers
@@ -1446,8 +1472,8 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
 !           infil(i,1) = max(infil(i,1),-par%kz)
         elseif (s%wetz(i,1)==1) then
            ! subroutine returns infiltration rate                         
-           call gw_calc_local_infil(par,s%zb(i,1),s%hh(i,1),s%gwlevel(i,1),s%dinfil(i,1), &
-                                    s%D50top(i,1),turbapprox,dummy,w1)
+           call gw_calc_local_infil(par,s%zb(i,1),s%hh(i,1),s%gwlevel(i,1),par%kz,s%dinfil(i,1), &
+                                    s%D50top(i,1),turbapprox,dummy,w1,dummy2)
            w1 = min(w1,(1.d0+s%hh(i,1)/(par%dwetlayer/3))*par%kz)
            ! part is instant, part is through infiltration
            w2 = par%por*(s%zb(i,1)-s%gwlevel(i,1))/par%dt
@@ -1477,8 +1503,8 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
               infil(i,j) = par%por*(s%zb(i,j)-s%gwlevel(i,j))/par%dt
            elseif (s%wetz(i,j)==1) then
               ! subroutine returns infiltration rate                         
-              call gw_calc_local_infil(par,s%zb(i,j),s%hh(i,j),s%gwlevel(i,j),s%dinfil(i,j), &
-                                       s%D50top(i,j),turbapprox,dummy,w1)
+              call gw_calc_local_infil(par,s%zb(i,j),s%hh(i,j),s%gwlevel(i,j),par%kz,s%dinfil(i,j), &
+                                       s%D50top(i,j),turbapprox,dummy,w1,dummy2)
               w1 = min(w1,(1.d0+s%hh(i,j)/(par%dwetlayer/3))*par%kz)
               ! part is instant, part is through infiltration
               w2 = par%por*(s%zb(i,j)-s%gwlevel(i,j))/par%dt
@@ -1513,20 +1539,24 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
 end function gw_calculate_hydrostatic_w
 
 
-pure subroutine gw_calc_local_infil(par,zb,hh,gwlevel,dinfil,D50top,turb,fracdt,infil)
+pure subroutine gw_calc_local_infil(par,zb,hh,gwlevel,kzlocal,dinfil,D50top,turb,fracdt,infil,kzupd)
   use params
   
   IMPLICIT NONE
 
   type(parameters),intent(in)                 :: par
-  real*8,intent(in)                           :: zb,hh,gwlevel,dinfil,D50top
+  real*8,intent(in)                           :: zb,hh,gwlevel,dinfil,D50top,kzlocal
   logical,intent(in)                          :: turb
-  real*8,intent(out)                          :: fracdt,infil
+  real*8,intent(out)                          :: fracdt,infil,kzupd
   ! local
   real*8,parameter                            :: visc = 1.0d-6
   real*8                                      :: dis,dtunsat,subdt
   real*8                                      :: vest,vupd,Re,err,kze,newinfil
-
+  real*8,parameter                            :: beta = 3.236067977499790d0 ! golden ratio
+  real*8,parameter                            :: alfa = 2.236067977499790d0 ! golden ratio
+  logical                                     :: firstloop
+  real*8                                      :: twodtpdi,fourdtph,dtpsq,twodtp,disq,dtp
+  !
   ! Determine infiltration velocity in single cell
   !
   ! The routine only solves Laminar/Turbulent unsaturated flow,
@@ -1540,63 +1570,76 @@ pure subroutine gw_calc_local_infil(par,zb,hh,gwlevel,dinfil,D50top,turb,fracdt,
   ! The routine for turbulent flow is the same as for Darcy flow, 
   ! but iterate until correct value of vest found
   !
-  ! Distance from bed to groundwater level
-  dis = max(zb-gwlevel,0.d0)
-  ! how long does it take to fill this distance under free vertical flow?
-  dtunsat = (dis*par%por) / (par%kz*(1+hh/dis)) 
-  ! what part of timestep is unsaturated?
-  fracdt = min(dtunsat,par%dt)/par%dt
-  subdt = fracdt*par%dt/par%por
-  ! does this need any unsaturated flow?
-  if (subdt>0.d0) then
-     ! estimate vertical velocity due to unsaturated flow
-     vest = ( (-dinfil + subdt*par%kz + &
-                     sqrt(dinfil**2 + &
-                          2*subdt*dinfil*par%kz + &
-                          4*subdt*hh*par%kz + &
-                          subdt**2*par%kz**2&
+  !
+  ! Coefficients for implicit solution
+  dtp    = par%dt/par%por
+  twodtp = 2*dtp
+  twodtpdi = twodtp*dinfil
+  fourdtph = 4*dtp*hh
+  dtpsq = dtp**2
+  disq = dinfil**2
+  ! Compute infiltration velocity assuming fully-unsaturated flow
+  if(turb) then
+     ! First estimate without turbulence
+     vest = ( (-dinfil + dtp*par%kz + &
+                sqrt(disq + &
+                     twodtpdi*par%kz + &
+                     fourdtph*par%kz + &
+                     dtpsq*par%kz**2&
                           )&
                      )&
-                     /(2*subdt) &
+              /twodtp &
                    ) 
-  else
-     vest = 0.d0
-  endif
-  ! Only set error if using turbulent flow approximation AND 
-  ! the Reynolds number is above the critical Re number
-  if (turb) then
-     ! Calculate Reynolds number
      Re = abs(vest)*D50top/par%por/visc
      if (Re>par%gwReturb) then
         err = 1.d0
-     endif
+        ! itialize with previous (turbulent) Kzinf
+        kze = kzlocal
+        firstloop = .true.
+        do while (err>0.01d0)
+           vupd = ( (-dinfil + dtp*kze + &
+                     sqrt(disq + &
+                          twodtpdi*kze + &
+                          fourdtph*kze + &
+                          dtpsq*kze**2&
+                         )&
+                    )&
+                    /twodtp &
+                  )
+           if (firstloop) then
+              err = 1.d0
+              firstloop = .false.
   else
-     err=-1.d0
+              err = abs(vest-vupd)/abs(vest)
   endif
-  ! update estimate if needed
-  kze = par%kz     ! note that this variable MUST remain separate from Kz(i,j)
-                   ! which is used to update the Poisson part of the equation                   
-  do while (err>0.001d0)
+           ! New estimate of the velocity, using golden ratio
+           vest = (vest+alfa*vupd)/beta
+           ! update estimate of Kz for next iteration
      Re = abs(vest)*D50top/par%por/visc
      kze = par%kz*sqrt(par%gwReturb/Re)
-     ! how long does it take to fill distance with new kz
-     dtunsat = (dis*par%por) / (kze*(1+hh/dis))
-     ! what part of timestep unsaturated and saturated?
-     fracdt = min(dtunsat,par%dt)/par%dt
-     subdt = fracdt*par%dt/par%por
-     ! new vertical velocity estimate
-     vupd = ( (-dinfil + subdt*kze + &
-                  sqrt(dinfil**2 + &
-                       2*subdt*dinfil*kze + &
-                       4*subdt*hh*kze + &
-                       subdt**2*kze**2&
+        enddo
+        kzupd = kze
+     else
+        kzupd = par%kz
+     endif
+  else
+     ! No need to iterate
+     vest = ( (-dinfil + dtp*par%kz + &
+                sqrt(disq + &
+                     twodtpdi*par%kz + &
+                     fourdtph*par%kz + &
+                     dtpsq*par%kz**2&
                        )&
                   )&
-                  /(2*subdt) &
+              /twodtp &
                 ) 
-     err = abs(vest-vupd)/abs(vest)
-     vest = (vest+vupd)/2
-  enddo  ! err>0.001
+     kzupd = par%kz
+  endif
+  ! now compute depth of infiltration at this rate
+  dis = vest*par%dt/par%por
+  ! what part of timestep is unsaturated, assuming
+  ! (incorrectly) that this is linear?
+  fracdt = max(0.d0,min((zb-gwlevel)/dis,1.d0))
   infil = vest*fracdt  ! this is the average over the WHOLE TIMESTEP
   ! check to see that the amount of water available is larger than the amount
   ! infiltrating
@@ -1605,6 +1648,78 @@ pure subroutine gw_calc_local_infil(par,zb,hh,gwlevel,dinfil,D50top,turb,fracdt,
      fracdt = fracdt*newinfil/infil
      infil = newinfil
   endif
+     
+  
+  
+  
+  
+  
+  !! Distance from bed to groundwater level
+  !dis = max(zb-gwlevel,0.d0)
+  !! how long does it take to fill this distance under free vertical flow?
+  !dtunsat = (dis*par%por) / (kzlocal*(1+hh/dis)) 
+  !! what part of timestep is unsaturated?
+  !fracdt = min(dtunsat,par%dt)/par%dt
+  !subdt = fracdt*par%dt/par%por
+  !! does this need any unsaturated flow?
+  !if (subdt>0.d0) then
+  !   ! estimate vertical velocity due to unsaturated flow
+  !   vest = ( (-dinfil + subdt*kzlocal + &
+  !                   sqrt(dinfil**2 + &
+  !                        2*subdt*dinfil*kzlocal + &
+  !                        4*subdt*hh*kzlocal + &
+  !                        subdt**2*kzlocal**2&
+  !                        )&
+  !                   )&
+  !                   /(2*subdt) &
+  !                 ) 
+  !else
+  !   vest = 0.d0
+  !endif
+  !! Only set error if using turbulent flow approximation AND 
+  !! the Reynolds number is above the critical Re number
+  !if (turb) then
+  !   ! Calculate Reynolds number
+  !   Re = abs(vest)*D50top/par%por/visc
+  !   if (Re>par%gwReturb) then
+  !      err = 1.d0
+  !   endif
+  !else
+  !   err=-1.d0
+  !endif
+  !! update estimate if needed
+  !kze = kzlocal    ! note that this variable MUST remain separate from Kz(i,j)
+  !                 ! which is used to update the Poisson part of the equation                   
+  !do while (err>0.001d0)
+  !   Re = abs(vest)*D50top/par%por/visc
+  !   kze = kzlocal*sqrt(par%gwReturb/Re)
+  !   ! how long does it take to fill distance with new kz
+  !   dtunsat = (dis*par%por) / (kze*(1+hh/dis))
+  !   ! what part of timestep unsaturated and saturated?
+  !   fracdt = min(dtunsat,par%dt)/par%dt
+  !   subdt = fracdt*par%dt/par%por
+  !   ! new vertical velocity estimate
+  !   vupd = ( (-dinfil + subdt*kze + &
+  !                sqrt(dinfil**2 + &
+  !                     2*subdt*dinfil*kze + &
+  !                     4*subdt*hh*kze + &
+  !                     subdt**2*kze**2&
+  !                     )&
+  !                )&
+  !                /(2*subdt) &
+  !              ) 
+  !   err = abs(vest-vupd)/abs(vest)
+  !   vest = (vest+vupd)/2
+  !enddo  ! err>0.001
+  !infil = vest*fracdt  ! this is the average over the WHOLE TIMESTEP
+  !! check to see that the amount of water available is larger than the amount
+  !! infiltrating
+  !if (infil > (hh-par%eps)/par%dt) then
+  !   newinfil = max((hh-par%eps)/par%dt,0.d0)
+  !   fracdt = fracdt*newinfil/infil
+  !   infil = newinfil
+  !endif
+  !kzupd = kze
 end subroutine gw_calc_local_infil
 
 pure subroutine gw_calc_local_connected_infil(par,gwhead,gwlevel,zb,headtop,hh,D50top,turb,zs,infil)

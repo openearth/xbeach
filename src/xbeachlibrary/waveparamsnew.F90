@@ -282,8 +282,8 @@ contains
        close(fidelist)
        close(fidqlist)
     else
-       write(fidnhlist,'(f12.3,a,f12.3,a)',iostat=iostat) &
-           & spectrumendtimeold,'   ',spectrumendtime,' '//trim(wp%nhfilename)
+       write(fidnhlist,'(f12.3,a,f12.3,a,f12.3,a)',iostat=iostat) & 
+           & spectrumendtimeold,'   ',spectrumendtime,' ',par%Trep,' '//trim(wp%nhfilename)
        close(fidnhlist)
     endif
 
@@ -1572,7 +1572,7 @@ contains
     type(parameters),intent(in)                  :: par
     ! internal
     integer                                      :: i,ii
-    integer                                      :: ind1,ind2,dummy
+    integer                                      :: ind1,ind2,dummy,seed
     real*8,dimension(:),allocatable              :: randnums,pdflocal,cdflocal
     real*8                                       :: L0,L,kmax,fmax
 
@@ -1619,10 +1619,15 @@ contains
     ! one long vector with random numbers for both the phase and the direction, than
     ! one vector for each.
     ! Update random seed, if requested
-    if (par%random==1) CALL init_seed
     allocate(randnums(2*wp%K))
+    if (par%random==1) then
+       CALL init_seed(seed)    
+       randnums(1) = random(seed)
+    else
+       randnums(1) = random(100)
+    endif
     !call random_number(randnums)
-    do i=1,2*wp%K
+    do i=2,2*wp%K
       randnums(i) = random(0)
     enddo
 
@@ -1769,9 +1774,10 @@ contains
   ! -----------------------------------------------------------
   ! --- Small subroutine to reseed random number generator ----
   ! -----------------------------------------------------------
-  subroutine init_seed
+  subroutine init_seed(outseed)
     INTEGER :: i, n, clock
     INTEGER, DIMENSION(:), ALLOCATABLE :: seed
+    integer,intent(out) :: outseed
     ! RANDOM_SEED does not result in a random seed for each compiler, so we better make sure that we have a pseudo random seed.
     ! I am not sure what is a good n
     n = 40
@@ -1790,6 +1796,7 @@ contains
     ! seed *= some big prime * rank ?
     ! now use the seed
     CALL RANDOM_SEED(PUT = seed)
+    outseed = seed(1)
   end subroutine init_seed
 
 

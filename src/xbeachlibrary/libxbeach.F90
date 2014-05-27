@@ -180,7 +180,7 @@ contains
     ! Beach wizard
     if (par%bchwiz>0)        call assim          (s,par)
     ! Bed level update
-    if ((par%morphology==1) .and. (.not. par%bchwiz == 1)) call bed_update     (s,par)
+    if ((par%morphology==1).and.(.not. par%bchwiz == 1).and.(.not. par%setbathy==1)) call bed_update(s,par)
     if (par%bchwiz>0)        call assim_update   (s, par)
     if (par%setbathy==1)     call setbathy_update(s, par)
     

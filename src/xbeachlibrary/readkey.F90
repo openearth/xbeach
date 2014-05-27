@@ -75,13 +75,13 @@ contains
              call report_file_read_error(tempout)
           endif
           if (value_dbl>mxval) then
-             call writelog('lw','(a12,a,f0.4,a,f0.4)',(printkey),' = ',value_dbl,' Warning: value > recommended value of ',mxval)
-             call writelog('s','(a12,a,a,f0.4)','Warning: ',trim(printkey),' > recommended value of ',mxval)
+             call writelog('lw','(a24,a,f0.4,a,f0.4)',(printkey),' = ',value_dbl,' Warning: value > recommended value of ',mxval)
+             call writelog('s','(a24,a,a,f0.4)','Warning: ',trim(printkey),' > recommended value of ',mxval)
           elseif (value_dbl<mnval) then
-             call writelog('lw','(a12,a,f0.4,a,f0.4)',(printkey),' = ',value_dbl,' Warning: value < recommended value of ',mnval)
-             call writelog('s','(a12,a,a,f0.4)','Warning: ',trim(printkey),' < recommended value of ',mnval)
+             call writelog('lw','(a24,a,f0.4,a,f0.4)',(printkey),' = ',value_dbl,' Warning: value < recommended value of ',mnval)
+             call writelog('s','(a24,a,a,f0.4)','Warning: ',trim(printkey),' < recommended value of ',mnval)
           else
-             call writelog('l','(a12,a,f0.4)',(printkey),' = ',value_dbl)
+             call writelog('l','(a24,a,f0.4)',(printkey),' = ',value_dbl)
           endif
        else
           if (lrequired) then
@@ -89,7 +89,7 @@ contains
              call halt_program
           else
              value_dbl=defval
-             call writelog('l','(a12,a,f0.4,a)',(printkey),' = ',value_dbl,' (no record found, default value used)')
+             call writelog('l','(a24,a,f0.4,a)',(printkey),' = ',value_dbl,' (no record found, default value used)')
           endif
        endif
        ! write to basic params data file
@@ -145,12 +145,12 @@ contains
           endif
           if (value_int>mxval) then
              call writelog('lw',fmt,'Warning: variable ',(printkey),' ',value_int,' > recommended value of ',mxval)
-             call writelog('s','(a12,a,a,i0)','Warning: ',trim(printkey),' > recommended value of ',mxval)
+             call writelog('s','(a24,a,a,i0)','Warning: ',trim(printkey),' > recommended value of ',mxval)
           elseif (value_int<mnval) then
              call writelog('lw',fmt,'Warning: variable ',(printkey),' ',value_int,' < recommended value of ',mnval)
-             call writelog('s','(a12,a,a,i0)','Warning: ',trim(printkey),' < recommended value of ',mnval)
+             call writelog('s','(a24,a,a,i0)','Warning: ',trim(printkey),' < recommended value of ',mnval)
           else
-             call writelog('l','(a12,a,i0)',(printkey),' = ',value_int)
+             call writelog('l','(a24,a,i0)',(printkey),' = ',value_int)
           endif
        else
           if (lrequired) then
@@ -158,7 +158,7 @@ contains
              call halt_program
           else
              value_int=defval
-             call writelog('l','(a12,a,i0,a)',(printkey),' = ',value_int,' (no record found, default value used)')
+             call writelog('l','(a24,a,i0,a)',(printkey),' = ',value_int,' (no record found, default value used)')
           endif
        endif
        ! write to basic params data file
@@ -212,7 +212,7 @@ contains
              call halt_program
           else 
              value_str=defval
-             call writelog('l','(a12,a,a,a)',(printkey),' = ',trim(value_str),' (no record found, default value used)')
+             call writelog('l','(a24,a,a,a)',(printkey),' = ',trim(value_str),' (no record found, default value used)')
           endif
        else
           value=adjustl(value)
@@ -229,15 +229,15 @@ contains
              endif
           enddo
           if (passed) then
-             call writelog('l','(a12,a,a)',printkey,' = ',trim(value_str))
+             call writelog('l','(a24,a,a)',printkey,' = ',trim(value_str))
           else
-             call writelog('sle','(a12,a,a,a)','Invalid option for ',trim(printkey),' : ',trim(value))
-             call writelog('sle','(a12,a,a)','Valid options for ',trim(printkey),' are:')
+             call writelog('sle','(a24,a,a,a)','Invalid option for ',trim(printkey),' : ',trim(value))
+             call writelog('sle','(a24,a,a)','Valid options for ',trim(printkey),' are:')
              do i=1,nv
-                call writelog('sle','(a12)',trim(allowed(i)))
+                call writelog('sle','(a24)',trim(allowed(i)))
              enddo
              do j=1,nov
-                call writelog('sle','(a12)',trim(old(j)))
+                call writelog('sle','(a24)',trim(old(j)))
              enddo
              call halt_program
           endif
@@ -287,13 +287,13 @@ contains
              call halt_program
           else 
              value_str=' '
-             call writelog('l',' (a12,a)'    ,printkey,' = None specified')
+             call writelog('l',' (a24,a)'    ,printkey,' = None specified')
              ! write to basic params data file
              !    write(pardatfileid,*)'c ',key,' ','none'
           endif
        else
           value_str=adjustl(value)
-          call writelog('l','(a12,a,a)',printkey,' = ',trim(value_str))
+          call writelog('l','(a24,a,a)',printkey,' = ',trim(value_str))
           ! write to basic params data file
           !    write(pardatfileid,*)'c ',printkey,' ',value_str
        endif
@@ -346,15 +346,15 @@ contains
           endif
           do i=1,vlength
              if (value_vec(i)>mxval) then
-                call writelog('lw','(a12,a,f0.4,a,f0.4)',(printkey),' = ',value_vec(i), &
+                call writelog('lw','(a24,a,f0.4,a,f0.4)',(printkey),' = ',value_vec(i), &
                      ' Warning: value > recommended value of ',mxval)
-                call writelog('s','(a12,a,a,f0.4)','Warning: ',trim(printkey),' > recommended value of ',mxval)
+                call writelog('s','(a24,a,a,f0.4)','Warning: ',trim(printkey),' > recommended value of ',mxval)
              elseif (value_vec(i)<mnval) then
-                call writelog('lw','(a12,a,f0.4,a,f0.4)',(printkey),' = ',value_vec(i), &
+                call writelog('lw','(a24,a,f0.4,a,f0.4)',(printkey),' = ',value_vec(i), &
                      ' Warning: value < recommended value of ',mnval)
-                call writelog('s','(a12,a,a,f0.4)','Warning: ',trim(printkey),' < recommended value of ',mnval)
+                call writelog('s','(a24,a,a,f0.4)','Warning: ',trim(printkey),' < recommended value of ',mnval)
              else
-                call writelog('l','(a12,a,f0.4)',(printkey),' = ',value_vec(i))
+                call writelog('l','(a24,a,f0.4)',(printkey),' = ',value_vec(i))
              endif
           enddo
        else
