@@ -1384,15 +1384,13 @@ contains
              factor = Sfnow/specinterp%Sf(i)
              specinterp%Sf(i)  = specinterp%Sf(i)*factor
              specinterp%S(i,:) = specinterp%S(i,:)*factor
-          elseif (Sfnow==0.d0) then
+          elseif (specinterp%Sf(i)==0.d0 .and. Sfnow>=0.d0) then
+             specinterp%Sf(i)  = Sfnow
+             dummy = maxval(maxloc(specinterp%S(i,:)))
+             specinterp%S(i,dummy) = Sfnow/specinterp%dang
+          else
              specinterp%Sf(i)  = 0.d0
              specinterp%S(i,:) = 0.d0
-          else
-             specinterp%Sf(i)  = Sfnow
-             dummy = maxval(maxloc(specin%S(i,:)))
-             tempt0 = specin%ang(dummy)
-             dummy = maxval(minloc(abs(specinterp%ang-tempt0)))
-             specinterp%S(i,dummy) = Sfnow/specinterp%dang
           endif
        endif
     enddo
