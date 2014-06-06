@@ -1,0 +1,82 @@
+\chapter{Introduction}
+
+\section{Motivation}
+
+The devastating effects of hurricanes on low-lying sandy coasts, especially during the 2004 and 2005 seasons have pointed at an urgent need to be able to assess the vulnerability of coastal areas and (re-)design coastal protection for future events, but also to evaluate the performance of existing coastal protection projects compared to `do-nothing' scenarios. In view of this the Morphos-3D project was initiated by USACE-ERDC, bringing together models, modelers and data on hurricane winds, storm surges, wave generation and nearshore processes. Concurrently, the Dutch Dune Safety Assessment required that advanced models be developed which can be used to assess the protection provided by dunes against flooding of the hinterland for situations where empirical model assumptions do not hold anymore. In the Netherlands, most of the central Holland Coast is protected by dunes. For these reasons an open-source program, XBeach for eXtreme Beach behavior, has been developed to model the nearshore response to hurricane impacts and storms. 
+
+Existing tools to assess dune erosion under extreme storm conditions assume alongshore uniform conditions and have been applied successfully along relatively undisturbed coasts \citep{Vellinga1986, Steetzel1993, NishiKraus1996, Larson2004}, but are inadequate to assess the more complex situation where the coast has significant alongshore variability. This variability may result from anthropogenic causes, such as the presence of artificial inlets, sea walls, and revetments, but also from natural causes, such as the variation in dune height along the coast or the presence of rip-channels and shoals on the shoreface \citep{Thornton2007}. A particularly complex situation is found when barrier islands protect storm impact on the main land coast. In that case the elevation, width and length of the barrier island, as well as the hydrodynamic conditions (surge level) of the back bay should be taken into account to assess the coastal response. Therefore, the assessment of storm impact in these more complex situations requires a two-dimensional process-based prediction tool, which contains the essential physics of dune erosion and overwash, avalanching, swash motions, infragravity waves and wave groups. 
+
+With regard to dune erosion, the development of a scarp and episodic slumping after undercutting is a dominant process \citep{VanGent2008}. This supplies sand to the swash and surf zone that is transported seaward by the backwash motion and by the undertow; without it the upper beach scours down and the dune erosion process slows down considerably. One-dimensional (cross-shore) models such as DUROSTA \citep{Steetzel1993} focus on the underwater offshore transport and obtain the supply of sand by extrapolating these transports to the dry dune. \citet{OvertonFisher1988}, \citet{NishiKraus1996} focus on the supply of sand by the dune based on the concept of wave impact. Both approaches rely on heuristic estimates of the runup and are well suited for 1D application but difficult to apply in a horizontally 2D setting. Hence, a more comprehensive modeling of the swash motions is called for.
+
+Swash motions are up to a large degree a result from wave group forcing of infragravity waves \citep{Tucker1954}. Depending on the beach configuration and directional properties of the incident wave spectrum both leaky and trapped infragravity waves contribute to the swash spectrum \citep{Huntley1981}. \citet{RaubenheimerGuza1996} show that incident band swash is saturated, infragravity swash is not, therefore infragravity swash is dominant in storm conditions. Models range from empirical formulations \citep[e.g.][]{Stockdon2006} through analytical approaches \citep{Schaeffer1994, Erikson2005} to numerical models in 1D \citep[e.g.][]{List1992, Roelvink1993b} and 2DH \citep[e.g.][]{VanDongeren2003, Reniers2004a, Reniers2006}. 2DH wave group resolving models are well capable of describing low-frequency motions. However, for such a model to be applied for swash, a robust drying/flooding formulation is required.
+
+\section{Objective}
+
+The main objective of the XBeach model is to provide a robust and flexible environment in which to test morphological modeling concepts for the case of dune erosion, overwashing and breaching. The top priority is to provide numerical stability and robustness, while still providing accurate results in a reasonable computational time.
+
+\section{ Context}
+
+The XBeach model can be used as stand-alone model for small-scale (project-scale) coastal applications, but will also be used within larger (shelf sea) systems, where it will be driven by boundary conditions provided by the wind, wave and surge models and its main output to be transferred back will be the time-varying bathymetry and possibly discharges over breached barrier island sections.
+
+\section{ Model approach}
+
+Our aim is to model processes in different regimes as described by \citet{Sallenger2000}. He  defines an Impact Level to denote different regimes of impact on barrier islands by hurricanes, which are the 1) swash regime, 2) collision regime, 3) overwash regime and 4) inundation regime. The approach we follow to model the processes in these regimes is described below: 
+
+To resolve the swash dynamics the model employs a novel 2DH description of the wave groups and accompanying infragravity waves over an arbitrary bathymetry (thus including bound, free and refractively trapped infragravity waves). The wave group forcing is derived from the time-varying wave action balance e.g. \citet{Phillips1977} with a dissipation model for use in combination with wave groups \citep{Roelvink1993a}. A roller model \citep{Svendsen1984, Nairn1990, Stive1994} is used to represent momentum stored in surface rollers which leads to a shoreward shift in wave forcing. 
+
+The wave-group forcing drives infragravity motions and both longshore and cross-shore currents. Wave-current interaction within the wave boundary layer results in an increased wave-averaged bed shear stress acting on the infragravity waves and currents \citep[e.g.][and references therein]{Soulsby1993}. To account for the randomness of the incident waves the description by \citet{Feddersen2000} is applied which showed good skill for longshore current predictions using a constant drag coefficient \citep{Ruessink2001}. 
+
+During the swash and collision regime the mass flux carried by the waves and rollers returns offshore as return flow or rip-current. These offshore directed flows keep the erosion process going by removing sand from the slumping dune face. Various models have been proposed for the vertical profile of these currents (see \citet{Reniers2004b} for a review). However, the vertical variation is not very strong during extreme conditions and has been neglected for the moment. 
+
+Surf and swash zone sediment transport processes are very complex, with sediment stirring by a combination of short-wave and long-wave orbital motion, currents and breaker-induced turbulence. However, intra-wave sediment transports due to wave asymmetry and wave skewness are expected to be relatively minor compared to long-wave and mean current contributions \citep{VanThielDeVries2008}. This allows for a relatively simple and transparent formulation according to Soulsby -- Van Rijn \citep{Soulsby1997} in a short-wave averaged but wave-group resolving model of surf zone processes. This formulation has been applied successfully in describing the generation of rip channels \citep{Damgaard2002, Reniers2004a} and barrier breaching \citep{Roelvink2003}. 
+
+During the overwash regime the flow is dominated by low-frequency motions on the time-scale of wave groups, carrying water over the dunes. This onshore flux of water is an important landward transport process where dune sand is being deposited on the island and within the shallow inshore bay as overwash fans \citep[e.g.][]{Leatherman1977, WangHorwitz2007}. To account for this landward transport some heuristic approaches exist in 1D, e.g. in the SBeach overwash module \citep{Larson2004} which cannot be readily applied in 2D. Here, the overwash morphodynamics are taken into account with the wave-group forcing of low frequency motions in combination with a robust momumtum-conserving drying/flooding formulation \citep{Stelling2003} and concurrent sediment transport and bed-elevation changes.
+
+Breaching of barrier islands occurs during the inundation regime, where a new channel is formed cutting through the island. \citet{Visser1998} presents a semi-empirical approach for breach evolution based on a schematic uniform cross-section. Here a generic description is used where the evolution of the channel is calculated from the sediment transports induced by the dynamic channel flow in combination with avalanche-triggered bank erosion. 
+
+To this end, the code has the following functionalities:
+
+\underbar{Flow}
+
+\begin{enumerate}
+  \item  Depth-averaged shallow water equations including time-varying wave forcing terms; combination of sub- and supercritical flows;
+  \item  Numerical scheme in line with Stelling and Duinmeijer method, to improve long-wave runup and backwash on the beach. The momentum-conserving form is applied, while retaining the simple first-order approach. 
+  \item  Generalised Lagrangean Mean (GLM) approach to represent the depth-averaged undertow and its effect on bed shear stresses and sediment transport, cf. \citet{Reniers2004}
+  \item  Smagorinsky viscosity formulation
+  \item  Drifter (passive particle) option
+  \item  White-Colebrook roughness
+  \item  Quasi 3D formulation
+  \item  Automatic time step based on Courant criterion, with output at fixed or user-defined time intervals.
+  \item  Ground water flow
+  \item  Discharge boundaries
+  \item  Non-hydrostatic formulation
+  \item  MPI (Message Passing Interface) implementation with automatic domain decomposition for parallel (multi-processor) computing
+\end{enumerate}
+
+Waves
+
+\begin{enumerate}
+  \item  Time-varying wave action balance including refraction, shoaling, current refraction and wave breaking; 
+  \item  Roller model, including breaker delay
+  \item  Wave amplitude effects on wave celerity;
+  \item  Wave-current interaction
+  \item  \citet{Roelvink1993a} wave dissipation model for use in the nonstationary wave energy balance (in other words, when the wave energy varies on the wave group timescale)
+  \item  \citet{Baldock1998} Wave dissipation formulation for stationary wave energy balance.
+\end{enumerate}
+
+Sediment transport and bed updating
+
+\begin{enumerate}
+  \item  Depth-averaged advection-diffusion equation to solve suspended transport; 
+  \item  Bed updating algorithm including possibility of avalanching;
+  \item  Soulsby -- Van Rijn transport formulations, cf. \citet{Reniers2004}.
+  \item  Multiple sediment fractions and bed layer bookkeeping. 
+  \item  Intra-wave sediment transport
+  \item  Avalanching mechanism, with separate criteria for critical slope at wet or dry points.
+  \item  Hard structures
+\end{enumerate}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "xbeach_manual"
+%%% End: 

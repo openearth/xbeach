@@ -1,0 +1,43 @@
+\chapter{ Compiling the model}
+
+To compile the source code you can download the source code from the subversion repository, located at: https://repos.deltares.nl/repos/XBeach/trunk
+
+The source code contains three different build environments:
+
+GNU autotools, tested with gfortran $>$=4.2, tested with ubuntu, OSX and cygwin with windows XP.
+
+Visual studio 2008, tested with intel fortran 11, tested with Windows XP
+
+Visual studio 6, tested with Compaq fortran 6.6, tested with Windows XP
+
+We expect it to compile with only minor problems under other compilers and/or under Linux, since only standard Fortran 90/95 is used. Once an executable has been created, it will be called xbeach or xbeach.exe under windows. 
+
+Building with MPI support
+
+XBeach can be built with support for mpi. To build with mpi under windows, make sure you have mpi installed in c:\textbackslash program files\textbackslash mpich2. Select the appropriate configuration in visual studio (mpi debug or mpi release) and use rebuild all to make a mpi enabled executable.
+
+To build a mpi executable use ./configure --with-mpi \&\& make to build an executable with mpi support. 
+
+XBeach is tested with openmpi on linux and OS X and with mpich2 on all platforms.
+
+Building with NetCDF support
+
+XBeach can be built with support for netcdf. To build with netcdf under windows, select the appropriate configuration in visual studio (netcdf) and use rebuild all to make a netcdf enabled executable. 
+
+To build a netcdf executable under linux make sure you have netcdf 4.1 or higher installed. It should be automatically found by the configure script and compiled. 
+
+The combination of netcdf and mpi has not yet been tested. 
+
+For more details see the README that come with the source code. 
+
+\begin{tabular}{|p{1.5in}|p{1.5in}|p{1.5in}|} \hline 
+XBeach Model Description and Manual & Z4175 & June 21, 20 \\ \hline 
+&  &  \\ \hline 
+\end{tabular}
+
+D:\textbackslash mccall\textbackslash XBeach\textbackslash XBeach\_repository\textbackslash trunk\textbackslash doc\textbackslash xbeach\_manual.doc
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "xbeach_manual"
+%%% End: 

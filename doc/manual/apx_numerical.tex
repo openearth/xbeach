@@ -1,0 +1,140 @@
+\chapter{Numerical implementation}
+
+
+{\it  Wave action equation}
+
+We use an up-wind schematisation to solve the wave action balance (keyword ``scheme = 1' and activated by default). The wave action is given at the same points at the water level. The advection of wave action is then discretized as follows:
+\begin{equation} \label{1)} 
+\begin{array}{l} {\frac{\partial c_{x}^{n} A^{n} }{\partial x} {\rm (i,j,k)}=\frac{c_{x,i,j,k}^{n} A_{i,j,k}^{n} -c_{x,i-1,j,k}^{n} A_{i-1,j,k}^{n} }{x_{{\rm i,j}} -x_{{\rm i-1,j}} } \quad ,c_{x,i,j,k}^{n} >0} \\ {\frac{\partial c_{x}^{n} A^{n} }{\partial x} {\rm (i,j,k)}=\frac{c_{x,i+1,j,k}^{n} A_{i+1,j,k}^{n} -c_{x,i,j,k}^{n} A_{i,j,k}^{n} }{x_{{\rm i+1,j}} -x_{{\rm i,j}} } \quad ,c_{x,i,j,k}^{n} <0} \end{array} 
+\end{equation} 
+The discretization using a Lax-Wendroff scheme (``scheme = 2'') is:
+\begin{equation} \label{2)} 
+\begin{array}{l} {\frac{\partial c_{x}^{n} A^{n} }{\partial x} {\rm (i,j,k)}=\frac{c_{x,i+1,j,k}^{n} A_{i+1,j,k}^{n} -c_{x,i-1,j,k}^{n} A_{i-1,j,k}^{n} }{x_{{\rm i+1,j}} -x_{{\rm i-1,j}} } -} \\ {\frac{\Delta t}{2} \frac{\left[c_{x,i+1,j,k}^{n} \right]^{2} A_{i+1,j,k}^{n} -2\left[c_{x,i,j,k}^{n} \right]^{2} A_{i,j,k}^{n} +\left[c_{x,i-1,j,k}^{n} \right]^{2} A_{i-1,j,k}^{n} }{\left(x_{{\rm i+1,j}} -x_{{\rm i,j}} \right)\left(x_{{\rm i,j}} -x_{{\rm i-1,j}} \right)} } \end{array} 
+\end{equation} 
+In y-direction, the upwind discretization is
+\begin{equation} \label{3)} 
+\begin{array}{l} {\frac{\partial c_{y}^{n} A^{n} }{\partial y} {\rm (i,j,k)}=\frac{c_{y,i,j,k}^{n} A_{i,j,k}^{n} -c_{y,i,j-1,k}^{n} A_{i,j-1,k}^{n} }{y_{{\rm i,j}} -y_{{\rm i,j-1}} } \quad ,c_{y,i,j,k}^{n} >0} \\ {\frac{\partial c_{y}^{n} A^{n} }{\partial y} {\rm (i,j,k)}=\frac{c_{y,i,j+1,k}^{n} A_{i,j+1,k}^{n} -c_{y,i,j,k}^{n} A_{i,j,k}^{n} }{y_{{\rm i,j+1}} -y_{{\rm i,j}} } \quad ,c_{y,i,j,k}^{n} <0} \end{array} 
+\end{equation} 
+In the Lax-Wendroff discretization:
+\begin{equation} \label{4)} 
+\frac{\partial c_{y}^{n} A^{n} }{\partial y} {\rm (i,j,k)}=\frac{c_{y,i,j+1,k}^{n} A_{i,j+1,k}^{n} -c_{y,i,j-1,k}^{n} A_{i,j-1,k}^{n} }{y_{{\rm i,j+1}} -y_{{\rm i,j-1}} } -\frac{\Delta t}{2} \frac{\left[c_{y,i,j+1,k}^{n} \right]^{2} A_{i,j+1,k}^{n} -2\left[c_{y,i,j,k}^{n} \right]^{2} A_{i,j,k}^{n} +\left[c_{y,i,j-1,k}^{n} \right]^{2} A_{i,j-1,k}^{n} }{\left(y_{{\rm i,j+1}} -y_{{\rm i,j}} \right)\left(y_{{\rm i,j}} -y_{{\rm i,j-1}} \right)}  
+\end{equation} 
+In theta-space an upwind scheme is used only:
+\begin{equation} \label{5)} 
+\begin{array}{l} {\frac{\partial c_{\theta }^{n} A^{n} }{\partial \theta } {\rm (i,j,k)}=\frac{c_{\theta ,i,j,k}^{n} A_{i,j,k}^{n} -c_{\theta ,i,j,k-1}^{n} A_{i,j,k-1}^{n} }{\theta _{{\rm i,j,k}} -\theta _{{\rm i,j,k-1}} } \quad ,c_{\theta ,i,j,k}^{n} >0} \\ {\frac{\partial c_{\theta }^{n} A^{n} }{\partial \theta } {\rm (i,j,k)}=\frac{c_{\theta ,i,j,k+1}^{n} A_{i,j,k+1}^{n} -c_{\theta ,i,j,k}^{n} A_{i,j,k}^{n} }{\theta _{{\rm i,j,k+1}} -\theta _{{\rm i,j,k}} } \quad ,c_{\theta ,i,j,k}^{n} <0} \end{array} 
+\end{equation} 
+Similar for the wave action balance:
+\begin{equation} \label{6)} 
+\frac{A_{i,j,k}^{n+1} -A_{i,j,k}^{n} }{\Delta t} =-\frac{\partial c_{x}^{n} A}{\partial x} _{i,j,k}^{n} -\frac{\partial c_{y}^{n} A}{\partial y} _{i,j,k}^{n} -\frac{\partial c_{\theta }^{n} A}{\partial \theta } _{i,j,k}^{n} -\frac{D}{\sigma } _{i,j,k}  
+\end{equation} 
+We apply an upwind schematisation, since the horizontal scale of the problem is limited and such a scheme deals with shocks in a natural way.
+{\it  Shallow water equations}
+
+We apply a staggered grid, where bed levels and water levels are defined in the centre of cells, and velocity components at the cell interfaces. 
+
+If \textit{nx,ny} are the number of cells in both directions, the water level points are numbered from 1 to \textit{nx+1} and from 1 to \textit{ny+1.} 
+
+The water level gradients are computed at the cell interfaces and are given by:
+\begin{equation} \label{7)} 
+\frac{\partial \eta }{\partial x} {\rm (i,j)}=\frac{\eta _{{\rm i+1,j}} -\eta _{{\rm i,j}} }{x_{{\rm i+1,j}} -x_{{\rm i,j}} }  
+\end{equation} 
+\begin{equation} \label{8)} 
+\frac{\partial \eta }{\partial y} {\rm (i,j)}=\frac{\eta _{{\rm i,j+1}} -\eta _{{\rm i,j}} }{x_{{\rm i,j+1}} -x_{{\rm i,j}} }  
+\end{equation} 
+For computing the shear stresses at the cell interfaces we need the velocity magnitudes at these interfaces. These are composed by combining the normal velocity component at the interface and the average of the 4 adjacent tangential components:
+\begin{equation} \label{9)} 
+\begin{array}{l} {v_{u,i,j} =\frac{1}{4} (v_{i,j-1} +v_{i,j} +v_{i+1,j-1} +v_{i+1,j} )} \\ {u_{v,i,j} =\frac{1}{4} (u_{i-1,j} +u_{i,j} +u_{i-1,j+1} +u_{i,j+1} )} \end{array} 
+\end{equation} 
+The water depth in each cell is computed as:
+\begin{equation} \label{10)} 
+h_{i,j} =\eta _{i,j} -z_{b,i,j}  
+\end{equation} 
+For the depth at cell interfaces, following \citet{Stelling2003} we distinguish between the depth used in the continuity equation and that used in the momentum equation. 
+
+The depth at the interfaces \textit{for the continuity} equation is taken as the upwind depth in case the velocity is greater than a minimum velocity, or the maximum water level minus the maximum bed level in case the velocity is less than this minimum velocity:
+\begin{equation} \label{11)} 
+\begin{array}{l} {h_{u,i,j} =h_{i,j} \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, ,\, \, u_{i,j} >u_{\min } } \\ {h_{u,i,j} =h_{i+1,j} \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, ,\, \, u_{i,j} <-u_{\min } } \\ {h_{u,i,j} =\max (z_{s,i,j} ,z_{s,i+1,j} )\, \, \, -\, \, \max (z_{b,i,j} ,z_{b,i+1,j} )\, \, \, \, ,\, \left|\, u_{i,j} \right|<u_{\min } } \end{array} 
+\end{equation} 
+
+\begin{equation} \label{12)} 
+\begin{array}{l} {h_{v,i,j} =h_{i,j} \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, ,\, \, v_{i,j} >v_{\min } } \\ {h_{v,i,j} =h_{i,j+1} \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, \, ,\, \, v_{i,j} <-v_{\min } } \\ {h_{v,i,j} =\max (z_{s,i,j} ,z_{s,i,j+1} )\, \, \, -\, \, \max (z_{b,i,j} ,z_{b,i,j+1} )\, \, \, \, ,\, \left|\, v_{i,j} \right|<v_{\min } } \end{array} 
+\end{equation} 
+For the depth \textit{in the momentum balance} we take the average depth between the cell centers:
+\begin{equation} \label{2.13)} 
+h_{mu,i,j} =\frac{1}{2} (h_{i,j} +h_{i+1,j} ) 
+\end{equation} 
+\begin{equation} \label{2.14)} 
+h_{mv,i,j} =\frac{1}{2} (h_{i,j} +h_{i,j+1} )\, ,\,  
+\end{equation} 
+The advection terms in x-direction are approximated as follows:
+\begin{equation} \label{15)} 
+\begin{array}{l} {u\frac{\partial u}{\partial x} _{i,j}^{n} =\frac{1}{2} \frac{h_{u,i,j} u_{i,j} +h_{u,i-1,j} u_{i-1,j} }{h_{mu,i,j} } \, \, \frac{u_{i,j}^{n} -u_{i-1,j}^{n} }{x_{i,j}^{n} -x_{i-1,j}^{n} } \, \, \, \, \, \, \, \, \, \, \, \, \, \, ,\, u_{i,j}^{n} >0} \\ {u\frac{\partial u}{\partial x} _{i,j}^{n} =\frac{1}{2} \frac{h_{u,i,j} u_{i,j} +h_{u,i+1,j} u_{i+1,j} }{h_{mu,i,j} } \, \, \frac{u_{i+1,j}^{n} -u_{i,j}^{n} }{x_{i+1,j}^{n} -x_{i,j}^{n} } \, \, \, \, \, \, \, \, \, \, \, \, \, \, ,\, u_{i,j}^{n} <0} \end{array} 
+\end{equation} 
+\begin{equation} \label{16)} 
+\begin{array}{l} {v\frac{\partial u}{\partial y} _{i,j}^{n} =\frac{1}{2} \frac{h_{u,i,j} v\, _{u,i,j}^{n} +h_{u,i,j-1} v\, _{u,i,j-1}^{n} }{h_{mu,i,j} } \frac{u_{i,j}^{n} -u_{i,j-1}^{n} }{y_{i,j}^{n} -y_{i,j-1}^{n} } \, \, \, \, ,\, \, v\, _{u,i,j}^{n} \, >0\, \, \, \, \, \, } \\ {v\frac{\partial u}{\partial y} _{i,j}^{n} =\frac{1}{2} \frac{h_{u,i,j} v\, _{u,i,j}^{n} +h_{u,i,j+1} v\, _{u,i,j+1}^{n} }{h_{mu,i,j} } \frac{u_{i,j+1}^{n} -u_{i,j}^{n} }{y_{i,j+1}^{n} -y_{\begin{array}{l} {i,j} \\ {} \end{array}}^{n} } \, \, \, \, ,\, \, v\, _{u,i,j}^{n} \, >0\, \, \, \, \, } \end{array} 
+\end{equation} 
+The advection terms in y-direction are approximated as follows:
+\begin{equation} \label{17)} 
+\begin{array}{l} {v\frac{\partial v}{\partial y} _{i,j}^{n} =\frac{1}{2} \frac{h_{v,i,j}^{n} v_{i,j}^{n} +h_{v,i,j-1}^{n} v_{i,j-1}^{n} }{h_{mv,i,j}^{n} } \, \, \frac{v_{i,j}^{n} -v_{i,j-1}^{n} }{y_{i,j}^{n} -y_{i,j-1}^{n} } \, \, \, \, \, \, \, \, \, \, \, \, \, \, ,\, v_{i,j}^{n} >0} \\ {v\frac{\partial v}{\partial y} _{i,j}^{n} =\frac{1}{2} \frac{h_{v,i,j}^{n} v_{i,j}^{n} +h_{v,i,j+1}^{n} v_{i,j+1}^{n} }{h_{mv,i,j}^{n} } \, \, \frac{v_{i,j+1}^{n} -v_{i,j}^{n} }{y_{i,j+1}^{n} -y_{i,j}^{n} } \, \, \, \, \, \, \, \, \, \, \, \, \, \, ,\, v_{i,j}^{n} <0} \end{array} 
+\end{equation} 
+\begin{equation} \label{18)} 
+\begin{array}{l} {u\frac{\partial v}{\partial x} _{i,j}^{n} =\frac{1}{2} \frac{h_{v,i,j} u\, _{v,i,j}^{n} +h_{v,i-1,j} u\, _{v,i-1,j}^{n} }{h_{mv,i,j} } \frac{v_{i,j}^{n} -v_{i-1,j}^{n} }{x_{i,j}^{n} -x_{\begin{array}{l} {i-1,j} \\ {} \end{array}}^{n} } ,\, \, \, \, \, \, \, u\, _{v,i,j}^{n} >0\, \, } \\ {u\frac{\partial v}{\partial x} _{i,j}^{n} =\frac{1}{2} \frac{h_{v,i,j} u\, _{v,i,j}^{n} +h_{v,i+1,j} u\, _{v,i+1,j}^{n} }{h_{mv,i,j} } \frac{v_{i+1,j}^{n} -v_{i,j}^{n} }{x_{i+1,j}^{n} -x_{\begin{array}{l} {i,j} \\ {} \end{array}}^{n} } ,\, \, \, \, \, \, \, u\, _{v,i,j}^{n} >0\, \, \, \, \, } \end{array} 
+\end{equation} 
+The momentum equation is discretized as follows: 
+\[\frac{u_{i,j}^{n+1} -u_{i,j}^{n} }{\Delta t} =-u\frac{\partial u}{\partial x} _{i,j}^{n} -v\frac{\partial u}{\partial y} _{i,j}^{n} -c_{f} \frac{u_{i,j}^{n} }{h_{u,i,j}^{n} } \sqrt{1.16u_{rms}^{2} +{u_{i,j}^{n}}^{2} +{v_{u,i,j}^{n}}^{2} } -g\frac{\eta _{{\rm i+1,j}}^{n} -\eta _{{\rm i,j}}^{{\rm n}} }{x_{{\rm i+1,j}} -x_{{\rm i,j}} } +\frac{F_{x,i,j} }{\rho h_{u,i,j} } \] 
+\label{19)}
+\begin{equation} \label{20)} 
+\frac{v_{i,j}^{n+1} -v_{i,j}^{n} }{\Delta t} =-v\frac{\partial v}{\partial y} _{i,j}^{n} -u\frac{\partial v}{\partial x} _{i,j}^{n} -c_{f} \frac{v_{i,j}^{n} }{h_{v,i,j}^{n} } \sqrt{1.16u_{rms}^{2} +{u_{v,i,j}^{n}}^{2} +{v_{i,j}^{n}}^{2} } -g\frac{\eta _{{\rm i,j+1}} -\eta _{{\rm i,j}} }{y_{{\rm i,j+1}} -y_{{\rm i,j}} } +\frac{F_{y,i,j} }{\rho h_{v,i,j} }  
+\end{equation} 
+From this, the velocities at the new time step level are computed. The water level is then updated by:
+\begin{equation} \label{21)} 
+\frac{\eta _{i,j}^{n+1} -\eta _{i,j}^{n} }{\Delta t} =-\frac{u_{i,j}^{n+1} h_{i,j}^{n} -u_{i-1,j}^{n+1} h_{i-1,j}^{n} }{x_{{\rm u,i,j}} -x_{{\rm u,i-1,j}} } -\frac{v_{i,j}^{n+1} h_{{\rm i,j}} -v_{i,j-1}^{n+1} h_{i,j-1}^{n} }{y_{{\rm v,i,j}} -y_{{\rm v,i,j-1}} }  
+\end{equation} 
+\eject which yields the wave energy at the new time level.
+
+
+{\it  Advection-diffusion equations}
+
+The differential equations for the advection diffusion of sediment is solved with finite differences using the first order up-wind scheme discussed earlier with the water depths at the old time level and the corresponding velocities at the new time level. The horizontal x-advection is then given by:
+\begin{equation} \label{2.22)} 
+\begin{array}{l} {\left(\frac{\partial hCu^{E} }{\partial x} \right)_{i,j} =\frac{\left(h^{n} C^{n} u^{E,n+1} \right)_{i,j} -\left(h^{n} C^{n} u^{E,n+1} \right)_{i-1,j} }{x_{i,j}^{} -x_{i-1,j}^{} } \, \, \, \, \, \, \, \, \, \, \, \, \, \, ,\, u_{i,j}^{E,n+1} >0} \\ {\left(\frac{\partial hCu^{E} }{\partial x} \right)_{i,j} =\frac{\left(h^{n} C^{n} u^{E,n+1} \right)_{i+1,j} -\left(h^{n} C^{n} u^{E,n+1} \right)_{i,j} }{x_{i+1,j}^{} -x_{i,j}^{} } \, \, \, \, \, \, \, \, \, \, \, \, \, \, ,\, u_{i,j}^{E,n+1} <0} \\ {} \end{array} 
+\end{equation} 
+A similar expression for the horizontal advection in the y-direction:
+\begin{equation} \label{2.23)} 
+\begin{array}{l} {\left(\frac{\partial hCv^{E} }{\partial y} \right)_{i,j} =\frac{\left(h^{n} C^{n} v^{E,n+1} \right)_{i,j} -\left(h^{n} C^{n} v^{E,n+1} \right)_{i-1,j} }{y_{i,j}^{} -y_{i,j-1}^{} } \, \, \, \, \, \, \, \, \, \, \, \, \, \, ,\, v_{i,j}^{E,n+1} >0} \\ {\left(\frac{\partial hCv^{E} }{\partial y} \right)_{i,j} =\frac{\left(h^{n} C^{n} v^{E,n+1} \right)_{i,j+1} -\left(h^{n} C^{n} v^{E,n+1} \right)_{i,j} }{y_{i,j+1}^{} -y_{i,j}^{} } \, \, \, \, \, \, \, \, \, \, \, \, \, \, ,\, v_{i,j}^{E,n+1} <0} \\ {} \end{array} 
+\end{equation} 
+\eject The horizontal diffusion is evaluated at the old time level \textit{n} and approximated by:
+\begin{equation} \label{2.24)} 
+\left(\frac{\partial }{\partial x} \left(D_{H} h\frac{\partial C}{\partial x} \right)\right)_{i,j} =\frac{\left(D_{H} hC_{\partial x} \right)_{i+1,j} -\left(D_{H} hC_{\partial x} \right)_{i,j} }{x_{i+1,j}^{} -x_{i,j}^{} } \, \, \, \, \, \, \, \, \, \, \,  
+\end{equation} 
+Where the cross-shore gradient in the sediment concentration is given by:
+\begin{equation} \label{2.25)} 
+C_{\partial x} =\left(\frac{\partial C}{\partial x} \right)_{i,j} =\frac{C_{i+1,j} -C_{i,j} }{x_{i+1,j}^{} -x_{i,j}^{} } \, \, \, \, \, \, \, \, \, \, \, \, \;  
+\end{equation} 
+
+
+And similarly for the y-direction:
+\begin{equation} \label{2.26)} 
+\begin{array}{l} {\left(\frac{\partial }{\partial y} \left(D_{H} h\frac{\partial C}{\partial y} \right)\right)_{i,j} =\frac{\left(D_{H} hC_{\partial y} \right)_{i,j+1} -\left(D_{H} hC_{\partial y} \right)_{i,j} }{y_{i,j+1}^{} -y_{i,j}^{} } \, \, \, \, \, \, \, \, \, \, \, \, \, \, ,\, v_{i,j}^{E} <0\; } \\ {} \end{array} 
+\end{equation} 
+Where the along-shore gradient in the sediment concentration, \textit{C${}_{y}$} , is given by:
+\begin{equation} \label{2.27)} 
+\left(\frac{\partial C}{\partial y} \right)_{i,j} =\frac{C_{i,j+1} -C_{i,j} }{y_{i,j+1}^{} -y_{i,j}^{} } \, \, \, \,  
+\end{equation} 
+The time up-date of the sediment concentration is then given by:
+\begin{equation} \label{2.28)} 
+\begin{array}{l} {\frac{h_{i,j}^{n+1} C_{i,j}^{n+1} -h_{i,j}^{n} C_{i,j}^{n} }{\Delta t} +\left[\frac{\partial hCu^{E} }{\partial x} \right]_{i,j}^{n} +\left[\frac{\partial hCv^{E} }{\partial y} \right]_{i,j}^{n} +} \\ {\, \, \, \, \, \, \, \, \, \, \, +\left[\frac{\partial }{\partial x} \left[D_{h} h\frac{\partial C}{\partial x} \right]\right]_{i,j}^{n} +\left[\frac{\partial }{\partial y} \left[D_{h} h\frac{\partial C}{\partial y} \right]\right]_{i,j}^{n} =\left[\frac{hC_{eq} -hC}{T_{s} } \right]_{i,j}^{n} } \end{array} 
+\end{equation} 
+
+{\it  Bed update}
+
+The bed-update is then approximated by:
+\begin{equation} \label{2.29)} 
+\frac{z_{b,i,j}^{n+1} -z_{b,i,j}^{n} }{\Delta t} +\frac{f_{mor} }{(1-p)} \left[\frac{S_{x,i,j}^{n} -S_{x,i-1,j}^{n} }{\Delta x} +\frac{S_{y,i,j}^{n} -S_{y,i,j-1}^{n} }{\Delta y} \right]=0 
+\end{equation} 
+Where \textit{f${}_{mor}$} represents a morphological factor to speed up the bed evolution \citep[see e.g.][]{Roelvink2006}.
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "xbeach_manual"
+%%% End: 

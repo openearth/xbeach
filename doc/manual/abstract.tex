@@ -1,0 +1,19 @@
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+XBeach is a numerical model of nearshore processes intended as a tool to compute the natural coastal response during time-varying storm and hurricane conditions, including dune erosion, overwash and breaching.
+
+The model consists of formulations for short wave envelope propagation, nonstationary shallow water equations, sediment transport and bed update. Innovations include a newly-developed time-dependent wave action balance solver, which solves the wave refraction and allows variation of wave action in x, y, time and over the directional space, and can be used to simulate the propagation and dissipation of wave groups. An added advantage to this set-up, compared to the existing surfbeat (infragravity wave) model, is that a separate wave model is not needed to predict the mean wave direction, and it allows different wave groups to travel in different directions. Wave-current interaction in the short wave propagation is included. Various wave breaking dissipation model are implemented for use in the nonstationary and stationary wave energy balance (in other words, when the wave energy varies on the wave group timescale).
+
+The Generalised Lagrangean Mean (GLM) approach was implemented to represent the depth-averaged undertow and its effect on bed shear stresses and sediment transport, cf. \citep{Reniers2004}. Quasi 3D formulations are included as well as ground water flow through a porous medium.
+
+Soulsby -- Van Rijn transport formulations have been included, which solves the 2DH advection-diffusion equation and produces total transport vectors, which can be used to update the bathymetry. The pickup function follows \citet{Reniers2004} was implemented.  An avalanching routine was implemented with separate criteria for critical slope at wet or dry points providing a smooth and robust solution for slumping of sand during dune erosion.
+
+Since length scales are short in terms of wave lengths and supercritical flow frequently occurs, the numerical implementation is mainly first order upwind, which in combination with a staggered grid makes the model robust.  The momentum-conserving form of \citet{Stelling2003} is applied which improves long-wave runup and backwash on the beach. The model scheme utilizes explicit schemes with an automatic time step based on Courant criterion, with output at fixed or user defined time intervals, which keeps the code simple and makes coupling and parallellization easier, while increasing stability. 
+
+The model has been validated with a series of analytical, laboratory and field test cases. The model performs well in different situations including dune erosion, overwash and breaching and these cases are all modelled using a standard set of parameter settings. 
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "xbeach_manual"
+%%% End: 
