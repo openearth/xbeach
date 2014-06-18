@@ -148,13 +148,18 @@ contains
              endif
           enddo
           read(31,*,iostat=ier2) idum,idum
+          ! new grid format now specifies missing value, so catch this error
+          if (ier2 .ne. 0) then
+             read(31,*,iostat=ier2) idum,idum
+          endif
           read(31,*,iostat=ier3) idum,idum,idum
+          ! if any iostat is still /= 0 then there is an error reading the file
           if (ier+ier2+ier3 .ne. 0) then
              call report_file_read_error(par%xyfile)
           endif
           ! read grid and write to temp file
           open(32,file='temp')
-          do n=1,1000000
+          do while (.true.) ! endless loop until the read statment finds the end of the file
              read(31,'(a)',end=100,iostat=ier)line
              if (ier==0) then
                 write(32,'(a)')line(11:232)

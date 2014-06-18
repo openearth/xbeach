@@ -518,6 +518,11 @@ contains
           endif
           ! read grid dimensions
           read(31,*,iostat=ier) mmax,nmax
+          ! catch new grid format that  specifies missing value
+          if (ier .ne. 0) then ! try reading the next line
+             read(31,*,iostat=ier) mmax,nmax
+          endif
+          ! if still error, then XBeach cannot read this file
           if (ier .ne. 0) then
              call report_file_read_error(par%xyfile)
           endif
