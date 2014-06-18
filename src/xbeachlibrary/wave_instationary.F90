@@ -27,7 +27,7 @@ contains
     integer, dimension(:,:,:),allocatable,save  :: wete
     real*8 , dimension(:,:)  ,allocatable,save  :: dhdx,dhdy,dudx,dudy,dvdx,dvdy,ustw,Erfl
     real*8 , dimension(:,:)  ,allocatable,save  :: km,kmx,kmy,xwadvec,ywadvec,sinh2kh !,wm
-    real*8 , dimension(:,:,:),allocatable,save  :: xadvec,yadvec,thetaadvec,dd,drr
+    real*8 , dimension(:,:,:),allocatable,save  :: xadvec,yadvec,thetaadvec,dd,drr,dder
     real*8 , dimension(:,:,:),allocatable,save  :: xradvec,yradvec,thetaradvec
     real*8 , dimension(:,:)  ,allocatable,save  :: dkmxdx,dkmxdy,dkmydx,dkmydy,cgxm,cgym,arg,fac
     real*8 , dimension(:,:)  ,allocatable,save  :: wcifacu,wcifacv,hrmsold,uorb
@@ -49,6 +49,7 @@ contains
        allocate(yradvec     (nx+1,ny+1,ntheta))
        allocate(thetaradvec (nx+1,ny+1,ntheta))
        allocate(dd          (nx+1,ny+1,ntheta))
+       allocate(dder        (nx+1,ny+1,ntheta))
 
        allocate(dhdx        (nx+1,ny+1))
        allocate(dhdy        (nx+1,ny+1))
@@ -90,6 +91,7 @@ contains
        yradvec     = 0.d0
        thetaradvec = 0.d0
        dd          = 0.d0
+       dder        = 0.d0
        dhdx        = 0.d0
        dhdy        = 0.d0
        dudx        = 0.d0
@@ -336,7 +338,10 @@ contains
     !
     do itheta=1,ntheta
        ! Only calculate for E>0 FB
-       dd(:,:,itheta)=ee(:,:,itheta)*(D+Df+Dveg)/max(E,0.00001d0)
+       ! First just the dissipation that is fed to the roller
+       dder(:,:,itheta)=ee(:,:,itheta)*D/max(E,0.00001d0)  
+       ! Then all short wave energy dissipation, including bed friction and vegetation
+       dd(:,:,itheta)=dder(:,:,itheta) + ee(:,:,itheta)*(Df+Dveg)/max(E,0.00001d0)
     enddo
 
     do j=1,ny+1
@@ -373,9 +378,9 @@ contains
                 if(par%roller==1) then
                    drr(i,j,itheta) = 2*par%g*BR(i,j)*max(rr(i,j,itheta),0.0d0)/   &
                         sqrt(cx(i,j,itheta)**2 +cy(i,j,itheta)**2)
-                   rr(i,j,itheta)=rr(i,j,itheta)+par%dt*(dd(i,j,itheta)           &
-                        -drr(i,j,itheta))
-                else if (par%roller==0) then
+                   rr(i,j,itheta)=rr(i,j,itheta)+par%dt*(dder(i,j,itheta)         &  ! Robert: changed from dd to dder 
+                        -drr(i,j,itheta))                                            ! (only from wave breaking,
+                else if (par%roller==0) then                                         !  not vegetation or bed friction)
                    rr(i,j,itheta)= 0.0d0
                    drr(i,j,itheta)= 0.0d0
                 endif
