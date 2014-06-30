@@ -1811,62 +1811,62 @@ contains
      first = 0
      do i=1,nx
         if (wetz(i,j)-wetz(max(i-1,1),j)==-1 .and. first==0) then ! transition from wet to dry
-        ! only consider first dry point
-        first = 1
-        ! find wave height for runup at L1 meter from water line 
-        call linear_interp(xz(:,j),H(:,j),nx+1,xz(i-1,j)-L1(i-1,j),s%Hrunup(j),indx)
-        ! Find toe of runup slope if present (dzbdx > 0.15). 
-        ! If not present Hrunup will converge to H at the water line (where H = 0 per definition)
-        do j1=indx,i-1
-           ! cross shore location structure toe
-           if (dzbdx(j1,j)<0.15d0 .or. structdepth(j1,j)>0.1d0) then
-              indx = j1
-           endif
-           if (hh(j1,j)>par%hswitch) then
-              indx2 = j1
-           endif
-        enddo
-        ! update Hrunup and runup x-location
-        s%Hrunup(j) = H(indx,j)       ! short wave height at revetment toe
-        s%xHrunup(j) = xz(indx,j)     ! cross-shore location revetment toe
-        s%istruct(j) = indx*1.d0      ! cross-shore index revetment toe
-        s%iwl(j) = (i-1)*1.d0         ! cross-shore location waterline (inlcuding lw-runup)
+            ! only consider first dry point
+            first = 1
+            ! find wave height for runup at L1 meter from water line 
+            call linear_interp(xz(:,j),H(:,j),nx+1,xz(i-1,j)-L1(i-1,j),s%Hrunup(j),indx)
+            ! Find toe of runup slope if present (dzbdx > 0.15). 
+            ! If not present Hrunup will converge to H at the water line (where H = 0 per definition)
+            do j1=indx,i-1
+               ! cross shore location structure toe
+               if (dzbdx(j1,j)<0.15d0 .or. structdepth(j1,j)>0.1d0) then
+                  indx = j1
+               endif
+               if (hh(j1,j)>par%hswitch) then
+                  indx2 = j1
+               endif
+            enddo
+            ! update Hrunup and runup x-location
+            s%Hrunup(j) = H(indx,j)       ! short wave height at revetment toe
+            s%xHrunup(j) = xz(indx,j)     ! cross-shore location revetment toe
+            s%istruct(j) = indx*1.d0      ! cross-shore index revetment toe
+            s%iwl(j) = (i-1)*1.d0         ! cross-shore location waterline (inlcuding lw-runup)
         
-        ! now itteratively compute runup
-        hav1d = hh(:,j)
-        runup_old = huge(0.d0)
-        s%runup(j) = 0;
-        do while (abs(s%runup(j)-runup_old)>0.01d0)
-           runup_old = s%runup(j)
-           slopeind = 0
-           where (hav1d>par%eps .and. dzbdx(:,j)>0.15)
-              slopeind = 1
-           endwhere
-           !bermind = 0
-           !where (slopeind == 0 .and. wetz(:,j) == 0 .and. hav(:,j)>par%eps)
-           !  bermind = 1
-           !endwhere
-           s%strucslope(j) = sum(dzbdx(indx:nx,j)*dsu(indx:nx,j)*slopeind(indx:nx))/ &
-                             max(par%eps,sum(dsu(indx:nx,j)*slopeind(indx:nx)))
-           if (s%strucslope(j) > 0.d0) then         
-              irrb = s%strucslope(j)/sqrt(2*par%px*max(s%Hrunup(j),par%eps)/par%g/par%Trep**2)
-              !bermwidth  = sum(dsu(indx(j):nx,j)*bermind(indx(j):nx))
-              !rb = bermwidth/(bermwidth+sum(dsu(indx(j):nx,j)*slopeind(indx(j):nx)))
-              !gamB = max(0.6d0,1.d0-rb)
-              !runup_max = (4.3d0-1.6d0/sqrt(irrb))/1.75d0
-              !s%runup(j) = min(runup_max,irrb*s%Hrunup(j))*cos(2*par%px/par%Trep*par%t)
-              s%runup(j) = par%facrun*min(irrb,2.3d0)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
-              !s%runup(j) = par%facrun*min(irrb,runup_max)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
-              else
-                 s%runup(j) = 0.d0;
-              endif
+            ! now itteratively compute runup
+            hav1d = hh(:,j)
+            runup_old = huge(0.d0)
+            s%runup(j) = 0;
+            do while (abs(s%runup(j)-runup_old)>0.01d0)
+               runup_old = s%runup(j)
+               slopeind = 0
+               where (hav1d>par%eps .and. dzbdx(:,j)>0.15)
+                  slopeind = 1
+               endwhere
+               !bermind = 0
+               !where (slopeind == 0 .and. wetz(:,j) == 0 .and. hav(:,j)>par%eps)
+               !  bermind = 1
+               !endwhere
+               s%strucslope(j) = sum(dzbdx(indx:nx,j)*dsu(indx:nx,j)*slopeind(indx:nx))/ &
+                                 max(par%eps,sum(dsu(indx:nx,j)*slopeind(indx:nx)))
+               if (s%strucslope(j) > 0.d0) then         
+                  irrb = s%strucslope(j)/sqrt(2*par%px*max(s%Hrunup(j),par%eps)/par%g/par%Trep**2)
+                  !bermwidth  = sum(dsu(indx(j):nx,j)*bermind(indx(j):nx))
+                  !rb = bermwidth/(bermwidth+sum(dsu(indx(j):nx,j)*slopeind(indx(j):nx)))
+                  !gamB = max(0.6d0,1.d0-rb)
+                  !runup_max = (4.3d0-1.6d0/sqrt(irrb))/1.75d0
+                  !s%runup(j) = min(runup_max,irrb*s%Hrunup(j))*cos(2*par%px/par%Trep*par%t)
+                  s%runup(j) = par%facrun*min(irrb,2.3d0)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
+                  !s%runup(j) = par%facrun*min(irrb,runup_max)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
+               else
+                  s%runup(j) = 0.d0;
+               endif
 
-              !hav(:,j) = hh(:,j) + wetz(:,j)*s%runup(j) + &
-              !                    (1.d0-wetz(:,j))*max(par%eps,hh(:,j)+s%runup(j)-zb(:,j));
+                  !hav(:,j) = hh(:,j) + wetz(:,j)*s%runup(j) + &
+                  !                    (1.d0-wetz(:,j))*max(par%eps,hh(:,j)+s%runup(j)-zb(:,j));
 
-           enddo
+            enddo
 
-           hav1d =  wetz(:,j)*max(par%eps,(hh(:,j) + s%runup(j))) + &
+            hav1d =  wetz(:,j)*max(par%eps,(hh(:,j) + s%runup(j))) + &
                     (1.d0-wetz(:,j))*max(par%eps,s%runup(j)+zs(i-1,j)-zb(:,j) )   
         endif
      enddo
