@@ -125,7 +125,7 @@ contains
     costhm = cos(thetamean-alfaz)
     
     ! short wave runup
-    if (par%swrunup==1) then
+    if (par%swrunup==1 .and. par%struct==1) then
        call hybrid(s,par)
     endif
 
@@ -454,7 +454,7 @@ contains
     type(spacepars),target              :: s
     type(parameters)                    :: par
 
-    integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz,di
+    integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz,di, hinterland
     integer , dimension(:,:,:),allocatable,save :: indSus,indSub,indSvs,indSvb
     real*8                                      :: dzb,dzmax,dzt,dzleft,sdz,dzavt,fac,Savailable,dAfac
     real*8 , dimension(:,:),allocatable,save    :: dzbtot,Sout,hav
@@ -678,10 +678,19 @@ contains
              ! Fix Hav for short wave runup:
              if (par%swrunup == 1) then
                 do j = 1,ny+1
-                   hav(:,j) =  wetz(:,j)*max(par%eps,(hh(:,j) + s%runup(j))) + &
-                              (1.d0-wetz(:,j))*max(par%eps,s%runup(j)+zs(nint(iwl(j)),j)-zb(:,j) )   
-                              
-                              
+                    hinterland = 0
+                    do i = 1, nx+1
+                        if (hinterland == 0 .and. runup(j)+zs(nint(iwl(j)),j) < zb(i,j) + par%eps) then
+                            hinterland = 1;
+                        endif
+                        if (wetz(i,j)) then
+                            hav(i,j) = max(par%eps,(hh(i,j) + runup(j)))
+                        elseif (hinterland == 0) then
+                            hav(i,j) =  max(par%eps,runup(j)+zs(nint(iwl(j)),j)-zb(i,j) )
+                        else
+                            hav(i,j) = par%eps;
+                        endif
+                    enddo
                 enddo
              endif
              !
@@ -1791,8 +1800,8 @@ contains
   type(spacepars),target                   :: s
   type(parameters)                         :: par
   
-  integer                                  :: i,j,j1,indx,indx2,first
-  integer , dimension(:), allocatable,save :: slopeind,bermind
+  integer                                  :: i,j,j1,indx,first, nIter, maxIter
+  integer , dimension(:), allocatable,save :: slopeind
   real , dimension(:), allocatable,save    :: hav1d
   real*8                                   :: irrb,runup_old
   real*8                                   :: bermwidth,rb,gamB,runup_max
@@ -1803,7 +1812,6 @@ contains
   if (.not. allocated(hav1d)) then
     allocate(hav1d (nx+1))
     allocate(slopeind (nx+1))
-    allocate(bermind (nx+1))
   endif
            
   do j=1,ny+1
@@ -1818,12 +1826,11 @@ contains
             ! Find toe of runup slope if present (dzbdx > 0.15). 
             ! If not present Hrunup will converge to H at the water line (where H = 0 per definition)
             do j1=indx,i-1
+               ! TODO: Strange condition. In case of no toe, or no steep slope, 
+               !   there will still be extra turbulance at L1 meter from the water line...
                ! cross shore location structure toe
                if (dzbdx(j1,j)<0.15d0 .or. structdepth(j1,j)>0.1d0) then
                   indx = j1
-               endif
-               if (hh(j1,j)>par%hswitch) then
-                  indx2 = j1
                endif
             enddo
             ! update Hrunup and runup x-location
@@ -1836,38 +1843,28 @@ contains
             hav1d = hh(:,j)
             runup_old = huge(0.d0)
             s%runup(j) = 0;
-            do while (abs(s%runup(j)-runup_old)>0.01d0)
+            nIter = 0;
+            maxIter = 50;
+            do while (abs(s%runup(j)-runup_old)>0.01d0 .and. nIter < maxIter)
+               nIter = nIter +1;
                runup_old = s%runup(j)
                slopeind = 0
-               where (hav1d>par%eps .and. dzbdx(:,j)>0.15)
+               where (hav1d>par%eps .and. dzbdx(:,j)>0.15d0)
                   slopeind = 1
                endwhere
-               !bermind = 0
-               !where (slopeind == 0 .and. wetz(:,j) == 0 .and. hav(:,j)>par%eps)
-               !  bermind = 1
-               !endwhere
                s%strucslope(j) = sum(dzbdx(indx:nx,j)*dsu(indx:nx,j)*slopeind(indx:nx))/ &
                                  max(par%eps,sum(dsu(indx:nx,j)*slopeind(indx:nx)))
                if (s%strucslope(j) > 0.d0) then         
                   irrb = s%strucslope(j)/sqrt(2*par%px*max(s%Hrunup(j),par%eps)/par%g/par%Trep**2)
-                  !bermwidth  = sum(dsu(indx(j):nx,j)*bermind(indx(j):nx))
-                  !rb = bermwidth/(bermwidth+sum(dsu(indx(j):nx,j)*slopeind(indx(j):nx)))
-                  !gamB = max(0.6d0,1.d0-rb)
-                  !runup_max = (4.3d0-1.6d0/sqrt(irrb))/1.75d0
-                  !s%runup(j) = min(runup_max,irrb*s%Hrunup(j))*cos(2*par%px/par%Trep*par%t)
                   s%runup(j) = par%facrun*min(irrb,2.3d0)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
-                  !s%runup(j) = par%facrun*min(irrb,runup_max)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
                else
                   s%runup(j) = 0.d0;
                endif
-
-                  !hav(:,j) = hh(:,j) + wetz(:,j)*s%runup(j) + &
-                  !                    (1.d0-wetz(:,j))*max(par%eps,hh(:,j)+s%runup(j)-zb(:,j));
-
-            enddo
-
-            hav1d =  wetz(:,j)*max(par%eps,(hh(:,j) + s%runup(j))) + &
+               ! This triggers s%runup to be calculated for the complete hinterland (also behind a dune).
+               ! Only values calculated for the first dune front are used in the avalanching algorithm (morphevolution)
+               hav1d =  wetz(:,j)*max(par%eps,(hh(:,j) + s%runup(j))) + &
                     (1.d0-wetz(:,j))*max(par%eps,s%runup(j)+zs(i-1,j)-zb(:,j) )   
+            enddo
         endif
      enddo
   enddo

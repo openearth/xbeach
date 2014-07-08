@@ -1096,6 +1096,10 @@ contains
              call check_file_length(par%ne_layer,par%nx+1,par%ny+1)
           endif
        endif
+       if (par%swrunup==1 .and. par%struct==0) then
+          call writelog('lws','(a)','Warning: swrunup can only be used in combination with struct=1. swrunup will be turned off.')
+          par%swrunup = 0;
+       endif
     endif
     !
     !
