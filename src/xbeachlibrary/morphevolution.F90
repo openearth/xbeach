@@ -683,7 +683,7 @@ contains
                         if (hinterland == 0 .and. runup(j)+zs(nint(iwl(j)),j) < zb(i,j) + par%eps) then
                             hinterland = 1;
                         endif
-                        if (wetz(i,j)) then
+                        if (wetz(i,j) == 1) then
                             hav(i,j) = max(par%eps,(hh(i,j) + runup(j)))
                         elseif (hinterland == 0) then
                             hav(i,j) =  max(par%eps,runup(j)+zs(nint(iwl(j)),j)-zb(i,j) )
