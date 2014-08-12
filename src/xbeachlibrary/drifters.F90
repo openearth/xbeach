@@ -24,8 +24,8 @@ contains
     ishift  = s%is(xmpi_rank+1)-1
     jshift  = s%js(xmpi_rank+1)-1
 #else
-    ishift  = 0.d0
-    jshift  = 0.d0
+    ishift  = 0
+    jshift  = 0
 #endif
 
     do i=1,par%ndrifter

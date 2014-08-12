@@ -1,4 +1,5 @@
 module libxbeach_module
+  use loopcounters_module
   use iso_c_binding
   use mnemiso_module
   use mnemmodule
@@ -58,6 +59,7 @@ contains
 #ifdef USEMPI
     s=>slocal
     call xmpi_initialize
+    call xmpi_barrier()
     t0 = MPI_Wtime()
 #endif
 
@@ -80,8 +82,6 @@ contains
     ! read input from params.txt
     call all_input(par)
 
-    ! allocate space scalars
-    call space_alloc_scalars(sglobal)
     s => sglobal
 
     ! read grid and bathymetry
@@ -110,13 +110,15 @@ contains
        call wave_init          (s,par)
        call gw_init            (s,par)
        ! TODO, fix ordening of arguments....
-       call bwinit             (s,par)		! works only on master process 
+       call bwinit             (s)          ! works only on master process 
 
        call sed_init           (s,par)
+    endif
        call ship_init          (s,par,sh)   ! always need to call initialise in order
                                             ! to reserve memory on MPI subprocesses.
                                             ! Note: if par%ships==0 then don't allocate
                                             ! and read stuff for sh structures
+    if (xmaster) then
        call vegie_init         (s,par)
 
     endif
@@ -126,6 +128,8 @@ contains
     s => slocal
     call space_distribute_space (sglobal,s,par     )
 #endif
+
+    call ranges_init(s)
 
     ! nonh_init does not always need to be called
     if (par%nonh==1) call nonh_init(s,par)
@@ -151,23 +155,28 @@ contains
 
   integer(c_int) function executestep()
 
-
+#ifdef USEMPI
+    if (execute_counter .eq. 1) then
+      ! exclude first pass from time measurement
+      call xmpi_barrier
+      t01 = MPI_Wtime()
+    endif
+#endif
+    execute_counter = execute_counter + 1
     ! This is now called in output, but timestep depends on it...
     ! call outputtimes_update(par, tpar)
     executestep = -1
     !do while (par%t<par%tstop)
     ! determine timestep
     call timestep(s,par,tpar,it,ierr=error)
-    if (error==1) call output_error(s,sglobal,par,tpar)
+    if (error==1) then
+      call output_error(s,sglobal,par,tpar)
+    endif
 
     ! boundary conditions
     call wave_bc        (sglobal,s,par)
     if (par%gwflow==1)       call gw_bc          (s,par)
     if (par%flow+par%nonh>0) call flow_bc        (s,par)
-
-#ifdef USEMPI
-    if (it==0) t01 = MPI_Wtime()
-#endif
 
     ! compute timestep
     if (par%ships==1)        call shipwave       (s,par,sh)
@@ -199,6 +208,7 @@ contains
     !-----------------------------------------------------------------------------!
 
 #ifdef USEMPI
+    call xmpi_barrier()
     call writelog_finalize(tbegin,n,par%t,par%nx,par%ny,t0,t01)
     call xmpi_finalize
 #else

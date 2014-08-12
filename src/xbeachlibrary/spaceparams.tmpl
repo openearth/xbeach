@@ -71,8 +71,11 @@
       real*8  2  zb     s%nx+1 s%ny+1 d  [m] [altitude]       bed level
       real*8  2  zb0    s%nx+1 s%ny+1 d  [m] [altitude]       initial bed level
       real*8  1  theta  s%ntheta b  [rad] [sea_surface_wind_wave_to_direction]     wave angles directional distribution w.r.t. comp. x-axis
-      integer 0  ntheta b  [-] []       number of wave direction bins
-      real*8  0  dtheta b  [rad] []     wave direction bin size
+      real*8  1  theta_s s%ntheta_s b  [rad] [sea_surface_wind_wave_to_direction]     wave angles directional distribution w.r.t. comp. x-axis
+      integer 0  ntheta   b  [-] []     number of wave direction bins
+      integer 0  ntheta_s b  [-] []     number of wave direction bins for wave_directions only
+      real*8  0  dtheta   b  [rad] []   wave direction bin size
+      real*8  0  dtheta_s b  [rad] []   wave direction bin size for wave_directions only
       real*8  0  theta0 b  [rad] [sea_surface_wind_wave_to_direction]     mean incident wave angle
       real*8  2  thetamean s%nx+1 s%ny+1 d  [rad] [sea_surface_wind_wave_to_direction]     mean wave angle
       real*8  2  Fx     s%nx+1 s%ny+1 d  [N/m2] []    wave force, x-component
@@ -93,6 +96,13 @@
       real*8  3  sinth s%nx+1 s%ny+1 s%ntheta d   [-] []       sin of wave angles relative to grid direction 
       real*8  3  sigt   s%nx+1 s%ny+1 s%ntheta d  [rad/s] []   relative frequency 
       real*8  3  rr     s%nx+1 s%ny+1 s%ntheta d  [J/m2/rad] [] directionally distributed roller energy
+      real*8  3  cgx_s    s%nx+1 s%ny+1 s%ntheta_s d  [m/s] []     group velocity, x-component
+      real*8  3  cgy_s    s%nx+1 s%ny+1 s%ntheta_s d  [m/s] []     group velocity, y-component
+      real*8  3  ctheta_s s%nx+1 s%ny+1 s%ntheta_s d  [rad/s] []   wave celerity theta-direction (refraction)
+      real*8  3  ee_s     s%nx+1 s%ny+1 s%ntheta_s d  [J/m2/rad] []         directionally distributed wave energy
+      real*8  3  thet_s   s%nx+1 s%ny+1 s%ntheta_s d  [rad] [sea_surface_wind_wave_to_direction]     wave angles  
+      real*8  3  costh_s  s%nx+1 s%ny+1 s%ntheta_s d   [-] []       cos of wave angles relative to grid direction
+      real*8  3  sinth_s  s%nx+1 s%ny+1 s%ntheta_s d   [-] []       sin of wave angles relative to grid direction 
       real*8  2  k      s%nx+1 s%ny+1 d  [rad/m] []   wave number
       real*8  2  c      s%nx+1 s%ny+1 d  [m/s] []     wave celerity
       real*8  2  cg     s%nx+1 s%ny+1 d  [m/s] []     group velocity
@@ -238,7 +248,7 @@
       real*8  2  structdepth    s%nx+1 s%ny+1 d  [m] [] Depth of structure in relation to instantaneous bed level
       real*8  3  zs0fac    s%nx+1 s%ny+1 2 d  [-] [] relative weight of offshore boundary and bay boundary for each grid point is stored in zs0fac       
       real*8  1  tdisch    par%ntdischarge     b  [-] []    Discharge time series
-      real*8  2  pdisch    par%ndischarge 4    b  [-] []    Discharge locations
+      integer*4  2  pdisch    par%ndischarge 4    b  [-] []    Discharge locations
       integer 1  pntdisch  par%ndischarge      b  [-] []    Point discharge locations (no momentum)
       real*8  2  qdisch    par%ntdischarge par%ndischarge b [m^2/s] [] Discharges
       real*8  1  idrift    par%ndrifter  b  [-] []    Drifter x-coordinate in grid space
@@ -286,3 +296,4 @@
       real*8  3  setbathy  s%nx+1 s%ny+1 par%nsetbathy d  [m] []   prescribed bed levels
       real*8  1  tsetbathy par%nsetbathy b [s] [] points in time of prescibed bed levels
       integer 2  breaking  s%nx+1 s%ny+1 d  [-] [] indicator whether cell has breaking nonh waves
+!*      real*8  2  sipresult s%nx+1 s%ny+1 d  [-] [sipresult] for testing quality of sipsolver

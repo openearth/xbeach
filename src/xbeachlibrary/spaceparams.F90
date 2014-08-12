@@ -1,4 +1,5 @@
 module spaceparams
+  use xmpi_module
   implicit none
   type spacepars
      include 'spacedecl.gen'
@@ -25,6 +26,8 @@ module spaceparams
      !    the first row
      !    lhe last  row
      ! 
+     ! the values are determined in subroutine space_distribute_space
+     !
      integer, dimension(:), pointer  :: is      => NULL()   
      integer, dimension(:), pointer  :: js      => NULL()
      integer, dimension(:), pointer  :: lm      => NULL()
@@ -36,6 +39,7 @@ module spaceparams
 #endif
   end type spacepars
 
+  include 'ranges.inc'
 #ifdef USEMPI
 
   ! This interface an cause complains by memcache because the it is conditional on uninitialized variables.
@@ -92,7 +96,7 @@ contains
     use xmpi_module
     use logging_module
     implicit none
-    type (spacepars), intent(in)        :: s
+    type (spacepars), intent(in),target :: s
     integer, intent(in)                 :: index
     type(arraytype), intent(out)        :: t
 
@@ -106,16 +110,6 @@ contains
     end select
 
   end subroutine indextos
-
-  ! Generated subroutine to allocate the scalars in s
-  subroutine space_alloc_scalars(s)
-    use mnemmodule
-    implicit none
-    type(spacepars),intent(inout)  :: s
-
-    include 'space_alloc_scalars.gen'
-
-  end subroutine space_alloc_scalars
 
   ! Generated subroutine to allocate all arrays in s
   subroutine space_alloc_arrays(s,par)
@@ -150,13 +144,14 @@ contains
   ! has been taken for the other neighbours
 
   !
-  ! constencycheck for mnem
+  ! consistency check for mnem
   ! if mnem = 'ALL' then all
-  subroutine space_consistency(s,mnem)
+  subroutine space_consistency(s,mnem,verbose)
     use mnemmodule
     implicit none
     type(spacepars)  :: s
     character(len=*) :: mnem
+    character(len=*), intent(in), optional :: verbose
     integer          :: j,jmin,jmax
     type(arraytype)  :: t
 
@@ -177,9 +172,9 @@ contains
           case(1)
              !call compare(t%r1,t%name)
           case(2)
-             call compare(t%r2,t%name)
+             call compare(t%r2,t%name,verbose)
           case(3)
-             call compare(t%r3,t%name)
+             call compare(t%r3,t%name,verbose)
           case(4)
              !call compare(t%r4,t%name)
           end select ! rank
@@ -190,7 +185,7 @@ contains
           case(1)
              !call compare(t%i1,t%name)
           case(2)
-             call compare(t%i2,t%name)
+             call compare(t%i2,t%name,verbose)
           case(3)
              !call compare(t%i3,t%name)
           case(4)
@@ -201,20 +196,22 @@ contains
 
   end subroutine space_consistency
 
-  subroutine comparer2(x,s)
+  subroutine comparer2(x,s,verbose)
     use xmpi_module
     use mnemmodule
     implicit none
     real*8, dimension(:,:) :: x
     character(len=*)       :: s
+    character(len=*),optional :: verbose
 
     real*8, parameter     :: eps=1.0d-60
     integer               :: m
     integer               :: n
-    real*8, dimension(:), allocatable :: c
-    real*8, dimension(:), allocatable :: r
+    real*8, dimension(:,:), allocatable :: c
+    real*8, dimension(:,:), allocatable :: r
     real*8, dimension(2)  :: dif,difmax
     character*100         :: warning
+    integer i,j
 
     select case(s)
     case (mnem_tideinpz)
@@ -222,47 +219,56 @@ contains
     end select
     m=size(x,1)
     n=size(x,2)
-    allocate(c(m))
-    allocate(r(n))
-    c = x(:,1)
-    call xmpi_shift(x,':1')
+    allocate(c(m,2))
+    allocate(r(2,n))
+    !c = x(:,1)
+    c = x(:,1:2)
+    !call xmpi_shift(x,':1')
+    call xmpi_shift(x,SHIFT_Y_R,1,2)
 
-    dif(1) = sum(abs(c(2:m-1)-x(2:m-1,1)))
-    dif(2) = sum(abs(c(1:m  )-x(1:m  ,1)))
-    x(:,1) = c
+    !dif(1) = sum(abs(c(2:m-1)-x(2:m-1,1)))
+    !dif(2) = sum(abs(c(1:m  )-x(1:m  ,1)))
+    dif(1) = sum(abs(c(2:m-1,:)-x(2:m-1,1:2)))
+    dif(2) = sum(abs(c(1:m  ,:)-x(1:m  ,1:2)))
 
-    call xmpi_reduce(dif,difmax,MPI_SUM)
+    call xmpi_allreduce(dif,MPI_SUM)
+    difmax = dif
 
     if(xmaster) then
        warning=' '
        if (sum(difmax) .gt. eps) then
           warning = '<===++++++++++++++++++++++'
        endif
-       write (*,*) 'compare (:,1) '//trim(s)//': ',difmax,trim(warning)
+       write (*,*) 'compare (:,1:2) '//trim(s)//': ',difmax,trim(warning)
+    endif
+    if (present(verbose)) then
+      if (verbose .eq. 'verbose') then
+        if (sum(difmax) .gt. eps) then
+          do i=1,m
+            do j=1,2
+              !if(abs(c(i,j)-x(i,j)) .gt. 0.0001) then
+              if(c(i,j) .ne. 0 .or. x(i,j) .ne. 0) then
+                print *,xmpi_rank,i,j,c(i,j),x(i,j),abs(c(i,j)-x(i,j))
+              endif
+            enddo
+          enddo
+        endif
+      endif
     endif
 
-    c = x(:,n)
-    call xmpi_shift(x,':n')
+    x(:,1:2) = c
 
-    dif(1) = sum(abs(c(2:m-1)-x(2:m-1,n)))
-    dif(2) = sum(abs(c(1:m  )-x(1:m  ,n)))
-    x(:,n) = c
+    !c = x(:,n)
+    c = x(:,n-1:n)
+    !call xmpi_shift(x,':n')
+    call xmpi_shift(x,SHIFT_Y_L,3,4)
 
-    call xmpi_reduce(dif,difmax,MPI_SUM)
-
-    if(xmaster) then
-       warning=' '
-       if (sum(difmax) .gt. eps) then
-          warning = '<===++++++++++++++++++++++'
-       endif
-       write (*,*) 'compare (:,n) '//trim(s)//': ',difmax,trim(warning)
-    endif
-    r = x(1,:)
-    call xmpi_shift(x,'1:')
-
-    dif(1) = sum(abs(r(2:n-1)-x(1,2:n-1)))
-    dif(2) = sum(abs(r(1:n  )-x(1,1:n  )))
-    x(1,:) = r
+    !dif(1) = sum(abs(c(2:m-1)-x(2:m-1,n)))
+    !dif(2) = sum(abs(c(1:m  )-x(1:m  ,n)))
+    dif(1) = sum(abs(c(2:m-1,:)-x(2:m-1,n-1:n)))
+    dif(2) = sum(abs(c(1:m  ,:)-x(1:m  ,n-1:n)))
+    !x(:,n) = c
+    x(:,n-1:n) = c
 
     call xmpi_reduce(dif,difmax,MPI_SUM)
 
@@ -271,15 +277,19 @@ contains
        if (sum(difmax) .gt. eps) then
           warning = '<===++++++++++++++++++++++'
        endif
-       write (*,*) 'compare (1,:) '//trim(s)//': ',difmax,trim(warning)
+       write (*,*) 'compare (:,n-1:n) '//trim(s)//': ',difmax,trim(warning)
     endif
 
-    r = x(m,:)
-    call xmpi_shift(x,'m:')
+    !r = x(1,:)
+    r = x(1:2,:)
+    !call xmpi_shift(x,'1:')
+    call xmpi_shift(x,SHIFT_X_D,1,2)
 
-    dif(1) = sum(abs(r(2:n-1)-x(m,2:n-1)))
-    dif(2) = sum(abs(r(1:n  )-x(m,1:n  )))
-    x(m,:) = r
+    !dif(1) = sum(abs(r(2:n-1)-x(1,2:n-1)))
+    !dif(2) = sum(abs(r(1:n  )-x(1,1:n  )))
+    dif(1) = sum(abs(r(:,2:n-1)-x(1:2,2:n-1)))
+    dif(2) = sum(abs(r(:,1:n  )-x(1:2,1:n  )))
+    x(1:2,:) = r
 
     call xmpi_reduce(dif,difmax,MPI_SUM)
 
@@ -288,23 +298,52 @@ contains
        if (sum(difmax) .gt. eps) then
           warning = '<===++++++++++++++++++++++'
        endif
-       write (*,*) 'compare (m,:) '//trim(s)//': ',difmax,trim(warning)
+       write (*,*) 'compare (1:2,:) '//trim(s)//': ',difmax,trim(warning)
+    endif
+
+    !r = x(m,:)
+    r = x(m-1:m,:)
+    !call xmpi_shift(x,'m:')
+    call xmpi_shift(x,SHIFT_X_U,3,4)
+
+    !dif(1) = sum(abs(r(2:n-1)-x(m,2:n-1)))
+    !dif(2) = sum(abs(r(1:n  )-x(m,1:n  )))
+    dif(1) = sum(abs(r(:,2:n-1)-x(m-1:m,2:n-1)))
+    dif(2) = sum(abs(r(:,1:n  )-x(m-1:m,1:n  )))
+    x(m-1:m,:) = r
+
+    call xmpi_reduce(dif,difmax,MPI_SUM)
+
+    if(xmaster) then
+       warning=' '
+       if (sum(difmax) .gt. eps) then
+          warning = '<===++++++++++++++++++++++'
+       endif
+       write (*,*) 'compare (m-1:m,:) '//trim(s)//': ',difmax,trim(warning)
     endif
   end subroutine comparer2
 
-  subroutine comparei2(x,s)
+  subroutine comparei2(x,s,verbose)
     use xmpi_module
     implicit none
     integer, dimension(:,:) :: x
     character(len=*)       :: s
-    integer, parameter    :: eps=0
+    character(len=*),optional :: verbose
 
+    integer, parameter    :: eps=0
     integer               :: m
     integer               :: n
     integer, dimension(:), allocatable :: c
     integer, dimension(:), allocatable :: r
     integer, dimension(2) :: dif,difmax
     character*100         :: warning
+
+    print *,'comparei2 not adapted for double border scheme'
+    return
+
+    if (present(verbose)) then
+      print *,'comparei2: verbose not implemented'
+    endif
 
     m=size(x,1)
     n=size(x,2)
@@ -378,11 +417,12 @@ contains
     endif
   end subroutine comparei2
 
-  subroutine comparer3(x,s)
+  subroutine comparer3(x,s,verbose)
     use xmpi_module
     implicit none
     real*8, dimension(:,:,:) :: x
     character(len=*)       :: s
+    character(len=*),optional :: verbose
 
     real*8, parameter     :: eps=1.0d-60
     integer               :: m,n,l
@@ -391,6 +431,11 @@ contains
     real*8, dimension(2)  :: dif,difmax
     character*100         :: warning
 
+    print *,'comparei2 not adapted for double border scheme'
+    return
+    if (present(verbose)) then
+      print *,'comparer3: verbose not implemented'
+    endif
     m=size(x,1)
     n=size(x,2)
     l=size(x,3)
@@ -591,6 +636,16 @@ contains
     use general_mpi_module
     implicit none
     ! Not sure what this xy  is doing here. 
+    ! Ok, the master process holds a vector of length ny+1 or nx+1
+    ! This vector will be distributed among all processes.
+    ! if xy .eq. 'x', the distribution is done according
+    ! to the values in is and lm, i.e. the global vector
+    ! has a size equal to the size of the first dimension of the
+    ! global area: nx+1.
+    ! In the other case, the distribution is done according to
+    ! the values in js and ln, i.e. the global vector has a size
+    ! equal to the second dimension of the global area: ny+1
+    ! 
     character, intent(in)             :: xy
     type (spacepars), intent(inout)   :: sl
     real*8, dimension(:), intent(in)  :: a
@@ -614,16 +669,24 @@ contains
     use general_mpi_module
     implicit none
     character, intent(in)               :: xy
-    type (spacepars), intent(inout)     :: sl
+    type (spacepars), intent(in)        :: sl
     real*8, dimension(:,:), intent(in)  :: a
     real*8, dimension(:,:), intent(out) :: b
 
-    integer                             :: i
+!    integer                             :: i
 
     !DF  do i=1,sl%ntheta
-    do i=1,size(b,2)
-       call space_distribute(xy,sl,a(:,i),b(:,i))
-    enddo
+!    do i=1,size(b,2)
+!       call space_distribute(xy,sl,a(:,i),b(:,i))
+!    enddo
+ 
+    select case(xy)
+    case('y')
+      call block_vector_distr_y(a,b,sl%js,sl%ln,xmpi_master,xmpi_comm)
+    case default
+      print *,'Error in space_distribute_block_vector, other than "y" not implemented'
+      call xmpi_abort()
+    end select
 
   end subroutine space_distribute_block_vector
 
@@ -647,10 +710,6 @@ contains
     ! This subroutine takes care that all contents of the global
     ! space is distributed to the local space.
     !
-
-    ! allocate scalars
-
-    call space_alloc_scalars(sl)
 
     ! copy scalars to sl, only on master
     ! distributing will take place later
@@ -771,6 +830,11 @@ contains
                    tl%i1 = tg%i1
                 endif
                 call xmpi_bcast(tl%i1)
+              case(2)   ! wwvv : try to fix error with integer pdish
+                if(xmaster) then
+                   tl%i2 = tg%i2
+                endif
+                call xmpi_bcast(tl%i2)
              case default
                 goto 100
              end select   ! rank
@@ -804,7 +868,7 @@ contains
           select case(tl%type)
           case ('i')
              select case(tl%rank)
-             case(1)
+             case(1) ! wwvv 2013: superfluous, there is a default case
                  goto 100
              case(2)
                 call space_distribute(sl,tg%i2,tl%i2)
@@ -954,7 +1018,9 @@ contains
 
     integer i
 
-    real*8, dimension(:,:,:), allocatable :: ra,rb
+    !real*8, dimension(:,:,:), allocatable :: ra,rb
+    ! wwvv changed this into 
+    integer, dimension(:,:,:), allocatable :: ra,rb
     integer                             :: m,n,o
 
     m = size(b,1)
@@ -1054,7 +1120,10 @@ contains
     ! matrix_coll has to be made. (Now we understand why
     ! C++ has templates)
 
-    real*8, dimension(:,:), allocatable :: ra,rb
+    !real*8, dimension(:,:), allocatable :: ra,rb
+    ! wwvv changed this into 
+    integer, dimension(:,:), allocatable :: ra,rb
+
     integer                             :: m,n
 
     m = size(b,1)
@@ -1680,5 +1749,76 @@ contains
     deallocate (yc)
 
   end subroutine gridprops
+
+  subroutine ranges_init(s)
+    implicit none
+    type(spacepars)    :: s
+
+    imin_ee = 2
+    imax_ee = s%nx
+    jmin_ee = 1
+    jmax_ee = s%ny+1
+
+    imin_uu = 2
+    imax_uu = s%nx-1
+    if (s%ny>0) then
+       jmin_uu = 2
+       jmax_uu = s%ny
+    else
+       jmin_uu = 1
+       jmax_uu = 1
+    endif
+    
+    imin_vv = 2
+    imax_vv = s%nx
+    if (s%ny>0) then
+       jmin_vv = 2
+       jmax_vv = s%ny-1
+    else
+       jmin_vv = 1
+       jmax_vv = 1
+    endif
+    
+    imin_zs = 2
+    imax_zs = s%nx
+    if (s%ny>0) then
+       jmin_zs = 2
+       jmax_zs = s%ny
+    else
+       jmin_zs = 1
+       jmax_zs = 1
+    endif
+#ifdef USEMPI
+    
+    if (.not. xmpi_istop) then
+      imin_ee = 3
+      imin_uu = 2
+      imin_vv = 3
+      imin_zs = 3
+    endif
+
+    if (.not. xmpi_isbot) then
+      imax_ee = s%nx-1
+      imax_uu = s%nx-2
+      imax_vv = s%nx-1
+      imax_zs = s%nx-1
+    endif
+
+    if (.not. xmpi_isleft) then
+      jmin_ee = 3
+      jmin_uu = 3
+      jmin_vv = 2
+      jmin_zs = 3
+    endif
+
+    if (.not. xmpi_isright) then
+      jmax_ee = s%ny-1
+      jmax_uu = s%ny-1
+      jmax_vv = s%ny-2
+      jmax_zs = s%ny-1
+    endif
+
+#endif
+  end subroutine ranges_init
 
 end module spaceparams

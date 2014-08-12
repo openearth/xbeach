@@ -116,7 +116,6 @@ contains
 
     integer(c_int) :: length
     character(1), dimension(len(name)) :: cname
-    integer :: i
     length  = len(name)
     cname = string_to_char_array(name,length)
 
@@ -127,9 +126,11 @@ contains
     character(kind=c_char,len=1),intent(in) :: name(length)
     character(kind=c_char, len=1), intent(out) :: typecode
     integer(c_int) :: length
-
     character(len=length) :: key
     integer :: index
+
+    ! wwvv added:
+    getparametertype_c = 0
     key = char_array_to_string(name, length)
     call getkey_indextype(par, key, index, typecode)
   end function getparametertype_c
@@ -150,7 +151,6 @@ contains
     integer(c_int), intent(out) :: length
     character(kind=c_char, len=1), intent(out) :: name(slen)
 
-    integer :: i,j
     character(len=slen), allocatable :: keys(:)
     character(kind=c_char,len=slen) :: key
     getparametername_c = -1
@@ -289,21 +289,7 @@ contains
     getintparameter_c = 0
   end function getintparameter_c
 
-  integer(c_int) function getcharparameter_fortran(name,value)
-    USE iso_c_binding
-
-    ! String
-    character(kind=c_char,len=*),intent(in) :: name
-    character(kind=c_char, len=*), intent(out) :: value
-
-    ! Transform name to a fortran character...
-    character(1), dimension(len(name)) :: cname
-    character(kind=c_char,len=1), pointer :: cvalue(:)
-    integer(c_int) :: valuelength
-    cname = string_to_char_array(name, len(name))
-    getcharparameter_fortran = getcharparameter_c(cname,cvalue,len(name),valuelength)
-  end function getcharparameter_fortran
-
+  
 
   integer(c_int) function getcharparameter_c(name,value, namelength, valuelength) bind(C,name="getcharparameter")
     !DEC$ ATTRIBUTES DLLEXPORT::getcharparameter_c
@@ -330,7 +316,6 @@ contains
 
   integer(c_int) function getnarray_fortran(n) bind(C, name="getnarray")
     integer(c_int), intent(inout) :: n
-    character(len=slen), allocatable :: keys(:)
     getnarray_fortran = -1
     n = numvars
     getnarray_fortran = 0
@@ -354,7 +339,6 @@ contains
     character(kind=c_char, len=1), intent(out) :: name(slen)
 
 
-    integer :: i,j
     character(kind=c_char,len=slen) :: key
     type(arraytype) :: array
 
@@ -376,7 +360,6 @@ contains
     ! and we need the string length ....
     integer(c_int) :: length
     character(1), dimension(len(name)) :: cname
-    integer :: i
     length  = len(name)
     cname = string_to_char_array(name,length)
     getarraytype_fortran = getarraytype_c(cname, typecode, length)
@@ -406,7 +389,6 @@ contains
     ! and we need the string length ....
     integer(c_int) :: length
     character(1), dimension(len(name)) :: cname
-    integer :: i
     length  = len(name)
     cname = string_to_char_array(name,length)
     getarrayrank_fortran = getarrayrank_c(cname, rank, length)
@@ -438,7 +420,6 @@ contains
     ! and we need the string length ....
     integer(c_int) :: length
     character(1), dimension(len(name)) :: cname
-    integer :: i
     length  = len(name)
     cname = string_to_char_array(name,length)
     getarraydimsize_fortran = getarraydimsize_c(cname, dim, size, length)
@@ -507,7 +488,7 @@ contains
     real(c_double), intent(inout) :: x
 
     type(arraytype) :: array
-    integer :: i, index
+    integer :: index
 
     get0ddoublearray_fortran = -1
     index =  chartoindex(trim(name))
@@ -552,7 +533,7 @@ contains
     real(c_double), intent(inout) :: x(:)
 
     type(arraytype) :: array
-    integer :: i, index
+    integer :: index
 
     get1ddoublearray_fortran = -1
     index =  chartoindex(trim(name))
@@ -600,7 +581,7 @@ contains
     real(c_double), intent(inout) :: x(:,:)
 
     type(arraytype) :: array
-    integer :: i, index
+    integer :: index
 
     get2ddoublearray_fortran = -1
     index =  chartoindex(trim(name))
@@ -647,7 +628,7 @@ contains
     real(c_double), intent(inout) :: x(:,:,:)
 
     type(arraytype) :: array
-    integer :: i, index
+    integer :: index
 
     get3ddoublearray_fortran = -1
     index =  chartoindex(trim(name))
@@ -695,7 +676,7 @@ contains
     real(c_double), intent(inout) :: x(:,:,:,:)
 
     type(arraytype) :: array
-    integer :: i, index
+    integer :: index
 
     get4ddoublearray_fortran = -1
     index =  chartoindex(trim(name))
@@ -743,7 +724,7 @@ contains
     integer(c_int), intent(inout) :: x
 
     type(arraytype) :: array
-    integer :: i, index
+    integer :: index
 
     get0dintarray_fortran = -1
     index =  chartoindex(trim(name))
@@ -786,7 +767,7 @@ contains
     integer(c_int), intent(inout) :: x(:)
 
     type(arraytype) :: array
-    integer :: i, index
+    integer :: index
 
     get1dintarray_fortran = -1
     index =  chartoindex(trim(name))
@@ -834,7 +815,7 @@ contains
     integer(c_int), intent(inout) :: x(:,:)
 
     type(arraytype) :: array
-    integer :: i, index
+    integer :: index
 
     get2dintarray_fortran = -1
     index =  chartoindex(trim(name))
@@ -880,7 +861,7 @@ contains
     ! use inout otherwise things break
     integer(c_int), intent(inout) :: x
 
-    integer :: i, index
+    integer :: index
     type(arraytype) :: array
 
     set0dintarray_fortran = -1
@@ -913,7 +894,7 @@ contains
     if (index .eq. -1) return
     call indextos(s,index,array)
     ! Transform the c pointer into a fortran pointer
-    call c_f_pointer(x, i0)
+    call c_f_pointer(x, i0, shape(array%i0))
     ! Copy the values, or the pointer... not sure.
     array%i0 = i0
 
@@ -927,7 +908,7 @@ contains
     ! use inout otherwise things break
     integer(c_int), intent(inout) :: x(:)
 
-    integer :: i, index
+    integer :: index
     type(arraytype) :: array
 
     set1dintarray_fortran = -1
@@ -974,7 +955,7 @@ contains
     ! use inout otherwise things break
     integer(c_int), intent(inout) :: x(:,:)
 
-    integer :: i, index
+    integer :: index
     type(arraytype) :: array
 
     set2dintarray_fortran = -1
@@ -1021,7 +1002,7 @@ contains
     ! use inout otherwise things break
     real(c_double), intent(inout) :: x
 
-    integer :: i, index
+    integer :: index
     type(arraytype) :: array
 
     set0ddoublearray_fortran = -1
@@ -1054,7 +1035,7 @@ contains
     if (index .eq. -1) return
     call indextos(s,index,array)
     ! Transform the c pointer into a fortran pointer
-    call c_f_pointer(x, r0)
+    call c_f_pointer(x, r0, shape(array%r0))
     ! Copy the values, or the pointer... not sure.
     array%r0 = r0
 
@@ -1068,7 +1049,7 @@ contains
     ! use inout otherwise things break
     real(c_double), intent(inout) :: x(:)
 
-    integer :: i, index
+    integer :: index
     type(arraytype) :: array
 
     set1ddoublearray_fortran = -1
@@ -1116,7 +1097,7 @@ contains
     ! use inout otherwise things break
     real(c_double), intent(inout) :: x(:,:)
 
-    integer :: i, index
+    integer :: index
     type(arraytype) :: array
 
     set2ddoublearray_fortran = -1
@@ -1164,7 +1145,7 @@ contains
     ! use inout otherwise things break
     real(c_double), intent(inout) :: x(:,:,:)
 
-    integer :: i, index
+    integer :: index
     type(arraytype) :: array
 
     set3ddoublearray_fortran = -1
@@ -1212,7 +1193,7 @@ contains
     ! use inout otherwise things break
     real(c_double), intent(inout) :: x(:,:,:,:)
 
-    integer :: i, index
+    integer :: index
     type(arraytype) :: array
 
     set4ddoublearray_fortran = -1

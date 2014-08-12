@@ -1,8 +1,3 @@
-module readkey_module
-  use typesandkinds
-
-contains
-  real*8 function readkey_dbl(fname,key,defval,mnval,mxval,bcast,required)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
     ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
     ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
@@ -29,6 +24,27 @@ contains
     ! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307     !
     ! USA                                                                     !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+module readkey_module
+  use typesandkinds
+  implicit none
+
+  integer, parameter, private                   :: maxnames = 20
+  character(slen), dimension(maxnames), private :: allowednames
+  character(slen), dimension(maxnames), private :: oldnames
+  character(slen), private                      :: varname
+  integer,         dimension(maxnames), private :: intvalues
+  integer, private                              :: numallowednames
+  integer, private                              :: numoldnames
+
+  interface read_v
+    module procedure read_v_array
+    module procedure read_v_9
+  end interface read_v
+
+contains
+  real*8 function readkey_dbl(fname,key,defval,mnval,mxval,bcast,required)
     ! if USEMPI then the master process will read the parameter,
     ! this value is subsequently broadcasted to the other processes
 
@@ -390,6 +406,7 @@ contains
     character(slen)   :: value
     logical         :: lbcast
 
+    isSet = .false.
     if (present(bcast)) then
        lbcast = bcast
     else
@@ -570,5 +587,428 @@ contains
 
 
 
+! The following
+! defines the following method to read a string parameter:
+!
+!  for example:
+
+!  integer NAME1, NAME2, NAME3
+!  call setallowednames('name1',NAME1,'name2',NAME2,'name3',NAME3)
+!   this defines the allowed names ('name1', 'name2', 'name3') and
+!   the to-be associated integer values (NAME1, NAME2, NAME3)
+!  call setoldname('0','1')
+!   this defines alternate allowed names for 'name1' and 'name2'
+!  integer intvalue
+!  character(slen) stringvalue
+!  call parmapply('gridform',2,intvalue[,stringvalue])
+!                            |
+!   this searches for 'gridform' in file 'params.txt'. 
+!   let us assume that there is a line
+!   gridform = name3
+!   then intvalue becomes NAME2, and stringvalue becomes 'name3'
+!   If no line defining gridform is found, the default numer allowed name
+!   is used, in this case number 2: NAME2 and 'name2'
+!
+!   Notes:
+!     setoldnames must be called after setallowednames and is optional
+!     the 3rd parameter in parmapply is optional
+!
+
+
+    subroutine parmapply(vname,idefname,parm,parm_str,bcast,required)
+      use typesandkinds
+      use xmpi_module
+      implicit none
+      character(*), intent(in)            :: vname
+      integer,      intent(in)            :: idefname
+      integer,      intent(out)           :: parm
+      character(*), intent(out), optional :: parm_str
+      logical,      intent(in), optional  :: bcast,required
+
+      character(slen)                     :: d
+      integer                             :: i
+      logical                             :: lbcast
+
+      d = readkey_str('params.txt',vname,allowednames(idefname), &
+                      numallowednames,numoldnames,allowednames,oldnames, &
+                      bcast, required)
+
+      if (present(bcast)) then
+        lbcast = bcast
+      else
+        lbcast = .true.
+      endif
+
+      if (xmaster) then
+        do i=1,numallowednames
+          if (d .eq. allowednames(i)) then
+            parm = intvalues(i)
+            if (present(parm_str)) then
+              parm_str = d
+            endif
+            exit
+          endif
+        enddo
+      endif
+
+#ifdef USEMPI
+      if (lbcast) then
+        call xmpi_bcast(parm)
+      endif
+#endif
+
+    end subroutine parmapply
+     
+    subroutine setallowednames(a1,v1,a2,v2,a3,v3,a4,v4,a5,v5,a6,v6,a7,v7,a8,v8, &
+                               a9,v9,a10,v10,a11,v11,a12,v12,a13,v13,a14,v14,   &
+                               a15,v15,a16,v16,a17,v17,a18,v18,a19,v19,a20,v20)
+    character(*), intent(in) :: a1
+    character(*), intent(in), optional :: a2,a3,a4,a5,a6,a7,a8,a9,a10 &
+                    ,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20
+    integer   ,   intent(in) :: v1
+    integer   ,   intent(in), optional :: v2,v3,v4,v5,v6,v7,v8,v9,v10 &
+                    ,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20
+    numoldnames = 0
+    allowednames(1) = a1
+    intvalues(1)    = v1
+    numallowednames = 1
+    if (present(a2)) then
+      allowednames(2) = a2
+      intvalues(2)    = v2
+      numallowednames = 2
+    endif
+    if (present(a3)) then
+      allowednames(3) = a3
+      intvalues(3)    = v3
+      numallowednames = 3
+    endif
+    if (present(a4)) then
+      allowednames(4) = a4
+      intvalues(4)    = v4
+      numallowednames = 4
+    endif
+    if (present(a5)) then
+      allowednames(5) = a5
+      intvalues(5)    = v5
+      numallowednames = 5
+    endif
+    if (present(a6)) then
+      allowednames(6) = a6
+      intvalues(6)    = v6
+      numallowednames = 6
+    endif
+    if (present(a7)) then
+      allowednames(7) = a7
+      intvalues(7)    = v7
+      numallowednames = 7
+    endif
+    if (present(a8)) then
+      allowednames(8) = a8
+      intvalues(8)    = v8
+      numallowednames = 8
+    endif
+    if (present(a9)) then
+      allowednames(9) = a9
+      intvalues(9)    = v9
+      numallowednames = 9
+    endif
+    if (present(a10)) then
+      allowednames(10) = a10
+      intvalues(10)    = v10
+      numallowednames = 10
+    endif
+    if (present(a11)) then
+      allowednames(11) = a11
+      intvalues(11)    = v11
+      numallowednames = 11
+    endif
+    if (present(a12)) then
+      allowednames(12) = a12
+      intvalues(12)    = v12
+      numallowednames = 12
+    endif
+    if (present(a13)) then
+      allowednames(13) = a13
+      intvalues(13)    = v13
+      numallowednames = 13
+    endif
+    if (present(a14)) then
+      allowednames(14) = a14
+      intvalues(14)    = v14
+      numallowednames = 14
+    endif
+    if (present(a15)) then
+      allowednames(15) = a15
+      intvalues(15)    = v15
+      numallowednames = 15
+    endif
+    if (present(a16)) then
+      allowednames(16) = a16
+      intvalues(16)    = v16
+      numallowednames = 16
+    endif
+    if (present(a17)) then
+      allowednames(17) = a17
+      intvalues(17)    = v17
+      numallowednames = 17
+    endif
+    if (present(a18)) then
+      allowednames(18) = a18
+      intvalues(18)    = v18
+      numallowednames = 18
+    endif
+    if (present(a19)) then
+      allowednames(19) = a19
+      intvalues(19)    = v19
+      numallowednames = 19
+    endif
+    if (present(a20)) then
+      allowednames(20) = a20
+      intvalues(20)    = v20
+      numallowednames = 20
+    endif
+
+    end subroutine setallowednames
+
+    subroutine setoldnames(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10 &
+                       ,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20)
+    character(*), intent(in) :: a1
+    character(*), intent(in), optional :: a2,a3,a4,a5,a6,a7,a8,a9,a10 &
+                    ,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20
+    oldnames(1) = a1
+    numoldnames = 1
+    if (present(a2)) then
+      oldnames(2) = a2
+      numoldnames = 2
+    endif
+    if (present(a3)) then
+      oldnames(3) = a3
+      numoldnames = 3
+    endif
+    if (present(a4)) then
+      oldnames(4) = a4
+      numoldnames = 4
+    endif
+    if (present(a5)) then
+      oldnames(5) = a5
+      numoldnames = 5
+    endif
+    if (present(a6)) then
+      oldnames(6) = a6
+      numoldnames = 6
+    endif
+    if (present(a7)) then
+      oldnames(7) = a7
+      numoldnames = 7
+    endif
+    if (present(a8)) then
+      oldnames(8) = a8
+      numoldnames = 8
+    endif
+    if (present(a9)) then
+      oldnames(9) = a9
+      numoldnames = 9
+    endif
+    if (present(a10)) then
+      oldnames(10) = a10
+      numoldnames = 10
+    endif
+    if (present(a11)) then
+      oldnames(11) = a11
+      numoldnames = 11
+    endif
+    if (present(a12)) then
+      oldnames(12) = a12
+      numoldnames = 12
+    endif
+    if (present(a13)) then
+      oldnames(13) = a13
+      numoldnames = 13
+    endif
+    if (present(a14)) then
+      oldnames(14) = a14
+      numoldnames = 14
+    endif
+    if (present(a15)) then
+      oldnames(15) = a15
+      numoldnames = 15
+    endif
+    if (present(a16)) then
+      oldnames(16) = a16
+      numoldnames = 16
+    endif
+    if (present(a17)) then
+      oldnames(17) = a17
+      numoldnames = 17
+    endif
+    if (present(a18)) then
+      oldnames(18) = a18
+      numoldnames = 18
+    endif
+    if (present(a19)) then
+      oldnames(19) = a19
+      numoldnames = 19
+    endif
+    if (present(a20)) then
+      oldnames(20) = a20
+      numoldnames = 20
+    endif
+
+    end subroutine setoldnames
+
+    subroutine read_v_array(fid,a)
+    use xmpi_module
+    !
+    ! reads array from unit fid
+    ! to be called by everyone
+    ! only xmaster reads
+    ! fid is only needed on xmaster
+    !
+    integer, intent(in)               :: fid
+    real*8, dimension(:), intent(out) :: a
+    if (xmaster) then
+      read(fid,*) a
+    endif
+#ifdef USEMPI
+    call xmpi_bcast(a)
+#endif
+    end subroutine read_v_array
+
+    subroutine read_v_9(fid,a,a1,a2,a3,a4,a5,a6,a7,a8)
+    use xmpi_module
+    !
+    ! reads doubles from unit fid
+    ! to be called by everyone
+    ! only xmaster reads
+    ! fid is only needed on xmaster
+    !
+    integer, intent(in) :: fid
+    real*8, intent(out) :: a
+    real*8, optional, intent(out) :: a1,a2,a3,a4,a5,a6,a7,a8
+    if (present(a8)) then
+      if(xmaster) read(fid,*) a,a1,a2,a3,a4,a5,a6,a7,a8
+#ifdef USEMPI
+      call xmpi_bcast(a1)
+      call xmpi_bcast(a2)
+      call xmpi_bcast(a3)
+      call xmpi_bcast(a4)
+      call xmpi_bcast(a5)
+      call xmpi_bcast(a6)
+      call xmpi_bcast(a7)
+      call xmpi_bcast(a8)
+#endif
+    elseif (present(a7)) then
+      if(xmaster) read(fid,*) a,a1,a2,a3,a4,a5,a6,a7
+#ifdef USEMPI
+      call xmpi_bcast(a1)
+      call xmpi_bcast(a2)
+      call xmpi_bcast(a3)
+      call xmpi_bcast(a4)
+      call xmpi_bcast(a5)
+      call xmpi_bcast(a6)
+      call xmpi_bcast(a7)
+#endif
+    elseif (present(a6)) then
+      if(xmaster) read(fid,*) a,a1,a2,a3,a4,a5,a6
+#ifdef USEMPI
+      call xmpi_bcast(a1)
+      call xmpi_bcast(a2)
+      call xmpi_bcast(a3)
+      call xmpi_bcast(a4)
+      call xmpi_bcast(a5)
+      call xmpi_bcast(a6)
+#endif
+    elseif (present(a5)) then
+      if(xmaster) read(fid,*) a,a1,a2,a3,a4,a5
+#ifdef USEMPI
+      call xmpi_bcast(a1)
+      call xmpi_bcast(a2)
+      call xmpi_bcast(a3)
+      call xmpi_bcast(a4)
+      call xmpi_bcast(a5)
+#endif
+    elseif (present(a4)) then
+      if(xmaster) read(fid,*) a,a1,a2,a3,a4
+#ifdef USEMPI
+      call xmpi_bcast(a1)
+      call xmpi_bcast(a2)
+      call xmpi_bcast(a3)
+      call xmpi_bcast(a4)
+#endif
+    elseif (present(a3)) then
+      if(xmaster) read(fid,*) a,a1,a2,a3
+#ifdef USEMPI
+      call xmpi_bcast(a1)
+      call xmpi_bcast(a2)
+      call xmpi_bcast(a3)
+#endif
+    elseif (present(a2)) then
+      if(xmaster) read(fid,*) a,a1,a2
+#ifdef USEMPI
+      call xmpi_bcast(a1)
+      call xmpi_bcast(a2)
+#endif
+    elseif (present(a1)) then
+      if(xmaster) read(fid,*) a,a1
+#ifdef USEMPI
+      call xmpi_bcast(a1)
+#endif
+    else 
+      if(xmaster) read(fid,*) a
+    endif
+#ifdef USEMPI
+    call xmpi_bcast(a)
+#endif
+    end subroutine read_v_9
+
+    integer function count_lines(f)
+    !
+    ! returns number of lines in file f
+    ! to be called by all, xmaster will count
+    ! result is broadcasted to all
+    !
+    use xmpi_module
+    use filefunctions
+    character(len=*), intent(in) :: f
+    integer lines,fid,ierr
+    fid = create_new_fid()
+    if(xmaster) then
+      open(fid,file=f)
+      lines = 0
+      ierr = 0
+      do while(ierr == 0)
+        read(fid,*,iostat=ierr)
+        if (ierr == 0) lines = lines+1
+      enddo
+      close(fid)
+    endif
+#ifdef USEMPI
+    call xmpi_bcast(lines)
+#endif
+    count_lines = lines
+
+    end function count_lines
+
+    subroutine testje1
+    use xmpi_module
+    use filefunctions
+    real*8 x(5),u,u1,u2
+    integer n,fid,i
+    n = count_lines('test1')
+    print *,'counting lines ...',xmpi_rank,n
+    print *,'testing read_v_array'
+    fid = create_new_fid()
+    if(xmaster) open(fid,file='test1')
+    do i=1,n
+      call read_v(fid,x)
+      print *,xmpi_rank,":",x
+    enddo
+    if(xmaster)rewind(fid)
+    print *,'testing read_v(fid,a,a1,a2)'
+    do i=1,n
+      call read_v(fid,u,u1,u2)
+      print *,xmpi_rank,':',u,u1,u2
+    enddo
+    end subroutine testje1
 
 end module readkey_module

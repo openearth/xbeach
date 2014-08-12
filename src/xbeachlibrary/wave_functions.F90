@@ -1,5 +1,7 @@
 module wave_functions_module
 
+  use paramsconst
+
 contains
 
   subroutine slope2D(h,nx,ny,dsu,dnv,dhdx,dhdy)
@@ -26,10 +28,6 @@ contains
           dhdx(nx+1,j)=(h(nx+1,j)-h(nx,j))/dsu(nx,j)
        end if
     end do
-#ifdef USEMPI
-    call xmpi_shift(dhdx,'m:')  ! fill in dhdx(nx+1,:)
-    call xmpi_shift(dhdx,'1:')  ! fill in dhdx(1,:)
-#endif
 
     do i=1,nx+1
        if(ny+1>=2)then
@@ -41,25 +39,24 @@ contains
        end if
     end do
 
-#ifdef USEMPI
-    call xmpi_shift(dhdy,':n')  !  fill in dhdy(:,ny+1)
-    call xmpi_shift(dhdy,':1')  !  fill in dhdy(:,1)
-#endif
   end subroutine slope2D
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,dt,scheme)
+  subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,scheme)
+    use spaceparams
+    use xmpi_module
 
     IMPLICIT NONE
 
     integer                                         :: i,j,nx,ny,ntheta
-    character(len=*), intent(in)                    :: scheme
-    character(len=10)                               :: scheme_now
+    integer, intent(in)                             :: scheme
     integer                                         :: itheta
     real*8 , dimension(nx+1,ny+1)                   :: dnu,dsu,dsdnzi,fluxx
     real*8 , dimension(nx+1,ny+1,ntheta)            :: xadvec,ee,cgx
-    real*8                                          :: dt,cgxu,eupw
+    real*8                                          :: cgxu,eupw
+
+    integer                                         :: scheme_now
 
     xadvec = 0.d0
     fluxx  = 0.d0
@@ -67,8 +64,8 @@ contains
 
     ! split into schemes first, less split loops -> more efficiency 
     scheme_now=scheme
-    select case(trim(scheme_now))
-    case('upwind_1')
+    select case(scheme_now)
+    case(SCHEME_UPWIND_1)
        do itheta=1,ntheta
           do j=1,ny+1
              do i=1,nx  ! Whole domain
@@ -80,16 +77,17 @@ contains
                 endif
              enddo
           enddo
-          do j=1,ny+1  ! 
+          !do j=1,ny+1  ! 
+          do j=jmin_ee,jmax_ee
              do i=2,nx 
                 xadvec(i,j,itheta)=(fluxx(i,j)-fluxx(i-1,j))*dsdnzi(i,j)
              enddo
           enddo
        enddo
-    case('upwind_2')
+    case(SCHEME_UPWIND_2)
        do itheta=1,ntheta
           do j=1,ny+1
-             do i=2,nx-1
+             do i=2,nx
                 cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
                 if (cgxu>0) then
                    !                    eupw=((dsu(i,j)+.5*dsu(i-1,j))*ee(i,j,itheta)-.5*dsu(i-1,j)*ee(i-1,j,itheta))/dsu(i-1,j)
@@ -102,7 +100,9 @@ contains
                    if (eupw<0.d0) eupw=ee(i+1,j,itheta)
                    fluxx(i,j)=eupw*cgxu*dnu(i,j)
                 endif
+                
              enddo
+             if (xmpi_istop) then
              i=1   ! only compute for i==1
              cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
              if (cgxu>0) then
@@ -113,7 +113,9 @@ contains
                 if (eupw<0.d0) eupw=ee(i+1,j,itheta)
                 fluxx(i,j)=eupw*cgxu*dnu(i,j)
              endif
-             i=nx  ! only compute for i==nx
+             endif
+             if (xmpi_isbot) then
+                i=nx  ! only compute for i==nx0
              cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
              if (cgxu>0) then
                 !                    eupw=((dsu(i,j)+.5*dsu(i-1,j))*ee(i,j,itheta)-.5*dsu(i-1,j)*ee(i-1,j,itheta))/dsu(i-1,j)
@@ -123,8 +125,9 @@ contains
              else
                 fluxx(i,j)=ee(i+1,j,itheta)*cgxu*dnu(i,j)
              endif
+             endif
           enddo
-          do j=1,ny+1  ! 
+          do j=jmin_ee,jmax_ee  
              do i=2,nx 
                 xadvec(i,j,itheta)=(fluxx(i,j)-fluxx(i-1,j))*dsdnzi(i,j)
              enddo
@@ -137,16 +140,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine advecthetaho(ee,ctheta,thetaadvec,nx,ny,ntheta,dtheta,scheme)
+    use spaceparams
+    use xmpi_module
 
     IMPLICIT NONE
 
     integer                                         :: i,j,nx,ny,ntheta
-    character(len=*), intent(in)                    :: scheme
-    character(len=10)                               :: scheme_now
+    integer, intent(in)                             :: scheme
     integer                                         :: itheta
     real*8 , dimension(ntheta)                      :: fluxtheta
     real*8 , dimension(nx+1,ny+1,ntheta)            :: thetaadvec,ee,ctheta
     real*8                                          :: dtheta,ctheta_between,eupw
+
+    integer                                         :: scheme_now
 
     thetaadvec = 0.d0
     fluxtheta  = 0.d0
@@ -155,9 +161,9 @@ contains
     if (ntheta>1) then
 
        ! split into schemes first, less split loops -> more efficiency 
-       scheme_now=trim(scheme)
-       select case(trim(scheme_now))
-       case('upwind_1')
+       scheme_now=scheme
+       select case(scheme_now)
+       case(SCHEME_UPWIND_1)
           do j=1,ny+1
              do i=1,nx+1  
                 do itheta=1,ntheta-1
@@ -175,7 +181,7 @@ contains
                 thetaadvec(i,j,ntheta)=(0.d0-fluxtheta(ntheta-1))/dtheta ! No flux across upper boundary theta grid
              enddo
           enddo
-       case('upwind_2')
+       case(SCHEME_UPWIND_2)
           do j=1,ny+1
              do i=1,nx+1  
                 do itheta=2,ntheta-2
@@ -223,25 +229,26 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,dt,scheme)
+  subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,scheme)
 
     IMPLICIT NONE
 
     integer                                         :: i,j,nx,ny,ntheta
-    character(len=*), intent(in)                    :: scheme
-    character(len=10)                               :: scheme_now
+    integer, intent(in)                             :: scheme
     integer                                         :: itheta
     real*8 ,  dimension(nx+1,ny+1)                  :: dsv,dnv,dsdnzi,fluxy
     real*8 ,  dimension(nx+1,ny+1,ntheta)           :: yadvec,ee,cgy
-    real*8                                          :: dt,cgyv,eupw
+    real*8                                          :: cgyv,eupw
+
+    integer                                         :: scheme_now
 
     yadvec = 0.d0
     fluxy  = 0.d0
 
     ! split into schemes first, less split loops -> more efficiency 
     scheme_now=scheme
-    select case(trim(scheme_now))
-    case('upwind_1')
+    select case(scheme_now)
+    case(SCHEME_UPWIND_1)
        do itheta=1,ntheta
           do j=1,ny  
              do i=1,nx+1  ! Whole domain
@@ -259,7 +266,7 @@ contains
              enddo
           enddo
        enddo
-    case('upwind_2')
+    case(SCHEME_UPWIND_2)
        do itheta=1,ntheta
           do j=2,ny-1  
              do i=1,nx+1
@@ -385,12 +392,6 @@ contains
 
     ! wwvv here we miss the computations of the first and last columns and rows,
     !  in the parallel case we shift these in form neighbours
-#ifdef USEMPI
-    call xmpi_shift(xwadvec,'m:') ! fill in xwadvec(nx+1,:)
-    call xmpi_shift(xwadvec,'1:') ! fill in xwadvec(1,:)
-    call xmpi_shift(xwadvec,':n') ! fill in xwadvec(:,ny+1)
-    call xmpi_shift(xwadvec,':1') ! fill in xwadvec(:,1)
-#endif
 
   end subroutine advecwx
 
@@ -426,12 +427,6 @@ contains
        ywadvec(:,ny+1) = ywadvec(:,ny)     !Ap
     endif
 
-#ifdef USEMPI
-    call xmpi_shift(ywadvec,'m:') ! wwvv fill in yadvec(nx+1,:)
-    call xmpi_shift(ywadvec,'1:') !      fill in yadvec(1,:)
-    call xmpi_shift(ywadvec,':n') !      fill in yadvec(:,ny+1)
-    call xmpi_shift(ywadvec,':1') !      fill in yadvec(:,1)
-#endif
 
   end subroutine advecwy
 
@@ -466,12 +461,6 @@ contains
        xwadvec(:,ny+1) = xwadvec(:,ny)     !Ap
     endif
 
-#ifdef USEMPI
-    call xmpi_shift(xwadvec,'m:') ! fill in xwadvec(nx+1,:)
-    call xmpi_shift(xwadvec,'1:') ! fill in xwadvec(1,:)
-    call xmpi_shift(xwadvec,':n') ! fill in xwadvec(:,ny+1)
-    call xmpi_shift(xwadvec,':1') ! fill in xwadvec(:,1)
-#endif
 
   end subroutine advecqx
 
@@ -502,13 +491,6 @@ contains
        end do
     end do
 
-#ifdef USEMPI
-    call xmpi_shift(ywadvec,'m:') ! wwvv fill in yadvec(nx+1,:)
-    call xmpi_shift(ywadvec,'1:') !      fill in yadvec(1,:)
-    call xmpi_shift(ywadvec,':n') !      fill in yadvec(:,ny+1)
-    call xmpi_shift(ywadvec,':1') !      fill in yadvec(:,1)
-#endif
-
   end subroutine advecqy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -526,7 +508,7 @@ contains
     type(parameters)                    :: par
     logical,optional,intent(in)         :: bcast
 
-    real*8, dimension(s%nx+1,s%ny+1)    :: h,L0,kh
+    real*8, dimension(:,:),allocatable      :: h,L0,kh
     real*8, dimension(:,:),allocatable,save  :: Ltemp
     !
     ! real*8,dimension(:,:),allocatable,save :: L1
@@ -534,14 +516,15 @@ contains
     ! of the program L1 will be resized and distributed
     !
     integer                             :: i,j,j1,j2
-    real*8                              :: backdis,lback,disfac
+    real*8                              :: backdis,disfac
     integer                             :: index
     logical                             :: lbcast
 
     if (present(bcast)) then
        lbcast = bcast
     else
-       lbcast = .true.
+       !lbcast = .true.
+       lbcast = .false.
     endif
 
     if (s%ny==0) then
@@ -561,6 +544,11 @@ contains
 
     ! cjaap: replaced par%hmin by par%eps
 
+    if (.not. allocated(h)) then
+       allocate(h (s%nx+1,s%ny+1))
+       allocate(L0(s%nx+1,s%ny+1))
+       allocate(kh(s%nx+1,s%ny+1))
+    endif
     h = max(s%hh + par%delta*s%H,par%eps)
 
     L0 = 2*par%px*par%g/(s%sigm**2)
@@ -624,19 +612,6 @@ contains
     s%n=0.5d0+kh/sinh(2*kh)
     s%cg=s%c*s%n
     !s%cg = s%c*(0.5d0+kh/sinh(2*kh))
-
-    if (lbcast) then
-#ifdef USEMPI
-       call xmpi_shift(s%k,':1')
-       call xmpi_shift(s%k,':n')
-       call xmpi_shift(s%c,':1')
-       call xmpi_shift(s%c,':n')
-       call xmpi_shift(s%n,':1')
-       call xmpi_shift(s%n,':n')
-       call xmpi_shift(s%cg,':1')
-       call xmpi_shift(s%cg,':n')
-#endif  
-    endif
 
 
   end subroutine dispersion
@@ -747,12 +722,6 @@ contains
     endif
 
     ! wwvv for the parallel version, shift in the columns and rows
-#ifdef USEMPI
-    call xmpi_shift(usd,'m:')  ! fill in usd(nx+1,:)
-    call xmpi_shift(usd,'1:')  ! fill in usd(1,:)
-    call xmpi_shift(usd,':n')  ! fill in usd(:,ny+1)
-    call xmpi_shift(usd,':1')  ! fill in usd(:,1)
-#endif
 
   end subroutine breakerdelay
 

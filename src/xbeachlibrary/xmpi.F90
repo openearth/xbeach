@@ -5,6 +5,10 @@ module xmpi_module
 #ifndef HAVE_MPI_WTIME
   real*8, external                :: MPI_Wtime
 #endif
+  integer, parameter              :: MPIBOUNDARY_Y    = 1
+  integer, parameter              :: MPIBOUNDARY_X    = 2
+  integer, parameter              :: MPIBOUNDARY_AUTO = 3
+  integer, parameter              :: MPIBOUNDARY_MAN  = 4
   integer                         :: xmpi_rank    ! mpi rank of this process
   integer                         :: xmpi_size    ! number of mpi processes
   integer                         :: xmpi_comm    ! mpi communicator to use
@@ -33,6 +37,21 @@ module xmpi_module
   ! global matrix
   logical                         :: xmaster      ! .true. if this process reads
   !  and writes files
+  !
+  !         1 2 3 4 5 6 7   y-axis
+  !  X   1  x x x x x x x
+  !  a   2  x x x x x x x
+  !  x   3  x x x x x x x
+  !  i   4  x x x x x x x
+  !  s   5  x x x x x x x
+  !     
+  !  
+  integer, parameter              :: SHIFT_X_U = 1  ! shift in x direction from high to low: from bottom to top
+  integer, parameter              :: SHIFT_X_D = 2  ! shift in x direction from low to high: from top to bottom
+  integer, parameter              :: SHIFT_Y_R = 3  ! shift in y direction from low to high: from left to right
+  integer, parameter              :: SHIFT_Y_L = 4  ! shift in y direction from high to low: from right to left
+  integer, parameter              :: SHIFT_R   = 5  ! shift in 1d array from left to right
+  integer, parameter              :: SHIFT_L   = 6  ! shift in 1d array from right to left
 #ifdef USEMPE
   integer                         :: event_output_start 
   integer                         :: event_output_end 
@@ -44,8 +63,8 @@ module xmpi_module
 
 #else
   implicit none
-  integer, parameter              :: xmpirank     = 0
-  integer, parameter              :: xmpisize     = 1
+  integer, parameter              :: xmpi_rank     = 0
+  integer, parameter              :: xmpi_size     = 1
   logical, parameter              :: xmaster      = .true.
   logical, parameter              :: xmpi_isleft  = .true.
   logical, parameter              :: xmpi_isright = .true.
@@ -84,6 +103,7 @@ module xmpi_module
   interface xmpi_sendrecv
      module procedure xmpi_sendrecv_r1
      module procedure xmpi_sendrecv_r2
+     module procedure xmpi_sendrecv_r3
      module procedure xmpi_sendrecv_i1
      module procedure xmpi_sendrecv_i2
   end interface xmpi_sendrecv
@@ -93,7 +113,30 @@ module xmpi_module
      module procedure xmpi_shift_i2
      module procedure xmpi_shift_r3
      module procedure xmpi_shift_i3
+
+     module procedure xmpi_shift_r2_l
+     module procedure xmpi_shift_r3_l
   end interface xmpi_shift
+
+  interface xmpi_shift_ee
+    module procedure xmpi_shift_ee_r2
+    module procedure xmpi_shift_ee_r3
+  end interface xmpi_shift_ee
+
+  interface xmpi_shift_uu
+    module procedure xmpi_shift_uu_r2
+    module procedure xmpi_shift_uu_r3
+  end interface xmpi_shift_uu
+
+  interface xmpi_shift_vv
+    module procedure xmpi_shift_vv_r2
+    module procedure xmpi_shift_vv_r3
+  end interface xmpi_shift_vv
+
+  interface xmpi_shift_zs
+    module procedure xmpi_shift_zs_r2
+    module procedure xmpi_shift_zs_r3
+  end interface xmpi_shift_zs
 
 #endif
 contains
@@ -142,13 +185,14 @@ contains
     implicit none
     integer ierr
     call MPI_Abort(xmpi_comm,1,ierr)
+    stop 1
   end subroutine xmpi_abort
 
   subroutine xmpi_determine_processor_grid(m,n,divtype,mmanual,nmanual,error)
     implicit none
     integer, intent(in) :: m,n,mmanual,nmanual  ! the dimensions of the global domain
-    integer             :: error
-    character(4),intent(in) :: divtype
+    integer, intent(out)    :: error
+    integer, intent(in)     :: divtype
 
     integer mm,nn, borderlength, min_borderlength
 
@@ -158,13 +202,14 @@ contains
 
     min_borderlength = 1000000000
     error = 0
-    if (trim(divtype)=='y') then   ! Force all subdivisions to run along y-lines
+    select case(divtype)
+      case(MPIBOUNDARY_Y)   ! Force all subdivisions to run along y-lines
        xmpi_m=xmpi_size
        xmpi_n=1
-    elseif (trim(divtype)=='x') then ! Force all subdivisions to run along x-lines
+      case(MPIBOUNDARY_X)  ! Force all subdivisions to run along x-lines
        xmpi_m=1
        xmpi_n=xmpi_size
-    elseif (trim(divtype)=='auto') then
+      case (MPIBOUNDARY_AUTO)
        do mm = 1,xmpi_size
           nn = xmpi_size/mm
           if (mm * nn .eq. xmpi_size) then
@@ -176,17 +221,17 @@ contains
              endif
           endif
        enddo
-    elseif (trim(divtype)=='man') then
+      case (MPIBOUNDARY_MAN)
         if (mmanual * nmanual .ne. xmpi_size) then
             error = 2
             return
         endif
         xmpi_m = mmanual
         xmpi_n = nmanual
-    else
+      case default
        error = 1
        return
-    endif
+     end select
 
     ! The layout of the processors is as follows:
     ! example 12 processors, xmpi_m=3, xmpi_n=4:
@@ -367,14 +412,16 @@ contains
 
   end subroutine xmpi_bcast_char
 
-  subroutine xmpi_sendrecv_r1(sendbuf,n,dest,recvbuf,source)
+  subroutine xmpi_sendrecv_r1(sendbuf,dest,recvbuf,source)
     implicit none
     real*8, dimension(:), intent(in)  :: sendbuf
     real*8, dimension(:), intent(out) :: recvbuf
-    integer, intent(in)               :: n           ! number of elements
     integer, intent(in)               :: dest,source
 
     integer                           :: ierror
+    integer                           :: n
+
+    n = size(sendbuf)
 
     call MPI_Sendrecv(sendbuf,n,MPI_DOUBLE_PRECISION,dest,100,   &
          recvbuf,n,MPI_DOUBLE_PRECISION,source,100, &
@@ -382,14 +429,16 @@ contains
 
   end subroutine xmpi_sendrecv_r1
 
-  subroutine xmpi_sendrecv_r2(sendbuf,n,dest,recvbuf,source)
+  subroutine xmpi_sendrecv_r2(sendbuf,dest,recvbuf,source)
     implicit none
     real*8, dimension(:,:), intent(in)  :: sendbuf
     real*8, dimension(:,:), intent(out) :: recvbuf
-    integer, intent(in)                 :: n           ! number of elements
     integer, intent(in)                 :: dest,source
 
     integer                             :: ierror
+    integer                             :: n
+
+    n = size(sendbuf)
 
     call MPI_Sendrecv(sendbuf,n,MPI_DOUBLE_PRECISION,dest,101,   &
          recvbuf,n,MPI_DOUBLE_PRECISION,source,101, &
@@ -397,14 +446,33 @@ contains
 
   end subroutine xmpi_sendrecv_r2
 
-  subroutine xmpi_sendrecv_i1(sendbuf,n,dest,recvbuf,source)
+  subroutine xmpi_sendrecv_r3(sendbuf,dest,recvbuf,source)
+    implicit none
+    real*8, dimension(:,:,:), intent(in)  :: sendbuf
+    real*8, dimension(:,:,:), intent(out) :: recvbuf
+    integer, intent(in)                   :: dest,source
+
+    integer                               :: ierror
+    integer                               :: n
+
+    n = size(sendbuf)
+
+    call MPI_Sendrecv(sendbuf,n,MPI_DOUBLE_PRECISION,dest,101,   &
+         recvbuf,n,MPI_DOUBLE_PRECISION,source,101, &
+         xmpi_comm,MPI_STATUS_IGNORE,ierror)
+
+  end subroutine xmpi_sendrecv_r3
+
+  subroutine xmpi_sendrecv_i1(sendbuf,dest,recvbuf,source)
     implicit none
     integer, dimension(:), intent(in)  :: sendbuf
     integer, dimension(:), intent(out) :: recvbuf
-    integer, intent(in)                :: n           ! number of elements
     integer, intent(in)                :: dest,source
 
     integer                            :: ierror
+    integer                            :: n
+
+    n = size(sendbuf)
 
     call MPI_Sendrecv(sendbuf,n,MPI_INTEGER,dest,102,   &
          recvbuf,n,MPI_INTEGER,source,102, &
@@ -412,14 +480,16 @@ contains
 
   end subroutine xmpi_sendrecv_i1
 
-  subroutine xmpi_sendrecv_i2(sendbuf,n,dest,recvbuf,source)
+  subroutine xmpi_sendrecv_i2(sendbuf,dest,recvbuf,source)
     implicit none
     integer, dimension(:,:), intent(in)  :: sendbuf
     integer, dimension(:,:), intent(out) :: recvbuf
-    integer, intent(in)                  :: n           ! number of elements
     integer, intent(in)                  :: dest,source
 
     integer                              :: ierror
+    integer                              :: n
+
+    n = size(sendbuf)
 
     call MPI_Sendrecv(sendbuf,n,MPI_INTEGER,dest,103,   &
          recvbuf,n,MPI_INTEGER,source,103, &
@@ -527,13 +597,13 @@ contains
 
     select case(direction)
     case('u','m:')
-       call xmpi_sendrecv(x(2,:),n,xmpi_top,    x(m,:),xmpi_bot)
+       call xmpi_sendrecv(x(2,:),xmpi_top,    x(m,:),xmpi_bot)
     case('d','1:')
-       call xmpi_sendrecv(x(m-1,:),n,xmpi_bot,  x(1,:),xmpi_top)
+       call xmpi_sendrecv(x(m-1,:),xmpi_bot,  x(1,:),xmpi_top)
     case('l',':n')
-       call xmpi_sendrecv(x(:,2),m,xmpi_left,   x(:,n),xmpi_right)
+       call xmpi_sendrecv(x(:,2),xmpi_left,   x(:,n),xmpi_right)
     case('r',':1')
-       call xmpi_sendrecv(x(:,n-1),m,xmpi_right,x(:,1),xmpi_left)
+       call xmpi_sendrecv(x(:,n-1),xmpi_right,x(:,1),xmpi_left)
     case default
        if(xmaster) then
           write (*,*) 'Invalid direction parameter for xmpi_shift_r2: "'// &
@@ -556,13 +626,13 @@ contains
 
     select case(direction)
     case('u','m:')
-       call xmpi_sendrecv(x(2,:),n,xmpi_top,    x(m,:),xmpi_bot)
+       call xmpi_sendrecv(x(2,:),   xmpi_top,  x(m,:),xmpi_bot)
     case('d','1:')
-       call xmpi_sendrecv(x(m-1,:),n,xmpi_bot,  x(1,:),xmpi_top)
+       call xmpi_sendrecv(x(m-1,:), xmpi_bot,  x(1,:),xmpi_top)
     case('l',':n')
-       call xmpi_sendrecv(x(:,2),m,xmpi_left,   x(:,n),xmpi_right)
+       call xmpi_sendrecv(x(:,2),   xmpi_left, x(:,n),xmpi_right)
     case('r',':1')
-       call xmpi_sendrecv(x(:,n-1),m,xmpi_right,x(:,1),xmpi_left)
+       call xmpi_sendrecv(x(:,n-1), xmpi_right,x(:,1),xmpi_left)
     case default
        if(xmaster) then
           write (*,*) 'Invalid direction parameter for xmpi_shift_r2: "'// &
@@ -586,16 +656,16 @@ contains
 
     select case(direction)
     case('u','m:')
-       call xmpi_sendrecv(x(2,:,:),  l*n,xmpi_top,    x(m,:,:),xmpi_bot)
+       call xmpi_sendrecv(x(2,:,:),  xmpi_top,    x(m,:,:),xmpi_bot)
     case('d','1:')
-       call xmpi_sendrecv(x(m-1,:,:),l*n,xmpi_bot,  x(1,:,:),xmpi_top)
+       call xmpi_sendrecv(x(m-1,:,:),xmpi_bot,  x(1,:,:),xmpi_top)
     case('l',':n')
-       call xmpi_sendrecv(x(:,2,:),  l*m,xmpi_left,   x(:,n,:),xmpi_right)
+       call xmpi_sendrecv(x(:,2,:),  xmpi_left,   x(:,n,:),xmpi_right)
     case('r',':1')
-       call xmpi_sendrecv(x(:,n-1,:),l*m,xmpi_right,x(:,1,:),xmpi_left)
+       call xmpi_sendrecv(x(:,n-1,:),xmpi_right,x(:,1,:),xmpi_left)
     case default
        if(xmaster) then
-          write (*,*) 'Invalid direction parameter for xmpi_shift_r2: "'// &
+          write (*,*) 'Invalid direction parameter for xmpi_shift_r3: "'// &
                direction//'"'
           call halt_program
        endif
@@ -616,22 +686,340 @@ contains
 
     select case(direction)
     case('u','m:')
-       call xmpi_sendrecv(x(2,:,:),  l*n,xmpi_top,    x(m,:,:),xmpi_bot)
+       call xmpi_sendrecv(x(2,:,:),  xmpi_top,  x(m,:,:),xmpi_bot)
     case('d','1:')
-       call xmpi_sendrecv(x(m-1,:,:),l*n,xmpi_bot,  x(1,:,:),xmpi_top)
+       call xmpi_sendrecv(x(m-1,:,:),xmpi_bot,  x(1,:,:),xmpi_top)
     case('l',':n')
-       call xmpi_sendrecv(x(:,2,:),  l*m,xmpi_left,   x(:,n,:),xmpi_right)
+       call xmpi_sendrecv(x(:,2,:),  xmpi_left, x(:,n,:),xmpi_right)
     case('r',':1')
-       call xmpi_sendrecv(x(:,n-1,:),l*m,xmpi_right,x(:,1,:),xmpi_left)
+       call xmpi_sendrecv(x(:,n-1,:),xmpi_right,x(:,1,:),xmpi_left)
     case default
        if(xmaster) then
-          write (*,*) 'Invalid direction parameter for xmpi_shift_r2: "'// &
+          write (*,*) 'Invalid direction parameter for xmpi_shift_i3: "'// &
                direction//'"'
           call halt_program
        endif
     end select
 
   end subroutine xmpi_shift_i3
+
+!  translation from nx+1, ny+1 to m and n
+!  
+!  m=nx+1  nx=m-1
+!  n=ny+1  ny=n-1
+!  
+!  variabele   l->r      r->l        b->t       t->b
+!              r         l           u          d      shift
+!          SHIFT_Y_R  SHIFT_Y_L  SHIFT_X_U  SHIFT_X_D
+
+  
+!    ee,rr    m-3:m-2,:  3:4,:      :,n-3:n-2  :,3:4
+!             1:2,:      m-1:m,:    :,1:2      :,n-1:n
+!  
+!    uu       m-3,:      2:3,:      :,n-3:n-2  :,3:4
+!             1,:        m-2,m-1,:  :,1:2      :,n-1:n
+!  
+!    vv       m-3:m-2,:  3:4,:      :,n-3      :,2:3
+!             1:2,:      m-1:m,:    :,1        :,n-2:n-1
+!  
+!  zs,ccg,zb  m-2,:      3,:        :,n-2      :,3
+!             2,:        m-1,:      :,2        :,n-1
+!          
+!  Dus: 
+!        i     p    j     q
+!  
+!        1 <-> m-3  1 <-> n-3
+!        2 <-> m-2  2 <-> n-2
+!        3 <-> m-1  3 <-> n-1
+!        4 <-> m    4 <-> n  
+!  
+!        p=m-4+i    q=n-4+j
+
+!   About the _l subroutines:
+!
+!   xmpi_shift(x,SHIFT_Y_R,1,2): columns 1:2   are filled in (aka updated)
+!   xmpi_shift(x,SHIFT_Y_L,3,4): columns n-1,n are filled in (aka updated)
+!   xmpi_shift(x,SHIFT_X_D,1,2): rows    1:2   are filled in (aka updated)
+!   xmpi_shift(x,SHIFT_X_U,3,4): rows    m-1,m are filled in (aka updated)
+!
+  subroutine xmpi_shift_r2_l(x,direction,i1,i2)
+    implicit none
+    real*8,dimension(:,:),intent(inout) :: x
+    integer, intent(in)                 :: direction
+    integer, intent(in)                 :: i1,i2
+
+    integer            :: m,n,s1,s2,r1,r2
+    integer, parameter :: nbord = 2, nover = 2*nbord
+
+    ! nover is the number of overlapping rows/columns
+
+    ! s1,s2 will contain the indices of the first and last row/column to send
+    ! r1,r2 will contain the indices of the first and last row/column to send
+    ! mn will contain the 1st or 2nd dimension as appropriate:
+    !   shift in x direction: mn = m (= nx+1)
+    !   shift in y direction: mn = n (= ny+1)
+
+    m = size(x,1)
+    n = size(x,2)
+
+    ! sanity check
+    select case(direction)
+    case(SHIFT_Y_R,SHIFT_Y_L,SHIFT_X_U,SHIFT_X_D)
+      continue
+    case default
+      if (xmaster) then
+        write(*,*) 'Invalid value for direction in xmpi_shift_r2_l ',direction
+        call halt_program
+      endif
+    endselect
+
+    select case(direction)
+    case(SHIFT_Y_R)
+      s1 = n - nover + i1
+      s2 = n - nover + i2
+      r1 = i1
+      r2 = i2
+      call xmpi_sendrecv(x(:,s1:s2),xmpi_right,x(:,r1:r2),xmpi_left)
+    case(SHIFT_X_D)
+      s1 = m - nover + i1
+      s2 = m - nover + i2
+      r1 = i1
+      r2 = i2
+      call xmpi_sendrecv(x(s1:s2,:),xmpi_bot,  x(r1:r2,:),xmpi_top)
+    case(SHIFT_Y_L)
+      s1 = i1
+      s2 = i2
+      r1 = n - nover + i1
+      r2 = n - nover + i2
+      call xmpi_sendrecv(x(:,s1:s2),xmpi_left, x(:,r1:r2),xmpi_right)
+    case(SHIFT_X_U)
+      s1 = i1
+      s2 = i2
+      r1 = m - nover + i1
+      r2 = m - nover + i2
+      call xmpi_sendrecv(x(s1:s2,:),xmpi_top,  x(r1:r2,:),xmpi_bot)
+    endselect
+
+  end subroutine xmpi_shift_r2_l
+
+  subroutine xmpi_shift_r3_l(x,direction,i1,i2)
+    ! 
+    implicit none
+    real*8,dimension(:,:,:),intent(inout) :: x
+    integer, intent(in)                   :: direction
+    integer, intent(in)                   :: i1,i2
+
+    integer            :: m,n,s1,s2,r1,r2
+    integer, parameter :: nbord = 2, nover = 2*nbord
+
+
+    ! nover is the number of overlapping rows/columns
+
+    ! s1,s2 will contain the indices of the first and last row/column to send
+    ! r1,r2 will contain the indices of the first and last row/column to send
+    ! mn will contain the 1st or 2nd dimension as appropriate:
+    !   shift in x direction: mn = m (= nx+1)
+    !   shift in y direction: mn = n (= ny+1)
+
+    m = size(x,1)
+    n = size(x,2)
+
+    ! sanity check
+    select case(direction)
+    case(SHIFT_Y_R,SHIFT_Y_L,SHIFT_X_U,SHIFT_X_D)
+      continue
+    case default
+      if (xmaster) then
+        write(*,*) 'Invalid value for direction in xmpi_shift_r2_l ',direction
+        call halt_program
+      endif
+    endselect
+
+    select case(direction)
+    case(SHIFT_Y_R)
+      s1 = n - nover + i1
+      s2 = n - nover + i2
+      r1 = i1
+      r2 = i2
+      call xmpi_sendrecv(x(:,s1:s2,:),xmpi_right,x(:,r1:r2,:),xmpi_left)
+    case(SHIFT_X_D)
+      s1 = m - nover + i1
+      s2 = m - nover + i2
+      r1 = i1
+      r2 = i2
+      call xmpi_sendrecv(x(s1:s2,:,:),xmpi_bot,  x(r1:r2,:,:),xmpi_top)
+    case(SHIFT_Y_L)
+      s1 = i1
+      s2 = i2
+      r1 = n - nover + i1
+      r2 = n - nover + i2
+      call xmpi_sendrecv(x(:,s1:s2,:),xmpi_left, x(:,r1:r2,:),xmpi_right)
+    case(SHIFT_X_U)
+      s1 = i1
+      s2 = i2
+      r1 = m - nover + i1
+      r2 = m - nover + i2
+      call xmpi_sendrecv(x(s1:s2,:,:),xmpi_top,  x(r1:r2,:,:),xmpi_bot)
+    endselect
+  end subroutine xmpi_shift_r3_l
+
+  subroutine xmpi_shift_ee_r2(x)
+    implicit none
+    real*8,dimension(:,:),intent(inout) :: x
+#ifdef SHIFT_TIMER
+    real*8 ttt
+    call xmpi_barrier
+    ttt=MPI_Wtime()
+#endif
+    call xmpi_shift(x,SHIFT_Y_R,1,2)
+    call xmpi_shift(x,SHIFT_Y_L,3,4)
+    call xmpi_shift(x,SHIFT_X_U,3,4)
+    call xmpi_shift(x,SHIFT_X_D,1,2)
+#ifdef SHIFT_TIMER
+    call xmpi_barrier
+    if(xmaster)print *,'shift_ee_r2:',MPI_Wtime()-ttt,size(x,1),size(x,2)
+#endif
+  end subroutine xmpi_shift_ee_r2
+
+  subroutine xmpi_shift_ee_r3(x)
+    implicit none
+    real*8,dimension(:,:,:),intent(inout) :: x
+#ifdef SHIFT_TIMER
+    real*8 ttt
+    call xmpi_barrier
+    ttt=MPI_Wtime()
+#endif
+    call xmpi_shift(x,SHIFT_Y_R,1,2)
+    call xmpi_shift(x,SHIFT_Y_L,3,4)
+    call xmpi_shift(x,SHIFT_X_U,3,4)
+    call xmpi_shift(x,SHIFT_X_D,1,2)
+#ifdef SHIFT_TIMER
+    call xmpi_barrier
+    if(xmaster)print *,'shift_ee_r3:',MPI_Wtime()-ttt
+#endif
+  end subroutine xmpi_shift_ee_r3
+
+  subroutine xmpi_shift_uu_r2(x)
+    implicit none
+    real*8,dimension(:,:),intent(inout) :: x
+#ifdef SHIFT_TIMER
+    real*8 ttt
+    call xmpi_barrier
+    ttt=MPI_Wtime()
+#endif
+    call xmpi_shift(x,SHIFT_Y_R,1,2)
+    call xmpi_shift(x,SHIFT_Y_L,3,4)
+    call xmpi_shift(x,SHIFT_X_U,2,3)
+    call xmpi_shift(x,SHIFT_X_D,1,1)
+#ifdef SHIFT_TIMER
+    call xmpi_barrier
+    if(xmaster)print *,'shift_uu_r2:',MPI_Wtime()-ttt
+#endif
+  end subroutine xmpi_shift_uu_r2
+
+  subroutine xmpi_shift_uu_r3(x)
+    implicit none
+    real*8,dimension(:,:,:),intent(inout) :: x
+#ifdef SHIFT_TIMER
+    real*8 ttt
+    call xmpi_barrier
+    ttt=MPI_Wtime()
+#endif
+    call xmpi_shift(x,SHIFT_Y_R,1,2)
+    call xmpi_shift(x,SHIFT_Y_L,3,4)
+    call xmpi_shift(x,SHIFT_X_U,2,3)
+    call xmpi_shift(x,SHIFT_X_D,1,1)
+#ifdef SHIFT_TIMER
+    call xmpi_barrier
+    if(xmaster)print *,'shift_uu_r3:',MPI_Wtime()-ttt
+#endif
+  end subroutine xmpi_shift_uu_r3
+
+  subroutine xmpi_shift_vv_r2(x)
+    implicit none
+    real*8,dimension(:,:),intent(inout) :: x
+#ifdef SHIFT_TIMER
+    real*8 ttt
+    call xmpi_barrier
+    ttt=MPI_Wtime()
+#endif
+    call xmpi_shift(x,SHIFT_Y_R,1,1)
+    call xmpi_shift(x,SHIFT_Y_L,2,3)
+    call xmpi_shift(x,SHIFT_X_U,3,4)
+    call xmpi_shift(x,SHIFT_X_D,1,2)
+#ifdef SHIFT_TIMER
+    call xmpi_barrier
+    if(xmaster)print *,'shift_vv_r2:',MPI_Wtime()-ttt
+#endif
+  end subroutine xmpi_shift_vv_r2
+
+  subroutine xmpi_shift_vv_r3(x)
+    implicit none
+    real*8,dimension(:,:,:),intent(inout) :: x
+#ifdef SHIFT_TIMER
+    real*8 ttt
+    call xmpi_barrier
+    ttt=MPI_Wtime()
+#endif
+    call xmpi_shift(x,SHIFT_Y_R,1,1)
+    call xmpi_shift(x,SHIFT_Y_L,2,3)
+    call xmpi_shift(x,SHIFT_X_U,3,4)
+    call xmpi_shift(x,SHIFT_X_D,1,2)
+#ifdef SHIFT_TIMER
+    call xmpi_barrier
+    if(xmaster)print *,'shift_vv_r3:',MPI_Wtime()-ttt
+#endif
+  end subroutine xmpi_shift_vv_r3
+
+  subroutine xmpi_shift_zs_r2(x)
+    implicit none
+    real*8,dimension(:,:),intent(inout) :: x
+#ifdef SHIFT_TIMER
+    real*8 ttt
+    call xmpi_barrier
+    ttt=MPI_Wtime()
+#endif
+    call xmpi_shift(x,SHIFT_Y_R,2,2)
+    call xmpi_shift(x,SHIFT_Y_L,3,3)
+    call xmpi_shift(x,SHIFT_X_U,3,3)
+    call xmpi_shift(x,SHIFT_X_D,2,2)
+#ifdef SHIFT_TIMER
+    call xmpi_barrier
+    if(xmaster)print *,'shift_zs_r2:',MPI_Wtime()-ttt
+#endif
+  end subroutine xmpi_shift_zs_r2
+
+  subroutine xmpi_shift_zs_r3(x)
+    implicit none
+    real*8,dimension(:,:,:),intent(inout) :: x
+#ifdef SHIFT_TIMER
+    real*8 ttt
+    call xmpi_barrier
+    ttt=MPI_Wtime()
+#endif
+    call xmpi_shift(x,SHIFT_Y_R,2,2)
+    call xmpi_shift(x,SHIFT_Y_L,3,3)
+    call xmpi_shift(x,SHIFT_X_U,3,3)
+    call xmpi_shift(x,SHIFT_X_D,2,2)
+#ifdef SHIFT_TIMER
+    call xmpi_barrier
+    if(xmaster)print *,'shift_zs_r3:',MPI_Wtime()-ttt
+#endif
+  end subroutine xmpi_shift_zs_r3
+
+  subroutine testje
+    implicit none
+    real*8, dimension(10,10) :: x
+    real*8, dimension(10,10,10) :: y
+    call xmpi_shift_ee(x)
+    call xmpi_shift_uu(x)
+    call xmpi_shift_vv(x)
+    call xmpi_shift_zs(x)
+    call xmpi_shift_ee(y)
+    call xmpi_shift_uu(y)
+    call xmpi_shift_vv(y)
+    call xmpi_shift_zs(y)
+    end subroutine testje
 
   subroutine xmpi_barrier
     implicit none

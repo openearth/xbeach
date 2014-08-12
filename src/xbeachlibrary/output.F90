@@ -22,11 +22,11 @@ contains
 
 
     ! initialize the correct output module (clean this up?, move to another module?)
-    if (par%outputformat=='fortran') then
+    if (par%outputformat==OUTPUTFORMAT_FORTRAN) then
        ! only fortran
        call writelog('ls', '', 'Fortran outputformat')
        call var_output_init(sglobal,slocal,par,tpar)
-    elseif (par%outputformat=='netcdf') then
+    elseif (par%outputformat==OUTPUTFORMAT_NETCDF) then
        ! only netcdf, stop if it's not build
        call writelog('ls', '', 'NetCDF outputformat')
 #ifdef USENETCDF
@@ -35,7 +35,7 @@ contains
        call writelog('lse', '', 'This xbeach executable has no netcdf support. Rebuild with netcdf or outputformat=fortran')
        call halt_program
 #endif
-    elseif (par%outputformat=='debug') then
+    elseif (par%outputformat==OUTPUTFORMAT_DEBUG) then
        call writelog('ls', '', 'Debug outputformat, writing both netcdf and fortran output')
 #ifdef USENETCDF
        call ncoutput_init(sglobal,slocal,par,tpar)
@@ -78,13 +78,13 @@ contains
     endif
 
     ! output
-    if (par%outputformat=='fortran') then
+    if (par%outputformat==OUTPUTFORMAT_FORTRAN) then
        call var_output(sglobal,s,par,tpar)
-    elseif (par%outputformat=='netcdf') then
+    elseif (par%outputformat==OUTPUTFORMAT_NETCDF) then
 #ifdef USENETCDF
        call ncoutput(sglobal,s,par, tpar)
 #endif
-    elseif (par%outputformat=='debug') then
+    elseif (par%outputformat==OUTPUTFORMAT_DEBUG) then
 #ifdef USENETCDF
        call ncoutput(sglobal,s,par, tpar)
 #endif

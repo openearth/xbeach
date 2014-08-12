@@ -3,7 +3,8 @@ MODULE math_tools
   !     1) Singleton fft transform
   !     2) Hilbert transform
   !     3) Matrix flip up to down and/or left to right
-  !     4) Random function
+  !     4) xerf
+  !     5) Random function
 
   !
   ! 1) Singleton fft transform: 
@@ -1285,6 +1286,10 @@ CONTAINS
       data seed/1/
       if (j.ne.0) then
         seed=mod(iabs(j),m)
+        ! Seed may not be zero for random number generation
+        if(seed==0) then
+           seed=1
+        endif
       endif
       hi=seed/q
       lo=mod(seed,q)

@@ -319,6 +319,14 @@ end subroutine nonh_init_wcoef
 !                             IMPLEMENTATION
 !-------------------------------------------------------------------------------   
 !
+  dzs_e = 0
+  dzs_w = 0
+  dzs_s = 0
+  dzs_n = 0
+  dzb_e = 0
+  dzb_w = 0
+  dzb_n = 0
+  dzb_s = 0
   if (s%ny>0) then
      sf1d = .false.
      jmin = 2
@@ -458,6 +466,11 @@ end subroutine nonh_init_wcoef
           dzs_w = .0_rKind
         endif
         
+        ! wwvv problem the following construction make it impossible
+        ! wwvv to determine if dzs_s gets a value
+        ! wwvv (What other values than 0 and 1 can nonhV have)
+        ! wwvv I put this kind of varibles to zero at the start
+        ! wwvv of the subroutine
         if     (nonhV(i,1) == 1) then
           dzs_s = .0_rKind
           dzs_n = dzs_s
@@ -526,7 +539,7 @@ end subroutine nonh_init_wcoef
             mat(1,i,j) =    dyz(j)*( s%hu(i,j)*au(0,i,j) - s%hu(i-1,j  )*au(1,i-1,  j) )  & !subs U left/right face
                        +    dxz(i)*( s%hv(i,j)*av(0,i,j) - s%hv(i  ,j-1)*av(1,i  ,j-1) )  & !subs V left/rigth face
                        -    dzs_e*au(0,i,j) - dzs_w*au(1,i-1,j)                           & !kin. boun. top       
-                       -    dzs_s*av(0,i,j) - dzs_n*av(1,i-1,j)                           & !kin. boun. top
+                       -    dzs_s*av(0,i,j) - dzs_n*av(1,i,j-1)                           & !kin. boun. top
                        +    dxz(i)*dyz(j)*aws(1,i,j)
 
             mat(2,i,j) = -  dyz(j)*s%hu(i-1,j)*au(0,i-1,  j)                              &
@@ -658,10 +671,8 @@ end subroutine nonh_init_wcoef
     enddo
     !Assign boundaries
 #ifdef USEMPI
-    call xmpi_shift(s%wb,'m:')
-    call xmpi_shift(s%wb,'1:')
-    call xmpi_shift(s%ws,'m:')
-    call xmpi_shift(s%ws,'1:')
+    call xmpi_shift_ee(s%wb)
+    call xmpi_shift_ee(s%ws)
     if (xmpi_istop) then
        s%wb(1,:) = s%wb(2,:)
     endif
@@ -761,14 +772,8 @@ end subroutine nonh_init_wcoef
         enddo
       enddo
 #ifdef USEMPI
-      call xmpi_shift(s%wb,'m:')
-      call xmpi_shift(s%wb,'1:')
-      call xmpi_shift(s%ws,'m:')
-      call xmpi_shift(s%ws,'1:')
-      call xmpi_shift(s%wb,':n')
-      call xmpi_shift(s%wb,':1')
-      call xmpi_shift(s%ws,':n')
-      call xmpi_shift(s%ws,':1')
+      call xmpi_shift_ee(s%wb)
+      call xmpi_shift_ee(s%ws)
       if (xmpi_istop) then
          s%wb(1,:) = s%wb(2,:)
       endif
@@ -938,7 +943,7 @@ subroutine nonh_explicit(s,par)
                     s%breaking(i,j) = 0
                  endif
               elseif (s%breaking(i,j)==-1) then
-                 if (s%ws(i,j)>reformfac*-wmax) then
+                 if (s%ws(i,j)>reformfac*(-wmax)) then
                     s%breaking(i,j) = 0
                  endif
               endif
@@ -958,7 +963,7 @@ subroutine nonh_explicit(s,par)
                  s%breaking(i,1) = 0
               endif
            elseif (s%breaking(i,1)==-1) then
-              if (s%ws(i,1)>reformfac*-wmax) then
+              if (s%ws(i,1)>reformfac*(-wmax)) then
                  s%breaking(i,1) = 0
               endif
            endif
@@ -987,6 +992,9 @@ subroutine nonh_explicit(s,par)
            enddo
         enddo
      endif           
+#ifdef USEMPI
+     call xmpi_shift_ee(lbreakcond)     
+#endif     
      ! Now find areas where main breaking criterion is exceeded
      do j=jmin,jmax
         do i=2,s%nx
@@ -1124,8 +1132,13 @@ subroutine nonh_explicit(s,par)
       endif
     enddo
   enddo
+  if (xmpi_istop) then               !wwvv: added test on istop
   au(:,1,:)      = 0.0_rKind
-  au(:,s%nx,:)   = 0.0_rKind
+  endif
+  if (xmpi_isbot) then               !wwvv: added test on isbot
+    au(:,s%nx+1,:)   = 0.0_rKind
+  endif
+
 
   !Built pressure coefficients V
   !call timer_start(timer_flow_nonh_av)
@@ -1143,10 +1156,14 @@ subroutine nonh_explicit(s,par)
         endif  
       enddo    
     enddo
+    if (xmpi_isleft) then               !wwvv: added test on isleft
     av(:,:,1)     = 0.0_rKind
-    av(:,:,s%ny)  = 0.0_rKind
   endif  
-       
+    if (xmpi_isright) then              !wwvv: added test on isright
+      av(:,:,s%ny+1)  = 0.0_rKind
+    endif
+  endif  
+      
 
  !Include explicit approximation for pressure in s%uu and s%vv   and Wm
   if (par%secorder == 1) then 
@@ -1250,8 +1267,6 @@ subroutine zuzv(s)
       enddo
     enddo
 #ifdef USEMPI
-    call xmpi_shift(zbu,'1:')
-    call xmpi_shift(zbu,'m:')
     if (xmpi_isbot) then
        zbu(s%nx+1,:) = s%zb(s%nx+1,:)
     endif

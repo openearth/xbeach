@@ -2,7 +2,7 @@
 module spectral_wave_bc_module
   use typesandkinds
   implicit none
-
+  
   type spectrum                                         ! These are related to input spectra
      real*8,dimension(:,:),pointer          :: S        ! 2D variance density spectrum
      real*8,dimension(:),pointer            :: f,ang    ! 1D frequency and direction vectors for S
@@ -61,8 +61,8 @@ module spectral_wave_bc_module
   ! These are for administration purposes and are initialized in initialize.F90
   integer,dimension(:),allocatable,save         :: n_index_loc     ! y-index locations of all input spectra, set in init spectrum
   integer,save                                  :: nspectra        ! number of input spectrs, set in init spectrum
-  type(filenames),dimension(:),allocatable,save :: bcfiles         ! input wave spectrum files
-  logical,save                                  :: reuseall        ! switch to reuse all of the wave boundary conditions
+  type(filenames),dimension(:),allocatable,save,public :: bcfiles         ! input wave spectrum files
+  logical,save,public                            :: reuseall        ! switch to reuse all of the wave boundary conditions
   integer,save                                  :: bccount         ! number of times boundary conditions have been generated, set in init spectrum
   real*8,save                                   :: spectrumendtime ! end time of boundary condition written to administration file
   real*8,dimension(:,:),allocatable,save        :: lastwaveelevation ! wave height at the end of the last spectrum
@@ -75,6 +75,8 @@ module spectral_wave_bc_module
   real*8,parameter,private                  :: wdmax = 5.d0  ! maximum depth*reliable angular wave frequency that can be resolved by
                                                              ! nonhydrostatic wave model. All frequencies above this are removed
                                                              ! from nonhspectrum generation
+  ! Constants, cannot be modified                                                              
+  real*8,parameter,private                  :: par_pi =  4.d0*atan(1.d0)                                                           
 
 contains
 
@@ -330,7 +332,7 @@ contains
        fn%reuse = .false.
     else
        filelist = .false.
-       if (trim(par%instat) /= 'jons_table') then
+       if (par%instat /= INSTAT_JONS_TABLE) then
           fn%reuse = .true.
        else
           fn%reuse = .false.
@@ -364,15 +366,19 @@ contains
 
     ! based on the value of instat, we need to read either Jonswap, Swan or vardens files
     ! note: jons_table is also handeled by read_jonswap_file subroutine
-    select case (par%instat(1:4))
-    case ('jons')
+    !select case (par%instat(1:4))
+    select case(par%instat)
+    !case ('jons')
+    case (INSTAT_JONS, INSTAT_JONS_TABLE)
        ! wp type sent in to receive rtbc and dtbc from jons_table file
        ! fn%listline sent in to find correct row in jons_table file
        ! pfff..
        call read_jonswap_file(par,wp,readfile,fn%listline,specin)
-    case ('swan')
+    !case ('swan')
+    case (INSTAT_SWAN)
        call read_swan_file(par,readfile,specin)
-    case ('vard')
+    !case ('vard')
+    case (INSTAT_VARDENS)
        call read_vardens_file(par,readfile,specin)
     endselect
 
@@ -401,7 +407,7 @@ contains
     integer                                 :: i,ii,ier,ip,ind
     integer                                 :: nmodal
     integer                                 :: fid
-    integer                                 :: forcepartition
+    integer                                 :: forcepartition = -123
     integer,dimension(2)                    :: indvec
     real*8,dimension(:),allocatable         :: x, y, Dd, tempdir
     real*8,dimension(:),allocatable         :: Hm0,fp,gam,mainang,scoeff
@@ -417,7 +423,7 @@ contains
     ! First part: read JONSWAP parameter data
 
     ! Check whether spectrum characteristics or table should be used
-    if (trim(par%instat) /= 'jons_table') then
+    if (par%instat /= INSTAT_JONS_TABLE) then
        ! Use spectrum characteristics
        call writelog('sl','','waveparams: Reading from ',trim(readfile),' ...')
        !
@@ -1962,6 +1968,7 @@ contains
     real*8                                       :: here,sfnow,sfimp
     integer,dimension(size(n_index_loc))         :: temp_index_loc
 
+    interpindex = -123
     ! allocate space for the amplitude array and representative integration angle
     allocate(wp%A(s%ny+1,wp%K))
     !    allocate(wp%danggen(s%ny+1))

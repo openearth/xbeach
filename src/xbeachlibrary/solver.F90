@@ -113,10 +113,10 @@ contains
     maxit = par%solver_maxit
     
     ! If sol. met. ok -> allocate resources
-    if     (trim(par%solver) == 'sip') then   !Solver is SIP     
+    if     (par%solver == SOLVER_SIPP) then   !Solver is SIP     
       allocate(    work(5,1:nx+1,1:ny+1)); work     = 0.0_rKind
       allocate(residual(  1:nx+1,1:ny+1)); residual = 0.0_rKind
-    elseif (trim(par%solver) == 'tridiag') then   !Solver is TRI-DIAG, check if possible
+    elseif (par%solver == SOLVER_TRIDIAGG) then   !Solver is TRI-DIAG, check if possible
       allocate(    work(5,1:nx+1,1:ny+1)); work     = 0.0_rKind
     endif
     
@@ -186,7 +186,7 @@ contains
 
     if (.not. initialized) call solver_init(nx,ny,par)
 
-    if (trim(par%solver) == 'sip') then
+    if (par%solver == SOLVER_SIPP) then
       !    
       itcal = itcal+1        !Number of times the solver procedure is called
       residual = 0.
@@ -201,20 +201,17 @@ contains
         itnconv = itnconv+1  !Number of times the solver did not converge        
       endif
       !
-    elseif (trim(par%solver) == 'tridiag') then
+    elseif (par%solver == SOLVER_TRIDIAGG) then
       !
 #ifdef USEMPI
-      call xmpi_shift(rhs,'1:')
-      call xmpi_shift(rhs,'m:')
+      call xmpi_shift_zs(rhs)
       do it=1,3
-         call xmpi_shift(amat(it,:,:),'1:')
-         call xmpi_shift(amat(it,:,:),'m:')
+         call xmpi_shift_zs(amat(it,:,:))
       enddo
 #endif      
       call solver_tridiag(amat,rhs,x,work,nx,ny)
 #ifdef USEMPI
-      call xmpi_shift(x,'1:')
-      call xmpi_shift(x,'m:')
+      call xmpi_shift_zs(x)
 #endif         
       !
     endif
@@ -312,7 +309,6 @@ contains
 !==============================================================================
      subroutine solver_sip  ( amat  , rhs   , x     , res   , cmat  , it ,nx, ny) !, acc)
 !==============================================================================    
-      use xmpi_module
 !
 !     programmer  Marcel Zijlema
 !
@@ -330,15 +326,13 @@ contains
 !                       INPUT / OUTPUT ARGUMENTS
 !
 
+      use xmpi_module
       implicit none
 
-      
-      
       integer(kind=iKind)                    ,intent(out)   :: it   !iteration count
      ! real(kind=rKind)                       ,intent(out)   :: acc  !iteration count      
       integer, intent(in)                                   :: nx   !Number of x-meshes
       integer, intent(in)                                   :: ny   !Number of y-meshes 
-      real(kind=rKind)                                      :: test !test criterium for convergence     
           
       real(kind=rKind),dimension(5,nx+1,ny+1),intent(in)    :: amat !the coefficient matrix used in the linear system
       real(kind=rKind),dimension(nx+1,ny+1)  ,intent(in)    :: rhs  !the right-hand side vector of the system of equations
@@ -358,12 +352,16 @@ contains
       real(kind=rKind)    :: p3                        ! auxiliary factor
       real(kind=rKind)    :: rnorm                     ! 2-norm of residual vector
       real(kind=rKind)    :: ueps                      ! minimal accuracy based on machine precision
+      integer             :: imin,imax,jmin,jmax
 
 !
 !                       PARAMETERS
 !
 
       real(kind=rKind),parameter :: small=1.e-15_rKind ! a small number
+#ifdef USEMPI
+      logical, parameter         :: dompi = .true.     ! use mpi or not use mpi
+#endif
      
 ! **********************************************************************
 !
@@ -404,14 +402,32 @@ contains
 ! **********************************************************************
 !
 
+        imin = 2
+        imax = nx
+        jmin = 2
+        jmax = ny
+#ifdef USEMPI
+      if (dompi) then
+        imin = 3
+        jmin = 3
+        imax = nx-1
+        jmax = ny-1
+
+        if (xmpi_istop)   imin = 2
+        if (xmpi_isbot)   imax = nx
+        if (xmpi_isleft)  jmin = 2
+        if (xmpi_isright) jmax = ny
+      endif
+#endif
+
       it    = 0
       iconv = .false.
 
 !     --- construct L and U matrices (stored in cmat)
 
       bnorm = 0.
-      do j = 2,ny
-         do i = 2,nx
+      do j = jmin,jmax
+         do i = imin,imax
             p1          = alpha*cmat(5,i-1,j)
             p2          = alpha*cmat(3,i,j-1)
             cmat(2,i,j) = amat(2,i,j)/(1.+p1)
@@ -428,6 +444,14 @@ contains
             bnorm = bnorm + rhs(i,j)*rhs(i,j)
          enddo
       enddo
+
+
+#ifdef USEMPI
+      if(dompi) then
+        call xmpi_allreduce(bnorm,mpi_sum)
+      endif
+#endif
+      
       bnorm = sqrt(bnorm)
 
       epslin = reps*bnorm
@@ -443,18 +467,11 @@ contains
 
     do while ( .not. iconv .and. it < maxit )
 
-#ifdef USEMPI
-      call xmpi_shift(x,'1:')
-      call xmpi_shift(x,'m:')
-      call xmpi_shift(x,':1')
-      call xmpi_shift(x,':n')
-#endif
-
       it    = it + 1
       rnorm = 0.      
       
-      do j = 2, ny
-        do i = 2, nx
+      do j = jmin, jmax
+        do i = imin, imax
           res(i,j)  = rhs(i,j)-amat(1,i,j)*x(i,j) &
                               -amat(2,i,j)*x(i-1,j)          &
                               -amat(3,i,j)*x(i+1,j)          &
@@ -468,6 +485,12 @@ contains
         enddo
       enddo
     
+#ifdef USEMPI
+      if (dompi) then
+        call xmpi_allreduce(rnorm,mpi_sum)
+      endif
+#endif
+    
       rnorm=sqrt(rnorm)
   
       do j = ny, 2, -1
@@ -477,14 +500,16 @@ contains
         enddo
       enddo
       
-      test = rnorm-epslin
 #ifdef USEMPI
-      call xmpi_allreduce(test,MPI_MAX)
+      if (dompi) then
+        call xmpi_shift_zs(x)
+      endif
 #endif     
-      if ( test < 0.d0 ) iconv = .true.
+      
+      iconv = rnorm .lt. epslin
+
     enddo
-    !acc = rnorm/bnorm
+
   end subroutine solver_sip  
-  
   
 end module solver_module

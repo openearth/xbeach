@@ -2,6 +2,8 @@ module params
   use typesandkinds
   use mnemmodule
   use xmpi_module
+  use paramsconst
+
   type parameters
      ! These parameters are constants, variables read from params.txt, or are scalars derived directly from read input
      !
@@ -38,6 +40,7 @@ module params
      integer*4     :: ships                      = -123    !  [-] (advanced) Turn on (1) or off (0) ship waves
      integer*4     :: vegetation                 = -123    !  [-] (advanced) Turn on (1) or off (0) interaction of waves and flow with vegetation
      integer*4     :: snells                     = -123    !  [-] (advanced) Turn on (1) or off (0) Snell's law for wave refraction
+     integer*4     :: single_dir                 = -123    !  [-] (advanced) Turn on (1) or off (0) stationary model for refraction, surfbeat based on mean direction
      integer*4     :: bchwiz                     = -123    !  [-] Use beachwizard, 0 = beachwizard off, 1 beachwizard on, bed update off, 2 beachwiz on, bed update on. (also requires morphology == 1)
      integer*4     :: setbathy                   = -123    !  [-] Provide timeseries of prescribed bathy input, 0 = off (default), 1 = on
 
@@ -57,8 +60,9 @@ module params
      real*8        :: thetamin                   = -123    !  [deg] Lower directional limit (angle w.r.t computational x-axis)
      real*8        :: thetamax                   = -123    !  [deg] Higher directional limit (angle w.r.t computational x-axis)
      real*8        :: dtheta                     = -123    !  [deg] Directional resolution
+     real*8        :: dtheta_s                   = -123    !  [deg] Directional resolution in case of stationary refraction 
      integer*4     :: thetanaut                  = -123    !  [-] Thetamin,thetamax in cartesian (0) or nautical convention (1)
-     character(slen) :: gridform                 = 'abc'   !  [name] Swicth to read in grid bathy files with 'XBeach' or 'Delft3D' format respectively
+     integer       :: gridform                   = -123    !  [name] Switch to read in grid bathy files with 'XBeach' or 'Delft3D' format respectively
      character(slen) :: xyfile                   = 'abc'   !  [name] Name of the file containing (Delft3D) xy-coordinates of the calculation grid
 
      ! [Section] Model time
@@ -85,7 +89,8 @@ module params
      integer*4     :: hotstartflow               = -123    !  [-] (advanced) Switch to hotstart flow conditions with pressure gradient balanced by wind and bed stress
 
      ! [Section] Wave boundary condition parameters
-     character(slen) :: instat                     = 'abc' !  [-] Wave boundary condtion type
+     integer       :: instat                     = -123    !  [-] Wave boundary condition type
+     character(slen):: instat_str                = ' '     !  [-] Wave boundary condition type
      real*8        :: taper                      = -123    !  [s] Spin-up time of wave boundary conditions, in morphological time
      real*8        :: Hrms                       = -123    !  [m] Hrms wave height for instat = 0,1,2,3
      real*8        :: Tm01                       = -123    !  [s] (deprecated) Old name for Trep
@@ -94,9 +99,9 @@ module params
      real*8        :: dir0                       = -123    !  [deg] Mean wave direction (Nautical convention) for instat = 0,1,2,3
      real*8        :: nmax                       = -123    !  [-] (advanced) maximum ratio of cg/c fro computing long wave boundary conditions
      integer*4     :: m                          = -123    !  [-] Power in cos^m directional distribution for instat = 0,1,2,3
-     character(slen) :: lateralwave              = 'neumann'   !  [-] Switch for lateral boundary at left, 'neumann' = E Neumann, 'wavefront' = along wave front
-     character(slen) :: leftwave                 = 'abc'   !  [-] (deprecated) old name for lateralwave
-     character(slen) :: rightwave                = 'abc'   !  [-] (deprecated) old name for lateralwave
+     integer       :: lateralwave                = -123    !  [-] Switch for lateral boundary at left, 'neumann' = E Neumann, 'wavefront' = along wave front
+     integer       :: leftwave                   = -123    !  [-] (deprecated) old name for lateralwave
+     integer       :: rightwave                  = -123    !  [-] (deprecated) old name for lateralwave
 
      ! [Section] Wave-spectrum boundary condition parameters
      character(slen):: bcfile                    = 'abc'   !  [-] Name of spectrum file
@@ -117,23 +122,23 @@ module params
      integer*4     :: nonhspectrum               = -123    !  [-] (advanced) Switch between spectrum format for wave action balance of nonhydrostatic waves
 
      ! [Section] Flow boundary condition parameters
-     character(slen) :: front                    = 'abc'   !  [-] Switch for seaward flow boundary: 0 = radiating boundary(Ad), 1 = Van Dongeren, 1997
-     character(slen) :: left                     = 'abc'   !  [-] Switch for lateral boundary at ny+1, 'neumann' = vv computed from NSWE, 'wall' = reflective wall; vv=0
-     character(slen) :: right                    = 'abc'   !  [-] Switch for lateral boundary at right, 0 = vv computed from NSWE, 1 = reflective wall; vv=0
-     character(slen) :: back                     = 'abc'   !  [-] Switch for boundary at bay side, 0 = radiating boundary (Ad), 1 = reflective boundary; uu=0
+     integer         :: front                    = -123    !  [-] Switch for seaward flow boundary: 0 = radiating boundary(Ad), 1 = Van Dongeren, 1997
+     integer         :: left                     = -123    !  [-] Switch for lateral boundary at ny+1, 'neumann' = vv computed from NSWE, 'wall' = reflective wall; vv=0
+     integer         :: right                    = -123    !  [-] Switch for lateral boundary at right, 0 = vv computed from NSWE, 1 = reflective wall; vv=0
+     integer         :: back                     = -123    !  [-] Switch for boundary at bay side, 0 = radiating boundary (Ad), 1 = reflective boundary; uu=0
      integer*4     :: ARC                        = -123    !  [-] (advanced) Switch for active reflection compensation at seaward boundary: 0 = reflective, 1 = weakly (non) reflective
-     real*4        :: order                      = -123    !  [-] (advanced) Switch for order of wave steering, 1 = first order wave steering (short wave energy only), 2 = second oder wave steering (bound long wave corresponding to short wave forcing is added)
+     real*8        :: order                      = -123    !  [-] (advanced) Switch for order of wave steering, 1 = first order wave steering (short wave energy only), 2 = second oder wave steering (bound long wave corresponding to short wave forcing is added)
      integer*4     :: freewave                   = -123    !  [-] (advanced) Switch for free wave propagation 0 = use cg (default); 1 = use sqrt(gh) in instat = 3
      integer*4     :: carspan                    = -123    !  [-] (deprecated) Switch for Carrier-Greenspan test 0 = use cg (default); 1 = use sqrt(gh) in instat = 3 for c&g tests
      real*8        :: epsi                       = -123    !  [-] (advanced) Ratio of mean current to time varying current through offshore boundary
      integer*4     :: nc                         = -123    !  [-] (advanced) Smoothing distance (defined as nr of cells) for estimating umean
-     character(slen) :: tidetype                 = 'abc'   !  [-] (advanced) Switch for offfshore boundary, velocity boundary or instant water level boundary (default)
+     integer       :: tidetype                   = -123    !  [-] (advanced) Switch for offfshore boundary, velocity boundary or instant water level boundary (default)
 
 
      ! [Section] Tide boundary conditions
      character(slen):: zs0file                   = 'abc'   !  [-] Name of tide boundary condition series
      integer*4     :: tideloc                    = -123    !  [-] Number of corner points on which a tide time series is specified
-     character(slen):: paulrevere                = 'abc'   !  [-] Specifies tide on sea and land ('land') or two sea points ('sea') if tideloc = 2
+     integer       :: paulrevere                 = -123    !  [-] Specifies tide on sea and land ('land') or two sea points ('sea') if tideloc = 2
                                                            !      if tideloc =>2, then this indicates where the time series are to be
                                                            !      applied. Input for tidal information to xbeach options (3):
                                                            !      1. one tidal record --> specify tidal record everywhere
@@ -158,7 +163,7 @@ module params
      character(slen):: disch_timeseries_file     = 'abc'  !  [-] (advanced) Name of discharge timeseries file
 
      ! [Section] Wave breaking parameters
-     character(slen) :: break                    = 'abc'   !  [-] Type of breaker formulation (1=roelvink, 2=baldock, 3=roelvink adapted, 4=roelvink on/off breaking)
+     integer       :: break                      = -123    !  [-] Type of breaker formulation (1=roelvink, 2=baldock, 3=roelvink adapted, 4=roelvink on/off breaking)
      real*8        :: gamma                      = -123    !  [-] Breaker parameter in Baldock or Roelvink formulation
      real*8        :: gamma2                     = -123    !  [-] End of breaking parameter in break = 4 formulation
      real*8        :: alpha                      = -123    !  [-] (advanced) Wave dissipation coefficient in Roelvink formulation
@@ -183,7 +188,7 @@ module params
      real*8        :: cats                       = -123    !  [Trep] (advanced) Current averaging time scale for wci, in terms of mean wave periods
 
      ! [Section] Flow parameters
-     character(slen):: bedfriction               = 'abc'   !  [-] Bed friction formulation: 'chezy','white-colebrook'
+     integer       :: bedfriction                = -123    !  [-] Bed friction formulation: 'chezy','white-colebrook'
      character(slen):: bedfricfile               = 'abc'   !  [-] Bed friction file (only valid with values of C)
      real*8        :: C                          = -123    !  [m^0.5s^-1] Chezy coefficient
      real*8        :: cf                         = -123    !  [-] (advanced) Friction coefficient flow
@@ -214,9 +219,9 @@ module params
      character(slen):: gw0file                   = 'abc'   !  [-] (advanced) Name of initial groundwater level file
      integer*4     :: gwnonh                     = -123    !  [-] (advanced) Switch to turn on or off non-hydrostatic pressure for groundwater
      integer*4     :: gwfastsolve                = -123    !  [-] (advanced) Reduce full 2D non-hydrostatic solution to quasi-explicit in longshore direction
-     character(slen):: gwscheme                  = 'abc'   !  [-] (advanced) Scheme for momentum equation (laminar, turbulent)
+     integer       :: gwscheme                   = -123    !  [-] (advanced) Scheme for momentum equation (laminar, turbulent)
      real*8        :: gwReturb                   = -123    !  [-] (advanced) Reynolds number for start of turbulent flow in case of gwscheme = turbulent
-     character(slen):: gwheadmodel               = 'abc'   !  [-] (advanced) Model to use for vertical groundwater head: 'parabolic' (default), or 'exponential'
+     integer       :: gwheadmodel                = -123    !  [-] (advanced) Model to use for vertical groundwater head: 'parabolic' (default), or 'exponential'
      integer*4     :: gwhorinfil                 = -123    !  [-] (advanced) switch to include horizontal infiltration from surface water to groundwater (default = 0)
 
      ! [Section] Q3D sediment transport parameters
@@ -226,7 +231,7 @@ module params
      real*8        :: sigfac                     = -123    !  [-] (advanced) dsig scales with log(sigfac). Default = 1.3
 
      ! [Section] Non-hydrostatic correction parameters
-     character(slen)  :: solver                  = 'abc'   ! [-] (advanced) Solver used to solve the linear system, sip, or tridiag (only for 1d)
+     integer       :: solver                     = -123    ! [-] (advanced) Solver used to solve the linear system, sip, or tridiag (only for 1d)
      integer*4     :: solver_maxit               = -123    ! [-] (advanced) Maximum number of iterations in the linear sip solver
      real*8        :: solver_acc                 = -123    ! [-] (advanced) accuracy with respect to the right-hand side used
      !     in the following termination criterion:
@@ -257,8 +262,8 @@ module params
 
 
      ! [Section] Sediment transport parameters
-     character(slen) :: waveform                 = 'abc'   !  [-] Option for waveshape model: 1 = Ruessink & Van Rijn, 2 = Van Thiel de Vries, 2009
-     character(slen) :: form                     = 'abc'   !  [-] Equilibrium sed. conc. formulation: 1 = Soulsby van Rijn, 1997, 2 = Van Rijn 2008 with modifications by Van Thiel
+     integer       :: waveform                   = -123    !  [-] Option for waveshape model: 1 = Ruessink & Van Rijn, 2 = Van Thiel de Vries, 2009
+     integer       :: form                       = -123    !  [-] Equilibrium sed. conc. formulation: 1 = Soulsby van Rijn, 1997, 2 = Van Rijn 2008 with modifications by Van Thiel
      integer*4     :: sws                        = -123    !  [-] (advanced) 1 = short wave & roller stirring and undertow, 0 = no short wave & roller stirring and undertow
      integer*4     :: lws                        = -123    !  [-] (advanced) 1 = long wave stirring, 0 = no long wave stirring
      real*8        :: BRfac                      = -123    !  [-] (advanced) Calibration factor surface slope
@@ -269,8 +274,8 @@ module params
      real*8        :: facua                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave skewness and asymmetry
      real*8        :: facSk                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave skewness
      real*8        :: facAs                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave asymmetry
-     character(slen) :: turbadv                  = 'abc'   !  [-] (advanced) Switch 0/1 to activate turbulence advection model for short and or long wave turbulence
-     character(slen) :: turb                     = 'abc'   !  [-] (advanced) Switch to include short wave turbulence:
+     integer       :: turbadv                    = -123    !  [-] (advanced) Switch 0/1 to activate turbulence advection model for short and or long wave turbulence
+     integer       :: turb                       = -123    !  [-] (advanced) Switch to include short wave turbulence:
                                                            !      none = no turbulence,
                                                            !      wave_averaged = wave averaged turbulence
                                                            !      bore_averaged = maximum turbulence
@@ -279,7 +284,7 @@ module params
      integer*4     :: lwt                        = -123    !  [-] (advanced) Switch 0/1 long wave turbulence
 
      real*8        :: betad                      = -123    !  [-] (advanced) Dissipation parameter long wave breaking turbulence
-     character(slen) :: swtable                  = 'abc'   !  [-] (deprecated)Name of intra short wave assymetry and skewness table
+     character(slen):: swtable                   = 'abc'   !  [-] (deprecated)Name of intra short wave assymetry and skewness table
      integer*4     :: sus                        = -123    !  [-] (advanced) Calibration factor for suspensions transports [0..1]
      integer*4     :: bed                        = -123    !  [-] (advanced) Calibration factor for bed transports [0..1]
      integer*4     :: bulk                       = -123    !  [-] (advanced) Option to compute bedload and suspended load seperately; 0 = seperately, 1 = bulk (as in previous versions)
@@ -320,20 +325,19 @@ module params
      integer*4     :: nrugauge                   = -123    !  [-] Number of output runup gauge locations
      integer, dimension(:), pointer                     :: pointtypes => NULL()  !  [-] (advanced) Point types (0 = point, 1=rugauge)
      real*8 ,dimension(:), pointer                      :: xpointsw => NULL()  ! (advanced) world x-coordinate of output points
-     real*8 ,dimension(:), pointer                     :: ypointsw => NULL()  ! (advanced) world y-coordinate of output points
+     real*8 ,dimension(:), pointer                      :: ypointsw => NULL()  ! (advanced) world y-coordinate of output points
 
      integer*4     :: nrugdepth                  = -123    !  [-] (advanced) Number of depths to compute runup in runup gauge
      real*8,dimension(99) :: rugdepth            = -123    !  [m] (advanced) Minimum depth for determination of last wet point in runup gauge
-!     real*8        :: rugdepth                   = -123    !  [m] (advanced) Minimum depth for determination of last wet point in runup gauge
      integer*4     :: ncross                     = -123    !  [-] (advanced) Number of output cross sections
-     character(slen) :: outputformat             = 'debug' !  [-] (advanced) Choice of output file format: 'netcdf', 'fortran', or 'debug'
+     integer        :: outputformat              = OUTPUTFORMAT_DEBUG  !  [-] (advanced) Choice of output file format: 'netcdf', 'fortran', or 'debug'
      character(slen):: ncfilename                = 'xboutput.nc' ! [-] (advanced) xbeach netcdf output file name
 
      ! Projection units (not to be used, only pass to output, this limit is too short for WKT....)
      ! This could be the proj4 string +init=epsg:28992
      ! [Section] Output projection
      character(slen)  :: projection              = ' '     !  [-] (advanced) projection string
-     integer*4     :: rotate                     = -123    !  [-] Rotate (1) postprocess output with the rotate function.
+     integer*4        :: rotate                  = -123    !  [-] Rotate (1) postprocess output with the rotate function.
 
      ! [Section] Drifters parameters
      integer*4     :: ndrifter                   = -123    !  [-] Number of drifers
@@ -344,12 +348,12 @@ module params
      integer*4       :: nship                    = -123    !  [-] (advanced) Number of ships
 
      ! [Section] Vegetation parameters
-     character(slen) :: vegiefile                = 'abc'   !  [-] Name of vegie species list file
-     character(slen) :: vegiemapfile             = 'abc'   !  [-] Name of vegie species map file
+     character(slen) :: veggiefile                = 'abc'   !  [-] Name of vegie species list file
+     character(slen) :: veggiemapfile             = 'abc'   !  [-] Name of vegie species map file
      integer*4       :: nveg                     = -123    !  [-] Number of vegetation species
 
      ! [Section] Wave numerics parameters
-     character(slen):: scheme                    = 'abc'   !  [-] (advanced) Use first-order upwind (upwind_1), second order upwind (upwind_2) or Lax-Wendroff (lax_wendroff)
+     integer       :: scheme                     = -123   !  [-] (advanced) Use first-order upwind (upwind_1), second order upwind (upwind_2) or Lax-Wendroff (lax_wendroff)
      !      for wave propagation
      real*8        :: wavint                     = -123    !  [s] Interval between wave module calls (only in stationary wave mode)
      real*8        :: maxerror                   = -123    !  [m] (advanced) Maximum wave height error in wave stationary iteration
@@ -379,7 +383,7 @@ module params
      character(slen) :: setbathyfile             = 'abc'   !  [-] (advanced) Name of prescribed bed update file
 
      ! [Section] MPI parameters
-     character(slen)   :: mpiboundary            = 'abc'   ! [-] (advanced) Fix mpi boundaries along y-lines ('y'), x-lines ('x'), use manual defined domains ('man') or find shortest boundary ('auto')
+     integer       :: mpiboundary                = -123   ! [-] (advanced) Fix mpi boundaries along y-lines ('y'), x-lines ('x'), use manual defined domains ('man') or find shortest boundary ('auto')
      integer*4     :: mmpi                       = -123    ! [-] (advanced) Number of domains in m direction (cross-shore) when manually specifying mpi domains
      integer*4     :: nmpi                       = -123    ! [-] (advanced) Number of domains in n direction (alongshore) when manually specifying mpi domains
 
@@ -409,7 +413,6 @@ contains
 
     character(slen)                                     :: testc,line
     character(slen)                                     :: dummystring
-    character(slen), dimension(:), allocatable          :: allowednames,oldnames
 
     integer                                             :: filetype,mmax,nmax,ier,ic
     logical                                             :: comment
@@ -426,6 +429,7 @@ contains
     call writelog('l','','--------------------------------')
     call writelog('l','','Physical processes: ')
     par%swave       = readkey_int ('params.txt','swave',         1,        0,     1)
+    par%single_dir  = readkey_int ('params.txt','single_dir',    0,        0,     1)
     par%lwave       = readkey_int ('params.txt','lwave',         1,        0,     1)
     par%flow        = readkey_int ('params.txt','flow',          1,        0,     1)
     par%sedtrans    = readkey_int ('params.txt','sedtrans',      1,        0,     1)
@@ -448,14 +452,12 @@ contains
     call writelog('l','','Grid parameters: ')
 
     ! check gridform
-    allocate(allowednames(2),oldnames(2))
-    allowednames=(/'xbeach   ','delft3d  '/)
-    oldnames=(/'0','1'/)
-    par%gridform = readkey_str('params.txt','gridform','xbeach',2,2,allowednames,oldnames)
-    deallocate(allowednames,oldnames)
+    call setallowednames('xbeach',GRIDFORM_XBEACH,'delft3d',GRIDFORM_DELFT3D)
+    call setoldnames('0','1')
+    call parmapply('gridform',1,par%gridform)
 
     ! gridform switch
-    if (trim(par%gridform)=='xbeach') then
+    if (par%gridform==GRIDFORM_XBEACH) then
        ! XBeach grid parameters
        par%xori  = readkey_dbl('params.txt','xori',  0.d0,   -1d9,      1d9)
        par%yori  = readkey_dbl('params.txt','yori',  0.d0,   -1d9,      1d9)
@@ -489,7 +491,7 @@ contains
           end if
 
        endif
-    elseif (trim(par%gridform)=='delft3d') then
+    elseif (par%gridform==GRIDFORM_DELFT3D) then
        par%depfile = readkey_name('params.txt','depfile',required=.true.)
        call check_file_exist(par%depfile)
        par%dx = -1.d0   ! Why?
@@ -544,6 +546,9 @@ contains
     par%thetamax = readkey_dbl ('params.txt','thetamax',  90.d0,    -180.d0,  180.d0,required=(par%swave==1))
     par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   20.d0,required=(par%swave==1))
     par%thetanaut= readkey_int ('params.txt','thetanaut',    0,        0,     1)
+    if (par%single_dir==1) then
+       par%dtheta_s   = readkey_dbl ('params.txt','dtheta_s',    10.d0,      0.1d0,   20.d0,required=(par%swave==1))
+    endif
     !
     !
     ! Model time parameters
@@ -569,7 +574,7 @@ contains
        ! do nothing
     else
        call check_file_exist(par%zsinitfile)
-       if (trim(par%gridform)=='xbeach') then ! nx and ny not known in case of Delft3D
+       if (par%gridform==GRIDFORM_XBEACH) then ! nx and ny not known in case of Delft3D
           call check_file_length(par%zsinitfile,par%nx+1,par%ny+1)
        endif
     endif
@@ -579,18 +584,27 @@ contains
     ! Wave boundary condition parameters
     call writelog('l','','--------------------------------')
     call writelog('l','','Wave boundary condition parameters: ')
-    allocate(allowednames(12),oldnames(12))
-    allowednames=(/'stat        ','bichrom     ','ts_1        ','ts_2        ','jons        ','swan        ', &
-         'vardens     ','reuse       ','ts_nonh     ','off         ','stat_table  ','jons_table  '/)
-    oldnames=(/'0 ','1 ','2 ','3 ','4 ','5 ','6 ','7 ','8 ','9 ','40','41'/)
-    !             function =   file         key      default  n allowed  n old allowed  allowed names  old allowed names
-    par%instat  = readkey_str('params.txt', 'instat', 'bichrom', 12, 12, allowednames, oldnames, required=(par%swave==1))
-    deallocate(allowednames,oldnames)
-    if (  trim(par%instat)=='jons' .or. &
-         trim(par%instat)=='swan' .or. &
-         trim(par%instat)=='vardens'.or. &
-         trim(par%instat)=='stat_table' .or. &
-         trim(par%instat)=='jons_table' &
+    call setallowednames('stat',       INSTAT_STAT,       &
+                         'bichrom',    INSTAT_BICHROM,    &
+                         'ts_1',       INSTAT_TS_1,       &
+                         'ts_2',       INSTAT_TS_2,       &
+                         'jons',       INSTAT_JONS,       &
+                         'swan',       INSTAT_SWAN,       &
+                         'vardens',    INSTAT_VARDENS,    &
+                         'reuse',      INSTAT_REUSE,      &
+                         'ts_nonh',    INSTAT_TS_NONH,    &
+                         'off',        INSTAT_OFF,        &
+                         'stat_table', INSTAT_STAT_TABLE, &
+                         'jons_table', INSTAT_JONS_TABLE)
+    call setoldnames('0','1','2','3','4','5','6','7','8','9','40','41')
+    call parmapply('instat',2,par%instat, &
+                   required=(par%swave==1))
+
+    if ( par%instat==INSTAT_JONS .or. &
+         par%instat==INSTAT_SWAN .or. &
+         par%instat==INSTAT_VARDENS.or. &
+         par%instat==INSTAT_STAT_TABLE .or. &
+         par%instat==INSTAT_JONS_TABLE &
          )then
        par%bcfile = readkey_name('params.txt','bcfile')
        call check_file_exist(par%bcfile)
@@ -599,7 +613,7 @@ contains
 #ifdef USEMPI
        call xmpi_bcast(filetype)
 #endif
-    elseif (trim(par%instat)=='reuse') then
+    elseif (par%instat==INSTAT_REUSE) then
        ! See if this is reusing nonhydrostatic, or hydrostatic boundary conditions
        ! Note, check file length is done after recomputation of tstop due to morfacopt
        ! at the end of this subroutine.
@@ -647,62 +661,69 @@ contains
     endif
     par%taper    = readkey_dbl ('params.txt','taper',   100.d0,      0.0d0, 1000.d0)
     par%nmax     = readkey_dbl ('params.txt','nmax',    0.8d0,       0.5d0, 1.d0)
-    if (trim(par%instat) == 'stat') then
+    if (par%instat == INSTAT_STAT .or. par%single_dir==1) then
        par%Hrms  = readkey_dbl ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
        par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
        par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
        par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
        par%m     = readkey_int ('params.txt','m',        10,         2,      128)
-    elseif (trim(par%instat) == 'bichrom') then
+    elseif (par%instat == INSTAT_BICHROM) then
        par%Hrms  = readkey_dbl ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
        par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
        par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
        par%Tlong = readkey_dbl ('params.txt','Tlong',    80.d0,     20.d0,   300.d0)
        par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
        par%m     = readkey_int ('params.txt','m',        10,         2,      128)
-    elseif (trim(par%instat) == 'ts_1' .or. trim(par%instat) == 'ts_2') then
+    elseif (par%instat == INSTAT_TS_1 .or. par%instat == INSTAT_TS_2) then
        par%Hrms  = readkey_dbl ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
        par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
        par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
        par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
        par%m     = readkey_int ('params.txt','m',        10,         2,      128)
        call check_file_exist('bc/gen.ezs')
-    elseif (trim(par%instat) == 'ts_nonh') then
+    elseif (par%instat == INSTAT_TS_NONH) then   
        par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
        par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
        call check_file_exist('boun_U.bcf')
     endif
-    allocate(allowednames(3),oldnames(3))
-    allowednames=(/'neumann  ','wavecrest','cyclic   ' /)
-    oldnames=(/'0','1','2'/)
-    if (isSetParameter('params.txt','lateralwave')) then
-       par%lateralwave  = readkey_str('params.txt','lateralwave','neumann',3,3,allowednames,oldnames)
-    else
-       if (isSetParameter('params.txt','leftwave') .or. isSetParameter('params.txt','rightwave')) then
-          par%leftwave  = readkey_str('params.txt','leftwave','neumann',2,2,allowednames,oldnames)
-          par%rightwave  = readkey_str('params.txt','rightwave','neumann',2,2,allowednames,oldnames)
-          if (par%leftwave==par%rightwave) then
-             par%lateralwave = par%leftwave
-             call writelog('lsw','','LEFTWAVE and RIGHTWAVE parameters are deprecated.')
-             call writelog('lsw','','Setting LATERALWAVE to ', trim(par%leftwave))
-          else
-             call writelog('lswe','','LEFTWAVE and RIGHTWAVE parameters are deprecated.')
-             call writelog('lswe','','Left and Right wave boundary conditions must be equal')
-             call writelog('lswe','','Use LATERALWAVE parameter to set wave boundary conditions')
-             call halt_program
-          endif
-       else
-          par%lateralwave  = readkey_str('params.txt','lateralwave','neumann',3,3,allowednames,oldnames)
-       endif
-    endif
-    deallocate(allowednames,oldnames)
+
+    call setallowednames('neumann',LATERALWAVE_NEUMANN,'wavecrest',LATERALWAVE_WAVECREST,'cyclic',LATERALWAVE_CYCLIC)
+    call setoldnames('0','1')
+    call parmapply('lateralwave',1,par%lateralwave)
+
+
+
+    ! TODO: fix
+    !if (isSetParameter('params.txt','lateralwave')) then
+    !   call setallowednames('neumann',LEFTWAVE_NEUMANN,'wavecrest',LEFTWAVE_WAVECREST)
+    !   call setoldnames('0','1')
+    !   call parmapply('leftwave',1,par%leftwave)
+    !else
+    !   if (isSetParameter('params.txt','leftwave') .or. isSetParameter('params.txt','rightwave')) then
+    !      par%leftwave  = readkey_str('params.txt','leftwave','neumann',2,2,allowednames,oldnames)
+    !      par%rightwave  = readkey_str('params.txt','rightwave','neumann',2,2,allowednames,oldnames)
+    !      if (par%leftwave==par%rightwave) then
+    !         par%lateralwave = par%leftwave
+    !         call writelog('lsw','','LEFTWAVE and RIGHTWAVE parameters are deprecated.')
+    !         call writelog('lsw','','Setting LATERALWAVE to ', trim(par%leftwave))
+    !      else
+    !         call writelog('lswe','','LEFTWAVE and RIGHTWAVE parameters are deprecated.')
+    !         call writelog('lswe','','Left and Right wave boundary conditions must be equal')
+    !         call writelog('lswe','','Use LATERALWAVE parameter to set wave boundary conditions')
+    !         call halt_program
+    !      endif
+    !   else
+    !      par%lateralwave  = readkey_str('params.txt','lateralwave','neumann',3,3,allowednames,oldnames)
+    !   endif
+    !endif
+    !deallocate(allowednames,oldnames)
     !
     !
     ! Wave-spectrum boundary condition parameters
-    if (    trim(par%instat) == 'jons'          .or.    &
-         trim(par%instat) == 'swan'          .or.    &
-         trim(par%instat) == 'vardens'       .or.    &
-         trim(par%instat) == 'jons_table'                ) then
+    if ( par%instat == INSTAT_JONS          .or.    &
+         par%instat == INSTAT_SWAN          .or.    &
+         par%instat == INSTAT_VARDENS       .or.    &
+         par%instat == INSTAT_JONS_TABLE                ) then
 
        call writelog('l','','--------------------------------')
        call writelog('l','','Wave-spectrum boundary condition parameters: ')
@@ -727,7 +748,7 @@ contains
           par%dtbc        = readkey_dbl('params.txt','dtbc',          1.0d0,      0.1d0,      2.0d0   )
        endif
 
-       if (trim(par%instat)=='swan') then
+       if (par%instat==INSTAT_SWAN) then
           par%dthetaS_XB  = readkey_dbl ('params.txt','dthetaS_XB',   0.0d0,      -360.d0,    360.0d0 )
        endif
        !                               wbcversion defaults to 3
@@ -748,32 +769,33 @@ contains
     ! front
     call writelog('l','','--------------------------------')
     call writelog('l','','Flow boundary condition parameters: ')
-    allocate(allowednames(7),oldnames(7))
-    allowednames=(/'abs_1d    ',&
-                   'abs_2d    ',&
-                   'wall      ',&
-                   'wlevel    ',&
-                   'nonh_1d   ',&
-                   'waveflume '/)
-    oldnames=(/'0','1','2','3','4','5'/)
-    par%front  = readkey_str('params.txt','front','abs_2d',6,6,allowednames,oldnames)
-    deallocate(allowednames,oldnames)
+    call setallowednames('abs_1d',    FRONT_ABS_1D,  &
+                         'abs_2d',    FRONT_ABS_2D,  &
+                         'wall',      FRONT_WALL,    &
+                         'wlevel',    FRONT_WLEVEL,  &
+                         'nonh_1d',   FRONT_NONH_1D, &
+                         'waveflume', FRONT_WAVEFLUME)
+    call setoldnames('0','1','2','3','4','5')
+    call parmapply('front',2,par%front)
+
     ! left and right
-    allocate(allowednames(4),oldnames(2))
-    allowednames=(/'neumann  ','wall     ','no_advec ','neumann_v'/)
-    oldnames=(/'0','1'/)
-    par%left   = readkey_str('params.txt','left','neumann',4,2,allowednames,oldnames)
-    par%right  = readkey_str('params.txt','right','neumann',4,2,allowednames,oldnames)
-    deallocate(allowednames,oldnames)
+    call setallowednames('neumann',   LR_NEUMANN,    &
+                         'wall'   ,   LR_WALL,       &
+                         'no_advec',  LR_NO_ADVEC,   &
+                         'neumann_v', LR_NEUMANN_V)
+    call setoldnames('0','1')
+    call parmapply('left',1,par%left)
+
+    call parmapply('right',1,par%right)
+
     ! back
-    allocate(allowednames(5),oldnames(5))
-    allowednames=(/'wall      ',&
-                   'abs_1d    ',&
-                   'abs_2d    ',&
-                   'wlevel    '/)
-    oldnames=(/'0','1','2','3'/)
-    par%back   = readkey_str('params.txt','back','abs_2d',4,4,allowednames,oldnames)
-    deallocate(allowednames,oldnames)
+    call setallowednames('wall',    BACK_WALL,     &
+                         'abs_id',  BACK_ABS_1D,   &
+                         'abs_2d',  BACK_ABS_2D,   &
+                         'wlevel',  BACK_WLEVEL)
+    call setoldnames('0','1','2','3')
+    call parmapply('back',3,par%back)
+
     ! others
     par%ARC         = readkey_int ('params.txt','ARC',      1,              0,       1       )
     par%order       = readkey_dbl ('params.txt','order',    2.d0,           1.d0,    2.d0    )
@@ -781,10 +803,11 @@ contains
     par%freewave    = readkey_int ('params.txt','freewave', par%carspan,    0,       1       )
     par%epsi        = readkey_dbl ('params.txt','epsi',     -1.d0,          -1.d0,   0.2d0   )
     par%nc          = readkey_int ('params.txt','nc',       par%ny+1,       1,       par%ny+1)
-    allocate(allowednames(2),oldnames(0))
-    allowednames=(/'instant ','velocity'/)
-    par%tidetype= readkey_str('params.txt','tidetype','velocity',2,0,allowednames,oldnames)
-    deallocate(allowednames,oldnames)
+
+    call setallowednames('instant',   TIDETYPE_INSTANT,  &
+                         'velocity',  TIDETYPE_VELOCITY)
+    call parmapply('tidetype',2,par%tidetype)
+
     !
     !
     ! Tide boundary conditions
@@ -793,11 +816,10 @@ contains
     par%tideloc    = readkey_int ('params.txt','tideloc', 0,             0,      4)
     if (par%tideloc>0) then
        if (par%tideloc==2) then
-          allocate(allowednames(2),oldnames(2))
-          allowednames=(/'land','sea '/)
-          oldnames=(/'0','1'/)
-          par%paulrevere = readkey_str('params.txt','paulrevere','land',2,2,allowednames,oldnames)
-          deallocate(allowednames,oldnames)
+          call setallowednames('land',    PAULREVERE_LAND,  &
+                               'sea',     PAULREVERE_SEA)
+          call setoldnames('0','1')
+          call parmapply('paulrevere',1,par%paulrevere)
        endif
        par%zs0file = readkey_name('params.txt','zs0file')
        call check_file_exist(par%zs0file)
@@ -833,17 +855,20 @@ contains
     if (par%swave==1) then
        call writelog('l','','--------------------------------')
        call writelog('l','','Wave breaking parameters: ')
-       allocate(allowednames(5),oldnames(5))
-       allowednames=(/'roelvink1    ','baldock      ','roelvink2    ','roelvink_daly','janssen      '/)
-       oldnames    =(/'1','2','3','4','5'/)
-       if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
-          par%break   = readkey_str('params.txt','break','baldock',5,5,allowednames,oldnames)
+       call setallowednames('roelvink1',     BREAK_ROELVINK1,  &
+                            'baldock',       BREAK_BALDOCK,    &
+                            'roelvink2',     BREAK_ROELVINK2,  &
+                            'roelvink_daly', BREAK_ROELVINK_DALY,  &
+                            'janssen',       BREAK_JANSSEN)
+       call setoldnames('1','2','3','4','5')
+       if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE) then
+          call parmapply('break',2,par%break) ! default: baldock
       else
-          par%break   = readkey_str('params.txt','break','roelvink2',5,5,allowednames,oldnames)
+          call parmapply('break',3,par%break) ! default: roelvink2
        endif
-       deallocate(allowednames,oldnames)
+
        par%gamma    = readkey_dbl ('params.txt','gamma',   0.55d0,     0.4d0,     0.9d0)   !changed 28/11
-       if (trim(par%break)=='roelvink_daly') then
+       if (par%break == BREAK_ROELVINK_DALY) then
           par%gamma2   = readkey_dbl ('params.txt','gamma2',   0.3d0,     0.0d0,     0.5d0)
        endif
        par%alpha    = readkey_dbl ('params.txt','alpha',   1.0d0,     0.5d0,     2.0d0)
@@ -877,15 +902,16 @@ contains
     ! Flow parameters
     call writelog('l','','--------------------------------')
     call writelog('l','','Flow parameters: ')
-    allocate(allowednames(2),oldnames(0))
-    allowednames=(/'chezy          ','white-colebrook'/)
-    par%bedfriction = readkey_str('params.txt','bedfriction','chezy',2,0,allowednames,oldnames)
-    deallocate(allowednames,oldnames)
-    if (trim(par%bedfriction)=='chezy') then
+
+    call setallowednames('chezy',               BEDFRICTION_CHEZY,  &
+                         'white-colebrook',     BEDFRICTION_WHITE_COLEBROOK)
+    call parmapply('bedfriction',1,par%bedfriction)
+
+    if (par%bedfriction==BEDFRICTION_CHEZY) then
        par%bedfricfile = readkey_name('params.txt','bedfricfile')
        if (par%bedfricfile .ne. ' ') then
           call check_file_exist(par%bedfricfile)
-          if (trim(par%gridform)=='xbeach') then
+          if (par%gridform==GRIDFORM_XBEACH) then
              call check_file_length(par%bedfricfile,par%nx+1,par%ny+1)
           endif
        else
@@ -961,21 +987,20 @@ contains
              par%gwfastsolve = readkey_int ('params.txt','gwfastsolve',      0,    0,      1)
           endif
        endif
+
        ! Type of momentum equation
-       allocate(allowednames(2))
-       allocate(oldnames(2))
-       allowednames = (/'laminar  ','turbulent'/)
-       oldnames     = (/'darcy    ','modflow  '/)
-       par%gwscheme    = readkey_str('params.txt','gwscheme','laminar',2,2,allowednames,oldnames)
-       deallocate(allowednames,oldnames)
-       if (trim(par%gwscheme)=='turbulent') then
+       call setallowednames('laminar',    GWSCHEME_LAMINAR,  &
+                            'turbulent',  GWSCHEME_TURBULENT)
+       call setoldnames('darcy','modflow')
+       call parmapply('gwscheme',1,par%gwscheme)
+
+       if (par%gwscheme==GWSCHEME_TURBULENT) then
           par%gwReturb    = readkey_dbl ('params.txt','gwReturb'   , 100.d0    , 1.d0     , 600.d0)
        endif
-       allocate(allowednames(2))
-       allocate(oldnames(0))
-       allowednames=(/'parabolic  ','exponential'/)
-       par%gwheadmodel   = readkey_str('params.txt','gwheadmodel','parabolic  ',2,0,allowednames,oldnames)
-       deallocate(allowednames,oldnames)
+       call setallowednames('parabolic',       GWHEADMODEL_PARABOLIC,   &
+                            'exponential',     GWHEADMODEL_EXPONENTIAL)
+       call parmapply('gwheadmodel',1,par%gwheadmodel)
+
        par%gwhorinfil = readkey_int ('params.txt','gwhorinfil',      0,           0,        1)
     endif
     !
@@ -995,16 +1020,15 @@ contains
     if (par%nonh==1) then
        call writelog('l','','--------------------------------')
        call writelog('l','','Non-hydrostatic correction parameters: ')
-       allocate(allowednames(2),oldnames(2))
-       allowednames=(/'sip    ','tridiag'/)
-       oldnames =(/'1','2'/)
+       call setallowednames('sip',       SOLVER_SIPP,  &
+                            'tridiag',   SOLVER_TRIDIAGG)
+       call setoldnames('1','2')
        if (par%ny>2) then
-          par%solver = readkey_str('params.txt','solver','sip',2,2,allowednames,oldnames)
+          call parmapply('solver',1,par%solver)  ! default: sip
        else
-          par%solver = readkey_str('params.txt','solver','tridiag',2,2,allowednames,oldnames)
+          call parmapply('solver',2,par%solver)  ! default: tridiag
        endif
-       deallocate(allowednames,oldnames)
-       if (trim(par%solver)=='sip') then
+       if (par%solver==SOLVER_SIPP) then
           par%solver_maxit = readkey_int('params.txt','solver_maxit' ,30,1,1000)
           par%solver_acc   = readkey_dbl('params.txt','solver_acc' ,0.005d0,0.00001d0,0.1d0)
           par%solver_urelax= readkey_dbl('params.txt','solver_urelax' ,0.92d0,0.5d0,0.99d0)
@@ -1053,16 +1077,17 @@ contains
     if (par%sedtrans==1) then
        call writelog('l','','--------------------------------')
        call writelog('l','','Sediment transport parameters: ')
-       allocate(allowednames(2),oldnames(2))
-       allowednames=(/'soulsby_vanrijn ','vanthiel_vanrijn'/)
-       oldnames=(/'1','2'/)
-       par%form   = readkey_str('params.txt','form','vanthiel_vanrijn',2,2,allowednames,oldnames)
-       deallocate(allowednames,oldnames)
-       allocate(allowednames(2),oldnames(2))
-       allowednames=(/'ruessink_vanrijn','vanthiel        '/)
-       oldnames=(/'1','2'/)
-       par%waveform = readkey_str('params.txt','waveform','vanthiel',2,2,allowednames,oldnames)
-       deallocate(allowednames,oldnames)
+       
+       call setallowednames('soulsby_vanrijn',    FORM_SOULSBY_VANRIJN,  &
+                            'vanthiel_vanrijn',   FORM_VANTHIEL_VANRIJN)
+       call setoldnames('1','2')
+       call parmapply('form',2,par%form)
+
+       call setallowednames('ruessink_vanrijn',  WAVEFORM_RUESSINK_VANRIJN,  &
+                            'vanthiel',          WAVEFORM_VANTHIEL)
+       call setoldnames('1','2')
+       call parmapply('waveform',2,par%waveform)
+
        par%sws      = readkey_int ('params.txt','sws',           1,        0,     1)
        par%lws      = readkey_int ('params.txt','lws',           1,        0,     1)
        par%BRfac    = readkey_dbl ('params.txt','BRfac',    1.0d0,       0.d0, 1.d0)
@@ -1073,15 +1098,17 @@ contains
        par%facua    = readkey_dbl ('params.txt','facua  ',0.10d0,    0.00d0,   1.0d0)
        par%facSk    = readkey_dbl ('params.txt','facSk  ',par%facua,    0.00d0,   1.0d0)
        par%facAs    = readkey_dbl ('params.txt','facAs  ',par%facua,    0.00d0,   1.0d0)
-       allocate(allowednames(3),oldnames(0))
-       allowednames=(/'none      ','lagrangian','eulerian  '/)
-       par%turbadv  = readkey_str('params.txt','turbadv','none',3,0,allowednames,oldnames)
-       deallocate(allowednames,oldnames)
-       allocate(allowednames(3),oldnames(3))
-       allowednames=(/'none         ','wave_averaged','bore_averaged'/)
-       oldnames=(/'0','1','2'/)
-       par%turb = readkey_str('params.txt','turb','bore_averaged',3,3,allowednames,oldnames)
-       deallocate(allowednames,oldnames)
+       call setallowednames('none',       TURBADV_NONE,        &
+                            'lagrangian', TURBADV_LAGRANGIAN,  &
+                            'eulerian',   TURBADV_EULERIAN)
+       call parmapply('turbadv',1,par%turbadv)
+
+       call setallowednames('none',              TURB_NONE,           &
+                            'wave_averaged',     TURB_WAVE_AVERAGED,  &
+                            'bore_averaged',     TURB_BORE_AVERAGED)
+       call setoldnames('0','1','2')
+       call parmapply('turb',3,par%turb)
+
        par%Tbfac    = readkey_dbl ('params.txt','Tbfac  ',1.0d0,     0.00d0,   1.0d0)
        par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.5d0,     0.01d0,   10.d0)
        par%lwt      = readkey_int ('params.txt','lwt    ',0,           0,            1)
@@ -1110,7 +1137,7 @@ contains
        if (par%struct==1) then
           par%ne_layer = readkey_name('params.txt','ne_layer')
           call check_file_exist(par%ne_layer)
-          if (trim(par%gridform)=='xbeach') then
+          if (par%gridform==GRIDFORM_XBEACH) then
              call check_file_length(par%ne_layer,par%nx+1,par%ny+1)
           endif
        endif
@@ -1166,13 +1193,13 @@ contains
     par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
     call readmeans(par)
     par%ncross      = readkey_int ('params.txt','ncross',      0,  0, 50)
-    allocate(allowednames(3))
-    allocate(oldnames(0))
-    allowednames = (/'fortran', 'netcdf ', 'debug  '/)
-    par%outputformat= readkey_str ('params.txt','outputformat','fortran',3, 0, allowednames  ,oldnames,required=.false.)
+
+    call setallowednames('fortran',             OUTPUTFORMAT_FORTRAN,  &
+                         'netcdf ',             OUTPUTFORMAT_NETCDF,   &
+                         'debug  ',             OUTPUTFORMAT_DEBUG)
+    call parmapply('outputformat',1,par%outputformat)
+
     ! get the nc output file name from the parameter file
-    deallocate(allowednames)
-    deallocate(oldnames)
     par%ncfilename = readkey_name('params.txt','ncfilename')
     if (len(trim(par%ncfilename)) .eq. 0) par%ncfilename = 'xboutput.nc'
     call writelog('ls','','netcdf output to:' // par%ncfilename)
@@ -1187,13 +1214,15 @@ contains
     !
     !
     ! Drifters parameters
-    call writelog('l','','--------------------------------')
-    call writelog('l','','Drifters parameters: ')
-    par%drifterfile = readkey_name  ('params.txt', 'drifterfile'                    )
-    par%ndrifter    = get_file_length(par%drifterfile                               )
-    par%ndrifter    = readkey_int   ('params.txt', 'ndrifter', par%ndrifter, 0, 50  )
-    if (par%ndrifter>0) then
+    if (isSetParameter('params.txt','drifterfile')) then
+       call writelog('l','','--------------------------------')
+       call writelog('l','','Drifters parameters: ')
+       par%drifterfile = readkey_name  ('params.txt', 'drifterfile'                    )
        call check_file_exist(par%drifterfile)
+       par%ndrifter    = get_file_length(par%drifterfile                               )
+       par%ndrifter    = readkey_int   ('params.txt', 'ndrifter', par%ndrifter, 0, 50  )
+    else
+       par%ndrifter = 0
     endif
     !
     !
@@ -1209,24 +1238,25 @@ contains
     !
     ! Vegetation parameters
     if (par%vegetation==1) then
-    call writelog('l','','--------------------------------')
-    call writelog('l','','Vegetation parameters: ')
-    par%vegiefile    = readkey_name  ('params.txt', 'vegiefile'                       )
-    par%vegiemapfile = readkey_name  ('params.txt', 'vegiemapfile'                    )
-    ! vegiefile routine should set nveg
+       call writelog('l','','--------------------------------')
+       call writelog('l','','Vegetation parameters: ')
+       par%veggiefile    = readkey_name  ('params.txt', 'veggiefile'                       ) 
+       par%veggiemapfile = readkey_name  ('params.txt', 'veggiemapfile'                    )   
+       ! veggiefile routine should set nveg
     endif
+    ! 
     !
     ! Wave numerics parameters
     call writelog('l','','--------------------------------')
     call writelog('l','','Wave numerics parameters: ')
-    allocate(allowednames(3))
-    allocate(oldnames(3))
-    allowednames = (/'upwind_1    ', 'lax_wendroff', 'upwind_2    '/)
-    oldnames = (/'1', '2', '3'/)
-    par%scheme= readkey_str ('params.txt','scheme','upwind_2',3, 3, allowednames  ,oldnames)
-    deallocate(allowednames)
-    deallocate(oldnames)
-    if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
+
+    call setallowednames('upwind_1',      SCHEME_UPWIND_1,      &
+                         'lax_wendroff',  SCHEME_LAX_WENDROFF,  &
+                         'upwind_2',      SCHEME_UPWIND_2)
+    call setoldnames('1','2','3')
+    call parmapply('scheme',3,par%scheme)
+
+    if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE .or. par%single_dir==1) then
        par%wavint     = readkey_dbl ('params.txt','wavint',    60.d0,      1.d0,  3600.d0)
        par%maxerror   = readkey_dbl ('params.txt','maxerror', 0.00005d0, 0.00001d0, 0.001d0)
        par%maxiter    = readkey_int ('params.txt','maxiter',    500,         2,      1000)
@@ -1279,14 +1309,26 @@ contains
     !
     !
     ! MPI parameters
+#ifdef USEMPI
     call writelog('l','','--------------------------------')
     call writelog('l','','MPI parameters: ')
-    allocate(allowednames(4),oldnames(0))
-    allowednames=(/'auto','x   ','y   ','man '/)
-    par%mpiboundary= readkey_str('params.txt','mpiboundary','auto',4,0,allowednames,oldnames)
+
+    call setallowednames('auto',   MPIBOUNDARY_AUTO,   &
+                         'x',      MPIBOUNDARY_X,      &
+                         'y',      MPIBOUNDARY_Y,      &
+                         'man',    MPIBOUNDARY_MAN)
+    call parmapply('mpiboundary',1,par%mpiboundary)
+    if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE) then
+       par%mpiboundary=MPIBOUNDARY_X
+       par%mpiboundary_str='x'
+       call writelog('l','','mpiboundary set to x for stationary wave model')
+    endif
+
     par%mmpi= readkey_int('params.txt','mmpi',2,1,100)
     par%nmpi= readkey_int('params.txt','nmpi',4,1,100)
-    deallocate(allowednames,oldnames)
+
+#endif
+
     !
     !
     ! Finish
@@ -1353,9 +1395,9 @@ contains
     !
     !
     ! Only allow Baldock in stationary mode and Roelvink in non-stationary
-    if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
-       if (trim(par%break) .ne. 'baldock') then
-          if(trim(par%break)=='roelvink_daly') then
+    if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE) then
+       if (par%break .ne. BREAK_BALDOCK) then
+          if(par%break == BREAK_ROELVINK_DALY) then
              call writelog('lws','','Warning: Roelvink-Daly formulations not implemented in stationary wave mode, use Baldock')
              call writelog('lws','','         formulation.')
              call halt_program
@@ -1365,7 +1407,7 @@ contains
           endif
        endif
     else
-       if (trim(par%break)=='baldock') then
+       if (par%break == BREAK_BALDOCK) then 
           call writelog('lws','','Warning: Baldock formulation not allowed in non-stationary, use a Roelvink')
           call writelog('lws','','         formulation.')
        endif
@@ -1377,7 +1419,7 @@ contains
     !
     !
     ! Only allow bore-averaged turbulence in combination with vanthiel waveform
-    if ((trim(par%waveform) .ne. 'vanthiel') .and. (trim(par%turb) .eq. 'bore_averaged')) then
+    if ((par%waveform .ne. WAVEFORM_VANTHIEL) .and. (par%turb .eq. TURB_BORE_AVERAGED)) then
        call writelog('lse','','Error: Cannot compute bore-averaged turbulence without vanthiel wave form.')
        call writelog('lse','','       Please set waveform=vanthiel in params.txt, or choose another')
        call writelog('lse','','       turbulence model')
@@ -1419,11 +1461,11 @@ contains
     !
     ! If using nonh, then the solver type is set by the grid size
     if (par%nonh==1) then
-       if (par%ny>2 .and. trim(par%solver)=='tridiag') then
+       if (par%ny>2 .and. par%solver==SOLVER_TRIDIAGG) then
           call writelog('lswe','','Tri-diagonal solver cannot be used if ny>2')
           call halt_program
        endif
-       if (par%ny==0 .and. trim(par%solver)=='sip') then
+       if (par%ny==0 .and. par%solver==SOLVER_SIPP) then
          call writelog('lse','','SIP solver cannot be used if ny==0')
          call halt_program
        endif
@@ -1474,7 +1516,7 @@ contains
     !
     ! Give an error if you ask for netcdf output if you don't have a netcdf executable
 #ifndef USENETCDF
-    if (trim(par%outputformat) .eq. 'netcdf') then
+    if (par%outputformat .eq. OUTPUTFORMAT_NETCDF) then
        call writelog('lse', '', 'Error: You have asked for netcdf output [outputformat=netcdf] but this')
        call writelog('lse', '', '       executable is built without netcdf support. Use a netcdf enabled')
        call writelog('lse', '', '       executable or outputformat=fortran')
@@ -1484,8 +1526,8 @@ contains
     !
     !
     ! Lax-Wendroff not yet supported in curvilinear
-    if (trim(par%scheme)=='lax_wendroff') then
-       par%scheme='upwind_2'
+    if (par%scheme==SCHEME_LAX_WENDROFF) then
+       par%scheme=SCHEME_UPWIND_2
        call writelog('lws','','Warning: Lax Wendroff [scheme=lax_wendroff] scheme is not supported, changed')
        call writelog('lws','','         to 2nd order upwind [scheme=upwind_2]')
     endif
@@ -1493,7 +1535,7 @@ contains
     !
     ! Give warning if using wave stationary in MPI
 #ifdef USEMPI
-    if (trim(par%instat)=='stat' .or. trim(par%instat)=='stat_table') then
+    if (par%instat==INSTAT_STAT .or. par%instat==INSTAT_STAT_TABLE) then
        call writelog('lws','','Warning: Stationary wave solver not compatable with MPI, changing to')
        call writelog('lws','','         instationary solver')
     endif
@@ -1501,24 +1543,24 @@ contains
     !
     !
     ! Wave-current interaction with non-stationary waves still experimental
-    if (trim(par%instat)/='stat' .and. trim(par%instat)/='stat_table' .and. par%wci==1) then
+    if (par%instat/=INSTAT_STAT .and. par%instat/=INSTAT_STAT_TABLE .and. par%wci==1) then
        call writelog('lws','','Warning: Wave-current interaction with non-stationary waves is still')
        call writelog('lws','','         experimental, continue with computation nevertheless')
     endif
     !
     !
     ! 2D absorbing boundary limits to 1D absorbing boundary with 1D
-    if (trim(par%front)=='abs_2d' .and. par%ny<3) then
+    if (par%front==FRONT_ABS_2D .and. par%ny<3) then
        call writelog('lws','','Warning: 2D absorbing boundary condition [front=abs_2d] reduces to a')
        call writelog('lws','','         1D absorbing boundary condition [front=abs_1d] in')
        call writelog('lws','','         1D mode [ny=0]')
-       par%front = 'abs_1d '
+       par%front = FRONT_ABS_1D
     endif
-    if (trim(par%back)=='abs_2d' .and. par%ny<3) then
+    if (par%back==BACK_ABS_2D .and. par%ny<3) then
        call writelog('lws','','Warning: 2D absorbing boundary condition [back=abs_2d] reduces to a')
        call writelog('lws','','         1D absorbing boundary condition [back=abs_1d] in')
        call writelog('lws','','         1D mode [ny=0]')
-       par%back = 'abs_1d '
+       par%back = BACK_ABS_1D
     endif
     !
     !
@@ -1552,7 +1594,7 @@ contains
     !
     ! Check bc file length in case of instat = reuse. In this case time is defined by
     ! morfacopt, which is not known at earlier stage
-    if (trim(par%instat)=='reuse') then
+    if (par%instat == INSTAT_REUSE) then
        if (par%nonhspectrum==1) then
              dummystring='nhbcflist.bcf'
              call checkbcfilelength(par%tstop,par%instat,dummystring,filetype,nonh=.true.)
@@ -1899,6 +1941,7 @@ contains
     integer                                  :: i,imax,id,ic,index,ier
     character(slen),dimension(numvars) :: tempnames
 
+    imax = -123
     select case (trim(readtype))
     case ('global')
        imax = par%nglobalvar
@@ -1992,6 +2035,8 @@ contains
     integer                                  :: i,imax,id,ic,imark,imarkold,imin,nvar,ivar,index,j
     logical                                  :: varfound
 
+    imin = 0
+    imax = 0
     select case (readtype)
     case('point')
        imin = 0

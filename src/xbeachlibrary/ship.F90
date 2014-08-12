@@ -94,23 +94,22 @@ contains
     if(par%ships==1) then
       ! Read ship names (== filenames with ship geometry and track data)
 
-      fid=create_new_fid()
-      open(fid,file=par%shipfile)
-      ier=0
-      i=0
-      do while (ier==0)
-         read(fid,'(a)',iostat=ier)ch
-         if (ier==0)i=i+1
-      enddo
-      par%nship=i
-      rewind(fid)
+      par%nship = count_lines(par%shipfile)
       
       allocate(sh(par%nship))
+      if(xmaster) then
+      fid=create_new_fid()
+      open(fid,file=par%shipfile)
       do i=1,par%nship
         read(fid,'(a)')sh(i)%name 
       enddo
       close(fid)
-      
+      endif
+#ifdef USEMPI
+      do i=1,par%nship
+         call xmpi_bcast(sh(i)%name)
+      enddo
+#endif
       do i=1,par%nship
       ! Read ship geometry
         sh(i)%dx  = readkey_dbl(sh(i)%name,'dx',  5.d0,   0.d0,      100.d0)
@@ -146,11 +145,13 @@ contains
         sh(i)%zs = 0.d0
         
         fid=create_new_fid()
-        open(fid,file=sh(i)%shipgeom)
+        !open(fid,file=sh(i)%shipgeom)
+        if(xmaster) open(fid,file=sh(i)%shipgeom)
+        
         do iy=1,sh(i)%ny+1
-           read(fid,*)(sh(i)%depth(ix,iy),ix=1,sh(i)%nx+1)
+            call read_v(fid,sh(i)%depth(:,iy))
         end do
-        close(fid)
+        if(xmaster) close(fid)
         
         if (sh(i)%compute_motion==0) then
            sh(i)%zhull=-sh(i)%depth
@@ -161,31 +162,27 @@ contains
 
         ! Read t,x,y of ship position
 
+        sh(i)%track_nt=count_lines(sh(i)%shiptrack)
+
         fid=create_new_fid()
-        open(fid,file=sh(i)%shiptrack)
-        ier=0
-        it=0
-        do while (ier==0)
-           read(fid,'(a)',iostat=ier)ch
-           if (ier==0)it=it+1
-        enddo
-        sh(i)%track_nt=it
-        rewind(fid)
+        if(xmaster) open(fid,file=sh(i)%shiptrack)
+
         allocate(sh(i)%track_t(sh(i)%track_nt))
         allocate(sh(i)%track_x(sh(i)%track_nt))
         allocate(sh(i)%track_y(sh(i)%track_nt))
         allocate(sh(i)%track_z(sh(i)%track_nt))
         allocate(sh(i)%track_dir(sh(i)%track_nt))
+
         if (sh(i)%flying==0) then
            do it=1,sh(i)%track_nt
-              read(fid,*)sh(i)%track_t(it),sh(i)%track_x(it),sh(i)%track_y(it)
+              call read_v(fid,sh(i)%track_t(it),sh(i)%track_x(it),sh(i)%track_y(it))
            enddo
         else
            do it=1,sh(i)%track_nt
-              read(fid,*)sh(i)%track_t(it),sh(i)%track_x(it),sh(i)%track_y(it),sh(i)%track_z(it)
+              call read_v(fid,sh(i)%track_t(it),sh(i)%track_x(it),sh(i)%track_y(it),sh(i)%track_z(it))
            enddo
         endif
-        close(fid)
+        if(xmaster)close(fid)
         
        !  Compute ship direction
 
@@ -232,6 +229,7 @@ contains
       allocate(s%shipchi (par%nship)) 
       allocate(s%shippsi (par%nship)) 
     endif
+
   end subroutine ship_init  
     
   subroutine shipwave(s,par,sh)
@@ -290,17 +288,10 @@ contains
            n2=(sh(i)%nx+1)*(sh(i)%ny+1)
            ! Only carry out (costly) MKMAP once when ship is not moving
            !! If XBeach grid is regular rectangular a more efficient mapper can be used; TBD
-           if (firstship) then 
-              call MKMAP (s%wetz    ,s%xz      ,s%yz          ,s%nx+1     ,s%ny+1  , &
+           call MKMAP (s%wetz    ,s%xz      ,s%yz          ,s%nx+1     ,s%ny+1  , &
                         & sh(i)%x   ,sh(i)%y   ,n2            ,sh(i)%xs   ,sh(i)%ys, &
                         & sh(i)%nrx ,sh(i)%nry ,sh(i)%iflag   ,sh(i)%nrin ,sh(i)%w , &
                         & sh(i)%iref,iprint    ,sh(i)%covered ,xymiss)
-           elseif(abs(shipxCG(i)-shipx_old)>.01*sh(i)%dx .or. abs(shipyCG(i)-shipy_old)<.1*sh(i)%dy) then
-              call MKMAP_STEP (s%xz      ,s%yz          ,s%nx+1     ,s%ny+1  , &
-                        & s%alfaz   ,s%dsu     ,s%dnv         ,                &
-                        & sh(i)%x   ,sh(i)%y   ,n2            , &
-                        & sh(i)%w   ,sh(i)%iref        )
-           endif
            call GRMAP (zsvirt   ,n1      ,sh(i)%zs      ,n2         ,sh(i)%iref, &
                      & sh(i)%w     ,4       ,iprint    )
         

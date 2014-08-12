@@ -8,7 +8,7 @@ use libxbeach_module
     
     character(len=100) :: arg
     character(len=500) :: version
-    integer         :: narguments
+    integer         :: narguments, iarg
     
     readinput = 0
     
@@ -20,9 +20,7 @@ use libxbeach_module
                 
                 if (arg=='-V') then
                     call getversion(version)
-                    write(*,*)'**********************************************************'
-                    write(*,*)'You are using XBeach version 1.21.',trim(version)
-                    write(*,*)'**********************************************************'
+                    write(*,*)trim(version)
                     readinput = 1
                 endif
                 

@@ -138,8 +138,8 @@ contains
        allocate(ypoints(par%npoints+par%nrugauge))
        ! 3 for rugauge, npointvar for points
        allocate(Avarpoint(par%npoints+par%nrugauge,max(par%npointvar,par%nrugdepth*3)))  
-       xpoints=0.d0
-       ypoints=0.d0
+       xpoints=0
+       ypoints=0
 
        ! Convert world coordinates of points to nearest (lsm) grid point
        if (xmaster) then

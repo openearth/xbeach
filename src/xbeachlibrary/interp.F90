@@ -1,20 +1,3 @@
-!
-! NAME
-!    linear_interp
-! SYNOPSIS
-!    Interpolate linearly into an array Y given the value of X.
-!    Return both the interpolated value and the position in the
-!    array.
-!
-! ARGUMENTS
-!    - X: independent array (sorted in ascending order)
-!    - Y: array whose values are a function of X
-!    - XX: specified value, interpolating in first array
-!    - YY: interpolation result
-!    - INDINT: (optional) index in array (x(indint) <= xx <= x(indint+1))
-!
-! SOURCE
-!
 module interp
 contains
   PURE SUBROUTINE linear_interp_2d(X,nx,Y,ny,Z,xx,yy,zz,method,exception)
@@ -30,7 +13,6 @@ contains
     character(len=*),intent(in)           :: method
     real*8,intent(in)                     :: exception
     ! internal
-    integer                               :: i,j,dum
     integer,dimension(4)                  :: ind
     real*8,dimension(2)                   :: yint
     real*8                                :: modx,mody,disx,disy
@@ -98,7 +80,23 @@ contains
 
   END SUBROUTINE linear_interp_2d
 
-
+!
+! NAME
+!    linear_interp
+! SYNOPSIS
+!    Interpolate linearly into an array Y given the value of X.
+!    Return both the interpolated value and the position in the
+!    array.
+!
+! ARGUMENTS
+!    - X: independent array (sorted in ascending order)
+!    - Y: array whose values are a function of X
+!    - XX: specified value, interpolating in first array
+!    - YY: interpolation result
+!    - INDINT: (optional) index in array (x(indint) <= xx <= x(indint+1))
+!
+! SOURCE
+!
   PURE SUBROUTINE LINEAR_INTERP(X, Y, N, XX, YY, INDINT)
     integer,              intent(in) :: n
     real*8, dimension(n), intent(in) :: x
@@ -285,7 +283,6 @@ contains
         integer                           :: iin
         integer                           :: inout
         integer                           :: ip
-        integer                           :: ipt
         integer                           :: j1
         integer                           :: lomaxx
         integer                           :: lominx
@@ -600,7 +597,6 @@ contains
       integer :: i
       integer :: i1
       integer :: i2
-      integer :: ifac
       integer :: ip
   !
   !! executable statements -------------------------------------------------------
@@ -660,10 +656,8 @@ contains
   !
   ! Local variables
   !
-      integer :: i
       integer :: i1
       integer :: i2
-      integer :: ifac
       integer :: ip
   !
   !! executable statements -------------------------------------------------------

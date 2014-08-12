@@ -73,7 +73,9 @@ module beachwizard_module
 
 contains      
 
-  subroutine bwinit(s, par)
+  !subroutine bwinit(s, par)
+  ! wwvv changed into:
+  subroutine bwinit(s)
     use params
     use spaceparams
     use xmpi_module
@@ -81,7 +83,7 @@ contains
     IMPLICIT NONE
 
     type(spacepars), target             :: s 
-    type(parameters)                    :: par
+    ! type(parameters)                    :: par
 
     if(xmaster) then
        allocate(s%dobs(1:s%nx+1,1:s%ny+1))    
@@ -109,18 +111,14 @@ contains
     type(spacepars), target             :: s 
     type(parameters)                    :: par
 
-    character*80                        :: fname, infofile
+    character*80                        :: infofile
     integer				                :: im,in
     integer				                :: srcnr
     real*8,  external                   :: readkey_dbl
     integer, external                   :: readkey_int
     logical				                :: exists
-    real*8				                :: dum
     real*8, allocatable, dimension(:,:) :: h1
 
-    integer                             :: ised
-    integer                             :: icount1
-    integer                             :: icount2
     integer                             :: jj
     real*8                              :: om
     real*8, allocatable, dimension(:,:) :: ome2
@@ -128,10 +126,6 @@ contains
     real*8, allocatable, dimension(:,:) :: den
     real*8, allocatable, dimension(:,:) :: rk
     real*8, allocatable, dimension(:,:) :: Hrms
-    real*8, allocatable, dimension(:,:) :: dep2
-    logical                             :: argus
-    real*8  			                :: g
-    real*8  			                :: rho
     real*8, allocatable, dimension(:,:) :: E
     real*8, allocatable, dimension(:,:) :: hh
 
@@ -179,6 +173,9 @@ contains
     allocate(rk(1:s%nx+1,1:s%ny+1))
     allocate(E(1:s%nx+1,1:s%ny+1))
     allocate(Hrms(1:s%nx+1,1:s%ny+1))	  
+
+    ! wwvv somebody forgot:
+    allocate(den(s%nx+1,s%ny+1))
 
     bw%dcmdo=0.
     bw%ccmco=0.
@@ -395,7 +392,7 @@ contains
     type(spacepars), target             :: s 
     type(parameters)                    :: par
     type(beachwiz)						:: bw
-    character*80                        :: fname, infofile
+    character*80                        :: infofile
     integer								:: im,in,iy,ix
     integer								:: srcnr
 
@@ -415,12 +412,11 @@ contains
     real*8                           :: sn
     real*8                           :: x1max
     real*8                           :: y1max
-    real*8                           :: timmin
     integer                            :: ixp1
     integer                            :: iyp1
     integer                            :: i
     integer                            :: istat
-    logical                            :: exists, argus
+    logical                            :: exists
 
     !        Actual time based on timhr relative to itdate
     !        
@@ -765,7 +761,7 @@ contains
      
     do in=1,s%nx+1
        do im=1,s%ny+1
-         alphafac(in,im) = (cosh(s%sdist(in,im)/100.d0-0.65*par%t*s%sdist(s%nx+1,im)/par%tstop/100.d0-2.d0))**-10.d0
+         alphafac(in,im) = (cosh(s%sdist(in,im)/100.d0-0.65*par%t*s%sdist(s%nx+1,im)/par%tstop/100.d0-2.d0))**(-10.d0)
        enddo
     enddo
     ! max left hand to 1

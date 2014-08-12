@@ -32,6 +32,7 @@ contains
     use params
     use spaceparams
     use wave_stationary_module
+    use wave_directions_module
     use wave_instationary_module
 
     implicit none
@@ -39,19 +40,27 @@ contains
     type(spacepars)                                 :: s
     type(parameters)                                :: par
 
-    if (trim(par%instat) == 'stat' .or. trim(par%instat) == 'stat_table') then
+    if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE) then
 
-#ifdef USEMPI
-       call wave_instationary(s,par)
-       if ((abs(mod(par%t,par%wavint))<0.000001d0) .or. s%newstatbc==1) then
-          s%newstatbc   = 0
-       endif
-#else
+!#ifdef USEMPI
+!       call wave_instationary(s,par)
+!       if ((abs(mod(par%t,par%wavint))<0.000001d0) .or. s%newstatbc==1) then
+!          s%newstatbc   = 0
+!       endif
+!#else
        if ((abs(mod(par%t,par%wavint))<0.000001d0) .or. s%newstatbc==1) then
           call wave_stationary(s,par)
           s%newstatbc   = 0
        endif
-#endif
+!#endif
+
+    elseif (par%single_dir==1) then
+       if ((abs(mod(par%t,par%wavint))<0.000001d0) .or. s%newstatbc==1) then
+          call wave_directions(s,par)
+          s%newstatbc   = 0
+       endif
+       s%newstatbc       = 0
+       call wave_instationary(s,par)
 
     else
        s%newstatbc       = 0

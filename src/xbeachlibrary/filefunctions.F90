@@ -1,5 +1,6 @@
 module filefunctions
   use typesandkinds
+  use paramsconst
   interface check_file_length
      module procedure check_file_length_1D
      module procedure check_file_length_2D
@@ -155,7 +156,7 @@ contains
     end type
 
     real*8, intent(in) :: tstop
-    character(slen), intent(in):: instat
+    integer, intent(in):: instat
     character(slen)     :: filename,dummy
     character(slen)     :: testc
     character(len=1)    :: ch
@@ -188,6 +189,8 @@ contains
        if (ier .ne. 0) then
           call report_file_read_error(filename)
        endif
+       ! wwvv fid2 was not initialized, so:
+       fid2=create_new_fid()
        if (trim(testc)=='LOCLIST') then
           nlocs = nlines-1
           allocate(bcfiles(nlocs))
@@ -218,7 +221,7 @@ contains
        do ifid=1,nlocs
           fid = create_new_fid()
           open(fid,file=trim(bcfiles(ifid)%fname))
-          if (trim(instat)=='jons' .or. trim(instat)=='swan' .or. trim(instat)=='vardens') then 
+          if (instat==INSTAT_JONS .or. instat==INSTAT_SWAN .or. instat==INSTAT_VARDENS) then 
              read(fid,*,iostat=ier)testc
              if (ier .ne. 0) then
                 call report_file_read_error(bcfiles(ifid)%fname)
@@ -229,9 +232,9 @@ contains
              else
                 filetype = 0
              endif
-          elseif (trim(instat)=='stat_table' .or. trim(instat)=='jons_table') then
+          elseif (instat==INSTAT_STAT_TABLE .or. instat==INSTAT_JONS_TABLE) then
              filetype = 2
-          elseif (trim(instat)=='reuse') then
+          elseif (instat==INSTAT_REUSE) then
              filetype = 3
           endif
 

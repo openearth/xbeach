@@ -83,7 +83,7 @@ contains
 
        ! wwvv todo: I think these iniailization are superfluous
        drr         = 0.d0
-       wete        = 0.d0
+       wete        = 0
        xadvec      = 0.d0
        yadvec      = 0.d0
        thetaadvec  = 0.d0
@@ -126,7 +126,11 @@ contains
     wcifacu=u*par%wci*min(hh/par%hwci,1.d0)
     wcifacv=v*par%wci*min(hh/par%hwci,1.d0)
 
-    if (par%snells==0) then
+    if (par%single_dir==1) then
+       costh(:,:,1)=cos(thetamean-alfaz)
+       sinth(:,:,1)=sin(thetamean-alfaz)
+        
+    elseif (par%snells==0) then
        thetamean=(sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
     elseif(par%snells==1) then  !Dano: Snellius
        ! Check for borderline cases where critical c/c(1,1) is reached....
@@ -159,9 +163,6 @@ contains
           km=k
        endif
        km(1,:) = k(1,:)   ! boundary condition *assuming zero flow at the boundary) 
-#ifdef USEMPI
-       call xmpi_shift(km,'1:')
-#endif
        factime = 1.d0/par%cats/par%Trep*par%dt
        umwci   = factime*uu + (1-factime)*umwci
        vmwci   = factime*vv + (1-factime)*vmwci
@@ -179,28 +180,23 @@ contains
        call slope2D(kmx,nx,ny,dsu,dnv,dkmxdx,dkmxdy)
        call slope2D(kmy,nx,ny,dsu,dnv,dkmydx,dkmydy)
        call advecwx(wm,xwadvec,kmx,nx,ny,dsu)   ! cjaap: xz or xu?
-       kmx = kmx -par%dt*xwadvec  -1.0d0*par%dt*cgym*(dkmydx-dkmxdy)
+       kmx = kmx -par%dt*xwadvec  -par%dt*cgym*(dkmydx-dkmxdy)
        if (ny>0) then 
-          kmx(:,ny+1) = kmx(:,ny)  ! lateral bc
-          kmx(:,1) = kmx(:,2)  ! lateral bc
-          ! wwvv the following has consequences for the // version todo
-#ifdef USEMPI
-          call xmpi_shift(kmx,':n')  ! get column kml(:ny+1) from right neighbour
-          call xmpi_shift(kmx,':1')
-#endif
+         if (xmpi_isright) kmx(:,ny+1) = kmx(:,ny)  ! lateral bc
+         if (xmpi_isleft)  kmx(:,1) = kmx(:,2)  ! lateral bc
        endif
 
        call advecwy(wm,ywadvec,kmy,nx,ny,dnv)   ! cjaap: yz or yv?
-       kmy = kmy-par%dt*ywadvec  + 1.0*par%dt*cgxm*(dkmydx-dkmxdy)
+       kmy = kmy-par%dt*ywadvec  + par%dt*cgxm*(dkmydx-dkmxdy)
        if (ny>0) then 
-          kmy(:,ny+1) = kmy(:,ny)   ! lateral bc
-          kmy(:,1) = kmy(:,2)   ! lateral bc
-          ! wwvv the following has consequences for the // version todo
-#ifdef USEMPI
-          call xmpi_shift(kmy,':n')
-          call xmpi_shift(kmy,':1')
-#endif
+         if (xmpi_isright) kmy(:,ny+1) = kmy(:,ny)   ! lateral bc
+         if (xmpi_isleft)  kmy(:,1) = kmy(:,2)   ! lateral bc
        endif
+
+#ifdef USEMPI
+       call xmpi_shift_ee(kmx)
+       call xmpi_shift_ee(kmy)
+#endif
 
        ! update km
        km = sqrt(kmx**2+kmy**2)
@@ -279,9 +275,9 @@ contains
     !
     ! Upwind Euler timestep propagation
     !
-    call advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,par%dt,par%scheme)
+    call advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,par%scheme)
     if (ny>0) then
-       call advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,par%dt,par%scheme)
+       call advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,par%scheme)
     endif
     !call advectheta(ee*ctheta,thetaadvec,nx,ny,ntheta,dtheta)
     call advecthetaho(ee,ctheta,thetaadvec,nx,ny,ntheta,dtheta,par%scheme)!
@@ -303,13 +299,15 @@ contains
     E=par%rhog8*H**2
 
     ! Total dissipation
-    if(trim(par%break) == 'roelvink1' .or. trim(par%break) == 'roelvink2')then
+
+    select case(par%break)
+      case(BREAK_ROELVINK1,BREAK_ROELVINK2)
        call roelvink(par,s,km)
-    else if(trim(par%break) == 'baldock')then
+      case(BREAK_BALDOCK)
        call baldock(par,s,km)
-    else if(trim(par%break) == 'janssen')then
+      case(BREAK_JANSSEN)
        call janssen_battjes(par,s,km)
-    else if (trim(par%break) == 'roelvink_daly') then
+      case(BREAK_ROELVINK_DALY)
        cgxm = c*dcos(thetamean) 
        cgym = c*dsin(thetamean)
        call advecqx(cgxm,Qb,xwadvec,nx,ny,dsu)
@@ -319,14 +317,9 @@ contains
        else
           Qb  = Qb-par%dt*xwadvec
        endif
-#ifdef USEMPI
-       call xmpi_shift(Qb,'m:') 
-       call xmpi_shift(Qb,'1:')  
-       call xmpi_shift(Qb,':1') 
-       call xmpi_shift(Qb,':n')
-#endif
        call roelvink(par,s,km)        
-    endif
+    end select
+
     ! Dissipation by bed friction
     uorb=par%px*H/par%Trep/sinh(min(max(k,0.01d0)*max(hh,par%delta*H),10.0d0))
     Df=0.6666666d0/par%px*par%rho*par%fw*uorb**3
@@ -359,9 +352,9 @@ contains
     !
     ! calculate roller energy balance
     !
-    call advecxho(rr,cx,xradvec,nx,ny,ntheta,dnu,dsu,dsdnzi,par%dt,par%scheme)
+    call advecxho(rr,cx,xradvec,nx,ny,ntheta,dnu,dsu,dsdnzi,par%scheme)
     if (ny>0) then
-       call advecyho(rr,cy,yradvec,nx,ny,ntheta,dsv,dnv,dsdnzi,par%dt,par%scheme)
+       call advecyho(rr,cy,yradvec,nx,ny,ntheta,dsv,dnv,dsdnzi,par%scheme)
     endif
     !call advectheta(rr*ctheta,thetaradvec,nx,ny,ntheta,dtheta)
     call advecthetaho(rr,ctheta,thetaradvec,nx,ny,ntheta,dtheta,par%scheme)
@@ -408,21 +401,17 @@ contains
        ee(nx+1,:,:) =ee(nx,:,:)
        rr(nx+1,:,:) =rr(nx,:,:)
     endif
-#ifdef USEMPI
-    call xmpi_shift(ee,'m:')  ! fill in ee(nx+1,:,:)
-    call xmpi_shift(rr,'m:')  ! fill in rr(nx+1,:,:)
-#endif
 
     if (par%t>0.0d0) then
        if (ny>0) then
           if (xmpi_isleft)then ! Jaap
-             if (trim(par%rightwave)=='neumann') then
+             if (par%rightwave==RIGHTWAVE_NEUMANN) then
                 !
                 ! Lateral boundary at y=0;
                 !
                 ee(1:nx+1,1,:)=ee(1:nx+1,2,:)
                 rr(1:nx+1,1,:)=rr(1:nx+1,2,:)
-             elseif (trim(par%rightwave)=='wavecrest') then
+             elseif (par%rightwave==RIGHTWAVE_WAVECREST) then
                 !   wcrestpos=xz+tan(thetamean(:,2))*(yz(2)-yz(1))
                 wcrestpos=sdist(:,1)+tan(thetamean(:,2)-alfaz(:,2))*dnv(:,1)
                 do itheta=1,ntheta
@@ -440,13 +429,13 @@ contains
              endif
           endif
           if (xmpi_isright)then
-             if (trim(par%leftwave)=='neumann') then
+             if (par%leftwave==LEFTWAVE_NEUMANN) then
                 !
                 ! lateral; boundary at y=ny*dy
                 !
                 ee(1:nx+1,ny+1,:)=ee(1:nx+1,ny,:)
                 rr(1:nx+1,ny+1,:)=rr(1:nx+1,ny,:)
-             elseif (trim(par%leftwave)=='wavecrest') then
+             elseif (par%leftwave==LEFTWAVE_WAVECREST) then
                 !  wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
                 wcrestpos=sdist(:,ny+1)-tan(thetamean(:,ny)-alfaz(:,ny))*dnv(:,ny)
                 do itheta=1,ntheta
@@ -467,11 +456,8 @@ contains
     endif
     ! wwvv communicate ee(:,1,:)
 #ifdef USEMPI
-    call xmpi_shift(ee,':1')
-    ! wwvv and ee(:,ny+1,:)
-    call xmpi_shift(ee,':n')
-    ! wwv and ee(1,:,:) again
-    call xmpi_shift(ee,'1:')
+    call xmpi_shift_ee(ee)
+    call xmpi_shift_ee(rr)
 #endif
 
     !
@@ -486,7 +472,7 @@ contains
     !
     ! Compute mean wave direction
     !
-    if (par%snells==0) then
+    if (par%snells==0 .and. par%single_dir==0) then
        thetamean=(sum(ee*thet,3)/ntheta)/(max(sum(ee,3),0.00001d0)/ntheta)
     endif
     !
@@ -537,14 +523,6 @@ contains
     ! value if the submatrices are not on suitable border. 
     ! I guess that it is necessary to communicate with neighbours the values of these elements
 
-#ifdef USEMPI
-    call xmpi_shift(Fx,':1')  ! shift in Fx(:,1)
-    call xmpi_shift(Fx,'m:')  ! shift in Fx(nx+1,:)
-    call xmpi_shift(Fx,':n')  ! shift in Fx(:,ny+1)
-    call xmpi_shift(Fy,'1:')  ! shift in Fy(1,:)
-    call xmpi_shift(Fy,'m:')  ! shift in Fy(nx+1,:)
-    call xmpi_shift(Fy,':n')  ! shift in Fy(:,ny+1)
-#endif
 
     ! wwvv todo the following has consequences for // version
     if(xmpi_istop) then
@@ -589,16 +567,12 @@ contains
     endif
     if(xmpi_isleft.and.ny>0) then
        ust(:,1) = ust(:,2)
+       
     endif
     if(xmpi_isright.and. ny>0) then
        ust(:,ny+1) = ust(:,ny)
     endif
 
-#ifdef USEMPI
-    call xmpi_shift(ust,'1:')  ! get ust(1,:) from above
-    call xmpi_shift(ust,':1')  ! get ust(:,1) from left
-    call xmpi_shift(ust,':n')  ! get ust(:,ny+1) from right
-#endif
   end subroutine wave_instationary
 
 end module wave_instationary_module

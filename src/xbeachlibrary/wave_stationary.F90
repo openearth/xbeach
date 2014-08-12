@@ -16,7 +16,7 @@ contains
     type(spacepars), target     :: s
     type(parameters)            :: par
 
-    integer                     :: i,imax,it,i1
+    integer                     :: i,imax,i1
     integer                     :: j
     integer                     :: itheta,iter
     integer, dimension(:,:,:),allocatable,save  :: wete
@@ -31,12 +31,6 @@ contains
     real*8 , dimension(:)  ,allocatable,save    :: dkmxdx,dkmxdy,dkmydx,dkmydy,cgxm,cgym,arg,fac,xwadvec,ywadvec
     real*8 , dimension(:,:),allocatable,save    :: wcifacu,wcifacv,uorb
     logical                                     :: stopiterate
-
-#ifdef USEMPI
-    ! some variables used for mpi only
-    real*8                      :: imaxr
-    integer                     :: iimpi
-#endif
 
     include 's.ind'
     include 's.inp'
@@ -87,7 +81,7 @@ contains
 
     endif
 
-    wete        = 0.0d0
+    wete        = 0
     xadvec      = 0.0d0
     yadvec      = 0.0d0
     thetaadvec  = 0.0d0
@@ -160,9 +154,6 @@ contains
        costh(:,:,1)=cos(thetamean-alfaz)
        sinth(:,:,1)=sin(thetamean-alfaz)
     endif
-#ifdef USEMPI
-    call xmpi_shift(thetamean,'1:')
-#endif
 
     ! Calculate once velocities used with and without wave current interaction
     wcifacu=u*par%wci*min(hh/par%hwci,1.d0)
@@ -184,45 +175,24 @@ contains
 
     km = k
 
-#ifdef USEMPI
-    call xmpi_shift(km,'1:')
-#endif
 
     !dtw=.9*minval(xz(2:nx+1)-xz(1:nx))/maxval(cgx)
-
-#ifdef USEMPI
-    do iimpi=1,xmpi_m    ! Start iteration for number of domains in x direction
-       if (xmaster) call writelog('ls','(a,i0,a,i0,a)','Starting wave propagation over ',iimpi,' of ',xmpi_m,' MPI rows')
-       call xmpi_shift(ee,'1:')
-       call xmpi_shift(rr,'1:')
-       call xmpi_shift(km,'1:')
-       call xmpi_shift(sigm,'1:')
-#endif 
 
        E(1,:)=sum(ee(1,:,:),2)*dtheta
        R(1,:)=max(sum(rr(1,:,:),2)*dtheta,0.0d0)
        H(1,:)=sqrt(E(1,:)/par%rhog8)
 
        imax=nx
-#ifdef USEMPI
-       imaxr=real(imax)
-       call xmpi_allreduce(imaxr,MPI_MAX)
-       imax=nint(imaxr)
-#endif 
+!Dano  This is ok, since we will set mpiboundary to y in stationary mode
 
-       do it=2,imax
-          ! In the case of uneven grids, ensure that each process continues running
-          ! until greatest grid is complete.
-          ! Start shorter grid at offshore (+1) point again while larger grid finalizes last
-          ! grid rows.
-          if (it .le. nx) then
-             i=it
-          else
-             i=it+1-nx
-          endif
-          dtw=.5*minval(dsu(i:i+1,:))/maxval(cgx(i-1:i+1,:,:))
-          dtw=min(dtw,.5*minval(dnv(i,2:ny+1))/maxval(abs(cgy(i,:,:))))
-          dtw=min(dtw,.5*dtheta/maxval(abs(ctheta(i,:,:))))
+       do i=2,imax
+          dtw=.5*minval(dsu(i:i+1,jmin_ee:jmax_ee))/maxval(cgx(i-1:i+1,jmin_ee:jmax_ee,:))
+          dtw=min(dtw,.5*minval(dnv(i,jmin_ee:jmax_ee))/maxval(abs(cgy(i,jmin_ee:jmax_ee,:))))
+          dtw=min(dtw,.5*dtheta/maxval(abs(ctheta(i,jmin_ee:jmax_ee,:))))
+!Dano: need to make sure all processes use the same dtw, min of all processes
+#ifdef USEMPI
+          call xmpi_allreduce(dtw,MPI_MIN)
+#endif 
           Herr=1.
           iter=0
           arg = min(100.0d0,km(i,:)*(hh(i,:)+par%delta*H(i,:)))
@@ -270,12 +240,12 @@ contains
                 ywadvec(ny+1)=ywadvec(ny)
                 kmy(2,:) = kmy(2,:) -dtw*ywadvec + dtw*cgxm*(dkmydx-dkmxdy)
 
-                ! wwvv 
+                ! Dano
 #ifdef USEMPI
-                call xmpi_shift(kmx,':n')
-                call xmpi_shift(kmy,':n')
-                call xmpi_shift(kmx,':1')
-                call xmpi_shift(kmy,':1')
+                call xmpi_shift(kmx(1:2,:),SHIFT_Y_R,1,2)
+                call xmpi_shift(kmx(1:2,:),SHIFT_Y_L,3,4)
+                call xmpi_shift(kmy(1:2,:),SHIFT_Y_R,1,2)
+                call xmpi_shift(kmy(1:2,:),SHIFT_Y_L,3,4)
 #endif
                 km(i,:) = sqrt(kmx(2,:)**2+kmy(2,:)**2)
                 km(i,:) = min(km(i,:),25.d0) ! limit to gravity waves
@@ -298,15 +268,15 @@ contains
              !
              ! Upwind Euler timestep propagation
              !
-             if  (i>2) then
+             if  (i>2.and. par%scheme==SCHEME_UPWIND_2) then
                 call advecxho(ee(i-2:i+1,:,:),cgx(i-2:i+1,:,:),xadvec(i-2:i+1,:,:),    &
-                     3,ny,ntheta,dnu(i-2:i+1,:),dsu(i-2:i+1,:),dsdnzi(i-2:i+1,:),par%dt,'upwind_2')
+                     3,ny,ntheta,dnu(i-2:i+1,:),dsu(i-2:i+1,:),dsdnzi(i-2:i+1,:),SCHEME_UPWIND_2)
              else
                 call advecxho(ee(i-1:i+1,:,:),cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),    &
-                     2,ny,ntheta,dnu(i-1:i+1,:),dsu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_1')
+                     2,ny,ntheta,dnu(i-1:i+1,:),dsu(i-1:i+1,:),dsdnzi(i-1:i+1,:),SCHEME_UPWIND_1)
              endif
              call advecyho(ee(i,:,:),cgy(i,:,:),yadvec(i,:,:),                                  &
-                  0,ny,ntheta,dsv(i,:),dnv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
+                  0,ny,ntheta,dsv(i,:),dnv(i,:),dsdnzi(i,:),SCHEME_UPWIND_1)
              !call advecx(ee(i-1:i+1,:,:)*cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),2,ny,ntheta,dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:))
              !call advecy(ee(i,:,:)*cgy(i,:,:),yadvec(i,:,:),0,ny,ntheta,dsv(i,:),dsdnzi(i,:))
              !call advectheta(ee(i,:,:)*ctheta(i,:,:),thetaadvec(i,:,:),0,ny,ntheta,dtheta)
@@ -314,6 +284,10 @@ contains
 
              ee(i,:,:)=ee(i,:,:)-dtw*(xadvec(i,:,:) + yadvec(i,:,:) &
                   + thetaadvec(i,:,:))
+#ifdef USEMPI
+             call xmpi_shift(ee(i-1:i,:,:),SHIFT_Y_R,1,2)
+             call xmpi_shift(ee(i-1:i,:,:),SHIFT_Y_L,3,4)
+#endif
              !
              ! transform back to wave energy
              !
@@ -337,13 +311,24 @@ contains
              endif
              !
              ! Total dissipation
-             if(trim(par%break)=='roelvink1' .or. trim(par%break)=='roelvink2') then
+
+             select case(par%break)
+               case(BREAK_ROELVINK1,BREAK_ROELVINK2)
                 call roelvink       (par,s,km(i,:),i)
-             else if(trim(par%break)=='baldock') then
+               case(BREAK_BALDOCK)
                 call baldock        (par,s,km(i,:),i)
-             elseif (trim(par%break)=='janssen') then
+               case(BREAK_JANSSEN)
                 call janssen_battjes(par,s,km(i,:),i)
-             end if
+             end select
+
+
+!             if(trim(par%break)=='roelvink1' .or. trim(par%break)=='roelvink2') then
+!                call roelvink       (par,s,km(i,:),i)
+!             else if(trim(par%break)=='baldock') then
+!                call baldock        (par,s,km(i,:),i)
+!             elseif (trim(par%break)=='janssen') then
+!                call janssen_battjes(par,s,km(i,:),i)
+!             end if
              ! Dissipation by bed friction
              uorb(i,:)=par%px*H(i,:)/par%Trep/sinh(min(max(k(i,:),0.01d0)*max(hh(i,:),par%delta*H(i,:)),10.0d0))
              Df(i,:)=0.6666666d0/par%px*par%rho*par%fw*uorb(i,:)**3
@@ -351,7 +336,7 @@ contains
                 Df = 0.d0
              end where
              !
-             ! Distribution of dissipation ovater directions and frequencies
+             ! Distribution of dissipation over directions and frequencies
              !
              do itheta=1,ntheta
                 dd(i,:,itheta)=ee(i,:,itheta)*(D(i,:)+Df(i,:))/max(E(i,:),0.00001d0)
@@ -370,9 +355,9 @@ contains
              ! calculate roller energy balance
              !
              call advecxho(rr(i-1:i+1,:,:),cx(i-1:i+1,:,:),xradvec(i-1:i+1,:,:),   &
-                  2,ny,ntheta,dnu(i-1:i+1,:),dsu(i-1:i+1,:),dsdnzi(i-1:i+1,:),par%dt,'upwind_1')
+                  2,ny,ntheta,dnu(i-1:i+1,:),dsu(i-1:i+1,:),dsdnzi(i-1:i+1,:),SCHEME_UPWIND_1)
              call advecyho(rr(i,:,:),cy(i,:,:),yradvec(i,:,:),                                 &
-                  0,ny,ntheta,dsv(i,:),dnv(i,:),dsdnzi(i,:),par%dt,'upwind_1')
+                  0,ny,ntheta,dsv(i,:),dnv(i,:),dsdnzi(i,:),SCHEME_UPWIND_1)
              !call advecx(rr(i-1:i+1,:,:)*cx(i-1:i+1,:,:),xradvec(i-1:i+1,:,:),2,ny,ntheta,dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:)) !Robert & Jaap
              !call advecy(rr(i,:,:)*cy(i,:,:),yradvec(i,:,:),0,ny,ntheta,dsv(i,:),dsdnzi(i,:))                   !Robert & Jaap
              !call advectheta(rr(i,:,:)*ctheta(i,:,:),thetaradvec(i,:,:),0,ny,ntheta,dtheta)   !Robert & Jaap
@@ -382,15 +367,23 @@ contains
                   +yradvec(i,:,:) &
                   +thetaradvec(i,:,:))
              rr(i,:,:)=max(rr(i,:,:),0.0d0)
+#ifdef USEMPI
+             call xmpi_shift(rr(i-1:i,:,:),SHIFT_Y_R,1,2)
+             call xmpi_shift(rr(i-1:i,:,:),SHIFT_Y_L,3,4)
+#endif
              !
              ! euler step roller energy dissipation (source and sink function)
-             do j=1,ny+1
+             do j=jmin_ee,jmax_ee
                 do itheta=1,ntheta        
                    if (dtw*dd(i,j,itheta)>ee(i,j,itheta)) then
                       dtw=min(dtw,.5*ee(i,j,itheta)/dd(i,j,itheta))                
                    endif
                 enddo
              enddo
+!Dano: need to make sure all processes use the same dtw, min of all processes
+#ifdef USEMPI
+             call xmpi_allreduce(dtw,MPI_MIN)
+#endif
              do j=1,ny+1
                 do itheta=1,ntheta                        
                    if(wete(i,j,itheta)==1) then
@@ -427,7 +420,7 @@ contains
              endif
              if (xmpi_isright .and. ny>0) then
                 do itheta=1,ntheta 
-                   if (sinth(i,1,itheta)<=0.) then
+                   if (sinth(i,ny+1,itheta)<=0.) then
                       ee(i,ny+1,itheta)=ee(i,ny,itheta)
                       rr(i,ny+1,itheta)=rr(i,ny,itheta)
                    endif
@@ -435,17 +428,6 @@ contains
                 km(:,ny+1)=km(:,ny)
                 sigm(:,ny+1)=sigm(:,ny)
              endif
-             ! Pass internal boundaries
-#ifdef USEMPI
-             call xmpi_shift(ee,':1')
-             call xmpi_shift(ee,':n')
-             call xmpi_shift(rr,':1')
-             call xmpi_shift(rr,':n')
-             call xmpi_shift(km,':1')
-             call xmpi_shift(km,':n')
-             call xmpi_shift(sigm,':1')
-             call xmpi_shift(sigm,':n')
-#endif
              !
              ! Compute mean wave direction
              !
@@ -460,7 +442,7 @@ contains
              R(i,:)=sum(rr(i,:,:),2)*dtheta
              DR(i,:)=sum(drr(i,:,:),2)*dtheta
              H(i,:)=sqrt(E(i,:)/par%rhog8)
-             Herr=maxval(abs(Hprev-H(i,:)))
+             Herr=maxval(abs(Hprev(jmin_ee:jmax_ee)-H(i,jmin_ee:jmax_ee)))
 #ifdef USEMPI
              call xmpi_allreduce(Herr,MPI_MAX)	 
 #endif
@@ -468,19 +450,14 @@ contains
              if (iter<par%maxiter) then
                 if (Herr<par%maxerror) then
                    stopiterate=.true.
-                   if(xmaster) call writelog('ls','(a,i4,a,i4)','Wave propagation row ',it,', iteration ',iter)
+                   if(xmaster) call writelog('ls','(a,i4,a,i4)','Wave propagation row ',i,', iteration ',iter)
                 endif
              else
                 stopiterate=.true.
-                if(xmaster) call writelog('ls','(a,i4,a,i4,a,f5.4)','Wave propagation row ',it,', iteration ',iter,', error: ',Herr)
+                if(xmaster) call writelog('ls','(a,i4,a,i4,a,f5.4)','Wave propagation row ',i,', iteration ',iter,', error: ',Herr)
              endif
           enddo ! End while loop
        enddo ! End do i=2:nx loop  
-
-
-#ifdef USEMPI
-    enddo      ! End loop through mpi grids		 
-#endif
 
     ee(nx+1,:,:) = ee(nx,:,:)
     rr(nx+1,:,:) = rr(nx,:,:)
@@ -546,16 +523,6 @@ contains
     ! Fy(1,:)=Fy(2,:)
 
     ! wwvv
-#ifdef USEMPI
-    call xmpi_shift(Fx,':1')
-    call xmpi_shift(Fy,':1')
-    call xmpi_shift(Fx,':n')
-    call xmpi_shift(Fy,':n')
-    call xmpi_shift(Fx,'1:')
-    call xmpi_shift(Fy,'1:')
-    call xmpi_shift(Fx,'m:')
-    call xmpi_shift(Fy,'m:')
-#endif
     
     urms=par%px*H/par%Trep/(sqrt(2.d0)*sinh(k*max(hh,par%delta*H)))
     !ust=E*k/sigm/par%rho/max(hh,0.001)
@@ -577,11 +544,6 @@ contains
        ust(:,ny+1) = ust(:,ny)
     endif
     ! wwvv
-#ifdef USEMPI
-    call xmpi_shift(ust,'1:')
-    call xmpi_shift(ust,':1')
-    call xmpi_shift(ust,':n')
-#endif
     !D=2*par%g*par%beta*sum(rr/sqrt(cx**2+cy**2),3)*dtheta ! Arnold: commented this line, seems like a copy/paste error.
 
   end subroutine wave_stationary

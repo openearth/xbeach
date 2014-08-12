@@ -26,6 +26,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 module groundwaterflow
    use typesandkinds
+   implicit none
    private    ! set private default
    ! set these public to users of groundwater module
    public gw_init
@@ -47,8 +48,6 @@ subroutine gw_init(s,par)
    type(parameters)                            :: par
    type(spacepars)                             :: s
 
-   character(slen)                             :: fname
-   real*8                                      :: aquiferbot,temp
    integer                                     :: i,j
 
 
@@ -90,10 +89,6 @@ subroutine gw_init(s,par)
          end do
          close(31)
       endif
-      !where(s%wetz==1)
-      !   s%gwhead = s%zs0
-      !endwhere
-      !
       if (xmpi_istop) then
          s%gwbottom(1,:) = s%gwbottom(2,:)
       endif
@@ -147,7 +142,7 @@ subroutine gw_bc(s,par)
       s%gwbottom(1,:) = s%gwbottom(2,:)
    endif
    if (xmpi_isbot) then
-      if (par%tideloc==4 .or. (par%tideloc==2 .and. trim(par%paulrevere)=='land')) then
+      if (par%tideloc==4 .or. (par%tideloc==2 .and. par%paulrevere==PAULREVERE_LAND)) then
 !          s%gwhead(s%nx+1,:)=s%zs0(s%nx+1,:)
           s%gwhead(s%nx+1,:)=s%gwhead(s%nx,:)
       else
@@ -167,14 +162,8 @@ subroutine gw_bc(s,par)
    endif
 
 #ifdef USEMPI
-   call xmpi_shift(s%gwhead,':1')
-   call xmpi_shift(s%gwhead,':n')
-   call xmpi_shift(s%gwhead,'1:')
-   call xmpi_shift(s%gwhead,'m:')
-   call xmpi_shift(s%gwlevel,':1')
-   call xmpi_shift(s%gwlevel,':n')
-   call xmpi_shift(s%gwlevel,'1:')
-   call xmpi_shift(s%gwlevel,'m:')
+   call xmpi_shift_ee(s%gwhead)
+   call xmpi_shift_ee(s%gwlevel)
 #endif
    if(xmpi_istop) then
       s%gwlevel(1,:)=min(s%gwhead(1,:),s%zb(1,:))
@@ -194,7 +183,7 @@ subroutine gwflow(s,par)
   IMPLICIT NONE
 
   type(parameters)                            :: par
-  type(spacepars)                             :: s
+  type(spacepars),target                      :: s
   
   ! internal variables
   integer                                     :: i,j
@@ -209,7 +198,10 @@ subroutine gwflow(s,par)
   real*8,dimension(:,:),allocatable,save      :: fracdt
   real*8,dimension(:,:),allocatable,save      :: zsupd,ratio
   real*8,dimension(:,:),allocatable,save      :: dynpresupd
-  real*8,dimension(:,:),allocatable,save      :: infiluncon,infilcon
+  real*8,dimension(:,:),allocatable,save      :: infiluncon
+ ! wwvv changed allocatable into pointer:
+  ! wwvv see also later in this file
+  real*8,dimension(:,:),pointer,save          :: infilcon
   real*8,dimension(:,:),allocatable,save      :: infilhorgw,infilhorsw
   real*8,dimension(:,:),allocatable,save      :: gwumean
   real*8                                      :: factime,w1,w2,dft
@@ -514,7 +506,10 @@ subroutine gwflow(s,par)
         s%dinfil=min(s%dinfil,s%zb-s%gwlevel)
         s%dinfil=max(s%dinfil,par%dwetlayer/3.d0)
      endwhere
-     infilcon = gw_calculate_hydrostatic_w(s,par,ratio)
+     ! wwvv since gw_calculate_hydrostatic_w returns a pointer:
+     ! wwvv changed '=' into '=>'
+     ! wwvv see also the declaration of infilcon
+     infilcon => gw_calculate_hydrostatic_w(s,par,ratio)
      where (infilcon*par%dt>hh-par%eps)
         infilcon=(hh-par%eps)/par%dt
      endwhere
@@ -535,18 +530,9 @@ subroutine gwflow(s,par)
   ! Model boundaries
   ! Robert: check if all these are actually needed
 #ifdef USEMPI
-  call xmpi_shift(gwlevel,'1:')   
-  call xmpi_shift(gwlevel,'m:')   
-  call xmpi_shift(gwlevel,':1')   
-  call xmpi_shift(gwlevel,':n')
-  call xmpi_shift(gwhead,'1:')   
-  call xmpi_shift(gwhead,'m:')   
-  call xmpi_shift(gwhead,':1')   
-  call xmpi_shift(gwhead,':n')  
-  call xmpi_shift(gwcurv,'1:')   
-  call xmpi_shift(gwcurv,'m:')   
-  call xmpi_shift(gwcurv,':1')   
-  call xmpi_shift(gwcurv,':n') 
+  call xmpi_shift_ee(gwlevel)
+  call xmpi_shift_ee(gwhead)
+   call xmpi_shift_ee(gwcurv)
 #endif
   if (xmpi_istop) then
      gwlevel(1,:) = gwlevel(2,:)
@@ -607,9 +593,9 @@ subroutine gw_unconnected_infil(s,par,Kzinf,connected,fracdt,infil)
   !
   ! infiltration depends on turbulent or laminar method
   select case (par%gwscheme)
-     case ('laminar')
+     case (GWSCHEME_LAMINAR)
         turbapprox = .false.
-     case ('turbulent')
+     case (GWSCHEME_TURBULENT)
         turbapprox = .true.
   end select
   !   
@@ -682,9 +668,6 @@ subroutine gw_calculate_interfaceheight(s,gwhu,gwhv,initial)
   endif
   gwhu = max(gwhu,0.d0) ! in case of drying cells
   ! boundaries
-#ifdef USEMPI
-  call xmpi_shift(gwhu,'m:')
-#endif 
   if (xmpi_isbot) then
      gwhu(s%nx+1,:) = gwhu(s%nx,:)
   endif
@@ -718,9 +701,6 @@ subroutine gw_calculate_interfaceheight(s,gwhu,gwhv,initial)
      endif
      gwhv = max(gwhv,0.d0) ! in case of drying cells
      ! Boundaries
-#ifdef USEMPI
-     call xmpi_shift(gwhv,':n')
-#endif  
      if (xmpi_isright) then
         gwhv(:,s%ny+1) = gwhv(:,s%ny)
      endif   
@@ -820,6 +800,9 @@ subroutine gw_solver(par,s,hbc,Kx,Ky,Kz,hu,hv,fracdt)
   
   twothird = 2.d0/3
   
+  i=0
+  k=0
+  
   ! use tridiagonal solver if ny<=2
   if (s%ny<3) then
      if (par%ny==0) then
@@ -837,8 +820,8 @@ subroutine gw_solver(par,s,hbc,Kx,Ky,Kz,hu,hv,fracdt)
         allocate(x(n,1))
      endif
      ! build Matrix solver coefficients
-     select case (trim(par%gwheadmodel))
-        case ('parabolic')
+     select case (par%gwheadmodel)
+        case (GWHEADMODEL_PARABOLIC)
            do k=1,n
               i = k+1
               if (s%zb(i,1)>s%gwbottom(i,1)+par%eps) then
@@ -874,7 +857,7 @@ subroutine gw_solver(par,s,hbc,Kx,Ky,Kz,hu,hv,fracdt)
                  rhs(k,1) = 0.d0
               endif
            enddo
-        case ('exponential')
+        case (GWHEADMODEL_EXPONENTIAL)
            do k=1,n
               i = k+1
               ! abbreviations
@@ -911,10 +894,10 @@ subroutine gw_solver(par,s,hbc,Kx,Ky,Kz,hu,hv,fracdt)
      call solver_tridiag(A,rhs,x,work(1,:,1),n-1,0,fixshallow=.true.) 
      ! return to global variable
      s%gwcurv(2:s%nx,j) = x(:,1)
-     select case (trim(par%gwheadmodel))
-        case ('parabolic')
+     select case (par%gwheadmodel)
+        case (GWHEADMODEL_PARABOLIC)
            s%gwhead(2:s%nx,j) = hbc(2:s%nx,j) - twothird*x(:,1)*s%gwheight(2:s%nx,j)**2
-        case ('exponential')
+        case (GWHEADMODEL_EXPONENTIAL)
            s%gwhead(2:s%nx,j) = hbc(2:s%nx,j)+ &
                                  x(:,1)/s%gwheight(2:s%nx,j)*sinh(s%gwheight(2:s%nx,j)) &
                                  -x(:,1)*cosh(s%gwheight(2:s%nx,j))
@@ -941,8 +924,8 @@ subroutine gw_solver(par,s,hbc,Kx,Ky,Kz,hu,hv,fracdt)
         endif
         do j=2,m-1
            ! build Matrix solver coefficients
-           select case (trim(par%gwheadmodel))
-              case ('parabolic')
+           select case (par%gwheadmodel)
+              case (GWHEADMODEL_PARABOLIC)
                  do i=1,n
                     imin = max(i-1,1)
                     imax = min(i+1,s%nx+1)
@@ -964,6 +947,9 @@ subroutine gw_solver(par,s,hbc,Kx,Ky,Kz,hu,hv,fracdt)
                     hup = hu(i,j)
                     hvm = hv(i,j-1)
                     hvp = hv(i,j)
+                    ! wwvv problem what is the value of k here
+                    ! wwvv to avoid warnings about uninitialized value for k
+                    ! wwvv I initialize k at the start of the program
                     A(2,k,1) = -Kx(imin,j)*hum*dyum/dxum*twothird*hcmx**2
                     A(1,k,1) =  Kx(imin,j)*hum*dyum/dxum*twothird*hcc**2 + &
                                 Kx(i,j)*hup*dyup/dxup*twothird*hcc**2 + &
@@ -974,7 +960,10 @@ subroutine gw_solver(par,s,hbc,Kx,Ky,Kz,hu,hv,fracdt)
                              + hvm*dxvm*s%gwv(i,j-1) - hvp*dxvp*s%gwv(i,j)
 
                  enddo
-              case ('exponential')
+              case (GWHEADMODEL_EXPONENTIAL)
+                ! wwvv problem detected by compiler: should this not be an i-loop?
+                ! wwvv compiler suspects uninitialized value for i, I initialize i
+                ! wwvv to 0 at the start of the subroutine
                  do k=1,n
                     imin = max(i-1,1)
                     imax = min(i+1,s%nx+1)
@@ -1008,10 +997,10 @@ subroutine gw_solver(par,s,hbc,Kx,Ky,Kz,hu,hv,fracdt)
            end select
            call solver_tridiag(A,rhs,x,work(1,:,1),n-1,0,fixshallow=.true.) 
            s%gwcurv(:,j) = x(:,1)
-           select case (trim(par%gwheadmodel))
-              case ('parabolic')
+           select case (par%gwheadmodel)
+              case (GWHEADMODEL_PARABOLIC)
                  s%gwhead(2:s%nx,j) = hbc(2:s%nx,j) - twothird*x(:,1)*s%gwheight(2:s%nx,j)**2
-              case ('exponential')
+              case (GWHEADMODEL_EXPONENTIAL)
                  s%gwhead(2:s%nx,j) = hbc(2:s%nx,j)+ &
                                       x(:,1)/s%gwheight(2:s%nx,j)*sinh(s%gwheight(2:s%nx,j)) &
                                      -x(:,1)*cosh(s%gwheight(2:s%nx,j))
@@ -1035,8 +1024,8 @@ subroutine gw_solver(par,s,hbc,Kx,Ky,Kz,hu,hv,fracdt)
            res = 0.d0
         endif
         ! build Matrix solver coefficients
-        select case (trim(par%gwheadmodel))
-           case ('parabolic')
+        select case (par%gwheadmodel)
+           case (GWHEADMODEL_PARABOLIC)
               do j=1,m
                  do i=1,n
                     imin = max(i-1,1)
@@ -1095,10 +1084,10 @@ subroutine gw_solver(par,s,hbc,Kx,Ky,Kz,hu,hv,fracdt)
         end select
      endif ! speedup 2D
     
-     select case (trim(par%gwheadmodel))
-        case ('parabolic')
+     select case (par%gwheadmodel)
+        case (GWHEADMODEL_PARABOLIC)
            s%gwhead = hbc - twothird*s%gwcurv*s%gwheight**2
-        case ('exponential')
+        case (GWHEADMODEL_EXPONENTIAL)
            s%gwhead = hbc + s%gwcurv/s%gwheight*sinh(s%gwheight) &
                           - s%gwcurv*cosh(s%gwheight)
      end select
@@ -1120,7 +1109,8 @@ subroutine gw_horizontal_infil_exfil(s,par,infilhorgw,infilhorsw,Kx,Ky,dynpres)
   integer                                     :: i,j
   real*8                                      :: dz,dx,dy,vel,hsurf,hgw,dhead
   real*8,parameter                            :: visc = 1.0d-6
-  real*8                                      :: vcr,dum,scaleareab,scaleareas
+  real*8                                      :: vcr,scaleareab,scaleareas
+  real*8                                      :: dum1,dum2,dum3
   
   infilhorgw = 0.d0
   infilhorsw = 0.d0
@@ -1138,8 +1128,8 @@ subroutine gw_horizontal_infil_exfil(s,par,infilhorgw,infilhorsw,Kx,Ky,dynpres)
           dx = s%dsz(i+1,j)
           dhead = hsurf-hgw         ! positive gradient if hsurf>hgw
                                     ! negative velocitity if infiltration
-          call gw_calculate_velocities_local(vel,dum,dhead/dx,Kx(i+1,j),0.d0,par%gwscheme, &
-                                             .false.,.false.,par%gwheadmodel,dum,dum,vcr)
+          call gw_calculate_velocities_local(vel,dum1,dhead/dx,Kx(i+1,j),0.d0,par%gwscheme, &
+                                             .false.,.false.,par%gwheadmodel,dum2,dum3,vcr)
           vel = -vel                ! convert negative down velocity into positive if infiltration,
                                     ! negative if exfiltration 
           ! horizontal infiltration occurs along small side section, so scale the horizontal
@@ -1168,8 +1158,8 @@ subroutine gw_horizontal_infil_exfil(s,par,infilhorgw,infilhorsw,Kx,Ky,dynpres)
           dx = s%dsz(i,j)
           dhead = hsurf-hgw         ! positive gradient if hsurf>hgw
                                     ! negative velocitity if infiltration
-          call gw_calculate_velocities_local(vel,dum,dhead/dx,Kx(i,j),0.d0,par%gwscheme, &
-                                             .false.,.false.,par%gwheadmodel,dum,dum,vcr)
+          call gw_calculate_velocities_local(vel,dum1,dhead/dx,Kx(i,j),0.d0,par%gwscheme, &
+                                             .false.,.false.,par%gwheadmodel,dum2,dum3,vcr)
           vel = -vel                ! convert negative down velocity into positive if infiltration,
                                     ! negative if exfiltration 
           ! horizontal infiltration occurs along small side section, so scale the horizontal
@@ -1208,8 +1198,8 @@ subroutine gw_horizontal_infil_exfil(s,par,infilhorgw,infilhorsw,Kx,Ky,dynpres)
           dy = s%dnz(i,j+1)
           dhead = hsurf-hgw         ! positive gradient if hsurf>hgw
                                     ! negative velocitity if infiltration
-          call gw_calculate_velocities_local(vel,dum,dhead/dy,Kx(i,j+1),0.d0,par%gwscheme, &
-                                             .false.,.false.,par%gwheadmodel,dum,dum,vcr)
+          call gw_calculate_velocities_local(vel,dum1,dhead/dy,Kx(i,j+1),0.d0,par%gwscheme, &
+                                             .false.,.false.,par%gwheadmodel,dum2,dum3,vcr)
           vel = -vel                ! convert negative down velocity into positive if infiltration,
                                     ! negative if exfiltration 
           ! horizontal infiltration occurs along small side section, so scale the horizontal
@@ -1238,8 +1228,8 @@ subroutine gw_horizontal_infil_exfil(s,par,infilhorgw,infilhorsw,Kx,Ky,dynpres)
           dy = s%dnz(i,j)
           dhead = hsurf-hgw         ! positive gradient if hsurf>hgw
                                     ! negative velocitity if infiltration
-          call gw_calculate_velocities_local(vel,dum,dhead/dy,Kx(i,j),0.d0,par%gwscheme, &
-                                             .false.,.false.,par%gwheadmodel,dum,dum,vcr)
+          call gw_calculate_velocities_local(vel,dum1,dhead/dy,Kx(i,j),0.d0,par%gwscheme, &
+                                             .false.,.false.,par%gwheadmodel,dum2,dum3,vcr)
           vel = -vel                ! convert negative down velocity into positive if infiltration,
                                     ! negative if exfiltration 
           ! horizontal infiltration occurs along small side section, so scale the horizontal
@@ -1290,10 +1280,6 @@ subroutine gw_calculate_velocities(s,par,fracdt,gwu,gwv,gww,Kx,Ky,Kz,Kxupd,Kyupd
     
   ! Calculate the head gradient
   call gwCalculateHeadGradient(s%nx,s%ny,s%gwhead,s%dsu,s%dnv,dheaddx,dheaddy)
-#ifdef USEMPI
-  call xmpi_shift(dheaddy,':1')
-  call xmpi_shift(dheaddx,'1:')
-#endif  
   if (xmpi_istop) then
      dheaddx(1,:) = dheaddx(2,:)
   endif
@@ -1334,24 +1320,26 @@ end subroutine gw_calculate_velocities
 
 pure subroutine gw_calculate_velocities_local(vel,Kupd,headgrad,Kin,fracdt,gwscheme,isvert,isnonh,headmodel,gwc,gwh,vcr)
 ! compute local groundwater velocity component
+  use paramsconst
   IMPLICIT NONE
   
   ! input/output
   real*8,intent(out)          :: vel,Kupd
   real*8,intent(in)           :: headgrad,Kin,fracdt
-  character(*),intent(in)     :: gwscheme,headmodel
+  integer, intent(in)         :: gwscheme
+  integer, intent(in)         :: headmodel
   logical,intent(in)          :: isvert,isnonh
   real*8,intent(in)           :: gwc,gwh,vcr
   ! internal
   real*8                      :: Re,vest,err,fac,kest,vupd
     
-  select case (trim(gwscheme))
-     case ('laminar') 
+  select case (gwscheme)
+     case (GWSCHEME_LAMINAR) 
         if (isvert .and. isnonh) then  ! vertical flow non-hydrostatic
-           select case(trim(headmodel))
-              case ('parabolic')
+           select case(headmodel)
+              case (GWHEADMODEL_PARABOLIC)
                  vel = -Kin*2*gwc*gwh*(1.d0-fracdt)
-              case ('exponential')
+              case (GWHEADMODEL_EXPONENTIAL)
                  vel = -Kin*gwc*sinh(gwh)*(1.d0-fracdt)
            end select
         elseif (isvert .and. .not. isnonh) then  ! vertical flow hydrostatic
@@ -1360,10 +1348,10 @@ pure subroutine gw_calculate_velocities_local(vel,Kupd,headgrad,Kin,fracdt,gwsch
            vel = -Kin*headgrad
         endif
         Kupd = Kin
-     case ('turbulent')
+     case (GWSCHEME_TURBULENT)
         if (isvert .and. isnonh) then  ! vertical flow non-hydrostatic
-           select case(trim(headmodel))
-              case ('parabolic')
+           select case(headmodel)
+              case (GWHEADMODEL_PARABOLIC)
                  vest = -Kin*2*gwc*gwh
                  if (abs(vest)>vcr) then
                     err = 1.d0
@@ -1384,7 +1372,7 @@ pure subroutine gw_calculate_velocities_local(vel,Kupd,headgrad,Kin,fracdt,gwsch
                  else
                     vel = -Kupd*2*gwc*gwh
                  endif
-              case ('exponential')
+              case (GWHEADMODEL_EXPONENTIAL)
                  vest = -Kin*gwc*sinh(gwh)
                  if (abs(vest)>vcr) then
                     err = 1.d0
@@ -1443,7 +1431,7 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
   IMPLICIT NONE
 
   type(parameters)                            :: par
-  type(spacepars)                             :: s
+  type(spacepars),target                      :: s
   real*8,dimension(s%nx+1,s%ny+1)             :: ratio
   ! local
   integer                                     :: i,j
@@ -1455,7 +1443,7 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
   include 's.inp'
   
   ! Select turbulent approximation of groundwater flow
-  if (trim(par%gwscheme)=='turbulent') then
+  if (par%gwscheme==GWSCHEME_TURBULENT) then
      turbapprox = .true.
   else
      turbapprox = .false.
@@ -1486,10 +1474,6 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
         endif
      enddo
      ! boundaries
-#ifdef USEMPI
-     call xmpi_shift(infil,'1:')
-     call xmpi_shift(infil,'m:')
-#endif
      if (xmpi_istop) then
         infil(1,1) = infil(2,1)
      endif
@@ -1517,12 +1501,6 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
            endif
         enddo
      enddo
-#ifdef USEMPI
-     call xmpi_shift(infil,'1:')
-     call xmpi_shift(infil,'m:')
-     call xmpi_shift(infil,':1')
-     call xmpi_shift(infil,':n')
-#endif
      if (xmpi_istop) then
         infil(1,:) = infil(2,:)
      endif
@@ -1748,6 +1726,8 @@ pure subroutine gw_calc_local_connected_infil(par,gwhead,gwlevel,zb,headtop,hh,D
   ! infil = kz * (dp/dz) = kz * headdif/dz = kx * headdif / (infil*dt/por)
   ! infil = sqrt(kz * headdif * por/dt)
   !
+  err = 0
+
   if(gwlevel<zb) then
      infiltrate = .true.
      headdif = min(zs-gwhead,hh)
@@ -1762,6 +1742,9 @@ pure subroutine gw_calc_local_connected_infil(par,gwhead,gwlevel,zb,headtop,hh,D
   endif
   
   if (infiltrate .or. exfiltrate) then
+  ! wwvv problem detected by compiler:
+  ! wwvv it is possible the err does not get initialized
+  ! wwvv so I initialize err at the beginning at the subroutine to 0
      ! compute infiltration rate
      kze = par%kx
      vest = sqrt(kze*headdif*par%por/par%dt)
@@ -1798,20 +1781,19 @@ pure subroutine gw_calc_local_connected_infil(par,gwhead,gwlevel,zb,headtop,hh,D
 end subroutine gw_calc_local_connected_infil
 
 pure function gwCalculateHeadBottom(gwhead,gwcurv,gwheadtop,gwheight,nx,ny,model) result(gwheadb)
+   use paramsconst
    
    IMPLICIT NONE
    integer,intent(in)                      :: nx,ny
    real*8,dimension(nx+1,ny+1),intent(in)  :: gwhead,gwcurv,gwheadtop,gwheight
-   character(*),intent(in)                 :: model
+   integer     ,intent(in)                 :: model
    real*8,dimension(nx+1,ny+1)             :: gwheadb
    ! internal
-   integer                                 :: i,j
-   real*8                                  :: m,n,h,P,A,B,H1,H2
    
-   select case (trim(model))
-      case ('parabolic')
+   select case (model)
+      case (GWHEADMODEL_PARABOLIC)
          gwheadb = gwheadtop-gwcurv*gwheight**2
-      case ('exponential')
+      case (GWHEADMODEL_EXPONENTIAL)
          gwheadb = gwcurv+gwheadtop-gwcurv*cosh(gwheight)
    end select
 end function gwCalculateHeadBottom

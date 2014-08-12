@@ -1,5 +1,11 @@
 module initialize 
   use typesandkinds
+  implicit none
+  integer imin_ee,imax_ee,jmin_ee,jmax_ee
+  integer imin_uu,imax_uu,jmin_uu,jmax_uu
+  integer imin_vv,imax_vv,jmin_vv,jmax_vv
+  integer imin_zs,imax_zs,jmin_zs,jmax_zs
+
 contains
   subroutine grid_bathy(s,par)                                         
 
@@ -15,7 +21,7 @@ contains
     type(spacepars)                :: s               
     type(parameters)               :: par               
 
-    integer                        :: i,ier,idum,n,m,ier2,ier3
+    integer                        :: i,ier,idum,n,m,ier2,ier3,dum
     integer                        :: j,it
     integer                        :: itheta
     real*8                         :: degrad
@@ -80,7 +86,7 @@ contains
     ! Create grid and bathymetry
     !
     ! Jaap make switch here to read XBeach or Delft3D format respectively
-    if (trim(par%gridform)=='xbeach') then
+    if (par%gridform==GRIDFORM_XBEACH) then
        if (s%vardx==0) then
           if (xmaster) then
              if (par%setbathy .ne. 1) then
@@ -133,7 +139,7 @@ contains
           call writelog('esl','','Invalid value for vardx: ',par%vardx)
           call halt_program
        endif
-    elseif (trim(par%gridform)=='delft3d') then
+    elseif (par%gridform==GRIDFORM_DELFT3D) then
        if(xmaster) then
           ! 
           ! Gridfile
@@ -157,27 +163,10 @@ contains
           if (ier+ier2+ier3 .ne. 0) then
              call report_file_read_error(par%xyfile)
           endif
-          ! read grid and write to temp file
-          open(32,file='temp')
-          do while (.true.) ! endless loop until the read statment finds the end of the file
-             read(31,'(a)',end=100,iostat=ier)line
-             if (ier==0) then
-                write(32,'(a)')line(11:232)
-             endif
-          enddo
-100       continue
-
-          close(31)
-          close(32)
-          ! now open temp and set xc and yc
-          open(32,file='temp',status='old')
-          do n=1,s%ny+1
-             read(32,*)(s%x(m,n),m=1,s%nx+1)
-          enddo
-          do n=1,s%ny+1
-             read(32,*)(s%y(m,n),m=1,s%nx+1)
-          enddo
-          close(32,status='delete')    
+          
+          read(31,*,iostat=ier) &
+              (line,dum,(s%x(m,n),m=1,s%nx+1),n=1,s%ny+1), &
+              (line,dum,(s%y(m,n),m=1,s%nx+1),n=1,s%ny+1) 
           !
           ! Depfile
           !
@@ -193,6 +182,20 @@ contains
           endif
        endif ! xmaster
     endif ! delft3d format
+
+    degrad=par%px/180.d0
+
+    if (par%single_dir==1) then
+       s%dtheta_s=par%dtheta_s*degrad
+       s%ntheta_s=nint((s%thetamax-s%thetamin)/s%dtheta_s)
+    else
+      s%ntheta_s = 0
+      allocate(s%theta_s(s%ntheta_s))
+      allocate(s%thet_s (s%nx+1,s%ny+1,s%ntheta_s))
+      allocate(s%costh_s(s%nx+1,s%ny+1,s%ntheta_s))
+      allocate(s%sinth_s(s%nx+1,s%ny+1,s%ntheta_s))
+    endif
+
     if(xmaster) then
 
        s%zb=-s%zb*s%posdwn
@@ -218,7 +221,7 @@ contains
        if (s%theta0<-par%px) s%theta0=s%theta0+2.d0*par%px
        if (s%theta0> par%px) s%theta0=s%theta0-2.d0*par%px
 
-       degrad=par%px/180.d0
+       !degrad=par%px/180.d0
 
        if (par%thetanaut==1) then  
           s%thetamin=(270-par%thetamax)*degrad
@@ -268,6 +271,30 @@ contains
           enddo
        enddo
 
+       if (par%single_dir==1) then
+          !s%dtheta_s=par%dtheta_s*degrad
+          !s%ntheta_s=nint((s%thetamax-s%thetamin)/s%dtheta_s)
+
+          allocate(s%theta_s(1:s%ntheta_s))
+          allocate(s%thet_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+          allocate(s%costh_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+          allocate(s%sinth_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+
+          do itheta=1,s%ntheta_s
+             s%theta_s(itheta)=s%thetamin+s%dtheta_s/2+s%dtheta_s*(itheta-1)
+          end do
+
+          do itheta=1,s%ntheta_s
+             do j=1,s%ny+1
+                do i=1,s%nx+1
+                   s%thet_s(i,j,itheta) = s%theta_s(itheta)
+                   s%costh_s(i,j,itheta)=cos(s%theta_s(itheta)-s%alfaz(i,j))
+                   s%sinth_s(i,j,itheta)=sin(s%theta_s(itheta)-s%alfaz(i,j))
+                enddo
+             enddo
+          enddo
+       endif
+       
     endif
 
     if (xmaster) then
@@ -347,11 +374,9 @@ contains
 
     IMPLICIT NONE
 
-    type(spacepars)                     :: s
+    type(spacepars),target              :: s
     type(parameters)                    :: par
 
-    integer                             :: i
-    integer                             :: j
     integer                             :: itheta
 
     include 's.ind'
@@ -373,6 +398,12 @@ contains
     allocate(s%sigt(1:nx+1,1:ny+1,1:ntheta))
     allocate(s%ee(1:nx+1,1:ny+1,1:ntheta))
     allocate(s%rr(1:nx+1,1:ny+1,1:ntheta))
+    if (par%single_dir==1) then
+       allocate(s%cgx_s(1:nx+1,1:ny+1,1:ntheta_s))
+       allocate(s%cgy_s(1:nx+1,1:ny+1,1:ntheta_s))
+       allocate(s%ctheta_s(1:nx+1,1:ny+1,1:ntheta_s))
+       allocate(s%ee_s(1:nx+1,1:ny+1,1:ntheta_s))
+    endif
     allocate(s%sigm(1:nx+1,1:ny+1))
     allocate(s%c(1:nx+1,1:ny+1))
     allocate(s%cg(1:nx+1,1:ny+1))
@@ -404,14 +435,7 @@ contains
     !
     ! Initial condition
     !
-    do itheta=1,ntheta
-       do j=1,ny+1
-          do i=1,nx+1
-             s%ee(i,j,itheta)=0.d0
-          end do
-       end do
-    end do
-
+    s%ee        = 0.d0 
     s%thetamean = 0.d0
     s%Fx        = 0.d0
     s%Fy        = 0.d0
@@ -425,6 +449,12 @@ contains
     s%cx        = 0.d0
     s%cy        = 0.d0
     s%ctheta    = 0.d0
+    if (par%single_dir==1) then
+       s%ee_s      = 0.d0
+       s%cgx_s     = 0.d0
+       s%cgy_s     = 0.d0
+       s%ctheta_s  = 0.d0
+    endif
     s%sigt      = 0.d0
     s%rr        = 0.d0
     s%sigm      = 0.d0
@@ -454,20 +484,20 @@ contains
 
 
     ! introduce intrinsic frequencies for wave action
-    if ( trim(par%instat)=='jons' .or. &
-         trim(par%instat)=='jons_table' .or. &
-         trim(par%instat)=='swan' .or. &
-         trim(par%instat)=='vardens' .or. &
-         trim(par%instat)=='reuse' .or. &
-         trim(par%instat)=='ts_nonh' &
+    if ( par%instat==INSTAT_JONS .or. &
+         par%instat==INSTAT_JONS_TABLE .or. &
+         par%instat==INSTAT_SWAN .or. &
+         par%instat==INSTAT_VARDENS .or. &
+         par%instat==INSTAT_REUSE .or. &
+         par%instat==INSTAT_TS_NONH &
          ) par%Trep=10.d0 
     !Robert
     ! incorrect values are computed below for instat = 4/5/6/7
     ! in this case right values are computed in wave params.f90
-    if ( trim(par%instat)=='jons' .or. &
-         trim(par%instat)=='jons_table' .or. &
-         trim(par%instat)=='swan' .or. &
-         trim(par%instat)=='vardens') then 
+    if ( par%instat==INSTAT_JONS .or. &
+         par%instat==INSTAT_JONS_TABLE .or. &
+         par%instat==INSTAT_SWAN .or. &
+         par%instat==INSTAT_VARDENS) then 
        if(xmaster) call spectral_wave_init (s,par)  ! only used by xmaster
     endif
     do itheta=1,ntheta
@@ -486,17 +516,17 @@ contains
     use filefunctions
     use logging_module
     use spectral_wave_bc_module
-
+  
     type(spacepars)             :: s
     type(parameters)            :: par
-
+  
     integer                     :: fid,err
     integer                     :: i
     integer,dimension(1)        :: minlocation
     character(slen)             :: testline
     real*8,dimension(:),allocatable :: xspec,yspec,mindist
     real*8                      :: mindistr
-
+  
     call writelog('l','','--------------------------------')
     call writelog('l','','Initializing spectral wave boundary conditions ')
     ! Initialize that wave boundary conditions need to be calculated (first time at least)
@@ -512,12 +542,12 @@ contains
     ! Stored and defined in spectral_wave_bc_module
     allocate(lastwaveelevation(s%ny+1,s%ntheta))
     lastwaveelevation = 0.d0
-
+  
     if (par%nspectrumloc<1) then
        call writelog('ewls','','number of boundary spectra (''nspectrumloc'') may not be less than 1')
        call halt_program
     endif
-
+  
     ! open location list file
     fid = create_new_fid()
     open(fid,file=par%bcfile,status='old',form='formatted')
@@ -570,9 +600,9 @@ contains
        endif
     endif
     close(fid)
-
+  
     call writelog('l','','--------------------------------')
-
+  
   endsubroutine spectral_wave_init
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -588,7 +618,7 @@ contains
 
     IMPLICIT NONE
 
-    type(spacepars)                         :: s
+    type(spacepars),target                  :: s
     type(parameters), intent(in)            :: par
 
     integer*4                               :: i,j,ig,indt
@@ -771,13 +801,13 @@ contains
 
        if(par%tideloc.eq.1) s%zs02=s%zs01
 
-       if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='land') then
+       if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_LAND) then
           call LINEAR_INTERP(s%tideinpt,s%tideinpz(:,2),s%tidelen,0.d0, s%zs03, indt)
           s%zs02=s%zs01
           s%zs04=s%zs03
        endif
 
-       if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='sea') then
+       if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_SEA) then
           call LINEAR_INTERP(s%tideinpt,s%tideinpz(:,2),s%tidelen,0.d0, s%zs02, indt)
           s%zs03=0.d0
           s%zs04=0.d0
@@ -804,7 +834,7 @@ contains
        !
        if(par%tideloc.eq.1) s%zs0 = s%xz*0.0d0 + s%zs01
 
-       if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='sea') then
+       if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_SEA) then
           yzs0(1)=s%ndist(1,1)
           yzs0(2)=s%ndist(1,s%ny+1)
           szs0(1)=s%zs01
@@ -820,7 +850,7 @@ contains
           enddo
        endif
 
-       if(par%tideloc.eq.2 .and. trim(par%paulrevere)=='land') then
+       if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_LAND) then
           yzs0(1)=s%sdist(1,1)
           yzs0(2)=s%sdist(s%nx+1,1)
           szs0(1)=s%zs01
@@ -973,7 +1003,7 @@ contains
        enddo
        close(723)
        ! convert from C to cf
-       if (trim(par%bedfriction)=='chezy') then
+       if (par%bedfriction==BEDFRICTION_CHEZY) then
           s%cf=par%g/s%cf**2
        endif
     endif
@@ -1155,7 +1185,7 @@ contains
     !
     ! Initialize for tide instant boundary condition
     !
-    if (trim(par%tidetype)=='instant') then
+    if (par%tidetype==TIDETYPE_INSTANT) then
        ! RJ: 22-09-2010
        ! Check for whole domain whether a grid cell should be associated with
        ! 1) offshore tide and surge
@@ -1213,7 +1243,7 @@ contains
 
     IMPLICIT NONE
 
-    type(spacepars)                     :: s
+    type(spacepars),target              :: s
     type(parameters)                    :: par
 
     integer                             :: i,j,m,jg,start,ier
@@ -1448,7 +1478,7 @@ contains
 
     implicit none
 
-    type(spacepars)                         :: s
+    type(spacepars),target                  :: s
     type(parameters)                        :: par
 
     integer                                 :: i,j
@@ -1473,9 +1503,9 @@ contains
     allocate(s%tdisch       (1:par%ntdischarge)                     )
     allocate(s%qdisch       (1:par%ntdischarge  , 1:par%ndischarge) )
 
-    s%pntdisch  = 0.d0
+    s%pntdisch  = 0
     s%tdisch    = 0.d0
-    s%pdisch    = 0.d0
+    s%pdisch    = 0
     s%qdisch    = 0.d0
 
     if (xmaster) then
@@ -1584,10 +1614,9 @@ contains
 
     implicit none
 
-    type(spacepars)                         :: s
+    type(spacepars),target                  :: s
     type(parameters)                        :: par
 
-    character(slen)                         :: drifterfile
     integer                                 :: i,ier
     real*8                                  :: xdrift,ydrift
     real*8                                  :: ds,dn

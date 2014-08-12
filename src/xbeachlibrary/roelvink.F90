@@ -64,7 +64,7 @@ contains
 
     kmr = min(max(km, 0.01d0), 100.d0)
 
-    if (trim(par%break) /= 'roelvink_daly') then
+    if (par%break /= BREAK_ROELVINK_DALY) then
        if (par%wci==1) then
           arg = -( H / (par%gamma*tanh(kmr*hr)/kmr))**par%n
        else
@@ -83,13 +83,13 @@ contains
 
     s%D(i,:) = s%Qb(i,:) * 2.d0 * par%alpha * s%E(i,:)
 
-    if (trim(par%break) == 'roelvink1') then
+    if (par%break == BREAK_ROELVINK1) then
        if (par%wci==1) then
           s%D(i,:) = s%D(i,:) * s%sigm(i,:)/2.d0/par%px;
        else
           s%D(i,:) = s%D(i,:) / par%Trep
        endif
-    elseif (trim(par%break)=='roelvink2' .or. trim(par%break)=='roelvink_daly') then
+    elseif (par%break == BREAK_ROELVINK2 .or. par%break == BREAK_ROELVINK_DALY) then
        ! Jaap: also wci switch for roelvink2
        if (par%wci==1) then
           s%D(i,:) = s%D(i,:) * s%sigm(i,:)/2.d0/par%px * H/s%hh(i,:);

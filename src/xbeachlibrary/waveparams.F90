@@ -64,7 +64,7 @@ contains
 
        if(xmaster) then
           open(74,file=par%bcfile,form='formatted')
-          if (trim(par%instat)/='jons_table') read(74,*)testc
+          if (par%instat/=INSTAT_JONS_TABLE) read(74,*)testc
        endif
 
        if(xmaster) then
@@ -76,7 +76,7 @@ contains
        endif
 
        ! Check whether BCF files should be reused
-       if (testc=='FILELIST' .or. trim(par%instat)=='jons_table') then
+       if (testc=='FILELIST' .or. par%instat==INSTAT_JONS_TABLE) then
           reuse=0
        else
           reuse=1
@@ -101,7 +101,7 @@ contains
 
        ! Read rt and dt values
        if(xmaster) then
-          if (trim(par%instat)/='jons_table') then
+          if (par%instat/=INSTAT_JONS_TABLE) then
              read(74,*)wp%rt,wp%dt,fname
              if (par%morfacopt==1) wp%rt = wp%rt / max(par%morfac,1.d0)
           endif
@@ -114,7 +114,7 @@ contains
 #endif
 
        ! Create filenames for BCF files
-       if (trim(par%instat)/='jons_table') then 
+       if (par%instat/=INSTAT_JONS_TABLE) then 
           Ebcfname='E_'//trim(fname)
           qbcfname='q_'//trim(fname)
        else
@@ -157,17 +157,17 @@ contains
           wp%h0t0 = s%hh(1,1)
        endif
 
-       if (trim(par%instat)=='jons' .or. trim(par%instat)=='jons_table') then
+       if (par%instat==INSTAT_JONS .or. par%instat==INSTAT_JONS_TABLE) then
           ! Use JONSWAP spectrum
           call build_jonswap(par,s,wp,fname)
           call build_etdir(par,s,wp,Ebcfname)
           call build_boundw(par,s,wp,qbcfname)
-       elseif (trim(par%instat)=='swan') then
+       elseif (par%instat==INSTAT_SWAN) then
           ! Use SWAN data
           call swanreader(par,s,wp,fname)
           call build_etdir(par,s,wp,Ebcfname)
           call build_boundw(par,s,wp,qbcfname)
-       elseif (trim(par%instat)=='vardens') then
+       elseif (par%instat==INSTAT_VARDENS) then
           ! Use variance density spectrum
           call vardensreader(par,s,wp,fname)
           call build_etdir(par,s,wp,Ebcfname)
@@ -224,11 +224,13 @@ contains
     real*8                                  :: gam
     character(len=80)                       :: dummystring
 
+    fnyq = -123
+    dfj  = -123
     ! Read JONSWAP data
     if(xmaster) then
 
        ! Check whether spectrum characteristics or table should be used
-       if (trim(par%instat) /= 'jons_table') then
+       if (par%instat /= INSTAT_JONS_TABLE) then
 
           ! Use spectrum characteristics
           call writelog('sl','','waveparams: Reading from ',trim(fname),' ...')
@@ -248,7 +250,7 @@ contains
     endif
 
     ! Read JONSWAP characteristics
-    if (trim(par%instat)/='jons_table') then               
+    if (par%instat/=INSTAT_JONS_TABLE) then               
 
        !                                      Input file   Keyword     Default     Minimum     Maximum   
        wp%hm0gew           = readkey_dbl (fname,       'Hm0',      0.0d0,      0.00d0,     5.0d0,      bcast=.false. )
@@ -552,7 +554,7 @@ contains
     ! Make sure that all angles are in -180 to 180 degrees
     if(minval(wp%theta)<-180)then
        allocate (temp(ndir))
-       Ashift=-1.d0
+       Ashift=-1
        temp=0
        do i=1,ndir
           if (wp%theta(i)<-180) then
@@ -570,7 +572,7 @@ contains
        deallocate(temp)
     elseif(maxval(wp%theta)>180.0d0)then
        allocate(temp(ndir))
-       Ashift=1.0d0
+       Ashift=1
        temp=0
        do i=1,ndir
           if (wp%theta(i)>180.0d0) then
@@ -982,7 +984,7 @@ contains
 
     ! Determine number of frequencies in discrete variance density spectrum to be
     ! included (not equal to wp%K)
-    M=sum(findline)
+    M=int(sum(findline))
 
     ! Define one-dimensional non-directional variance density spectrum array       ! Bas: I guess this is unnecessary
     allocate (temp(size(wp%Sf)))
@@ -1256,7 +1258,7 @@ contains
        Nbox(i)=s%thetamin+(i-1)*s%dtheta
     enddo
 
-    if (trim(par%instat)=='jons' .or. trim(par%instat)=='jons_table') then  
+    if (par%instat==INSTAT_JONS .or. par%instat==INSTAT_JONS_TABLE) then  
        rD = dcos(0.5d0*(Nbox(1:Ns)+Nbox(2:Ns+1))-wp%mainang)**(2*nint(wp%scoeff))
        rD = rD/sum(rD)
     endif
@@ -1492,7 +1494,7 @@ contains
 
     ! Jaap: apply symmetric distribution in case of jons or jons_table
     ! REMARK: in this case printing messages to screen can be erroneous
-    if (trim(par%instat)=='jons' .or. trim(par%instat)=='jons_table') then 
+    if (par%instat==INSTAT_JONS .or. par%instat==INSTAT_JONS_TABLE) then 
        call writelog('ls','','Apply symmetric energy distribution w.r.t mean wave direction')
        do ii=1,Ns
           do index2=1,wp%Npy
@@ -1990,26 +1992,13 @@ contains
 
 
 
-  subroutine init_seed
-    INTEGER :: i, n, clock
-    INTEGER, DIMENSION(:), ALLOCATABLE :: seed
-    ! RANDOM_SEED does not result in a random seed for each compiler, so we better make sure that we have a pseudo random seed.
-    ! I am not sure what is a good n
-    n = 40
-    i = 1 
-    ! not sure what size means here
-    ! first call with size
-    CALL RANDOM_SEED(size = n)
-    ! define a seed array of size n
-    ALLOCATE(seed(n))
-    ! what time is it
-    CALL SYSTEM_CLOCK(COUNT=clock)
-    ! define the seed vector based on a prime, the clock and the set of integers
-    seed = clock + 37 * (/ (i - 1, i = 1, n) /) 
-    ! if mpi do we need a different seed on each node or the same???
-    ! if we do need different seeds on each node
-    ! seed *= some big prime * rank ?
-    ! now use the seed
-    CALL RANDOM_SEED(PUT = seed)
+  subroutine init_seed   ! based on usage of random  wwvv
+    use math_tools
+    integer clock
+    real*8 dummy
+    call system_clock(count=clock)
+    dummy = random(clock)
+    return
   end subroutine init_seed
+
 end module waveparams

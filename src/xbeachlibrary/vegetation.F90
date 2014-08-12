@@ -57,7 +57,7 @@ subroutine vegie_init(s,par)
     IMPLICIT NONE
 
     type(parameters)                            :: par
-    type(spacepars)                             :: s
+    type(spacepars), target                     :: s
 
     character(1)                                :: ch
     integer                                     :: i,j,fid,ier
@@ -76,8 +76,8 @@ subroutine vegie_init(s,par)
     endif
     
     fid=create_new_fid() ! see filefunctions.F90
-    call check_file_exist(par%vegiefile)
-    open(fid,file=par%vegiefile)
+    call check_file_exist(par%veggiefile)
+    open(fid,file=par%veggiefile)
     ier=0
     i=0
     do while (ier==0)
@@ -112,16 +112,16 @@ subroutine vegie_init(s,par)
     enddo
 
     ! read spatial distribution of species:
-    ! vegtype = 1 corresponds to first vegetation specified in vegiefile
+    ! vegtype = 1 corresponds to first vegetation specified in veggiefile
     allocate (veg(1)%vegtype(s%nx+1,s%ny+1))
     fid=create_new_fid() ! see filefunctions.F90
-    call check_file_exist(par%vegiemapfile)
-    open(fid,file=par%vegiemapfile)
+    call check_file_exist(par%veggiemapfile)
+    open(fid,file=par%veggiemapfile)
     do j=1,s%ny+1    ! Is this the right way to do it in a module
        read(fid,*,iostat=ier)(veg(1)%vegtype,i=1,s%nx+1)
        if (ier .ne. 0) then
           !Jaap doesn't work
-          !call report_file_read_error(par%vegiemapfile)
+          !call report_file_read_error(par%veggiemapfile)
        endif
     end do
     close(fid)
@@ -151,7 +151,7 @@ subroutine vegatt(s,par)
      
     call swvegatt(s,par)
     
-    call lwvegatt(s,par)
+    call lwvegatt(s)
 
 end subroutine
 
@@ -163,7 +163,7 @@ subroutine swvegatt(s,par)
     use interp
 
     type(parameters)                            :: par
-    type(spacepars)                             :: s
+    type(spacepars), target                     :: s
 
     integer                                     :: i,j,m,ind  ! indices of actual x,y point
     real*8                                      :: aht,hterm,htermold,Dvgt
@@ -201,15 +201,14 @@ subroutine swvegatt(s,par)
 
 end subroutine swvegatt
 
-subroutine lwvegatt(s,par)
+subroutine lwvegatt(s)
     use params
     use spaceparams
     use readkey_module
     use filefunctions
     use interp
 
-    type(parameters)                            :: par
-    type(spacepars)                             :: s
+    type(spacepars),target           :: s
 
     integer                                     :: i,j,m,ind  ! indices of actual x,y point
     real*8                                      :: aht,ahtold,hterm,htermold,Fvgtu,Fvgtv
@@ -218,6 +217,7 @@ subroutine lwvegatt(s,par)
     include 's.ind'
     include 's.inp'
 
+    hterm = 0
     kmr = min(max(s%k, 0.01d0), 100.d0)
 
     Fvgu = 0.d0

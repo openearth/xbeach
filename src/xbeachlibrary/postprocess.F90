@@ -79,29 +79,25 @@ contains
   end subroutine snappointstogrid
 
 
-  subroutine gridrotate_r0(par, s, t, x)
+  subroutine gridrotate_r0(t, x)
     use params
     use spaceparams
     use mnemmodule
 
-    type(parameters), intent(in) :: par
-    type(spacepars), intent(in)  :: s
     type(arraytype), intent(in)  :: t
     real*8                       :: x
     x = t%r0
   end subroutine gridrotate_r0
 
-  subroutine gridrotate_r1(par, s, t, x)
+  subroutine gridrotate_r1(par, t, x)
     use params
     use spaceparams
     use mnemmodule
 
     type(parameters), intent(in) :: par
-    type(spacepars), intent(in)  :: s
     type(arraytype), intent(in)  :: t
     real*8, dimension(:)         :: x
-    real*8                       :: pi
-    pi = 4*atan(1.0d0)
+    real*8, parameter            :: pi = 4*atan(1.0d0)
 
     if (par%rotate .eq. 1) then
        select case(t%name)
@@ -127,13 +123,12 @@ contains
     type(spacepars), intent(in)         :: s
     type(arraytype), intent(in)         :: t
     real*8, dimension(:,:), intent(out) :: x
-    real*8                              :: pi
+    real*8, parameter                   :: pi = 4*atan(1.0d0)
     real*8, dimension(size(s%alfaz,1), size(s%alfaz,2)) :: Sutot, Svtot
     
     Sutot = 0;
     Svtot = 0;
     
-    pi = 4*atan(1.0d0)
     if (par%rotate .eq. 1) then
        select case(t%name)
        case(mnem_thetamean)
@@ -204,9 +199,8 @@ contains
     real*8, dimension(:,:,:)      :: x
     ! no need to allocate
     real*8, dimension(size(s%alfaz,1), size(s%alfaz,2), size(t%r3,3)) :: alfazr3,Susg,Svsg,Subg,Svbg
-    real*8                        :: pi
+    real*8, parameter             :: pi = 4*atan(1.0d0)
     integer                       :: i
-    pi = 4*atan(1.0d0)
     
     ! Jaap: initialize local transport variables (used for interpolation to water level points)
     Susg = 0;
@@ -271,74 +265,62 @@ contains
     endif
   end subroutine gridrotate_r3
 
-  subroutine gridrotate_r4(par, s, t, x)
+  subroutine gridrotate_r4(t, x)
     use params
     use spaceparams
     use mnemmodule
 
-    type(parameters), intent(in)  :: par
-    type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     real*8, dimension(:,:,:,:)    :: x
     x = t%r4
   end subroutine gridrotate_r4
 
 
-  subroutine gridrotate_i0(par, s, t, x)
+  subroutine gridrotate_i0(t, x)
     use params
     use spaceparams
     use mnemmodule
 
-    type(parameters), intent(in)  :: par
-    type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     integer                       :: x
     x = t%i0
   end subroutine gridrotate_i0
 
-  subroutine gridrotate_i1(par, s, t, x)
+  subroutine gridrotate_i1(t, x)
     use params
     use spaceparams
     use mnemmodule
 
-    type(parameters), intent(in)  :: par
-    type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     integer, dimension(:),intent(out) :: x
     x = t%i1
   end subroutine gridrotate_i1
 
-  subroutine gridrotate_i2(par, s, t, x)
+  subroutine gridrotate_i2(t, x)
     use params
     use spaceparams
     use mnemmodule
 
-    type(parameters), intent(in)  :: par
-    type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     integer, dimension(:,:),intent(out) :: x
     x = t%i2
   end subroutine gridrotate_i2
 
-  subroutine gridrotate_i3(par, s, t, x)
+  subroutine gridrotate_i3(t, x)
     use params
     use spaceparams
     use mnemmodule
 
-    type(parameters), intent(in)  :: par
-    type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     integer, dimension(:,:,:),intent(out) :: x
     x = t%i3
   end subroutine gridrotate_i3
 
-  subroutine gridrotate_i4(par, s, t, x)
+  subroutine gridrotate_i4(t, x)
     use params
     use spaceparams
     use mnemmodule
 
-    type(parameters), intent(in)  :: par
-    type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     integer, dimension(:,:,:,:),intent(out) :: x
     x = t%i4

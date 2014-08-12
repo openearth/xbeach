@@ -14,6 +14,7 @@ module logging_module
   abstract interface
   
     subroutine distributeloginterface(code,message,len)
+        implicit none
 
         integer, intent(in) :: code
         integer, intent(in) :: len
@@ -230,7 +231,7 @@ CONTAINS
        call writelog('ls','','**********************************************************')
        call writelog('ls','','                   Welcome to XBeach                      ')
        call writelog('ls','','                                                          ')
-       call writelog('ls','','            version 1.21.',trim(Build_Revision)            )
+       call writelog('ls','','            revision ',trim(Build_Revision)                )
        call writelog('ls','','            date ',trim(Build_Date)                        )
        call writelog('ls','','  URL: ',trim(Build_URL)                                   )
        call writelog('ls','','**********************************************************')
@@ -256,8 +257,8 @@ CONTAINS
 
     implicit none
 
-    integer                                         :: error
-    character(4), intent(in)                        :: mpiboundary
+    integer, intent(in)                             :: error
+    integer, intent(in)                             :: mpiboundary
 
     if (xmaster) then
        if (error==1) then
@@ -274,7 +275,11 @@ CONTAINS
   end subroutine writelog_mpi
 #endif
 
-  subroutine writelog_finalize(tbegin, n, t, nx, ny, t0, t01)
+  subroutine writelog_finalize(tbegin, n, t, nx, ny &
+#ifdef USEMPI
+    , t0, t01 &
+#endif
+  )
 
     use xmpi_module
     implicit none
@@ -282,7 +287,9 @@ CONTAINS
     integer                                         :: n,nx,ny
     real*8                                          :: tbegin,tend
     real*8                                          :: t,duration,dt,performance
+#ifdef USEMPI
     real*8, optional                                :: t0,t01
+#endif
 
 #ifdef USEMPI
     real*8                                          :: t1

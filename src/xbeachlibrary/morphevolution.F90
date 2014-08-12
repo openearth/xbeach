@@ -130,24 +130,24 @@ contains
     endif
 
     ! compute turbulence due to wave breaking
-    if (par%lwt==1 .or. trim(par%turb) == 'bore_averaged' .or. trim(par%turb) == 'wave_averaged') then
+    if (par%lwt==1 .or. par%turb == TURB_BORE_AVERAGED .or. par%turb == TURB_WAVE_AVERAGED) then
        call waveturb(s,par)
     endif
 
     if (par%swave==1) then
        ! include wave skewness and assymetry in sediment advection velocity
-       if (trim(par%waveform)=='ruessink_vanrijn')then
+       if (par%waveform==WAVEFORM_RUESSINK_VANRIJN)then
           call RvR(s,par)
-       elseif (trim(par%waveform)=='vanthiel') then
+       elseif (par%waveform==WAVEFORM_VANTHIEL) then
           call vT(s,par)
        endif
 
     endif
 
     ! calculate equilibrium concentration/sediment source
-    if (trim(par%form)=='soulsby_vanrijn') then           ! Soulsby van Rijn
+    if (par%form==FORM_SOULSBY_VANRIJN) then           ! Soulsby van Rijn
        call sb_vr(s,par)
-    elseif (trim(par%form)=='vanthiel_vanrijn') then       ! Van Thiel de Vries & Reniers 2008
+    elseif (par%form==FORM_VANTHIEL_VANRIJN) then       ! Van Thiel de Vries & Reniers 2008
        call sednew(s,par)
     end if
 
@@ -213,21 +213,11 @@ contains
           enddo
        enddo
        ! wwvv dcdx(nx:1,:) is still untouched, correct this ofr the parallel case
-#ifdef USEMPI
-       call xmpi_shift(dcsdx,'m:')
-
-#endif
        cu(nx+1,:) = cc(nx+1,:) !Robert
        ! wwvv fix this in parallel case
-#ifdef USEMPI
-       call xmpi_shift(cu,'m:')
-#endif
        ! wwvv in parallel version, there will be a discrepancy between the values
        ! of dzbdx(nx+1,:).
        !wwvv so fix that
-#ifdef USEMPI
-       call xmpi_shift(dzbdx,'m:')
-#endif
        !
        Sus = 0.d0
        Sub = 0.d0
@@ -293,17 +283,10 @@ contains
              end do
           end do
           ! wwvv dcdy(:,ny+1) is not filled in, so in parallel case:
-#ifdef USEMPI
-          call xmpi_shift(dcsdy,':n')
-
-#endif
           cv(:,ny+1) = cc(:,ny+1) !Robert
           ! wwvv in parallel version, there will be a discrepancy between the values
           ! of dzbdy(:,ny+1).
           ! wwvv so fix that
-#ifdef USEMPI
-          call xmpi_shift(dzbdy,':n')
-#endif
        else
           cv = cc
           cvb = ceqbg(:,:,jg)
@@ -369,66 +352,38 @@ contains
           enddo
        endif
 
-       ! Jaap: bed load --> Tsg = par%dt for bed load....
-       !do j=2,ny
-       !  do i=2,nx
-       !     ero(i,j,jg) = ero(i,j,jg) + fac(i,j,jg)*hh(i,j)*ceqbg(i,j,jg)*pbbed(i,j,1,jg)/par%dt                 
-       !     ccb(i,j) = (par%dt/2.d0)* &
-       !                              (hold(i,j)*ccb(i,j)/par%dt -((Sub(i,j)-Sub(i-1,j))/(xu(i)-xu(i-1))+&
-       !                                                           (Svb(i,j)-Svb(i,j-1))/(yv(j)-yv(j-1))-&
-       !							                               fac(i,j,jg)*hh(i,j)*ceqbg(i,j,jg)*pbbed(i,j,1,jg)/par%dt) )	
-       !
-       !     ccb(i,j)=max(ccb(i,j),0.0d0) ! Jaap: negative cc's are possible...
-       !	 depo_ex(i,j,jg) = depo_ex(i,j,jg) + ccb(i,j)/par%dt
-       !  enddo
-       !enddo
 
        cc = cc/hh
-       !ccb = ccb/hh
 
-       ! do lateral bounadries...
+       ! do lateral boundaries...
        if(xmpi_istop)then
           cc(1,:)=cc(2,:)
-          !ccb(1,:)=ccb(2,:)
           ero(1,:,jg)=ero(2,:,jg)
           depo_ex(1,:,jg)=depo_ex(2,:,jg)
        endif
        if(xmpi_isleft .and. ny>0)then
           cc(:,1)=cc(:,2)
-          !ccb(:,1)=ccb(:,2)
           ero(:,1,jg)=ero(:,2,jg)
           depo_ex(:,1,jg)=depo_ex(:,2,jg)
        endif
        if(xmpi_istop)then
           cc(nx+1,:)=cc(nx+1-1,:)
-          !ccb(nx+1,:)=ccb(nx+1-1,:)
           ero(nx+1,:,jg)=ero(nx,:,jg)
           depo_ex(nx+1,:,jg)=depo_ex(nx,:,jg)
        endif
        if(xmpi_isright .and. ny>0)then
           cc(:,ny+1)=cc(:,ny+1-1)
-          !ccb(:,ny+1)=ccb(:,ny+1-1)
           ero(:,ny+1,jg)=ero(:,ny,jg)
           depo_ex(:,ny+1,jg)=depo_ex(:,ny,jg)
        endif
 
        ! wwvv fix the first and last rows and columns of cc in parallel case
 #ifdef USEMPI
-       call xmpi_shift(cc,'1:')
-       call xmpi_shift(cc,'m:')
-       call xmpi_shift(cc,':1')   ! Maybe not necessary as zb calculated from 1:ny+1, but just in case...
-       call xmpi_shift(cc,':n')   ! Dito
-       !call xmpi_shift(ccb,'1:')
-       !call xmpi_shift(ccb,'m:')
-       !call xmpi_shift(ccb,':1')   ! Maybe not necessary as zb calculated from 1:ny+1, but just in case...
-       !call xmpi_shift(ccb,':n')   ! Dito
+       call xmpi_shift_ee(cc)
 #endif
-       ! Jaap
-       ! cc=cc*wetz
        !
        ! wwvv border columns and rows of ccg Svg and Sug have to be communicated
        ccg(:,:,jg) = cc
-       !ccbg(:,:,jg) = ccb
        Svsg(:,:,jg) = Svs
        Susg(:,:,jg) = Sus
        Svbg(:,:,jg) = Svb
@@ -655,7 +610,9 @@ contains
 
           enddo ! nx+1
        endif !ny>0      
-
+#ifdef USEMPI
+       call xmpi_shift_ee(zb)
+#endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        !
        ! Avalanching
@@ -930,10 +887,7 @@ contains
 
        ! Robert: in parallel version bed update must take place on internal boundaries:
 #ifdef USEMPI
-       call xmpi_shift(zb,'1:')
-       call xmpi_shift(zb,'m:')
-       call xmpi_shift(zb,':1')
-       call xmpi_shift(zb,':n')
+       call xmpi_shift_ee(zb)
 #endif
 
        ! Update representative sed.diameter at the bed for flow friction and output
@@ -1114,12 +1068,14 @@ contains
     integer                             :: j,jg
     real*8                              :: z0,Ass,dcf,dcfin,ML
     real*8                              :: Te,kvis,Sster,c1,c2,wster
-    real*8,save                         :: delta,onethird,twothird
+    real*8,save                         :: delta
 
     real*8 , dimension(:)  ,allocatable,save   :: w,dster
     real*8 , dimension(:,:),allocatable,save   :: vmg,Cd,Asb,dhdx,dhdy,Ts,hfac
     real*8 , dimension(:,:),allocatable,save   :: urms2,Ucr,term1,term2
     real*8 , dimension(:,:),allocatable,save   :: uandv,b,fslope,hloc,ceqs,ceqb
+    real*8, parameter :: onethird = 1.0d0/3.0d0
+    real*8, parameter :: twothird = 2.0d0/3.0d0
 
     include 's.ind'
     include 's.inp'
@@ -1146,8 +1102,6 @@ contains
        allocate (w     (par%ngd))
        allocate (dster (par%ngd))
        vmg = 0.d0
-       onethird=1.d0/3.d0
-       twothird=2.d0/3.d0
        ! Robert: do only once, not necessary every time step
        do jg=1,par%ngd
           ! cjaap: compute fall velocity with simple expression from Ahrens (2000)
@@ -1180,7 +1134,7 @@ contains
              dcf = min(1.d0,1.d0/(dcfin-1.d0))
              ! Jaap: depth averaged turbulence is computed in waveturb
              kb(i,j) = kturb(i,j)*dcf
-             if (trim(par%turb) == 'bore_averaged') then
+             if (par%turb == TURB_BORE_AVERAGED) then
                 kb(i,j) = kb(i,j)*par%Trep/Tbore(i,j)
              endif
           enddo
@@ -1240,13 +1194,6 @@ contains
              end if
           end do
        end do
-       ! wwvv in parallel version, there will be a discrepancy between the values
-       ! of term2. term2(nx+1,:) is zero, while the corresponding row in the process
-       ! below term2(2,:) has some value, different from zero.
-       ! so we fix this:
-#ifdef USEMPI
-       call xmpi_shift(term2,'m:')
-#endif
        ceqb = Asb*term2
        ceqb = min(ceqb/hloc,par%cmax/2)             ! maximum equilibrium bed concentration
        ceqbg(:,:,jg) = (1-par%bulk)*ceqb*sedcal(jg)*wetz
@@ -1344,7 +1291,7 @@ contains
              ! Jaap: new approach: compute kb based on waveturb result 
              kb(i,j) = kturb(i,j)*dcf
              ! 
-             if (trim(par%turb) == 'bore_averaged') then
+             if (par%turb == TURB_BORE_AVERAGED) then
                 kb(i,j) = kb(i,j)*par%Trep/Tbore(i,j)
              endif
           enddo
@@ -1488,7 +1435,7 @@ contains
     if (par%lwt == 1) then
        ksource = par%g*rolthick*par%beta*c      !only important in shallow water, where c=sqrt(gh)  
     endif
-    if (trim(par%turbadv) == 'none') then
+    if (par%turbadv == TURBADV_NONE) then
        kturb = (DR/par%rho)**twothird           ! See Battjes, 1975 / 1985
     else
        ksource = ksource + DR/par%rho
@@ -1509,12 +1456,7 @@ contains
            endif
          enddo
        enddo
-       kturbu(nx+1,:) = kturb(nx+1,:) !Robert
-    
-       ! wwvv fix this in parallel case
-#ifdef USEMPI
-   call xmpi_shift(kturbu,'m:')
-#endif
+       if (xmpi_isbot) kturbu(nx+1,:) = kturb(nx+1,:)     
        !
        ! Turbulence in vv-points
        !
@@ -1533,10 +1475,10 @@ contains
        !
        ! Turbulence advection in X and Y direction
        !
-       if (trim(par%turbadv) == 'langrangian') then
+       if (par%turbadv == TURBADV_LAGRANGIAN) then
           Sturbu=kturbu*uu*hu*wetu
           Sturbv=kturbv*vv*hv*wetv
-       elseif (trim(par%turbadv) == 'eulerian') then
+       elseif (par%turbadv == TURBADV_EULERIAN) then
           Sturbu=kturbu*ueu*hu*wetu
           Sturbv=kturbv*vev*hv*wetv
        endif
@@ -1570,24 +1512,18 @@ contains
        kturb = kturb/max(hh,0.01d0)
        
        ! Jaap only required for advection mode?
-       kturb(1,:)=kturb(2,:)
-       kturb(nx+1,:)=kturb(nx+1-1,:)
+       if (xmpi_istop) kturb(1,:)=kturb(2,:)
+       if (xmpi_isbot) kturb(nx+1,:)=kturb(nx+1-1,:)
        if (ny>0) then
-         kturb(:,1)=kturb(:,2)
-         kturb(:,ny+1)=kturb(:,ny+1-1)
+         if (xmpi_isleft)  kturb(:,1)=kturb(:,2)
+         if (xmpi_isright) kturb(:,ny+1)=kturb(:,ny+1-1)
        endif
        
-       ! wwvv fix the first and last rows and columns of kturb in parallel case
 #ifdef USEMPI
-       call xmpi_shift(kturb,'1:')
-       call xmpi_shift(kturb,'m:')
-       call xmpi_shift(kturb,':1')   ! Maybe not necessary as zb calculated from 1:ny+1, but just in case...
-       call xmpi_shift(kturb,':n')   ! Dito
+       call xmpi_shift_ee(kturb)
 #endif
     
     endif ! turbadv == 'none'
-    !kturb=kturb*wetz
-    !
 
   end subroutine waveturb
 

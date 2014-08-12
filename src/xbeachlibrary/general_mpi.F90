@@ -136,8 +136,92 @@ contains
 
     deallocate(req)
 
-
   end subroutine vector_distr_send
+
+  subroutine block_vector_distr_y(a,b,is,lm,root,comm)
+    !distribute matrix on processes, the first dimension is 
+    ! divided among the processes.
+    ! parameters:
+    ! real*8 a(:,:) (in): matrix to be scattered
+    ! real*8 b(:,:) (out): local matrix to scatter to
+    !                      This matrix has to be available, it is not
+    !                      allocated by this subroutine.
+    ! is, lm(number of processes) (in): description
+    !   of the location of the submatrices b in matrix a:
+    !   b(1,1) coincides with a(is(rank+1),1)
+    !   The size of the first dimension of b is given by lm(rank+1)
+    !   The size of the second dimension of b is equal to size(a,2)
+    ! integer root (in): the rank of the process where a is available
+    ! integer comm (in): the MPI communicator to be used
+    ! Note: a,is are used at the root process only
+
+    use mpi
+    implicit none
+
+    real*8,  dimension(:,:), intent(in)  :: a
+    real*8,  dimension(:,:), intent(out) :: b
+    integer, dimension(:),   intent(in)  :: is,lm
+    integer,                 intent(in)  :: root,comm
+
+    integer                              :: ierror,p,procs,rank,pp
+    integer                              :: i,j,l,buflen
+    real*8,  dimension(:), allocatable   :: buf
+    integer, dimension(:), allocatable   :: counts, displs
+
+    call MPI_Comm_rank(comm, rank, ierror)
+    call MPI_Comm_size(comm, procs, ierror)
+
+    allocate(counts(procs))
+    allocate(displs(procs))
+
+    pp=0
+    if ( rank .eq. root ) then
+      ! create buffer to hold the submatrices to scatter.
+      ! Note that this buffer is larger that the matrix a because
+      ! of overlap of the submatrices
+      ! also compute the displacemets and counts needed
+      ! for mpi_scatterv
+
+      buflen = 0
+      do p=1,procs
+        buflen = buflen + lm(p)*size(a,2)
+
+        counts(p) = lm(p)*size(a,2)
+
+        if (p .eq. 1) then
+          displs(p) = 0
+        else
+          displs(p) = displs(p-1)+counts(p-1)
+        endif
+      enddo
+
+      allocate(buf(buflen))
+
+      ! copy the submatrices into the buffer
+
+      l = 0
+      do p=1,procs
+        do j=1,size(a,2)
+          do i=is(p),is(p)+lm(p)-1
+            l = l+1
+            buf(l) = a(i,j)
+          enddo
+        enddo
+      enddo
+    else
+      allocate(buf(1))  ! to get a valid address for buf on non-root processes
+    endif
+
+    ! scatter the submatrices
+
+    call MPI_Scatterv(buf, counts, displs, MPI_DOUBLE_PRECISION, b,  &
+                      size(b), MPI_DOUBLE_PRECISION, root, comm, ierror)
+
+    deallocate(displs)
+    deallocate(counts)
+    deallocate(buf)
+
+  end subroutine block_vector_distr_y
 
   subroutine matrix_distr_scatter_real8(a,b,is,lm,js,ln,root,comm)
     ! distribute matrix on processes
@@ -408,6 +492,7 @@ contains
     allocate(req(maxreq))
     req=MPI_REQUEST_NULL    ! initialize req with a null-value
 
+    allocate(bb(size(b,1),size(b,2)))
     if ( rank .eq. root) then
        ! we need a contiguous matrix a, because
        !  we are going to use isend.
@@ -454,7 +539,6 @@ contains
        deallocate(aa)
     else   ! below the code for non-root:
        ! because of irecv, we must be sure that we have a contiguous matrix
-       allocate(bb(size(b,1),size(b,2)))
        do j=1,nlocal
           call MPI_Irecv(bb(1,j), mlocal, datatype, root, tag, comm, req(j), ierror)
        enddo
@@ -464,9 +548,9 @@ contains
 
     if (rank .ne. root) then
        b = bb
-       deallocate(bb)
     endif
 
+    deallocate(bb)
     deallocate(req)
 
   end subroutine matrix_distr_send_real8
@@ -553,6 +637,7 @@ contains
     allocate(req(maxreq))
     req=MPI_REQUEST_NULL    ! initialize req with a null-value
 
+    allocate(bb(size(b,1),size(b,2)))
     if ( rank .eq. root) then
        allocate(aa(size(a,1),size(a,2)))
        aa = a
@@ -595,7 +680,6 @@ contains
        enddo loop
        deallocate(aa)
     else   ! below the code for non-root:
-       allocate(bb(size(b,1),size(b,2)))
        do j=1,nlocal
           call MPI_Irecv(bb(1,j), mlocal, datatype, root, tag, comm, req(j), ierror)
        enddo
@@ -609,8 +693,8 @@ contains
 
     if (rank .ne. root) then
        b = bb
-       deallocate(bb)
     endif
+    deallocate(bb)
 
     deallocate(req)
 
@@ -880,7 +964,6 @@ contains
     !   dimension of a (1:ma,1:na)
     !
     use mpi
-    use xmpi_module
     implicit none
     real*8, intent(out),  dimension(:,:) :: a
     real*8, intent(in), dimension(:,:)   :: b
@@ -1255,14 +1338,17 @@ contains
     !  root receives submatrices as a whole, one by one. Local
     !  submatrix is copied. 
     ! 
-    !  NOTE: the matrices are considered to be bordered by a columns
-    !   left and right and rows up and down. So, n general, 
-    !   only b(2:mb-1,2:nb-1) is send to the master process. 
+    !  NOTE: the matrices are considered to be bordered by columns
+    !   left and right and rows up and down. 
+    !   The number of border columns/rows is nbord.
+    !   The number of overlapping columns nover = 2*nbord.
+    !   So, in general, 
+    !   only b(nbord+1:mb-nbord,nbord+1:nb-nbord) is send to the master process. 
     !   HOWEVER: if matrix b is 
-    !   on the left: b(:,1) is also sent 
-    !   on the right: b(:,nb) is also sent
-    !   on the top:   b(1,:)  is also sent
-    !   on the bottom: b(mb,:) is also sent
+    !   on the left: b(:,1:nbord) is also sent 
+    !   on the right: b(:,nb-nbord+1:nb) is also sent
+    !   on the top:   b(1:nbord,:)  is also sent
+    !   on the bottom: b(mb-nbord+1:mb,:) is also sent
     ! The master process receives a(1:ma,1:na). 
     !   dimension of b (1:mb,1:nb). 
     !   dimension of a (1:ma,1:na)
@@ -1291,6 +1377,11 @@ contains
     integer, parameter                   :: tag2 = 124
     logical                              :: isleftl, isrightl, istopl, isbotl
 
+    ! nover is number of overlapping rows/columns of submatrices.
+    ! nbord is number of borders.
+
+    integer, parameter                   :: nbord = 2
+    integer, parameter                   :: nover = 2*nbord
 
     call MPI_Comm_rank(comm, rank, ierror)
     call MPI_Comm_size(comm, procs, ierror)
@@ -1304,32 +1395,32 @@ contains
 
     ! define start-end cols and rows for the general case:
     ! computations on arow.. and acol.. are only meaningful at root
-    browstart  = 2
-    browend    = mlocal - 1
-    bcolstart  = 2
-    bcolend    = nlocal - 1
-    arowstart  = is(root + 1) + 1
-    arowend    = is(root + 1) + mlocal - 2
-    acolstart  = js(root + 1) + 1
-    acolend    = js(root + 1) + nlocal - 2
+    browstart  = nbord  + 1
+    browend    = mlocal - nbord
+    bcolstart  = nbord + 1
+    bcolend    = nlocal - nbord
+    arowstart  = is(root + 1) + nbord
+    arowend    = is(root + 1) + mlocal - 1 - nbord
+    acolstart  = js(root + 1) + nbord
+    acolend    = js(root + 1) + nlocal - 1 - nbord
 
     ! correct for the border cases:
 
     if (isleftl) then
-       bcolstart = bcolstart - 1
-       acolstart = acolstart - 1
+       bcolstart = bcolstart - nbord
+       acolstart = acolstart - nbord
     endif
     if (isrightl) then
-       bcolend = bcolend + 1
-       acolend = acolend + 1
+       bcolend = bcolend + nbord
+       acolend = acolend + nbord
     endif
     if (istopl) then
-       browstart = browstart - 1
-       arowstart = arowstart - 1
+       browstart = browstart - nbord
+       arowstart = arowstart - nbord
     endif
     if (isbotl) then
-       browend = browend + 1
-       arowend = arowend + 1
+       browend = browend + nbord
+       arowend = arowend + nbord
     endif
 
     if (rank .eq. root) then
@@ -1351,26 +1442,26 @@ contains
           ! and where to put this in a  (ia:ia+mp-1, ja:ja+np-1)
           !
 
-          mp = lm(p) - 2
-          np = ln(p) - 2
-          ia = is(p) + 1
-          ja = js(p) + 1
+          mp = lm(p) - nover
+          np = ln(p) - nover
+          ia = is(p) + nbord
+          ja = js(p) + nbord
 
           ! correction if b is at a border:
 
           if (isleft(p)) then
-             ja = ja - 1
-             np = np + 1
+             ja = ja - nbord
+             np = np + nbord
           endif
           if (isright(p)) then
-             np = np + 1
+             np = np + nbord
           endif
           if (istop(p)) then
-             ia = ia - 1
-             mp = mp + 1
+             ia = ia - nbord
+             mp = mp + nbord
           endif
           if (isbot(p)) then
-             mp = mp + 1
+             mp = mp + nbord
           endif
 
           ! to avoid deadlocks, master first sends a
@@ -1386,7 +1477,7 @@ contains
 
        enddo  ploop ! loop over non-root processes
     else ! above is the root code, now the non-root code
-       ! receive the short message fro root, so I can start sending b
+       ! receive the short message from root, so I can start sending b
        call MPI_Recv(i, 1, MPI_INTEGER,&
             root, tag1, comm, MPI_STATUS_IGNORE, ierror)
 
@@ -1438,7 +1529,11 @@ contains
     integer, parameter                   :: tag2 = 124
     logical                              :: isleftl, isrightl, istopl, isbotl
 
+    ! nover is number of overlapping rows/columns of submatrices.
+    ! nbord is number of borders.
 
+    integer, parameter                   :: nover=4
+    integer, parameter                   :: nbord=nover/2
     call MPI_Comm_rank(comm, rank, ierror)
     call MPI_Comm_size(comm, procs, ierror)
 
@@ -1451,32 +1546,32 @@ contains
 
     ! define start-end cols and rows for the general case:
     ! computations on arow.. and acol.. are only meaningful at root
-    browstart  = 2
-    browend    = mlocal - 1
-    bcolstart  = 2
-    bcolend    = nlocal - 1
-    arowstart  = is(root + 1) + 1
-    arowend    = is(root + 1) + mlocal - 2
-    acolstart  = js(root + 1) + 1
-    acolend    = js(root + 1) + nlocal - 2
+    browstart  = nbord  + 1
+    browend    = mlocal - nbord
+    bcolstart  = nbord + 1
+    bcolend    = nlocal - nbord
+    arowstart  = is(root + 1) + nbord
+    arowend    = is(root + 1) + mlocal - 1 - nbord
+    acolstart  = js(root + 1) + nbord
+    acolend    = js(root + 1) + nlocal - 1 - nbord
 
     ! correct for the border cases:
 
     if (isleftl) then
-       bcolstart = bcolstart - 1
-       acolstart = acolstart - 1
+       bcolstart = bcolstart - nbord
+       acolstart = acolstart - nbord
     endif
     if (isrightl) then
-       bcolend = bcolend + 1
-       acolend = acolend + 1
+       bcolend = bcolend + nbord
+       acolend = acolend + nbord
     endif
     if (istopl) then
-       browstart = browstart - 1
-       arowstart = arowstart - 1
+       browstart = browstart - nbord
+       arowstart = arowstart - nbord
     endif
     if (isbotl) then
-       browend = browend + 1
-       arowend = arowend + 1
+       browend = browend + nbord
+       arowend = arowend + nbord
     endif
 
     if (rank .eq. root) then
@@ -1499,26 +1594,26 @@ contains
           ! and where to put this in a  (ia:ia+mp-1, ja:ja+np-1)
           !
 
-          mp = lm(p) - 2
-          np = ln(p) - 2
-          ia = is(p) + 1
-          ja = js(p) + 1
+          mp = lm(p) - nover
+          np = ln(p) - nover
+          ia = is(p) + nbord
+          ja = js(p) + nbord
 
           ! correction if b is at a border:
 
           if (isleft(p)) then
-             ja = ja - 1
-             np = np + 1
+             ja = ja - nbord
+             np = np + nbord
           endif
           if (isright(p)) then
-             np = np + 1
+             np = np + nbord
           endif
           if (istop(p)) then
-             ia = ia - 1
-             mp = mp + 1
+             ia = ia - nbord
+             mp = mp + nbord
           endif
           if (isbot(p)) then
-             mp = mp + 1
+             mp = mp + nbord
           endif
 
           ! to avoid deadlocks, master first sends a
@@ -1534,7 +1629,7 @@ contains
 
        enddo  ploop ! loop over non-root processes
     else ! above is the root code, now the non-root code
-       ! receive the short message fro root, so I can start sending b
+       ! receive the short message from root, so I can start sending b
        call MPI_Recv(i, 1, MPI_INTEGER,&
             root, tag1, comm, MPI_STATUS_IGNORE, ierror)
 
@@ -1543,7 +1638,7 @@ contains
        ! sanity check
        k = (browend - browstart + 1)*(bcolend - bcolstart + 1)
        if (i .ne. k) then
-          write(*,*)'process ',rank,' has a problem in matrix_coll_recvmat_real8: '
+          write(*,*)'process ',rank,' has a problem in matrix_coll_recvmat_int: '
           write(*,*)'number of words to send:',k
           write(*,*)'root expects:           ',i
           do i=1,procs
@@ -1580,7 +1675,7 @@ contains
     !  call MPI_Comm_size(MPI_COMM_WORLD, numprocs, ier)
     !  call MPI_Comm_rank(MPI_COMM_WORLD, myid, ier)
     !  n = 1000
-    !  call xmpi_decomp(n, nprocs, myid, s, e)
+    !  call decomp(n, nprocs, myid, s, e)
     !  do i = s,e
     !    ... 
     !  enddo
@@ -1622,7 +1717,7 @@ contains
     ! isleft(mp*np): logical(out): isleft(i) is true if the i-th submatrix 
     !                              shares the first column with the global matrix
     !                              a(:,1)
-    ! isrighet(mp*np): logical(out): isright(i) is true if the i-th submatrix 
+    ! isright(mp*np): logical(out): isright(i) is true if the i-th submatrix 
     !                              shares the last column with the global matrix
     !                              a(ma,:)
     ! istop(mp*np): logical(out): istop(i) is true if the i-th submatrix 
@@ -1632,17 +1727,25 @@ contains
     !                              shares the last row with the global matrix
     !                              a(na,:)
     ! 
-    ! All matrices are 'bordered': the first and last columns and rows
-    ! are the borders. 
-    ! So, the first column of a submatrix B, somewhere in the middle of
-    ! the global matrix, shares it's first column (the border) with
-    ! the 2-nd last column of it's left neighbour A, while A
-    ! shares its last column with the 2nd column of B. 
-    ! Later on, the process that hold A, will compute A(2:m-1,2:n-1)
-    ! (m and n the dimensions of A), using the values of 
-    ! A(1,:), A(m:,), A(:,1), A(:,n). These rows and columns are
-    ! computed by the neighbour processes and communicated between
-    ! each time step.
+    ! The submatrices overlap:
+    ! 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
+    ! 1 2 3 4 5 6 7 8 9           1 2 3 4 5 6 7 8 9 0 1
+    !           1 2 3 4 5 6 7 8 9 0 1 2 3 
+    !
+    ! + + + + + x x x x + + + + + x x x x + + + + + + +
+    ! + + + + + x x x x + + + + + x x x x + + + + + + +
+    ! + + + + + x x x x + + + + + x x x x + + + + + + +
+    ! + + + + + x x x x + + + + + x x x x + + + + + + +
+    ! + + + + + x x x x + + + + + x x x x + + + + + + +
+    ! + + + + + x x x x + + + + + x x x x + + + + + + +
+    ! + + + + + x x x x + + + + + x x x x + + + + + + +
+    !
+    ! This picture is for the overlap in horizontal direction,
+    ! The overlap is 4.
+    ! + -> matrix element
+    ! x -> overlapping matrix element
+    ! the order of the submatrices is 9,13,11.
+    ! The order of the global matrix is 25
     !  
     implicit none
     integer, intent(in)                :: ma,na,mp,np
@@ -1650,6 +1753,7 @@ contains
     logical, dimension(:), intent(out) :: isleft,isright,istop,isbot
 
     integer i,j,s,e,k
+    integer, parameter :: nover = 4
 
     isleft = .false.
     isright = .false.
@@ -1657,7 +1761,7 @@ contains
     isbot = .false.
 
     do i = 1, mp
-       call decomp(ma-2, mp, i - 1, s, e)
+       call decomp(ma-nover, mp, i - 1, s, e)
        k = 0
        do j = 1, np
           if (j .eq. 1) then
@@ -1667,13 +1771,13 @@ contains
              isright(i+k) = .true.
           endif
           is(i + k) = s
-          lm(i + k) = e - s + 3
+          lm(i + k) = e - s + nover + 1
           k = k + mp
        enddo
     enddo
     k = 0
     do j=1, np
-       call decomp(na-2, np, j - 1, s, e)
+       call decomp(na-nover, np, j - 1, s, e)
        do i = 1, mp
           if (i .eq. 1) then
              istop(i+k) = .true.
@@ -1682,7 +1786,7 @@ contains
              isbot(i+k) = .true.
           endif
           js(i + k) = s
-          ln(i + k) = e - s + 3
+          ln(i + k) = e - s + nover + 1
        enddo
        k = k + mp
     enddo

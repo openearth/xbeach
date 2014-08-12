@@ -5,7 +5,7 @@
 		<Platform Name="x64"/></Platforms>
 	<Configurations>
 		<Configuration Name="Debug|Win32" OutputDirectory="bin\static\win32\$(ConfigurationName)" IntermediateDirectory="bin\static\win32\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\genfiles\" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\genfiles\" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
 				<Tool Name="VFLibrarianTool"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -15,7 +15,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|Win32" OutputDirectory="bin\static\win32\$(ConfigurationName)" IntermediateDirectory="bin\static\win32\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\genfiles\" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\genfiles\" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" Interfaces="true"/>
 				<Tool Name="VFLibrarianTool"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -25,7 +25,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_Debug|Win32" OutputDirectory="bin\static\win32\$(ConfigurationName)" IntermediateDirectory="bin\static\win32\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\win32\MPI_Debug\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\win32\MPI_Debug\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
 				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="bin\static\win32\MPI_Debug\mpich\lib" AdditionalDependencies="mpi.lib fmpich2.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -35,7 +35,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_Release|Win32" OutputDirectory="bin\static\win32\$(ConfigurationName)" IntermediateDirectory="bin\static\win32\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\win32\MPI_Release\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_IFPORT;HAVE_MPI_WTIME" Diagnostics="diagnosticsShowAll" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\win32\MPI_Release\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_IFPORT;HAVE_MPI_WTIME" Diagnostics="diagnosticsShowAll" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true"/>
 				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="bin\static\win32\MPI_Release\mpich\lib" AdditionalDependencies="mpi.lib fmpich2.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -45,7 +45,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="netcdf_Debug|Win32" OutputDirectory="bin\static\win32\$(ConfigurationName)" IntermediateDirectory="bin\static\win32\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
 				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\win32\netcdf\Debug\" AdditionalDependencies="f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -55,7 +55,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="netcdf_Release|Win32" OutputDirectory="bin\static\win32\$(ConfigurationName)" IntermediateDirectory="bin\static\win32\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" Interfaces="true"/>
 				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\win32\netcdf\Debug\" AdditionalDependencies="f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -65,7 +65,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_netcdf_Debug|Win32" OutputDirectory="bin\static\win32\$(ConfigurationName)" IntermediateDirectory="bin\static\win32\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\win32\MPI_netcdf_Debug\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT;USENETCDF;DLL_NETCDF" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\win32\MPI_netcdf_Debug\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT;USENETCDF;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
 				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="bin\static\win32\MPI_netcdf_Debug\mpich\lib;..\..\lib\win32\netcdf\Debug\" AdditionalDependencies="mpi.lib fmpich2.lib f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -75,7 +75,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_netcdf_Release|Win32" OutputDirectory="bin\static\win32\$(ConfigurationName)" IntermediateDirectory="bin\static\win32\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\win32\MPI_netcdf_Release\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT;USENETCDF;DLL_NETCDF" Diagnostics="diagnosticsShowAll" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\win32\MPI_netcdf_Release\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT;USENETCDF;DLL_NETCDF" Diagnostics="diagnosticsShowAll" ModulePath="bin\static\win32\$(ConfigurationName)\" ObjectFile="bin\static\win32\$(ConfigurationName)\" PdbFile="bin\static\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true"/>
 				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="bin\static\win32\MPI_netcdf_Release\mpich\lib;..\..\lib\win32\netcdf\Release\" AdditionalDependencies="mpi.lib fmpich2.lib f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -85,7 +85,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Debug|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\genfiles\" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\genfiles\" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
 				<Tool Name="VFLibrarianTool"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
@@ -95,7 +95,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\genfiles\" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\;includes\genfiles\" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" Interfaces="true"/>
 				<Tool Name="VFLibrarianTool"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
@@ -105,7 +105,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="netcdf_Debug|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
 				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\x64\netcdf\Debug\" AdditionalDependencies="f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -115,7 +115,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="netcdf_Release|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" Interfaces="true"/>
 				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\x64\netcdf\Debug\" AdditionalDependencies="f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -125,7 +125,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_Debug|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\x64\MPI_Debug\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\x64\MPI_Debug\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
 				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="bin\static\x64\MPI_Debug\mpich\lib" AdditionalDependencies="mpi.lib fmpich2.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
@@ -135,7 +135,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_Release|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\x64\MPI_Release\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_IFPORT;HAVE_MPI_WTIME" Diagnostics="diagnosticsShowAll" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\x64\MPI_Release\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_IFPORT;HAVE_MPI_WTIME" Diagnostics="diagnosticsShowAll" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true"/>
 				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="bin\static\x64\MPI_Release\mpich\lib" AdditionalDependencies="mpi.lib fmpich2.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
@@ -145,7 +145,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_netcdf_Debug|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\x64\MPI_netcdf_Debug\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT;USENETCDF;DLL_NETCDF" Interfaces="true" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\x64\MPI_netcdf_Debug\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT;USENETCDF;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
 				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="bin\static\x64\MPI_netcdf_Debug\mpich\lib;..\..\lib\x64\netcdf\Debug\" AdditionalDependencies="mpi.lib fmpich2.lib f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -155,7 +155,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_netcdf_Release|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\x64\MPI_netcdf_Release\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT;USENETCDF;DLL_NETCDF" Diagnostics="diagnosticsShowAll" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" Traceback="true" BoundsCheck="true" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\x64\MPI_netcdf_Release\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT;USENETCDF;DLL_NETCDF" Diagnostics="diagnosticsShowAll" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true"/>
 				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="bin\static\x64\MPI_netcdf_Release\mpich\lib;..\..\lib\x64\netcdf\Release\" AdditionalDependencies="mpi.lib fmpich2.lib f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -170,8 +170,8 @@
 		<File RelativePath="..\..\lib\win32\netcdff90\netcdf.f90">
 			<FileConfiguration Name="Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Release|x64" ExcludedFromBuild="true"/>
-			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|Win32" ExcludedFromBuild="true"/>
@@ -179,8 +179,8 @@
 		<File RelativePath="..\..\lib\win32\netcdff90\typeSizes.f90">
 			<FileConfiguration Name="Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Release|x64" ExcludedFromBuild="true"/>
-			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|Win32" ExcludedFromBuild="true"/>
@@ -193,12 +193,15 @@
 		<File RelativePath="flow_secondorder.F90"/>
 		<File RelativePath="flow_timestep.F90"/>
 		<File RelativePath="general_mpi.F90"/>
+		<File RelativePath=".\general_mpi_new.F90"/>
 		<File RelativePath="getkey.F90"/>
+		<File RelativePath=".\gridrotate.F90"/>
 		<File RelativePath="groundwater.F90"/>
 		<File RelativePath="initialize.F90"/>
 		<File RelativePath="interp.F90"/>
 		<File RelativePath="libxbeach.F90"/>
 		<File RelativePath="logging.F90"/>
+		<File RelativePath=".\loopcounters.F90"/>
 		<File RelativePath="math_tools.F90"/>
 		<File RelativePath="mnemonic.F90"/>
 		<File RelativePath="mnemoniciso.F90"/>
@@ -207,6 +210,7 @@
 		<File RelativePath="nonh.F90"/>
 		<File RelativePath="output.F90"/>
 		<File RelativePath="params.F90"/>
+		<File RelativePath=".\paramsconst.F90"/>
 		<File RelativePath="postprocess.F90"/>
 		<File RelativePath="readkey.F90"/>
 		<File RelativePath="readtide.F90"/>
@@ -220,11 +224,13 @@
 		<File RelativePath="varianceupdate.F90"/>
 		<File RelativePath="varoutput.F90"/>
 		<File RelativePath=".\vegetation.F90"/>
+		<File RelativePath=".\wave_directions.F90"/>
 		<File RelativePath="wave_functions.F90"/>
 		<File RelativePath="wave_instationary.F90"/>
 		<File RelativePath="wave_stationary.F90"/>
 		<File RelativePath="wave_timestep.F90"/>
 		<File RelativePath="waveparams.F90"/>
 		<File RelativePath="waveparamsnew.F90"/>
-		<File RelativePath="xmpi.F90"/></Filter></Files>
+		<File RelativePath="xmpi.F90"/>
+		<File RelativePath=".\xmpinew.F90"/></Filter></Files>
 	<Globals/></VisualStudioProject>

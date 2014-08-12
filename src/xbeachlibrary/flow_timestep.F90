@@ -112,7 +112,7 @@ contains
     endif
 
     ! update bedfriction coefficient cf
-    if (trim(par%bedfriction)=='white-colebrook') then
+    if (par%bedfriction==BEDFRICTION_WHITE_COLEBROOK) then
        cf = par%g/max(10.d0,18*log10(4*max(hh,par%eps)/D90top))**2 
                                       ! Where: cf = g/C^2 where C = 18*log(4*hh/D90).
                                       ! Limit to C>10 in case of shallow water
@@ -165,9 +165,6 @@ contains
     ! wwvv here the mpi code to communicate a row of hu
     ! we send to the neighbour above and receive from the neighbour
     ! below:
-#ifdef USEMPI
-    call xmpi_shift(hum,'m:')
-#endif
     ! Wetting and drying criterion (only do momentum balance)
     do j=1,ny+1
        do i=1,nx+1
@@ -189,10 +186,6 @@ contains
           hvm(i,j)=max(.5d0*(hh(i,j)+hh(i,min(ny,j)+1)),par%eps)
        end do
     end do
-    ! send to the left, read from the right
-#ifdef USEMPI
-    call xmpi_shift(hvm,':n')
-#endif
     ! Wetting and drying criterion (only do momentum balance)
     do j=1,ny+1
        do i=1,nx+1
@@ -225,17 +218,30 @@ contains
           dudx(i,j) = (uu(i,j)-uu(i-1,j))/dsz(i,j)
        enddo
     enddo
-    dudx(1,:) = 0.d0 ! Robert: by defintion of Neumann boundary
+    ! wwvv: added: xmpi_istop
+    if (xmpi_istop) then
+       dudx(1,:) = 0.d0 ! Robert: by defintion of Neumann boundary
+    endif
     if (ny>2) then
        do j=2,ny+1
           do i=1,nx+1
              dvdy(i,j) = (vv(i,j)-vv(i,j-1))/dnz(i,j)
           enddo
        enddo
-       dvdy(:,1) = 0.d0 ! Robert: by defintion of Neumann boundary
+       ! wwvv: added: xmpi_isleft
+       if (xmpi_isleft) then
+          dvdy(:,1) = 0.d0 ! Robert: by defintion of Neumann boundary
+       endif
     else
        dvdy = 0.d0  ! Robert: by definition of 1D model
     endif
+
+    ! wwvv: added shift_ee
+    ! R+D: ToDo, check needed
+#ifdef USEMPI
+    call xmpi_shift_ee(dvdy)
+    call xmpi_shift_ee(dudx)
+#endif
 
     !
     ! X-direction
@@ -269,13 +275,6 @@ contains
           endif
        end do
     end do
-    ! wwvv fix border rows and columns of ududx
-#ifdef USEMPI
-    call xmpi_shift(ududx,'1:')
-    call xmpi_shift(ududx,'m:')
-    call xmpi_shift(ududx,':1')
-    call xmpi_shift(ududx,':n')
-#endif
     do j=2,ny
        do i=1,nx
           vdudy(i,j)        = 0.d0
@@ -305,13 +304,6 @@ contains
           endif
        end do
     end do
-    ! wwvv fix border rows and columns of vdudy
-#ifdef USEMPI
-    ! call xmpi_shift(vdudy,'1:') ! not necessary wwvv
-    call xmpi_shift(vdudy,'m:')
-    call xmpi_shift(vdudy,':1')
-    call xmpi_shift(vdudy,':n')
-#endif
     !
 
     ! Jaap: Slightly changes approach; 1) background viscosity is user defined or obtained from Smagorinsky, 2) nuh = max(nuh,roller induced viscosity)
@@ -446,12 +438,7 @@ contains
        endif
     endif
 #ifdef USEMPI
-    ! wwvv qx is used later on, also the first row, fix the first row
-    ! of uu first
-    call xmpi_shift(uu,'1:')
-    call xmpi_shift(uu,'m:')
-    call xmpi_shift(uu,':1')
-    call xmpi_shift(uu,':n')
+    call xmpi_shift_ee(uu)
 #endif
     !
     ! Y-direction
@@ -677,10 +664,7 @@ contains
     end do
     ! Communicate vv at internal boundaries
 #ifdef USEMPI
-    call xmpi_shift(vv,'1:')
-    call xmpi_shift(vv,'m:')
-    call xmpi_shift(vv,':1')
-    call xmpi_shift(vv,':n')
+    call xmpi_shift_ee(vv)
 #endif
     ! Robert: Boundary conditions along the global boundaries
     ! Function flow_lat_bc located in boundaryconditions.F90
@@ -697,24 +681,21 @@ contains
     if (par%nonh==1) then
        !Do explicit predictor step with pressure
        call nonh_explicit(s,par)
+    
+#ifdef USEMPI
+         call xmpi_shift_ee(uu)
+         call xmpi_shift_ee(vv)
+#endif
     end if
 
     if (par%secorder==1) then
        !Call second order correction to the advection
        call flow_secondorder_advUV(s,par,uu_old,vv_old)
-    end if
-
-    ! Robert: include again when 2nd order returned
 #ifdef USEMPI
-    call xmpi_shift(uu,':1')
-    call xmpi_shift(uu,':n')
-    call xmpi_shift(uu,'1:')
-    call xmpi_shift(uu,'m:')
-    call xmpi_shift(vv,':1')
-    call xmpi_shift(vv,':n')
-    call xmpi_shift(vv,'1:')
-    call xmpi_shift(vv,'m:')
+         call xmpi_shift_ee(uu)
+         call xmpi_shift_ee(vv)
 #endif
+    end if
 
     ! Pieter and Jaap: update hu en hv for continuity
     do j=1,ny+1
@@ -762,14 +743,10 @@ contains
     end do
     hv = max(hv,0.d0)
 
-#ifdef USEMPI
-    call xmpi_shift(hu ,'m:')
-    call xmpi_shift(hv ,':n')
-#endif
-
     if (par%nonh==1) then
        ! do non-hydrostatic pressure compensation to solve short waves
        call nonh_cor(s,par)
+       ! note: MPI shift in subroutine nonh_cor
     end if
 
     ! Flux in u-point
@@ -842,22 +819,7 @@ contains
 
     ! wwvv zs, uu, vv have to be communicated now, because they are used later on
 #ifdef USEMPI
-    call xmpi_shift(zs,':1')
-    call xmpi_shift(zs,':n')
-    call xmpi_shift(zs,'1:')
-    call xmpi_shift(zs,'m:')
-    call xmpi_shift(dzsdt,':1')  ! wwvv dzsdt maybe not necessary because first and last columns are not used
-    call xmpi_shift(dzsdt,':n')
-    call xmpi_shift(dzsdt,'1:')
-    call xmpi_shift(dzsdt,'m:')
-    call xmpi_shift(qx,':1')  ! wwvv qx maybe not necessary because first and last columns are not used
-    call xmpi_shift(qx,':n')
-    call xmpi_shift(qx,'1:')
-    call xmpi_shift(qx,'m:')
-    call xmpi_shift(qy,':1')
-    call xmpi_shift(qy,':n')
-    call xmpi_shift(qy,'1:')! wwvv qy maybe not necessary because first and last rows are not used
-    call xmpi_shift(qy,'m:')
+    call xmpi_shift_ee(zs)
 #endif
 
     if (par%secorder == 1) then
@@ -878,13 +840,6 @@ contains
        u(nx+1,:)=u(nx,:)
     endif
 
-#ifdef USEMPI
-    call xmpi_shift(u,'1:')
-    call xmpi_shift(u,'m:')
-    call xmpi_shift(u,':1')
-    call xmpi_shift(u,':n')
-#endif
-
     if (ny>0) then
        v(:,2:ny)=0.5d0*(vv(:,1:ny-1)+vv(:,2:ny))
        if(xmpi_isleft) then
@@ -899,12 +854,6 @@ contains
        v=vv
     endif !ny>0
 
-#ifdef USEMPI
-    call xmpi_shift(v,':1')
-    call xmpi_shift(v,':n')
-    call xmpi_shift(v,'1:')
-    call xmpi_shift(v,'m:')
-#endif
     ! Robert + Jaap: compute derivatives of u and v
     !
 
@@ -927,12 +876,6 @@ contains
     endif !ny>0
     ! wwvv fill in vu(:1) and vu(:ny+1) for non-left and non-right processes
     !  and vu(nx+1,:)
-#ifdef USEMPI
-    call xmpi_shift(vu,':1')
-    call xmpi_shift(vu,':n')
-    call xmpi_shift(vu,'m:')
-    ! Jaap: whu not vu,'1:' --> seesm to be necessary to compute vmagu that is used to compute Su
-#endif
     vu=vu*wetu
     ! V-stokes velocities at U point
     if (ny>0) then
@@ -949,11 +892,6 @@ contains
             ust(2:nx+1,1)*sinthm(2:nx+1,1))
     endif !ny>0
     ! wwvv same for vsu
-#ifdef USEMPI
-    call xmpi_shift(vsu,':1')
-    call xmpi_shift(vsu,':n')
-    call xmpi_shift(vsu,'m:')
-#endif
     vsu = vsu*wetu
     ! U-stokes velocities at U point
     if (ny>0) then
@@ -970,11 +908,6 @@ contains
             ust(2:nx+1,1)*costhm(2:nx+1,1))
     endif !ny>0
     ! wwvv same for usu   
-#ifdef USEMPI
-    call xmpi_shift(usu,':1')
-    call xmpi_shift(usu,':n')
-    call xmpi_shift(usu,'m:')
-#endif
     usu=usu*wetu
 
     ! V-euler velocities at u-point
@@ -1003,12 +936,6 @@ contains
     ! wwvv fix uv(:,ny+1) for non-right processes
     ! uv(1,:) and uv(nx+1,:) need to be filled in for
     ! non-bot or top processes
-#ifdef USEMPI
-    call xmpi_shift(uv,':n')
-    call xmpi_shift(uv,':1')
-    call xmpi_shift(uv,'1:')
-    call xmpi_shift(uv,'m:')
-#endif
     uv=uv*wetv
     ! V-stokes velocities at V point
     if (ny>0) then
@@ -1024,12 +951,6 @@ contains
        vsv(2:nx,1)= ust(2:nx,1)*sinthm(2:nx,1)
     endif !ny>0
     ! wwvv fix vsv(:,1) and vsv(:,ny+1) and vsv(1,:) and vsv(nx+1,:)
-#ifdef USEMPI
-    call xmpi_shift(vsv,':n')
-    call xmpi_shift(vsv,':1')
-    call xmpi_shift(vsv,'1:')
-    call xmpi_shift(vsv,'m:')
-#endif
 
     vsv=vsv*wetv
     ! U-stokes velocities at V point
@@ -1046,12 +967,6 @@ contains
        usv(2:nx,1)=ust(2:nx,1)*costhm(2:nx,1)
     endif !ny>0
     ! wwvv fix usv(:,1) and usv(:,ny+1) and usv(1,:) and usv(nx+1,:)
-#ifdef USEMPI
-    call xmpi_shift(usv,':n')
-    call xmpi_shift(usv,':1')
-    call xmpi_shift(usv,'1:')
-    call xmpi_shift(usv,'m:')
-#endif
     usv=usv*wetv
 
     ! V-euler velocities at V-point
@@ -1070,12 +985,6 @@ contains
     ue(2:nx,:)=0.5d0*(ueu(1:nx-1,:)+ueu(2:nx,:))
     ue(1,:)=ueu(1,:)
     ! wwvv ue(nx+1,:) ?
-#ifdef USEMPI
-    call xmpi_shift(ue,':1')
-    call xmpi_shift(ue,':n')
-    call xmpi_shift(ue,'1:')
-    call xmpi_shift(ue,'m:')
-#endif
 
     if (ny>0) then
        ve(:,2:ny)=0.5d0*(vev(:,1:ny-1)+vev(:,2:ny)) !Jaap ny+1
@@ -1084,12 +993,6 @@ contains
        ve(:,1) = vev(:,1)
     endif !ny>0
     ! wwvv vev(nx+1,:) ?
-#ifdef USEMPI
-    call xmpi_shift(ve,':1')
-    call xmpi_shift(ve,':n')
-    call xmpi_shift(ve,'1:')
-    call xmpi_shift(ve,'m:')
-#endif
     !
     hold =hh    ! wwvv ?  hold is never else used
     !
@@ -1201,12 +1104,6 @@ contains
     if (xmpi_istop)       nuh(1,:)      = nuh(2,:)
     if (xmpi_isbot)       nuh(nx+1,:)   = nuh(nx,:)
 
-#ifdef USEMPI
-    call xmpi_shift(nuh,'1:')
-    call xmpi_shift(nuh,'m:')
-    call xmpi_shift(nuh,':1')
-    call xmpi_shift(nuh,':n')
-#endif  
   end subroutine visc_smagorinsky
 
 end module flow_timestep_module

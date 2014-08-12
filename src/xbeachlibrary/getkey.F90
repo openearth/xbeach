@@ -76,7 +76,6 @@ contains
     real*8, target, save :: realvalue
     integer :: index
     character :: type
-    integer :: i 
     include 'getkey.gen'
     ! This sets index and type
     call getkey_indextype(par, key, index, type)

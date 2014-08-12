@@ -125,10 +125,6 @@ contains
 
     type(parameters),intent(inout)      :: par
     type(timepars),intent(inout)        :: tpar
-    character(80)                       :: tsglobal 
-    character(80)                       :: tspoints
-    character(80)                       :: tscross
-    character(80)                       :: tsmean
 
     real*8                              :: iir
     integer                             :: i,ii,ier
@@ -156,7 +152,7 @@ contains
 
 !!!!! OUTPUT TIME POINTS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! If working in instat 0 or instat 40 we want time to coincide at wavint timesteps
-    if (trim(par%instat)=='stat' .or. trim(par%instat)=='stat_table') then
+    if (par%instat==INSTAT_STAT .or. par%instat==INSTAT_STAT_TABLE) then
        if(xmaster) then
           ii=ceiling(par%tstop/par%wavint)
           allocate(tpar%tpw(ii))
@@ -575,9 +571,14 @@ contains
           par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tny))
        endif
 #else
-       if (par%instat(1:4)/='stat') then
+      ! if (par%instat(1:4)/='stat') then
+      ! wwvv: hoping that this is a correct translation:
+      select case (par%instat)
+      case(INSTAT_STAT,INSTAT_STAT_TABLE)
+        continue
+      case default
           par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tny))
-       end if
+      end select
 #endif
      endif
        !To avoid large timestep differences due to output, which can cause instabities
