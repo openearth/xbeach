@@ -94,9 +94,9 @@ module params
      real*8        :: dir0                       = -123    !  [deg] Mean wave direction (Nautical convention) for instat = 0,1,2,3
      real*8        :: nmax                       = -123    !  [-] (advanced) maximum ratio of cg/c fro computing long wave boundary conditions
      integer*4     :: m                          = -123    !  [-] Power in cos^m directional distribution for instat = 0,1,2,3
-     character(slen) :: lateralwave              = 'neumann'   !  [-] (deprecated) Switch for lateral boundary at left, 'neumann' = E Neumann, 'wavefront' = along wave front
-     character(slen) :: leftwave                 = 'abc'   !  [-] old name for lateralwave
-     character(slen) :: rightwave                = 'abc'   !  [-] old name for lateralwave
+     character(slen) :: lateralwave              = 'neumann'   !  [-] Switch for lateral boundary at left, 'neumann' = E Neumann, 'wavefront' = along wave front
+     character(slen) :: leftwave                 = 'abc'   !  [-] (deprecated) old name for lateralwave
+     character(slen) :: rightwave                = 'abc'   !  [-] (deprecated) old name for lateralwave
 
      ! [Section] Wave-spectrum boundary condition parameters
      character(slen):: bcfile                    = 'abc'   !  [-] Name of spectrum file
@@ -672,11 +672,29 @@ contains
        par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
        call check_file_exist('boun_U.bcf')
     endif
-    allocate(allowednames(2),oldnames(2))
-    allowednames=(/'neumann  ','wavecrest'/)
-    oldnames=(/'0','1'/)
-    par%leftwave  = readkey_str('params.txt','leftwave','neumann',2,2,allowednames,oldnames)
-    par%rightwave  = readkey_str('params.txt','rightwave','neumann',2,2,allowednames,oldnames)
+    allocate(allowednames(3),oldnames(3))
+    allowednames=(/'neumann  ','wavecrest','cyclic   ' /)
+    oldnames=(/'0','1','2'/)
+    if (isSetParameter('params.txt','lateralwave')) then
+       par%lateralwave  = readkey_str('params.txt','lateralwave','neumann',3,3,allowednames,oldnames)
+    else
+       if (isSetParameter('params.txt','leftwave') .or. isSetParameter('params.txt','rightwave')) then
+          par%leftwave  = readkey_str('params.txt','leftwave','neumann',2,2,allowednames,oldnames)
+          par%rightwave  = readkey_str('params.txt','rightwave','neumann',2,2,allowednames,oldnames)
+          if (par%leftwave==par%rightwave) then
+             par%lateralwave = par%leftwave
+             call writelog('lsw','','LEFTWAVE and RIGHTWAVE parameters are deprecated.')
+             call writelog('lsw','','Setting LATERALWAVE to ', trim(par%leftwave))
+          else
+             call writelog('lswe','','LEFTWAVE and RIGHTWAVE parameters are deprecated.')
+             call writelog('lswe','','Left and Right wave boundary conditions must be equal')
+             call writelog('lswe','','Use LATERALWAVE parameter to set wave boundary conditions')
+             call halt_program
+          endif
+       else
+          par%lateralwave  = readkey_str('params.txt','lateralwave','neumann',3,3,allowednames,oldnames)
+       endif
+    endif
     deallocate(allowednames,oldnames)
     !
     !
