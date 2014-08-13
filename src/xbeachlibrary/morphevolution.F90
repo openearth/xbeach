@@ -1575,6 +1575,9 @@ contains
     As = Bm*sin(B1)                                            !Asymmetry(eq 9)                                
     ua = par%sws*(par%facSk*Sk-par%facAs*As)*urms
 
+    ! multiply Sk and As with wetz to get zeros at h = 0 for output
+    Sk = Sk*wetz
+    As = As*wetz
 
   end subroutine RvR
 
@@ -1686,6 +1689,10 @@ contains
 
     Tbore = max(par%Trep/25.d0,min(par%Trep/4.d0,H/(max(c,sqrt(H*par%g))*max(detadxmax,par%eps))))
     Tbore = par%Tbfac*Tbore
+    
+    ! multiply Sk and As with wetz to get zeros at h = 0 for output
+    Sk = Sk*wetz
+    As = As*wetz
 
   end subroutine vT
   
