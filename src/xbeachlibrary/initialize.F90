@@ -22,7 +22,7 @@ contains
     type(parameters)               :: par               
 
     integer                        :: i,ier,idum,n,m,ier2,ier3,dum
-    integer                        :: j,it
+    integer                        :: j
     integer                        :: itheta
     real*8                         :: degrad
     character(slen)                :: line
@@ -1247,7 +1247,7 @@ contains
     type(parameters)                    :: par
 
     integer                             :: i,j,m,jg,start,ier
-    character(slen)                     :: fnameg,line
+    character(slen)                     :: fnameg
     character(len=4)                    :: tempc
     real*8                              :: tempr
 
@@ -1482,7 +1482,7 @@ contains
     type(parameters)                        :: par
 
     integer                                 :: i,j
-    integer                                 :: io,ier
+    integer                                 :: io
     integer                                 :: m1,m2,n1,n2
     real*8                                  :: dxd,dyd
     real*8, dimension(:),allocatable        :: xdb,ydb,xde,yde

@@ -1230,8 +1230,6 @@ CONTAINS
     use iso_c_binding
     type(c_funptr), VALUE :: fPtr
     
-    integer :: i
-    
     distributelog => null()
     if (c_associated(fPtr)) then
         call c_f_procpointer (fPtr, distributelog )

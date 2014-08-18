@@ -24,9 +24,7 @@
      integer, dimension(:), optional, intent( in) :: start, count, stride, map
      integer                                      :: nf90_get_var_text
  
-     integer, dimension(nf90_max_var_dims) :: localIndex, textDimIDs
      integer, dimension(nf90_max_var_dims) :: localStart, localCount, localStride 
-     integer                               :: counter, stringLength
  
      ! Set local arguments to default values
      localStart (:)  = 1

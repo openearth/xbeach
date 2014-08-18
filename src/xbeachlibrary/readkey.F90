@@ -334,7 +334,7 @@ contains
 
     integer          :: i, ioerr
     character(slen)   :: value
-    character(slen)  :: printkey,tempout
+    character(slen)  :: printkey
 
     printkey(2:slen)=key
     printkey(1:1)=' '

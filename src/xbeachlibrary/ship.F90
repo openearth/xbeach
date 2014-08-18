@@ -84,8 +84,7 @@ contains
     type(spacepars),target                      :: s
     type(ship), dimension(:), pointer           :: sh
 
-    integer                                     :: i,fid,ix,iy,ier,it
-    character(1)                                :: ch
+    integer                                     :: i,fid,iy,it
     integer                                     :: n2
 
     include 's.ind'
