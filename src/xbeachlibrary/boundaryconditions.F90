@@ -44,8 +44,7 @@ contains
     type(spacepars), target                     :: sg, sl
     type(spacepars), pointer                    :: s
     type(parameters)                            :: par
-    type(waveparameters),save                   :: wp
-
+    
     integer, save                               :: nt
     integer                                     :: i,new,reclen,wordsize
     integer, save                               :: old
@@ -68,10 +67,10 @@ contains
     real*8,dimension(:,:)   ,allocatable,save   :: gq1,gq2,gq
     real*8,dimension(:,:)   ,allocatable,save   :: gee1, gee2
     character(len=1)                            :: bl
-    character(slen)                             :: ebcfname,qbcfname,nhbcfname,fname
+    character(slen)                             :: ebcfname,qbcfname,nhbcfname
     real*8                                      :: E0
     real*8,dimension(:),allocatable,save        :: dist,factor
-    logical                                     :: startbcf,lexist1,lexist2
+    logical                                     :: startbcf
     logical                                     :: isSet_U,isSet_Z,isSet_W
     real*8,dimension(:)     ,allocatable,save   :: uig,zig,wig
 
