@@ -988,27 +988,4 @@ contains
     count_lines = lines
 
     end function count_lines
-
-    subroutine testje1
-    use xmpi_module
-    use filefunctions
-    real*8 x(5),u,u1,u2
-    integer n,fid,i
-    n = count_lines('test1')
-    print *,'counting lines ...',xmpi_rank,n
-    print *,'testing read_v_array'
-    fid = create_new_fid()
-    if(xmaster) open(fid,file='test1')
-    do i=1,n
-      call read_v(fid,x)
-      print *,xmpi_rank,":",x
-    enddo
-    if(xmaster)rewind(fid)
-    print *,'testing read_v(fid,a,a1,a2)'
-    do i=1,n
-      call read_v(fid,u,u1,u2)
-      print *,xmpi_rank,':',u,u1,u2
-    enddo
-    end subroutine testje1
-
 end module readkey_module
