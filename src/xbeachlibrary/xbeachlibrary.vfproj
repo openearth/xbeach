@@ -121,7 +121,7 @@
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
 				<Tool Name="VFPreLinkEventTool" CommandLine="build\copy_netcdf_dlls.bat $(SolutionDir) $(TargetDir) x64 Debug"/>
-				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName) win32"/>
+				<Tool Name="VFPreBuildEventTool" CommandLine="includes\version\makeversiondat.bat &amp;&amp; build\generate_and_copy_gen_files.bat $(SolutionDir) $(ConfigurationName) x64"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_Debug|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
@@ -170,8 +170,8 @@
 		<File RelativePath="..\..\lib\win32\netcdff90\netcdf.f90">
 			<FileConfiguration Name="Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Release|x64" ExcludedFromBuild="true"/>
-			<FileConfiguration Name="MPI_Debug|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="MPI_Debug|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|Win32" ExcludedFromBuild="true"/>
@@ -179,8 +179,8 @@
 		<File RelativePath="..\..\lib\win32\netcdff90\typeSizes.f90">
 			<FileConfiguration Name="Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Release|x64" ExcludedFromBuild="true"/>
-			<FileConfiguration Name="MPI_Debug|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="MPI_Debug|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|Win32" ExcludedFromBuild="true"/>
@@ -195,7 +195,6 @@
 		<File RelativePath="general_mpi.F90"/>
 		<File RelativePath=".\general_mpi_new.F90"/>
 		<File RelativePath="getkey.F90"/>
-		<File RelativePath=".\gridrotate.F90"/>
 		<File RelativePath="groundwater.F90"/>
 		<File RelativePath="initialize.F90"/>
 		<File RelativePath="interp.F90"/>
