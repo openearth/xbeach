@@ -286,7 +286,7 @@ contains
           endwhere
           ! Some variables (vectors) are rotated to N-S and E-W direction
           if (t%type=='i') then 
-             call gridrotate(t,tvar2di)
+             call gridrotate(par, sl,t,tvar2di)
              tvar2d=dble(tvar2di)
           else
              call gridrotate(par, sl,t,tvar2d)

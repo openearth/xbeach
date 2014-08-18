@@ -1320,7 +1320,6 @@ contains
     call parmapply('mpiboundary',1,par%mpiboundary)
     if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE) then
        par%mpiboundary=MPIBOUNDARY_X
-       par%mpiboundary_str='x'
        call writelog('l','','mpiboundary set to x for stationary wave model')
     endif
 
