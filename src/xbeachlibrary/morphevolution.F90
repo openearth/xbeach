@@ -409,7 +409,7 @@ contains
     type(spacepars),target              :: s
     type(parameters)                    :: par
 
-    integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz,di, hinterland
+    integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz, hinterland
     integer , dimension(:,:,:),allocatable,save :: indSus,indSub,indSvs,indSvb
     real*8                                      :: dzb,dzmax,dzt,dzleft,sdz,dzavt,fac,Savailable,dAfac
     real*8 , dimension(:,:),allocatable,save    :: dzbtot,Sout,hav
@@ -1747,7 +1747,6 @@ contains
   integer , dimension(:), allocatable,save :: slopeind
   real , dimension(:), allocatable,save    :: hav1d
   real*8                                   :: irrb,runup_old
-  real*8                                   :: bermwidth,rb,gamB,runup_max
 
   include 's.ind'
   include 's.inp'
