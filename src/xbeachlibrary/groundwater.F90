@@ -187,10 +187,9 @@ subroutine gwflow(s,par)
   
   ! internal variables
   integer                                     :: i,j
-  integer                                     :: count,incl
+  integer                                     :: incl
   integer,parameter                           :: maxiter = 50
-  real*8                                      :: err,errx,erry,errz
-  real*8                                      :: flux,dzr,wdt
+  real*8                                      :: dzr,wdt
   real*8,dimension(:,:),allocatable,save      :: gwhu,gwhv,gwheadtop
   real*8,dimension(:,:),allocatable,save      :: Kx,Ky,Kz,Kzinf
   real*8,dimension(:,:),allocatable,save      :: Kxupd,Kyupd,Kzupd
@@ -204,8 +203,8 @@ subroutine gwflow(s,par)
   real*8,dimension(:,:),pointer,save          :: infilcon
   real*8,dimension(:,:),allocatable,save      :: infilhorgw,infilhorsw
   real*8,dimension(:,:),allocatable,save      :: gwumean
-  real*8                                      :: factime,w1,w2,dft
-  logical                                     :: initial,turb
+  real*8                                      :: factime
+  logical                                     :: initial
   real*8,save                                 :: connectcrit
     
   ! shortcut pointers
@@ -515,7 +514,7 @@ subroutine gwflow(s,par)
      endwhere
      dinfil=dinfil+infilcon*par%dt/par%por
      if (par%gwhorinfil==1) then
-        call gw_horizontal_infil_exfil(s,par,infilhorgw,infilhorsw,Kx,Ky,dynpresupd)
+        call gw_horizontal_infil_exfil(s,par,infilhorgw,infilhorsw,Kx,dynpresupd)
      endif
   endif
   ! Compute new water level
@@ -565,7 +564,7 @@ subroutine gwflow(s,par)
   !
   ! output pressure head at bottom
   !
-  gwheadb = gwCalculateHeadBottom(gwhead,gwcurv,gwheadtop,gwheight,nx,ny,par%gwheadmodel)
+  gwheadb = gwCalculateHeadBottom(gwcurv,gwheadtop,gwheight,nx,ny,par%gwheadmodel)
   gwheadb(1,:) = gwheadb(2,:)
   gwheadb(nx+1,:) = gwheadb(nx,:)
 end subroutine gwflow
@@ -788,10 +787,10 @@ subroutine gw_solver(par,s,hbc,Kx,Ky,Kz,hu,hv,fracdt)
   ! internal
   real*8,dimension(:,:,:),allocatable,save    :: A,work
   real*8,dimension(:,:),allocatable,save      :: rhs,x,res
-  integer                                     :: i,j,n,m,k,l,it
+  integer                                     :: i,j,n,m,k,it
   integer                                     :: imin,imax,jmin,jmax
   real*8                                      :: dxum,dxup,dxpc
-  real*8                                      :: dyvm,dyvp,dypc
+  real*8                                      :: dyvm,dyvp
   real*8                                      :: dyum,dyup,dxvm,dxvp,dA
   real*8                                      :: hcmx,hcc,hcpx
   real*8                                      :: hcmy,hcpy
@@ -1094,7 +1093,7 @@ subroutine gw_solver(par,s,hbc,Kx,Ky,Kz,hu,hv,fracdt)
   endif
 end subroutine gw_solver
 
-subroutine gw_horizontal_infil_exfil(s,par,infilhorgw,infilhorsw,Kx,Ky,dynpres)
+subroutine gw_horizontal_infil_exfil(s,par,infilhorgw,infilhorsw,Kx,dynpres)
   ! compute horizontal part of infiltration/exfiltration
   use params
   use xmpi_module
@@ -1102,10 +1101,9 @@ subroutine gw_horizontal_infil_exfil(s,par,infilhorgw,infilhorsw,Kx,Ky,dynpres)
   
   type(parameters),intent(in)                 :: par
   type(spacepars)                             :: s
-  real*8,dimension(s%nx+1,s%ny+1),intent(in)  :: Kx,Ky,dynpres
+  real*8,dimension(s%nx+1,s%ny+1),intent(in)  :: Kx,dynpres
   real*8,dimension(s%nx+1,s%ny+1),intent(out) :: infilhorgw,infilhorsw
   ! internal
-  real*8,dimension(s%nx+1,s%ny+1)             :: dheaddx,dheaddy
   integer                                     :: i,j
   real*8                                      :: dz,dx,dy,vel,hsurf,hgw,dhead
   real*8,parameter                            :: visc = 1.0d-6
@@ -1273,8 +1271,8 @@ subroutine gw_calculate_velocities(s,par,fracdt,gwu,gwv,gww,Kx,Ky,Kz,Kxupd,Kyupd
   real*8,dimension(s%nx+1,s%ny+1),intent(out) :: gwu,gwv,gww
   real*8,dimension(s%nx+1,s%ny+1),intent(out) :: Kxupd,Kyupd,Kzupd
   ! internal
-  real*8,dimension(s%nx+1,s%ny+1)             :: dheaddx,dheaddy,dheaddz
-  real*8                                      :: vcr,vest,vupd,err,fac,kest  ! for turbulent/MODFLOW approximation
+  real*8,dimension(s%nx+1,s%ny+1)             :: dheaddx,dheaddy
+  real*8                                      :: vcr ! for turbulent/MODFLOW approximation
   real*8,parameter                            :: visc = 1.0d-6
   integer                                     :: i,j
     
@@ -1331,7 +1329,7 @@ pure subroutine gw_calculate_velocities_local(vel,Kupd,headgrad,Kin,fracdt,gwsch
   logical,intent(in)          :: isvert,isnonh
   real*8,intent(in)           :: gwc,gwh,vcr
   ! internal
-  real*8                      :: Re,vest,err,fac,kest,vupd
+  real*8                      :: vest,err,fac,kest,vupd
     
   select case (gwscheme)
      case (GWSCHEME_LAMINAR) 
@@ -1435,7 +1433,7 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
   real*8,dimension(s%nx+1,s%ny+1)             :: ratio
   ! local
   integer                                     :: i,j
-  real*8                                      :: flux,w1,w2,w3,dummy,dummy2
+  real*8                                      :: w1,w2,w3,dummy,dummy2
   logical                                     :: turbapprox
  
   ! shortcut pointers
@@ -1528,7 +1526,7 @@ pure subroutine gw_calc_local_infil(par,zb,hh,gwlevel,kzlocal,dinfil,D50top,turb
   real*8,intent(out)                          :: fracdt,infil,kzupd
   ! local
   real*8,parameter                            :: visc = 1.0d-6
-  real*8                                      :: dis,dtunsat,subdt
+  real*8                                      :: dis
   real*8                                      :: vest,vupd,Re,err,kze,newinfil
   real*8,parameter                            :: beta = 3.236067977499790d0 ! golden ratio
   real*8,parameter                            :: alfa = 2.236067977499790d0 ! golden ratio
@@ -1700,13 +1698,14 @@ pure subroutine gw_calc_local_infil(par,zb,hh,gwlevel,kzlocal,dinfil,D50top,turb
   !kzupd = kze
 end subroutine gw_calc_local_infil
 
-pure subroutine gw_calc_local_connected_infil(par,gwhead,gwlevel,zb,headtop,hh,D50top,turb,zs,infil)
+! TODO: subroutine is not used. Remove this
+pure subroutine gw_calc_local_connected_infil(par,gwhead,gwlevel,zb,hh,D50top,turb,zs,infil)
   use params
   
   IMPLICIT NONE
 
   type(parameters),intent(in)                 :: par
-  real*8,intent(in)                           :: gwhead,gwlevel,zb,headtop,hh,D50top,zs
+  real*8,intent(in)                           :: gwhead,gwlevel,zb,hh,D50top,zs
   logical,intent(in)                          :: turb
   real*8,intent(out)                          :: infil
   ! local
@@ -1780,12 +1779,12 @@ pure subroutine gw_calc_local_connected_infil(par,gwhead,gwlevel,zb,headtop,hh,D
 
 end subroutine gw_calc_local_connected_infil
 
-pure function gwCalculateHeadBottom(gwhead,gwcurv,gwheadtop,gwheight,nx,ny,model) result(gwheadb)
+pure function gwCalculateHeadBottom(gwcurv,gwheadtop,gwheight,nx,ny,model) result(gwheadb)
    use paramsconst
    
    IMPLICIT NONE
    integer,intent(in)                      :: nx,ny
-   real*8,dimension(nx+1,ny+1),intent(in)  :: gwhead,gwcurv,gwheadtop,gwheight
+   real*8,dimension(nx+1,ny+1),intent(in)  :: gwcurv,gwheadtop,gwheight
    integer     ,intent(in)                 :: model
    real*8,dimension(nx+1,ny+1)             :: gwheadb
    ! internal
