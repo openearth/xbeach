@@ -342,7 +342,7 @@ contains
           where (oldmean4d>-1.d0*tiny(0.d0) .and. oldmean4d<0.d0)
              oldmean4d=-1.d0*tiny(0.d0)
           endwhere
-          call gridrotate(t,tvar4d)
+          call gridrotate(par, sl,t,tvar4d)
           meansparslocal(i)%mean4d = meansparslocal(i)%mean4d + mult*tvar4d
           meansparslocal(i)%variancecrossterm4d = &
                meansparslocal(i)%variancecrossterm4d/oldmean4d*meansparslocal(i)%mean4d + &
