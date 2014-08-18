@@ -408,17 +408,12 @@ contains
     integer                                 :: nmodal
     integer                                 :: fid
     integer                                 :: forcepartition = -123
-    integer,dimension(2)                    :: indvec
     real*8,dimension(:),allocatable         :: x, y, Dd, tempdir
     real*8,dimension(:),allocatable         :: Hm0,fp,gam,mainang,scoeff
     real*8                                  :: dfj, fnyq
     real*8                                  :: Tp
     character(len=80)                       :: dummystring
-    type(spectrum),dimension(:),allocatable :: multinomalspec,scaledspec
-    logical                                 :: cont
-    real*8,dimension(:),allocatable         :: scalefac1,scalefac2,tempmax,avgscale
-    real*8,dimension(:),allocatable         :: oldvariance,newvariance
-    real*8                                  :: newconv,oldconv
+    type(spectrum),dimension(:),allocatable :: multinomalspec
 
     ! First part: read JONSWAP parameter data
 
@@ -1327,7 +1322,7 @@ contains
     integer                              :: i,j,dummy
     real*8                               :: m0,df,dang
     real*8,dimension(naint)              :: Sd
-    real*8                               :: hm0pre,hm0post,Sfnow,factor,tempt0
+    real*8                               :: hm0pre,hm0post,Sfnow,factor
 
     ! allocate size of f,ang,Sf and S arrays in specinterp
     allocate(specinterp%f(nfint))
