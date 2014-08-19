@@ -111,6 +111,16 @@ contains
 
   end subroutine indextos
 
+  ! Generated subroutine to allocate the scalars in s
+  subroutine space_alloc_scalars(s)
+    use mnemmodule
+    implicit none
+    type(spacepars),intent(inout)  :: s
+
+    include 'space_alloc_scalars.gen'
+
+  end subroutine space_alloc_scalars
+  
   ! Generated subroutine to allocate all arrays in s
   subroutine space_alloc_arrays(s,par)
     use mnemmodule
