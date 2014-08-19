@@ -790,7 +790,7 @@ contains
 
     ! back
     call setallowednames('wall',    BACK_WALL,     &
-                         'abs_id',  BACK_ABS_1D,   &
+                         'abs_1d',  BACK_ABS_1D,   &
                          'abs_2d',  BACK_ABS_2D,   &
                          'wlevel',  BACK_WLEVEL)
     call setoldnames('0','1','2','3')
