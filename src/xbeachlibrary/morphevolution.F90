@@ -1149,9 +1149,9 @@ contains
 
     integer                                 :: i,j,jg
     real*8                                  :: z0,dcf,dcfin,ML
-    real*8                                  :: Te,kvis,Sster,cc1,cc2,wster,Ass
+    real*8                                  :: Te,Sster,cc1,cc2,wster,Ass
     real*8                                  :: kl,alpha,alpha1,alpha2,beta,psi
-    real*8 , save                           :: delta,onethird,twothird,phi
+    real*8 , save                           :: delta,kvis,onethird,twothird,phi
     real*8 , dimension(:),allocatable    ,save     :: dster,ws0
     real*8 , dimension(:,:),allocatable  ,save     :: vmg,Cd,Asb,dhdx,dhdy,Ts,hfac
     real*8 , dimension(:,:),allocatable  ,save     :: urms2,Ucr,Ucrc,Ucrw,term1,B2,srfTotal,srfRhee,vero,Ucrb,Ucrs

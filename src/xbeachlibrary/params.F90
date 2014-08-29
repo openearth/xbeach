@@ -1130,18 +1130,18 @@ contains
                             'soulsby_total',     BDSLPEFFMAG_SOULS_TOTAL, &
                             'soulsby_bed',       BDSLPEFFMAG_SOULS_BED)
        call setoldnames('0','1','2','3','4')
-       call parmapply('bdslpeffmag',1,par%bdslpeffmag)
+       call parmapply('bdslpeffmag',2,par%bdslpeffmag)
        
        call setallowednames('none',     BDSLPEFFINI_NONE,   &
                             'total',    BDSLPEFFINI_TOTAL,  &
                             'bed',      BDSLPEFFINI_BED)
        call setoldnames('0','1','2')
-       call parmapply('bdslpeffini',0,par%bdslpeffini)
+       call parmapply('bdslpeffini',1,par%bdslpeffini)
        
        call setallowednames('none',     BDSLPEFFDIR_NONE,   &
                             'talmon',   BDSLPEFFDIR_TALMON)
        call setoldnames('0','1')
-       call parmapply('bdslpeffdir',0,par%bdslpeffdir)
+       call parmapply('bdslpeffdir',1,par%bdslpeffdir)
        if (par%bdslpeffdir>0) then
           par%bdslpeffdirfac      = readkey_dbl ('params.txt','bdslpeffdirfac',   1.d0,    0.d0,  2.d0)
        endif
