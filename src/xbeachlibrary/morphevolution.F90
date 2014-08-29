@@ -55,6 +55,9 @@ contains
     real*8,dimension(:,:,:),allocatable,save :: dsig,ccv,sdif,cuq3d,cvq3d,fac
 
     real*8,dimension(:,:),allocatable,save   :: sinthm,costhm
+    
+    real*8                                   :: delta,delta_x,shields,ftheta,psi_x,Sbtot ! Lodewijk: for direction of sediment transport (bed slope effect)
+    real*8                                   :: Ssmtot, dzbds,  Sbmtot ! Lodewijk: for magnitude of sediment transport (bed slope effect)
 
     include 's.ind'
     include 's.inp'
@@ -97,6 +100,12 @@ contains
        allocate(cumchain(par%kmax))
        allocate (sinthm(nx+1,ny+1))
        allocate (costhm(nx+1,ny+1))
+       delta_x   = 0.d0 ! Lodewijk
+       shields   = 0.d0 ! Lodewijk
+       ftheta    = 0.d0 ! Lodewijk
+       psi_x     = 0.d0 ! Lodewijk
+       Sbtot     = 0.d0 ! Lodewijk
+       delta     = 0.d0 ! Lodewijk
        uau       = 0.d0
        uav       = 0.d0
        um        = 0.d0
@@ -145,10 +154,9 @@ contains
     endif
 
     ! calculate equilibrium concentration/sediment source
-    if (par%form==FORM_SOULSBY_VANRIJN) then           ! Soulsby van Rijn
-       call sb_vr(s,par)
-    elseif (par%form==FORM_VANTHIEL_VANRIJN) then       ! Van Thiel de Vries & Reniers 2008
-       call sednew(s,par)
+    if ((par%form==FORM_SOULSBY_VANRIJN) .or. (par%form==FORM_VANTHIEL_VANRIJN))then           ! Soulsby van Rijn
+       ! Soulsby van Rijn and Van Thiel de Vries & Reniers 2008 formulations
+       call sedtransform(s,par)
     end if
 
     ! compute reduction factor for sediment sources due to presence of hard layers
@@ -173,7 +181,6 @@ contains
 
     do jg = 1,par%ngd
        cc = ccg(:,:,jg)
-       !ccb = ccbg(:,:,jg)
        if (D50(jg)>0.002d0) then
           ! RJ: set ceqsg to zero for gravel.
           ! Dano: try without this fix cc = 0.d0 ! Can be used to test total transport mode
@@ -221,25 +228,22 @@ contains
        !
        Sus = 0.d0
        Sub = 0.d0
-
-       ! suspended load
-       Sus=par%sus*(cu*ureps*hu-Dc*hu*dcsdx-par%facsl*cu*vmagu*hu*dzbdx)*wetu   !No bed slope term in suspended transport?
-       ! bed load
-       Sub=par%bed*(cub*urepb*hu-par%facsl*cub*vmagu*hu*dzbdx)*wetu 
-       ! 
-       do j=1,ny+1
-          do i=1,nx
-             if(Sub(i,j)>0.d0) then
-                pbbedu(i,j) = pbbed(i,j,1,jg)
-             elseif(Sub(i,j)<0.d0) then
-                pbbedu(i,j)= pbbed(i+1,j,1,jg)
-             else
-                pbbedu(i,j)=0.5d0*(pbbed(i,j,1,jg)+pbbed(i+1,j,1,jg))
-             endif
-          enddo
-       enddo
        !
-       Sub = pbbedu*Sub
+       ! suspended load, Lodewijk: no bed slope effect (yet)
+       Sus=par%sus*(cu*ureps*hu-Dc*hu*dcsdx)*wetu
+       ! bed load, Lodewijk: no bed slope effect (yet)
+       Sub=par%bed*(cub*urepb*hu)*wetu
+       !
+       ! Originally bed slope effect of XBeach : par%bdslpeffmag = 1
+       ! Original one, but only on bed load : par%bdslpeffmag = 2
+       if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL) then
+            Sus = Sus-par%sus*(par%facsl*cu*vmagu*hu*dzbdx)*wetu
+       endif
+       
+       if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL .or. par%bdslpeffmag == BDSLPEFFMAG_ROELV_BED) then
+            Sub = Sub-par%bed*(par%facsl*cub*vmagu*hu*dzbdx)*wetu 
+       endif
+       !
        !
        ! Y-direction
        !
@@ -297,9 +301,88 @@ contains
        Svs = 0.d0
        Svb = 0.d0
        ! Suspended load
-       Svs=par%sus*(cv*vreps*hv-Dc*hv*dcsdy-par%facsl*cv*vmagv*hv*dzbdy)*wetv
+       Svs=par%sus*(cv*vreps*hv-Dc*hv*dcsdy)*wetv
        ! Bed load
-       Svb=par%bed*(cvb*vrepb*hv-par%facsl*cvb*vmagv*hv*dzbdy)*wetv
+       Svb=par%bed*(cvb*vrepb*hv)*wetv
+       !
+       ! Originally bed slope magnitude effect of XBeach : par%bdslpeffmag = 1
+       ! Original one, but only on bed load : par%bdslpeffmag = 2
+       if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL) then
+            Svs = Svs-par%sus*(par%facsl*cv*vmagv*hv*dzbdy)*wetv
+       endif
+       if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL .or. par%bdslpeffmag == BDSLPEFFMAG_ROELV_BED  ) then
+            Svb = Svb-par%bed*(par%facsl*cvb*vmagv*hv*dzbdy)*wetv 
+       endif
+       !
+       !
+       ! Bed slope magnitude effect (as Souslby intended) and change direction transport (see Van Rijn 1993 (section 7.2.6))
+       !
+       !
+       if (par%bdslpeffmag == BDSLPEFFMAG_SOULS_TOTAL .or. par%bdslpeffmag == BDSLPEFFMAG_SOULS_BED) then
+           do j=1,ny+1
+                do i=1,nx+1
+                    if ((dabs(Sub(i,j)) > 0.000001d0) .or. (dabs(Svb(i,j)) > 0.000001d0)) then
+                        Sbmtot = dsqrt(  Sub(i,j)**2.d0  +  Svb(i,j)**2.d0   ) 
+                        dzbds = s%dzbdx(i,j)*Sub(i,j)/Sbmtot + s%dzbdy(i,j)*Svb(i,j)/Sbmtot
+                        ! dzbdn = s%dzbdx*Svb/Sbtot + s%dzbdy*Sub/Sbtot
+                        Sub(i,j) = Sub(i,j)*(1.d0 - par%facsl*dzbds)
+                        Svb(i,j) = Svb(i,j)*(1.d0 - par%facsl*dzbds)
+                        !
+                    endif
+                    if (((dabs(Sus(i,j)) > 0.000001d0) .or. (dabs(Svs(i,j)) > 0.000001d0)) .and. par%bdslpeffmag == BDSLPEFFMAG_SOULS_TOTAL) then
+                        Ssmtot = dsqrt(  Sus(i,j)**2.d0  +  Svs(i,j)**2.d0  )
+                        dzbds = s%dzbdx(i,j)*Sus(i,j)/Ssmtot + s%dzbdy(i,j)*Svs(i,j)/Ssmtot
+                        ! dzbdn = s%dzbdx*Svb/Sbtot + s%dzbdy*Sub/Sbtot
+                        Sus(i,j) = Sus(i,j)*(1.d0 - par%facsl*dzbds)
+                        Svs(i,j) = Svs(i,j)*(1.d0 - par%facsl*dzbds)
+                    endif
+                enddo
+           enddo
+       endif
+       !
+       ! Lodewijk: modify the direction of the bed load transport based on the bed slope, see Van Rijn 1993 (section 7.2.6)
+       if (par%bdslpeffdir == BDSLPEFFDIR_TALMON) then
+            do j=1,ny+1
+                do i=1,nx+1
+                    if (((dabs(urepb(i,j)) > 0.0001d0) .or. (dabs(vrepb(i,j)) > 0.0001d0)) .and. ((dabs(taubx(i,j)) > 0.0001d0) .or. (dabs(tauby(i,j)) > 0.0001d0))) then
+                        if (urepb(i,j) < 0.d0) then 
+                            delta_x = datan(vrepb(i,j)/urepb(i,j))+par%px ! Angle between fluid velocity vector and the x-axis
+                        else
+                            delta_x = datan(vrepb(i,j)/urepb(i,j))        ! Angle between fluid velocity vector and the x-axis
+                        endif
+                        delta = (par%rhos-par%rho)/par%rho
+                        shields = sqrt(taubx(i,j)**2 + tauby(i,j)**2)/(delta*par%rho*par%g*D50(jg))
+                        ! shields = (urepb(i,j)**2.d0+vrepb(i,j)**2.d0)*s%cf(i,j)/(par%g*D50(jg)*delta)
+                        ftheta = 1.d0/(9.d0*(D50(jg)/hh(i,j))**0.3d0*shields**0.5d0) ! Talmon            
+                        psi_x = datan(  (dsin(delta_x)-ftheta*s%dzbdy(i,j))  /  (dcos(delta_x)-ftheta*s%dzbdx(i,j))  )
+                        psi_x = par%bdslpeffdirfac*(psi_x - delta_x)+delta_x
+                        Sbtot = dsqrt(  Sub(i,j)**2.d0  +  Svb(i,j)**2.d0  )  ! Magnitude of sediment transport without direction modifcation
+                        ! Decompose the sediment transport again, know with the knowledge of the direction of the sediment transport vector                        
+                        Sub(i,j) = Sbtot * dcos(psi_x)
+                        Svb(i,j) = Sbtot * dsin(psi_x)
+                    else
+                        Sub(i,j) = 0.d0
+                        Svb(i,j) = 0.d0
+                    endif
+                enddo
+            enddo
+       endif
+       !
+       !
+       !
+       do j=1,ny+1
+          do i=1,nx
+             if(Sub(i,j)>0.d0) then
+                pbbedu(i,j) = pbbed(i,j,1,jg)
+             elseif(Sub(i,j)<0.d0) then
+                pbbedu(i,j)= pbbed(i+1,j,1,jg)
+             else
+                pbbedu(i,j)=0.5d0*(pbbed(i,j,1,jg)+pbbed(i+1,j,1,jg))
+             endif
+          enddo
+       enddo
+       !
+       Sub = pbbedu*Sub
        !
        do j=1,ny
           do i=1,nx+1
@@ -412,7 +495,7 @@ contains
     integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz, hinterland
     integer , dimension(:,:,:),allocatable,save :: indSus,indSub,indSvs,indSvb
     real*8                                      :: dzb,dzmax,dzt,dzleft,sdz,dzavt,fac,Savailable,dAfac
-    real*8 , dimension(:,:),allocatable,save    :: dzbtot,Sout,hav
+    real*8 , dimension(:,:),allocatable,save    :: Sout,hav
     real*8 , dimension(par%ngd)                 :: edg,edg1,edg2,dzg
     real*8 , dimension(:),pointer               :: dz
     real*8 , dimension(:,:),pointer             :: pb
@@ -421,8 +504,7 @@ contains
     include 's.ind'
     include 's.inp'
 
-    if (.not. allocated(dzbtot)) then 
-       allocate(dzbtot(s%nx+1,s%ny+1))
+    if (.not. allocated(Sout)) then 
        allocate(Sout(s%nx+1,s%ny+1))
        allocate(hav(s%nx+1,s%ny+1))
        allocate(indSus(s%nx+1,s%ny+1,par%ngd))
@@ -437,8 +519,7 @@ contains
     else
        j1 = 2
     endif
-    dzbtot = 0.d0
-    dzbdt  = 0.d0
+    dzbnow  = 0.d0
     dzb    = 0.d0
     if (par%t>=par%morstart .and. par%t < par%morstop .and. par%morfac > .999d0) then
        !
@@ -554,7 +635,7 @@ contains
                 if (par%ngd==1) then ! Simple bed update in case one fraction
 
                    zb(i,j) = zb(i,j)-sum(dzg)
-                   dzbdt(i,j) = dzbdt(i,j)-sum(dzg) ! naamgeveing?
+                   dzbnow(i,j) = dzbnow(i,j)-sum(dzg) ! naamgeveing?
                    sedero(i,j) = sedero(i,j)-sum(dzg)
                    structdepth(i,j) = max(0.d0,structdepth(i,j)-sum(dzg))
 
@@ -592,7 +673,8 @@ contains
              if (par%ngd==1) then ! Simple bed update in case one fraction
 
                 zb(i,j) = zb(i,j)-sum(dzg)
-                dzbdt(i,j) = dzbdt(i,j)-sum(dzg) ! naamgeveing?
+                dzbnow(i,j) = dzbnow(i,j)-sum(dzg) 
+                dzbdt(i,j) = dzbnow(i,j)/par%dt
                 sedero(i,j) = sedero(i,j)-sum(dzg)
                 structdepth(i,j) = max(0.d0,structdepth(i,j)-sum(dzg))
 
@@ -690,8 +772,8 @@ contains
 
                          zb(id,j) = zb(id,j)+dzleft*dAfac
                          zb(ie,j) = zb(ie,j)-dzleft
-                         dzbdt(id,j) = dzbdt(id,j)+dzleft*dAfac ! naamgeveing?
-                         dzbdt(ie,j) = dzbdt(ie,j)-dzleft 
+                         dzbnow(id,j) = dzbnow(id,j)+dzleft*dAfac ! naamgeveing?
+                         dzbnow(ie,j) = dzbnow(ie,j)-dzleft 
                          sedero(id,j) = sedero(id,j)+dzleft*dAfac
                          sedero(ie,j) = sedero(ie,j)-dzleft
                          structdepth(id,j) = max(0.d0,structdepth(id,j)+dzleft*dAfac)
@@ -788,8 +870,8 @@ contains
 
                          zb(i,jd) = zb(i,jd)+dzleft*dAfac
                          zb(i,je) = zb(i,je)-dzleft
-                         dzbdt(i,jd) = dzbdt(i,jd)+dzleft*dAfac ! naamgeveing?
-                         dzbdt(i,je) = dzbdt(i,je)-dzleft 
+                         dzbnow(i,jd) = dzbnow(i,jd)+dzleft*dAfac ! naamgeveing?
+                         dzbnow(i,je) = dzbnow(i,je)-dzleft 
                          sedero(i,jd) = sedero(i,jd)+dzleft*dAfac
                          sedero(i,je) = sedero(i,je)-dzleft
                          structdepth(i,jd) = max(0.d0,structdepth(i,jd)+dzleft*dAfac)
@@ -867,7 +949,7 @@ contains
        ! 
        if(xmpi_isleft .and. ny>0) then
           zb(:,1) = zb(:,2)
-          dzbdt(:,1) = dzbdt(:,2)
+          dzbnow(:,1) = dzbnow(:,2)
           sedero(:,1) = sedero(:,2)
           structdepth(:,1) = structdepth(:,2)
           pbbed(:,1,:,:)=pbbed(:,2,:,:)
@@ -877,7 +959,7 @@ contains
 
        if(xmpi_isright .and. ny>0) then
           zb(:,ny+1) = zb(:,ny)
-          dzbdt(:,ny+1) = dzbdt(:,ny)
+          dzbnow(:,ny+1) = dzbnow(:,ny)
           sedero(:,ny+1) = sedero(:,ny)
           structdepth(:,ny+1) = structdepth(:,ny)
           pbbed(:,ny+1,:,:)=pbbed(:,ny,:,:)
@@ -1045,7 +1127,7 @@ contains
 
     zbold = s%zb(i,j)
     s%zb(i,j) = s%z0bed(i,j)+sum(dz)
-    s%dzbdt(i,j) = s%dzbdt(i,j)+(s%zb(i,j)-zbold)
+    s%dzbnow(i,j) = s%dzbnow(i,j)+(s%zb(i,j)-zbold)
     s%sedero(i,j) = s%sedero(i,j)+(s%zb(i,j)-zbold)
     s%structdepth(i,j) = max(0.d0,s%structdepth(i,j)+(s%zb(i,j)-zbold))
 
@@ -1053,165 +1135,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine sb_vr(s,par)
-    use params
-    use spaceparams
-    use xmpi_module
-
-    IMPLICIT NONE
-
-    type(spacepars),target              :: s
-    type(parameters)                    :: par
-
-    integer                             :: i
-    integer                             :: j,jg
-    real*8                              :: z0,Ass,dcf,dcfin,ML
-    real*8                              :: Te,kvis,Sster,c1,c2,wster
-    real*8,save                         :: delta
-
-    real*8 , dimension(:)  ,allocatable,save   :: w,dster
-    real*8 , dimension(:,:),allocatable,save   :: vmg,Cd,Asb,dhdx,dhdy,Ts,hfac
-    real*8 , dimension(:,:),allocatable,save   :: urms2,Ucr,term1,term2
-    real*8 , dimension(:,:),allocatable,save   :: uandv,b,fslope,hloc,ceqs,ceqb
-    real*8, parameter :: onethird = 1.0d0/3.0d0
-    real*8, parameter :: twothird = 2.0d0/3.0d0
-
-    include 's.ind'
-    include 's.inp'
-
-    if (.not. allocated(vmg)) then
-       allocate (vmg   (nx+1,ny+1))
-       allocate (Cd    (nx+1,ny+1))
-       allocate (Asb   (nx+1,ny+1))
-       allocate (dhdx  (nx+1,ny+1))   ! not used wwvv
-       allocate (dhdy  (nx+1,ny+1))   ! not used wwvv
-       allocate (urms2 (nx+1,ny+1))
-       allocate (Ucr   (nx+1,ny+1))
-       allocate (term1 (nx+1,ny+1))
-       allocate (term2 (nx+1,ny+1))
-       allocate (uandv (nx+1,ny+1))  ! not used wwvv
-       allocate (b     (nx+1,ny+1))  ! not used wwvv
-       allocate (fslope(nx+1,ny+1))  ! not used wwvv
-       allocate (hloc  (nx+1,ny+1))
-       allocate (Ts    (nx+1,ny+1))
-       allocate (hfac   (nx+1,ny+1))
-       allocate (ceqs   (nx+1,ny+1))
-       allocate (ceqb   (nx+1,ny+1))
-
-       allocate (w     (par%ngd))
-       allocate (dster (par%ngd))
-       vmg = 0.d0
-       ! Robert: do only once, not necessary every time step
-       do jg=1,par%ngd
-          ! cjaap: compute fall velocity with simple expression from Ahrens (2000)
-          Te    = 20.d0
-          kvis  = 4.d0/(20.d0+Te)*1d-5 ! Van rijn, 1993 
-          Sster = D50(jg)/(4*kvis)*sqrt((par%rhos/par%rho-1)*par%g*D50(jg))
-          c1    = 1.06d0*tanh(0.064d0*Sster*exp(-7.5d0/Sster**2))
-          c2    = 0.22d0*tanh(2.34d0*Sster**(-1.18d0)*exp(-0.0064d0*Sster**2))
-          wster = c1+c2*Sster
-          w(jg) = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*D50(jg))
-          ! RJ: for modeling gravel
-          delta = (par%rhos-par%rho)/par%rho
-          dster(jg)=(delta*par%g/1.d-12)**onethird*s%D50(jg)      
-       enddo
-    endif
-    !
-    hloc = max(hh,0.01)
-    !
-    if (par%swave==1) then
-       ! wave breaking induced turbulence due to short waves
-       do j=1,ny+1
-          do i=1,nx+1
-             ! compute mixing length
-             ! ML = 2*R(i,j)*par%Trep/(par%rho*c(i,j)*max(H(i,j),par%eps))
-             ML = dsqrt(2*R(i,j)*par%Trep/(par%rho*c(i,j)))
-             ! ML = 0.9d0*H(i,j)
-             ML = min(ML,hloc(i,j));
-             ! exponential decay turbulence over depth
-             dcfin = exp(min(100.d0,hloc(i,j)/max(ML,0.01d0)))
-             dcf = min(1.d0,1.d0/(dcfin-1.d0))
-             ! Jaap: depth averaged turbulence is computed in waveturb
-             kb(i,j) = kturb(i,j)*dcf
-             if (par%turb == TURB_BORE_AVERAGED) then
-                kb(i,j) = kb(i,j)*par%Trep/Tbore(i,j)
-             endif
-          enddo
-       enddo
-    endif
-
-    ! switch to include long wave stirring
-    if (par%lws==1) then
-       vmg  = dsqrt(ue**2+ve**2)
-    elseif (par%lws==0) then
-       ! vmg lags on actual mean flow; but long wave contribution to mean flow is included... 
-       vmg = (1.d0-1.d0/par%cats/par%Trep*par%dt)*vmg + (1.d0/par%cats/par%Trep*par%dt)*dsqrt(ue**2+ve**2) 
-    endif
-
-    urms2  = urms**2+1.45d0*kb
-
-    do jg = 1,par%ngd
-
-       Ts       = par%tsfac*hloc/w(jg)
-       Tsg(:,:,jg) = max(Ts,par%Tsmin) 
-
-       ! calculate treshold velocity Ucr
-       if(D50(jg)<=0.0005d0) then
-          Ucr=0.19d0*D50(jg)**0.1d0*log10(4.d0*hloc/D90(jg))
-       else if(D50(jg)<0.05d0) then   !Dano see what happens with coarse material
-          Ucr=8.5d0*D50(jg)**0.6d0*log10(4.d0*hloc/D90(jg))
-       else
-
-#ifdef USEMPI
-          write(*,'(a,i4)') 'In process',xmpi_rank
-#endif
-       end if
-       ! drag coefficient
-       z0 = par%z0
-       Cd=(0.40d0/(log(max(hloc,10.d0*z0)/z0)-1.0d0))**2
-
-       ! transport parameters
-       Asb=0.005d0*hloc*(D50(jg)/hloc/(delta*par%g*D50(jg)))**1.2d0         ! bed load coefficent
-       Ass=0.012d0*D50(jg)*dster(jg)**(-0.6d0)/(delta*par%g*D50(jg))**1.2d0 ! suspended load coeffient
-
-       term1=(vmg**2+0.018/Cd*par%sws*urms2) ! Make 0.018/Cd is always smaller than the flow friction coefficient 
-
-       ! reduce sediment suspensions for (inundation) overwash conditions with critical flow velocitties
-       ! vmag2=min(vmag2,par%smax*par%C**2*D50(jg)*delta)
-       ! vmag2=min(vmag2,par%smax*par%g/par%cf*D50(jg)*delta)            ! In terms of cf
-       ! term1=sqrt(vmag2+0.018d0/Cd*urms2)     ! nearbed-velocity
-       ! the two above lines are comment out and replaced by a limit on total velocity u2+urms2, robert 1/9 and ap 28/11
-
-       term1=min(term1,par%smax*par%g/cf*s%D50(jg)*delta)
-       term1=sqrt(term1)      
-
-       term2 = 0.d0
-       do j=1,ny+1
-          do i=1,nx
-             if(term1(i,j)>Ucr(i,j) .and. hh(i,j)>par%eps) then
-                term2(i,j)=(term1(i,j)-Ucr(i,j))**2.4d0
-             end if
-          end do
-       end do
-       ceqb = Asb*term2
-       ceqb = min(ceqb/hloc,par%cmax/2)             ! maximum equilibrium bed concentration
-       ceqbg(:,:,jg) = (1-par%bulk)*ceqb*sedcal(jg)*wetz
-       ceqs = Ass*term2
-       ceqs = min(ceqs/hloc,par%cmax/2)             ! maximum equilibrium suspended concentration
-       ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*sedcal(jg)*wetz
-
-       ! Jaap: old brute method to prevent strong coastline erosion
-       ! where (hloc<=par%hmin) ceqsg(:,:,jg) = 0.d0
-
-    enddo  ! end og grain size classes
-
-  end subroutine sb_vr
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  subroutine sednew(s,par)
+  
+  subroutine sedtransform(s,par)
     use params
     use spaceparams
     use readkey_module
@@ -1223,14 +1148,16 @@ contains
     type(parameters)                        :: par
 
     integer                                 :: i,j,jg
-    real*8                                  :: Ass,dcf,dcfin,ML
-    real*8                                  :: Te,kvis,Sster,cc1,cc2,wster
-    real*8 , save                           :: delta,onethird,twothird
-    real*8 , dimension(:),allocatable    ,save     :: w,dster  
-    real*8 , dimension(:,:),allocatable  ,save     :: vmg,Asb,Ts
-    real*8 , dimension(:,:),allocatable  ,save     :: urms2,Ucr,Ucrc,Ucrw,term1,B2,Cd
-    real*8 , dimension(:,:),allocatable  ,save     :: hloc,ceqs,ceqb
-
+    real*8                                  :: z0,dcf,dcfin,ML
+    real*8                                  :: Te,kvis,Sster,cc1,cc2,wster,Ass
+    real*8                                  :: kl,alpha,alpha1,alpha2,beta,psi
+    real*8 , save                           :: delta,onethird,twothird,phi
+    real*8 , dimension(:),allocatable    ,save     :: dster,ws0
+    real*8 , dimension(:,:),allocatable  ,save     :: vmg,Cd,Asb,dhdx,dhdy,Ts,hfac
+    real*8 , dimension(:,:),allocatable  ,save     :: urms2,Ucr,Ucrc,Ucrw,term1,B2,srfTotal,srfRhee,vero,Ucrb,Ucrs
+    real*8 , dimension(:,:),allocatable  ,save     :: uandv,b,fslope,hloc,ceqs,ceqb,fallvelredfac
+    real*8 , dimension(:,:,:),allocatable,save     :: w
+    
     include 's.ind'
     include 's.inp'
 
@@ -1248,11 +1175,25 @@ contains
        allocate (Ts    (nx+1,ny+1))
        allocate (ceqs  (nx+1,ny+1))
        allocate (ceqb  (nx+1,ny+1))
-       allocate (w     (par%ngd))
-       allocate (dster (par%ngd))
+       allocate (srfTotal(nx+1,ny+1))       ! Lodewijk
+       allocate (Ucrb  (nx+1,ny+1))         ! Lodewijk
+       allocate (Ucrs  (nx+1,ny+1))         ! Lodewijk
+       allocate (srfRhee(nx+1,ny+1))        ! Lodewijk
+       allocate (vero  (nx+1,ny+1))         ! Lodewijk
+       allocate (fallvelredfac(nx+1,ny+1))  ! Lodewijk
+       allocate (w     (nx+1,ny+1,par%ngd)) ! Lodewijk
+       allocate (dster (par%ngd))  
+       allocate (ws0   (par%ngd))
+       allocate (dhdx  (nx+1,ny+1))
+       allocate (dhdy  (nx+1,ny+1))
+       allocate (uandv (nx+1,ny+1))
+       allocate (b     (nx+1,ny+1))
+       allocate (fslope(nx+1,ny+1))
+       allocate (hfac  (nx+1,ny+1))
        vmg = 0.d0
        onethird=1.d0/3.d0
        twothird=2.d0/3.d0
+       phi = par%reposeangle/180*par%px ! Angle of internal friction
        ! Robert: do only once, not necessary every time step
        do jg=1,par%ngd
           ! cjaap: compute fall velocity with simple expression from Ahrens (2000)
@@ -1262,13 +1203,26 @@ contains
           cc1   = 1.06d0*tanh(0.064d0*Sster*exp(-7.5d0/Sster**2))
           cc2    = 0.22d0*tanh(2.34d0*Sster**(-1.18d0)*exp(-0.0064d0*Sster**2))
           wster = cc1+cc2*Sster
-          w(jg) = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*s%D50(jg))
+          ws0(jg) = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*s%D50(jg))
           ! RJ: for modeling gravel
           delta = (par%rhos-par%rho)/par%rho
           dster(jg)=(delta*par%g/1.d-12)**onethird*s%D50(jg)
-       enddo
+          if (par%fallvelred==0) then
+             w(:,:,jg) = ws0(jg)
+          endif
+       enddo    
     endif
 
+    ! Lodewijk: calculate fall velocity reduction coefficient based on concentration of previous time step
+    ! Rowe (1987) made an estimation of the exponent alpha by fitting a logarithmic function on a dataset of Richardson and Zaki (1954).   
+    if (par%fallvelred==1) then 
+       do jg=1,par%ngd
+            alpha = 2.35d0*(2.d0+0.175d0*(ws0(jg)*s%D50(jg)/kvis)**0.75d0)/(1.d0+0.175d0*(ws0(jg)*s%D50(jg)/kvis)**0.75d0)
+            fallvelredfac = (1.d0-s%ccg(:,:,jg))**(alpha)
+            w(:,:,jg) = ws0(jg)*fallvelredfac 
+       enddo
+    endif
+    !
     ! hloc   = max(hh,0.01d0) ! Jaap 
     hloc = max(hh,0.01)
     !
@@ -1315,58 +1269,168 @@ contains
 
     do jg = 1,par%ngd
 
-       Ts       = par%tsfac*hloc/w(jg)
+       Ts       = par%tsfac*hloc/w(:,:,jg)
        Tsg(:,:,jg) = max(Ts,par%Tsmin) 
        !
        ! calculate treshold velocity Ucr
        !
-       if(s%D50(jg)<=0.0005) then
-          Ucrc=0.19d0*D50(jg)**0.1d0*log10(4.d0*hloc/D90(jg))                           !Shields
-          Ucrw=0.24d0*(delta*par%g)**0.66d0*s%D50(jg)**0.33d0*par%Trep**0.33d0          !Komar and Miller (1975)
-       else if(s%D50(jg)<=0.002) then
-          Ucrc=8.5d0*D50(jg)**0.6d0*log10(4.d0*hloc/D90(jg))                            !Shields
-          Ucrw=0.95d0*(delta*par%g)**0.57d0*D50(jg)**0.43*par%Trep**0.14                !Komar and Miller (1975)
-       else if(s%D50(jg)>0.002) then
-          Ucrc=1.3d0*sqrt(delta*par%g*D50(jg))*(hloc/D50(jg))**(0.5d0*onethird)         !Maynord (1978) --> also Neill (1968) where 1.3d0 = 1.4d0
-          Ucrw=0.95d0*(delta*par%g)**0.57d0*D50(jg)**0.43*par%Trep**0.14                !Komar and Miller (1975)
+       if (par%form==FORM_SOULSBY_VANRIJN) then       ! Soulsby van Rijn
+           if(D50(jg)<=0.0005d0) then
+              Ucr=0.19d0*D50(jg)**0.1d0*log10(4.d0*hloc/D90(jg))
+           else   !Dano see what happens with coarse material
+              Ucr=8.5d0*D50(jg)**0.6d0*log10(4.d0*hloc/D90(jg))
+           end if
+       elseif (par%form==FORM_VANTHIEL_VANRIJN) then  ! Van Thiel de Vries & Reniers 2008
+           if(s%D50(jg)<=0.0005) then
+              Ucrc=0.19d0*D50(jg)**0.1d0*log10(4.d0*hloc/D90(jg))                           !Shields
+              Ucrw=0.24d0*(delta*par%g)**0.66d0*s%D50(jg)**0.33d0*par%Trep**0.33d0          !Komar and Miller (1975)
+           else if(s%D50(jg)<=0.002) then
+              Ucrc=8.5d0*D50(jg)**0.6d0*log10(4.d0*hloc/D90(jg))                            !Shields
+              Ucrw=0.95d0*(delta*par%g)**0.57d0*D50(jg)**0.43*par%Trep**0.14                !Komar and Miller (1975)
+           else if(s%D50(jg)>0.002) then
+              Ucrc=1.3d0*sqrt(delta*par%g*D50(jg))*(hloc/D50(jg))**(0.5d0*onethird)         !Maynord (1978) --> also Neill (1968) where 1.3d0 = 1.4d0
+              Ucrw=0.95d0*(delta*par%g)**0.57d0*D50(jg)**0.43*par%Trep**0.14                !Komar and Miller (1975)
+           end if
+           B2 = vmg/max(vmg+dsqrt(urms2),par%eps)
+           Ucr = B2*Ucrc + (1-B2)*Ucrw                                                     !Van Rijn 2007 (Bed load transport paper)
        end if
-       B2 = vmg/max(vmg+dsqrt(urms2),par%eps)
-       Ucr = B2*Ucrc + (1-B2)*Ucrw                                                     !Van Rijn 2007 (Bed load transport paper)
 
-       ! transport parameters
-       Asb=0.015d0*hloc*(s%D50(jg)/hloc)**1.2d0/(delta*par%g*s%D50(jg))**0.75d0        !bed load coefficent
-       Ass=0.012d0*s%D50(jg)*dster(jg)**(-0.6d0)/(delta*par%g*s%D50(jg))**1.2d0        !suspended load coeffient
-
-       ! Jaap: par%sws to set short wave stirring to zero
-       ! Jaap: Van Rijn use Peak orbital flow velocity --> 0.64 corresponds to 0.4 coefficient regular waves Van Rijn (2007)
-       term1=vmg**2+0.64d0*par%sws*urms2
-       ! reduce sediment suspensions for (inundation) overwash conditions with critical flow velocitties
-       term1=min(term1,par%smax*par%g/cf*s%D50(jg)*delta)
-       term1=sqrt(term1)                                        
-
-       ceqb = 0.d0*term1                                                                     !initialize ceqb
-       ceqs = 0.d0*term1                                                                     !initialize ceqs
-       do j=1,ny+1
-          do i=1,nx
-             if(term1(i,j)>Ucr(i,j) .and. hloc(i,j)>par%eps) then
-                ceqb(i,j)=Asb(i,j)*(term1(i,j)-Ucr(i,j))**1.5
-                ceqs(i,j)=Ass*(term1(i,j)-Ucr(i,j))**2.4
-             end if
-          end do
-       end do
-
+       ! Lodewijk: implementation Rhee (2010), reduction sediment transport due dilatancy
+       srfRhee(:,:)  = 0.d0
+       srfTotal(:,:) = 1.d0       
+       if (par%dilatancy == 1) then
+            vero(:,:) = max(0.d0,-1.d0*s%dzbdt)      ! Erosion velocity, for now asume it equal to -dzbdt of the previous time step
+            kl = par%g/(160.d0*kvis)*(s%D15(jg)**2.d0)*((par%por**3.d0)/(1.d0-par%por)**2.d0) ! Permeability, Adel 1987, which is based on the Ergun equation
+            ! bed porosity, estimated here as maximum porosity, to be added to user input
+            ! A=3/4 for single particles and A=1/(1-n0) for a continuum
+            ! Reduction factor on the critical Shields parameter by dilatancy (Van Rhee, 2010)
+            srfRhee(:,:) = vero(:,:)/kl*(par%pormax-par%por)/(1.d0-par%pormax)*par%rheeA/delta 
+       endif
+       ! Lodewijk: implementation bed slope reduction on critical flow velocity
+       if (par%bdslpeffini == BDSLPEFFINI_NONE) then
+           srfTotal(:,:) = 1.d0 + srfRhee(:,:)
+       elseif (par%bdslpeffini == BDSLPEFFINI_TOTAL .or. par%bdslpeffini == BDSLPEFFINI_BED) then
+            do j=1,ny+1
+                do i=1,nx+1
+                    ! Prevent NaN values if too small values
+                    if  ((dabs(ue(i,j)) > 0.000001d0 .or. dabs(ve(i,j)) > 0.000001d0) .and.  &
+                         (dabs(s%dzbdx(i,j))>0.000001d0 .or. dabs(s%dzbdy(i,j))>0.000001d0)) then
+                        ! Angle between the x-axis and the flow velocity
+                        ! REMARK: also include waves in the velocity?
+                        if (ue(i,j) < 0.d0) then
+                            alpha1 = datan(ve(i,j)/ue(i,j)) + par%px
+                        else
+                            alpha1 = datan(ve(i,j)/ue(i,j))
+                        endif
+                        ! Angle between the x-axis and the bed slope vector directed in down-slope direction, derived in thesis Lodewijk
+                        if (s%dzbdy(i,j) >= 0.d0) then
+                            alpha2 = -datan(s%dzbdx(i,j)/s%dzbdy(i,j))+1.5d0*par%px
+                        else
+                            alpha2 = -datan(s%dzbdx(i,j)/s%dzbdy(i,j))+0.5d0*par%px
+                        endif
+                        psi = alpha1-(alpha2-par%px) ! Angle between the flow direction and the up-slope directed vector
+                        if (dabs(s%dzbdx(i,j))<0.000001d0) then ! A smaller slope could result in a NaN for beta
+                            ! Beta purely based on dzbdy
+                            beta = datan(dabs(s%dzbdy(i,j)))
+                        else
+                            beta = datan(dabs(s%dzbdx(i,j)/dsin(datan(s%dzbdx(i,j)/s%dzbdy(i,j)))))     ! Maximum absolute bed slope angle, derived in thesis Lodewijk
+                        endif
+                        beta = min(beta,phi) ! Take min to exclude NaN's
+                        if (par%dilatancy == 1) then
+                            srfTotal(i,j) = (dcos(psi)*dsin(beta)+dsqrt( &
+                                                                         ((srfRhee(i,j))**2+2*srfRhee(i,j)*dcos(beta)+dcos(beta)**2 &
+                                                                         )*dtan(phi)**2-dsin(psi)**2*dsin(beta)**2 &
+                                                                        ))/dtan(phi) ! Soulsby (1997), modified by Lodewijk (see Thesis)
+                        else
+                            srfTotal(i,j) = (dcos(psi)*dsin(beta)+dsqrt(dcos(beta)**2*dtan(phi)**2-dsin(psi)**2*dsin(beta)**2))/dtan(phi) ! Soulsby (1997)
+                        endif
+                    endif
+                end do
+            end do
+       endif
+       ! Calculate the new critical velocity based on the modification factors on the Shields parameter, bed slope only on bed load
+       Ucrb(:,:) = Ucr(:,:)*sqrt(srfTotal) ! Lodewijk
+       if (par%bdslpeffini == BDSLPEFFINI_TOTAL) then
+           Ucrs = Ucrb
+       else
+           Ucrs = Ucr*(1.d0+sqrt(srfRhee)) ! Lodewijk, no effect on suspended load by bed slope
+       endif
+              
+       
+       if (par%form==FORM_SOULSBY_VANRIJN) then       ! Soulsby van Rijn
+            !
+            ! drag coefficient
+            z0 = par%z0
+            Cd=(0.40d0/(log(max(hloc,10.d0*z0)/z0)-1.0d0))**2
+            !
+            ! transport parameters
+            Asb=0.005d0*hloc*(D50(jg)/hloc/(delta*par%g*D50(jg)))**1.2d0         ! bed load coefficent
+            Ass=0.012d0*D50(jg)*dster(jg)**(-0.6d0)/(delta*par%g*D50(jg))**1.2d0 ! suspended load coeffient
+            !
+            term1=(vmg**2+0.018/Cd*par%sws*urms2) ! Make 0.018/Cd is always smaller than the flow friction coefficient 
+            !
+            ! reduce sediment suspensions for (inundation) overwash conditions with critical flow velocitties
+            ! vmag2=min(vmag2,par%smax*par%C**2*D50(jg)*delta)
+            ! vmag2=min(vmag2,par%smax*par%g/par%cf*D50(jg)*delta)            ! In terms of cf
+            ! term1=sqrt(vmag2+0.018d0/Cd*urms2)     ! nearbed-velocity
+            ! the two above lines are comment out and replaced by a limit on total velocity u2+urms2, robert 1/9 and ap 28/11
+            !
+            term1=min(term1,par%smax*par%g/cf*s%D50(jg)*delta)
+            term1=sqrt(term1)      
+            do j=1,ny+1
+                do i=1,nx
+                    ! Lodewijk: sepperate bed load from suspended load since Ucr not anymore the same
+                    if(term1(i,j)>Ucrb(i,j) .and. hloc(i,j)>par%eps) then
+                        ceqb(i,j)=Asb(i,j)*(term1(i,j)-Ucrb(i,j))**2.4d0
+                    end if
+                    if(term1(i,j)>Ucrs(i,j) .and. hloc(i,j)>par%eps) then
+                        ceqs(i,j)=Ass*(term1(i,j)-Ucrs(i,j))**2.4d0
+                    end if
+                end do
+            end do
+            !
+       elseif (par%form==FORM_VANTHIEL_VANRIJN) then  ! Van Thiel de Vries & Reniers 2008
+            !         
+            ! transport parameters
+            Asb=0.015d0*hloc*(s%D50(jg)/hloc)**1.2d0/(delta*par%g*s%D50(jg))**0.75d0        !bed load coefficent
+            Ass=0.012d0*s%D50(jg)*dster(jg)**(-0.6d0)/(delta*par%g*s%D50(jg))**1.2d0        !suspended load coeffient
+            !
+            ! Jaap: par%sws to set short wave stirring to zero
+            ! Jaap: Van Rijn use Peak orbital flow velocity --> 0.64 corresponds to 0.4 coefficient regular waves Van Rijn (2007)
+            term1=vmg**2+0.64d0*par%sws*urms2
+            ! reduce sediment suspensions for (inundation) overwash conditions with critical flow velocitties
+            term1=min(term1,par%smax*par%g/cf*s%D50(jg)*delta)
+            term1=sqrt(term1)                                        
+            !
+            ceqb = 0.d0*term1                                                                     !initialize ceqb
+            ceqs = 0.d0*term1                                                                     !initialize ceqs
+            do j=1,ny+1
+                do i=1,nx
+                    ! Lodewijk: sepperate bed load from suspended load since Ucr not anymore the same
+                    if(term1(i,j)>Ucrb(i,j) .and. hloc(i,j)>par%eps) then
+                        ceqb(i,j)=Asb(i,j)*(term1(i,j)-Ucrb(i,j))**1.5
+                    end if
+                    if(term1(i,j)>Ucrs(i,j) .and. hloc(i,j)>par%eps) then
+                        ceqs(i,j)=Ass*(term1(i,j)-Ucrs(i,j))**2.4
+                    end if
+                end do
+            end do
+            !
+       end if        
+       ! 
        ceqb = min(ceqb/hloc,par%cmax/2) ! maximum equilibrium bed concentration
        ceqbg(:,:,jg) = (1-par%bulk)*ceqb*sedcal(jg)*wetz
        ceqs = min(ceqs/hloc,par%cmax/2) ! maximum equilibrium suspended concentration
-       ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*sedcal(jg)*wetz       
-
+       ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*sedcal(jg)*wetz  
        ! Jaap: old brute method to prevent strong coastline erosion
-       ! where (hloc<=par%hmin) ceqsg(:,:,jg) = 0.d0
-
+       ! where (hloc<=par%hmin) ceqsg(:,:,jg) = 0.d0    
     enddo                                 ! end of grain size classes
     ! end of grain size classes
 
-  end subroutine sednew
+  end subroutine sedtransform
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine waveturb(s,par)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 

@@ -638,6 +638,7 @@ contains
     allocate(s%dzsdx(1:s%nx+1,1:s%ny+1))
     allocate(s%dzsdy(1:s%nx+1,1:s%ny+1))
     allocate(s%dzbdt(1:s%nx+1,1:s%ny+1))
+    allocate(s%dzbnow(1:s%nx+1,1:s%ny+1))
     allocate(s%uu(1:s%nx+1,1:s%ny+1))
     allocate(s%vv(1:s%nx+1,1:s%ny+1))
     allocate(s%qx(1:s%nx+1,1:s%ny+1))
@@ -709,6 +710,7 @@ contains
     s%dzsdx = 0.0d0
     s%dzsdy = 0.0d0
     s%dzbdt = 0.0d0
+    s%dzbnow = 0.d0
     s%uu = 0.0d0
     s%vv = 0.0d0
     s%qx = 0.0d0
@@ -1039,6 +1041,7 @@ contains
     s%hum(1:s%nx,:) = 0.5d0*(s%hh(1:s%nx,:)+s%hh(2:s%nx+1,:))
     s%hum(s%nx+1,:)=s%hh(s%nx+1,:)
 
+    ! R+L: Why are these variable reinitialise? 
     s%dzsdt=0.d0
     s%dzsdx=0.d0
     s%dzsdy=0.d0
@@ -1255,7 +1258,6 @@ contains
     include 's.inp'
 
     allocate(s%ccg(1:nx+1,1:ny+1,par%ngd))
-    allocate(s%ccbg(1:nx+1,1:ny+1,par%ngd))
     allocate(s%dcbdy(1:nx+1,1:ny+1))
     allocate(s%dcbdx(1:nx+1,1:ny+1))
     allocate(s%dcsdy(1:nx+1,1:ny+1))
@@ -1268,6 +1270,7 @@ contains
     allocate(s%vmag(1:nx+1,1:ny+1)) 
     allocate(s%ceqsg(1:nx+1,1:ny+1,par%ngd))
     allocate(s%ceqbg(1:nx+1,1:ny+1,par%ngd))
+    if (par%dilatancy==1) allocate(s%D15(1:par%ngd)) ! Lodewijk
     allocate(s%D50(1:par%ngd))
     allocate(s%D90(1:par%ngd))
     allocate(s%D50top(1:nx+1,1:ny+1))
@@ -1309,6 +1312,7 @@ contains
     !
     ! Set grain size(s)
     !
+    if (par%dilatancy==1) s%D15 = par%D15(1:par%ngd)
     s%D50 = par%D50(1:par%ngd)
     s%D90 = par%D90(1:par%ngd)
     s%sedcal = par%sedcal(1:par%ngd)
@@ -1411,7 +1415,6 @@ contains
     s%ureps      = 0.d0
     s%vreps      = 0.d0
     s%ccg        = 0.d0
-    s%ccbg       = 0.d0
     s%ceqbg      = 0.d0
     s%ceqsg      = 0.d0
     s%Susg       = 0.d0

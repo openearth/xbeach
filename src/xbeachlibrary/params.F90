@@ -90,7 +90,6 @@ module params
 
      ! [Section] Wave boundary condition parameters
      integer       :: instat                     = -123    !  [-] Wave boundary condition type
-     character(slen):: instat_str                = ' '     !  [-] Wave boundary condition type
      real*8        :: taper                      = -123    !  [s] Spin-up time of wave boundary conditions, in morphological time
      real*8        :: Hrms                       = -123    !  [m] Hrms wave height for instat = 0,1,2,3
      real*8        :: Tm01                       = -123    !  [s] (deprecated) Old name for Trep
@@ -255,6 +254,7 @@ module params
      real*8        :: dzg2                       = -123    !  [m] (advanced) Nominal thickness of variable sediment class layer
      real*8        :: dzg3                       = -123    !  [m] (advanced) Thickness of bottom sediment class layers
      real*8        :: por                        = -123    !  [-] Porosity
+     real*8,dimension(99)  :: D15                = -123    !  [m] D15 grain size per grain type
      real*8,dimension(99)  :: D50                = -123    !  [m] D50 grain size per grain type
      real*8,dimension(99)  :: D90                = -123    !  [m] D90 grain size per grain type
      real*8,dimension(99)  :: sedcal             = -123    !  [-] (advanced) Sediment transport calibration coefficient per grain type
@@ -290,7 +290,26 @@ module params
      integer*4     :: bulk                       = -123    !  [-] (advanced) Option to compute bedload and suspended load seperately; 0 = seperately, 1 = bulk (as in previous versions)
      real*8        :: facDc                      = -123    !  [-] (advanced) Option to control sediment diffusion coefficient [0..1]
      real*8        :: jetfac                     = -123    !  [-] (advanced) Option to mimic turbulence production near revetments [0..1]
-
+     integer*4     :: fallvelred                = -123     !  [-] Reduce fall velocity for high concentrations (1) or not (0)
+     integer*4     :: dilatancy                 = -123     !  [-] Reduce critical shields number due dilatancy (Van Rhee, 2010) (1) or not (0)
+     real*8        :: rheeA                     = -123     !  [-] A parameter in the Van Rhee expression 
+     real*8        :: pormax                    = -123     !  [-] Max porosity used in the experession of Van Rhee
+     real*8        :: reposeangle               = -123     !  [deg] Angle of internal friciton
+     integer*4     :: bdslpeffmag               = -123     !  [-] Modify the magnitude of the sediment transport based on the bed slope, uses facsl
+                                                           !         0 : do nothing
+                                                           !         1 : originally implemented (1-1.6tan(beta)) on total sediment transport rates (factor 1.6 can be modified by facsl) (DEFAULT)
+                                                           !         2 : originally implemented (1-1.6tan(beta)) on bed load transport rates (factor 1.6 can be modified by facsl)
+                                                           !         3 : (1-1.6 tan(beta)) in flow dir factor on total sediment transport rates (factor 1.6 can be modified by facsl)
+                                                           !         4 : (1-1.6 tan(beta))  in flow dir factor on bed load transport rates (factor 1.6 can be modified by facsl)
+     integer*4     :: bdslpeffini               = -123     !  [-] Modify the critical shields parameter based on the bed slope
+                                                           !         0 : do nothing (DEFAULT)
+                                                           !         1 : modification critical Shields parameter total sediment load
+                                                           !         2 : modification critical Shields parameter bed load
+     integer*4     :: bdslpeffdir               = -123     !  [-] Modify the direction of the sediment transport based on the bed slope
+                                                           !         0 : do nothing (DEFAULT)
+                                                           !         1 : bed load direction Talmon
+     real*8        :: bdslpeffdirfac            = -123     !  [-] Calibration factor in the modification of the direction
+     
      ! [Section] Morphology parameters
      real*8        :: morfac                     = -123    !  [-] Morphological acceleration factor
      integer*4     :: morfacopt                  = -123    !  [-] (advanced) Option indicating whether times should be adjusted (1) or not(0) for morfac
@@ -1053,26 +1072,6 @@ contains
     endif
     !
     !
-    ! Bed composition parameters
-    call writelog('l','','--------------------------------')
-    call writelog('l','','Bed composition parameters: ')
-    par%ngd      = readkey_int ('params.txt','ngd',        1,           1,        20)
-    par%nd       = readkey_int ('params.txt','nd ',        3,           3,        1000)
-    par%por      = readkey_dbl ('params.txt','por',    0.4d0,       0.3d0,    0.5d0)
-    par%D50      = readkey_dblvec('params.txt','D50',par%ngd,size(par%D50),0.0002d0,0.00005d0,0.0008d0)
-    par%D90      = readkey_dblvec('params.txt','D90',par%ngd,size(par%D90),0.0003d0,0.00010d0,0.0015d0)
-    if (par%sedtrans==1) then
-       par%rhos     = readkey_dbl ('params.txt','rhos',  2650d0,     2400.d0,  2800.d0)
-       par%dzg1     = readkey_dbl ('params.txt','dzg',    0.1d0,      0.01d0,     1.d0)
-       par%dzg1     = readkey_dbl ('params.txt','dzg1', par%dzg1,     0.01d0,     1.d0)
-       par%dzg2     = readkey_dbl ('params.txt','dzg2', par%dzg1,     0.01d0,     1.d0)
-       par%dzg3     = readkey_dbl ('params.txt','dzg3', par%dzg1,     0.01d0,     1.d0)
-       !                              file,keyword,size read vector,size vector in par,default,min,max
-       par%sedcal   = readkey_dblvec('params.txt','sedcal',par%ngd,size(par%sedcal),1.d0,0.d0,2.d0)
-       par%ucrcal   = readkey_dblvec('params.txt','ucrcal',par%ngd,size(par%ucrcal),1.d0,0.d0,2.d0)
-    endif
-    !
-    !
     ! Sediment transport parameters
     if (par%sedtrans==1) then
        call writelog('l','','--------------------------------')
@@ -1115,9 +1114,60 @@ contains
        par%betad    = readkey_dbl ('params.txt','betad  ',1.0d0,     0.00d0,   10.0d0)
        par%sus      = readkey_int ('params.txt','sus    ',1,           0,            1)
        par%bed      = readkey_int ('params.txt','bed    ',1,           0,            1)
-       par%bulk     = readkey_int ('params.txt','bulk   ',1,           0,            1)
+       par%bulk     = readkey_int ('params.txt','bulk   ',0,           0,            1)
        par%facDc    = readkey_dbl ('params.txt','facDc  ',1.0d0,     0.00d0,   1.0d0)
        par%jetfac   = readkey_dbl ('params.txt','jetfac ',0.0d0,     0.00d0,   1.0d0)
+       par%fallvelred          = readkey_int ('params.txt','fallvelred',    0,        0,     1)
+       par%dilatancy           = readkey_int ('params.txt','dilatancy', 0,    0,     1)
+       if (par%dilatancy==1) then
+          par%rheeA               = readkey_dbl ('params.txt','rheeA',         0.75d0,   0.75d0, 2.d0) ! Between 3/4 and 1/(1-n), see paper Van Rhee (2010)
+          par%pormax              = readkey_dbl ('params.txt','pormax',        0.5d0,    0.3d0, 0.6d0)
+       endif
+       par%reposeangle         = readkey_dbl ('params.txt','reposeangle',  30.d0,     0.d0,     45.d0)
+       call setallowednames('none',              BDSLPEFFMAG_NONE,           &
+                            'roelvink_total',    BDSLPEFFMAG_ROELV_TOTAL,  &
+                            'roelvink_bed',      BDSLPEFFMAG_ROELV_BED, &
+                            'soulsby_total',     BDSLPEFFMAG_SOULS_TOTAL, &
+                            'soulsby_bed',       BDSLPEFFMAG_SOULS_BED)
+       call setoldnames('0','1','2','3','4')
+       call parmapply('bdslpeffmag',1,par%bdslpeffmag)
+       
+       call setallowednames('none',     BDSLPEFFINI_NONE,   &
+                            'total',    BDSLPEFFINI_TOTAL,  &
+                            'bed',      BDSLPEFFINI_BED)
+       call setoldnames('0','1','2')
+       call parmapply('bdslpeffini',0,par%bdslpeffini)
+       
+       call setallowednames('none',     BDSLPEFFDIR_NONE,   &
+                            'talmon',   BDSLPEFFDIR_TALMON)
+       call setoldnames('0','1')
+       call parmapply('bdslpeffdir',0,par%bdslpeffdir)
+       if (par%bdslpeffdir>0) then
+          par%bdslpeffdirfac      = readkey_dbl ('params.txt','bdslpeffdirfac',   1.d0,    0.d0,  2.d0)
+       endif
+    endif
+    !
+    !
+    ! Bed composition parameters
+    call writelog('l','','--------------------------------')
+    call writelog('l','','Bed composition parameters: ')
+    par%ngd      = readkey_int ('params.txt','ngd',        1,           1,        20)
+    par%nd       = readkey_int ('params.txt','nd ',        3,           3,        1000)
+    par%por      = readkey_dbl ('params.txt','por',    0.4d0,       0.3d0,    0.5d0)
+    if (par%dilatancy==1) then
+       par%D15      = readkey_dblvec('params.txt','D15',par%ngd,size(par%D15),0.00015d0,0.00001d0,0.0008d0) ! Lodewijk
+    endif
+    par%D50      = readkey_dblvec('params.txt','D50',par%ngd,size(par%D50),0.0002d0,0.00005d0,0.0008d0)
+    par%D90      = readkey_dblvec('params.txt','D90',par%ngd,size(par%D90),0.0003d0,0.00010d0,0.0015d0)
+    if (par%sedtrans==1) then
+       par%rhos     = readkey_dbl ('params.txt','rhos',  2650d0,     2400.d0,  2800.d0)
+       par%dzg1     = readkey_dbl ('params.txt','dzg',    0.1d0,      0.01d0,     1.d0)
+       par%dzg1     = readkey_dbl ('params.txt','dzg1', par%dzg1,     0.01d0,     1.d0)
+       par%dzg2     = readkey_dbl ('params.txt','dzg2', par%dzg1,     0.01d0,     1.d0)
+       par%dzg3     = readkey_dbl ('params.txt','dzg3', par%dzg1,     0.01d0,     1.d0)
+       !                              file,keyword,size read vector,size vector in par,default,min,max
+       par%sedcal   = readkey_dblvec('params.txt','sedcal',par%ngd,size(par%sedcal),1.d0,0.d0,2.d0)
+       par%ucrcal   = readkey_dblvec('params.txt','ucrcal',par%ngd,size(par%ucrcal),1.d0,0.d0,2.d0)
     endif
     !
     !
@@ -1436,6 +1486,13 @@ contains
           call writelog('lws','','Warning: Using source-sink terms for bed level change with morfac can lead to')
           call writelog('lws','','         loss of sediment mass conservation.')
        endif
+    endif
+    !
+    !
+    ! Check maximum grain size Soulsby-Van Rijn
+    if ((par%form==FORM_SOULSBY_VANRIJN) .and. (maxval(par%D50(1:par%ngd))>= 0.05d0)) then
+        call writelog('lews','','Error: Soulsby - Van Rijn cannot be used for sediment D50 > 0.05m')
+        call halt_program
     endif
     !
     !

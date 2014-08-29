@@ -126,6 +126,7 @@
       real*8  2  dzbdx  s%nx+1 s%ny+1 d  [-] []       bed level gradient in x-direction
       real*8  2  dzbdy  s%nx+1 s%ny+1 d  [-] []       bed level gradient in y-direction
       real*8  2  dzbdt  s%nx+1 s%ny+1 d  [m/s] []     rate of change bed level 
+      real*8  2  dzbnow s%nx+1 s%ny+1 d  [m] []       bed level change in current time step
       real*8  2  uu     s%nx+1 s%ny+1 d  [m/s] [sea_water_x_velocity]     GLM velocity in u-points, x-component
       real*8  2  vu     s%nx+1 s%ny+1 d  [m/s] [sea_water_y_velocity]     GLM velocity in u-points, y-component 
       real*8  2  uv     s%nx+1 s%ny+1 d  [m/s] [sea_water_x_velocity]     GLM velocity in v-points, x-component
@@ -166,7 +167,6 @@
       real*8  2  hvm    s%nx+1 s%ny+1 d  [m] []       water depth in v-points
       real*8  2  vmag   s%nx+1 s%ny+1 d  [m/s] []     velocity magnitude in cell centre
       real*8  3  ccg    s%nx+1 s%ny+1 par%ngd d  [m3/m3] []   depth-averaged suspended concentration for each sediment fraction
-      real*8  3  ccbg   s%nx+1 s%ny+1 par%ngd d  [m3/m3] []   depth-averaged bed concentration for each sediment fraction
       real*8  2  uwf    s%nx+1 s%ny+1 d  [m/s] []     Stokes drift, x-component
       real*8  2  vwf    s%nx+1 s%ny+1 d  [m/s] []     Stokes drift, y-component
       real*8  2  ustr   s%nx+1 s%ny+1 d  [m/s] []     return flow due to roller
@@ -177,6 +177,7 @@
       real*8  2  vmean  s%nx+1 s%ny+1 d  [m/s] [sea_water_y_velocity]     longterm mean velocity at bnds in u-points, y-component 
       real*8  2  ur     s%nx+1 s%ny+1 d  [m/s] []     reflected velocity at bnds in u-points
       integer 0  vardx  b  [-] []       0 = uniform grid size, 1 = variable grid size
+      real*8  1  D15    par%ngd b  [m] []       D15 grain diameters for all sediment classses, Lodewijk
       real*8  1  D50    par%ngd b  [m] []       D50 grain diameters for all sediment classses
       real*8  1  D90    par%ngd b  [m] []       D90 grain diameters for all sediment classses
       real*8  1  sedcal par%ngd b  [-] []       equilibrium sediment concentartion factor for each sediment class
