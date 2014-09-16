@@ -11,6 +11,7 @@ libxbeach_la_SOURCES= \
 	general_mpi.F90 \
 	typesandkinds.F90 \
 	logging.F90 \
+	paramsconst.F90 \
 	filefunctions.F90 \
 	readkey.F90 \
 	mnemonic.F90 \
@@ -27,6 +28,7 @@ libxbeach_la_SOURCES= \
 	roelvink.F90 \
 	wave_stationary.F90 \
 	wave_instationary.F90 \
+	wave_directions.F90 \
 	wave_timestep.F90 \
 	solver.F90 \
 	flow_secondorder.F90 \
@@ -48,6 +50,7 @@ libxbeach_la_SOURCES= \
 	output.F90 \
 	ship.F90 \
 	mnemoniciso.F90 \
+	loopcounters.F90 \
 	libxbeach.F90 \
 	libxbeach_dynamic.F90 \
 	introspection.F90

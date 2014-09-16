@@ -145,12 +145,15 @@ contains
   subroutine xmpi_initialize
     ! initialize mpi environment
     implicit none
-    integer ierr
+    integer ierr,errhandler
+    external comm_errhandler
     ierr = 0
     ! Message buffers in openmpi are not initialized so this call can give a vallgrind error
     ! http://www.open-mpi.org/community/lists/users/2009/06/9566.php
     ! http://valgrind.org/docs/manual/manual-core.html#manual-core.suppress
     call MPI_Init(ierr)
+    call MPI_Comm_create_errhandler(comm_errhandler,errhandler,ierr)
+    call MPI_Comm_set_errhandler(MPI_COMM_WORLD,errhandler,ierr)
 #ifdef USEMPE
     call MPE_Log_get_solo_eventid(event_output_start)
     call MPE_Log_get_solo_eventid(event_output_end)
@@ -1092,6 +1095,8 @@ contains
 
 #endif
   subroutine halt_program
+    write(0,*) 'halt_program called by process', xmpi_rank
+    call backtrace
 #ifdef USEMPI
     call xmpi_abort
 #else
@@ -1099,3 +1104,54 @@ contains
 #endif
   end subroutine halt_program
 end module xmpi_module
+
+#ifdef USEMPI
+subroutine comm_errhandler(comm,error_code)
+  use mpi
+  use xmpi_module
+  implicit none
+  integer comm,error_code
+
+  character(MPI_MAX_ERROR_STRING) e
+  character(MPI_MAX_OBJECT_NAME) o
+  integer r,ier,ra
+
+  call MPI_Comm_get_name(comm,o,r,ier)
+  call MPI_Comm_rank(MPI_COMM_WORLD,ra,ier)
+  write(0,*) 'MPI process #',ra,'in ',o(1:r),' generated an error:',error_code
+  call MPI_Error_string(error_code,e,r,ier)
+  write(0,*) e(1:r) 
+  call halt_program
+end subroutine comm_errhandler
+#endif
+
+#define MBACKTRACE
+#ifdef __GFORTRAN__
+#if __GNUC__ >=4
+#if __GNUC_MINOR__ >=8
+#undef MBACKTRACE
+#endif
+#endif
+#endif
+
+#ifdef __INTEL_COMPILER
+#undef MBACKTRACE
+subroutine backtrace
+  use ifcore
+  call tracebackqq('traceback:',-1)
+end subroutine backtrace
+#endif
+
+#ifdef MBACKTRACE
+subroutine backtrace
+  implicit none
+  integer x(1)
+  integer n
+  write(0,*) 'no backtrace for this compiler'
+  write(0,*) 'forcing a segmentation fault ...'
+  n=2**20
+  print *,x
+end subroutine backtrace
+#endif
+
+
