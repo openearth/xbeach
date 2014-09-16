@@ -1145,11 +1145,10 @@ end subroutine backtrace
 #ifdef MBACKTRACE
 subroutine backtrace
   implicit none
-  integer x(1)
-  integer n
+  integer, pointer :: x = null()
   write(0,*) 'no backtrace for this compiler'
   write(0,*) 'forcing a segmentation fault ...'
-  n=2**20
+  x = 0
   print *,x
 end subroutine backtrace
 #endif
