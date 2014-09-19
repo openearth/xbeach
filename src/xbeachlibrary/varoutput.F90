@@ -288,6 +288,8 @@ contains
           enddo
        endif
     endif ! par%ndrifter >0
+    ! wwvv to avoid warning about unused sl:
+    if (sl%nx .eq. -1) return
 
   end subroutine var_output_init
 
@@ -325,6 +327,7 @@ contains
     integer                                 :: iz,jz
     real*8                                  :: di,dj,dx,dy
 
+    xrank = huge(xrank)
     inquire(iolength=wordsize) 1.d0
     !  reclen=wordsize*(s%nx+1)*(s%ny+1)
     !  reclen2=wordsize*(s%nx+1)*(s%ny+1)*(par%ngd)*(par%nd)
@@ -678,6 +681,8 @@ contains
           enddo
        end if
     endif
+    ! wwvv to avoid warning about unused xrank:
+    if (xrank .eq. -1) return
 
   end subroutine var_output
 
@@ -981,6 +986,8 @@ contains
     !  case default
     write(unit,rec=jtg) x
     !  end select
+    ! wwvv to avoid warning about unused parameter s:
+    if (s%nx .eq. -1) return
   end subroutine outarray_r3
 
   subroutine outarray_r4(index,x)

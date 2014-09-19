@@ -610,6 +610,9 @@ contains
        status = nf90_close(ncid)
        if (status /= nf90_noerr) call handle_err(status)
     end if
+    ! wwvv sl is not used so it should be removed.
+    ! wwvv for now, to avoid warning:
+    if (sl%nx .ne. -1) return
   end subroutine ncoutput_init
 
   subroutine ncoutput(s,sl,par, tpar)
@@ -919,6 +922,8 @@ contains
        status = nf90_close(ncid=ncid)
        if (status /= nf90_noerr) call handle_err(status) 
     end if
+    ! wwvv avoid warning about unused sl:
+    if (sl%nx .eq. -1) return
   end subroutine ncoutput
 
   character(slen) function dimensionnames(dimids)

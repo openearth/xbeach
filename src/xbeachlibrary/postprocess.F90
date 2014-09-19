@@ -88,7 +88,13 @@ contains
     type(spacepars), intent(in)  :: s
     type(arraytype), intent(in)  :: t
     real*8                       :: x
-    x = t%r0
+    ! wwvv to avoid warnongs about unused parameter
+    ! wwvv ok, maybe a little over the top ..
+    if (par%rotate .eq. 1 .and. s%nx .ne. 0) then
+      x = t%r0
+    else
+      x = t%r0
+    endif
   end subroutine gridrotate_r0
 
   subroutine gridrotate_r1(par, s, t, x)
@@ -102,7 +108,7 @@ contains
     real*8, dimension(:)         :: x
     real*8                       :: pi = 4*atan(1.0d0)
 
-    if (par%rotate .eq. 1) then
+    if (par%rotate .eq. 1 .and. s%nx .ne. -1) then
        select case(t%name)
        case(mnem_theta)
           x=270-(t%r1*(180/pi))
@@ -277,7 +283,13 @@ contains
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     real*8, dimension(:,:,:,:)    :: x
-    x = t%r4
+    ! wwvv to avoid warnongs about unused parameter
+    ! wwvv ok, maybe a little over the top ..
+    if (par%rotate .eq. 1 .and. s%nx .ne. 0) then
+      x = t%r4
+    else
+      x = t%r4
+    endif
   end subroutine gridrotate_r4
 
 
@@ -290,7 +302,11 @@ contains
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     integer                       :: x
-    x = t%i0
+    if (par%rotate .eq. 1 .and. s%nx .ne. 0) then
+      x = t%i0
+    else
+      x = t%i0
+    endif
   end subroutine gridrotate_i0
 
   subroutine gridrotate_i1(par, s, t, x)
@@ -302,7 +318,11 @@ contains
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     integer, dimension(:),intent(out) :: x
-    x = t%i1
+    if (par%rotate .eq. 1 .and. s%nx .ne. 0) then
+      x = t%i1
+    else
+      x = t%i1
+    endif
   end subroutine gridrotate_i1
 
   subroutine gridrotate_i2(par, s, t, x)
@@ -314,7 +334,11 @@ contains
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     integer, dimension(:,:),intent(out) :: x
-    x = t%i2
+    if (par%rotate .eq. 1 .and. s%nx .ne. 0) then
+      x = t%i2
+    else
+      x = t%i2
+    endif
   end subroutine gridrotate_i2
 
   subroutine gridrotate_i3(par, s, t, x)
@@ -326,7 +350,11 @@ contains
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     integer, dimension(:,:,:),intent(out) :: x
-    x = t%i3
+    if (par%rotate .eq. 1 .and. s%nx .ne. 0) then
+      x = t%i3
+    else
+      x = t%i3
+    endif
   end subroutine gridrotate_i3
 
   subroutine gridrotate_i4(par, s, t, x)
@@ -338,7 +366,11 @@ contains
     type(spacepars), intent(in)   :: s
     type(arraytype), intent(in)   :: t
     integer, dimension(:,:,:,:),intent(out) :: x
-    x = t%i4
+    if (par%rotate .eq. 1 .and. s%nx .ne. 0) then
+      x = t%i4
+    else
+      x = t%i4
+    endif
   end subroutine gridrotate_i4
 
 

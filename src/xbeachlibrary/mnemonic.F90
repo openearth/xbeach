@@ -7,10 +7,10 @@ module mnemmodule
      character type         ! 'i' or 'r': integer or real*8
      character btype        ! 'b' or 'd': broadcast or distribute
      integer rank           ! 0,1,2,3,4
-     character(slen) :: name     ! 'v','ve', .....
-     character(slen) :: units     ! m, following udunits convention
-     character(slen) :: standardname
-     character(slen) :: description
+     character(maxnamelen) :: name     ! 'v','ve', .....
+     character(slen)       :: units     ! m, following udunits convention
+     character(slen)       :: standardname
+     character(slen)       :: description
      character(slen), dimension(maxrank) :: dimensions ! the dimensions of the variable, for example (s%nx, s%ny)
 
      real*8, pointer             :: r0  ! pointer to real8 scalar

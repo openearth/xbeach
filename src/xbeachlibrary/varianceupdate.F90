@@ -232,6 +232,8 @@ contains
 
        enddo
     endif
+    ! wwvv to avoid warning about unused sl:
+    if (sl%nx .eq. -1) return
   end subroutine means_init
 
 
@@ -457,6 +459,8 @@ contains
 #ifdef USEMPI
     call xmpi_bcast(crossvararray)
 #endif 
+    ! wwvv to avoid warning about unused sl:
+    if (sl%nx .eq. -1) return
   end subroutine makecrossvector
 
 #ifdef USEMPI
