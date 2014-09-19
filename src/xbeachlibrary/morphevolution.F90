@@ -995,10 +995,10 @@ contains
     !     Copyright (C) 2009 Technische Universiteit Delft
     !        Bram van Prooijen
     !        b.c.vanprooijen@tudelft.nl
-    !	   +31(0)15 2784070   
+    !      +31(0)15 2784070   
     !        Faculty of Civil Engineering and Geosciences
     !        department of Hydraulic Engineering
-    !	   PO Box 5048
+    !      PO Box 5048
     !        2600 GA Delft
     !        The Netherlands
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1053,7 +1053,7 @@ contains
 
           Sm(:,jg)=pb(:,jg)*dz*(1.d0-par%por)
 
-!!!build matrix A							
+!!!build matrix A                                                       
           select case(par%nd_var)
           case(1)
              !in this case: A=0
@@ -1487,7 +1487,7 @@ contains
     endif
     ! use lagrangian velocities
     kturbu       = 0.0d0  !Jaap
-    kturbv       = 0.0d0  !Jaap		
+    kturbv       = 0.0d0  !Jaap         
     dzsdt_cr=par%beta*c
     ! Update roller thickness
     rolthick=rolthick+par%dt*(abs(dzsdt)-dzsdt_cr)
@@ -1554,7 +1554,7 @@ contains
            do i=2,nx+1
              
              kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*(       &
-	                     (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j)+&
+                             (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j)+&
                           Sturbv(i,j)*dsv(i,j)-Sturbv(i,j-1)*dsv(i,j-1))*dsdnzi(i,j)-&
                           (ksource(i,j)-par%betad*kturb(i,j)**1.5d0))
              kturb(i,j)=max(kturb(i,j),0.0d0)
@@ -1566,7 +1566,7 @@ contains
          do i=2,nx+1
             
            kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*(       &
-	                   (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)-&
+                           (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)-&
                        (ksource(i,j)-par%betad*kturb(i,j)**1.5d0))
            kturb(i,j)=max(kturb(i,j),0.0d0)
             
@@ -1809,7 +1809,7 @@ contains
   
   integer                                  :: i,j,j1,indx,first, nIter, maxIter
   integer , dimension(:), allocatable,save :: slopeind
-  real , dimension(:), allocatable,save    :: hav1d
+  real*8 , dimension(:), allocatable,save  :: hav1d
   real*8                                   :: irrb,runup_old
 
   include 's.ind'

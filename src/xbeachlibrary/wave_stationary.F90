@@ -444,7 +444,7 @@ contains
              H(i,:)=sqrt(E(i,:)/par%rhog8)
              Herr=maxval(abs(Hprev(jmin_ee:jmax_ee)-H(i,jmin_ee:jmax_ee)))
 #ifdef USEMPI
-             call xmpi_allreduce(Herr,MPI_MAX)	 
+             call xmpi_allreduce(Herr,MPI_MAX)   
 #endif
              ! Stopping criteria
              if (iter<par%maxiter) then

@@ -1699,6 +1699,7 @@ pure subroutine gw_calc_local_infil(par,zb,hh,gwlevel,kzlocal,dinfil,D50top,turb
 end subroutine gw_calc_local_infil
 
 ! TODO: subroutine is not used. Remove this
+#if 0
 pure subroutine gw_calc_local_connected_infil(par,gwhead,gwlevel,zb,hh,D50top,turb,zs,infil)
   use params
   
@@ -1778,6 +1779,7 @@ pure subroutine gw_calc_local_connected_infil(par,gwhead,gwlevel,zb,hh,D50top,tu
   endif
 
 end subroutine gw_calc_local_connected_infil
+#endif
 
 pure function gwCalculateHeadBottom(gwcurv,gwheadtop,gwheight,nx,ny,model) result(gwheadb)
    use paramsconst

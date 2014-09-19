@@ -111,16 +111,6 @@ contains
 
   end subroutine indextos
 
-  ! Generated subroutine to allocate the scalars in s
-  subroutine space_alloc_scalars(s)
-    use mnemmodule
-    implicit none
-    type(spacepars),intent(inout)  :: s
-
-    include 'space_alloc_scalars.gen'
-
-  end subroutine space_alloc_scalars
-  
   ! Generated subroutine to allocate all arrays in s
   subroutine space_alloc_arrays(s,par)
     use mnemmodule
@@ -159,8 +149,8 @@ contains
   subroutine space_consistency(s,mnem,verbose)
     use mnemmodule
     implicit none
-    type(spacepars)  :: s
-    character(len=*) :: mnem
+    type(spacepars)                        :: s
+    character(len=*)                       :: mnem
     character(len=*), intent(in), optional :: verbose
     integer          :: j,jmin,jmax
     type(arraytype)  :: t
@@ -210,17 +200,17 @@ contains
     use xmpi_module
     use mnemmodule
     implicit none
-    real*8, dimension(:,:) :: x
-    character(len=*)       :: s
+    real*8, dimension(:,:)    :: x
+    character(len=*)          :: s
     character(len=*),optional :: verbose
 
-    real*8, parameter     :: eps=1.0d-60
-    integer               :: m
-    integer               :: n
+    real*8, parameter                   :: eps=1.0d-60
+    integer                             :: m
+    integer                             :: n
     real*8, dimension(:,:), allocatable :: c
     real*8, dimension(:,:), allocatable :: r
-    real*8, dimension(2)  :: dif,difmax
-    character*100         :: warning
+    real*8, dimension(2)                :: dif,difmax
+    character*100                       :: warning
     integer i,j
 
     select case(s)
@@ -336,8 +326,8 @@ contains
   subroutine comparei2(x,s,verbose)
     use xmpi_module
     implicit none
-    integer, dimension(:,:) :: x
-    character(len=*)       :: s
+    integer, dimension(:,:)   :: x
+    character(len=*)          :: s
     character(len=*),optional :: verbose
 
     integer, parameter    :: eps=0
@@ -430,8 +420,8 @@ contains
   subroutine comparer3(x,s,verbose)
     use xmpi_module
     implicit none
-    real*8, dimension(:,:,:) :: x
-    character(len=*)       :: s
+    real*8, dimension(:,:,:)  :: x
+    character(len=*)          :: s
     character(len=*),optional :: verbose
 
     real*8, parameter     :: eps=1.0d-60
@@ -812,7 +802,7 @@ contains
 
     call space_alloc_arrays(sl,par)
 
-    ! for each variable is sg, find out how to distribute it
+    ! for each variable in sg, find out how to distribute it
     ! and distribute
     !
     do i = 1,numvars

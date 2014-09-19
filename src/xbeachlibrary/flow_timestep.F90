@@ -571,7 +571,7 @@ contains
        enddo
     endif
     !
-    viscv =0.d0	
+    viscv =0.d0 
     do j=2,ny
        do i=2,nx
           dvdy1 = nuh(i,j+1)*hh(i,j+1)*(vv(i,j+1)-vv(i,j))/dnz(i,j+1)

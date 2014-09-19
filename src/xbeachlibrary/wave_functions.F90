@@ -103,32 +103,32 @@ contains
                 
              enddo
              if (xmpi_istop) then
-             i=1   ! only compute for i==1
-             cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
-             if (cgxu>0) then
-                fluxx(i,j)=ee(i,j,itheta)*cgxu*dnu(i,j)
-             else
-                !                     eupw=((dsu(i+1,j)+.5*dsu(i+2,j))*ee(i+1,j,itheta)-.5*dsu(i+2,j)*ee(i+2,j,itheta))/dsu(i+1,j)
-                eupw=((dsu(i+1,j)+.5*dsu(i,j))*ee(i+1,j,itheta)-.5*dsu(i,j)*ee(i+2,j,itheta))/dsu(i+1,j)
-                if (eupw<0.d0) eupw=ee(i+1,j,itheta)
-                fluxx(i,j)=eupw*cgxu*dnu(i,j)
-             endif
+               i=1   ! only compute for i==1
+               cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
+               if (cgxu>0) then
+                  fluxx(i,j)=ee(i,j,itheta)*cgxu*dnu(i,j)
+               else
+                  !                     eupw=((dsu(i+1,j)+.5*dsu(i+2,j))*ee(i+1,j,itheta)-.5*dsu(i+2,j)*ee(i+2,j,itheta))/dsu(i+1,j)
+                  eupw=((dsu(i+1,j)+.5*dsu(i,j))*ee(i+1,j,itheta)-.5*dsu(i,j)*ee(i+2,j,itheta))/dsu(i+1,j)
+                  if (eupw<0.d0) eupw=ee(i+1,j,itheta)
+                  fluxx(i,j)=eupw*cgxu*dnu(i,j)
+               endif
              endif
              if (xmpi_isbot) then
                 i=nx  ! only compute for i==nx0
-             cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
-             if (cgxu>0) then
-                !                    eupw=((dsu(i,j)+.5*dsu(i-1,j))*ee(i,j,itheta)-.5*dsu(i-1,j)*ee(i-1,j,itheta))/dsu(i-1,j)
-                eupw=((dsu(i-1,j)+.5*dsu(i,j))*ee(i,j,itheta)-.5*dsu(i,j)*ee(i-1,j,itheta))/dsu(i-1,j)
-                if (eupw<0.d0) eupw=ee(i,j,itheta)
-                fluxx(i,j)=eupw*cgxu*dnu(i,j)
-             else
-                fluxx(i,j)=ee(i+1,j,itheta)*cgxu*dnu(i,j)
-             endif
+                cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
+                if (cgxu>0) then
+                   !                    eupw=((dsu(i,j)+.5*dsu(i-1,j))*ee(i,j,itheta)-.5*dsu(i-1,j)*ee(i-1,j,itheta))/dsu(i-1,j)
+                   eupw=((dsu(i-1,j)+.5*dsu(i,j))*ee(i,j,itheta)-.5*dsu(i,j)*ee(i-1,j,itheta))/dsu(i-1,j)
+                   if (eupw<0.d0) eupw=ee(i,j,itheta)
+                   fluxx(i,j)=eupw*cgxu*dnu(i,j)
+                else
+                   fluxx(i,j)=ee(i+1,j,itheta)*cgxu*dnu(i,j)
+                endif
              endif
           enddo
           do j=jmin_ee,jmax_ee  
-             do i=2,nx 
+             do i=2,nx
                 xadvec(i,j,itheta)=(fluxx(i,j)-fluxx(i-1,j))*dsdnzi(i,j)
              enddo
           enddo
@@ -553,7 +553,7 @@ contains
 
     L0 = 2*par%px*par%g/(s%sigm**2)
 
-    if (.not. associated(s%L1)) then
+    if (.not. allocated(s%L1)) then
        allocate(s%L1(s%nx+1,s%ny+1))
        s%L1=L0
     endif

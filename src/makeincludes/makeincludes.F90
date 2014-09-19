@@ -3,11 +3,14 @@
 ! mnemonic.gen            is for mnemonic.F90
 ! chartoindex.gen         is for mnemonic.F90
 ! space_alloc_arrays.gen  is for spaceparams.F90
-! space_alloc_scalars.gen is for spaceparams.F90
 ! spacedecl.gen           is for spaceparams.F90
 ! space_ind.gen           is for s.ind
 ! space_inp.gen           is for s.inp
 ! parameters.inc          is for xbeach.F90 after params.F90
+! space_define.h          defines macros like #define x s%X
+! space_undef.h           undefines what space_define.h defines
+!
+! and also parameters.inc and getkey.gen, both from params.F90
 !
 ! see also README.includefiles
 !          spaceparams.tmpl
@@ -21,14 +24,18 @@ module makemodule
   character(slen)            :: outputfilename
   integer             :: infile = 1
   integer             :: outfile = 2
-  character(slen), parameter :: spacedeclname = 'spacedecl.gen'
-  character(slen), parameter :: mnemonicname = 'mnemonic.gen'
-  character(slen), parameter :: indextosname = 'indextos.gen'
-  character(slen), parameter :: space_alloc_scalarsname = 'space_alloc_scalars.gen'
-  character(slen), parameter :: space_alloc_arraysname = 'space_alloc_arrays.gen'
-  character(slen), parameter :: space_indname = 'space_ind.gen'
-  character(slen), parameter :: space_inpname = 'space_inp.gen'
-  character(slen), parameter :: chartoindexname = 'chartoindex.gen'
+  character(slen), parameter :: spacedeclname           = 'spacedecl.gen'
+  character(slen), parameter :: mnemonicname            = 'mnemonic.gen'
+  character(slen), parameter :: indextosname            = 'indextos.gen'
+  character(slen), parameter :: space_alloc_arraysname  = 'space_alloc_arrays.gen'
+  character(slen), parameter :: space_indname           = 'space_ind.gen'
+  character(slen), parameter :: space_inpname           = 'space_inp.gen'
+  character(slen), parameter :: chartoindexname         = 'chartoindex.gen'
+  character(slen), parameter :: paramsincname           = 'parameters.inc'
+  character(slen), parameter :: getkeygenname           = 'getkey.gen'
+  character(slen), parameter :: space_definename        = 'space_define.h'
+  character(slen), parameter :: space_undefname         = 'space_undef.h'
+
   integer                        :: numvars, maxnamelen, inumvars0, rnumvars0
   character(slen)            :: type, name, comment, line, broadcast, description, units, standardname
   integer                        :: rank
@@ -40,6 +47,37 @@ module makemodule
   character(6),parameter         :: sp = '      '
 
 contains
+
+  Pure Function caseswitch (str) Result (string)
+
+!   ==============================
+!   switches case of string: AbC -> aBc
+!   ==============================
+
+    Implicit None
+    Character(*), Intent(In) :: str
+    Character(LEN(str))      :: string
+
+    Integer :: ic, i
+
+    Character(26), Parameter :: cap = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    Character(26), Parameter :: low = 'abcdefghijklmnopqrstuvwxyz'
+
+!   Capitalize each letter if it is lowecase
+    string = str
+    do i = 1, LEN_TRIM(str)
+        ic = INDEX(low, str(i:i))
+        if (ic > 0) then
+          string(i:i) = cap(ic:ic)
+        endif
+        ic = INDEX(cap, str(i:i))
+        if (ic > 0) then
+          string(i:i) = low(ic:ic)
+        endif
+    end do
+
+  End Function caseswitch
+
   !
   !  reads next line
   !
@@ -245,7 +283,7 @@ contains
   !
   subroutine makespacedecl
     implicit none
-    character(slen) nullstr,rankstr
+    character(slen) rankstr
     call openinfile
     call openoutput
     call warning
@@ -256,23 +294,22 @@ contains
        endif
        call getitems
        if (varfound) then
-          nullstr = ' =>NULL() '
           select case(rank)
           case(0)
-             rankstr = ',pointer                   '
+             rankstr = '                                '
           case(1)
-             rankstr = ',dimension(:),      pointer'
+             rankstr = ',dimension(:),       allocatable'
           case(2)
-             rankstr = ',dimension(:,:),    pointer'
+             rankstr = ',dimension(:,:),     allocatable'
           case(3)
-             rankstr = ',dimension(:,:,:),  pointer'
+             rankstr = ',dimension(:,:,:),   allocatable'
           case(4)
-             rankstr = ',dimension(:,:,:,:),pointer'
+             rankstr = ',dimension(:,:,:,:), allocatable'
           case default
              rankstr = 'invalid number of dimensions'
           end select
           write(outfile,'(a)') sp//trim(type)//trim(rankstr)//' :: '//trim(name)// &
-               trim(nullstr)//'  '//trim(comment)
+               '  '//trim(comment)
        else
           write(outfile,'(a)') trim(comment)
        endif
@@ -281,35 +318,6 @@ contains
     close (outfile)
     close(infile)
   end subroutine makespacedecl
-  !
-  ! construct subroutine to initialize the scalars
-  !
-  subroutine makespace_alloc_scalars
-    implicit none
-    integer ii,rr
-    ii=1
-    rr=1
-    call openinfile
-    call openoutput
-    call warning
-    do
-       call getline
-       if (endfound) then
-          exit
-       endif
-       call getitems
-       if (varfound) then
-          if (rank .eq. 0) then
-             write(outfile,'(a)') sp//'allocate(s%'//trim(name)//')'
-          endif
-       endif
-    enddo
-
-    call format_fortran
-    close(outfile)
-    close(infile)
-
-  end subroutine makespace_alloc_scalars
   !
   !  construction of mnemonic.gen
   !
@@ -330,14 +338,14 @@ contains
        endif
        call getitems
        if (varfound) then
-          write(outfile,'(a)') sp//'  character(len=slen),parameter ::  mnem_'// &
+          write(outfile,'(a)') sp//'  character(len=maxnamelen),parameter ::  mnem_'// &
                name(1:maxnamelen)//" = '"//name(1:maxnamelen)//"'"
        endif
     enddo
 
     rewind infile
     write (outfile,'(a)') sp//&
-         '  character(len=slen),dimension(numvars),parameter :: mnemonics= (/ &'
+         '  character(len=maxnamelen),dimension(numvars),parameter :: mnemonics= (/ &'
 
     j=1
     do
@@ -600,19 +608,64 @@ contains
     close(infile)
   end subroutine makespaceinp
 
+  ! just for testing some things, not used in production version wwvv
+  subroutine makespacedefine
+    implicit none
+    call openinfile
+    call openoutput
+    call warning
+    write(outfile,'(a)'),'#ifndef SPACE_DEFINE_H'
+    write(outfile,'(a)'),'#define SPACE_DEFINE_H'
+    do
+       call getline
+       if (endfound) then
+          exit
+       endif
+       call getitems
+       if (varfound) then
+          write(outfile,'(a)') '#define '//trim(name)//' s%'//caseswitch(trim(name))
+       endif
+    enddo
+    write(outfile,'(a)'),'#endif'
+    close (outfile)
+    close(infile)
+  end subroutine makespacedefine
+
+  subroutine makespaceundef
+    implicit none
+    call openinfile
+    call openoutput
+    call warning
+    write(outfile,'(a)'),'#ifdef SPACE_DEFINE_H'
+    write(outfile,'(a)'),'#undef SPACE_DEFINE_H'
+    do
+       call getline
+       if (endfound) then
+          exit
+       endif
+       call getitems
+       if (varfound) then
+          write(outfile,'(a)') '#undef '//trim(name)
+       endif
+    enddo
+    write(outfile,'(a)'),'#endif'
+    close (outfile)
+    close(infile)
+  end subroutine makespaceundef
+
   subroutine makeparamsinc
     implicit none
     integer             :: startpar,endpar,i
     logical             :: readtype
-    character(slen) :: parname
+    character(slen)     :: parname
 
-    infile = 10
-    outfile = 11
+    infile   = 10
+    outfile   = 11
     endfound = .false.
     readtype = .false.
     open(infile,file='params.F90')
     open(outfile,file='parameters.inc')
-    write(outfile,'(a)')'!! This code is generated automatocally by makeincludes'
+    write(outfile,'(a)')'!! This code is generated automatocally by makeincludes from params.F90'
     write(outfile,'(a)')'!! Do not change manually'
     write(outfile,'(a)')'subroutine outputparameters(par)'
     write(outfile,'(a)')'   use filefunctions'
@@ -705,7 +758,7 @@ contains
                             write(outfile,'(a)')'   do i=1,par%nrugauge'
                             write(outfile,'(a)')'      write(fid,*)xpointsw(i+par%npoints),''  '',ypointsw(i+par%npoints)'
                             write(outfile,'(a)')'   enddo'
-                         else	
+                         else   
 
                             write(outfile,'(a)')'   write(fid,*)'''//trim(parname)//'='',par%'//trim(parname)
                          endif
@@ -721,25 +774,23 @@ contains
     close(infile)
     close(outfile)
 
-
-
   end subroutine makeparamsinc
 
   subroutine makegetkeygen
     implicit none
     integer             :: startpar,endpar,i, ncharacterkeys, nintegerkeys, nrealkeys
     logical             :: readtype
-    character(slen) :: parname
+    character(slen)     :: parname
     integer, parameter  :: maxnvar = 1024
     character(slen), dimension(maxnvar) :: characterkeys, integerkeys, realkeys
 
     ncharacterkeys = 0
-    nrealkeys = 0
-    nintegerkeys = 0
-    infile = 10
-    outfile = 11
-    endfound = .false.
-    readtype = .false.
+    nrealkeys      = 0
+    nintegerkeys   = 0
+    infile         = 10
+    outfile        = 11
+    endfound       = .false.
+    readtype       = .false.
     open(infile,file='params.F90')
     do
        call getline
@@ -879,18 +930,21 @@ program makeincludes
   !
   call counting
 
-  read (*,'(a)',end=100,err=100) command
-  goto 110
+  read (*,'(a)',end=100) command
 100 continue
-  command = trim(spacedeclname)//' '// &
-       trim(mnemonicname)//' '// &
-       trim(indextosname)//' '// &
-       trim(space_alloc_scalarsname)//' '// &
-       trim(space_alloc_arraysname)//' '// &
-       trim(space_indname)//' '// &
-       trim(chartoindexname)//' '// &
-       trim(space_inpname)
-110 continue
+  if (trim(command) .eq. ' ' .or. ichar(command(1:1)) .eq. 0) then
+    command = trim(spacedeclname)//' '// &
+         trim(mnemonicname)//' '// &
+         trim(indextosname)//' '// &
+  !       trim(space_alloc_scalarsname)//' '// &
+         trim(space_alloc_arraysname)//' '// &
+         trim(space_indname)//' '// &
+         trim(chartoindexname)//' '// &
+         trim(space_inpname)//' '// &
+         trim(paramsincname)//' '// &
+         trim(getkeygenname)
+   endif
+
   if (index(command,trim(spacedeclname)) .ne. 0) then
      write(*,*)'Making '//trim(spacedeclname)
      outputfilename = spacedeclname
@@ -907,12 +961,6 @@ program makeincludes
      write(*,*)'Making '//trim(indextosname)
      outputfilename = indextosname
      call makeindextos
-  endif
-
-  if (index(command,trim(space_alloc_scalarsname)) .ne. 0) then
-     write(*,*)'Making '//trim(space_alloc_scalarsname)
-     outputfilename = space_alloc_scalarsname
-     call makespace_alloc_scalars
   endif
 
   if (index(command,trim(space_alloc_arraysname)) .ne. 0) then
@@ -939,7 +987,29 @@ program makeincludes
      call makechartoindex
   endif
 
-  call makeparamsinc
-  call makegetkeygen
+  if (index(command,trim(paramsincname)) .ne. 0) then
+     write(*,*)'Making '//trim(paramsincname)
+     outputfilename = paramsincname
+     call makeparamsinc
+  endif
+
+  if (index(command,trim(getkeygenname)) .ne. 0) then
+     write(*,*)'Making '//trim(getkeygenname)
+     outputfilename = getkeygenname
+     call makegetkeygen
+  endif
+
+  if (index(command,trim(space_definename)) .ne. 0) then
+     write(*,*)'Making '//trim(space_definename)
+     outputfilename = space_definename
+     call makespacedefine
+  endif
+
+  if (index(command,trim(space_undefname)) .ne. 0) then
+     write(*,*)'Making '//trim(space_undefname)
+     outputfilename = space_undefname
+     call makespaceundef
+  endif
+
 end program makeincludes
 

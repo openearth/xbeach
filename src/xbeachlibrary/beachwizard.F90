@@ -2,9 +2,9 @@ module beachwizard_module
   type beachwiz
 
      real*8, dimension(1000,8)          :: timesnew          !time in minutes when remote sensed sources apply - eight sources max
-     integer, dimension(8)		         :: ntimesnew = 0     !number of maps per source
-     integer				             :: nflagsigpr = 0    !flags
-     integer				             :: nflagsetobs = 0
+     integer, dimension(8)                       :: ntimesnew = 0     !number of maps per source
+     integer                                         :: nflagsigpr = 0    !flags
+     integer                                         :: nflagsetobs = 0
      real*8, dimension(1000,8)          :: timvalnew         !duration in minutes of each map
      character(232), dimension(1000,8)  :: fname             !filename of the map
      character(232), dimension(1000,8)  :: fnameerr          !filename of the uncertainties in the map
@@ -16,8 +16,8 @@ module beachwizard_module
           &  pointer            :: fnamcx
      character(232), dimension(:), &
           &  pointer            :: fnamsh
-     integer, dimension(8)		         :: status = 0        !status of the map (1=read, 0=not read/does not exist)
-     integer, dimension(8)		         :: statuserr = 0     !status of the error map
+     integer, dimension(8)                       :: status = 0        !status of the map (1=read, 0=not read/does not exist)
+     integer, dimension(8)                       :: statuserr = 0     !status of the error map
      integer, dimension(8)              :: itimnew           !counter of the time "timesnew"
      integer, dimension(8)              :: itimrdnew         !flag to indicate time has been read
      integer                            :: itim
@@ -33,22 +33,22 @@ module beachwizard_module
      real*8, dimension(:,:), pointer    :: disobs 
      real*8, dimension(:,:), pointer    :: zbobs1
      real*8, dimension(:,:), pointer    :: shobs1
-     !     real*8,dimension(:,:),allocatable  :: dobs              !observed	dissipation
+     !     real*8,dimension(:,:),allocatable  :: dobs              !observed    dissipation
      real*8,dimension(:,:),allocatable  :: fobs
-     real*8,dimension(:,:),allocatable  :: cobs              !observed	celerity
-     real*8,dimension(:,:),allocatable  :: ccom              !computed	celerity
-     real*8,dimension(:,:),allocatable  :: kobs              !observed	wave number
-     !     real*8,dimension(:,:),allocatable  :: shobs             !observed	shoreline
+     real*8,dimension(:,:),allocatable  :: cobs              !observed  celerity
+     real*8,dimension(:,:),allocatable  :: ccom              !computed  celerity
+     real*8,dimension(:,:),allocatable  :: kobs              !observed  wave number
+     !     real*8,dimension(:,:),allocatable  :: shobs             !observed    shoreline
      !     real*8,dimension(:,:),allocatable  :: zbobs             !observed bathymetry
      real*8,dimension(:,:),allocatable  :: dcmdo             !computed dissipation minus observed dissipation
      real*8,dimension(:,:),allocatable  :: ccmco             !computed celerity minus observed celerity
      real*8,dimension(:,:),allocatable  :: scmso             !computed shoreline minus observed shoreline
-     real*8,dimension(:,:),allocatable  :: dassim	 
+     real*8,dimension(:,:),allocatable  :: dassim        
      real*8,dimension(:,:),allocatable  :: sigD              !standard dev. of dissipation
      real*8,dimension(:,:),allocatable  :: sigC              !standard dev. of celerity
      real*8,dimension(:,:),allocatable  :: sigK              !standard dev. of wave number
-     real*8,dimension(:,:),allocatable  :: sigZ              !standard dev. of bathymetry	
-     real*8,dimension(:,:),allocatable  :: sigS              !standard dev. of shoreline	
+     real*8,dimension(:,:),allocatable  :: sigZ              !standard dev. of bathymetry       
+     real*8,dimension(:,:),allocatable  :: sigS              !standard dev. of shoreline        
      !    real*8,dimension(:,:),allocatable  :: sig2prior
      real*8                             :: xll               !origin of the coordinate system used in the map
      real*8                             :: yll               !idem
@@ -58,12 +58,12 @@ module beachwizard_module
      real*8                             :: tradar            !period used in the wavenumber or celerity file
      integer                            :: nx                !number of points in the x-direction in the c.s. of the map
      integer                            :: ny                !same in y
-     integer				             :: ix                !counter
-     integer				             :: iy                !counter
-     real*8				             :: sigDdef           !default value of the dissipation uncertainty
-     real*8				             :: sigCdef           !default value of the celerity uncertainty
-     real*8				             :: sigZdef           !default value of the bathymetry uncertainty
-     real*8				             :: sigSdef           !default value of the shoreline uncertainty
+     integer                                         :: ix                !counter
+     integer                                         :: iy                !counter
+     real*8                                          :: sigDdef           !default value of the dissipation uncertainty
+     real*8                                          :: sigCdef           !default value of the celerity uncertainty
+     real*8                                          :: sigZdef           !default value of the bathymetry uncertainty
+     real*8                                          :: sigSdef           !default value of the shoreline uncertainty
 
 
   end type beachwiz
@@ -112,11 +112,11 @@ contains
     type(parameters)                    :: par
 
     character*80                        :: infofile
-    integer				                :: im,in
-    integer				                :: srcnr
+    integer                                             :: im,in
+    integer                                             :: srcnr
     real*8,  external                   :: readkey_dbl
     integer, external                   :: readkey_int
-    logical				                :: exists
+    logical                                             :: exists
     real*8, allocatable, dimension(:,:) :: h1
 
     integer                             :: jj
@@ -147,13 +147,13 @@ contains
     !include 'bw.inp'
 
     if (.not. allocated(bw%fobs)) then
-       !	  allocate(s%dobs(1:s%nx+1,1:s%ny+1))
+       !          allocate(s%dobs(1:s%nx+1,1:s%ny+1))
        allocate(bw%fobs(1:s%nx+1,1:s%ny+1))
        allocate(bw%cobs(1:s%nx+1,1:s%ny+1))
        allocate(bw%ccom(1:s%nx+1,1:s%ny+1))
        allocate(bw%kobs(1:s%nx+1,1:s%ny+1))
-       !	  allocate(s%shobs(1:s%nx+1,1:s%ny+1))
-       ! 	  allocate(s%zbobs(1:s%nx+1,1:s%ny+1))
+       !          allocate(s%shobs(1:s%nx+1,1:s%ny+1))
+       !          allocate(s%zbobs(1:s%nx+1,1:s%ny+1))
        allocate(bw%dcmdo(1:s%nx+1,1:s%ny+1))
        allocate(bw%ccmco(1:s%nx+1,1:s%ny+1))
        allocate(bw%scmso(1:s%nx+1,1:s%ny+1))      
@@ -163,7 +163,7 @@ contains
        allocate(bw%sigK(1:s%nx+1,1:s%ny+1))      
        allocate(bw%sigZ(1:s%nx+1,1:s%ny+1))
        allocate(bw%sigS(1:s%nx+1,1:s%ny+1))
-       !	  allocate(s%sig2prior(1:s%nx+1,1:s%ny+1))
+       !          allocate(s%sig2prior(1:s%nx+1,1:s%ny+1))
     end if
 
     allocate(h1(1:s%nx+1,1:s%ny+1))
@@ -172,7 +172,7 @@ contains
     allocate(num(1:s%nx+1,1:s%ny+1))
     allocate(rk(1:s%nx+1,1:s%ny+1))
     allocate(E(1:s%nx+1,1:s%ny+1))
-    allocate(Hrms(1:s%nx+1,1:s%ny+1))	  
+    allocate(Hrms(1:s%nx+1,1:s%ny+1))     
 
     ! wwvv somebody forgot:
     allocate(den(s%nx+1,s%ny+1))
@@ -237,11 +237,11 @@ contains
        call assim_rd(bw, s, par, infofile,   srcnr)
        if (bw%status(srcnr) ==1) then 
           do in=1,s%nx
-	     do im=1,s%ny
+             do im=1,s%ny
                 if ((s%wetu(in,im)>0).and.(s%dobs(in,im)>-5.)) then
                    bw%dcmdo(in,im) = s%Dr(in,im) - s%dobs(in,im)
                 end if
-	     end do
+             end do
           end do
        end if
        if (bw%statuserr(srcnr) ==0) then 
@@ -309,7 +309,7 @@ contains
                 rk(in,im) = sqrt(ome2(in,im)*num(in,im)/den(in,im))/s%hh(in,im)
                 Hrms(in,im) = max(0.01d0,sqrt(8*max(0.01d0,s%E(in,im))/par%rho/par%g))
                 bw%ccom(in,im) = sqrt(par%g/rk(in,im)*tanh(rk(in,im)*s%hh(in,im)+Hrms(in,im)))
-                bw%cobs(in,im) = om/max(bw%kobs(in,im),0.01d0)    ! here we revert back to celerities.	 
+                bw%cobs(in,im) = om/max(bw%kobs(in,im),0.01d0)    ! here we revert back to celerities.   
                 if (bw%kobs(in,im)<-990.) then
                    bw%cobs(in,im)=-999.                
                 end if
@@ -349,10 +349,10 @@ contains
 
           do im=1,s%ny
              do in = 1,s%nx
-	        if (abs(s%shobs(in,im)).le.5.) then
+                if (abs(s%shobs(in,im)).le.5.) then
             !                bw%scmso(in,im) = s%hh(in,im) + s%shobs(in,im)  !!plus?
                    bw%scmso(in,im) = s%zb(in,im) - s%shobs(in,im) 
-	        end if
+                end if
              end do
           end do
 
@@ -391,10 +391,10 @@ contains
     !     Global variables
     type(spacepars), target             :: s 
     type(parameters)                    :: par
-    type(beachwiz)						:: bw
+    type(beachwiz)                                              :: bw
     character*80                        :: infofile
-    integer								:: im,in,iy,ix
-    integer								:: srcnr
+    integer                                                             :: im,in,iy,ix
+    integer                                                             :: srcnr
 
     !     Local variables
     real*8                           :: degrad
@@ -467,7 +467,7 @@ contains
        if (par%t-60.*bw%timesnew(bw%itimnew(srcnr),srcnr)<=60*bw%timvalnew(bw%itimnew(srcnr),srcnr)) then
           !              Read image if not read before
           !               write(*,*) 'smaller than timval',timmin,timesnew(itimnew(srcnr),srcnr), &
-          !&			   timvalnew(itimnew(srcnr),srcnr)             
+          !&                       timvalnew(itimnew(srcnr),srcnr)             
           if (bw%itimnew(srcnr)/=bw%itimrdnew(srcnr)) then
              !
              !                 Read header file that defines argus grid
@@ -492,8 +492,8 @@ contains
              else
                 goto 999
              endif
-             !	  inquire(file=fnameerr(itimnew(srcnr),srcnr),exist=exists)
-             !	  write(*,*) fnameerr(itimnew(srcnr),srcnr)
+             !    inquire(file=fnameerr(itimnew(srcnr),srcnr),exist=exists)
+             !    write(*,*) fnameerr(itimnew(srcnr),srcnr)
              !pause
              !     if (exists) then
              !       31=NEWLUN(GDP) 
@@ -505,7 +505,7 @@ contains
              !        read(31,*,err=999)nx
              !        read(31,*,err=999)ny
              !        read(31,*,err=999)angle 
-             !			 write(*,*) xll, yll, dx, dy, nx, ny, angle
+             !                   write(*,*) xll, yll, dx, dy, nx, ny, angle
              !pause
              !            if (associated(fobs1err)) deallocate (fobs1err, STAT = istat)
              !           allocate (fobs1err(nx,ny))
@@ -513,14 +513,14 @@ contains
              !            read(31,*)(fobs1err(ix,iy),ix=1,nx)
              !        enddo
              !       close(31)
-             !		 statuserr(srcnr)=1
-             !		 write(*,*) 'here read ', statuserr(srcnr), srcnr
+             !           statuserr(srcnr)=1
+             !           write(*,*) 'here read ', statuserr(srcnr), srcnr
              !pause
              !     else
              !       fobs1err=-999
-             !		 statuserr(srcnr)=0
-             !		 write(*,*) 'here not read ', statuserr(srcnr), srcnr
-             !		 !pause
+             !           statuserr(srcnr)=0
+             !           write(*,*) 'here not read ', statuserr(srcnr), srcnr
+             !           !pause
              !     endif 
              degrad=atan(1.)/45.
              cs=cos(bw%angle*degrad)
@@ -531,7 +531,7 @@ contains
              do in=1,s%nx+1                  !Leo and Roberto changed nx --> nx+1
                 do im=1,s%ny+1               !Leo and Roberto changed ny --> ny+1
                    bw%fobs(in,im)=-999.d0 !Changed by Ap 31/5
-                   !		 fobserr(n,m) = 999.d0 ! changed by Ap 31/5
+                   !             fobserr(n,m) = 999.d0 ! changed by Ap 31/5
                    !   if (kfs(n,m)>0) then !Ap
                    xs = s%xz(in,im) - bw%xll     ! Jaap changed x --> xz
                    ys = s%yz(in,im) - bw%yll
@@ -558,13 +558,13 @@ contains
                         &                              w22*bw%fobs1(ixp1,iyp1)
 
                    !                       endif
-                   !						if (statuserr(srcnr)==1) then
+                   !                                            if (statuserr(srcnr)==1) then
                    !
                    !                        fobserr(n,m)      = w11*fobs1err(ix  ,iy  ) + &
                    !     &                              w21*fobs1err(ixp1,iy  ) + &
                    !     &                              w12*fobs1err(ix  ,iyp1) + &
                    !     &                              w22*fobs1err(ixp1,iyp1)
-                   !   					end if
+                   !                                    end if
 
                 enddo
              enddo
@@ -611,7 +611,7 @@ contains
     !     Global variables
     type(spacepars), target             :: s 
     type(parameters)                    :: par
-    type(beachwiz)						:: bw
+    type(beachwiz)                                              :: bw
 
 
     !     Local variables
@@ -742,7 +742,7 @@ contains
     ! for output 
     s%cobs = bw%cobs
     
-    errS = ((bw%scmso**2+bw%sigS**2)/(1.d0))			   !eq.(6)  uncertainty in observed data (ibathy)
+    errS = ((bw%scmso**2+bw%sigS**2)/(1.d0))                       !eq.(6)  uncertainty in observed data (ibathy)
     do in=1,s%nx+1                             
        do im=1,s%ny+1
           if (s%shobs(in,im)<-990) errS(in,im)=999
@@ -773,7 +773,7 @@ contains
 !    s%bwalpha = s%bwalpha*alphafac       
             
     bw%dassim = -s%bwalpha*tanh((h1/0.85)**5)*((dDdh-sqrt(alp_as*mxdDdh))/(dDdh**2+alp_as*mxdDdh)*bw%dcmdo  )*alphafac !eq.(5) depth change
-    !ap2			
+    !ap2                        
     !& +dcdh(nm)/(dcdh(nm)**2+alp_as*dcdhmean**2)*ccmco(nm))
 
     do in=1,s%nx+1

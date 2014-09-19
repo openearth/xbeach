@@ -82,7 +82,6 @@ contains
     ! read input from params.txt
     call all_input(par)
 
-    call space_alloc_scalars(sglobal)
     s => sglobal
 
     ! read grid and bathymetry

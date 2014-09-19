@@ -34,12 +34,15 @@ AC_PROG_FC([gfortran ifort ifc g95 xlf95 f95 fort  efc pgf95 lf95 ftn xlf90 f90 
 AC_PROG_INSTALL
 # Checks for libraries.
 
+AC_SUBST(FC_NOMPI, $FC)
 AC_ARG_WITH(mpi, [AS_HELP_STRING([--with-mpi],[Build with mpi support @<:@default=no@:>@])], [],[with_mpi=no])
 AS_IF([test "x$with_mpi" != xno],
-            [AC_LANG_PUSH(Fortran)
+            [FCFLAGS_save=$FCFLAGS
+	    AC_LANG_PUSH(Fortran)
             ACX_MPI
             AC_LANG_POP
-            FC=$MPIFC],
+            FC=$MPIFC
+	    FCFLAGS=$FCFLAGS_save],
             [])
 # define usempi (same as HAVE_MPI)
 AM_CONDITIONAL(USEMPI, test "x$with_mpi" != "xno")

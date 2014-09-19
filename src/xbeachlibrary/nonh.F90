@@ -166,7 +166,7 @@ contains
     allocate(Wm_old(s%nx+1,s%ny+1)) ;Wm_old = 0.0_rKind
     allocate(Wcoef(s%nx+1,s%ny+1))  ;Wcoef = 1.0d0
     
-    if (.not. associated(s%pres)) then   
+    if (.not. allocated(s%pres)) then   
       allocate(s%pres(s%nx+1,s%ny+1)); s%pres = 0.0_rKind   
       allocate(s%ws(s%nx+1,s%ny+1)); s%ws = 0.0_rKind
       allocate(s%wb(s%nx+1,s%ny+1)); s%wb = 0.0_rKind
@@ -308,7 +308,7 @@ end subroutine nonh_init_wcoef
     real(kind=rKind)                        :: dzs_s,dzs_n
     real(kind=rKind)                        :: dzb_e,dzb_w
     real(kind=rKind)                        :: dzb_n,dzb_s
-   
+
 
 !
 !-------------------------------------------------------------------------------
@@ -340,7 +340,7 @@ end subroutine nonh_init_wcoef
 
   call zuzv(s)   
   
-  !Built pressure coefficients U  
+  !Built pressure coefficients U
   aur  = s%uu
   avr  = s%vv
     
@@ -1129,7 +1129,7 @@ subroutine nonh_explicit(s,par)
     enddo
   enddo
   if (xmpi_istop) then               !wwvv: added test on istop
-  au(:,1,:)      = 0.0_rKind
+    au(:,1,:)      = 0.0_rKind
   endif
   if (xmpi_isbot) then               !wwvv: added test on isbot
     au(:,s%nx+1,:)   = 0.0_rKind
@@ -1153,13 +1153,12 @@ subroutine nonh_explicit(s,par)
       enddo    
     enddo
     if (xmpi_isleft) then               !wwvv: added test on isleft
-    av(:,:,1)     = 0.0_rKind
-  endif  
+      av(:,:,1)     = 0.0_rKind
+    endif
     if (xmpi_isright) then              !wwvv: added test on isright
       av(:,:,s%ny+1)  = 0.0_rKind
     endif
   endif  
-      
 
  !Include explicit approximation for pressure in s%uu and s%vv   and Wm
   if (par%secorder == 1) then 

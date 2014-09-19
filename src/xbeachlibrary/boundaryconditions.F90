@@ -67,7 +67,7 @@ contains
     real*8,dimension(:,:)   ,allocatable,save   :: gq1,gq2,gq
     real*8,dimension(:,:)   ,allocatable,save   :: gee1, gee2
     character(len=1)                            :: bl
-    character(slen)                             :: ebcfname,qbcfname,nhbcfname
+    character(slen),save                        :: ebcfname,qbcfname,nhbcfname
     real*8                                      :: E0
     real*8,dimension(:),allocatable,save        :: dist,factor
     logical                                     :: startbcf
@@ -1037,7 +1037,7 @@ contains
              do j=j1,max(ny,1)
                 ! compute gradients in u-points
                 dhdx   (1,j) = ( ht  (2,j) - ht  (1,j) ) / dsu(1,j)
-                dbetadx(1,j) = ( beta(2,j) - beta(1,j) ) / dsz(2,j) 
+                dbetadx(1,j) = ( beta(2,j) - beta(1,j) ) / dsz(2,j)
 
                 if (ny>0) then
                    dvdy   (1,j) = ( vu  (1,j+1) - vu  (1,j-1) ) / ( dnu(1,j)+(dnu(1,j-1)+dnu(1,j+1))/2 ) 
@@ -1220,6 +1220,7 @@ contains
                       if(dabs(alphanew-alpha2(j)).lt.0.001) exit    ! wwvv can use exit here
                       alpha2(j) = alphanew
                    end do
+
                    uu(nx,j) = ur(nx,j) + umean(nx,j)
                    ! Ap replaced zs with extrapolation.
                    zs(nx+1,j) = 1.5*((betanp1(1,j)-uu(nx,j))**2.d0/4.d0/par%g+.5*(zb(nx,j)+zb(nx+1,j)))-&
@@ -1560,8 +1561,8 @@ contains
 
     !--------------------------     ARGUMENTS          ----------------------------
     !
-    character(len=*)              ,intent(in)  :: bcfile
-    integer(kind=iKind)           ,intent(in)  :: nyg
+    character(len=*)              ,intent(in)    :: bcfile
+    integer(kind=iKind)           ,intent(in)    :: nyg
     real(kind=rKind),dimension(nyg+1)            :: ug,zg,wg
     real(kind=rKind)                ,intent(in)  :: t
     logical,intent(out)                          :: isSet_U,isSet_Z,isSet_W

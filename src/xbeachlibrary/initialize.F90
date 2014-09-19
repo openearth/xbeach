@@ -1270,7 +1270,12 @@ contains
     allocate(s%vmag(1:nx+1,1:ny+1)) 
     allocate(s%ceqsg(1:nx+1,1:ny+1,par%ngd))
     allocate(s%ceqbg(1:nx+1,1:ny+1,par%ngd))
-    if (par%dilatancy==1) allocate(s%D15(1:par%ngd)) ! Lodewijk
+    !if (par%dilatancy==1) allocate(s%D15(1:par%ngd)) ! Lodewijk
+    if (par%dilatancy==1) then
+      allocate(s%D15(1:par%ngd)) ! Lodewijk
+    else
+      allocate(s%D15(1)) ! wwvv: D15 will be distributed, so it must exist
+    endif
     allocate(s%D50(1:par%ngd))
     allocate(s%D90(1:par%ngd))
     allocate(s%D50top(1:nx+1,1:ny+1))

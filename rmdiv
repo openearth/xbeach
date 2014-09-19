@@ -1,0 +1,6 @@
+#!/bin/bash
+# remove autoconf-generated files
+find . -name Makefile.in | xargs rm -f
+rm -f configure libtool aclocal.m4
+rm -f config/*
+rm -f m4/{libtool.m4,ltoptions.m4,ltsugar.m4,ltversion.m4,lt-obsolete.m4}

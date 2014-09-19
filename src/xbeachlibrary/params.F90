@@ -2032,7 +2032,7 @@ contains
        do while (id == 0)
           read(10,'(a)',iostat=ier)line
           if (ier .ne. 0) then
-             tempout = 'params.txt (looking for '//keyword//')'
+             tempout = 'params.txt (looking for '//trim(keyword)//')'
              call report_file_read_error(tempout)
           endif
           ic=scan(line,'=')
@@ -2045,7 +2045,7 @@ contains
        do i=1,imax
           read(10,'(a)',iostat=ier)line
           if (ier .ne. 0) then
-             tempout = 'params.txt (reading '//keyword//')'
+             tempout = 'params.txt (reading '//trim(keyword)//')'
              call report_file_read_error(tempout)
           endif
           line = trim(line)

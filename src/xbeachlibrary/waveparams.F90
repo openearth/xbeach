@@ -6,7 +6,7 @@ module waveparams
      integer*4                               :: listline
      integer, dimension(:), pointer          :: index_vector
 
-     real*8                                  :: mainang,dang, scoeff			!scoeff is now a wp
+     real*8                                  :: mainang,dang, scoeff                    !scoeff is now a wp
      real*8                                  :: h0t0
      real*8                                  :: hm0gew, df
      real*8                                  :: Ly, dt, rt
@@ -694,7 +694,7 @@ contains
        !   tempA(:,1:ndir-nt) = wp%S_array(:,nt+1:ndir)
        !    tempA(:,1:nt) = wp%S_array(:,ndir-nt+1:ndir)
        !    tempA(:,nt+1:ndir) = wp%S_array(:,1:ndir-nt)
-       !	tempA(:,nt+1:ndir)=wp%S_array(:,1:ndir-nt)
+       !        tempA(:,nt+1:ndir)=wp%S_array(:,1:ndir-nt)
        !    tempA(:,ndir-nt+1:ndir)=wp%S_array(:,1:nt)
        tempA(:,nt+1:ndir)=wp%S_array(:,1:ndir-nt)
        tempA(:,1:nt)=wp%S_array(:,ndir-nt+1:ndir)
@@ -1076,7 +1076,7 @@ contains
 
     if (wp%scoeff >= 1000.d0) then
        wp%theta0 = wp%mainang
-       !Ap longcrested waves								
+       !Ap longcrested waves                                                            
     else
        do i=1,size(P0)
           !call LINEAR_INTERP(P(1:size(P)-1),wp%theta(1:size(P)-1),size(P)-1,P0(i),pp,F2)
