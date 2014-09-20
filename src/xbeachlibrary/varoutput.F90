@@ -255,6 +255,7 @@ contains
              fnamemin =trim(fnamemin)
              fnamemax =trim(fnamemax)
              call indextos(s,chartoindex(trim(par%meanvars(i))),t)
+             reclenm = wordsize
              select case(t%rank)
              case (2)
                 reclenm = wordsize*size(t%r2)

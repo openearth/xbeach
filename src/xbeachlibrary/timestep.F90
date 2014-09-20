@@ -419,6 +419,8 @@ contains
     real*8                              :: mdx,mdy,tny,fac, maxfac
     real*8,save                         :: dtref,dtold
 
+    limtype = 0
+
     ! Super fast 1D
     if (s%ny==0) then
        j1 = 1
