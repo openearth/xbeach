@@ -1145,7 +1145,7 @@ end subroutine backtrace
 #ifdef MBACKTRACE
 subroutine backtrace
   implicit none
-  integer, pointer :: x = null()
+  integer, pointer :: x => null()
   write(0,*) 'no backtrace for this compiler'
   write(0,*) 'forcing a segmentation fault ...'
   x = 0
