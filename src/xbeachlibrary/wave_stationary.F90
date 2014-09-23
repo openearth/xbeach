@@ -188,7 +188,8 @@ contains
        do i=2,imax
           dtw=.5*minval(dsu(i:i+1,jmin_ee:jmax_ee))/maxval(cgx(i-1:i+1,jmin_ee:jmax_ee,:))
           dtw=min(dtw,.5*minval(dnv(i,jmin_ee:jmax_ee))/maxval(abs(cgy(i,jmin_ee:jmax_ee,:))))
-          dtw=min(dtw,.5*dtheta/maxval(abs(ctheta(i,jmin_ee:jmax_ee,:))))
+          !print *,'TD:',__FILE__,__LINE__,i,jmin_ee,jmax_ee,maxval(abs(ctheta(i,jmin_ee:jmax_ee,:)))
+          dtw=min(dtw,.5*dtheta/max(1.0d-6,maxval(abs(ctheta(i,jmin_ee:jmax_ee,:)))))
 !Dano: need to make sure all processes use the same dtw, min of all processes
 #ifdef USEMPI
           call xmpi_allreduce(dtw,MPI_MIN)
