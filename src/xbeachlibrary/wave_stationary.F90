@@ -138,6 +138,7 @@ contains
        sinh2kh = 3000.d0
     endwhere
 
+    print *,'TD:',__FILE__,__LINE__,xmpi_rank,'shape L1',shape(s%L1)
     call dispersion(par,s)   
 
     if (par%wci==0) then

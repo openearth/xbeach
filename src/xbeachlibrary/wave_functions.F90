@@ -508,13 +508,8 @@ contains
     type(parameters)                    :: par
     logical,optional,intent(in)         :: bcast
 
-    real*8, dimension(:,:),allocatable      :: h,L0,kh
-    real*8, dimension(:,:),allocatable,save  :: Ltemp
-    !
-    ! real*8,dimension(:,:),allocatable,save :: L1
-    ! wwvv moved L1 to spaceparams, in the parallel version
-    ! of the program L1 will be resized and distributed
-    !
+    real*8, dimension(:,:),allocatable  :: h,L0,kh
+    real*8, dimension(:,:),allocatable  :: Ltemp
     integer                             :: i,j,j1,j2
     real*8                              :: backdis,disfac
     integer                             :: index
@@ -544,11 +539,9 @@ contains
 
     ! cjaap: replaced par%hmin by par%eps
 
-    if (.not. allocated(h)) then
-       allocate(h (s%nx+1,s%ny+1))
-       allocate(L0(s%nx+1,s%ny+1))
-       allocate(kh(s%nx+1,s%ny+1))
-    endif
+    allocate(h (s%nx+1,s%ny+1))
+    allocate(L0(s%nx+1,s%ny+1))
+    allocate(kh(s%nx+1,s%ny+1))
     h = max(s%hh + par%delta*s%H,par%eps)
 
     L0 = 2*par%px*par%g/(s%sigm**2)
@@ -557,10 +550,8 @@ contains
        allocate(s%L1(s%nx+1,s%ny+1))
        s%L1=L0
     endif
-    if (.not. allocated(Ltemp)) then
-       allocate(Ltemp(s%nx+1,s%ny+1))
-       Ltemp = L0
-    end if
+    allocate(Ltemp(s%nx+1,s%ny+1))
+    Ltemp = L0
 
     do j = j1,j2
        do i = 1,s%nx+1
