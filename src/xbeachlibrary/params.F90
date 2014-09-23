@@ -681,6 +681,7 @@ contains
     par%taper    = readkey_dbl ('params.txt','taper',   100.d0,      0.0d0, 1000.d0)
     par%nmax     = readkey_dbl ('params.txt','nmax',    0.8d0,       0.5d0, 1.d0)
     if (par%instat == INSTAT_STAT .or. par%single_dir==1) then
+       par%nonhspectrum    = readkey_int ('params.txt','nonhspectrum', par%nonh,          0,       1 )
        par%Hrms  = readkey_dbl ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
        par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
        par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
