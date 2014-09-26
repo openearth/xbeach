@@ -1700,7 +1700,7 @@ contains
 
     ! This distributes all of the properties of par, including pointers. These point to memory adresses on the master
     ! We need to reset these on the non masters
-    call MPI_Bcast(par,sizeof(par),MPI_BYTE,xmpi_master,xmpi_comm,ierror)
+    call MPI_Bcast(par,int(sizeof(par)),MPI_BYTE,xmpi_master,xmpi_comm,ierror)
 
     ! Ok now for the manual stuff to circumvent a bug in the intel compiler, which doesn't allow to send over arrays in derived types
     ! The only way to do it on all 3 compilers (gfortran, CVF, ifort) is with pointers.

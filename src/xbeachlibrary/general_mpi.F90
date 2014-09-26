@@ -310,7 +310,7 @@ contains
           rcnt = 0                 ! and set the number of elements to receive to zero
        endif
 
-       call MPI_Scatterv(aa(1,1),  cnts(1), displs(1), MPI_DOUBLE_PRECISION,  &
+       call MPI_Scatterv(aa,  cnts, displs, MPI_DOUBLE_PRECISION,  &
             b(:,jj), rcnt,         MPI_DOUBLE_PRECISION,  &
             root,    comm, ierror)
     enddo
@@ -402,7 +402,7 @@ contains
           rcnt = 0                 ! and set the number of elements to receive to zero
        endif
 
-       call MPI_Scatterv(aa(1,1),  cnts(1), displs(1), MPI_INTEGER,  &
+       call MPI_Scatterv(aa,  cnts, displs, MPI_INTEGER,  &
             b(:,jj), rcnt,         MPI_INTEGER,  &
             root,    comm, ierror)
     enddo
