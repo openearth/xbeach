@@ -49,6 +49,7 @@ contains
     use spaceparams
     use params
     use mnemmodule
+    use indextos_module
 
     implicit none
 
@@ -245,6 +246,7 @@ contains
     use logging_module
     use postprocessmod
     use timestep_module
+    use indextos_module
 
     IMPLICIT NONE
 
@@ -422,6 +424,7 @@ contains
     use params
     use spaceparams
     use mnemmodule
+    use indextos_module
 
     IMPLICIT NONE
 

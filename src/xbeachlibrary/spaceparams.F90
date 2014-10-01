@@ -1,45 +1,6 @@
 module spaceparams
-  use xmpi_module
+use spaceparamsdef
   implicit none
-  type spacepars
-     include 'spacedecl.gen'
-#ifdef USEMPI
-     !
-     ! administration of the lay-out of the distributed matrices
-     ! In the following: p is the MPI-process number: p = 0 .. numprocs-1
-     ! The array indices start with 1, so, for example, is(2) describes
-     ! the situation for process rank 1.
-     ! a is the global matrix, b is a local matrix on process p.
-     !
-     ! is(:) and js(:) describe the location of the submatrix in process p:
-     !    b(1,1) coincides with a(is(p+1),js(p+1))
-     ! 
-     ! lm(:) and ln(:) describe the extend of b:
-     !    the dimensions of b on p are (lm(p+1),ln(p+1))
-     !    b concides with 
-     !       a(is(p+1):is(p+1)+lm(p+1)-1,js(p+1):js(p+1)+ln(p+1)-1)
-     !
-     ! isleft(:), isright(:), istop(:), isbot(:) tell if 
-     !    matrix b respectively map from a:
-     !    the first column
-     !    the last  column
-     !    the first row
-     !    lhe last  row
-     ! 
-     ! the values are determined in subroutine space_distribute_space
-     !
-     integer, dimension(:), pointer  :: is      => NULL()   
-     integer, dimension(:), pointer  :: js      => NULL()
-     integer, dimension(:), pointer  :: lm      => NULL()
-     integer, dimension(:), pointer  :: ln      => NULL()
-     logical, dimension(:), pointer  :: isleft  => NULL()
-     logical, dimension(:), pointer  :: isright => NULL()
-     logical, dimension(:), pointer  :: istop   => NULL()
-     logical, dimension(:), pointer  :: isbot   => NULL()
-#endif
-  end type spacepars
-
-  include 'ranges.inc'
 #ifdef USEMPI
 
   ! This interface an cause complains by memcache because the it is conditional on uninitialized variables.
@@ -68,48 +29,9 @@ module spaceparams
      module procedure space_collect_matrix_integer
   end interface space_collect
 
-  interface compare
-     module procedure comparei2
-     module procedure comparer2
-     module procedure comparer3
-  end interface compare
-
 #endif
 
-  interface printsum
-     module procedure printsum0
-     module procedure printsum1
-     module procedure printsum2
-     module procedure printsum3
-     module procedure printsum4
-     module procedure printsumi0
-     module procedure printsumi1
-     module procedure printsumi2
-     module procedure printsumi3
-     module procedure printsumi4
-  end interface printsum
-
 contains                                         
-
-  subroutine indextos(s,index,t)
-    use mnemmodule
-    use xmpi_module
-    use logging_module
-    implicit none
-    type (spacepars), intent(in),target :: s
-    integer, intent(in)                 :: index
-    type(arraytype), intent(out)        :: t
-
-    if (index .lt. 1 .or. index .gt. numvars) then
-       call writelog('els','(a,i3,a)','invalid index ',index,' in indextos. Program will stop')
-       call halt_program
-    endif
-
-    select case(index)
-       include 'indextos.gen'
-    end select
-
-  end subroutine indextos
 
   ! Generated subroutine to allocate all arrays in s
   subroutine space_alloc_arrays(s,par)
@@ -125,396 +47,11 @@ contains
 
 #ifdef USEMPI
 
-  !
-  ! consistency check: in general, all distributed matrices and blocks
-  ! should have the following properties:
-  !
-  !  a  is distributed matrix in this process
-  !  al is distributed matrix in left neighbour process
-  !  ar is distributed matrix in right neighbour process
-  !  at is distributed matrix in top neighbour process
-  !  ab is distributed matrix in bottom neighbour process
-  !
-  !  a(:,2) = al(:,ny+1)
-  !  a(2,:) = at(nx+1,:)
-  !  except the first and last elements of these arrays
-  !  
-  !
-  !  When all these checks are ok on every process, automatically care 
-  ! has been taken for the other neighbours
-
-  !
-  ! consistency check for mnem
-  ! if mnem = 'ALL' then all
-  subroutine space_consistency(s,mnem,verbose)
-    use mnemmodule
-    implicit none
-    type(spacepars)                        :: s
-    character(len=*)                       :: mnem
-    character(len=*), intent(in), optional :: verbose
-    integer          :: j,jmin,jmax
-    type(arraytype)  :: t
-
-    if(mnem .eq. 'ALL') then
-       jmin = 1
-       jmax = numvars
-    else
-       jmin = chartoindex(mnem)
-       jmax = jmin
-    endif
-    do j=jmin,jmax
-       call indextos(s,j,t)
-       select case(t%type)
-       case('r')
-          select case (t%rank)
-          case(0)
-             !call compare(t%r0,t%name)
-          case(1)
-             !call compare(t%r1,t%name)
-          case(2)
-             call compare(t%r2,t%name,verbose)
-          case(3)
-             call compare(t%r3,t%name,verbose)
-          case(4)
-             !call compare(t%r4,t%name)
-          end select ! rank
-       case('i')
-          select case (t%rank)
-          case(0)
-             !call compare(t%i0,t%name)
-          case(1)
-             !call compare(t%i1,t%name)
-          case(2)
-             call compare(t%i2,t%name,verbose)
-          case(3)
-             !call compare(t%i3,t%name)
-          case(4)
-             !call compare(t%i4,t%name)
-          end select ! rank
-       end select ! type
-    enddo
-
-  end subroutine space_consistency
-
-  subroutine comparer2(x,s,verbose)
-    use xmpi_module
-    use mnemmodule
-    implicit none
-    real*8, dimension(:,:)    :: x
-    character(len=*)          :: s
-    character(len=*),optional :: verbose
-
-    real*8, parameter                   :: eps=1.0d-60
-    integer                             :: m
-    integer                             :: n
-    real*8, dimension(:,:), allocatable :: c
-    real*8, dimension(:,:), allocatable :: r
-    real*8, dimension(2)                :: dif,difmax
-    character*100                       :: warning
-    integer i,j
-
-    select case(s)
-    case (mnem_tideinpz)
-       return
-    end select
-    m=size(x,1)
-    n=size(x,2)
-    allocate(c(m,2))
-    allocate(r(2,n))
-    !c = x(:,1)
-    c = x(:,1:2)
-    !call xmpi_shift(x,':1')
-    call xmpi_shift(x,SHIFT_Y_R,1,2)
-
-    !dif(1) = sum(abs(c(2:m-1)-x(2:m-1,1)))
-    !dif(2) = sum(abs(c(1:m  )-x(1:m  ,1)))
-    dif(1) = sum(abs(c(2:m-1,:)-x(2:m-1,1:2)))
-    dif(2) = sum(abs(c(1:m  ,:)-x(1:m  ,1:2)))
-
-    call xmpi_allreduce(dif,MPI_SUM)
-    difmax = dif
-
-    if(xmaster) then
-       warning=' '
-       if (sum(difmax) .gt. eps) then
-          warning = '<===++++++++++++++++++++++'
-       endif
-       write (*,*) 'compare (:,1:2) '//trim(s)//': ',difmax,trim(warning)
-    endif
-    if (present(verbose)) then
-      if (verbose .eq. 'verbose') then
-        if (sum(difmax) .gt. eps) then
-          do i=1,m
-            do j=1,2
-              !if(abs(c(i,j)-x(i,j)) .gt. 0.0001) then
-              if(c(i,j) .ne. 0 .or. x(i,j) .ne. 0) then
-                print *,xmpi_rank,i,j,c(i,j),x(i,j),abs(c(i,j)-x(i,j))
-              endif
-            enddo
-          enddo
-        endif
-      endif
-    endif
-
-    x(:,1:2) = c
-
-    !c = x(:,n)
-    c = x(:,n-1:n)
-    !call xmpi_shift(x,':n')
-    call xmpi_shift(x,SHIFT_Y_L,3,4)
-
-    !dif(1) = sum(abs(c(2:m-1)-x(2:m-1,n)))
-    !dif(2) = sum(abs(c(1:m  )-x(1:m  ,n)))
-    dif(1) = sum(abs(c(2:m-1,:)-x(2:m-1,n-1:n)))
-    dif(2) = sum(abs(c(1:m  ,:)-x(1:m  ,n-1:n)))
-    !x(:,n) = c
-    x(:,n-1:n) = c
-
-    call xmpi_reduce(dif,difmax,MPI_SUM)
-
-    if(xmaster) then
-       warning=' '
-       if (sum(difmax) .gt. eps) then
-          warning = '<===++++++++++++++++++++++'
-       endif
-       write (*,*) 'compare (:,n-1:n) '//trim(s)//': ',difmax,trim(warning)
-    endif
-
-    !r = x(1,:)
-    r = x(1:2,:)
-    !call xmpi_shift(x,'1:')
-    call xmpi_shift(x,SHIFT_X_D,1,2)
-
-    !dif(1) = sum(abs(r(2:n-1)-x(1,2:n-1)))
-    !dif(2) = sum(abs(r(1:n  )-x(1,1:n  )))
-    dif(1) = sum(abs(r(:,2:n-1)-x(1:2,2:n-1)))
-    dif(2) = sum(abs(r(:,1:n  )-x(1:2,1:n  )))
-    x(1:2,:) = r
-
-    call xmpi_reduce(dif,difmax,MPI_SUM)
-
-    if(xmaster) then
-       warning=' '
-       if (sum(difmax) .gt. eps) then
-          warning = '<===++++++++++++++++++++++'
-       endif
-       write (*,*) 'compare (1:2,:) '//trim(s)//': ',difmax,trim(warning)
-    endif
-
-    !r = x(m,:)
-    r = x(m-1:m,:)
-    !call xmpi_shift(x,'m:')
-    call xmpi_shift(x,SHIFT_X_U,3,4)
-
-    !dif(1) = sum(abs(r(2:n-1)-x(m,2:n-1)))
-    !dif(2) = sum(abs(r(1:n  )-x(m,1:n  )))
-    dif(1) = sum(abs(r(:,2:n-1)-x(m-1:m,2:n-1)))
-    dif(2) = sum(abs(r(:,1:n  )-x(m-1:m,1:n  )))
-    x(m-1:m,:) = r
-
-    call xmpi_reduce(dif,difmax,MPI_SUM)
-
-    if(xmaster) then
-       warning=' '
-       if (sum(difmax) .gt. eps) then
-          warning = '<===++++++++++++++++++++++'
-       endif
-       write (*,*) 'compare (m-1:m,:) '//trim(s)//': ',difmax,trim(warning)
-    endif
-  end subroutine comparer2
-
-  subroutine comparei2(x,s,verbose)
-    use xmpi_module
-    implicit none
-    integer, dimension(:,:)   :: x
-    character(len=*)          :: s
-    character(len=*),optional :: verbose
-
-    integer, parameter    :: eps=0
-    integer               :: m
-    integer               :: n
-    integer, dimension(:), allocatable :: c
-    integer, dimension(:), allocatable :: r
-    integer, dimension(2) :: dif,difmax
-    character*100         :: warning
-
-    print *,'comparei2 not adapted for double border scheme'
-    return
-
-    if (present(verbose)) then
-      print *,'comparei2: verbose not implemented'
-    endif
-
-    m=size(x,1)
-    n=size(x,2)
-    allocate(c(m))
-    allocate(r(n))
-    c = x(:,1)
-    call xmpi_shift(x,':1')
-
-    dif(1) = sum(abs(c(2:m-1)-x(2:m-1,1)))
-    dif(2) = sum(abs(c(1:m  )-x(1:m  ,1)))
-    x(:,1) = c
-
-    call xmpi_reduce(dif,difmax,MPI_SUM)
-
-    if(xmaster) then
-       warning=' '
-       if (sum(difmax) .gt. eps) then
-          warning = '<===++++++++++++++++++++++'
-       endif
-       write (*,*) 'compare (:,1) '//trim(s)//': ',difmax,trim(warning)
-    endif
-
-    c = x(:,n)
-    call xmpi_shift(x,':n')
-
-    dif(1) = sum(abs(c(2:m-1)-x(2:m-1,n)))
-    dif(2) = sum(abs(c(1:m  )-x(1:m  ,n)))
-    x(:,n) = c
-
-    call xmpi_reduce(dif,difmax,MPI_SUM)
-
-    if(xmaster) then
-       warning=' '
-       if (sum(difmax) .gt. eps) then
-          warning = '<===++++++++++++++++++++++'
-       endif
-       write (*,*) 'compare (:,n) '//trim(s)//': ',difmax,trim(warning)
-    endif
-    r = x(1,:)
-    call xmpi_shift(x,'1:')
-
-    dif(1) = sum(abs(r(2:n-1)-x(1,2:n-1)))
-    dif(2) = sum(abs(r(1:n  )-x(1,1:n  )))
-    x(1,:) = r
-
-    call xmpi_reduce(dif,difmax,MPI_SUM)
-
-    if(xmaster) then
-       warning=' '
-       if (sum(difmax) .gt. eps) then
-          warning = '<===++++++++++++++++++++++'
-       endif
-       write (*,*) 'compare (1,:) '//trim(s)//': ',difmax,trim(warning)
-    endif
-
-    r = x(m,:)
-    call xmpi_shift(x,'m:')
-
-    dif(1) = sum(abs(r(2:n-1)-x(m,2:n-1)))
-    dif(2) = sum(abs(r(1:n  )-x(m,1:n  )))
-    x(m,:) = r
-
-    call xmpi_reduce(dif,difmax,MPI_SUM)
-
-    if(xmaster) then
-       warning=' '
-       if (sum(difmax) .gt. eps) then
-          warning = '<===++++++++++++++++++++++'
-       endif
-       write (*,*) 'compare (m,:) '//trim(s)//': ',difmax,trim(warning)
-    endif
-  end subroutine comparei2
-
-  subroutine comparer3(x,s,verbose)
-    use xmpi_module
-    implicit none
-    real*8, dimension(:,:,:)  :: x
-    character(len=*)          :: s
-    character(len=*),optional :: verbose
-
-    real*8, parameter     :: eps=1.0d-60
-    integer               :: m,n,l
-    real*8, dimension(:,:), allocatable :: c
-    real*8, dimension(:,:), allocatable :: r
-    real*8, dimension(2)  :: dif,difmax
-    character*100         :: warning
-
-    print *,'comparei2 not adapted for double border scheme'
-    return
-    if (present(verbose)) then
-      print *,'comparer3: verbose not implemented'
-    endif
-    m=size(x,1)
-    n=size(x,2)
-    l=size(x,3)
-
-    allocate(c(m,l))
-    allocate(r(n,l))
-    c = x(:,1,:)
-    call xmpi_shift(x,':1')
-
-    dif(1) = sum(abs(c(2:m-1,:)-x(2:m-1,1,:)))
-    dif(2) = sum(abs(c(1:m,:)  -x(1:m  ,1,:)))
-    x(:,1,:) = c
-
-    call xmpi_reduce(dif,difmax,MPI_SUM)
-
-    if(xmaster) then
-       warning=' '
-       if (sum(difmax) .gt. eps) then
-          warning = '<===++++++++++++++++++++++'
-       endif
-       write (*,*) 'compare (:,1) '//trim(s)//': ',difmax,trim(warning)
-    endif
-
-    c = x(:,n,:)
-    call xmpi_shift(x,':n')
-
-    dif(1) = sum(abs(c(2:m-1,:)-x(2:m-1,n,:)))
-    dif(2) = sum(abs(c(1:m  ,:)-x(1:m  ,n,:)))
-    x(:,n,:) = c
-
-    call xmpi_reduce(dif,difmax,MPI_SUM)
-
-    if(xmaster) then
-       warning=' '
-       if (sum(difmax) .gt. eps) then
-          warning = '<===++++++++++++++++++++++'
-       endif
-       write (*,*) 'compare (:,n) '//trim(s)//': ',difmax,trim(warning)
-    endif
-
-    r = x(1,:,:)
-    call xmpi_shift(x,'1:')
-
-    dif(1) = sum(abs(r(2:n-1,:)-x(1,2:n-1,:)))
-    dif(2) = sum(abs(r(1:n  ,:)-x(1,1:n  ,:)))
-    x(1,:,:) = r
-
-    call xmpi_reduce(dif,difmax,MPI_SUM)
-
-    if(xmaster) then
-       warning=' '
-       if (sum(difmax) .gt. eps) then
-          warning = '<===++++++++++++++++++++++'
-       endif
-       write (*,*) 'compare (1,:) '//trim(s)//': ',difmax,trim(warning)
-    endif
-
-    r = x(m,:,:)
-    call xmpi_shift(x,'m:')
-
-    dif(1) = sum(abs(r(2:n-1,:)-x(m,2:n-1,:)))
-    dif(2) = sum(abs(r(1:n  ,:)-x(m,1:n  ,:)))
-    x(m,:,:) = r
-
-    call xmpi_reduce(dif,difmax,MPI_SUM)
-
-    if(xmaster) then
-       warning=' '
-       if (sum(difmax) .gt. eps) then
-          warning = '<===++++++++++++++++++++++'
-       endif
-       write (*,*) 'compare (m,:) '//trim(s)//': ',difmax,trim(warning)
-    endif
-  end subroutine comparer3
-
   ! copies scalars from sg to sl on xmaster, and distributes
   ! them 
   subroutine space_copy_scalars(sg,sl)
     use mnemmodule
+    use indextos_module
     implicit none
     type(spacepars),intent(inout)  :: sg,sl
 
@@ -540,6 +77,7 @@ contains
   subroutine space_distribute_scalars(sl)
     use mnemmodule
     use xmpi_module
+    use indextos_module
     type (spacepars) :: sl
 
     type (arraytype) :: tl
@@ -612,7 +150,6 @@ contains
   end subroutine space_distribute_block_integer
 
 
-
   subroutine space_distribute_block4_real8(sl,a,b)
     use xmpi_module
     use general_mpi_module
@@ -646,10 +183,10 @@ contains
     ! the values in js and ln, i.e. the global vector has a size
     ! equal to the second dimension of the global area: ny+1
     ! 
-    character, intent(in)             :: xy
-    type (spacepars), intent(inout)   :: sl
-    real*8, dimension(:), intent(in)  :: a
-    real*8, dimension(:), intent(out) :: b
+    character, intent(in)                     :: xy
+    type (spacepars), intent(inout), target   :: sl
+    real*8, dimension(:), intent(in)          :: a
+    real*8, dimension(:), intent(out)         :: b
 
     integer, dimension(:), pointer    :: ijs,lmn
 
@@ -696,6 +233,7 @@ contains
     use general_mpi_module
     use params
     use mnemmodule
+    use indextos_module
 
     implicit none
     type(spacepars), intent(inout)  :: sg
@@ -1166,6 +704,7 @@ contains
     use xmpi_module
     use mnemmodule
     use logging_module
+    use indextos_module
     type(spacepars)                 :: sg
     type(spacepars), intent(in)     :: sl
     integer, intent(in)             :: index
@@ -1245,226 +784,11 @@ contains
   end subroutine space_collect_index
 #endif
 
-  ! printsum* for debugging only
-  !
-  subroutine printsum0(f,str,id,val)
-    implicit none
-    integer, intent(in) :: f
-    character(*),intent(in) :: str
-    integer, intent(in) :: id
-    real*8, intent(in) :: val
-    write(f,*) 'printsum ',id,' ',str,':',val
-  end subroutine printsum0
-
-  subroutine printsum1(f,str,id,val)
-    implicit none
-    integer, intent(in) :: f
-    character(*), intent(in) :: str
-    integer, intent(in) :: id
-    real*8, pointer, dimension(:) :: val
-    if (associated(val) ) then
-       write(f,*) 'printsum ',id,' ',str,':',sum(val),shape(val)
-    else
-       write(f,*) 'printsum ',id,' ',str,':',' Not allocated'
-    endif
-  end subroutine printsum1
-
-  subroutine printsum2(f,str,id,val)
-    implicit none
-    integer, intent(in) :: f
-    character(*), intent(in) :: str
-    integer, intent(in) :: id
-    real*8, pointer, dimension(:,:) :: val
-    if (associated(val) ) then
-       write(f,*) 'printsum ',id,' ',str,':',sum(val),shape(val)
-    else
-       write(f,*) 'printsum ',id,' ',str,':',' Not allocated'
-    endif
-
-  end subroutine printsum2
-
-  subroutine printsum3(f,str,id,val)
-    implicit none
-    integer, intent(in) :: f
-    character(*), intent(in) :: str
-    integer, intent(in) :: id
-    real*8, pointer, dimension(:,:,:) :: val
-    if (associated(val) ) then
-       write(f,*) 'printsum ',id,' ',str,':',sum(val),shape(val)
-    else
-       write(f,*) 'printsum ',id,' ',str,':',' Not allocated'
-    endif
-  end subroutine printsum3
-
-  subroutine printsum4(f,str,id,val)
-    implicit none
-    integer, intent(in) :: f
-    character(*), intent(in) :: str
-    integer, intent(in) :: id
-    real*8, pointer, dimension(:,:,:,:) :: val
-    if (associated(val) ) then
-       write(f,*) 'printsum ',id,' ',str,':',sum(val),shape(val)
-    else
-       write(f,*) 'printsum ',id,' ',str,':',' Not allocated'
-    endif
-  end subroutine printsum4
-
-  subroutine printsumi0(f,str,id,val)
-    implicit none
-    integer, intent(in) :: f
-    character(*),intent(in) :: str
-    integer, intent(in) :: id
-    integer, intent(in) :: val
-    write(f,*) 'printsum ',id,' ',str,':',val
-  end subroutine printsumi0
-
-  subroutine printsumi1(f,str,id,val)
-    implicit none
-    integer, intent(in) :: f
-    character(*), intent(in) :: str
-    integer, intent(in) :: id
-    integer, pointer, dimension(:) :: val
-    if (associated(val) ) then
-       write(f,*) 'printsum ',id,' ',str,':',sum(val),shape(val)
-    else
-       write(f,*) 'printsum ',id,' ',str,':',' Not allocated'
-    endif
-  end subroutine printsumi1
-
-  subroutine printsumi2(f,str,id,val)
-    implicit none
-    integer, intent(in) :: f
-    character(*), intent(in) :: str
-    integer, intent(in) :: id
-    integer, pointer, dimension(:,:) :: val
-    if (associated(val) ) then
-       write(f,*) 'printsum ',id,' ',str,':',sum(val),shape(val)
-    else
-       write(f,*) 'printsum ',id,' ',str,':',' Not allocated'
-    endif
-
-  end subroutine printsumi2
-
-  subroutine printsumi3(f,str,id,val)
-    implicit none
-    integer, intent(in) :: f
-    character(*), intent(in) :: str
-    integer, intent(in) :: id
-    integer, pointer, dimension(:,:,:) :: val
-    if (associated(val) ) then
-       write(f,*) 'printsum ',id,' ',str,':',sum(val),shape(val)
-    else
-       write(f,*) 'printsum ',id,' ',str,':',' Not allocated'
-    endif
-  end subroutine printsumi3
-
-  subroutine printsumi4(f,str,id,val)
-    implicit none
-    integer, intent(in) :: f
-    character(*), intent(in) :: str
-    integer, intent(in) :: id
-    integer, pointer, dimension(:,:,:,:) :: val
-    if (associated(val) ) then
-       write(f,*) 'printsum ',id,' ',str,':',sum(val),shape(val)
-    else
-       write(f,*) 'printsum ',id,' ',str,':',' Not allocated'
-    endif
-  end subroutine printsumi4
-
-  subroutine printssums(s,str)
-#ifdef USEMPI
-    use xmpi_module
-#endif
-    use mnemmodule
-    type (spacepars), intent(in) :: s
-    character(*), intent(in) :: str
-    integer :: id, f,i
-    type(arraytype) :: t
-
-#ifdef USEMPI
-    id = xmpi_rank
-    if (id .gt. 0 ) then
-       return
-    endif
-#else
-    id=0
-#endif
-
-    f = 100+4*numvars+id+1
-
-    write(f, *) 'printsum: ',id,'Start of printssums ',str
-    do i=1,numvars
-       call indextos(s,i,t)
-       select case (t%rank)
-       case (0)
-          if (t%type .eq. 'i') then
-             call printsum(f,t%name,id,t%i0)
-          else
-             call printsum(f,t%name,id,t%r0)
-          endif
-       case (1)
-          if (t%type .eq. 'i') then
-             call printsum(f,t%name,id,t%i1)
-          else
-             call printsum(f,t%name,id,t%r1)
-          endif
-       case (2)
-          if (t%type .eq. 'i') then
-             call printsum(f,t%name,id,t%i2)
-          else
-             call printsum(f,t%name,id,t%r2)
-          endif
-       case (3)
-          if (t%type .eq. 'i') then
-             call printsum(f,t%name,id,t%i3)
-          else
-             call printsum(f,t%name,id,t%r3)
-          endif
-       case (4)
-          if (t%type .eq. 'i') then
-             call printsum(f,t%name,id,t%i4)
-          else
-             call printsum(f,t%name,id,t%r4)
-          endif
-       end select
-    enddo
-#ifdef USEMPI
-    call printsum(f,'s%is',id,s%is) 
-    call printsum(f,'s%js',id,s%js) 
-    call printsum(f,'s%lm',id,s%lm) 
-    call printsum(f,'s%ln',id,s%ln) 
-#endif
-  end subroutine printssums
-
-  subroutine printssumso(s)
-    type (spacepars), intent(in) :: s
-
-    write(*,*)'Start of printssumso'
-
-    write(*,*)'s%xz',sum(s%xz)
-    write(*,*)'s%yz',sum(s%yz)
-    write(*,*)'s%zs',sum(s%zs)
-    write(*,*)'s%u',sum(s%u)
-    write(*,*)'s%v',sum(s%v)
-    write(*,*)'s%ue',sum(s%ue)
-    write(*,*)'s%ve',sum(s%ve)
-    write(*,*)'s%H',sum(s%H)
-    write(*,*)'s%urms',sum(s%urms)
-    write(*,*)'s%zb',sum(s%zb)
-    write(*,*)'s%hh',sum(s%hh)
-    write(*,*)'s%Fx',sum(s%Fx)
-    write(*,*)'s%Fy',sum(s%Fy)
-    write(*,*)'s%E',sum(s%E)
-    write(*,*)'s%R',sum(s%R)
-    write(*,*)'s%D',sum(s%D)
-  end subroutine printssumso
-
   subroutine gridprops (s)
 
     IMPLICIT NONE
 
     type(spacepars),target                  :: s
-
     !  Temporary local arrays and variables
     integer                                 :: i, j
     real*8,dimension(:,:),allocatable       :: xc      ! x-coordinate c-points
@@ -1474,208 +798,205 @@ contains
     real*8                                  :: dsdnz   ! surface of cell centered around z-point
     real*8                                  :: x1,y1,x2,y2,x3,y3,x4,y4
 
-    include 's.ind'
-    include 's.inp'
-
-    allocate (xc(nx+1,ny+1))
-    allocate (yc(nx+1,ny+1))
+    allocate (xc(s%nx+1,s%ny+1))
+    allocate (yc(s%nx+1,s%ny+1))
 
     ! x and y were read in grid_bathy.f90 (initialize.f90) and can be either (cartesian) world coordinates or 
     ! XBeach coordinates (xori, yori and alfa are nonzero). Here x and y are transformed to cartesian world coordinates.
     ! XBeach performs all computations (after implementation of curvi-lineair option) world coordinate grid.  
 
     ! world coordinates of z-points
-    xz=xori+x*cos(alfa)-y*sin(alfa)
-    yz=yori+x*sin(alfa)+y*cos(alfa)
+    s%xz=s%xori+s%x*cos(s%alfa)-s%y*sin(s%alfa)
+    s%yz=s%yori+s%x*sin(s%alfa)+s%y*cos(s%alfa)
 
     ! world coordinates of u-points
-    do j=1,ny+1
-       do i=1,nx
-          xu(i,j)=.5d0*(xz(i,j)+xz(i+1,j))
-          yu(i,j)=.5d0*(yz(i,j)+yz(i+1,j))
+    do j=1,s%ny+1
+       do i=1,s%nx
+          s%xu(i,j)=.5d0*(s%xz(i,j)+s%xz(i+1,j))
+          s%yu(i,j)=.5d0*(s%yz(i,j)+s%yz(i+1,j))
        enddo
-       xu(nx+1,j)=1.5d0*xz(nx+1,j)-0.5d0*xz(nx,j)
-       yu(nx+1,j)=1.5d0*yz(nx+1,j)-0.5d0*yz(nx,j)
+       s%xu(s%nx+1,j)=1.5d0*s%xz(s%nx+1,j)-0.5d0*s%xz(s%nx,j)
+       s%yu(s%nx+1,j)=1.5d0*s%yz(s%nx+1,j)-0.5d0*s%yz(s%nx,j)
     enddo
 
     ! world coordinates of v-points
-    if (ny>0) then
-       do i=1,nx+1
-          do j=1,ny
-             xv(i,j)=.5d0*(xz(i,j)+xz(i,j+1))
-             yv(i,j)=.5d0*(yz(i,j)+yz(i,j+1))
+    if (s%ny>0) then
+       do i=1,s%nx+1
+          do j=1,s%ny
+             s%xv(i,j)=.5d0*(s%xz(i,j)+s%xz(i,j+1))
+             s%yv(i,j)=.5d0*(s%yz(i,j)+s%yz(i,j+1))
           enddo
-          xv(i,ny+1)=1.5d0*xz(i,ny+1)-0.5d0*xz(i,ny)
-          yv(i,ny+1)=1.5d0*yz(i,ny+1)-0.5d0*yz(i,ny)
+          s%xv(i,s%ny+1)=1.5d0*s%xz(i,s%ny+1)-0.5d0*s%xz(i,s%ny)
+          s%yv(i,s%ny+1)=1.5d0*s%yz(i,s%ny+1)-0.5d0*s%yz(i,s%ny)
        enddo
     else
-       xv=xz
-       yv=yz
+       s%xv=s%xz
+       s%yv=s%yz
     endif
 
     ! world coordinates of corner points
-    if (ny>0) then
-       do j=1,ny
-          do i=1,nx
-             xc(i,j)=.25d0*(xz(i,j)+xz(i+1,j)+xz(i,j+1)+xz(i+1,j+1))
-             yc(i,j)=.25d0*(yz(i,j)+yz(i+1,j)+yz(i,j+1)+yz(i+1,j+1))
+    if (s%ny>0) then
+       do j=1,s%ny
+          do i=1,s%nx
+             xc(i,j)=.25d0*(s%xz(i,j)+s%xz(i+1,j)+s%xz(i,j+1)+s%xz(i+1,j+1))
+             yc(i,j)=.25d0*(s%yz(i,j)+s%yz(i+1,j)+s%yz(i,j+1)+s%yz(i+1,j+1))
           enddo
-          xc(nx+1,j)=0.5d0*(xu(nx+1,j)+xu(nx+1,j+1))
-          yc(nx+1,j)=0.5d0*(yu(nx+1,j)+yu(nx+1,j+1))
+          xc(s%nx+1,j)=0.5d0*(s%xu(s%nx+1,j)+s%xu(s%nx+1,j+1))
+          yc(s%nx+1,j)=0.5d0*(s%yu(s%nx+1,j)+s%yu(s%nx+1,j+1))
        enddo
-       do i=1,nx
-          xc(i,ny+1)=0.5d0*(xv(i,ny+1)+xv(i+1,ny+1))
-          yc(i,ny+1)=0.5d0*(yv(i,ny+1)+yv(i+1,ny+1))
+       do i=1,s%nx
+          xc(i,s%ny+1)=0.5d0*(s%xv(i,s%ny+1)+s%xv(i+1,s%ny+1))
+          yc(i,s%ny+1)=0.5d0*(s%yv(i,s%ny+1)+s%yv(i+1,s%ny+1))
        enddo
-       xc(nx+1,ny+1)=1.5d0*xu(nx+1,ny+1)-0.5*xu(nx,ny+1)
-       yc(nx+1,ny+1)=1.5d0*yu(nx+1,ny+1)-0.5*yu(nx,ny+1)
+       xc(s%nx+1,s%ny+1)=1.5d0*s%xu(s%nx+1,s%ny+1)-0.5*s%xu(s%nx,s%ny+1)
+       yc(s%nx+1,s%ny+1)=1.5d0*s%yu(s%nx+1,s%ny+1)-0.5*s%yu(s%nx,s%ny+1)
     else
-       xc=xu
-       yc=yu
+       xc=s%xu
+       yc=s%yu
     endif
 
-    ! dsu
+    ! s%dsu
 
-    do j=1,ny+1
-       do i=1,nx
-          dsu(i,j)=((xz(i+1,j)-xz(i,j))**2+(yz(i+1,j)-yz(i,j))**2)**(0.5d0)
+    do j=1,s%ny+1
+       do i=1,s%nx
+          s%dsu(i,j)=((s%xz(i+1,j)-s%xz(i,j))**2+(s%yz(i+1,j)-s%yz(i,j))**2)**(0.5d0)
        enddo
-       dsu(nx+1,j)=dsu(nx,j)
+       s%dsu(s%nx+1,j)=s%dsu(s%nx,j)
     enddo
 
-    ! dsz
+    ! s%dsz
 
-    do j=1,ny+1
-       do i=2,nx+1
-          dsz(i,j)=((xu(i,j)-xu(i-1,j))**2+(yu(i,j)-yu(i-1,j))**2)**(0.5d0)
+    do j=1,s%ny+1
+       do i=2,s%nx+1
+          s%dsz(i,j)=((s%xu(i,j)-s%xu(i-1,j))**2+(s%yu(i,j)-s%yu(i-1,j))**2)**(0.5d0)
        enddo
-       dsz(1,j)=dsz(2,j)        ! Robert -> was i=nx+1 (calculated in loop), so i=1 more likely
+       s%dsz(1,j)=s%dsz(2,j)        ! Robert -> was i=s%nx+1 (calculated in loop), so i=1 more likely
     enddo
 
-    ! dsv
+    ! s%dsv
 
-    if (ny>0) then
-       do j=1,ny+1
-          do i=2,nx+1
-             dsv(i,j)=((xc(i,j)-xc(i-1,j))**2+(yc(i,j)-yc(i-1,j))**2)**(0.5d0)
+    if (s%ny>0) then
+       do j=1,s%ny+1
+          do i=2,s%nx+1
+             s%dsv(i,j)=((xc(i,j)-xc(i-1,j))**2+(yc(i,j)-yc(i-1,j))**2)**(0.5d0)
           enddo
-          dsv(1,j)=dsv(2,j)      ! Robert, need to have this for wave advec
-          dsv(nx+1,j)=dsv(nx,j)
+          s%dsv(1,j)=s%dsv(2,j)      ! Robert, need to have this for wave advec
+          s%dsv(s%nx+1,j)=s%dsv(s%nx,j)
        enddo
     else
-       dsv=dsz
+       s%dsv=s%dsz
     endif
 
-    ! dsc
+    ! s%dsc
 
-    if (ny>0) then
-       do j=1,ny+1
-          do i=1,nx
-             dsc(i,j)=((xv(i+1,j)-xv(i,j))**2+(yv(i+1,j)-yv(i,j))**2)**(0.5d0)
+    if (s%ny>0) then
+       do j=1,s%ny+1
+          do i=1,s%nx
+             s%dsc(i,j)=((s%xv(i+1,j)-s%xv(i,j))**2+(s%yv(i+1,j)-s%yv(i,j))**2)**(0.5d0)
           enddo
-          dsc(nx+1,j)=dsc(nx,j)
+          s%dsc(s%nx+1,j)=s%dsc(s%nx,j)
        enddo
     else
-       dsc=dsu
+       s%dsc=s%dsu
     endif
 
-    ! dnu
+    ! s%dnu
 
-    if (ny>0) then
-       do j=2,ny+1
-          do i=1,nx+1
-             dnu(i,j)=((xc(i,j)-xc(i,j-1))**2+(yc(i,j)-yc(i,j-1))**2)**(0.5d0)
+    if (s%ny>0) then
+       do j=2,s%ny+1
+          do i=1,s%nx+1
+             s%dnu(i,j)=((xc(i,j)-xc(i,j-1))**2+(yc(i,j)-yc(i,j-1))**2)**(0.5d0)
           enddo
        enddo
-       dnu(:,1)=dnu(:,2)
+       s%dnu(:,1)=s%dnu(:,2)
     else
-       dnu=100.d0
+       s%dnu=100.d0
     endif
 
-    ! dnz
+    ! s%dnz
 
-    if (ny>0) then
-       do j=2,ny+1
-          do i=1,nx+1
-             dnz(i,j)=((xv(i,j)-xv(i,j-1))**2+(yv(i,j)-yv(i,j-1))**2)**(0.5d0)
+    if (s%ny>0) then
+       do j=2,s%ny+1
+          do i=1,s%nx+1
+             s%dnz(i,j)=((s%xv(i,j)-s%xv(i,j-1))**2+(s%yv(i,j)-s%yv(i,j-1))**2)**(0.5d0)
           enddo
        enddo
-       dnz(:,1)=dnz(:,2)
+       s%dnz(:,1)=s%dnz(:,2)
     else
-       dnz=100.d0
+       s%dnz=100.d0
     endif
 
-    ! dnv
+    ! s%dnv
 
-    if (ny>0) then  
-       do j=1,ny
-          do i=1,nx+1
-             dnv(i,j)=((xz(i,j+1)-xz(i,j))**2+(yz(i,j+1)-yz(i,j))**2)**(0.5d0)
+    if (s%ny>0) then  
+       do j=1,s%ny
+          do i=1,s%nx+1
+             s%dnv(i,j)=((s%xz(i,j+1)-s%xz(i,j))**2+(s%yz(i,j+1)-s%yz(i,j))**2)**(0.5d0)
           enddo
        enddo
-       dnv(:,ny+1)=dnv(:,ny)
+       s%dnv(:,s%ny+1)=s%dnv(:,s%ny)
     else
-       dnv=100.d0
+       s%dnv=100.d0
     endif
 
-    ! dnc
+    ! s%dnc
 
-    if (ny>0) then  
-       do j=1,ny
-          do i=1,nx+1
-             dnc(i,j)=((xu(i,j+1)-xu(i,j))**2+(yu(i,j+1)-yu(i,j))**2)**(0.5d0)
+    if (s%ny>0) then  
+       do j=1,s%ny
+          do i=1,s%nx+1
+             s%dnc(i,j)=((s%xu(i,j+1)-s%xu(i,j))**2+(s%yu(i,j+1)-s%yu(i,j))**2)**(0.5d0)
           enddo
        enddo
-       dnc(:,ny+1)=dnc(:,ny)
+       s%dnc(:,s%ny+1)=s%dnc(:,s%ny)
     else
-       dnc=100.d0
+       s%dnc=100.d0
     endif
 
 
-    if (ny>0) then 
+    if (s%ny>0) then 
 
        ! dsdnu
 
-       do j=2,ny+1
-          do i=1,nx
-             x1=xv(i  ,j  ) - xv(i  ,j-1)
-             x3=xv(i+1,j-1) - xv(i  ,j-1)
-             x2=xv(i+1,j  ) - xv(i+1,j-1)
-             x4=xv(i+1,j  ) - xv(i  ,j  )
-             y1=yv(i  ,j  ) - yv(i  ,j-1)
-             y3=yv(i+1,j-1) - yv(i  ,j-1)
-             y2=yv(i+1,j  ) - yv(i+1,j-1)
-             y4=yv(i+1,j  ) - yv(i  ,j  )
+       do j=2,s%ny+1
+          do i=1,s%nx
+             x1=s%xv(i  ,j  ) - s%xv(i  ,j-1)
+             x3=s%xv(i+1,j-1) - s%xv(i  ,j-1)
+             x2=s%xv(i+1,j  ) - s%xv(i+1,j-1)
+             x4=s%xv(i+1,j  ) - s%xv(i  ,j  )
+             y1=s%yv(i  ,j  ) - s%yv(i  ,j-1)
+             y3=s%yv(i+1,j-1) - s%yv(i  ,j-1)
+             y2=s%yv(i+1,j  ) - s%yv(i+1,j-1)
+             y4=s%yv(i+1,j  ) - s%yv(i  ,j  )
              dsdnu=0.5d0*(abs(x1*y3-x3*y1)+abs(x2*y4-x4*y2))
-             dsdnui(i,j)=1.d0/dsdnu
+             s%dsdnui(i,j)=1.d0/dsdnu
           enddo
        enddo
-       dsdnui(:,1)=dsdnui(:,2)
-       dsdnui(nx+1,:)=dsdnui(nx,:)
+       s%dsdnui(:,1)=s%dsdnui(:,2)
+       s%dsdnui(s%nx+1,:)=s%dsdnui(s%nx,:)
 
        ! dsdnv
 
-       do j=1,ny
-          do i=2,nx+1
-             x1=xu(i-1,j+1) - xu(i-1,j  )
-             x3=xu(i  ,j  ) - xu(i-1,j  )
-             x2=xu(i  ,j+1) - xu(i  ,j  )
-             x4=xu(i  ,j+1) - xu(i-1,j+1)
-             y1=yu(i-1,j+1) - yu(i-1,j  )
-             y3=yu(i  ,j  ) - yu(i-1,j  )
-             y2=yu(i  ,j+1) - yu(i  ,j  )
-             y4=yu(i  ,j+1) - yu(i-1,j+1)
+       do j=1,s%ny
+          do i=2,s%nx+1
+             x1=s%xu(i-1,j+1) - s%xu(i-1,j  )
+             x3=s%xu(i  ,j  ) - s%xu(i-1,j  )
+             x2=s%xu(i  ,j+1) - s%xu(i  ,j  )
+             x4=s%xu(i  ,j+1) - s%xu(i-1,j+1)
+             y1=s%yu(i-1,j+1) - s%yu(i-1,j  )
+             y3=s%yu(i  ,j  ) - s%yu(i-1,j  )
+             y2=s%yu(i  ,j+1) - s%yu(i  ,j  )
+             y4=s%yu(i  ,j+1) - s%yu(i-1,j+1)
              dsdnv=0.5d0*(abs(x1*y3-x3*y1)+abs(x2*y4-x4*y2))
-             dsdnvi(i,j)=1.d0/dsdnv
+             s%dsdnvi(i,j)=1.d0/dsdnv
           enddo
        enddo
-       dsdnvi(:,ny+1)=dsdnvi(:,ny)
-       dsdnvi(1,:)=dsdnvi(2,:)
+       s%dsdnvi(:,s%ny+1)=s%dsdnvi(:,s%ny)
+       s%dsdnvi(1,:)=s%dsdnvi(2,:)
 
        ! dsdnz
 
-       do j=2,ny+1
-          do i=2,nx+1
+       do j=2,s%ny+1
+          do i=2,s%nx+1
              x1=xc(i-1,j  ) - xc(i-1,j-1)
              x3=xc(i  ,j-1) - xc(i-1,j-1)
              x2=xc(i  ,j  ) - xc(i  ,j-1)
@@ -1685,63 +1006,63 @@ contains
              y2=yc(i  ,j  ) - yc(i  ,j-1)
              y4=yc(i  ,j  ) - yc(i-1,j  )
              dsdnz=0.5d0*(abs(x1*y3-x3*y1)+abs(x2*y4-x4*y2))
-             dsdnzi(i,j)=1.d0/dsdnz
+             s%dsdnzi(i,j)=1.d0/dsdnz
           enddo
        enddo
-       dsdnzi(:,1)=dsdnzi(:,2)
-       dsdnzi(1,:)=dsdnzi(2,:)
+       s%dsdnzi(:,1)=s%dsdnzi(:,2)
+       s%dsdnzi(1,:)=s%dsdnzi(2,:)
 
     else
 
-       dsdnui=1.d0/(dsu*dnu)
-       dsdnvi=1.d0/(dsv*dnv)
-       dsdnzi=1.d0/(dsz*dnz)
+       s%dsdnui=1.d0/(s%dsu*s%dnu)
+       s%dsdnvi=1.d0/(s%dsv*s%dnv)
+       s%dsdnzi=1.d0/(s%dsz*s%dnz)
 
     endif
 
-    ! alfaz, grid orientation in z-points
+    ! s%alfaz, grid orientation in z-points
 
-    do j=1,ny+1
-       do i=2,nx
-          alfaz(i,j)=atan2(yz(i+1,j)-yz(i-1,j),xz(i+1,j)-xz(i-1,j))
+    do j=1,s%ny+1
+       do i=2,s%nx
+          s%alfaz(i,j)=atan2(s%yz(i+1,j)-s%yz(i-1,j),s%xz(i+1,j)-s%xz(i-1,j))
        enddo
-       alfaz(1,j)=alfaz(2,j)
-       alfaz(nx+1,j)=alfaz(nx,j)
+       s%alfaz(1,j)=s%alfaz(2,j)
+       s%alfaz(s%nx+1,j)=s%alfaz(s%nx,j)
     enddo
 
-    ! alfau, grid orientation in u-points
+    ! s%alfau, grid orientation in u-points
 
-    do j=1,ny+1
-       do i=1,nx
-          alfau(i,j)=atan2(yz(i+1,j)-yz(i,j),xz(i+1,j)-xz(i,j))
+    do j=1,s%ny+1
+       do i=1,s%nx
+          s%alfau(i,j)=atan2(s%yz(i+1,j)-s%yz(i,j),s%xz(i+1,j)-s%xz(i,j))
        enddo
-       alfau(nx+1,j)=alfau(nx,j)
+       s%alfau(s%nx+1,j)=s%alfau(s%nx,j)
     enddo
 
-    ! alfav, grid orientation in v-points
+    ! s%alfav, grid orientation in v-points
 
-    if (ny>0) then
-       do i=1,nx+1
-          do j=1,ny
-             alfav(i,j)=atan2(yz(i,j+1)-yz(i,j),xz(i,j+1)-xz(i,j))
+    if (s%ny>0) then
+       do i=1,s%nx+1
+          do j=1,s%ny
+             s%alfav(i,j)=atan2(s%yz(i,j+1)-s%yz(i,j),s%xz(i,j+1)-s%xz(i,j))
           enddo
-          alfav(i,ny+1)=alfav(i,ny)
+          s%alfav(i,s%ny+1)=s%alfav(i,s%ny)
        enddo
     else
-       alfav=alfaz
+       s%alfav=s%alfaz
     endif
 
-    do j=1,ny+1
-       sdist(1,j)=0
-       do i=2,nx+1
-          sdist(i,j)=sdist(i-1,j)+dsu(i-1,j)
+    do j=1,s%ny+1
+       s%sdist(1,j)=0
+       do i=2,s%nx+1
+          s%sdist(i,j)=s%sdist(i-1,j)+s%dsu(i-1,j)
        enddo
     enddo
 
-    do i=1,nx+1
-       ndist(i,1)=0
-       do j=2,ny+1
-          ndist(i,j)=ndist(i,j-1)+dnv(i,j-1)
+    do i=1,s%nx+1
+       s%ndist(i,1)=0
+       do j=2,s%ny+1
+          s%ndist(i,j)=s%ndist(i,j-1)+s%dnv(i,j-1)
        enddo
     enddo
 
@@ -1751,6 +1072,7 @@ contains
   end subroutine gridprops
 
   subroutine ranges_init(s)
+    use xmpi_module
     implicit none
     type(spacepars)    :: s
 

@@ -249,7 +249,8 @@ contains
     logical, save                               :: firstship=.true.
     real*8                                      :: shipx_old,shipy_old,dirship,radius,cosdir,sindir
     integer                                     :: n1,n2,iprint=0
-    real*4                                      :: xymiss=-999
+    real                                        :: xymiss=-999
+    ! wwvv: was real*4
     
     real*8, dimension(:,:),allocatable :: zsvirt
     include 's.ind'

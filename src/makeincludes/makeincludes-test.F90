@@ -1,3 +1,5 @@
+!  test version  wwvv, do not use in production version of xbeach
+!
 ! this program makes includefiles from spaceparams.tmpl
 ! indextos.gen            is for spaceparams.F90
 ! mnemonic.gen            is for mnemonic.F90
@@ -6,6 +8,7 @@
 ! spacedecl.gen           is for spaceparams.F90
 ! space_ind.gen           is for s.ind
 ! space_inp.gen           is for s.inp
+! spacaparams.h           definition of macro's: #define nx s%nx
 ! parameters.inc          is for xbeach.F90 after params.F90
 ! space_define.h          defines macros like #define x s%X
 ! space_undef.h           undefines what space_define.h defines
@@ -30,6 +33,7 @@ module makemodule
   character(slen), parameter :: space_alloc_arraysname  = 'space_alloc_arrays.gen'
   character(slen), parameter :: space_indname           = 'space_ind.gen'
   character(slen), parameter :: space_inpname           = 'space_inp.gen'
+  character(slen), parameter :: spaceparams_hname       = 'spaceparams.h'
   character(slen), parameter :: chartoindexname         = 'chartoindex.gen'
   character(slen), parameter :: paramsincname           = 'parameters.inc'
   character(slen), parameter :: getkeygenname           = 'getkey.gen'
@@ -618,6 +622,25 @@ contains
     close(infile)
   end subroutine makespaceinp
 
+  subroutine makespaceparamsh
+    implicit none
+    call openinfile
+    call openoutput
+    call warning
+    do
+       call getline
+       if (endfound) then
+          exit
+       endif
+       call getitems
+       if (varfound) then
+          write(outfile,'(a)') "#define "//trim(name)//' '//'s%'//trim(name)
+       endif
+    enddo
+    close (outfile)
+    close(infile)
+  end subroutine makespaceparamsh
+
   ! just for testing some things, not used in production version wwvv
   subroutine makespacedefine
     implicit none
@@ -951,6 +974,7 @@ program makeincludes
          trim(space_indname)//' '// &
          trim(chartoindexname)//' '// &
          trim(space_inpname)//' '// &
+         trim(spaceparams_hname)//' '// &
          trim(paramsincname)//' '// &
          trim(getkeygenname)
    endif
@@ -989,6 +1013,12 @@ program makeincludes
      write(*,*)'Making '//trim(space_inpname)
      outputfilename = space_inpname
      call makespaceinp
+  endif
+
+  if (index(command,trim(spaceparams_hname)) .ne. 0) then
+     write(*,*)'Making '//trim(spaceparams_hname)
+     outputfilename = spaceparams_hname
+     call makespaceparamsh
   endif
 
   if (index(command,trim(chartoindexname)) .ne. 0) then

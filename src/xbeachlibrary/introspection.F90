@@ -1,6 +1,7 @@
 module introspection_module
   use iso_c_binding
   use libxbeach_module
+  use indextos_module
 
   implicit none
 

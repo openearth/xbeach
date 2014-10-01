@@ -101,6 +101,7 @@ contains
 
   subroutine ncoutput_init(s, sl, par, tpar)
     use xmpi_module
+    use indextos_module
     use params
     use spaceparams
     use timestep_module
@@ -617,6 +618,7 @@ contains
 
   subroutine ncoutput(s,sl,par, tpar)
     use logging_module
+    use indextos_module
     use xmpi_module
     use params
     use spaceparams

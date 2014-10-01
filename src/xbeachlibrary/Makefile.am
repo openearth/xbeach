@@ -19,6 +19,8 @@ libxbeach_la_SOURCES= \
 	math_tools.F90 \
 	params.F90 \
 	getkey.F90 \
+	spaceparamsdef.F90 \
+	indextos.F90 \
 	spaceparams.F90 \
 	vegetation.F90 \
 	wave_functions.F90 \
@@ -54,6 +56,7 @@ libxbeach_la_SOURCES= \
 	loopcounters.F90 \
 	libxbeach.F90 \
 	libxbeach_dynamic.F90 \
+	debugging.F90 \
 	introspection.F90
 BUILT_SOURCES= \
 	spacedecl.gen	\
