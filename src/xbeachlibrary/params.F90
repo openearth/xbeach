@@ -188,6 +188,7 @@ module params
 
      ! [Section] Flow parameters
      integer       :: bedfriction                = -123    !  [-] Bed friction formulation: 'chezy','white-colebrook'
+     real*8        :: bedfriccoef                = -123    !  [-] Bed friction coefficient
      character(slen):: bedfricfile               = 'abc'   !  [-] Bed friction file (only valid with values of C)
      real*8        :: C                          = -123    !  [m^0.5s^-1] Chezy coefficient
      real*8        :: cf                         = -123    !  [-] (advanced) Friction coefficient flow
@@ -923,35 +924,63 @@ contains
     call writelog('l','','--------------------------------')
     call writelog('l','','Flow parameters: ')
 
-    call setallowednames('chezy',               BEDFRICTION_CHEZY,  &
-                         'white-colebrook',     BEDFRICTION_WHITE_COLEBROOK)
+    call setallowednames('chezy',                     BEDFRICTION_CHEZY,  &
+                         'cf',                        BEDFRICTION_CF, &
+                         'white-colebrook',           BEDFRICTION_WHITE_COLEBROOK, &
+                         'manning',                   BEDFRICTION_MANNING, &
+                         'white-colebrook-grainsize', BEDFRICTION_WHITE_COLEBROOK_GRAINSIZE)
     call parmapply('bedfriction',1,par%bedfriction)
-
-    if (par%bedfriction==BEDFRICTION_CHEZY) then
+    ! Catch old exceptions
+    if (.not. isSetParameter('params.txt','bedfriction')) then
+       if (isSetParameter('params.txt','cf') .and. .not. isSetParameter('params.txt','C')) then
+            par%bedfriction = BEDFRICTION_CF
+            par%bedfriccoef = readkey_dbl ('params.txt','cf',      3.d-3, 1.d-3, 0.1d0)
+            call writelog('lws','(a,a)','Warning: Specification of bed friction using parameter ''cf''', &
+                                        ' will not be supported in future versions of XBeach')
+            call writelog('lws','(a)','Use parameters ''bedfriction'' and ''bedfriccoef'' instead')
+       elseif (isSetParameter('params.txt','C') .and. .not. isSetParameter('params.txt','cf')) then
+            par%bedfriction = BEDFRICTION_CHEZY
+            par%bedfriccoef = readkey_dbl ('params.txt','C',   55.d0 ,     20.d0,    100.d0)
+            call writelog('lws','(a,a)','Warning: Specification of bed friction using parameter ''C''', &
+                                        ' will not be supported in future versions of XBeach')
+            call writelog('lws','(a)','Use parameters ''bedfriction'' and ''bedfriccoef'' instead')
+       elseif (isSetParameter('params.txt','C') .and. isSetParameter('params.txt','cf')) then
+            par%bedfriction = BEDFRICTION_CHEZY
+            par%bedfriccoef = readkey_dbl ('params.txt','C',   55.d0 ,     20.d0,    100.d0)
+            call writelog('lws','(a,a)','Warning: Specification of bed friction using parameters ''C'' and ''cf''', &
+                                        ' will not be supported in future versions of XBeach')
+            call writelog('lws','(a)','Use parameters ''bedfriction'' and ''bedfriccoef'' instead')
+            call writelog('lws','(a)','Warning: C and cf both specified. C will take precedence')
+       endif
+    endif
+    if (par%bedfriction==BEDFRICTION_CHEZY .or. &
+        par%bedfriction==BEDFRICTION_CF .or. &
+        par%bedfriction==BEDFRICTION_MANNING .or. &
+        par%bedfriction==BEDFRICTION_WHITE_COLEBROOK) then
        par%bedfricfile = readkey_name('params.txt','bedfricfile')
        if (par%bedfricfile .ne. ' ') then
           call check_file_exist(par%bedfricfile)
           if (par%gridform==GRIDFORM_XBEACH) then
              call check_file_length(par%bedfricfile,par%nx+1,par%ny+1)
           endif
+          call writelog('lws','(a,a,a)','Warning: bed friction coefficient values from file ''',&
+                                         trim(par%bedfricfile), &
+                                        ''' will be used in computation')
        else
-          if (isSetParameter('params.txt','cf') .and. .not. isSetParameter('params.txt','C')) then
-             par%cf      = readkey_dbl ('params.txt','cf',      3.d-3,     0.d0,     0.1d0)
-             par%C = sqrt(par%g/par%cf)
-          elseif (isSetParameter('params.txt','C') .and. .not. isSetParameter('params.txt','cf')) then
-             par%C       = readkey_dbl ('params.txt','C',   55.d0 ,     20.d0,    100.d0)
-             par%cf      = par%g/par%C**2
-          elseif (isSetParameter('params.txt','C') .and. isSetParameter('params.txt','cf')) then
-             par%C       = readkey_dbl ('params.txt','C',   55.d0 ,     20.d0,    100.d0)
-             par%cf      = par%g/par%C**2
-             call writelog('lws','(a)','Warning: C and cf both specified. C will take precedence')
-          else
-             par%C       = readkey_dbl ('params.txt','C',   55.d0 ,     20.d0,    100.d0)
-             par%cf      = par%g/par%C**2
-          endif
+          if (par%bedfriction==BEDFRICTION_CHEZY) then
+             par%bedfriccoef = readkey_dbl('params.txt','bedfriccoef', 55.d0, 20.d0, 100.d0)
+          elseif (par%bedfriction==BEDFRICTION_CF) then
+             par%bedfriccoef = readkey_dbl('params.txt','bedfriccoef', 3.d-3, 1.d-3,  0.1d0)
+          elseif (par%bedfriction==BEDFRICTION_MANNING) then
+             par%bedfriccoef = readkey_dbl('params.txt','bedfriccoef', 0.02d0, 0.01d0, 0.05d0)
+          elseif (par%bedfriction==BEDFRICTION_WHITE_COLEBROOK) then
+             par%bedfriccoef = readkey_dbl('params.txt','bedfriccoef', 0.01d0, 3.5d-5, 0.9d0)
+         endif
        endif
     else
+       ! other formulations do not require a bed friction coefficient
        par%bedfricfile = ''  ! empty string so doesn't go searching for file called 'abc'
+       par%bedfriccoef = -999.d0
     endif
     par%nuh     = readkey_dbl ('params.txt','nuh',       0.1d0,     0.0d0,   1.0d0)
     par%nuhfac  = readkey_dbl ('params.txt','nuhfac',    1.0d0,     0.0d0,   1.0d0)

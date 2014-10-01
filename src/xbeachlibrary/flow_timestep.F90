@@ -33,6 +33,7 @@ contains
     use boundaryconditions
     use flow_secondorder_module
     use nonh_module
+    use bedroughness_module
 
     IMPLICIT NONE
 
@@ -109,14 +110,9 @@ contains
        ue      =0.d0
        ve      =0.d0
        fc      =2.d0*par%wearth*sin(par%lat)
-    endif
-
-    ! update bedfriction coefficient cf
-    if (par%bedfriction==BEDFRICTION_WHITE_COLEBROOK) then
-       cf = par%g/max(10.d0,18*log10(4*max(hh,par%eps)/D90top))**2 
-                                      ! Where: cf = g/C^2 where C = 18*log(4*hh/D90).
-                                      ! Limit to C>10 in case of shallow water
-                                      ! depth and/or large sediment
+       
+       call bedroughness_init(s,par) ! note, this is not yet designed for initialisation
+                                     ! on sglobal, so don't call from initialize.F90
     endif
 
     ! Super fast 1D
@@ -242,6 +238,10 @@ contains
     call xmpi_shift_ee(dvdy)
     call xmpi_shift_ee(dudx)
 #endif
+    
+    ! Update bed roughness coefficient
+    call bedroughness_update(s,par)
+    !cf = cfu : Robert: cf is not used anymore
 
     !
     ! X-direction
@@ -397,7 +397,7 @@ contains
     !
     ! Bed friction term
     where (wetu==1)
-       taubx=cf*par%rho*ueu*sqrt((1.16d0*urms)**2+vmageu**2) !Ruessink et al, 2001
+       taubx=cfu*par%rho*ueu*sqrt((1.16d0*urms)**2+vmageu**2) !Ruessink et al, 2001
     elsewhere
        taubx = 0.d0
     endwhere
@@ -629,7 +629,7 @@ contains
     ! Bed friction term
     !
     where (wetv==1)
-       tauby=cf*par%rho*vev*sqrt((1.16d0*urms)**2+vmagev**2) !Ruessink et al, 2001
+       tauby=cfv*par%rho*vev*sqrt((1.16d0*urms)**2+vmagev**2) !Ruessink et al, 2001
     elsewhere
        tauby = 0.d0
     endwhere

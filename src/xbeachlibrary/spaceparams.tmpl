@@ -233,6 +233,7 @@
       real*8  2  wb        s%nx+1 s%ny+1 d  [m/s] []    vertical velocity at the bottom
       real*8  2  ws        s%nx+1 s%ny+1 d  [m/s] []    vertical velocity at the free surface
       real*8  2  wscrit    s%nx+1 s%ny+1 d  [m/s] []    critial vertical velocity at the free surface for breaking
+      real*8  2  bedfriccoef s%nx+1 s%ny+1 d  [-] []  dimensional, or dimensionless input bed friction coefficient, depends on value of input parameter: bedfriction
       real*8  2  taubx     s%nx+1 s%ny+1 d  [N/m^2] []  bed shear stress, x-component
       real*8  2  tauby     s%nx+1 s%ny+1 d  [N/m^2] []  bed shear stress, y-component
       real*8  2  Df        s%nx+1 s%ny+1 d  [W/m^2] []  dissipation rate due to bed friction
@@ -243,7 +244,9 @@
       real*8  2  wi        2      s%ny+1 2  [m/s] []  Vertical velocity at boundary due to (short) waves
       real*8  2  zi        2      s%ny+1 2  [m] []    Surface elevation at boundary due to (short) waves
       real*8  2  nuh       s%nx+1 s%ny+1 d  [m2/s] [] horizontal viscosity coefficient 
-      real*8  2  cf        s%nx+1 s%ny+1 d  [-] [] Friction coefficient flow
+      real*8  2  cf        s%nx+1 s%ny+1 d  [-] [] Dimensionless friction coefficient flow
+      real*8  2  cfu       s%nx+1 s%ny+1 d  [-] [] Dimensionless friction coefficient flow in u-points
+      real*8  2  cfv       s%nx+1 s%ny+1 d  [-] [] Dimensionless friction coefficient flow in v-points
       real*8  2  D50top    s%nx+1 s%ny+1 d  [-] [] Friction coefficient flow
       real*8  2  D90top    s%nx+1 s%ny+1 d  [-] [] Friction coefficient flow
       real*8  2  structdepth    s%nx+1 s%ny+1 d  [m] [] Depth of structure in relation to instantaneous bed level

@@ -59,7 +59,10 @@ module paramsconst
   integer, parameter :: PAULREVERE_SEA              =  1
 
   integer, parameter :: BEDFRICTION_CHEZY           =  0
-  integer, parameter :: BEDFRICTION_WHITE_COLEBROOK =  1
+  integer, parameter :: BEDFRICTION_CF              =  1
+  integer, parameter :: BEDFRICTION_WHITE_COLEBROOK =  2
+  integer, parameter :: BEDFRICTION_MANNING         =  3
+  integer, parameter :: BEDFRICTION_WHITE_COLEBROOK_GRAINSIZE =  4
 
   integer, parameter :: GWSCHEME_LAMINAR            =  0
   integer, parameter :: GWSCHEME_TURBULENT          =  1

@@ -15,6 +15,7 @@ contains
     use general_mpi_module
     use readkey_module
     use logging_module
+    use paramsconst
 
     implicit none                                                            
 
@@ -371,6 +372,7 @@ contains
     use readkey_module
     use xmpi_module
     use wave_functions_module
+    use paramsconst
 
     IMPLICIT NONE
 
@@ -615,6 +617,7 @@ contains
     use logging_module
     use interp
     use xmpi_module
+    use paramsconst
 
     IMPLICIT NONE
 
@@ -677,7 +680,10 @@ contains
     allocate(s%ph(1:s%nx+1,1:s%ny+1))
     allocate(s%wi(2,1:s%ny+1))
     allocate(s%zi(2,1:s%ny+1))
+    allocate(s%bedfriccoef(1:s%nx+1,1:s%ny+1))
     allocate(s%cf(1:s%nx+1,1:s%ny+1))
+    allocate(s%cfu(1:s%nx+1,1:s%ny+1))
+    allocate(s%cfv(1:s%nx+1,1:s%ny+1))
     allocate(s%zs0(1:s%nx+1,1:s%ny+1)) 
     allocate(s%zs0fac(1:s%nx+1,1:s%ny+1,2))
     allocate(s%wm(1:s%nx+1,1:s%ny+1))
@@ -998,16 +1004,14 @@ contains
     if ((exists)) then
        open(723,file=par%bedfricfile)
        do j=1,s%ny+1
-          read(723,*,iostat=ier)(s%cf(i,j),i=1,s%nx+1)
+          read(723,*,iostat=ier)(s%bedfriccoef(i,j),i=1,s%nx+1)
           if (ier .ne. 0) then
              call report_file_read_error(par%bedfricfile)
           endif
        enddo
        close(723)
-       ! convert from C to cf
-       if (par%bedfriction==BEDFRICTION_CHEZY) then
-          s%cf=par%g/s%cf**2
-       endif
+    else
+       s%bedfriccoef=par%bedfriccoef
     endif
     !
     ! set zs, hh, wetu, wetv, wetz

@@ -42,6 +42,7 @@ libxbeach_la_SOURCES= \
 	readwind.F90 \
 	initialize.F90 \
 	timestep.F90 \
+	bedroughness.F90 \
 	flow_timestep.F90 \
 	postprocess.F90 \
 	varianceupdate.F90 \
