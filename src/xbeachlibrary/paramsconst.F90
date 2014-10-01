@@ -96,11 +96,11 @@ module paramsconst
   integer, parameter :: BDSLPEFFMAG_ROELV_BED       =  2
   integer, parameter :: BDSLPEFFMAG_SOULS_TOTAL     =  3
   integer, parameter :: BDSLPEFFMAG_SOULS_BED       =  4
-  
+ 
   integer, parameter :: BDSLPEFFINI_NONE            =  0
   integer, parameter :: BDSLPEFFINI_TOTAL           =  1
   integer, parameter :: BDSLPEFFINI_BED             =  2
-  
+ 
   integer, parameter :: BDSLPEFFDIR_NONE            =  0
   integer, parameter :: BDSLPEFFDIR_TALMON          =  1
   
