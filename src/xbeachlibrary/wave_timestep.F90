@@ -34,6 +34,7 @@ contains
     use wave_stationary_module
     use wave_directions_module
     use wave_instationary_module
+    use paramsconst
 
     implicit none
 

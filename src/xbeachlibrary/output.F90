@@ -10,6 +10,7 @@ module output_module
   use timestep_module
   use logging_module
   use fortoutput_module
+  use paramsconst
   ! IFDEF used in case netcdf support is not compiled, f.i. Windows (non-Cygwin)
 
 

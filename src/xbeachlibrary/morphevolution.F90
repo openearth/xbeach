@@ -35,6 +35,7 @@ contains
     use spaceparams
     use xmpi_module
     use interp
+    use paramsconst
     ! use vsmumod
 
     IMPLICIT NONE

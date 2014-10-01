@@ -38,6 +38,7 @@ contains
     use logging_module
     use spectral_wave_bc_module
     use nonh_module, only: nonh_init_wcoef
+    use paramsconst
 
     IMPLICIT NONE
 
@@ -742,8 +743,11 @@ contains
     endif
     ! Jaap: set incoming short wave energy to zero
     ee(1,:,:) = par%swave*ee(1,:,:)
-    ! Jaap set incoming long waves to zero
-    ui = par%lwave*(par%order-1.d0)*ui
+    ! Robert: only do this if not using non-hydrostatic spectrum
+    if (par%nonhspectrum==0) then
+       ! Jaap set incoming long waves to zero
+       ui = par%lwave*(par%order-1.d0)*ui
+    endif
 
 
   end subroutine wave_bc
@@ -759,6 +763,7 @@ contains
     use spaceparams
     use interp
     use xmpi_module
+    use paramsconst
 
     IMPLICIT NONE
 
@@ -1248,6 +1253,7 @@ contains
     use params
     use spaceparams
     use xmpi_module
+    use paramsconst
 
     type(spacepars),target                  :: s
     type(parameters)                        :: par

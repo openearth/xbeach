@@ -94,6 +94,7 @@ contains
     use xmpi_module, only: Halt_Program 
     use params    
     use logging_module
+    use paramsconst
   
 !--------------------------     ARGUMENTS          ----------------------------
 !
@@ -164,7 +165,8 @@ contains
 !--------------------------     DEPENDENCIES       ----------------------------
 
     use xmpi_module
-    use params        
+    use params     
+    use paramsconst
   
 !--------------------------     ARGUMENTS          ----------------------------
 !

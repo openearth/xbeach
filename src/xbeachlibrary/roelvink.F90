@@ -47,6 +47,7 @@ contains
 
     use params
     use spaceparams
+    use paramsconst
 
     implicit none
 

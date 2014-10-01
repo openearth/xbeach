@@ -7,6 +7,7 @@ contains
     use wave_functions_module
     use xmpi_module
     use logging_module
+    use paramsconst
 
     ! wwvv in my testcase, this routine was not called, so it is not
     ! tested. Nevertheless, I put in code for the parallel version.

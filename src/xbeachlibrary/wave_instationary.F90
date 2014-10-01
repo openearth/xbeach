@@ -11,6 +11,7 @@ contains
     use xmpi_module
     use mnemmodule
     use interp
+    use paramsconst
 
     IMPLICIT NONE
 

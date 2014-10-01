@@ -1,6 +1,7 @@
 ! Everything in this module should be handled by xmaster, so only call using xmaster
 module spectral_wave_bc_module
   use typesandkinds
+  use paramsconst
   implicit none
   
   type spectrum                                         ! These are related to input spectra
@@ -206,7 +207,9 @@ contains
        endif
 
        ! Calculate the bound long wave from the wave train components and write to output file
-       call generate_qbcf(wp,s,par)
+       if ((par%nonhspectrum==0) .or. (par%nonhspectrum==1 .and. par%order>1)) then
+          call generate_qbcf(wp,s,par)
+       endif
 
        ! Write non-hydrostatic time series of combined short and long waves if necessary
        if (par%nonhspectrum==1) then

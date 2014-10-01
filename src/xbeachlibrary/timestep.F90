@@ -405,6 +405,7 @@ contains
     use spaceparams
     use xmpi_module
     use logging_module
+    use paramsconst
 
     IMPLICIT NONE
 
