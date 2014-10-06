@@ -9,7 +9,8 @@
 ! space_ind.gen           is for s.ind
 ! space_inp.gen           is for s.inp
 ! spaceparams.h           definition of macro's: #define nx s%nx
-! uspaceparams.h          undefinition of macro's: #undef nx
+! spaceparamsu.h          undefinition of macro's: #undef nx
+! space.sed               sed commands
 ! parameters.inc          is for xbeach.F90 after params.F90
 ! space_define.h          defines macros like #define x s%X
 ! space_undef.h           undefines what space_define.h defines
@@ -36,6 +37,7 @@ module makemodule
   character(slen), parameter :: space_inpname           = 'space_inp.gen'
   character(slen), parameter :: spaceparams_hname       = 'spaceparams.h'
   character(slen), parameter :: uspaceparams_hname      = 'spaceparamsu.h'
+  character(slen), parameter :: space_sedname           = 'space.sed'
   character(slen), parameter :: chartoindexname         = 'chartoindex.gen'
   character(slen), parameter :: paramsincname           = 'parameters.inc'
   character(slen), parameter :: getkeygenname           = 'getkey.gen'
@@ -662,6 +664,28 @@ contains
     close(infile)
   end subroutine umakespaceparamsh
 
+  subroutine makespacesed
+    implicit none
+    call openinfile
+    call openoutput
+    do
+       call getline
+       if (endfound) then
+          exit
+       endif
+       call getitems
+       if (varfound) then
+          write(outfile,'(a)') &
+              "/\<s\.ind\>/d;/\<s\.inp\>/d;"//&
+              "/^[ 	]*!/b;s/%"//trim(name)//"\>/___"//trim(name)//&
+              "/g;s/\<"//trim(name)//"\>/s%"//trim(name)//"/g;s/___"//&
+              trim(name)//"\>/%"//trim(name)//"/g"
+       endif
+    enddo
+    close (outfile)
+    close(infile)
+  end subroutine makespacesed
+
   ! just for testing some things, not used in production version wwvv
   subroutine makespacedefine
     implicit none
@@ -997,6 +1021,7 @@ program makeincludes
          trim(space_inpname)//' '// &
          trim(spaceparams_hname)//' '// &
          trim(uspaceparams_hname)//' '// &
+         trim(space_sedname)//' '// &
          trim(paramsincname)//' '// &
          trim(getkeygenname)
    endif
@@ -1047,6 +1072,12 @@ program makeincludes
      write(*,*)'Making '//trim(uspaceparams_hname)
      outputfilename = uspaceparams_hname
      call umakespaceparamsh
+  endif
+
+  if (index(command,trim(space_sedname)) .ne. 0) then
+     write(*,*)'Making '//trim(space_sedname)
+     outputfilename = space_sedname
+     call makespacesed
   endif
 
   if (index(command,trim(chartoindexname)) .ne. 0) then
