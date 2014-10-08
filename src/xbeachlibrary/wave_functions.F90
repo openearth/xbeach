@@ -662,24 +662,24 @@ contains
     integer                                         :: jx,jy,i,j1,nbr,tempxid
     integer, dimension(s%nx+1)                      :: ibr
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     ! Superfast 1D
-    if (ny>0) then
+    if (s%ny>0) then
        j1 = 2
     else
        j1 = 1
     endif
 
-    do jy = j1,max(1,ny)
-       usd(1,jy)   = ustr(1,jy)
+    do jy = j1,max(1,s%ny)
+       s%usd(1,jy)   = s%ustr(1,jy)
 
-       do jx = 2,nx+1
+       do jx = 2,s%nx+1
           nbr     = 0
-          Lbr     = sqrt(par%g*hh(jx,jy))*par%Trep
+          Lbr     = sqrt(par%g*s%hh(jx,jy))*par%Trep
           i       = jx-1
-          do while (abs(xz(i,jy)-xz(jx,jy))<=Lbr .and. i>1)
+          do while (abs(s%xz(i,jy)-s%xz(jx,jy))<=Lbr .and. i>1)
              nbr = nbr+1
              i   = i-1
           end do
@@ -688,28 +688,28 @@ contains
              do i = 1,nbr+1
                 ibr(i)      = i
                 tempxid     = jx-nbr+i-1
-                utemp(i)    = ustr(tempxid,jy)
+                utemp(i)    = s%ustr(tempxid,jy)
              enddo
 
-             usd(jx,jy)      = sum(ibr(1:nbr+1)*utemp(1:nbr+1))/sum(ibr(1:nbr+1)) 
+             s%usd(jx,jy)      = sum(ibr(1:nbr+1)*utemp(1:nbr+1))/sum(ibr(1:nbr+1)) 
           else
-             usd(jx,jy)      = ustr(jx,jy)
+             s%usd(jx,jy)      = s%ustr(jx,jy)
           end if
        end do
     end do
 
     ! lateral boundaries
     if (xmpi_istop             ) then
-       usd(1,:)    = usd(2,:)
+       s%usd(1,:)    = s%usd(2,:)
     endif
     if (xmpi_isbot             ) then
-       usd(nx+1,:) = usd(nx,:)
+       s%usd(s%nx+1,:) = s%usd(s%nx,:)
     endif
-    if (xmpi_isleft  .and. ny>0) then
-       usd(:,1)    = usd(:,2)
+    if (xmpi_isleft  .and. s%ny>0) then
+       s%usd(:,1)    = s%usd(:,2)
     endif
-    if (xmpi_isright .and. ny>0) then
-       usd(:,ny+1) = usd(:,ny)
+    if (xmpi_isright .and. s%ny>0) then
+       s%usd(:,s%ny+1) = s%usd(:,s%ny)
     endif
 
     ! wwvv for the parallel version, shift in the columns and rows

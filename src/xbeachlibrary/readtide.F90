@@ -43,8 +43,8 @@ contains
     integer                             :: io,ntide
     real*8,dimension(par%tideloc+1)     :: temp
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     ! this must only work on master
     if (xmaster) then

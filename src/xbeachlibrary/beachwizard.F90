@@ -141,11 +141,6 @@ contains
     real*8, parameter                   :: b4 = 8.674993032204639D-03 
 
 
-    !include 's.ind'
-    !include 's.inp'
-    !include 'bw.ind'
-    !include 'bw.inp'
-
     if (.not. allocated(bw%fobs)) then
        !          allocate(s%dobs(1:s%nx+1,1:s%ny+1))
        allocate(bw%fobs(1:s%nx+1,1:s%ny+1))

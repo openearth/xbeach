@@ -17,8 +17,8 @@ contains
     integer                     :: iu,ju,iv,jv
     real*8                      :: di,dj
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
 #ifdef USEMPI
     ishift  = s%is(xmpi_rank+1)-1
@@ -44,8 +44,8 @@ contains
                jv >= 1 .and. jv <= s%ny            ) then
 
              ! determine movement of drifter relative to grid size
-             di      = uu(iu,ju)/dsu(iu,ju)*par%dt
-             dj      = vv(iv,jv)/dnv(iv,jv)*par%dt
+             di      = s%uu(iu,ju)/s%dsu(iu,ju)*par%dt
+             dj      = s%vv(iv,jv)/s%dnv(iv,jv)*par%dt
 
              s%idrift(i) = s%idrift(i) + di
              s%jdrift(i) = s%jdrift(i) + dj

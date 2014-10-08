@@ -43,8 +43,8 @@ contains
     real*8,dimension(3)                 :: temp
 
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     io    = 0
     nwind = 0
@@ -70,7 +70,7 @@ contains
           s%windxts = dcos(s%winddirts)*s%windvelts
           s%windyts = dsin(s%winddirts)*s%windvelts
           ! If stationary wind then we will calculate now what the wind velocity is everywhere now
-          s%windsu = s%windxts(1)*dcos(alfau) + s%windyts(1)*dsin(s%alfau)
+          s%windsu = s%windxts(1)*dcos(s%alfau) + s%windyts(1)*dsin(s%alfau)
           s%windnv = s%windyts(1)*dcos(s%alfav-0.5d0*par%px) - s%windxts(1)*dsin(s%alfav-0.5d0*par%px)
        else                 ! Non-stationary wind
           call writelog('ls','','readwind: reading wind time series from ',trim(par%windfile),' ...')

@@ -381,59 +381,59 @@ contains
 
     integer                             :: itheta
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
-    allocate(s%thetamean(1:nx+1,1:ny+1))
-    allocate(s%Fx(1:nx+1,1:ny+1))
-    allocate(s%Fy(1:nx+1,1:ny+1))
-    allocate(s%Sxx(1:nx+1,1:ny+1))
-    allocate(s%Sxy(1:nx+1,1:ny+1))
-    allocate(s%Syy(1:nx+1,1:ny+1))
-    allocate(s%n(1:nx+1,1:ny+1))
-    allocate(s%H(1:nx+1,1:ny+1))
-    allocate(s%cgx(1:nx+1,1:ny+1,1:ntheta))
-    allocate(s%cgy(1:nx+1,1:ny+1,1:ntheta))
-    allocate(s%cx(1:nx+1,1:ny+1,1:ntheta))
-    allocate(s%cy(1:nx+1,1:ny+1,1:ntheta))
-    allocate(s%ctheta(1:nx+1,1:ny+1,1:ntheta))
-    allocate(s%sigt(1:nx+1,1:ny+1,1:ntheta))
-    allocate(s%ee(1:nx+1,1:ny+1,1:ntheta))
-    allocate(s%rr(1:nx+1,1:ny+1,1:ntheta))
+    allocate(s%thetamean(1:s%nx+1,1:s%ny+1))
+    allocate(s%Fx(1:s%nx+1,1:s%ny+1))
+    allocate(s%Fy(1:s%nx+1,1:s%ny+1))
+    allocate(s%Sxx(1:s%nx+1,1:s%ny+1))
+    allocate(s%Sxy(1:s%nx+1,1:s%ny+1))
+    allocate(s%Syy(1:s%nx+1,1:s%ny+1))
+    allocate(s%n(1:s%nx+1,1:s%ny+1))
+    allocate(s%H(1:s%nx+1,1:s%ny+1))
+    allocate(s%cgx(1:s%nx+1,1:s%ny+1,1:s%ntheta))
+    allocate(s%cgy(1:s%nx+1,1:s%ny+1,1:s%ntheta))
+    allocate(s%cx(1:s%nx+1,1:s%ny+1,1:s%ntheta))
+    allocate(s%cy(1:s%nx+1,1:s%ny+1,1:s%ntheta))
+    allocate(s%ctheta(1:s%nx+1,1:s%ny+1,1:s%ntheta))
+    allocate(s%sigt(1:s%nx+1,1:s%ny+1,1:s%ntheta))
+    allocate(s%ee(1:s%nx+1,1:s%ny+1,1:s%ntheta))
+    allocate(s%rr(1:s%nx+1,1:s%ny+1,1:s%ntheta))
     if (par%single_dir==1) then
-       allocate(s%cgx_s(1:nx+1,1:ny+1,1:ntheta_s))
-       allocate(s%cgy_s(1:nx+1,1:ny+1,1:ntheta_s))
-       allocate(s%ctheta_s(1:nx+1,1:ny+1,1:ntheta_s))
-       allocate(s%ee_s(1:nx+1,1:ny+1,1:ntheta_s))
+       allocate(s%cgx_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+       allocate(s%cgy_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+       allocate(s%ctheta_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+       allocate(s%ee_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
     endif
-    allocate(s%sigm(1:nx+1,1:ny+1))
-    allocate(s%c(1:nx+1,1:ny+1))
-    allocate(s%cg(1:nx+1,1:ny+1))
-    allocate(s%k(1:nx+1,1:ny+1))
-    allocate(s%ui(1:nx+1,1:ny+1))
-    allocate(s%vi(1:nx+1,1:ny+1))
-    allocate(s%E(1:nx+1,1:ny+1)) 
-    allocate(s%R(1:nx+1,1:ny+1)) 
-    allocate(s%urms(1:nx+1,1:ny+1)) 
-    allocate(s%D(1:nx+1,1:ny+1)) 
-    allocate(s%Df(1:nx+1,1:ny+1)) 
-    allocate(s%Dveg(1:nx+1,1:ny+1))
-    allocate(s%Fvegu(1:nx+1,1:ny+1))
-    allocate(s%Fvegv(1:nx+1,1:ny+1))
-    allocate(s%Dp(1:nx+1,1:ny+1)) 
-    allocate(s%Qb(1:nx+1,1:ny+1)) 
-    allocate(s%ust(1:nx+1,1:ny+1)) 
-    allocate(s%tm(1:nx+1,1:ny+1)) 
-    allocate(s%uwf(1:nx+1,1:ny+1)) 
-    allocate(s%vwf(1:nx+1,1:ny+1)) 
-    allocate(s%ustr(1:nx+1,1:ny+1)) 
-    allocate(s%usd(1:nx+1,1:ny+1))
-    allocate(s%bi(1:ny+1))
-    allocate(s%DR(1:nx+1,1:ny+1)) 
-    allocate(s%umwci       (1:nx+1,1:ny+1))
-    allocate(s%vmwci       (1:nx+1,1:ny+1))
-    allocate(s%zswci       (1:nx+1,1:ny+1))
-    allocate(s%BR(1:nx+1,1:ny+1))
+    allocate(s%sigm(1:s%nx+1,1:s%ny+1))
+    allocate(s%c(1:s%nx+1,1:s%ny+1))
+    allocate(s%cg(1:s%nx+1,1:s%ny+1))
+    allocate(s%k(1:s%nx+1,1:s%ny+1))
+    allocate(s%ui(1:s%nx+1,1:s%ny+1))
+    allocate(s%vi(1:s%nx+1,1:s%ny+1))
+    allocate(s%E(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%R(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%urms(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%D(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%Df(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%Dveg(1:s%nx+1,1:s%ny+1))
+    allocate(s%Fvegu(1:s%nx+1,1:s%ny+1))
+    allocate(s%Fvegv(1:s%nx+1,1:s%ny+1))
+    allocate(s%Dp(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%Qb(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%ust(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%tm(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%uwf(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%vwf(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%ustr(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%usd(1:s%nx+1,1:s%ny+1))
+    allocate(s%bi(1:s%ny+1))
+    allocate(s%DR(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%umwci       (1:s%nx+1,1:s%ny+1))
+    allocate(s%vmwci       (1:s%nx+1,1:s%ny+1))
+    allocate(s%zswci       (1:s%nx+1,1:s%ny+1))
+    allocate(s%BR(1:s%nx+1,1:s%ny+1))
     !
     ! Initial condition
     !
@@ -502,10 +502,10 @@ contains
          par%instat==INSTAT_VARDENS) then 
        if(xmaster) call spectral_wave_init (s,par)  ! only used by xmaster
     endif
-    do itheta=1,ntheta
+    do itheta=1,s%ntheta
        s%sigt(:,:,itheta) = 2*par%px/par%Trep
     end do
-    s%sigm = sum(s%sigt,3)/ntheta
+    s%sigm = sum(s%sigt,3)/s%ntheta
     call dispersion(par,s,.false.)
 
 
@@ -633,8 +633,8 @@ contains
     real*8,dimension(:,:),allocatable       :: vmagvold,vmaguold
     real*8                                  :: flowerr
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     allocate(s%zs(1:s%nx+1,1:s%ny+1))
     allocate(s%dzsdt(1:s%nx+1,1:s%ny+1))
@@ -1124,7 +1124,7 @@ contains
           ! u velocity in v points
           if (s%ny>0) then
              s%uv(2:s%nx,1:s%ny)= .25d0*(s%uu(1:s%nx-1,1:s%ny)+s%uu(2:s%nx,1:s%ny)+ &
-                  s%uu(1:s%nx-1,2:s%ny+1)+s%uu(2:nx,2:s%ny+1))
+                  s%uu(1:s%nx-1,2:s%ny+1)+s%uu(2:s%nx,2:s%ny+1))
              ! boundaries?
              ! wwvv and what about uv(:,1) ?
              if(xmpi_isright) then
@@ -1132,7 +1132,7 @@ contains
              endif
           else
              s%uv(2:s%nx,1)= .5d0*(s%uu(1:s%nx-1,1)+s%uu(2:s%nx,1))
-          endif !ny>0
+          endif !s%ny>0
           s%vmagev = sqrt(s%uv**2+s%vv**2)
           !
           ! Balance in cross shore
@@ -1140,7 +1140,7 @@ contains
           ! Solve balance of forces
           where (s%wetu==1)
              s%uu = s%hu/s%cf/max(vmaguold,0.000001d0) &
-                  *(-par%g*s%dzsdx+par%rhoa*par%Cd*windsu**2/(par%rho*s%hum))
+                  *(-par%g*s%dzsdx+par%rhoa*par%Cd*s%windsu**2/(par%rho*s%hum))
           elsewhere
              s%uu = 0.d0
           endwhere
@@ -1152,11 +1152,11 @@ contains
                 s%vu(:,1) = s%vu(:,2)
              endif
              if(xmpi_isright) then
-                s%vu(:,ny+1) = s%vu(:,ny)
+                s%vu(:,s%ny+1) = s%vu(:,s%ny)
              endif
           else 
              s%vu(1:s%nx,1)= 0.5d0*(s%vv(1:s%nx,1)+s%vv(2:s%nx+1,1))
-          endif !ny>0
+          endif !s%ny>0
           s%vmageu = sqrt(s%uu**2+s%vu**2)
           !
           ! Check residual error
@@ -1187,7 +1187,7 @@ contains
           s%v(s%nx+1,:)=s%v(s%nx,:)
        else ! Dano
           s%v=s%vv
-       endif !ny>0
+       endif !s%ny>0
     endif
     !
     ! Initialize for tide instant boundary condition
@@ -1216,7 +1216,7 @@ contains
              endif
           enddo
 
-          if (indbay==1 .and. indoff==s%nx+1) then ! in case of completely wet arrays linear interpolation for zs0fac
+          if (indbay==1 .and. indoff==s%nx+1) then ! in case of completely wet arrays linear interpolation for s%zs0fac
              ! Dano: don't know how to fix this for curvilinear
              !          zs0fac(:,j,2) = (xz-xz(1))/(xz(s%nx+1)-xz(1))
              !          zs0fac(:,j,1) = 1-zs0fac(:,j,2)
@@ -1258,63 +1258,63 @@ contains
     character(len=4)                    :: tempc
     real*8                              :: tempr
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
-    allocate(s%ccg(1:nx+1,1:ny+1,par%ngd))
-    allocate(s%dcbdy(1:nx+1,1:ny+1))
-    allocate(s%dcbdx(1:nx+1,1:ny+1))
-    allocate(s%dcsdy(1:nx+1,1:ny+1))
-    allocate(s%dcsdx(1:nx+1,1:ny+1))
-    allocate(s%Tsg(1:nx+1,1:ny+1,par%ngd)) 
-    allocate(s%Susg(1:nx+1,1:ny+1,par%ngd)) 
-    allocate(s%Svsg(1:nx+1,1:ny+1,par%ngd)) 
-    allocate(s%Subg(1:nx+1,1:ny+1,par%ngd)) 
-    allocate(s%Svbg(1:nx+1,1:ny+1,par%ngd)) 
-    allocate(s%vmag(1:nx+1,1:ny+1)) 
-    allocate(s%ceqsg(1:nx+1,1:ny+1,par%ngd))
-    allocate(s%ceqbg(1:nx+1,1:ny+1,par%ngd))
+    allocate(s%ccg(1:s%nx+1,1:s%ny+1,par%ngd))
+    allocate(s%dcbdy(1:s%nx+1,1:s%ny+1))
+    allocate(s%dcbdx(1:s%nx+1,1:s%ny+1))
+    allocate(s%dcsdy(1:s%nx+1,1:s%ny+1))
+    allocate(s%dcsdx(1:s%nx+1,1:s%ny+1))
+    allocate(s%Tsg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+    allocate(s%Susg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+    allocate(s%Svsg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+    allocate(s%Subg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+    allocate(s%Svbg(1:s%nx+1,1:s%ny+1,par%ngd)) 
+    allocate(s%vmag(1:s%nx+1,1:s%ny+1)) 
+    allocate(s%ceqsg(1:s%nx+1,1:s%ny+1,par%ngd))
+    allocate(s%ceqbg(1:s%nx+1,1:s%ny+1,par%ngd))
     !if (par%dilatancy==1) allocate(s%D15(1:par%ngd)) ! Lodewijk
     if (par%dilatancy==1) then
       allocate(s%D15(1:par%ngd)) ! Lodewijk
     else
-      allocate(s%D15(1)) ! wwvv: D15 will be distributed, so it must exist
+      allocate(s%D15(1)) ! wwvv: s%D15 will be distributed, so it must exist
     endif
     allocate(s%D50(1:par%ngd))
     allocate(s%D90(1:par%ngd))
-    allocate(s%D50top(1:nx+1,1:ny+1))
-    allocate(s%D90top(1:nx+1,1:ny+1))
+    allocate(s%D50top(1:s%nx+1,1:s%ny+1))
+    allocate(s%D90top(1:s%nx+1,1:s%ny+1))
     allocate(s%sedcal(1:par%ngd))
     allocate(s%ucrcal(1:par%ngd))
-    allocate(s%nd(1:nx+1,1:ny+1))
-    allocate(s%dzbed(1:nx+1,1:ny+1,1:max(par%nd,3))) 
-    allocate(s%pbbed(1:nx+1,1:ny+1,1:max(par%nd,3),1:par%ngd)) 
-    allocate(s%z0bed(1:nx+1,1:ny+1))
-    allocate(s%ureps(1:nx+1,1:ny+1))
-    allocate(s%urepb(1:nx+1,1:ny+1))
-    allocate(s%vreps(1:nx+1,1:ny+1))
-    allocate(s%vrepb(1:nx+1,1:ny+1))
-    allocate(s%ero(1:nx+1,1:ny+1,1:par%ngd))
-    allocate(s%depo_ex(1:nx+1,1:ny+1,1:par%ngd))
-    allocate(s%depo_im(1:nx+1,1:ny+1,1:par%ngd))
-    allocate(s%kb(1:nx+1,1:ny+1))
-    allocate(s%Tbore(1:nx+1,1:ny+1))
-    allocate(s%ua(1:nx+1,1:ny+1))  
-    allocate(s%dzav(1:nx+1,1:ny+1))  
-    allocate(s%Sk(1:nx+1,1:ny+1))
-    allocate(s%As(1:nx+1,1:ny+1))
-    allocate(s%kturb(1:nx+1,1:ny+1))
-    allocate(s%rolthick(1:nx+1,1:ny+1))
-    allocate(s%Sutot(1:nx+1,1:ny+1))     ! Only really for easy output 
-    allocate(s%Svtot(1:nx+1,1:ny+1))     ! Only really for easy output
-    allocate(s%cctot(1:nx+1,1:ny+1))     ! Only really for easy output
-    allocate(s%runup(1:ny+1))
-    allocate(s%Hrunup(1:ny+1))
-    allocate(s%xHrunup(1:ny+1))
-    allocate(s%istruct(1:ny+1))
-    allocate(s%iwl(1:ny+1))
-    allocate(s%strucslope(1:ny+1))
-    allocate(s%Dc(1:nx+1,1:ny+1))
+    allocate(s%nd(1:s%nx+1,1:s%ny+1))
+    allocate(s%dzbed(1:s%nx+1,1:s%ny+1,1:max(par%nd,3))) 
+    allocate(s%pbbed(1:s%nx+1,1:s%ny+1,1:max(par%nd,3),1:par%ngd)) 
+    allocate(s%z0bed(1:s%nx+1,1:s%ny+1))
+    allocate(s%ureps(1:s%nx+1,1:s%ny+1))
+    allocate(s%urepb(1:s%nx+1,1:s%ny+1))
+    allocate(s%vreps(1:s%nx+1,1:s%ny+1))
+    allocate(s%vrepb(1:s%nx+1,1:s%ny+1))
+    allocate(s%ero(1:s%nx+1,1:s%ny+1,1:par%ngd))
+    allocate(s%depo_ex(1:s%nx+1,1:s%ny+1,1:par%ngd))
+    allocate(s%depo_im(1:s%nx+1,1:s%ny+1,1:par%ngd))
+    allocate(s%kb(1:s%nx+1,1:s%ny+1))
+    allocate(s%Tbore(1:s%nx+1,1:s%ny+1))
+    allocate(s%ua(1:s%nx+1,1:s%ny+1))  
+    allocate(s%dzav(1:s%nx+1,1:s%ny+1))  
+    allocate(s%Sk(1:s%nx+1,1:s%ny+1))
+    allocate(s%As(1:s%nx+1,1:s%ny+1))
+    allocate(s%kturb(1:s%nx+1,1:s%ny+1))
+    allocate(s%rolthick(1:s%nx+1,1:s%ny+1))
+    allocate(s%Sutot(1:s%nx+1,1:s%ny+1))     ! Only really for easy output 
+    allocate(s%Svtot(1:s%nx+1,1:s%ny+1))     ! Only really for easy output
+    allocate(s%cctot(1:s%nx+1,1:s%ny+1))     ! Only really for easy output
+    allocate(s%runup(1:s%ny+1))
+    allocate(s%Hrunup(1:s%ny+1))
+    allocate(s%xHrunup(1:s%ny+1))
+    allocate(s%istruct(1:s%ny+1))
+    allocate(s%iwl(1:s%ny+1))
+    allocate(s%strucslope(1:s%ny+1))
+    allocate(s%Dc(1:s%nx+1,1:s%ny+1))
 
     ! Initialize so structures can be implemented more easily
     s%pbbed = 0.d0
@@ -1349,8 +1349,8 @@ contains
           write(fnameg,'(a,a,a)')'gdist',tempc(start:4),'.inp'
           open(31,file=fnameg)
           do m=1,par%nd
-             do j=1,ny+1
-                read(31,*,iostat=ier)(s%pbbed(i,j,m,jg),i=1,nx+1)
+             do j=1,s%ny+1
+                read(31,*,iostat=ier)(s%pbbed(i,j,m,jg),i=1,s%nx+1)
                 if (ier .ne. 0) then
                    call report_file_read_error(fnameg)
                 endif
@@ -1360,8 +1360,8 @@ contains
        enddo
        ! Rework pbbed so that sum fractions = 1
        do m=1,par%nd
-          do j=1,ny+1     !Jaap instead of 2:ny
-             do i=1,nx+1 !Jaap instead of 2:nx
+          do j=1,s%ny+1     !Jaap instead of 2:s%ny
+             do i=1,s%nx+1 !Jaap instead of 2:s%nx
 
                 tempr=sum(s%pbbed(i,j,m,1:par%ngd))
                 if (abs(1.d0-tempr)>0.d0) then
@@ -1387,8 +1387,8 @@ contains
     endif
 
     ! Initialize representative sed.diameter at the bed for flow friction and output
-    do j=1,ny+1
-       do i=1,nx+1
+    do j=1,s%ny+1
+       do i=1,s%nx+1
           s%D50top(i,j) =  sum(s%pbbed(i,j,1,:)*s%D50)
           s%D90top(i,j) =  sum(s%pbbed(i,j,1,:)*s%D90)
        enddo
@@ -1396,7 +1396,7 @@ contains
     ! 
     ! Set non-erodable layer
     !
-    allocate(s%structdepth(nx+1,ny+1))
+    allocate(s%structdepth(s%nx+1,s%ny+1))
 
     s%structdepth = 100.d0
 
@@ -1405,8 +1405,8 @@ contains
        !open(31,file=fnameh)
        open(31,file=par%ne_layer)
 
-       do j=1,ny+1
-          read(31,*,iostat=ier)(s%structdepth(i,j),i=1,nx+1)
+       do j=1,s%ny+1
+          read(31,*,iostat=ier)(s%structdepth(i,j),i=1,s%nx+1)
           if (ier .ne. 0) then
              call report_file_read_error(par%ne_layer)
           endif
@@ -1451,26 +1451,26 @@ contains
     s%runup      = 0.d0
     s%Hrunup     = 0.d0
     s%xHrunup    = 0.d0
-    s%istruct    = nx+1
+    s%istruct    = s%nx+1
     s%strucslope = 0.d0
     s%Dc         = 0.d0
 
     ! Initialize dzbdx, dzbdy
-    do j=1,ny+1
-       do i=1,nx
-          s%dzbdx(i,j)=(s%zb(i+1,j)-s%zb(i,j))/dsu(i,j)
+    do j=1,s%ny+1
+       do i=1,s%nx
+          s%dzbdx(i,j)=(s%zb(i+1,j)-s%zb(i,j))/s%dsu(i,j)
        enddo
     enddo
     ! dummy, needed to keep compiler happy
-    s%dzbdx(nx+1,:)=s%dzbdx(nx,:)
+    s%dzbdx(s%nx+1,:)=s%dzbdx(s%nx,:)
 
-    if (ny>0) then
-       do j=1,ny
-          do i=1,nx+1
-             s%dzbdy(i,j)=(s%zb(i,j+1)-s%zb(i,j))/dnv(i,j)
+    if (s%ny>0) then
+       do j=1,s%ny
+          do i=1,s%nx+1
+             s%dzbdy(i,j)=(s%zb(i,j+1)-s%zb(i,j))/s%dnv(i,j)
           enddo
        enddo
-       s%dzbdy(:,ny+1)=s%dzbdy(:,ny)
+       s%dzbdy(:,s%ny+1)=s%dzbdy(:,s%ny)
     else
        s%dzbdy=0.d0
     endif
@@ -1500,8 +1500,8 @@ contains
     real*8, dimension(:),allocatable        :: xdb,ydb,xde,yde
     integer,dimension(2)                    :: mnb,mne
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     io          = 0
 
@@ -1634,8 +1634,8 @@ contains
     real*8                                  :: ds,dn
     integer,dimension(2)                    :: mn
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     allocate(s%idrift   (par%ndrifter))
     allocate(s%jdrift   (par%ndrifter))
@@ -1661,8 +1661,8 @@ contains
              dn          = -(xdrift - s%xz(mn(1),mn(2)))*sin(s%alfaz(mn(1),mn(2))) &
                   +(ydrift - s%yz(mn(1),mn(2)))*cos(s%alfaz(mn(1),mn(2)))
 
-             s%idrift(i) = mn(1) + ds/dsu(mn(1),mn(2))
-             s%jdrift(i) = mn(2) + dn/dnv(mn(1),mn(2))
+             s%idrift(i) = mn(1) + ds/s%dsu(mn(1),mn(2))
+             s%jdrift(i) = mn(2) + dn/s%dnv(mn(1),mn(2))
           enddo
           close(10)
 

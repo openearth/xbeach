@@ -87,8 +87,8 @@ contains
     integer                                     :: i,fid,iy,it
     integer                                     :: n2
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
     
     if(par%ships==1) then
       ! Read ship names (== filenames with ship geometry and track data)
@@ -253,8 +253,8 @@ contains
     ! wwvv: was real*4
     
     real*8, dimension(:,:),allocatable :: zsvirt
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     if (.not. allocated(zsvirt)) allocate(zsvirt(s%nx+1,s%ny+1))
     zsvirt=s%zs+s%ph
@@ -264,11 +264,11 @@ contains
 
         ! Find actual position and orientation of ship
 
-        shipx_old = shipxCG(i)
-        shipy_old = shipyCG(i)
-        call linear_interp(sh(i)%track_t,sh(i)%track_x,sh(i)%track_nt,par%t,shipxCG(i),shp_indx)
-        call linear_interp(sh(i)%track_t,sh(i)%track_y,sh(i)%track_nt,par%t,shipyCG(i),shp_indx)
-        call linear_interp(sh(i)%track_t,sh(i)%track_z,sh(i)%track_nt,par%t,shipzCG(i),shp_indx)
+        shipx_old = s%shipxCG(i)
+        shipy_old = s%shipyCG(i)
+        call linear_interp(sh(i)%track_t,sh(i)%track_x,sh(i)%track_nt,par%t,s%shipxCG(i),shp_indx)
+        call linear_interp(sh(i)%track_t,sh(i)%track_y,sh(i)%track_nt,par%t,s%shipyCG(i),shp_indx)
+        call linear_interp(sh(i)%track_t,sh(i)%track_z,sh(i)%track_nt,par%t,s%shipzCG(i),shp_indx)
         call linear_interp(sh(i)%track_t,sh(i)%track_dir,sh(i)%track_nt,par%t,dirship,shp_indx)
         radius=max(sh(i)%nx*sh(i)%dx,sh(i)%ny*sh(i)%dy)/2
         cosdir=cos(dirship)
@@ -279,8 +279,8 @@ contains
            ! Update locations of x ship grid points
            do iy=1,sh(i)%ny+1
               do ix=1,sh(i)%nx+1
-                 sh(i)%x(ix,iy)=shipxCG(i)+(ix-sh(i)%nx/2-1)*sh(i)%dx*cosdir - (iy-sh(i)%ny/2-1)*sh(i)%dy*sindir
-                 sh(i)%y(ix,iy)=shipyCG(i)+(ix-sh(i)%nx/2-1)*sh(i)%dx*sindir + (iy-sh(i)%ny/2-1)*sh(i)%dy*cosdir
+                 sh(i)%x(ix,iy)=s%shipxCG(i)+(ix-sh(i)%nx/2-1)*sh(i)%dx*cosdir - (iy-sh(i)%ny/2-1)*sh(i)%dy*sindir
+                 sh(i)%y(ix,iy)=s%shipyCG(i)+(ix-sh(i)%nx/2-1)*sh(i)%dx*sindir + (iy-sh(i)%ny/2-1)*sh(i)%dy*cosdir
               end do
            end do
            ! Interpolate XBeach water levels to ship grid when required
@@ -313,9 +313,9 @@ contains
               !------------------------------------------------------------------
               do iy=1,sh(i)%ny+1
                  do ix=1,sh(i)%nx+1
-                    sh(i)%zhull(ix,iy)=shipzCG(i)-sh(i)%zCG-sh(i)%depth(ix,iy) &
-                                             & -(sh(i)%x(ix,iy)-sh(i)%xCG)*sin(shipchi(i))  &
-                                             & +(sh(i)%y(ix,iy)-sh(i)%yCG)*sin(shipphi(i))                   
+                    sh(i)%zhull(ix,iy)=s%shipzCG(i)-sh(i)%zCG-sh(i)%depth(ix,iy) &
+                                             & -(sh(i)%x(ix,iy)-sh(i)%xCG)*sin(s%shipchi(i))  &
+                                             & +(sh(i)%y(ix,iy)-sh(i)%yCG)*sin(s%shipphi(i))                   
                  enddo
               enddo
            endif ! compute_motion
@@ -330,7 +330,7 @@ contains
               enddo
            enddo
         else
-           sh(i)%ph = -sh(i)%zhull-shipzCG(i)
+           sh(i)%ph = -sh(i)%zhull-s%shipzCG(i)
            sh(i)%ph = max(sh(i)%ph,0.d0)        
         endif ! compute_forces     
         
@@ -387,15 +387,15 @@ contains
      integer                  :: ix,iy,i
      real*8                   :: dFx,dFy,dFz,hdx,hdy
   
-     include 's.ind'
-     include 's.inp'
+     !include 's.ind'
+     !include 's.inp'
 
-     shipFx(i) = 0.d0
-     shipFy(i) = 0.d0
-     shipFz(i) = 0.d0
-     shipMx(i) = 0.d0
-     shipMy(i) = 0.d0
-     shipMz(i) = 0.d0
+     s%shipFx(i) = 0.d0
+     s%shipFy(i) = 0.d0
+     s%shipFz(i) = 0.d0
+     s%shipMx(i) = 0.d0
+     s%shipMy(i) = 0.d0
+     s%shipMz(i) = 0.d0
      hdx=.5d0*sh%dx
      hdy=.5d0*sh%dy
      do iy=1,sh%ny
@@ -403,22 +403,22 @@ contains
            dFx=.5*(sh%ph(ix,iy)+sh%ph(ix+1,iy))*(sh%depth(ix+1,iy)-sh%depth(ix,iy))*sh%dy
            dFy=.5*(sh%ph(ix,iy)+sh%ph(ix,iy+1))*(sh%depth(ix,iy+1)-sh%depth(ix,iy))*sh%dx
            dFz=sh%ph(ix,iy)*sh%dx*sh%dy
-           shipFx(i)=shipFx(i)+dFx
-           shipFy(i)=shipFy(i)+dFy
-           shipFz(i)=shipFz(i)+dFz
-           shipMx(i)=shipMx(i)+((sh%y(ix,iy)+hdy)-sh%yCG)*dFz-(.5d0*(sh%zhull(ix,iy)+sh%zhull(ix,iy+1))-sh%zCG)*dFy   
-           shipMy(i)=shipMy(i)-((sh%x(ix,iy)+hdx)-sh%xCG)*dFz+(.5d0*(sh%zhull(ix,iy)+sh%zhull(ix+1,iy))-sh%zCG)*dFx   
+           s%shipFx(i)=s%shipFx(i)+dFx
+           s%shipFy(i)=s%shipFy(i)+dFy
+           s%shipFz(i)=s%shipFz(i)+dFz
+           s%shipMx(i)=s%shipMx(i)+((sh%y(ix,iy)+hdy)-sh%yCG)*dFz-(.5d0*(sh%zhull(ix,iy)+sh%zhull(ix,iy+1))-sh%zCG)*dFy   
+           s%shipMy(i)=s%shipMy(i)-((sh%x(ix,iy)+hdx)-sh%xCG)*dFz+(.5d0*(sh%zhull(ix,iy)+sh%zhull(ix+1,iy))-sh%zCG)*dFx   
            !shipMz(i)=shipMz(i)-((sh%y(ix,iy)+hdy)-sh%yCG)*dFx+((sh%x(ix,iy)+hdx)-sh%xCG)*dFy
-           shipMz(i)=shipMz(i)-(.5*(((iy-sh%ny/2-1)*sh%dy-sh%yCG)+((iy+1-sh%ny/2-1)*sh%dy-sh%yCG)))*dFx &
+           s%shipMz(i)=s%shipMz(i)-(.5*(((iy-sh%ny/2-1)*sh%dy-sh%yCG)+((iy+1-sh%ny/2-1)*sh%dy-sh%yCG)))*dFx &
            & +(.5*(((ix-sh%nx/2-1)*sh%dx-sh%xCG)+((ix+1-sh%nx/2-1)*sh%dx-sh%xCG)))*dFy
         enddo
      enddo
-     shipFx(i)=shipFx(i)      *par%rho*par%g
-     shipFy(i)=shipFy(i)      *par%rho*par%g
-     shipFz(i)=shipFz(i)      *par%rho*par%g
-     shipMx(i)=shipMx(i)      *par%rho*par%g
-     shipMy(i)=shipMy(i)      *par%rho*par%g
-     shipMz(i)=shipMz(i)      *par%rho*par%g
+     s%shipFx(i)=s%shipFx(i)      *par%rho*par%g
+     s%shipFy(i)=s%shipFy(i)      *par%rho*par%g
+     s%shipFz(i)=s%shipFz(i)      *par%rho*par%g
+     s%shipMx(i)=s%shipMx(i)      *par%rho*par%g
+     s%shipMy(i)=s%shipMy(i)      *par%rho*par%g
+     s%shipMz(i)=s%shipMz(i)      *par%rho*par%g
      
   
   end subroutine ship_force

@@ -52,7 +52,7 @@ contains
     real*8                                  :: dudx1,dudx2,dudy1,dudy2
     real*8                                  :: dvdy1,dvdy2,dvdx1,dvdx2  !Jaap
     real*8                                  :: dalfa                    !difference in grid angles
-    real*8                                  :: uin,vin                  !u resp v-velocity corrected for grid angle change
+    real*8                                  :: uin,vin                  !s%u resp s%v-velocity corrected for grid angle change
     real*8                                  :: qin                      !specific discharge entering cell
     real*8                                  :: dzsdnavg                 !alongshore water level slope
     real*8,save                             :: fc
@@ -60,55 +60,55 @@ contains
 
     integer                                 :: imax,jmax,jmin
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     if (.not. allocated(vsu) ) then
-       allocate (   vsu(nx+1,ny+1))
-       allocate (   usu(nx+1,ny+1))
-       allocate (   vsv(nx+1,ny+1))
-       allocate (   usv(nx+1,ny+1))
-       allocate (   veu(nx+1,ny+1))
-       allocate (   uev(nx+1,ny+1))
-       allocate (  dudx(nx+1,ny+1))
-       allocate (  dvdy(nx+1,ny+1))
-       allocate (    us(nx+1,ny+1))
-       allocate (    vs(nx+1,ny+1))
-       allocate (sinthm(nx+1,ny+1))
-       allocate (costhm(nx+1,ny+1))
+       allocate (   vsu(s%nx+1,s%ny+1))
+       allocate (   usu(s%nx+1,s%ny+1))
+       allocate (   vsv(s%nx+1,s%ny+1))
+       allocate (   usv(s%nx+1,s%ny+1))
+       allocate (   veu(s%nx+1,s%ny+1))
+       allocate (   uev(s%nx+1,s%ny+1))
+       allocate (  dudx(s%nx+1,s%ny+1))
+       allocate (  dvdy(s%nx+1,s%ny+1))
+       allocate (    us(s%nx+1,s%ny+1))
+       allocate (    vs(s%nx+1,s%ny+1))
+       allocate (sinthm(s%nx+1,s%ny+1))
+       allocate (costhm(s%nx+1,s%ny+1))
 
        if (par%secorder == 1) then
-          allocate(vv_old(nx+1,ny+1)); vv_old = vv
-          allocate(uu_old(nx+1,ny+1)); uu_old = uu
-          allocate(zs_old(nx+1,ny+1)); zs_old = zs
+          allocate(vv_old(s%nx+1,s%ny+1)); vv_old = s%vv
+          allocate(uu_old(s%nx+1,s%ny+1)); uu_old = s%uu
+          allocate(zs_old(s%nx+1,s%ny+1)); zs_old = s%zs
        endif
 
-       vu      =0.d0
+       s%vu      =0.d0
        vsu     =0.d0
        usu     =0.d0
        vsv     =0.d0
        usv     =0.d0
-       uv      =0.d0
+       s%uv      =0.d0
        veu     =0.d0
        uev     =0.d0
-       ueu     =0.d0
-       vev     =0.d0
+       s%ueu     =0.d0
+       s%vev     =0.d0
        dudx    =0.d0
-       ududx   =0.d0
+       s%ududx   =0.d0
        dvdy    =0.d0
-       vdvdy   =0.d0
-       udvdx   =0.d0
-       vdudy   =0.d0
-       viscu   =0.d0
-       viscv   =0.d0
+       s%vdvdy   =0.d0
+       s%udvdx   =0.d0
+       s%vdudy   =0.d0
+       s%viscu   =0.d0
+       s%viscv   =0.d0
        us      =0.d0
        vs      =0.d0
-       hum     =0.d0
-       hvm     =0.d0
-       u       =0.d0
-       v       =0.d0
-       ue      =0.d0
-       ve      =0.d0
+       s%hum     =0.d0
+       s%hvm     =0.d0
+       s%u       =0.d0
+       s%v       =0.d0
+       s%ue      =0.d0
+       s%ve      =0.d0
        fc      =2.d0*par%wearth*sin(par%lat)
        
        call bedroughness_init(s,par) ! note, this is not yet designed for initialisation
@@ -116,7 +116,7 @@ contains
     endif
 
     ! Super fast 1D
-    if (ny==0) then
+    if (s%ny==0) then
        j1 = 1
     else
        j1 = 2
@@ -128,15 +128,15 @@ contains
     !
     ! zs=zs*wetz
     ! Water level slopes
-    do j=1,ny+1
-       do i=2,nx
-          dzsdx(i,j)=(zs(i+1,j)+ph(i+1,j)-zs(i,j)-ph(i,j))/dsu(i,j)
+    do j=1,s%ny+1
+       do i=2,s%nx
+          s%dzsdx(i,j)=(s%zs(i+1,j)+s%ph(i+1,j)-s%zs(i,j)-s%ph(i,j))/s%dsu(i,j)
        end do
     end do
     !    do j=2,ny
-    do j=1,ny ! Dano need to get correct slope on boundary y=0
-       do i=1,nx+1
-          dzsdy(i,j)=(zs(i,j+1)+ph(i,j+1)-zs(i,j)-ph(i,j))/dnv(i,j)
+    do j=1,s%ny ! Dano need to get correct slope on boundary s%y=0
+       do i=1,s%nx+1
+          s%dzsdy(i,j)=(s%zs(i,j+1)+s%ph(i,j+1)-s%zs(i,j)-s%ph(i,j))/s%dnv(i,j)
        end do
     end do
 
@@ -149,25 +149,25 @@ contains
     !  an mpi call.
     !  The same for hum
     ! Of course, no action is necessary if hu(nx+1:) is never used...
-    do j=1,ny+1
-       do i=1,nx+1 !Ap
+    do j=1,s%ny+1
+       do i=1,s%nx+1 !Ap
           ! Water depth in u-points do momentum equation: mean
           !!
           !! ARBJ: mean water depth or weighted water depth? How to deal with this in curvi-linear?
           !!
-          hum(i,j)=max(.5d0*(hh(i,j)+hh(min(nx,i)+1,j)),par%eps) 
+          s%hum(i,j)=max(.5d0*(s%hh(i,j)+s%hh(min(s%nx,i)+1,j)),par%eps) 
        end do
     end do
     ! wwvv here the mpi code to communicate a row of hu
     ! we send to the neighbour above and receive from the neighbour
     ! below:
     ! Wetting and drying criterion (only do momentum balance)
-    do j=1,ny+1
-       do i=1,nx+1
-          if(hu(i,j)>par%eps .and. hum(i,j)>par%eps) then  ! Jaap and Pieter: If you want to compute correct advection term
-             wetu(i,j)=1                                  ! then both hu and hum should be larger than par%eps. It is not
-          else                                             ! necessarily true that if hu>par%eps also hum>par%eps.
-             wetu(i,j)=0
+    do j=1,s%ny+1
+       do i=1,s%nx+1
+          if(s%hu(i,j)>par%eps .and. s%hum(i,j)>par%eps) then  ! Jaap and Pieter: If you want to compute correct advection term
+             s%wetu(i,j)=1                                  ! then both s%hu and s%hum should be larger than par%eps. It is not
+          else                                             ! necessarily true that if s%hu>par%eps also s%hum>par%eps.
+             s%wetu(i,j)=0
           end if
        end do
     end do
@@ -176,32 +176,32 @@ contains
     ! so in the parallel case, hv(:,ny+1) has to be collected
     ! from the right neighbour
     ! the same for hvm
-    do j=1,ny+1
-       do i=1,nx+1
+    do j=1,s%ny+1
+       do i=1,s%nx+1
           ! Water depth in v-points do momentum equation: mean
-          hvm(i,j)=max(.5d0*(hh(i,j)+hh(i,min(ny,j)+1)),par%eps)
+          s%hvm(i,j)=max(.5d0*(s%hh(i,j)+s%hh(i,min(s%ny,j)+1)),par%eps)
        end do
     end do
     ! Wetting and drying criterion (only do momentum balance)
-    do j=1,ny+1
-       do i=1,nx+1
-          if(hv(i,j)>par%eps .and. hvm(i,j)>par%eps) then
-             wetv(i,j)=1
+    do j=1,s%ny+1
+       do i=1,s%nx+1
+          if(s%hv(i,j)>par%eps .and. s%hvm(i,j)>par%eps) then
+             s%wetv(i,j)=1
           else
-             wetv(i,j)=0
+             s%wetv(i,j)=0
           end if
        end do
     end do
 
     ! Jaap Wetting and drying criterion eta points
-    do j=1,ny+1
-       do i=1,nx+1
+    do j=1,s%ny+1
+       do i=1,s%nx+1
           !A eta point is wet if any of the surrounding velocity points is wet...
           !            wetz(i,j) = min(1,wetu(max(i,2)-1,j)+wetu(i,j)+wetv(i,j)+wetv(i,max(j,2)-1))
-          if(hh(i,j)>par%eps) then
-             wetz(i,j)=1
+          if(s%hh(i,j)>par%eps) then
+             s%wetz(i,j)=1
           else
-             wetz(i,j)=0
+             s%wetz(i,j)=0
           end if
        end do
     end do
@@ -209,19 +209,19 @@ contains
     !
     ! Compute velocity gradients for viscosity terms. 
     ! Robert: Check whether should be same gradients as advection terms?
-    do j=j1,max(ny,1)
-       do i=2,nx+1
-          dudx(i,j) = (uu(i,j)-uu(i-1,j))/dsz(i,j)
+    do j=j1,max(s%ny,1)
+       do i=2,s%nx+1
+          dudx(i,j) = (s%uu(i,j)-s%uu(i-1,j))/s%dsz(i,j)
        enddo
     enddo
     ! wwvv: added: xmpi_istop
     if (xmpi_istop) then
        dudx(1,:) = 0.d0 ! Robert: by defintion of Neumann boundary
     endif
-    if (ny>2) then
-       do j=2,ny+1
-          do i=1,nx+1
-             dvdy(i,j) = (vv(i,j)-vv(i,j-1))/dnz(i,j)
+    if (s%ny>2) then
+       do j=2,s%ny+1
+          do i=1,s%nx+1
+             dvdy(i,j) = (s%vv(i,j)-s%vv(i,j-1))/s%dnz(i,j)
           enddo
        enddo
        ! wwvv: added: xmpi_isleft
@@ -246,60 +246,60 @@ contains
     !
     ! X-direction
     !
-    do j=j1,max(ny,1)
-       do i=2,nx
-          ududx(i,j)        = 0.d0
-          qin               = .5d0*(qx(i,j)+qx(i-1,j))
+    do j=j1,max(s%ny,1)
+       do i=2,s%nx
+          s%ududx(i,j)        = 0.d0
+          qin               = .5d0*(s%qx(i,j)+s%qx(i-1,j))
           if (qin>0) then
-             dalfa          = alfau(i,j)-alfau(i-1,j)
-             uin            = uu(i-1,j)*cos(dalfa) + vu(i-1,j)*sin(dalfa)
-             if ((uu(i,j)-uu(i-1,j))>par%eps_sd) then
+             dalfa          = s%alfau(i,j)-s%alfau(i-1,j)
+             uin            = s%uu(i-1,j)*cos(dalfa) + s%vu(i-1,j)*sin(dalfa)
+             if ((s%uu(i,j)-s%uu(i-1,j))>par%eps_sd) then
                 ! Conservation of energy head
-                ududx(i,j)     = ududx(i,j) + 0.5d0*(uu(i-1,j)+uu(i,j))*(uu(i,j)-uin)*dnz(i,j)*dsdnui(i,j)
+                s%ududx(i,j)     = s%ududx(i,j) + 0.5d0*(s%uu(i-1,j)+s%uu(i,j))*(s%uu(i,j)-uin)*s%dnz(i,j)*s%dsdnui(i,j)
              else
                 ! Conservation of momentum
-                ududx(i,j)     = ududx(i,j) +        qin/hum(i,j)      *(uu(i,j)-uin)*dnz(i,j)*dsdnui(i,j)
+                s%ududx(i,j)     = s%ududx(i,j) +        qin/s%hum(i,j)      *(s%uu(i,j)-uin)*s%dnz(i,j)*s%dsdnui(i,j)
              endif
           endif
-          qin               = -.5d0*(qx(i,j)+qx(i+1,j))
+          qin               = -.5d0*(s%qx(i,j)+s%qx(i+1,j))
           if (qin>0) then
-             dalfa          = alfau(i,j)-alfau(i+1,j)
-             uin            = uu(i+1,j)*cos(dalfa) + vu(i+1,j)*sin(dalfa)
-             if ((uu(i+1,j)-uu(i,j))>par%eps_sd) then
+             dalfa          = s%alfau(i,j)-s%alfau(i+1,j)
+             uin            = s%uu(i+1,j)*cos(dalfa) + s%vu(i+1,j)*sin(dalfa)
+             if ((s%uu(i+1,j)-s%uu(i,j))>par%eps_sd) then
                 ! Conservation of energy head
-                ududx(i,j)     = ududx(i,j) - 0.5d0*(uu(i+1,j)+uu(i,j))*(uu(i,j)-uin)*dnz(i+1,j)*dsdnui(i,j)
+                s%ududx(i,j)     = s%ududx(i,j) - 0.5d0*(s%uu(i+1,j)+s%uu(i,j))*(s%uu(i,j)-uin)*s%dnz(i+1,j)*s%dsdnui(i,j)
              else
                 ! Conservation of momentum
-                ududx(i,j)     = ududx(i,j) +        qin/hum(i,j)      *(uu(i,j)-uin)*dnz(i+1,j)*dsdnui(i,j)
+                s%ududx(i,j)     = s%ududx(i,j) +        qin/s%hum(i,j)      *(s%uu(i,j)-uin)*s%dnz(i+1,j)*s%dsdnui(i,j)
              endif
           endif
        end do
     end do
-    do j=2,ny
-       do i=1,nx
-          vdudy(i,j)        = 0.d0
-          qin               = .5d0*(qy(i,j-1)+qy(i+1,j-1))
+    do j=2,s%ny
+       do i=1,s%nx
+          s%vdudy(i,j)        = 0.d0
+          qin               = .5d0*(s%qy(i,j-1)+s%qy(i+1,j-1))
           if (qin>0) then
-             dalfa          = alfau(i,j)-alfau(i,j-1)
-             uin            = uu(i,j-1)*cos(dalfa) + vu(i,j-1)*sin(dalfa)
-             if ((vv(i,j)-vv(i,j-1))>par%eps_sd) then
+             dalfa          = s%alfau(i,j)-s%alfau(i,j-1)
+             uin            = s%uu(i,j-1)*cos(dalfa) + s%vu(i,j-1)*sin(dalfa)
+             if ((s%vv(i,j)-s%vv(i,j-1))>par%eps_sd) then
                 ! Conservation of energy head
-                vdudy(i,j)     = vdudy(i,j) + 0.5d0*(vv(i,j-1)+vv(i+1,j-1))*(uu(i,j)-uin)*dsc(i,j-1)*dsdnui(i,j)
+                s%vdudy(i,j)     = s%vdudy(i,j) + 0.5d0*(s%vv(i,j-1)+s%vv(i+1,j-1))*(s%uu(i,j)-uin)*s%dsc(i,j-1)*s%dsdnui(i,j)
              else
                 ! Conservation of momentum
-                vdudy(i,j)     = vdudy(i,j) +        qin/hum(i,j)          *(uu(i,j)-uin)*dsc(i,j-1)*dsdnui(i,j)
+                s%vdudy(i,j)     = s%vdudy(i,j) +        qin/s%hum(i,j)          *(s%uu(i,j)-uin)*s%dsc(i,j-1)*s%dsdnui(i,j)
              endif
           endif
-          qin               = -.5d0*(qy(i,j)+qy(i+1,j))
+          qin               = -.5d0*(s%qy(i,j)+s%qy(i+1,j))
           if (qin>0) then
-             dalfa          = alfau(i,j)-alfau(i,j+1)
-             uin            = uu(i,j+1)*cos(dalfa) + vu(i,j+1)*sin(dalfa)
-             if ((vv(i,j+1)-vv(i,j))>par%eps_sd) then
+             dalfa          = s%alfau(i,j)-s%alfau(i,j+1)
+             uin            = s%uu(i,j+1)*cos(dalfa) + s%vu(i,j+1)*sin(dalfa)
+             if ((s%vv(i,j+1)-s%vv(i,j))>par%eps_sd) then
                 ! Conservation of energy head
-                vdudy(i,j)     = vdudy(i,j) - 0.5d0*(vv(i,j)+vv(i+1,j))*(uu(i,j)-uin)*dsc(i,j)*dsdnui(i,j)
+                s%vdudy(i,j)     = s%vdudy(i,j) - 0.5d0*(s%vv(i,j)+s%vv(i+1,j))*(s%uu(i,j)-uin)*s%dsc(i,j)*s%dsdnui(i,j)
              else
                 ! Conservation of momentum
-                vdudy(i,j)     = vdudy(i,j) +        qin/hum(i,j)       *(uu(i,j)-uin)*dsc(i,j)*dsdnui(i,j)
+                s%vdudy(i,j)     = s%vdudy(i,j) +        qin/s%hum(i,j)       *(s%uu(i,j)-uin)*s%dsc(i,j)*s%dsdnui(i,j)
              endif
           endif
        end do
@@ -311,24 +311,24 @@ contains
        !Use smagorinsky subgrid model
        call visc_smagorinsky(s,par)
     else
-       nuh = par%nuh
+       s%nuh = par%nuh
     endif
     ! Add viscosity for wave breaking effects
     if (par%swave == 1) then
-       do j=j1,max(ny,1)
-          do i=2,nx
-             nuh(i,j) = max(nuh(i,j),par%nuhfac*hh(i,j)*(DR(i,j)/par%rho)**(1.0d0/3.0d0)) ! Ad: change to max
+       do j=j1,max(s%ny,1)
+          do i=2,s%nx
+             s%nuh(i,j) = max(s%nuh(i,j),par%nuhfac*s%hh(i,j)*(s%DR(i,j)/par%rho)**(1.0d0/3.0d0)) ! Ad: change to max
           end do
        end do
     elseif (par%swave==0 .and. par%nonh==1) then
        select case (par%nhbreaker)
           case (1) 
-             where (breaking/=0)
-                nuh = par%breakviscfac*nuh
+             where (s%breaking/=0)
+                s%nuh = par%breakviscfac*s%nuh
              endwhere
           case (2)
-             where (breaking==1)
-                nuh = nuh + (par%nuh*par%breakvisclen*hh)**2*sqrt(dudx**2+dvdy**2)
+             where (s%breaking==1)
+                s%nuh = s%nuh + (par%nuh*par%breakvisclen*s%hh)**2*sqrt(dudx**2+dvdy**2)
              endwhere
           case (3)
              ! Ad en Arnold: Battjes 1975 formulation to smoothen front of lf wave bore in the swash
@@ -339,12 +339,12 @@ contains
        end select
     endif
 
-    do j=j1,max(ny,1)
-       do i=2,nx
+    do j=j1,max(s%ny,1)
+       do i=2,s%nx
           !write(*,*)i,j,2
-          dudx1 = nuh(i+1,j)*hh(i+1,j)*(uu(i+1,j)-uu(i,j))/dsz(i+1,j)         
-          dudx2 = nuh(i,j)  *hh(i  ,j)*(uu(i,j)-uu(i-1,j))/dsz(i,j)           
-          viscu(i,j) = (1.0d0/hum(i,j))*( 2*(dudx1-dudx2)/(dsz(i,j)+dsz(i+1,j)) )
+          dudx1 = s%nuh(i+1,j)*s%hh(i+1,j)*(s%uu(i+1,j)-s%uu(i,j))/s%dsz(i+1,j)         
+          dudx2 = s%nuh(i,j)  *s%hh(i  ,j)*(s%uu(i,j)-s%uu(i-1,j))/s%dsz(i,j)           
+          s%viscu(i,j) = (1.0d0/s%hum(i,j))*( 2*(dudx1-dudx2)/(s%dsz(i,j)+s%dsz(i+1,j)) )
        end do
     end do
 
@@ -365,80 +365,80 @@ contains
        !    mu --2 [U] + mu --2 [U]
        !       dx           dy
        !
-       viscu = 2.0d0*viscu
+       s%viscu = 2.0d0*s%viscu
     endif
 
-    do j=2,ny
-       do i=2,nx
+    do j=2,s%ny
+       do i=2,s%nx
           !Nuh is defined at eta points, interpolate from four surrounding points
-          nuh1  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,j+1)+nuh(i,j+1))
-          nuh2  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,j-1)+nuh(i,j-1))
+          nuh1  = .25d0*(s%nuh(i,j)+s%nuh(i+1,j)+s%nuh(i+1,j+1)+s%nuh(i,j+1))
+          nuh2  = .25d0*(s%nuh(i,j)+s%nuh(i+1,j)+s%nuh(i+1,j-1)+s%nuh(i,j-1))
 
-          dudy1 = nuh1 *.5d0*(hvm(i,j  )+hvm(i+1,j  ))*(uu(i,j+1)-uu(i,j))/dnc(i,j)
-          dudy2 = nuh2 *.5d0*(hvm(i,j-1)+hvm(i+1,j-1))*(uu(i,j)-uu(i,j-1))/dnc(i,j-1)
-          viscu(i,j) = viscu(i,j) + (1.0d0/hum(i,j))*( 2.0d0*(dudy1-dudy2)/(dnc(i,j)+dnc(i,j-1)) )*wetu(i,j+1)*wetu(i,j-1)
+          dudy1 = nuh1 *.5d0*(s%hvm(i,j  )+s%hvm(i+1,j  ))*(s%uu(i,j+1)-s%uu(i,j))/s%dnc(i,j)
+          dudy2 = nuh2 *.5d0*(s%hvm(i,j-1)+s%hvm(i+1,j-1))*(s%uu(i,j)-s%uu(i,j-1))/s%dnc(i,j-1)
+          s%viscu(i,j) = s%viscu(i,j) + (1.0d0/s%hum(i,j))*( 2.0d0*(dudy1-dudy2)/(s%dnc(i,j)+s%dnc(i,j-1)) )*s%wetu(i,j+1)*s%wetu(i,j-1)
        end do
     end do
 
     if (par%smag == 1) then
-       do j=2,ny
-          do i=2,nx
+       do j=2,s%ny
+          do i=2,s%nx
              !Nuh is defined at eta points, interpolate from four surrounding points
-             nuh1  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,j+1)+nuh(i,j+1))
-             nuh2  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,j-1)+nuh(i,j-1))
+             nuh1  = .25d0*(s%nuh(i,j)+s%nuh(i+1,j)+s%nuh(i+1,j+1)+s%nuh(i,j+1))
+             nuh2  = .25d0*(s%nuh(i,j)+s%nuh(i+1,j)+s%nuh(i+1,j-1)+s%nuh(i,j-1))
 
-             dvdx1 = nuh1*.5d0*(hvm(i,j  )+hvm(i+1,j  ))*(vv(i+1,j  )-vv(i,j  ))/dsc(i,j)
-             dvdx2 = nuh2*.5d0*(hvm(i,j-1)+hvm(i+1,j-1))*(vv(i+1,j-1)-vv(i,j-1))/dsc(i,j-1)
-             viscu(i,j) = viscu(i,j) + (1.d0/hum(i,j))*(dvdx1-dvdx2)/dnz(i,j)*real(wetv(i+1,j) &
-                  * wetv(i,j)*wetv(i+1,j-1)*wetv(i,j-1),8)
+             dvdx1 = nuh1*.5d0*(s%hvm(i,j  )+s%hvm(i+1,j  ))*(s%vv(i+1,j  )-s%vv(i,j  ))/s%dsc(i,j)
+             dvdx2 = nuh2*.5d0*(s%hvm(i,j-1)+s%hvm(i+1,j-1))*(s%vv(i+1,j-1)-s%vv(i,j-1))/s%dsc(i,j-1)
+             s%viscu(i,j) = s%viscu(i,j) + (1.d0/s%hum(i,j))*(dvdx1-dvdx2)/s%dnz(i,j)*real(s%wetv(i+1,j) &
+                  * s%wetv(i,j)*s%wetv(i+1,j-1)*s%wetv(i,j-1),8)
           enddo
        enddo
-    endif !smag ==1 and ny>0
+    endif !smag ==1 and s%ny>0
     !
     ! Bed friction term
-    where (wetu==1)
-       taubx=cfu*par%rho*ueu*sqrt((1.16d0*urms)**2+vmageu**2) !Ruessink et al, 2001
+    where (s%wetu==1)
+       s%taubx=s%cfu*par%rho*s%ueu*sqrt((1.16d0*s%urms)**2+s%vmageu**2) !Ruessink et al, 2001
     elsewhere
-       taubx = 0.d0
+       s%taubx = 0.d0
     endwhere
     !
     ! Explicit Euler step momentum u-direction
     !
-    do j=j1,max(ny,1)
+    do j=j1,max(s%ny,1)
        ! do i=2,nx-1   ! wwvv uu(nx,:) is never computed in this subroutine, is that ok?
        if (xmpi_isbot) then
-          imax = nx-1
+          imax = s%nx-1
        else
-          imax=nx
+          imax=s%nx
        endif
        do i=2,imax ! wwvv with this modification, parallel and serial version
           ! give the same results. If this modification is not ok, then
           ! we have a problem
-          if(wetu(i,j)==1) then
-             uu(i,j)=uu(i,j)-par%dt*(ududx(i,j)+vdudy(i,j)-viscu(i,j) & !Ap,Robert,Jaap
-                  + par%g*dzsdx(i,j) &
-                  + taubx(i,j)/(par%rho*hu(i,j)) &  ! Dano: changed hum to hu NOT cf volume approach
-                  + Fvegu(i,j) &  
-                  - par%lwave*Fx(i,j)/(par%rho*max(hum(i,j),par%hmin)) &
-                  - fc*vu(i,j) &
-                  - par%rhoa*par%Cd*windsu(i,j)**2/(par%rho*hum(i,j)))
+          if(s%wetu(i,j)==1) then
+             s%uu(i,j)=s%uu(i,j)-par%dt*(s%ududx(i,j)+s%vdudy(i,j)-s%viscu(i,j) & !Ap,Robert,Jaap
+                  + par%g*s%dzsdx(i,j) &
+                  + s%taubx(i,j)/(par%rho*s%hu(i,j)) &  ! Dano: changed s%hum to s%hu NOT s%cf volume approach
+                  + s%Fvegu(i,j) &  
+                  - par%lwave*s%Fx(i,j)/(par%rho*max(s%hum(i,j),par%hmin)) &
+                  - fc*s%vu(i,j) &
+                  - par%rhoa*par%Cd*s%windsu(i,j)**2/(par%rho*s%hum(i,j)))
           else
-             uu(i,j)=0.0d0
+             s%uu(i,j)=0.0d0
           end if
        end do
     end do
     ! Lateral boundary conditions for uu
-    if (ny>0) then
+    if (s%ny>0) then
        if (xmpi_isleft) then !Dano/Robert only on outer boundary
-          uu(1:nx+1,1)=uu(1:nx+1,2) ! RJ: can also be done after continuity but more appropriate here
+          s%uu(1:s%nx+1,1)=s%uu(1:s%nx+1,2) ! RJ: can also be done after continuity but more appropriate here
        endif
        ! Lateral boundary at y=ny*dy 
        if (xmpi_isright) then !Dano/Robert only at outer boundary
-          uu(1:nx+1,ny+1)=uu(1:nx+1,ny) ! RJ: can also be done after continuity but more appropriate here
+          s%uu(1:s%nx+1,s%ny+1)=s%uu(1:s%nx+1,s%ny) ! RJ: can also be done after continuity but more appropriate here
        endif
     endif
 #ifdef USEMPI
-    call xmpi_shift_ee(uu)
+    call xmpi_shift_ee(s%uu)
 #endif
     !
     ! Y-direction
@@ -460,221 +460,221 @@ contains
     ! Robert: in MPI every model subdomain has vv(:,ny+1) from other domain
     !         at overall model boundaries vv(:,ny+1) assumed to be vv(:,ny) and vv(:,0) = vv(:,1)
     !         so calculate vdvdy where we can
-    if (xmpi_isright .and. ny>0) then  ! no such condition needed for _isleft, because vdvdy(:,1) not needed in mpi subdomain
-       jmax = ny-1
-    elseif (xmpi_isright .and. ny==0) then
+    if (xmpi_isright .and. s%ny>0) then  ! no such condition needed for _isleft, because s%vdvdy(:,1) not needed in mpi subdomain
+       jmax = s%ny-1
+    elseif (xmpi_isright .and. s%ny==0) then
        jmax = 1
     else
-       jmax = ny
+       jmax = s%ny
     endif
-    vdvdy=0.d0
+    s%vdvdy=0.d0
     ! calculate true vdvdy up to ny in central domains and up to ny-1 on isright
     do j=2,jmax
-       do i=2,nx
-          qin               = .5d0*(qy(i,j)+qy(i,j-1))
+       do i=2,s%nx
+          qin               = .5d0*(s%qy(i,j)+s%qy(i,j-1))
           if (qin>0) then
-             dalfa          = alfav(i,j)-alfav(i,j-1)
-             vin            = vv(i,j-1)*cos(dalfa) - uv(i,j-1)*sin(dalfa)
-             if ((vv(i,j)-vv(i,j-1))>par%eps_sd) then
+             dalfa          = s%alfav(i,j)-s%alfav(i,j-1)
+             vin            = s%vv(i,j-1)*cos(dalfa) - s%uv(i,j-1)*sin(dalfa)
+             if ((s%vv(i,j)-s%vv(i,j-1))>par%eps_sd) then
                 ! Conservation of energy head
-                vdvdy(i,j)     = vdvdy(i,j) + 0.5d0*(vv(i,j-1)+vv(i,j))*(vv(i,j)-vin)*dsz(i,j)*dsdnvi(i,j)
+                s%vdvdy(i,j)     = s%vdvdy(i,j) + 0.5d0*(s%vv(i,j-1)+s%vv(i,j))*(s%vv(i,j)-vin)*s%dsz(i,j)*s%dsdnvi(i,j)
              else
                 ! Conservation of momentum
-                vdvdy(i,j)     = vdvdy(i,j) +        qin/hvm(i,j)      *(vv(i,j)-vin)*dsz(i,j)*dsdnvi(i,j)
+                s%vdvdy(i,j)     = s%vdvdy(i,j) +        qin/s%hvm(i,j)      *(s%vv(i,j)-vin)*s%dsz(i,j)*s%dsdnvi(i,j)
              endif
           endif
-          qin               = -.5d0*(qy(i,j)+qy(i,j+1))
+          qin               = -.5d0*(s%qy(i,j)+s%qy(i,j+1))
           if (qin>0) then
-             dalfa          = alfav(i,j)-alfav(i,j+1)
-             vin            = vv(i,j+1)*cos(dalfa) - uv(i,j+1)*sin(dalfa)
-             if ((vv(i,j+1)-vv(i,j))>par%eps_sd) then
+             dalfa          = s%alfav(i,j)-s%alfav(i,j+1)
+             vin            = s%vv(i,j+1)*cos(dalfa) - s%uv(i,j+1)*sin(dalfa)
+             if ((s%vv(i,j+1)-s%vv(i,j))>par%eps_sd) then
                 ! Conservation of energy head
-                vdvdy(i,j)     = vdvdy(i,j) - 0.5d0*(vv(i,j+1)+vv(i,j))*(vv(i,j)-vin)*dsz(i,j+1)*dsdnvi(i,j)
+                s%vdvdy(i,j)     = s%vdvdy(i,j) - 0.5d0*(s%vv(i,j+1)+s%vv(i,j))*(s%vv(i,j)-vin)*s%dsz(i,j+1)*s%dsdnvi(i,j)
              else
                 ! Conservation of momentum
-                vdvdy(i,j)     = vdvdy(i,j) +        qin/hvm(i,j)      *(vv(i,j)-vin)*dsz(i,j+1)*dsdnvi(i,j)
+                s%vdvdy(i,j)     = s%vdvdy(i,j) +        qin/s%hvm(i,j)      *(s%vv(i,j)-vin)*s%dsz(i,j+1)*s%dsdnvi(i,j)
              endif
           endif
        enddo
     enddo
-    if (ny>0) then 
+    if (s%ny>0) then 
        ! Global boundary conditions for vdvdy(:,1) and vdvdy(:,ny), global vdvdy(:,ny+1) not needed anywhere
        if (xmpi_isleft) then
           ! (vv(:,1)-vv(:,0))/dy == 0 so only second part of the vdvdy equation:
-          do i=2,nx
-             qin            = -.5d0*(qy(i,1)+qy(i,2))
+          do i=2,s%nx
+             qin            = -.5d0*(s%qy(i,1)+s%qy(i,2))
              if (qin>0) then
-                dalfa       = alfav(i,1)-alfav(i,2)
-                vin         = vv(i,2)*cos(dalfa) - uv(i,2)*sin(dalfa)
-                vdvdy(i,1)  = vdvdy(i,1) + qin*(vv(i,1)-vin)*dsz(i,2)/hvm(i,1)*dsdnvi(i,1)
+                dalfa       = s%alfav(i,1)-s%alfav(i,2)
+                vin         = s%vv(i,2)*cos(dalfa) - s%uv(i,2)*sin(dalfa)
+                s%vdvdy(i,1)  = s%vdvdy(i,1) + qin*(s%vv(i,1)-vin)*s%dsz(i,2)/s%hvm(i,1)*s%dsdnvi(i,1)
              endif
           enddo
        endif
        if (xmpi_isright) then
           ! (vv(:,ny+1)-vv(:,ny))/dy == 0 so only first part of the vdvdy equation:
-          do i=2,nx
-             qin            = .5d0*(qy(i,ny)+qy(i,ny-1))
+          do i=2,s%nx
+             qin            = .5d0*(s%qy(i,s%ny)+s%qy(i,s%ny-1))
              if (qin>0) then
-                dalfa       = alfav(i,ny)-alfav(i,ny-1)
-                vin         = vv(i,ny-1)*cos(dalfa) - uv(i,ny-1)*sin(dalfa)
-                vdvdy(i,ny) = vdvdy(i,ny) + qin*(vv(i,ny)-vin)*dsz(i,ny)/hvm(i,ny)*dsdnvi(i,ny)
+                dalfa       = s%alfav(i,s%ny)-s%alfav(i,s%ny-1)
+                vin         = s%vv(i,s%ny-1)*cos(dalfa) - s%uv(i,s%ny-1)*sin(dalfa)
+                s%vdvdy(i,s%ny) = s%vdvdy(i,s%ny) + qin*(s%vv(i,s%ny)-vin)*s%dsz(i,s%ny)/s%hvm(i,s%ny)*s%dsdnvi(i,s%ny)
              endif
           enddo
        endif
     endif
 
-    udvdx=0.d0
-    if (ny>0) then
+    s%udvdx=0.d0
+    if (s%ny>0) then
        ! Robert: udvdx not usually needed at j = 1
-       do j=1,ny !1,ny instead of 2,ny
-          do i=2,nx
-             qin            = .5d0*(qx(i-1,j)+qx(i-1,j+1))
+       do j=1,s%ny !1,s%ny instead of 2,s%ny
+          do i=2,s%nx
+             qin            = .5d0*(s%qx(i-1,j)+s%qx(i-1,j+1))
              if (qin>0) then
-                dalfa       = alfav(i,j)-alfav(i-1,j)
-                vin         = vv(i-1,j)*cos(dalfa) - uv(i-1,j)*sin(dalfa)
-                if ((uu(i,j)-uu(i-1,j))>par%eps_sd) then
+                dalfa       = s%alfav(i,j)-s%alfav(i-1,j)
+                vin         = s%vv(i-1,j)*cos(dalfa) - s%uv(i-1,j)*sin(dalfa)
+                if ((s%uu(i,j)-s%uu(i-1,j))>par%eps_sd) then
                    ! Conservation of energy head
-                   udvdx(i,j)     = udvdx(i,j) + 0.5d0*(uu(i-1,j)+uu(i-1,j+1))*(vv(i,j)-vin)*dnc(i-1,j)*dsdnvi(i,j)
+                   s%udvdx(i,j)     = s%udvdx(i,j) + 0.5d0*(s%uu(i-1,j)+s%uu(i-1,j+1))*(s%vv(i,j)-vin)*s%dnc(i-1,j)*s%dsdnvi(i,j)
                 else
                    ! Conservation of momentum
-                   udvdx(i,j)     = udvdx(i,j) +        qin/hvm(i,j)          *(vv(i,j)-vin)*dnc(i-1,j)*dsdnvi(i,j)
+                   s%udvdx(i,j)     = s%udvdx(i,j) +        qin/s%hvm(i,j)          *(s%vv(i,j)-vin)*s%dnc(i-1,j)*s%dsdnvi(i,j)
                 endif
              endif
-             qin            = -.5d0*(qx(i,j)+qx(i,j+1))
+             qin            = -.5d0*(s%qx(i,j)+s%qx(i,j+1))
              if (qin>0) then
-                dalfa       = alfav(i,j)-alfav(i+1,j)
-                vin         = vv(i+1,j)*cos(dalfa) - uv(i+1,j)*sin(dalfa)
-                if ((uu(i+1,j)-uu(i,j))>par%eps_sd) then
+                dalfa       = s%alfav(i,j)-s%alfav(i+1,j)
+                vin         = s%vv(i+1,j)*cos(dalfa) - s%uv(i+1,j)*sin(dalfa)
+                if ((s%uu(i+1,j)-s%uu(i,j))>par%eps_sd) then
                    ! Conservation of energy head
-                   udvdx(i,j)  = udvdx(i,j) - 0.5d0*(uu(i,j)+uu(i,j+1))*(vv(i,j)-vin)*dnc(i,j)*dsdnvi(i,j)
+                   s%udvdx(i,j)  = s%udvdx(i,j) - 0.5d0*(s%uu(i,j)+s%uu(i,j+1))*(s%vv(i,j)-vin)*s%dnc(i,j)*s%dsdnvi(i,j)
                 else
                    ! Conservation of momentum
-                   udvdx(i,j)  = udvdx(i,j) +        qin/hvm(i,j)      *(vv(i,j)-vin)*dnc(i,j)*dsdnvi(i,j)
+                   s%udvdx(i,j)  = s%udvdx(i,j) +        qin/s%hvm(i,j)      *(s%vv(i,j)-vin)*s%dnc(i,j)*s%dsdnvi(i,j)
                 endif
              endif
           end do
        end do
     else
-       do i=2,nx
-          qin               = qx(i-1,1)
+       do i=2,s%nx
+          qin               = s%qx(i-1,1)
           if (qin>0) then
-             dalfa          = alfav(i,1)-alfav(i-1,1)
-             vin            = vv(i-1,1)*cos(dalfa) - uv(i-1,1)*sin(dalfa)
-             udvdx(i,1)     = udvdx(i,1) + qin*(vv(i,1)-vin)*dnc(i-1,1)/hvm(i,1)*dsdnvi(i,1)
+             dalfa          = s%alfav(i,1)-s%alfav(i-1,1)
+             vin            = s%vv(i-1,1)*cos(dalfa) - s%uv(i-1,1)*sin(dalfa)
+             s%udvdx(i,1)     = s%udvdx(i,1) + qin*(s%vv(i,1)-vin)*s%dnc(i-1,1)/s%hvm(i,1)*s%dsdnvi(i,1)
           endif
-          qin               = -qx(i,1)
+          qin               = -s%qx(i,1)
           if (qin>0) then
-             dalfa          = alfav(i,1)-alfav(i+1,1)
-             vin            = vv(i+1,1)*cos(dalfa) - uv(i+1,1)*sin(dalfa)
-             udvdx(i,1)     = udvdx(i,1) + qin*(vv(i,1)-vin)*dnc(i,1)/hvm(i,1)*dsdnvi(i,1)
+             dalfa          = s%alfav(i,1)-s%alfav(i+1,1)
+             vin            = s%vv(i+1,1)*cos(dalfa) - s%uv(i+1,1)*sin(dalfa)
+             s%udvdx(i,1)     = s%udvdx(i,1) + qin*(s%vv(i,1)-vin)*s%dnc(i,1)/s%hvm(i,1)*s%dsdnvi(i,1)
           endif
        enddo
     endif
     !
-    viscv =0.d0 
-    do j=2,ny
-       do i=2,nx
-          dvdy1 = nuh(i,j+1)*hh(i,j+1)*(vv(i,j+1)-vv(i,j))/dnz(i,j+1)
-          dvdy2 = nuh(i,j)  *hh(i,j  )*(vv(i,j)-vv(i,j-1))/dnz(i,j)
-          viscv(i,j) = (1.0d0/hvm(i,j))* 2*(dvdy1-dvdy2)/(dnz(i,j)+dnz(i,j+1))*wetv(i,j+1)*wetv(i,j-1)
+    s%viscv =0.d0 
+    do j=2,s%ny
+       do i=2,s%nx
+          dvdy1 = s%nuh(i,j+1)*s%hh(i,j+1)*(s%vv(i,j+1)-s%vv(i,j))/s%dnz(i,j+1)
+          dvdy2 = s%nuh(i,j)  *s%hh(i,j  )*(s%vv(i,j)-s%vv(i,j-1))/s%dnz(i,j)
+          s%viscv(i,j) = (1.0d0/s%hvm(i,j))* 2*(dvdy1-dvdy2)/(s%dnz(i,j)+s%dnz(i,j+1))*s%wetv(i,j+1)*s%wetv(i,j-1)
        end do
     end do
     ! Robert: global boundary at (:,1) edge
-    if (ny>0) then
+    if (s%ny>0) then
        if (xmpi_isleft) then
-          viscv(:,1) = viscv(:,2)
+          s%viscv(:,1) = s%viscv(:,2)
        endif
        if (xmpi_isright) then
-          viscv(:,ny) = viscv(:,ny-1)
+          s%viscv(:,s%ny) = s%viscv(:,s%ny-1)
        endif
     endif
     !
     ! Viscosity
     !
     if (par%smag == 1) then
-       viscv = 2.0d0*viscv
+       s%viscv = 2.0d0*s%viscv
     endif
 
-    nuh = par%nuhv*nuh !Robert en Ap: increase nuh interaction in d2v/dx2
-    do j=1,max(ny,1)
-       jp1 = min(j+1,ny+1)
-       do i=2,nx
+    s%nuh = par%nuhv*s%nuh !Robert en Ap: increase s%nuh interaction in d2v/dx2
+    do j=1,max(s%ny,1)
+       jp1 = min(j+1,s%ny+1)
+       do i=2,s%nx
           !Nuh is defined at eta points, interpolate from four surrounding points
-          nuh1  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,jp1)+nuh(i,jp1))
-          nuh2  = .25d0*(nuh(i,j)+nuh(i-1,j)+nuh(i-1,jp1)+nuh(i,jp1))
+          nuh1  = .25d0*(s%nuh(i,j)+s%nuh(i+1,j)+s%nuh(i+1,jp1)+s%nuh(i,jp1))
+          nuh2  = .25d0*(s%nuh(i,j)+s%nuh(i-1,j)+s%nuh(i-1,jp1)+s%nuh(i,jp1))
 
-          dvdx1 = nuh1*.5d0*(hum(i  ,j)+hum(i  ,jp1))*(vv(i+1,j)-vv(i,j))/dsc(i,j)
-          dvdx2 = nuh2*.5d0*(hum(i-1,j)+hum(i-1,jp1))*(vv(i,j)-vv(i-1,j))/dsc(i-1,j)
-          viscv(i,j) = viscv(i,j) + (1.0d0/hvm(i,j))*( 2*(dvdx1-dvdx2)/(dsc(i-1,j)+dsc(i,j)) )*wetv(i+1,j)*wetv(i-1,j)
+          dvdx1 = nuh1*.5d0*(s%hum(i  ,j)+s%hum(i  ,jp1))*(s%vv(i+1,j)-s%vv(i,j))/s%dsc(i,j)
+          dvdx2 = nuh2*.5d0*(s%hum(i-1,j)+s%hum(i-1,jp1))*(s%vv(i,j)-s%vv(i-1,j))/s%dsc(i-1,j)
+          s%viscv(i,j) = s%viscv(i,j) + (1.0d0/s%hvm(i,j))*( 2*(dvdx1-dvdx2)/(s%dsc(i-1,j)+s%dsc(i,j)) )*s%wetv(i+1,j)*s%wetv(i-1,j)
        end do
     end do
     !
     if (par%smag == 1) then
-       do j=1,max(ny,1)
-          jp1 = min(j+1,ny+1)
-          do i=2,nx
+       do j=1,max(s%ny,1)
+          jp1 = min(j+1,s%ny+1)
+          do i=2,s%nx
              !Nuh is defined at eta points, interpolate from four surrounding points
-             nuh1  = .25d0*(nuh(i,j)+nuh(i+1,j)+nuh(i+1,jp1)+nuh(i,jp1))
-             nuh2  = .25d0*(nuh(i,j)+nuh(i-1,j)+nuh(i-1,jp1)+nuh(i,jp1))
+             nuh1  = .25d0*(s%nuh(i,j)+s%nuh(i+1,j)+s%nuh(i+1,jp1)+s%nuh(i,jp1))
+             nuh2  = .25d0*(s%nuh(i,j)+s%nuh(i-1,j)+s%nuh(i-1,jp1)+s%nuh(i,jp1))
 
-             dudy1 = nuh1 *.5d0*(hum(i  ,j)+hum(i  ,jp1))*(uu(i,jp1  )-uu(i,j  ))/dnc(i,j)
-             dudy2 = nuh2 *.5d0*(hum(i-1,j)+hum(i-1,jp1))*(uu(i-1,jp1)-uu(i-1,j))/dnc(i-1,j)
+             dudy1 = nuh1 *.5d0*(s%hum(i  ,j)+s%hum(i  ,jp1))*(s%uu(i,jp1  )-s%uu(i,j  ))/s%dnc(i,j)
+             dudy2 = nuh2 *.5d0*(s%hum(i-1,j)+s%hum(i-1,jp1))*(s%uu(i-1,jp1)-s%uu(i-1,j))/s%dnc(i-1,j)
 
-             viscv(i,j) = viscv(i,j) + (1.d0/hvm(i,j))*(dudy1-dudy2)/dsz(i,j)  &
-                  * real(wetu(i,jp1)*wetu(i,j)*wetu(i-1,jp1)*wetv(i-1,j),8)
+             s%viscv(i,j) = s%viscv(i,j) + (1.d0/s%hvm(i,j))*(dudy1-dudy2)/s%dsz(i,j)  &
+                  * real(s%wetu(i,jp1)*s%wetu(i,j)*s%wetu(i-1,jp1)*s%wetv(i-1,j),8)
           enddo
        enddo
     endif
     !
     ! Bed friction term
     !
-    where (wetv==1)
-       tauby=cfv*par%rho*vev*sqrt((1.16d0*urms)**2+vmagev**2) !Ruessink et al, 2001
+    where (s%wetv==1)
+       s%tauby=s%cfv*par%rho*s%vev*sqrt((1.16d0*s%urms)**2+s%vmagev**2) !Ruessink et al, 2001
     elsewhere
-       tauby = 0.d0
+       s%tauby = 0.d0
     endwhere
     !
     ! Explicit Euler step momentum v-direction
     !
-    if (ny==0) then
+    if (s%ny==0) then
        jmin = 1
     else
        jmin = 2
-       if (ny==2) then
-          jmax = 2 ! Robert: very special case of ny=2 and xmpi_isright would otherwise lead to no calculation of vv with Neumann boundaries
+       if (s%ny==2) then
+          jmax = 2 ! Robert: very special case of s%ny=2 and xmpi_isright would otherwise lead to no calculation of s%vv with Neumann boundaries
        endif
     endif
     !
     do j=jmin,jmax
-       do i=2,nx !jaap instead of nx+1
-          if(wetv(i,j)==1) then
+       do i=2,s%nx !jaap instead of s%nx+1
+          if(s%wetv(i,j)==1) then
              ! Robert: ensure taubx always has the same sign as uu (always decelerates)
              ! Dano: I don't agree 
-             vv(i,j)=vv(i,j)-par%dt*(udvdx(i,j)+vdvdy(i,j)-viscv(i,j)& !Ap,Robert,Jaap
-                  + par%g*dzsdy(i,j)&
-                  + tauby(i,j)/(par%rho*hv(i,j)) &  ! Dano: hv instead of hvm, NOT cf volume approach
-                  + Fvegv(i,j) &
-                  - par%lwave*Fy(i,j)/(par%rho*max(hvm(i,j),par%hmin)) &
-                  + fc*uv(i,j) &
-                  - par%rhoa*par%Cd*windnv(i,j)**2/(par%rho*hvm(i,j)))
+             s%vv(i,j)=s%vv(i,j)-par%dt*(s%udvdx(i,j)+s%vdvdy(i,j)-s%viscv(i,j)& !Ap,Robert,Jaap
+                  + par%g*s%dzsdy(i,j)&
+                  + s%tauby(i,j)/(par%rho*s%hv(i,j)) &  ! Dano: s%hv instead of s%hvm, NOT s%cf volume approach
+                  + s%Fvegv(i,j) &
+                  - par%lwave*s%Fy(i,j)/(par%rho*max(s%hvm(i,j),par%hmin)) &
+                  + fc*s%uv(i,j) &
+                  - par%rhoa*par%Cd*s%windnv(i,j)**2/(par%rho*s%hvm(i,j)))
           else
-             vv(i,j)=0.0d0
+             s%vv(i,j)=0.0d0
           end if
        end do
     end do
     ! Communicate vv at internal boundaries
 #ifdef USEMPI
-    call xmpi_shift_ee(vv)
+    call xmpi_shift_ee(s%vv)
 #endif
     ! Robert: Boundary conditions along the global boundaries
     ! Function flow_lat_bc located in boundaryconditions.F90
     ! function call takes care of 1D vs 2D models and boundary condition types
-    if (ny>0) then
+    if (s%ny>0) then
        if (xmpi_isleft) then
-          vv(:,1)=flow_lat_bc(s,par,par%right,1,2,udvdx(:,1),vdvdy(:,1),viscv(:,1))
+          s%vv(:,1)=flow_lat_bc(s,par,par%right,1,2,s%udvdx(:,1),s%vdvdy(:,1),s%viscv(:,1))
        endif
        if (xmpi_isright) then
-          vv(:,ny)=flow_lat_bc(s,par,par%left,ny,ny-1,udvdx(:,ny),vdvdy(:,ny),viscv(:,ny))
+          s%vv(:,s%ny)=flow_lat_bc(s,par,par%left,s%ny,s%ny-1,s%udvdx(:,s%ny),s%vdvdy(:,s%ny),s%viscv(:,s%ny))
        endif
     endif
 
@@ -683,8 +683,8 @@ contains
        call nonh_explicit(s,par)
     
 #ifdef USEMPI
-         call xmpi_shift_ee(uu)
-         call xmpi_shift_ee(vv)
+         call xmpi_shift_ee(s%uu)
+         call xmpi_shift_ee(s%vv)
 #endif
     end if
 
@@ -692,56 +692,56 @@ contains
        !Call second order correction to the advection
        call flow_secondorder_advUV(s,par,uu_old,vv_old)
 #ifdef USEMPI
-         call xmpi_shift_ee(uu)
-         call xmpi_shift_ee(vv)
+         call xmpi_shift_ee(s%uu)
+         call xmpi_shift_ee(s%vv)
 #endif
     end if
 
     ! Pieter and Jaap: update hu en hv for continuity
-    do j=1,ny+1
-       do i=1,nx+1 !Ap
+    do j=1,s%ny+1
+       do i=1,s%nx+1 !Ap
           ! Water depth in u-points do continuity equation: upwind
-          if (uu(i,j)>par%umin) then
+          if (s%uu(i,j)>par%umin) then
              if (par%oldhu == 1) then 
-                hu(i,j)=hh(i,j)
+                s%hu(i,j)=s%hh(i,j)
              else
-                hu(i,j)=zs(i,j)-max(zb(i,j),zb(min(nx,i)+1,j))
+                s%hu(i,j)=s%zs(i,j)-max(s%zb(i,j),s%zb(min(s%nx,i)+1,j))
              endif
-          elseif (uu(i,j)<-par%umin) then
+          elseif (s%uu(i,j)<-par%umin) then
              if (par%oldhu == 1) then 
-                hu(i,j)=hh(min(nx,i)+1,j)
+                s%hu(i,j)=s%hh(min(s%nx,i)+1,j)
              else
-                hu(i,j)=zs(min(nx,i)+1,j)-max(zb(i,j),zb(min(nx,i)+1,j))
+                s%hu(i,j)=s%zs(min(s%nx,i)+1,j)-max(s%zb(i,j),s%zb(min(s%nx,i)+1,j))
              endif
           else
-             hu(i,j)=max(max(zs(i,j),zs(min(nx,i)+1,j))-max(zb(i,j),zb(min(nx,i)+1,j)),par%eps)
+             s%hu(i,j)=max(max(s%zs(i,j),s%zs(min(s%nx,i)+1,j))-max(s%zb(i,j),s%zb(min(s%nx,i)+1,j)),par%eps)
           end if
        end do
     end do
 
-    hu = max(hu,0.d0)
+    s%hu = max(s%hu,0.d0)
 
-    do j=1,ny+1
-       do i=1,nx+1
+    do j=1,s%ny+1
+       do i=1,s%nx+1
           ! Water depth in v-points do continuity equation: upwind
-          if (vv(i,j)>par%umin) then
+          if (s%vv(i,j)>par%umin) then
              if (par%oldhu == 1) then 
-                hv(i,j)=hh(i,j)
+                s%hv(i,j)=s%hh(i,j)
              else
-                hv(i,j)=zs(i,j)-max(zb(i,j),zb(i,min(ny,j)+1))
+                s%hv(i,j)=s%zs(i,j)-max(s%zb(i,j),s%zb(i,min(s%ny,j)+1))
              endif
-          elseif (vv(i,j)<-par%umin) then
+          elseif (s%vv(i,j)<-par%umin) then
              if (par%oldhu == 1) then 
-                hv(i,j)=hh(i,min(ny,j)+1)
+                s%hv(i,j)=s%hh(i,min(s%ny,j)+1)
              else
-                hv(i,j)=zs(i,min(ny,j)+1)-max(zb(i,j),zb(i,min(ny,j)+1))
+                s%hv(i,j)=s%zs(i,min(s%ny,j)+1)-max(s%zb(i,j),s%zb(i,min(s%ny,j)+1))
              endif
           else
-             hv(i,j)=max(max(zs(i,j),zs(i,min(ny,j)+1))-max(zb(i,j),zb(i,min(ny,j)+1)),par%eps)
+             s%hv(i,j)=max(max(s%zs(i,j),s%zs(i,min(s%ny,j)+1))-max(s%zb(i,j),s%zb(i,min(s%ny,j)+1)),par%eps)
           end if
        end do
     end do
-    hv = max(hv,0.d0)
+    s%hv = max(s%hv,0.d0)
 
     if (par%nonh==1) then
        ! do non-hydrostatic pressure compensation to solve short waves
@@ -750,11 +750,11 @@ contains
     end if
 
     ! Flux in u-point
-    qx=uu*hu
+    s%qx=s%uu*s%hu
     ! Flux in v-points
     ! first column of qy is used later, and it is defined in the loop above
     ! no communication  necessary at this point
-    qy=vv*hv
+    s%qy=s%vv*s%hv
     !
     ! Add horizontal discharges
     !
@@ -763,32 +763,32 @@ contains
     ! Update water level using continuity eq.
     !
     if (xmpi_isright) then
-       jmax=ny
+       jmax=s%ny
     else
-       jmax=ny+1
+       jmax=s%ny+1
     endif
     if (xmpi_isbot) then
-       imax=nx
+       imax=s%nx
     else
-       imax=nx+1
+       imax=s%nx+1
     endif
-    if (ny>0) then
+    if (s%ny>0) then
        do j=2,jmax
           do i=2,imax
-             dzsdt(i,j) = (-1.d0)*( qx(i,j)*dnu(i,j)-qx(i-1,j)*dnu(i-1,j)  &
-                  + qy(i,j)*dsv(i,j)-qy(i,j-1)*dsv(i,j-1) )*dsdnzi(i,j) &
-                  - infil(i,j)
+             s%dzsdt(i,j) = (-1.d0)*( s%qx(i,j)*s%dnu(i,j)-s%qx(i-1,j)*s%dnu(i-1,j)  &
+                  + s%qy(i,j)*s%dsv(i,j)-s%qy(i,j-1)*s%dsv(i,j-1) )*s%dsdnzi(i,j) &
+                  - s%infil(i,j)
           end do
        end do
-       zs(2:nx,2:ny) = zs(2:nx,2:ny)+dzsdt(2:nx,2:ny)*par%dt !Jaap nx instead of nx+1
+       s%zs(2:s%nx,2:s%ny) = s%zs(2:s%nx,2:s%ny)+s%dzsdt(2:s%nx,2:s%ny)*par%dt !Jaap s%nx instead of s%nx+1
     else
        j=1
        do i=2,imax
-          dzsdt(i,j) = (-1.d0)*( qx(i,j)*dnu(i,j)-qx(i-1,j)*dnu(i-1,j) )*dsdnzi(i,j) &
-                        - infil(i,j)
+          s%dzsdt(i,j) = (-1.d0)*( s%qx(i,j)*s%dnu(i,j)-s%qx(i-1,j)*s%dnu(i-1,j) )*s%dsdnzi(i,j) &
+                        - s%infil(i,j)
        end do
-       zs(2:nx,1) = zs(2:nx,1)+dzsdt(2:nx,1)*par%dt !Jaap nx instead of nx+1
-    endif !ny>0
+       s%zs(2:s%nx,1) = s%zs(2:s%nx,1)+s%dzsdt(2:s%nx,1)*par%dt !Jaap s%nx instead of s%nx+1
+    endif !s%ny>0
     ! call discharge_boundary(s,par)
     !
 
@@ -800,206 +800,206 @@ contains
     !
     ! Lateral boundary conditions
     !
-    if (ny>0) then
+    if (s%ny>0) then
        ! RJ: Neumann water levels in case of right = 1 or right = 0
-       do i=1,nx+1
+       do i=1,s%nx+1
           ! Jaap multiply with wetz(i,ny+1)*wetz(i,1) here to prevent prsssure grdaient over land
-          dzsdnavg=wetz(i,ny+1)*wetz(i,1)*(zs0(i,ny+1)-zs0(i,1))/(ndist(i,ny+1)-ndist(i,1))
+          dzsdnavg=s%wetz(i,s%ny+1)*s%wetz(i,1)*(s%zs0(i,s%ny+1)-s%zs0(i,1))/(s%ndist(i,s%ny+1)-s%ndist(i,1))
           ! Lateral boundary at y=0
           if (xmpi_isleft) then
-             zs(i,1)=max(zs(i,2) - dzsdnavg*dnv(i,1),zb(i,1))
+             s%zs(i,1)=max(s%zs(i,2) - dzsdnavg*s%dnv(i,1),s%zb(i,1))
           endif
           ! Lateral boundary at y=ny+1
           if (xmpi_isright) then
-             zs(i,ny+1)=max(zs(i,ny) + dzsdnavg*dnv(i,ny),zb(i,ny+1))
+             s%zs(i,s%ny+1)=max(s%zs(i,s%ny) + dzsdnavg*s%dnv(i,s%ny),s%zb(i,s%ny+1))
           endif
        enddo
-    endif !ny>0
+    endif !s%ny>0
 
 
     ! wwvv zs, uu, vv have to be communicated now, because they are used later on
 #ifdef USEMPI
-    call xmpi_shift_ee(zs)
+    call xmpi_shift_ee(s%zs)
 #endif
 
     if (par%secorder == 1) then
-       vv_old = vv
-       uu_old = uu
-       zs_old = zs
+       vv_old = s%vv
+       uu_old = s%uu
+       zs_old = s%zs
     endif
 
     ! offshore boundary
     !
     ! U and V in cell centre; do output and sediment stirring
     !
-    u(2:nx,:)=0.5d0*(uu(1:nx-1,:)+uu(2:nx,:))
+    s%u(2:s%nx,:)=0.5d0*(s%uu(1:s%nx-1,:)+s%uu(2:s%nx,:))
     if(xmpi_istop) then
-       u(1,:)=uu(1,:)
+       s%u(1,:)=s%uu(1,:)
     endif
     if(xmpi_isbot) then
-       u(nx+1,:)=u(nx,:)
+       s%u(s%nx+1,:)=s%u(s%nx,:)
     endif
 
-    if (ny>0) then
-       v(:,2:ny)=0.5d0*(vv(:,1:ny-1)+vv(:,2:ny))
+    if (s%ny>0) then
+       s%v(:,2:s%ny)=0.5d0*(s%vv(:,1:s%ny-1)+s%vv(:,2:s%ny))
        if(xmpi_isleft) then
-          v(:,1)=vv(:,1)
+          s%v(:,1)=s%vv(:,1)
        endif
        if(xmpi_isright) then
-          v(:,ny+1)=v(:,ny)        ! bas: need this for calculation of ee in wci routine
+          s%v(:,s%ny+1)=s%v(:,s%ny)        ! bas: need this for calculation of s%ee in wci routine
        endif
        !Ap
-       v(nx+1,:)=v(nx,:)
+       s%v(s%nx+1,:)=s%v(s%nx,:)
     else ! Dano
-       v=vv
-    endif !ny>0
+       s%v=s%vv
+    endif !s%ny>0
 
     ! Robert + Jaap: compute derivatives of u and v
     !
 
-    sinthm = sin(thetamean-alfaz)
-    costhm = cos(thetamean-alfaz)
+    sinthm = sin(s%thetamean-s%alfaz)
+    costhm = cos(s%thetamean-s%alfaz)
 
     ! V-velocities at u-points
-    if (ny>0) then
-       vu(1:nx,2:ny)= 0.25d0*(vv(1:nx,1:ny-1)+vv(1:nx,2:ny)+ &
-            vv(2:nx+1,1:ny-1)+vv(2:nx+1,2:ny))
+    if (s%ny>0) then
+       s%vu(1:s%nx,2:s%ny)= 0.25d0*(s%vv(1:s%nx,1:s%ny-1)+s%vv(1:s%nx,2:s%ny)+ &
+            s%vv(2:s%nx+1,1:s%ny-1)+s%vv(2:s%nx+1,2:s%ny))
        ! how about boundaries?
        if(xmpi_isleft) then
-          vu(:,1) = vu(:,2)
+          s%vu(:,1) = s%vu(:,2)
        endif
        if(xmpi_isright) then
-          vu(:,ny+1) = vu(:,ny)
+          s%vu(:,s%ny+1) = s%vu(:,s%ny)
        endif
     else 
-       vu(1:nx,1)= 0.5d0*(vv(1:nx,1)+vv(2:nx+1,1))
-    endif !ny>0
+       s%vu(1:s%nx,1)= 0.5d0*(s%vv(1:s%nx,1)+s%vv(2:s%nx+1,1))
+    endif !s%ny>0
     ! wwvv fill in vu(:1) and vu(:ny+1) for non-left and non-right processes
     !  and vu(nx+1,:)
-    vu=vu*wetu
+    s%vu=s%vu*s%wetu
     ! V-stokes velocities at U point
-    if (ny>0) then
-       vsu(1:nx,2:ny)=0.5d0*(ust(1:nx,2:ny)*sinthm(1:nx,2:ny)+ &
-            ust(2:nx+1,2:ny)*sinthm(2:nx+1,2:ny))
+    if (s%ny>0) then
+       vsu(1:s%nx,2:s%ny)=0.5d0*(s%ust(1:s%nx,2:s%ny)*sinthm(1:s%nx,2:s%ny)+ &
+            s%ust(2:s%nx+1,2:s%ny)*sinthm(2:s%nx+1,2:s%ny))
        if(xmpi_isleft) then
           vsu(:,1)=vsu(:,2)
        endif
        if(xmpi_isright) then
-          vsu(:,ny+1) = vsu(:,ny)
+          vsu(:,s%ny+1) = vsu(:,s%ny)
        endif
     else
-       vsu(1:nx,1)=0.5d0*(ust(1:nx,1)*sinthm(1:nx,1)+ &
-            ust(2:nx+1,1)*sinthm(2:nx+1,1))
-    endif !ny>0
+       vsu(1:s%nx,1)=0.5d0*(s%ust(1:s%nx,1)*sinthm(1:s%nx,1)+ &
+            s%ust(2:s%nx+1,1)*sinthm(2:s%nx+1,1))
+    endif !s%ny>0
     ! wwvv same for vsu
-    vsu = vsu*wetu
+    vsu = vsu*s%wetu
     ! U-stokes velocities at U point
-    if (ny>0) then
-       usu(1:nx,2:ny)=0.5d0*(ust(1:nx,2:ny)*costhm(1:nx,2:ny)+ &
-            ust(2:nx+1,2:ny)*costhm(2:nx+1,2:ny))
+    if (s%ny>0) then
+       usu(1:s%nx,2:s%ny)=0.5d0*(s%ust(1:s%nx,2:s%ny)*costhm(1:s%nx,2:s%ny)+ &
+            s%ust(2:s%nx+1,2:s%ny)*costhm(2:s%nx+1,2:s%ny))
        if(xmpi_isleft) then
           usu(:,1)=usu(:,2)
        endif
        if(xmpi_isright) then
-          usu(:,ny+1)=usu(:,ny)
+          usu(:,s%ny+1)=usu(:,s%ny)
        endif
     else
-       usu(1:nx,1)=0.5d0*(ust(1:nx,1)*costhm(1:nx,1)+ &
-            ust(2:nx+1,1)*costhm(2:nx+1,1))
-    endif !ny>0
+       usu(1:s%nx,1)=0.5d0*(s%ust(1:s%nx,1)*costhm(1:s%nx,1)+ &
+            s%ust(2:s%nx+1,1)*costhm(2:s%nx+1,1))
+    endif !s%ny>0
     ! wwvv same for usu   
-    usu=usu*wetu
+    usu=usu*s%wetu
 
     ! V-euler velocities at u-point
-    veu = vu - vsu
+    veu = s%vu - vsu
     ! U-euler velocties at u-point
-    ueu = uu - usu
+    s%ueu = s%uu - usu
     ! Velocity magnitude at u-points
     if (par%sedtrans == 0) then
-       vmagu=sqrt(uu**2+vu**2)
+       s%vmagu=sqrt(s%uu**2+s%vu**2)
     endif
     ! Eulerian velocity magnitude at u-points
-    vmageu=sqrt(ueu**2+veu**2)
+    s%vmageu=sqrt(s%ueu**2+veu**2)
 
     ! U-velocities at v-points
-    if (ny>0) then
-       uv(2:nx,1:ny)= .25d0*(uu(1:nx-1,1:ny)+uu(2:nx,1:ny)+ &
-            uu(1:nx-1,2:ny+1)+uu(2:nx,2:ny+1))
+    if (s%ny>0) then
+       s%uv(2:s%nx,1:s%ny)= .25d0*(s%uu(1:s%nx-1,1:s%ny)+s%uu(2:s%nx,1:s%ny)+ &
+            s%uu(1:s%nx-1,2:s%ny+1)+s%uu(2:s%nx,2:s%ny+1))
        ! boundaries?
        ! wwvv and what about uv(:,1) ?
        if(xmpi_isright) then
-          uv(:,ny+1) = uv(:,ny)
+          s%uv(:,s%ny+1) = s%uv(:,s%ny)
        endif
     else
-       uv(2:nx,1)= .5d0*(uu(1:nx-1,1)+uu(2:nx,1))
-    endif !ny>0
+       s%uv(2:s%nx,1)= .5d0*(s%uu(1:s%nx-1,1)+s%uu(2:s%nx,1))
+    endif !s%ny>0
     ! wwvv fix uv(:,ny+1) for non-right processes
     ! uv(1,:) and uv(nx+1,:) need to be filled in for
     ! non-bot or top processes
-    uv=uv*wetv
+    s%uv=s%uv*s%wetv
     ! V-stokes velocities at V point
-    if (ny>0) then
-       vsv(2:nx,1:ny)=0.5d0*(ust(2:nx,1:ny)*sinthm(2:nx,1:ny)+&
-            ust(2:nx,2:ny+1)*sinthm(2:nx,2:ny+1))
+    if (s%ny>0) then
+       vsv(2:s%nx,1:s%ny)=0.5d0*(s%ust(2:s%nx,1:s%ny)*sinthm(2:s%nx,1:s%ny)+&
+            s%ust(2:s%nx,2:s%ny+1)*sinthm(2:s%nx,2:s%ny+1))
        if(xmpi_isleft) then
           vsv(:,1) = vsv(:,2)
        endif
        if(xmpi_isright) then
-          vsv(:,ny+1) = vsv(:,ny)
+          vsv(:,s%ny+1) = vsv(:,s%ny)
        endif
     else
-       vsv(2:nx,1)= ust(2:nx,1)*sinthm(2:nx,1)
-    endif !ny>0
+       vsv(2:s%nx,1)= s%ust(2:s%nx,1)*sinthm(2:s%nx,1)
+    endif !s%ny>0
     ! wwvv fix vsv(:,1) and vsv(:,ny+1) and vsv(1,:) and vsv(nx+1,:)
 
-    vsv=vsv*wetv
+    vsv=vsv*s%wetv
     ! U-stokes velocities at V point
-    if (ny>0) then
-       usv(2:nx,1:ny)=0.5d0*(ust(2:nx,1:ny)*costhm(2:nx,1:ny)+&
-            ust(2:nx,2:ny+1)*costhm(2:nx,2:ny+1))
+    if (s%ny>0) then
+       usv(2:s%nx,1:s%ny)=0.5d0*(s%ust(2:s%nx,1:s%ny)*costhm(2:s%nx,1:s%ny)+&
+            s%ust(2:s%nx,2:s%ny+1)*costhm(2:s%nx,2:s%ny+1))
        if(xmpi_isleft) then
           usv(:,1) = usv(:,2)
        endif
        if(xmpi_isright) then
-          usv(:,ny+1) = usv(:,ny)
+          usv(:,s%ny+1) = usv(:,s%ny)
        endif
     else
-       usv(2:nx,1)=ust(2:nx,1)*costhm(2:nx,1)
-    endif !ny>0
+       usv(2:s%nx,1)=s%ust(2:s%nx,1)*costhm(2:s%nx,1)
+    endif !s%ny>0
     ! wwvv fix usv(:,1) and usv(:,ny+1) and usv(1,:) and usv(nx+1,:)
-    usv=usv*wetv
+    usv=usv*s%wetv
 
     ! V-euler velocities at V-point
-    vev = vv - vsv
+    s%vev = s%vv - vsv
     ! U-euler velocties at V-point
-    uev = uv - usv
+    uev = s%uv - usv
     ! Velocity magnitude at v-points
     if (par%sedtrans==0) then
-       vmagv=sqrt(uv**2+vv**2)
+       s%vmagv=sqrt(s%uv**2+s%vv**2)
     endif
     ! Eulerian velocity magnitude at v-points
-    vmagev=sqrt(uev**2+vev**2)
+    s%vmagev=sqrt(uev**2+s%vev**2)
 
 
     ! Ue and Ve in cell centre; do output and sediment stirring
-    ue(2:nx,:)=0.5d0*(ueu(1:nx-1,:)+ueu(2:nx,:))
-    ue(1,:)=ueu(1,:)
+    s%ue(2:s%nx,:)=0.5d0*(s%ueu(1:s%nx-1,:)+s%ueu(2:s%nx,:))
+    s%ue(1,:)=s%ueu(1,:)
     ! wwvv ue(nx+1,:) ?
 
-    if (ny>0) then
-       ve(:,2:ny)=0.5d0*(vev(:,1:ny-1)+vev(:,2:ny)) !Jaap ny+1
-       ve(:,1)=vev(:,1)
+    if (s%ny>0) then
+       s%ve(:,2:s%ny)=0.5d0*(s%vev(:,1:s%ny-1)+s%vev(:,2:s%ny)) !Jaap s%ny+1
+       s%ve(:,1)=s%vev(:,1)
     else
-       ve(:,1) = vev(:,1)
-    endif !ny>0
+       s%ve(:,1) = s%vev(:,1)
+    endif !s%ny>0
     ! wwvv vev(nx+1,:) ?
     !
-    hold =hh    ! wwvv ?  hold is never else used
+    s%hold =s%hh    ! wwvv ?  s%hold is never else used
     !
-    hh=max(zs-zb,par%eps)
+    s%hh=max(s%zs-s%zb,par%eps)
 
-    maxzs=max(zs,maxzs)
-    minzs=min(zs,minzs)
+    s%maxzs=max(s%zs,s%maxzs)
+    s%minzs=min(s%zs,s%minzs)
 
   end subroutine flow
 
@@ -1055,54 +1055,54 @@ contains
     integer                                                 :: i    !Index variable
     integer                                                 :: j    !Index variable
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     !-------------------------------------------------------------------------------
     !                             IMPLEMENTATION
     !-------------------------------------------------------------------------------
 
     !MPI WARNING -> Check loop indices
-    if (ny>2) then
-       do j=2,ny
-          do i=2,nx
-             dudx = (uu(i,j)-uu(i-1,j))/dsz(i,j)
-             dudy = .5d0*(uu(i,j+1) - uu(i,j-1) + uu(i-1,j+1) - uu(i-1,j-1))/(dnv(i,j)+dnv(i,j-1))
-             dvdx = .5d0*(vv(i+1,j) - vv(i-1,j) + vv(i+1,j-1) - vv(i-1,j-1))/(dsu(i,j)+dsu(i-1,j))
-             dvdy = (vv(i,j)-vv(i,j-1))/dnz(i,j)
+    if (s%ny>2) then
+       do j=2,s%ny
+          do i=2,s%nx
+             dudx = (s%uu(i,j)-s%uu(i-1,j))/s%dsz(i,j)
+             dudy = .5d0*(s%uu(i,j+1) - s%uu(i,j-1) + s%uu(i-1,j+1) - s%uu(i-1,j-1))/(s%dnv(i,j)+s%dnv(i,j-1))
+             dvdx = .5d0*(s%vv(i+1,j) - s%vv(i-1,j) + s%vv(i+1,j-1) - s%vv(i-1,j-1))/(s%dsu(i,j)+s%dsu(i-1,j))
+             dvdy = (s%vv(i,j)-s%vv(i,j-1))/s%dnz(i,j)
              Tau  = sqrt(2.0d0 * dudx**2+2.0d0 * dvdy**2 + (dvdx+dudy)**2)
-             l    = 1.d0/dsdnzi(i,j)
-             nuh(i,j) = par%nuh**2 * l * Tau * real(wetu(i,j)*wetu(i-1,j)*wetv(i,j)*wetv(i,j-1),kind=8)
+             l    = 1.d0/s%dsdnzi(i,j)
+             s%nuh(i,j) = par%nuh**2 * l * Tau * real(s%wetu(i,j)*s%wetu(i-1,j)*s%wetv(i,j)*s%wetv(i,j-1),kind=8)
           enddo
        enddo
 
     else
 
-       j = max(ny,1)
+       j = max(s%ny,1)
 
-       do i=2,nx
-          dudx = (uu(i,j)-uu(i-1,j))/dsz(i,j)
-          dvdx = (vv(i+1,j) - vv(i-1,j) )/(dsu(i,j)+dsu(i-1,j))
+       do i=2,s%nx
+          dudx = (s%uu(i,j)-s%uu(i-1,j))/s%dsz(i,j)
+          dvdx = (s%vv(i+1,j) - s%vv(i-1,j) )/(s%dsu(i,j)+s%dsu(i-1,j))
           Tau  = sqrt(2.0d0 * dudx**2 + dvdx**2)
 
           if (par%dy > -1.d0) then
-             l = dsz(i,j)*par%dy
+             l = s%dsz(i,j)*par%dy
           else
-             l = dsz(i,j)**2
+             l = s%dsz(i,j)**2
           endif
 
-          nuh(i,j) = par%nuh**2 * l * Tau * real(wetu(i,j)*wetu(i-1,j),kind=8)
+          s%nuh(i,j) = par%nuh**2 * l * Tau * real(s%wetu(i,j)*s%wetu(i-1,j),kind=8)
        enddo
 
-    endif !ny>2
+    endif !s%ny>2
 
-    if (ny>0) then
-       if (xmpi_isleft)    nuh(:,1)      = nuh(:,2)
-       if (xmpi_isright)   nuh(:,ny+1)   = nuh(:,ny)
+    if (s%ny>0) then
+       if (xmpi_isleft)    s%nuh(:,1)      = s%nuh(:,2)
+       if (xmpi_isright)   s%nuh(:,s%ny+1)   = s%nuh(:,s%ny)
     endif
 
-    if (xmpi_istop)       nuh(1,:)      = nuh(2,:)
-    if (xmpi_isbot)       nuh(nx+1,:)   = nuh(nx,:)
+    if (xmpi_istop)       s%nuh(1,:)      = s%nuh(2,:)
+    if (xmpi_isbot)       s%nuh(s%nx+1,:)   = s%nuh(s%nx,:)
 
   end subroutine visc_smagorinsky
 

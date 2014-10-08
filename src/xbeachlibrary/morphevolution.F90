@@ -60,47 +60,47 @@ contains
     real*8                                   :: delta,delta_x,shields,ftheta,psi_x,Sbtot ! Lodewijk: for direction of sediment transport (bed slope effect)
     real*8                                   :: Ssmtot, dzbds,  Sbmtot ! Lodewijk: for magnitude of sediment transport (bed slope effect)
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     if (.not. allocated(vmag2)) then
-       allocate(vmag2 (nx+1,ny+1))
-       allocate(uau (nx+1,ny+1))
-       allocate(uav (nx+1,ny+1))
-       allocate(cu  (nx+1,ny+1))
-       allocate(cv  (nx+1,ny+1))
-       allocate(cc  (nx+1,ny+1))
-       allocate(ccb (nx+1,ny+1))
-       allocate(fac (nx+1,ny+1,par%ngd))
-       allocate(Sus (nx+1,ny+1))
-       allocate(Svs (nx+1,ny+1))
-       allocate(cub (nx+1,ny+1))
-       allocate(cvb (nx+1,ny+1))
-       allocate(Sub (nx+1,ny+1))
-       allocate(Svb (nx+1,ny+1))
-       allocate(pbbedu (nx+1,ny+1))
-       allocate(pbbedv (nx+1,ny+1))
-       allocate(ccvt (nx+1,ny+1))
-       allocate(dcdz (nx+1,ny+1))
-       allocate(dsigt (nx+1,ny+1))
+       allocate(vmag2 (s%nx+1,s%ny+1))
+       allocate(uau (s%nx+1,s%ny+1))
+       allocate(uav (s%nx+1,s%ny+1))
+       allocate(cu  (s%nx+1,s%ny+1))
+       allocate(cv  (s%nx+1,s%ny+1))
+       allocate(cc  (s%nx+1,s%ny+1))
+       allocate(ccb (s%nx+1,s%ny+1))
+       allocate(fac (s%nx+1,s%ny+1,par%ngd))
+       allocate(Sus (s%nx+1,s%ny+1))
+       allocate(Svs (s%nx+1,s%ny+1))
+       allocate(cub (s%nx+1,s%ny+1))
+       allocate(cvb (s%nx+1,s%ny+1))
+       allocate(Sub (s%nx+1,s%ny+1))
+       allocate(Svb (s%nx+1,s%ny+1))
+       allocate(pbbedu (s%nx+1,s%ny+1))
+       allocate(pbbedv (s%nx+1,s%ny+1))
+       allocate(ccvt (s%nx+1,s%ny+1))
+       allocate(dcdz (s%nx+1,s%ny+1))
+       allocate(dsigt (s%nx+1,s%ny+1))
        allocate(dsig(s%nx+1,s%ny+1,par%kmax))
        allocate(ccv(s%nx+1,s%ny+1,par%kmax))
        allocate(sdif(s%nx+1,s%ny+1,par%kmax))
-       allocate(um (nx+1,ny+1))
-       allocate(vm (nx+1,ny+1))
-       allocate(deltas(nx+1,ny+1))
-       allocate(sigs(nx+1,ny+1))
-       allocate(eswmax(nx+1,ny+1))
-       allocate(eswbed(nx+1,ny+1))
-       allocate(suq3d(nx+1,ny+1))
-       allocate(svq3d(nx+1,ny+1))
-       allocate(cuq3d(nx+1,ny+1,par%kmax))
-       allocate(cvq3d(nx+1,ny+1,par%kmax))
-       allocate(aref(nx+1,ny+1))
+       allocate(um (s%nx+1,s%ny+1))
+       allocate(vm (s%nx+1,s%ny+1))
+       allocate(deltas(s%nx+1,s%ny+1))
+       allocate(sigs(s%nx+1,s%ny+1))
+       allocate(eswmax(s%nx+1,s%ny+1))
+       allocate(eswbed(s%nx+1,s%ny+1))
+       allocate(suq3d(s%nx+1,s%ny+1))
+       allocate(svq3d(s%nx+1,s%ny+1))
+       allocate(cuq3d(s%nx+1,s%ny+1,par%kmax))
+       allocate(cvq3d(s%nx+1,s%ny+1,par%kmax))
+       allocate(aref(s%nx+1,s%ny+1))
        allocate(chain(par%kmax))
        allocate(cumchain(par%kmax))
-       allocate (sinthm(nx+1,ny+1))
-       allocate (costhm(nx+1,ny+1))
+       allocate (sinthm(s%nx+1,s%ny+1))
+       allocate (costhm(s%nx+1,s%ny+1))
        delta_x   = 0.d0 ! Lodewijk
        shields   = 0.d0 ! Lodewijk
        ftheta    = 0.d0 ! Lodewijk
@@ -123,16 +123,16 @@ contains
     endif
 
     ! use eulerian velocities
-    vmag2     = ue**2+ve**2
+    vmag2     = s%ue**2+s%ve**2
     cu        = 0.0d0
     cv        = 0.0d0
     cub       = 0.0d0
     cvb       = 0.0d0
-    dcsdx     = 0.0d0
-    dcsdy     = 0.0d0
+    s%dcsdx     = 0.0d0
+    s%dcsdy     = 0.0d0
 
-    sinthm = sin(thetamean-alfaz)
-    costhm = cos(thetamean-alfaz)
+    sinthm = sin(s%thetamean-s%alfaz)
+    costhm = cos(s%thetamean-s%alfaz)
     
     ! short wave runup
     if (par%swrunup==1 .and. par%struct==1) then
@@ -162,12 +162,12 @@ contains
 
     ! compute reduction factor for sediment sources due to presence of hard layers
     do jg = 1,par%ngd
-       do j=1,ny+1
-          do i=1,nx+1
-             exp_ero = par%morfac*par%dt/(1.d0-par%por)*hh(i,j)*(ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg) &
-                  + ceqbg(i,j,jg)*pbbed(i,j,1,jg)/par%dt) 
+       do j=1,s%ny+1
+          do i=1,s%nx+1
+             exp_ero = par%morfac*par%dt/(1.d0-par%por)*s%hh(i,j)*(s%ceqsg(i,j,jg)*s%pbbed(i,j,1,jg)/s%Tsg(i,j,jg) &
+                  + s%ceqbg(i,j,jg)*s%pbbed(i,j,1,jg)/par%dt) 
              ! limit erosion to available sediment on top of hard layer
-             fac(i,j,jg) = min(1.d0,structdepth(i,j)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )         
+             fac(i,j,jg) = min(1.d0,s%structdepth(i,j)*s%pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )         
              !if (fac(i,j,jg)*exp_ero > dzbed(i,j,1)*pbbed(i,j,1,jg)) then
              !   limit erosion to available sand in top layer
              !   fac(i,j,jg) = min(fac(i,j,jg),dzbed(i,j,1)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )  
@@ -178,11 +178,11 @@ contains
     enddo
 
     ! compute diffusion coefficient
-    Dc = par%facDc*(par%nuh+par%nuhfac*hh*(DR/par%rho)**(1.d0/3.d0))
+    s%Dc = par%facDc*(par%nuh+par%nuhfac*s%hh*(s%DR/par%rho)**(1.d0/3.d0))
 
     do jg = 1,par%ngd
-       cc = ccg(:,:,jg)
-       if (D50(jg)>0.002d0) then
+       cc = s%ccg(:,:,jg)
+       if (s%D50(jg)>0.002d0) then
           ! RJ: set ceqsg to zero for gravel.
           ! Dano: try without this fix cc = 0.d0 ! Can be used to test total transport mode
        endif
@@ -190,38 +190,38 @@ contains
        ! X-direction
        !
        ! Get ua in u points and split out in u and v direction
-       uau(1:nx,:) = 0.5*(ua(1:nx,:)*costhm(1:nx,:)+ua(2:nx+1,:)*costhm(1:nx,:))
-       uav(1:nx,:) = 0.5*(ua(1:nx,:)*sinthm(1:nx,:)+ua(2:nx+1,:)*sinthm(1:nx,:))
+       uau(1:s%nx,:) = 0.5*(s%ua(1:s%nx,:)*costhm(1:s%nx,:)+s%ua(2:s%nx+1,:)*costhm(1:s%nx,:))
+       uav(1:s%nx,:) = 0.5*(s%ua(1:s%nx,:)*sinthm(1:s%nx,:)+s%ua(2:s%nx+1,:)*sinthm(1:s%nx,:))
        ! Compute vmagu including ua
-       vmagu = sqrt((uu+uau)**2+(vu+uav)**2)
+       s%vmagu = sqrt((s%uu+uau)**2+(s%vu+uav)**2)
        ! sediment advection velocity for suspended load and bed load respectively
        ! REMARK: when vreps does not equal vv; no mass conservation 
-       ureps = ueu+uau
-       urepb = ueu+uau  ! RJ maybe reduce this velocity?
+       s%ureps = s%ueu+uau
+       s%urepb = s%ueu+uau  ! RJ maybe reduce this velocity?
        !
-       do j=1,ny+1
-          do i=1,nx
-             if(ureps(i,j)>0.d0) then
+       do j=1,s%ny+1
+          do i=1,s%nx
+             if(s%ureps(i,j)>0.d0) then
                 ! test cu(i,j)=cc(i,j)
-                cu(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(min(i+1,nx),j)
-                cub(i,j)=par%thetanum*pbbed(i,j,1,jg)*ceqbg(i,j,jg)+(1.d0-par%thetanum)&
-                     *pbbed(min(i+1,nx),j,1,jg)*ceqbg(min(i+1,nx),j,jg)
+                cu(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(min(i+1,s%nx),j)
+                cub(i,j)=par%thetanum*s%pbbed(i,j,1,jg)*s%ceqbg(i,j,jg)+(1.d0-par%thetanum)&
+                     *s%pbbed(min(i+1,s%nx),j,1,jg)*s%ceqbg(min(i+1,s%nx),j,jg)
                 !cub(i,j)=par%thetanum*ccb(i,j)+(1.d0-par%thetanum)*ccb(min(i+1,nx),j)
-             elseif(ureps(i,j)<0.d0) then
+             elseif(s%ureps(i,j)<0.d0) then
                 cu(i,j)=par%thetanum*cc(i+1,j)+(1.d0-par%thetanum)*cc(max(i,2),j)
-                cub(i,j)=par%thetanum*pbbed(i+1,j,1,jg)*ceqbg(i+1,j,jg)+(1.d0-par%thetanum)&
-                     *pbbed(max(i,2),j,1,jg)*ceqbg(max(i,2),j,jg)
+                cub(i,j)=par%thetanum*s%pbbed(i+1,j,1,jg)*s%ceqbg(i+1,j,jg)+(1.d0-par%thetanum)&
+                     *s%pbbed(max(i,2),j,1,jg)*s%ceqbg(max(i,2),j,jg)
                 !cub(i,j)=par%thetanum*ccb(i+1,j)+(1.d0-par%thetanum)*ccb(max(i,2),j)
              else
                 cu(i,j)=0.5d0*(cc(i,j)+cc(i+1,j))
-                cub(i,j)=0.5d0*(pbbed(i,j,1,jg)*ceqbg(i,j,jg)+pbbed(i+1,j,1,jg)*ceqbg(i+1,j,jg))
+                cub(i,j)=0.5d0*(s%pbbed(i,j,1,jg)*s%ceqbg(i,j,jg)+s%pbbed(i+1,j,1,jg)*s%ceqbg(i+1,j,jg))
                 !cub(i,j)=0.5d0*(ccb(i,j)+ccb(i+1,j))
              endif
-             dcsdx(i,j)=(cc(i+1,j)-cc(i,j))/dsu(i,j)
+             s%dcsdx(i,j)=(cc(i+1,j)-cc(i,j))/s%dsu(i,j)
           enddo
        enddo
        ! wwvv dcdx(nx:1,:) is still untouched, correct this ofr the parallel case
-       cu(nx+1,:) = cc(nx+1,:) !Robert
+       cu(s%nx+1,:) = cc(s%nx+1,:) !Robert
        ! wwvv fix this in parallel case
        ! wwvv in parallel version, there will be a discrepancy between the values
        ! of dzbdx(nx+1,:).
@@ -231,88 +231,88 @@ contains
        Sub = 0.d0
        !
        ! suspended load, Lodewijk: no bed slope effect (yet)
-       Sus=par%sus*(cu*ureps*hu-Dc*hu*dcsdx)*wetu
+       Sus=par%sus*(cu*s%ureps*s%hu-s%Dc*s%hu*s%dcsdx)*s%wetu
        ! bed load, Lodewijk: no bed slope effect (yet)
-       Sub=par%bed*(cub*urepb*hu)*wetu
+       Sub=par%bed*(cub*s%urepb*s%hu)*s%wetu
        !
        ! Originally bed slope effect of XBeach : par%bdslpeffmag = 1
        ! Original one, but only on bed load : par%bdslpeffmag = 2
        if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL) then
-            Sus = Sus-par%sus*(par%facsl*cu*vmagu*hu*dzbdx)*wetu
+            Sus = Sus-par%sus*(par%facsl*cu*s%vmagu*s%hu*s%dzbdx)*s%wetu
        endif
        
        if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL .or. par%bdslpeffmag == BDSLPEFFMAG_ROELV_BED) then
-            Sub = Sub-par%bed*(par%facsl*cub*vmagu*hu*dzbdx)*wetu 
+            Sub = Sub-par%bed*(par%facsl*cub*s%vmagu*s%hu*s%dzbdx)*s%wetu 
        endif
        !
        !
        ! Y-direction
        !
        ! Jaap: get ua in v points and split out in u and v direction
-       if (ny>0) then
-          uau(:,1:ny) = 0.5*(ua(:,1:ny)*costhm(:,1:ny)+ua(:,2:ny+1)*costhm(:,1:ny))
-          uav(:,1:ny) = 0.5*(ua(:,1:ny)*sinthm(:,1:ny)+ua(:,2:ny+1)*sinthm(:,1:ny))
-          uau(:,ny+1) = uau(:,ny) ! Jaap
-          uav(:,ny+1) = uav(:,ny) ! Jaap         
+       if (s%ny>0) then
+          uau(:,1:s%ny) = 0.5*(s%ua(:,1:s%ny)*costhm(:,1:s%ny)+s%ua(:,2:s%ny+1)*costhm(:,1:s%ny))
+          uav(:,1:s%ny) = 0.5*(s%ua(:,1:s%ny)*sinthm(:,1:s%ny)+s%ua(:,2:s%ny+1)*sinthm(:,1:s%ny))
+          uau(:,s%ny+1) = uau(:,s%ny) ! Jaap
+          uav(:,s%ny+1) = uav(:,s%ny) ! Jaap         
        else
-          uau=ua*costhm
-          uav=ua*sinthm
+          uau=s%ua*costhm
+          uav=s%ua*sinthm
        endif
        ! Jaap: compute vmagv including ua
-       vmagv = sqrt((uv+uau)**2+(vv+uav)**2)
+       s%vmagv = sqrt((s%uv+uau)**2+(s%vv+uav)**2)
        ! sediment advection velocity for suspended load and bed load respectively
        ! REMARK: when vreps does not equal vv; no mass conservation 
-       vreps = vev+uav   
-       vrepb = vev+uav   ! RJ maybe reduce this velocity? Should be vv instead of vev?
+       s%vreps = s%vev+uav   
+       s%vrepb = s%vev+uav   ! RJ maybe reduce this velocity? Should be s%vv instead of s%vev?
        !
-       if (ny>0) then
-          do j=1,ny
-             do i=1,nx+1
-                if(vreps(i,j)>0) then
-                   cv(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(i,min(j+1,ny))
-                   cvb(i,j)=par%thetanum*pbbed(i,j,1,jg)*ceqbg(i,j,jg)+(1.d0-par%thetanum)&
-                        *pbbed(i,min(j+1,ny),1,jg)*ceqbg(i,min(j+1,ny),jg)
+       if (s%ny>0) then
+          do j=1,s%ny
+             do i=1,s%nx+1
+                if(s%vreps(i,j)>0) then
+                   cv(i,j)=par%thetanum*cc(i,j)+(1.d0-par%thetanum)*cc(i,min(j+1,s%ny))
+                   cvb(i,j)=par%thetanum*s%pbbed(i,j,1,jg)*s%ceqbg(i,j,jg)+(1.d0-par%thetanum)&
+                        *s%pbbed(i,min(j+1,s%ny),1,jg)*s%ceqbg(i,min(j+1,s%ny),jg)
                    !cvb(i,j)=par%thetanum*ccb(i,j)+(1.d0-par%thetanum)*ccb(i,min(j+1,ny))
-                elseif(vreps(i,j)<0) then
+                elseif(s%vreps(i,j)<0) then
                    cv(i,j)=par%thetanum*cc(i,j+1)+(1.d0-par%thetanum)*cc(i,max(j,2))
-                   cvb(i,j)=par%thetanum*pbbed(i,j+1,1,jg)*ceqbg(i,j+1,jg)+(1.d0-par%thetanum)&
-                        *pbbed(i,max(j,2),1,jg)*ceqbg(i,max(j,2),jg)
+                   cvb(i,j)=par%thetanum*s%pbbed(i,j+1,1,jg)*s%ceqbg(i,j+1,jg)+(1.d0-par%thetanum)&
+                        *s%pbbed(i,max(j,2),1,jg)*s%ceqbg(i,max(j,2),jg)
                    !cvb(i,j)=par%thetanum*ccb(i,j+1)+(1.d0-par%thetanum)*ccb(i,max(j,2))
                 else
                    cv(i,j)=0.5d0*(cc(i,j)+cc(i,j+1)) !Jaap: cc instead of cv
-                   cvb(i,j)=0.5d0*(pbbed(i,j,1,jg)*ceqbg(i,j,jg)+pbbed(i,j+1,1,jg)*ceqbg(i,j+1,jg))
+                   cvb(i,j)=0.5d0*(s%pbbed(i,j,1,jg)*s%ceqbg(i,j,jg)+s%pbbed(i,j+1,1,jg)*s%ceqbg(i,j+1,jg))
                    !cvb(i,j)=0.5d0*(ccb(i,j)+ccb(i,j+1))
                 end if
-                dcsdy(i,j)=(cc(i,j+1)-cc(i,j))/dnv(i,j) !Jaap
+                s%dcsdy(i,j)=(cc(i,j+1)-cc(i,j))/s%dnv(i,j) !Jaap
 
              end do
           end do
           ! wwvv dcdy(:,ny+1) is not filled in, so in parallel case:
-          cv(:,ny+1) = cc(:,ny+1) !Robert
+          cv(:,s%ny+1) = cc(:,s%ny+1) !Robert
           ! wwvv in parallel version, there will be a discrepancy between the values
           ! of dzbdy(:,ny+1).
           ! wwvv so fix that
        else
           cv = cc
-          cvb = ceqbg(:,:,jg)
-       endif ! ny>0
+          cvb = s%ceqbg(:,:,jg)
+       endif ! s%ny>0
        !
        ! Compute sedimnent transport in v-direction
        !
        Svs = 0.d0
        Svb = 0.d0
        ! Suspended load
-       Svs=par%sus*(cv*vreps*hv-Dc*hv*dcsdy)*wetv
+       Svs=par%sus*(cv*s%vreps*s%hv-s%Dc*s%hv*s%dcsdy)*s%wetv
        ! Bed load
-       Svb=par%bed*(cvb*vrepb*hv)*wetv
+       Svb=par%bed*(cvb*s%vrepb*s%hv)*s%wetv
        !
        ! Originally bed slope magnitude effect of XBeach : par%bdslpeffmag = 1
        ! Original one, but only on bed load : par%bdslpeffmag = 2
        if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL) then
-            Svs = Svs-par%sus*(par%facsl*cv*vmagv*hv*dzbdy)*wetv
+            Svs = Svs-par%sus*(par%facsl*cv*s%vmagv*s%hv*s%dzbdy)*s%wetv
        endif
        if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL .or. par%bdslpeffmag == BDSLPEFFMAG_ROELV_BED  ) then
-            Svb = Svb-par%bed*(par%facsl*cvb*vmagv*hv*dzbdy)*wetv 
+            Svb = Svb-par%bed*(par%facsl*cvb*s%vmagv*s%hv*s%dzbdy)*s%wetv 
        endif
        !
        !
@@ -320,8 +320,8 @@ contains
        !
        !
        if (par%bdslpeffmag == BDSLPEFFMAG_SOULS_TOTAL .or. par%bdslpeffmag == BDSLPEFFMAG_SOULS_BED) then
-           do j=1,ny+1
-                do i=1,nx+1
+           do j=1,s%ny+1
+                do i=1,s%nx+1
                     if ((dabs(Sub(i,j)) > 0.000001d0) .or. (dabs(Svb(i,j)) > 0.000001d0)) then
                         Sbmtot = dsqrt(  Sub(i,j)**2.d0  +  Svb(i,j)**2.d0   ) 
                         dzbds = s%dzbdx(i,j)*Sub(i,j)/Sbmtot + s%dzbdy(i,j)*Svb(i,j)/Sbmtot
@@ -343,18 +343,18 @@ contains
        !
        ! Lodewijk: modify the direction of the bed load transport based on the bed slope, see Van Rijn 1993 (section 7.2.6)
        if (par%bdslpeffdir == BDSLPEFFDIR_TALMON) then
-            do j=1,ny+1
-                do i=1,nx+1
-                    if (((dabs(urepb(i,j)) > 0.0001d0) .or. (dabs(vrepb(i,j)) > 0.0001d0)) .and. ((dabs(taubx(i,j)) > 0.0001d0) .or. (dabs(tauby(i,j)) > 0.0001d0))) then
-                        if (urepb(i,j) < 0.d0) then 
-                            delta_x = datan(vrepb(i,j)/urepb(i,j))+par%px ! Angle between fluid velocity vector and the x-axis
+            do j=1,s%ny+1
+                do i=1,s%nx+1
+                    if (((dabs(s%urepb(i,j)) > 0.0001d0) .or. (dabs(s%vrepb(i,j)) > 0.0001d0)) .and. ((dabs(s%taubx(i,j)) > 0.0001d0) .or. (dabs(s%tauby(i,j)) > 0.0001d0))) then
+                        if (s%urepb(i,j) < 0.d0) then 
+                            delta_x = datan(s%vrepb(i,j)/s%urepb(i,j))+par%px ! Angle between fluid velocity vector and the s%x-axis
                         else
-                            delta_x = datan(vrepb(i,j)/urepb(i,j))        ! Angle between fluid velocity vector and the x-axis
+                            delta_x = datan(s%vrepb(i,j)/s%urepb(i,j))        ! Angle between fluid velocity vector and the s%x-axis
                         endif
                         delta = (par%rhos-par%rho)/par%rho
-                        shields = sqrt(taubx(i,j)**2 + tauby(i,j)**2)/(delta*par%rho*par%g*D50(jg))
+                        shields = sqrt(s%taubx(i,j)**2 + s%tauby(i,j)**2)/(delta*par%rho*par%g*s%D50(jg))
                         ! shields = (urepb(i,j)**2.d0+vrepb(i,j)**2.d0)*s%cf(i,j)/(par%g*D50(jg)*delta)
-                        ftheta = 1.d0/(9.d0*(D50(jg)/hh(i,j))**0.3d0*shields**0.5d0) ! Talmon            
+                        ftheta = 1.d0/(9.d0*(s%D50(jg)/s%hh(i,j))**0.3d0*shields**0.5d0) ! Talmon            
                         psi_x = datan(  (dsin(delta_x)-ftheta*s%dzbdy(i,j))  /  (dcos(delta_x)-ftheta*s%dzbdx(i,j))  )
                         psi_x = par%bdslpeffdirfac*(psi_x - delta_x)+delta_x
                         Sbtot = dsqrt(  Sub(i,j)**2.d0  +  Svb(i,j)**2.d0  )  ! Magnitude of sediment transport without direction modifcation
@@ -371,28 +371,28 @@ contains
        !
        !
        !
-       do j=1,ny+1
-          do i=1,nx
+       do j=1,s%ny+1
+          do i=1,s%nx
              if(Sub(i,j)>0.d0) then
-                pbbedu(i,j) = pbbed(i,j,1,jg)
+                pbbedu(i,j) = s%pbbed(i,j,1,jg)
              elseif(Sub(i,j)<0.d0) then
-                pbbedu(i,j)= pbbed(i+1,j,1,jg)
+                pbbedu(i,j)= s%pbbed(i+1,j,1,jg)
              else
-                pbbedu(i,j)=0.5d0*(pbbed(i,j,1,jg)+pbbed(i+1,j,1,jg))
+                pbbedu(i,j)=0.5d0*(s%pbbed(i,j,1,jg)+s%pbbed(i+1,j,1,jg))
              endif
           enddo
        enddo
        !
        Sub = pbbedu*Sub
        !
-       do j=1,ny
-          do i=1,nx+1
+       do j=1,s%ny
+          do i=1,s%nx+1
              if(Svb(i,j)>0) then
-                pbbedv(i,j)=pbbed(i,j,1,jg)
+                pbbedv(i,j)=s%pbbed(i,j,1,jg)
              else if(Svb(i,j)<0) then
-                pbbedv(i,j)=pbbed(i,j+1,1,jg)
+                pbbedv(i,j)=s%pbbed(i,j+1,1,jg)
              else
-                pbbedv(i,j)=0.5d0*(pbbed(i,j,1,jg)+pbbed(i,j+1,1,jg))
+                pbbedv(i,j)=0.5d0*(s%pbbed(i,j,1,jg)+s%pbbed(i,j+1,1,jg))
              end if
           end do
        end do
@@ -401,64 +401,64 @@ contains
        !
        ! BRJ: implicit concentration update (compute sources first, sink must be computed after updating actual sed.conc.)
        ! 
-       if (ny>0) then
-          do j=2,ny
-             do i=2,nx
+       if (s%ny>0) then
+          do j=2,s%ny
+             do i=2,s%nx
              ! Changed to hh from hold by RJ (13072009) !**2/max(hh(i,j),par%hmin)
-                ero(i,j,jg) = fac(i,j,jg)*hh(i,j)*ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg)    
+                s%ero(i,j,jg) = fac(i,j,jg)*s%hh(i,j)*s%ceqsg(i,j,jg)*s%pbbed(i,j,1,jg)/s%Tsg(i,j,jg)    
                 ! depo_ex(i,j,jg) = max(hold(i,j),0.01d0)*cc(i,j)/Tsg(i,j,jg)                    
                 ! BRJ: the volume in the water column is updated and not the volume concentration.
-                cc(i,j) = (par%dt*Tsg(i,j,jg))/(par%dt+Tsg(i,j,jg))* &
-                     (hold(i,j)*cc(i,j)/par%dt -((Sus(i,j)*dnu(i,j)-Sus(i-1,j)*dnu(i-1,j)+&
-                     Svs(i,j)*dsv(i,j)-Svs(i,j-1)*dsv(i,j-1))*dsdnzi(i,j)-&
-                     ero(i,j,jg)))
+                cc(i,j) = (par%dt*s%Tsg(i,j,jg))/(par%dt+s%Tsg(i,j,jg))* &
+                     (s%hold(i,j)*cc(i,j)/par%dt -((Sus(i,j)*s%dnu(i,j)-Sus(i-1,j)*s%dnu(i-1,j)+&
+                     Svs(i,j)*s%dsv(i,j)-Svs(i,j-1)*s%dsv(i,j-1))*s%dsdnzi(i,j)-&
+                     s%ero(i,j,jg)))
 
                 cc(i,j)=max(cc(i,j),0.0d0) ! Jaap: negative cc's are possible...   
-                cc(i,j)=min(cc(i,j),par%cmax*hh(i,j))
-                depo_ex(i,j,jg) = cc(i,j)/Tsg(i,j,jg)  
+                cc(i,j)=min(cc(i,j),par%cmax*s%hh(i,j))
+                s%depo_ex(i,j,jg) = cc(i,j)/s%Tsg(i,j,jg)  
              enddo
           enddo
        else
           j=1
-          do i=2,nx
+          do i=2,s%nx
              ! Changed to hh from hold by RJ (13072009) !**2/max(hh(i,j),par%hmin)
-             ero(i,j,jg) = fac(i,j,jg)*hh(i,j)*ceqsg(i,j,jg)*pbbed(i,j,1,jg)/Tsg(i,j,jg)    
+             s%ero(i,j,jg) = fac(i,j,jg)*s%hh(i,j)*s%ceqsg(i,j,jg)*s%pbbed(i,j,1,jg)/s%Tsg(i,j,jg)    
              ! depo_ex(i,j,jg) = max(hold(i,j),0.01d0)*cc(i,j)/Tsg(i,j,jg)                    
              ! BRJ: the volume in the water column is updated and not the volume concentration.
-             cc(i,j) = (par%dt*Tsg(i,j,jg))/(par%dt+Tsg(i,j,jg))* &
-                  (hold(i,j)*cc(i,j)/par%dt -((Sus(i,j)*dnu(i,j)-Sus(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)-&
-                  ero(i,j,jg)))
+             cc(i,j) = (par%dt*s%Tsg(i,j,jg))/(par%dt+s%Tsg(i,j,jg))* &
+                  (s%hold(i,j)*cc(i,j)/par%dt -((Sus(i,j)*s%dnu(i,j)-Sus(i-1,j)*s%dnu(i-1,j))*s%dsdnzi(i,j)-&
+                  s%ero(i,j,jg)))
 
              cc(i,j)=max(cc(i,j),0.0d0) ! Jaap: negative cc's are possible...   
-             cc(i,j)=min(cc(i,j),par%cmax*hh(i,j))
+             cc(i,j)=min(cc(i,j),par%cmax*s%hh(i,j))
 
-             depo_ex(i,j,jg) = cc(i,j)/Tsg(i,j,jg)  
+             s%depo_ex(i,j,jg) = cc(i,j)/s%Tsg(i,j,jg)  
           enddo
        endif
 
 
-       cc = cc/hh
+       cc = cc/s%hh
 
        ! do lateral boundaries...
        if(xmpi_istop)then
           cc(1,:)=cc(2,:)
-          ero(1,:,jg)=ero(2,:,jg)
-          depo_ex(1,:,jg)=depo_ex(2,:,jg)
+          s%ero(1,:,jg)=s%ero(2,:,jg)
+          s%depo_ex(1,:,jg)=s%depo_ex(2,:,jg)
        endif
-       if(xmpi_isleft .and. ny>0)then
+       if(xmpi_isleft .and. s%ny>0)then
           cc(:,1)=cc(:,2)
-          ero(:,1,jg)=ero(:,2,jg)
-          depo_ex(:,1,jg)=depo_ex(:,2,jg)
+          s%ero(:,1,jg)=s%ero(:,2,jg)
+          s%depo_ex(:,1,jg)=s%depo_ex(:,2,jg)
        endif
        if(xmpi_istop)then
-          cc(nx+1,:)=cc(nx+1-1,:)
-          ero(nx+1,:,jg)=ero(nx,:,jg)
-          depo_ex(nx+1,:,jg)=depo_ex(nx,:,jg)
+          cc(s%nx+1,:)=cc(s%nx+1-1,:)
+          s%ero(s%nx+1,:,jg)=s%ero(s%nx,:,jg)
+          s%depo_ex(s%nx+1,:,jg)=s%depo_ex(s%nx,:,jg)
        endif
-       if(xmpi_isright .and. ny>0)then
-          cc(:,ny+1)=cc(:,ny+1-1)
-          ero(:,ny+1,jg)=ero(:,ny,jg)
-          depo_ex(:,ny+1,jg)=depo_ex(:,ny,jg)
+       if(xmpi_isright .and. s%ny>0)then
+          cc(:,s%ny+1)=cc(:,s%ny+1-1)
+          s%ero(:,s%ny+1,jg)=s%ero(:,s%ny,jg)
+          s%depo_ex(:,s%ny+1,jg)=s%depo_ex(:,s%ny,jg)
        endif
 
        ! wwvv fix the first and last rows and columns of cc in parallel case
@@ -467,15 +467,15 @@ contains
 #endif
        !
        ! wwvv border columns and rows of ccg Svg and Sug have to be communicated
-       ccg(:,:,jg) = cc
-       Svsg(:,:,jg) = Svs
-       Susg(:,:,jg) = Sus
-       Svbg(:,:,jg) = Svb
-       Subg(:,:,jg) = Sub
+       s%ccg(:,:,jg) = cc
+       s%Svsg(:,:,jg) = Svs
+       s%Susg(:,:,jg) = Sus
+       s%Svbg(:,:,jg) = Svb
+       s%Subg(:,:,jg) = Sub
 
     end do ! number of sediment fractions
 
-    vmag=sqrt(max(vmag2,par%umin))
+    s%vmag=sqrt(max(vmag2,par%umin))
 
   end subroutine transus
 
@@ -502,8 +502,8 @@ contains
     real*8 , dimension(:,:),pointer             :: pb
     logical                                     :: aval
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     if (.not. allocated(Sout)) then 
        allocate(Sout(s%nx+1,s%ny+1))
@@ -515,12 +515,12 @@ contains
     endif
 
     ! Super fast 1D
-    if (ny==0) then
+    if (s%ny==0) then
        j1 = 1
     else
        j1 = 2
     endif
-    dzbnow  = 0.d0
+    s%dzbnow  = 0.d0
     dzb    = 0.d0
     if (par%t>=par%morstart .and. par%t < par%morstop .and. par%morfac > .999d0) then
        !
@@ -536,109 +536,109 @@ contains
              indSvs = 0
              indSvb = 0
              Sout   = 0.d0 
-             do j=j1,ny+1
-                do i=2,nx+1
+             do j=j1,s%ny+1
+                do i=2,s%nx+1
                    ! fluxes at i,j
-                   if (Subg(i,j,jg) > 0.d0) then      ! bed load u-direction
+                   if (s%Subg(i,j,jg) > 0.d0) then      ! bed load s%u-direction
                       indSub(i,j,jg) = 1
-                      Sout(i,j) = Sout(i,j) + Subg(i,j,jg)*dnu(i,j)
+                      Sout(i,j) = Sout(i,j) + s%Subg(i,j,jg)*s%dnu(i,j)
                    endif
                    ! fluxes at i-1,j
-                   if (Subg(i-1,j,jg) < 0.d0 ) then   ! bed load u-direction
-                      Sout(i,j) = Sout(i,j) - Subg(i-1,j,jg)*dnu(i-1,j)
+                   if (s%Subg(i-1,j,jg) < 0.d0 ) then   ! bed load s%u-direction
+                      Sout(i,j) = Sout(i,j) - s%Subg(i-1,j,jg)*s%dnu(i-1,j)
                    endif
                    if (par%sourcesink==0) then  
                       ! fluxes at i,j
-                      if (Susg(i,j,jg) > 0.d0 ) then     ! suspended load u-direction
+                      if (s%Susg(i,j,jg) > 0.d0 ) then     ! suspended load s%u-direction
                          indSus(i,j,jg) = 1
-                         Sout(i,j) = Sout(i,j) + Susg(i,j,jg)*dnu(i,j)
+                         Sout(i,j) = Sout(i,j) + s%Susg(i,j,jg)*s%dnu(i,j)
                       endif
                       ! fluxes at i-1,j
-                      if (Susg(i-1,j,jg) < 0.d0 ) then   ! suspended load u-direction
-                         Sout(i,j) = Sout(i,j) - Susg(i-1,j,jg)*dnu(i-1,j)
+                      if (s%Susg(i-1,j,jg) < 0.d0 ) then   ! suspended load s%u-direction
+                         Sout(i,j) = Sout(i,j) - s%Susg(i-1,j,jg)*s%dnu(i-1,j)
                       endif
                    endif
                 enddo
              enddo
-             if (ny>0) then
-                do j=j1,ny+1
-                   do i=2,nx+1
-                      if (Svbg(i,j,jg) > 0.d0 ) then     ! bed load v-direction
+             if (s%ny>0) then
+                do j=j1,s%ny+1
+                   do i=2,s%nx+1
+                      if (s%Svbg(i,j,jg) > 0.d0 ) then     ! bed load s%v-direction
                          indSvb(i,j,jg) = 1
-                         Sout(i,j) = Sout(i,j) + Svbg(i,j,jg)*dsv(i,j)
+                         Sout(i,j) = Sout(i,j) + s%Svbg(i,j,jg)*s%dsv(i,j)
                       endif
                       ! fluxes at i,j-1
-                      if (Svbg(i,j-1,jg) < 0.d0 ) then   ! bed load v-direction
-                         Sout(i,j) = Sout(i,j) - Svbg(i,j-1,jg)*dsv(i,j-1)
+                      if (s%Svbg(i,j-1,jg) < 0.d0 ) then   ! bed load s%v-direction
+                         Sout(i,j) = Sout(i,j) - s%Svbg(i,j-1,jg)*s%dsv(i,j-1)
                       endif
                       if (par%sourcesink==0) then
-                         if (Svsg(i,j,jg) > 0.d0 ) then     ! suspended load v-direction
+                         if (s%Svsg(i,j,jg) > 0.d0 ) then     ! suspended load s%v-direction
                             indSvs(i,j,jg) = 1
-                            Sout(i,j) = Sout(i,j) + Svsg(i,j,jg)*dsv(i,j)
+                            Sout(i,j) = Sout(i,j) + s%Svsg(i,j,jg)*s%dsv(i,j)
                          endif
                          ! fluxes at i,j-1
-                         if (Svsg(i,j-1,jg) < 0.d0 ) then   ! suspended load v-direction
-                            Sout(i,j) = Sout(i,j) - Svsg(i,j-1,jg)*dsv(i,j-1)
+                         if (s%Svsg(i,j-1,jg) < 0.d0 ) then   ! suspended load s%v-direction
+                            Sout(i,j) = Sout(i,j) - s%Svsg(i,j-1,jg)*s%dsv(i,j-1)
                          endif
                       endif ! sourcesink = 0
-                   enddo !nx+1
-                enddo !ny+1
-             endif !ny>0
+                   enddo !s%nx+1
+                enddo !s%ny+1
+             endif !s%ny>0
              !
-             do j=j1,ny+1
-                do i=2,nx+1
-                   Savailable = structdepth(i,j)*pbbed(i,j,1,jg)/par%morfac/par%dt*(1.d0-par%por)/dsdnzi(i,j)
+             do j=j1,s%ny+1
+                do i=2,s%nx+1
+                   Savailable = s%structdepth(i,j)*s%pbbed(i,j,1,jg)/par%morfac/par%dt*(1.d0-par%por)/s%dsdnzi(i,j)
                    ! reduction factor for cell outgoing sediment transports
                    fac  = min(1.d0,Savailable/max(Sout(i,j),tiny(0.d0)) )
                    ! fix sediment transports for the presence of a hard layer; remind indSus etc are 1 in cases of cell outgoing transports
                    ! updated S         oell outgoing transports                  cell incoming transports                   
                    if (fac < 1.d0)then
-                      Subg(i,j,jg)   = fac*indSub(i,j,jg)*Subg(i,j,jg)         + (1-indSub(i,j,jg))*Subg(i,j,jg) 
-                      Subg(i-1,j,jg) = fac*(1-indSub(i-1,j,jg))*Subg(i-1,j,jg) + indSub(i-1,j,jg)*Subg(i-1,j,jg)
-                      if (ny>0) then
-                         Svbg(i,j,jg)   = fac*indSvb(i,j,jg)*Svbg(i,j,jg)         + (1-indSvb(i,j,jg))*Svbg(i,j,jg)
-                         Svbg(i,j-1,jg) = fac*(1-indSvb(i,j-1,jg))*Svbg(i,j-1,jg) + indSvb(i,j-1,jg)*Svbg(i,j-1,jg)
+                      s%Subg(i,j,jg)   = fac*indSub(i,j,jg)*s%Subg(i,j,jg)         + (1-indSub(i,j,jg))*s%Subg(i,j,jg) 
+                      s%Subg(i-1,j,jg) = fac*(1-indSub(i-1,j,jg))*s%Subg(i-1,j,jg) + indSub(i-1,j,jg)*s%Subg(i-1,j,jg)
+                      if (s%ny>0) then
+                         s%Svbg(i,j,jg)   = fac*indSvb(i,j,jg)*s%Svbg(i,j,jg)         + (1-indSvb(i,j,jg))*s%Svbg(i,j,jg)
+                         s%Svbg(i,j-1,jg) = fac*(1-indSvb(i,j-1,jg))*s%Svbg(i,j-1,jg) + indSvb(i,j-1,jg)*s%Svbg(i,j-1,jg)
                       endif
                       if (par%sourcesink==0) then
-                         Susg(i,j,jg)   = fac*indSus(i,j,jg)*Susg(i,j,jg)         + (1-indSus(i,j,jg))*Susg(i,j,jg) 
-                         Susg(i-1,j,jg) = fac*(1-indSus(i-1,j,jg))*Susg(i-1,j,jg) + indSus(i-1,j,jg)*Susg(i-1,j,jg)
-                         if (ny>0) then
-                            Svsg(i,j,jg)   = fac*indSvs(i,j,jg)*Svsg(i,j,jg)         + (1-indSvs(i,j,jg))*Svsg(i,j,jg)
-                            Svsg(i,j-1,jg) = fac*(1-indSvs(i,j-1,jg))*Svsg(i,j-1,jg) + indSvs(i,j-1,jg)*Svsg(i,j-1,jg)
-                         endif !ny = 0
+                         s%Susg(i,j,jg)   = fac*indSus(i,j,jg)*s%Susg(i,j,jg)         + (1-indSus(i,j,jg))*s%Susg(i,j,jg) 
+                         s%Susg(i-1,j,jg) = fac*(1-indSus(i-1,j,jg))*s%Susg(i-1,j,jg) + indSus(i-1,j,jg)*s%Susg(i-1,j,jg)
+                         if (s%ny>0) then
+                            s%Svsg(i,j,jg)   = fac*indSvs(i,j,jg)*s%Svsg(i,j,jg)         + (1-indSvs(i,j,jg))*s%Svsg(i,j,jg)
+                            s%Svsg(i,j-1,jg) = fac*(1-indSvs(i,j-1,jg))*s%Svsg(i,j-1,jg) + indSvs(i,j-1,jg)*s%Svsg(i,j-1,jg)
+                         endif !s%ny = 0
                       endif ! sourcesink = 0
                    endif !fac<1.d0 
-                enddo ! nx+1
-             enddo !ny + 1
+                enddo ! s%nx+1
+             enddo !s%ny + 1
           enddo !par%ngd
        endif !struct == 1
 
-       if (ny>0) then
-          do j=2,ny
-             do i=2,nx
+       if (s%ny>0) then
+          do j=2,s%ny
+             do i=2,s%nx
 
                 ! bed level changes per fraction in this morphological time step in meters sand including pores
                 ! positive in case of erosion
                 if (par%sourcesink==0) then
                    dzg=par%morfac*par%dt/(1.d0-par%por)*( & ! Dano, dz from sus transport gradients      
-                        ( Susg(i,j,:)*dnu(i,j)-Susg(i-1,j,:)*dnu(i-1,j) +&           
-                        Svsg(i,j,:)*dsv(i,j)-Svsg(i,j-1,:)*dsv(i,j-1) +&
+                        ( s%Susg(i,j,:)*s%dnu(i,j)-s%Susg(i-1,j,:)*s%dnu(i-1,j) +&           
+                        s%Svsg(i,j,:)*s%dsv(i,j)-s%Svsg(i,j-1,:)*s%dsv(i,j-1) +&
                                 ! dz from bed load transport gradients
-                        Subg(i,j,:)*dnu(i,j)-Subg(i-1,j,:)*dnu(i-1,j)+&           
-                        Svbg(i,j,:)*dsv(i,j)-Svbg(i,j-1,:)*dsv(i,j-1) )*dsdnzi(i,j)    )       
+                        s%Subg(i,j,:)*s%dnu(i,j)-s%Subg(i-1,j,:)*s%dnu(i-1,j)+&           
+                        s%Svbg(i,j,:)*s%dsv(i,j)-s%Svbg(i,j-1,:)*s%dsv(i,j-1) )*s%dsdnzi(i,j)    )       
                 elseif (par%sourcesink==1) then
                    dzg=par%morfac*par%dt/(1.d0-par%por)*( &
-                        ero(i,j,:)-depo_ex(i,j,:)   +&
-                        ( Subg(i,j,:)*dnu(i,j)-Subg(i-1,j,:)*dnu(i-1,j)+&           
-                        Svbg(i,j,:)*dsv(i,j)-Svbg(i,j-1,:)*dsv(i,j-1) )*dsdnzi(i,j)    )
+                        s%ero(i,j,:)-s%depo_ex(i,j,:)   +&
+                        ( s%Subg(i,j,:)*s%dnu(i,j)-s%Subg(i-1,j,:)*s%dnu(i-1,j)+&           
+                        s%Svbg(i,j,:)*s%dsv(i,j)-s%Svbg(i,j-1,:)*s%dsv(i,j-1) )*s%dsdnzi(i,j)    )
                 endif
 
                 if (par%ngd==1) then ! Simple bed update in case one fraction
 
-                   zb(i,j) = zb(i,j)-sum(dzg)
-                   dzbnow(i,j) = dzbnow(i,j)-sum(dzg) ! naamgeveing?
-                   sedero(i,j) = sedero(i,j)-sum(dzg)
-                   structdepth(i,j) = max(0.d0,structdepth(i,j)-sum(dzg))
+                   s%zb(i,j) = s%zb(i,j)-sum(dzg)
+                   s%dzbnow(i,j) = s%dzbnow(i,j)-sum(dzg) ! naamgeveing?
+                   s%sedero(i,j) = s%sedero(i,j)-sum(dzg)
+                   s%structdepth(i,j) = max(0.d0,s%structdepth(i,j)-sum(dzg))
 
                 else
                    ! erosion/deposition rate of sand mass (m/s)
@@ -646,55 +646,55 @@ contains
                    edg = dzg*(1.d0-par%por)/par%dt
 
 
-                   dz=>dzbed(i,j,:)
-                   pb=>pbbed(i,j,:,:)           
+                   dz=>s%dzbed(i,j,:)
+                   pb=>s%pbbed(i,j,:,:)           
 
                    call update_fractions(par,s,i,j,dz,pb,edg,sum(dzg))
 
                 endif
 
-             enddo ! nx+1
-          enddo ! ny+1
+             enddo ! s%nx+1
+          enddo ! s%ny+1
        else
           j=1
-          do i=2,nx
+          do i=2,s%nx
              ! bed level changes per fraction in this morphological time step in meters sand including pores
              ! positive in case of erosion
              if (par%sourcesink==0) then
                 dzg=par%morfac*par%dt/(1.d0-par%por)*( & ! Dano, dz from sus transport gradients  
-                     ( Susg(i,j,:)*dnu(i,j)-Susg(i-1,j,:)*dnu(i-1,j) +&           
-                     Subg(i,j,:)*dnu(i,j)-Subg(i-1,j,:)*dnu(i-1,j) )*dsdnzi(i,j)    )           
+                     ( s%Susg(i,j,:)*s%dnu(i,j)-s%Susg(i-1,j,:)*s%dnu(i-1,j) +&           
+                     s%Subg(i,j,:)*s%dnu(i,j)-s%Subg(i-1,j,:)*s%dnu(i-1,j) )*s%dsdnzi(i,j)    )           
              elseif (par%sourcesink==1) then
                 dzg=par%morfac*par%dt/(1.d0-par%por)*( &
-                     ero(i,j,:)-depo_ex(i,j,:)       +&
-                     ( Subg(i,j,:)*dnu(i,j)-Subg(i-1,j,:)*dnu(i-1,j) )*dsdnzi(i,j)    )
+                     s%ero(i,j,:)-s%depo_ex(i,j,:)       +&
+                     ( s%Subg(i,j,:)*s%dnu(i,j)-s%Subg(i-1,j,:)*s%dnu(i-1,j) )*s%dsdnzi(i,j)    )
 
              endif
 
              if (par%ngd==1) then ! Simple bed update in case one fraction
 
-                zb(i,j) = zb(i,j)-sum(dzg)
-                dzbnow(i,j) = dzbnow(i,j)-sum(dzg) 
-                dzbdt(i,j) = dzbnow(i,j)/par%dt
-                sedero(i,j) = sedero(i,j)-sum(dzg)
-                structdepth(i,j) = max(0.d0,structdepth(i,j)-sum(dzg))
+                s%zb(i,j) = s%zb(i,j)-sum(dzg)
+                s%dzbnow(i,j) = s%dzbnow(i,j)-sum(dzg) 
+                s%dzbdt(i,j) = s%dzbnow(i,j)/par%dt
+                s%sedero(i,j) = s%sedero(i,j)-sum(dzg)
+                s%structdepth(i,j) = max(0.d0,s%structdepth(i,j)-sum(dzg))
 
              else ! multiple fractions...
                 ! erosion/deposition rate of sand mass (m/s)
                 ! positive in case of erosion
                 edg = dzg*(1.d0-par%por)/par%dt
 
-                dz=>dzbed(i,j,:)
-                pb=>pbbed(i,j,:,:)           
+                dz=>s%dzbed(i,j,:)
+                pb=>s%pbbed(i,j,:,:)           
 
                 call update_fractions(par,s,i,j,dz,pb,edg,sum(dzg))
 
              endif
 
-          enddo ! nx+1
-       endif !ny>0      
+          enddo ! s%nx+1
+       endif !s%ny>0      
 #ifdef USEMPI
-       call xmpi_shift_ee(zb)
+       call xmpi_shift_ee(s%zb)
 #endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        !
@@ -706,27 +706,27 @@ contains
           do ii=1,nint(par%morfac)
 
              aval=.false.
-             dzbdx=0.d0
-             dzbdy=0.d0
-             do j=1,ny+1
-                do i=1,nx
-                   dzbdx(i,j)=(zb(i+1,j)-zb(i,j))/dsu(i,j)  
+             s%dzbdx=0.d0
+             s%dzbdy=0.d0
+             do j=1,s%ny+1
+                do i=1,s%nx
+                   s%dzbdx(i,j)=(s%zb(i+1,j)-s%zb(i,j))/s%dsu(i,j)  
                 enddo
              enddo
              !
-             hav = hh
+             hav = s%hh
              ! Fix Hav for short wave runup:
              if (par%swrunup == 1) then
-                do j = 1,ny+1
+                do j = 1,s%ny+1
                     hinterland = 0
-                    do i = 1, nx+1
-                        if (hinterland == 0 .and. runup(j)+zs(nint(iwl(j)),j) < zb(i,j) + par%eps) then
+                    do i = 1, s%nx+1
+                        if (hinterland == 0 .and. s%runup(j)+s%zs(nint(s%iwl(j)),j) < s%zb(i,j) + par%eps) then
                             hinterland = 1;
                         endif
-                        if (wetz(i,j) == 1) then
-                            hav(i,j) = max(par%eps,(hh(i,j) + runup(j)))
+                        if (s%wetz(i,j) == 1) then
+                            hav(i,j) = max(par%eps,(s%hh(i,j) + s%runup(j)))
                         elseif (hinterland == 0) then
-                            hav(i,j) =  max(par%eps,runup(j)+zs(nint(iwl(j)),j)-zb(i,j) )
+                            hav(i,j) =  max(par%eps,s%runup(j)+s%zs(nint(s%iwl(j)),j)-s%zb(i,j) )
                         else
                             hav(i,j) = par%eps;
                         endif
@@ -734,36 +734,36 @@ contains
                 enddo
              endif
              !
-             do i=2,nx !-1 Jaap -1 gives issues for bed updating at mpi boundaries
-                do j=1,ny+1
+             do i=2,s%nx !-1 Jaap -1 gives issues for bed updating at mpi boundaries
+                do j=1,s%ny+1
                    !if (max( max(hh(i,j),par%delta*H(i,j)), max(hh(i+1,j),par%delta*H(i+1,j)) )>par%hswitch+par%eps) then
-                   if(max(hav(i,j),hav(i+1,j))>par%hswitch+par%eps) then ! Jaap instead of hh
+                   if(max(hav(i,j),hav(i+1,j))>par%hswitch+par%eps) then ! Jaap instead of s%hh
                       dzmax=par%wetslp;
                       ! tricks: seaward of istruct (transition from sand to structure) wetslope is set to 0.03;
-                      if (i>nint(istruct(j))) then 
+                      if (i>nint(s%istruct(j))) then 
                          !dzmax = 0.03d0
-                         dzmax = max(0.03d0,abs(dzbdx(i,j))*0.99d0)
+                         dzmax = max(0.03d0,abs(s%dzbdx(i,j))*0.99d0)
                       endif
                    else 
                       dzmax=par%dryslp;
                    end if
 
-                   if(abs(dzbdx(i,j))>dzmax .and. structdepth(i+nint(max(0.d0,sign(1.d0,dzbdx(i,j)))),j)>par%eps) then 
+                   if(abs(s%dzbdx(i,j))>dzmax .and. s%structdepth(i+nint(max(0.d0,sign(1.d0,s%dzbdx(i,j)))),j)>par%eps) then 
                       aval=.true.
-                      dzb=sign(1.0d0,dzbdx(i,j))*(abs(dzbdx(i,j))-dzmax)*dsu(i,j)
+                      dzb=sign(1.0d0,s%dzbdx(i,j))*(abs(s%dzbdx(i,j))-dzmax)*s%dsu(i,j)
 
                       if (dzb >= 0.d0) then
                          ie = i+1                                        ! index erosion point
                          id = i                                          ! index deposition point
-                         dAfac = dsdnzi(i,j)/dsdnzi(i+1,j)               ! take into account varying grid sizes
-                         dzb=min(dzb,par%dzmax*par%dt/dsu(i,j))          ! make sure dzb is not in conflict with par%dzmax
-                         dzb=min(dzb,structdepth(i+1,j))                 ! make sure dzb is not larger than sediment layer thickness
+                         dAfac = s%dsdnzi(i,j)/s%dsdnzi(i+1,j)               ! take into account varying grid sizes
+                         dzb=min(dzb,par%dzmax*par%dt/s%dsu(i,j))          ! make sure dzb is not in conflict with par%dzmax
+                         dzb=min(dzb,s%structdepth(i+1,j))                 ! make sure dzb is not larger than sediment layer thickness
                       else
                          ie = i                                          ! index erosion point
                          id = i+1                                        ! index deposition point
-                         dAfac = dsdnzi(i+1,j)/dsdnzi(i,j)               ! take into account varying grid sizes
-                         dzb=max(dzb,-par%dzmax*par%dt/dsu(i,j)) 
-                         dzb=max(dzb,-structdepth(i,j))
+                         dAfac = s%dsdnzi(i+1,j)/s%dsdnzi(i,j)               ! take into account varying grid sizes
+                         dzb=max(dzb,-par%dzmax*par%dt/s%dsu(i,j)) 
+                         dzb=max(dzb,-s%structdepth(i,j))
                       endif
 
 
@@ -771,25 +771,25 @@ contains
 
                          dzleft = abs(dzb)
 
-                         zb(id,j) = zb(id,j)+dzleft*dAfac
-                         zb(ie,j) = zb(ie,j)-dzleft
-                         dzbnow(id,j) = dzbnow(id,j)+dzleft*dAfac ! naamgeveing?
-                         dzbnow(ie,j) = dzbnow(ie,j)-dzleft 
-                         sedero(id,j) = sedero(id,j)+dzleft*dAfac
-                         sedero(ie,j) = sedero(ie,j)-dzleft
-                         structdepth(id,j) = max(0.d0,structdepth(id,j)+dzleft*dAfac)
-                         structdepth(ie,j) = max(0.d0,structdepth(ie,j)-dzleft)
+                         s%zb(id,j) = s%zb(id,j)+dzleft*dAfac
+                         s%zb(ie,j) = s%zb(ie,j)-dzleft
+                         s%dzbnow(id,j) = s%dzbnow(id,j)+dzleft*dAfac ! naamgeveing?
+                         s%dzbnow(ie,j) = s%dzbnow(ie,j)-dzleft 
+                         s%sedero(id,j) = s%sedero(id,j)+dzleft*dAfac
+                         s%sedero(ie,j) = s%sedero(ie,j)-dzleft
+                         s%structdepth(id,j) = max(0.d0,s%structdepth(id,j)+dzleft*dAfac)
+                         s%structdepth(ie,j) = max(0.d0,s%structdepth(ie,j)-dzleft)
 
-                         zs(id,j)  = zs(id,j)+dzleft*dAfac
-                         zs(ie,j)  = zs(ie,j)-dzleft
-                         dzav(id,j)= dzav(id,j)+dzleft*dAfac
-                         dzav(ie,j)= dzav(ie,j)-dzleft
+                         s%zs(id,j)  = s%zs(id,j)+dzleft*dAfac
+                         s%zs(ie,j)  = s%zs(ie,j)-dzleft
+                         s%dzav(id,j)= s%dzav(id,j)+dzleft*dAfac
+                         s%dzav(ie,j)= s%dzav(ie,j)-dzleft
 
                       else ! multiple fractions...
 
                          ! now fix fractions....
-                         dz => dzbed(ie,j,:) 
-                         pb => pbbed(ie,j,:,:)
+                         dz => s%dzbed(ie,j,:) 
+                         pb => s%pbbed(ie,j,:,:)
 
                          ! figure out how many depth layers (ndz) are eroded in point iii
                          sdz = 0
@@ -810,83 +810,83 @@ contains
 
                             ! erosion deposition per fraction (upwind or downwind); edg is positive in case of erosion   
                             do jg=1,par%ngd 
-                               edg2(jg) =  sedcal(jg)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt       ! erosion    (dzt always > 0 )
-                               edg1(jg) = -sedcal(jg)*edg2(jg)*dAfac                             ! deposition (dzt always < 0 )
+                               edg2(jg) =  s%sedcal(jg)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt       ! erosion    (dzt always > 0 )
+                               edg1(jg) = -s%sedcal(jg)*edg2(jg)*dAfac                             ! deposition (dzt always < 0 )
                             enddo
 
                             dzavt = dzavt + sum(edg2)*par%dt/(1.d0-par%por)
 
-                            call update_fractions(par,s,ie,j,dzbed(ie,j,:),pbbed(ie,j,:,:),edg2,dzavt)           ! update bed in eroding point
+                            call update_fractions(par,s,ie,j,s%dzbed(ie,j,:),s%pbbed(ie,j,:,:),edg2,dzavt)           ! update bed in eroding point
 
-                            call update_fractions(par,s,id,j,dzbed(id,j,:),pbbed(id,j,:,:),edg1,-dzavt*dAfac)    ! update bed in deposition point
+                            call update_fractions(par,s,id,j,s%dzbed(id,j,:),s%pbbed(id,j,:,:),edg1,-dzavt*dAfac)    ! update bed in deposition point
 
                          enddo
 
                          ! update water levels and dzav
-                         zs(ie,j)  = zs(ie,j)-dzavt
-                         dzav(ie,j)= dzav(ie,j)-dzavt
+                         s%zs(ie,j)  = s%zs(ie,j)-dzavt
+                         s%dzav(ie,j)= s%dzav(ie,j)-dzavt
 
-                         zs(id,j)  = zs(id,j)+dzavt*dAfac
-                         dzav(id,j)= dzav(id,j)+dzavt*dAfac
+                         s%zs(id,j)  = s%zs(id,j)+dzavt*dAfac
+                         s%dzav(id,j)= s%dzav(id,j)+dzavt*dAfac
 
                       end if ! yes/no multiple fractions
                    end if
                 end do
              end do
              !JJ: update y slopes after avalanching in X-direction seems more appropriate
-             do j=1,ny
-                do i=1,nx+1
-                   dzbdy(i,j)=(zb(i,j+1)-zb(i,j))/dnv(i,j)
+             do j=1,s%ny
+                do i=1,s%nx+1
+                   s%dzbdy(i,j)=(s%zb(i,j+1)-s%zb(i,j))/s%dnv(i,j)
                 enddo
              enddo
 
-             do j=2,ny !-1 Jaap -1 gives issues for bed updating at mpi boundaries
-                do i=1,nx+1
-                   if(max(hh(i,j),hh(i,j+1))>par%hswitch+par%eps) then
+             do j=2,s%ny !-1 Jaap -1 gives issues for bed updating at mpi boundaries
+                do i=1,s%nx+1
+                   if(max(s%hh(i,j),s%hh(i,j+1))>par%hswitch+par%eps) then
                       dzmax=par%wetslp
                    else
                       dzmax=par%dryslp
                    end if
-                   if(abs(dzbdy(i,j))>dzmax .and. structdepth(i,j+nint(max(0.d0,sign(1.d0,dzbdy(i,j)))))>par%eps) then ! Jaap
+                   if(abs(s%dzbdy(i,j))>dzmax .and. s%structdepth(i,j+nint(max(0.d0,sign(1.d0,s%dzbdy(i,j)))))>par%eps) then ! Jaap
                       aval=.true. 
-                      dzb=sign(1.0d0,dzbdy(i,j))*(abs(dzbdy(i,j))-dzmax)*dnv(i,j)
+                      dzb=sign(1.0d0,s%dzbdy(i,j))*(abs(s%dzbdy(i,j))-dzmax)*s%dnv(i,j)
                       !
                       if (dzb >= 0.d0) then
                          je = j+1                                        ! index erosion point
                          jd = j                                          ! index deposition point
-                         dAfac = dsdnzi(i,j)/dsdnzi(i,j+1)               ! take into account varying grid sizes
-                         dzb=min(dzb,par%dzmax*par%dt/dnv(i,j))
-                         dzb=min(dzb,structdepth(i,j+1))
+                         dAfac = s%dsdnzi(i,j)/s%dsdnzi(i,j+1)               ! take into account varying grid sizes
+                         dzb=min(dzb,par%dzmax*par%dt/s%dnv(i,j))
+                         dzb=min(dzb,s%structdepth(i,j+1))
                       else
                          je = j                                          ! index erosion point
                          jd = j+1                                        ! index deposition point
-                         dAfac = dsdnzi(i,j+1)/dsdnzi(i,j)               ! take into account varying grid sizes
-                         dzb=max(dzb,-par%dzmax*par%dt/dnv(i,j))
-                         dzb=max(dzb,-structdepth(i,j))
+                         dAfac = s%dsdnzi(i,j+1)/s%dsdnzi(i,j)               ! take into account varying grid sizes
+                         dzb=max(dzb,-par%dzmax*par%dt/s%dnv(i,j))
+                         dzb=max(dzb,-s%structdepth(i,j))
                       endif
 
                       if (par%ngd == 1) then ! Simple bed update in case one fraction
 
                          dzleft = abs(dzb)
 
-                         zb(i,jd) = zb(i,jd)+dzleft*dAfac
-                         zb(i,je) = zb(i,je)-dzleft
-                         dzbnow(i,jd) = dzbnow(i,jd)+dzleft*dAfac ! naamgeveing?
-                         dzbnow(i,je) = dzbnow(i,je)-dzleft 
-                         sedero(i,jd) = sedero(i,jd)+dzleft*dAfac
-                         sedero(i,je) = sedero(i,je)-dzleft
-                         structdepth(i,jd) = max(0.d0,structdepth(i,jd)+dzleft*dAfac)
-                         structdepth(i,je) = max(0.d0,structdepth(i,je)-dzleft)
+                         s%zb(i,jd) = s%zb(i,jd)+dzleft*dAfac
+                         s%zb(i,je) = s%zb(i,je)-dzleft
+                         s%dzbnow(i,jd) = s%dzbnow(i,jd)+dzleft*dAfac ! naamgeveing?
+                         s%dzbnow(i,je) = s%dzbnow(i,je)-dzleft 
+                         s%sedero(i,jd) = s%sedero(i,jd)+dzleft*dAfac
+                         s%sedero(i,je) = s%sedero(i,je)-dzleft
+                         s%structdepth(i,jd) = max(0.d0,s%structdepth(i,jd)+dzleft*dAfac)
+                         s%structdepth(i,je) = max(0.d0,s%structdepth(i,je)-dzleft)
 
-                         zs(i,jd)  = zs(i,jd)+dzleft*dAfac
-                         zs(i,je)  = zs(i,je)-dzleft
-                         dzav(i,jd)= dzav(i,jd)+dzleft*dAfac
-                         dzav(i,je)= dzav(i,je)-dzleft
+                         s%zs(i,jd)  = s%zs(i,jd)+dzleft*dAfac
+                         s%zs(i,je)  = s%zs(i,je)-dzleft
+                         s%dzav(i,jd)= s%dzav(i,jd)+dzleft*dAfac
+                         s%dzav(i,je)= s%dzav(i,je)-dzleft
 
                       else ! multiple fractions...
 
-                         dz => dzbed(i,je,:) 
-                         pb => pbbed(i,je,:,:)
+                         dz => s%dzbed(i,je,:) 
+                         pb => s%pbbed(i,je,:,:)
 
                          ! figure out how many depth layers (ndz) are affected
                          sdz = 0
@@ -906,24 +906,24 @@ contains
 
                             ! erosion deposition per fraction (upwind or downwind); edg is positive in case of erosion  
                             do jg=1,par%ngd 
-                               edg2(jg) = sedcal(jg)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt        ! erosion    (dzt always > 0 )
-                               edg1(jg) = -sedcal(jg)*edg2(jg)*dAfac                             ! deposition (dzt always < 0 )
+                               edg2(jg) = s%sedcal(jg)*dzt*pb(jdz,jg)*(1.d0-par%por)/par%dt        ! erosion    (dzt always > 0 )
+                               edg1(jg) = -s%sedcal(jg)*edg2(jg)*dAfac                             ! deposition (dzt always < 0 )
                             enddo
 
                             dzavt = dzavt + sum(edg2)*par%dt/(1.d0-par%por)
 
-                            call update_fractions(par,s,i,je,dzbed(i,je,:),pbbed(i,je,:,:),edg2,dzavt)           ! upwind point
+                            call update_fractions(par,s,i,je,s%dzbed(i,je,:),s%pbbed(i,je,:,:),edg2,dzavt)           ! upwind point
 
-                            call update_fractions(par,s,i,jd,dzbed(i,jd,:),pbbed(i,jd,:,:),edg1,-dzavt*dAfac)    ! downwind point
+                            call update_fractions(par,s,i,jd,s%dzbed(i,jd,:),s%pbbed(i,jd,:,:),edg1,-dzavt*dAfac)    ! downwind point
 
                          enddo
 
                          ! update water levels and dzav
-                         zs(i,je)  = zs(i,je)-dzavt
-                         dzav(i,je)= dzav(i,je)-dzavt
+                         s%zs(i,je)  = s%zs(i,je)-dzavt
+                         s%dzav(i,je)= s%dzav(i,je)-dzavt
 
-                         zs(i,jd)  = zs(i,jd)+dzavt*dAfac
-                         dzav(i,jd)= dzav(i,jd)+dzavt*dAfac
+                         s%zs(i,jd)  = s%zs(i,jd)+dzavt*dAfac
+                         s%dzav(i,jd)= s%dzav(i,jd)+dzavt*dAfac
 
                       endif !yes/no multiple fractions
                    end if
@@ -932,51 +932,51 @@ contains
              if (.not.aval) exit
           end do
        else
-          dzbdx=0.d0
-          dzbdy=0.d0
-          do j=1,ny+1
-             do i=1,nx
-                dzbdx(i,j)=(zb(i+1,j)-zb(i,j))/dsu(i,j)  
+          s%dzbdx=0.d0
+          s%dzbdy=0.d0
+          do j=1,s%ny+1
+             do i=1,s%nx
+                s%dzbdx(i,j)=(s%zb(i+1,j)-s%zb(i,j))/s%dsu(i,j)  
              enddo
           enddo
-          do j=1,ny
-             do i=1,nx+1
-                dzbdy(i,j)=(zb(i,j+1)-zb(i,j))/dnv(i,j)
+          do j=1,s%ny
+             do i=1,s%nx+1
+                s%dzbdy(i,j)=(s%zb(i,j+1)-s%zb(i,j))/s%dnv(i,j)
              enddo
           enddo
        end if
        !
        ! bed boundary conditions
        ! 
-       if(xmpi_isleft .and. ny>0) then
-          zb(:,1) = zb(:,2)
-          dzbnow(:,1) = dzbnow(:,2)
-          sedero(:,1) = sedero(:,2)
-          structdepth(:,1) = structdepth(:,2)
-          pbbed(:,1,:,:)=pbbed(:,2,:,:)
-          z0bed(:,1)=z0bed(:,2)
-          dzbed(:,1,:)=dzbed(:,2,:)
+       if(xmpi_isleft .and. s%ny>0) then
+          s%zb(:,1) = s%zb(:,2)
+          s%dzbnow(:,1) = s%dzbnow(:,2)
+          s%sedero(:,1) = s%sedero(:,2)
+          s%structdepth(:,1) = s%structdepth(:,2)
+          s%pbbed(:,1,:,:)=s%pbbed(:,2,:,:)
+          s%z0bed(:,1)=s%z0bed(:,2)
+          s%dzbed(:,1,:)=s%dzbed(:,2,:)
        endif
 
-       if(xmpi_isright .and. ny>0) then
-          zb(:,ny+1) = zb(:,ny)
-          dzbnow(:,ny+1) = dzbnow(:,ny)
-          sedero(:,ny+1) = sedero(:,ny)
-          structdepth(:,ny+1) = structdepth(:,ny)
-          pbbed(:,ny+1,:,:)=pbbed(:,ny,:,:)
-          z0bed(:,ny+1)=z0bed(:,ny)
-          dzbed(:,ny+1,:)=dzbed(:,ny,:)
+       if(xmpi_isright .and. s%ny>0) then
+          s%zb(:,s%ny+1) = s%zb(:,s%ny)
+          s%dzbnow(:,s%ny+1) = s%dzbnow(:,s%ny)
+          s%sedero(:,s%ny+1) = s%sedero(:,s%ny)
+          s%structdepth(:,s%ny+1) = s%structdepth(:,s%ny)
+          s%pbbed(:,s%ny+1,:,:)=s%pbbed(:,s%ny,:,:)
+          s%z0bed(:,s%ny+1)=s%z0bed(:,s%ny)
+          s%dzbed(:,s%ny+1,:)=s%dzbed(:,s%ny,:)
        endif
 
        ! Robert: in parallel version bed update must take place on internal boundaries:
 #ifdef USEMPI
-       call xmpi_shift_ee(zb)
+       call xmpi_shift_ee(s%zb)
 #endif
 
        ! Update representative sed.diameter at the bed for flow friction and output
        if (par%ngd>1) then
-          do j=j1,max(ny,1)
-             do i=2,nx
+          do j=j1,max(s%ny,1)
+             do i=2,s%nx
                 s%D50top =  sum(s%pbbed(i,j,1,:)*s%D50)
                 s%D90top =  sum(s%pbbed(i,j,1,:)*s%D90)
              enddo
@@ -1159,38 +1159,38 @@ contains
     real*8 , dimension(:,:),allocatable  ,save     :: uandv,b,fslope,hloc,ceqs,ceqb,fallvelredfac
     real*8 , dimension(:,:,:),allocatable,save     :: w
     
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     if (.not. allocated(vmg)) then
-       allocate (vmg   (nx+1,ny+1))
-       allocate (term1 (nx+1,ny+1))
-       allocate (B2    (nx+1,ny+1))
-       allocate (Cd    (nx+1,ny+1))
-       allocate (Asb   (nx+1,ny+1))
-       allocate (Ucr   (nx+1,ny+1))
-       allocate (Ucrc  (nx+1,ny+1))
-       allocate (Ucrw  (nx+1,ny+1))
-       allocate (urms2 (nx+1,ny+1))
-       allocate (hloc  (nx+1,ny+1))
-       allocate (Ts    (nx+1,ny+1))
-       allocate (ceqs  (nx+1,ny+1))
-       allocate (ceqb  (nx+1,ny+1))
-       allocate (srfTotal(nx+1,ny+1))       ! Lodewijk
-       allocate (Ucrb  (nx+1,ny+1))         ! Lodewijk
-       allocate (Ucrs  (nx+1,ny+1))         ! Lodewijk
-       allocate (srfRhee(nx+1,ny+1))        ! Lodewijk
-       allocate (vero  (nx+1,ny+1))         ! Lodewijk
-       allocate (fallvelredfac(nx+1,ny+1))  ! Lodewijk
-       allocate (w     (nx+1,ny+1,par%ngd)) ! Lodewijk
+       allocate (vmg   (s%nx+1,s%ny+1))
+       allocate (term1 (s%nx+1,s%ny+1))
+       allocate (B2    (s%nx+1,s%ny+1))
+       allocate (Cd    (s%nx+1,s%ny+1))
+       allocate (Asb   (s%nx+1,s%ny+1))
+       allocate (Ucr   (s%nx+1,s%ny+1))
+       allocate (Ucrc  (s%nx+1,s%ny+1))
+       allocate (Ucrw  (s%nx+1,s%ny+1))
+       allocate (urms2 (s%nx+1,s%ny+1))
+       allocate (hloc  (s%nx+1,s%ny+1))
+       allocate (Ts    (s%nx+1,s%ny+1))
+       allocate (ceqs  (s%nx+1,s%ny+1))
+       allocate (ceqb  (s%nx+1,s%ny+1))
+       allocate (srfTotal(s%nx+1,s%ny+1))       ! Lodewijk
+       allocate (Ucrb  (s%nx+1,s%ny+1))         ! Lodewijk
+       allocate (Ucrs  (s%nx+1,s%ny+1))         ! Lodewijk
+       allocate (srfRhee(s%nx+1,s%ny+1))        ! Lodewijk
+       allocate (vero  (s%nx+1,s%ny+1))         ! Lodewijk
+       allocate (fallvelredfac(s%nx+1,s%ny+1))  ! Lodewijk
+       allocate (w     (s%nx+1,s%ny+1,par%ngd)) ! Lodewijk
        allocate (dster (par%ngd))  
        allocate (ws0   (par%ngd))
-       allocate (dhdx  (nx+1,ny+1))
-       allocate (dhdy  (nx+1,ny+1))
-       allocate (uandv (nx+1,ny+1))
-       allocate (b     (nx+1,ny+1))
-       allocate (fslope(nx+1,ny+1))
-       allocate (hfac  (nx+1,ny+1))
+       allocate (dhdx  (s%nx+1,s%ny+1))
+       allocate (dhdy  (s%nx+1,s%ny+1))
+       allocate (uandv (s%nx+1,s%ny+1))
+       allocate (b     (s%nx+1,s%ny+1))
+       allocate (fslope(s%nx+1,s%ny+1))
+       allocate (hfac  (s%nx+1,s%ny+1))
        vmg = 0.d0
        onethird=1.d0/3.d0
        twothird=2.d0/3.d0
@@ -1225,7 +1225,7 @@ contains
     endif
     !
     ! hloc   = max(hh,0.01d0) ! Jaap 
-    hloc = max(hh,0.01)
+    hloc = max(s%hh,0.01)
     !
     ! compute near bed turbulence
     !
@@ -1233,64 +1233,64 @@ contains
 
     if (par%swave==1) then
        ! wave breaking induced turbulence due to short waves
-       do j=1,ny+1
-          do i=1,nx+1
+       do j=1,s%ny+1
+          do i=1,s%nx+1
              ! compute mixing length
              ! ML = 2*R(i,j)*par%Trep/(par%rho*c(i,j)*max(H(i,j),par%eps))
-             ML = dsqrt(2*R(i,j)*par%Trep/(par%rho*c(i,j)))
+             ML = dsqrt(2*s%R(i,j)*par%Trep/(par%rho*s%c(i,j)))
              ! ML = 0.9d0*H(i,j)
              ML = min(ML,hloc(i,j));
              ! exponential decay turbulence over depth
              dcfin = exp(min(100.d0,hloc(i,j)/max(ML,0.01d0)))
              dcf = min(1.d0,1.d0/(dcfin-1.d0))
              ! Jaap: new approach: compute kb based on waveturb result 
-             kb(i,j) = kturb(i,j)*dcf
+             s%kb(i,j) = s%kturb(i,j)*dcf
              ! 
              if (par%turb == TURB_BORE_AVERAGED) then
-                kb(i,j) = kb(i,j)*par%Trep/Tbore(i,j)
+                s%kb(i,j) = s%kb(i,j)*par%Trep/s%Tbore(i,j)
              endif
           enddo
           ! Jaap: rundown jet creating additional turbulence
           if (par%swrunup==1)then
-             kb(nint(istruct(j)),j) = kb(nint(istruct(j)),j) + par%jetfac* & 
-                               (E(nint(istruct(j)),j)*strucslope(j)*sqrt(par%g/hh(nint(istruct(j)),j)))**twothird
+             s%kb(nint(s%istruct(j)),j) = s%kb(nint(s%istruct(j)),j) + par%jetfac* & 
+                               (s%E(nint(s%istruct(j)),j)*s%strucslope(j)*sqrt(par%g/s%hh(nint(s%istruct(j)),j)))**twothird
           endif
        enddo
     endif !par%swave == 1
 
     ! switch to include long wave stirring
     if (par%lws==1) then
-       vmg  = dsqrt(ue**2+ve**2)
+       vmg  = dsqrt(s%ue**2+s%ve**2)
     elseif (par%lws==0) then
        ! vmg lags on actual mean flow; but long wave contribution to mean flow is included... 
-       vmg = (1.d0-1.d0/par%cats/par%Trep*par%dt)*vmg + (1.d0/par%cats/par%Trep*par%dt)*dsqrt(ue**2+ve**2) 
+       vmg = (1.d0-1.d0/par%cats/par%Trep*par%dt)*vmg + (1.d0/par%cats/par%Trep*par%dt)*dsqrt(s%ue**2+s%ve**2) 
     endif
 
-    urms2 = urms**2.d0+1.45d0*kb
+    urms2 = s%urms**2.d0+1.45d0*s%kb
 
     do jg = 1,par%ngd
 
        Ts       = par%tsfac*hloc/w(:,:,jg)
-       Tsg(:,:,jg) = max(Ts,par%Tsmin) 
+       s%Tsg(:,:,jg) = max(Ts,par%Tsmin) 
        !
        ! calculate treshold velocity Ucr
        !
        if (par%form==FORM_SOULSBY_VANRIJN) then       ! Soulsby van Rijn
-           if(D50(jg)<=0.0005d0) then
-              Ucr=0.19d0*D50(jg)**0.1d0*log10(4.d0*hloc/D90(jg))
+           if(s%D50(jg)<=0.0005d0) then
+              Ucr=0.19d0*s%D50(jg)**0.1d0*log10(4.d0*hloc/s%D90(jg))
            else   !Dano see what happens with coarse material
-              Ucr=8.5d0*D50(jg)**0.6d0*log10(4.d0*hloc/D90(jg))
+              Ucr=8.5d0*s%D50(jg)**0.6d0*log10(4.d0*hloc/s%D90(jg))
            end if
        elseif (par%form==FORM_VANTHIEL_VANRIJN) then  ! Van Thiel de Vries & Reniers 2008
            if(s%D50(jg)<=0.0005) then
-              Ucrc=0.19d0*D50(jg)**0.1d0*log10(4.d0*hloc/D90(jg))                           !Shields
+              Ucrc=0.19d0*s%D50(jg)**0.1d0*log10(4.d0*hloc/s%D90(jg))                           !Shields
               Ucrw=0.24d0*(delta*par%g)**0.66d0*s%D50(jg)**0.33d0*par%Trep**0.33d0          !Komar and Miller (1975)
            else if(s%D50(jg)<=0.002) then
-              Ucrc=8.5d0*D50(jg)**0.6d0*log10(4.d0*hloc/D90(jg))                            !Shields
-              Ucrw=0.95d0*(delta*par%g)**0.57d0*D50(jg)**0.43*par%Trep**0.14                !Komar and Miller (1975)
+              Ucrc=8.5d0*s%D50(jg)**0.6d0*log10(4.d0*hloc/s%D90(jg))                            !Shields
+              Ucrw=0.95d0*(delta*par%g)**0.57d0*s%D50(jg)**0.43*par%Trep**0.14                !Komar and Miller (1975)
            else if(s%D50(jg)>0.002) then
-              Ucrc=1.3d0*sqrt(delta*par%g*D50(jg))*(hloc/D50(jg))**(0.5d0*onethird)         !Maynord (1978) --> also Neill (1968) where 1.3d0 = 1.4d0
-              Ucrw=0.95d0*(delta*par%g)**0.57d0*D50(jg)**0.43*par%Trep**0.14                !Komar and Miller (1975)
+              Ucrc=1.3d0*sqrt(delta*par%g*s%D50(jg))*(hloc/s%D50(jg))**(0.5d0*onethird)         !Maynord (1978) --> also Neill (1968) where 1.3d0 = 1.4d0
+              Ucrw=0.95d0*(delta*par%g)**0.57d0*s%D50(jg)**0.43*par%Trep**0.14                !Komar and Miller (1975)
            end if
            B2 = vmg/max(vmg+dsqrt(urms2),par%eps)
            Ucr = B2*Ucrc + (1-B2)*Ucrw                                                     !Van Rijn 2007 (Bed load transport paper)
@@ -1300,7 +1300,7 @@ contains
        srfRhee(:,:)  = 0.d0
        srfTotal(:,:) = 1.d0       
        if (par%dilatancy == 1) then
-            vero(:,:) = max(0.d0,-1.d0*s%dzbdt)      ! Erosion velocity, for now asume it equal to -dzbdt of the previous time step
+            vero(:,:) = max(0.d0,-1.d0*s%dzbdt)      ! Erosion velocity, for now asume it equal to -s%dzbdt of the previous time step
             kl = par%g/(160.d0*kvis)*(s%D15(jg)**2.d0)*((par%por**3.d0)/(1.d0-par%por)**2.d0) ! Permeability, Adel 1987, which is based on the Ergun equation
             ! bed porosity, estimated here as maximum porosity, to be added to user input
             ! A=3/4 for single particles and A=1/(1-n0) for a continuum
@@ -1311,17 +1311,17 @@ contains
        if (par%bdslpeffini == BDSLPEFFINI_NONE) then
            srfTotal(:,:) = 1.d0 + srfRhee(:,:)
        elseif (par%bdslpeffini == BDSLPEFFINI_TOTAL .or. par%bdslpeffini == BDSLPEFFINI_BED) then
-            do j=1,ny+1
-                do i=1,nx+1
+            do j=1,s%ny+1
+                do i=1,s%nx+1
                     ! Prevent NaN values if too small values
-                    if  ((dabs(ue(i,j)) > 0.000001d0 .or. dabs(ve(i,j)) > 0.000001d0) .and.  &
+                    if  ((dabs(s%ue(i,j)) > 0.000001d0 .or. dabs(s%ve(i,j)) > 0.000001d0) .and.  &
                          (dabs(s%dzbdx(i,j))>0.000001d0 .or. dabs(s%dzbdy(i,j))>0.000001d0)) then
                         ! Angle between the x-axis and the flow velocity
                         ! REMARK: also include waves in the velocity?
-                        if (ue(i,j) < 0.d0) then
-                            alpha1 = datan(ve(i,j)/ue(i,j)) + par%px
+                        if (s%ue(i,j) < 0.d0) then
+                            alpha1 = datan(s%ve(i,j)/s%ue(i,j)) + par%px
                         else
-                            alpha1 = datan(ve(i,j)/ue(i,j))
+                            alpha1 = datan(s%ve(i,j)/s%ue(i,j))
                         endif
                         ! Angle between the x-axis and the bed slope vector directed in down-slope direction, derived in thesis Lodewijk
                         if (s%dzbdy(i,j) >= 0.d0) then
@@ -1365,8 +1365,8 @@ contains
             Cd=(0.40d0/(log(max(hloc,10.d0*z0)/z0)-1.0d0))**2
             !
             ! transport parameters
-            Asb=0.005d0*hloc*(D50(jg)/hloc/(delta*par%g*D50(jg)))**1.2d0         ! bed load coefficent
-            Ass=0.012d0*D50(jg)*dster(jg)**(-0.6d0)/(delta*par%g*D50(jg))**1.2d0 ! suspended load coeffient
+            Asb=0.005d0*hloc*(s%D50(jg)/hloc/(delta*par%g*s%D50(jg)))**1.2d0         ! bed load coefficent
+            Ass=0.012d0*s%D50(jg)*dster(jg)**(-0.6d0)/(delta*par%g*s%D50(jg))**1.2d0 ! suspended load coeffient
             !
             term1=(vmg**2+0.018/Cd*par%sws*urms2) ! Make 0.018/Cd is always smaller than the flow friction coefficient 
             !
@@ -1376,10 +1376,10 @@ contains
             ! term1=sqrt(vmag2+0.018d0/Cd*urms2)     ! nearbed-velocity
             ! the two above lines are comment out and replaced by a limit on total velocity u2+urms2, robert 1/9 and ap 28/11
             !
-            term1=min(term1,par%smax*par%g/cf*s%D50(jg)*delta)
+            term1=min(term1,par%smax*par%g/s%cf*s%D50(jg)*delta)
             term1=sqrt(term1)      
-            do j=1,ny+1
-                do i=1,nx
+            do j=1,s%ny+1
+                do i=1,s%nx
                     ! Lodewijk: sepperate bed load from suspended load since Ucr not anymore the same
                     if(term1(i,j)>Ucrb(i,j) .and. hloc(i,j)>par%eps) then
                         ceqb(i,j)=Asb(i,j)*(term1(i,j)-Ucrb(i,j))**2.4d0
@@ -1400,13 +1400,13 @@ contains
             ! Jaap: Van Rijn use Peak orbital flow velocity --> 0.64 corresponds to 0.4 coefficient regular waves Van Rijn (2007)
             term1=vmg**2+0.64d0*par%sws*urms2
             ! reduce sediment suspensions for (inundation) overwash conditions with critical flow velocitties
-            term1=min(term1,par%smax*par%g/cf*s%D50(jg)*delta)
+            term1=min(term1,par%smax*par%g/s%cf*s%D50(jg)*delta)
             term1=sqrt(term1)                                        
             !
             ceqb = 0.d0*term1                                                                     !initialize ceqb
             ceqs = 0.d0*term1                                                                     !initialize ceqs
-            do j=1,ny+1
-                do i=1,nx
+            do j=1,s%ny+1
+                do i=1,s%nx
                     ! Lodewijk: sepperate bed load from suspended load since Ucr not anymore the same
                     if(term1(i,j)>Ucrb(i,j) .and. hloc(i,j)>par%eps) then
                         ceqb(i,j)=Asb(i,j)*(term1(i,j)-Ucrb(i,j))**1.5
@@ -1420,9 +1420,9 @@ contains
        end if        
        ! 
        ceqb = min(ceqb/hloc,par%cmax/2) ! maximum equilibrium bed concentration
-       ceqbg(:,:,jg) = (1-par%bulk)*ceqb*sedcal(jg)*wetz
+       s%ceqbg(:,:,jg) = (1-par%bulk)*ceqb*s%sedcal(jg)*s%wetz
        ceqs = min(ceqs/hloc,par%cmax/2) ! maximum equilibrium suspended concentration
-       ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*sedcal(jg)*wetz  
+       s%ceqsg(:,:,jg) = (ceqs+par%bulk*ceqb)*s%sedcal(jg)*s%wetz  
        ! Jaap: old brute method to prevent strong coastline erosion
        ! where (hloc<=par%hmin) ceqsg(:,:,jg) = 0.d0    
     enddo                                 ! end of grain size classes
@@ -1474,118 +1474,118 @@ contains
     real*8, save                             :: twothird
     real*8,dimension(:,:),allocatable,save   :: ksource, kturbu,kturbv,Sturbu,Sturbv,dzsdt_cr
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     if (.not. allocated(kturbu)) then
-       allocate(ksource (nx+1,ny+1))
-       allocate(kturbu (nx+1,ny+1))
-       allocate(kturbv (nx+1,ny+1))
-       allocate(Sturbu (nx+1,ny+1))
-       allocate(Sturbv (nx+1,ny+1))
-       allocate(dzsdt_cr (nx+1,ny+1))
+       allocate(ksource (s%nx+1,s%ny+1))
+       allocate(kturbu (s%nx+1,s%ny+1))
+       allocate(kturbv (s%nx+1,s%ny+1))
+       allocate(Sturbu (s%nx+1,s%ny+1))
+       allocate(Sturbv (s%nx+1,s%ny+1))
+       allocate(dzsdt_cr (s%nx+1,s%ny+1))
        twothird=2.d0/3.d0
     endif
     ! use lagrangian velocities
     kturbu       = 0.0d0  !Jaap
     kturbv       = 0.0d0  !Jaap         
-    dzsdt_cr=par%beta*c
+    dzsdt_cr=par%beta*s%c
     ! Update roller thickness
-    rolthick=rolthick+par%dt*(abs(dzsdt)-dzsdt_cr)
-    rolthick=max(rolthick,0.d0)
+    s%rolthick=s%rolthick+par%dt*(abs(s%dzsdt)-dzsdt_cr)
+    s%rolthick=max(s%rolthick,0.d0)
     
     ! Jaap compute sources and sinks
     ! long wave source
     ksource = 0
     if (par%lwt == 1) then
-       ksource = par%g*rolthick*par%beta*c      !only important in shallow water, where c=sqrt(gh)  
+       ksource = par%g*s%rolthick*par%beta*s%c      !only important in shallow water, where s%c=sqrt(gh)  
     endif
     if (par%turbadv == TURBADV_NONE) then
-       kturb = (DR/par%rho)**twothird           ! See Battjes, 1975 / 1985
+       s%kturb = (s%DR/par%rho)**twothird           ! See Battjes, 1975 / 1985
     else
-       ksource = ksource + DR/par%rho
+       ksource = ksource + s%DR/par%rho
      
     
        ! Jaap do long wave turb approach for both short waves and long waves
        !
        ! Turbulence in uu-points
        !
-       do j=1,ny+1
-         do i=1,nx
-           if(uu(i,j)>0.d0) then
-             kturbu(i,j)=par%thetanum*kturb(i,j)+(1.d0-par%thetanum)*kturb(min(i+1,nx),j)
-           elseif(uu(i,j)<0.d0) then
-             kturbu(i,j)=par%thetanum*kturb(i+1,j)+(1.d0-par%thetanum)*kturb(max(i,2),j)
+       do j=1,s%ny+1
+         do i=1,s%nx
+           if(s%uu(i,j)>0.d0) then
+             kturbu(i,j)=par%thetanum*s%kturb(i,j)+(1.d0-par%thetanum)*s%kturb(min(i+1,s%nx),j)
+           elseif(s%uu(i,j)<0.d0) then
+             kturbu(i,j)=par%thetanum*s%kturb(i+1,j)+(1.d0-par%thetanum)*s%kturb(max(i,2),j)
            else
-             kturbu(i,j)=0.5d0*(kturb(i,j)+kturb(i+1,j))
+             kturbu(i,j)=0.5d0*(s%kturb(i,j)+s%kturb(i+1,j))
            endif
          enddo
        enddo
-       if (xmpi_isbot) kturbu(nx+1,:) = kturb(nx+1,:)     
+       if (xmpi_isbot) kturbu(s%nx+1,:) = s%kturb(s%nx+1,:)     
        !
        ! Turbulence in vv-points
        !
-       do j=1,ny
-         do i=1,nx+1
-          if(vv(i,j)>0) then
-             kturbv(i,j)=par%thetanum*kturb(i,j)+(1.d0-par%thetanum)*kturb(i,min(j+1,ny))
-          else if(vv(i,j)<0) then
-             kturbv(i,j)=par%thetanum*kturb(i,j+1)+(1.d0-par%thetanum)*kturb(i,max(j,2))
+       do j=1,s%ny
+         do i=1,s%nx+1
+          if(s%vv(i,j)>0) then
+             kturbv(i,j)=par%thetanum*s%kturb(i,j)+(1.d0-par%thetanum)*s%kturb(i,min(j+1,s%ny))
+          else if(s%vv(i,j)<0) then
+             kturbv(i,j)=par%thetanum*s%kturb(i,j+1)+(1.d0-par%thetanum)*s%kturb(i,max(j,2))
           else
              kturbv(i,j)=0.5d0*(kturbv(i,j)+kturbv(i,j+1))
           endif
          enddo
        enddo
-       kturbv(:,ny+1) = kturb(:,ny+1) !Robert
+       kturbv(:,s%ny+1) = s%kturb(:,s%ny+1) !Robert
        !
        ! Turbulence advection in X and Y direction
        !
        if (par%turbadv == TURBADV_LAGRANGIAN) then
-          Sturbu=kturbu*uu*hu*wetu
-          Sturbv=kturbv*vv*hv*wetv
+          Sturbu=kturbu*s%uu*s%hu*s%wetu
+          Sturbv=kturbv*s%vv*s%hv*s%wetv
        elseif (par%turbadv == TURBADV_EULERIAN) then
-          Sturbu=kturbu*ueu*hu*wetu
-          Sturbv=kturbv*vev*hv*wetv
+          Sturbu=kturbu*s%ueu*s%hu*s%wetu
+          Sturbv=kturbv*s%vev*s%hv*s%wetv
        endif
        !
        ! Update turbulence
        !
-       if (ny>0) then
-         do j=2,ny+1
-           do i=2,nx+1
+       if (s%ny>0) then
+         do j=2,s%ny+1
+           do i=2,s%nx+1
              
-             kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*(       &
-                             (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j)+&
-                          Sturbv(i,j)*dsv(i,j)-Sturbv(i,j-1)*dsv(i,j-1))*dsdnzi(i,j)-&
-                          (ksource(i,j)-par%betad*kturb(i,j)**1.5d0))
-             kturb(i,j)=max(kturb(i,j),0.0d0)
+             s%kturb(i,j) = s%hold(i,j)*s%kturb(i,j)-par%dt*(       &
+                             (Sturbu(i,j)*s%dnu(i,j)-Sturbu(i-1,j)*s%dnu(i-1,j)+&
+                          Sturbv(i,j)*s%dsv(i,j)-Sturbv(i,j-1)*s%dsv(i,j-1))*s%dsdnzi(i,j)-&
+                          (ksource(i,j)-par%betad*s%kturb(i,j)**1.5d0))
+             s%kturb(i,j)=max(s%kturb(i,j),0.0d0)
                
             enddo
          enddo
        else
          j=1
-         do i=2,nx+1
+         do i=2,s%nx+1
             
-           kturb(i,j) = hold(i,j)*kturb(i,j)-par%dt*(       &
-                           (Sturbu(i,j)*dnu(i,j)-Sturbu(i-1,j)*dnu(i-1,j))*dsdnzi(i,j)-&
-                       (ksource(i,j)-par%betad*kturb(i,j)**1.5d0))
-           kturb(i,j)=max(kturb(i,j),0.0d0)
+           s%kturb(i,j) = s%hold(i,j)*s%kturb(i,j)-par%dt*(       &
+                           (Sturbu(i,j)*s%dnu(i,j)-Sturbu(i-1,j)*s%dnu(i-1,j))*s%dsdnzi(i,j)-&
+                       (ksource(i,j)-par%betad*s%kturb(i,j)**1.5d0))
+           s%kturb(i,j)=max(s%kturb(i,j),0.0d0)
             
          enddo
        endif
        
-       kturb = kturb/max(hh,0.01d0)
+       s%kturb = s%kturb/max(s%hh,0.01d0)
        
        ! Jaap only required for advection mode?
-       if (xmpi_istop) kturb(1,:)=kturb(2,:)
-       if (xmpi_isbot) kturb(nx+1,:)=kturb(nx+1-1,:)
-       if (ny>0) then
-         if (xmpi_isleft)  kturb(:,1)=kturb(:,2)
-         if (xmpi_isright) kturb(:,ny+1)=kturb(:,ny+1-1)
+       if (xmpi_istop) s%kturb(1,:)=s%kturb(2,:)
+       if (xmpi_isbot) s%kturb(s%nx+1,:)=s%kturb(s%nx+1-1,:)
+       if (s%ny>0) then
+         if (xmpi_isleft)  s%kturb(:,1)=s%kturb(:,2)
+         if (xmpi_isright) s%kturb(:,s%ny+1)=s%kturb(:,s%ny+1-1)
        endif
        
 #ifdef USEMPI
-       call xmpi_shift_ee(kturb)
+       call xmpi_shift_ee(s%kturb)
 #endif
     
     endif ! turbadv == 'none'
@@ -1611,15 +1611,15 @@ contains
 
     real*8 , dimension(:,:),allocatable,save   :: Urs,Bm,B1
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     ! only in first timestep..
     if (.not. allocated(Urs)) then
 
-       allocate (Urs    (nx+1,ny+1))
-       allocate (Bm    (nx+1,ny+1))
-       allocate (B1    (nx+1,ny+1))
+       allocate (Urs    (s%nx+1,s%ny+1))
+       allocate (Bm    (s%nx+1,s%ny+1))
+       allocate (B1    (s%nx+1,s%ny+1))
 
        m1 = 0;       ! a = 0
        m2 = 0.7939;  ! b = 0.79 +/- 0.023
@@ -1632,17 +1632,17 @@ contains
 
     endif
 
-    Urs = 3.d0/8.d0*sqrt(2.d0)*H*k/(k*hh)**3                    !Ursell number
+    Urs = 3.d0/8.d0*sqrt(2.d0)*s%H*s%k/(s%k*s%hh)**3                    !Ursell number
     Urs = max(Urs,0.000000000001d0)
     Bm = m1 + (m2-m1)/(1.d0+beta*Urs**alpha)                    !Boltzmann sigmoid (eq 6)         
     B1 = (-90.d0+90.d0*tanh(m5/Urs**m6))*par%px/180.d0
-    Sk = Bm*cos(B1)                                            !Skewness (eq 8)
-    As = Bm*sin(B1)                                            !Asymmetry(eq 9)                                
-    ua = par%sws*(par%facSk*Sk-par%facAs*As)*urms
+    s%Sk = Bm*cos(B1)                                            !Skewness (eq 8)
+    s%As = Bm*sin(B1)                                            !Asymmetry(eq 9)                                
+    s%ua = par%sws*(par%facSk*s%Sk-par%facAs*s%As)*s%urms
 
     ! multiply Sk and As with wetz to get zeros at h = 0 for output
-    Sk = Sk*wetz
-    As = As*wetz
+    s%Sk = s%Sk*s%wetz
+    s%As = s%As*s%wetz
 
   end subroutine RvR
 
@@ -1676,15 +1676,15 @@ contains
     !   so RF values may not be modified! To save memory, only rows 13,14,15,16 and 18 of the 
     !   original matrix are stored. So new row 1 corresponds with old row 13, etc.
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
 
     ! only in first timestep..
     if (.not. allocated(h0)) then
-       allocate (h0    (nx+1,ny+1))
-       allocate (t0    (nx+1,ny+1))
-       allocate (detadxmax    (nx+1,ny+1))
+       allocate (h0    (s%nx+1,s%ny+1))
+       allocate (t0    (s%nx+1,s%ny+1))
+       allocate (detadxmax    (s%nx+1,s%ny+1))
        dh = 0.03d0
        dt = 1.25d0
        nh = floor(0.99d0/dh);
@@ -1694,12 +1694,12 @@ contains
     ! non-linearity of short waves is listed in table as function of dimensionless wave height h0 and dimensionless wave period t0 
 
     ! compute dimensionless wave height and wave period in each grid point..
-    h0 = min(nh*dh,max(dh,min(H,hh)/hh))
-    t0 = min(nt*dt,max(dt,par%Trep*sqrt(par%g/hh)))
+    h0 = min(nh*dh,max(dh,min(s%H,s%hh)/s%hh))
+    t0 = min(nt*dt,max(dt,par%Trep*sqrt(par%g/s%hh)))
 
     ! estimate Sk, As and ua by interpolating table values
-    do j=1,ny+1
-       do i=1,nx+1
+    do j=1,s%ny+1
+       do i=1,s%nx+1
           ! interpolate table values....
           ih0=floor(h0(i,j)/dh);
           it0=floor(T0(i,j)/dt);
@@ -1714,20 +1714,20 @@ contains
           f3=p*q;
 
           ! Skewness and assymetry
-          Sk(i,j) = f0*RF(1,ih0,it0)+f1*RF(1,ih1,it0)+ f2*RF(1,ih0,it1)+f3*RF(1,ih1,it1)
-          As(i,j) = f0*RF(2,ih0,it0)+f1*RF(2,ih1,it0)+ f2*RF(2,ih0,it1)+f3*RF(2,ih1,it1)
+          s%Sk(i,j) = f0*RF(1,ih0,it0)+f1*RF(1,ih1,it0)+ f2*RF(1,ih0,it1)+f3*RF(1,ih1,it1)
+          s%As(i,j) = f0*RF(2,ih0,it0)+f1*RF(2,ih1,it0)+ f2*RF(2,ih0,it1)+f3*RF(2,ih1,it1)
 
           ! Sediment advection velocity from Skewness and Assymetry
           ! ua(i,j) = par%sws*par%facua*(Sk(i,j)-As(i,j))*urms(i,j)
-          ua(i,j) = par%sws*(par%facSk*Sk(i,j)-par%facAs*As(i,j))*urms(i,j)
+          s%ua(i,j) = par%sws*(par%facSk*s%Sk(i,j)-par%facAs*s%As(i,j))*s%urms(i,j)
 
           ! Estimate bore period Tbore and mean slope bore front to feeded back in roller energy balance
 
           ! correct slope in case 1.25>T0>50
           if (t0(i,j)==50.d0) then
-             t0fac = 50.d0/max((par%Trep*sqrt(par%g/hh(i,j))),50.d0) 
+             t0fac = 50.d0/max((par%Trep*sqrt(par%g/s%hh(i,j))),50.d0) 
           elseif (t0(i,j)==1.25)then
-             t0fac = 1.25d0/min((par%Trep*sqrt(par%g/hh(i,j))),1.25d0) 
+             t0fac = 1.25d0/min((par%Trep*sqrt(par%g/s%hh(i,j))),1.25d0) 
           else
              t0fac = 1.d0
           endif
@@ -1738,26 +1738,26 @@ contains
           siguref = f0*RF(4,ih0,it0)+f1*RF(4,ih1,it0)+ f2*RF(4,ih0,it1)+f3*RF(4,ih1,it1)
           ! translate dimensionless duddtmax to real world dudtmax
           !         /scale with variance and go from [-] to [m/s^2]     /tableb./dimensionless dudtmax
-          dudtmax = urms(i,j)/max(par%eps,siguref)*sqrt(par%g/hh(i,j))*t0fac*duddtmax
-          detadxmax(i,j) = dudtmax*sinh(k(i,j)*hh(i,j))/max(c(i,j),sqrt(H(i,j)*par%g))/sigm(i,j)
+          dudtmax = s%urms(i,j)/max(par%eps,siguref)*sqrt(par%g/s%hh(i,j))*t0fac*duddtmax
+          detadxmax(i,j) = dudtmax*sinh(s%k(i,j)*s%hh(i,j))/max(s%c(i,j),sqrt(s%H(i,j)*par%g))/s%sigm(i,j)
 
           ! detadxmean for roller energy balance dissipation...
           if (par%rfb==1) then
              duddtmean = f0*RF(5,ih0,it0)+f1*RF(5,ih1,it0)+ f2*RF(5,ih0,it1)+f3*RF(5,ih1,it1)
-             dudtmean = urms(i,j)/max(par%eps,siguref)*sqrt(par%g/hh(i,j))*t0fac*duddtmean
-             detadxmean = dudtmean*sinh(k(i,j)*hh(i,j))/max(c(i,j),sqrt(H(i,j)*par%g))/sigm(i,j)
-             BR(i,j) = par%BRfac*sin(atan(detadxmean))
+             dudtmean = s%urms(i,j)/max(par%eps,siguref)*sqrt(par%g/s%hh(i,j))*t0fac*duddtmean
+             detadxmean = dudtmean*sinh(s%k(i,j)*s%hh(i,j))/max(s%c(i,j),sqrt(s%H(i,j)*par%g))/s%sigm(i,j)
+             s%BR(i,j) = par%BRfac*sin(atan(detadxmean))
           endif
 
        enddo
     enddo
 
-    Tbore = max(par%Trep/25.d0,min(par%Trep/4.d0,H/(max(c,sqrt(H*par%g))*max(detadxmax,par%eps))))
-    Tbore = par%Tbfac*Tbore
+    s%Tbore = max(par%Trep/25.d0,min(par%Trep/4.d0,s%H/(max(s%c,sqrt(s%H*par%g))*max(detadxmax,par%eps))))
+    s%Tbore = par%Tbfac*s%Tbore
     
     ! multiply Sk and As with wetz to get zeros at h = 0 for output
-    Sk = Sk*wetz
-    As = As*wetz
+    s%Sk = s%Sk*s%wetz
+    s%As = s%As*s%wetz
 
   end subroutine vT
   
@@ -1813,41 +1813,41 @@ contains
   real*8 , dimension(:), allocatable,save  :: hav1d
   real*8                                   :: irrb,runup_old
 
-  include 's.ind'
-  include 's.inp'
+  !include 's.ind'
+  !include 's.inp'
   
   if (.not. allocated(hav1d)) then
-    allocate(hav1d (nx+1))
-    allocate(slopeind (nx+1))
+    allocate(hav1d (s%nx+1))
+    allocate(slopeind (s%nx+1))
   endif
            
-  do j=1,ny+1
-     indx = nx+1
+  do j=1,s%ny+1
+     indx = s%nx+1
      first = 0
-     do i=1,nx
-        if (wetz(i,j)-wetz(max(i-1,1),j)==-1 .and. first==0) then ! transition from wet to dry
+     do i=1,s%nx
+        if (s%wetz(i,j)-s%wetz(max(i-1,1),j)==-1 .and. first==0) then ! transition from wet to dry
             ! only consider first dry point
             first = 1
             ! find wave height for runup at L1 meter from water line 
-            call linear_interp(xz(:,j),H(:,j),nx+1,xz(i-1,j)-L1(i-1,j),s%Hrunup(j),indx)
+            call linear_interp(s%xz(:,j),s%H(:,j),s%nx+1,s%xz(i-1,j)-s%L1(i-1,j),s%Hrunup(j),indx)
             ! Find toe of runup slope if present (dzbdx > 0.15). 
             ! If not present Hrunup will converge to H at the water line (where H = 0 per definition)
             do j1=indx,i-1
                ! TODO: Strange condition. In case of no toe, or no steep slope, 
                !   there will still be extra turbulance at L1 meter from the water line...
                ! cross shore location structure toe
-               if (dzbdx(j1,j)<0.15d0 .or. structdepth(j1,j)>0.1d0) then
+               if (s%dzbdx(j1,j)<0.15d0 .or. s%structdepth(j1,j)>0.1d0) then
                   indx = j1
                endif
             enddo
             ! update Hrunup and runup x-location
-            s%Hrunup(j) = H(indx,j)       ! short wave height at revetment toe
-            s%xHrunup(j) = xz(indx,j)     ! cross-shore location revetment toe
+            s%Hrunup(j) = s%H(indx,j)       ! short wave height at revetment toe
+            s%xHrunup(j) = s%xz(indx,j)     ! cross-shore location revetment toe
             s%istruct(j) = indx*1.d0      ! cross-shore index revetment toe
-            s%iwl(j) = (i-1)*1.d0         ! cross-shore location waterline (inlcuding lw-runup)
+            s%iwl(j) = (i-1)*1.d0         ! cross-shore location waterline (inlcuding lw-s%runup)
         
             ! now itteratively compute runup
-            hav1d = hh(:,j)
+            hav1d = s%hh(:,j)
             runup_old = huge(0.d0)
             s%runup(j) = 0;
             nIter = 0;
@@ -1856,11 +1856,11 @@ contains
                nIter = nIter +1;
                runup_old = s%runup(j)
                slopeind = 0
-               where (hav1d>par%eps .and. dzbdx(:,j)>0.15d0)
+               where (hav1d>par%eps .and. s%dzbdx(:,j)>0.15d0)
                   slopeind = 1
                endwhere
-               s%strucslope(j) = sum(dzbdx(indx:nx,j)*dsu(indx:nx,j)*slopeind(indx:nx))/ &
-                                 max(par%eps,sum(dsu(indx:nx,j)*slopeind(indx:nx)))
+               s%strucslope(j) = sum(s%dzbdx(indx:s%nx,j)*s%dsu(indx:s%nx,j)*slopeind(indx:s%nx))/ &
+                                 max(par%eps,sum(s%dsu(indx:s%nx,j)*slopeind(indx:s%nx)))
                if (s%strucslope(j) > 0.d0) then         
                   irrb = s%strucslope(j)/sqrt(2*par%px*max(s%Hrunup(j),par%eps)/par%g/par%Trep**2)
                   s%runup(j) = par%facrun*min(irrb,2.3d0)*s%Hrunup(j)*cos(2*par%px/par%Trep*par%t)
@@ -1869,8 +1869,8 @@ contains
                endif
                ! This triggers s%runup to be calculated for the complete hinterland (also behind a dune).
                ! Only values calculated for the first dune front are used in the avalanching algorithm (morphevolution)
-               hav1d =  wetz(:,j)*max(par%eps,(hh(:,j) + s%runup(j))) + &
-                    (1.d0-wetz(:,j))*max(par%eps,s%runup(j)+zs(i-1,j)-zb(:,j) )   
+               hav1d =  s%wetz(:,j)*max(par%eps,(s%hh(:,j) + s%runup(j))) + &
+                    (1.d0-s%wetz(:,j))*max(par%eps,s%runup(j)+s%zs(i-1,j)-s%zb(:,j) )   
             enddo
         endif
      enddo

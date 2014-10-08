@@ -63,8 +63,8 @@ subroutine vegie_init(s,par)
     integer                                     :: i,j,fid,ier
     !integer, dimension(s%nx+1,s%ny+1)           :: vegtype
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     ! Read files with vegetation properties:
     ! file 1: list of species
@@ -165,29 +165,29 @@ subroutine swvegatt(s,par)
     type(parameters)                            :: par
     type(spacepars), target                     :: s
 
-    integer                                     :: i,j,m,ind  ! indices of actual x,y point
+    integer                                     :: i,j,m,ind  ! indices of actual s%x,s%y point
     real*8                                      :: aht,hterm,htermold,Dvgt
     real*8, dimension(s%nx+1,s%ny+1)            :: Dvg,kmr
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     kmr = min(max(s%k, 0.01d0), 100.d0)
 
     ! Set dissipation in vegetation to zero everywhere for a start
     Dvg = 0.d0
-    do j=1,ny+1
-       do i=1,nx+1
+    do j=1,s%ny+1
+       do i=1,s%nx+1
           ind = veg(1)%vegtype(i,j)
           htermold = 0.d0
           if (ind>0) then
            do m=1,veg(ind)%nsec
              ! restrict vegetation height to water depth
-             aht = min(veg(ind)%ah(m),hh(i,j))
+             aht = min(veg(ind)%ah(m),s%hh(i,j))
              ! compute hterm based on ah
-             hterm = (sinh(kmr(i,j)*aht)**3+3*sinh(kmr(i,j)*aht))/(3.d0*kmr(i,j)*cosh(kmr(i,j)*hh(i,j))**3)
+             hterm = (sinh(kmr(i,j)*aht)**3+3*sinh(kmr(i,j)*aht))/(3.d0*kmr(i,j)*cosh(kmr(i,j)*s%hh(i,j))**3)
              ! compute dissipation based on aht and correct for lower elevated dissipation layers
-             Dvgt = veg(ind)%Dragterm1(m)*(0.5d0*kmr(i,j)*par%g/s%sigm(i,j))**3*(hterm-htermold)*H(i,j)**3
+             Dvgt = veg(ind)%Dragterm1(m)*(0.5d0*kmr(i,j)*par%g/s%sigm(i,j))**3*(hterm-htermold)*s%H(i,j)**3
              ! save hterm to htermold to correct possibly in next vegetation section
              htermold = hterm
              ! add dissipation current layer
@@ -210,12 +210,12 @@ subroutine lwvegatt(s)
 
     type(spacepars),target           :: s
 
-    integer                                     :: i,j,m,ind  ! indices of actual x,y point
+    integer                                     :: i,j,m,ind  ! indices of actual s%x,s%y point
     real*8                                      :: aht,ahtold,hterm,htermold,Fvgtu,Fvgtv
     real*8, dimension(s%nx+1,s%ny+1)            :: Fvgu,Fvgv,kmr
 
-    include 's.ind'
-    include 's.inp'
+    !include 's.ind'
+    !include 's.inp'
 
     hterm = 0
     kmr = min(max(s%k, 0.01d0), 100.d0)
@@ -223,19 +223,19 @@ subroutine lwvegatt(s)
     Fvgu = 0.d0
     Fvgv = 0.d0
 
-    do j=1,ny+1
-       do i=1,nx+1
+    do j=1,s%ny+1
+       do i=1,s%nx+1
           ind = veg(1)%vegtype(i,j)
           ahtold = 0.d0
           htermold   = 0.d0
           if (ind>0) then
            do m=1,veg(ind)%nsec
              ! restrict vegetation height to water depth
-             aht = min(veg(ind)%ah(m),hh(i,j))
+             aht = min(veg(ind)%ah(m),s%hh(i,j))
              ! mean and long wave flow
              ! compute forcing current layer based on aht and correct for previous layers
-             Fvgtu = (aht-ahtold)/hh(i,j)*veg(ind)%Dragterm2(m)*uu(i,j)*vmagu(i,j)
-             Fvgtv = (aht-ahtold)/hh(i,j)*veg(ind)%Dragterm2(m)*vv(i,j)*vmagv(i,j)
+             Fvgtu = (aht-ahtold)/s%hh(i,j)*veg(ind)%Dragterm2(m)*s%uu(i,j)*s%vmagu(i,j)
+             Fvgtv = (aht-ahtold)/s%hh(i,j)*veg(ind)%Dragterm2(m)*s%vv(i,j)*s%vmagv(i,j)
              ! short wave flow (approach according to Myrhaug and Holmedal, 2011 Coastal Engineering)
              ! Here we assume linear waves for a start
              ! hterm = 1.d0(2.d0*cosh(kmr(i,j)*hh(i,j))**2)* &

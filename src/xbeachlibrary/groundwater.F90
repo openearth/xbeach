@@ -208,37 +208,37 @@ subroutine gwflow(s,par)
   real*8,save                                 :: connectcrit
     
   ! shortcut pointers
-  include 's.ind'
-  include 's.inp'
+  !include 's.ind'
+  !include 's.inp'
   
   initial = .false.
 
   ! allocate variables
   if (.not. allocated(gwhu)) then
-     allocate(gwhu(1:nx+1,1:ny+1))
-     allocate(gwhv(1:nx+1,1:ny+1))
-     allocate(gwheadtop(1:nx+1,1:ny+1))
+     allocate(gwhu(1:s%nx+1,1:s%ny+1))
+     allocate(gwhv(1:s%nx+1,1:s%ny+1))
+     allocate(gwheadtop(1:s%nx+1,1:s%ny+1))
      
-     allocate(Kx(1:nx+1,1:ny+1))
-     allocate(Ky(1:nx+1,1:ny+1))
-     allocate(Kz(1:nx+1,1:ny+1))
-     allocate(Kzinf(1:nx+1,1:ny+1))
-     allocate(Kxupd(1:nx+1,1:ny+1))
-     allocate(Kyupd(1:nx+1,1:ny+1))
-     allocate(Kzupd(1:nx+1,1:ny+1))
+     allocate(Kx(1:s%nx+1,1:s%ny+1))
+     allocate(Ky(1:s%nx+1,1:s%ny+1))
+     allocate(Kz(1:s%nx+1,1:s%ny+1))
+     allocate(Kzinf(1:s%nx+1,1:s%ny+1))
+     allocate(Kxupd(1:s%nx+1,1:s%ny+1))
+     allocate(Kyupd(1:s%nx+1,1:s%ny+1))
+     allocate(Kzupd(1:s%nx+1,1:s%ny+1))
      
-     allocate(connected(1:nx+1,1:ny+1))
-     allocate(fracdt(1:nx+1,1:ny+1))
-     allocate(zsupd(1:nx+1,1:ny+1))
-     allocate(ratio(1:nx+1,1:ny+1))
+     allocate(connected(1:s%nx+1,1:s%ny+1))
+     allocate(fracdt(1:s%nx+1,1:s%ny+1))
+     allocate(zsupd(1:s%nx+1,1:s%ny+1))
+     allocate(ratio(1:s%nx+1,1:s%ny+1))
      
-     allocate(dynpresupd(1:nx+1,1:ny+1))
+     allocate(dynpresupd(1:s%nx+1,1:s%ny+1))
      
-     allocate(infiluncon(1:nx+1,1:ny+1))
-     allocate(infilcon(1:nx+1,1:ny+1))
-     allocate(infilhorgw(1:nx+1,1:ny+1))
-     allocate(infilhorsw(1:nx+1,1:ny+1))
-     allocate(gwumean(1:nx+1,1:ny+1))
+     allocate(infiluncon(1:s%nx+1,1:s%ny+1))
+     allocate(infilcon(1:s%nx+1,1:s%ny+1))
+     allocate(infilhorgw(1:s%nx+1,1:s%ny+1))
+     allocate(infilhorsw(1:s%nx+1,1:s%ny+1))
+     allocate(gwumean(1:s%nx+1,1:s%ny+1))
      
      ! initialise variables
      Kx = par%kx
@@ -281,8 +281,8 @@ subroutine gwflow(s,par)
   ! (not pore water). gwu and gwv are also in terms of surface water volume.
   !
   ! Initialize
-  gww = 0.d0
-  infil = 0.d0
+  s%gww = 0.d0
+  s%infil = 0.d0
   infiluncon = 0.d0
   infilcon = 0.d0
   infilhorgw = 0.d0
@@ -294,7 +294,7 @@ subroutine gwflow(s,par)
   ! To surpress this, carry out pressure averaging over time scale ~ 1/4 Trep
   if (par%nonh==1) then
      factime = min(4*par%dt/par%Trep,1.d0)
-     dynpresupd = (1-factime) * dynpresupd + factime * pres
+     dynpresupd = (1-factime) * dynpresupd + factime * s%pres
   endif
   !
   ! Infiltration and exfiltration are handled separately for places where the 
@@ -302,7 +302,7 @@ subroutine gwflow(s,par)
   ! they are disconnected (swash infiltration, seepage). "Connected" is set
   ! by the difference between the groundwater level and the bed level, and a
   ! numerical constant for stability
-  where(wetz==1 .and. zb-gwlevel<connectcrit)
+  where(s%wetz==1 .and. s%zb-s%gwlevel<connectcrit)
      connected = .true.
   elsewhere
      connected = .false.
@@ -317,8 +317,8 @@ subroutine gwflow(s,par)
 !        infiluncon = infiluncon - (gwlevel-zb)/par%dt*par%por
 !        fracdt = 1.d0
 !     endwhere
-     where (gwlevel>zb)
-        infiluncon = infiluncon - (gwlevel-zb)/par%dt*par%por
+     where (s%gwlevel>s%zb)
+        infiluncon = infiluncon - (s%gwlevel-s%zb)/par%dt*par%por
      endwhere
   endif
   !
@@ -326,18 +326,18 @@ subroutine gwflow(s,par)
   ! Update groundwater level and water surface level to account for 
   ! infiltration and exfiltration effects. Note infil is avarage
   ! infiltration rate over whole timestep
-  gwlevel = gwlevel+par%dt*infiluncon/par%por
-  zsupd = zs-par%dt*infiluncon
+  s%gwlevel = s%gwlevel+par%dt*infiluncon/par%por
+  zsupd = s%zs-par%dt*infiluncon
   ! 
   ! Recalculate connected property, this is needed further on in the code
-  where(zsupd-zb>=par%eps .and. zb-gwlevel<connectcrit)
+  where(zsupd-s%zb>=par%eps .and. s%zb-s%gwlevel<connectcrit)
      connected = .true.
   elsewhere
      connected = .false.
   endwhere
   !
   ! Thickness of groundwater layer
-  gwheight=gwlevel-gwbottom
+  s%gwheight=s%gwlevel-s%gwbottom
   !
   ! Determine intermediate aquifer depths (upwind scheme)
   call gw_calculate_interfaceheight(s,gwhu,gwhv,initial)
@@ -349,7 +349,7 @@ subroutine gwflow(s,par)
   ! from surface water, or atmospheric pressure when dry). Takes into
   ! account a transition layer, specified by user to smooth transition
   ! from surface water head to atmospheric head
-  gwheadtop = gwCalculateHeadTop(nx,ny,zsupd,gwlevel,wetz,ratio,par%nonh,par%g,dynpresupd)
+  gwheadtop = gwCalculateHeadTop(s%nx,s%ny,zsupd,s%gwlevel,s%wetz,ratio,par%nonh,par%g,dynpresupd)
   ! 
   ! Compute groundwater head in cell centres
   ! In case of hydrostatic this is the same as the surface water head,
@@ -367,7 +367,7 @@ subroutine gwflow(s,par)
      ! stability
 !     factime = min(par%dt/0.2d0,1.d0)
 !     gwhead = (1.d0-factime)*gwhead + factime*gwheadtop
-      gwhead = (gwhead + gwheadtop)/2
+      s%gwhead = (s%gwhead + gwheadtop)/2
   else
      ! non-hydrostatic pressure, solve using Poisson solver. Kxupd is the
      ! updated hydraulic conductivity from the previous time step
@@ -390,12 +390,12 @@ subroutine gwflow(s,par)
   !
   !
   ! For next time step do some smoothing of Kx,Ky,Kx
-  do j=1,ny+1
-     do i=1,nx+1
-        incl = min(i+3,nx+1)-max(1,i-3)
-        Kx(i,j) = sum(Kxupd(max(1,i-3):min(i+3,nx+1),j))/incl
-        Kz(i,j) = sum(Kzupd(max(1,i-3):min(i+3,nx+1),j))/incl
-        Ky(i,j) = sum(Kyupd(max(1,i-3):min(i+3,nx+1),j))/incl
+  do j=1,s%ny+1
+     do i=1,s%nx+1
+        incl = min(i+3,s%nx+1)-max(1,i-3)
+        Kx(i,j) = sum(Kxupd(max(1,i-3):min(i+3,s%nx+1),j))/incl
+        Kz(i,j) = sum(Kzupd(max(1,i-3):min(i+3,s%nx+1),j))/incl
+        Ky(i,j) = sum(Kyupd(max(1,i-3):min(i+3,s%nx+1),j))/incl
      enddo
   enddo
   Kxupd = Kx
@@ -407,27 +407,27 @@ subroutine gwflow(s,par)
   !
   !
   ! Calculate horizontal fluxes
-  gwqx=gwu*gwhu
-  gwqy=gwv*gwhv
+  s%gwqx=s%gwu*gwhu
+  s%gwqy=s%gwv*gwhv
   !
   !
   ! Stop cells from drying up
   if (s%ny>0) then
-     do i=2,nx
-        do j=2,ny
-           if (gwlevel(i,j)<=gwbottom(i,j)+par%eps) then
-              gwqx(i,j) = min(gwqx(i,j),0.d0) ! let no water out, only in
-              gwqx(i-1,j) = max(gwqx(i-1,j),0.d0) ! let no water out, only in
-              gwqy(i,j) = min(gwqy(i,j),0.d0) ! let no water out, only in
-              gwqy(i,j-1) = max(gwqy(i,j-1),0.d0) ! let no water out, only in
+     do i=2,s%nx
+        do j=2,s%ny
+           if (s%gwlevel(i,j)<=s%gwbottom(i,j)+par%eps) then
+              s%gwqx(i,j) = min(s%gwqx(i,j),0.d0) ! let no water out, only in
+              s%gwqx(i-1,j) = max(s%gwqx(i-1,j),0.d0) ! let no water out, only in
+              s%gwqy(i,j) = min(s%gwqy(i,j),0.d0) ! let no water out, only in
+              s%gwqy(i,j-1) = max(s%gwqy(i,j-1),0.d0) ! let no water out, only in
            endif
         enddo
      enddo 
   else
-     do i=2,nx
-        if (gwlevel(i,1)<=gwbottom(i,1)+par%eps) then
-           gwqx(i,1) = min(gwqx(i,1),0.d0) ! let no water out, only in
-           gwqx(i-1,1) = max(gwqx(i-1,1),0.d0) ! let no water out, only in
+     do i=2,s%nx
+        if (s%gwlevel(i,1)<=s%gwbottom(i,1)+par%eps) then
+           s%gwqx(i,1) = min(s%gwqx(i,1),0.d0) ! let no water out, only in
+           s%gwqx(i-1,1) = max(s%gwqx(i-1,1),0.d0) ! let no water out, only in
         endif
      enddo  
   endif
@@ -435,23 +435,23 @@ subroutine gwflow(s,par)
   !
   ! Force continuity, where gww is computed for hydrostatic computation and 
   ! gww strictly enforced (no roundoff errors) for nonhydrostatic computation
-  if (ny>2) then
+  if (s%ny>2) then
      do j=2,s%ny
-        do i=2,nx
-           gww(i,j) = (-gwqx(i,j)*dnu(i,j)+gwqx(i-1,j)*dnu(i-1,j)   &
-                       -gwqy(i,j)*dsv(i,j)+gwqy(i,j-1)*dsv(i,j-1))*dsdnzi(i,j)
+        do i=2,s%nx
+           s%gww(i,j) = (-s%gwqx(i,j)*s%dnu(i,j)+s%gwqx(i-1,j)*s%dnu(i-1,j)   &
+                       -s%gwqy(i,j)*s%dsv(i,j)+s%gwqy(i,j-1)*s%dsv(i,j-1))*s%dsdnzi(i,j)
         enddo
      enddo
   else
-     if (ny>0) then
-        do i=2,nx
-           gww(i,2) = (-gwqx(i,2)+gwqx(i-1,2))/dsz(i,2)
+     if (s%ny>0) then
+        do i=2,s%nx
+           s%gww(i,2) = (-s%gwqx(i,2)+s%gwqx(i-1,2))/s%dsz(i,2)
         enddo
-        gww(:,1) = gww(:,2)
-        gww(:,3) = gww(:,2)
+        s%gww(:,1) = s%gww(:,2)
+        s%gww(:,3) = s%gww(:,2)
      else
-        do i=2,nx
-           gww(i,1) = (-gwqx(i,1)+gwqx(i-1,1))/dsz(i,1)
+        do i=2,s%nx
+           s%gww(i,1) = (-s%gwqx(i,1)+s%gwqx(i-1,1))/s%dsz(i,1)
         enddo
      endif
   endif
@@ -467,29 +467,29 @@ subroutine gwflow(s,par)
   !
   if (par%gwnonh==1) then 
      ! non-hydrostatic computation
-     do j=min(2,ny+1),max(s%ny,1)
+     do j=min(2,s%ny+1),max(s%ny,1)
         do i=2,s%nx
            ! exfiltration terms, same for connected and unconnected cells
-           if (gww(i,j)>0.d0) then
+           if (s%gww(i,j)>0.d0) then
               if (connected(i,j)) then
-                 dzr = max(zb(i,j)-gwlevel(i,j),0.d0)
-                 wdt = gww(i,j)*par%dt/par%por
+                 dzr = max(s%zb(i,j)-s%gwlevel(i,j),0.d0)
+                 wdt = s%gww(i,j)*par%dt/par%por
                  if (wdt>=dzr) then
-                    infilcon(i,j) = -gww(i,j)*(1.d0-dzr/wdt)
+                    infilcon(i,j) = -s%gww(i,j)*(1.d0-dzr/wdt)
                  else
                     ! nothing
                  endif
               endif
             ! connected infiltration terms, unconnected cells already computed
             ! infiltration at the start of the groundwater flow subroutine
-            elseif (gww(i,j)<0.d0) then
+            elseif (s%gww(i,j)<0.d0) then
                if (connected(i,j)) then
-                  dzr = max(zs(i,j)-zb(i,j)-par%eps,0.d0)
-                  wdt = -gww(i,j)*par%dt
+                  dzr = max(s%zs(i,j)-s%zb(i,j)-par%eps,0.d0)
+                  wdt = -s%gww(i,j)*par%dt
                   if (wdt>=dzr) then
-                     infilcon(i,j) = -gww(i,j)*(dzr/wdt)
+                     infilcon(i,j) = -s%gww(i,j)*(dzr/wdt)
                   else
-                     infilcon(i,j) = -gww(i,j)
+                     infilcon(i,j) = -s%gww(i,j)
                   endif
                endif
             else
@@ -509,64 +509,64 @@ subroutine gwflow(s,par)
      ! wwvv changed '=' into '=>'
      ! wwvv see also the declaration of infilcon
      infilcon => gw_calculate_hydrostatic_w(s,par,ratio)
-     where (infilcon*par%dt>hh-par%eps)
-        infilcon=(hh-par%eps)/par%dt
+     where (infilcon*par%dt>s%hh-par%eps)
+        infilcon=(s%hh-par%eps)/par%dt
      endwhere
-     dinfil=dinfil+infilcon*par%dt/par%por
+     s%dinfil=s%dinfil+infilcon*par%dt/par%por
      if (par%gwhorinfil==1) then
         call gw_horizontal_infil_exfil(s,par,infilhorgw,infilhorsw,Kx,dynpresupd)
      endif
   endif
   ! Compute new water level
-  gwlevel = gwlevel + (gww+infilcon+infilhorgw)*par%dt/par%por
+  s%gwlevel = s%gwlevel + (s%gww+infilcon+infilhorgw)*par%dt/par%por
   !
   ! In case of hydrostatic approach, try to fix the connected cells
  
   !
   ! Update total infiltration contribution
-  infil = infiluncon+infilcon+infilhorsw
+  s%infil = infiluncon+infilcon+infilhorsw
   !
   ! Model boundaries
   ! Robert: check if all these are actually needed
 #ifdef USEMPI
-  call xmpi_shift_ee(gwlevel)
-  call xmpi_shift_ee(gwhead)
-   call xmpi_shift_ee(gwcurv)
+  call xmpi_shift_ee(s%gwlevel)
+  call xmpi_shift_ee(s%gwhead)
+   call xmpi_shift_ee(s%gwcurv)
 #endif
   if (xmpi_istop) then
-     gwlevel(1,:) = gwlevel(2,:)
-     gwhead(1,:) = gwhead(2,:)
-     gwcurv(1,:) = gwcurv(2,:)
-     gwbottom(1,:) = gwbottom(2,:)
-     gww(1,:) = gww(2,:)
+     s%gwlevel(1,:) = s%gwlevel(2,:)
+     s%gwhead(1,:) = s%gwhead(2,:)
+     s%gwcurv(1,:) = s%gwcurv(2,:)
+     s%gwbottom(1,:) = s%gwbottom(2,:)
+     s%gww(1,:) = s%gww(2,:)
   endif
   if (xmpi_isbot) then
-     gwlevel(nx+1,:) = gwlevel(nx,:)
-     gwhead(nx+1,:) = gwhead(nx,:)
-     gwcurv(nx+1,:) = gwcurv(nx,:)
-     gwbottom(nx+1,:) = gwbottom(nx,:)
-     gww(nx+1,:) = gww(nx,:)
+     s%gwlevel(s%nx+1,:) = s%gwlevel(s%nx,:)
+     s%gwhead(s%nx+1,:) = s%gwhead(s%nx,:)
+     s%gwcurv(s%nx+1,:) = s%gwcurv(s%nx,:)
+     s%gwbottom(s%nx+1,:) = s%gwbottom(s%nx,:)
+     s%gww(s%nx+1,:) = s%gww(s%nx,:)
   endif
-  if (xmpi_isleft .and. ny>0) then
-     gwlevel(:,1) = gwlevel(:,2)
-     gwhead(:,1) = gwhead(:,2)
-     gwcurv(:,1) = gwcurv(:,2)
-     gwbottom(:,1) = gwbottom(:,2)
-     gww(:,1) = gww(:,2)
+  if (xmpi_isleft .and. s%ny>0) then
+     s%gwlevel(:,1) = s%gwlevel(:,2)
+     s%gwhead(:,1) = s%gwhead(:,2)
+     s%gwcurv(:,1) = s%gwcurv(:,2)
+     s%gwbottom(:,1) = s%gwbottom(:,2)
+     s%gww(:,1) = s%gww(:,2)
   endif
-  if (xmpi_isright .and. ny>0) then
-     gwlevel(:,ny+1) = gwlevel(:,ny)
-     gwhead(:,ny+1) = gwhead(:,ny)
-     gwcurv(:,ny+1) = gwcurv(:,ny)
-     gwbottom(:,ny+1) = gwbottom(:,ny)
-     gww(:,ny+1) = gww(:,ny)
+  if (xmpi_isright .and. s%ny>0) then
+     s%gwlevel(:,s%ny+1) = s%gwlevel(:,s%ny)
+     s%gwhead(:,s%ny+1) = s%gwhead(:,s%ny)
+     s%gwcurv(:,s%ny+1) = s%gwcurv(:,s%ny)
+     s%gwbottom(:,s%ny+1) = s%gwbottom(:,s%ny)
+     s%gww(:,s%ny+1) = s%gww(:,s%ny)
   endif
   !
   ! output pressure head at bottom
   !
-  gwheadb = gwCalculateHeadBottom(gwcurv,gwheadtop,gwheight,nx,ny,par%gwheadmodel)
-  gwheadb(1,:) = gwheadb(2,:)
-  gwheadb(nx+1,:) = gwheadb(nx,:)
+  s%gwheadb = gwCalculateHeadBottom(s%gwcurv,gwheadtop,s%gwheight,s%nx,s%ny,par%gwheadmodel)
+  s%gwheadb(1,:) = s%gwheadb(2,:)
+  s%gwheadb(s%nx+1,:) = s%gwheadb(s%nx,:)
 end subroutine gwflow
 
 subroutine gw_unconnected_infil(s,par,Kzinf,connected,fracdt,infil)
@@ -1430,6 +1430,8 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
 
   type(parameters)                            :: par
   type(spacepars),target                      :: s
+  ! wwvv the following line from s.ind :
+  real*8,dimension(:,:),              pointer :: infil
   real*8,dimension(s%nx+1,s%ny+1)             :: ratio
   ! local
   integer                                     :: i,j
@@ -1437,9 +1439,11 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
   logical                                     :: turbapprox
  
   ! shortcut pointers
-  include 's.ind'
-  include 's.inp'
+  !include 's.ind'
+  !include 's.inp'
   
+  ! wwvv the following line is from s.inp :
+  infil => s%infil
   ! Select turbulent approximation of groundwater flow
   if (par%gwscheme==GWSCHEME_TURBULENT) then
      turbapprox = .true.
@@ -1451,8 +1455,8 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
   ! of volume (w1) and part darcy driven flow due to top pressure (w2). 
   ! These velocities are weighted according to 'ratio', the closeness
   ! of the groundwater surface to the bed.
-  if (ny==0) then
-     do i=2,nx
+  if (s%ny==0) then
+     do i=2,s%nx
         if (s%gwlevel(i,1)>s%zb(i,1)) then
            infil(i,1) = par%por*(s%zb(i,1)-s%gwlevel(i,1))/par%dt
 !           infil(i,1) = max(infil(i,1),-par%kz)
@@ -1476,11 +1480,11 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
         infil(1,1) = infil(2,1)
      endif
      if (xmpi_isbot) then
-        infil(nx+1,1) = infil(nx,1)
+        infil(s%nx+1,1) = infil(s%nx,1)
      endif
-  else ! ny>0
-     do j=2,ny
-        do i=2,nx
+  else ! s%ny>0
+     do j=2,s%ny
+        do i=2,s%nx
            if (s%gwlevel(i,j)>s%zb(i,j)) then
               infil(i,j) = par%por*(s%zb(i,j)-s%gwlevel(i,j))/par%dt
            elseif (s%wetz(i,j)==1) then
@@ -1503,15 +1507,15 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
         infil(1,:) = infil(2,:)
      endif
      if (xmpi_isbot) then
-        infil(nx+1,:) = infil(nx,:)
+        infil(s%nx+1,:) = infil(s%nx,:)
      endif
      if (xmpi_isleft) then
         infil(:,1) = infil(:,2)
      endif
      if (xmpi_isright) then
-        infil(:,ny+1) = infil(:,ny)
+        infil(:,s%ny+1) = infil(:,s%ny)
      endif
-  endif ! ny>0
+  endif ! s%ny>0
 end function gw_calculate_hydrostatic_w
 
 
