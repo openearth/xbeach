@@ -1560,8 +1560,10 @@ contains
        ! initialise each discharge location
        do i=1,par%ndischarge
 
-          dxd = abs(xde(i)-xdb(i))
-          dyd = abs(yde(i)-ydb(i))
+!          dxd = abs(xde(i)-xdb(i))
+!          dyd = abs(yde(i)-ydb(i))
+          mnb = minloc(sqrt((s%xz-xdb(i))**2+(s%yz-ydb(i))**2))
+          mne = minloc(sqrt((s%xz-xde(i))**2+(s%yz-yde(i))**2))
 
           ! convert discharge location to cell indices depending on type of discharge:
           !     point discharge, in v-direction or in u-direction
@@ -1569,16 +1571,17 @@ contains
 
              ! point discharge (no orientation, no added momentum, just mass)
 
-             mnb = minloc(sqrt((s%xz-xdb(i))**2+(s%yz-ydb(i))**2))
-             mne = minloc(sqrt((s%xz-xde(i))**2+(s%yz-yde(i))**2))
+ !            mnb = minloc(sqrt((s%xz-xdb(i))**2+(s%yz-ydb(i))**2))
+ !            mne = minloc(sqrt((s%xz-xde(i))**2+(s%yz-yde(i))**2))
 
              s%pdisch(i,:) = (/mnb(1),mnb(2),0,0/)
-          elseif (dxd.gt.dyd) then
+!          elseif (dxd.gt.dyd) then
+          elseif (mnb(1).ne.mne(1)) then
 
              ! discharge through v-points
 
-             mnb = minloc(sqrt((s%xv-xdb(i))**2+(s%yv-ydb(i))**2))
-             mne = minloc(sqrt((s%xv-xde(i))**2+(s%yv-yde(i))**2))
+!             mnb = minloc(sqrt((s%xv-xdb(i))**2+(s%yv-ydb(i))**2))
+!             mne = minloc(sqrt((s%xv-xde(i))**2+(s%yv-yde(i))**2))
 
              m1 = minval((/mnb(1),mne(1)/))
              m2 = maxval((/mnb(1),mne(1)/))
@@ -1592,8 +1595,8 @@ contains
 
              ! discharge through u-points
 
-             mnb = minloc(sqrt((s%xu-xdb(i))**2+(s%yu-ydb(i))**2))
-             mne = minloc(sqrt((s%xu-xde(i))**2+(s%yu-yde(i))**2))
+!             mnb = minloc(sqrt((s%xu-xdb(i))**2+(s%yu-ydb(i))**2))
+!             mne = minloc(sqrt((s%xu-xde(i))**2+(s%yu-yde(i))**2))
 
              m1 = nint(0.5*(mnb(1)+mne(1)))
              n1 = minval((/mnb(2),mne(2)/))
