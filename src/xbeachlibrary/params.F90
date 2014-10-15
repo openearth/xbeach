@@ -225,8 +225,8 @@ module params
      integer*4     :: gwhorinfil                 = -123    !  [-] (advanced) switch to include horizontal infiltration from surface water to groundwater (default = 0)
 
      ! [Section] Q3D sediment transport parameters
-     real*8        :: vonkar                     = -123    !   (advanced) von Karman constant
-     real*8        :: vicmol                     = -123    !   (advanced) molecular viscosity
+     real*8        :: vonkar                     = -123    !  [-] (advanced) von Karman constant
+     real*8        :: vicmol                     = -123    !  [-] (advanced) molecular viscosity
      integer*4     :: kmax                       = -123    !  [-] (advanced) Number of sigma layers in Quasi-3D model; kmax = 1 (default) is without vertical structure of flow and suspensions
      real*8        :: sigfac                     = -123    !  [-] (advanced) dsig scales with log(sigfac). Default = 1.3
 
