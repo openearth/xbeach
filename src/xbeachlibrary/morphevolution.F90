@@ -962,7 +962,7 @@ contains
 
        if(xmpi_isright .and. s%ny>0) then
           s%zb(:,s%ny+1) = s%zb(:,s%ny)
-          s%dzbdt(:,ny+1) = s%dzbdt(:,ny)
+          s%dzbdt(:,s%ny+1) = s%dzbdt(:,s%ny)
           s%dzbnow(:,s%ny+1) = s%dzbnow(:,s%ny)
           s%sedero(:,s%ny+1) = s%sedero(:,s%ny)
           s%structdepth(:,s%ny+1) = s%structdepth(:,s%ny)
