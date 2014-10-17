@@ -637,6 +637,7 @@ contains
 
                    s%zb(i,j) = s%zb(i,j)-sum(dzg)
                    s%dzbnow(i,j) = s%dzbnow(i,j)-sum(dzg) ! naamgeveing?
+                   s%dzbdt(i,j) = s%dzbnow(i,j)/par%dt
                    s%sedero(i,j) = s%sedero(i,j)-sum(dzg)
                    s%structdepth(i,j) = max(0.d0,s%structdepth(i,j)-sum(dzg))
 
@@ -950,6 +951,7 @@ contains
        ! 
        if(xmpi_isleft .and. s%ny>0) then
           s%zb(:,1) = s%zb(:,2)
+          s%dzbdt(:,1) = s%dzbdt(:,2)
           s%dzbnow(:,1) = s%dzbnow(:,2)
           s%sedero(:,1) = s%sedero(:,2)
           s%structdepth(:,1) = s%structdepth(:,2)
@@ -960,6 +962,7 @@ contains
 
        if(xmpi_isright .and. s%ny>0) then
           s%zb(:,s%ny+1) = s%zb(:,s%ny)
+          s%dzbdt(:,ny+1) = s%dzbdt(:,ny)
           s%dzbnow(:,s%ny+1) = s%dzbnow(:,s%ny)
           s%sedero(:,s%ny+1) = s%sedero(:,s%ny)
           s%structdepth(:,s%ny+1) = s%structdepth(:,s%ny)
