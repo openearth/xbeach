@@ -87,7 +87,7 @@ contains
     case(SCHEME_UPWIND_2)
        do itheta=1,ntheta
           do j=1,ny+1
-             do i=2,nx
+             do i=2,nx-1
                 cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
                 if (cgxu>0) then
                    !                    eupw=((dsu(i,j)+.5*dsu(i-1,j))*ee(i,j,itheta)-.5*dsu(i-1,j)*ee(i-1,j,itheta))/dsu(i-1,j)
