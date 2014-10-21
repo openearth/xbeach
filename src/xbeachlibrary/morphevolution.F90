@@ -166,8 +166,8 @@ contains
           do i=1,s%nx+1
              exp_ero = par%morfac*par%dt/(1.d0-par%por)*s%hh(i,j)*(s%ceqsg(i,j,jg)*s%pbbed(i,j,1,jg)/s%Tsg(i,j,jg) &
                   + s%ceqbg(i,j,jg)*s%pbbed(i,j,1,jg)/par%dt) 
-             ! limit erosion to available sediment on top of hard layer
-             fac(i,j,jg) = min(1.d0,s%structdepth(i,j)*s%pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )         
+             ! limit erosion to available sediment on top of hard layer wwvv changed tiny into epsilon
+             fac(i,j,jg) = min(1.d0,s%structdepth(i,j)*s%pbbed(i,j,1,jg)/max(epsilon(0.d0),exp_ero) )         
              !if (fac(i,j,jg)*exp_ero > dzbed(i,j,1)*pbbed(i,j,1,jg)) then
              !   limit erosion to available sand in top layer
              !   fac(i,j,jg) = min(fac(i,j,jg),dzbed(i,j,1)*pbbed(i,j,1,jg)/max(tiny(0.d0),exp_ero) )  
@@ -588,8 +588,8 @@ contains
              do j=j1,s%ny+1
                 do i=2,s%nx+1
                    Savailable = s%structdepth(i,j)*s%pbbed(i,j,1,jg)/par%morfac/par%dt*(1.d0-par%por)/s%dsdnzi(i,j)
-                   ! reduction factor for cell outgoing sediment transports
-                   fac  = min(1.d0,Savailable/max(Sout(i,j),tiny(0.d0)) )
+                   ! reduction factor for cell outgoing sediment transports wwvv changed tiny into epsilon
+                   fac  = min(1.d0,Savailable/max(Sout(i,j),epsilon(0.d0)) )
                    ! fix sediment transports for the presence of a hard layer; remind indSus etc are 1 in cases of cell outgoing transports
                    ! updated S         oell outgoing transports                  cell incoming transports                   
                    if (fac < 1.d0)then

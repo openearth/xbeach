@@ -1506,8 +1506,9 @@ contains
     endif
     !
     !
-    ! Set smax to huge if default is specified
-    if (par%smax<0) par%smax=huge(0.d0)
+    ! Set smax to huge if default is specified, but allow for computations to be 
+    !  done with smax  wwvv
+    if (par%smax<0) par%smax=huge(0.d0)*1.0d-20
     !
     !
     ! Source-sink check
@@ -1589,13 +1590,13 @@ contains
     ! fix minimum runup depth
     if (par%nrugauge>0) then
        ! Fill up remaining part of the array with minimum value
-       par%rugdepth(par%nrugdepth+1:99) = par%eps+tiny(0.d0)
+       par%rugdepth(par%nrugdepth+1:) = (1.0d0 + epsilon(0.d0))*par%eps
        if (minval(par%rugdepth)<=par%eps) then
           where(par%rugdepth<=par%eps)
-             par%rugdepth = par%eps+tiny(0.d0)
+             par%rugdepth = (1.0d0 + epsilon(0.d0))*par%eps
           endwhere
           call writelog('lws','(a,f0.5,a)','Warning: Setting rugdepth to minimum value greater than eps (', &
-                                            par%eps+tiny(0.d0),')')
+                                            (1.0d0 + epsilon(0.d0))*par%eps,')')
        endif
     endif
     !

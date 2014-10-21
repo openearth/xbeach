@@ -282,11 +282,12 @@ contains
           oldmean2d=meansparslocal(i)%mean2d
           ! Robert: One where, elsewhere, endwhere statement leads to memory leak. 
           ! maybe ifort bug ?
-          where (oldmean2d<tiny(0.d0) .and. oldmean2d>=0.d0)
-             oldmean2d=tiny(0.d0)
+          ! wwvv 2014-10-21 changed tiny into epsilon in this subroutine
+          where (oldmean2d<epsilon(0.d0) .and. oldmean2d>=0.d0)
+             oldmean2d=epsilon(0.d0)
           endwhere
-          where (oldmean2d>-1.d0*tiny(0.d0) .and. oldmean2d<0.d0)
-             oldmean2d=-1.d0*tiny(0.d0)
+          where (oldmean2d>-epsilon(0.d0) .and. oldmean2d<0.d0)
+             oldmean2d=-epsilon(0.d0)
           endwhere
           ! Some variables (vectors) are rotated to N-S and E-W direction
           if (t%type=='i') then 
@@ -317,11 +318,11 @@ contains
           allocate(tvar3d(size(t%r3,1),size(t%r3,2),size(t%r3,3)))
           oldmean3d=meansparslocal(i)%mean3d
           ! bug in elsewere --> memory leak see commet Robert above
-          where (oldmean3d<tiny(0.d0) .and. oldmean3d>=0.d0)
-             oldmean3d=tiny(0.d0)
+          where (oldmean3d<epsilon(0.d0) .and. oldmean3d>=0.d0)
+             oldmean3d=epsilon(0.d0)
           endwhere
-          where (oldmean3d>-1.d0*tiny(0.d0) .and. oldmean3d<0.d0)
-             oldmean3d=-1.d0*tiny(0.d0)
+          where (oldmean3d>-epsilon(0.d0) .and. oldmean3d<0.d0)
+             oldmean3d=-epsilon(0.d0)
           endwhere
           call gridrotate(par, sl,t,tvar3d)
           meansparslocal(i)%mean3d = meansparslocal(i)%mean3d + mult*tvar3d
@@ -340,11 +341,11 @@ contains
           allocate(oldmean4d(size(t%r3,1),size(t%r3,2),size(t%r3,3),size(t%r4,4)))
           allocate(tvar4d(size(t%r3,1),size(t%r3,2),size(t%r3,3),size(t%r4,4)))
           oldmean4d=meansparslocal(i)%mean4d
-          where (oldmean4d<tiny(0.d0) .and. oldmean4d>=0.d0)
-             oldmean4d=tiny(0.d0)
+          where (oldmean4d<epsilon(0.d0) .and. oldmean4d>=0.d0)
+             oldmean4d=epsilon(0.d0)
           endwhere
-          where (oldmean4d>-1.d0*tiny(0.d0) .and. oldmean4d<0.d0)
-             oldmean4d=-1.d0*tiny(0.d0)
+          where (oldmean4d>-epsilon(0.d0) .and. oldmean4d<0.d0)
+             oldmean4d=-epsilon(0.d0)
           endwhere
           call gridrotate(par, sl,t,tvar4d)
           meansparslocal(i)%mean4d = meansparslocal(i)%mean4d + mult*tvar4d
