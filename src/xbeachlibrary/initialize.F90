@@ -132,6 +132,13 @@ contains
                    call report_file_read_error(par%yfile)
                 endif
                 close(33)
+             elseif (s%ny==0 .and. par%yfile/=' ') then
+                open (33,file=par%yfile)
+                read (33,*,iostat=ier)((s%y(i,1),i=1,s%nx+1))
+                if (ier .ne. 0) then
+                   call report_file_read_error(par%yfile)
+                endif
+                close(33)
              else
                 s%y = 0.d0
              end if
