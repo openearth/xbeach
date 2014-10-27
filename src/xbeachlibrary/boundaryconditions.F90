@@ -379,7 +379,7 @@ contains
     ! instat = 6 => directional wave energy time series from spectrum file; bound long wave from van Dongeren, 19??
     ! instat = 7 => as instat = 4/5/6; reading from previously computed wave boundary condition file.
     if (par%instat==INSTAT_STAT .or. par%instat==INSTAT_STAT_TABLE) then
-       if(par%nonhspectrum==0) then
+       if(par%nonhspectrum .ne. 1) then  ! Robert: needed because nonhspectrum can be -123 if not initialised
           do j=1,s%ny+1
              s%ee(1,j,:)=e01*min(par%t/par%taper,1.0d0)
              s%bi(1) = 0.0d0
