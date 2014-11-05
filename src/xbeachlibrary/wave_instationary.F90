@@ -406,13 +406,13 @@ contains
     if (par%t>0.0d0) then
        if (s%ny>0) then
           if (xmpi_isleft)then ! Jaap
-             if (par%rightwave==RIGHTWAVE_NEUMANN) then
+             if (par%lateralwave==LATERALWAVE_NEUMANN) then
                 !
                 ! Lateral boundary at y=0;
                 !
                 s%ee(1:s%nx+1,1,:)=s%ee(1:s%nx+1,2,:)
                 s%rr(1:s%nx+1,1,:)=s%rr(1:s%nx+1,2,:)
-             elseif (par%rightwave==RIGHTWAVE_WAVECREST) then
+             elseif (par%lateralwave==LATERALWAVE_WAVECREST) then
                 !   wcrestpos=xz+tan(thetamean(:,2))*(yz(2)-yz(1))
                 wcrestpos=s%sdist(:,1)+tan(s%thetamean(:,2)-s%alfaz(:,2))*s%dnv(:,1)
                 do itheta=1,s%ntheta
@@ -430,13 +430,13 @@ contains
              endif
           endif
           if (xmpi_isright)then
-             if (par%leftwave==LEFTWAVE_NEUMANN) then
+             if (par%lateralwave==LATERALWAVE_NEUMANN) then
                 !
                 ! lateral; boundary at y=ny*dy
                 !
                 s%ee(1:s%nx+1,s%ny+1,:)=s%ee(1:s%nx+1,s%ny,:)
                 s%rr(1:s%nx+1,s%ny+1,:)=s%rr(1:s%nx+1,s%ny,:)
-             elseif (par%leftwave==LEFTWAVE_WAVECREST) then
+             elseif (par%lateralwave==LATERALWAVE_WAVECREST) then
                 !  wcrestpos=xz-tan(thetamean(:,ny))*(yz(ny+1)-yz(ny))
                 wcrestpos=s%sdist(:,s%ny+1)-tan(s%thetamean(:,s%ny)-s%alfaz(:,s%ny))*s%dnv(:,s%ny)
                 do itheta=1,s%ntheta

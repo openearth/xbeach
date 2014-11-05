@@ -1166,10 +1166,12 @@ contains
                 s%vmean(s%nx,:) = 0.d0                                                                               
              endif
              
-          if (par%back==BACK_WALL) then ! leave s%uu(s%nx+1,:)=0 
-             !  uu(nx,:) = 0.d0
-             !  zs(nx+1,:) = zs(nx,:)
-             !  zs(nx+1,2:ny) = zs(nx+1,2:ny) + par%dt*hh(nx,2:ny)*uu(nx,2:ny)/(xu(nx+1)-xu(nx)) -par%dt*(hv(nx+1,2:ny+1)*vv(nx+1,2:ny+1)-hv(nx+1,1:ny)*vv(nx+1,1:ny))/(yv(2:ny+1)-yv(1:ny))
+          if (par%back==BACK_WALL) then 
+             if (xmpi_isbot) then
+                s%uu(s%nx,:) = 0.d0
+                s%zs(s%nx+1,:) = s%zs(s%nx,:)
+             endif
+              ! zs(nx+1,2:ny) = zs(nx+1,2:ny) + par%dt*hh(nx,2:ny)*uu(nx,2:ny)/(xu(nx+1)-xu(nx)) -par%dt*(hv(nx+1,2:ny+1)*vv(nx+1,2:ny+1)-hv(nx+1,1:ny)*vv(nx+1,1:ny))/(yv(2:ny+1)-yv(1:ny))
           elseif (par%back==BACK_ABS_1D) then
              !        umean(nx,:) = factime*uu(nx,:)+(1.d0-factime)*umean(nx,:)
              ! After hack 3/6/2010, return to par%epsi :

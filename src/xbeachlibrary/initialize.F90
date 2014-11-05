@@ -193,17 +193,6 @@ contains
 
     degrad=par%px/180.d0
 
-    if (par%single_dir==1) then
-       s%dtheta_s=par%dtheta_s*degrad
-       s%ntheta_s=nint((s%thetamax-s%thetamin)/s%dtheta_s)
-    else
-      s%ntheta_s = 0
-      allocate(s%theta_s(s%ntheta_s))
-      allocate(s%thet_s (s%nx+1,s%ny+1,s%ntheta_s))
-      allocate(s%costh_s(s%nx+1,s%ny+1,s%ntheta_s))
-      allocate(s%sinth_s(s%nx+1,s%ny+1,s%ntheta_s))
-    endif
-
     if(xmaster) then
 
        s%zb=-s%zb*s%posdwn
@@ -280,8 +269,8 @@ contains
        enddo
 
        if (par%single_dir==1) then
-          !s%dtheta_s=par%dtheta_s*degrad
-          !s%ntheta_s=nint((s%thetamax-s%thetamin)/s%dtheta_s)
+          s%dtheta_s=par%dtheta_s*degrad
+          s%ntheta_s=nint((s%thetamax-s%thetamin)/s%dtheta_s)
 
           allocate(s%theta_s(1:s%ntheta_s))
           allocate(s%thet_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
@@ -301,7 +290,13 @@ contains
                 enddo
              enddo
           enddo
-       endif
+      else
+          s%ntheta_s = 0
+          allocate(s%theta_s(s%ntheta_s))
+          allocate(s%thet_s (s%nx+1,s%ny+1,s%ntheta_s))
+          allocate(s%costh_s(s%nx+1,s%ny+1,s%ntheta_s))
+          allocate(s%sinth_s(s%nx+1,s%ny+1,s%ntheta_s))
+      endif
        
     endif
 

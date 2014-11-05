@@ -1398,7 +1398,7 @@ contains
                          'y',      MPIBOUNDARY_Y,      &
                          'man',    MPIBOUNDARY_MAN)
     call parmapply('mpiboundary',1,par%mpiboundary)
-    if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE) then
+    if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE .or. par%single_dir==1) then
        par%mpiboundary=MPIBOUNDARY_X
        call writelog('l','','mpiboundary set to x for stationary wave model')
     endif

@@ -220,7 +220,7 @@ contains
              s%dcsdx(i,j)=(cc(i+1,j)-cc(i,j))/s%dsu(i,j)
           enddo
        enddo
-       ! wwvv dcdx(nx:1,:) is still untouched, correct this ofr the parallel case
+      ! wwvv dcdx(nx:1,:) is still untouched, correct this ofr the parallel case
        cu(s%nx+1,:) = cc(s%nx+1,:) !Robert
        ! wwvv fix this in parallel case
        ! wwvv in parallel version, there will be a discrepancy between the values
@@ -418,6 +418,7 @@ contains
                 s%depo_ex(i,j,jg) = cc(i,j)/s%Tsg(i,j,jg)  
              enddo
           enddo
+          
        else
           j=1
           do i=2,s%nx
