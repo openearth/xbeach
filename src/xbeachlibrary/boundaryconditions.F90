@@ -325,7 +325,7 @@ contains
 
           dist=(cos(s%theta-s%theta0))**par%m
           do i=1,s%ntheta
-             if(abs(s%theta(i)-s%theta0)>par%px/2.d0) then
+             if(cos(s%theta(i)-s%theta0)<0.d0) then
                 dist(i)=0
              end if
           end do
