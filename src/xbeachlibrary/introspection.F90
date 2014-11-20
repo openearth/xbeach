@@ -895,7 +895,7 @@ contains
     if (index .eq. -1) return
     call indextos(s,index,array)
     ! Transform the c pointer into a fortran pointer
-    call c_f_pointer(x, i0, shape(array%i0))
+    call c_f_pointer(x, i0)
     ! Copy the values, or the pointer... not sure.
     array%i0 = i0
 
@@ -1036,7 +1036,7 @@ contains
     if (index .eq. -1) return
     call indextos(s,index,array)
     ! Transform the c pointer into a fortran pointer
-    call c_f_pointer(x, r0, shape(array%r0))
+    call c_f_pointer(x, r0)
     ! Copy the values, or the pointer... not sure.
     array%r0 = r0
 
