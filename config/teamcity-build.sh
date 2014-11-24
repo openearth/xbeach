@@ -16,9 +16,3 @@ FCFLAGS="-mtune=corei7-avx -funroll-loops --param max-unroll-times=4 -O3 -ffast-
 
 make
 make install
-
-chmod 775 /opt/teamcity/work/XBeach_unix/install
-
-cd /opt/teamcity/work/XBeach_unix/install
-scp -r -i $HOME/xbeach/xbeach-key bin lib share geer@h5:tcxbeach
-# share trunk 
