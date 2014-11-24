@@ -12,7 +12,7 @@ module load netcdf/v4.3.2_v4.4.0_gcc_4.9.1
 
 mkdir -p /opt/teamcity/work/XBeach_unix/install
 
-FCFLAGS="-mtune=corei7-avx -funroll-loops --param max-unroll-times=4 -O3 -ffast-math" ./configure  --with-netcdf --with-mpi --prefix="/opt/teamcity/work/XBeach_unix/install"
+FCFLAGS="-mtune=corei7-avx -funroll-loops --param max-unroll-times=4 -O3 -ffast-math" ./configure  --with-netcdf --prefix="/opt/teamcity/work/XBeach_unix/install"
 
 make
 make install
