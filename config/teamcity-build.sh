@@ -8,10 +8,17 @@ module load gcc/4.9.1
 module load hdf5/1.8.13_gcc_4.9.1
 module load netcdf/v4.3.2_v4.4.0_gcc_4.9.1
 
-
 ./autogen.sh
 
-FCFLAGS="-mtune=corei7-avx -funroll-loops --param max-unroll-times=4 -O3 -ffast-math" ./configure  --with-netcdf
-make
+mkdir /opt/teamcity/work/XBeach_unix/install
 
-scp -i $HOME/xbeach/xbeach-key src/xbeach/xbeach geer@h5:
+FCFLAGS="-mtune=corei7-avx -funroll-loops --param max-unroll-times=4 -O3 -ffast-math" ./configure  --with-netcdf --with-mpi --prefix="/opt/teamcity/work/XBeach_unix/install"
+
+make
+make install
+
+chmod 775 /opt/teamcity/work/XBeach_unix/install
+
+cd /opt/teamcity/work/XBeach_unix/install
+scp -r -i $HOME/xbeach/xbeach-key bin lib share geer@h5:tcxbeach
+# share trunk 
