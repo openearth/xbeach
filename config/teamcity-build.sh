@@ -13,3 +13,5 @@ module load netcdf/v4.3.2_v4.4.0_gcc_4.9.1
 
 FCFLAGS="-mtune=corei7-avx -funroll-loops --param max-unroll-times=4 -O3 -ffast-math" ./configure  --with-netcdf
 make
+
+scp -i $HOME/xbeach/xbeach-key src/xbeach/xbeach geer@h5:
