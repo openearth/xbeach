@@ -25,7 +25,7 @@ echo solution path	: %solutionpath%
 
 IF EXIST build.log del build.log
 echo clean build
-echo ##teamcity[progressMessage 'Cleaning %3||%4']
+echo ##teamcity[progressMessage 'Cleaning %3 - %4']
 echo on
 %devenv_path%\devenv.exe %solutionpath% /Clean "%3|%4" /Project xbeach /Out clean.log
 type clean.log
@@ -37,7 +37,7 @@ EXIT /B 1
 
 :BUILD
 echo build and zip xbeach executables
-echo ##teamcity[progressMessage 'Building %3||%4']
+echo ##teamcity[progressMessage 'Building %3 - %4']
 echo on
 %devenv_path%\devenv.exe %solutionpath% /Build "%3|%4" /Project xbeach /Out build.log
 type build.log
@@ -50,3 +50,4 @@ echo ##teamcity[buildStatus status='FAILURE' text='{build.status.text} in compil
 EXIT /B 1
 
 :END
+echo ##teamcity[progressMessage 'Build finished %3 - %4']
