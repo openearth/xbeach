@@ -29,6 +29,7 @@ echo ##teamcity[progressMessage 'Cleaning %3 - %4']
 echo on
 %devenv_path%\devenv.exe %solutionpath% /Clean "%3|%4" /Project xbeach /Out clean.log
 type clean.log
+del clean.log
 echo off
 
 IF %ERRORLEVEL% == 0 GOTO BUILD
@@ -41,8 +42,10 @@ echo ##teamcity[progressMessage 'Building %3 - %4']
 echo on
 %devenv_path%\devenv.exe %solutionpath% /Build "%3|%4" /Project xbeach /Out build.log
 type build.log
+del build.log
 %devenv_path%\devenv.exe %solutionpath% /Build "%3|%4" /Project xbeachlibrary_dynamic /Out build_library.log
 type build_library.log
+del build_library.log
 echo off
 
 IF %ERRORLEVEL% == 0 GOTO END
