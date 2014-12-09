@@ -629,5 +629,5 @@ contains
     write(*,*)'s%R',sum(s%R)
     write(*,*)'s%D',sum(s%D)
   end subroutine printssumso
-#endif 0
+#endif
 end module debugging_module
