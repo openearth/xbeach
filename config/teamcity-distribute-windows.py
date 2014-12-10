@@ -42,11 +42,12 @@ def distribute(scptarget,revision,bindir,workdir):
 
 def scpcopyfile(workdir, source,destination):
 	import subprocess
+	import os
 	
 	FNULL = open(os.devnull,'w')
 	pscp = workdir + "pscp.exe"
 	
-	args = pscp + " -l content_upload -pw quedc0t4 -r -v " + source + " " + destination
+	args = pscp + " -l os.environ['XBeachOssUser'] -pw os.environ['XBeachOssPass'] -r -v " + source + " " + destination
 	
 	subprocess.call(args, stdout=FNULL, stderr=FNULL, shell=False)
 
