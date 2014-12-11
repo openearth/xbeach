@@ -13,7 +13,9 @@ def distribute(scptarget,revision,bindir,workdir,user,password):
 
 	pattern = '%s*/*/*.zip'%(bindir)
 	files = glob.glob(pattern)
-
+	
+	print "##teamcity[message text='Copying binaries']"
+	
 	ln = ''
 	for file in files:
 		nameparts = file.replace('\\','/').replace(bindir.replace('\\','/'),"").split('/')
@@ -23,12 +25,16 @@ def distribute(scptarget,revision,bindir,workdir,user,password):
 		
 		# Copy file to bin dir (with correct name)
 		newname = "xbeach_" + str(revision) + "_" + platform + "_" + releases[configuration][1] + ".zip"
+		
 		scpcopyfile(workdir.replace('\\','/')+'/', file, scptarget + "bin/" + newname,user,password)
 		
 		# fill template list string
 		label = "XBeach rev. %d %s (%s)" % (revision,platform,releases[configuration][0])
 		ln += '<li><a href="bin/%s">%s</a></li>%s' % (newname,label,os.linesep)
 		
+	print "##teamcity[message text='Finished copying binaries']"
+	
+	print "##teamcity[message text='Creating index html of download page']"
 	# string replace in tmp file
 	workhtml = workdir.replace('\\','/') + "/index_bin.html"
 	with open(workhtml, "wt") as fout:
@@ -48,6 +54,7 @@ def scpcopyfile(workdir, source,destination,user,password):
 	
 	args = pscp + " -l " + user + " -pw " + password + " -r -v " + source + " " + destination
 	
+	print "##teamcity[message text='Copying %s']"%(source)
 	subprocess.call(args, stdout=FNULL, stderr=FNULL, shell=False)
 
 if not(len(sys.argv)==6):
@@ -60,8 +67,12 @@ workdir = sys.argv[3]
 user = sys.argv[4]
 password = sys.argv[5]
 
+print " "
+print "Publish XBeach executables to www.xbeach.org"
+print "  "
 print "Revision number   : %i"%(revision)
 print "distributes dir   : %s"%(bindir)
 print "Work directory    : %s"%(workdir)
+print "  "
 
 distribute(scptarget,revision,bindir,workdir,user,password)
