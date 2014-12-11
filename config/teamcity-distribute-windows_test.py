@@ -1,4 +1,5 @@
 import os
+import sys
 	
 def distribute(scptarget,revision,bindir,workdir):
 	import glob
@@ -49,9 +50,16 @@ def scpcopyfile(workdir, source,destination):
 	
 	subprocess.call(args, stdout=FNULL, stderr=FNULL, shell=False)
 
-revision = os.environ['RevisionNumber']
+if not(len(sys.argv)==4):
+	raise Exception('Wrong number of input arguments')
+	
+revision = int(sys.argv[1])
 scptarget = "oss.deltares.nl:/drbd/www/content/xbeach/testbed/"
-bindir = os.environ['XBeachDistributeDir']
-workdir = os.environ['XBeachWorkingDir']
+bindir = sys.argv[2]
+workdir = sys.argv[3]
+
+print "Revision number   : %i"%(revision)
+print "distributes dir   : %s"%(bindir)
+print "Work directory    : %s"%(workdir)
 
 distribute(scptarget,revision,bindir,workdir)
