@@ -1,7 +1,7 @@
 import os
 import sys
 	
-def distribute(scptarget,revision,bindir,workdir):
+def distribute(scptarget,revision,bindir,workdir,user,password):
 	import glob
 	import shutil
 		
@@ -23,7 +23,7 @@ def distribute(scptarget,revision,bindir,workdir):
 		
 		# Copy file to bin dir (with correct name)
 		newname = "xbeach_" + str(revision) + "_" + platform + "_" + releases[configuration][1] + ".zip"
-		scpcopyfile(workdir.replace('\\','/')+'/', file, scptarget + "bin/" + newname)
+		scpcopyfile(workdir.replace('\\','/')+'/', file, scptarget + "bin/" + newname,user,password)
 		
 		# fill template list string
 		label = "XBeach rev. %d %s (%s)" % (revision,platform,releases[configuration][0])
@@ -37,9 +37,9 @@ def distribute(scptarget,revision,bindir,workdir):
 			    fout.write(line.replace('${list}', ln))
 	
 	# Copy all zips and html to oss site
-	scpcopyfile(workdir.replace('\\','/'), workhtml, scptarget + "index_bin.html")
+	scpcopyfile(workdir.replace('\\','/'), workhtml, scptarget + "index_bin.html",user,password)
 
-def scpcopyfile(workdir, source,destination):
+def scpcopyfile(workdir, source,destination,user,password):
 	import subprocess
 	import os
 	
@@ -57,9 +57,11 @@ revision = int(sys.argv[1])
 scptarget = "oss.deltares.nl:/drbd/www/content/xbeach/testbed/"
 bindir = sys.argv[2]
 workdir = sys.argv[3]
+user = sys.argv[4]
+password = sys.argv[5]
 
 print "Revision number   : %i"%(revision)
 print "distributes dir   : %s"%(bindir)
 print "Work directory    : %s"%(workdir)
 
-distribute(scptarget,revision,bindir,workdir)
+distribute(scptarget,revision,bindir,workdir,user,password)
