@@ -14,8 +14,6 @@ def distribute(scptarget,revision,bindir,workdir):
 	files = glob.glob(pattern)
 
 	ln = ''
-	
-	# file = files[0]
 	for file in files:
 		nameparts = file.replace('\\','/').replace(bindir.replace('\\','/'),"").split('/')
 		platform = nameparts[0]
@@ -24,21 +22,21 @@ def distribute(scptarget,revision,bindir,workdir):
 		
 		# Copy file to bin dir (with correct name)
 		newname = "xbeach_" + str(revision) + "_" + platform + "_" + releases[configuration][1] + ".zip"
-		scpcopyfile(workdir, file, scptarget + "bin/" + newname)
+		scpcopyfile(workdir.replace('\\','/')+'/', file, scptarget + "bin/" + newname)
 		
 		# fill template list string
 		label = "XBeach rev. %d %s (%s)" % (revision,platform,releases[configuration][0])
 		ln += '<li><a href="bin/%s">%s</a></li>%s' % (newname,label,os.linesep)
 		
 	# string replace in tmp file
-	workhtml = workdir + "index_bin.html"
+	workhtml = workdir.replace('\\','/') + "/index_bin.html"
 	with open(workhtml, "wt") as fout:
-		with open(workdir + "index_bin.html.tmpl", "rt") as fin:
+		with open(workdir.replace('\\','/') + "/index_bin.html.tmpl", "rt") as fin:
 			for line in fin:
 			    fout.write(line.replace('${list}', ln))
 	
 	# Copy all zips and html to oss site
-	scpcopyfile(workdir, workhtml, scptarget + "index_bin.html")
+	scpcopyfile(workdir.replace('\\','/'), workhtml, scptarget + "index_bin.html")
 
 def scpcopyfile(workdir, source,destination):
 	import subprocess
