@@ -50,7 +50,7 @@ def scpcopyfile(workdir, source,destination,user,password):
 	
 	subprocess.call(args, stdout=FNULL, stderr=FNULL, shell=False)
 
-if not(len(sys.argv)==4):
+if not(len(sys.argv)==6):
 	raise Exception('Wrong number of input arguments')
 	
 revision = int(sys.argv[1])
