@@ -4,7 +4,7 @@ import sys
 def distribute(scptarget,revision,bindir,workdir,user,password):
 	import glob
 	import shutil
-		
+	
 	releases = {}
 	releases["Release"] = ["trunk version","trunk"]
 	releases["netcdf_Release"] = ["with netcdf support","netcdf"]
@@ -44,7 +44,7 @@ def scpcopyfile(workdir, source,destination,user,password):
 	import os
 	
 	FNULL = open(os.devnull,'w')
-	pscp = workdir + "pscp.exe"
+	pscp = workdir + "/pscp.exe"
 	
 	args = pscp + " -l " + user + " -pw " + password + " -r -v " + source + " " + destination
 	
