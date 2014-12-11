@@ -46,7 +46,7 @@ def scpcopyfile(workdir, source,destination,user,password):
 	FNULL = open(os.devnull,'w')
 	pscp = workdir + "pscp.exe"
 	
-	args = pscp + " -l os.environ['XBeachOssUser'] -pw os.environ['XBeachOssPass'] -r -v " + source + " " + destination
+	args = pscp + " -l " + user + " -pw " + password + " -r -v " + source + " " + destination
 	
 	subprocess.call(args, stdout=FNULL, stderr=FNULL, shell=False)
 
