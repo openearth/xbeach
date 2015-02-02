@@ -27,117 +27,110 @@ module params
      !
      !  Type             name                   initialize    !  [unit] (advanced/deprecated) description
      ! [Section] Physical processes
-     integer*4     :: swave                      = -123    !  [-] Include short waves (1), exclude short waves (0)
-     integer*4     :: lwave                      = -123    !  [-] Include short wave forcing on NLSW equations and boundary conditions (1), or exclude (0)
-     integer*4     :: flow                       = -123    !  [-] Include flow calculation (1), or exclude (0)
-     integer*4     :: sedtrans                   = -123    !  [-] Include sediment transport (1) or exclude (0)
-     integer*4     :: morphology                 = -123    !  [-] Include morphology (1) or exclude (0)
-     integer*4     :: avalanching                = -123    !  [-] Include avalanching (1) or exclude (0)
-     integer*4     :: nonh                       = -123    !  [-] (advanced) Non-hydrostatic pressure option: 0 = NSWE, 1 = NSW + non-hydrostatic pressure compensation Stelling & Zijlema, 2003
-     integer*4     :: gwflow                     = -123    !  [-] (advanced) Turn on (1) or off (0) groundwater flow module
-     integer*4     :: q3d                        = -123    !  [-] (advanced) Turn on (1) or off (0) quasi-3D sediment transport module
-     integer*4     :: swrunup                    = -123    !  [-] (advanced) Turn on (1) or off (0) short wave runup
-     integer*4     :: ships                      = -123    !  [-] (advanced) Turn on (1) or off (0) ship waves
-     integer*4     :: vegetation                 = -123    !  [-] (advanced) Turn on (1) or off (0) interaction of waves and flow with vegetation
-     integer*4     :: snells                     = -123    !  [-] (advanced) Turn on (1) or off (0) Snell's law for wave refraction
-     integer*4     :: single_dir                 = -123    !  [-] (advanced) Turn on (1) or off (0) stationary model for refraction, surfbeat based on mean direction
-     integer*4     :: bchwiz                     = -123    !  [-] Use beachwizard, 0 = beachwizard off, 1 beachwizard on, bed update off, 2 beachwiz on, bed update on. (also requires morphology == 1)
-     integer*4     :: setbathy                   = -123    !  [-] Provide timeseries of prescribed bathy input, 0 = off (default), 1 = on
+     integer*4     :: swave                      = -123    !  [-] Turn on short waves
+     integer*4     :: lwave                      = -123    !  [-] Turn on short wave forcing on NLSW equations and boundary conditions
+     integer*4     :: flow                       = -123    !  [-] Turn on flow calculation
+     integer*4     :: sedtrans                   = -123    !  [-] Turn on sediment transport
+     integer*4     :: morphology                 = -123    !  [-] Turn on morphology
+     integer*4     :: avalanching                = -123    !  [-] Turn on avalanching
+     integer*4     :: nonh                       = -123    !  [-] (advanced) Turn on non-hydrostatic pressure: 0 = NSWE, 1 = NSW + non-hydrostatic pressure compensation Stelling & Zijlema, 2003
+     integer*4     :: gwflow                     = -123    !  [-] (advanced) Turn on groundwater flow
+     integer*4     :: q3d                        = -123    !  [-] (advanced) Turn on quasi-3D sediment transport
+     integer*4     :: swrunup                    = -123    !  [-] (advanced) Turn on short wave runup
+     integer*4     :: ships                      = -123    !  [-] (advanced) Turn on ship waves
+     integer*4     :: vegetation                 = -123    !  [-] (advanced) Turn on interaction of waves and flow with vegetation
+     integer*4     :: snells                     = -123    !  [-] (advanced) Turn on Snell's law for wave refraction
+     integer*4     :: single_dir                 = -123    !  [-] (advanced) Turn on stationary model for refraction, surfbeat based on mean direction
+     integer*4     :: bchwiz                     = -123    !  [-] Turn on beachwizard
+     integer*4     :: setbathy                   = -123    !  [-] Turn on timeseries of prescribed bathy input
 
      ! [Section] Grid parameters
-     character(slen):: depfile                   = 'abc'   !  [-] Name of the input bathymetry file
+     character(slen):: depfile                   = 'abc'   !  [file] Name of the input bathymetry file
      real*8        :: posdwn                     = -123    !  [-] Bathymetry is specified positive down (1) or positive up (-1)
      integer*4     :: nx                         = -123    !  [-] Number of computiation cell corners in x-direction
      integer*4     :: ny                         = -123    !  [-] Number of computiation cell corners in y-direction
      real*8        :: alfa                       = -123    !  [deg] Angle of x-axis from East
-     integer*4     :: vardx                      = -123    !  [-] Switch for variable grid spacing: 1 = irregular spacing, 0 = regular grid spacing
+     integer*4     :: vardx                      = -123    !  [-] Switch for variable grid spacing
      real*8        :: dx                         = -123    !  [m] Regular grid spacing in x-direction
      real*8        :: dy                         = -123    !  [m] Regular grid spacing in y-direction
-     character(slen) :: xfile                    = 'abc'   !  [name] Name of the file containing x-coordinates of the calculation grid
-     character(slen) :: yfile                    = 'abc'   !  [name] Name of the file containing y-coordinates of the calculation grid
+     character(slen) :: xfile                    = 'abc'   !  [file] Name of the file containing x-coordinates of the calculation grid
+     character(slen) :: yfile                    = 'abc'   !  [file] Name of the file containing y-coordinates of the calculation grid
      real*8        :: xori                       = -123    !  [m] X-coordinate of origin of axis
      real*8        :: yori                       = -123    !  [m] Y-coordinate of origin of axis
      real*8        :: thetamin                   = -123    !  [deg] Lower directional limit (angle w.r.t computational x-axis)
      real*8        :: thetamax                   = -123    !  [deg] Higher directional limit (angle w.r.t computational x-axis)
      real*8        :: dtheta                     = -123    !  [deg] Directional resolution
      real*8        :: dtheta_s                   = -123    !  [deg] Directional resolution in case of stationary refraction 
-     integer*4     :: thetanaut                  = -123    !  [-] Thetamin,thetamax in cartesian (0) or nautical convention (1)
-     integer       :: gridform                   = -123    !  [name] Switch to read in grid bathy files with 'XBeach' or 'Delft3D' format respectively
-     character(slen) :: xyfile                   = 'abc'   !  [name] Name of the file containing (Delft3D) xy-coordinates of the calculation grid
+     integer*4     :: thetanaut                  = -123    !  [-] Switch to specify thetamin and thetamax in nautical convention rather than cartesian
+     integer       :: gridform                   = -123    !  [name] Grid definition format
+     character(slen) :: xyfile                   = 'abc'   !  [file] Name of the file containing Delft3D xy-coordinates of the calculation grid
 
      ! [Section] Model time
      real*8        :: tstop                      = -123    !  [s] Stop time of simulation, in morphological time
      real*8        :: CFL                        = -123    !  [-] Maximum Courant-Friedrichs-Lewy number
-     character(slen)  :: tunits                  = 's'     !  [-] (advanced) Units can be defined in udunits format (seconds since 1970-01-01 00:00:00.00 +1:00)
+     character(slen)  :: tunits                  = 's'     !  [-] (advanced) Time units in udunits format (seconds since 1970-01-01 00:00:00.00 +1:00)
 
      ! [Section] Physical constants
      real*8        :: g                          = -123    !  [ms^-2] Gravitational acceleration
      real*8        :: rho                        = -123    !  [kgm^-3] Density of water
-     real*8        :: depthscale                 = -123    !  [-] (advanced)  depthscale of (lab)test simulated. 1 = default, which corresponds to teh real world (nature)
-                                                           !  the following (numerical) parameters are scaled with the depth scale (see Brandenburg, 2010):
-                                                           !  eps     = eps_default/depthscale
-                                                           !  hmin    = hmin_default/depthscale
-                                                           !  hswitch = hswitch/depthscale
-                                                           !  dzmax   = dzmax/depthscale**1.5d0
-                                                           !  Brandenburg concluded that also the following parameters potentially need to be scaled:
-                                                           !  wetslp, turb (suggested to turn off at depthscales<20) & ucr (distinguish ucr_bed load and
-                                                           !  ucr_sus at depthscales<20)
-
+     real*8        :: depthscale                 = -123    !  [-] (advanced)  depthscale of (lab)test simulated, affects eps, hmin, hswitch and dzmax
+     
      ! [Section] Initial conditions
      real*8        :: zs0                        = -123    !  [m] Inital water level
-     character(slen):: zsinitfile                = 'abc'   !  [name] Name of inital condition file zs
-     integer*4     :: hotstartflow               = -123    !  [-] (advanced) Switch to hotstart flow conditions with pressure gradient balanced by wind and bed stress
+     character(slen):: zsinitfile                = 'abc'   !  [file] Name of inital water level file
+     integer*4     :: hotstartflow               = -123    !  [-] (advanced) Switch for hotstart flow conditions with pressure gradient balanced by wind and bed stress
 
      ! [Section] Wave boundary condition parameters
-     integer       :: instat                     = -123    !  [-] Wave boundary condition type
+     integer       :: instat                     = -123    !  [name] Wave boundary condition type
      real*8        :: taper                      = -123    !  [s] Spin-up time of wave boundary conditions, in morphological time
-     real*8        :: Hrms                       = -123    !  [m] Hrms wave height for instat = 0,1,2,3
+     real*8        :: Hrms                       = -123    !  [m] Hrms wave height for instat = stat, bichrom, ts_1 or ts_2
      real*8        :: Tm01                       = -123    !  [s] (deprecated) Old name for Trep
-     real*8        :: Trep                       = -123    !  [s] Representative wave period for instat = 0,1,2,3
-     real*8        :: Tlong                      = -123    !  [s] Wave group period for case instat = 1
-     real*8        :: dir0                       = -123    !  [deg] Mean wave direction (Nautical convention) for instat = 0,1,2,3
-     real*8        :: nmax                       = -123    !  [-] (advanced) maximum ratio of cg/c fro computing long wave boundary conditions
-     integer*4     :: m                          = -123    !  [-] Power in cos^m directional distribution for instat = 0,1,2,3
-     integer       :: lateralwave                = -123    !  [-] Switch for lateral boundary at left, 'neumann' = E Neumann, 'wavefront' = along wave front
+     real*8        :: Trep                       = -123    !  [s] Representative wave period for instat = stat, bichrom, ts_1 or ts_2
+     real*8        :: Tlong                      = -123    !  [s] Wave group period for case instat = bichrom
+     real*8        :: dir0                       = -123    !  [deg] Mean wave direction for instat = stat, bichrom, ts_1 or ts_2 (nautical convention)
+     real*8        :: nmax                       = -123    !  [-] (advanced) maximum ratio of cg/c for computing long wave boundary conditions
+     integer*4     :: m                          = -123    !  [-] Power in cos^m directional distribution for instat = stat, bichrom, ts_1 or ts_2
+     integer       :: lateralwave                = -123    !  [name] Switch for lateral boundary at left
      integer       :: leftwave                   = -123    !  [-] (deprecated) old name for lateralwave
      integer       :: rightwave                  = -123    !  [-] (deprecated) old name for lateralwave
 
      ! [Section] Wave-spectrum boundary condition parameters
-     character(slen):: bcfile                    = 'abc'   !  [-] Name of spectrum file
-     integer*4     :: random                     = -123    !  [-] (advanced) Random seed on (1) or off (0) for instat = 4,5,6 boundary conditions
-     real*8        :: fcutoff                    = -123    !  [Hz] (advanced) Low-freq cutoff frequency for instat = 4,5,6 boundary conditions
-     integer*4     :: nspr                       = -123    !  [-] (advanced) nspr = 1 long wave direction forced into centres of short wave bins, nspr = 0 regular long wave spreadin
-     real*8        :: trepfac                    = -123    !  [-] (advanced) Compute mean wave period over energy band: par%trepfac*maxval(Sf) for instat 4,5,6; converges to Tm01 for trepfac = 0.0 and
-     real*8        :: sprdthr                    = -123    !  [-] (advanced) Threshold ratio to maxval of S above which spec dens are read in (default 0.08*maxval)
-     integer*4     :: oldwbc                     = -123    !  [-] (deprecated) (1) Use old version wave boundary conditions for instat 4,5,6
-     integer*4     :: correctHm0                 = -123    !  [-] (advanced) Turn off or on Hm0 correction
-     integer*4     :: oldnyq                     = -123    !  [-] (advanced) Turn off or on old nyquist switch
-     integer*4     :: Tm01switch                 = -123    !  [-] (advanced) Turn off or on Tm01 or Tm-10 switch
+     character(slen):: bcfile                    = 'abc'   !  [file] Name of spectrum file
+     integer*4     :: random                     = -123    !  [-] (advanced) Switch to enable random seed for instat = jons, swan or vardens boundary conditions
+     real*8        :: fcutoff                    = -123    !  [Hz] (advanced) Low-freq cutoff frequency for instat = jons, swan or vardens boundary conditions
+     integer*4     :: nspr                       = -123    !  [-] (advanced) Switch to enable long wave direction forced into centres of short wave bins
+     real*8        :: trepfac                    = -123    !  [-] (advanced) Compute mean wave period over energy band: par%trepfac*maxval(Sf) for instat jons, swan or vardens; converges to Tm01 for trepfac = 0.0 and
+     real*8        :: sprdthr                    = -123    !  [-] (advanced) Threshold ratio to maximum value of S above which spectrum densities are read in
+     integer*4     :: oldwbc                     = -123    !  [-] (deprecated) (1) Use old version wave boundary conditions for instat jons, swan or vardens
+     integer*4     :: correctHm0                 = -123    !  [-] (advanced) Switch to enable Hm0 correction
+     integer*4     :: oldnyq                     = -123    !  [-] (advanced) Switch to enable old nyquist switch
+     integer*4     :: Tm01switch                 = -123    !  [-] (advanced) Switch to enable Tm01 rather than Tm-10
      real*8        :: rt                         = -123    !  [s] Duration of wave spectrum at offshore boundary, in morphological time
      real*8        :: dtbc                       = -123    !  [s] (advanced) Timestep used to describe time series of wave energy and long wave flux at offshore boundary (not affected by morfac)
      real*8        :: dthetaS_XB                 = -123    !  [deg] (advanced) The (counter-clockwise) angle in the degrees needed to rotate from the x-axis in SWAN to the x-axis pointing East
      integer*4     :: nspectrumloc               = -123    !  [-] (advanced) Number of input spectrum locations
      integer*4     :: wbcversion                 = -123    !  [-] (advanced) Version of wave boundary conditions
-     integer*4     :: nonhspectrum               = -123    !  [-] (advanced) Switch between spectrum format for wave action balance of nonhydrostatic waves
+     integer*4     :: nonhspectrum               = -123    !  [-] (advanced) Spectrum format for wave action balance of nonhydrostatic waves
 
      ! [Section] Flow boundary condition parameters
-     integer         :: front                    = -123    !  [-] Switch for seaward flow boundary: 0 = radiating boundary(Ad), 1 = Van Dongeren, 1997
-     integer         :: left                     = -123    !  [-] Switch for lateral boundary at ny+1, 'neumann' = vv computed from NSWE, 'wall' = reflective wall; vv=0
-     integer         :: right                    = -123    !  [-] Switch for lateral boundary at right, 0 = vv computed from NSWE, 1 = reflective wall; vv=0
-     integer         :: back                     = -123    !  [-] Switch for boundary at bay side, 0 = radiating boundary (Ad), 1 = reflective boundary; uu=0
-     integer*4     :: ARC                        = -123    !  [-] (advanced) Switch for active reflection compensation at seaward boundary: 0 = reflective, 1 = weakly (non) reflective
+     integer         :: front                    = -123    !  [name] Switch for seaward flow boundary
+     integer         :: left                     = -123    !  [name] Switch for lateral boundary at ny+1
+     integer         :: right                    = -123    !  [name] Switch for lateral boundary at 0
+     integer         :: back                     = -123    !  [name] Switch for boundary at bay side
+     integer*4     :: ARC                        = -123    !  [-] (advanced) Switch for active reflection compensation at seaward boundary
      real*8        :: order                      = -123    !  [-] (advanced) Switch for order of wave steering, 1 = first order wave steering (short wave energy only), 2 = second oder wave steering (bound long wave corresponding to short wave forcing is added)
-     integer*4     :: freewave                   = -123    !  [-] (advanced) Switch for free wave propagation 0 = use cg (default); 1 = use sqrt(gh) in instat = 3
-     integer*4     :: carspan                    = -123    !  [-] (deprecated) Switch for Carrier-Greenspan test 0 = use cg (default); 1 = use sqrt(gh) in instat = 3 for c&g tests
+     integer*4     :: freewave                   = -123    !  [-] (advanced) Switch for free wave propagation 0 = use cg (default); 1 = use sqrt(gh) in instat = ts_2
+     integer*4     :: carspan                    = -123    !  [-] (deprecated) Switch for Carrier-Greenspan test 0 = use cg (default); 1 = use sqrt(gh) in instat = ts_2 for c&g tests
      real*8        :: epsi                       = -123    !  [-] (advanced) Ratio of mean current to time varying current through offshore boundary
-     integer*4     :: nc                         = -123    !  [-] (advanced) Smoothing distance (defined as nr of cells) for estimating umean
-     integer       :: tidetype                   = -123    !  [-] (advanced) Switch for offfshore boundary, velocity boundary or instant water level boundary (default)
+     integer*4     :: nc                         = -123    !  [-] (advanced) Smoothing distance for estimating umean (defined as nr of cells)
+     integer       :: tidetype                   = -123    !  [name] (advanced) Switch for offfshore boundary, velocity boundary or instant water level boundary
 
 
      ! [Section] Tide boundary conditions
-     character(slen):: zs0file                   = 'abc'   !  [-] Name of tide boundary condition series
+     character(slen):: zs0file                   = 'abc'   !  [file] Name of tide boundary condition series
      integer*4     :: tideloc                    = -123    !  [-] Number of corner points on which a tide time series is specified
-     integer       :: paulrevere                 = -123    !  [-] Specifies tide on sea and land ('land') or two sea points ('sea') if tideloc = 2
+     integer       :: paulrevere                 = -123    !  [name] Specifies tide on sea and land or two sea points if tideloc = 2
+     
                                                            !      if tideloc =>2, then this indicates where the time series are to be
                                                            !      applied. Input for tidal information to xbeach options (3):
                                                            !      1. one tidal record --> specify tidal record everywhere
@@ -158,38 +151,38 @@ module params
      ! [Section] Flow discharge boundary conditions
      integer*4     :: ndischarge                 = -123   !  [-] (advanced) Number of discharge locations
      integer*4     :: ntdischarge                = -123   !  [-] (advanced) Length of discharge time series
-     character(slen):: disch_loc_file            = 'abc'  !  [-] (advanced) Name of discharge locations file
-     character(slen):: disch_timeseries_file     = 'abc'  !  [-] (advanced) Name of discharge timeseries file
+     character(slen):: disch_loc_file            = 'abc'  !  [file] (advanced) Name of discharge locations file
+     character(slen):: disch_timeseries_file     = 'abc'  !  [file] (advanced) Name of discharge timeseries file
 
      ! [Section] Wave breaking parameters
-     integer       :: break                      = -123    !  [-] Type of breaker formulation (1=roelvink, 2=baldock, 3=roelvink adapted, 4=roelvink on/off breaking)
+     integer       :: break                      = -123    !  [name] Type of breaker formulation
      real*8        :: gamma                      = -123    !  [-] Breaker parameter in Baldock or Roelvink formulation
-     real*8        :: gamma2                     = -123    !  [-] End of breaking parameter in break = 4 formulation
+     real*8        :: gamma2                     = -123    !  [-] End of breaking parameter in Roelvink Daly formulation
      real*8        :: alpha                      = -123    !  [-] (advanced) Wave dissipation coefficient in Roelvink formulation
      real*8        :: n                          = -123    !  [-] (advanced) Power in Roelvink dissipation model
      real*8        :: gammax                     = -123    !  [-] (advanced) Maximum ratio wave height to water depth
      real*8        :: delta                      = -123    !  [-] (advanced) Fraction of wave height to add to water depth
      real*8        :: fw                         = -123    !  [-] (advanced) Bed friction factor
-     real*8        :: fwcutoff                   = -123    !  [-] Depth greater than which the bed friction factor is NOT applied
-     integer*4     :: breakerdelay               = -123    !  [-] (advanced) Turn on (1) or off (0) breaker delay model
-     integer*4     :: shoaldelay                 = -123    !  [-] (advanced) Turn on (1) or off (0) shoaling delay
+     real*8        :: fwcutoff                   = -123    !  [-] Depth greater than which the bed friction factor is not applied
+     integer*4     :: breakerdelay               = -123    !  [-] (advanced) Switch to enable breaker delay model
+     integer*4     :: shoaldelay                 = -123    !  [-] (advanced) Switch to enable shoaling delay
      real*8        :: facsd                      = -123    !  [-] (advanced) fraction of the local wave length to use for shoaling delay depth
      real*8        :: facrun                     = -123    !  [-] (advanced) calibration coefficient for short wave runup
 
      ! [Section] Roller parameters
-     integer*4     :: roller                     = -123    !  [-] (advanced) Turn on (1) or off(0) roller model
+     integer*4     :: roller                     = -123    !  [-] (advanced) Switch to enable roller model
      real*8        :: beta                       = -123    !  [-] (advanced) Breaker slope coefficient in roller model
-     integer*4     :: rfb                        = -123    !  [-] (advanced) If rfb = 1 then maximum wave surface slope is feeded back in roller energy balance; else rfb = par%Beta
+     integer*4     :: rfb                        = -123    !  [-] (advanced) Switch to feed back maximum wave surface slope in roller energy balance, otherwise rfb = par%Beta
 
      ! [Section] Wave-current interaction parameters
-     integer*4     :: wci                        = -123    !  [-] Turns on (1) or off (0) wave-current interaction
+     integer*4     :: wci                        = -123    !  [-] Turns on wave-current interaction
      real*8        :: hwci                       = -123    !  [m] (advanced) Minimum depth until which wave-current interaction is used
      real*8        :: cats                       = -123    !  [Trep] (advanced) Current averaging time scale for wci, in terms of mean wave periods
 
      ! [Section] Flow parameters
-     integer       :: bedfriction                = -123    !  [-] Bed friction formulation: 'chezy','white-colebrook'
+     integer       :: bedfriction                = -123    !  [name] Bed friction formulation
      real*8        :: bedfriccoef                = -123    !  [-] Bed friction coefficient
-     character(slen):: bedfricfile               = 'abc'   !  [-] Bed friction file (only valid with values of C)
+     character(slen):: bedfricfile               = 'abc'   !  [file] Bed friction file (only valid with values of C)
      real*8        :: C                          = -123    !  [m^0.5s^-1] Chezy coefficient
      real*8        :: cf                         = -123    !  [-] (advanced) Friction coefficient flow
      real*8        :: nuh                        = -123    !  [m^2s^-1] Horizontal background viscosity
@@ -198,7 +191,7 @@ module params
      integer*4     :: smag                       = -123    !  [-] (advanced) Switch for smagorinsky subgrid model for viscocity
 
      ! [Section] Coriolis force parameters
-     real*8        :: wearth                     = -123    !  [hour^-1] (advanced) Angular velocity of earth calculated as: 1/rotation_time (in hours), later changed in calculation code to rad/s
+     real*8        :: wearth                     = -123    !  [hour^-1] (advanced) Angular velocity of earth calculated as: 1/rotation_time (in hours)
      real*8        :: lat                        = -123    !  [deg] (advanced) Latitude at model location  for computing Coriolis
 
      ! [Section] Wind parameters
@@ -206,41 +199,41 @@ module params
      real*8        :: Cd                         = -123    !  [-] (advanced) Wind drag coefficient
      real*8        :: windv                      = -123    !  [ms^-1] Wind velocity, in case of stationary wind
      real*8        :: windth                     = -123    !  [deg] Nautical wind direction, in case of stationary wind
-     character(slen) :: windfile                   = 'abc'   ! [-] Name of file with non-stationary wind data
+     character(slen) :: windfile                   = 'abc'   ! [file] Name of file with non-stationary wind data
 
      ! [Section] Groundwater parameters
-     real*8        :: kx                         = -123    !  [ms^-1] (advanced) Darcy-flow permeability coefficient in x-direction [m/s]
-     real*8        :: ky                         = -123    !  [ms^-1] (advanced) Darcy-flow permeability coefficient in y-direction [m/s]
-     real*8        :: kz                         = -123    !  [ms^-1] (advanced) Darcy-flow permeability coefficient in z-direction [m/s]
+     real*8        :: kx                         = -123    !  [ms^-1] (advanced) Darcy-flow permeability coefficient in x-direction
+     real*8        :: ky                         = -123    !  [ms^-1] (advanced) Darcy-flow permeability coefficient in y-direction
+     real*8        :: kz                         = -123    !  [ms^-1] (advanced) Darcy-flow permeability coefficient in z-direction
      real*8        :: dwetlayer                  = -123    !  [m] (advanced) Thickness of the top soil layer interacting more freely with the surface water
      real*8        :: aquiferbot                 = -123    !  [m] (advanced) Level of uniform aquifer bottom
-     character(slen):: aquiferbotfile            = 'abc'   !  [-] (advanced) Name of the aquifer bottom file
+     character(slen):: aquiferbotfile            = 'abc'   !  [file] (advanced) Name of the aquifer bottom file
      real*8        :: gw0                        = -123    !  [m] (advanced) Level initial groundwater level
-     character(slen):: gw0file                   = 'abc'   !  [-] (advanced) Name of initial groundwater level file
+     character(slen):: gw0file                   = 'abc'   !  [file] (advanced) Name of initial groundwater level file
      integer*4     :: gwnonh                     = -123    !  [-] (advanced) Switch to turn on or off non-hydrostatic pressure for groundwater
      integer*4     :: gwfastsolve                = -123    !  [-] (advanced) Reduce full 2D non-hydrostatic solution to quasi-explicit in longshore direction
-     integer       :: gwscheme                   = -123    !  [-] (advanced) Scheme for momentum equation (laminar, turbulent)
+     integer       :: gwscheme                   = -123    !  [name] (advanced) Scheme for momentum equation
      real*8        :: gwReturb                   = -123    !  [-] (advanced) Reynolds number for start of turbulent flow in case of gwscheme = turbulent
-     integer       :: gwheadmodel                = -123    !  [-] (advanced) Model to use for vertical groundwater head: 'parabolic' (default), or 'exponential'
-     integer*4     :: gwhorinfil                 = -123    !  [-] (advanced) switch to include horizontal infiltration from surface water to groundwater (default = 0)
+     integer       :: gwheadmodel                = -123    !  [name] (advanced) Model to use for vertical groundwater head
+     integer*4     :: gwhorinfil                 = -123    !  [-] (advanced) switch to include horizontal infiltration from surface water to groundwater
 
      ! [Section] Q3D sediment transport parameters
      real*8        :: vonkar                     = -123    !  [-] (advanced) von Karman constant
      real*8        :: vicmol                     = -123    !  [-] (advanced) molecular viscosity
-     integer*4     :: kmax                       = -123    !  [-] (advanced) Number of sigma layers in Quasi-3D model; kmax = 1 (default) is without vertical structure of flow and suspensions
-     real*8        :: sigfac                     = -123    !  [-] (advanced) dsig scales with log(sigfac). Default = 1.3
+     integer*4     :: kmax                       = -123    !  [-] (advanced) Number of sigma layers in Quasi-3D model; kmax = 1 is without vertical structure of flow and suspensions
+     real*8        :: sigfac                     = -123    !  [-] (advanced) dsig scales with log(sigfac)
 
      ! [Section] Non-hydrostatic correction parameters
-     integer       :: solver                     = -123    ! [-] (advanced) Solver used to solve the linear system, sip, or tridiag (only for 1d)
+     integer       :: solver                     = -123    ! [name] (advanced) Solver used to solve the linear system
      integer*4     :: solver_maxit               = -123    ! [-] (advanced) Maximum number of iterations in the linear sip solver
      real*8        :: solver_acc                 = -123    ! [-] (advanced) accuracy with respect to the right-hand side used
      !     in the following termination criterion:
      !         ||b-Ax || < acc*||b||
      real*8        :: solver_urelax              = -123    ! [-] (advanced) Underrelaxation parameter
-     real*8        :: kdmin                      = -123    ! [-] (advanced) Minimum value of kd ( pi/dx > minkd )
-     real*8        :: dispc                      = -123    ! [?] (advanced) Coefficient in front of the vertical pressure gradient, Default = 1.
+     real*8        :: kdmin                      = -123    ! [-] (advanced) Minimum value of kd (pi/dx > min(kd))
+     real*8        :: dispc                      = -123    ! [?] (advanced) Coefficient in front of the vertical pressure gradient
      real*8        :: Topt                       = -123    ! [s] (advanced) Absolute period to optimize coefficient
-     integer*4     :: nhbreaker                  = -123    ! [-] (advanced) Turn on or off nonhydrostatic breaker model
+     integer*4     :: nhbreaker                  = -123    ! [-] (advanced) Non-hydrostatic breaker model
      real*8        :: breakviscfac               = -123    ! [-] (advanced) Factor to increase viscosity during breaking
      real*8        :: maxbrsteep                 = -123    ! [-] (advanced) Maximum wave steepness criterium
      real*8        :: secbrsteep                 = -123    ! [-] (advanced) Secondary maximum wave steepness criterium
@@ -263,133 +256,119 @@ module params
 
 
      ! [Section] Sediment transport parameters
-     integer       :: waveform                   = -123    !  [-] Option for waveshape model: 1 = Ruessink & Van Rijn, 2 = Van Thiel de Vries, 2009
-     integer       :: form                       = -123    !  [-] Equilibrium sed. conc. formulation: 1 = Soulsby van Rijn, 1997, 2 = Van Rijn 2008 with modifications by Van Thiel
-     integer*4     :: sws                        = -123    !  [-] (advanced) 1 = short wave & roller stirring and undertow, 0 = no short wave & roller stirring and undertow
-     integer*4     :: lws                        = -123    !  [-] (advanced) 1 = long wave stirring, 0 = no long wave stirring
+     integer       :: waveform                   = -123    !  [name] Wave shape model
+     integer       :: form                       = -123    !  [name] Equilibrium sediment concentration formulation
+     integer*4     :: sws                        = -123    !  [-] (advanced) Switch to enable short wave and roller stirring and undertow
+     integer*4     :: lws                        = -123    !  [-] (advanced) Switch to enable long wave stirring
      real*8        :: BRfac                      = -123    !  [-] (advanced) Calibration factor surface slope
      real*8        :: facsl                      = -123    !  [-] (advanced) Factor bedslope effect
-     real*8        :: z0                         = -123    !  [m] (advanced) Zero flow velocity level in Soulsby van Rijn (1997) sed.conc. expression
-     real*8        :: smax                       = -123    !  [-] (advanced) Being tested: maximum Shields parameter for ceq Diane Foster
+     real*8        :: z0                         = -123    !  [m] (advanced) Zero flow velocity level in Soulsby and van Rijn (1997) sediment concentration
+     real*8        :: smax                       = -123    !  [-] (advanced) Maximum Shields parameter for equillibrium sediment concentration acc. Diane Foster
      real*8        :: tsfac                      = -123    !  [-] (advanced) Coefficient determining Ts = tsfac * h/ws in sediment source term
      real*8        :: facua                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave skewness and asymmetry
      real*8        :: facSk                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave skewness
      real*8        :: facAs                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave asymmetry
-     integer       :: turbadv                    = -123    !  [-] (advanced) Switch 0/1 to activate turbulence advection model for short and or long wave turbulence
-     integer       :: turb                       = -123    !  [-] (advanced) Switch to include short wave turbulence:
-                                                           !      none = no turbulence,
-                                                           !      wave_averaged = wave averaged turbulence
-                                                           !      bore_averaged = maximum turbulence
+     integer       :: turbadv                    = -123    !  [name] (advanced) Switch to activate turbulence advection model for short and or long wave turbulence
+     integer       :: turb                       = -123    !  [name] (advanced) Switch to include short wave turbulence
      real*8        :: Tbfac                      = -123    !  [-] (advanced) Calibration factor for bore interval Tbore: Tbore = Tbfac*Tbore
      real*8        :: Tsmin                      = -123    !  [s] (advanced) Minimum adaptation time scale in advection diffusion equation sediment
-     integer*4     :: lwt                        = -123    !  [-] (advanced) Switch 0/1 long wave turbulence
+     integer*4     :: lwt                        = -123    !  [-] (advanced) Switch to enable long wave turbulence
 
      real*8        :: betad                      = -123    !  [-] (advanced) Dissipation parameter long wave breaking turbulence
      character(slen):: swtable                   = 'abc'   !  [-] (deprecated)Name of intra short wave assymetry and skewness table
-     integer*4     :: sus                        = -123    !  [-] (advanced) Calibration factor for suspensions transports [0..1]
-     integer*4     :: bed                        = -123    !  [-] (advanced) Calibration factor for bed transports [0..1]
-     integer*4     :: bulk                       = -123    !  [-] (advanced) Option to compute bedload and suspended load seperately; 0 = seperately, 1 = bulk (as in previous versions)
-     real*8        :: facDc                      = -123    !  [-] (advanced) Option to control sediment diffusion coefficient [0..1]
-     real*8        :: jetfac                     = -123    !  [-] (advanced) Option to mimic turbulence production near revetments [0..1]
-     integer*4     :: fallvelred                = -123     !  [-] Reduce fall velocity for high concentrations (1) or not (0)
-     integer*4     :: dilatancy                 = -123     !  [-] Reduce critical shields number due dilatancy (Van Rhee, 2010) (1) or not (0)
+     integer*4     :: sus                        = -123    !  [-] (advanced) Calibration factor for suspensions transports
+     integer*4     :: bed                        = -123    !  [-] (advanced) Calibration factor for bed transports
+     integer*4     :: bulk                       = -123    !  [-] (advanced) Switch to compute bulk transport rather than bed and suspended load separately
+     real*8        :: facDc                      = -123    !  [-] (advanced) Option to control sediment diffusion coefficient
+     real*8        :: jetfac                     = -123    !  [-] (advanced) Option to mimic turbulence production near revetments
+     integer*4     :: fallvelred                = -123     !  [-] Switch to reduce fall velocity for high concentrations
+     integer*4     :: dilatancy                 = -123     !  [-] Switch to reduce critical shields number due dilatancy
      real*8        :: rheeA                     = -123     !  [-] A parameter in the Van Rhee expression 
      real*8        :: pormax                    = -123     !  [-] Max porosity used in the experession of Van Rhee
-     real*8        :: reposeangle               = -123     !  [deg] Angle of internal friciton
-     integer*4     :: bdslpeffmag               = -123     !  [-] Modify the magnitude of the sediment transport based on the bed slope, uses facsl
-                                                           !         0 : do nothing
-                                                           !         1 : originally implemented (1-1.6tan(beta)) on total sediment transport rates (factor 1.6 can be modified by facsl) (DEFAULT)
-                                                           !         2 : originally implemented (1-1.6tan(beta)) on bed load transport rates (factor 1.6 can be modified by facsl)
-                                                           !         3 : (1-1.6 tan(beta)) in flow dir factor on total sediment transport rates (factor 1.6 can be modified by facsl)
-                                                           !         4 : (1-1.6 tan(beta))  in flow dir factor on bed load transport rates (factor 1.6 can be modified by facsl)
-     integer*4     :: bdslpeffini               = -123     !  [-] Modify the critical shields parameter based on the bed slope
-                                                           !         0 : do nothing (DEFAULT)
-                                                           !         1 : modification critical Shields parameter total sediment load
-                                                           !         2 : modification critical Shields parameter bed load
-     integer*4     :: bdslpeffdir               = -123     !  [-] Modify the direction of the sediment transport based on the bed slope
-                                                           !         0 : do nothing (DEFAULT)
-                                                           !         1 : bed load direction Talmon
+     real*8        :: reposeangle               = -123     !  [deg] Angle of internal friction
+     integer*4     :: bdslpeffmag               = -123     !  [name] Modify the magnitude of the sediment transport based on the bed slope, uses facsl
+     integer*4     :: bdslpeffini               = -123     !  [name] Modify the critical shields parameter based on the bed slope
+     integer*4     :: bdslpeffdir               = -123     !  [name] Modify the direction of the sediment transport based on the bed slope
      real*8        :: bdslpeffdirfac            = -123     !  [-] Calibration factor in the modification of the direction
      
      ! [Section] Morphology parameters
      real*8        :: morfac                     = -123    !  [-] Morphological acceleration factor
-     integer*4     :: morfacopt                  = -123    !  [-] (advanced) Option indicating whether times should be adjusted (1) or not(0) for morfac
+     integer*4     :: morfacopt                  = -123    !  [-] (advanced) Switch to adjusting output times for morfac
      real*8        :: morstart                   = -123    !  [s] Start time morphology, in morphological time
      real*8        :: morstop                    = -123    !  [s] Stop time morphology, in morphological time
      real*8        :: wetslp                     = -123    !  [-] Critical avalanching slope under water (dz/dx and dz/dy)
      real*8        :: dryslp                     = -123    !  [-] Critical avalanching slope above water (dz/dx and dz/dy)
      real*8        :: hswitch                    = -123    !  [m] (advanced) Water depth at which is switched from wetslp to dryslp
-     real*8        :: dzmax                      = -123    !  [m/s/m] (advanced) Maximum bedlevel change due to avalanching
-     integer*4     :: struct                     = -123    !  [-] Switch for hard structures
-     character(slen):: ne_layer                  = 'abc'   !  [name] Name of file containing depth of hard structure
+     real*8        :: dzmax                      = -123    !  [m/s/m] (advanced) Maximum bed level change due to avalanching
+     integer*4     :: struct                     = -123    !  [-] Switch for enabling hard structures
+     character(slen):: ne_layer                  = 'abc'   !  [file] Name of file containing depth of hard structure
 
      ! [Section] Output variables
-     integer*4     :: timings                    = -123    !  [-] (advanced) Switch to turn on (1) or off (0) progress output to screen
+     integer*4     :: timings                    = -123    !  [-] (advanced) Switch enable progress output to screen
      real*8        :: tstart                     = -123    !  [s] Start time of output, in morphological time
      real*8        :: tint                       = -123    !  [s] (deprecated) Interval time of global output (replaced by tintg)
      real*8        :: tintg                      = -123    !  [s] Interval time of global output
      real*8        :: tintp                      = -123    !  [s] Interval time of point and runup gauge output
      real*8        :: tintc                      = -123    !  [s] (advanced) Interval time of cross section output
-     real*8        :: tintm                      = -123    !  [s] Interval time of mean,var,max,min output
+     real*8        :: tintm                      = -123    !  [s] Interval time of mean, var, max, min output
      character(slen):: tsglobal                  = 'abc'   !  [-] (advanced) Name of file containing timings of global output
      character(slen):: tspoints                  = 'abc'   !  [-] (advanced) Name of file containing timings of point output
      character(slen):: tscross                   = 'abc'   !  [-] (advanced) Name of file containing timings of cross section output
      character(slen):: tsmean                    = 'abc'   !  [-] (advanced) Name of file containing timings of mean, max, min and var output
      integer*4     :: nglobalvar                 = -123    !  [-] Number of global output variables (as specified by user)
-     character(slen), dimension(numvars)   :: globalvars = 'abc' !  [-] (advanced) Mnems of global output variables, not per se the same sice as nglobalvar (invalid variables, defaults)
-     integer*4     :: nmeanvar                   = -123    !  [-] Number of mean,min,max,var output variables
+     character(slen), dimension(numvars)   :: globalvars = 'abc' !  [-] (advanced) Mnems of global output variables, not per se the same size as nglobalvar (invalid variables, defaults)
+     integer*4     :: nmeanvar                   = -123    !  [-] Number of mean, min, max, var output variables
      character(slen), dimension(numvars)   :: meanvars  = 'abc'  !  [-] (advanced) Mnems of mean output variables (by variables)
      integer*4     :: npointvar                  = -123    !  [-] Number of point output variables
      character(slen), dimension(numvars)   :: pointvars  = 'abc'  !  [-] (advanced) Mnems of point output variables (by variables)
      integer*4     :: npoints                    = -123    !  [-] Number of output point locations
      integer*4     :: nrugauge                   = -123    !  [-] Number of output runup gauge locations
-     integer, dimension(:), pointer                     :: pointtypes => NULL()  !  [-] (advanced) Point types (0 = point, 1=rugauge)
+     integer, dimension(:), pointer                     :: pointtypes => NULL()  !  [-] (advanced) Point types (0 = point, 1 = rugauge)
      real*8 ,dimension(:), pointer                      :: xpointsw => NULL()  ! (advanced) world x-coordinate of output points
      real*8 ,dimension(:), pointer                      :: ypointsw => NULL()  ! (advanced) world y-coordinate of output points
 
      integer*4     :: nrugdepth                  = -123    !  [-] (advanced) Number of depths to compute runup in runup gauge
      real*8,dimension(99) :: rugdepth            = -123    !  [m] (advanced) Minimum depth for determination of last wet point in runup gauge
      integer*4     :: ncross                     = -123    !  [-] (advanced) Number of output cross sections
-     integer        :: outputformat              = OUTPUTFORMAT_DEBUG  !  [-] (advanced) Choice of output file format: 'netcdf', 'fortran', or 'debug'
-     character(slen):: ncfilename                = 'xboutput.nc' ! [-] (advanced) xbeach netcdf output file name
+     integer        :: outputformat              = OUTPUTFORMAT_DEBUG  !  [name] (advanced) Output file format
+     character(slen):: ncfilename                = 'xboutput.nc' ! [file] (advanced) xbeach netcdf output file name
 
      ! Projection units (not to be used, only pass to output, this limit is too short for WKT....)
      ! This could be the proj4 string +init=epsg:28992
      ! [Section] Output projection
      character(slen)  :: projection              = ' '     !  [-] (advanced) projection string
-     integer*4        :: rotate                  = -123    !  [-] Rotate (1) postprocess output with the rotate function.
+     integer*4        :: rotate                  = -123    !  [-] Rotate output as postprocessing with given angle
 
      ! [Section] Drifters parameters
      integer*4     :: ndrifter                   = -123    !  [-] Number of drifers
-     character(slen) :: drifterfile              = 'abc'   !  [-] Name of drifter data file
+     character(slen) :: drifterfile              = 'abc'   !  [file] Name of drifter data file
 
      ! [Section] Ship parameters
-     character(slen) :: shipfile                 = 'abc'   !  [-] Name of ship data file
+     character(slen) :: shipfile                 = 'abc'   !  [file] Name of ship data file
      integer*4       :: nship                    = -123    !  [-] (advanced) Number of ships
 
      ! [Section] Vegetation parameters
-     character(slen) :: veggiefile                = 'abc'   !  [-] Name of vegie species list file
-     character(slen) :: veggiemapfile             = 'abc'   !  [-] Name of vegie species map file
+     character(slen) :: veggiefile                = 'abc'   !  [file] Name of vegetation species list file
+     character(slen) :: veggiemapfile             = 'abc'   !  [file] Name of vegetation species map file
      integer*4       :: nveg                     = -123    !  [-] Number of vegetation species
 
      ! [Section] Wave numerics parameters
-     integer       :: scheme                     = -123   !  [-] (advanced) Use first-order upwind (upwind_1), second order upwind (upwind_2) or Lax-Wendroff (lax_wendroff)
-     !      for wave propagation
+     integer       :: scheme                     = -123   !  [name] (advanced) Numerical scheme for wave propagation
      real*8        :: wavint                     = -123    !  [s] Interval between wave module calls (only in stationary wave mode)
      real*8        :: maxerror                   = -123    !  [m] (advanced) Maximum wave height error in wave stationary iteration
      integer*4     :: maxiter                    = -123    !  [-] (advanced) Maximum number of iterations in wave stationary
 
      ! [Section] Flow numerics parameters
      real*8        :: eps                        = -123    !  [m] Threshold water depth above which cells are considered wet
-     real*8        :: eps_sd                     = -123    !  [m/s] Threshold velocity difference to determine conservation of energy head vs momentum
-     real*8        :: umin                       = -123    !  [m/s] Threshold velocity for upwind velocity detection and for vmag2 in eq. sediment concentration
+     real*8        :: eps_sd                     = -123    !  [m/s] Threshold velocity difference to determine conservation of energy head versus momentum
+     real*8        :: umin                       = -123    !  [m/s] Threshold velocity for upwind velocity detection and for vmag2 in equilibrium sediment concentration
      real*8        :: hmin                       = -123    !  [m] Threshold water depth above which Stokes drift is included
      integer*4     :: secorder                   = -123    !  [-] (advanced) Use second order corrections to advection/non-linear terms based on MacCormack scheme
-     integer*4     :: oldhu                      = -123    !  [-] (advanced) Turn on / off old hu calculation
+     integer*4     :: oldhu                      = -123    !  [-] (advanced) Switch to enable old hu calculation
 
      ! [Section] Sediment transport numerics parameters
      real*8        :: thetanum                   = -123    !  [-] (advanced) Coefficient determining whether upwind (1) or central scheme (0.5) is used.
-     integer*4     :: sourcesink                 = -123    !  [-] (advanced) In suspended transport use source-sink terms to calculate bed level change (1) or sus transport gradients (0)
+     integer*4     :: sourcesink                 = -123    !  [-] (advanced) Switch to enable source-sink terms to calculate bed level change rather than suspended transport gradients
      real*8        :: cmax                       = -123    !  [-] (advanced) Maximum allowed sediment concentration
 
      ! [Section] Bed update numerics parameters
@@ -397,15 +376,13 @@ module params
      integer*4     :: nd_var                     = -123    !  [-] (advanced) Index of layer with variable thickness
      real*8        :: split                      = -123    !  [-] (advanced) Split threshold for variable sediment layer (ratio to nominal thickness)
      real*8        :: merge                      = -123    !  [-] (advanced) Merge threshold for variable sediment layer (ratio to nominal thickness)
-
-     ! Prescribed bed evolution parameters
      integer*4     :: nsetbathy                  = -123    !  [-] (advanced) Number of prescribed bed updates
-     character(slen) :: setbathyfile             = 'abc'   !  [-] (advanced) Name of prescribed bed update file
+     character(slen) :: setbathyfile             = 'abc'   !  [file] (advanced) Name of prescribed bed update file
 
      ! [Section] MPI parameters
-     integer       :: mpiboundary                = -123   ! [-] (advanced) Fix mpi boundaries along y-lines ('y'), x-lines ('x'), use manual defined domains ('man') or find shortest boundary ('auto')
-     integer*4     :: mmpi                       = -123    ! [-] (advanced) Number of domains in m direction (cross-shore) when manually specifying mpi domains
-     integer*4     :: nmpi                       = -123    ! [-] (advanced) Number of domains in n direction (alongshore) when manually specifying mpi domains
+     integer       :: mpiboundary                = -123   ! [name] (advanced) Fix mpi boundaries along y-lines, x-lines, use manual defined domains or find shortest boundary automatically
+     integer*4     :: mmpi                       = -123    ! [-] (advanced) Number of domains in cross-shore direction when manually specifying mpi domains
+     integer*4     :: nmpi                       = -123    ! [-] (advanced) Number of domains in alongshore direction when manually specifying mpi domains
 
      ! [Section] Constants, not read in params.txt
      real*8               :: px                  = -123    !  [-] Pi
@@ -416,6 +393,7 @@ module params
      real*8               :: dt                  = -123    !  [s] Computational time step, in hydrodynamic time
      real*8               :: t                   = -123    !  [s] Computational time, in hydrodynamic time
      real*8               :: tnext               = -123    !  [s] Next time point for output or wave stationary calculation, in hydrodynamic time
+
   end type parameters
 
 contains
