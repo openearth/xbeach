@@ -549,11 +549,17 @@ contains
              call space_distribute("y",sl,gee2,ee2)
              call space_distribute("y",sl,gq1,q1)
              call space_distribute("y",sl,gq2,q2)
+             if (par%single_dir==1) then
+                 call space_distribute("y",sl,sg%ee_s(1,:,:),s%ee_s(1,:,:))
+             endif
 #else
              ee1=gee1
              ee2=gee2
              q1=gq1
              q2=gq2
+             if (par%single_dir==1) then
+                 s%ee_s=sg%ee_s
+             endif
 #endif
              old=floor((par%t/dtbcfile)+1)
              recpos=1

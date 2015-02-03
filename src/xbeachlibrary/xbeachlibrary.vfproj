@@ -155,7 +155,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_netcdf_Release|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\x64\MPI_netcdf_Release\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT;USENETCDF;DLL_NETCDF" Diagnostics="diagnosticsShowAll" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="bin\static\x64\MPI_netcdf_Release\mpich\include; includes\version\; includes\genfiles\" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT;USENETCDF;DLL_NETCDF" Diagnostics="diagnosticsShowAll" FloatingPointExceptionHandling="fpe1" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true"/>
 				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="bin\static\x64\MPI_netcdf_Release\mpich\lib;..\..\lib\x64\netcdf\Release\" AdditionalDependencies="mpi.lib fmpich2.lib f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -170,8 +170,8 @@
 		<File RelativePath="..\..\lib\win32\netcdff90\netcdf.f90">
 			<FileConfiguration Name="Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Release|x64" ExcludedFromBuild="true"/>
-			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|Win32" ExcludedFromBuild="true"/>
@@ -179,8 +179,8 @@
 		<File RelativePath="..\..\lib\win32\netcdff90\typeSizes.f90">
 			<FileConfiguration Name="Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Release|x64" ExcludedFromBuild="true"/>
-			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|Win32" ExcludedFromBuild="true"/>

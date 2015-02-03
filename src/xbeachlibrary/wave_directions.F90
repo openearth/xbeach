@@ -153,30 +153,11 @@ contains
     s%ctheta_s=sign(1.d0,s%ctheta_s)*min(abs(s%ctheta_s),.5*par%px/par%Trep)
     km = s%k
 
-    ! Dano Temporary solution to obtain Hrms, Trep and m from params file
-    
-    dist=(cos(s%theta_s-s%theta0))**par%m
-    do i=1,s%ntheta_s
-       if(cos(s%theta_s(i)-s%theta0)<0.d0) then
-          dist(i)=0.0d0
-       end if
-    end do
-    if (sum(dist)>0.d0) then 
-       factor = (dist/sum(dist))/s%dtheta
-    else
-       factor=0.d0
-    endif
-    E0=0.125d0*par%rho*par%g*par%Hrms**2
-    e01    = factor*E0
-    e01    = max(e01,0.0d0)
-    do j=1,s%ny+1
-       s%ee_s(1,j,:)=e01
-    end do
     s%thetamean=(sum(s%ee_s*s%thet_s,3)/s%ntheta_s)/(max(sum(s%ee_s,3),0.00001d0)/s%ntheta_s)
 
     !dtw=.9*minval(xz(2:nx+1)-xz(1:nx))/maxval(cgx_s)
 
-       s%E(1,:)=sum(s%ee_s(1,:,:),2)*s%dtheta
+       s%E(1,:)=sum(s%ee_s(1,:,:),2)*s%dtheta_s
        s%H(1,:)=sqrt(s%E(1,:)/par%rhog8)
 
        imax=s%nx

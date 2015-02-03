@@ -8,6 +8,7 @@ module spectral_wave_bc_module
      real*8,dimension(:,:),pointer          :: S        ! 2D variance density spectrum
      real*8,dimension(:),pointer            :: f,ang    ! 1D frequency and direction vectors for S
      real*8,dimension(:),pointer            :: Sf       ! S integrated over all directions
+     real*8,dimension(:),pointer            :: Sd       ! S integrated over all frequencies
      integer                                :: nf,nang  ! number of frequencies and angles
      real*8                                 :: df,dang  ! frequency and angle step size
      real*8                                 :: hm0,fp,dir0,scoeff  ! imposed significant wave height, peak frequency,
@@ -89,7 +90,7 @@ contains
     use xmpi_module
 
     implicit none
-    type(spacepars),intent(in)  :: s
+    type(spacepars),intent(inout)  :: s
     type(parameters),intent(inout) :: par
     integer,intent(out)            :: curline
     type(spectrum),dimension(:),allocatable         :: specin,specinterp
@@ -158,6 +159,10 @@ contains
        par%Trep = combspec%trep
        call writelog('sl','(a,f0.2,a)','Overall Trep from all spectra calculated: ',par%Trep,' s')
 
+       if (par%single_dir==1) then
+          call set_stationary_spectrum (s,par,combspec)
+       endif
+       
        ! calculate the average offshore water depth, which is used in various
        ! computation in this module
        wp%h0 = calculate_average_water_depth(s)
@@ -984,39 +989,6 @@ contains
        flipped=.true.
     end if
 
-    nt = 0
-    Ashift = 0
-    ! Make sure that all angles are in range of 0 to 360 degrees
-    if(minval(specin%ang)<0.d0)then
-       allocate (temp(specin%nang))
-       Ashift=-1
-       temp=0.d0
-       do i=1,specin%nang
-          if (specin%ang(i)<0.d0) then
-             specin%ang(i)=specin%ang(i)+360.0d0
-             nt = nt+1
-          endif
-       enddo
-       temp(1:specin%nang-nt)=specin%ang(nt+1:specin%nang)
-       temp(specin%nang-nt+1:specin%nang)=specin%ang(1:nt)
-       specin%ang=temp
-       deallocate(temp)
-    elseif(maxval(specin%ang)>360.0d0)then
-       allocate (temp(specin%nang))
-       Ashift=1
-       temp=0.d0
-       do i=1,specin%nang
-          if (specin%ang(i)>360.d0) then
-             specin%ang(i)=specin%ang(i)-360.0d0
-             nt = nt+1
-          endif
-       enddo
-       temp(nt+1:specin%nang)=specin%ang(1:specin%nang-nt)
-       temp(1:nt)=specin%ang(specin%nang-nt+1:specin%nang)
-       specin%ang=temp
-       deallocate(temp)
-    endif
-
     ! convert to radians
     specin%ang=specin%ang*par%px/180
     specin%dang=specin%ang(2)-specin%ang(1)
@@ -1086,24 +1058,6 @@ contains
        call flipa(specin%S,specin%nf,specin%nang,2)
     end if
 
-    ! If the order of the angles in specin%ang was reordered, so the same in
-    ! specin%S array
-    if(Ashift==-1)then
-       allocate(tempA(specin%nf,specin%nang))
-       tempA=0
-       tempA(:,1:specin%nang-nt)=specin%S(:,nt+1:specin%nang)
-       tempA(:,specin%nang-nt+1:specin%nang)=specin%S(:,1:nt)
-       specin%S=tempA
-       deallocate(tempA)
-    elseif (Ashift==1) then
-       allocate(tempA(specin%nf,specin%nang))
-       tempA=0
-       tempA(:,nt+1:specin%nang)=specin%S(:,1:specin%nang-nt)
-       tempA(:,1:nt)=specin%S(:,specin%nang-nt+1:specin%nang)
-       specin%S=tempA
-       deallocate(tempA)
-    endif
-
     ! multiply by SWAN output factor
     specin%S=specin%S*factor
 
@@ -1160,7 +1114,7 @@ contains
 
     ! Internal variables
     integer                                 :: fid,i,ii,nnz,ier,nt,Ashift
-    real*8,dimension(:),allocatable         :: Sd,temp
+    real*8,dimension(:),allocatable         :: temp
     real*8, dimension(:,:),allocatable      :: tempA
 
     ! Open file to start read
@@ -1193,39 +1147,6 @@ contains
           call report_file_read_error(readfile)
        endif
     end do
-    ! Directions should span 0-360 degrees, not negative
-    nt = 0
-    Ashift = 0
-    ! Make sure that all angles are in range of 0 to 360 degrees
-    if(minval(specin%ang)<0.d0)then
-       allocate (temp(specin%nang))
-       Ashift=-1
-       temp=0.d0
-       do i=1,specin%nang
-          if (specin%ang(i)<0.d0) then
-             specin%ang(i)=specin%ang(i)+360.0d0
-             nt = nt+1
-          endif
-       enddo
-       temp(1:specin%nang-nt)=specin%ang(nt+1:specin%nang)
-       temp(specin%nang-nt+1:specin%nang)=specin%ang(1:nt)
-       specin%ang=temp
-       deallocate(temp)
-    elseif(maxval(specin%ang)>360.0d0)then
-       allocate (temp(specin%nang))
-       Ashift=1
-       temp=0.d0
-       do i=1,specin%nang
-          if (specin%ang(i)>360.d0) then
-             specin%ang(i)=specin%ang(i)-360.0d0
-             nt = nt+1
-          endif
-       enddo
-       temp(nt+1:specin%nang)=specin%ang(1:specin%nang-nt)
-       temp(1:nt)=specin%ang(specin%nang-nt+1:specin%nang)
-       specin%ang=temp
-       deallocate(temp)
-    endif
 
     ! Convert from degrees to rad
     specin%ang=specin%ang*par%px/180
@@ -1240,24 +1161,6 @@ contains
        endif
     end do
 
-    ! If the order of the angles in specin%ang was reordered, so the same in
-    ! specin%S array
-    if(Ashift==-1)then
-       allocate(tempA(specin%nf,specin%nang))
-       tempA=0
-       tempA(:,1:specin%nang-nt)=specin%S(:,nt+1:specin%nang)
-       tempA(:,specin%nang-nt+1:specin%nang)=specin%S(:,1:nt)
-       specin%S=tempA
-       deallocate(tempA)
-    elseif (Ashift==1) then
-       allocate(tempA(specin%nf,specin%nang))
-       tempA=0
-       tempA(:,nt+1:specin%nang)=specin%S(:,1:specin%nang-nt)
-       tempA(:,1:nt)=specin%S(:,specin%nang-nt+1:specin%nang)
-       specin%S=tempA
-       deallocate(tempA)
-    endif
-
     ! Finished reading file
     close(fid)
 
@@ -1271,12 +1174,12 @@ contains
     ! First flatten spectrum to direction only, then determine if all but one are zero,
     ! use the direction of the non-zero as the main wave direction, set spreading to
     ! a high value (greater than 1000). Else set spreading to a negative value.
-    allocate(Sd(specin%nang))
-    Sd = sum(specin%S,DIM = 1)
-    nnz = count(Sd>0.d0)
+    allocate(specin%Sd(specin%nang))
+    specin%Sd = sum(specin%S,DIM = 1)
+    nnz = count(specin%Sd>0.d0)
     if (nnz == 1) then
        specin%scoeff = 1024.d0
-       specin%dir0 = specin%ang(minval(maxloc(Sd)))
+       specin%dir0 = specin%ang(minval(maxloc(specin%Sd)))
     else
        specin%scoeff = -1.d0
     endif
@@ -1302,7 +1205,7 @@ contains
     specin%hm0 = -1.d0
 
     ! Free memory
-    deallocate(Sd)
+
   end subroutine read_vardens_file
 
 
@@ -1324,14 +1227,17 @@ contains
     ! internal
     integer                              :: i,j,dummy
     real*8                               :: m0,df,dang
-    real*8,dimension(naint)              :: Sd
-    real*8                               :: hm0pre,hm0post,Sfnow,factor
-
+!    real*8,dimension(naint)              :: Sd
+    real*8                               :: hm0pre,hm0post,Sfnow,factor,xcycle
+    real*8, dimension(:,:),allocatable   :: Stemp
+    
     ! allocate size of f,ang,Sf and S arrays in specinterp
     allocate(specinterp%f(nfint))
     allocate(specinterp%ang(naint))
     allocate(specinterp%Sf(nfint))
+    allocate(specinterp%Sd(naint))
     allocate(specinterp%S(nfint,naint))
+    allocate(Stemp(specin%nf,naint))
 
     ! fill f and ang arrays
     specinterp%nf = nfint
@@ -1363,12 +1269,27 @@ contains
     endif
 
     ! interpolation (no extrapolation) of input 2D spectrum to standard 2D spectrum
-    do j=1,naint
-       do i=1,nfint
-          call linear_interp_2d(specin%f,specin%nf,specin%ang,specin%nang,specin%S, &
-               specinterp%f(i),specinterp%ang(j),specinterp%S(i,j),'interp',0.d0)
-       enddo
-    enddo
+!    do j=1,naint
+!       do i=1,nfint
+!          call linear_interp_2d(specin%f,specin%nf,specin%ang,specin%nang,specin%S, &
+!               specinterp%f(i),specinterp%ang(j),specinterp%S(i,j),'interp',0.d0)
+!       enddo
+!    enddo
+     xcycle=2.d0*par%px
+     do i=1,specin%nf
+        call interp_in_cyclic_function(specin%ang,specin%S(i,:),specin%nang,xcycle,specinterp%ang,naint,Stemp(i,:))
+     enddo
+     do j=1,naint
+        do i=1,nfint
+           if (specinterp%f(i)>specin%f(specin%nf).or.specinterp%f(i)<specin%f(1) ) then
+               specinterp%S(i,j)=0.d0
+           else
+               call linear_interp(specin%f,Stemp(:,j),specin%nf,specinterp%f(i),specinterp%S(i,j),specinterp%nf)
+           endif
+        end do
+     enddo
+
+     deallocate(Stemp)
     ! hm0 post (is always on a monotonic f,ang grid
     m0 = sum(specinterp%S)*specinterp%df*specinterp%dang
     hm0post = 4*sqrt(m0)
@@ -1402,14 +1323,14 @@ contains
     ! calculate other wave statistics from interpolated spectrum
     m0 = sum(specinterp%Sf)*specinterp%df
     specinterp%hm0 = 4*sqrt(m0)
-    Sd = sum(specinterp%S, DIM = 1)*specinterp%df
-    i  = maxval(maxloc(Sd))
+    specinterp%Sd = sum(specinterp%S, DIM = 1)*specinterp%df
+    i  = maxval(maxloc(specinterp%Sd))
     specinterp%dir0 = 270.d0 - specinterp%ang(i)*180/par%px  ! converted back into nautical degrees
     i  = maxval(maxloc(specinterp%Sf))
     specinterp%fp = specinterp%f(i)
     call tpDcalc(specinterp%Sf,specinterp%f,specinterp%trep,par%trepfac,par%Tm01switch)
-    specinterp%dirm = 270.d0-180.d0/par%px*atan2( sum(sin(specinterp%ang)*Sd)/sum(Sd),&
-         sum(cos(specinterp%ang)*Sd)/sum(Sd) )
+    specinterp%dirm = 270.d0-180.d0/par%px*atan2( sum(sin(specinterp%ang)*specinterp%Sd)/sum(specinterp%Sd),&
+         sum(cos(specinterp%ang)*specinterp%Sd)/sum(specinterp%Sd) )
 
   end subroutine interpolate_spectrum
 
@@ -1472,12 +1393,13 @@ contains
     type(spectrum),intent(inout)                    :: combspec
     real*8, intent(in)                              :: px
     integer                                         :: iloc
-    real*8,dimension(naint)                         :: Sd
+!    real*8,dimension(naint)                         :: Sd
     real*8,dimension(3)                             :: peakSd,peakang
     real*8,dimension(:),allocatable                 :: tempSf
 
     allocate(combspec%f(nfint))
     allocate(combspec%Sf(nfint))
+    allocate(combspec%Sd(naint))
     allocate(combspec%ang(naint))
     allocate(combspec%S(nfint,naint))
     combspec%f=specinterp(1)%f
@@ -1499,19 +1421,19 @@ contains
     ! Calculate peak wave angle
     !
     ! frequency integrated variance array
-    Sd = sum(combspec%S,DIM=1)
-    ! peak location of f-int array
-    iloc = maxval(maxloc(Sd))
+    combspec%Sd = sum(combspec%S,DIM=1)*combspec%df
+    ! peak location of f-int array233333333
+    iloc = maxval(maxloc(combspec%Sd))
     ! pick two neighbouring directional bins, including effect of closing circle at
     ! 0 and 2pi rad
     if (iloc>1 .and. iloc<naint) then
-       peakSd = (/Sd(iloc-1),Sd(iloc),Sd(iloc+1)/)
+       peakSd = (/combspec%Sd(iloc-1),combspec%Sd(iloc),combspec%Sd(iloc+1)/)
        peakang = (/combspec%ang(iloc-1),combspec%ang(iloc),combspec%ang(iloc+1)/)
     elseif (iloc==1) then
-       peakSd = (/Sd(naint),Sd(1),Sd(2)/)
+       peakSd = (/combspec%Sd(naint),combspec%Sd(1),combspec%Sd(2)/)
        peakang = (/combspec%ang(naint)-2*px,combspec%ang(1),combspec%ang(2)/)
     elseif (iloc==naint) then
-       peakSd = (/Sd(naint-1),Sd(naint),Sd(1)/)
+       peakSd = (/combspec%Sd(naint-1),combspec%Sd(naint),combspec%Sd(1)/)
        peakang = (/combspec%ang(naint-1),combspec%ang(naint),combspec%ang(1)+2*px/)
     endif
     ! dir0 calculated as mean over peak and two neighbouring cells
@@ -2880,6 +2802,35 @@ contains
     close(fid)
 
   end subroutine generate_nhtimeseries_file
-
-
+ 
+  subroutine set_stationary_spectrum (s,par,combspec)
+    use params
+    use spaceparams
+    use interp
+    type(parameters)                  :: par
+    type(spacepars)                   :: s
+    type(spectrum)                    :: combspec
+    real*8                            :: xcycle
+    real*8, dimension(:), allocatable :: angcart,Sdcart
+    integer                           :: iang,j
+    
+    allocate(angcart(combspec%nang))
+    allocate(Sdcart(combspec%nang))
+    
+    xcycle=2*par%px
+    ! combspec%ang contains nautical directions from 0 to 2 pi; convert to cartesian from -3/2pi to 1/2 pi
+    ! in reverse order
+        
+    call interp_using_trapez_rule(combspec%ang,combspec%Sd,combspec%nang,xcycle,s%theta_s,s%ee_s(1,1,:),s%ntheta_s)
+    do j=1,s%ny+1
+        s%ee_s(1,j,:)=s%ee_s(1,1,:)
+    end do
+    
+    s%ee_s(1,:,:)=s%ee_s(1,:,:)*par%rho*par%g
+    
+    deallocate(angcart)
+    deallocate(Sdcart)
+    
+  end subroutine set_stationary_spectrum
+  
 end module spectral_wave_bc_module

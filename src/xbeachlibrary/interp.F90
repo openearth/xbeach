@@ -1097,5 +1097,179 @@ contains
       enddo
   end subroutine sort
   
+  subroutine trapezoidal(x,y,n,x1_in,x2_in,integ)
+    ! Compute integral over function y(x) from x1 to x2
+    ! x is equidistant
+    !(c)2014 Dano Roelvink
+    integer,              intent(in)    :: n
+    real*8, dimension(n), intent(in)    :: x,y          ! arrays x and y(x)
+    real*8,               intent(in)    :: x1_in,x2_in  ! integration limits                                          
+    real*8,               intent(out)   :: integ	  ! integral
+    real*8                              :: x1,y1,x2,y2,Ifirst,Imid,Ilast,dx
+    integer                             :: i1,i2,i,i1p1,i2p1
+    if (x1_in>x(n).or.x2_in<x(1)) then
+      integ=0
+    else
+    
+      x1=max(x1_in,x(1)+1d-60)
+      x2=min(x2_in,x(n)-1d-60)
+      dx=(x(n)-x(1))/(n-1)
+      i1=floor((x1-x(1))/dx)+1
+      i2=floor((x2-x(1))/dx)+1
+      i1p1=min(i1+1,n)
+      i2p1=min(i2+1,n)
+      ! first partial trapezoid
+      y1=y(i1)+(x1-x(i1))/dx*(y(i1p1)-y(i1))
+      Ifirst=.5*(x(i1p1)-x1)*(y(i1p1)+y1)
+      ! middle part
+      Imid=.5*y(i1p1)
+      do i=i1+2,i2-1
+          Imid=Imid+y(i)
+      end do
+      Imid=Imid+.5*y(i2)
+      Imid=Imid*dx
+      ! last partial trapezoid
+      y2=y(i2)+(x2-x(i2))/dx*(y(i2p1)-y(i2))
+      Ilast=.5*(x2-x(i2))*(y2+y(i2))
+      integ=Ifirst+Imid+Ilast
+    endif
+  end subroutine trapezoidal
+
+  subroutine trapezoidal_cyclic(x,y,n,xcycle,x1,x2,integ)
+    ! Compute integral over function y(x) from x1 to x2
+    ! x is equidistant, function is cyclic so y(x+k*xcycle)=y(x)
+    !(c)2014 Dano Roelvink
+    integer,              intent(in)    :: n
+    real*8, dimension(n), intent(in)    :: x,y          ! arrays x and y(x)
+    real*8,               intent(in)    :: x1,x2,xcycle ! integration limits,cycle length                                          
+    real*8,               intent(out)   :: integ	    ! integral
+    real*8, dimension(:),allocatable    :: xp,yp
+    real*8                              :: dx
+    integer                             :: ip,indt,np
+    
+    dx=x(2)-x(1)
+    np=floor(x2/dx)-(floor(x1/dx)+1)+2
+    allocate(xp(np))
+    allocate(yp(np))
+    xp(1)=x1
+    do ip=2,np-1
+        xp(ip)=(floor(x1/dx)+ip-1)*dx
+    end do
+    xp(np)=x2
+    if (xcycle>0) then
+       call interp_in_cyclic_function(x,y,n,xcycle,xp,np,yp)
+    else
+       do ip=1,np
+         call linear_interp (x,y,n,xp(ip),yp(ip),indt)
+       end do
+    endif
+    integ=0.d0
+    do ip=1,np-1
+        integ=integ+.5*(xp(ip+1)-xp(ip))*(yp(ip+1)+yp(ip))
+    end do
+    
+    deallocate(xp)
+    deallocate(yp)
+    
+end subroutine trapezoidal_cyclic
+  
+  subroutine interp_using_trapez_rule(x,y,n,xcycle,xtarg,ytarg,ntarg)
+    ! Compute integral over function y(x) from x1 to x2
+    ! x is equidistant, function is cyclic so y(x+k*xcycle)=y(x)
+    !(c)2014 Dano Roelvink
+    integer,              intent(in)        :: n,ntarg
+    real*8, dimension(n), intent(in)        :: x,y      ! arrays x and y(x)
+    real*8,               intent(in)        :: xcycle   ! cycle length
+    real*8, dimension(ntarg), intent(in)    :: xtarg    ! x values to interpolate to
+    real*8, dimension(ntarg), intent(out)   :: ytarg    ! y values to interpolate to
+    real*8                                  :: dx,x1,x2,integ
+    integer                                 :: itarg
+    
+    dx=xtarg(2)-xtarg(1)
+    do itarg=1,ntarg
+        x1=xtarg(itarg)-.5*dx
+        x2=xtarg(itarg)+.5*dx
+        call trapezoidal_cyclic(x,y,n,xcycle,x1,x2,integ)
+        ytarg(itarg)=integ/dx
+    end do
+            
+  end subroutine interp_using_trapez_rule
+    
+  subroutine interp_in_cyclic_function(x,y,n,xcycle,xp,np,yp)
+    integer,               intent(in)    :: n
+    real*8, dimension(n),  intent(in)    :: x,y          ! arrays x and y(x)
+    real*8, dimension(:), allocatable    :: xc,yc        ! complemented cyclic arrays
+    real*8,                intent(in)    :: xcycle       ! cycle length
+    integer,               intent(in)    :: np
+    real*8, dimension(np), intent(in)    :: xp           ! points to interpolate to                                          
+    real*8, dimension(np), intent(out)   :: yp	         ! interpolated yp values
+    integer                              :: icycle,ip,ileft,iright,nc
+    real*8                               :: dx,yleft,yright,facleft,facright
+    
+    dx=x(2)-x(1)
+    icycle=nint(xcycle/dx)
+    allocate(xc(icycle+1))
+    allocate(yc(icycle+1))
+    if (n>icycle+1) then
+       ! nonsense; error
+    elseif (n==icycle+1) then
+       ! e.g. 0, 30, 60,...360
+       xc(1:n)=x
+       yc(1:n)=y
+    elseif (n==icycle) then
+       ! e.g. 30, 60 ...360 or 15, 45 ...345 with n=12 and icycle=12
+       ! interpolate between n-th and 1st value
+       xc(1:n)=x
+       yc(1:n)=y
+       xc(n+1)=xc(n)+dx
+       yc(n+1)=yc(1)
+    elseif (n<icycle) then
+       ! do not interpolate between n-th and 1st value; set values in gap to 0
+       xc(1:n)=x
+       yc(1:n)=y
+       do i=n+1,icycle
+          xc(i)=xc(i-1)+dx
+          yc(i)=0.d0
+       end do
+       xc(icycle+1)=xc(icycle)+dx
+       yc(icycle+1)=yc(1)
+    endif
+    
+    nc=icycle+1
+    
+    do ip=1,np
+        ileft=floor((xp(ip)-xc(1))/dx)+1
+        do while (ileft<1) 
+           ileft=ileft+icycle
+        end do
+        do while (ileft>nc) 
+           ileft=ileft-icycle
+        end do
+        if (ileft>nc .or. ileft<1) then
+           yleft=0
+        else
+           yleft=yc(ileft)
+        endif
+        iright=ileft+1
+        do while (iright<1) 
+           iright=iright+icycle
+        end do
+        do while (iright>nc) 
+           iright=iright-icycle
+        end do
+        if (iright>nc .or. iright<1) then
+           yright=0
+        else
+           yright=yc(iright)
+        endif
+        facright=mod(xp(ip),dx)/dx
+        facleft=1.d0-facright
+        yp(ip)=facleft*yleft+facright*yright         
+    
+    end do
+    deallocate(xc)
+    deallocate(yc)
+    
+  end subroutine interp_in_cyclic_function
 
 end module interp
