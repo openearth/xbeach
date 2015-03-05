@@ -323,7 +323,7 @@ contains
 
     ! Dissipation by bed friction
     uorb=par%px*s%H/par%Trep/sinh(min(max(s%k,0.01d0)*max(s%hh,par%delta*s%H),10.0d0))
-    s%Df=0.6666666d0/par%px*par%rho*par%fw*uorb**3
+    s%Df=0.21d0*par%rho*par%fw*uorb**3
     where (s%hh>par%fwcutoff)
        s%Df = 0.d0
     end where

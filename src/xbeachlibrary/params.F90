@@ -47,8 +47,8 @@ module params
      ! [Section] Grid parameters
      character(slen):: depfile                   = 'abc'   !  [file] Name of the input bathymetry file
      real*8        :: posdwn                     = -123    !  [-] Bathymetry is specified positive down (1) or positive up (-1)
-     integer*4     :: nx                         = -123    !  [-] Number of computiation cell corners in x-direction
-     integer*4     :: ny                         = -123    !  [-] Number of computiation cell corners in y-direction
+     integer*4     :: nx                         = -123    !  [-] Number of computational cell corners in x-direction
+     integer*4     :: ny                         = -123    !  [-] Number of computational cell corners in y-direction
      real*8        :: alfa                       = -123    !  [deg] Angle of x-axis from East
      integer*4     :: vardx                      = -123    !  [-] Switch for variable grid spacing
      real*8        :: dx                         = -123    !  [m] Regular grid spacing in x-direction
