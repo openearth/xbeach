@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg6261"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   inkscape:export-filename="P:\xbeach\msc_studies\Kees_Nederhoff\3. Visualisaties\0. Inkscape\9. Long wave\bitmap.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90"
+   sodipodi:docname="longwavedominate.svg">
+  <defs
+     id="defs6263">
+    <linearGradient
+       id="linearGradient6857"
+       osb:paint="gradient">
+      <stop
+         style="stop-color:#ffdd55;stop-opacity:1;"
+         offset="0"
+         id="stop6859" />
+      <stop
+         style="stop-color:#ffdd55;stop-opacity:0;"
+         offset="1"
+         id="stop6861" />
+    </linearGradient>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath10326">
+      <rect
+         style="opacity:0.35;fill:#5698ff;fill-opacity:0.36078455;fill-rule:nonzero;stroke:#000000;stroke-width:2;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect10328"
+         width="1331.4286"
+         height="572.85712"
+         x="1234.2858"
+         y="175.21933" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath6896">
+      <rect
+         style="opacity:0.6;fill:none;stroke:#000000;stroke-width:2.171;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:4.342, 2.171;stroke-dashoffset:0"
+         id="rect6898"
+         width="928.3302"
+         height="540.43164"
+         x="1132.1838"
+         y="231.13435" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath8049">
+      <rect
+         style="opacity:0.6;fill:#000000;fill-opacity:0;fill-rule:nonzero;stroke:#0012ff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect8051"
+         width="787.91901"
+         height="453.5585"
+         x="1176.6305"
+         y="260.42877" />
+    </clipPath>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="-993.16803"
+     inkscape:cy="537.33451"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1018"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata6266">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       transform="translate(-2734.2858,-27.300314)"
+       style="opacity:0.59999999999999998;fill:#ffde55;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 887.79779,713.6785 c 0,0 193.50001,-8.7841 218.74461,-16.9275 25.2447,-8.1435 92.4059,-49.1061 124.9796,-36.891 32.5737,12.2152 100.6271,27.0709 123.4287,26.2566 22.8015,-0.8144 137.2651,-48.9857 163.6008,-63.1235 35.3558,-18.9801 74.6062,-65.6823 122.6524,-66.4966 48.0461,-0.8144 152.8168,-35.9807 162.5889,-50.6389 9.7721,-14.6581 66.6364,-170.0239 110.6108,-172.4669 43.9745,-2.443 31.7833,89.2164 51.3275,55.8283 19.5442,-33.388 51.7566,10.1434 51.7566,10.1434 0,0 100.3422,259.95509 140.245,243.66819 39.9027,-16.2869 408.7741,62.04133 408.7741,62.04133 l -0.1536,105.86311 -1681.27787,11.87527 z"
+       id="path3037"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="csssssssscscccc"
+       clip-path="url(#clipPath8049)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:2.171;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:4.342, 2.171;stroke-dashoffset:0;marker-start:none;marker-mid:none;marker-end:none"
+       d="m -936.67934,473.36042 -178.73296,6.90894 -224.6326,-0.23422 -167.325,-0.36036"
+       id="path5352-2-5-2"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m -1506.7292,481.10605 c 101.7747,-147.54851 124.6307,-37.69597 166.3558,-38.44634 27.9972,-1.62853 43.3896,-31.76822 67.7605,-60.76877 22.6499,-26.95261 67.8346,-35.82802 106.1888,45.75572 44.3331,98.24652 46.3773,-113.4825 139.7242,21.79624 31.537,35.53534 41.51851,-36.42971 95.09415,25.35713"
+       id="path6300"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccsccc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.60603988;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:0.60603989, 1.81811967;stroke-dashoffset:0"
+       d="m -1508.5877,479.82655 c 101.885,52.16843 124.7659,13.32809 166.5361,13.59339 28.0275,0.5758 43.4367,11.23223 67.8339,21.4859 22.6745,9.52958 89.0025,10.14215 102.0136,-16.55658 44.769,-34.02464 71.6727,56.48533 157.037,-6.19116 32.51392,-22.92769 43.46312,16.41155 82.32618,-10.10194"
+       id="path6300-4"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccsccc" />
+    <path
+       style="fill:none;stroke:#ff0000;stroke-width:2.20000005;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m -1505,478.21932 c 102.9466,67.42665 205.2849,-64.94698 302.8571,-0.71428 103.4626,58.39492 150.1696,-41.55204 270.00004,-0.71429"
+       id="path6855"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccc" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light"
+       x="-1066.0421"
+       y="599.9361"
+       id="text5307-7-5"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan5309-7-2"
+         x="-1066.0421"
+         y="599.9361"
+         style="font-size:30px;font-style:italic;font-variant:normal;font-weight:300;font-stretch:normal;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light" /></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light"
+       x="-1438.1434"
+       y="585.7522"
+       id="text5307-7-5-7"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan5309-7-2-8"
+         x="-1438.1434"
+         y="585.7522"
+         style="font-size:25px;font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light">Long waves</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light"
+       x="-1438.5096"
+       y="553.97498"
+       id="text5307-7-5-7-0"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan5309-7-2-8-1"
+         x="-1438.5096"
+         y="553.97498"
+         style="font-size:25px;font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light">Short waves</tspan></text>
+    <path
+       style="fill:none;stroke:#ff0000;stroke-width:2.1951406;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m -1548.9024,578.78509 c 0,0 -0.2546,0.69898 87.8048,0.21408"
+       id="path6855-7"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#0012ff;stroke-width:0.9992249;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m -1549.5004,549.38713 c 0,0 -0.2581,0.69157 89.0008,0.21181"
+       id="path6855-7-4"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
+    <path
+       sodipodi:type="arc"
+       style="opacity:0.59999999999999998;fill:#000000;fill-opacity:0;fill-rule:nonzero;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       id="path8053"
+       sodipodi:cx="-959.6449"
+       sodipodi:cy="478.09045"
+       sodipodi:rx="89.90358"
+       sodipodi:ry="85.357887"
+       d="m -869.74132,478.09045 a 89.90358,85.357887 0 1 1 -179.80718,0 89.90358,85.357887 0 1 1 179.80718,0 z" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light"
+       x="-965.34338"
+       y="590.43848"
+       id="text5307-7-5-7-0-6"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan5309-7-2-8-1-3"
+         x="-1079.473"
+         y="590.43848"
+         style="font-size:25px;font-style:italic;font-variant:normal;font-weight:300;font-stretch:normal;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light;text-anchor:middle;text-align:center">Motions dominated</tspan><tspan
+         sodipodi:role="line"
+         x="-1079.473"
+         y="621.68848"
+         style="font-size:25px;font-style:italic;font-variant:normal;font-weight:300;font-stretch:normal;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light;text-anchor:middle;text-align:center"
+         id="tspan8076">by long waves</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light"
+       x="-976.48016"
+       y="351.45337"
+       id="text5307-7-5-7-0-6-1"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         x="-976.48016"
+         y="351.45337"
+         style="font-size:25px;font-style:italic;font-variant:normal;font-weight:300;font-stretch:normal;text-align:center;text-anchor:middle;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light"
+         id="tspan8076-4">Wave breaking</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light"
+       x="-1438.9362"
+       y="339.37457"
+       id="text5307-7-5-7-8"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan5309-7-2-8-8"
+         x="-1438.9362"
+         y="339.37457"
+         style="font-size:25px;font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light">Mean water level</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:2.17071128;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:4.34142233, 2.17071117;stroke-dashoffset:0;marker-start:none;marker-mid:none;marker-end:none"
+       d="m -1461.0549,331.24567 -87.8292,0.145"
+       id="path5352-2-5-2-2"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1.93705475;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m -1549.0315,291.98365 88.124,0"
+       id="path3950"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light"
+       x="-1438.5492"
+       y="297.103"
+       id="text5307-7-5-7-0-5"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan5309-7-2-8-1-1"
+         x="-1438.5492"
+         y="297.103"
+         style="font-size:25px;font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-family:Bookman Old Style;-inkscape-font-specification:Bookman Old Style Light">Short wave envelope</tspan></text>
+    <path
+       style="fill:none;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m -1506.1374,477.58538 c 14.0049,11.82135 15.3496,10.46562 29.2944,0.50508 39.6339,-92.04373 22.5321,-61.0663 45.9619,0.50508 16.0942,33.70096 17.0081,15.48979 29.2944,0 66.6513,-115.01295 24.2243,37.27285 70.2056,2.0203 33.4025,-81.88538 34.7732,-66.98354 48.4874,-1.51523 17.7975,61.52645 14.4521,34.08534 35.3553,-2.0203 57.146,-159.21257 35.1547,-108.58804 79.8021,3.03046 15.2096,14.92764 14.9004,14.55165 27.7792,-1.01016 20.3875,-55.25386 25.5225,-64.5834 40.7273,0.14794 9.5941,42.4301 13.5729,28.04491 23.9224,-5.70378 18.4599,-69.62145 17.6341,-57.71173 37.8807,4.04061 8.3767,29.46416 8.8506,21.69493 20.7082,-2.0203 10.0765,-19.46563 9.2017,-18.89051 21.71824,-2.02031 9.635,14.73104 5.6959,14.37447 15.15229,0.50508 28.01493,-33.59557 7.25888,42.62751 35.86042,-11.61675 l 10.10152,11.61675"
+       id="path4049"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccccccccccccc" />
+  </g>
+</svg>
