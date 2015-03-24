@@ -63,8 +63,8 @@ subroutine vegie_init(s,par)
     integer                                     :: i,j,fid,ier
     !integer, dimension(s%nx+1,s%ny+1)           :: vegtype
 
-    !include 's.ind'
-    !include 's.inp'
+    include 's.ind'
+    include 's.inp'
 
     ! Read files with vegetation properties:
     ! file 1: list of species
@@ -113,12 +113,12 @@ subroutine vegie_init(s,par)
 
     ! read spatial distribution of species:
     ! vegtype = 1 corresponds to first vegetation specified in veggiefile
-    allocate (veg(1)%vegtype(s%nx+1,s%ny+1))
+    !allocate (s%vegtype(s%nx+1,s%ny+1))
     fid=create_new_fid() ! see filefunctions.F90
     call check_file_exist(par%veggiemapfile)
     open(fid,file=par%veggiemapfile)
     do j=1,s%ny+1    ! Is this the right way to do it in a module
-       read(fid,*,iostat=ier)(veg(1)%vegtype,i=1,s%nx+1)
+       read(fid,*,iostat=ier)(s%vegtype,i=1,s%nx+1)
        if (ier .ne. 0) then
           !Jaap doesn't work
           !call report_file_read_error(par%veggiemapfile)
@@ -169,8 +169,8 @@ subroutine swvegatt(s,par)
     real*8                                      :: aht,hterm,htermold,Dvgt
     real*8, dimension(s%nx+1,s%ny+1)            :: Dvg,kmr
 
-    !include 's.ind'
-    !include 's.inp'
+    include 's.ind'
+    include 's.inp'
 
     kmr = min(max(s%k, 0.01d0), 100.d0)
 
@@ -178,7 +178,7 @@ subroutine swvegatt(s,par)
     Dvg = 0.d0
     do j=1,s%ny+1
        do i=1,s%nx+1
-          ind = veg(1)%vegtype(i,j)
+          ind = s%vegtype(i,j)
           htermold = 0.d0
           if (ind>0) then
            do m=1,veg(ind)%nsec
@@ -214,8 +214,8 @@ subroutine lwvegatt(s)
     real*8                                      :: aht,ahtold,hterm,htermold,Fvgtu,Fvgtv
     real*8, dimension(s%nx+1,s%ny+1)            :: Fvgu,Fvgv,kmr
 
-    !include 's.ind'
-    !include 's.inp'
+    include 's.ind'
+    include 's.inp'
 
     hterm = 0
     kmr = min(max(s%k, 0.01d0), 100.d0)
@@ -225,7 +225,7 @@ subroutine lwvegatt(s)
 
     do j=1,s%ny+1
        do i=1,s%nx+1
-          ind = veg(1)%vegtype(i,j)
+          ind = s%vegtype(i,j)
           ahtold = 0.d0
           htermold   = 0.d0
           if (ind>0) then
