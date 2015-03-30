@@ -1,0 +1,53 @@
+.. partable:: Overview of available keywords related to morphology
+
+   dryslp
+     :description: Critical avalanching slope above water (dz/dx and dz/dy)
+     :default:     1.0
+     :range:       0.1 - 2.0
+     :units:       \-     
+   dzmax
+     :advanced:
+     :description: Maximum bed level change due to avalanching
+     :default:     0.05
+     :range:       0.0 - 1.0
+     :units:       m/s/m 
+   hswitch
+     :advanced:
+     :description: Water depth at which is switched from wetslp to dryslp
+     :default:     0.1
+     :range:       0.01 - 1.0
+     :units:       m     
+   morfac
+     :description: Morphological acceleration factor
+     :default:     1.0
+     :range:       0.0 - 1000.0
+     :units:       \-
+   morfacopt
+     :advanced:
+     :description: Switch to adjusting output times for morfac
+     :default:     1
+     :range:       0 - 1
+     :units:       \-
+   morstart
+     :description: Start time morphology, in morphological time
+     :default:     120.0
+     :range:       0.0 - 10000000.0
+     :units:       s     
+   morstop
+     :description: Stop time morphology, in morphological time
+     :default:     2000.0
+     :range:       0.0 - 10000000.0
+     :units:       s     
+   ne_layer
+     :description: Name of file containing depth of hard structure
+     :units:       <file>
+   struct
+     :description: Switch for enabling hard structures
+     :default:     0
+     :range:       0 - 1
+     :units:       \-
+   wetslp
+     :description: Critical avalanching slope under water (dz/dx and dz/dy)
+     :default:     0.3
+     :range:       0.1 - 1.0
+     :units:       \-     

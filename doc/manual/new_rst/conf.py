@@ -33,13 +33,17 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.pngmath',
-    'sphinx.ext.viewcode',
+#    'sphinx.ext.viewcode',
+    'sphinx.ext.linkcode',
     'sphinxfortran.fortran_domain',
     'sphinxfortran.fortran_autodoc',
+    'sphinxcontrib.partable',
 ]
 
 fortran_src = '../../../src/xbeachlibrary/'
 fortran_ext = ['F90', 'f90']
+
+#nitpicky = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -267,3 +271,16 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+numfig = True
+
+def linkcode_resolve(domain, info):
+    if domain != 'f':
+        return None
+    if not info['module']:
+        return None
+    filename = info['module'].replace('.', '/')
+    url = 'https://svn.oss.deltares.nl/repos/xbeach/trunk/src/xbeachlibrary/%s.f90' % filename
+    print url
+    return url
+

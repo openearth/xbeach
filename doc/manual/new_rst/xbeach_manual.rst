@@ -71,19 +71,21 @@ Coordinate system
 
 XBeach uses a coordinate system where the computational x-axis is always
 oriented towards the coast, approximately perpendicular to the
-coastline, and the y-axis is alongshore, see Figure 2.1 and Figure 2.2.
+coastline, and the y-axis is alongshore, see :numref:`fig-coordsys-rect` and :numref:`fig-coordsys-curvi`.
 This coordinate system is defined in world coordinates. The grid size in
 x- and y-direction may be variable but the grid must be curvilinear.
 Alternatively, in case of a rectangular grid (a special case of a
 curvilinear grid) the user can provide coordinates in a local coordinate
 system that is oriented with respect to world coordinates (xw, yw)
 through an origin (xori, yori) and an orientation (alfa) as depicted in
-Figure 2.1. The orientation is defined counter-clockwise w.r.t. the
+:numref:`fig-coordsys-rect`. The orientation is defined counter-clockwise w.r.t. the
 xw-axis (East).
 
-.. image:: image8.png
+.. _fig-coordsys-rect:
 
-*Figure 2.1 Rectangular coordinate system of XBeach*
+.. figure:: image8.png
+
+   Rectangular coordinate system of XBeach
 
 Grid set-up
 ~~~~~~~~~~~
@@ -107,9 +109,11 @@ The model solves coupled 2D horizontal equations for wave propagation,
 flow, sediment transport and bottom changes, for varying (spectral) wave
 and flow boundary conditions.
 
-.. image:: image9.png
+.. _fig-coordsys-curvi:
 
-*Figure 2.2 Curvilinear coordinate system of XBeach*
+.. figure:: image9.png
+
+   Curvilinear coordinate system of XBeach
 
 Hydrodynamics options
 ---------------------
@@ -117,7 +121,7 @@ Hydrodynamics options
 XBeach was originally developed as a short-wave averaged but wave-group
 resolving model, allowing resolving the short wave variations on the
 wave group scale and the long waves associated with them. Since the
-original paper by Roelvink et al. (2009) a number of additional model
+original paper by [Roelvink2009]_ a number of additional model
 options have been implemented, thereby allowing users to choose which
 time-scales to resolve:
 
@@ -137,14 +141,14 @@ time-scales to resolve:
 In the following these options are discussed in more detail. Important
 to note that all times in XBeach are prescribed on input in
 morphological time. If you apply a morphological acceleration factor
-(keyword: *morfac*) all input time series and other time parameters are
-divided internally by *morfac*. This way, you can specify the time
-series as real times, and vary the *morfac* without changing the rest of
-the input files (keyword: *morfacopt = 1*).
+(keyword: :par:`morfac`) all input time series and other time parameters are
+divided internally by :par:`morfac`. This way, you can specify the time
+series as real times, and vary the :par:`morfac` without changing the rest of
+the input files (keyword: :par:`morfacopt` = 1).
 
-.. image:: image10.png
+.. figure:: image10.png
 
-*Figure 2.3 Principle sketch of the relevant wave processes*
+   Principle sketch of the relevant wave processes
 
 Stationary mode
 ~~~~~~~~~~~~~~~
@@ -182,10 +186,10 @@ advantage of the stationary XBeach wave model over other models is that
 the lateral boundaries are entirely without disturbance if the coast is
 longshore uniform near these boundaries.
 
-.. image:: image11.png
-.. image:: image12.png
-.. image:: image13.png
-.. image:: image14.png
+.. figure:: image11.png
+.. figure:: image12.png
+.. figure:: image13.png
+.. figure:: image14.png
 
 *Figure 2.4 Root-mean square wave height (left panels) and final
 bathymetry (right panels) for an offshore breakwater case (upper panels)
@@ -198,7 +202,7 @@ The short-wave motion is solved using the wave action equation which is
 a time-dependent forcing of the HISWA equations (Holthuijsen et al.,
 1989). This equation solves the variation of short-waves envelope (wave
 height) on the scale of wave groups. It employs a dissipation model for
-use with wave groups (Roelvink, 1993a; Daly et al., 2012) and a roller
+use with wave groups ([Roelvink1993a]_; [Daly2012]_) and a roller
 model (Svendsen, 1984; Nairn et al., 1990; Stive and de Vriend, 1994) to
 represent momentum stored at the surface after breaking. These
 variations, through radiation stress gradients (Longuet-Higgins and
@@ -270,14 +274,14 @@ of XBeach to model both short-wave (HF) and long-wave (LF) wave heights
 and velocities; and a recent 2DH simulation (Nederhoff et al., 2015) of
 the impact of hurricane Sandy on Camp Osborne, Brick, NJ.
 
-.. image:: image15.png
+.. figure:: image15.png
 
 *Figure 2.5 Computed and observed hydrodynamic parameters for test 2E of
 the LIP11D experiment. Top left: bed level and mean water level. Top
 right: measured (dots) and computed*
 
-.. image:: image16.png
-.. image:: image17.png
+.. figure:: image16.png
+.. figure:: image17.png
 
 *Figure 2.6 Pre (left) and post-Sandy (right) in a three dimensional
 plot with both bed and water levels as simulated by XBeach (Nederhoff et
@@ -327,7 +331,7 @@ An interesting recent application that has been validated for a number
 of cases concerns the modeling of primary waves generated by large
 ships, see Section 2.9.
 
-.. image:: image18.png
+.. figure:: image18.png
 
 *Figure 2.7 Measured (black) and modeled (red) time series of
 overtopping during BARDEX experiment, from McCall et al, 2014.*
@@ -823,7 +827,7 @@ There are three possibilities for the turbulence variance at the bed
       \label{2.33)} 
       k_{b} =\frac{\overline{k_{s} }}{\exp (h/L_{mix} )-1}
 
-#. Bore-averaged near-bed turbulence energy [1]_ (keyword: *turb =
+#. Bore-averaged near-bed turbulence energy [#1]_ (keyword: *turb =
    bore\_averaged*)
 
    .. math::
@@ -985,6 +989,8 @@ dissipation terms, so the forcing term reduces to:
 Shallow water equations
 -----------------------
 
+.. seealso:: The shallow water equations are implemented in :f:func:`flow_timestep_module/flow`.
+
 For the low-frequency waves and mean flows we use the shallow water
 equations. To account for the wave induced mass-flux and the subsequent
 (return) flow these are cast into a depth-averaged Generalized
@@ -1033,6 +1039,8 @@ by the bed and not with the GLM velocities, as can be seen in .
 
 Horizontal viscosity 
 ~~~~~~~~~~~~~~~~~~~~~
+
+.. seealso:: The Smagorinsky model is implemented in :f:func:`flow_timestep_module/visc_smagorinsky`.
 
 The horizontal viscosity (:math:`{v}_{h}`) is by default computed
 using the Smagorinsky (1963) model to account for the exchange of
@@ -2103,7 +2111,7 @@ will result in relatively uniform behavior, while a bed layer thickness
 that is too small will result in a lot of shifting and thus numerical
 mixing (Figure 2.8).
 
-.. image:: image19.png
+.. figure:: image19.png
 
 *Figure 2.8 Visualization of the diffusion that occurs when XBeach
 calculates sediment compositions. After sedimentation of fine sediment
@@ -2139,15 +2147,15 @@ Bath, The Netherlands. A filtered time series of the measured and
 computed water level is shown in Figure 2.10. The time series was
 filtered to focus on the computation of the primary ship wave.
 
-.. image:: image20.png
-.. image:: image21.png
+.. figure:: image20.png
+.. figure:: image21.png
 
 *Figure 2.9 Example XBeach setup (left) and result (right) for a ship
 wave simulation in the Scheldt Estuary (The Netherlands). The ship track
 (red dashed line) is user-defined, and the measurement location is
 indicated (magenta dot).*
 
-.. image:: image22.png
+.. figure:: image22.png
 
 *Figure 2.10 Example XBeach result for ship-induced waves. Measurements
 are taken at Bath, in the Scheldt Estuary, The Netherlands (Schroevers
@@ -2290,7 +2298,7 @@ case, the wave refraction may be overestimated leading to somewhat too
 large longshore currents. The effects of both boundary conditions are
 shown in Figure 3.1.
 
-.. image:: image23.png
+.. figure:: image23.png
 
 *Figure 3.1 Effect of the lateral wave boundary conditions on root-mean
 square wave height patterns (top) and longshore velocity (bottom) for
@@ -2818,7 +2826,7 @@ as described in 4.4.4.
 | jons\_table   | Spectral       | a sequence of time-varying wave groups                                                                                             |
 +---------------+----------------+------------------------------------------------------------------------------------------------------------------------------------+
 
-.. image:: image24.png
+.. figure:: image24.png
 
 *Figure 4.1 Decision tree for selecting the appropriate type of wave
 boundary conditions*
@@ -2959,7 +2967,7 @@ directional spreading (in deg.) through the following relation
 Here :math:`\sigma` is the directional spreading in radians and s the
 JONSWAP spreading parameter.
 
-.. image:: image25.png
+.. figure:: image25.png
 
 *Figure 4.2 Effect a variation in s for the direction spreading of wave
 energy*
@@ -3791,7 +3799,7 @@ properties. The height per vegetation section is defined relative to the
 bed level. For all properties, the values are given from bottom to top.
 A definition sketch is given in Figure XX.
 
-.. image:: image26.png
+.. figure:: image26.png
 
 *Figure 4.3 Definition sketch of vegetation specification in XBeach
 (example for mangrove type vegetation schematized in three vertical
@@ -3890,7 +3898,7 @@ towards the domain (influx). Discharges defined in the domain itself are
 positive in direction of the positive x or y direction. Vertical
 discharges are positive into the domain (influx).
 
-.. image:: image27.png
+.. figure:: image27.png
 
 *Figure 4.4 Possible discharge orifices. A discharge orifice is defined
 as line in between two points (red). The resulting discharge orifice
@@ -4899,278 +4907,6 @@ gives an overview of all keywords related to time management:
 | tunits+   | Time units in udunits format (seconds since 1970-01-01 00:00:00.00 +1:00)   | ’s’       |                   | -       |          |
 +-----------+-----------------------------------------------------------------------------+-----------+-------------------+---------+----------+
 
-Bibliography
-============
-
-Andrews, D. G., & Mcintyre, M. E. (1978). An exact theory of nonlinear
-waves on a Lagrangian-mean flow. Journal of Fluid Mechanics, 89, 609.
-doi:10.1017/S0022112078002773
-
-Baldock, T. E., Holmes, P., Bunker, S., & van Weert, P. (1998).
-Cross-shore hydrodynamics within an unsaturated surfzone. Coastal
-Engineering, 34, 173–196.
-
-Battjes, J. A. (1975). Modelling of turbulence in the surfzone.
-Symposium on Modelling Techniques, San Francisco, 1050–1061.
-
-Daly, C., Roelvink, J. A., van Dongeren, A. R., & McCall, R. T. (2010).
-Short wave breaking effects on law frequency waves. Proceedings 30th
-International Conference on Coastal Engineering, San Diego, 1–13.
-
-Daly, C., Roelvink, J. A., van Dongeren, A. R., van Thiel de Vries, J.
-S. M., & McCall, R. T. (2012). Validation of an advective-deterministic
-approach to short wave breaking in a surf-beat model. Coastal
-Engineering, 60, 69–83. doi:10.1016/j.coastaleng.2011.08.001
-
-Darcy, H. (1856). Les fontaines publiques de la ville de dijon. Tech.
-Rep., Dalmont, Paris.
-
-De Jong, M. P. C., Roelvink, J. A., & Breederveld, C. (2013). Numerical
-modelling of passing-ship effects in complex geometries and on shallow
-water. Pianc Smart Rivers 2013.
-
-De Vet, P. L. M. (2014). Modelling sediment transport and morphology
-during overwash and breaching events. MSc thesis, Delft University of
-Technology, Delft.
-
-Deigaard, R. (1993). A note on the three-dimensional shear stress
-distribution in a surf zone. Coastal Engineering, 20, 157–171.
-doi:10.1016/0378-383990059-H
-
-Deltares. (2011). Delft3D-FLOW: user manual.
-
-Den Adel, H. (1987). Heranalyse doorlatendheidsmetingen door middel van
-de forchheimer relatie. Technical Report M 1795/H 195, CO 272550/56,
-Grondmechanica Delft, Waterloopkundig Laboratorium. Dutch.
-
-Galappatti, R., & Vreugdenhill, C. B. (1985). A depth integrated model
-for suspended transport. Journal for Hydraulic Research, 23, 359–377.
-
-Guza, R. T., & Thornton, E. B. (1985). Velocity moments in the
-nearshore. Coastal Engineering, 111, 235–256.
-
-Halford, K. (2000). Simulation and interpretation of borehole flowmeter
-results under laminar and turbulent flow conditions. Proceedings of the
-Seventh International Symposium on Logging for Minerals and Geotechnical
-Applications, Golden, Colorado, The Minerals and Geotechnical Logging
-Society, 157–168.
-
-Hallermeier, R. J. (1981). Terminal settling velocity of commonly
-occurring sand grains. Sedimentology, 28, 859–865.
-
-Harbaugh, A. W. (2005). MODFLOW-2005 , The USGS Modular Ground-Water
-Model. U.S. Geological Survey Techniques and Methods, 253.
-
-Holthuijsen, L. H., Booij, N., & Herbers, T. H. C. (1989). A prediction
-model for stationary, short-crested waves in shallow water with ambient
-currents. Coastal Engineering, 13, 23–54. doi:10.1016/0378-383990031-8
-
-Janssen, T. T., & Battjes, J. A. (2007). A note on wave energy
-dissipation over steep beaches. Coastal Engineering, 54, 711–716.
-doi:10.1016/j.coastaleng.2007.05.006
-
-Komar, P. D., & Miller, M. C. (1975). On the comparison between the
-threshold of sediment motion under waves under unidirectional currents
-with a discussion of the practical evaluation of the threshold. Journal
-of Sedimentary Research, 362–367.
-
-Lam, D. C. L., & Simpson, R. B. (1976). Centered differencing and the
-box scheme for diffusion convection problems. Journal of Computational
-Physics, 22, 486–500.
-
-Lee, K. H., Mizutani, N., Hur, D. S., & Kamiya, A. (2007). The effect of
-groundwater on topographic changes in a gravel beach. Ocean Engineering,
-34, 605–615. doi:10.1016/j.oceaneng.2005.10.026
-
-Li, L., & Barry, D. A. (2000). Wave-induced beach groundwater flow.
-Advances in Water Resources, 23, 325–337. doi:10.1016/S0309-170800032-9
-
-Longuet-Higgins, M. S., & Stewart, R. W. (1962). Radiation stress and
-mass transport in gravity waves, with application to “surf beats.”
-Journal of Fluid Mechanics, 13, 481–504.
-
-Longuet-Higgins, M. S., & Stewart, R. W. (1964). Radiation stress in
-water waves: a physical discussion with applications. Deep-Sea Research,
-529–562.
-
-Longuet-Higgins, M. S., & Turner, J. S. (1974). An “entraining plume”
-model of a spilling breaker. Journal of Fluid Mechanics, 63, 1–20.
-
-Lowe, R. J., Falter, J. L., Koseff, J. R., Monismith, S. G., & Atkinson,
-M. J. (2007). Spectral wave flow attenuation within submerged canopies:
-Implications for wave energy dissipation. Journal of Geophysical
-Research: Oceans, 112, 1–14. doi:10.1029/2006JC003605
-
-McCall, R. T., Masselink, G., Poate, T. G., Roelvink, J. a., Almeida, L.
-P., Davidson, M., & Russell, P. E. (2014). Modelling storm hydrodynamics
-on gravel beaches with XBeach-G. Coastal Engineering, 91, 231–250.
-doi:10.1016/j.coastaleng.2014.06.007
-
-Mendez, F. J., & Losada, I. J. (2004). An empirical model to estimate
-the propagation of random breaking and nonbreaking waves over vegetation
-fields. Coastal Engineering, 51, 103–118.
-doi:10.1016/j.coastaleng.2003.11.003
-
-Nairn, R. B., Roelvink, J. A., & Southgate, H. N. (1990). Transition
-zone width and implications for modeling surfzone hydrodynamics.
-Proceedings 22th International Conference on Coastal Engineering, 68–81.
-doi:10.9753/icce.v22.
-
-Nederhoff, C. M., Lodder, Q. J., Boers, M., Den Bieman, J. P., & Miller,
-J. K. (2015). Modeling the effects of hard structures on dune erosion
-and overwash - a case study of the impact of Hurricane Sandy on the New
-Jersey coast. Proceedings Coastal Sediments, San Diego, CA.
-
-Phan, L., van Thiel de Vries, J. S. M., & Stive, M. J. F. (2014).
-Coastal Mangrove Squeeze in the Mekong Delta. Journal of Coastal
-Research.
-
-Phillips, O. M. (1977). The dynamics of the upper ocean. Cambridge
-University Press, 366.
-
-Raubenheimer, B., Guza, R. T., & Elgar, S. (1999). Tidal water table
-fluctuations in a sandy ocean beach. Water Resources Research, 35, 2313.
-doi:10.1029/1999WR900105
-
-Reniers, A. J. H. M., MacMahan, J. H., Thornton, E. B., & Stanton, T. P.
-(2007). Modeling of very low frequency motions during RIPEX. Journal of
-Geophysical Research: Oceans, 112(February), 1–14.
-doi:10.1029/2005JC003122
-
-Reniers, A. J. H. M., Roelvink, J. A., & Thornton, E. B. (2004).
-Morphodynamic modeling of an embayed beach under wave group forcing.
-Journal of Geophysical Research, 109, 1–22. doi:10.1029/2002JC001586
-
-Rienecker, M. M., & Fenton, J. D. (1981). A Fourier approximation method
-for steady water waves. Journal of Fluid Mechanics, 104, 119.
-doi:10.1017/S0022112081002851
-
-Roelvink, J. A. (1993a). Dissipation in random wave group incident on a
-beach. Coastal Engineering, 19, 127–150.
-
-Roelvink, J. A. (1993b). Surf beat and its effect on cross-shore
-profiles. PhD thesis, Delft Unversity of Technology, Delft.
-
-Roelvink, J. A. (2006). Coastal morphodynamic evolution techniques.
-Coastal Engineering, 53, 277–287. doi:10.1016/j.coastaleng.2005.10.015
-
-Roelvink, J. A., & Stive, M. J. F. (1989). Bar-generating cross-shore
-flow mechanisms on a beach. Journal of Geophysical Research, 94,
-4785–4800.
-
-Rowe, P. N. (1987). A convenient empirical equation for estimation of
-the richardson-zaki exponent. Chemical Engineering Science, 42, 2795 –
-2796.
-
-Ruessink, B. G., Miles, J. R., Feddersen, F., Guza, R. T., & Elgar, S.
-(2001). Modeling the alongshore current on barred beaches. Journal of
-Geophysical Research, 106, 451–463.
-
-Ruessink, B. G., Ramaekers, G., & van Rijn, L. C. (2012). On the
-parameterization of the free-stream non-linear wave orbital motion in
-nearshore morphodynamic models. Coastal Engineering, 65, 56–63.
-doi:10.1016/j.coastaleng.2012.03.006
-
-Schroevers, M., Huisman, B. J., van der Wal, A., & Terwindt, J. (2011).
-Measuring ship induced waves and currents on a tidal flat in the Western
-Scheldt Estuary. Current, Waves and Turbulence Measurements (CWTM), 2011
-IEEE/OES 10th, 123–129.
-
-Shields, A. (1936). Anwendung der Aehnlichkeitsmechanik under der
-Turbulenzforschung auf die Geschiebebewegung. Preussischen
-Versuchsanstalt Fur Wasserbau and Schiffbau, 26, 524–526.
-
-Smagorinsky, J. (1963). General circulation experiments wiht the
-primitive equations I. The basic experiment. Monthly Weather Review, 91,
-99–164. doi:10.1126/science.27.693.594
-
-Smit, P. B., Janssen, T. T., Holthuijsen, L. H., & Smith, J. (2014).
-Non-hydrostatic modeling of surf zone wave dynamics. Coastal
-Engineering, 83, 36–48. doi:10.1016/j.coastaleng.2013.09.005
-
-Soulsby, R. L. (1997). Dynamics of Marine Sands. London: Thomas Telford
-Publications.
-
-Stelling, G. S., & Zijlema, M. (2003). An accurate and efficient
-finite-difference algorithm for non-hydrostatic free-surface flow with
-application to wave propagation. International Journal for Numerical
-Methods in Fluids, 43, 1–23.
-
-Stive, M. J. F., & De Vriend, H. J. (1994). Shear stresses and mean flow
-in shoaling and breaking waves. Proceedings 24th International
-Conference on Coastal Engineering, 594–608. doi:10.9753/icce.v24.
-
-Suzuki, T., Zijlema, M., Burger, B., Meijer, M. C., & Narayan, S.
-(2012). Wave dissipation by vegetation with layer schematization in
-SWAN. Coastal Engineering, 59, 64–71.
-doi:10.1016/j.coastaleng.2011.07.006
-
-Svendsen, I. A. (1984a). Mass flux and undertow in a surf zone. Coastal
-Engineering, 8, 347–365.
-
-Svendsen, I. A. (1984b). Wave heights and set-up in a surf zone. Coastal
-Engineering, 8, 303–329. doi:10.1016/0378-383990028-0
-
-Talmon, A. M., van Mierlo, M. C., & Struiksma, N. (1995). Laboratory
-measurements of the direction of sediment transport on transverse
-alluvial-bed slope. Journal of Hydraulic Research, 33, 495–517.
-
-Van Bendegom, L. (1947). Enige beschouwingen over riviermorphologie en
-rivierverbetering.
-
-Van der Zwaag, J. (2014). Modelling sediment sorting near the large
-scale nourishment ’ The Sand Motor ’. MSc thesis, Delft University of
-Technology, Delft.
-
-Van Dongeren, A. R., & Svendsen, I. A. (1997). Absorbing-generating
-boundary condition for shallow water models. Journal of Waterway, Port,
-Coastal and Ocean Engeering, , 303–313.
-
-Van Rhee, C. (2010). Sediment entrainment at high flow velocity. Journal
-of Hydraulic Engineering, 136, 572–582.
-
-Van Rijn, L. C. (1985). Sediment transport, part III: bed forms and
-alluvial roughness. Journal of Hydraulic Engineering, 110, 1733–1754.
-
-Van Rijn, L. C. (2007). Unified View of Sediment Transport by Currents
-and Waves: part I and II. Journal of Hydraulic Engineering, (June),
-649–667.
-
-Van Rooijen, A. A., Van Thiel de Vries, J. S. M., McCall, R. T., van
-Dongeren, A. R., Roelvink, J. A., & Reniers, A. J. H. M. (2015).
-Modeling of wave attenuation by vegetation with XBeach. E-Proceedings of
-the 36th IAHR World Congress 28 June – 3 July, 2015, The Hague, The
-Netherlands.
-
-Van Thiel de Vries, J. S. M. (2009). Dune erosion during storm surges.
-PhD thesis, Delft Unversity of Technology, Delft.
-
-Verboom, G. K., Stelling, G. S., & Officer, M. J. (1981). Boundary
-conditions for the shallow water equations. Engineering Applications of
-Computational Hydraulics, 230–262.
-
-Walstra, D. J. R., Roelvink, J. A., & Groeneweg, J. (2000). Calculation
-of wave-driven currents in a 3D mean flow model. In Proceedings 27th
-International Conference on Coastal Engineering (pp. 1050–1063).
-
-Walstra, D. J. R., van Rijn, L. C., Van Ormondt, M., Briere, C., &
-Talmon, A. M. (2007). The Effects of Bed Slope and Wave Skewness on
-Sediment Transport and Morphology (pp. 137–150).
-
-Zhou, M., Roelvink, J. A., Verheij, H. J., & Ligteringen, H. (2013).
-Study of Passing Ship Effects along a Bank by Delft3D-FLOW and XBeach.
-International Workshop on Nautical Traffic Models 2013, Delft, The
-Netherlands, July 5-7, 2013. Delft University of Technology.
-
-Zhou, M., Roelvink, J. A., Zou, Z., & van Wijhe, H. J. (2014). Effects
-of Passing Ship With a Drift Angle on a Moored Ship. ASME 2014 33rd
-International Conference on Ocean, Offshore and Arctic Engineering.
-
-Zijlema, M., Stelling, G. S., & Smit, P. B. (2011). SWASH: An
-operational public domain code for simulating wave fields and rapidly
-varied flows in coastal waters. Coastal Engineering, 58, 992–1012.
-doi:10.1016/j.coastaleng.2011.05.015
-
 Appendices
 ==========
 
@@ -5810,31 +5546,7 @@ where the value in the *ne\_layer* file is larger than zero erosion can
 occur. Non-erodible layers are infinitely deep and thus no erosion
 underneath these layers can occur.
 
-*Table 6.10 Overview of available keyword related to morphology*
-
-+--------------+------------------------------------------------------------+-----------+--------------------+------------------------------+----------+
-| keyword      | description                                                | default   | range              | units                        | remark   |
-+==============+============================================================+===========+====================+==============================+==========+
-| dryslp       | Critical avalanching slope above water (dz/dx and dz/dy)   | 1.0       | 0.1 - 2.0          | -                            |          |
-+--------------+------------------------------------------------------------+-----------+--------------------+------------------------------+----------+
-| dzmax+       | Maximum bed level change due to avalanching                | 0.05      | 0.0 - 1.0          | m/s/m                        |          |
-+--------------+------------------------------------------------------------+-----------+--------------------+------------------------------+----------+
-| hswitch+     | Water depth at which is switched from wetslp to dryslp     | 0.1       | 0.01 - 1.0         | m                            |          |
-+--------------+------------------------------------------------------------+-----------+--------------------+------------------------------+----------+
-| morfac       | Morphological acceleration factor                          | 1.0       | 0.0 - 1000.0       | -                            |          |
-+--------------+------------------------------------------------------------+-----------+--------------------+------------------------------+----------+
-| morfacopt+   | Switch to adjusting output times for morfac                | 1         | 0 - 1              | -                            |          |
-+--------------+------------------------------------------------------------+-----------+--------------------+------------------------------+----------+
-| morstart     | Start time morphology, in morphological time               | 120.0     | 0.0 - 10000000.0   | s                            |          |
-+--------------+------------------------------------------------------------+-----------+--------------------+------------------------------+----------+
-| morstop      | Stop time morphology, in morphological time                | 2000.0    | 0.0 - 10000000.0   | s                            |          |
-+--------------+------------------------------------------------------------+-----------+--------------------+------------------------------+----------+
-| ne\_layer    | Name of file containing depth of hard structure            |           |                    | <file>                       |          |
-+--------------+------------------------------------------------------------+-----------+--------------------+------------------------------+----------+
-| struct       | Switch for enabling hard structures                        | 0         | 0 - 1              | -                            |          |
-+--------------+------------------------------------------------------------+-----------+--------------------+------------------------------+----------+
-| wetslp       | Critical avalanching slope under water (dz/dx and dz/dy)   | 0.3       | 0.1 - 1.0          | -                            |          |
-+--------------+------------------------------------------------------------+-----------+--------------------+------------------------------+----------+
+.. include:: partable_morphology
 
 Bed update
 ~~~~~~~~~~
@@ -6138,7 +5850,7 @@ with the corresponding grid distances around the *u-* and *v-*\ points.
 The right panel explains the numbering of the fluxes *Q* and the volume
 *V*.
 
-.. image:: image28.png
+.. figure:: image28.png
 
 *Figure 6.1 Location of staggered grid points (left panel); definition
 of grid distances (middle) and terms in volume balance (right)*
@@ -6279,7 +5991,7 @@ incoming fluxes over the interfaces and multiplying them with the
 difference between *u* in the cell and the component of velocity in the
 same direction at the upwind cell.
 
-.. image:: image29.png
+.. figure:: image29.png
 
 *Figure 6.2 Control volume u-momentum balance and
 definition of fluxes*
@@ -6339,7 +6051,7 @@ discharges affect the mass balance. Because of the leap-frog scheme
 these influences are always computed at the half time step level, which
 makes the scheme second order accurate.
 
-.. image:: image30.png
+.. figure:: image30.png
 
 *Figure 6.3 Leap-frog time integration scheme*
 
@@ -7188,5 +6900,277 @@ term is numerically fully equivalent to either the Keller box scheme as
 used in Zijlema and Stelling (2005), Zijlema and Stelling (2008) or the
 Hermetian relation used in Smit (2008).
 
-.. [1]
-   Currently, this formulation is only possible when the wave shape formulation of Van Thiel de Vries (2009) is applied, see section 2.3.4.
+.. rubric:: Bibliography
+
+.. [Andrews1978] Andrews, D. G., & Mcintyre, M. E. (1978). An exact theory of nonlinear
+   waves on a Lagrangian-mean flow. Journal of Fluid Mechanics, 89, 609.
+   doi:10.1017/S0022112078002773
+   
+   Baldock, T. E., Holmes, P., Bunker, S., & van Weert, P. (1998).
+   Cross-shore hydrodynamics within an unsaturated surfzone. Coastal
+   Engineering, 34, 173–196.
+   
+   Battjes, J. A. (1975). Modelling of turbulence in the surfzone.
+   Symposium on Modelling Techniques, San Francisco, 1050–1061.
+   
+.. [Daly2010] Daly, C., Roelvink, J. A., van Dongeren, A. R., & McCall, R. T. (2010).
+   Short wave breaking effects on law frequency waves. Proceedings 30th
+   International Conference on Coastal Engineering, San Diego, 1–13.
+   
+   Daly, C., Roelvink, J. A., van Dongeren, A. R., van Thiel de Vries, J.
+.. [Daly2012] S. M., & McCall, R. T. (2012). Validation of an advective-deterministic
+   approach to short wave breaking in a surf-beat model. Coastal
+   Engineering, 60, 69–83. doi:10.1016/j.coastaleng.2011.08.001
+   
+   Darcy, H. (1856). Les fontaines publiques de la ville de dijon. Tech.
+   Rep., Dalmont, Paris.
+   
+   De Jong, M. P. C., Roelvink, J. A., & Breederveld, C. (2013). Numerical
+   modelling of passing-ship effects in complex geometries and on shallow
+   water. Pianc Smart Rivers 2013.
+   
+   De Vet, P. L. M. (2014). Modelling sediment transport and morphology
+   during overwash and breaching events. MSc thesis, Delft University of
+   Technology, Delft.
+   
+   Deigaard, R. (1993). A note on the three-dimensional shear stress
+   distribution in a surf zone. Coastal Engineering, 20, 157–171.
+   doi:10.1016/0378-383990059-H
+   
+   Deltares. (2011). Delft3D-FLOW: user manual.
+   
+   Den Adel, H. (1987). Heranalyse doorlatendheidsmetingen door middel van
+   de forchheimer relatie. Technical Report M 1795/H 195, CO 272550/56,
+   Grondmechanica Delft, Waterloopkundig Laboratorium. Dutch.
+   
+   Galappatti, R., & Vreugdenhill, C. B. (1985). A depth integrated model
+   for suspended transport. Journal for Hydraulic Research, 23, 359–377.
+   
+   Guza, R. T., & Thornton, E. B. (1985). Velocity moments in the
+   nearshore. Coastal Engineering, 111, 235–256.
+   
+   Halford, K. (2000). Simulation and interpretation of borehole flowmeter
+   results under laminar and turbulent flow conditions. Proceedings of the
+   Seventh International Symposium on Logging for Minerals and Geotechnical
+   Applications, Golden, Colorado, The Minerals and Geotechnical Logging
+   Society, 157–168.
+   
+   Hallermeier, R. J. (1981). Terminal settling velocity of commonly
+   occurring sand grains. Sedimentology, 28, 859–865.
+   
+   Harbaugh, A. W. (2005). MODFLOW-2005 , The USGS Modular Ground-Water
+   Model. U.S. Geological Survey Techniques and Methods, 253.
+   
+   Holthuijsen, L. H., Booij, N., & Herbers, T. H. C. (1989). A prediction
+   model for stationary, short-crested waves in shallow water with ambient
+   currents. Coastal Engineering, 13, 23–54. doi:10.1016/0378-383990031-8
+   
+   Janssen, T. T., & Battjes, J. A. (2007). A note on wave energy
+   dissipation over steep beaches. Coastal Engineering, 54, 711–716.
+   doi:10.1016/j.coastaleng.2007.05.006
+   
+   Komar, P. D., & Miller, M. C. (1975). On the comparison between the
+   threshold of sediment motion under waves under unidirectional currents
+   with a discussion of the practical evaluation of the threshold. Journal
+   of Sedimentary Research, 362–367.
+   
+   Lam, D. C. L., & Simpson, R. B. (1976). Centered differencing and the
+   box scheme for diffusion convection problems. Journal of Computational
+   Physics, 22, 486–500.
+   
+   Lee, K. H., Mizutani, N., Hur, D. S., & Kamiya, A. (2007). The effect of
+   groundwater on topographic changes in a gravel beach. Ocean Engineering,
+   34, 605–615. doi:10.1016/j.oceaneng.2005.10.026
+   
+   Li, L., & Barry, D. A. (2000). Wave-induced beach groundwater flow.
+   Advances in Water Resources, 23, 325–337. doi:10.1016/S0309-170800032-9
+   
+   Longuet-Higgins, M. S., & Stewart, R. W. (1962). Radiation stress and
+   mass transport in gravity waves, with application to “surf beats.”
+   Journal of Fluid Mechanics, 13, 481–504.
+   
+   Longuet-Higgins, M. S., & Stewart, R. W. (1964). Radiation stress in
+   water waves: a physical discussion with applications. Deep-Sea Research,
+   529–562.
+   
+   Longuet-Higgins, M. S., & Turner, J. S. (1974). An “entraining plume”
+   model of a spilling breaker. Journal of Fluid Mechanics, 63, 1–20.
+   
+   Lowe, R. J., Falter, J. L., Koseff, J. R., Monismith, S. G., & Atkinson,
+   M. J. (2007). Spectral wave flow attenuation within submerged canopies:
+   Implications for wave energy dissipation. Journal of Geophysical
+   Research: Oceans, 112, 1–14. doi:10.1029/2006JC003605
+   
+   McCall, R. T., Masselink, G., Poate, T. G., Roelvink, J. a., Almeida, L.
+   P., Davidson, M., & Russell, P. E. (2014). Modelling storm hydrodynamics
+   on gravel beaches with XBeach-G. Coastal Engineering, 91, 231–250.
+   doi:10.1016/j.coastaleng.2014.06.007
+   
+   Mendez, F. J., & Losada, I. J. (2004). An empirical model to estimate
+   the propagation of random breaking and nonbreaking waves over vegetation
+   fields. Coastal Engineering, 51, 103–118.
+   doi:10.1016/j.coastaleng.2003.11.003
+   
+   Nairn, R. B., Roelvink, J. A., & Southgate, H. N. (1990). Transition
+   zone width and implications for modeling surfzone hydrodynamics.
+   Proceedings 22th International Conference on Coastal Engineering, 68–81.
+   doi:10.9753/icce.v22.
+   
+   Nederhoff, C. M., Lodder, Q. J., Boers, M., Den Bieman, J. P., & Miller,
+   J. K. (2015). Modeling the effects of hard structures on dune erosion
+   and overwash - a case study of the impact of Hurricane Sandy on the New
+   Jersey coast. Proceedings Coastal Sediments, San Diego, CA.
+   
+   Phan, L., van Thiel de Vries, J. S. M., & Stive, M. J. F. (2014).
+   Coastal Mangrove Squeeze in the Mekong Delta. Journal of Coastal
+   Research.
+   
+   Phillips, O. M. (1977). The dynamics of the upper ocean. Cambridge
+   University Press, 366.
+   
+   Raubenheimer, B., Guza, R. T., & Elgar, S. (1999). Tidal water table
+   fluctuations in a sandy ocean beach. Water Resources Research, 35, 2313.
+   doi:10.1029/1999WR900105
+   
+   Reniers, A. J. H. M., MacMahan, J. H., Thornton, E. B., & Stanton, T. P.
+   (2007). Modeling of very low frequency motions during RIPEX. Journal of
+   Geophysical Research: Oceans, 112(February), 1–14.
+   doi:10.1029/2005JC003122
+   
+   Reniers, A. J. H. M., Roelvink, J. A., & Thornton, E. B. (2004).
+   Morphodynamic modeling of an embayed beach under wave group forcing.
+   Journal of Geophysical Research, 109, 1–22. doi:10.1029/2002JC001586
+   
+   Rienecker, M. M., & Fenton, J. D. (1981). A Fourier approximation method
+   for steady water waves. Journal of Fluid Mechanics, 104, 119.
+   doi:10.1017/S0022112081002851
+   
+.. [Roelvink1993a] Roelvink, J. A. (1993a). Dissipation in random wave group incident on a
+   beach. Coastal Engineering, 19, 127–150.
+   
+.. [Roelvink1993b] Roelvink, J. A. (1993b). Surf beat and its effect on cross-shore
+   profiles. PhD thesis, Delft Unversity of Technology, Delft.
+   
+.. [Roelvink2006] Roelvink, J. A. (2006). Coastal morphodynamic evolution techniques.
+   Coastal Engineering, 53, 277–287. doi:10.1016/j.coastaleng.2005.10.015
+   
+.. [Roelvink1989] Roelvink, J. A., & Stive, M. J. F. (1989). Bar-generating cross-shore
+   flow mechanisms on a beach. Journal of Geophysical Research, 94,
+   4785–4800.
+   
+   Rowe, P. N. (1987). A convenient empirical equation for estimation of
+   the richardson-zaki exponent. Chemical Engineering Science, 42, 2795 –
+   2796.
+   
+   Ruessink, B. G., Miles, J. R., Feddersen, F., Guza, R. T., & Elgar, S.
+   (2001). Modeling the alongshore current on barred beaches. Journal of
+   Geophysical Research, 106, 451–463.
+   
+   Ruessink, B. G., Ramaekers, G., & van Rijn, L. C. (2012). On the
+   parameterization of the free-stream non-linear wave orbital motion in
+   nearshore morphodynamic models. Coastal Engineering, 65, 56–63.
+   doi:10.1016/j.coastaleng.2012.03.006
+   
+   Schroevers, M., Huisman, B. J., van der Wal, A., & Terwindt, J. (2011).
+   Measuring ship induced waves and currents on a tidal flat in the Western
+   Scheldt Estuary. Current, Waves and Turbulence Measurements (CWTM), 2011
+   IEEE/OES 10th, 123–129.
+   
+   Shields, A. (1936). Anwendung der Aehnlichkeitsmechanik under der
+   Turbulenzforschung auf die Geschiebebewegung. Preussischen
+   Versuchsanstalt Fur Wasserbau and Schiffbau, 26, 524–526.
+   
+   Smagorinsky, J. (1963). General circulation experiments wiht the
+   primitive equations I. The basic experiment. Monthly Weather Review, 91,
+   99–164. doi:10.1126/science.27.693.594
+   
+   Smit, P. B., Janssen, T. T., Holthuijsen, L. H., & Smith, J. (2014).
+   Non-hydrostatic modeling of surf zone wave dynamics. Coastal
+   Engineering, 83, 36–48. doi:10.1016/j.coastaleng.2013.09.005
+   
+   Soulsby, R. L. (1997). Dynamics of Marine Sands. London: Thomas Telford
+   Publications.
+   
+   Stelling, G. S., & Zijlema, M. (2003). An accurate and efficient
+   finite-difference algorithm for non-hydrostatic free-surface flow with
+   application to wave propagation. International Journal for Numerical
+   Methods in Fluids, 43, 1–23.
+   
+   Stive, M. J. F., & De Vriend, H. J. (1994). Shear stresses and mean flow
+   in shoaling and breaking waves. Proceedings 24th International
+   Conference on Coastal Engineering, 594–608. doi:10.9753/icce.v24.
+   
+   Suzuki, T., Zijlema, M., Burger, B., Meijer, M. C., & Narayan, S.
+   (2012). Wave dissipation by vegetation with layer schematization in
+   SWAN. Coastal Engineering, 59, 64–71.
+   doi:10.1016/j.coastaleng.2011.07.006
+   
+   Svendsen, I. A. (1984a). Mass flux and undertow in a surf zone. Coastal
+   Engineering, 8, 347–365.
+   
+   Svendsen, I. A. (1984b). Wave heights and set-up in a surf zone. Coastal
+   Engineering, 8, 303–329. doi:10.1016/0378-383990028-0
+   
+   Talmon, A. M., van Mierlo, M. C., & Struiksma, N. (1995). Laboratory
+   measurements of the direction of sediment transport on transverse
+   alluvial-bed slope. Journal of Hydraulic Research, 33, 495–517.
+   
+   Van Bendegom, L. (1947). Enige beschouwingen over riviermorphologie en
+   rivierverbetering.
+   
+   Van der Zwaag, J. (2014). Modelling sediment sorting near the large
+   scale nourishment ’ The Sand Motor ’. MSc thesis, Delft University of
+   Technology, Delft.
+   
+   Van Dongeren, A. R., & Svendsen, I. A. (1997). Absorbing-generating
+   boundary condition for shallow water models. Journal of Waterway, Port,
+   Coastal and Ocean Engeering, , 303–313.
+   
+   Van Rhee, C. (2010). Sediment entrainment at high flow velocity. Journal
+   of Hydraulic Engineering, 136, 572–582.
+   
+   Van Rijn, L. C. (1985). Sediment transport, part III: bed forms and
+   alluvial roughness. Journal of Hydraulic Engineering, 110, 1733–1754.
+   
+   Van Rijn, L. C. (2007). Unified View of Sediment Transport by Currents
+   and Waves: part I and II. Journal of Hydraulic Engineering, (June),
+   649–667.
+   
+   Van Rooijen, A. A., Van Thiel de Vries, J. S. M., McCall, R. T., van
+   Dongeren, A. R., Roelvink, J. A., & Reniers, A. J. H. M. (2015).
+   Modeling of wave attenuation by vegetation with XBeach. E-Proceedings of
+   the 36th IAHR World Congress 28 June – 3 July, 2015, The Hague, The
+   Netherlands.
+   
+   Van Thiel de Vries, J. S. M. (2009). Dune erosion during storm surges.
+   PhD thesis, Delft Unversity of Technology, Delft.
+   
+   Verboom, G. K., Stelling, G. S., & Officer, M. J. (1981). Boundary
+   conditions for the shallow water equations. Engineering Applications of
+   Computational Hydraulics, 230–262.
+   
+   Walstra, D. J. R., Roelvink, J. A., & Groeneweg, J. (2000). Calculation
+   of wave-driven currents in a 3D mean flow model. In Proceedings 27th
+   International Conference on Coastal Engineering (pp. 1050–1063).
+   
+   Walstra, D. J. R., van Rijn, L. C., Van Ormondt, M., Briere, C., &
+   Talmon, A. M. (2007). The Effects of Bed Slope and Wave Skewness on
+   Sediment Transport and Morphology (pp. 137–150).
+   
+   Zhou, M., Roelvink, J. A., Verheij, H. J., & Ligteringen, H. (2013).
+   Study of Passing Ship Effects along a Bank by Delft3D-FLOW and XBeach.
+   International Workshop on Nautical Traffic Models 2013, Delft, The
+   Netherlands, July 5-7, 2013. Delft University of Technology.
+   
+   Zhou, M., Roelvink, J. A., Zou, Z., & van Wijhe, H. J. (2014). Effects
+   of Passing Ship With a Drift Angle on a Moored Ship. ASME 2014 33rd
+   International Conference on Ocean, Offshore and Arctic Engineering.
+   
+.. [Zijlema2011] Zijlema, M., Stelling, G. S., & Smit, P. B. (2011). SWASH: An
+   operational public domain code for simulating wave fields and rapidly
+   varied flows in coastal waters. Coastal Engineering, 58, 992–1012.
+   doi:10.1016/j.coastaleng.2011.05.015
+
+.. rubric:: Footnotes
+   
+.. [#1] Currently, this formulation is only possible when the wave shape formulation of Van Thiel de Vries (2009) is applied, see section 2.3.4.
