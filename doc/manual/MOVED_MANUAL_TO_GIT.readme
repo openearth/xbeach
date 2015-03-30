@@ -1,0 +1,13 @@
+The XBeach manual ReST source code is moved to the XBeach GIT repository:
+
+https://github.com/openearth/xbeach-docs
+
+You can access the GIT repository using a GIT client (e.g. TortoiseGIT)
+or alternatively using a SVN client (e.g. TortoiseSVN) as if it were a
+SVN repository.
+
+The rendered XBeach manual can be found here:
+https://openearth.github.io/xbeach-docs/
+
+More information:
+Bas Hoonhout <bas.hoonhout@deltares.nl>
