@@ -1,12 +1,6 @@
 #!/bin/bash
 . /etc/profile
 
-printenv | grep xbeach_ssh_key_public | tr -d "'" | sed 's/\\n/\n/g'
-
-mkdir -p $HOME/xbeach
-printenv | grep xbeach_ssh_key_private | tr -d "'" | sed 's/\\n/\n/g' > $HOME/xbeach/xbeach-key
-printenv | grep xbeach_ssh_key_public | tr -d "'" | sed 's/\\n/\n/g' > $HOME/xbeach/xbeach-key.pub
-
 chmod 775 /opt/teamcity/work/XBeach_unix/install
 
 cd /opt/teamcity/work/XBeach_unix/install
