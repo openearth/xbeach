@@ -422,7 +422,7 @@ contains
                   + s%Fvegu(i,j) &  
                   - par%lwave*s%Fx(i,j)/(par%rho*max(s%hum(i,j),par%hmin)) &
                   - fc*s%vu(i,j) &
-                  - par%rhoa*par%Cd*s%windsu(i,j)**2/(par%rho*s%hum(i,j)))
+                  - par%rhoa*par%Cd*s%windsu(i,j)*sqrt(s%windsu(i,j)**2+s%windnv(i,j)**2)/(par%rho*s%hum(i,j)))
           else
              s%uu(i,j)=0.0d0
           end if
@@ -657,7 +657,7 @@ contains
                   + s%Fvegv(i,j) &
                   - par%lwave*s%Fy(i,j)/(par%rho*max(s%hvm(i,j),par%hmin)) &
                   + fc*s%uv(i,j) &
-                  - par%rhoa*par%Cd*s%windnv(i,j)**2/(par%rho*s%hvm(i,j)))
+                  - par%rhoa*par%Cd*s%windnv(i,j)*sqrt(s%windsu(i,j)**2+s%windnv(i,j)**2)/(par%rho*s%hvm(i,j)))
           else
              s%vv(i,j)=0.0d0
           end if
