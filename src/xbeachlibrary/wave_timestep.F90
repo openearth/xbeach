@@ -1,5 +1,6 @@
 module wave_timestep_module
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
   ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
   ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
   ! Jaap van Thiel de Vries, Robert McCall                                  !       
@@ -24,7 +25,7 @@ module wave_timestep_module
   ! License along with this library; if not, write to the Free Software     !
   ! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307     !
   ! USA                                                                     !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 contains
   subroutine wave(s,par)

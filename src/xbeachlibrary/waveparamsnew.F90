@@ -307,7 +307,7 @@ contains
     curline = bccount
   endif
 
-  endsubroutine spectral_wave_bc
+  end subroutine spectral_wave_bc
 
   ! --------------------------------------------------------------
   ! ---------------- Read input spectra files --------------------
@@ -396,7 +396,7 @@ contains
        call read_vardens_file(par,readfile,specin)
     endselect
 
-  endsubroutine read_spectrum_input
+  end subroutine read_spectrum_input
 
   ! --------------------------------------------------------------
   ! ------------------- Read JONSWAP files -----------------------

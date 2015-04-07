@@ -607,10 +607,7 @@ contains
   
     call writelog('l','','--------------------------------')
   
-  endsubroutine spectral_wave_init
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  end subroutine spectral_wave_init
 
   subroutine flow_init (s,par)
     use params
