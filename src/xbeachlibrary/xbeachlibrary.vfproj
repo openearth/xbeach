@@ -115,7 +115,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="netcdf_Release|x64" OutputDirectory="bin\static\x64\$(ConfigurationName)" IntermediateDirectory="bin\static\x64\$(ConfigurationName)" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" Interfaces="true"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="includes\version\; includes\genfiles\" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" FloatingPointExceptionHandling="fpe1" ModulePath="bin\static\x64\$(ConfigurationName)\" ObjectFile="bin\static\x64\$(ConfigurationName)\" PdbFile="bin\static\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" Interfaces="true"/>
 				<Tool Name="VFLibrarianTool" AdditionalLibraryDirectories="..\..\lib\x64\netcdf\Debug\" AdditionalDependencies="f90_netcdf.lib f77_netcdf.lib netcdf.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>

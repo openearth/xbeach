@@ -1149,7 +1149,6 @@ AC_SUBST([am__untar])
 
 m4_include([m4/acx_mpi.m4])
 m4_include([m4/fortran.m4])
-m4_include([m4/fortranextra.m4])
 m4_include([m4/libtool.m4])
 m4_include([m4/ltoptions.m4])
 m4_include([m4/ltsugar.m4])

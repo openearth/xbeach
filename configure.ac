@@ -11,9 +11,14 @@ AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 LT_INIT
 AM_INIT_AUTOMAKE
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_CONFIG_HEADERS([config.h])
 
+# dependency stuff:
+
+AC_SUBST(deps,[deps])
+AC_SUBST(MAKEDEPO,['$(top_srcdir)/makedepo.py])'
 
 # Checks for programs.
 # use doxygen
@@ -49,8 +54,6 @@ AM_CONDITIONAL(USEMPI, test "x$with_mpi" != "xno")
 
 # check for functions
 AC_LANG_PUSH([Fortran])
-AC_FC_FREEFORM
-AC_FC_LINE_LENGTH([unlimited])
 ACX_FORTRAN_ISNAN
 ACX_FORTRAN_IEEE_ARITHMETIC
 AC_LANG_POP

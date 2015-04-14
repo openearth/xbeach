@@ -20,6 +20,14 @@ LIBS+=${NETCDF_LIBS}  -lnetcdff
 endif
 
 
-CLEANFILES=*.mod *.MOD *.gen
+CLEANFILES=*.mod *.MOD *.gen version.dat 
+
+depclean: clean
+	rm -f $(deps)
+
+dep $(deps):
+	$(MAKEDEPO) -p xbeach- -s .o $(xbeach_SOURCES) > $(deps)
+
+include $(deps)
 
 

@@ -1,4 +1,5 @@
 ACLOCAL_AMFLAGS = -I m4 -I config
-SUBDIRS=src
+SUBDIRS=src doc
 
-
+dep depclean:
+	$(MAKE) -C src $@

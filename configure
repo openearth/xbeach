@@ -653,6 +653,8 @@ FC_NOMPI
 ac_ct_FC
 FCFLAGS
 FC
+MAKEDEPO
+deps
 AM_BACKSLASH
 AM_DEFAULT_VERBOSITY
 AM_DEFAULT_V
@@ -11487,10 +11489,55 @@ END
     as_fn_error $? "Your 'rm' program is bad, sorry." "$LINENO" 5
   fi
 fi
+# Check whether --enable-silent-rules was given.
+if test "${enable_silent_rules+set}" = set; then :
+  enableval=$enable_silent_rules;
+fi
+
+case $enable_silent_rules in # (((
+  yes) AM_DEFAULT_VERBOSITY=0;;
+   no) AM_DEFAULT_VERBOSITY=1;;
+    *) AM_DEFAULT_VERBOSITY=0;;
+esac
+am_make=${MAKE-make}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $am_make supports nested variables" >&5
+$as_echo_n "checking whether $am_make supports nested variables... " >&6; }
+if ${am_cv_make_support_nested_variables+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if $as_echo 'TRUE=$(BAR$(V))
+BAR0=false
+BAR1=true
+V=1
+am__doit:
+	@$(TRUE)
+.PHONY: am__doit' | $am_make -f - >/dev/null 2>&1; then
+  am_cv_make_support_nested_variables=yes
+else
+  am_cv_make_support_nested_variables=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_make_support_nested_variables" >&5
+$as_echo "$am_cv_make_support_nested_variables" >&6; }
+if test $am_cv_make_support_nested_variables = yes; then
+    AM_V='$(V)'
+  AM_DEFAULT_V='$(AM_DEFAULT_VERBOSITY)'
+else
+  AM_V=$AM_DEFAULT_VERBOSITY
+  AM_DEFAULT_V=$AM_DEFAULT_VERBOSITY
+fi
+AM_BACKSLASH='\'
+
 
 ac_config_headers="$ac_config_headers config.h"
 
 
+# dependency stuff:
+
+deps=deps
+
+MAKEDEPO='$(top_srcdir)/makedepo.py
+'
 
 # Checks for programs.
 # use doxygen
@@ -14871,107 +14918,6 @@ fi
 
 
 # check for functions
-ac_ext=${ac_fc_srcext-f}
-ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
-ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_fc_compiler_gnu
-
-ac_ext=${ac_fc_srcext-f}
-ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
-ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_fc_compiler_gnu
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Fortran flag needed to accept free-form source" >&5
-$as_echo_n "checking for Fortran flag needed to accept free-form source... " >&6; }
-if ${ac_cv_fc_freeform+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_cv_fc_freeform=unknown
-ac_fc_freeform_FCFLAGS_save=$FCFLAGS
-for ac_flag in none -ffree-form -FR -free -qfree -Mfree -Mfreeform \
-	       -freeform "-f free" -8 +source=free -nfix --nfix -Free
-do
-  test "x$ac_flag" != xnone && FCFLAGS="$ac_fc_freeform_FCFLAGS_save $ac_flag"
-  cat > conftest.$ac_ext <<_ACEOF
-
-  program freeform
-       ! FIXME: how to best confuse non-freeform compilers?
-       print *, 'Hello ', &
-          'world.'
-       end
-_ACEOF
-if ac_fn_fc_try_compile "$LINENO"; then :
-  ac_cv_fc_freeform=$ac_flag; break
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-done
-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
-FCFLAGS=$ac_fc_freeform_FCFLAGS_save
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_fc_freeform" >&5
-$as_echo "$ac_cv_fc_freeform" >&6; }
-if test "x$ac_cv_fc_freeform" = xunknown; then
-  as_fn_error 77 "Fortran does not accept free-form source" "$LINENO" 5
-else
-  if test "x$ac_cv_fc_freeform" != xnone; then
-    FCFLAGS="$FCFLAGS $ac_cv_fc_freeform"
-  fi
-
-fi
-ac_ext=${ac_fc_srcext-f}
-ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
-ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_fc_compiler_gnu
-
-ac_ext=${ac_fc_srcext-f}
-ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
-ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_fc_compiler_gnu
-ac_fc_line_len_string=unlimited
-                       ac_fc_line_len=0
-                       ac_fc_line_length_test='
-      subroutine longer_than_132(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,'\
-'arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19)'
-: ${ac_fc_line_len_string=$ac_fc_line_len}
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Fortran flag needed to accept $ac_fc_line_len_string column source lines" >&5
-$as_echo_n "checking for Fortran flag needed to accept $ac_fc_line_len_string column source lines... " >&6; }
-if ${ac_cv_fc_line_length+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_cv_fc_line_length=unknown
-ac_fc_line_length_FCFLAGS_save=$FCFLAGS
-for ac_flag in none \
-               -ffree-line-length-none -ffixed-line-length-none \
-               -ffree-line-length-$ac_fc_line_len \
-               -ffixed-line-length-$ac_fc_line_len \
-               -qfixed=$ac_fc_line_len -Mextend \
-               -$ac_fc_line_len -extend_source \
-               "-W $ac_fc_line_len" +extend_source -wide -e
-do
-  test "x$ac_flag" != xnone && FCFLAGS="$ac_fc_line_length_FCFLAGS_save $ac_flag"
-  cat > conftest.$ac_ext <<_ACEOF
-$ac_fc_line_length_test
-      end subroutine
-_ACEOF
-if ac_fn_fc_try_compile "$LINENO"; then :
-  ac_cv_fc_line_length=$ac_flag; break
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-done
-rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
-FCFLAGS=$ac_fc_line_length_FCFLAGS_save
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_fc_line_length" >&5
-$as_echo "$ac_cv_fc_line_length" >&6; }
-if test "x$ac_cv_fc_line_length" = xunknown; then
-  as_fn_error 77 "Fortran does not accept long source lines" "$LINENO" 5
-else
-  if test "x$ac_cv_fc_line_length" != xnone; then
-    FCFLAGS="$FCFLAGS $ac_cv_fc_line_length"
-  fi
-
-fi
 ac_ext=${ac_fc_srcext-f}
 ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
 ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
