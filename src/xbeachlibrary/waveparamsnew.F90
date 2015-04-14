@@ -3,6 +3,7 @@ module spectral_wave_bc_module
   use typesandkinds
   use paramsconst
   implicit none
+   save
   
   type spectrum                                         ! These are related to input spectra
      real*8,dimension(:,:),pointer          :: S        ! 2D variance density spectrum
@@ -61,14 +62,14 @@ module spectral_wave_bc_module
   endtype filenames
 
   ! These are for administration purposes and are initialized in initialize.F90
-  integer,dimension(:),allocatable,save         :: n_index_loc     ! y-index locations of all input spectra, set in init spectrum
-  integer,save                                  :: nspectra        ! number of input spectrs, set in init spectrum
-  type(filenames),dimension(:),allocatable,save,public :: bcfiles         ! input wave spectrum files
-  logical,save,public                            :: reuseall        ! switch to reuse all of the wave boundary conditions
-  integer,save                                  :: bccount         ! number of times boundary conditions have been generated, set in init spectrum
-  real*8,save                                   :: spectrumendtime ! end time of boundary condition written to administration file
-  real*8,dimension(:,:),allocatable,save        :: lastwaveelevation ! wave height at the end of the last spectrum
-  integer,save                                  :: ind_end_taper   ! index of where the taper function equals rtbc
+   integer,dimension(:),allocatable                :: n_index_loc     ! y-index locations of all input spectra, set in init spectrum
+   integer                                         :: nspectra        ! number of input spectrs, set in init spectrum
+   type(filenames),dimension(:),allocatable,public :: bcfiles         ! input wave spectrum files
+   logical,public                                  :: reuseall        ! switch to reuse all of the wave boundary conditions
+   integer                                         :: bccount         ! number of times boundary conditions have been generated, set in init spectrum
+   real*8                                          :: spectrumendtime ! end time of boundary condition written to administration file
+   real*8,dimension(:,:),allocatable               :: lastwaveelevation ! wave height at the end of the last spectrum
+   integer                                         :: ind_end_taper   ! index of where the taper function equals rtbc
   ! These parameters control a lot how the spectra are handled. They could be put in params.txt,
   ! but most users will want to keep these at their default values anyway
   integer,parameter,private                 :: nfint = 801   ! size of standard 2D spectrum in frequency dimension
@@ -102,6 +103,8 @@ contains
     real*8                      :: spectrumendtimeold,fmax
     real*8,save                 :: rtbc_local,dtbc_local
     real*8,save                 :: maindir_local
+
+    spectrumendtimeold = -123
 
     fidqlist  = -123
     fidnhlist = -123
@@ -382,7 +385,6 @@ contains
     ! note: jons_table is also handeled by read_jonswap_file subroutine
     !select case (par%instat(1:4))
     select case(par%instat)
-    !case ('jons')
     case (INSTAT_JONS, INSTAT_JONS_TABLE)
        ! wp type sent in to receive rtbc and dtbc from jons_table file
        ! fn%listline sent in to find correct row in jons_table file
@@ -905,9 +907,6 @@ contains
     integer                                 :: fid,switch
     integer                                 :: i,ii,ier,ier2,ier3
     logical                                 :: flipped
-    integer                                 :: nt,Ashift
-    real*8, dimension(:),allocatable        :: temp
-    real*8, dimension(:,:),allocatable      :: tempA
 
     flipped =.false.
     switch  = 0
@@ -1119,9 +1118,7 @@ contains
     type(spectrum),intent(inout)            :: specin
 
     ! Internal variables
-    integer                                 :: fid,i,ii,nnz,ier,nt,Ashift
-    real*8,dimension(:),allocatable         :: temp
-    real*8, dimension(:,:),allocatable      :: tempA
+      integer                                 :: fid,i,ii,nnz,ier
 
     ! Open file to start read
     call writelog('sl','','Reading from vardens file ',trim(readfile),' ...')
@@ -1209,8 +1206,6 @@ contains
 
     ! We need to know if hm0 was set explicitly, not the case for vardens files
     specin%hm0 = -1.d0
-
-    ! Free memory
 
   end subroutine read_vardens_file
 
@@ -2644,7 +2639,9 @@ contains
 
        ! Exclude interactions with components smaller than or equal to current
        ! component according to lower limit Herbers 1994 eq. 1
-       where(wp%fgen<=deltaf) D(m,:)=0.d0
+         where(wp%fgen<=deltaf)
+            D(m,:)=0.d0
+         endwhere
 
        ! Exclude interactions with components that are cut-off by the fcutoff
        ! parameter
@@ -2811,6 +2808,7 @@ contains
 
   end subroutine generate_nhtimeseries_file
  
+
   subroutine set_stationary_spectrum (s,par,combspec)
     use params
     use spaceparams
@@ -2820,7 +2818,7 @@ contains
     type(spectrum)                    :: combspec
     real*8                            :: xcycle
     real*8, dimension(:), allocatable :: angcart,Sdcart
-    integer                           :: iang,j
+      integer                           :: j
     
     allocate(angcart(combspec%nang))
     allocate(Sdcart(combspec%nang))

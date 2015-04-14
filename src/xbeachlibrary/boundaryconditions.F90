@@ -1,34 +1,35 @@
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
-! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
-! Jaap van Thiel de Vries, Robert McCall                                  !
-!                                                                         !
-! d.roelvink@unesco-ihe.org                                               !
-! UNESCO-IHE Institute for Water Education                                !
-! P.O. Box 3015                                                           !
-! 2601 DA Delft                                                           !
-! The Netherlands                                                         !
-!                                                                         !
-! This library is free software; you can redistribute it and/or           !
-! modify it under the terms of the GNU Lesser General Public              !
-! License as published by the Free Software Foundation; either            !
-! version 2.1 of the License, or (at your option) any later version.      !
-!                                                                         !
-! This library is distributed in the hope that it will be useful,         !
-! but WITHOUT ANY WARRANTY; without even the implied warranty of          !
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU        !
-! Lesser General Public License for more details.                         !
-!                                                                         !
-! You should have received a copy of the GNU Lesser General Public        !
-! License along with this library; if not, write to the Free Software     !
-! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307     !
-! USA                                                                     !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 module boundaryconditions
   use typesandkinds
+   implicit none
+   save
 contains
   subroutine wave_bc(sg,sl,par)
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
+      ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
+      ! Jaap van Thiel de Vries, Robert McCall                                  !
+      !                                                                         !
+      ! d.roelvink@unesco-ihe.org                                               !
+      ! UNESCO-IHE Institute for Water Education                                !
+      ! P.O. Box 3015                                                           !
+      ! 2601 DA Delft                                                           !
+      ! The Netherlands                                                         !
+      !                                                                         !
+      ! This library is free software; you can redistribute it and/or           !
+      ! modify it under the terms of the GNU Lesser General Public              !
+      ! License as published by the Free Software Foundation; either            !
+      ! version 2.1 of the License, or (at your option) any later version.      !
+      !                                                                         !
+      ! This library is distributed in the hope that it will be useful,         !
+      ! but WITHOUT ANY WARRANTY; without even the implied warranty of          !
+      ! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU        !
+      ! Lesser General Public License for more details.                         !
+      !                                                                         !
+      ! You should have received a copy of the GNU Lesser General Public        !
+      ! License along with this library; if not, write to the Free Software     !
+      ! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307     !
+      ! USA                                                                     !
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     use params
     use waveparams
     use spaceparams
@@ -41,7 +42,7 @@ contains
     use nonh_module, only: nonh_init_wcoef
     use paramsconst
 
-    IMPLICIT NONE
+    implicit none
 
     type(spacepars), target                     :: sg, sl
     type(spacepars), pointer                    :: s
@@ -79,12 +80,10 @@ contains
     ! Initialize to false only once....
     logical, save                               :: bccreated = .false.
 
-    !include 's.ind'
     s=>sl
 #ifndef USEMPI
     s=>sg
 #endif
-    !include 's.inp'
 
     
     if (.not. allocated(fac1)) then
@@ -553,6 +552,7 @@ contains
              if (par%single_dir==1) then
                  call space_distribute("y",sl,sg%ee_s(1,:,:),s%ee_s(1,:,:))
              endif
+
 #else
              ee1=gee1
              ee2=gee2
@@ -561,6 +561,7 @@ contains
              if (par%single_dir==1) then
                  s%ee_s=sg%ee_s
              endif
+
 #endif
              old=floor((par%t/dtbcfile)+1)
              recpos=1
@@ -772,7 +773,7 @@ contains
     use xmpi_module
     use paramsconst
 
-    IMPLICIT NONE
+    implicit none
 
     type(spacepars), target                     :: s
     type(parameters)                            :: par
@@ -788,8 +789,6 @@ contains
     real*8 , dimension(:,:)  ,allocatable,save  :: dbetadx,dbetady,dvudy
     real*8 , dimension(:)    ,allocatable,save  :: inv_ht
 
-    !include 's.ind'
-    !include 's.inp'
 
     if (.not. allocated(ht)) then
        allocate(ht      (2,s%ny+1))
@@ -1277,8 +1276,6 @@ contains
     real*8                                  :: advterm
     real*8,save                             :: fc
 
-    !include 's.ind'                                   ! pointers
-    !include 's.inp'
 
     if (par%t<=par%dt) fc =2.d0*par%wearth*sin(par%lat)
 
@@ -1368,7 +1365,7 @@ contains
     use interp
     use logging_module
 
-    IMPLICIT NONE
+    implicit none
 
     type(spacepars),target                  :: s
     type(parameters)                        :: par
@@ -1379,9 +1376,7 @@ contains
     real*8                                  :: qnow,A,CONST
     logical                                 :: indomain,isborder
     integer                                 :: ishift,jshift
-
-    !include 's.ind'
-    !include 's.inp'
+      integer                                 :: iminl,imaxl,jminl,jmaxl
 
 #ifdef USEMPI
     ishift  = s%is(xmpi_rank+1)-1
@@ -1390,6 +1385,22 @@ contains
     ishift  = 0
     jshift  = 0
 #endif
+      iminl = imin_zs
+      imaxl = imax_zs
+      jminl = jmin_zs
+      jmaxl = jmax_zs
+      if (xmpi_istop) then
+         iminl = imin_zs-1
+      endif
+      if (xmpi_isbot) then
+         imaxl = imax_zs+1
+      endif
+      if (xmpi_isleft) then
+         jminl = jmin_zs-1
+      endif
+      if (xmpi_isright) then
+         jmaxl = jmax_zs+1
+      endif
 
     ! loop through discharge location
     do i = 1,par%ndischarge
@@ -1409,10 +1420,10 @@ contains
           n1l = n1-jshift
           n2l = n2-jshift
 
-          indomain =  (   m1l >= imin_zs .and. m1l <= imax_zs .and.         &
-               n1l >=jmin_zs .and. n1l <= jmax_zs       ) .or.  &
-               (   m2l >=imin_zs .and. m2l <= imax_zs .and.         &
-               n2l >=jmin_zs  .and. n2l <= jmax_zs       )
+            indomain =  (   m1l >= iminl .and. m1l <= imaxl .and.         &
+            n1l >=jminl .and. n1l <= jmaxl       ) .or.  &
+            (   m2l >=iminl .and. m2l <= imaxl .and.         &
+            n2l >=jminl  .and. n2l <= jmaxl       )
 
           m1l = min(max(m1l,1),s%nx)
           m2l = min(max(m2l,1),s%nx)
@@ -1426,8 +1437,8 @@ contains
 
              if (indomain) then
                 isborder = (n1l.eq.1 .and. xmpi_isleft) .or. (n1l.eq.s%ny .and. xmpi_isright)
-                m1l=max(m1l,imin_zs)
-                m2l=min(m2l,imax_zs)
+                  m1l=max(m1l,iminl)
+                  m2l=min(m2l,imaxl)
 
                 ! make sure discharge is an inflow at border and water levels are defined
                 if (isborder) then
@@ -1461,8 +1472,8 @@ contains
 
              if (indomain) then
                 isborder = (m1l.eq.1 .and. xmpi_istop) .or. (m1l.eq.s%nx .and. xmpi_isbot)
-                n1l=max(n1l,jmin_zs)
-                n2l=min(n2l,jmax_zs)   
+                  n1l=max(n1l,jminl)
+                  n2l=min(n2l,jmaxl)
 
                 ! make sure discharge is an inflow at border and water levels are defined
                 if (isborder) then
@@ -1504,7 +1515,7 @@ contains
     use interp
     use logging_module
 
-    IMPLICIT NONE
+    implicit none
 
     type(spacepars),target                  :: s
     type(parameters)                        :: par
@@ -1515,8 +1526,6 @@ contains
     real*8                                  :: qnow
     integer                                 :: ishift,jshift
 
-    !include 's.ind'
-    !include 's.inp'
 
 #ifdef USEMPI
     ishift  = s%is(xmpi_rank+1)-1
@@ -1910,8 +1919,5 @@ contains
 9000 iseof = .true.
 
   end subroutine velocity_Boundary_read
-
-
-
 
 end module boundaryconditions

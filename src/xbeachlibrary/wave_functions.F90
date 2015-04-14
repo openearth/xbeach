@@ -1,12 +1,14 @@
 module wave_functions_module
 
   use paramsconst
+  implicit none
+  save
 
 contains
 
   subroutine slope2D(h,nx,ny,dsu,dnv,dhdx,dhdy)
     use xmpi_module
-    IMPLICIT NONE
+    implicit none
 
     integer                           :: i,j,nx,ny
     real*8, dimension(nx+1,ny+1)      :: h,dhdx,dhdy
@@ -47,7 +49,7 @@ contains
     use spaceparams
     use xmpi_module
 
-    IMPLICIT NONE
+    implicit none
 
     integer                                         :: i,j,nx,ny,ntheta
     integer, intent(in)                             :: scheme
@@ -143,7 +145,7 @@ contains
     use spaceparams
     use xmpi_module
 
-    IMPLICIT NONE
+    implicit none
 
     integer                                         :: i,j,nx,ny,ntheta
     integer, intent(in)                             :: scheme
@@ -231,7 +233,7 @@ contains
 
   subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,scheme)
 
-    IMPLICIT NONE
+    implicit none
 
     integer                                         :: i,j,nx,ny,ntheta
     integer, intent(in)                             :: scheme
@@ -323,7 +325,7 @@ contains
 
   subroutine advectheta(arrin,thetaadvec,nx,ny,ntheta,dtheta)
 
-    IMPLICIT NONE
+    implicit none
 
     integer                                         :: i,j,nx,ny,ntheta
     integer                                         :: itheta
@@ -369,7 +371,7 @@ contains
   subroutine advecwx(arrin2d,xwadvec,kmx,nx,ny,dsu)
     use xmpi_module
 
-    IMPLICIT NONE
+    implicit none
 
     integer                                         :: i,nx,ny
     integer                                         :: j
@@ -401,7 +403,7 @@ contains
   subroutine advecwy(arrin2d,ywadvec,kmy,nx,ny,dnv)
     use xmpi_module
     use xmpi_module
-    IMPLICIT NONE
+    implicit none
 
     integer                                         :: i,nx,ny
     integer                                         :: j
@@ -435,7 +437,7 @@ contains
   subroutine advecqx(c,arrin2d,xwadvec,nx,ny,dsu)
     use xmpi_module
 
-    IMPLICIT NONE
+    implicit none
 
     integer                                         :: i,nx,ny
     integer                                         :: j
@@ -470,7 +472,7 @@ contains
   subroutine advecqy(c,arrin2d,ywadvec,nx,ny,dnv)
     use xmpi_module
     use xmpi_module
-    IMPLICIT NONE
+    implicit none
 
     integer                                         :: i,nx,ny
     integer                                         :: j
@@ -502,7 +504,7 @@ contains
 
     ! Robert: iteration along L=L0tanh(2pih/L)
 
-    IMPLICIT NONE
+    implicit none
 
     type(spacepars)                     :: s
     type(parameters)                    :: par

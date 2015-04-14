@@ -1,7 +1,19 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!   MODULE OUTPUT    !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+! Note: all code here has been made dead by the following #if 0
+! the file is preserved for reference
+#if 0
+!
+! if defined OUTSINGLE, varoutput will output all reals in single precision
+!  otherwise: double precision
+!
+#define OUTSINGLE
+#ifdef OUTSINGLE
+#define CONVREAL sngl
+#else
+#define CONVREAL
+#endif
 
 module fortoutput_module
   use xmpi_module
@@ -86,6 +98,11 @@ contains
     character(99)                       :: fname,fnamemean,fnamevar,fnamemin,fnamemax
     type(arraytype)                     :: t
 
+#ifdef USEMPI
+      logical                             :: toall = .true.
+#endif
+
+      reclenm = -123
 
     ! Initialize places in output files
     itg = 0
@@ -96,19 +113,19 @@ contains
     stpm = size(tpar%tpm)
 
     ! Record size for global and mean output
-    inquire(iolength=wordsize) 1.d0
+      inquire(iolength=wordsize) CONVREAL(1.d0)
     reclen=wordsize*(s%nx+1)*(s%ny+1)
 
 !!!!! XY.DAT  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
-    if (xmaster) then
+      if (xomaster) then
        open(100,file='xy.dat',form='unformatted',access='direct',recl=reclen,status='REPLACE')
-       write(100,rec=1)s%xz
-       write(100,rec=2)s%yz
-       write(100,rec=3)s%x
-       write(100,rec=4)s%y
+         write(100,rec=1)CONVREAL(s%xz)
+         write(100,rec=2)CONVREAL(s%yz)
+         write(100,rec=3)CONVREAL(s%x)
+         write(100,rec=4)CONVREAL(s%y)
        close(100)
     endif
 
@@ -128,8 +145,8 @@ contains
     enddo
 
 #ifdef USEMPI
-    call xmpi_bcast(noutnumbers)
-    call xmpi_bcast(outnumbers)
+      call xmpi_bcast(noutnumbers,toall)
+      call xmpi_bcast(outnumbers,toall)
 #endif
 
 !!!!! OUTPUT POINTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -157,9 +174,9 @@ contains
           enddo
        endif
 #ifdef USEMPI
-       call xmpi_bcast(xpoints)
-       call xmpi_bcast(ypoints)
-       call xmpi_bcast(Avarpoint)
+         call xmpi_bcast(xpoints,toall)
+         call xmpi_bcast(ypoints,toall)
+         call xmpi_bcast(Avarpoint,toall)
 #endif
        ! make mask for grid rows which include
        if (par%nrugauge>0) then
@@ -175,7 +192,7 @@ contains
              rugrowindex(i)=ypoints(par%npoints+i)
 #else
              ! very complicated
-             if (xmaster) then
+               if (xmaster .or. xomaster) then
                 ! generate rugmask on global grid
                 do j=1,s%ny+1
                    if (j==ypoints(par%npoints+i)) then
@@ -186,13 +203,17 @@ contains
                 enddo
              endif
              ! now distribute rugmask global to rugmask local on all subgrids
+               if(xcompute) then
              call matrix_distr(rugmaskg,rugmaskl,sl%is,sl%lm,sl%js,sl%ln,xmpi_master,xmpi_comm)
+               endif
              ! everybody has their own rugmaskl. Look to see if your domain has "1" in rugmaskl
              ! first assume that no runup gauge exists in this domain, so we set rowindex to zero
              rugrowindex(i)=0    ! rugrowindex is local on all subgrid
+               if (xcompute) then  ! rugmaskl has no meaning on xomaster
              do j=1,sl%ny+1
                 if (rugmaskl(1,j)==1) rugrowindex(i)=j   ! okay, there is a runup gauge this row
              enddo
+               endif
 #endif
           enddo  ! i=1,par%nrugauge
 #ifdef USEMPI
@@ -203,7 +224,7 @@ contains
        !
        ! First time file opening for point output
        !
-       if (xmaster) then
+         if (xomaster) then
           do i=1,par%npoints+par%nrugauge
              fname = ''
              if (par%pointtypes(i)==0) then
@@ -238,7 +259,7 @@ contains
              enddo
              close(fid)
           endif
-       endif ! xmaster
+         endif ! xomaster
     end if ! npoints+nrugauge>0
 
 
@@ -248,7 +269,7 @@ contains
 
     if (par%nmeanvar>0) then
        !! First time file opening for time-average output
-       if(xmaster) then
+         if(xomaster) then
           do i=1,par%nmeanvar
              call makeaveragenames(chartoindex(trim(par%meanvars(i))),fnamemean,fnamevar,fnamemin,fnamemax)
              fnamemean=trim(fnamemean)
@@ -278,8 +299,8 @@ contains
     ! drifter output files
     !
     if (par%ndrifter>0) then
-       if (xmaster) then
-          inquire(iolength=wordsize) 1.d0
+         if (xomaster) then
+            inquire(iolength=wordsize) CONVREAL(1.d0)
 
           reclen=wordsize*3
           do i=1,par%ndrifter
@@ -318,7 +339,10 @@ contains
     integer                                 :: i,ii,ird
     !  integer                                 :: i1,i2,i3
     integer                                 :: wordsize,idumhl
-    integer                                 :: xrank,xmax
+      integer                                 :: xmax
+#ifdef USEMPI
+      integer                                 :: xrank
+#endif
     real*8,dimension(numvars)               :: intpvector
     real*8,dimension(numvars,s%nx+1)        :: crossvararray0
     real*8,dimension(numvars,s%ny+1)        :: crossvararray1
@@ -330,8 +354,14 @@ contains
     integer                                 :: iz,jz
     real*8                                  :: di,dj,dx,dy
 
+#ifdef USEMPI
+      logical                                 :: toall = .true.
+#endif
+
+#ifdef USEMPI
     xrank = huge(xrank)
-    inquire(iolength=wordsize) 1.d0
+#endif
+      inquire(iolength=wordsize) CONVREAL(1.d0)
     !  reclen=wordsize*(s%nx+1)*(s%ny+1)
     !  reclen2=wordsize*(s%nx+1)*(s%ny+1)*(par%ngd)*(par%nd)
 
@@ -388,9 +418,10 @@ contains
 #ifdef USEMPI
                    ! In MPI multiple domains may have a non-zero value for idumhl, so we choose the one with the
                    ! lowest MPI rank (closest to xmpi_top, or the offshore boundary)
-                   call xmpi_allreduce(xrank,MPI_MIN)
+                     !call xmpi_allreduce(xrank,MPI_MIN) ! wwvv-todo
                    ! now only look at this process
-                   if (xmpi_rank==xrank) then
+                     !if (xmpi_rank==xrank) then
+                     if(xmaster) then
                       if (par%morfacopt==1) then
                          tempvectorr(1)=par%t*max(par%morfac,1.d0)
                       else
@@ -401,7 +432,10 @@ contains
                       tempvectorr((ird-1)*3+4)=sl%zs(idumhl,rugrowindex(i))
                    endif
                    ! Reduce the whole set to only the real numbers in tempvectori in xmpi_rank
-                   call xmpi_allreduce(tempvectorr,MPI_MIN)
+                     ! wwvv this only works, because the lowest rank belongs to xmaster
+                     if(xcompute) call xmpi_allreduce(tempvectorr,MPI_MIN)
+                     ! wwvv xomaster needs this tempvectorr:
+                     call xmpi_bcast(tempvectorr,toall)  ! wwvv should make a allreduce toall
 #else
                    if (par%morfacopt==1) then
                       tempvectorr(1)=par%t*max(par%morfac,1.d0)
@@ -412,8 +446,8 @@ contains
                    tempvectorr((ird-1)*3+3)=s%yz(idumhl,rugrowindex(i))
                    tempvectorr((ird-1)*3+4)=s%zs(idumhl,rugrowindex(i))
 #endif
-                   enddo ! ii=1,par%nrugdepth
-                if (xmaster) write(indextopointsunit(i+par%npoints),rec=itp)tempvectorr
+                  enddo
+                  if (xomaster) write(indextopointsunit(i+par%npoints),rec=itp)CONVREAL(tempvectorr)
              enddo  ! i=1,par%nrugauge
              deallocate(tempvectorr)
              
@@ -422,7 +456,7 @@ contains
              do i=1,par%npoints
                 !!! Make vector of all s% values at n,m grid coordinate
                 call makeintpvector(par,sl,intpvector,xpoints(i),ypoints(i))
-                if (xmaster) then
+                  if (xomaster) then
                    allocate(tempvectori(par%npointvar))
                    tempvectori=Avarpoint(i,1:par%npointvar)
                    allocate(tempvectorr(par%npointvar+1))
@@ -435,7 +469,7 @@ contains
                    else
                       tempvectorr(1)=par%t
                    endif
-                   write(indextopointsunit(i),rec=itp)tempvectorr
+                     write(indextopointsunit(i),rec=itp)CONVREAL(tempvectorr)
                    deallocate(tempvectori)
                    deallocate(tempvectorr)
                 endif
@@ -452,11 +486,11 @@ contains
 !!! Make array of all s% values at n or m grid line
                 if (crosstype(i)==0) then
                    !    makecrossvector(par, s, local s, output array, no of variables, index of variables in output, m or n coordinate, cross section type)
-                   call makecrossvector(s,sl,crossvararray0,nvarcross(i),Avarcross(i,1:nvarcross(i)),ycross(i),0)
-                   if (xmaster) write(indextocrossunit(i),rec=itc)crossvararray0(1:nvarcross(i),:)
+                     call makecrossvector(s,sl,par,crossvararray0,nvarcross(i),Avarcross(i,1:nvarcross(i)),ycross(i),0)
+                     if (xomaster) write(indextocrossunit(i),rec=itc)CONVREAL(crossvararray0(1:nvarcross(i),:))
                 else
-                   call makecrossvector(s,sl,crossvararray1,nvarcross(i),Avarcross(i,1:nvarcross(i)),xcross(i),1)
-                   if (xmaster) write(indextocrossunit(i),rec=itc)crossvararray1(1:nvarcross(i),:)
+                     call makecrossvector(s,sl,par,crossvararray1,nvarcross(i),Avarcross(i,1:nvarcross(i)),xcross(i),1)
+                     if (xomaster) write(indextocrossunit(i),rec=itc)CONVREAL(crossvararray1(1:nvarcross(i),:))
                 endif
              enddo
           endif
@@ -484,53 +518,55 @@ contains
              do i=1,par%nmeanvar
                 select case (meansparsglobal(i)%rank)
                 case (2)
-                   if(xmaster) then
+                     if(xomaster) then
                       if (trim(par%meanvars(i))=='H') then                ! Hrms changed to H
-                         write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
+                           write(indextomeanunit(i),rec=itm)CONVREAL(sqrt(meansparsglobal(i)%variancesquareterm2d))
                       elseif (trim(par%meanvars(i))=='urms') then       ! urms
-                         write(indextomeanunit(i),rec=itm)sqrt(meansparsglobal(i)%variancesquareterm2d)
+                           write(indextomeanunit(i),rec=itm)CONVREAL(sqrt(meansparsglobal(i)%variancesquareterm2d))
                       elseif (trim(par%meanvars(i))=='thetamean') then       ! thetamean
                          write(indextomeanunit(i),rec=itm) &
+                           CONVREAL( &
                               mod(2.d0*par%px + atan2(nint(meansparsglobal(i)%mean2d)/1d7, &
-                                                      mod(meansparsglobal(i)%mean2d,1.d0)*1d1), 2.d0*par%px) / par%px * 180
+                           mod(meansparsglobal(i)%mean2d,1.d0)*1d1), 2.d0*par%px) / par%px * 180 &
+                           )
                       else                                                    ! non-rms variables
-                         write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean2d
+                           write(indextomeanunit(i),rec=itm)CONVREAL(meansparsglobal(i)%mean2d)
                       endif
-                      write(indextovarunit(i),rec=itm)meansparsglobal(i)%variance2d
+                        write(indextovarunit(i),rec=itm)CONVREAL(meansparsglobal(i)%variance2d)
                       where(meansparsglobal(i)%min2d>0.99d0*huge(0.d0))
                          meansparsglobal(i)%min2d=-999.d0
                       endwhere
                       where(meansparsglobal(i)%max2d<-0.99d0*huge(0.d0))
                          meansparsglobal(i)%max2d=-999.d0
                       endwhere
-                      write(indextominunit(i),rec=itm)meansparsglobal(i)%min2d
-                      write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max2d
+                        write(indextominunit(i),rec=itm)CONVREAL(meansparsglobal(i)%min2d)
+                        write(indextomaxunit(i),rec=itm)CONVREAL(meansparsglobal(i)%max2d)
                    endif
                 case (3)
-                   if(xmaster) then
-                      write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean3d
-                      write(indextovarunit(i),rec=itm)meansparsglobal(i)%variance3d
+                     if(xomaster) then
+                        write(indextomeanunit(i),rec=itm)CONVREAL(meansparsglobal(i)%mean3d)
+                        write(indextovarunit(i),rec=itm)CONVREAL(meansparsglobal(i)%variance3d)
                       where(meansparsglobal(i)%min3d>0.99d0*huge(0.d0))
                          meansparsglobal(i)%min3d=-999.d0
                       endwhere
                       where(meansparsglobal(i)%max3d<-0.99d0*huge(0.d0))
                          meansparsglobal(i)%max3d=-999.d0
                       endwhere
-                      write(indextominunit(i),rec=itm)meansparsglobal(i)%min3d
-                      write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max3d
+                        write(indextominunit(i),rec=itm)CONVREAL(meansparsglobal(i)%min3d)
+                        write(indextomaxunit(i),rec=itm)CONVREAL(meansparsglobal(i)%max3d)
                    endif
                 case (4)
-                   if(xmaster) then
-                      write(indextomeanunit(i),rec=itm)meansparsglobal(i)%mean4d
-                      write(indextovarunit(i),rec=itm)meansparsglobal(i)%variance4d
+                     if(xomaster) then
+                        write(indextomeanunit(i),rec=itm)CONVREAL(meansparsglobal(i)%mean4d)
+                        write(indextovarunit(i),rec=itm)CONVREAL(meansparsglobal(i)%variance4d)
                       where(meansparsglobal(i)%min4d>0.99d0*huge(0.d0))
                          meansparsglobal(i)%min4d=-999.d0
                       endwhere
                       where(meansparsglobal(i)%max4d<-0.99d0*huge(0.d0))
                          meansparsglobal(i)%max4d=-999.d0
                       endwhere
-                      write(indextominunit(i),rec=itm)meansparsglobal(i)%min4d
-                      write(indextomaxunit(i),rec=itm)meansparsglobal(i)%max4d
+                        write(indextominunit(i),rec=itm)CONVREAL(meansparsglobal(i)%min4d)
+                        write(indextomaxunit(i),rec=itm)CONVREAL(meansparsglobal(i)%max4d)
                    endif
                 end select
              enddo
@@ -546,9 +582,9 @@ contains
              itg=itg+1
              do i = 1,par%nglobalvar
 #ifdef USEMPI
-                call space_collect_index(s,sl,outnumbers(i))
+                  call space_collect_index(s,sl,par,outnumbers(i))
 #endif
-                if(xmaster) then
+                  if(xomaster) then
                    call indextos(s,outnumbers(i),t)
                    select case(t%type)
                    case ('r')
@@ -578,7 +614,7 @@ contains
                          call outarray(i,t%i4)
                       end select
                    end select
-                endif ! xmaster
+                  endif ! xomaster
              enddo   ! outnumber loop
           endif
        endif  ! end global file writing
@@ -587,7 +623,14 @@ contains
        ! write drifter output
        !
 
-       if (xmaster) then
+#ifdef USEMPI
+         ! to send sl%idrift from xmaster to xomaster
+         ! wwvv todo use xmpi_send for this
+         call xmpi_bcast(sl%idrift,toall)
+         ! wwvv todo shouldn't we send also sl%jdrift ?
+         call xmpi_bcast(sl%jdrift,toall)
+#endif
+         if (xomaster) then
 
 #ifdef USEMPI
           s%idrift = sl%idrift
@@ -613,20 +656,20 @@ contains
                         dj*s%dnv(iz,jz)*cos(s%alfaz(iz,jz))
 
                    write(indextodrifterunit(i),rec=itd)    &
-                        s%xz(iz,jz)+dx,                     &
-                        s%yz(iz,jz)+dy,                     &
-                        par%t
+                     CONVREAL(s%xz(iz,jz)+dx),                     &
+                     CONVREAL(s%yz(iz,jz)+dy),                     &
+                     CONVREAL(par%t)
                 else
                    write(indextodrifterunit(i),rec=itd)    &
-                        -999d0,                             &
-                        -999d0,                             &
-                        par%t
+                     CONVREAL(-999d0),                    &
+                     CONVREAL(-999d0),                    &
+                     CONVREAL(par%t)
                 endif
              enddo
           endif
        endif
 
-       if(xmaster) then
+         if(xomaster) then
           outputtimes=-999.d0
           outputtimes(1:itg)=tpar%tpg(1:itg)
           outputtimes(itg+1:itg+itp)=tpar%tpp(1:itp)
@@ -634,17 +677,18 @@ contains
           outputtimes(itg+itp+itc+1:itg+itp+itc+itm)=tpar%tpm(2:itm+1)          ! mean output always shifted by 1
           if (par%morfacopt==1) outputtimes=outputtimes*max(par%morfac,1.d0)
           open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(10+size(outputtimes)))
-          write(999,rec=1) itg*1.d0,&
-               s%nx*1.d0,&
-               s%ny*1.d0,&
-               s%ntheta*1.d0,&
-               par%kmax*1.d0,&
-               par%ngd*1.d0,&
-               par%nd*1.d0, &
-               itp*1.d0,&
-               itc*1.d0,&
-               itm*1.d0,&
-               outputtimes
+            write(999,rec=1) CONVREAL(itg*1.d0),&
+            CONVREAL(s%nx*1.d0),&
+            CONVREAL(s%ny*1.d0),&
+            CONVREAL(s%ntheta*1.d0),&
+            CONVREAL(par%kmax*1.d0),&
+            CONVREAL(par%ngd*1.d0),&
+            CONVREAL(par%nd*1.d0), &
+            CONVREAL(tpar%itp*1.d0),&
+            CONVREAL(itc*1.d0),&
+            CONVREAL(itm*1.d0),&
+            CONVREAL(outputtimes)
+            call flush(999)
           ! Just output for MICORE for backwards compat
           !      open(999,file='dims.dat',form='unformatted',access='direct',recl=wordsize*(7+size(outputtimes)))
           !      write(999,rec=1)itg*1.d0,&
@@ -656,13 +700,13 @@ contains
           ! itm*1.d0,&
           ! outputtimes
           ! close(999)
-       endif  !xmaster
+         endif  !xomaster
 
     end if  !
 
 !!! Close files
 
-    if(xmaster) then
+      if(xomaster) then
        if(par%t>=par%tstop) then
           do i=1,par%npoints+par%nrugauge
              close(indextopointsunit(i))
@@ -685,7 +729,9 @@ contains
        end if
     endif
     ! wwvv to avoid warning about unused xrank:
+#ifdef USEMPI
     if (xrank .eq. -1) return
+#endif
 
   end subroutine var_output
 
@@ -718,6 +764,7 @@ contains
 
 #ifdef USEMPI
     integer                        :: i,p,ierr
+      logical                        :: toall = .true.
 #endif
 
     m = mg
@@ -738,6 +785,8 @@ contains
        ! Change suggested by Jim Gunson:
        if (mg .ge. s%is(i) .and. mg .lt. s%is(i) + s%lm(i) .and. &
             ng .ge. s%js(i) .and. ng .lt. s%js(i) + s%ln(i)) then
+            !   if (mg .ge. s%icgs(i) .and. mg .le. s%icge(i) .and.  ng .ge. s%jcgs(i) .and. ng .le. s%jcge(i)) then
+            ! wwvv-todo ?
           m = mg - s%is(i) + 1  ! m and n now the indices for process p
           n = ng - s%js(i) + 1
           p = i-1
@@ -746,7 +795,7 @@ contains
     enddo
     if (p .lt. 0) then
        call writelog('els','','Catastrophic error in makeintpvector')
-       call writelog('els','(a,i0,i0)','Cannot find processor for indexes',mg,ng)
+         call writelog('els','(a,i0,",",i0)','Cannot find processor for indexes ',mg,ng)
        call halt_program
     endif
 
@@ -801,6 +850,8 @@ contains
              case(1)
                 if (t%type .eq. 'r') then
                    select case(t%name)
+                   case default
+                     continue
                       !                case (mnem_yz,mnem_yv)
                       !                   value = t%r1(n)
                       !                case (mnem_xz,mnem_xu)
@@ -829,17 +880,23 @@ contains
     ! master will receive this
     ! This is not necessary if master has everything
     !
-    if (p .ne. xmpi_master) then
-       if (xmpi_rank .eq. p) then
-          call MPI_Send(intpvector, numvars, MPI_DOUBLE_PRECISION, xmpi_master, &
-               311, xmpi_comm,                    ierr)
+   ! p is the rank in xmpi_comm
+   ! what is the rank in xmpi_ocomm?
+   ! for the time being, assume that that is
+   ! p(xmpi_comm) + 1
+   !
+   p = p + 1
+   if (p .ne. xmpi_omaster) then
+      if (xmpi_orank .eq. p) then
+         call MPI_Send(intpvector, numvars, MPI_DOUBLE_PRECISION, xmpi_omaster, &
+         311, xmpi_ocomm,                    ierr)
        endif
-       if (xmaster) then
+      if (xomaster) then
           call MPI_Recv(intpvector, numvars, MPI_DOUBLE_PRECISION, p, &
-               311, xmpi_comm, MPI_STATUS_IGNORE, ierr)
+         311, xmpi_ocomm, MPI_STATUS_IGNORE, ierr)
        endif
        ! this barrier is really needed:
-       call xmpi_barrier
+      call xmpi_barrier(toall)
     endif
 #endif
   end subroutine makeintpvector
@@ -855,12 +912,10 @@ contains
     real*8,intent(in)             :: x
     integer                       :: unit,reclen,jtg
 
-    if(xmaster) then
-       inquire(iolength=reclen) x
+      inquire(iolength=reclen) CONVREAL(x)
        call checkfile(index,unit,reclen,jtg)
 
-       write(unit,rec=jtg) x
-    endif
+      write(unit,rec=jtg) CONVREAL(x)
 
   end subroutine outarray_r0
 
@@ -870,83 +925,75 @@ contains
     real*8, dimension(:), pointer :: x
     integer                       :: unit,reclen,jtg
     character*20                  :: mnem
-    real*8                        :: pi
+      real*8, parameter             :: pi = 4*atan(1.0d0)
 
-    pi = 4*atan(1.0d0)
-
-    if(xmaster) then
-       inquire(iolength=reclen) x
+      inquire(iolength=reclen) CONVREAL(x)
        call checkfile(index,unit,reclen,jtg)
-    endif
 
     mnem = mnemonics(outnumbers(index))
-    ! wwvv todo theta0 is scalar
-    if (mnem .eq. 'theta' .or. &
-         mnem .eq. 'theta0' ) then
-       write(unit,rec=jtg) 270-(x*(180/pi))
+      if (mnem .eq. mnem_theta .or. &
+      mnem .eq. mnem_theta0 ) then
+         write(unit,rec=jtg) CONVREAL(270-(x*(180/pi)))
     else
-       write(unit,rec=jtg) x
+         write(unit,rec=jtg) CONVREAL(x)
     endif
 
   end subroutine outarray_r1
 
   subroutine outarray_r2(s,index,x)
     use spaceparams
-    use indextos_module
     implicit none
     type(spacepars),intent(in)    :: s
     integer                       :: index
     real*8, dimension(:,:), pointer :: x
     integer                       :: unit,reclen,jtg
     character*20                  :: mnem
-    real*8                        :: pi
+      real*8, parameter             :: pi = 4*atan(1.0d0)
 
-    pi = 4*atan(1.0d0)
-
-    inquire(iolength=reclen) x
+      inquire(iolength=reclen) CONVREAL(x)
     call checkfile(index,unit,reclen,jtg)
 
     mnem = mnemonics(outnumbers(index))
 
     select case(mnem)
     case(mnem_thetamean)
-       write(unit,rec=jtg)270-((x)*(180/pi))
+         write(unit,rec=jtg)CONVREAL(270-((x)*(180/pi)))
     case(mnem_Fx)
-       write(unit,rec=jtg)x*cos(s%alfaz)-s%Fy*sin(s%alfaz)
+         write(unit,rec=jtg)CONVREAL(x*cos(s%alfaz)-s%Fy*sin(s%alfaz))
     case(mnem_Fy)
-       write(unit,rec=jtg)s%Fx*sin(s%alfaz)+x*cos(s%alfaz)
+         write(unit,rec=jtg)CONVREAL(s%Fx*sin(s%alfaz)+x*cos(s%alfaz))
     case(mnem_u)
-       write(unit,rec=jtg)x*cos(s%alfaz)-s%v*sin(s%alfaz)
+         write(unit,rec=jtg)CONVREAL(x*cos(s%alfaz)-s%v*sin(s%alfaz))
     case(mnem_gwu)
-       write(unit,rec=jtg)x*cos(s%alfaz)-s%gwv*sin(s%alfaz)
+         write(unit,rec=jtg)CONVREAL(x*cos(s%alfaz)-s%gwv*sin(s%alfaz))
     case(mnem_v)
-       write(unit,rec=jtg)s%u*sin(s%alfaz)+x*cos(s%alfaz)
+         write(unit,rec=jtg)CONVREAL(s%u*sin(s%alfaz)+x*cos(s%alfaz))
     case(mnem_gwv)
-       write(unit,rec=jtg)s%gwu*sin(s%alfaz)+x*cos(s%alfaz)
+         write(unit,rec=jtg)CONVREAL(s%gwu*sin(s%alfaz)+x*cos(s%alfaz))
     case(mnem_ue)
-       write(unit,rec=jtg)x*cos(s%alfaz)-s%ve*sin(s%alfaz)
+         write(unit,rec=jtg)CONVREAL(x*cos(s%alfaz)-s%ve*sin(s%alfaz))
     case(mnem_ve)
-       write(unit,rec=jtg)s%ue*sin(s%alfaz)+x*cos(s%alfaz)
+         write(unit,rec=jtg)CONVREAL(s%ue*sin(s%alfaz)+x*cos(s%alfaz))
     case(mnem_ui)
-       write(unit,rec=jtg)x*cos(s%alfaz)-s%vi*sin(s%alfaz)
+         write(unit,rec=jtg)CONVREAL(x*cos(s%alfaz)-s%vi*sin(s%alfaz))
     case(mnem_vi)
-       write(unit,rec=jtg)s%ui*sin(s%alfaz)+x*cos(s%alfaz)
+         write(unit,rec=jtg)CONVREAL(s%ui*sin(s%alfaz)+x*cos(s%alfaz))
     case(mnem_umean)
-       write(unit,rec=jtg)x*cos(s%alfaz)-s%vmean*sin(s%alfaz)
+         write(unit,rec=jtg)CONVREAL(x*cos(s%alfaz)-s%vmean*sin(s%alfaz))
     case(mnem_vmean)
-       write(unit,rec=jtg)s%umean*sin(s%alfaz)+x*cos(s%alfaz)
+         write(unit,rec=jtg)CONVREAL(s%umean*sin(s%alfaz)+x*cos(s%alfaz))
     case(mnem_uwf)
-       write(unit,rec=jtg)x*cos(s%alfaz)-s%vwf*sin(s%alfaz)
+         write(unit,rec=jtg)CONVREAL(x*cos(s%alfaz)-s%vwf*sin(s%alfaz))
     case(mnem_vwf)
-       write(unit,rec=jtg)s%uwf*sin(s%alfaz)+x*cos(s%alfaz)
+         write(unit,rec=jtg)CONVREAL(s%uwf*sin(s%alfaz)+x*cos(s%alfaz))
     case(mnem_Sutot)
-       write(unit,rec=jtg)(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*cos(s%alfaz) - (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*sin(s%alfaz)
+         write(unit,rec=jtg)CONVREAL((sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*cos(s%alfaz) - (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*sin(s%alfaz))
     case(mnem_Svtot)
-       write(unit,rec=jtg)(sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*sin(s%alfaz) + (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*cos(s%alfaz)
+         write(unit,rec=jtg)CONVREAL((sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*sin(s%alfaz) + (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*cos(s%alfaz))
     case(mnem_cctot)
-       write(unit,rec=jtg)sum(s%ccg,DIM=3)
+         write(unit,rec=jtg)CONVREAL(sum(s%ccg,DIM=3))
     case default
-       write(unit,rec=jtg) x
+         write(unit,rec=jtg) CONVREAL(x)
     end select
 
   end subroutine outarray_r2
@@ -958,15 +1005,14 @@ contains
     integer index
     real*8, dimension(:,:,:), pointer :: x
     integer                       :: unit,reclen,jtg
-    character*20                  :: mnem
-    real*8                        :: pi
+      character*(dimnamelen)        :: mnem
+      real*8,parameter              :: pi = 4*atan(1.0d0)
 
-    pi=4*atan(1.0d0)
-
-    inquire(iolength=reclen) x
+      inquire(iolength=reclen) CONVREAL(x)
     call checkfile(index,unit,reclen,jtg)
 
     mnem = mnemonics(outnumbers(index))
+
     !!
     !! Dano: need to find elegant way to multiply 3d array woth 2d alfaz
     !  select case(mnem)
@@ -989,7 +1035,7 @@ contains
     !  case(mnem_Svbg)
     !     write(unit,rec=jtg)s%Subg*sin(s%alfaz)+x*cos(s%alfaz)
     !  case default
-    write(unit,rec=jtg) x
+      write(unit,rec=jtg) CONVREAL(x)
     !  end select
     ! wwvv to avoid warning about unused parameter s:
     if (s%nx .eq. -1) return
@@ -1001,9 +1047,9 @@ contains
     real*8, dimension(:,:,:,:), pointer :: x
     integer                       :: unit,reclen,jtg
 
-    inquire(iolength=reclen) x
+      inquire(iolength=reclen) CONVREAL(x)
     call checkfile(index,unit,reclen,jtg)
-    write(unit,rec=jtg) x
+      write(unit,rec=jtg) CONVREAL(x)
   end subroutine outarray_r4
 
   subroutine outarray_i0(index,x)
@@ -1129,3 +1175,5 @@ contains
   end function indextodrifterunit
 
 end module fortoutput_module
+! matching #if 0 at the start:
+#endif

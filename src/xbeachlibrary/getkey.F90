@@ -5,6 +5,8 @@ module getkey_module
   ! The naming is still a bit inconsistent so that might change in the future
   use typesandkinds
   use mnemmodule
+  implicit none
+  save
   ! analogue to the arraytype in mnemonic
   type parameter
      character type         ! 'c', 'i' or 'r': integer or real*8

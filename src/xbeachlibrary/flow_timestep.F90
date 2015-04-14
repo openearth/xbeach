@@ -1,3 +1,8 @@
+module flow_timestep_module
+   implicit none
+   save
+contains
+   subroutine flow(s,par)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
 ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
@@ -24,10 +29,6 @@
 ! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307     !
 ! USA                                                                     !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-module flow_timestep_module
-contains
-  subroutine flow(s,par)
     use params
     use spaceparams
     use xmpi_module
@@ -61,8 +62,6 @@ contains
 
     integer                                 :: imax,jmax,jmin
 
-    !include 's.ind'
-    !include 's.inp'
 
     if (.not. allocated(vsu) ) then
        allocate (   vsu(s%nx+1,s%ny+1))
@@ -1056,8 +1055,6 @@ contains
     integer                                                 :: i    !Index variable
     integer                                                 :: j    !Index variable
 
-    !include 's.ind'
-    !include 's.inp'
 
     !-------------------------------------------------------------------------------
     !                             IMPLEMENTATION

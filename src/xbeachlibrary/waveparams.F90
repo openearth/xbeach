@@ -1,5 +1,6 @@
 module waveparams
   implicit none
+   save
   type waveparameters
 
      integer                                 :: K, Npy, Nr
@@ -666,7 +667,9 @@ contains
     !Dano call xmpi_bcast(wp%S_array)
 #endif
 
-    where (wp%S_array == exc) wp%S_array =0
+      where (wp%S_array == exc)
+         wp%S_array =0
+      endwhere
 
     ! If angles were decreasing, flip S_array as also dir is flipped
     if (flipped == 1) then
@@ -1065,7 +1068,11 @@ contains
     if (par%random==1) CALL init_seed
 
     ! Define random number between 0.025 and 0975 for each wave component
-    call random_number(randummy)
+      !call random_number(randummy)
+      ! wwvvrandom
+      do i=1,wp%K*2
+         randummy(i) = random(0)
+      enddo
 
     P0=randummy(1:wp%K)
     !P0=0.95*P0+0.05/2                                                             ! Bas: do not crop cdf, only needed in Matlab to ensure monotonicity
@@ -1122,7 +1129,9 @@ contains
        allocate(temp2(size(wp%f)))
        temp2=(/(ii,ii=1,size(wp%f))/)
        temp=1
-       where (wp%f < wp%fgen(i)) temp=0
+         where (wp%f < wp%fgen(i))
+            temp=0
+         endwhere
        temp=temp*temp2
 
        ! Check whether any indices are defined. If so, select the first selected
@@ -1144,7 +1153,9 @@ contains
        allocate(temp2(size(wp%theta)))
        temp2=(/(ii,ii=1,size(wp%theta))/)
        temp=1
-       where (wp%theta < wp%theta0(i) ) temp=0
+         where (wp%theta < wp%theta0(i) )
+            temp=0
+         endwhere
        temp=temp*temp2
 
        ! Check whether any indices are defined. If so, select the first selected
@@ -1332,7 +1343,9 @@ contains
     allocate(wp%window(size(t)))
     allocate(temp(size(t)))
     temp=t
-    where (t>wp%rt) temp=0                                                         ! Bas: skip time steps that exceed wp%rt, might not be necessary when wp%Nr, F2 and t are defined well, see above
+      where (t>wp%rt)
+         temp=0                                                         ! Bas: skip time steps that exceed wp%rt, might not be necessary when wp%Nr, F2 and t are defined well, see above
+      endwhere
     wp%window=1
     wp%window=wp%window*(tanh(192.d0*temp/maxval(temp))**2)*(tanh(192.d0*(1.d0-temp/maxval(temp)))**2)
     !wp%window=wp%window*(tanh(192.d0*t/maxval(t))**2)*(tanh(192.d0*(1.d0-t/maxval(t)))**2)      ! Bas: array t matches wp%rt, so truncating via temp is not necessary anymore
@@ -1672,7 +1685,9 @@ contains
 
        ! Exclude interactions with components smaller than or equal to current
        ! component according to lower limit Herbers 1994 eq. 1
-       where(wp%fgen<=m*df) D(m,:)=0.d0                                           ! Bas: redundant with initial determination of D ??
+         where(wp%fgen<=m*df)
+            D(m,:)=0.d0                                           ! Bas: redundant with initial determination of D ??
+         endwhere
 
        ! Exclude interactions with components that are cut-off by the fcutoff
        ! parameter
@@ -1973,17 +1988,27 @@ contains
        q    = q+arg
     end do
 
-    where (w1>0.0d0) sign=1.0d0
+      where (w1>0.0d0)
+         sign=1.0d0
+      endwhere
 
-    where (w1==0.0d0) sign=0.0d0
+      where (w1==0.0d0)
+         sign=0.0d0
+      endwhere
 
-    where (w1<0.0d0) sign=-1.0d0
+      where (w1<0.0d0)
+         sign=-1.0d0
+      endwhere
 
     k1 = sign*q/h
 
-    where (k1==huge(hu)) k1=0.0d0
+      where (k1==huge(hu))
+         k1=0.0d0
+      endwhere
 
-    where (k1==-1.0d0*huge(hu)) k1=0.0d0
+      where (k1==-1.0d0*huge(hu))
+         k1=0.0d0
+      endwhere
 
     return
 

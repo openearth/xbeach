@@ -1,6 +1,3 @@
-
-
-
 !==============================================================================
 !                               MODULE SOLVER                        
 !==============================================================================
@@ -12,6 +9,7 @@
 module solver_module
 
 implicit none
+save
 
 ! If mpi is defined, the non-hydrostatic module is NOT included in the compilation
 ! to avoid unwanted side effects.  
@@ -21,7 +19,6 @@ implicit none
 !                                 INTERFACE                                
 !******************************************************************************
     
-  save                            
   private
   
   !----------------------------- PARAMETERS -----------------------------------

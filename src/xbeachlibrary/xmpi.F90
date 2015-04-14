@@ -1,18 +1,35 @@
 module xmpi_module
+
+   !#define SHIFT_TIMER
+
 #ifdef USEMPI
   use mpi
   implicit none
+   save
 #ifndef HAVE_MPI_WTIME
   real*8, external                :: MPI_Wtime
 #endif
+   logical :: bcast_backtrace = .false.
   integer, parameter              :: MPIBOUNDARY_Y    = 1
   integer, parameter              :: MPIBOUNDARY_X    = 2
   integer, parameter              :: MPIBOUNDARY_AUTO = 3
   integer, parameter              :: MPIBOUNDARY_MAN  = 4
-  integer                         :: xmpi_rank    ! mpi rank of this process
-  integer                         :: xmpi_size    ! number of mpi processes
-  integer                         :: xmpi_comm    ! mpi communicator to use
-  integer                         :: xmpi_master  ! rank of master process
+   ! We use two communicators:
+   !  xmpi_ocomm and xmpi_comm
+   !  xmpi_comm will contain all computing processes
+   !  xmpi_ocomm will contain all computing processes + one process
+   !     that will do most of the output, hoping that the output can be
+   !     done in parallel with computing
+   integer                         :: xmpi_orank   ! mpi rank of this process   in xmpi_ocomm
+   integer                         :: xmpi_osize   ! number of mpi processes    in xmpi_ocomm
+   integer                         :: xmpi_ocomm   ! mpi communicator to use  for the I/O
+   integer                         :: xmpi_omaster ! rank of master process = rank of io-process in xmpi_ocomm
+   integer                         :: xmpi_imaster ! rank of master process of computational processes in xmpi_ocomm
+   !
+   integer                         :: xmpi_rank    ! mpi rank of this process   in xmpi_comm
+   integer                         :: xmpi_size    ! number of mpi processes    in xmpi_comm
+   integer                         :: xmpi_comm    ! mpi communicator to use    in xmpi_comm
+   integer                         :: xmpi_master  ! rank of master process     in xmpi_comm
   integer                         :: xmpi_m       ! 1st dimension of processor
   ! grid
   integer                         :: xmpi_n       ! 2nd dimension of processor
@@ -35,8 +52,12 @@ module xmpi_module
   logical                         :: xmpi_isbot   ! submatrix is at the bottom side
   ! ie: shares first row with
   ! global matrix
-  logical                         :: xmaster      ! .true. if this process reads
-  !  and writes files
+   logical                         :: xmaster      ! .true. if process is the master process
+   !                                               ! of the computing processes
+   logical                         :: xomaster     ! .true if this process is the output process
+   !                                               !  in xmpi_ocomm
+   logical                         :: xcompute     ! .true. if this is a compute process
+   !                                               !
   !
   !         1 2 3 4 5 6 7   y-axis
   !  X   1  x x x x x x x
@@ -63,9 +84,13 @@ module xmpi_module
 
 #else
   implicit none
+   save
   integer, parameter              :: xmpi_rank     = 0
+   integer, parameter              :: xmpi_orank   = 0
   integer, parameter              :: xmpi_size     = 1
   logical, parameter              :: xmaster      = .true.
+   logical, parameter              :: xomaster     = .true.
+   logical, parameter              :: xcompute     = .true.
   logical, parameter              :: xmpi_isleft  = .true.
   logical, parameter              :: xmpi_isright = .true.
   logical, parameter              :: xmpi_istop   = .true.
@@ -73,18 +98,33 @@ module xmpi_module
   integer, parameter              :: xmpi_pcol    = 1
   integer, parameter              :: xmpi_prow    = 1
 #endif
+
 #ifdef USEMPI
   interface xmpi_bcast
-     module procedure xmpi_bcast_int, xmpi_bcast_real8, xmpi_bcast_int8
-     module procedure xmpi_bcast_real4
+      module procedure xmpi_bcast_array_integer
+      module procedure xmpi_bcast_array_integer_3
      module procedure xmpi_bcast_array_logical
-     module procedure xmpi_bcast_logical
-     module procedure xmpi_bcast_complex16
+      module procedure xmpi_bcast_array_logical_3
      module procedure xmpi_bcast_array_real8
-     module procedure xmpi_bcast_array_integer
+      module procedure xmpi_bcast_array_real8_3
+      module procedure xmpi_bcast_char
+      module procedure xmpi_bcast_char_3
+      module procedure xmpi_bcast_complex16
+      module procedure xmpi_bcast_complex16_3
+      module procedure xmpi_bcast_integer
+      module procedure xmpi_bcast_integer_3
+      module procedure xmpi_bcast_integer8
+      module procedure xmpi_bcast_integer8_3
+      module procedure xmpi_bcast_logical
+      module procedure xmpi_bcast_logical_3
      module procedure xmpi_bcast_matrix_integer
+      module procedure xmpi_bcast_matrix_integer_3
      module procedure xmpi_bcast_matrix_real8
-     module procedure xmpi_bcast_char
+      module procedure xmpi_bcast_matrix_real8_3
+      module procedure xmpi_bcast_real4
+      module procedure xmpi_bcast_real4_3
+      module procedure xmpi_bcast_real8
+      module procedure xmpi_bcast_real8_3
   end interface xmpi_bcast
 
   interface xmpi_allreduce
@@ -138,6 +178,15 @@ module xmpi_module
     module procedure xmpi_shift_zs_r3
   end interface xmpi_shift_zs
 
+   interface xmpi_send
+      module procedure xmpi_send_r0
+      module procedure xmpi_send_i0
+      module procedure xmpi_send_l0
+      module procedure xmpi_send_r1
+      module procedure xmpi_send_i1
+      module procedure xmpi_send_l1
+   end interface xmpi_send
+
 #endif
 contains
 #ifdef USEMPI
@@ -145,7 +194,7 @@ contains
   subroutine xmpi_initialize
     ! initialize mpi environment
     implicit none
-    integer ierr,errhandler
+      integer ierr,color,errhandler
     external comm_errhandler
     ierr = 0
     ! Message buffers in openmpi are not initialized so this call can give a vallgrind error
@@ -168,11 +217,49 @@ contains
     call MPE_Describe_event(event_coll_start,'coll_start','white')
     call MPE_Describe_event(event_coll_end,'coll_end','white')
 #endif
-    xmpi_comm = MPI_COMM_WORLD
+      xmpi_ocomm = MPI_COMM_WORLD
+      call MPI_Comm_rank(xmpi_ocomm,xmpi_orank,ierr)
+      call MPI_Comm_size(xmpi_ocomm,xmpi_osize,ierr)
+      if (xmpi_osize < 2) then
+         print *,'Number of MPI processes must be 2, but is:',xmpi_osize
+         call halt_program
+      endif
+      xmpi_omaster = 0
+      xomaster     = (xmpi_orank == xmpi_omaster)
+      xcompute     = .not. xomaster
+      !
+      ! Create the compute communicator. This will contain all
+      ! processes in xmpi_iocomm except process xmpi_master
+      !
+      color = 1
+      if(xmpi_orank == xmpi_omaster) color = 0
+      call MPI_Comm_split(xmpi_ocomm,color,1,xmpi_comm,ierr)
     call MPI_Comm_rank(xmpi_comm,xmpi_rank,ierr)
     call MPI_Comm_size(xmpi_comm,xmpi_size,ierr)
+      call MPI_Comm_set_name(xmpi_comm,'xmpi_comm',ierr)
+      call MPI_Comm_set_name(xmpi_ocomm,'xmpi_ocomm',ierr)
     xmpi_master = 0
-    xmaster  = (xmpi_rank .eq. xmpi_master)
+      xmaster     = (xmpi_rank == xmpi_master)
+      !
+      ! on the output process, xmpi_comm and xmpi_rank
+      ! are of no use, so give them values that will trigger
+      ! errors when used:
+      !
+      if (xomaster) then
+         xmpi_comm = MPI_COMM_NULL
+         xmpi_rank = -123
+         xmaster   = .false.
+      endif
+      !
+      ! Let the I/O process know how many computational processes there are:
+      !
+
+      if(xomaster) then
+         xmpi_size = xmpi_osize - 1
+      endif
+
+      xmpi_imaster = 1
+
   end subroutine xmpi_initialize
 
   subroutine xmpi_finalize
@@ -191,11 +278,14 @@ contains
     stop 1
   end subroutine xmpi_abort
 
-  subroutine xmpi_determine_processor_grid(m,n,divtype,mmanual,nmanual,error)
+   !____________________________________________________________________________
+
+   subroutine xmpi_determine_processor_grid(m,n,divtype,mmanual,nmanual,cyclic,error)
     implicit none
     integer, intent(in) :: m,n,mmanual,nmanual  ! the dimensions of the global domain
-    integer, intent(out)    :: error
+      integer, intent(in)     :: cyclic
     integer, intent(in)     :: divtype
+      integer, intent(out)    :: error
 
     integer mm,nn, borderlength, min_borderlength
 
@@ -252,8 +342,13 @@ contains
     xmpi_left   = xmpi_rank - xmpi_m
     xmpi_isleft = .false.
     if (xmpi_left .lt. 0) then
+         select case (cyclic)
+          case(0)
        xmpi_left   = MPI_PROC_NULL
        xmpi_isleft = .true.
+          case(1)
+            xmpi_left   = xmpi_left + xmpi_m*xmpi_n
+         end select
     endif
 
     ! Right neighbour:
@@ -261,8 +356,13 @@ contains
     xmpi_right   = xmpi_rank + xmpi_m
     xmpi_isright = .false.
     if (xmpi_right .ge. xmpi_size) then
+         select case (cyclic)
+          case(0)
        xmpi_right   = MPI_PROC_NULL
        xmpi_isright = .true.
+          case(1)
+            xmpi_right   = xmpi_right - xmpi_m*xmpi_n
+         end select
     endif
 
     ! Upper neighbour:
@@ -293,90 +393,176 @@ contains
     xmpi_prow = xmpi_prow+1
 
   end subroutine xmpi_determine_processor_grid
+   !____________________________________________________________________________
 
-  subroutine xmpi_bcast_array_logical(x)
+   subroutine xmpi_bcast_array_logical(x,toall)
+      implicit none
+      logical, dimension(:)         :: x
+      include 'xmpi_bcast.inc'
+   end subroutine xmpi_bcast_array_logical
+
+   subroutine xmpi_bcast_array_logical_3(x,src,comm)
     implicit none
     logical, dimension(:) :: x
+      integer, intent(in)           :: src
+      integer, intent(in)           :: comm
     integer ierror,l
     l = size(x)
-    call MPI_Bcast(x, l, MPI_LOGICAL, xmpi_master, xmpi_comm, ierror)
-  end subroutine xmpi_bcast_array_logical
+      call MPI_Bcast(x, l, MPI_LOGICAL, src, comm, ierror)
+   end subroutine xmpi_bcast_array_logical_3
 
-  subroutine xmpi_bcast_logical(x)
+   subroutine xmpi_bcast_logical(x,toall)
     implicit none
     logical x
-    integer ierror
-    call MPI_Bcast(x, 1, MPI_LOGICAL, xmpi_master, xmpi_comm, ierror)
+      include 'xmpi_bcast.inc'
   end subroutine xmpi_bcast_logical
 
-  subroutine xmpi_bcast_array_real8(x)
+   subroutine xmpi_bcast_logical_3(x,src,comm)
+      implicit none
+      logical x
+      integer, intent(in) :: src
+      integer, intent(in) :: comm
+      integer ierror
+      call MPI_Bcast(x, 1, MPI_LOGICAL, src, comm, ierror)
+   end subroutine xmpi_bcast_logical_3
+
+   subroutine xmpi_bcast_array_real8(x,toall)
     implicit none
     real*8, dimension(:) :: x
+      include 'xmpi_bcast.inc'
+   end subroutine xmpi_bcast_array_real8
+
+   subroutine xmpi_bcast_array_real8_3(x,src,comm)
+      implicit none
+      real*8, dimension(:):: x
+      integer, intent(in) :: src,comm
     integer ierror,l
     l = size(x)
-    call MPI_Bcast(x, l, MPI_DOUBLE_PRECISION, xmpi_master, xmpi_comm, ierror)
-  end subroutine xmpi_bcast_array_real8
+      call MPI_Bcast(x, l, MPI_DOUBLE_PRECISION, src, comm, ierror)
+   end subroutine xmpi_bcast_array_real8_3
 
-  subroutine xmpi_bcast_matrix_real8(x)
+   subroutine xmpi_bcast_matrix_real8(x,toall)
     implicit none
     real*8, dimension(:,:) :: x
+      include 'xmpi_bcast.inc'
+   end subroutine xmpi_bcast_matrix_real8
+
+   subroutine xmpi_bcast_matrix_real8_3(x,src,comm)
+      implicit none
+      real*8, dimension(:,:)  :: x
+      integer, intent(in)     :: src,comm
     integer ierror,l
     l = size(x)
-    call MPI_Bcast(x, l, MPI_DOUBLE_PRECISION, xmpi_master, xmpi_comm, ierror)
-  end subroutine xmpi_bcast_matrix_real8
+      call MPI_Bcast(x, l, MPI_DOUBLE_PRECISION, src, comm, ierror)
+   end subroutine xmpi_bcast_matrix_real8_3
 
-  subroutine xmpi_bcast_matrix_integer(x)
+   subroutine xmpi_bcast_matrix_integer(x,toall)
+      implicit none
+      integer, dimension(:,:)   :: x
+      include 'xmpi_bcast.inc'
+   end subroutine xmpi_bcast_matrix_integer
+
+   subroutine xmpi_bcast_matrix_integer_3(x,src,comm)
     implicit none
     integer, dimension(:,:) :: x
+      integer, intent(in)       :: src,comm
     integer ierror,l
     l = size(x)
-    call MPI_Bcast(x, l, MPI_INTEGER, xmpi_master, xmpi_comm, ierror)
-  end subroutine xmpi_bcast_matrix_integer
+      call MPI_Bcast(x, l, MPI_INTEGER, src, comm, ierror)
+   end subroutine xmpi_bcast_matrix_integer_3
 
-  subroutine xmpi_bcast_array_integer(x)
+   subroutine xmpi_bcast_array_integer(x,toall)
+      implicit none
+      integer, dimension(:)   :: x
+      include 'xmpi_bcast.inc'
+   end subroutine xmpi_bcast_array_integer
+
+   subroutine xmpi_bcast_array_integer_3(x,src,comm)
     implicit none
     integer, dimension(:) :: x
+      integer, intent(in)     :: src,comm
     integer ierror,l
     l = size(x)
-    call MPI_Bcast(x, l, MPI_INTEGER, xmpi_master, xmpi_comm, ierror)
-  end subroutine xmpi_bcast_array_integer
+      call MPI_Bcast(x, l, MPI_INTEGER, src, comm, ierror)
+   end subroutine xmpi_bcast_array_integer_3
 
-  subroutine xmpi_bcast_real4(x)
+   subroutine xmpi_bcast_real4(x,toall)
     implicit none
-    real*4 x
-    integer ierror
-    call MPI_Bcast(x, 1, MPI_REAL, xmpi_master, xmpi_comm, ierror)
+      real*4              :: x
+      include 'xmpi_bcast.inc'
   end subroutine xmpi_bcast_real4
 
-  subroutine xmpi_bcast_real8(x)
+   subroutine xmpi_bcast_real4_3(x,src,comm)
     implicit none
-    real*8 x
+      real*4              :: x
+      integer, intent(in) :: src,comm
     integer ierror
-    call MPI_Bcast(x, 1, MPI_DOUBLE_PRECISION, xmpi_master, xmpi_comm, ierror)
+      call MPI_Bcast(x, 1, MPI_REAL, src, comm, ierror)
+   end subroutine xmpi_bcast_real4_3
+
+   subroutine xmpi_bcast_real8(x,toall)
+      implicit none
+      real*8              :: x
+      include 'xmpi_bcast.inc'
   end subroutine xmpi_bcast_real8
 
-  subroutine xmpi_bcast_int(x)
+   subroutine xmpi_bcast_real8_3(x,src,comm)
     implicit none
-    integer x
+      real*8              :: x
+      integer, intent(in) :: src,comm
     integer ierror
-    call MPI_Bcast(x, 1, MPI_INTEGER, xmpi_master, xmpi_comm, ierror)
-  end subroutine xmpi_bcast_int
+      call MPI_Bcast(x, 1, MPI_DOUBLE_PRECISION, src, comm, ierror)
+   end subroutine xmpi_bcast_real8_3
 
-  subroutine xmpi_bcast_int8(x)
-    implicit none
-    integer*8 x
-    integer ierror
-    call MPI_Bcast(x, 1, MPI_INTEGER8, xmpi_master, xmpi_comm, ierror)
-  end subroutine xmpi_bcast_int8
+   subroutine xmpi_bcast_integer(x,toall)
+      implicit none
+      integer x
+      include 'xmpi_bcast.inc'
+   end subroutine xmpi_bcast_integer
 
-  subroutine xmpi_bcast_complex16(x)
+   subroutine xmpi_bcast_integer_3(x,src,comm)
     implicit none
-    complex*16 x
+      integer             :: x
+      integer, intent(in) :: src,comm
     integer ierror
-    call MPI_Bcast(x, 1, MPI_DOUBLE_COMPLEX, xmpi_master, xmpi_comm, ierror)
+      call MPI_Bcast(x, 1, MPI_INTEGER, src, comm, ierror)
+   end subroutine xmpi_bcast_integer_3
+
+   subroutine xmpi_bcast_integer8(x,toall)
+      implicit none
+      integer*8                     :: x
+      include 'xmpi_bcast.inc'
+   end subroutine xmpi_bcast_integer8
+
+   subroutine xmpi_bcast_integer8_3(x,src,comm)
+    implicit none
+      integer*8           :: x
+      integer, intent(in) :: src,comm
+    integer ierror
+      call MPI_Bcast(x, 1, MPI_INTEGER8, src, comm, ierror)
+   end subroutine xmpi_bcast_integer8_3
+
+   subroutine xmpi_bcast_complex16(x,toall)
+      implicit none
+      complex*16          :: x
+      include 'xmpi_bcast.inc'
   end subroutine xmpi_bcast_complex16
 
-  subroutine xmpi_bcast_char(x)
+   subroutine xmpi_bcast_complex16_3(x,src,comm)
+      implicit none
+      complex*16          :: x
+      integer, intent(in) :: src,comm
+      integer ierror
+      call MPI_Bcast(x, 1, MPI_DOUBLE_COMPLEX, src, comm, ierror)
+   end subroutine xmpi_bcast_complex16_3
+
+   subroutine xmpi_bcast_char(x,toall)
+      implicit none
+      character(len=*)         :: x
+      include 'xmpi_bcast.inc'
+   end subroutine xmpi_bcast_char
+
+   subroutine xmpi_bcast_char_3(x,src,comm)
     !
     ! wwvv convert string to integer array, 
     !  broadcast integer array and convert back
@@ -385,26 +571,28 @@ contains
     !
     implicit none
     character(len=*)                   :: x
+      integer, intent(in)      :: src,comm
 
-    integer                            :: l,i
+      integer                  :: l,i,rank,ierr
     integer, allocatable, dimension(:) :: sx
 
-    if (xmaster) then
+      call MPI_Comm_rank(comm,rank,ierr)
+      if (rank == src) then
        l = len_trim(x)
     endif
 
-    call xmpi_bcast(l)
+      call xmpi_bcast(l,src,comm)
     allocate(sx(l))
 
-    if (xmaster) then
+      if (rank == src) then
        do i = 1,l
           sx(i) = ichar(x(i:i))
        enddo
     endif
 
-    call xmpi_bcast(sx)
+      call xmpi_bcast(sx,src,comm)
 
-    if ( .not. xmaster) then
+      if ( rank /= src) then
        x = ' '
        do i = 1,l
           x(i:i) = char(sx(i))
@@ -413,7 +601,8 @@ contains
 
     deallocate(sx)
 
-  end subroutine xmpi_bcast_char
+   end subroutine xmpi_bcast_char_3
+
 
   subroutine xmpi_sendrecv_r1(sendbuf,dest,recvbuf,source)
     implicit none
@@ -1009,6 +1198,159 @@ contains
     if(xmaster)print *,'shift_zs_r3:',MPI_Wtime()-ttt
 #endif
   end subroutine xmpi_shift_zs_r3
+   !________________________________________________________________________________
+
+   subroutine xmpi_send_r0(from,to,x)
+      ! use this to send to one process, in communicator xmpi_ocomm
+      ! receiver and sender call this same subroutine with the same
+      ! from and to
+      integer, intent(in)    :: from,to
+      real*8, intent(inout)  :: x
+
+      integer ier
+      ! MPI_SEND(BUF, COUNT, DATATYPE, DEST, TAG, COMM, IERROR)
+      ! MPI_RECV(BUF, COUNT, DATATYPE, SOURCE, TAG, COMM, STATUS, IERROR)
+
+      if (from .eq. to) return
+
+      if (xmpi_orank .eq. from) then
+         call MPI_Send(x, 1, MPI_DOUBLE_PRECISION, to, 1011, xmpi_ocomm, ier)
+      elseif (xmpi_orank .eq. to) then
+         call MPI_Recv(x, 1, MPI_DOUBLE_PRECISION, from, 1011, xmpi_ocomm, MPI_STATUS_IGNORE, ier)
+      endif
+   end subroutine xmpi_send_r0
+   !________________________________________________________________________________
+
+   subroutine xmpi_send_i0(from,to,x)
+      ! use this to send to one process, in communicator xmpi_ocomm
+      ! receiver and sender call this same subroutine with the same
+      ! from and to
+      integer, intent(in)     :: from,to
+      integer, intent(inout)  :: x
+
+      integer ier
+      ! MPI_SEND(BUF, COUNT, DATATYPE, DEST, TAG, COMM, IERROR)
+      ! MPI_RECV(BUF, COUNT, DATATYPE, SOURCE, TAG, COMM, STATUS, IERROR)
+
+      if (from .eq. to) return
+
+      if (xmpi_orank .eq. from) then
+         call MPI_Send(x, 1, MPI_INTEGER, to, 1012, xmpi_ocomm, ier)
+      elseif (xmpi_orank .eq. to) then
+         call MPI_Recv(x, 1, MPI_INTEGER, from, 1012, xmpi_ocomm, MPI_STATUS_IGNORE, ier)
+      endif
+   end subroutine xmpi_send_i0
+   !________________________________________________________________________________
+
+   subroutine xmpi_send_l0(from,to,x)
+      ! use this to send to one process, in communicator xmpi_ocomm
+      ! receiver and sender call this same subroutine with the same
+      ! from and to
+      integer, intent(in)     :: from,to
+      logical, intent(inout)  :: x
+
+      integer ier
+      ! MPI_SEND(BUF, COUNT, DATATYPE, DEST, TAG, COMM, IERROR)
+      ! MPI_RECV(BUF, COUNT, DATATYPE, SOURCE, TAG, COMM, STATUS, IERROR)
+
+      if (from .eq. to) return
+
+      if (xmpi_orank .eq. from) then
+         call MPI_Send(x, 1, MPI_LOGICAL, to, 1013, xmpi_ocomm, ier)
+      elseif (xmpi_orank .eq. to) then
+         call MPI_Recv(x, 1, MPI_LOGICAL, from, 1013, xmpi_ocomm, MPI_STATUS_IGNORE, ier)
+      endif
+   end subroutine xmpi_send_l0
+   !________________________________________________________________________________
+
+   subroutine xmpi_send_r1(from,to,x)
+      ! use this to send to one process, in communicator xmpi_ocomm
+      ! receiver and sender call this same subroutine with the same
+      ! from and to
+      integer, intent(in)    :: from,to
+      real*8, intent(inout)  :: x(:)
+
+      integer ier
+      ! MPI_SEND(BUF, COUNT, DATATYPE, DEST, TAG, COMM, IERROR)
+      ! MPI_RECV(BUF, COUNT, DATATYPE, SOURCE, TAG, COMM, STATUS, IERROR)
+
+      if (from .eq. to) return
+
+      if (xmpi_orank .eq. from) then
+         call MPI_Send(x, size(x), MPI_DOUBLE_PRECISION, to, 1014, xmpi_ocomm, ier)
+      elseif (xmpi_orank .eq. to) then
+         call MPI_Recv(x, size(x), MPI_DOUBLE_PRECISION, from, 1014, xmpi_ocomm, MPI_STATUS_IGNORE, ier)
+      endif
+   end subroutine xmpi_send_r1
+   !________________________________________________________________________________
+
+   subroutine xmpi_send_i1(from,to,x)
+      ! use this to send to one process, in communicator xmpi_ocomm
+      ! receiver and sender call this same subroutine with the same
+      ! from and to
+      integer, intent(in)     :: from,to
+      integer, intent(inout)  :: x(:)
+
+      integer ier
+      ! MPI_SEND(BUF, COUNT, DATATYPE, DEST, TAG, COMM, IERROR)
+      ! MPI_RECV(BUF, COUNT, DATATYPE, SOURCE, TAG, COMM, STATUS, IERROR)
+
+      if (from .eq. to) return
+
+      if (xmpi_orank .eq. from) then
+         call MPI_Send(x, size(x), MPI_INTEGER, to, 1015, xmpi_ocomm, ier)
+      elseif (xmpi_orank .eq. to) then
+         call MPI_Recv(x, size(x), MPI_INTEGER, from, 1015, xmpi_ocomm, MPI_STATUS_IGNORE, ier)
+      endif
+   end subroutine xmpi_send_i1
+   !________________________________________________________________________________
+
+   subroutine xmpi_send_l1(from,to,x)
+      ! use this to send to one process, in communicator xmpi_ocomm
+      ! receiver and sender call this same subroutine with the same
+      ! from and to
+      integer, intent(in)     :: from,to
+      logical, intent(inout)  :: x(:)
+
+      integer ier
+      ! MPI_SEND(BUF, COUNT, DATATYPE, DEST, TAG, COMM, IERROR)
+      ! MPI_RECV(BUF, COUNT, DATATYPE, SOURCE, TAG, COMM, STATUS, IERROR)
+
+      if (from .eq. to) return
+
+      if (xmpi_orank .eq. from) then
+         call MPI_Send(x, size(x), MPI_LOGICAL, to, 1016, xmpi_ocomm, ier)
+      elseif (xmpi_orank .eq. to) then
+         call MPI_Recv(x, size(x), MPI_LOGICAL, from, 1016, xmpi_ocomm, MPI_STATUS_IGNORE, ier)
+      endif
+   end subroutine xmpi_send_l1
+   !________________________________________________________________________________
+
+   ! following sends one integer from 'from' to 'to'.
+   ! The receive by 'to' is done using a sleep/MPI_Test cycle
+   ! to prevent cpu usage when waiting for the message.
+   ! 'from' and 'to' in xmpi_ocomm
+
+   subroutine xmpi_send_sleep(from,to)
+      use sleeper
+      integer, intent(in) :: from,to
+
+      integer             :: ier, request
+      integer             :: buf = 0
+      logical             :: flag
+
+      if (xmpi_orank .eq. from) then
+         call MPI_Send(buf, 1, MPI_INTEGER, to, 1017, xmpi_ocomm, ier)
+      elseif (xmpi_orank .eq. to) then
+         call MPI_Irecv(buf, 1, MPI_INTEGER, from, 1017, xmpi_ocomm, request, ier)
+         do
+            call MPI_test(request, flag, MPI_STATUS_IGNORE, ier)
+            if (flag) exit
+            call myusleep(2000) ! sleep 2 milliseconds
+         enddo
+      endif
+   end subroutine xmpi_send_sleep
+   !________________________________________________________________________________
 
   subroutine testje
     implicit none
@@ -1024,10 +1366,17 @@ contains
     call xmpi_shift_zs(y)
     end subroutine testje
 
-  subroutine xmpi_barrier
+   subroutine xmpi_barrier(toall)
     implicit none
-    integer ierror
-    call MPI_Barrier(xmpi_comm,ierror)
+      logical, intent(in), optional :: toall
+      integer ierror,comm
+      comm = xmpi_comm
+      if (present(toall)) then
+         if(toall) then
+            comm = xmpi_ocomm
+         endif
+      endif
+      call MPI_Barrier(comm,ierror)
   end subroutine xmpi_barrier
 
   !
@@ -1095,7 +1444,7 @@ contains
 
 #endif
   subroutine halt_program
-    write(0,*) 'halt_program called by process', xmpi_rank
+      write(0,*) 'halt_program called by process', xmpi_orank
     call backtrace
 #ifdef USEMPI
     call xmpi_abort
@@ -1103,7 +1452,9 @@ contains
     stop 1
 #endif
   end subroutine halt_program
+
 end module xmpi_module
+
 
 #ifdef USEMPI
 subroutine comm_errhandler(comm,error_code)
@@ -1152,5 +1503,4 @@ subroutine backtrace
   print *,x
 end subroutine backtrace
 #endif
-
 

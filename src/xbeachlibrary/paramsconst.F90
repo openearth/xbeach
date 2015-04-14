@@ -1,4 +1,6 @@
 module paramsconst
+  implicit none
+  save
   integer, parameter :: TURB_NONE                   =  0
   integer, parameter :: TURB_BORE_AVERAGED          =  1
   integer, parameter :: TURB_WAVE_AVERAGED          =  2

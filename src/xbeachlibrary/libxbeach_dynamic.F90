@@ -5,6 +5,7 @@ module libxbeach_dynamic
   use logging_module
 
   implicit none
+  save
  
   contains
 

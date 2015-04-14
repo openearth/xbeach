@@ -1,5 +1,8 @@
 module mnemmodule
   use typesandkinds
+  implicit none
+  save
+
   include 'mnemonic.gen'
 
   type arraytype

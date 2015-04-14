@@ -11,6 +11,7 @@ module nonh_module
 
 
   implicit none
+  save
   
 
 ! If mpi is defined, the non-hydrostatic module is NOT included in the compilation
@@ -20,7 +21,6 @@ module nonh_module
 !                                 INTERFACE                                
 !******************************************************************************
     
-  save                            
   private
   
   !----------------------------- PARAMETERS -----------------------------------
@@ -135,6 +135,8 @@ contains
    
 !    open(unit=PrintFileUnit,file=trim(PrintFileName))
         
+    if(.not. xcompute) return
+
     allocate(au (0:1,s%nx+1,s%ny+1)); au = 0.0_rKind
     allocate(av (0:1,s%nx+1,s%ny+1)); av = 0.0_rKind  
     allocate(aws (5,s%nx+1,s%ny+1)) ; aws = 0.0_rKind

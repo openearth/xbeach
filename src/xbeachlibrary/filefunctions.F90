@@ -1,6 +1,8 @@
 module filefunctions
   use typesandkinds
   use paramsconst
+  implicit none
+  save
   interface check_file_length
      module procedure check_file_length_1D
      module procedure check_file_length_2D
@@ -15,13 +17,11 @@ contains
     integer    :: fileunit
 
     fileunit = -1 ! temporary
-    if (xmaster) then 
        fileunit = create_new_fid_generic()
        if (fileunit==-1) then
           call writelog('les','','Serious problem: not enough free unit ids to create new file')
           call halt_program
        endif
-    endif
     create_new_fid = fileunit   
   end function create_new_fid
 

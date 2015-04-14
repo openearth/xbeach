@@ -1,6 +1,11 @@
 module spaceparams
 use spaceparamsdef
+   use xmpi_module
+   use mnemmodule
   implicit none
+   save
+   !
+
 #ifdef USEMPI
 
   ! This interface an cause complains by memcache because the it is conditional on uninitialized variables.
@@ -82,43 +87,48 @@ contains
 
     type (arraytype) :: tl
     integer          :: i
+      logical, parameter :: toall = .true.
 
     do i=1,numvars
        call indextos(sl,i,tl)
        if (tl%rank .eq. 0) then
           if (tl%type .eq. 'i') then
-             call xmpi_bcast(tl%i0)
+               call xmpi_bcast(tl%i0,toall)
           else
-             call xmpi_bcast(tl%r0)
+               call xmpi_bcast(tl%r0,toall)
           endif
        endif
     enddo
 
   end subroutine space_distribute_scalars
-
-  subroutine space_distribute_matrix_real8(sl,a,b)
+   !________________________________________________________________________
+   subroutine space_distribute_matrix_real8(sl,a,b,toall)
     use xmpi_module
     use general_mpi_module
     implicit none
     type (spacepars), intent(inout)     :: sl
     real*8, dimension(:,:), intent(in)  :: a
     real*8, dimension(:,:), intent(out) :: b
-    call matrix_distr(a,b,sl%is,sl%lm,sl%js,sl%ln,xmpi_master,xmpi_comm)
+      include 'space_distribute.inc'
+      call matrix_distr(a,b,sl%is,sl%lm,sl%js,sl%ln,src,comm)
   end subroutine space_distribute_matrix_real8
 
-  subroutine space_distribute_matrix_integer(sl,a,b)
+   !________________________________________________________________________
+   subroutine space_distribute_matrix_integer(sl,a,b,toall)
     use xmpi_module
     use general_mpi_module
     implicit none
     type (spacepars), intent(inout)      :: sl
     integer, dimension(:,:), intent(in)  :: a
     integer, dimension(:,:), intent(out) :: b
+      include 'space_distribute.inc'
 
-    call matrix_distr(a,b,sl%is,sl%lm,sl%js,sl%ln,xmpi_master,xmpi_comm)
+      call matrix_distr(a,b,sl%is,sl%lm,sl%js,sl%ln,src,comm)
 
   end subroutine space_distribute_matrix_integer
 
-  subroutine space_distribute_block_real8(sl,a,b)
+   !________________________________________________________________________
+   subroutine space_distribute_block_real8(sl,a,b,toall)
     use xmpi_module
     use general_mpi_module
     implicit none
@@ -126,14 +136,22 @@ contains
     real*8, dimension(:,:,:), intent(in)           :: a
     real*8, dimension(:,:,:), intent(out)          :: b
 
+      real*8, dimension(1,1)                 :: dum
     integer                                        :: i
+      include 'space_distribute.inc'
+
     do i=1,size(b,3)   ! assuming that b is allocated on all processes
-       call matrix_distr(a(:,:,i),b(:,:,i),sl%is,sl%lm,sl%js,sl%ln,xmpi_master,xmpi_comm)
+         if (iamsrc) then
+            call matrix_distr(a(:,:,i),b(:,:,i),sl%is,sl%lm,sl%js,sl%ln,src,comm)
+         else
+            call matrix_distr(dum,     b(:,:,i),sl%is,sl%lm,sl%js,sl%ln,src,comm)
+         endif
     enddo
 
   end subroutine space_distribute_block_real8
+   !________________________________________________________________________
 
-  subroutine space_distribute_block_integer(sl,a,b)
+   subroutine space_distribute_block_integer(sl,a,b,toall)
     use xmpi_module
     use general_mpi_module
     implicit none
@@ -141,16 +159,23 @@ contains
     integer, dimension(:,:,:), intent(in)          :: a
     integer, dimension(:,:,:), intent(out)         :: b
 
+      integer, dimension(1,1)                :: dum
     integer                                        :: i
+      include 'space_distribute.inc'
 
     do i=1,size(b,3)   ! assuming that b is allocated on all processes
-       call matrix_distr(a(:,:,i),b(:,:,i),sl%is,sl%lm,sl%js,sl%ln,xmpi_master,xmpi_comm)
+         if(iamsrc) then
+            call matrix_distr(a(:,:,i),b(:,:,i),sl%is,sl%lm,sl%js,sl%ln,src,comm)
+         else
+            call matrix_distr(dum,     b(:,:,i),sl%is,sl%lm,sl%js,sl%ln,src,comm)
+         endif
+
     enddo
 
   end subroutine space_distribute_block_integer
+   !________________________________________________________________________
 
-
-  subroutine space_distribute_block4_real8(sl,a,b)
+   subroutine space_distribute_block4_real8(sl,a,b,toall)
     use xmpi_module
     use general_mpi_module
     implicit none
@@ -159,16 +184,23 @@ contains
     real*8, dimension(:,:,:,:), intent(out)        :: b
 
     integer                                        :: i,j
+      real*8, dimension(1,1)                         :: dum
+      include 'space_distribute.inc'
 
     do i=1,size(b,3)
        do j=1,size(b,4)
-          call matrix_distr(a(:,:,i,j),b(:,:,i,j),sl%is,sl%lm,sl%js,sl%ln,xmpi_master,xmpi_comm)
+            if(iamsrc) then
+               call matrix_distr(a(:,:,i,j),b(:,:,i,j),sl%is,sl%lm,sl%js,sl%ln,src,comm)
+            else
+               call matrix_distr(dum,       b(:,:,i,j),sl%is,sl%lm,sl%js,sl%ln,src,comm)
+            endif
        enddo
     enddo
 
   end subroutine space_distribute_block4_real8
+   !________________________________________________________________________
 
-  subroutine space_distribute_vector(xy,sl,a,b)
+   subroutine space_distribute_vector(xy,sl,a,b,toall)
     use xmpi_module
     use general_mpi_module
     implicit none
@@ -189,6 +221,7 @@ contains
     real*8, dimension(:), intent(out)         :: b
 
     integer, dimension(:), pointer    :: ijs,lmn
+      include 'space_distribute.inc'
 
     if(xy .eq.'x') then
        ijs => sl%is
@@ -197,11 +230,12 @@ contains
        ijs => sl%js
        lmn => sl%ln
     endif
-    call vector_distr_send(a,b,ijs,lmn,xmpi_master,xmpi_comm)
+      call vector_distr(a,b,ijs,lmn,src,comm)
 
   end subroutine space_distribute_vector
+   !________________________________________________________________________
 
-  subroutine space_distribute_block_vector(xy,sl,a,b)
+   subroutine space_distribute_block_vector(xy,sl,a,b,toall)
     use xmpi_module
     use general_mpi_module
     implicit none
@@ -211,6 +245,7 @@ contains
     real*8, dimension(:,:), intent(out) :: b
 
 !    integer                             :: i
+      include 'space_distribute.inc'
 
     !DF  do i=1,sl%ntheta
 !    do i=1,size(b,2)
@@ -219,13 +254,15 @@ contains
  
     select case(xy)
     case('y')
-      call block_vector_distr_y(a,b,sl%js,sl%ln,xmpi_master,xmpi_comm)
+         call vector_distr(a,b,sl%js,sl%ln,src,comm)
     case default
-      print *,'Error in space_distribute_block_vector, other than "y" not implemented'
+         print *,'error in space_distribute_block_vector, other than "y" not tested'
       call xmpi_abort()
     end select
 
   end subroutine space_distribute_block_vector
+   !________________________________________________________________________
+
 
   subroutine space_distribute_space(sg,sl,par)
     use xmpi_module
@@ -244,13 +281,22 @@ contains
     real*8, pointer, dimension(:)   :: vectorg, vectorl
     type (arraytype)                :: tg, tl
 
+      logical, parameter :: toall = .true.
+      integer, parameter :: nbord = 2
+      character(1000)    :: txt
+
     !
     ! This subroutine takes care that all contents of the global
     ! space is distributed to the local space.
     !
 
+      ! allocate scalars
+
+      !call space_alloc_scalars(sl)
+
     ! copy scalars to sl, only on master
     ! distributing will take place later
+
 
     if(xmaster) then
        call space_copy_scalars(sg,sl)
@@ -258,6 +304,7 @@ contains
 
     ! copy scalars to all processes, nx and ny will be adapted later
     call space_distribute_scalars(sl)
+      call space_distribute_scalars(sg)
 
     ! Also, the isleft, isright, istop and isbot logicals from
     ! the xmpi module are put in sg and sl.
@@ -306,6 +353,72 @@ contains
        call writelog('l','','--------------------------------')
     endif
 
+      ! determine the computational regions, i.e. the parts of the matrices
+      ! that are computed in the processes.
+      ! In general, the 2 borders left, right, top and bottom are not
+      ! computed but received from the neighbours.
+      ! Exceptions for the rows and colomns of left, right, top or
+      ! bottom processes.
+      !
+      ! icgs, icge: start and end indices in global coordinates 1st dimension
+      ! jcgs: jcge: start and end indices in global coordinates 2nd dimension
+      ! icls, icle: start and end indices in local coordinates 1st dimension
+      ! jcls, jcle: start and end indices in local coordinates 2nd dimension
+
+      if (xmaster) then
+         allocate (sg%icgs(xmpi_size))
+         allocate (sg%icge(xmpi_size))
+         allocate (sg%jcgs(xmpi_size))
+         allocate (sg%jcge(xmpi_size))
+         allocate (sg%icls(xmpi_size))
+         allocate (sg%icle(xmpi_size))
+         allocate (sg%jcls(xmpi_size))
+         allocate (sg%jcle(xmpi_size))
+      endif
+
+      allocate (sl%icgs(xmpi_size))
+      allocate (sl%icge(xmpi_size))
+      allocate (sl%jcgs(xmpi_size))
+      allocate (sl%jcge(xmpi_size))
+      allocate (sl%icls(xmpi_size))
+      allocate (sl%icle(xmpi_size))
+      allocate (sl%jcls(xmpi_size))
+      allocate (sl%jcle(xmpi_size))
+
+      if (xmaster) then
+         do i = 1,xmpi_size
+            sg%icgs(i) = sg%is(i) + nbord
+            sg%icge(i) = sg%is(i) + sg%lm(i) - 1 - nbord
+            sg%jcgs(i) = sg%js(i) + nbord
+            sg%jcge(i) = sg%js(i) + sg%ln(i) - 1 - nbord
+            sg%icls(i) = nbord + 1
+            sg%icle(i) = sg%lm(i) - nbord
+            sg%jcls(i) = nbord + 1
+            sg%jcle(i) = sg%ln(i) - nbord
+
+            if (sg%istop(i)) then
+               sg%icgs(i) = sg%icgs(i) - nbord
+               sg%icls(i) = sg%icls(i) - nbord
+            endif
+
+            if (sg%isbot(i)) then
+               sg%icge(i) = sg%icge(i) + nbord
+               sg%icle(i) = sg%icle(i) + nbord
+            endif
+
+            if (sg%isleft(i)) then
+               sg%jcgs(i) = sg%jcgs(i) - nbord
+               sg%jcls(i) = sg%jcls(i) - nbord
+            endif
+
+            if (sg%isright(i)) then
+               sg%jcge(i) = sg%jcge(i) + nbord
+               sg%jcle(i) = sg%jcle(i) + nbord
+            endif
+
+         enddo
+      endif
+
     if (xmaster) then
        sl%is       = sg%is
        sl%js       = sg%js
@@ -315,23 +428,55 @@ contains
        sl%isright  = sg%isright
        sl%istop    = sg%istop
        sl%isbot    = sg%isbot
-    endif
 
-    call xmpi_bcast(sl%is)
-    call xmpi_bcast(sl%js)
-    call xmpi_bcast(sl%lm)
-    call xmpi_bcast(sl%ln)
-    call xmpi_bcast(sl%isleft)
-    call xmpi_bcast(sl%isright)
-    call xmpi_bcast(sl%istop)
-    call xmpi_bcast(sl%isbot)
+         sl%icgs     = sg%icgs
+         sl%icge     = sg%icge
+         sl%jcgs     = sg%jcgs
+         sl%jcge     = sg%jcge
+         sl%icls     = sg%icls
+         sl%icle     = sg%icle
+         sl%jcls     = sg%jcls
+         sl%jcle     = sg%jcle
+      endif
+
+      call xmpi_bcast(sl%is,toall)
+      call xmpi_bcast(sl%js,toall)
+      call xmpi_bcast(sl%lm,toall)
+      call xmpi_bcast(sl%ln,toall)
+      call xmpi_bcast(sl%isleft,toall)
+      call xmpi_bcast(sl%isright,toall)
+      call xmpi_bcast(sl%istop,toall)
+      call xmpi_bcast(sl%isbot,toall)
+
+      call xmpi_bcast(sl%icgs,toall)
+      call xmpi_bcast(sl%icge,toall)
+      call xmpi_bcast(sl%jcgs,toall)
+      call xmpi_bcast(sl%jcge,toall)
+      call xmpi_bcast(sl%icls,toall)
+      call xmpi_bcast(sl%icle,toall)
+      call xmpi_bcast(sl%jcls,toall)
+      call xmpi_bcast(sl%jcle,toall)
+
+      if (xmaster) then
+         call writelog('l','','--------------------------------')
+         call writelog('sl','','computational domains on processors')
+         call writelog('sl','','   proc   icgs   icge   jcgs   jcge   icls   icle   jcls   jcle')
+         do i=1,xmpi_size
+            write(txt,'(9i7)')i-1,sg%icgs(i),sg%icge(i),sg%jcgs(i),sg%jcge(i), &
+            sg%icls(i),sg%icle(i),sg%jcls(i),sg%jcle(i)
+            call writelog('sl','',txt)
+         enddo
+         call writelog('l','','--------------------------------')
+      endif
 
     !
     ! compute the values for local nx and ny
     !
 
-    sl%nx = sl%lm(xmpi_rank+1) - 1 
-    sl%ny = sl%ln(xmpi_rank+1) - 1
+    if(xcompute) then
+      sl%nx = sl%lm(xmpi_rank+1) - 1 
+      sl%ny = sl%ln(xmpi_rank+1) - 1
+    endif
 
 
     !
@@ -343,11 +488,10 @@ contains
     ! for each variable in sg, find out how to distribute it
     ! and distribute
     !
+
     do i = 1,numvars
 
-       if(xmaster) then
-          call indextos(sg,i,tg)
-       endif
+       call indextos(sg,i,tg)
        call indextos(sl,i,tl)
        select case (tl%btype)
        case('b')           ! have to broadcast this
@@ -367,12 +511,12 @@ contains
                 if(xmaster) then
                    tl%i1 = tg%i1
                 endif
-                call xmpi_bcast(tl%i1)
+                  call xmpi_bcast(tl%i1,toall)
               case(2)   ! wwvv : try to fix error with integer pdish
                 if(xmaster) then
                    tl%i2 = tg%i2
                 endif
-                call xmpi_bcast(tl%i2)
+                  call xmpi_bcast(tl%i2,toall)
              case default
                 goto 100
              end select   ! rank
@@ -390,12 +534,12 @@ contains
                 if(xmaster) then
                    tl%r1 = tg%r1
                 endif
-                call xmpi_bcast(tl%r1)
+                call xmpi_bcast(tl%r1,toall)
              case(2)
                 if(xmaster) then
                    tl%r2 = tg%r2
                 endif
-                call xmpi_bcast(tl%r2)
+                  call xmpi_bcast(tl%r2,toall)
              case default
                 goto 100
              end select   ! rank
@@ -418,11 +562,11 @@ contains
           case ('r')
              select case(tl%rank)
              case(1)
-                select case(tl%name)
                    !         Robert: these don't exist anymore?
                    !            case(mnem_xz,mnem_xu)
                    !              call space_distribute_vector('x',sl,tg%r1,tl%r1)
                    !            case(mnem_yz, mnem_yv, mnem_bi)
+                  select case(tl%name)
                 case(mnem_bi)
                    call space_distribute_vector('y',sl,tg%r1,tl%r1)
                 case(mnem_runup)
@@ -453,6 +597,7 @@ contains
              case(4)
                 call space_distribute(sl,tg%r4,tl%r4)
              case default
+                  continue
              end select  ! rank
           case default
              goto 100
@@ -462,6 +607,9 @@ contains
           ! dimension 2,s%ny+1
           if(xmaster) then
              allocate(vectorg(sg%ny+1))
+            else
+               allocate(vectorg(1))
+               vectorg = 0
           endif
           allocate(vectorl(sl%ny+1))
           ! Let's keep this 2 case explicit. (because tg%r2 is only known on master)
@@ -538,10 +686,18 @@ contains
     real*8, dimension(:,:,:), intent(in)   :: b
 
     integer i
+      real*8, dimension(1,1) :: dum
+
     do i = 1,size(b,3)
+         if (xomaster) then
        call matrix_coll(a(:,:,i),b(:,:,i),s%is,s%lm,s%js,s%ln, &
             s%isleft,s%isright,s%istop,s%isbot, &
-            xmpi_master,xmpi_comm)
+            xmpi_omaster,xmpi_ocomm)
+         else
+            call matrix_coll(dum,     b(:,:,i),s%is,s%lm,s%js,s%ln, &
+            s%isleft,s%isright,s%istop,s%isbot, &
+            xmpi_omaster,xmpi_ocomm)
+         endif
     enddo
 
   end subroutine space_collect_block_real8
@@ -558,8 +714,10 @@ contains
 
     !real*8, dimension(:,:,:), allocatable :: ra,rb
     ! wwvv changed this into 
+      ! wwvv huh?  TODO
     integer, dimension(:,:,:), allocatable :: ra,rb
     integer                             :: m,n,o
+      integer, dimension(1,1)                :: dum
 
     m = size(b,1)
     n = size(b,2)
@@ -567,7 +725,7 @@ contains
 
     allocate(rb(m,n,o))
 
-    if (xmaster) then
+      if (xomaster) then
        m = size(a,1)
        n = size(a,2)
        o = size(a,3)
@@ -579,12 +737,18 @@ contains
     rb = b
 
     do i = 1,o
+         if(xomaster) then
        call matrix_coll(ra(:,:,i),rb(:,:,i),s%is,s%lm,s%js,s%ln, &
             s%isleft,s%isright,s%istop,s%isbot, &
-            xmpi_master,xmpi_comm)
+            xmpi_omaster,xmpi_ocomm)
+         else
+            call matrix_coll(dum,      rb(:,:,i),s%is,s%lm,s%js,s%ln, &
+            s%isleft,s%isright,s%istop,s%isbot, &
+            xmpi_omaster,xmpi_ocomm)
+         endif
     enddo
 
-    if (xmaster) then
+      if (xomaster) then
        a = ra
     endif
 
@@ -601,11 +765,19 @@ contains
     real*8, dimension(:,:,:,:), intent(in)   :: b
 
     integer i,j
+      real*8, dimension(1,1) :: dum
+
     do j = 1,size(b,4)
        do i = 1,size(b,3)
+            if (xomaster) then
           call matrix_coll(a(:,:,i,j),b(:,:,i,j),s%is,s%lm,s%js,s%ln, &
                s%isleft,s%isright,s%istop,s%isbot, &
-               xmpi_master,xmpi_comm)
+               xmpi_omaster,xmpi_ocomm)
+            else
+               call matrix_coll(dum,       b(:,:,i,j),s%is,s%lm,s%js,s%ln, &
+               s%isleft,s%isright,s%istop,s%isbot, &
+               xmpi_omaster,xmpi_ocomm)
+            endif
        enddo
     enddo
 
@@ -620,11 +792,19 @@ contains
     integer, dimension(:,:,:,:), intent(in)   :: b
 
     integer i,j
+      integer :: dum(1,1)
+
     do j = 1,size(b,4)
        do i = 1,size(b,3)
+            if(xomaster) then
           call matrix_coll(a(:,:,i,j),b(:,:,i,j),s%is,s%lm,s%js,s%ln, &
                s%isleft,s%isright,s%istop,s%isbot, &
-               xmpi_master,xmpi_comm)
+               xmpi_omaster,xmpi_ocomm)
+            else
+               call matrix_coll(dum,       b(:,:,i,j),s%is,s%lm,s%js,s%ln, &
+               s%isleft,s%isright,s%istop,s%isbot, &
+               xmpi_omaster,xmpi_ocomm)
+            endif
        enddo
     enddo
 
@@ -640,7 +820,7 @@ contains
 
     call matrix_coll(a,b,s%is,s%lm,s%js,s%ln, &
          s%isleft,s%isright,s%istop,s%isbot, &
-         xmpi_master,xmpi_comm)
+      xmpi_omaster,xmpi_ocomm)
 
   end subroutine space_collect_matrix_real8
 
@@ -669,7 +849,7 @@ contains
 
     allocate(rb(m,n))
 
-    if (xmaster) then
+      if (xomaster) then
        m = size(a,1)
        n = size(a,2)
        allocate(ra(m,n))
@@ -681,9 +861,9 @@ contains
 
     call matrix_coll(ra,rb,s%is,s%lm,s%js,s%ln, &
          s%isleft,s%isright,s%istop,s%isbot, &
-         xmpi_master,xmpi_comm)
+      xmpi_omaster,xmpi_ocomm)
 
-    if (xmaster) then
+      if (xomaster) then
        a = ra
     endif
 
@@ -700,43 +880,44 @@ contains
   !  using the index number of the variable to be
   !  collected
   !
-  subroutine space_collect_index(sg,sl,index)
+   subroutine space_collect_index(sg,sl,par,index)
     use xmpi_module
     use mnemmodule
     use logging_module
+      use params
     use indextos_module
     type(spacepars)                 :: sg
     type(spacepars), intent(in)     :: sl
+      type(parameters)                :: par
     integer, intent(in)             :: index
-    integer                         :: lid,eid, wid
 
+      integer                         :: lid,eid, wid,ierr
     type(arraytype)                 :: tg,tl
-
-
-#ifdef USEMPI
-    logical, dimension(numvars)         :: avail      ! .true.: this item is collected, used to
-    ! prevent double space_collect
-    ! calls for the same item
-    ! 
-#endif
-
-#ifdef USEMPI
-    avail = .false.
-#endif
-
+      logical                         :: iscollected
 
 #ifdef USEMPE
     call MPE_Log_event(event_coll_start,0,'cstart')
 #endif
 
-    if(avail(index)) then
+      if (xomaster) then
+         iscollected = sg%collected(index)
+      endif
+
+      call MPI_Bcast(iscollected,1,MPI_LOGICAL,xmpi_omaster,xmpi_ocomm,ierr)
+
+      ! return if this alreay has been collected
+      if(iscollected) then
        return
     endif
 
+#ifdef USEMPI
+      if (xomaster) then
+         call index_allocate(sg,par,index,'r')
+      endif
+#endif
+
     call indextos(sl,index,tl)
-    if(xmaster) then
        call indextos(sg,index,tg)
-    endif
 
     select case(tl%type)
     case('i')
@@ -766,12 +947,11 @@ contains
     case default
     end select   ! type
 
-    avail(index) = .true.
-
 #ifdef USEMPE
     call MPE_Log_event(event_coll_start,0,'cend')
 #endif
 
+      sg%collected(index) = .true.
     return
 
 100 continue
@@ -782,6 +962,19 @@ contains
     call halt_program
 
   end subroutine space_collect_index
+
+   subroutine space_collect_mnem(sg,sl,par,mnem)
+      use params
+      type(spacepars)                 :: sg
+      type(spacepars), intent(in)     :: sl
+      type(parameters)                :: par
+      character(*)                    :: mnem
+
+      integer index
+      index = chartoindex(mnem)
+      call space_collect_index(sg,sl,par,index)
+
+   end subroutine space_collect_mnem
 #endif
 
   subroutine gridprops (s)

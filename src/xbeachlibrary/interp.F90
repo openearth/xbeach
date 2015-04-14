@@ -1,6 +1,8 @@
 module interp
+   implicit none
+   save
 contains
-  PURE SUBROUTINE linear_interp_2d(X,nx,Y,ny,Z,xx,yy,zz,method,exception)
+   pure subroutine linear_interp_2d(X,nx,Y,ny,Z,xx,yy,zz,method,exception)
 
     implicit none
     ! input/output
@@ -78,7 +80,7 @@ contains
        endselect
     endif
 
-  END SUBROUTINE linear_interp_2d
+ end subroutine linear_interp_2d
 
 !
 ! NAME
@@ -97,7 +99,7 @@ contains
 !
 ! SOURCE
 !
-  PURE SUBROUTINE LINEAR_INTERP(X, Y, N, XX, YY, INDINT)
+pure subroutine linear_interp(x, y, n, xx, yy, indint)
     integer,              intent(in) :: n
     real*8, dimension(n), intent(in) :: x
     real*8, dimension(n), intent(in) :: y
@@ -114,43 +116,43 @@ contains
     integer          :: j
 
     yy = 0.0d0
-    IF ( present(indint) ) then
+      if ( present(indint) ) then
        indint = 0
-    ENDIF
+      endif
 
-    IF (N.LE.0) return
+      if (n.le.0) return
     !
     ! *** N GREATER THAN 0
     !
-    IF (N.EQ.1) THEN
-       YY = Y(1)
+      if (n.eq.1) then
+         yy = y(1)
        return
-    ENDIF
+      endif
 
-    CALL binary_search( x, N, xx, j )
+      call binary_search( x, n, xx, j )
 
-    IF ( j .LE. 0 ) THEN
+      if ( j .le. 0 ) then
        yy = y(1)
-    ELSEIF ( j .GE. n ) THEN
+      elseif ( j .ge. n ) then
        yy = y(n)
-    ELSE
+      else
        a = x (j+1)
        b = x (j)
-       IF ( a .eq. b ) THEN
+         if ( a .eq. b ) then
           dyy = 0.0d0
-       ELSE
+         else
           dyy = (y(j+1) - y(j)) / (a - b)
-       ENDIF
+         endif
        yy = y(j) + (xx - x(j)) * dyy
-    ENDIF
+      endif
 
-    IF ( present(indint) ) then
+      if ( present(indint) ) then
        indint = j
-    ENDIF
+      endif
 
-    RETURN
+      return
 
-  END SUBROUTINE LINEAR_INTERP
+   end subroutine linear_interp
 
   !****f* Interpolation/binary_search
   !
@@ -172,7 +174,7 @@ contains
   !
   ! SOURCE
   !
-  PURE SUBROUTINE BINARY_SEARCH(XX, N, X, J) 
+   pure subroutine binary_search(xx, n, x, j)
     integer,              intent(in) :: N
     real*8, dimension(N), intent(in) :: xx
     real*8, intent(in)               :: x
@@ -194,28 +196,28 @@ contains
     !
     ! Local variables
     !
-    Integer   jl, ju, jm
-    LOGICAL   L1, L2
+      integer   jl, ju, jm
+      logical   l1, l2
 
-    JL = 0
-    JU = N+1
-10  IF (JU-JL .GT. 1) THEN
-       JM = (JU+JL)/2
-       L1 = XX(N) .GT. XX(1)
-       L2 = X .GT. XX(JM)
-       IF ( (L1.AND.L2) .OR. (.NOT. (L1 .OR. L2)) ) THEN
-          JL = JM
-       ELSE
-          JU = JM
-       ENDIF
-       GOTO 10
-    ENDIF
+      jl = 0
+      ju = n+1
+10    if (ju-jl .gt. 1) then
+         jm = (ju+jl)/2
+         l1 = xx(n) .gt. xx(1)
+         l2 = x .gt. xx(jm)
+         if ( (l1.and.l2) .or. (.not. (l1 .or. l2)) ) then
+            jl = jm
+         else
+            ju = jm
+         endif
+         goto 10
+      endif
 
-    J = JL
+      j = jl
 
-    RETURN
+      return
 
-  END SUBROUTINE BINARY_SEARCH
+   end subroutine binary_search
   
   subroutine mkmap(code      ,x1        ,y1        ,m1        ,n1        , &
                    & x2        ,y2        ,n2        ,xs        ,ys        , &
@@ -870,8 +872,8 @@ contains
   !  Stichting Deltares. All rights reserved.                                     
   !                                                                               
   !-------------------------------------------------------------------------------
-  !  $Id$
-  !  $HeadURL$
+      !  $Id$
+      !  $HeadURL$
   !!--description-----------------------------------------------------------------
   ! NONE
   !!--pseudo code and references--------------------------------------------------
@@ -1101,6 +1103,7 @@ contains
     ! Compute integral over function y(x) from x1 to x2
     ! x is equidistant
     !(c)2014 Dano Roelvink
+      implicit none
     integer,              intent(in)    :: n
     real*8, dimension(n), intent(in)    :: x,y          ! arrays x and y(x)
     real*8,               intent(in)    :: x1_in,x2_in  ! integration limits                                          
@@ -1139,6 +1142,7 @@ contains
     ! Compute integral over function y(x) from x1 to x2
     ! x is equidistant, function is cyclic so y(x+k*xcycle)=y(x)
     !(c)2014 Dano Roelvink
+      implicit none
     integer,              intent(in)    :: n
     real*8, dimension(n), intent(in)    :: x,y          ! arrays x and y(x)
     real*8,               intent(in)    :: x1,x2,xcycle ! integration limits,cycle length                                          
@@ -1174,6 +1178,7 @@ contains
 end subroutine trapezoidal_cyclic
   
   subroutine interp_using_trapez_rule(x,y,n,xcycle,xtarg,ytarg,ntarg)
+      implicit none
     ! Compute integral over function y(x) from x1 to x2
     ! x is equidistant, function is cyclic so y(x+k*xcycle)=y(x)
     !(c)2014 Dano Roelvink
@@ -1196,6 +1201,7 @@ end subroutine trapezoidal_cyclic
   end subroutine interp_using_trapez_rule
     
   subroutine interp_in_cyclic_function(x,y,n,xcycle,xp,np,yp)
+      implicit none
     integer,               intent(in)    :: n
     real*8, dimension(n),  intent(in)    :: x,y          ! arrays x and y(x)
     real*8, dimension(:), allocatable    :: xc,yc        ! complemented cyclic arrays
@@ -1203,7 +1209,7 @@ end subroutine trapezoidal_cyclic
     integer,               intent(in)    :: np
     real*8, dimension(np), intent(in)    :: xp           ! points to interpolate to                                          
     real*8, dimension(np), intent(out)   :: yp	         ! interpolated yp values
-    integer                              :: icycle,ip,ileft,iright,nc
+      integer                              :: icycle,ip,ileft,iright,nc,i
     real*8                               :: dx,yleft,yright,facleft,facright
     
     dx=x(2)-x(1)

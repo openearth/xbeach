@@ -1,5 +1,6 @@
 module wave_boundary_main_module
    implicit none
+   save
    private
    public create_incident_waves
    ! This module is the main entry to generating wave boundary conditions in XBeach

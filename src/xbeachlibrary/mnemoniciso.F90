@@ -1,6 +1,8 @@
 module mnemiso_module
   use iso_c_binding
   use mnemmodule
+  implicit none
+  save
 
 
   type, bind(c) :: b_arraytype

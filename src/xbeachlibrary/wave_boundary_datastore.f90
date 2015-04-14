@@ -9,6 +9,7 @@ module wave_boundary_datastore
    ! These derived types are accessed by wave_boundary_main, wave_boundary_init and 
    ! wave_boundary_update
    implicit none
+   save
    !
    !
    ! Define derived type to store wave parameter information
@@ -69,9 +70,9 @@ module wave_boundary_datastore
    !
    !   
    ! Declare variables of type above
-   type(waveBoundaryParametersType), save       :: waveBoundaryParameters
-   type(waveBoundaryAdministrationType), save   :: waveBoundaryAdministration
-   type(waveBoundaryTimeSeriesType), save       :: waveBoundaryTimeSeries
-   type(waveSpectrumAdministrationType),save    :: waveSpectrumAdministration
+   type(waveBoundaryParametersType)       :: waveBoundaryParameters
+   type(waveBoundaryAdministrationType)   :: waveBoundaryAdministration
+   type(waveBoundaryTimeSeriesType)       :: waveBoundaryTimeSeries
+   type(waveSpectrumAdministrationType)   :: waveSpectrumAdministration
    
 end module wave_boundary_datastore

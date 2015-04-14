@@ -3,7 +3,14 @@ module params
   use mnemmodule
   use xmpi_module
   use paramsconst
+  implicit none
+  save
 
+  ! before using any routine from this module, take care of the value of params_inio
+  ! .true. : values will be broadcasted to all processes, including output process
+  ! otherwise: values will be broadcasted to compute processes only
+  !
+  logical :: params_inio = .false.
   type parameters
      ! These parameters are constants, variables read from params.txt, or are scalars derived directly from read input
      !
@@ -27,6 +34,7 @@ module params
      !
      !  Type             name                   initialize    !  [unit] (advanced/deprecated) description
      ! [Section] Physical processes
+     integer*4     :: cyclic                     = -123    !  [-] 1: cyclic boundary conditions
      integer*4     :: swave                      = -123    !  [-] Turn on short waves
      integer*4     :: lwave                      = -123    !  [-] Turn on short wave forcing on NLSW equations and boundary conditions
      integer*4     :: flow                       = -123    !  [-] Turn on flow calculation
@@ -64,6 +72,7 @@ module params
      integer*4     :: thetanaut                  = -123    !  [-] Switch to specify thetamin and thetamax in nautical convention rather than cartesian
      integer       :: gridform                   = -123    !  [name] Grid definition format
      character(slen) :: xyfile                   = 'abc'   !  [file] Name of the file containing Delft3D xy-coordinates of the calculation grid
+     character(slen):: gridform_str              = ' '     !  [name] Grid definition format
 
      ! [Section] Model time
      real*8        :: tstop                      = -123    !  [s] Stop time of simulation, in morphological time
@@ -82,6 +91,7 @@ module params
 
      ! [Section] Wave boundary condition parameters
      integer       :: instat                     = -123    !  [name] Wave boundary condition type
+     character(slen):: instat_str                = ' '     !  [-] Wave boundary condition type
      real*8        :: taper                      = -123    !  [s] Spin-up time of wave boundary conditions, in morphological time
      real*8        :: Hrms                       = -123    !  [m] Hrms wave height for instat = stat, bichrom, ts_1 or ts_2
      real*8        :: Tm01                       = -123    !  [s] (deprecated) Old name for Trep
@@ -91,8 +101,11 @@ module params
      real*8        :: nmax                       = -123    !  [-] (advanced) maximum ratio of cg/c for computing long wave boundary conditions
      integer*4     :: m                          = -123    !  [-] Power in cos^m directional distribution for instat = stat, bichrom, ts_1 or ts_2
      integer       :: lateralwave                = -123    !  [name] Switch for lateral boundary at left
+     character(slen):: lateralwave_str           = ' '
      integer       :: leftwave                   = -123    !  [-] (deprecated) old name for lateralwave
+     character(slen) :: leftwave_str             =  ' '    !  [-] old name for lateralwave
      integer       :: rightwave                  = -123    !  [-] (deprecated) old name for lateralwave
+     character(slen) :: rightwave_str            = ' '     !  [-] old name for lateralwave
 
      ! [Section] Wave-spectrum boundary condition parameters
      character(slen):: bcfile                    = 'abc'   !  [file] Name of spectrum file
@@ -114,9 +127,13 @@ module params
 
      ! [Section] Flow boundary condition parameters
      integer         :: front                    = -123    !  [name] Switch for seaward flow boundary
+     character(slen) :: front_str                =  ' '    !
      integer         :: left                     = -123    !  [name] Switch for lateral boundary at ny+1
+     character(slen) :: left_str                 =  ' '    !
      integer         :: right                    = -123    !  [name] Switch for lateral boundary at 0
+     character(slen) :: right_str                =  ' '    !
      integer         :: back                     = -123    !  [name] Switch for boundary at bay side
+     character(slen) :: back_str                 =  ' '    !
      integer*4     :: ARC                        = -123    !  [-] (advanced) Switch for active reflection compensation at seaward boundary
      real*8        :: order                      = -123    !  [-] (advanced) Switch for order of wave steering, 1 = first order wave steering (short wave energy only), 2 = second oder wave steering (bound long wave corresponding to short wave forcing is added)
      integer*4     :: freewave                   = -123    !  [-] (advanced) Switch for free wave propagation 0 = use cg (default); 1 = use sqrt(gh) in instat = ts_2
@@ -124,6 +141,7 @@ module params
      real*8        :: epsi                       = -123    !  [-] (advanced) Ratio of mean current to time varying current through offshore boundary
      integer*4     :: nc                         = -123    !  [-] (advanced) Smoothing distance for estimating umean (defined as nr of cells)
      integer       :: tidetype                   = -123    !  [name] (advanced) Switch for offfshore boundary, velocity boundary or instant water level boundary
+     character(slen):: tidetype_str              =   ' '   !  [-] (advanced) Switch for offfshore boundary, velocity boundary or instant water level boundary (default)
 
 
      ! [Section] Tide boundary conditions
@@ -131,6 +149,7 @@ module params
      integer*4     :: tideloc                    = -123    !  [-] Number of corner points on which a tide time series is specified
      integer       :: paulrevere                 = -123    !  [name] Specifies tide on sea and land or two sea points if tideloc = 2
      
+     character(slen):: paulrevere_str            =  ' '    !
                                                            !      if tideloc =>2, then this indicates where the time series are to be
                                                            !      applied. Input for tidal information to xbeach options (3):
                                                            !      1. one tidal record --> specify tidal record everywhere
@@ -156,6 +175,7 @@ module params
 
      ! [Section] Wave breaking parameters
      integer       :: break                      = -123    !  [name] Type of breaker formulation
+     character(slen):: break_str                 =  ' '    !  [-] Type of breaker formulation (1=roelvink, 2=baldock, 3=roelvink adapted, 4=roelvink on/off breaking)
      real*8        :: gamma                      = -123    !  [-] Breaker parameter in Baldock or Roelvink formulation
      real*8        :: gamma2                     = -123    !  [-] End of breaking parameter in Roelvink Daly formulation
      real*8        :: alpha                      = -123    !  [-] (advanced) Wave dissipation coefficient in Roelvink formulation
@@ -181,6 +201,7 @@ module params
 
      ! [Section] Flow parameters
      integer       :: bedfriction                = -123    !  [name] Bed friction formulation
+     character(slen):: bedfriction_str           =  ' '    !
      real*8        :: bedfriccoef                = -123    !  [-] Bed friction coefficient
      character(slen):: bedfricfile               = 'abc'   !  [file] Bed friction file (only valid with values of C)
      real*8        :: C                          = -123    !  [m^0.5s^-1] Chezy coefficient
@@ -213,8 +234,10 @@ module params
      integer*4     :: gwnonh                     = -123    !  [-] (advanced) Switch to turn on or off non-hydrostatic pressure for groundwater
      integer*4     :: gwfastsolve                = -123    !  [-] (advanced) Reduce full 2D non-hydrostatic solution to quasi-explicit in longshore direction
      integer       :: gwscheme                   = -123    !  [name] (advanced) Scheme for momentum equation
+     character(slen):: gwscheme_str              =  ' '    !
      real*8        :: gwReturb                   = -123    !  [-] (advanced) Reynolds number for start of turbulent flow in case of gwscheme = turbulent
      integer       :: gwheadmodel                = -123    !  [name] (advanced) Model to use for vertical groundwater head
+     character(slen):: gwheadmodel_str           =  ' '    !
      integer*4     :: gwhorinfil                 = -123    !  [-] (advanced) switch to include horizontal infiltration from surface water to groundwater
 
      ! [Section] Q3D sediment transport parameters
@@ -225,6 +248,7 @@ module params
 
      ! [Section] Non-hydrostatic correction parameters
      integer       :: solver                     = -123    ! [name] (advanced) Solver used to solve the linear system
+     character(slen):: solver_str                =  ' '    !
      integer*4     :: solver_maxit               = -123    ! [-] (advanced) Maximum number of iterations in the linear sip solver
      real*8        :: solver_acc                 = -123    ! [-] (advanced) accuracy with respect to the right-hand side used
      !     in the following termination criterion:
@@ -257,7 +281,9 @@ module params
 
      ! [Section] Sediment transport parameters
      integer       :: waveform                   = -123    !  [name] Wave shape model
+     character(slen):: waveform_str              =  ' '    !
      integer       :: form                       = -123    !  [name] Equilibrium sediment concentration formulation
+     character(slen) :: form_str                 =  ' '    !
      integer*4     :: sws                        = -123    !  [-] (advanced) Switch to enable short wave and roller stirring and undertow
      integer*4     :: lws                        = -123    !  [-] (advanced) Switch to enable long wave stirring
      real*8        :: BRfac                      = -123    !  [-] (advanced) Calibration factor surface slope
@@ -269,7 +295,9 @@ module params
      real*8        :: facSk                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave skewness
      real*8        :: facAs                      = -123    !  [-] (advanced) Calibration factor time averaged flows due to wave asymmetry
      integer       :: turbadv                    = -123    !  [name] (advanced) Switch to activate turbulence advection model for short and or long wave turbulence
+     character(slen):: turbadv_str               =  ' '    !
      integer       :: turb                       = -123    !  [name] (advanced) Switch to include short wave turbulence
+     character(slen):: turb_str                  =  ' '    !
      real*8        :: Tbfac                      = -123    !  [-] (advanced) Calibration factor for bore interval Tbore: Tbore = Tbfac*Tbore
      real*8        :: Tsmin                      = -123    !  [s] (advanced) Minimum adaptation time scale in advection diffusion equation sediment
      integer*4     :: lwt                        = -123    !  [-] (advanced) Switch to enable long wave turbulence
@@ -331,6 +359,7 @@ module params
      real*8,dimension(99) :: rugdepth            = -123    !  [m] (advanced) Minimum depth for determination of last wet point in runup gauge
      integer*4     :: ncross                     = -123    !  [-] (advanced) Number of output cross sections
      integer        :: outputformat              = OUTPUTFORMAT_DEBUG  !  [name] (advanced) Output file format
+     character(slen):: outputformat_str          = 'debug'    !
      character(slen):: ncfilename                = 'xboutput.nc' ! [file] (advanced) xbeach netcdf output file name
 
      ! Projection units (not to be used, only pass to output, this limit is too short for WKT....)
@@ -354,6 +383,7 @@ module params
 
      ! [Section] Wave numerics parameters
      integer       :: scheme                     = -123   !  [name] (advanced) Numerical scheme for wave propagation
+     character(slen):: scheme_str                =  ' '    !  [-] (advanced) Use first-order upwind (upwind_1), second order upwind (upwind_2) or Lax-Wendroff (lax_wendroff)
      real*8        :: wavint                     = -123    !  [s] Interval between wave module calls (only in stationary wave mode)
      real*8        :: maxerror                   = -123    !  [m] (advanced) Maximum wave height error in wave stationary iteration
      integer*4     :: maxiter                    = -123    !  [-] (advanced) Maximum number of iterations in wave stationary
@@ -381,6 +411,7 @@ module params
 
      ! [Section] MPI parameters
      integer       :: mpiboundary                = -123   ! [name] (advanced) Fix mpi boundaries along y-lines, x-lines, use manual defined domains or find shortest boundary automatically
+     character(slen)      :: mpiboundary_str     =  ' '    !
      integer*4     :: mmpi                       = -123    ! [-] (advanced) Number of domains in cross-shore direction when manually specifying mpi domains
      integer*4     :: nmpi                       = -123    ! [-] (advanced) Number of domains in alongshore direction when manually specifying mpi domains
 
@@ -416,6 +447,9 @@ contains
     logical                                             :: comment
     logical                                             :: fe1,fe2,fe3
 
+    logical, parameter :: toall = .true.
+    readkey_inio = toall
+
     call writelog('sl','','Reading input parameters: ')
     !
     ! Check params.txt exists
@@ -426,6 +460,11 @@ contains
     ! Physical processes
     call writelog('l','','--------------------------------')
     call writelog('l','','Physical processes: ')
+#ifdef USEMPI      
+      par%cyclic      = readkey_int ('params.txt','cyclic',         0,        0,     1)
+#else
+      par%cyclic      = 0
+#endif      
     par%swave       = readkey_int ('params.txt','swave',         1,        0,     1)
     par%single_dir  = readkey_int ('params.txt','single_dir',    0,        0,     1)
     par%lwave       = readkey_int ('params.txt','lwave',         1,        0,     1)
@@ -452,7 +491,7 @@ contains
     ! check gridform
     call setallowednames('xbeach',GRIDFORM_XBEACH,'delft3d',GRIDFORM_DELFT3D)
     call setoldnames('0','1')
-    call parmapply('gridform',1,par%gridform)
+    call parmapply('gridform',1,par%gridform,par%gridform_str)
 
     ! gridform switch
     if (par%gridform==GRIDFORM_XBEACH) then
@@ -529,8 +568,8 @@ contains
           close (31)
        endif
 #ifdef USEMPI
-       call xmpi_bcast(mmax)
-       call xmpi_bcast(nmax)
+       call xmpi_bcast(mmax,toall)
+       call xmpi_bcast(nmax,toall)
 #endif
        par%nx = mmax-1
        par%ny = nmax-1
@@ -595,7 +634,7 @@ contains
                          'stat_table', INSTAT_STAT_TABLE, &
                          'jons_table', INSTAT_JONS_TABLE)
     call setoldnames('0','1','2','3','4','5','6','7','8','9','40','41')
-    call parmapply('instat',2,par%instat, &
+    call parmapply('instat',2,par%instat,par%instat_str, &
                    required=(par%swave==1))
 
     if ( par%instat==INSTAT_JONS .or. &
@@ -609,7 +648,7 @@ contains
        call checkbcfilelength(par%tstop,par%instat,par%bcfile,filetype)
        ! Only carried out on xmaster so:
 #ifdef USEMPI
-       call xmpi_bcast(filetype)
+       call xmpi_bcast(filetype,toall)
 #endif
     elseif (par%instat==INSTAT_REUSE) then
        ! See if this is reusing nonhydrostatic, or hydrostatic boundary conditions
@@ -621,9 +660,9 @@ contains
           inquire(file='nhbcflist.bcf',exist=fe3)
        endif
 #ifdef USEMPI
-       call xmpi_bcast(fe1)
-       call xmpi_bcast(fe2)
-       call xmpi_bcast(fe3)
+        call xmpi_bcast(fe1,toall)
+        call xmpi_bcast(fe2,toall)
+        call xmpi_bcast(fe3,toall)
 #endif
        if (fe3 .and. .not. (fe1 .or. fe2)) then
              par%nonhspectrum = 1
@@ -688,7 +727,7 @@ contains
 
     call setallowednames('neumann',LATERALWAVE_NEUMANN,'wavecrest',LATERALWAVE_WAVECREST,'cyclic',LATERALWAVE_CYCLIC)
     call setoldnames('0','1')
-    call parmapply('lateralwave',1,par%lateralwave)
+    call parmapply('lateralwave',1,par%lateralwave,par%lateralwave_str)
 
 
 
@@ -775,7 +814,7 @@ contains
                          'nonh_1d',   FRONT_NONH_1D, &
                          'waveflume', FRONT_WAVEFLUME)
     call setoldnames('0','1','2','3','4','5')
-    call parmapply('front',2,par%front)
+    call parmapply('front',2,par%front,par%front_str)
 
     ! left and right
     call setallowednames('neumann',   LR_NEUMANN,    &
@@ -783,9 +822,9 @@ contains
                          'no_advec',  LR_NO_ADVEC,   &
                          'neumann_v', LR_NEUMANN_V)
     call setoldnames('0','1')
-    call parmapply('left',1,par%left)
+    call parmapply('left',1,par%left,par%left_str)
 
-    call parmapply('right',1,par%right)
+    call parmapply('right',1,par%right,par%right_str)
 
     ! back
     call setallowednames('wall',    BACK_WALL,     &
@@ -793,7 +832,7 @@ contains
                          'abs_2d',  BACK_ABS_2D,   &
                          'wlevel',  BACK_WLEVEL)
     call setoldnames('0','1','2','3')
-    call parmapply('back',3,par%back)
+    call parmapply('back',3,par%back,par%back_str)
 
     ! others
     par%ARC         = readkey_int ('params.txt','ARC',      1,              0,       1       )
@@ -805,7 +844,7 @@ contains
 
     call setallowednames('instant',   TIDETYPE_INSTANT,  &
                          'velocity',  TIDETYPE_VELOCITY)
-    call parmapply('tidetype',2,par%tidetype)
+    call parmapply('tidetype',2,par%tidetype,par%tidetype_str)
 
     !
     !
@@ -818,7 +857,7 @@ contains
           call setallowednames('land',    PAULREVERE_LAND,  &
                                'sea',     PAULREVERE_SEA)
           call setoldnames('0','1')
-          call parmapply('paulrevere',1,par%paulrevere)
+          call parmapply('paulrevere',1,par%paulrevere,par%paulrevere_str)
        endif
        par%zs0file = readkey_name('params.txt','zs0file')
        call check_file_exist(par%zs0file)
@@ -861,9 +900,9 @@ contains
                             'janssen',       BREAK_JANSSEN)
        call setoldnames('1','2','3','4','5')
        if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE) then
-          call parmapply('break',2,par%break) ! default: baldock
+          call parmapply('break',2,par%break,par%break_str) ! default: baldock
       else
-          call parmapply('break',3,par%break) ! default: roelvink2
+          call parmapply('break',3,par%break,par%break_str) ! default: roelvink2
        endif
 
        par%gamma    = readkey_dbl ('params.txt','gamma',   0.55d0,     0.4d0,     0.9d0)   !changed 28/11
@@ -907,7 +946,7 @@ contains
                          'white-colebrook',           BEDFRICTION_WHITE_COLEBROOK, &
                          'manning',                   BEDFRICTION_MANNING, &
                          'white-colebrook-grainsize', BEDFRICTION_WHITE_COLEBROOK_GRAINSIZE)
-    call parmapply('bedfriction',1,par%bedfriction)
+    call parmapply('bedfriction',1,par%bedfriction,par%bedfriction_str)
     ! Catch old exceptions
     if (.not. isSetParameter('params.txt','bedfriction')) then
        if (isSetParameter('params.txt','cf') .and. .not. isSetParameter('params.txt','C')) then
@@ -1019,14 +1058,14 @@ contains
        call setallowednames('laminar',    GWSCHEME_LAMINAR,  &
                             'turbulent',  GWSCHEME_TURBULENT)
        call setoldnames('darcy','modflow')
-       call parmapply('gwscheme',1,par%gwscheme)
+           call parmapply('gwscheme',1,par%gwscheme,par%gwscheme_str)
 
        if (par%gwscheme==GWSCHEME_TURBULENT) then
           par%gwReturb    = readkey_dbl ('params.txt','gwReturb'   , 100.d0    , 1.d0     , 600.d0)
        endif
        call setallowednames('parabolic',       GWHEADMODEL_PARABOLIC,   &
                             'exponential',     GWHEADMODEL_EXPONENTIAL)
-       call parmapply('gwheadmodel',1,par%gwheadmodel)
+       call parmapply('gwheadmodel',1,par%gwheadmodel,par%gwheadmodel_str)
 
        par%gwhorinfil = readkey_int ('params.txt','gwhorinfil',      0,           0,        1)
     endif
@@ -1051,9 +1090,9 @@ contains
                             'tridiag',   SOLVER_TRIDIAGG)
        call setoldnames('1','2')
        if (par%ny>2) then
-          call parmapply('solver',1,par%solver)  ! default: sip
+          call parmapply('solver',1,par%solver,par%solver_str)  ! default: sip
        else
-          call parmapply('solver',2,par%solver)  ! default: tridiag
+          call parmapply('solver',2,par%solver,par%solver_str)  ! default: tridiag
        endif
        if (par%solver==SOLVER_SIPP) then
           par%solver_maxit = readkey_int('params.txt','solver_maxit' ,30,1,1000)
@@ -1088,12 +1127,12 @@ contains
        call setallowednames('soulsby_vanrijn',    FORM_SOULSBY_VANRIJN,  &
                             'vanthiel_vanrijn',   FORM_VANTHIEL_VANRIJN)
        call setoldnames('1','2')
-       call parmapply('form',2,par%form)
+       call parmapply('form',2,par%form, par%form_str)
 
        call setallowednames('ruessink_vanrijn',  WAVEFORM_RUESSINK_VANRIJN,  &
                             'vanthiel',          WAVEFORM_VANTHIEL)
        call setoldnames('1','2')
-       call parmapply('waveform',2,par%waveform)
+       call parmapply('waveform',2,par%waveform,par%waveform_str)
 
        par%sws      = readkey_int ('params.txt','sws',           1,        0,     1)
        par%lws      = readkey_int ('params.txt','lws',           1,        0,     1)
@@ -1108,13 +1147,13 @@ contains
        call setallowednames('none',       TURBADV_NONE,        &
                             'lagrangian', TURBADV_LAGRANGIAN,  &
                             'eulerian',   TURBADV_EULERIAN)
-       call parmapply('turbadv',1,par%turbadv)
+       call parmapply('turbadv',1,par%turbadv,par%turbadv_str)
 
        call setallowednames('none',              TURB_NONE,           &
                             'wave_averaged',     TURB_WAVE_AVERAGED,  &
                             'bore_averaged',     TURB_BORE_AVERAGED)
        call setoldnames('0','1','2')
-       call parmapply('turb',3,par%turb)
+       call parmapply('turb',3,par%turb,par%turb_str)
 
        par%Tbfac    = readkey_dbl ('params.txt','Tbfac  ',1.0d0,     0.00d0,   1.0d0)
        par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.5d0,     0.01d0,   10.d0)
@@ -1255,7 +1294,8 @@ contains
     call setallowednames('fortran',             OUTPUTFORMAT_FORTRAN,  &
                          'netcdf ',             OUTPUTFORMAT_NETCDF,   &
                          'debug  ',             OUTPUTFORMAT_DEBUG)
-    call parmapply('outputformat',1,par%outputformat)
+    call parmapply('outputformat',1,par%outputformat,par%outputformat_str, &
+      required = .false.) ! wwvv-todo
 
     ! get the nc output file name from the parameter file
     par%ncfilename = readkey_name('params.txt','ncfilename')
@@ -1267,7 +1307,7 @@ contains
     call writelog('l','','--------------------------------')
     call writelog('l','','Output projection: ')
     testc = readkey_name('params.txt','projection')
-    if (len(trim(testc)) .gt. 0) par%projection = trim(testc)
+    if (len(trim(testc)) .gt. 0) par%projection = testc
     par%rotate = readkey_int ('params.txt','rotate',     1,  0, 1)
     !
     !
@@ -1312,7 +1352,7 @@ contains
                          'lax_wendroff',  SCHEME_LAX_WENDROFF,  &
                          'upwind_2',      SCHEME_UPWIND_2)
     call setoldnames('1','2','3')
-    call parmapply('scheme',3,par%scheme)
+      call parmapply('scheme',3,par%scheme,par%scheme_str)
 
     if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE .or. par%single_dir==1) then
        par%wavint     = readkey_dbl ('params.txt','wavint',    60.d0,      1.d0,  3600.d0)
@@ -1375,9 +1415,10 @@ contains
                          'x',      MPIBOUNDARY_X,      &
                          'y',      MPIBOUNDARY_Y,      &
                          'man',    MPIBOUNDARY_MAN)
-    call parmapply('mpiboundary',1,par%mpiboundary)
+    call parmapply('mpiboundary',1,par%mpiboundary,par%mpiboundary_str)
     if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE .or. par%single_dir==1) then
        par%mpiboundary=MPIBOUNDARY_X
+       par%mpiboundary_str='x'
        call writelog('l','','mpiboundary set to x for stationary wave model')
     endif
 
@@ -1598,15 +1639,6 @@ contains
     endif
     !
     !
-    ! Give warning if using wave stationary in MPI
-#ifdef USEMPI
-    if (par%instat==INSTAT_STAT .or. par%instat==INSTAT_STAT_TABLE) then
-       call writelog('lws','','Warning: Stationary wave solver not compatable with MPI, changing to')
-       call writelog('lws','','         instationary solver')
-    endif
-#endif
-    !
-    !
     ! Wave-current interaction with non-stationary waves still experimental
     if (par%instat/=INSTAT_STAT .and. par%instat/=INSTAT_STAT_TABLE .and. par%wci==1) then
        call writelog('lws','','Warning: Wave-current interaction with non-stationary waves is still')
@@ -1702,57 +1734,76 @@ contains
     real*8 ,dimension(:), allocatable                      :: xpointsw ! world x-coordinate of output points
     real*8 ,dimension(:), allocatable                      :: ypointsw ! world y-coordinate of output points
 
+    logical, parameter                  :: toall = .true.
+    integer                             :: parlen
+
 
     !
     ! distribute parameters
 
     ! This distributes all of the properties of par, including pointers. These point to memory adresses on the master
     ! We need to reset these on the non masters
-    call MPI_Bcast(par,int(sizeof(par)),MPI_BYTE,xmpi_master,xmpi_comm,ierror)
+
+      call xmpi_bcast(par%swave,toall)
+      parlen = int(sizeof(par))
+
+      if (toall) then
+         call MPI_Bcast(par,parlen,MPI_BYTE,xmpi_imaster,xmpi_ocomm,ierror)
+      else
+         call MPI_Bcast(par,parlen,MPI_BYTE,xmpi_master,xmpi_comm,ierror)
+      endif
 
     ! Ok now for the manual stuff to circumvent a bug in the intel compiler, which doesn't allow to send over arrays in derived types
     ! The only way to do it on all 3 compilers (gfortran, CVF, ifort) is with pointers.
     ! First let's store the number of variables, we need this to reserve some memory on all nodes
+
     do i=1,size(par%globalvars)
-       call xmpi_bcast(par%globalvars(i))
+       call xmpi_bcast(par%globalvars(i),toall)
     enddo
 
     do i=1,size(par%pointvars)
-       call xmpi_bcast(par%pointvars(i))
+       call xmpi_bcast(par%pointvars(i),toall)
     enddo
 
     do i=1,size(par%meanvars)
-       call xmpi_bcast(par%meanvars(i))
+       call xmpi_bcast(par%meanvars(i),toall)
     enddo
 
     if (xmaster) npoints = size(par%pointtypes)
     ! send it over
-    call xmpi_bcast(npoints)
+    call xmpi_bcast(npoints,toall)
+
     ! now on all nodes allocate a array outside the par structure
     allocate(pointtypes(npoints))
+
     ! Par is only filled on the master, so use that one and put it in the seperate array
     if (xmaster) pointtypes = par%pointtypes
+
     ! Now for another ugly step, we can't broadcast the whole array but have to do it per variable.
-    call xmpi_bcast(pointtypes)
+    call xmpi_bcast(pointtypes,toall)
+
     ! so now everyone has the pointtypes, let's put it back in par
     ! first dereference the old one, otherwise we get a nasty error on ifort....
     if (.not. xmaster) par%pointtypes => NULL()
+
     ! now we can allocate the memory again
     if (.not. xmaster) allocate(par%pointtypes(npoints))
+
     ! and store the values from the local array
     if (.not. xmaster) par%pointtypes = pointtypes
+
     ! and clean up the local one.
     deallocate(pointtypes)
 
     if (xmaster) npoints = size(par%xpointsw)
     ! send it over
-    call xmpi_bcast(npoints)
+    call xmpi_bcast(npoints,toall)
     ! now on all nodes allocate a array outside the par structure
     allocate(xpointsw(npoints))
     ! Par is only filled on the master, so use that one and put it in the seperate array
     if (xmaster) xpointsw = par%xpointsw
     ! Now for another ugly step, we can't broadcast the whole array but have to do it per variable.
-    call xmpi_bcast(xpointsw)
+    call xmpi_bcast(xpointsw,toall)
     ! so now everyone has the xpointsw, let's put it back in par
     ! first dereference the old one, otherwise we get a nasty error on ifort....
     if (.not. xmaster) par%xpointsw => NULL()
@@ -1765,13 +1816,13 @@ contains
 
     if (xmaster) npoints = size(par%ypointsw)
     ! send it over
-    call xmpi_bcast(npoints)
+    call xmpi_bcast(npoints,toall)
     ! now on all nodes allocate a array outside the par structure
     allocate(ypointsw(npoints))
     ! Par is only filled on the master, so use that one and put it in the seperate array
     if (xmaster) ypointsw = par%ypointsw
     ! Now for another ugly step, we can't broadcast the whole array but have to do it per variable.
-    call xmpi_bcast(ypointsw)
+    call xmpi_bcast(ypointsw,toall)
     ! so now everyone has the ypointsw, let's put it back in par
     ! first dereference the old one, otherwise we get a nasty error on ifort....
     if (.not. xmaster) par%ypointsw => NULL()
@@ -2002,12 +2053,12 @@ contains
 
     character(slen)                           :: okline,errline
     character(slen)                            :: line,keyword,keyread
-    character(slen)                          :: tempout
+    character(slen+slen)                     :: tempout
     integer                                  :: i,imax,id,ic,index,ier
     character(slen),dimension(numvars) :: tempnames
 
     imax = -123
-    select case (trim(readtype))
+    select case (readtype)
     case ('global')
        imax = par%nglobalvar
        keyword = 'nglobalvar'
@@ -2057,11 +2108,11 @@ contains
              tempout = 'params.txt (reading '//trim(keyword)//')'
              call report_file_read_error(tempout)
           endif
-          line = trim(line)
+          line = line
           ! Check if this is a valid variable name
-          index = chartoindex(trim(line))
+          index = chartoindex(line)
           if (index/=-1) then
-             tempnames(i)=trim(line)
+             tempnames(i)=line
              call writelog('ls','',trim(okline),trim(tempnames(i)))
           else
              call writelog('sle','',trim(errline),trim(line),'''')
@@ -2072,7 +2123,7 @@ contains
     endif
 
     ! only useful information on xmaster, but distributed later by distribute_pars
-    select case (trim(readtype))
+    select case (readtype)
     case ('global')
        par%globalvars=tempnames
     case ('mean')
@@ -2154,14 +2205,14 @@ contains
                          ! see if we already found this variable....
                          varfound = .false.
                          do j=1,numvars
-                            if (trim(par%pointvars(j)) == trim(varstr)) then
+                           if (par%pointvars(j) == varstr) then
                                varfound = .true.
                             end if
                          end do
                          ! we have a new variable, store it
                          if (varfound .eqv. .false.) then
                             par%npointvar=par%npointvar+1
-                            par%pointvars(par%npointvar)=trim(varstr)
+                            par%pointvars(par%npointvar)=varstr
                          end if
                       else
                          call writelog('sle','',' Unknown point output variable: ''',trim(varstr),'''')

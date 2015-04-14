@@ -1,3 +1,6 @@
+module roelvink_module
+ implicit none
+ save
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
 ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
@@ -24,8 +27,6 @@
 ! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307     !
 ! USA                                                                     !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-module roelvink_module
 
   interface roelvink
      module procedure roelvink_1D

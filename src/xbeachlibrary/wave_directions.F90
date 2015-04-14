@@ -1,4 +1,6 @@
 module wave_directions_module
+  implicit none
+  save
 contains
   subroutine wave_directions(s,par)
     use params
@@ -28,13 +30,10 @@ contains
     real*8 , dimension(:,:,:),allocatable,save  :: xadvec,yadvec,thetaadvec,dd
     real*8 , dimension(:,:,:),allocatable,save  :: cgxu,cgyv
     real*8 , dimension(:),allocatable,save      :: Hprev
-    real*8                                      :: Herr,dtw,E0
+    real*8                                      :: Herr,dtw
     real*8 , dimension(:)  ,allocatable,save    :: dkmxdx,dkmxdy,dkmydx,dkmydy,cgxm,cgym,arg,fac,xwadvec,ywadvec
     real*8 , dimension(:,:),allocatable,save    :: wcifacu,wcifacv
     logical                                     :: stopiterate
-
-    !include 's.ind'
-    !include 's.inp'
 
     if (.not. allocated(wete)) then
        allocate(e01(1:s%ntheta_s))
@@ -107,8 +106,8 @@ contains
     fac         = 0.0d0
 
     ! cjaap: replaced par%hmin by par%eps
-    s%hh = max(s%hh,par%eps)
-
+    !s%hh = max(s%hh,par%eps)
+    s%hh =max(s%hh,par%hmin) ! note: replace with new limiter?
 
     ! Slopes of water depth
     call slope2D(max(s%hh,par%delta*s%H),s%nx,s%ny,s%dsu,s%dnv,dhdx,dhdy)

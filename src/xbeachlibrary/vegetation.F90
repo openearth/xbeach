@@ -26,6 +26,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 module vegetation_module
 implicit none
+   save
 private
 type vegie
    character*256                          :: name
@@ -39,7 +40,7 @@ type vegie
    integer , dimension(:,:) , allocatable :: vegtype     ! spatial mapping of vegetation types [-]
 end type vegie
 
-type(vegie), dimension(:), allocatable, save            :: veg
+   type(vegie), dimension(:), allocatable    :: veg
 
 public vegie_init
 public vegatt
@@ -71,6 +72,8 @@ subroutine vegie_init(s,par)
     ! file 2: vegetation properties per specie (could be multiple files)
     ! file 3: distribution of species oevr space
     
+      if(.not. xmaster) return ! wwvv todo: different from trunk
+
     if (par%vegetation == 0) then
         return
     endif
@@ -165,7 +168,7 @@ subroutine swvegatt(s,par)
     type(parameters)                            :: par
     type(spacepars), target                     :: s
 
-    integer                                     :: i,j,m,ind  ! indices of actual s%x,s%y point
+      integer                                     :: i,j,m,ind  ! indices of actual x,y point
     real*8                                      :: aht,hterm,htermold,Dvgt
     real*8, dimension(s%nx+1,s%ny+1)            :: Dvg,kmr
 
@@ -210,7 +213,7 @@ subroutine lwvegatt(s)
 
     type(spacepars),target           :: s
 
-    integer                                     :: i,j,m,ind  ! indices of actual s%x,s%y point
+      integer                                     :: i,j,m,ind  ! indices of actual x,y point
     real*8                                      :: aht,ahtold,hterm,htermold,Fvgtu,Fvgtv
     real*8, dimension(s%nx+1,s%ny+1)            :: Fvgu,Fvgv,kmr
 
@@ -256,7 +259,5 @@ subroutine lwvegatt(s)
     s%Fvegv = Fvgv
 
 end subroutine lwvegatt
-
-
 
 end module vegetation_module

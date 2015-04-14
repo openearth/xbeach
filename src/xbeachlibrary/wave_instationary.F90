@@ -1,4 +1,6 @@
 module wave_instationary_module
+   implicit none
+   save
 
 contains
 
@@ -13,7 +15,7 @@ contains
     use interp
     use paramsconst
 
-    IMPLICIT NONE
+      implicit none
 
     type(spacepars), target     :: s
     type(parameters)            :: par
@@ -37,8 +39,6 @@ contains
     real*8 , save                               :: waverr  
 
 
-    !include 's.ind'
-    !include 's.inp'
 
     if (.not. allocated(wete)) then
        allocate(drr         (s%nx+1,s%ny+1,s%ntheta))

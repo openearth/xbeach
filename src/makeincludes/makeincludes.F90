@@ -1,5 +1,9 @@
 ! this program makes includefiles from spaceparams.tmpl
 ! indextos.gen            is for spaceparams.F90
+! index_allocate.gen      is for spaceparams.F90
+! index_deallocate.gen    is for spaceparams.F90
+! index_reallocate.gen    is for spaceparams.F90
+! index_allocated.gen     is for spaceparams.F90
 ! mnemonic.gen            is for mnemonic.F90
 ! chartoindex.gen         is for mnemonic.F90
 ! space_alloc_arrays.gen  is for spaceparams.F90
@@ -27,6 +31,10 @@ module makemodule
   character(slen), parameter :: spacedeclname           = 'spacedecl.gen'
   character(slen), parameter :: mnemonicname            = 'mnemonic.gen'
   character(slen), parameter :: indextosname            = 'indextos.gen'
+   character(slen), parameter :: index_allocatename      = 'index_allocate.gen'
+   character(slen), parameter :: index_deallocatename    = 'index_deallocate.gen'
+   character(slen), parameter :: index_reallocatename    = 'index_reallocate.gen'
+   character(slen), parameter :: index_allocatedname     = 'index_allocated.gen'
   character(slen), parameter :: space_alloc_arraysname  = 'space_alloc_arrays.gen'
   character(slen), parameter :: space_indname           = 'space_ind.gen'
   character(slen), parameter :: space_inpname           = 'space_inp.gen'
@@ -927,6 +935,55 @@ contains
     close(outfile)
 
   end subroutine makegetkeygen
+   !
+   ! creates file for allocation of spaceparameters, based on index
+   ! t = 0: allocate
+   ! t = 1: deallocate
+   ! t = 2: reallocate
+   ! t = 3: allocated
+   !
+   subroutine makeindex_allocate(t)
+      implicit none
+      integer, intent(in) :: t
+      integer             :: i,j
+      call openinfile
+      call openoutput
+      call warning
+
+      j=1
+      do
+         call getline
+         if (endfound) then
+            exit
+         endif
+         call getitems
+         if (varfound) then
+            if(rank > 0) then
+               write(outfile,'(a,i3,a)') sp//'case(',j,')'
+               if (t == 2) then
+                  write(outfile,'(a)') sp//'  if(allocated(s%'//trim(name)//')) deallocate(s%'//trim(name)//')'
+               endif
+               select case(t)
+                case(0,2)
+                  write(outfile,'(a)',advance='no') sp//'  allocate(s%'//trim(name)//'('//trim(dims(1))
+                  do i=2,rank
+                     write(outfile,'(a)',advance='no') ','//trim(dims(i))
+                  enddo
+                  write(outfile,'(a)') '))'
+                case(1)
+                  write(outfile,'(a)') sp//'  deallocate(s%'//trim(name)//')'
+                case(3)
+                  write(outfile,'(a)') sp//'  r = allocated(s%'//trim(name)//')'
+               end select
+            endif
+         endif
+         j = j + 1
+      enddo
+      call format_fortran
+      close (outfile)
+      close( infile)
+   end subroutine makeindex_allocate
+
 
 
 end module makemodule
@@ -946,6 +1003,10 @@ program makeincludes
     command = trim(spacedeclname)//' '// &
          trim(mnemonicname)//' '// &
          trim(indextosname)//' '// &
+      trim(index_allocatename)//' '// &
+      trim(index_deallocatename)//' '// &
+      trim(index_reallocatename)//' '// &
+      trim(index_allocatedname)//' '// &
   !       trim(space_alloc_scalarsname)//' '// &
          trim(space_alloc_arraysname)//' '// &
          trim(space_indname)//' '// &
@@ -972,6 +1033,30 @@ program makeincludes
      outputfilename = indextosname
      call makeindextos
   endif
+
+   if (index(command,trim(index_allocatename)) .ne. 0) then
+      write(*,*)'Making '//trim(index_allocatename)
+      outputfilename = index_allocatename
+      call makeindex_allocate(0)
+   endif
+
+   if (index(command,trim(index_deallocatename)) .ne. 0) then
+      write(*,*)'Making '//trim(index_deallocatename)
+      outputfilename = index_deallocatename
+      call makeindex_allocate(1)
+   endif
+
+   if (index(command,trim(index_reallocatename)) .ne. 0) then
+      write(*,*)'Making '//trim(index_reallocatename)
+      outputfilename = index_reallocatename
+      call makeindex_allocate(2)
+   endif
+
+   if (index(command,trim(index_allocatedname)) .ne. 0) then
+      write(*,*)'Making '//trim(index_allocatedname)
+      outputfilename = index_allocatedname
+      call makeindex_allocate(3)
+   endif
 
   if (index(command,trim(space_alloc_arraysname)) .ne. 0) then
      write(*,*)'Making '//trim(space_alloc_arraysname)

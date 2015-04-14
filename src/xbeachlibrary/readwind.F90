@@ -1,3 +1,8 @@
+module readwind_module
+   implicit none
+   save
+contains
+   subroutine readwind (s,par)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
 ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
@@ -24,17 +29,13 @@
 ! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307     !
 ! USA                                                                     !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-module readwind_module
-contains
-  subroutine readwind (s,par)
     use params
     use spaceparams
     use xmpi_module
     use readkey_module
     use logging_module
 
-    IMPLICIT NONE
+    implicit none
 
     type(spacepars),target                  :: s
     type(parameters), intent(in)            :: par
@@ -44,13 +45,12 @@ contains
     real*8,dimension(3)                 :: temp
 
 
-    !include 's.ind'
-    !include 's.inp'
 
-    io    = 0
-    nwind = 0
+    if(.not. xmaster) return
 
-    if (xmaster) then
+       io    = 0
+       nwind = 0
+
        allocate(s%windsu(s%nx+1,s%ny+1))
        allocate(s%windnv(s%nx+1,s%ny+1))
        s%windsu=0.d0
@@ -104,8 +104,6 @@ contains
              call halt_program
           endif
        endif
-    endif
-
 
   end subroutine readwind
 

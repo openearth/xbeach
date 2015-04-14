@@ -1,6 +1,12 @@
 module indextos_module
+   implicit none
+   save
 contains
 subroutine indextos(s,index,t)
+  !
+  ! given s and index, this subroutine returns in t
+  ! a pointer to the requested array
+  !
   use mnemmodule
   use logging_module
   use spaceparamsdef
@@ -31,7 +37,9 @@ subroutine indextos(s,index,t)
   endif
 
   select case(index)
-  include 'indextos.gen'
+    case default
+       continue
+       include 'indextos.gen'
   end select
 
   select case(t%type)
@@ -66,4 +74,65 @@ subroutine indextos(s,index,t)
   end select
 
 end subroutine indextos
+
+   !_________________________________________________________________________________
+
+   subroutine index_allocate(s,par,index,choice)
+      ! allocates, deallocates reallocates in type s, based on index
+      ! choice:
+      !   'a': allocate
+      !   'd': deallocate
+      !   'r': reallocate
+      use params
+      use logging_module
+      use spaceparamsdef
+      implicit none
+      type (spacepars), intent(inout) :: s
+      type(parameters), intent(in)    :: par
+      integer, intent(in)             :: index
+      character(*)                    :: choice
+
+      ! the .gen files contain code for allocatable entities
+      ! scalars will be skipped silently
+      select case(choice(1:1))
+       case('a','A')
+         select case(index)
+          case default
+            continue
+            include 'index_allocate.gen'
+         end select
+       case ('d','D')
+         select case(index)
+          case default
+            continue
+            include 'index_deallocate.gen'
+         end select
+       case ('r','R')
+         select case(index)
+          case default
+            continue
+            include 'index_reallocate.gen'
+         end select
+      end select
+   end subroutine index_allocate
+
+   logical function index_allocated(s,index)
+      use logging_module
+      use spaceparamsdef
+      implicit none
+      type (spacepars), intent(in) :: s
+      integer, intent(in)          :: index
+
+      logical                      :: r
+
+      r = .true. ! for scalars: function will return always .true.
+      select case(index)
+       case default
+         continue
+         include 'index_allocated.gen'
+      end select
+
+      index_allocated = r
+
+   end function index_allocated
 end module indextos_module

@@ -1,4 +1,6 @@
 module wave_stationary_module
+   implicit none
+   save
 contains
   subroutine wave_stationary(s,par)
     use params
@@ -23,7 +25,7 @@ contains
     integer, dimension(:,:,:),allocatable,save  :: wete
     real*8 , dimension(:,:)  ,allocatable,save  :: dhdx,dhdy,dudx,dudy,dvdx,dvdy,ustw
     real*8 , dimension(:,:)  ,allocatable,save  :: km
-    real*8 , dimension(:,:)  ,allocatable,save  :: kmx,kmy,sinh2kh ! ,s%wm
+      real*8 , dimension(:,:)  ,allocatable,save  :: kmx,kmy,sinh2kh ! ,wm
     real*8 , dimension(:,:,:),allocatable,save  :: xadvec,yadvec,thetaadvec,dd,drr
     real*8 , dimension(:,:,:),allocatable,save  :: xradvec,yradvec,thetaradvec
     real*8 , dimension(:,:,:),allocatable,save  :: cgxu,cgyv,cxu,cyv
@@ -143,9 +145,9 @@ contains
 
     if (par%wci==0) then
        s%sigm=2.d0*par%px/par%Trep
-       DO itheta=1,s%ntheta
+         do itheta=1,s%ntheta
           s%sigt(:,:,itheta) = max(s%sigm,0.010d0)
-       END DO
+         enddo
     endif
 
     if (par%snells==0) then
@@ -160,7 +162,7 @@ contains
     wcifacu=s%u*par%wci*min(s%hh/par%hwci,1.d0)
     wcifacv=s%v*par%wci*min(s%hh/par%hwci,1.d0)
 
-    DO itheta=1,s%ntheta
+      do itheta=1,s%ntheta
        s%cgx(:,:,itheta)= s%cg*s%costh(:,:,itheta)+wcifacu
        s%cgy(:,:,itheta)= s%cg*s%sinth(:,:,itheta)+wcifacv
        s%cx(:,:,itheta) =  s%c*s%costh(:,:,itheta)+wcifacu
@@ -170,7 +172,7 @@ contains
             par%wci*(&
             s%costh(:,:,itheta)*(s%sinth(:,:,itheta)*dudx - s%costh(:,:,itheta)*dudy) + &
             s%sinth(:,:,itheta)*(s%sinth(:,:,itheta)*dvdx - s%costh(:,:,itheta)*dvdy))
-    END DO
+      enddo
     ! Dano Limit unrealistic refraction speed to 1/2 pi per wave period
     s%ctheta=sign(1.d0,s%ctheta)*min(abs(s%ctheta),.5*par%px/par%Trep)
 
@@ -256,9 +258,9 @@ contains
                 arg = max(arg,0.0001)
                 fac = ( 1.d0 + ((km(i,:)*s%H(i,:)/2.d0)**2)) 
                 s%sigm(i,:) = sqrt( par%g*km(i,:)*tanh(arg)*fac)
-                DO itheta=1,s%ntheta
+               do itheta=1,s%ntheta
                    s%sigt(i,:,itheta) = max(s%sigm(i,:),0.010d0)
-                END DO
+               enddo
              endif
 
              !

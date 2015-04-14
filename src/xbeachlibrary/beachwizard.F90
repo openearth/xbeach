@@ -1,4 +1,6 @@
 module beachwizard_module
+   implicit none
+   save
   type beachwiz
 
      real*8, dimension(1000,8)          :: timesnew          !time in minutes when remote sensed sources apply - eight sources max
@@ -69,23 +71,22 @@ module beachwizard_module
   end type beachwiz
 
   ! Type of beachwizard, stored local. Please store persistent info in s, par.
-  type(beachwiz), save  :: bw
+   type(beachwiz) :: bw
 
 contains      
 
-  !subroutine bwinit(s, par)
-  ! wwvv changed into:
   subroutine bwinit(s)
     use params
     use spaceparams
     use xmpi_module
 
-    IMPLICIT NONE
+      implicit none
 
     type(spacepars), target             :: s 
-    ! type(parameters)                    :: par
 
-    if(xmaster) then
+      if(.not. xmaster) return
+
+      if(.true.) then
        allocate(s%dobs(1:s%nx+1,1:s%ny+1))    
        allocate(s%zbobs(1:s%nx+1,1:s%ny+1)) 
        allocate(s%sig2prior(1:s%nx+1,1:s%ny+1))
@@ -94,7 +95,7 @@ contains
        allocate(s%dcmdo(1:s%nx+1,1:s%ny+1))
        allocate(s%dassim(1:s%nx+1,1:s%ny+1))
        allocate(s%cobs(1:s%nx+1,1:s%ny+1))
-    end if
+      endif
 
 
   end subroutine bwinit
@@ -106,7 +107,7 @@ contains
 
 
 
-    IMPLICIT NONE                                    
+      implicit none
 
     type(spacepars), target             :: s 
     type(parameters)                    :: par
@@ -139,6 +140,7 @@ contains
     real*8, parameter                   :: b2 = 1.191224998569728D-01
     real*8, parameter                   :: b3 = 4.165097693766726D-02
     real*8, parameter                   :: b4 = 8.674993032204639D-03 
+
 
 
     if (.not. allocated(bw%fobs)) then
@@ -630,7 +632,7 @@ contains
     real*8, allocatable, dimension(:,:)  :: h1
     real*8, allocatable, dimension(:,:)  :: dDdh
     real*8, allocatable, dimension(:,:)  :: sig2obs 
-!    real*8, allocatable, dimension(:,:)  :: alpha
+      !    real*8, allocatable, dimension(:,:)  :: alpha
     real*8, allocatable, dimension(:,:)  :: Hrms
     real*8, allocatable, dimension(:,:)  :: alphafac
     !
@@ -765,7 +767,7 @@ contains
        alphafac(1:ind,im)=1.d0
     enddo
         
-!    s%bwalpha = s%bwalpha*alphafac       
+      !    s%bwalpha = s%bwalpha*alphafac
             
     bw%dassim = -s%bwalpha*tanh((h1/0.85)**5)*((dDdh-sqrt(alp_as*mxdDdh))/(dDdh**2+alp_as*mxdDdh)*bw%dcmdo  )*alphafac !eq.(5) depth change
     !ap2                        

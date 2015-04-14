@@ -1,3 +1,8 @@
+module readtide_module
+   implicit none
+   save
+contains
+   subroutine readtide (s,par)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 ! Copyright (C) 2007 UNESCO-IHE, WL|Delft Hydraulics and Delft University !
 ! Dano Roelvink, Ap van Dongeren, Ad Reniers, Jamie Lescinski,            !
@@ -24,10 +29,6 @@
 ! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307     !
 ! USA                                                                     !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-module readtide_module
-contains
-  subroutine readtide (s,par)
     use params
     use spaceparams
     use xmpi_module
@@ -35,7 +36,7 @@ contains
     use logging_module
     use typesandkinds
 
-    IMPLICIT NONE
+    implicit none
 
     type(spacepars),target                  :: s
     type(parameters)                        :: par
@@ -44,11 +45,9 @@ contains
     integer                             :: io,ntide
     real*8,dimension(par%tideloc+1)     :: temp
 
-    !include 's.ind'
-    !include 's.inp'
-
     ! this must only work on master
-    if (xmaster) then
+    if(.not. xmaster) return
+      if(.true.) then
        if (par%tideloc .eq. 0) then
           s%tidelen = 2
           allocate(s%tideinpt(s%tidelen))

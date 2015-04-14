@@ -27,6 +27,7 @@
 module groundwaterflow
    use typesandkinds
    implicit none
+   save
    private    ! set private default
    ! set these public to users of groundwater module
    public gw_init
@@ -50,6 +51,7 @@ subroutine gw_init(s,par)
 
    integer                                     :: i,j
 
+   if(.not. xmaster) return  ! Robert: change in way called from libxbeach
 
    allocate (s%gwhead(s%nx+1,s%ny+1))
    allocate (s%gwheadb(s%nx+1,s%ny+1))
@@ -207,9 +209,6 @@ subroutine gwflow(s,par)
   logical                                     :: initial
   real*8,save                                 :: connectcrit
     
-  ! shortcut pointers
-  !include 's.ind'
-  !include 's.inp'
   
   initial = .false.
 
@@ -1438,9 +1437,6 @@ function gw_calculate_hydrostatic_w(s,par,ratio) result(infil)
   real*8                                      :: w1,w2,w3,dummy,dummy2
   logical                                     :: turbapprox
  
-  ! shortcut pointers
-  !include 's.ind'
-  !include 's.inp'
   
   ! wwvv the following line is from s.inp :
   infil => s%infil

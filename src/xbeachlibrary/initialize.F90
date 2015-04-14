@@ -1,6 +1,7 @@
 module initialize 
   use typesandkinds
   implicit none
+  save
   integer imin_ee,imax_ee,jmin_ee,jmax_ee
   integer imin_uu,imax_uu,jmin_uu,jmax_uu
   integer imin_vv,imax_vv,jmin_vv,jmax_vv
@@ -16,6 +17,9 @@ contains
     use readkey_module
     use logging_module
     use paramsconst
+#ifdef USEMPI
+    use mpi
+#endif
 
     implicit none                                                            
 
@@ -27,7 +31,6 @@ contains
     integer                        :: itheta
     real*8                         :: degrad
     character(slen)                :: line
-    logical                        :: comment
 
     s%nx      = par%nx
     s%ny      = par%ny
@@ -48,7 +51,8 @@ contains
     s%posdwn = s%posdwn*sign(s%posdwn,1.d0)
     ! end huh?
 
-    if (xmaster) then
+    if(.not. (xmaster .or. xomaster)) return
+    if(.true.) then
        allocate(s%x(1:s%nx+1,1:s%ny+1))
        allocate(s%y(1:s%nx+1,1:s%ny+1))
        allocate(s%xz(1:s%nx+1,1:s%ny+1))
@@ -86,11 +90,20 @@ contains
     !
     ! Create grid and bathymetry
     !
-    ! Jaap make switch here to read XBeach or Delft3D format respectively
-    if (par%gridform==GRIDFORM_XBEACH) then
-       if (s%vardx==0) then
-          if (xmaster) then
-             if (par%setbathy .ne. 1) then
+    ! Jaap make switch here to read XBeach or Delft3D format respectively 
+    !
+    ! wv in the following select case construct, s%zb, s%x and s%y are determined
+    !  and they are read from file
+    ! we let xmaster read these entities and send them to xomaster.
+    !  because xomaster has also a need for these entities
+    !
+
+    if (xmaster) then
+      select case(par%gridform)
+       case(GRIDFORM_XBEACH)
+         select case(s%vardx)
+           case(0)
+            if (par%setbathy .ne. 1) then
              open(31,file=par%depfile)
              do j=1,s%ny+1
                 read(31,*,iostat=ier)(s%zb(i,j),i=1,s%nx+1)
@@ -106,9 +119,7 @@ contains
                    s%y(i,j)=(j-1)*s%dy
                 end do
              end do
-          endif
-       elseif (s%vardx==1) then   ! Robert keep vardx == 1 for backwards compatibility??
-          if (xmaster) then
+             case (1)   ! Robert keep vardx == 1 for backwards compatibility??
              if (par%setbathy .ne. 1) then
              open (31,file=par%depfile)
              read (31,*,iostat=ier)((s%zb(i,j),i=1,s%nx+1),j=1,s%ny+1)
@@ -142,23 +153,26 @@ contains
              else
                 s%y = 0.d0
              end if
-          endif
-       else 
+               !endif
+             case default
           call writelog('esl','','Invalid value for vardx: ',par%vardx)
           call halt_program
-       endif
-    elseif (par%gridform==GRIDFORM_DELFT3D) then
-       if(xmaster) then
+            end select
+
+          case (GRIDFORM_DELFT3D)
           ! 
           ! Gridfile
           !
           open(31,file=par%xyfile,status='old',iostat=ier)  
+            if (ier .ne. 0) then
+               call report_file_read_error(par%xyfile)
+            endif
+            ! http://oss.deltares.nl/documents/183920/185723/Delft3D-FLOW_User_Manual.pdf section A.2.2
           ! skip comment text in file...
-          comment=.true.
-          do while (comment .eqv. .true.)
+            do
              read(31,'(a)',iostat=ier)line
              if (line(1:1)/='*') then 
-                comment=.false.
+                  exit
              endif
           enddo
           read(31,*,iostat=ier2) idum,idum
@@ -175,6 +189,11 @@ contains
           read(31,*,iostat=ier) &
               (line,dum,(s%x(m,n),m=1,s%nx+1),n=1,s%ny+1), &
               (line,dum,(s%y(m,n),m=1,s%nx+1),n=1,s%ny+1) 
+            if (ier .ne. 0) then
+               call report_file_read_error(par%xyfile)
+            endif
+
+            close(31)
           !
           ! Depfile
           !
@@ -188,12 +207,34 @@ contains
           enddo
              close(33)
           endif
-       endif ! xmaster
-    endif ! delft3d format
+         end select
+      endif
+      ! xmaster
 
     degrad=par%px/180.d0
+      ! send zb, x, y to xomaster
 
+#ifdef USEMPI
+      ! wwvv todo  use xmpi_send
     if(xmaster) then
+         ! MPI_SEND(BUF, COUNT, DATATYPE, DEST, TAG, COMM, IERROR)
+         ! <type>    BUF(*)
+         ! INTEGER    COUNT, DATATYPE, DEST, TAG, COMM, IERROR
+         call MPI_Send(s%zb, size(s%zb), MPI_DOUBLE_PRECISION, xmpi_omaster, 1, xmpi_ocomm, ier)
+         call MPI_Send(s%x,  size(s%x),  MPI_DOUBLE_PRECISION, xmpi_omaster, 2, xmpi_ocomm, ier)
+         call MPI_Send(s%y,  size(s%y),  MPI_DOUBLE_PRECISION, xmpi_omaster, 3, xmpi_ocomm, ier)
+      else
+         ! MPI_RECV(BUF, COUNT, DATATYPE, SOURCE, TAG, COMM, STATUS, IERROR)
+         ! <type>    BUF(*)
+         ! INTEGER    COUNT, DATATYPE, SOURCE, TAG, COMM
+         ! INTEGER    STATUS(MPI_STATUS_SIZE), IERROR
+         call MPI_Recv(s%zb, size(s%zb), MPI_DOUBLE_PRECISION, xmpi_imaster, 1, xmpi_ocomm, MPI_STATUS_IGNORE, ier)
+         call MPI_Recv(s%x,  size(s%x),  MPI_DOUBLE_PRECISION, xmpi_imaster, 2, xmpi_ocomm, MPI_STATUS_IGNORE, ier)
+         call MPI_Recv(s%y,  size(s%y),  MPI_DOUBLE_PRECISION, xmpi_imaster, 3, xmpi_ocomm, MPI_STATUS_IGNORE, ier)
+      endif
+#endif
+
+      if(.true.) then
 
        s%zb=-s%zb*s%posdwn
        ! Make sure that at the lateral boundaries the bathymetry is alongshore uniform
@@ -300,7 +341,8 @@ contains
        
     endif
 
-    if (xmaster) then
+      !if (xmaster) then
+      if(.true.) then
        ! Initialize dzbdx, dzbdy
        do j=1,s%ny+1
           do i=1,s%nx
@@ -335,6 +377,8 @@ contains
     integer                             :: i,j,it
     integer                             :: ier,fid,dummy
     
+    if(.not. xmaster) return
+
     if (par%setbathy==1) then
        allocate(s%setbathy(s%nx+1,s%ny+1,par%nsetbathy))
        allocate(s%tsetbathy(par%nsetbathy))
@@ -383,8 +427,8 @@ contains
 
     integer                             :: itheta
 
-    !include 's.ind'
-    !include 's.inp'
+
+    if(.not. xmaster) return
 
     allocate(s%thetamean(1:s%nx+1,1:s%ny+1))
     allocate(s%Fx(1:s%nx+1,1:s%ny+1))
@@ -609,6 +653,9 @@ contains
   
   end subroutine spectral_wave_init
 
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   subroutine flow_init (s,par)
     use params
     use spaceparams
@@ -632,8 +679,8 @@ contains
     real*8,dimension(:,:),allocatable       :: vmagvold,vmaguold
     real*8                                  :: flowerr
 
-    !include 's.ind'
-    !include 's.inp'
+
+    if(.not. xmaster) return
 
     allocate(s%zs(1:s%nx+1,1:s%ny+1))
     allocate(s%dzsdt(1:s%nx+1,1:s%ny+1))
@@ -1257,8 +1304,8 @@ contains
     character(len=4)                    :: tempc
     real*8                              :: tempr
 
-    !include 's.ind'
-    !include 's.inp'
+
+    if(.not. xmaster) return
 
     allocate(s%ccg(1:s%nx+1,1:s%ny+1,par%ngd))
     allocate(s%dcbdy(1:s%nx+1,1:s%ny+1))
@@ -1274,11 +1321,12 @@ contains
     allocate(s%ceqsg(1:s%nx+1,1:s%ny+1,par%ngd))
     allocate(s%ceqbg(1:s%nx+1,1:s%ny+1,par%ngd))
     !if (par%dilatancy==1) allocate(s%D15(1:par%ngd)) ! Lodewijk
-    if (par%dilatancy==1) then
-      allocate(s%D15(1:par%ngd)) ! Lodewijk
-    else
-      allocate(s%D15(1)) ! wwvv: s%D15 will be distributed, so it must exist
-    endif
+    !if (par%dilatancy==1) then
+    !  allocate(s%D15(1:par%ngd)) ! Lodewijk
+    !else
+    !  allocate(s%D15(1)) ! wwvv: s%D15 will be distributed, so it must exist
+    !endif
+    allocate(s%D15(1:par%ngd)) ! Robert: this is distributed according to stencil in spaceparams.tmpl
     allocate(s%D50(1:par%ngd))
     allocate(s%D90(1:par%ngd))
     allocate(s%D50top(1:s%nx+1,1:s%ny+1))
@@ -1495,12 +1543,11 @@ contains
     integer                                 :: i,j
     integer                                 :: io
     integer                                 :: m1,m2,n1,n2
-    real*8                                  :: dxd,dyd
     real*8, dimension(:),allocatable        :: xdb,ydb,xde,yde
     integer,dimension(2)                    :: mnb,mne
 
-    !include 's.ind'
-    !include 's.inp'
+
+    if(.not. xmaster) return
 
     io          = 0
 
@@ -1519,7 +1566,8 @@ contains
     s%pdisch    = 0
     s%qdisch    = 0.d0
 
-    if (xmaster) then
+    !if (xmaster) then
+    if(.true.) then
        if (par%ndischarge>0) then
 
           ! read discharge locations
@@ -1554,7 +1602,8 @@ contains
        endif
     endif
 
-    if (xmaster) then
+    !if (xmaster) then
+    if(.true.) then
 
        ! initialise each discharge location
        do i=1,par%ndischarge
@@ -1636,19 +1685,18 @@ contains
     real*8                                  :: ds,dn
     integer,dimension(2)                    :: mn
 
-    !include 's.ind'
-    !include 's.inp'
+
+    if(.not. (xmaster .or. xomaster)) return
 
     allocate(s%idrift   (par%ndrifter))
     allocate(s%jdrift   (par%ndrifter))
     allocate(s%tdriftb  (par%ndrifter))
     allocate(s%tdrifte  (par%ndrifter))
 
-    if (xmaster) then
-
-       if (par%ndrifter>0) then
+    if (par%ndrifter>0) then
 
           ! read drifter file
+       if(xmaster) then
           open(10,file=par%drifterfile)
           do i=1,par%ndrifter
              read(10,*,iostat=ier)xdrift,ydrift,s%tdriftb(i),s%tdrifte(i)
@@ -1673,8 +1721,15 @@ contains
              s%tdriftb   = s%tdriftb/max(par%morfac,1.d0)
              s%tdrifte   = s%tdrifte/max(par%morfac,1.d0)
           endif
-
        endif
+
+#ifdef USEMPI
+       call xmpi_send(xmpi_imaster, xmpi_omaster,s%idrift)
+       call xmpi_send(xmpi_imaster, xmpi_omaster,s%jdrift)
+       call xmpi_send(xmpi_imaster, xmpi_omaster,s%tdriftb)
+       call xmpi_send(xmpi_imaster, xmpi_omaster,s%tdrifte)
+#endif
+
     endif
   end subroutine drifter_init
 

@@ -26,32 +26,31 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 module bedroughness_module
 
+   implicit none
+   save
+
+   real*8,dimension(:,:),allocatable,private  :: kru,krv,kru50,krv50,kru90,krv90
+   real*8,dimension(:,:),allocatable,private  :: urms_upd,u2_upd
+   real*8,dimension(:,:),allocatable,private  :: facbl,blphi,infilb,Ubed,Ventilation
+   real*8,dimension(:,:),allocatable,private  :: ueuf,uevf,vevf,veuf
+   real*8,dimension(:,:),allocatable,private  :: ueuold,uevold,vevold,veuold
+   real*8,dimension(:,:),allocatable,private  :: dudtsmooth,dvdtsmooth
+   real*8,dimension(:,:),allocatable,private  :: shieldsu,shieldsv
+   real*8,dimension(2),              private  :: dtold
+   real*8,                           private  :: delta,rhogdelta
 
 
-implicit none
-
-real*8,dimension(:,:),allocatable,save,private  :: kru,krv,kru50,krv50,kru90,krv90
-real*8,dimension(:,:),allocatable,save,private  :: urms_upd,u2_upd
-real*8,dimension(:,:),allocatable,save,private  :: facbl,blphi,infilb,Ubed,Ventilation
-real*8,dimension(:,:),allocatable,save,private  :: ueuf,uevf,vevf,veuf
-real*8,dimension(:,:),allocatable,save,private  :: ueuold,uevold,vevold,veuold
-real*8,dimension(:,:),allocatable,save,private  :: dudtsmooth,dvdtsmooth
-real*8,dimension(:,:),allocatable,save,private  :: shieldsu,shieldsv
-real*8,dimension(2),save,private                :: dtold
-real*8,save,private                             :: delta,rhogdelta
-
-
-public bedroughness_init
-public bedroughness_update
+   public bedroughness_init
+   public bedroughness_update
 
 contains
 
-subroutine bedroughness_init(s,par)
+   subroutine bedroughness_init(s,par)
    use params
    use spaceparams
    use paramsconst
    
-   IMPLICIT NONE
+   implicit none
 
    type(parameters),intent(in)                 :: par
    type(spacepars),target                      :: s
@@ -142,24 +141,20 @@ subroutine bedroughness_init(s,par)
 
 
 
-end subroutine bedroughness_init
+   end subroutine bedroughness_init
 
 
-subroutine bedroughness_update(s,par)
+   subroutine bedroughness_update(s,par)
 
    use params
    use spaceparams
    use paramsconst
    
-   IMPLICIT NONE
+   implicit none
 
    type(parameters),intent(in)                 :: par
    type(spacepars),target                      :: s
    integer                                     :: i,j
-   real*8                                      :: ubed,dudtbed,hda,klocal
-   
-   !include 's.ind'
-   !include 's.inp'
    
    select case (par%bedfriction)
       
@@ -241,7 +236,7 @@ subroutine bedroughness_update(s,par)
    s%cfv = min(s%cfv,1.d0)
    
    
-end subroutine bedroughness_update 
+   end subroutine bedroughness_update
    
 
 

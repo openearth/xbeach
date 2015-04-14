@@ -2,6 +2,7 @@ module wave_boundary_update_module
    use wave_boundary_datastore
    !
    implicit none
+   save
    private
    public generate_wave_boundary_surfbeat
    ! 

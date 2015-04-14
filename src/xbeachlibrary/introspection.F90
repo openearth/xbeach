@@ -4,6 +4,7 @@ module introspection_module
   use indextos_module
 
   implicit none
+  save
 
   interface getnparameter
      module procedure getnparameter_fortran

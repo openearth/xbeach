@@ -218,8 +218,8 @@
       real*8  3  depo_im     s%nx+1 s%ny+1 par%ngd d  [m/s] [] implicit bed deposition rate per fraction
       real*8  3  depo_ex     s%nx+1 s%ny+1 par%ngd d  [m/s] [] explicit bed deposition rate per fraction
       integer 2  nd       s%nx+1 s%ny+1 d  [-] [] number of bed layers (can be different for each computational cell)
-      real*8  4  pbbed    s%nx+1 s%ny+1 max(par%nd,2) par%ngd d [-] [] NO DESCRIPTION
-      real*8  3  dzbed    s%nx+1 s%ny+1 max(par%nd,2) d [-] [] NO DESCRIPTION
+      real*8  4  pbbed    s%nx+1 s%ny+1 max(par%nd,3) par%ngd d [-] [] NO DESCRIPTION
+      real*8  3  dzbed    s%nx+1 s%ny+1 max(par%nd,3) d [-] [] NO DESCRIPTION
       real*8  2  z0bed    s%nx+1 s%ny+1 d  [-] [] NO DESCRIPTION
       real*8  2  ureps     s%nx+1 s%ny+1 d [m/s] [sea_water_x_velocity] representative flow velocity for sediment advection and diffusion, x-component
       real*8  2  vreps     s%nx+1 s%ny+1 d [m/s] [sea_water_y_velocity] representative flow velocity for sediment advection and diffusion, y-component

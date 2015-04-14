@@ -1,9 +1,13 @@
 module means_module
+
   ! This module uses the On-line algorithm according to Knuth (1998) to
   ! determine the variance on the fly
   ! Note: this approximation can be improved.
   use xmpi_module
   use mnemmodule
+
+  implicit none
+  save
 
   type meanspars
      ! Name
@@ -53,7 +57,8 @@ contains
 
     implicit none
 
-    type(spacepars),intent(in)        :: sg,sl
+    type(spacepars),intent(inout)     :: sg
+    type(spacepars),intent(in)        :: sl
     type(parameters),intent(in)       :: par
     type(arraytype)                   :: t
     integer                           :: i,index,d1,d2,d3,d4
@@ -69,7 +74,13 @@ contains
        allocate(meansparslocal(par%nmeanvar))
 
        do i=1,par%nmeanvar
-          index=chartoindex(trim(par%meanvars(i)))
+            index=chartoindex(par%meanvars(i))
+#ifdef USEMPI
+            if(xomaster) then
+               ! just to make sure that d1 .. d4 get the correct values:
+               call index_allocate(sg,par,index,'r')
+            endif
+#endif
           call indextos(sg,index,t)
           meansparsglobal(i)%name=t%name
           meansparsglobal(i)%rank=t%rank
@@ -77,9 +88,15 @@ contains
           select case (t%rank)
           case (2)
              if (t%type == 'r') then
+#ifdef USEMPI
+                  !t%r2 = 0  ! wwvv todo why?
+#endif
                 d1 = size(t%r2,1)
                 d2 = size(t%r2,2)
              elseif (t%type == 'i') then
+#ifdef USEMPI
+                  !t%i2 = 0
+#endif
                 d1 = size(t%i2,1)
                 d2 = size(t%i2,2)
              else
@@ -99,13 +116,19 @@ contains
              meansparsglobal(i)%max2d = -1.d0*huge(0.d0)
           case (3)
              if (t%type == 'r') then
+#ifdef USEMPI
+                  t%r3 = 0
+#endif
                 d1 = size(t%r3,1)
                 d2 = size(t%r3,2)
                 d3 = size(t%r3,3)
              elseif (t%type == 'i') then
-                d1 = size(t%r3,1)
-                d2 = size(t%r3,2)
-                d3 = size(t%r3,3)
+#ifdef USEMPI
+                  t%i3 = 0
+#endif
+                  d1 = size(t%i3,1)
+                  d2 = size(t%i3,2)
+                  d3 = size(t%i3,3)
              else
                 call halt_program
              end if
@@ -123,15 +146,21 @@ contains
              meansparsglobal(i)%max3d = -1.d0*huge(0.d0)
           case (4)
              if (t%type == 'r') then
+#ifdef USEMPI
+                  t%r4 = 0
+#endif
                 d1 = size(t%r4,1)
                 d2 = size(t%r4,2)
                 d3 = size(t%r4,3)
                 d4 = size(t%r4,4)
              elseif (t%type == 'i') then
-                d1 = size(t%r4,1)
-                d2 = size(t%r4,2)
-                d3 = size(t%r4,3)
-                d4 = size(t%r4,4)
+#ifdef USEMPI
+                  t%i4 = 0
+#endif
+                  d1 = size(t%i4,1)
+                  d2 = size(t%i4,2)
+                  d3 = size(t%i4,3)
+                  d4 = size(t%i4,4)
              else
                 call halt_program
              end if
@@ -251,7 +280,7 @@ contains
     IMPLICIT NONE
 
     type(parameters),   intent(in)                      :: par
-    type(spacepars),    intent(in)                      :: sl
+      type(spacepars),    intent(inout)                   :: sl
 
     ! keep track of which mean variables are used
     integer                                             :: index 
@@ -291,7 +320,7 @@ contains
           endwhere
           ! Some variables (vectors) are rotated to N-S and E-W direction
           if (t%type=='i') then 
-             call gridrotate(par, sl,t,tvar2di)
+               call gridrotate(t,tvar2di)  ! wwvv-todo
              tvar2d=dble(tvar2di)
           else
              call gridrotate(par, sl,t,tvar2d)
@@ -347,7 +376,7 @@ contains
           where (oldmean4d>-epsilon(0.d0) .and. oldmean4d<0.d0)
              oldmean4d=-epsilon(0.d0)
           endwhere
-          call gridrotate(par, sl,t,tvar4d)
+            call gridrotate(t,tvar4d)  ! wwvv-todo
           meansparslocal(i)%mean4d = meansparslocal(i)%mean4d + mult*tvar4d
           meansparslocal(i)%variancecrossterm4d = &
                meansparslocal(i)%variancecrossterm4d/oldmean4d*meansparslocal(i)%mean4d + &
@@ -402,26 +431,8 @@ contains
     enddo
   end subroutine clearaverage
 
-  ! Subroutine make time series file name
 
-  subroutine makeaveragenames(counter,fnamemean,fnamevar,fnamemin&
-       &,fnamemax)
-    use mnemmodule
-
-    implicit none
-
-    character(99)      :: fnamemean,fnamevar,fnamemin,fnamemax
-    integer            :: counter
-
-    fnamemean = trim(mnemonics(counter))//'_mean.dat'
-    fnamevar  = trim(mnemonics(counter))//'_var.dat'
-    fnamemin  = trim(mnemonics(counter))//'_min.dat'
-    fnamemax  = trim(mnemonics(counter))//'_max.dat'
-
-  end subroutine makeaveragenames
-
-  subroutine makecrossvector(s,sl,crossvararray,nvar,varindexvec,mg&
-       &,cstype)
+   subroutine makecrossvector(s,sl,par,crossvararray,nvar,varindexvec,mg,cstype)
     use params
     use spaceparams
     use mnemmodule
@@ -430,17 +441,25 @@ contains
     IMPLICIT NONE
 
     type(spacepars), intent(in)       :: s,sl    
+      type(parameters)                  :: par
     real*8,dimension(:,:)             :: crossvararray
     integer,intent(in)                :: mg,cstype,nvar
     integer,dimension(nvar),intent(in):: varindexvec
     type(arraytype)                   :: t
 
     integer                           :: i
+#ifdef USEMPI
+      logical                           :: toall = .true.
+#endif
 
     crossvararray=-999.d0
+      ! wwvv to avoid warning about unused sl and par
+      if (.false.) then
+         print *,sl%nx,par%swave
+      endif
     do i=1,nvar
 #ifdef USEMPI
-       call space_collect_index(s,sl,varindexvec(i))
+         call space_collect_index(s,sl,par,varindexvec(i))
 #endif  
        if (xmaster) then
           call indextos(s,varindexvec(i),t)
@@ -461,7 +480,7 @@ contains
        endif
     enddo
 #ifdef USEMPI
-    call xmpi_bcast(crossvararray)
+      call xmpi_bcast(crossvararray,toall) ! wwvv todo: it seems that crosvararry is only needed at xomaster
 #endif 
     ! wwvv to avoid warning about unused sl:
     if (sl%nx .eq. -1) return

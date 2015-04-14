@@ -25,20 +25,25 @@ module libxbeach_module
   use ship_module
   use nonh_module
   use vegetation_module
-  implicit none
 
-  type(parameters), save                              :: par
-  type(timepars), save                                :: tpar
+  implicit none
+  save
+
+  type(parameters)                     :: par
+  type(timepars)                       :: tpar
   type(spacepars), pointer                            :: s
-  type(spacepars), target, save                       :: sglobal
+  type(spacepars), target              :: sglobal
   type(ship), dimension(:), pointer                   :: sh
 
   integer                                             :: n,it,error
   real*8                                              :: tbegin
 
 #ifdef USEMPI
-  type(spacepars), target, save                       :: slocal
+  type(spacepars), target              :: slocal
   real*8                                              :: t0,t01
+  logical                              :: toall = .true.
+  logical                              :: end_program
+  integer                              :: nxbak, nybak
 #endif
 
 
@@ -51,6 +56,11 @@ module libxbeach_module
 
 contains
   integer(c_int) function init()
+#ifdef USEMPI
+  integer, dimension(12)               :: info
+  character(256)                       :: line
+  integer                              :: rank,i
+#endif
 
     error   = 0
     n = 0
@@ -59,7 +69,7 @@ contains
 #ifdef USEMPI
     s=>slocal
     call xmpi_initialize
-    call xmpi_barrier()
+    call xmpi_barrier(toall)
     t0 = MPI_Wtime()
 #endif
 
@@ -80,6 +90,7 @@ contains
     it      = 0
 
     ! read input from params.txt
+    params_inio = .false.
     call all_input(par)
 
     s => sglobal
@@ -89,7 +100,44 @@ contains
 
     ! distribute grid over processors
 #ifdef USEMPI
-    call xmpi_determine_processor_grid(s%nx,s%ny,par%mpiboundary,par%mmpi,par%nmpi,error)
+      call xmpi_determine_processor_grid(s%nx,s%ny,par%mpiboundary,par%mmpi,par%nmpi,par%cyclic,error)
+#if 0
+      ! print information about the neighbours of the processes
+      info                      = 0
+      info(1)                   = xmpi_orank
+      info(2)                   = xmpi_rank
+      info(3)                   = xmpi_prow
+      info(4)                   = xmpi_pcol
+      info(5)                   = xmpi_left
+      info(6)                   = xmpi_right
+      info(7)                   = xmpi_top
+      info(8)                   = xmpi_bot
+      if(xmpi_isleft)  info(9)  = 1
+      if(xmpi_isright) info(10) = 1
+      if(xmpi_istop)   info(11) = 1
+      if(xmpi_isbot)   info(12) = 1
+
+      do i=5,8
+         if(info(i) .eq. MPI_PROC_NULL) then
+            info(i) = -99
+         endif
+      enddo
+
+      call writelog("ls"," "," ranks and neigbours (-99 means: no neighbour):")
+      call writelog("ls"," ",' ')
+      call writelog("ls"," ","  orank rank pcol prow left right  top  bot isleft isright istop isbot")
+
+      do rank = 0,xmpi_osize-1
+         if (rank .ne. xmpi_omaster) then
+            call xmpi_send(rank,xmpi_imaster,info)
+            if (xmaster) then
+               write(line,'(i5,i5,i5,i5,i5,i6,i5,i5,i7,i8,i6,i6)') info
+            endif
+            call writelog("ls"," ",trim(line))
+         endif
+      enddo
+      call writelog("ls"," ",' ')
+#endif
     call writelog_mpi(par%mpiboundary,error)
 #endif
 
@@ -99,33 +147,43 @@ contains
     if (xmaster) then
 
        call writelog('ls','','Initializing .....')
-       call setbathy_init      (s,par)
-       ! initialize physics
-       call readtide           (s,par)
-       call readwind           (s,par)
-
-       call flow_init          (s,par)
-       call discharge_init     (s,par)
-       call drifter_init       (s,par)
-       call wave_init          (s,par)
-       call gw_init            (s,par)
-       ! TODO, fix ordening of arguments....
-       call bwinit             (s)          ! works only on master process 
-
-       call sed_init           (s,par)
     endif
-       call ship_init          (s,par,sh)   ! always need to call initialise in order
+    call setbathy_init      (s,par)
+    ! initialize physics
+    call readtide           (s,par)
+    call readwind           (s,par)
+    call flow_init          (s,par)
+    call discharge_init     (s,par)
+    call drifter_init       (s,par)
+    call wave_init          (s,par)
+    call gw_init            (s,par)
+    ! TODO, fix ordening of arguments....
+    call bwinit             (s)          ! works only on master process 
+
+    call sed_init           (s,par)
+
+    call ship_init          (s,par,sh)   ! always need to call initialise in order
                                             ! to reserve memory on MPI subprocesses.
                                             ! Note: if par%ships==0 then don't allocate
                                             ! and read stuff for sh structures
-    if (xmaster) then
-       call vegie_init         (s,par)
-
-    endif
+    call vegie_init         (s,par)
 
 #ifdef USEMPI
     call distribute_par(par)
     s => slocal
+      !
+      ! here an hack to ensure that sglobal is populated, also on
+      ! the not-(o)master processes, just to get valid addresses.
+      !
+      if (.not. xmaster .and. .not. xomaster) then
+         nxbak = sglobal%nx
+         nybak = sglobal%ny
+         sglobal%nx=0
+         sglobal%ny=0
+         call space_alloc_arrays(sglobal,par)
+         sglobal%nx = nxbak
+         sglobal%ny = nybak
+      endif
     call space_distribute_space (sglobal,s,par     )
 #endif
 
@@ -140,6 +198,8 @@ contains
 
 
     ! store first timestep
+    ! from this point on, xomaster will hang in subroutine output
+    ! until a broadcast .true. is received
     call output(sglobal,s,par,tpar)
     init = 0
   end function init
@@ -152,6 +212,8 @@ contains
   !-----------------------------------------------------------------------------!
   ! Start simulation                                                            !
   !-----------------------------------------------------------------------------!
+
+   !_____________________________________________________________________________
 
   integer(c_int) function executestep()
 
@@ -168,36 +230,38 @@ contains
     executestep = -1
     !do while (par%t<par%tstop)
     ! determine timestep
-    call timestep(s,par,tpar,it,ierr=error)
-    if (error==1) then
-      call output_error(s,sglobal,par,tpar)
+    if(xcompute) then
+      call timestep(s,par,tpar,it,ierr=error)
+      if (error==1) then
+        call output_error(s,sglobal,par,tpar)
+      endif
+
+      ! boundary conditions
+      call wave_bc        (sglobal,s,par)
+      if (par%gwflow==1)       call gw_bc          (s,par)
+      if (par%flow+par%nonh>0) call flow_bc        (s,par)
+
+      ! compute timestep
+      if (par%ships==1)        call shipwave       (s,par,sh)
+      if (par%swave==1)        call wave           (s,par)
+      if (par%vegetation==1)   call vegatt         (s,par)
+      if (par%gwflow==1)       call gwflow         (s,par)
+      if (par%flow+par%nonh>0) call flow           (s,par)
+      if (par%ndrifter>0)      call drifter        (s,par)
+      if (par%sedtrans==1)     call transus        (s,par)
+      ! Beach wizard
+      if (par%bchwiz>0)        call assim          (s,par)
+      ! Bed level update
+      if ((par%morphology==1).and.(.not. par%bchwiz == 1).and.(.not. par%setbathy==1)) call bed_update(s,par)
+      if (par%bchwiz>0)        call assim_update   (s, par)
+      if (par%setbathy==1)     call setbathy_update(s, par)
+    
     endif
 
-    ! boundary conditions
-    call wave_bc        (sglobal,s,par)
-    if (par%gwflow==1)       call gw_bc          (s,par)
-    if (par%flow+par%nonh>0) call flow_bc        (s,par)
-
-    ! compute timestep
-    if (par%ships==1)        call shipwave       (s,par,sh)
-    if (par%swave==1)        call wave           (s,par)
-    if (par%vegetation==1)   call vegatt         (s,par)
-    if (par%gwflow==1)       call gwflow         (s,par)
-    if (par%flow+par%nonh>0) call flow           (s,par)
-    if (par%ndrifter>0)      call drifter        (s,par)
-    if (par%sedtrans==1)     call transus        (s,par)
-    ! Beach wizard
-    if (par%bchwiz>0)        call assim          (s,par)
-    ! Bed level update
-    if ((par%morphology==1).and.(.not. par%bchwiz == 1).and.(.not. par%setbathy==1)) call bed_update(s,par)
-    if (par%bchwiz>0)        call assim_update   (s, par)
-    if (par%setbathy==1)     call setbathy_update(s, par)
-    
     n = n + 1
     executestep = 0
-    ! enddo
   end function executestep
-
+   !_____________________________________________________________________________
 
 
   integer(c_int) function finalize()
@@ -208,7 +272,10 @@ contains
     !-----------------------------------------------------------------------------!
 
 #ifdef USEMPI
-    call xmpi_barrier()
+    end_program = .true.
+    call xmpi_send_sleep(xmpi_imaster,xmpi_omaster) ! wake up omaster
+    call xmpi_bcast(end_program,toall)
+    call xmpi_barrier(toall)
     call writelog_finalize(tbegin,n,par%t,par%nx,par%ny,t0,t01)
     call xmpi_finalize
 #else

@@ -1,4 +1,6 @@
 module drifter_module
+  implicit none
+  save
 contains
   subroutine drifter(s,par)
     use params
@@ -17,8 +19,6 @@ contains
     integer                     :: iu,ju,iv,jv
     real*8                      :: di,dj
 
-    !include 's.ind'
-    !include 's.inp'
 
 #ifdef USEMPI
     ishift  = s%is(xmpi_rank+1)-1
@@ -52,8 +52,8 @@ contains
 
 #ifdef USEMPI
           else
-             s%idrift(i)  = huge(0.0d0)
-             s%jdrift(i)  = huge(0.0d0)
+             s%idrift(i)  = huge(0.0d0)-10000.d0
+             s%jdrift(i)  = huge(0.0d0)-10000.d0
 #endif
           endif
 

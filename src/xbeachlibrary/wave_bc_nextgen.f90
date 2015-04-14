@@ -5,6 +5,7 @@
       ! module to work
       use paramsconst
       implicit none
+   save
       private 
       !public wave_bc_generate
       

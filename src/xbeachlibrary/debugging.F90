@@ -2,6 +2,7 @@ module debugging_module
 #if 0
 ! these routines need a thorough rewrite
 implicit none
+   save
 #ifdef USEMPI
   interface compare
      module procedure comparei2

@@ -3,10 +3,11 @@ module logging_module
   use xmpi_module
 
   implicit none
-  integer,save     :: logfileid
-  integer,save     :: errorfileid
-  integer,save     :: warningfileid
-  !integer,save     :: pardatfileid
+  save
+
+  integer     :: logfileid
+  integer     :: errorfileid
+  integer     :: warningfileid
 
 
   procedure(distributeloginterface), pointer :: distributelog => null()

@@ -1,5 +1,7 @@
 module spaceparamsdef
+   use mnemmodule
   implicit none
+   save
   type spacepars
      include 'spacedecl.gen'
 #ifdef USEMPI
@@ -35,6 +37,20 @@ module spaceparamsdef
      logical, dimension(:), pointer  :: isright => NULL()
      logical, dimension(:), pointer  :: istop   => NULL()
      logical, dimension(:), pointer  :: isbot   => NULL()
+
+      ! The following are determined in spaceparams, look there for a description
+      integer, dimension(:), allocatable :: icgs(:)
+      integer, dimension(:), allocatable :: icge(:)
+      integer, dimension(:), allocatable :: jcgs(:)
+      integer, dimension(:), allocatable :: jcge(:)
+      integer, dimension(:), allocatable :: icls(:)
+      integer, dimension(:), allocatable :: icle(:)
+      integer, dimension(:), allocatable :: jcls(:)
+      integer, dimension(:), allocatable :: jcle(:)
+
+      logical, dimension(numvars) :: collected
+      logical, dimension(numvars) :: precollected
+
 #endif
   end type spacepars
 

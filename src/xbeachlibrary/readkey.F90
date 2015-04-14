@@ -25,10 +25,17 @@
     ! USA                                                                     !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
 module readkey_module
+
   use typesandkinds
   implicit none
+  save
+  ! before using any of the routines here, set readkey_inio
+  ! .true. : value read will be broadcasted to all processes, including the
+  !          output process.
+  ! otherwise: the value will be broadcasted to the computational processes only
+  !
+  logical :: readkey_inio = .false.
 
   integer, parameter, private                   :: maxnames = 20
   character(slen), dimension(maxnames), private :: allowednames
@@ -114,7 +121,7 @@ contains
 
 #ifdef USEMPI
     if (lbcast) then
-       call xmpi_bcast(value_dbl)
+        call xmpi_bcast(value_dbl,readkey_inio)
     endif
 #endif
 
@@ -182,7 +189,7 @@ contains
     endif
 #ifdef USEMPI
     if (lbcast) then
-       call xmpi_bcast(value_int)
+        call xmpi_bcast(value_int,readkey_inio)
     endif
 #endif
 
@@ -263,7 +270,7 @@ contains
     endif
 #ifdef USEMPI
     if (lbcast) then
-       call xmpi_bcast(value_str)
+        call xmpi_bcast(value_str,readkey_inio)
     endif
 #endif   
   end function readkey_str
@@ -316,7 +323,7 @@ contains
     endif
 #ifdef USEMPI
     if (lbcast) then
-       call xmpi_bcast(value_str)
+        call xmpi_bcast(value_str,readkey_inio)
     endif
 #endif   
   end function readkey_name
@@ -389,7 +396,7 @@ contains
 #ifdef USEMPI
     if (lbcast) then
        do i=1,vlength
-          call xmpi_bcast(value_vec(i))
+           call xmpi_bcast(value_vec(i),readkey_inio)
        enddo
     endif
 #endif
@@ -423,7 +430,7 @@ contains
     endif
 #ifdef USEMPI
     if (lbcast) then
-       call xmpi_bcast(isSet)
+        call xmpi_bcast(isSet,readkey_inio)
     endif
 #endif  
   end function isSetParameter
@@ -653,7 +660,7 @@ contains
 
 #ifdef USEMPI
       if (lbcast) then
-        call xmpi_bcast(parm)
+        call xmpi_bcast(parm,readkey_inio)
       endif
 #endif
 
@@ -870,7 +877,7 @@ contains
       read(fid,*) a
     endif
 #ifdef USEMPI
-    call xmpi_bcast(a)
+     call xmpi_bcast(a,readkey_inio)
 #endif
     end subroutine read_v_array
 
@@ -888,76 +895,76 @@ contains
     if (present(a8)) then
       if(xmaster) read(fid,*) a,a1,a2,a3,a4,a5,a6,a7,a8
 #ifdef USEMPI
-      call xmpi_bcast(a1)
-      call xmpi_bcast(a2)
-      call xmpi_bcast(a3)
-      call xmpi_bcast(a4)
-      call xmpi_bcast(a5)
-      call xmpi_bcast(a6)
-      call xmpi_bcast(a7)
-      call xmpi_bcast(a8)
+         call xmpi_bcast(a1,readkey_inio)
+         call xmpi_bcast(a2,readkey_inio)
+         call xmpi_bcast(a3,readkey_inio)
+         call xmpi_bcast(a4,readkey_inio)
+         call xmpi_bcast(a5,readkey_inio)
+         call xmpi_bcast(a6,readkey_inio)
+         call xmpi_bcast(a7,readkey_inio)
+         call xmpi_bcast(a8,readkey_inio)
 #endif
     elseif (present(a7)) then
       if(xmaster) read(fid,*) a,a1,a2,a3,a4,a5,a6,a7
 #ifdef USEMPI
-      call xmpi_bcast(a1)
-      call xmpi_bcast(a2)
-      call xmpi_bcast(a3)
-      call xmpi_bcast(a4)
-      call xmpi_bcast(a5)
-      call xmpi_bcast(a6)
-      call xmpi_bcast(a7)
+         call xmpi_bcast(a1,readkey_inio)
+         call xmpi_bcast(a2,readkey_inio)
+         call xmpi_bcast(a3,readkey_inio)
+         call xmpi_bcast(a4,readkey_inio)
+         call xmpi_bcast(a5,readkey_inio)
+         call xmpi_bcast(a6,readkey_inio)
+         call xmpi_bcast(a7,readkey_inio)
 #endif
     elseif (present(a6)) then
       if(xmaster) read(fid,*) a,a1,a2,a3,a4,a5,a6
 #ifdef USEMPI
-      call xmpi_bcast(a1)
-      call xmpi_bcast(a2)
-      call xmpi_bcast(a3)
-      call xmpi_bcast(a4)
-      call xmpi_bcast(a5)
-      call xmpi_bcast(a6)
+         call xmpi_bcast(a1,readkey_inio)
+         call xmpi_bcast(a2,readkey_inio)
+         call xmpi_bcast(a3,readkey_inio)
+         call xmpi_bcast(a4,readkey_inio)
+         call xmpi_bcast(a5,readkey_inio)
+         call xmpi_bcast(a6,readkey_inio)
 #endif
     elseif (present(a5)) then
       if(xmaster) read(fid,*) a,a1,a2,a3,a4,a5
 #ifdef USEMPI
-      call xmpi_bcast(a1)
-      call xmpi_bcast(a2)
-      call xmpi_bcast(a3)
-      call xmpi_bcast(a4)
-      call xmpi_bcast(a5)
+         call xmpi_bcast(a1,readkey_inio)
+         call xmpi_bcast(a2,readkey_inio)
+         call xmpi_bcast(a3,readkey_inio)
+         call xmpi_bcast(a4,readkey_inio)
+         call xmpi_bcast(a5,readkey_inio)
 #endif
     elseif (present(a4)) then
       if(xmaster) read(fid,*) a,a1,a2,a3,a4
 #ifdef USEMPI
-      call xmpi_bcast(a1)
-      call xmpi_bcast(a2)
-      call xmpi_bcast(a3)
-      call xmpi_bcast(a4)
+         call xmpi_bcast(a1,readkey_inio)
+         call xmpi_bcast(a2,readkey_inio)
+         call xmpi_bcast(a3,readkey_inio)
+         call xmpi_bcast(a4,readkey_inio)
 #endif
     elseif (present(a3)) then
       if(xmaster) read(fid,*) a,a1,a2,a3
 #ifdef USEMPI
-      call xmpi_bcast(a1)
-      call xmpi_bcast(a2)
-      call xmpi_bcast(a3)
+         call xmpi_bcast(a1,readkey_inio)
+         call xmpi_bcast(a2,readkey_inio)
+         call xmpi_bcast(a3,readkey_inio)
 #endif
     elseif (present(a2)) then
       if(xmaster) read(fid,*) a,a1,a2
 #ifdef USEMPI
-      call xmpi_bcast(a1)
-      call xmpi_bcast(a2)
+         call xmpi_bcast(a1,readkey_inio)
+         call xmpi_bcast(a2,readkey_inio)
 #endif
     elseif (present(a1)) then
       if(xmaster) read(fid,*) a,a1
 #ifdef USEMPI
-      call xmpi_bcast(a1)
+         call xmpi_bcast(a1,readkey_inio)
 #endif
     else 
       if(xmaster) read(fid,*) a
     endif
 #ifdef USEMPI
-    call xmpi_bcast(a)
+      call xmpi_bcast(a,readkey_inio)
 #endif
     end subroutine read_v_9
 
@@ -983,7 +990,7 @@ contains
       close(fid)
     endif
 #ifdef USEMPI
-    call xmpi_bcast(lines)
+     call xmpi_bcast(lines,readkey_inio)
 #endif
     count_lines = lines
 

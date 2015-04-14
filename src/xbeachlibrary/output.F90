@@ -1,33 +1,53 @@
 module output_module
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-#ifdef USENETCDF
   use ncoutput_module
-#endif
   use params
   use spaceparams
   use timestep_module
   use logging_module
-  use fortoutput_module
   use paramsconst
   ! IFDEF used in case netcdf support is not compiled, f.i. Windows (non-Cygwin)
-
+   implicit none
+   save
 
 contains
+   !_________________________________________________________________________________
+
   subroutine output_init(sglobal, slocal, par, tpar)
-    type(spacepars), target, intent(in)  :: sglobal
+      implicit none
+      type(spacepars), target, intent(inout)  :: sglobal
     type(spacepars), target, intent(in)  :: slocal
     type(parameters), intent(in)         :: par
     type(timepars), intent(in)           :: tpar
 
 
+      ! get xz and yz in sglobal
+      ! and initialize sglobal%collected and sglobal%precollected
+
+#ifdef USEMPI
+      sglobal%collected = .false.
+
+      call space_collect_mnem(sglobal,slocal,par,mnem_xz)
+
+      call space_collect_mnem(sglobal,slocal,par,mnem_yz)
+
+      if(xomaster) then
+         sglobal%precollected = sglobal%collected
+      endif
+#endif
+
     ! initialize the correct output module (clean this up?, move to another module?)
-    if (par%outputformat==OUTPUTFORMAT_FORTRAN) then
+      select case(par%outputformat)
+
+       case(OUTPUTFORMAT_FORTRAN)
        ! only fortran
        call writelog('ls', '', 'Fortran outputformat')
-       call var_output_init(sglobal,slocal,par,tpar)
-    elseif (par%outputformat==OUTPUTFORMAT_NETCDF) then
+         !call var_output_init(sglobal,slocal,par,tpar)
+         call fortoutput_init(sglobal,par,tpar)
+       case(OUTPUTFORMAT_NETCDF)
        ! only netcdf, stop if it's not build
        call writelog('ls', '', 'NetCDF outputformat')
 #ifdef USENETCDF
@@ -36,19 +56,25 @@ contains
        call writelog('lse', '', 'This xbeach executable has no netcdf support. Rebuild with netcdf or outputformat=fortran')
        call halt_program
 #endif
-    elseif (par%outputformat==OUTPUTFORMAT_DEBUG) then
+       case(OUTPUTFORMAT_DEBUG)
        call writelog('ls', '', 'Debug outputformat, writing both netcdf and fortran output')
 #ifdef USENETCDF
+         call writelog('ls', '', 'NetCDF outputformat')
        call ncoutput_init(sglobal,slocal,par,tpar)
 #endif
-       call var_output_init(sglobal,slocal,par,tpar)
-    endif
+         !call var_output_init(sglobal,slocal,par,tpar)
+         call writelog('ls', '', 'Fortran outputformat')
+         call fortoutput_init(sglobal,par,tpar)
+      endselect
 
   end subroutine output_init
+   !_________________________________________________________________________________
 
   subroutine output(sglobal,s,par,tpar,update)
 
     use means_module
+      use postprocessmod
+      use indextos_module
 
     implicit none
 
@@ -59,6 +85,12 @@ contains
     logical, optional                   :: update
     logical                             :: lupdate
 
+      logical                               :: end_program
+#ifdef USEMPI
+      logical                               :: toall = .true.
+#endif
+
+
     if (present(update)) then
        lupdate = update
     else
@@ -66,38 +98,90 @@ contains
     endif
 
     ! update output times
-    if (lupdate) call outputtimes_update(par, tpar)
-
+    if(xcompute) then
+       if (lupdate) call outputtimes_update(par, tpar)
+    endif
     ! update log
     call log_progress(par)
 
+
     ! update meanvars in current averaging period with current timestep
-    if (par%nmeanvar/=0) then
+      if(par%nmeanvar .gt. 0) then
+         if(xcompute) then
        if (par%t>tpar%tpm(1) .and. par%t<=tpar%tpm(size(tpar%tpm))) then
           call makeaverage(s,par)
        endif
     endif
+      endif
 
-    ! output
-    if (par%outputformat==OUTPUTFORMAT_FORTRAN) then
-       call var_output(sglobal,s,par,tpar)
-    elseif (par%outputformat==OUTPUTFORMAT_NETCDF) then
-#ifdef USENETCDF
-       call ncoutput(sglobal,s,par, tpar)
+      end_program = .false.
+#ifdef USEMPI
+      if(xcompute) then
+         if(tpar%output) then
+            call xmpi_send_sleep(xmpi_imaster,xmpi_omaster) ! wake up omaster
+            call xmpi_bcast(end_program,toall) ! matching the xmpi_bcast
+            !                                  ! in the do loop a few lines below
+            call tell_xomaster_what_time_it_is ! matching the call a few lines below
+         else
+            return
+         endif
+      endif
 #endif
-    elseif (par%outputformat==OUTPUTFORMAT_DEBUG) then
-#ifdef USENETCDF
-       call ncoutput(sglobal,s,par, tpar)
-#endif
-       call var_output(sglobal,s,par,tpar)
+
+      do
+         ! xomaster will not leave this loop, except
+         ! at the very end of the program
+#ifdef USEMPI
+         if(xomaster) then
+            call xmpi_send_sleep(xmpi_imaster,xmpi_omaster)
+            call xmpi_bcast(end_program,toall) ! matching the xmpi_bcast
+            !                                  ! above or the xmpi_bcast
+            !                                  ! in finalize
+            if(end_program) then
+               call xmpi_barrier(toall)
+               call xmpi_finalize
+               stop
+            endif
+            call tell_xomaster_what_time_it_is ! matching the call a few lines above
     endif
+#endif
+
+         ! output
+
+         call ncoutput(sglobal,s,par, tpar)
 
     ! clear averages after output of means
     if (tpar%outputm .and. tpar%itm>1) then
        call clearaverage(par)
     endif
+         if (xcompute) exit
+      enddo
 
+#ifdef USEMPI
+   contains
+      subroutine tell_xomaster_what_time_it_is
+
+         call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%tnext)
+
+         call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%itg)
+         call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%itp)
+         call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%itm)
+         call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%itc)
+         call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%itw)
+
+         call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%outputg)
+         call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%outputp)
+         call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%outputm)
+         call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%outputc)
+         call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%outputw)
+         call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%output)
+
+         call xmpi_send(xmpi_imaster,xmpi_omaster,par%t)
+
+      end subroutine tell_xomaster_what_time_it_is
+#endif
   end subroutine output
+   !_________________________________________________________________________________
 
   subroutine output_error(s, sglobal, par, tpar)
 

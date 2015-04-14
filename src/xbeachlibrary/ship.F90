@@ -27,6 +27,7 @@
 module ship_module
 use typesandkinds
 implicit none
+save
 type ship
    character(slen)                 :: name
    real*8                          :: dx
@@ -78,7 +79,7 @@ contains
     use filefunctions
     use interp
 
-    IMPLICIT NONE
+    implicit none
 
     type(parameters)                            :: par
     type(spacepars),target                      :: s
@@ -86,31 +87,31 @@ contains
 
     integer                                     :: i,fid,iy,it
     integer                                     :: n2
+    logical                                     :: toall = .true.
 
     !include 's.ind'
     !include 's.inp'
-    
     if(par%ships==1) then
       ! Read ship names (== filenames with ship geometry and track data)
 
       par%nship = count_lines(par%shipfile)
       
       allocate(sh(par%nship))
-      if(xmaster) then
-      fid=create_new_fid()
-      open(fid,file=par%shipfile)
-      do i=1,par%nship
-        read(fid,'(a)')sh(i)%name 
-      enddo
-      close(fid)
+      if (xmaster) then
+         fid=create_new_fid()
+         open(fid,file=par%shipfile)
+         do i=1,par%nship
+            read(fid,'(a)') sh(i)%name
+         enddo
+         close(fid)
       endif
 #ifdef USEMPI
       do i=1,par%nship
-         call xmpi_bcast(sh(i)%name)
+         call xmpi_bcast(sh(i)%name,toall)
       enddo
 #endif
       do i=1,par%nship
-      ! Read ship geometry
+        ! Read ship geometry
         sh(i)%dx  = readkey_dbl(sh(i)%name,'dx',  5.d0,   0.d0,      100.d0)
         sh(i)%dy  = readkey_dbl(sh(i)%name,'dy',  5.d0,   0.d0,      100.d0)
         sh(i)%nx  = readkey_int(sh(i)%name,'nx',  20,        1,      1000  )
@@ -149,7 +150,7 @@ contains
         
         do iy=1,sh(i)%ny+1
             call read_v(fid,sh(i)%depth(:,iy))
-        end do
+        enddo
         if(xmaster) close(fid)
         
         if (sh(i)%compute_motion==0) then
@@ -176,6 +177,7 @@ contains
            do it=1,sh(i)%track_nt
               call read_v(fid,sh(i)%track_t(it),sh(i)%track_x(it),sh(i)%track_y(it))
            enddo
+           sh(i)%track_z=0.d0
         else
            do it=1,sh(i)%track_nt
               call read_v(fid,sh(i)%track_t(it),sh(i)%track_x(it),sh(i)%track_y(it),sh(i)%track_z(it))
@@ -195,40 +197,46 @@ contains
       enddo ! loop over ships
 
       ! Initialize ship-related global variables
-      allocate(s%shipxCG (par%nship)) 
-      allocate(s%shipyCG (par%nship)) 
-      allocate(s%shipzCG (par%nship)) 
-      allocate(s%shipFx  (par%nship)) 
-      allocate(s%shipFy  (par%nship)) 
-      allocate(s%shipFz  (par%nship)) 
-      allocate(s%shipMx  (par%nship)) 
-      allocate(s%shipMy  (par%nship)) 
-      allocate(s%shipMz  (par%nship)) 
-      allocate(s%shipphi (par%nship)) 
-      allocate(s%shipchi (par%nship)) 
-      allocate(s%shippsi (par%nship)) 
-      s%shipxCG=0.d0
-      s%shipyCG=0.d0   
-      s%shipzCG=0.d0
-      s%shipFx=0.d0   
-      s%shipFy=0.d0   
-      s%shipFz=0.d0
-    else
-      ! just allocate address for memory
-      allocate(s%shipxCG (par%nship)) 
-      allocate(s%shipyCG (par%nship)) 
-      allocate(s%shipzCG (par%nship)) 
-      allocate(s%shipFx  (par%nship)) 
-      allocate(s%shipFy  (par%nship)) 
-      allocate(s%shipFz  (par%nship)) 
-      allocate(s%shipMx  (par%nship)) 
-      allocate(s%shipMy  (par%nship)) 
-      allocate(s%shipMz  (par%nship)) 
-      allocate(s%shipphi (par%nship)) 
-      allocate(s%shipchi (par%nship)) 
-      allocate(s%shippsi (par%nship)) 
+      if (xmaster) then
+         ! only on xmaster, rest is done automatically by call from libxbeach
+         allocate(s%shipxCG (par%nship)) 
+         allocate(s%shipyCG (par%nship)) 
+         allocate(s%shipzCG (par%nship)) 
+         allocate(s%shipFx  (par%nship)) 
+         allocate(s%shipFy  (par%nship)) 
+         allocate(s%shipFz  (par%nship)) 
+         allocate(s%shipMx  (par%nship)) 
+         allocate(s%shipMy  (par%nship)) 
+         allocate(s%shipMz  (par%nship)) 
+         allocate(s%shipphi (par%nship)) 
+         allocate(s%shipchi (par%nship)) 
+         allocate(s%shippsi (par%nship)) 
+         s%shipxCG=0.d0
+         s%shipyCG=0.d0   
+         s%shipzCG=0.d0
+         s%shipFx=0.d0   
+         s%shipFy=0.d0   
+         s%shipFz=0.d0
+      endif
+    else ! (par%ships==0)
+      if (xmaster) then
+      ! just allocate address for memory, only on xmaster, rest is
+      ! done automatically by call from libxbeach
+         allocate(s%shipxCG (par%nship)) 
+         allocate(s%shipyCG (par%nship)) 
+         allocate(s%shipzCG (par%nship)) 
+         allocate(s%shipFx  (par%nship)) 
+         allocate(s%shipFy  (par%nship)) 
+         allocate(s%shipFz  (par%nship)) 
+         allocate(s%shipMx  (par%nship)) 
+         allocate(s%shipMy  (par%nship)) 
+         allocate(s%shipMz  (par%nship)) 
+         allocate(s%shipphi (par%nship)) 
+         allocate(s%shipchi (par%nship)) 
+         allocate(s%shippsi (par%nship)) 
+      endif
     endif
-
+  
   end subroutine ship_init  
     
   subroutine shipwave(s,par,sh)
@@ -239,7 +247,7 @@ contains
     use filefunctions
     use interp
 
-    IMPLICIT NONE
+    implicit none
 
     type(parameters)                            :: par
     type(spacepars),target                      :: s
@@ -250,7 +258,6 @@ contains
     real*8                                      :: shipx_old,shipy_old,dirship,radius,cosdir,sindir
     integer                                     :: n1,n2,iprint=0
     real                                        :: xymiss=-999
-    ! wwvv: was real*4
     
     real*8, dimension(:,:),allocatable :: zsvirt
     !include 's.ind'
@@ -268,7 +275,11 @@ contains
         shipy_old = s%shipyCG(i)
         call linear_interp(sh(i)%track_t,sh(i)%track_x,sh(i)%track_nt,par%t,s%shipxCG(i),shp_indx)
         call linear_interp(sh(i)%track_t,sh(i)%track_y,sh(i)%track_nt,par%t,s%shipyCG(i),shp_indx)
-        call linear_interp(sh(i)%track_t,sh(i)%track_z,sh(i)%track_nt,par%t,s%shipzCG(i),shp_indx)
+        if (sh(i)%flying==1) then
+           call linear_interp(sh(i)%track_t,sh(i)%track_z,sh(i)%track_nt,par%t,s%shipzCG(i),shp_indx)
+        else
+           s%shipzCG(i) = 0.d0
+        endif
         call linear_interp(sh(i)%track_t,sh(i)%track_dir,sh(i)%track_nt,par%t,dirship,shp_indx)
         radius=max(sh(i)%nx*sh(i)%dx,sh(i)%ny*sh(i)%dy)/2
         cosdir=cos(dirship)
