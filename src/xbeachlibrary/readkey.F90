@@ -51,7 +51,7 @@ module readkey_module
   end interface read_v
 
 contains
-  real*8 function readkey_dbl(fname,key,defval,mnval,mxval,bcast,required)
+  real*8 function readkey_dbl(fname,key,defval,mnval,mxval,bcast,required,silent)
     ! if USEMPI then the master process will read the parameter,
     ! this value is subsequently broadcasted to the other processes
 
@@ -61,11 +61,11 @@ contains
     character(len=*)  :: fname,key
     character(slen)     :: printkey
     real*8            :: defval,mnval,mxval
-    logical, intent(in), optional :: bcast,required
+    logical, intent(in), optional :: bcast,required,silent
 
     character(slen)   :: value,tempout
     real*8         :: value_dbl
-    logical        :: lbcast,lrequired
+    logical        :: lbcast,lrequired,lsilent
     character(slen)  :: fmt
     integer          :: ier
 
@@ -81,6 +81,12 @@ contains
        lrequired = required
     else
        lrequired = .false.
+    endif
+    
+    if (present(silent)) then
+       lsilent = silent
+    else
+       lsilent = .false.
     endif
 
     !printkey=key
@@ -112,7 +118,8 @@ contains
              call halt_program
           else
              value_dbl=defval
-             call writelog('l','(a24,a,f0.4,a)',(printkey),' = ',value_dbl,' (no record found, default value used)')
+             if (.not. lsilent) call writelog('l','(a24,a,f0.4,a)',(printkey),' = ', &
+                                              value_dbl,' (no record found, default value used)')
           endif
        endif
        ! write to basic params data file
@@ -128,7 +135,7 @@ contains
     readkey_dbl=value_dbl
   end function readkey_dbl
 
-  function readkey_int(fname,key,defval,mnval,mxval,bcast,required) result (value_int)
+  function readkey_int(fname,key,defval,mnval,mxval,bcast,required,silent) result (value_int)
     use xmpi_module
     use logging_module
     implicit none
@@ -137,8 +144,8 @@ contains
     character(slen)  :: value
     integer*4      :: value_int
     integer*4      :: defval,mnval,mxval,ier
-    logical, intent(in), optional :: bcast, required
-    logical        :: lbcast,lrequired
+    logical, intent(in), optional :: bcast, required,silent
+    logical        :: lbcast,lrequired,lsilent
     character(slen)  :: fmt,tempout
 
     fmt = '(a,a,a,i0,a,i0)'
@@ -154,6 +161,13 @@ contains
     else
        lrequired = .false.
     endif
+    
+    if (present(silent)) then
+       lsilent = silent
+    else
+       lsilent = .false.
+    endif
+    
     printkey = ' '
     printkey(2:24)=trim(key)
     printkey(1:1)=' '
@@ -181,7 +195,8 @@ contains
              call halt_program
           else
              value_int=defval
-             call writelog('l','(a24,a,i0,a)',(printkey),' = ',value_int,' (no record found, default value used)')
+             if (.not. lsilent) call writelog('l','(a24,a,i0,a)',(printkey),' = ', &
+                                              value_int,' (no record found, default value used)')
           endif
        endif
        ! write to basic params data file
@@ -195,7 +210,7 @@ contains
 
   end function readkey_int
 
-  function readkey_str(fname,key,defval,nv,nov,allowed,old,bcast,required) result (value_str)
+  function readkey_str(fname,key,defval,nv,nov,allowed,old,bcast,required,silent) result (value_str)
     use xmpi_module
     use logging_module
     implicit none
@@ -205,8 +220,8 @@ contains
     integer*4      :: nv,nov,i,j
     character(slen),dimension(nv) :: allowed
     character(slen),dimension(nov):: old
-    logical, intent(in), optional :: bcast,required
-    logical        :: lbcast,lrequired,passed
+    logical, intent(in), optional :: bcast,required,silent
+    logical        :: lbcast,lrequired,passed,lsilent
     character(slen)  :: printkey
 
     printkey(2:slen)=key
@@ -223,7 +238,13 @@ contains
     else
        lrequired = .false.
     endif
-
+    
+    if (present(silent)) then
+       lsilent = silent
+    else
+       lsilent = .false.
+    endif
+    
     passed = .false.
     if (xmaster) then
        call readkey(fname,key,value)
@@ -235,7 +256,8 @@ contains
              call halt_program
           else 
              value_str=defval
-             call writelog('l','(a24,a,a,a)',(printkey),' = ',trim(value_str),' (no record found, default value used)')
+             if (.not. lsilent) call writelog('l','(a24,a,a,a)',(printkey),' = ', &
+                                              trim(value_str),' (no record found, default value used)')
           endif
        else
           value=adjustl(value)
@@ -276,15 +298,15 @@ contains
   end function readkey_str
 
 
-  function readkey_name(fname,key,bcast,required) result (value_str)
+  function readkey_name(fname,key,bcast,required,silent) result (value_str)
     use xmpi_module
     use logging_module
     implicit none
     character*(*)  :: fname,key
     character(slen)  :: value_str
     character(slen)   :: value
-    logical, intent(in), optional :: bcast,required
-    logical        :: lbcast,lrequired
+    logical, intent(in), optional :: bcast,required,silent
+    logical        :: lbcast,lrequired,lsilent
     character(slen)  :: printkey
 
     printkey(2:slen)=key
@@ -302,6 +324,12 @@ contains
        lrequired = .false.
     endif
 
+    if (present(silent)) then
+       lsilent = silent
+    else
+       lsilent = .false.
+    endif
+    
     if (xmaster) then
        call readkey(fname,key,value)
        if (value == ' ') then
@@ -310,7 +338,7 @@ contains
              call halt_program
           else 
              value_str=' '
-             call writelog('l',' (a24,a)'    ,printkey,' = None specified')
+             if (.not. lsilent) call writelog('l',' (a24,a)'    ,printkey,' = None specified')
              ! write to basic params data file
              !    write(pardatfileid,*)'c ',key,' ','none'
           endif
@@ -328,7 +356,7 @@ contains
 #endif   
   end function readkey_name
 
-  function readkey_dblvec(fname,key,vlength,tlength,defval,mnval,mxval,bcast,required) result (value_vec)
+  function readkey_dblvec(fname,key,vlength,tlength,defval,mnval,mxval,bcast,required,silent) result (value_vec)
     use xmpi_module
     use logging_module
     implicit none
@@ -336,8 +364,8 @@ contains
     integer, intent(in) :: vlength,tlength
     real*8,dimension(tlength)  :: value_vec
     real*8            :: defval,mnval,mxval
-    logical, intent(in), optional :: bcast,required
-    logical        :: lbcast,lrequired
+    logical, intent(in), optional :: bcast,required,silent
+    logical        :: lbcast,lrequired,lsilent
 
     integer          :: i, ioerr
     character(slen)   :: value
@@ -356,6 +384,12 @@ contains
        lrequired = required
     else
        lrequired = .false.
+    endif
+    
+    if (present(silent)) then
+       lsilent = silent
+    else
+       lsilent = .false.
     endif
 
     if (xmaster) then
@@ -387,7 +421,8 @@ contains
           else
              value_vec(1:vlength)=defval
              do i=1,vlength
-                call writelog('l','(a,a,f0.4,a)',(printkey),' = ',value_vec(i),' (no record found, default value used)')
+                if (.not. lsilent) call writelog('l','(a,a,f0.4,a)',(printkey),' = ', &
+                                                 value_vec(i),' (no record found, default value used)')
              enddo
           endif
        endif
