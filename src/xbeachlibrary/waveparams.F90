@@ -1246,7 +1246,8 @@ contains
       ! Determine Fourier coefficients for all other y-coordinates along seaside
       ! border in the same manner
       do index2=2,wp%Npy
-         wp%CompFn(index2,wp%index_vector)=wp%CompFn(1,wp%index_vector)*exp(-par%compi*k*(dsin(wp%theta0)*(s%yz(1,index2)-s%yz(1,1)) &
+         wp%CompFn(index2,wp%index_vector)=wp%CompFn(1,wp%index_vector)* &
+         exp(-par%compi*k*(dsin(wp%theta0)*(s%yz(1,index2)-s%yz(1,1)) &
          +dcos(wp%theta0)*(s%xz(1,index2)-s%xz(1,1))) )
 
          Comptemp = conjg(wp%CompFn(index2,2:wp%Nr/2))
