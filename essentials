@@ -1,0 +1,24 @@
+Start teh whole thing with 
+
+  ./bootstrap
+
+Necessary files are:
+
+bootstrap
+configure.ac
+makedepo.py
+mpi_filter
+Makefile.am
+NEWS
+README
+AUTHORS
+COPYING
+ChangeLog
+config/
+m4/acx_mpi.m4
+m4/fortran.m4
+m4/pkg.m4
+doc/Makefile.am
+doc/man/Makefile.am
+doc/man/xbeach.texinfo
+doc/man/copying.texinfo

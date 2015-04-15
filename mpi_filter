@@ -1,0 +1,3 @@
+#!/bin/bash
+grep -v "warning:.*mpi_" 
+exit 0
