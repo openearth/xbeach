@@ -606,7 +606,8 @@ contains
 
             dvdx1 = nuh1*.5d0*(s%hum(i  ,j)+s%hum(i  ,jp1))*(s%vv(i+1,j)-s%vv(i,j))/s%dsc(i,j)
             dvdx2 = nuh2*.5d0*(s%hum(i-1,j)+s%hum(i-1,jp1))*(s%vv(i,j)-s%vv(i-1,j))/s%dsc(i-1,j)
-            s%viscv(i,j) = s%viscv(i,j) + (1.0d0/s%hvm(i,j))*( 2*(dvdx1-dvdx2)/(s%dsc(i-1,j)+s%dsc(i,j)) )*s%wetv(i+1,j)*s%wetv(i-1,j)
+            s%viscv(i,j) = s%viscv(i,j) + (1.0d0/s%hvm(i,j))*( 2*(dvdx1-dvdx2)/(s%dsc(i-1,j)+s%dsc(i,j)) ) &
+            *s%wetv(i+1,j)*s%wetv(i-1,j)
          end do
       end do
       !
