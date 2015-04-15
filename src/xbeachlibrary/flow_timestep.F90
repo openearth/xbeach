@@ -376,7 +376,8 @@ contains
 
           dudy1 = nuh1 *.5d0*(s%hvm(i,j  )+s%hvm(i+1,j  ))*(s%uu(i,j+1)-s%uu(i,j))/s%dnc(i,j)
           dudy2 = nuh2 *.5d0*(s%hvm(i,j-1)+s%hvm(i+1,j-1))*(s%uu(i,j)-s%uu(i,j-1))/s%dnc(i,j-1)
-          s%viscu(i,j) = s%viscu(i,j) + (1.0d0/s%hum(i,j))*( 2.0d0*(dudy1-dudy2)/(s%dnc(i,j)+s%dnc(i,j-1)) )*s%wetu(i,j+1)*s%wetu(i,j-1)
+          s%viscu(i,j) = s%viscu(i,j) + (1.0d0/s%hum(i,j))* &
+               ( 2.0d0*(dudy1-dudy2)/(s%dnc(i,j)+s%dnc(i,j-1)) )*s%wetu(i,j+1)*s%wetu(i,j-1)
        end do
     end do
 

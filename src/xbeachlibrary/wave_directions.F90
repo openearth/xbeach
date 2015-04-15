@@ -283,7 +283,8 @@ contains
              s%E(i,:)=par%rhog8*s%H(i,:)**2
 
              if (par%snells==0) then !Dano not for SNellius
-                s%thetamean(i,:) = (sum(s%ee_s(i,:,:)*s%thet_s(i,:,:),2)/s%ntheta_s)/(max(sum(s%ee_s(i,:,:),2),0.000010d0)/s%ntheta_s)
+                s%thetamean(i,:) = (sum(s%ee_s(i,:,:)*s%thet_s(i,:,:),2)/s%ntheta_s)/ &
+                     (max(sum(s%ee_s(i,:,:),2),0.000010d0)/s%ntheta_s)
              endif
              !
              ! Total dissipation

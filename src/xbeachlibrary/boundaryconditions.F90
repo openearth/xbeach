@@ -1028,7 +1028,8 @@ contains
              if (par%freewave==1) then
                 s%uu(1,:)=2.0d0*s%ui(1,:)-(sqrt(par%g/s%hh(1,:))*(s%zs(2,:)-s%zs0(2,:))) + s%umean(1,:)
              else
-                s%uu(1,:)=(1.0d0+sqrt(par%g*s%hh(1,:))/s%cg(1,:))*s%ui(1,:)-(sqrt(par%g/s%hh(1,:))*(s%zs(2,:)-s%zs0(2,:))) + s%umean(1,:)
+                s%uu(1,:)=(1.0d0+sqrt(par%g*s%hh(1,:))/s%cg(1,:))*s%ui(1,:) - &
+                     (sqrt(par%g/s%hh(1,:))*(s%zs(2,:)-s%zs0(2,:))) + s%umean(1,:)
              endif
              s%vv(1,:)=s%vv(2,:)
              s%zs(1,:)=s%zs(2,:)

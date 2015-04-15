@@ -332,7 +332,8 @@ contains
                         Svb(i,j) = Svb(i,j)*(1.d0 - par%facsl*dzbds)
                         !
                     endif
-                    if (((dabs(Sus(i,j)) > 0.000001d0) .or. (dabs(Svs(i,j)) > 0.000001d0)) .and. par%bdslpeffmag == BDSLPEFFMAG_SOULS_TOTAL) then
+                    if (((dabs(Sus(i,j)) > 0.000001d0) .or. (dabs(Svs(i,j)) > 0.000001d0)) &
+                         .and. par%bdslpeffmag == BDSLPEFFMAG_SOULS_TOTAL) then
                         Ssmtot = dsqrt(  Sus(i,j)**2.d0  +  Svs(i,j)**2.d0  )
                         dzbds = s%dzbdx(i,j)*Sus(i,j)/Ssmtot + s%dzbdy(i,j)*Svs(i,j)/Ssmtot
                         ! dzbdn = s%dzbdx*Svb/Sbtot + s%dzbdy*Sub/Sbtot
@@ -347,7 +348,8 @@ contains
        if (par%bdslpeffdir == BDSLPEFFDIR_TALMON) then
             do j=1,s%ny+1
                 do i=1,s%nx+1
-                    if (((dabs(s%urepb(i,j)) > 0.0001d0) .or. (dabs(s%vrepb(i,j)) > 0.0001d0)) .and. ((dabs(s%taubx(i,j)) > 0.0001d0) .or. (dabs(s%tauby(i,j)) > 0.0001d0))) then
+                   if (((dabs(s%urepb(i,j)) > 0.0001d0) .or. (dabs(s%vrepb(i,j)) > 0.0001d0)) &
+                        .and. ((dabs(s%taubx(i,j)) > 0.0001d0) .or. (dabs(s%tauby(i,j)) > 0.0001d0))) then
                         if (s%urepb(i,j) < 0.d0) then 
                             delta_x = datan(s%vrepb(i,j)/s%urepb(i,j))+par%px ! Angle between fluid velocity vector and the s%x-axis
                         else
@@ -1345,11 +1347,12 @@ contains
                         beta = min(beta,phi) ! Take min to exclude NaN's
                         if (par%dilatancy == 1) then
                             srfTotal(i,j) = (dcos(psi)*dsin(beta)+dsqrt( &
-                                                                         ((srfRhee(i,j))**2+2*srfRhee(i,j)*dcos(beta)+dcos(beta)**2 &
-                                                                         )*dtan(phi)**2-dsin(psi)**2*dsin(beta)**2 &
-                                                                        ))/dtan(phi) ! Soulsby (1997), modified by Lodewijk (see Thesis)
+                                 ((srfRhee(i,j))**2+2*srfRhee(i,j)*dcos(beta)+dcos(beta)**2 &
+                                 )*dtan(phi)**2-dsin(psi)**2*dsin(beta)**2 &
+                                 ))/dtan(phi) ! Soulsby (1997), modified by Lodewijk (see Thesis)
                         else
-                            srfTotal(i,j) = (dcos(psi)*dsin(beta)+dsqrt(dcos(beta)**2*dtan(phi)**2-dsin(psi)**2*dsin(beta)**2))/dtan(phi) ! Soulsby (1997)
+                           srfTotal(i,j) = (dcos(psi)*dsin(beta)+ &
+                                dsqrt(dcos(beta)**2*dtan(phi)**2-dsin(psi)**2*dsin(beta)**2))/dtan(phi) ! Soulsby (1997)
                         endif
                     endif
                 end do
