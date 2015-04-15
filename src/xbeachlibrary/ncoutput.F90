@@ -1,11 +1,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!   MODULE OUTPUT    !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! this module will provide for netcdf output in the way varoutput provides for binary output. 
+! this module will provide for netcdf output in the way varoutput provides for binary output.
 ! It should be called optionally through one of the params.txt settings
-! It will also be compiled conditionally like mpi. Only if it proves usefull will it be added by default. 
+! It will also be compiled conditionally like mpi. Only if it proves usefull will it be added by default.
 ! it will add dependencies on the netcdf fortran library (http://www.unidata.ucar.edu/software/netcdf/)
-! 
+!
 ! With contributions from Uwe Rosebrock (CSIRO).
 !
 ! if NCSINGLE is defined, output of all real variables in single precision
@@ -28,15 +28,15 @@ module ncoutput_module
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-  use xmpi_module
+   use xmpi_module
 #ifdef USENETCDF
-  use netcdf
+   use netcdf
 #endif
-  use typesandkinds
+   use typesandkinds
    use mnemmodule
-  implicit none
+   implicit none
    save
-  private
+   private
    public ncoutput, fortoutput_init
 #ifdef USENETCDF
    public ncoutput_init
@@ -51,51 +51,51 @@ module ncoutput_module
 
    integer :: ncid
 
-  ! parameters
+   ! parameters
    integer :: parvarid
 
-  ! grid
+   ! grid
    integer :: xdimid, ydimid
    integer :: xvarid, yvarid
 
-  ! Wave angle
+   ! Wave angle
    integer :: thetadimid
-  ! Sediment
+   ! Sediment
    integer :: sedimentclassesdimid, bedlayersdimid
-  ! Drifters
+   ! Drifters
    integer :: drifterdimid
-  ! Ships
+   ! Ships
    integer :: shipdimid
 
-  ! global
+   ! global
    integer, dimension(:), allocatable :: globalvarids
-  ! default output (fixed length)
+   ! default output (fixed length)
 
-  ! points 
+   ! points
    integer :: pointsdimid
    integer :: xpointsvarid, ypointsvarid, pointtypesvarid, xpointindexvarid, ypointindexvarid
    integer, dimension(:), allocatable :: pointsvarids
    integer, dimension(:),allocatable  :: xpoints     ! model x-coordinate of output points
    integer, dimension(:),allocatable  :: ypoints     ! model y-coordinate of output points
 
-  ! mean
-  ! number of variables by number of parameters per variable (mean, sigma^2, min, max)
+   ! mean
+   ! number of variables by number of parameters per variable (mean, sigma^2, min, max)
    integer, dimension(:,:), allocatable       :: meanvarids
    character(slen), dimension(:), allocatable :: meanvartypes
-  integer*4                           :: nmeanvartypes  = 4   ! number of time-average variable types
+   integer*4                           :: nmeanvartypes  = 4   ! number of time-average variable types
    integer*4,dimension(:),allocatable         :: rugrowindex ! Array with row index where runup gauge can be found
 
 
 
-  ! time 
+   ! time
    integer :: globaltimedimid, pointtimedimid, meantimedimid
    integer :: globaltimevarid, pointtimevarid, meantimevarid
 
-  ! TODO: check out why these are sometimes used....
+   ! TODO: check out why these are sometimes used....
    integer :: tidetimedimid, windtimedimid
    integer :: inoutdimid, tidecornersdimid
 
-  ! local variables
+   ! local variables
    integer :: npointstotal
    logical :: pointoutput
    integer :: itg,itp,itc,itm,itd
@@ -110,72 +110,72 @@ contains
 
 
 #ifdef USENETCDF
-  ! Error handling of netcdf errors 
+   ! Error handling of netcdf errors
    subroutine handle_err(status,file,line)
-    use netcdf
+      use netcdf
 
-    integer, intent ( in) :: status
+      integer, intent ( in) :: status
       character(*), intent(in) :: file
       integer, intent ( in)    :: line
-    integer :: status2
+      integer :: status2
 
-    if(status /= nf90_noerr) then
-       !UNIT=6 for stdout and UNIT=0 for stderr.
+      if(status /= nf90_noerr) then
+         !UNIT=6 for stdout and UNIT=0 for stderr.
          write(0,'(a,i6,":",a)') file,line,trim(nf90_strerror(status))
-       write(0,*) 'closing file'
-       status2 = nf90_close(ncid)
-       if (status2 /= nf90_noerr) then
-          write(0,*) trim(nf90_strerror(status2))
-       end if
+         write(0,*) 'closing file'
+         status2 = nf90_close(ncid)
+         if (status2 /= nf90_noerr) then
+            write(0,*) trim(nf90_strerror(status2))
+         end if
          call halt_program
-    end if
-  end subroutine handle_err
+      end if
+   end subroutine handle_err
 #endif
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!   INITIALISE OUTPUT    !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   !!!!!!!!!!!!!!!!!!!   INITIALISE OUTPUT    !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef USENETCDF
-  subroutine ncoutput_init(s, sl, par, tpar)
-    use xmpi_module
-    use indextos_module
-    use params
-    use spaceparams
-    use timestep_module
-    use mnemmodule
-    use means_module
-    use postprocessmod
-    use logging_module
-    ! This module is awaiting comments from Robert.
-    use getkey_module
+   subroutine ncoutput_init(s, sl, par, tpar)
+      use xmpi_module
+      use indextos_module
+      use params
+      use spaceparams
+      use timestep_module
+      use mnemmodule
+      use means_module
+      use postprocessmod
+      use logging_module
+      ! This module is awaiting comments from Robert.
+      use getkey_module
 
-    implicit none
-    integer :: status ! file id and status returned from a file operation
+      implicit none
+      integer :: status ! file id and status returned from a file operation
 
       type(spacepars), intent(inout)               :: s ! Use s => global data and sl => local data
       type(spacepars), intent(in)                  :: sl ! Use s => global data and sl => local data
-    type(parameters), intent(in)                 :: par 
-    type(timepars), intent(in)                   :: tpar
+      type(parameters), intent(in)                 :: par
+      type(timepars), intent(in)                   :: tpar
 
-    ! Part of the getkey
-    type(parameter)                              :: val
-    type(arraytype)                              :: t
-    type(meanspars)                              :: meanvar
-    integer                                      :: i,j
-    integer                                      :: rc ! return code
-    character(slen)                              :: mnem
+      ! Part of the getkey
+      type(parameter)                              :: val
+      type(arraytype)                              :: t
+      type(meanspars)                              :: meanvar
+      integer                                      :: i,j
+      integer                                      :: rc ! return code
+      character(slen)                              :: mnem
 
-    integer                                      :: npointstotal
-    logical                                      :: outputp, outputg, outputm
-    integer, dimension(:), allocatable           :: dimids ! store the dimids in a vector
-    character(slen)                              :: coordinates
-    character(slen)                              :: cellmethod
+      integer                                      :: npointstotal
+      logical                                      :: outputp, outputg, outputm
+      integer, dimension(:), allocatable           :: dimids ! store the dimids in a vector
+      character(slen)                              :: coordinates
+      character(slen)                              :: cellmethod
 
-    character(slen), dimension(:), allocatable       :: keys
+      character(slen), dimension(:), allocatable       :: keys
       logical :: dofortran, donetcdf
-    ! subversion information
-    include 'version.def'
-    include 'version.dat'
+      ! subversion information
+      include 'version.def'
+      include 'version.dat'
 
 
       if (.not. xomaster) return
@@ -189,224 +189,224 @@ contains
       outputp = .false.
 
 
-       ! initialize values
-       ! global
+      ! initialize values
+      ! global
 
-       ! store netcdf variable ids for each variable
-       allocate(globalvarids(par%nglobalvar))
-       globalvarids = -1 ! initialize to -1, so an error is raised when we miss something... 
-       outputg = .true.
+      ! store netcdf variable ids for each variable
+      allocate(globalvarids(par%nglobalvar))
+      globalvarids = -1 ! initialize to -1, so an error is raised when we miss something...
+      outputg = .true.
 
-       npointstotal = par%npoints+par%nrugauge
-       outputp = (npointstotal .gt. 0) .and. (size(tpar%tpp) .gt. 0)
-       allocate(pointsvarids(par%npointvar))
-
-
-       allocate(meanvarids(par%nmeanvar,nmeanvartypes))
-       meanvarids = -1
-       outputm = (par%nmeanvar .gt. 0)
-       allocate(meanvartypes(nmeanvartypes))
-       meanvartypes = (/ 'mean    ', 'var     ', 'min     ', 'max     '  /)
+      npointstotal = par%npoints+par%nrugauge
+      outputp = (npointstotal .gt. 0) .and. (size(tpar%tpp) .gt. 0)
+      allocate(pointsvarids(par%npointvar))
 
 
-       ! create a file
+      allocate(meanvarids(par%nmeanvar,nmeanvartypes))
+      meanvarids = -1
+      outputm = (par%nmeanvar .gt. 0)
+      allocate(meanvartypes(nmeanvartypes))
+      meanvartypes = (/ 'mean    ', 'var     ', 'min     ', 'max     '  /)
 
 
-       status = nf90_create(path = par%ncfilename, cmode=ior(NF90_CLOBBER,NF90_64BIT_OFFSET), ncid = ncid)
+      ! create a file
+
+
+      status = nf90_create(path = par%ncfilename, cmode=ior(NF90_CLOBBER,NF90_64BIT_OFFSET), ncid = ncid)
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
-       ! dimensions TODO: only output dimensions that are used
-       ! grid
-       status = nf90_def_dim(ncid, 'globalx', s%nx+1, xdimid) 
+      ! dimensions TODO: only output dimensions that are used
+      ! grid
+      status = nf90_def_dim(ncid, 'globalx', s%nx+1, xdimid)
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       status = nf90_def_dim(ncid, 'globaly', s%ny+1, ydimid)
-      if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-
-       ! wave angles
-       status = nf90_def_dim(ncid, 'wave_angle', s%ntheta, thetadimid)
+      status = nf90_def_dim(ncid, 'globaly', s%ny+1, ydimid)
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
-       ! computational layers in bed ...
-       ! TODO: Clean this up, why max(par%nd,2)???
-       status = nf90_def_dim(ncid, 'bed_layers', max(par%nd,2), bedlayersdimid)
+      ! wave angles
+      status = nf90_def_dim(ncid, 'wave_angle', s%ntheta, thetadimid)
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
-       ! sediment classes
-       status = nf90_def_dim(ncid, 'sediment_classes', par%ngd, sedimentclassesdimid)
+      ! computational layers in bed ...
+      ! TODO: Clean this up, why max(par%nd,2)???
+      status = nf90_def_dim(ncid, 'bed_layers', max(par%nd,2), bedlayersdimid)
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
-       ! dimensions of length 2.... what is this.... TODO: find out what this is 
-       status = nf90_def_dim(ncid, 'inout', 2, inoutdimid)
+      ! sediment classes
+      status = nf90_def_dim(ncid, 'sediment_classes', par%ngd, sedimentclassesdimid)
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
-       write(*,*) 'Writing ndrifter', par%ndrifter
-       if (par%ndrifter .gt. 0) then
-          status = nf90_def_dim(ncid, 'ndrifter', par%ndrifter, drifterdimid)
+      ! dimensions of length 2.... what is this.... TODO: find out what this is
+      status = nf90_def_dim(ncid, 'inout', 2, inoutdimid)
+      if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
+
+      write(*,*) 'Writing ndrifter', par%ndrifter
+      if (par%ndrifter .gt. 0) then
+         status = nf90_def_dim(ncid, 'ndrifter', par%ndrifter, drifterdimid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       end if
+      end if
 
       !write(*,*) 'Writing nship', par%nship
-       if (par%nship .gt. 0) then
-          status = nf90_def_dim(ncid, 'nship', par%nship, shipdimid)
+      if (par%nship .gt. 0) then
+         status = nf90_def_dim(ncid, 'nship', par%nship, shipdimid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       end if
+      end if
 
-       ! time dimensions are fixed, only defined if there are points
-       if (outputg) then
-          status = nf90_def_dim(ncid, 'globaltime', NF90_unlimited, globaltimedimid)
+      ! time dimensions are fixed, only defined if there are points
+      if (outputg) then
+         status = nf90_def_dim(ncid, 'globaltime', NF90_unlimited, globaltimedimid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       end if
-       if (outputp) then
-          ! points
-          status = nf90_def_dim(ncid, 'points', npointstotal, pointsdimid)
+      end if
+      if (outputp) then
+         ! points
+         status = nf90_def_dim(ncid, 'points', npointstotal, pointsdimid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_def_dim(ncid, 'pointtime', size(tpar%tpp), pointtimedimid)
+         status = nf90_def_dim(ncid, 'pointtime', size(tpar%tpp), pointtimedimid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       end if
-       if (outputm) then
-          status = nf90_def_dim(ncid, 'meantime', size(tpar%tpm)-1, meantimedimid)
+      end if
+      if (outputm) then
+         status = nf90_def_dim(ncid, 'meantime', size(tpar%tpm)-1, meantimedimid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       end if
+      end if
 
-       if (s%tidelen > 0) then
-          status = nf90_def_dim(ncid, 'tidetime', s%tidelen, tidetimedimid)
+      if (s%tidelen > 0) then
+         status = nf90_def_dim(ncid, 'tidetime', s%tidelen, tidetimedimid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       endif
+      endif
 
-       if (par%tideloc > 0) then
-          status = nf90_def_dim(ncid, 'tidecorners', par%tideloc, tidecornersdimid)
+      if (par%tideloc > 0) then
+         status = nf90_def_dim(ncid, 'tidecorners', par%tideloc, tidecornersdimid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       endif
+      endif
 
-       if (s%windlen > 0) then
-          status = nf90_def_dim(ncid, 'windtime', s%windlen, windtimedimid)
+      if (s%windlen > 0) then
+         status = nf90_def_dim(ncid, 'windtime', s%windlen, windtimedimid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       endif
+      endif
 
-       ! define empty parameter variable
+      ! define empty parameter variable
       status = nf90_def_var(ncid, 'parameter', NCREAL, varid=parvarid)
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       ! define space & time variables
-       ! grid
+      ! define space & time variables
+      ! grid
       status = nf90_def_var(ncid, 'globalx', NCREAL, (/ xdimid, ydimid /), xvarid)
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       status = nf90_put_att(ncid, xvarid, 'units', 'm')
+      status = nf90_put_att(ncid, xvarid, 'units', 'm')
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       status = nf90_put_att(ncid, xvarid, 'long_name', 'local x coordinate')
+      status = nf90_put_att(ncid, xvarid, 'long_name', 'local x coordinate')
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       status = nf90_put_att(ncid, xvarid, 'standard_name', 'projection_x_coordinate')
+      status = nf90_put_att(ncid, xvarid, 'standard_name', 'projection_x_coordinate')
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       status = nf90_put_att(ncid, xvarid, 'axis', 'X')
+      status = nf90_put_att(ncid, xvarid, 'axis', 'X')
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       ! For compatibility with CSIRO Dive software
-       if (len(trim(par%projection)) .ne. 0)  then
-          status = nf90_put_att(ncid, xvarid, 'projection', par%projection)
+      ! For compatibility with CSIRO Dive software
+      if (len(trim(par%projection)) .ne. 0)  then
+         status = nf90_put_att(ncid, xvarid, 'projection', par%projection)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, xvarid, 'rotation',( s%alfa/atan(1.0d0)*45.d0))
+         status = nf90_put_att(ncid, xvarid, 'rotation',( s%alfa/atan(1.0d0)*45.d0))
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       end if
+      end if
 
       status = nf90_def_var(ncid, 'globaly', NCREAL, (/ xdimid, ydimid /), yvarid)
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       status = nf90_put_att(ncid, yvarid, 'units', 'm')
+      status = nf90_put_att(ncid, yvarid, 'units', 'm')
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       status = nf90_put_att(ncid, yvarid, 'long_name', 'local y coordinate')
+      status = nf90_put_att(ncid, yvarid, 'long_name', 'local y coordinate')
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       status = nf90_put_att(ncid, yvarid, 'standard_name', 'projection_y_coordinate')
+      status = nf90_put_att(ncid, yvarid, 'standard_name', 'projection_y_coordinate')
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       status = nf90_put_att(ncid, yvarid, 'axis', 'Y')
+      status = nf90_put_att(ncid, yvarid, 'axis', 'Y')
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       ! For compatibility with CSIRO Dive software
-       if (len(trim(par%projection)) .ne. 0)  then
-          status = nf90_put_att(ncid, yvarid, 'projection', par%projection)
+      ! For compatibility with CSIRO Dive software
+      if (len(trim(par%projection)) .ne. 0)  then
+         status = nf90_put_att(ncid, yvarid, 'projection', par%projection)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, yvarid, 'rotation',( s%alfa/atan(1.0d0)*45.d0))
+         status = nf90_put_att(ncid, yvarid, 'rotation',( s%alfa/atan(1.0d0)*45.d0))
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       end if
+      end if
 
-       ! Some metadata attributes
-       status = nf90_put_att(ncid,nf90_global, "Conventions", "CF-1.4")
+      ! Some metadata attributes
+      status = nf90_put_att(ncid,nf90_global, "Conventions", "CF-1.4")
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       status = nf90_put_att(ncid,nf90_global, "Producer", "XBeach littoral zone wave model (http://www.xbeach.org)")
+      status = nf90_put_att(ncid,nf90_global, "Producer", "XBeach littoral zone wave model (http://www.xbeach.org)")
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       status = nf90_put_att(ncid,nf90_global, "Build-Revision", trim(Build_Revision))
+      status = nf90_put_att(ncid,nf90_global, "Build-Revision", trim(Build_Revision))
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       status = nf90_put_att(ncid,nf90_global, "Build-Date", trim(Build_Date))
+      status = nf90_put_att(ncid,nf90_global, "Build-Date", trim(Build_Date))
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       status = nf90_put_att(ncid,nf90_global, "URL", trim(Build_URL))
+      status = nf90_put_att(ncid,nf90_global, "URL", trim(Build_URL))
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
-       ! Store all the parameters
-       ! This part is awaiting comments from Robert McCall
-       call getkeys(par, keys)
-       do i=1,size(keys)
-          rc = getkey(par, keys(i), val)
-          if (val%type == 'i') then
-             status = nf90_put_att(ncid, parvarid, keys(i), val%i0 )
-          elseif (val%type == 'c') then
-             status = nf90_put_att(ncid, parvarid, keys(i), val%c0 )
-          elseif (val%type == 'r') then
-             status = nf90_put_att(ncid, parvarid, keys(i), val%r0 )
-          end if
+      ! Store all the parameters
+      ! This part is awaiting comments from Robert McCall
+      call getkeys(par, keys)
+      do i=1,size(keys)
+         rc = getkey(par, keys(i), val)
+         if (val%type == 'i') then
+            status = nf90_put_att(ncid, parvarid, keys(i), val%i0 )
+         elseif (val%type == 'c') then
+            status = nf90_put_att(ncid, parvarid, keys(i), val%c0 )
+         elseif (val%type == 'r') then
+            status = nf90_put_att(ncid, parvarid, keys(i), val%r0 )
+         end if
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       end do
+      end do
 
-       ! global
-       if (outputg) then
+      ! global
+      if (outputg) then
          status = nf90_def_var(ncid, 'globaltime', NCREAL, (/ globaltimedimid /), globaltimevarid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, globaltimevarid, 'units', trim(par%tunits))
+         status = nf90_put_att(ncid, globaltimevarid, 'units', trim(par%tunits))
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, globaltimevarid, 'axis', 'T')
+         status = nf90_put_att(ncid, globaltimevarid, 'axis', 'T')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, globaltimevarid, 'standard_name', 'time')
+         status = nf90_put_att(ncid, globaltimevarid, 'standard_name', 'time')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
-          ! default global output variables
-          do i=1,par%nglobalvar
+         ! default global output variables
+         do i=1,par%nglobalvar
             mnem = par%globalvars(i)
-             coordinates = ''
-             j = chartoindex(mnem)
-             call indextos(s,j,t)
-             call writelog('ls', '', 'Creating netcdf variable: ', trim(mnem) )
+            coordinates = ''
+            j = chartoindex(mnem)
+            call indextos(s,j,t)
+            call writelog('ls', '', 'Creating netcdf variable: ', trim(mnem) )
 
-             ! Build the array with dimension ids
-             allocate(dimids(t%rank+1))
-             select case(t%rank)
+            ! Build the array with dimension ids
+            allocate(dimids(t%rank+1))
+            select case(t%rank)
              case(0)
-                dimids = (/ globaltimedimid /)
-                coordinates = ''
+               dimids = (/ globaltimedimid /)
+               coordinates = ''
              case(1)
-                dimids = (/ dimensionid(t%dimensions(1)), globaltimedimid /)
-                coordinates = ''
-                if (dimids(1) .eq. xdimid) coordinates = 'globalx'
-                if (dimids(1) .eq. ydimid) coordinates = 'globaly'
+               dimids = (/ dimensionid(t%dimensions(1)), globaltimedimid /)
+               coordinates = ''
+               if (dimids(1) .eq. xdimid) coordinates = 'globalx'
+               if (dimids(1) .eq. ydimid) coordinates = 'globaly'
              case(2)
-                dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), globaltimedimid /)
-                coordinates = 'globalx globaly'
+               dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), globaltimedimid /)
+               coordinates = 'globalx globaly'
              case(3)
-                dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
+               dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
                &dimensionid(t%dimensions(3)), globaltimedimid /)
-                coordinates = 'globalx globaly' 
-                ! Do we have a vertical level?
-                if (dimids(3) .eq. bedlayersdimid) coordinates = trim(coordinates) // ' bed_layers'
+               coordinates = 'globalx globaly'
+               ! Do we have a vertical level?
+               if (dimids(3) .eq. bedlayersdimid) coordinates = trim(coordinates) // ' bed_layers'
              case(4)
-                call writelog('ls', '', 'Variable ' // trim(mnem) // ' is of rank 4. This may not work due to an' // &
+               call writelog('ls', '', 'Variable ' // trim(mnem) // ' is of rank 4. This may not work due to an' // &
                &' unresolved issue. If so, remove the variable or use the fortran outputformat option.')
-                dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
+               dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
                &dimensionid(t%dimensions(3)), dimensionid(t%dimensions(4)), globaltimedimid /)
-                coordinates = 'globalx globaly' 
-                ! Do we have a vertical level?
-                if ((dimids(3) .eq. bedlayersdimid) .or. (dimids(4) .eq. bedlayersdimid)) then
-                   coordinates = trim(coordinates) // ' bed_layers'
-                end if
+               coordinates = 'globalx globaly'
+               ! Do we have a vertical level?
+               if ((dimids(3) .eq. bedlayersdimid) .or. (dimids(4) .eq. bedlayersdimid)) then
+                  coordinates = trim(coordinates) // ' bed_layers'
+               end if
              case default
-                call writelog('lse', '', 'mnem: ' // mnem // ' not supported, rank:', t%rank)
-                stop 1
-             end select
-             select case(t%type)
+               call writelog('lse', '', 'mnem: ' // mnem // ' not supported, rank:', t%rank)
+               stop 1
+            end select
+            select case(t%type)
              case('i')
-                status = nf90_def_var(ncid, trim(mnem), NF90_INT, &
+               status = nf90_def_var(ncid, trim(mnem), NF90_INT, &
                &dimids, globalvarids(i))
                if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
              case('r')
@@ -414,316 +414,316 @@ contains
                &dimids, globalvarids(i))
                if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
              case default
-                write(0,*) 'mnem', mnem, ' not supported, type:', t%type
-             end select
-             status = nf90_put_att(ncid, globalvarids(i), 'coordinates', trim(coordinates))
+               write(0,*) 'mnem', mnem, ' not supported, type:', t%type
+            end select
+            status = nf90_put_att(ncid, globalvarids(i), 'coordinates', trim(coordinates))
             if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-             deallocate(dimids)
-             status = nf90_put_att(ncid, globalvarids(i), 'units', trim(t%units))
+            deallocate(dimids)
+            status = nf90_put_att(ncid, globalvarids(i), 'units', trim(t%units))
             if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-             if (.not.(trim(t%standardname) .eq. '')) then
-                status = nf90_put_att(ncid, globalvarids(i), 'standard_name', trim(t%standardname))
+            if (.not.(trim(t%standardname) .eq. '')) then
+               status = nf90_put_att(ncid, globalvarids(i), 'standard_name', trim(t%standardname))
                if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-             endif
-             status = nf90_put_att(ncid, globalvarids(i), 'long_name', trim(t%description))
+            endif
+            status = nf90_put_att(ncid, globalvarids(i), 'long_name', trim(t%description))
             if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          end do
-       end if
+         end do
+      end if
 
-       !  ! points
-       ! default global output variables
-       if (outputp) then
+      !  ! points
+      ! default global output variables
+      if (outputp) then
          status = nf90_def_var(ncid, 'pointtime', NCREAL, (/ pointtimedimid /), pointtimevarid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, pointtimevarid, 'units', trim(par%tunits))
+         status = nf90_put_att(ncid, pointtimevarid, 'units', trim(par%tunits))
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, pointtimevarid, 'axis', 'T')
+         status = nf90_put_att(ncid, pointtimevarid, 'axis', 'T')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, pointtimevarid, 'standard_name', 'time')
+         status = nf90_put_att(ncid, pointtimevarid, 'standard_name', 'time')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
-          ! points
+         ! points
          status = nf90_def_var(ncid, 'pointx', NCREAL, (/ pointsdimid /), xpointsvarid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, xpointsvarid, 'units', 'm')
+         status = nf90_put_att(ncid, xpointsvarid, 'units', 'm')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, xpointsvarid, 'long_name', 'local x coordinate')
+         status = nf90_put_att(ncid, xpointsvarid, 'long_name', 'local x coordinate')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, xpointsvarid, 'standard_name', 'projection_x_coordinate')
+         status = nf90_put_att(ncid, xpointsvarid, 'standard_name', 'projection_x_coordinate')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, xpointsvarid, 'axis', 'X')
+         status = nf90_put_att(ncid, xpointsvarid, 'axis', 'X')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
 
          status = nf90_def_var(ncid, 'pointy', NCREAL, (/ pointsdimid /), ypointsvarid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, ypointsvarid, 'units', 'm')
+         status = nf90_put_att(ncid, ypointsvarid, 'units', 'm')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, ypointsvarid, 'long_name', 'local y coordinate')
+         status = nf90_put_att(ncid, ypointsvarid, 'long_name', 'local y coordinate')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, ypointsvarid, 'standard_name', 'projection_y_coordinate')
+         status = nf90_put_att(ncid, ypointsvarid, 'standard_name', 'projection_y_coordinate')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, ypointsvarid, 'axis', 'Y')
+         status = nf90_put_att(ncid, ypointsvarid, 'axis', 'Y')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
          status = nf90_def_var(ncid, 'xpointindex', NF90_INT, (/ pointsdimid /), xpointindexvarid)
          ! wwvv above was NF90_DOUBLE
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, xpointindexvarid, 'long_name', 'nearest x grid cell')
+         status = nf90_put_att(ncid, xpointindexvarid, 'long_name', 'nearest x grid cell')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
          status = nf90_def_var(ncid, 'ypointindex', NF90_INT, (/ pointsdimid /), ypointindexvarid)
          ! wwvv above was NF90_DOUBLE
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, ypointindexvarid, 'long_name', 'nearest y grid cell')
+         status = nf90_put_att(ncid, ypointindexvarid, 'long_name', 'nearest y grid cell')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
          status = nf90_def_var(ncid, 'pointtypes', NF90_INT, (/ pointsdimid /), pointtypesvarid)
          ! wwvv above was NF90_DOUBLE
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, pointtypesvarid, 'long_name', 'type of point (0=point, 1=rugauge)')
+         status = nf90_put_att(ncid, pointtypesvarid, 'long_name', 'type of point (0=point, 1=rugauge)')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
-          do i=1,par%npointvar
+         do i=1,par%npointvar
             mnem = par%pointvars(i)
-             j = chartoindex(mnem)
-             coordinates = ''
-             call indextos(s,j,t)
-             select case(t%type)
+            j = chartoindex(mnem)
+            coordinates = ''
+            call indextos(s,j,t)
+            select case(t%type)
              case('r')
-                ! Build the array with dimension ids
-                call writelog('ls', '', 'Creating netcdf variable: ', 'point_'// trim(mnem) )
-                allocate(dimids(t%rank))
-                ! Make sure the variable has x and y as the first 2 dimensions
-                if ((dimensionid(t%dimensions(1)) .ne. xdimid) .or. (dimensionid(t%dimensions(2)) .ne. ydimid)) then
-                   call writelog('lse','', 'Tried to store variable ' // trim(mnem) // ', but it is not a function of x,y')
-                endif
-                select case(t%rank)
+               ! Build the array with dimension ids
+               call writelog('ls', '', 'Creating netcdf variable: ', 'point_'// trim(mnem) )
+               allocate(dimids(t%rank))
+               ! Make sure the variable has x and y as the first 2 dimensions
+               if ((dimensionid(t%dimensions(1)) .ne. xdimid) .or. (dimensionid(t%dimensions(2)) .ne. ydimid)) then
+                  call writelog('lse','', 'Tried to store variable ' // trim(mnem) // ', but it is not a function of x,y')
+               endif
+               select case(t%rank)
                 case(2)
-                   dimids = (/ pointsdimid, pointtimedimid /)
-                   coordinates = 'pointx pointy'
+                  dimids = (/ pointsdimid, pointtimedimid /)
+                  coordinates = 'pointx pointy'
                 case(3)
-                   dimids = (/ pointsdimid, dimensionid(t%dimensions(3)), pointtimedimid /)
-                   coordinates = 'pointx pointy'
-                   ! Do we have a vertical level?
-                   if (dimids(3) .eq. bedlayersdimid) coordinates = trim(coordinates) // ' bed_layers'
+                  dimids = (/ pointsdimid, dimensionid(t%dimensions(3)), pointtimedimid /)
+                  coordinates = 'pointx pointy'
+                  ! Do we have a vertical level?
+                  if (dimids(3) .eq. bedlayersdimid) coordinates = trim(coordinates) // ' bed_layers'
                 case(4)
-                   call writelog('ls', '', 'Variable ' // trim(mnem) // ' is of rank 4. This may not work due to an' // &
+                  call writelog('ls', '', 'Variable ' // trim(mnem) // ' is of rank 4. This may not work due to an' // &
                   &' unresolved issue. If so, remove the variable or use the fortran outputformat option.')
-                   dimids = (/ pointsdimid, dimensionid(t%dimensions(3)), dimensionid(t%dimensions(4)), pointtimedimid /)
-                   coordinates = 'pointx pointy'
-                   ! Do we have a vertical level?
-                   if ((dimids(3) .eq. bedlayersdimid) .or. (dimids(4) .eq. bedlayersdimid)) then
-                      coordinates = trim(coordinates) // ' bed_layers'
-                   end if
+                  dimids = (/ pointsdimid, dimensionid(t%dimensions(3)), dimensionid(t%dimensions(4)), pointtimedimid /)
+                  coordinates = 'pointx pointy'
+                  ! Do we have a vertical level?
+                  if ((dimids(3) .eq. bedlayersdimid) .or. (dimids(4) .eq. bedlayersdimid)) then
+                     coordinates = trim(coordinates) // ' bed_layers'
+                  end if
                 case default
-                   call writelog('lse', '', 'mnem: ' // mnem // ' not supported, rank:', t%rank)
-                   stop 1
-                end select
+                  call writelog('lse', '', 'mnem: ' // mnem // ' not supported, rank:', t%rank)
+                  stop 1
+               end select
                status = nf90_def_var(ncid, 'point_' // trim(mnem), NCREAL, &
                &dimids, pointsvarids(i))
                if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-                status = nf90_put_att(ncid, pointsvarids(i), 'coordinates', trim(coordinates))
+               status = nf90_put_att(ncid, pointsvarids(i), 'coordinates', trim(coordinates))
                if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-                deallocate(dimids)
+               deallocate(dimids)
              case default
-                write(0,*) 'mnem', mnem, ' not supported, type:', t%type
-             end select
-             status = nf90_put_att(ncid, pointsvarids(i), 'units', trim(t%units))
+               write(0,*) 'mnem', mnem, ' not supported, type:', t%type
+            end select
+            status = nf90_put_att(ncid, pointsvarids(i), 'units', trim(t%units))
             if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-             if (.not.(trim(t%standardname) .eq. '')) then
-                status = nf90_put_att(ncid, pointsvarids(i), 'standard_name', trim(t%standardname))
+            if (.not.(trim(t%standardname) .eq. '')) then
+               status = nf90_put_att(ncid, pointsvarids(i), 'standard_name', trim(t%standardname))
                if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-             endif
-             status = nf90_put_att(ncid, pointsvarids(i), 'long_name', trim(t%description))
+            endif
+            status = nf90_put_att(ncid, pointsvarids(i), 'long_name', trim(t%description))
             if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          end do
+         end do
       endif ! outputp
 
-       if (outputm) then
+      if (outputm) then
          status = nf90_def_var(ncid, 'meantime', NCREAL, (/ meantimedimid /), meantimevarid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, meantimevarid, 'units', trim(par%tunits))
+         status = nf90_put_att(ncid, meantimevarid, 'units', trim(par%tunits))
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, meantimevarid, 'axis', 'T')
+         status = nf90_put_att(ncid, meantimevarid, 'axis', 'T')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_att(ncid, meantimevarid, 'standard_name', 'time')
+         status = nf90_put_att(ncid, meantimevarid, 'standard_name', 'time')
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          ! default global output variables
-          do i=1,par%nmeanvar
-             ! Not sure if this is required here, but it is used in varoutput
-             ! #ifdef USEMPI
-             !              ! No need to collect here, we're just using the types
-             !              ! call means_collect(sl,meansparsglobal(i),meansparslocal(i))
-             ! #else
-             !              meansparsglobal(i)=meansparslocal(i)
-             ! #endif
-             coordinates = ''
-             meanvar = meansparsglobal(i)
-             t = meanvar%t
-             select case(t%type)
+         ! default global output variables
+         do i=1,par%nmeanvar
+            ! Not sure if this is required here, but it is used in varoutput
+            ! #ifdef USEMPI
+            !              ! No need to collect here, we're just using the types
+            !              ! call means_collect(sl,meansparsglobal(i),meansparslocal(i))
+            ! #else
+            !              meansparsglobal(i)=meansparslocal(i)
+            ! #endif
+            coordinates = ''
+            meanvar = meansparsglobal(i)
+            t = meanvar%t
+            select case(t%type)
              case('r')
-                ! Build the array with dimension ids
-                allocate(dimids(t%rank+1))
-                select case(t%rank)
+               ! Build the array with dimension ids
+               allocate(dimids(t%rank+1))
+               select case(t%rank)
                 case(2)
-                   dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), meantimedimid /)
-                   coordinates = 'globalx globaly'
+                  dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), meantimedimid /)
+                  coordinates = 'globalx globaly'
                 case(3)
-                   dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
+                  dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
                   &dimensionid(t%dimensions(3)), meantimedimid /)
-                   coordinates = 'globalx globaly' 
-                   ! Do we have a vertical level?
-                   if (dimids(3) .eq. bedlayersdimid) coordinates = trim(coordinates) // ' bed_layers'
+                  coordinates = 'globalx globaly'
+                  ! Do we have a vertical level?
+                  if (dimids(3) .eq. bedlayersdimid) coordinates = trim(coordinates) // ' bed_layers'
                 case(4)
-                   call writelog('ls', '', 'Variable ' // trim(mnem) // ' is of rank 4. This may not work due to an' // &
+                  call writelog('ls', '', 'Variable ' // trim(mnem) // ' is of rank 4. This may not work due to an' // &
                   &' unresolved issue. If so, remove the variable or use the fortran outputformat option.')
-                   dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
+                  dimids = (/ dimensionid(t%dimensions(1)), dimensionid(t%dimensions(2)), &
                   &dimensionid(t%dimensions(3)), dimensionid(t%dimensions(4)), meantimedimid /)
-                   coordinates = 'globalx globaly' 
-                   ! Do we have a vertical level?
-                   if ((dimids(3) .eq. bedlayersdimid) .or. (dimids(4) .eq. bedlayersdimid)) then
-                      coordinates = trim(coordinates) // ' bed_layers'
-                   end if
+                  coordinates = 'globalx globaly'
+                  ! Do we have a vertical level?
+                  if ((dimids(3) .eq. bedlayersdimid) .or. (dimids(4) .eq. bedlayersdimid)) then
+                     coordinates = trim(coordinates) // ' bed_layers'
+                  end if
                 case default
-                   call writelog('lse', '', 'mnem: ' // mnem // ' not supported, rank:', t%rank)
+                  call writelog('lse', '', 'mnem: ' // mnem // ' not supported, rank:', t%rank)
                   call halt_program
-                   stop 1
-                end select
+                  stop 1
+               end select
 
-                ! Create a variable for all types of meanvars (mean, var, min, max)
-                do j = 1,nmeanvartypes
+               ! Create a variable for all types of meanvars (mean, var, min, max)
+               do j = 1,nmeanvartypes
                   cellmethod = meanvartypes(j)
-                   call writelog('ls', '', 'Creating netcdf variable: ',  trim(t%name) // '_' // cellmethod)
+                  call writelog('ls', '', 'Creating netcdf variable: ',  trim(t%name) // '_' // cellmethod)
                   status = nf90_def_var(ncid, trim(t%name) // '_' // trim(cellmethod), NCREAL, &
                   &dimids, meanvarids(i,j))
                   if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-                   status = nf90_put_att(ncid, meanvarids(i,j), 'coordinates', trim(coordinates))
+                  status = nf90_put_att(ncid, meanvarids(i,j), 'coordinates', trim(coordinates))
                   if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-                   if (cellmethod .eq. 'var') then
-                      status = nf90_put_att(ncid, meanvarids(i,j), 'units', '(' // trim(t%units) // ')^2')
-                   else
-                      status = nf90_put_att(ncid, meanvarids(i,j), 'units', trim(t%units))
-                   endif
+                  if (cellmethod .eq. 'var') then
+                     status = nf90_put_att(ncid, meanvarids(i,j), 'units', '(' // trim(t%units) // ')^2')
+                  else
+                     status = nf90_put_att(ncid, meanvarids(i,j), 'units', trim(t%units))
+                  endif
                   if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-                   if (.not.(trim(t%standardname) .eq. '')) then
-                      status = nf90_put_att(ncid, meanvarids(i,j), 'standard_name', trim(t%standardname))
+                  if (.not.(trim(t%standardname) .eq. '')) then
+                     status = nf90_put_att(ncid, meanvarids(i,j), 'standard_name', trim(t%standardname))
                      if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-                   endif
-                   status = nf90_put_att(ncid, meanvarids(i,j), 'long_name', trim(t%description))
+                  endif
+                  status = nf90_put_att(ncid, meanvarids(i,j), 'long_name', trim(t%description))
                   if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-                   ! For H and urms we don't compute the mean but the rms of the rms.....
-                   if (cellmethod .eq. 'mean' .and. ((t%name .eq. 'H') .or. (t%name .eq. 'urms')))  then
-                      cellmethod = 'rms'
-                   end if
-                   status = nf90_put_att(ncid, meanvarids(i,j), 'cell_methods', 'meantime: ' // trim(cellmethod))
+                  ! For H and urms we don't compute the mean but the rms of the rms.....
+                  if (cellmethod .eq. 'mean' .and. ((t%name .eq. 'H') .or. (t%name .eq. 'urms')))  then
+                     cellmethod = 'rms'
+                  end if
+                  status = nf90_put_att(ncid, meanvarids(i,j), 'cell_methods', 'meantime: ' // trim(cellmethod))
                   if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-                end do
+               end do
 
-                deallocate(dimids)
+               deallocate(dimids)
              case default
-                write(0,*) 'mnem', mnem, ' not supported, type:', t%type
-             end select
-          end do
+               write(0,*) 'mnem', mnem, ' not supported, type:', t%type
+            end select
+         end do
       endif  ! outputm
 
-       ! done defining variables
-       call writelog('ls', '', 'Writing file definition.')
-       status = nf90_enddef(ncid)
+      ! done defining variables
+      call writelog('ls', '', 'Writing file definition.')
+      status = nf90_enddef(ncid)
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
-       ! Fill meta variables
-       ! Grid
-       j = chartoindex('xz')
-       call indextos(s,j,t)
+      ! Fill meta variables
+      ! Grid
+      j = chartoindex('xz')
+      call indextos(s,j,t)
 
       status = nf90_put_var(ncid, xvarid, CONVREAL(t%r2))
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
-       j = chartoindex('yz')
-       call indextos(s,j,t)
+      j = chartoindex('yz')
+      call indextos(s,j,t)
       status = nf90_put_var(ncid, yvarid, CONVREAL(t%r2))
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
-       if (outputp) then
-          call writelog('ls', '', 'Writing point vars.')
+      if (outputp) then
+         call writelog('ls', '', 'Writing point vars.')
          status = nf90_put_var(ncid, xpointsvarid, CONVREAL(par%xpointsw))
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
          status = nf90_put_var(ncid, ypointsvarid, CONVREAL(par%ypointsw))
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_var(ncid, pointtypesvarid, par%pointtypes)
+         status = nf90_put_var(ncid, pointtypesvarid, par%pointtypes)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
 
-          ! Convert world coordinates of points to nearest (lsm) grid point
-          ! This could be done in some postprocessing function
+         ! Convert world coordinates of points to nearest (lsm) grid point
+         ! This could be done in some postprocessing function
 
          if(.not. allocated(xpoints)) then
-          allocate(xpoints(npointstotal))
-          allocate(ypoints(npointstotal))
-          call snappointstogrid(par, s, xpoints, ypoints)
+            allocate(xpoints(npointstotal))
+            allocate(ypoints(npointstotal))
+            call snappointstogrid(par, s, xpoints, ypoints)
          endif
 
-          status = nf90_put_var(ncid, xpointindexvarid, xpoints)
+         status = nf90_put_var(ncid, xpointindexvarid, xpoints)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_var(ncid, ypointindexvarid, ypoints)
+         status = nf90_put_var(ncid, ypointindexvarid, ypoints)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          status = nf90_put_var(ncid, pointtypesvarid, par%pointtypes)
+         status = nf90_put_var(ncid, pointtypesvarid, par%pointtypes)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       end if
+      end if
 
-       status = nf90_close(ncid)
+      status = nf90_close(ncid)
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-    ! wwvv sl is not used so it should be removed.
-    ! wwvv for now, to avoid warning:
-    if (sl%nx .ne. -1) return
-  end subroutine ncoutput_init
+      ! wwvv sl is not used so it should be removed.
+      ! wwvv for now, to avoid warning:
+      if (sl%nx .ne. -1) return
+   end subroutine ncoutput_init
 #endif
    ! USENETCDF
 
 
    !___________________________________________________________________________________
 
-  subroutine ncoutput(s,sl,par, tpar)
-    use logging_module
-    use indextos_module
+   subroutine ncoutput(s,sl,par, tpar)
+      use logging_module
+      use indextos_module
 #ifdef USEMPI
-    use xmpi_module
+      use xmpi_module
 #endif
-    use params
-    use spaceparams
-    use timestep_module
-    use mnemmodule
-    use means_module
-    use postprocessmod
+      use params
+      use spaceparams
+      use timestep_module
+      use mnemmodule
+      use means_module
+      use postprocessmod
 
-    implicit none
+      implicit none
 
       type(spacepars), intent(inout)         :: s ! s-> spaceparams, what is isl?
       !                                         s describes the global system, sl the local system
       !                                           in this MPI process
       type(spacepars), intent(inout)         :: sl ! s-> spaceparams, what is isl?
       type(parameters), intent(inout)        :: par
-    type(timepars), intent(in)             :: tpar
+      type(timepars), intent(in)             :: tpar
 
-    type(arraytype)                        :: t
-    integer                                :: i,j,ii
+      type(arraytype)                        :: t
+      integer                                :: i,j,ii
 #ifdef USEMPI
       integer                                :: index
 #endif
-    character(slen)                        :: mnem
+      character(slen)                        :: mnem
       real*8, dimension(:,:), allocatable    :: points
 
-    ! some local variables to pass the data through the postprocessing function.
-    integer :: i0
-    integer, dimension(:,:), allocatable :: i2
-    integer, dimension(:,:,:), allocatable :: i3
+      ! some local variables to pass the data through the postprocessing function.
+      integer :: i0
+      integer, dimension(:,:), allocatable :: i2
+      integer, dimension(:,:,:), allocatable :: i3
       CONVREALTYPE                                  :: r0conv
-    real*8, dimension(:), allocatable :: r1
+      real*8, dimension(:), allocatable :: r1
       CONVREALTYPE, dimension(:), allocatable       :: r1conv
-    real*8, dimension(:,:), allocatable :: r2
+      real*8, dimension(:,:), allocatable :: r2
       CONVREALTYPE, dimension(:,:), allocatable     :: r2conv
-    real*8, dimension(:,:,:), allocatable :: r3
+      real*8, dimension(:,:,:), allocatable :: r3
       CONVREALTYPE, dimension(:,:,:), allocatable   :: r3conv
-    real*8, dimension(:,:,:,:), allocatable :: r4
+      real*8, dimension(:,:,:,:), allocatable :: r4
       CONVREALTYPE, dimension(:,:,:,:), allocatable :: r4conv
       real*8, allocatable                           :: tempvectorr(:)
       real*8,dimension(size(tpar%tpg)+size(tpar%tpp)+size(tpar%tpc)+size(tpar%tpm)) :: outputtimes
@@ -737,7 +737,7 @@ contains
 
 
 #ifdef USENETCDF
-    integer :: status
+      integer :: status
 #endif
 
       logical :: dofortran, donetcdf, dofortran_compat
@@ -772,8 +772,8 @@ contains
 
       ! If we're gonna write some global output
       if (dooutput_global) then
-       ! we'll need to collect the information from all nodes.
-       do i=1,par%nglobalvar
+         ! we'll need to collect the information from all nodes.
+         do i=1,par%nglobalvar
             mnem = par%globalvars(i)
             index = chartoindex(mnem)
             call space_collect_index(s,sl,par,index)
@@ -844,7 +844,7 @@ contains
          do i=1,par%npointvar
             mnem = par%pointvars(i)
             call space_collect_mnem(s,sl,par,mnem)
-       end do
+         end do
          ! wwvv temporary method to determine runup values
          ! wwvv we need hh and zs:
          if (par%nrugauge .ge. 0) then
@@ -874,7 +874,7 @@ contains
 
 #ifdef USEMPI
       if (par%ndrifter .gt. 0) then
-       if (xmaster) then
+         if (xmaster) then
             idriftlocal = sl%idrift
             jdriftlocal = sl%jdrift
          endif
@@ -907,29 +907,29 @@ contains
       !
       if (dooutput_global) then
          itg = itg+1
-          ! Store the time (in morphological time)
+         ! Store the time (in morphological time)
 #ifdef USENETCDF
          if(donetcdf) then
             status = nf90_put_var(ncid, globaltimevarid, CONVREAL(par%t*max(par%morfac,1.d0)), (/tpar%itg/))
             if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
          endif
 #endif
-          ! write global output variables
-          do i=1,par%nglobalvar
+         ! write global output variables
+         do i=1,par%nglobalvar
             mnem = par%globalvars(i)
-             j = chartoindex(mnem)
-             ! lookup the proper array (should have been collected already)
-             call indextos(s,j,t)
+            j = chartoindex(mnem)
+            ! lookup the proper array (should have been collected already)
+            call indextos(s,j,t)
 
-             select case(t%type)
+            select case(t%type)
              case('i')
-                select case(t%rank)
+               select case(t%rank)
                 case(0)
-                   ! no need to allocate here
+                  ! no need to allocate here
                   call gridrotate(t,i0)
 #ifdef USENETCDF
                   if(donetcdf) then
-                   status = nf90_put_var(ncid, globalvarids(i), i0, start=(/1,tpar%itg/) )
+                     status = nf90_put_var(ncid, globalvarids(i), i0, start=(/1,tpar%itg/) )
                      if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
                   endif
 #endif
@@ -940,11 +940,11 @@ contains
                      call flush(unit)
                   endif
                 case(2)
-                   allocate(i2(size(t%i2,1),size(t%i2,2)))
+                  allocate(i2(size(t%i2,1),size(t%i2,2)))
                   call gridrotate(t, i2)
 #ifdef USENETCDF
                   if(donetcdf) then
-                   status = nf90_put_var(ncid, globalvarids(i), i2, start=(/1,1,tpar%itg/) )
+                     status = nf90_put_var(ncid, globalvarids(i), i2, start=(/1,1,tpar%itg/) )
                      if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
                   endif
 #endif
@@ -954,13 +954,13 @@ contains
                      write(unit,rec=jtg) i2
                      call flush(unit)
                   endif
-                   deallocate(i2)
+                  deallocate(i2)
                 case(3)
-                   allocate(i3(size(t%i3,1),size(t%i3,2),size(t%i3,3)))
+                  allocate(i3(size(t%i3,1),size(t%i3,2),size(t%i3,3)))
                   call gridrotate(t, i3)
 #ifdef USENETCDF
                   if(donetcdf) then
-                   status = nf90_put_var(ncid, globalvarids(i), i3, start=(/1,1,1,tpar%itg/) )
+                     status = nf90_put_var(ncid, globalvarids(i), i3, start=(/1,1,1,tpar%itg/) )
                      if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
                   endif
 #endif
@@ -970,14 +970,14 @@ contains
                      write(unit,rec=jtg) i3
                      call flush(unit)
                   endif
-                   deallocate(i3)
+                  deallocate(i3)
                 case default
-                   write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
-                end select
+                  write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
+               end select
              case('r')
-                select case(t%rank)
+               select case(t%rank)
                 case(0)
-                   ! no need to allocate here
+                  ! no need to allocate here
                   r0conv = CONVREAL(t%r0)
 #ifdef USENETCDF
                   if(donetcdf) then
@@ -992,9 +992,9 @@ contains
                      call flush(unit)
                   endif
                 case(1)
-                   allocate(r1(size(t%r1,1)))
+                  allocate(r1(size(t%r1,1)))
                   allocate(r1conv(size(t%r1,1)))
-                   ! no need to rotate here
+                  ! no need to rotate here
                   r1conv = CONVREAL(t%r1)
 #ifdef USENETCDF
                   if(donetcdf) then
@@ -1008,12 +1008,12 @@ contains
                      write(unit,rec=jtg) r1conv
                      call flush(unit)
                   endif
-                   deallocate(r1)
+                  deallocate(r1)
                   deallocate(r1conv)
                 case(2)
-                   allocate(r2(size(t%r2,1),size(t%r2,2)))
+                  allocate(r2(size(t%r2,1),size(t%r2,2)))
                   allocate(r2conv(size(t%r2,1),size(t%r2,2)))
-                   call gridrotate(par, s, t, r2)
+                  call gridrotate(par, s, t, r2)
                   r2conv = CONVREAL(r2)
 #ifdef USENETCDF
                   if(donetcdf) then
@@ -1027,12 +1027,12 @@ contains
                      write(unit,rec=jtg) r2conv
                      call flush(unit)
                   endif
-                   deallocate(r2)
+                  deallocate(r2)
                   deallocate(r2conv)
                 case(3)
-                   allocate(r3(size(t%r3,1),size(t%r3,2),size(t%r3,3)))
+                  allocate(r3(size(t%r3,1),size(t%r3,2),size(t%r3,3)))
                   allocate(r3conv(size(t%r3,1),size(t%r3,2),size(t%r3,3)))
-                   call gridrotate(par, s, t, r3)
+                  call gridrotate(par, s, t, r3)
                   r3conv = CONVREAL(r3)
 #ifdef USENETCDF
                   if(donetcdf) then
@@ -1046,10 +1046,10 @@ contains
                      write(unit,rec=jtg) r3conv
                      call flush(unit)
                   endif
-                   deallocate(r3)
+                  deallocate(r3)
                   deallocate(r3conv)
                 case(4)
-                   allocate(r4(size(t%r4,1),size(t%r4,2),size(t%r4,3),size(t%r4,4)))
+                  allocate(r4(size(t%r4,1),size(t%r4,2),size(t%r4,3),size(t%r4,4)))
                   allocate(r4conv(size(t%r4,1),size(t%r4,2),size(t%r4,3),size(t%r4,4)))
                   call gridrotate(t, r4)
                   r4conv = CONVREAL(r4)
@@ -1065,16 +1065,16 @@ contains
                      write(unit,rec=jtg) r4conv
                      call flush(unit)
                   endif
-                   deallocate(r4)
+                  deallocate(r4)
                   deallocate(r4conv)
                 case default
-                   write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
-                end select
+                  write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
+               end select
              case default
-                write(0,*) 'Can''t handle type: ', t%type, ' of mnemonic', mnem
-             end select
-          end do
-       end if
+               write(0,*) 'Can''t handle type: ', t%type, ' of mnemonic', mnem
+            end select
+         end do
+      end if
 
 
       if(dooutput_point) then
@@ -1084,7 +1084,7 @@ contains
          if(donetcdf) then
             status = nf90_put_var(ncid, pointtimevarid, CONVREAL(par%t*max(par%morfac,1.d0)), (/tpar%itp/))
             if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-                      endif
+         endif
 #endif
 
          if(dofortran_compat) then
@@ -1092,31 +1092,31 @@ contains
                allocate(points(par%npoints,par%npointvar+1))
             else
                allocate(points(0,0))
-                endif
+            endif
          else
             allocate(points(0,0))
-          endif
+         endif
 
-          do i=1,par%npointvar
+         do i=1,par%npointvar
             mnem = par%pointvars(i)
-             j = chartoindex(mnem)
-             ! lookup the proper array
-             call indextos(s,j,t)
-             ! get the proper output points ....
-             ! I have no idea what is happening in varouput so I'll try it in a different way
-                !TODO This is not very efficient because we are using the outer counters, reorder dimensions....
+            j = chartoindex(mnem)
+            ! lookup the proper array
+            call indextos(s,j,t)
+            ! get the proper output points ....
+            ! I have no idea what is happening in varouput so I'll try it in a different way
+            !TODO This is not very efficient because we are using the outer counters, reorder dimensions....
             select case(t%type)
              case('r')
                do ii = 1, par%npoints + par%nrugauge
-                   select case(t%rank)
+                  select case(t%rank)
                    case(2)
-                      ! This postprocessing creates an ugly dependency.
-                      ! it would be nice if we could call gridrotate as a function
-                      ! or if we could just have the postprocessing insert some reference processing routines to call
-                      ! or if we could split this out of the case statement (dry)
-                      ! or if we could defer this to a postprocessing routine (for example ncks)
-                      allocate(r2(size(t%r2,1),size(t%r2,2)))
-                      call gridrotate(par, s, t, r2)
+                     ! This postprocessing creates an ugly dependency.
+                     ! it would be nice if we could call gridrotate as a function
+                     ! or if we could just have the postprocessing insert some reference processing routines to call
+                     ! or if we could split this out of the case statement (dry)
+                     ! or if we could defer this to a postprocessing routine (for example ncks)
+                     allocate(r2(size(t%r2,1),size(t%r2,2)))
+                     call gridrotate(par, s, t, r2)
 #ifdef USENETCDF
                      if (donetcdf) then
                         status = nf90_put_var(ncid, pointsvarids(i), CONVREAL(r2(xpoints(ii), ypoints(ii))), start=(/ii,tpar%itp/) )
@@ -1128,10 +1128,10 @@ contains
                            points(ii,i+1) = r2(xpoints(ii), ypoints(ii))
                         endif
                      endif
-                      deallocate(r2)
+                     deallocate(r2)
                    case(3)
-                      allocate(r3(size(t%r3,1),size(t%r3,2),size(t%r3,3)))
-                      call gridrotate(par, s, t, r3)
+                     allocate(r3(size(t%r3,1),size(t%r3,2),size(t%r3,3)))
+                     call gridrotate(par, s, t, r3)
 #ifdef USENETCDF
                      if (donetcdf) then
                         status = nf90_put_var(ncid, pointsvarids(i), CONVREAL(r3(xpoints(ii), ypoints(ii),:)), start=(/ii,1,tpar%itp/) )
@@ -1143,9 +1143,9 @@ contains
                            points(ii,i+1) = r3(xpoints(ii), ypoints(ii),1)    ! wwvv todo
                         endif
                      endif
-                      deallocate(r3)
+                     deallocate(r3)
                    case(4)
-                      allocate(r4(size(t%r4,1),size(t%r4,2),size(t%r4,3),size(t%r4,4)))
+                     allocate(r4(size(t%r4,1),size(t%r4,2),size(t%r4,3),size(t%r4,4)))
                      call gridrotate(t, r4)
 #ifdef USENETCDF
                      if (donetcdf) then
@@ -1159,14 +1159,14 @@ contains
                            points(ii,i+1) = r4(xpoints(ii), ypoints(ii),1,1)    ! wwvv todo
                         endif
                      endif
-                      deallocate(r4)
+                     deallocate(r4)
                    case default
-                      write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
-                   end select
-                end do
+                     write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
+                  end select
+               end do
              case default
-                write(0,*) 'Can''t handle type: ', t%type, ' of mnemonic', mnem
-             end select
+               write(0,*) 'Can''t handle type: ', t%type, ' of mnemonic', mnem
+            end select
          enddo ! i=1,par%npointvar
 
          if(dofortran_compat) then
@@ -1176,7 +1176,7 @@ contains
                else
                   points(ii,1)=par%t
                endif
-          end do
+            end do
             do ii = 1,par%npoints
                write(indextopointsunit(ii),rec=tpar%itp)CONVREAL(points(ii,:))
                call flush(indextopointsunit(ii))
@@ -1198,9 +1198,9 @@ contains
                            &(s%hh(ii-1,rugrowindex(i))>par%rugdepth(ird)) ) then
                               idumhl=ii-1
                               exit
-       end if
+                           end if
                         enddo
-    end if
+                     end if
                      if (par%morfacopt==1) then
                         tempvectorr(1)=par%t*max(par%morfac,1.d0)
                      else
@@ -1220,33 +1220,33 @@ contains
 
 #ifdef USENETCDF
       if(dooutput_mean .and. donetcdf) then
-          ! Store the time (in morphological time)
+         ! Store the time (in morphological time)
          status = nf90_put_var(ncid, meantimevarid, CONVREAL(par%t*max(par%morfac,1.d0)), (/tpar%itm-1/))
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-          ! write global output variables
-          do i=1,par%nmeanvar
-             t = meansparsglobal(i)%t
-             do j=1,nmeanvartypes
+         ! write global output variables
+         do i=1,par%nmeanvar
+            t = meansparsglobal(i)%t
+            do j=1,nmeanvartypes
 
-                select case(t%type)
+               select case(t%type)
                 case('r')
-                   select case(t%rank)
+                  select case(t%rank)
                    case(2)
-                      select case(meanvartypes(j))
+                     select case(meanvartypes(j))
                       case('mean')
-                         if ((t%name .eq. 'H') .or. (t%name .eq. 'urms'))  then
+                        if ((t%name .eq. 'H') .or. (t%name .eq. 'urms'))  then
                            status = nf90_put_var(ncid, meanvarids(i,j), CONVREAL(sqrt(meansparsglobal(i)%variancesquareterm2d)), &
                            &start=(/1,1,tpar%itm-1/) )
-                         elseif (t%name .eq. 'thetamean') then
-                             status = nf90_put_var(ncid, meanvarids(i,j), &
+                        elseif (t%name .eq. 'thetamean') then
+                           status = nf90_put_var(ncid, meanvarids(i,j), &
                            &CONVREAL( &
                            &mod(2.d0*par%px &
                            &+ atan2(nint(meansparsglobal(i)%mean2d)/1d7, &
                            &mod(meansparsglobal(i)%mean2d,1.d0)*1d1), 2.d0*par%px) / par%px * 180), &
                            &start=(/1,1,tpar%itm-1/) )
-                         else
+                        else
                            status = nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%mean2d), start=(/1,1,tpar%itm-1/) )
-                         end if
+                        end if
                         if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
                       case('var')
                         status = nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%variance2d), start=(/1,1,tpar%itm-1/) )
@@ -1258,10 +1258,10 @@ contains
                         status = nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%max2d), start=(/1,1,tpar%itm-1/) )
                         if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
                       case default
-                         write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
-                      end select
+                        write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
+                     end select
                    case(3)
-                      select case(meanvartypes(j))
+                     select case(meanvartypes(j))
                       case('mean')
                         status = nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%mean3d), start=(/1,1,1,tpar%itm-1/) )
                         if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
@@ -1275,10 +1275,10 @@ contains
                         status = nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%max3d), start=(/1,1,1,tpar%itm-1/) )
                         if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
                       case default
-                         write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
-                      end select
+                        write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
+                     end select
                    case(4)
-                      select case(meanvartypes(j))
+                     select case(meanvartypes(j))
                       case('mean')
                         status = nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%mean4d), start=(/1,1,1,1,tpar%itm-1/) )
                         if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
@@ -1292,16 +1292,16 @@ contains
                         status = nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%max4d), start=(/1,1,1,1,tpar%itm-1/) )
                         if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
                       case default
-                         write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
-                      end select
+                        write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
+                     end select
                    case default
-                      write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
-                   end select
+                     write(0,*) 'Can''t handle rank: ', t%rank, ' of mnemonic', mnem
+                  end select
                 case default
-                   write(0,*) 'Can''t handle type: ', t%type, ' of mnemonic', mnem
-                end select
-             end do
-          end do
+                  write(0,*) 'Can''t handle type: ', t%type, ' of mnemonic', mnem
+               end select
+            end do
+         end do
       endif ! dooutput_mean .and. donetcdf
 #endif
 
@@ -1368,7 +1368,7 @@ contains
 
 #ifdef USENETCDF
       if(donetcdf) then
-       status = nf90_close(ncid=ncid)
+         status = nf90_close(ncid=ncid)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
       endif
 #endif
@@ -1427,69 +1427,69 @@ contains
          &CONVREAL(itm*1.d0),&
          &CONVREAL(outputtimes)
          call flush(1998)
-    end if
-    ! wwvv avoid warning about unused sl:
-    if (sl%nx .eq. -1) return
-  end subroutine ncoutput
+      end if
+      ! wwvv avoid warning about unused sl:
+      if (sl%nx .eq. -1) return
+   end subroutine ncoutput
 
 #ifdef USENETCDF
-  character(slen) function dimensionnames(dimids)
-    implicit none
-    integer, dimension(:), intent(in)           :: dimids ! store the dimids in a vector
+   character(slen) function dimensionnames(dimids)
+      implicit none
+      integer, dimension(:), intent(in)           :: dimids ! store the dimids in a vector
 
-    integer :: i, status
-    character(slen)  :: dimensionname 
-    ! combine all the dimensionnames
-    ! assumes all dimensions have an accompanying variable that should be used for coordinates.
-    ! ",".join would have been nice here....
-    dimensionnames = ''
-    ! Fortran array dimensions are in reverse order
-    do i=size(dimids),2,-1
-       status = nf90_inquire_dimension(ncid, dimids(i), name=dimensionname)
+      integer :: i, status
+      character(slen)  :: dimensionname
+      ! combine all the dimensionnames
+      ! assumes all dimensions have an accompanying variable that should be used for coordinates.
+      ! ",".join would have been nice here....
+      dimensionnames = ''
+      ! Fortran array dimensions are in reverse order
+      do i=size(dimids),2,-1
+         status = nf90_inquire_dimension(ncid, dimids(i), name=dimensionname)
          if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-       dimensionnames = trim(dimensionnames) // trim(dimensionname) // ',' 
-    end do
-    status = nf90_inquire_dimension(ncid, dimids(1), name=dimensionname)
+         dimensionnames = trim(dimensionnames) // trim(dimensionname) // ','
+      end do
+      status = nf90_inquire_dimension(ncid, dimids(1), name=dimensionname)
       if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
-    dimensionnames = trim(dimensionnames) // trim(dimensionname)
-  end function dimensionnames
+      dimensionnames = trim(dimensionnames) // trim(dimensionname)
+   end function dimensionnames
 
-  integer function dimensionid(expression)
-    ! Function to transform the expression in spaceparams.tmpl to an id, we might want this in the 
-    ! makeincludes module
-    use logging_module
-    implicit none
-    character(len=*),intent(in) :: expression
+   integer function dimensionid(expression)
+      ! Function to transform the expression in spaceparams.tmpl to an id, we might want this in the
+      ! makeincludes module
+      use logging_module
+      implicit none
+      character(len=*),intent(in) :: expression
       select case(expression)
-    case('s%nx+1')
-       dimensionid = xdimid
-    case('s%ny+1')
-       dimensionid = ydimid
-    case('s%ntheta')
-       dimensionid = thetadimid
-    case('s%tidelen')
-       dimensionid = tidetimedimid
-    case('par%tideloc')
-       dimensionid = tidecornersdimid
-    case('s%windlen')
-       dimensionid = windtimedimid
-    case('par%ngd')
-       dimensionid = sedimentclassesdimid
-    case('s%ntdisch')
-       dimensionid = inoutdimid
-    case('2')
-       dimensionid = inoutdimid
-    case('max(par%nd,2)')
-       dimensionid = bedlayersdimid
-    case('par%ndrifter')
-       dimensionid = drifterdimid
-    case('par%nship')
-       dimensionid = shipdimid
-    case default
-       call writelog('els','','Unknown dimension expression:'  // expression)
-       stop 1
-    end select
-  end function dimensionid
+       case('s%nx+1')
+         dimensionid = xdimid
+       case('s%ny+1')
+         dimensionid = ydimid
+       case('s%ntheta')
+         dimensionid = thetadimid
+       case('s%tidelen')
+         dimensionid = tidetimedimid
+       case('par%tideloc')
+         dimensionid = tidecornersdimid
+       case('s%windlen')
+         dimensionid = windtimedimid
+       case('par%ngd')
+         dimensionid = sedimentclassesdimid
+       case('s%ntdisch')
+         dimensionid = inoutdimid
+       case('2')
+         dimensionid = inoutdimid
+       case('max(par%nd,2)')
+         dimensionid = bedlayersdimid
+       case('par%ndrifter')
+         dimensionid = drifterdimid
+       case('par%nship')
+         dimensionid = shipdimid
+       case default
+         call writelog('els','','Unknown dimension expression:'  // expression)
+         stop 1
+      end select
+   end function dimensionid
 #endif
    ! USENETCDF
 

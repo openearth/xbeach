@@ -1,65 +1,65 @@
 module libxbeach_dynamic
 
-  use libxbeach_module
-  use iso_c_binding
-  use logging_module
+   use libxbeach_module
+   use iso_c_binding
+   use logging_module
 
-  implicit none
-  save
- 
-  contains
+   implicit none
+   save
 
-  integer(c_int) function xbeach_init() bind(C, name="init")
-    !DEC$ ATTRIBUTES DLLEXPORT::xbeach_init
+contains
 
-    xbeach_init = init()
+   integer(c_int) function xbeach_init() bind(C, name="init")
+      !DEC$ ATTRIBUTES DLLEXPORT::xbeach_init
 
-  end function xbeach_init
+      xbeach_init = init()
 
-  integer(c_int) function xbeach_outputext() bind(C, name="outputext")
-    !DEC$ ATTRIBUTES DLLEXPORT::xbeach_outputext
+   end function xbeach_init
 
-    xbeach_outputext = outputext()
+   integer(c_int) function xbeach_outputext() bind(C, name="outputext")
+      !DEC$ ATTRIBUTES DLLEXPORT::xbeach_outputext
 
-  end function xbeach_outputext
+      xbeach_outputext = outputext()
 
-  integer(c_int) function xbeach_executestep() bind(C, name="executestep")
-    !DEC$ ATTRIBUTES DLLEXPORT::xbeach_executestep
+   end function xbeach_outputext
 
-    xbeach_executestep = executestep()
+   integer(c_int) function xbeach_executestep() bind(C, name="executestep")
+      !DEC$ ATTRIBUTES DLLEXPORT::xbeach_executestep
 
-  end function xbeach_executestep
+      xbeach_executestep = executestep()
 
-  integer(c_int) function xbeach_finalize() bind(C, name="finalize")
-    !DEC$ ATTRIBUTES DLLEXPORT::xbeach_finalize
+   end function xbeach_executestep
 
-    xbeach_finalize = finalize()
+   integer(c_int) function xbeach_finalize() bind(C, name="finalize")
+      !DEC$ ATTRIBUTES DLLEXPORT::xbeach_finalize
 
-  end function xbeach_finalize
-  
-  subroutine assignlogdelegate(fPtr) bind(C,name="assignlogdelegate")
-    !DEC$ ATTRIBUTES DLLEXPORT::assignlogdelegate
-    use logging_module
-    type(c_funptr), VALUE :: fPtr
-        
-    call assignlogdelegate_internal(fPtr)
-    
-  end subroutine assignlogdelegate
-  
-  integer(c_int) function writetolog()  bind(C, name="writetolog")
-    !DEC$ ATTRIBUTES DLLEXPORT::writetolog
-    use logging_module
-    
-    integer :: i, tmp
+      xbeach_finalize = finalize()
 
-    writetolog = -1
-    
-    do i = 1, 10
-        tmp = i
-        call distributelog(tmp,"test iets anders",16)
-    end do
-    
-    writetolog = 0
-  end function writetolog
-  
-    end module libxbeach_dynamic
+   end function xbeach_finalize
+
+   subroutine assignlogdelegate(fPtr) bind(C,name="assignlogdelegate")
+      !DEC$ ATTRIBUTES DLLEXPORT::assignlogdelegate
+      use logging_module
+      type(c_funptr), VALUE :: fPtr
+
+      call assignlogdelegate_internal(fPtr)
+
+   end subroutine assignlogdelegate
+
+   integer(c_int) function writetolog()  bind(C, name="writetolog")
+      !DEC$ ATTRIBUTES DLLEXPORT::writetolog
+      use logging_module
+
+      integer :: i, tmp
+
+      writetolog = -1
+
+      do i = 1, 10
+         tmp = i
+         call distributelog(tmp,"test iets anders",16)
+      end do
+
+      writetolog = 0
+   end function writetolog
+
+end module libxbeach_dynamic

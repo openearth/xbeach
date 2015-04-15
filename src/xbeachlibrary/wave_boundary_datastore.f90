@@ -6,7 +6,7 @@ module wave_boundary_datastore
    !  - waveBoundaryTimeSeries
    !  - waveSpectrumAdministration
    !
-   ! These derived types are accessed by wave_boundary_main, wave_boundary_init and 
+   ! These derived types are accessed by wave_boundary_main, wave_boundary_init and
    ! wave_boundary_update
    implicit none
    save
@@ -68,11 +68,11 @@ module wave_boundary_datastore
       real*8,dimension(:),allocatable      :: tbc
    end type waveBoundaryTimeSeriesType
    !
-   !   
+   !
    ! Declare variables of type above
    type(waveBoundaryParametersType)       :: waveBoundaryParameters
    type(waveBoundaryAdministrationType)   :: waveBoundaryAdministration
    type(waveBoundaryTimeSeriesType)       :: waveBoundaryTimeSeries
    type(waveSpectrumAdministrationType)   :: waveSpectrumAdministration
-   
+
 end module wave_boundary_datastore

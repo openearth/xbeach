@@ -20,11 +20,11 @@
 !      and so on
 
 module constants
-  implicit none
-  save
+   implicit none
+   save
 
-  integer, parameter     :: sp = kind(1.0)
-  integer, parameter     :: dp = kind(1.0d00)
+   integer, parameter     :: sp = kind(1.0)
+   integer, parameter     :: dp = kind(1.0d00)
 
 
 end module constants
