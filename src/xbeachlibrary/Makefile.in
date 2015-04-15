@@ -87,11 +87,10 @@ subdir = src/xbeachlibrary
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/acx_mpi.m4 \
-	$(top_srcdir)/m4/fortran.m4 $(top_srcdir)/m4/fortranextra.m4 \
-	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
-	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/m4/pkg.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/fortran.m4 $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/m4/pkg.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -128,23 +127,7 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libxbeach_la_LIBADD =
-am__libxbeach_la_SOURCES_DIST = s.ind s.inp xmpi.F90 general_mpi.F90 \
-	typesandkinds.F90 logging.F90 paramsconst.F90 \
-	filefunctions.F90 readkey.F90 mnemonic.F90 interp.F90 \
-	math_tools.F90 params.F90 getkey.F90 spaceparamsdef.F90 \
-	indextos.F90 spaceparams.F90 vegetation.F90 wave_functions.F90 \
-	waveparams.F90 waveparamsnew.F90 constants.F90 roelvink.F90 \
-	wave_stationary.F90 wave_instationary.F90 wave_directions.F90 \
-	wave_timestep.F90 solver.F90 flow_secondorder.F90 nonh.F90 \
-	boundaryconditions.F90 morphevolution.F90 beachwizard.F90 \
-	groundwater.F90 drifters.F90 readtide.F90 readwind.F90 \
-	initialize.F90 timestep.F90 bedroughness.F90 flow_timestep.F90 \
-	postprocess.F90 varianceupdate.F90 varoutput.F90 ncoutput.F90 \
-	output.F90 ship.F90 mnemoniciso.F90 loopcounters.F90 \
-	libxbeach.F90 libxbeach_dynamic.F90 debugging.F90 \
-	introspection.F90
-@USENETCDF_TRUE@am__objects_1 = libxbeach_la-ncoutput.lo
-am_libxbeach_la_OBJECTS = libxbeach_la-xmpi.lo \
+am_libxbeach_la_OBJECTS = libxbeach_la-sleeper.lo libxbeach_la-xmpi.lo \
 	libxbeach_la-general_mpi.lo libxbeach_la-typesandkinds.lo \
 	libxbeach_la-logging.lo libxbeach_la-paramsconst.lo \
 	libxbeach_la-filefunctions.lo libxbeach_la-readkey.lo \
@@ -166,7 +149,7 @@ am_libxbeach_la_OBJECTS = libxbeach_la-xmpi.lo \
 	libxbeach_la-initialize.lo libxbeach_la-timestep.lo \
 	libxbeach_la-bedroughness.lo libxbeach_la-flow_timestep.lo \
 	libxbeach_la-postprocess.lo libxbeach_la-varianceupdate.lo \
-	libxbeach_la-varoutput.lo $(am__objects_1) \
+	libxbeach_la-varoutput.lo libxbeach_la-ncoutput.lo \
 	libxbeach_la-output.lo libxbeach_la-ship.lo \
 	libxbeach_la-mnemoniciso.lo libxbeach_la-loopcounters.lo \
 	libxbeach_la-libxbeach.lo libxbeach_la-libxbeach_dynamic.lo \
@@ -211,7 +194,7 @@ am__v_FCLD_ = $(am__v_FCLD_@AM_DEFAULT_V@)
 am__v_FCLD_0 = @echo "  FCLD    " $@;
 am__v_FCLD_1 = 
 SOURCES = $(libxbeach_la_SOURCES)
-DIST_SOURCES = $(am__libxbeach_la_SOURCES_DIST)
+DIST_SOURCES = $(libxbeach_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -279,6 +262,7 @@ LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+MAKEDEPO = @MAKEDEPO@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
@@ -333,6 +317,7 @@ build_vendor = @build_vendor@
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
+deps = @deps@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
@@ -366,10 +351,8 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4 -I config
 lib_LTLIBRARIES = libxbeach.la
-@USENETCDF_TRUE@extra_xbeach_sources = ncoutput.F90
 libxbeach_la_SOURCES = \
-	s.ind \
-	s.inp \
+	sleeper.F90 \
 	xmpi.F90 \
 	general_mpi.F90 \
 	typesandkinds.F90 \
@@ -412,9 +395,9 @@ libxbeach_la_SOURCES = \
 	postprocess.F90 \
 	varianceupdate.F90 \
 	varoutput.F90 \
-	${extra_xbeach_sources} \
+	ncoutput.F90 \
 	output.F90 \
-	ship.F90 \
+        ship.F90 \
 	mnemoniciso.F90 \
 	loopcounters.F90 \
 	libxbeach.F90 \
@@ -423,20 +406,26 @@ libxbeach_la_SOURCES = \
 	introspection.F90
 
 BUILT_SOURCES = \
+	version.dat  \
 	spacedecl.gen	\
 	mnemonic.gen \
 	indextos.gen \
-	space_alloc_scalars.gen \
 	space_alloc_arrays.gen \
 	space_ind.gen \
 	space_inp.gen \
 	chartoindex.gen \
 	getkey.gen \
-	s.ind \
-	s.inp \
-	version.dat
+	index_allocate.gen \
+	index_deallocate.gen \
+	index_reallocate.gen \
+	index_allocated.gen
+
 
 # We should also specify the dependencies of source files and gen files. If we want the source to be rebuild when gen files get updated
+#
+# wwvv: Here it is:
+# (the .gen files are automatically build because of the dependencies in
+# deps)
 mi = $(builddir)/../makeincludes/makeincludes$(EXEEXT)
 
 # Set flags off by default
@@ -446,7 +435,7 @@ libxbeach_la_FCFLAGS = -I$(top_builddir) $(am__append_1) \
 
 # EXTRA_DIST=s.ind s.inp
 EXTRA_DIST = spaceparams.tmpl s.ind s.inp nh_pars.inc version.def
-CLEANFILES = *.mod *.MOD *.gen version.dat 
+CLEANFILES = *.mod *.MOD *.gen version.dat parameters.inc
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -535,6 +524,9 @@ distclean-compile:
 
 .F90.lo:
 	$(AM_V_PPFC)$(LTPPFCCOMPILE) -c -o $@ $<
+
+libxbeach_la-sleeper.lo: sleeper.F90
+	$(AM_V_PPFC)$(LIBTOOL) $(AM_V_lt) --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-sleeper.lo `test -f 'sleeper.F90' || echo '$(srcdir)/'`sleeper.F90
 
 libxbeach_la-xmpi.lo: xmpi.F90
 	$(AM_V_PPFC)$(LIBTOOL) $(AM_V_lt) --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libxbeach_la_FCFLAGS) $(FCFLAGS) -c -o libxbeach_la-xmpi.lo `test -f 'xmpi.F90' || echo '$(srcdir)/'`xmpi.F90
@@ -906,29 +898,44 @@ uninstall-am: uninstall-libLTLIBRARIES
 
 version.dat: 
 	echo "Build_Revision = '`svnversion`'" > version.dat
-	echo "Build_URL = '`svn info | grep ^URL`'" >> version.dat
+	echo "Build_URL = '`svn info | grep -m 1 URL`'" >> version.dat
 	echo "Build_Date = '`date`'" >> version.dat
 
-s.ind: space_ind.gen
-s.inp: space_inp.gen
-spacedecl.gen: $(mi)
+getkey.gen: params.F90
+spacedecl.gen: $(mi) spaceparams.tmpl
 	echo $@ | $(mi)
-mnemonic.gen: $(mi)
+mnemonic.gen: $(mi) spaceparams.tmpl
 	echo $@ | $(mi)
-indextos.gen: $(mi)
+indextos.gen: $(mi) spaceparams.tmpl
 	echo $@ | $(mi)
-space_alloc_scalars.gen: $(mi)
+index_allocate.gen: $(mi) spaceparams.tmpl
 	echo $@ | $(mi)
-space_alloc_arrays.gen: $(mi)
+index_deallocate.gen: $(mi) spaceparams.tmpl
 	echo $@ | $(mi)
-space_ind.gen: $(mi)
+index_reallocate.gen: $(mi) spaceparams.tmpl
 	echo $@ | $(mi)
-space_inp.gen: $(mi)
+index_allocated.gen: $(mi) spaceparams.tmpl
 	echo $@ | $(mi)
-chartoindex.gen: $(mi)
+space_alloc_arrays.gen: $(mi) spaceparams.tmpl
 	echo $@ | $(mi)
-getkey.gen: $(mi)
+space_ind.gen: $(mi) spaceparams.tmpl
 	echo $@ | $(mi)
+space_inp.gen: $(mi) spaceparams.tmpl
+	echo $@ | $(mi)
+chartoindex.gen: $(mi) spaceparams.tmpl
+	echo $@ | $(mi)
+getkey.gen: $(mi) params.F90
+	echo $@ | $(mi)
+parameters.inc: $(mi) params.F90
+	echo $@ | $(mi)
+
+depclean: clean
+	rm -f $(deps)
+
+dep $(deps):
+	$(MAKEDEPO) -p libxbeach_la- -s .lo $(libxbeach_la_SOURCES) > $(deps)
+
+include $(deps)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
