@@ -1270,92 +1270,10 @@ contains
       integer                                 :: jbc,jn ! j-index of boundary and j-index of neighbouring cell
       ! varies for xmpi_isleft and xmpi_isright
       real*8,dimension(s%nx+1)                :: udvdxb,vdvdyb,viscvb   ! advection terms from flow timestep
-
       real*8,dimension(s%nx+1)                :: vbc    ! result vector for boundary flow
-
-<<<<<<< .mine
-    if (s%ny==0) then      ! 1D models have special case
-       if (bctype==LR_WALL) then 
-          vbc(:) = 0.d0 ! Only this bc scheme can be applied to s%ny==0 models
-       else
-          vbc(:) = s%vv(:,jbc)  ! return whatever was already calculated in the flow routine for the cross shore row
-       endif
-    else
-       select case (bctype)
-       case (LR_WALL)
-          ! No flow at boundary
-          vbc(:) = 0.d0
-       case (LR_NEUMANN_V)
-          ! Calculate vv at boundary using identical forcing as (:,2), but with dzsdy determined from (:,1), which includes
-          ! the tide-driven water level gradient as zs(:,1) = zs(:,2) + dzsdytide
-          !
-          ! in flow timestep we calculate:
-          ! vv(jn) = vvold(jn)-dt(gDZS(jn) + R(jn))
-          !   -> vvold(jn) = vv(jn) + dt(gDZS(jn) + R(jn))
-          !
-          ! we state in bc that:
-          ! vv(jbc) = vvold(jn)-dt(gDZS(jbc) + R(jn))
-          !   -> vv(jbc) = ( vv(jn) + dt(gDZS(jn) + R(jn)) )-dt(gDZS(jbc) + R(jn))
-          !   -> vv(jbc) = vv(jn) + dt(gDZS(jn)) - dt(gDZS(jbc)) + dt(R(jn)) - dt(R(jn))
-          !   -> vv(jbc) = vv(jn) + dt(gDZS(jn)-gDZS(jbc))
-          !   -> vv(jbc) = vv(jn) + dtg(DZS(jn)-DZS(jbc))
-          !                  vbc(:) = (vv(:,jn)+par%dt*par%g*(dzsdy(i,jn)-dzsdy(i,jbc))) * wetv(:,jbc)
-          ! AANPASSING: Neumann zonder getij
-          ! Dano/Jaap: Je kunt niet druk gradient a.g.v getij meenemen zonder ook andere forcerings termen (bijv bodem wrijving)
-          ! uit te rekenen. In geval van getij gradient heb je een meer complexe neumann rvw die jij "free" noemt
-          vbc(:) = s%vv(:,jn)
-       case (LR_NO_ADVEC)
-          ! We allow vv at the boundary to be calulated from NLSWE, but only include the advective terms if
-          ! they decrease the flow velocity
-          do i=2,s%nx
-             if (s%wetv(i,jbc)==1) then
-                advterm = udvdxb(i)+vdvdyb(i)-viscvb(i)+ fc*s%uv(i,jbc)
-                if (s%vv(i,jbc)>0.d0) then
-                   advterm = max(advterm,0.d0)
-                elseif (s%vv(i,jbc)<0.d0) then
-                   advterm = min(advterm,0.d0)
-                else
-                   advterm = 0.d0
-                endif
-                vbc(i) = s%vv(i,jbc)- par%dt*(advterm &
-                     + par%g*s%dzsdy(i,jbc)&
-                     + s%tauby(i,jbc)/(par%rho*s%hvm(i,jbc)) &
-                     - par%lwave*s%Fy(i,jbc)/(par%rho*max(s%hvm(i,jbc),par%hmin)) &
-                     - par%rhoa*par%Cd*s%windnv(i,jbc)*sqrt(s%windsu(i,jbc)**2+s%windnv(i,jbc)**2)/(par%rho*s%hvm(i,jbc)))  ! Kees: wind correction
-                     ! Robert: no Coriolis because dependecy u in this combination of wall / Neumann
-             else
-                vbc(i) = 0.d0
-             endif
-          enddo
-          ! now fill i=1 and i=nx+1
-          vbc(1) = vbc(2) * s%wetv(1,jbc)
-          vbc(s%nx+1) = vbc(s%nx) * s%wetv(s%nx+1,jbc)
-       case (LR_NEUMANN)
-          ! Dano/Jaap: En dit is dan dus complexe vorm van Neumann (zoals in Delft3D) met getij
-          ! We allow vv at the boundary to be calulated from NLSWE without any limitations
-          do i=2,s%nx
-             if (s%wetv(i,jbc)==1) then
-                vbc(i) = s%vv(i,jbc)- par%dt*(udvdxb(i)+vdvdyb(i)-viscvb(i)&
-                     + par%g*s%dzsdy(i,jbc)&
-                     + s%tauby(i,jbc)/(par%rho*s%hvm(i,jbc)) &
-                     - par%lwave*s%Fy(i,jbc)/(par%rho*max(s%hvm(i,jbc),par%hmin)) &
-                     + fc*s%uv(i,jbc) &
-                     - par%rhoa*par%Cd*s%windnv(i,jbc)*sqrt(s%windsu(i,jbc)**2+s%windnv(i,jbc)**2)/(par%rho*s%hvm(i,jbc)))  ! Kees: wind correction
-             else
-                vbc(i) = 0.d0
-             endif
-          enddo
-          ! now fill i=1 and i=nx+1
-          vbc(1) = vbc(2) * s%wetv(1,jbc)
-          vbc(s%nx+1) = vbc(s%nx) * s%wetv(s%nx+1,jbc)
-       end select
-    endif
-  end function flow_lat_bc
-=======
       integer                                 :: i      ! internal variables
       real*8                                  :: advterm
       real*8,save                             :: fc
->>>>>>> .r4565
 
 
       if (par%t<=par%dt) fc =2.d0*par%wearth*sin(par%lat)
@@ -1407,7 +1325,8 @@ contains
                   + par%g*s%dzsdy(i,jbc)&
                   + s%tauby(i,jbc)/(par%rho*s%hvm(i,jbc)) &
                   - par%lwave*s%Fy(i,jbc)/(par%rho*max(s%hvm(i,jbc),par%hmin)) &
-                  - par%rhoa*par%Cd*s%windnv(i,jbc)**2/(par%rho*s%hvm(i,jbc)))
+                  - par%rhoa*par%Cd*s%windnv(i,jbc)*sqrt(s%windsu(i,jbc)**2+s%windnv(i,jbc)**2)/(par%rho*s%hvm(i,jbc)))  ! Kees: wind correction
+                  ! Robert: no Coriolis because dependecy u in this combination of wall / Neumann
                else
                   vbc(i) = 0.d0
                endif
@@ -1425,7 +1344,7 @@ contains
                   + s%tauby(i,jbc)/(par%rho*s%hvm(i,jbc)) &
                   - par%lwave*s%Fy(i,jbc)/(par%rho*max(s%hvm(i,jbc),par%hmin)) &
                   + fc*s%uv(i,jbc) &
-                  - par%rhoa*par%Cd*s%windnv(i,jbc)**2/(par%rho*s%hvm(i,jbc)))
+	              - par%rhoa*par%Cd*s%windnv(i,jbc)*sqrt(s%windsu(i,jbc)**2+s%windnv(i,jbc)**2)/(par%rho*s%hvm(i,jbc)))  ! Kees: wind correction
                else
                   vbc(i) = 0.d0
                endif
