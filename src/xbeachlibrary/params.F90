@@ -1605,10 +1605,10 @@ contains
          par%wbcversion=3
       endif
       if (par%wbcversion==1 .or. par%wbcversion==2) then
-         call writelog('lws','','************************** ERROR ******************************')
-         call writelog('lws','','wbcversion 1 and 2 are no longer supported, from v1.21 onwards')
-         call writelog('lws','','The current default wbcversion is 3')
-         call writelog('lws','','***************************************************************')
+         call writelog('lwse','','************************** ERROR ******************************')
+         call writelog('lwse','','wbcversion 1 and 2 are no longer supported, from v1.21 onwards')
+         call writelog('lwse','','The current default wbcversion is 3')
+         call writelog('lwse','','***************************************************************')
          call halt_program
       endif
       !
@@ -1623,6 +1623,13 @@ contains
             par%reformsteep=0.0d0
             call writelog('lws','(a)','Warning: Setting reformsteep to minimum of zero')
          endif
+      endif
+      !
+      !
+      ! The number of layers in the bed should be at least 3 (par%nd>=3)
+      if (par%nd<3) then
+         call writelog('lwse','','The number of sediment layers in the bed (nd) may not be smaller than 3')
+         call halt_program
       endif
       !
       !

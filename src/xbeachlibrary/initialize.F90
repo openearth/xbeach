@@ -1334,8 +1334,8 @@ contains
       allocate(s%sedcal(1:par%ngd))
       allocate(s%ucrcal(1:par%ngd))
       allocate(s%nd(1:s%nx+1,1:s%ny+1))
-      allocate(s%dzbed(1:s%nx+1,1:s%ny+1,1:max(par%nd,3)))
-      allocate(s%pbbed(1:s%nx+1,1:s%ny+1,1:max(par%nd,3),1:par%ngd))
+      allocate(s%dzbed(1:s%nx+1,1:s%ny+1,1:par%nd))
+      allocate(s%pbbed(1:s%nx+1,1:s%ny+1,1:par%nd,1:par%ngd))
       allocate(s%z0bed(1:s%nx+1,1:s%ny+1))
       allocate(s%ureps(1:s%nx+1,1:s%ny+1))
       allocate(s%urepb(1:s%nx+1,1:s%ny+1))
@@ -1466,7 +1466,7 @@ contains
       ! bottom of sediment model
       s%z0bed = s%zb - sum(s%dzbed,DIM=3)
 
-      s%nd = max(par%nd,2)
+      s%nd = par%nd
 
       s%ureps      = 0.d0
       s%vreps      = 0.d0

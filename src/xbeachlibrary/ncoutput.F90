@@ -238,8 +238,7 @@ contains
       NF90(nf90_def_dim(ncid, 'wave_angle', s%ntheta, thetadimid))
 
       ! computational layers in bed ...
-      ! TODO: Clean this up, why max(par%nd,2)???
-      NF90(nf90_def_dim(ncid, 'bed_layers', max(par%nd,3), bedlayersdimid))
+      NF90(nf90_def_dim(ncid, 'bed_layers', par%nd, bedlayersdimid))
 
       ! sediment classes
       NF90(nf90_def_dim(ncid, 'sediment_classes', par%ngd, sedimentclassesdimid))
@@ -1565,7 +1564,7 @@ contains
          dimensionid = inoutdimid
        case('2')
          dimensionid = inoutdimid
-       case('max(par%nd,2)')
+       case('par%nd')
          dimensionid = bedlayersdimid
        case('par%ndrifter')
          dimensionid = driftersdimid

@@ -225,7 +225,7 @@ contains
       call MPI_Comm_rank(xmpi_ocomm,xmpi_orank,ierr)
       call MPI_Comm_size(xmpi_ocomm,xmpi_osize,ierr)
       if (xmpi_osize < 2) then
-         print *,'Number of MPI processes must be 2, but is:',xmpi_osize
+         print *,'Number of MPI processes must be 2 or greater, but is:',xmpi_osize
          call halt_program
       endif
       xmpi_omaster = 0
