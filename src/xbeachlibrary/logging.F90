@@ -325,15 +325,30 @@ CONTAINS
 
    end subroutine writelog_finalize
 
-   subroutine writelog_distribute(destination,display)
+   subroutine writelog_distribute(destination,display,lomaster)
 
       implicit none
 
-      character(*)            :: destination
-      character(slen)         :: display
-      integer                 :: level
+      character(*), intent(in)      :: destination
+      character(slen), intent(in)   :: display
+      logical, intent(in), optional :: lomaster
 
-      if (xmaster) then
+      integer                 :: level
+      logical                       :: doit
+
+      ! wwvv: sometimes, this routine is called from xomaster, hence this extra code
+      ! wwvv: see snappointstogrid
+      ! wwvv: only implemented in writelog_a
+
+      doit = xmaster
+
+      if (present(lomaster)) then
+         if (lomaster) then
+            doit = xomaster
+         endif
+      endif
+
+      if (doit) then
          level = -1
          if (scan(destination,'s')>0) then
             level = 3
@@ -360,10 +375,11 @@ CONTAINS
 
    end subroutine writelog_distribute
 
-   subroutine writelog_a(destination,form,message_char)
+   subroutine writelog_a(destination,form,message_char,lomaster)
       implicit none
       character(*),intent(in)    ::  form,message_char
       character(*),intent(in)    ::  destination
+      logical, intent(in), optional ::  lomaster
       character(slen)            ::  display
 
       if (form=='') then
@@ -372,7 +388,7 @@ CONTAINS
          write(display,form)trim(message_char)
       endif
 
-      call writelog_distribute(destination, display)
+      call writelog_distribute(destination, display, lomaster)
 
    end subroutine writelog_a
 

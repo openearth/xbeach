@@ -216,7 +216,7 @@ contains
       endif ! nglobalvar /=0
 
       ! If we want point output then
-      if ((par%npoints+par%nrugauge)>0) then
+      if ((par%npoints+par%nrugauge+par%ndrifter)>0) then
          if (xmaster) then
             if (par%tspoints/=' ') then
                open(10,file=par%tspoints)

@@ -1566,8 +1566,6 @@ contains
       s%pdisch    = 0
       s%qdisch    = 0.d0
 
-      !if (xmaster) then
-      if(.true.) then
          if (par%ndischarge>0) then
 
             ! read discharge locations
@@ -1600,10 +1598,6 @@ contains
                close(10)
             endif
          endif
-      endif
-
-      !if (xmaster) then
-      if(.true.) then
 
          ! initialise each discharge location
          do i=1,par%ndischarge
@@ -1661,7 +1655,6 @@ contains
          if (par%morfacopt == 1) then
             s%tdisch = s%tdisch/max(par%morfac,1.d0)
          endif
-      endif
    end subroutine discharge_init
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

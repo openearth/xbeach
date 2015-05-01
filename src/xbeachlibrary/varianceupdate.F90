@@ -488,6 +488,9 @@ contains
 
 #ifdef USEMPI
    subroutine means_collect(sl,a,b)
+      !
+      ! collect mean variables, output in a
+      !
       use spaceparams
 
       implicit none

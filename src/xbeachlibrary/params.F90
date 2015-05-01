@@ -344,11 +344,11 @@ module params
       character(slen):: tscross                   = 'abc'   !  [-] (advanced,silent) Name of file containing timings of cross section output
       character(slen):: tsmean                    = 'abc'   !  [-] (advanced) Name of file containing timings of mean, max, min and var output
       integer*4     :: nglobalvar                 = -123    !  [-] Number of global output variables (as specified by user)
-      character(slen), dimension(numvars)   :: globalvars = 'abc' !  [-] (advanced) Mnems of global output variables, not per se the same size as nglobalvar (invalid variables, defaults)
+      character(maxnamelen), dimension(numvars)   :: globalvars = 'abc' !  [-] (advanced) Mnems of global output variables, not per se the same size as nglobalvar (invalid variables, defaults)
       integer*4     :: nmeanvar                   = -123    !  [-] Number of mean, min, max, var output variables
-      character(slen), dimension(numvars)   :: meanvars  = 'abc'  !  [-] (advanced) Mnems of mean output variables (by variables)
+      character(maxnamelen), dimension(numvars)   :: meanvars  = 'abc'  !  [-] (advanced) Mnems of mean output variables (by variables)
       integer*4     :: npointvar                  = -123    !  [-] Number of point output variables
-      character(slen), dimension(numvars)   :: pointvars  = 'abc'  !  [-] (advanced) Mnems of point output variables (by variables)
+      character(maxnamelen), dimension(numvars)   :: pointvars  = 'abc'  !  [-] (advanced) Mnems of point output variables (by variables)
       integer*4     :: npoints                    = -123    !  [-] Number of output point locations
       integer*4     :: nrugauge                   = -123    !  [-] Number of output runup gauge locations
       integer, dimension(:), pointer                     :: pointtypes => NULL()  !  [-] (advanced) Point types (0 = point, 1 = rugauge)
@@ -1294,9 +1294,14 @@ contains
       call setallowednames('fortran',             OUTPUTFORMAT_FORTRAN,  &
       'netcdf ',             OUTPUTFORMAT_NETCDF,   &
       'debug  ',             OUTPUTFORMAT_DEBUG)
+#ifdef USENETCDF 
+      ! Default to NetCDF output in case of NetCDF-enabled executable
+      call parmapply('outputformat',2,par%outputformat,par%outputformat_str, &
+      required = .false.) ! wwvv-todo
+#else     
       call parmapply('outputformat',1,par%outputformat,par%outputformat_str, &
       required = .false.) ! wwvv-todo
-
+#endif
       ! get the nc output file name from the parameter file
       par%ncfilename = readkey_name('params.txt','ncfilename')
       if (len(trim(par%ncfilename)) .eq. 0) par%ncfilename = 'xboutput.nc'
@@ -2070,7 +2075,7 @@ contains
       character(slen)                            :: line,keyword,keyread
       character(slen+slen)                     :: tempout
       integer                                  :: i,imax,id,ic,index,ier
-      character(slen),dimension(numvars) :: tempnames
+      character(maxnamelen),dimension(numvars) :: tempnames
 
       imax = -123
       select case (readtype)
@@ -2127,7 +2132,7 @@ contains
             ! Check if this is a valid variable name
             index = chartoindex(line)
             if (index/=-1) then
-               tempnames(i)=line
+               tempnames(i)=trim(line) ! wwvv use trim() to avoid compiler warning
                call writelog('ls','',trim(okline),trim(tempnames(i)))
             else
                call writelog('sle','',trim(errline),trim(line),'''')
@@ -2161,7 +2166,8 @@ contains
       character(*), intent(in)                 :: readtype
       real*8,dimension(:),intent(inout)        :: xpoints,ypoints
 
-      character(slen)                          :: line,keyword,keyread,varline,varstr
+      character(slen)                          :: line,keyword,keyread,varline
+      character(maxnamelen)                    :: varstr
       character(slen)                           :: fullline,errmes1,errmes2,okaymes
       integer                                  :: i,imax,id,ic,imark,imarkold,imin,nvar,ivar,index,j
       logical                                  :: varfound

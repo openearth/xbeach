@@ -72,7 +72,7 @@ contains
                if(scrprint) then  ! wwvv-todo
                   write(txt,"('Distance output point',i3.3,'(',f0.2,',',f0.2,') to gridpoint(',i0,',',i0'): ',f0.2,' m')") &
                   i,par%xpointsw(i),par%ypointsw(i),xpoints(i),ypoints(i),mindistr(i)
-                  call writelog('ls','(a)',txt)
+                  call writelog('ls','(a)',txt,xomaster)
                endif
             endif
          end do
@@ -120,16 +120,15 @@ contains
    end subroutine gridrotate_r1
 
 
-   subroutine gridrotate_r2(par, s, t, x &
-#ifdef USEMPI
-   , sl &
-#endif
-   )
+   subroutine gridrotate_r2(par, s, t, x , row, col )
       !
       ! sl: if present then this subroutine needs to be called by everyone
       !  in xmpi_ocomm, the extra needed s% variables needed will be collected
       !  x will not assigned to
       !
+      ! if row is present, and row>0, the rotation will be done only for
+      ! s%some_arry(row,col) and assigned to x(1,1)
+
       use params
       use spaceparams
       use mnemmodule
@@ -138,182 +137,115 @@ contains
       type(spacepars), intent(inout)      :: s
       type(arraytype), intent(in)         :: t
       real*8, dimension(:,:), intent(out) :: x
-#ifdef USEMPI
-      type(spacepars), intent(in),optional :: sl
-#else
-      type(spacepars)                      :: sl
-#endif
+      integer, intent(in), optional       :: row, col
 
-      logical                              :: getonly
       real*8, parameter                    :: pi = 4*atan(1.0d0)
       real*8, dimension(size(s%alfaz,1), size(s%alfaz,2)) :: Sutot, Svtot
 
-#ifdef USEMPI
-      getonly = present(sl)
-#else
-      getonly = .false.
-#endif
-      if(.not. getonly) then
+      integer is,  ie,  js,  je
+      integer isx, iex, jsx, jex
+
          Sutot = 0;
          Svtot = 0;
+
+      is  = 1
+      ie  = size(x,1)
+      js  = 1
+      je  = size(x,2)
+      isx = is
+      iex = ie
+      jsx = js
+      jex = je
+
+      if (present(row)) then
+         if (row .gt. 0 ) then
+            is  = row
+            ie  = row
+            js  = col
+            je  = col
+            isx = 1
+            iex = 1
+            jsx = 1
+            jex = 1
       endif
+      endif
+
       if (par%rotate .eq. 1) then
          select case(t%name)
           case(mnem_thetamean)
-            x=270-((t%r2)*(180/pi))
+            x(isx:iex,jsx:jex) = 270-((t%r2(is:ie,js:je))*(180/pi))
           case(mnem_Fx)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_Fy)
-            else
-               x=t%r2*cos(s%alfaz)-s%Fy*sin(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = t%r2(is:ie,js:je)*cos(s%alfaz(is:ie,js:je))- &
+            &                    s%Fy(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))
           case(mnem_Fy)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_Fx)
-            else
-               x=s%Fx*sin(s%alfaz)+t%r2*cos(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = s%Fx(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))+ &
+            &                    t%r2(is:ie,js:je)*cos(s%alfaz(is:ie,js:je))
           case(mnem_u)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_v)
-            else
-               x=t%r2*cos(s%alfaz)-s%v*sin(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = t%r2(is:ie,js:je)*cos(s%alfaz(is:ie,js:je))- &
+            &                    s%v (is:ie,js:je)*sin(s%alfaz(is:ie,js:je))
           case(mnem_gwu)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_gwv)
-            else
-               x=t%r2*cos(s%alfaz)-s%gwv*sin(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = t%r2 (is:ie,js:je)*cos(s%alfaz(is:ie,js:je))- &
+            &                    s%gwv(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))
           case(mnem_v)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_u)
-            else
-               x=s%u*sin(s%alfaz)+t%r2*cos(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = s%u (is:ie,js:je)*sin(s%alfaz(is:ie,js:je))+ &
+            &                    t%r2(is:ie,js:je)*cos(s%alfaz(is:ie,js:je))
           case(mnem_gwv)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_gwu)
-            else
-               x=s%gwu*sin(s%alfaz)+t%r2*cos(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = s%gwu(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))+ &
+            &                    t%r2 (is:ie,js:je)*cos(s%alfaz(is:ie,js:je))
           case(mnem_ue)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_ve)
-            else
-               x=t%r2*cos(s%alfaz)-s%ve*sin(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = t%r2(is:ie,js:je)*cos(s%alfaz(is:ie,js:je))- &
+            &                    s%ve(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))
           case(mnem_ve)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_ue)
-            else
-               x=s%ue*sin(s%alfaz)+t%r2*cos(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = s%ue(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))+ &
+            &                    t%r2(is:ie,js:je)*cos(s%alfaz(is:ie,js:je))
           case(mnem_ui)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_vi)
-            else
-               x=t%r2*cos(s%alfaz)-s%vi*sin(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = t%r2(is:ie,js:je)*cos(s%alfaz(is:ie,js:je))- &
+            &                    s%vi(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))
           case(mnem_vi)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_ui)
-            else
-               x=s%ui*sin(s%alfaz)+t%r2*cos(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = s%ui(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))+ &
+            &                    t%r2(is:ie,js:je)*cos(s%alfaz(is:ie,js:je))
           case(mnem_umean)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_vmean)
-            else
-               x=t%r2*cos(s%alfaz)-s%vmean*sin(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = t%r2   (is:ie,js:je)*cos(s%alfaz(is:ie,js:je))- &
+            &                    s%vmean(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))
           case(mnem_vmean)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_umean)
-            else
-               x=s%umean*sin(s%alfaz)+t%r2*cos(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = s%umean(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))+ &
+            &                    t%r2   (is:ie,js:je)*cos(s%alfaz(is:ie,js:je))
           case(mnem_uwf)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_vwf)
-            else
-               x=t%r2*cos(s%alfaz)-s%vwf*sin(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = t%r2 (is:ie,js:je)*cos(s%alfaz(is:ie,js:je))- &
+            &                    s%vwf(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))
           case(mnem_vwf)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_uwf)
-            else
-               x=s%uwf*sin(s%alfaz)+t%r2*cos(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = s%uwf(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))+ &
+            &                    t%r2 (is:ie,js:je)*cos(s%alfaz(is:ie,js:je))
           case(mnem_Sutot)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_Subg)
-               call space_collect_mnem(s,sl,par,mnem_Svbg)
-               call space_collect_mnem(s,sl,par,mnem_Susg)
-               call space_collect_mnem(s,sl,par,mnem_Svsg)
-            else
                ! Jaap interpolate transports to water level points before rotating to real world
                Sutot = sum(s%Subg,dim=3)+sum(s%Susg,dim=3)
                Svtot = sum(s%Svbg,dim=3)+sum(s%Svsg,dim=3)
                Sutot(2:s%nx,:)=0.5d0*(Sutot(1:s%nx-1,:)+Sutot(2:s%nx,:))
                Svtot(:,2:s%ny)=0.5d0*(Svtot(:,1:s%ny-1)+Svtot(:,2:s%ny))
-               x=Sutot*cos(s%alfaz) - Svtot*sin(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = Sutot(is:ie,js:je)*cos(s%alfaz(is:ie,js:je)) - &
+            &                    Svtot(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))
           case(mnem_Svtot)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_Subg)
-               call space_collect_mnem(s,sl,par,mnem_Svbg)
-               call space_collect_mnem(s,sl,par,mnem_Susg)
-               call space_collect_mnem(s,sl,par,mnem_Svsg)
-            else
                Sutot = sum(s%Subg,dim=3)+sum(s%Susg,dim=3)
                Svtot = sum(s%Svbg,dim=3)+sum(s%Svsg,dim=3)
                Sutot(2:s%nx,:)=0.5d0*(Sutot(1:s%nx-1,:)+Sutot(2:s%nx,:))
                Svtot(:,2:s%ny)=0.5d0*(Svtot(:,1:s%ny-1)+Svtot(:,2:s%ny))
-               x=Sutot*sin(s%alfaz) + Svtot*cos(s%alfaz)
-            endif
+            x(isx:iex,jsx:jex) = Sutot(is:ie,js:je)*sin(s%alfaz(is:ie,js:je)) + &
+            &                    Svtot(is:ie,js:je)*cos(s%alfaz(is:ie,js:je))
           case(mnem_cctot)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_ccg)
-            else
-               x=sum(s%ccg,dim=3)
-            endif
+            x(isx:iex,jsx:jex) = sum(s%ccg(is:ie,js:je,:),dim=3)
           case default
-            if(getonly) then
-               continue
-            else
-               x=t%r2
-            endif
+            x(isx:iex,jsx:jex) = t%r2(is:ie,js:je)
          end select
       else
-         if(getonly) then
-            continue
-         else
-            x=t%r2
-         endif
+         x(isx:iex,jsx:jex) = t%r2(is:ie,js:je)
       endif
 
    end subroutine gridrotate_r2
-#ifndef USEMPI
-   ! dummy subroutine for serial version to avoit many ifdefs in above and below
-   ! subroutines
-   subroutine space_collect_mnem(sg,sl,par,mnem)
-      use params
-      use spaceparams
-      type(spacepars)   sg,sl
-      type(parameters)  par
-      character(*)      mnem
-      print *,'This should not happen'
-      print *,sg%nx,sl%nx,par%swave,mnem
-   end subroutine space_collect_mnem
-#endif
 
-   subroutine gridrotate_r3(par, s, t, x &
-#ifdef USEMPI
-   , sl &
-#endif
-   )
-      ! sl: see gridrotate_r2
+   subroutine gridrotate_r3(par, s, t, x, row, col )
+      ! if row is present, and row>0, the rotation will be done only for
+      ! s%some_arry(row,col,:) and assigned to x(1,1,:)
+
       use params
       use spaceparams
       use mnemmodule
@@ -325,22 +257,36 @@ contains
       type(spacepars), intent(in)   :: s
       type(arraytype), intent(in)   :: t
       real*8, dimension(:,:,:)      :: x
-#ifdef USEMPI
-      type(spacepars), intent(in),optional :: sl
-#else
-      type(spacepars)                      :: sl
-#endif
+      integer, intent(in), optional :: row, col
 
       real*8, dimension(size(s%alfaz,1), size(s%alfaz,2), size(t%r3,3)) :: alfazr3,Susg,Svsg,Subg,Svbg
       real*8, parameter             :: pi = 4*atan(1.0d0)
       integer                       :: i
-      logical                       :: getonly
 
-#ifdef USEMPI
-      getonly = present(sl)
-#else
-      getonly = .false.
-#endif
+      integer is,  ie,  js,  je
+      integer isx, iex, jsx, jex
+
+      if (present(row)) then
+         if (row .gt. 0 ) then
+            is  = row
+            ie  = row
+            js  = col
+            je  = col
+            isx = 1
+            iex = 1
+            jsx = 1
+            jex = 1
+         endif
+      else
+         is  = 1
+         ie  = size(x,1)
+         js  = 1
+         je  = size(x,2)
+         isx = is
+         iex = ie
+         jsx = js
+         jex = je
+      endif
 
       ! Jaap: initialize local transport variables (used for interpolation to water level points)
       Susg = 0;
@@ -363,97 +309,92 @@ contains
       if (par%rotate .eq. 1) then
          select case(t%name)
           case(mnem_cgx)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_cgy)
-            else
-               x=t%r3*cos(alfazr3)-s%cgy*sin(alfazr3)
-            endif
+            x(isx:iex,jsx:jex,:) = t%r3 (is:ie,js:je,:)*cos(alfazr3(is:ie,js:je,:))- &
+            &                      s%cgy(is:ie,js:je,:)*sin(alfazr3(is:ie,js:je,:))
           case(mnem_cgy)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_cgx)
-            else
-               x=s%cgx*sin(alfazr3)+t%r3*cos(alfazr3)
-            endif
+            x(isx:iex,jsx:jex,:) = s%cgx(is:ie,js:je,:)*sin(alfazr3(is:ie,js:je,:))+ &
+            &                      t%r3 (is:ie,js:je,:)*cos(alfazr3(is:ie,js:je,:))
           case(mnem_cx)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_cy)
-            else
-               x=t%r3*cos(alfazr3)-s%cy*sin(alfazr3)
-            endif
+            x(isx:iex,jsx:jex,:) = t%r3(is:ie,js:je,:)*cos(alfazr3(is:ie,js:je,:))- &
+            &                      s%cy(is:ie,js:je,:)*sin(alfazr3(is:ie,js:je,:))
           case(mnem_cy)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_cx)
-            else
-               x=s%cx*sin(alfazr3)+t%r3*cos(alfazr3)
-            endif
+            x(isx:iex,jsx:jex,:) = s%cx(is:ie,js:je,:)*sin(alfazr3(is:ie,js:je,:))+ &
+            &                      t%r3(is:ie,js:je,:)*cos(alfazr3(is:ie,js:je,:))
           case(mnem_thet)
-            x=270-((s%thet+alfazr3)*(180/pi))
+            x(isx:iex,jsx:jex,:) = 270-((s%thet(is:ie,js:je,:)+alfazr3(is:ie,js:je,:))*(180/pi))
           case(mnem_Susg)
             ! Jaap: interpolate transports to water level points before rotating to world coordinates
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_Svsg)
-            else
                Susg = t%r3
                Svsg = s%Svsg
                Susg(2:s%nx,:,:)=0.5d0*(t%r3(1:s%nx-1,:,:)+t%r3(2:s%nx,:,:))
                Svsg(:,2:s%ny,:)=0.5d0*(s%Svsg(:,1:s%ny-1,:)+s%Svsg(:,2:s%ny,:))
-               x=Susg*cos(alfazr3)-Svsg*sin(alfazr3)
-            endif
+            x(isx:iex,jsx:jex,:) = Susg(is:ie,js:je,:)*cos(alfazr3(is:ie,js:je,:))- &
+            &                      Svsg(is:ie,js:je,:)*sin(alfazr3(is:ie,js:je,:))
           case(mnem_Svsg)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_Susg)
-            else
                Susg = s%Susg
                Svsg = t%r3
                Susg(2:s%nx,:,:)=0.5d0*(s%Susg(1:s%nx-1,:,:)+s%Susg(2:s%nx,:,:))
                Svsg(:,2:s%ny,:)=0.5d0*(t%r3(:,1:s%ny-1,:)+t%r3(:,2:s%ny,:))
-               x=s%Susg*sin(alfazr3)+t%r3*cos(alfazr3)
-            endif
+            x(isx:iex,jsx:jex,:) = Susg(is:ie,js:je,:)*sin(alfazr3(is:ie,js:je,:))+ &
+            &                      Svsg(is:ie,js:je,:)*cos(alfazr3(is:ie,js:je,:))
           case(mnem_Subg)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_Svbg)
-            else
                Subg = t%r3
                Svbg = s%Svbg
                Subg(2:s%nx,:,:)=0.5d0*(t%r3(1:s%nx-1,:,:)+t%r3(2:s%nx,:,:))
                Svbg(:,2:s%ny,:)=0.5d0*(s%Svbg(:,1:s%ny-1,:)+s%Svbg(:,2:s%ny,:))
-               x=Subg*cos(alfazr3)-Svbg*sin(alfazr3)
-            endif
+            x(isx:iex,jsx:jex,:) = Subg(is:ie,js:je,:)*cos(alfazr3(is:ie,js:je,:))- &
+            &                      Svbg(is:ie,js:je,:)*sin(alfazr3(is:ie,js:je,:))
           case(mnem_Svbg)
-            if(getonly) then
-               call space_collect_mnem(s,sl,par,mnem_Subg)
-            else
                Subg = s%Subg
                Svbg = t%r3
                Subg(2:s%nx,:,:)=0.5d0*(s%Subg(1:s%nx-1,:,:)+s%Subg(2:s%nx,:,:))
                Svbg(:,2:s%ny,:)=0.5d0*(t%r3(:,1:s%ny-1,:)+t%r3(:,2:s%ny,:))
-               x=Subg*sin(alfazr3)+Svbg*cos(alfazr3)
-            endif
+            x(isx:iex,jsx:jex,:) = Subg(is:ie,js:je,:)*sin(alfazr3(is:ie,js:je,:))+ &
+            &                      Svbg(is:ie,js:je,:)*cos(alfazr3(is:ie,js:je,:))
           case default
-            if(getonly) then
-               continue
-            else
-               x=t%r3
-            endif
+            x(isx:iex,jsx:jex,:) = t%r3(is:ie,js:je,:)
          end select
       else
 
-         if(getonly) then
-            continue
-         else
-            x = t%r3
-         endif
+         x(isx:iex,jsx:jex,:) = t%r3(is:ie,js:je,:)
       endif
    end subroutine gridrotate_r3
 
-   subroutine gridrotate_r4(t, x)
+   subroutine gridrotate_r4(t, x, row, col)
       use params
       use spaceparams
       use mnemmodule
 
       type(arraytype), intent(in)   :: t
       real*8, dimension(:,:,:,:)    :: x
-      x = t%r4
+      integer, optional, intent(in) :: row,col
+      integer is,  ie,  js,  je
+      integer isx, iex, jsx, jex
+
+      if (present(row)) then
+         if (row .gt. 0 ) then
+            is  = row
+            ie  = row
+            js  = col
+            je  = col
+            isx = 1
+            iex = 1
+            jsx = 1
+            jex = 1
+         endif
+      else
+         is  = 1
+         ie  = size(x,1)
+         js  = 1
+         je  = size(x,2)
+         isx = is
+         iex = ie
+         jsx = js
+         jex = je
+      endif
+
+      x(isx:iex,jsx:jex,:,:) = t%r4(is:ie,js:je,:,:)
+
    end subroutine gridrotate_r4
 
 

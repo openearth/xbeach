@@ -640,6 +640,57 @@ contains
 
    end subroutine space_distribute_space
 
+   subroutine space_who_has(sl,i,j,p)
+      ! determine which process contains element(i,j)
+      ! sl: local spacepars
+      ! i,j: global indices
+      ! p:   process in xmpi_ocomm which contains the element
+
+      ! icgs, icge: start and end indices in global coordinates 1st dimension
+      ! jcgs: jcge: start and end indices in global coordinates 2nd dimension
+      implicit none
+      type(spacepars), intent(in) :: sl
+      integer, intent(in)         :: i,j
+      integer, intent(out)        :: p
+
+      integer k
+
+      p = -123 
+
+      do k = 1,xmpi_size
+         if (i .ge. sl%icgs(k) .and. i .le. sl%icge(k) .and. &
+         &   j .ge. sl%jcgs(k) .and. j .le. sl%jcge(k)) then
+            p = xmpi_rank_to_orank(k-1)
+            exit
+         endif
+      enddo
+
+   end subroutine space_who_has
+
+   subroutine space_global_to_local(sl,ig,jg,il,jl)
+      ! given global coordinates (ig,jg), compute local coordinates (il,jl)
+      implicit none
+      type(spacepars), intent(in) :: sl
+      integer, intent(in)         :: ig,jg
+      integer, intent(out)        :: il,jl
+
+      il = ig - sl%is(xmpi_rank+1) + 1
+      jl = jg - sl%js(xmpi_rank+1) + 1
+
+   end subroutine space_global_to_local
+
+   subroutine space_local_to_global(sl,il,jl,ig,jg)
+      ! given local coordinates (il,jl), compute global coordinates (ig,jg)
+      implicit none
+      type(spacepars), intent(in) :: sl
+      integer, intent(in)         :: il,jl
+      integer, intent(out)        :: ig,jg
+
+      ig = il + sl%is(xmpi_rank+1) - 1
+      jg = jl + sl%js(xmpi_rank+1) - 1
+
+   end subroutine space_local_to_global
+
    subroutine space_shift_borders_matrix_real8(a)
       use general_mpi_module
       use xmpi_module

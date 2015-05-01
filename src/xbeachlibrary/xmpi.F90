@@ -137,6 +137,7 @@ module xmpi_module
       module procedure xmpi_reduce_r0
       module procedure xmpi_reduce_i0
       module procedure xmpi_reduce_r1
+      module procedure xmpi_reduce_r2
       module procedure xmpi_reduce_i1
    end interface xmpi_reduce
 
@@ -183,6 +184,9 @@ module xmpi_module
       module procedure xmpi_send_i0
       module procedure xmpi_send_l0
       module procedure xmpi_send_r1
+      module procedure xmpi_send_r2
+      module procedure xmpi_send_r3
+      module procedure xmpi_send_r4
       module procedure xmpi_send_i1
       module procedure xmpi_send_l1
    end interface xmpi_send
@@ -194,7 +198,7 @@ contains
    subroutine xmpi_initialize
       ! initialize mpi environment
       implicit none
-      integer ierr,color,errhandler
+      integer ierr,color,errhandler,r
       external comm_errhandler
       ierr = 0
       ! Message buffers in openmpi are not initialized so this call can give a vallgrind error
@@ -260,7 +264,40 @@ contains
 
       xmpi_imaster = 1
 
+      ! sanity check for xmpi_orank_to_rank and xmpi_rank_to_orank
+
+      r = xmpi_orank_to_rank(xmpi_orank)
+      if (r .ne. xmpi_rank) then
+         print *,'Wrong conversion from xmpi_orank',xmpi_orank,'to xmpi_rank',r 
+         call halt_program
+      endif
+
+      r = xmpi_rank_to_orank(xmpi_rank)
+      if (r .ne. xmpi_orank) then
+         print *,'Wrong conversion from xmpi_rank',xmpi_rank,'to xmpi_orank',r 
+         call halt_program
+      endif
+
    end subroutine xmpi_initialize
+
+   integer function xmpi_orank_to_rank(r)
+      ! given rank r in xmpi_ocomm, return rank in xmpi_comm
+      integer, intent(in) :: r
+      integer rr
+      rr = r-1
+      if (rr .lt. 0) rr = -123
+      xmpi_orank_to_rank = rr
+   end function xmpi_orank_to_rank
+
+   integer function xmpi_rank_to_orank(r)
+      ! given rank r in xmpi_comm, return rank in xmpi_ocomm
+      integer, intent(in) :: r
+      if (r .eq. -123) then
+         xmpi_rank_to_orank = 0
+      else
+         xmpi_rank_to_orank = r+1
+      endif
+   end function xmpi_rank_to_orank
 
    subroutine xmpi_finalize
       ! ends mpi environment, collective subroutine
@@ -743,6 +780,16 @@ contains
       integer :: ierror
       call MPI_Reduce(x,y,size(x),MPI_DOUBLE_PRECISION,op,xmpi_master,xmpi_comm,ierror)
    end subroutine xmpi_reduce_r1
+
+   subroutine xmpi_reduce_r2(x,y,op)
+      implicit none
+      real*8,dimension(:,:), intent(in)  :: x
+      real*8,dimension(:,:), intent(out) :: y
+      integer, intent(in)                :: op
+
+      integer :: ierror
+      call MPI_Reduce(x,y,size(x),MPI_DOUBLE_PRECISION,op,xmpi_master,xmpi_comm,ierror)
+   end subroutine xmpi_reduce_r2
 
    subroutine xmpi_reduce_i0(x,y,op)
       implicit none
@@ -1282,6 +1329,69 @@ contains
          call MPI_Recv(x, size(x), MPI_DOUBLE_PRECISION, from, 1014, xmpi_ocomm, MPI_STATUS_IGNORE, ier)
       endif
    end subroutine xmpi_send_r1
+   !________________________________________________________________________________
+
+   subroutine xmpi_send_r2(from,to,x)
+      ! use this to send to one process, in communicator xmpi_ocomm
+      ! receiver and sender call this same subroutine with the same
+      ! from and to
+      integer, intent(in)    :: from,to
+      real*8, intent(inout)  :: x(:,:)
+
+      integer ier
+      ! MPI_SEND(BUF, COUNT, DATATYPE, DEST, TAG, COMM, IERROR)
+      ! MPI_RECV(BUF, COUNT, DATATYPE, SOURCE, TAG, COMM, STATUS, IERROR)
+
+      if (from .eq. to) return
+
+      if (xmpi_orank .eq. from) then
+         call MPI_Send(x, size(x), MPI_DOUBLE_PRECISION, to, 1018, xmpi_ocomm, ier)
+      elseif (xmpi_orank .eq. to) then
+         call MPI_Recv(x, size(x), MPI_DOUBLE_PRECISION, from, 1018, xmpi_ocomm, MPI_STATUS_IGNORE, ier)
+      endif
+   end subroutine xmpi_send_r2
+   !________________________________________________________________________________
+
+   subroutine xmpi_send_r3(from,to,x)
+      ! use this to send to one process, in communicator xmpi_ocomm
+      ! receiver and sender call this same subroutine with the same
+      ! from and to
+      integer, intent(in)    :: from,to
+      real*8, intent(inout)  :: x(:,:,:)
+
+      integer ier
+      ! MPI_SEND(BUF, COUNT, DATATYPE, DEST, TAG, COMM, IERROR)
+      ! MPI_RECV(BUF, COUNT, DATATYPE, SOURCE, TAG, COMM, STATUS, IERROR)
+
+      if (from .eq. to) return
+
+      if (xmpi_orank .eq. from) then
+         call MPI_Send(x, size(x), MPI_DOUBLE_PRECISION, to, 1019, xmpi_ocomm, ier)
+      elseif (xmpi_orank .eq. to) then
+         call MPI_Recv(x, size(x), MPI_DOUBLE_PRECISION, from, 1019, xmpi_ocomm, MPI_STATUS_IGNORE, ier)
+      endif
+   end subroutine xmpi_send_r3
+   !________________________________________________________________________________
+
+   subroutine xmpi_send_r4(from,to,x)
+      ! use this to send to one process, in communicator xmpi_ocomm
+      ! receiver and sender call this same subroutine with the same
+      ! from and to
+      integer, intent(in)    :: from,to
+      real*8, intent(inout)  :: x(:,:,:,:)
+
+      integer ier
+      ! MPI_SEND(BUF, COUNT, DATATYPE, DEST, TAG, COMM, IERROR)
+      ! MPI_RECV(BUF, COUNT, DATATYPE, SOURCE, TAG, COMM, STATUS, IERROR)
+
+      if (from .eq. to) return
+
+      if (xmpi_orank .eq. from) then
+         call MPI_Send(x, size(x), MPI_DOUBLE_PRECISION, to, 1020, xmpi_ocomm, ier)
+      elseif (xmpi_orank .eq. to) then
+         call MPI_Recv(x, size(x), MPI_DOUBLE_PRECISION, from, 1020, xmpi_ocomm, MPI_STATUS_IGNORE, ier)
+      endif
+   end subroutine xmpi_send_r4
    !________________________________________________________________________________
 
    subroutine xmpi_send_i1(from,to,x)

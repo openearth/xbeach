@@ -40,6 +40,8 @@ contains
 #endif
 
       ! initialize the correct output module (clean this up?, move to another module?)
+      call points_output_init(sglobal,par)
+
       select case(par%outputformat)
 
        case(OUTPUTFORMAT_FORTRAN)

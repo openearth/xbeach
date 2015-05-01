@@ -70,7 +70,7 @@ contains
       ! Read files with vegetation properties:
       ! file 1: list of species
       ! file 2: vegetation properties per specie (could be multiple files)
-      ! file 3: distribution of species oevr space
+      ! file 3: distribution of species over space
 
       if(.not. xmaster) return ! wwvv todo: different from trunk
 
