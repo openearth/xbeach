@@ -36,7 +36,8 @@
 !  NOTE: the NF90 call must be on one line because of preprocessor restrictions
 !
 #ifdef USENETCDF
-#define NF90(nf90call) call handle_err(nf90call,__FILE__,__LINE__)
+#define NF90(nf90call) call handle_err(nf90call,&
+                       __FILE__,__LINE__)
 #endif
 
 module ncoutput_module
