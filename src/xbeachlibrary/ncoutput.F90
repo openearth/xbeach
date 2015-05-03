@@ -42,7 +42,7 @@
 module ncoutput_module
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include 'config.h'
 #endif
    use xmpi_module
 #ifdef USENETCDF
@@ -310,11 +310,11 @@ contains
       end if
 
       ! Some metadata attributes
-      NF90(nf90_put_att(ncid,nf90_global, "Conventions", "CF-1.4"))
-      NF90(nf90_put_att(ncid,nf90_global, "Producer", "XBeach littoral zone wave model (http://www.xbeach.org)"))
-      NF90(nf90_put_att(ncid,nf90_global, "Build-Revision", trim(Build_Revision)))
-      NF90(nf90_put_att(ncid,nf90_global, "Build-Date", trim(Build_Date)))
-      NF90(nf90_put_att(ncid,nf90_global, "URL", trim(Build_URL)))
+      NF90(nf90_put_att(ncid,nf90_global, 'Conventions', 'CF-1.4'))
+      NF90(nf90_put_att(ncid,nf90_global, 'Producer', 'XBeach littoral zone wave model (http://www.xbeach.org)'))
+      NF90(nf90_put_att(ncid,nf90_global, 'Build-Revision', trim(Build_Revision)))
+      NF90(nf90_put_att(ncid,nf90_global, 'Build-Date', trim(Build_Date)))
+      NF90(nf90_put_att(ncid,nf90_global, 'URL', trim(Build_URL)))
 
       ! Store all the parameters
       ! This part is awaiting comments from Robert McCall
