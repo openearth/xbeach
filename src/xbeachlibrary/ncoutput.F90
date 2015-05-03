@@ -36,7 +36,7 @@
 !  NOTE: the NF90 call must be on one line because of preprocessor restrictions
 !
 #ifdef USENETCDF
-#define NF90(nf90call) call handle_err(nf90call,__FILE__,__LINE__)
+#define NF90(nf90call) call h_e(nf90call,__FILE__,__LINE__)
 #endif
 
 module ncoutput_module
@@ -129,7 +129,7 @@ contains
 
 #ifdef USENETCDF
    ! Error handling of netcdf errors
-   subroutine handle_err(status,file,line)
+   subroutine h_e(status,file,line)
       use netcdf
       implicit none
 
@@ -148,7 +148,7 @@ contains
          end if
          call halt_program
       end if
-   end subroutine handle_err
+   end subroutine h_e
 #endif
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -227,94 +227,94 @@ contains
 
       ! create a file
 
-      NF90(nf90_create(path = par%ncfilename, cmode=ior(NF90_CLOBBER,NF90_64BIT_OFFSET), ncid = ncid))
+NF90(nf90_create(path = par%ncfilename, cmode=ior(NF90_CLOBBER,NF90_64BIT_OFFSET), ncid = ncid))
 
       ! dimensions TODO: only output dimensions that are used
       ! grid
-      NF90(nf90_def_dim(ncid, 'globalx', s%nx+1, xdimid))
-      NF90(nf90_def_dim(ncid, 'globaly', s%ny+1, ydimid))
+NF90(nf90_def_dim(ncid, 'globalx', s%nx+1, xdimid))
+NF90(nf90_def_dim(ncid, 'globaly', s%ny+1, ydimid))
 
       ! wave angles
-      NF90(nf90_def_dim(ncid, 'wave_angle', s%ntheta, thetadimid))
+NF90(nf90_def_dim(ncid, 'wave_angle', s%ntheta, thetadimid))
 
       ! computational layers in bed ...
-      NF90(nf90_def_dim(ncid, 'bed_layers', par%nd, bedlayersdimid))
+NF90(nf90_def_dim(ncid, 'bed_layers', par%nd, bedlayersdimid))
 
       ! sediment classes
-      NF90(nf90_def_dim(ncid, 'sediment_classes', par%ngd, sedimentclassesdimid))
+NF90(nf90_def_dim(ncid, 'sediment_classes', par%ngd, sedimentclassesdimid))
 
       ! dimensions of length 2.... what is this.... TODO: find out what this is
-      NF90(nf90_def_dim(ncid, 'inout', 2, inoutdimid))
+NF90(nf90_def_dim(ncid, 'inout', 2, inoutdimid))
 
       !write(*,*) 'Writing ndrifter', par%ndrifter
       if (par%ndrifter .gt. 0) then
          ! create dimensions for drifters and drifterstime:
-         NF90(nf90_def_dim(ncid, 'ndrifter',     par%ndrifter,   driftersdimid))
-         NF90(nf90_def_dim(ncid, 'drifterstime', size(tpar%tpp), drifterstimedimid))
+NF90(nf90_def_dim(ncid, 'ndrifter',     par%ndrifter,   driftersdimid))
+NF90(nf90_def_dim(ncid, 'drifterstime', size(tpar%tpp), drifterstimedimid))
       end if
 
       !write(*,*) 'Writing nship', par%nship
       if (par%nship .gt. 0) then
-         NF90(nf90_def_dim(ncid, 'nship', par%nship, shipdimid))
+NF90(nf90_def_dim(ncid, 'nship', par%nship, shipdimid))
       end if
 
       ! time dimensions are fixed, only defined if there are points
       if (outputg) then
-         NF90(nf90_def_dim(ncid, 'globaltime', NF90_unlimited, globaltimedimid))
+NF90(nf90_def_dim(ncid, 'globaltime', NF90_unlimited, globaltimedimid))
       end if
       if (outputp) then
          ! points
-         NF90(nf90_def_dim(ncid, 'points', npointstotal, pointsdimid))
-         NF90(nf90_def_dim(ncid, 'pointtime', size(tpar%tpp), pointtimedimid))
+NF90(nf90_def_dim(ncid, 'points', npointstotal, pointsdimid))
+NF90(nf90_def_dim(ncid, 'pointtime', size(tpar%tpp), pointtimedimid))
       end if
       if (outputm) then
-         NF90(nf90_def_dim(ncid, 'meantime', size(tpar%tpm)-1, meantimedimid))
+NF90(nf90_def_dim(ncid, 'meantime', size(tpar%tpm)-1, meantimedimid))
       end if
 
       if (s%tidelen > 0) then
-         NF90(nf90_def_dim(ncid, 'tidetime', s%tidelen, tidetimedimid))
+NF90(nf90_def_dim(ncid, 'tidetime', s%tidelen, tidetimedimid))
       endif
 
       if (par%tideloc > 0) then
-         NF90(nf90_def_dim(ncid, 'tidecorners', par%tideloc, tidecornersdimid))
+NF90(nf90_def_dim(ncid, 'tidecorners', par%tideloc, tidecornersdimid))
       endif
 
       if (s%windlen > 0) then
-         NF90(nf90_def_dim(ncid, 'windtime', s%windlen, windtimedimid))
+NF90(nf90_def_dim(ncid, 'windtime', s%windlen, windtimedimid))
       endif
 
       ! define empty parameter variable
-      NF90(nf90_def_var(ncid, 'parameter', NCREAL, varid=parvarid))
+NF90(nf90_def_var(ncid, 'parameter', NCREAL, varid=parvarid))
       ! define space & time variables
       ! grid
-      NF90(nf90_def_var(ncid, 'globalx', NCREAL, (/ xdimid, ydimid /), xvarid))
-      NF90(nf90_put_att(ncid, xvarid, 'units', 'm'))
-      NF90(nf90_put_att(ncid, xvarid, 'long_name', 'local x coordinate'))
-      NF90(nf90_put_att(ncid, xvarid, 'standard_name', 'projection_x_coordinate'))
-      NF90(nf90_put_att(ncid, xvarid, 'axis', 'X'))
+NF90(nf90_def_var(ncid, 'globalx', NCREAL, (/ xdimid, ydimid /), xvarid))
+NF90(nf90_put_att(ncid, xvarid, 'units', 'm'))
+NF90(nf90_put_att(ncid, xvarid, 'long_name', 'local x coordinate'))
+NF90(nf90_put_att(ncid, xvarid, 'standard_name', 'projection_x_coordinate'))
+NF90(nf90_put_att(ncid, xvarid, 'axis', 'X'))
       ! For compatibility with CSIRO Dive software
       if (len(trim(par%projection)) .ne. 0)  then
-         NF90(nf90_put_att(ncid, xvarid, 'projection', par%projection))
-         NF90(nf90_put_att(ncid, xvarid, 'rotation',( s%alfa/atan(1.0d0)*45.d0)))
+NF90(nf90_put_att(ncid, xvarid, 'projection', par%projection))
+NF90(nf90_put_att(ncid, xvarid, 'rotation',( s%alfa/atan(1.0d0)*45.d0)))
       end if
 
-      NF90(nf90_def_var(ncid, 'globaly', NCREAL, (/ xdimid, ydimid /), yvarid))
-      NF90(nf90_put_att(ncid, yvarid, 'units', 'm'))
-      NF90(nf90_put_att(ncid, yvarid, 'long_name', 'local y coordinate'))
-      NF90(nf90_put_att(ncid, yvarid, 'standard_name', 'projection_y_coordinate'))
-      NF90(nf90_put_att(ncid, yvarid, 'axis', 'Y'))
+NF90(nf90_def_var(ncid, 'globaly', NCREAL, (/ xdimid, ydimid /), yvarid))
+NF90(nf90_put_att(ncid, yvarid, 'units', 'm'))
+NF90(nf90_put_att(ncid, yvarid, 'long_name', 'local y coordinate'))
+NF90(nf90_put_att(ncid, yvarid, 'standard_name', 'projection_y_coordinate'))
+NF90(nf90_put_att(ncid, yvarid, 'axis', 'Y'))
       ! For compatibility with CSIRO Dive software
       if (len(trim(par%projection)) .ne. 0)  then
-         NF90(nf90_put_att(ncid, yvarid, 'projection', par%projection))
-         NF90(nf90_put_att(ncid, yvarid, 'rotation',( s%alfa/atan(1.0d0)*45.d0)))
+NF90(nf90_put_att(ncid, yvarid, 'projection', par%projection))
+NF90(nf90_put_att(ncid, yvarid, 'rotation',( s%alfa/atan(1.0d0)*45.d0)))
       end if
 
       ! Some metadata attributes
-      NF90(nf90_put_att(ncid,nf90_global, 'Conventions', 'CF-1.4'))
-      NF90(nf90_put_att(ncid,nf90_global, 'Producer', 'XBeach littoral zone wave model (http://www.xbeach.org)'))
-      NF90(nf90_put_att(ncid,nf90_global, 'Build-Revision', trim(Build_Revision)))
-      NF90(nf90_put_att(ncid,nf90_global, 'Build-Date', trim(Build_Date)))
-      NF90(nf90_put_att(ncid,nf90_global, 'URL', trim(Build_URL)))
+NF90(nf90_put_att(ncid,nf90_global, 'Conventions', 'CF-1.4'))
+NF90(nf90_put_att(ncid,nf90_global, 'Producer', 'XBeach littoral zone wave model (http://www.xbeach.org)'))
+NF90(nf90_put_att(ncid,nf90_global, 'Build-Revision', trim(Build_Revision)))
+NF90(nf90_put_att(ncid,nf90_global, 'Build-Date', trim(Build_Date)))
+NF90(nf90_put_att(ncid,nf90_global, 'URL', trim(Build_URL)))
 
       ! Store all the parameters
       ! This part is awaiting comments from Robert McCall
@@ -322,20 +322,20 @@ contains
       do i=1,size(keys)
          rc = getkey(par, keys(i), val)
          if (val%type == 'i') then
-            NF90(nf90_put_att(ncid, parvarid, keys(i), val%i0 ))
+NF90(nf90_put_att(ncid, parvarid, keys(i), val%i0 ))
          elseif (val%type == 'c') then
-            NF90(nf90_put_att(ncid, parvarid, keys(i), val%c0 ))
+NF90(nf90_put_att(ncid, parvarid, keys(i), val%c0 ))
          elseif (val%type == 'r') then
-            NF90(nf90_put_att(ncid, parvarid, keys(i), val%r0 ))
+NF90(nf90_put_att(ncid, parvarid, keys(i), val%r0 ))
          end if
       end do
 
       ! global
       if (outputg) then
-         NF90(nf90_def_var(ncid, 'globaltime', NCREAL, (/ globaltimedimid /), globaltimevarid))
-         NF90(nf90_put_att(ncid, globaltimevarid, 'units', trim(par%tunits)))
-         NF90(nf90_put_att(ncid, globaltimevarid, 'axis', 'T'))
-         NF90(nf90_put_att(ncid, globaltimevarid, 'standard_name', 'time'))
+NF90(nf90_def_var(ncid, 'globaltime', NCREAL, (/ globaltimedimid /), globaltimevarid))
+NF90(nf90_put_att(ncid, globaltimevarid, 'units', trim(par%tunits)))
+NF90(nf90_put_att(ncid, globaltimevarid, 'axis', 'T'))
+NF90(nf90_put_att(ncid, globaltimevarid, 'standard_name', 'time'))
 
          ! default global output variables
          do i=1,par%nglobalvar
@@ -381,54 +381,54 @@ contains
             end select
             select case(t%type)
              case('i')
-               NF90(nf90_def_var(ncid, trim(mnem), NF90_INT, dimids, globalvarids(i)))
+NF90(nf90_def_var(ncid, trim(mnem), NF90_INT, dimids, globalvarids(i)))
              case('r')
-               NF90(nf90_def_var(ncid, trim(mnem), NCREAL, dimids, globalvarids(i)))
+NF90(nf90_def_var(ncid, trim(mnem), NCREAL, dimids, globalvarids(i)))
              case default
                write(0,*) 'mnem', mnem, ' not supported, type:', t%type
             end select
-            NF90(nf90_put_att(ncid, globalvarids(i), 'coordinates', trim(coordinates)))
+NF90(nf90_put_att(ncid, globalvarids(i), 'coordinates', trim(coordinates)))
             deallocate(dimids)
-            NF90(nf90_put_att(ncid, globalvarids(i), 'units', trim(t%units)))
+NF90(nf90_put_att(ncid, globalvarids(i), 'units', trim(t%units)))
             if (.not.(trim(t%standardname) .eq. '')) then
-               NF90(nf90_put_att(ncid, globalvarids(i), 'standard_name', trim(t%standardname)))
+NF90(nf90_put_att(ncid, globalvarids(i), 'standard_name', trim(t%standardname)))
             endif
-            NF90(nf90_put_att(ncid, globalvarids(i), 'long_name', trim(t%description)))
+NF90(nf90_put_att(ncid, globalvarids(i), 'long_name', trim(t%description)))
          end do
       end if
 
       !  ! points
       ! default global output variables
       if (outputp) then
-         NF90(nf90_def_var(ncid, 'pointtime', NCREAL, (/ pointtimedimid /), pointtimevarid))
-         NF90(nf90_put_att(ncid, pointtimevarid, 'units', trim(par%tunits)))
-         NF90(nf90_put_att(ncid, pointtimevarid, 'axis', 'T'))
-         NF90(nf90_put_att(ncid, pointtimevarid, 'standard_name', 'time'))
+NF90(nf90_def_var(ncid, 'pointtime', NCREAL, (/ pointtimedimid /), pointtimevarid))
+NF90(nf90_put_att(ncid, pointtimevarid, 'units', trim(par%tunits)))
+NF90(nf90_put_att(ncid, pointtimevarid, 'axis', 'T'))
+NF90(nf90_put_att(ncid, pointtimevarid, 'standard_name', 'time'))
 
          ! points
-         NF90(nf90_def_var(ncid, 'pointx', NCREAL, (/ pointsdimid /), xpointsvarid))
-         NF90(nf90_put_att(ncid, xpointsvarid, 'units', 'm'))
-         NF90(nf90_put_att(ncid, xpointsvarid, 'long_name', 'local x coordinate'))
-         NF90(nf90_put_att(ncid, xpointsvarid, 'standard_name', 'projection_x_coordinate'))
-         NF90(nf90_put_att(ncid, xpointsvarid, 'axis', 'X'))
+NF90(nf90_def_var(ncid, 'pointx', NCREAL, (/ pointsdimid /), xpointsvarid))
+NF90(nf90_put_att(ncid, xpointsvarid, 'units', 'm'))
+NF90(nf90_put_att(ncid, xpointsvarid, 'long_name', 'local x coordinate'))
+NF90(nf90_put_att(ncid, xpointsvarid, 'standard_name', 'projection_x_coordinate'))
+NF90(nf90_put_att(ncid, xpointsvarid, 'axis', 'X'))
 
 
-         NF90(nf90_def_var(ncid, 'pointy', NCREAL, (/ pointsdimid /), ypointsvarid))
-         NF90(nf90_put_att(ncid, ypointsvarid, 'units', 'm'))
-         NF90(nf90_put_att(ncid, ypointsvarid, 'long_name', 'local y coordinate'))
-         NF90(nf90_put_att(ncid, ypointsvarid, 'standard_name', 'projection_y_coordinate'))
-         NF90(nf90_put_att(ncid, ypointsvarid, 'axis', 'Y'))
+NF90(nf90_def_var(ncid, 'pointy', NCREAL, (/ pointsdimid /), ypointsvarid))
+NF90(nf90_put_att(ncid, ypointsvarid, 'units', 'm'))
+NF90(nf90_put_att(ncid, ypointsvarid, 'long_name', 'local y coordinate'))
+NF90(nf90_put_att(ncid, ypointsvarid, 'standard_name', 'projection_y_coordinate'))
+NF90(nf90_put_att(ncid, ypointsvarid, 'axis', 'Y'))
 
-         NF90(nf90_def_var(ncid, 'xpointindex', NF90_INT, (/ pointsdimid /), xpointindexvarid))
+NF90(nf90_def_var(ncid, 'xpointindex', NF90_INT, (/ pointsdimid /), xpointindexvarid))
          ! wwvv above was NF90_DOUBLE
-         NF90(nf90_put_att(ncid, xpointindexvarid, 'long_name', 'nearest x grid cell'))
-         NF90(nf90_def_var(ncid, 'ypointindex', NF90_INT, (/ pointsdimid /), ypointindexvarid))
+NF90(nf90_put_att(ncid, xpointindexvarid, 'long_name', 'nearest x grid cell'))
+NF90(nf90_def_var(ncid, 'ypointindex', NF90_INT, (/ pointsdimid /), ypointindexvarid))
          ! wwvv above was NF90_DOUBLE
-         NF90(nf90_put_att(ncid, ypointindexvarid, 'long_name', 'nearest y grid cell'))
+NF90(nf90_put_att(ncid, ypointindexvarid, 'long_name', 'nearest y grid cell'))
 
-         NF90(nf90_def_var(ncid, 'pointtypes', NF90_INT, (/ pointsdimid /), pointtypesvarid))
+NF90(nf90_def_var(ncid, 'pointtypes', NF90_INT, (/ pointsdimid /), pointtypesvarid))
          ! wwvv above was NF90_DOUBLE
-         NF90(nf90_put_att(ncid, pointtypesvarid, 'long_name', 'type of point (0=point, 1=rugauge)'))
+NF90(nf90_put_att(ncid, pointtypesvarid, 'long_name', 'type of point (0=point, 1=rugauge)'))
 
          do i=1,par%npointvar
             mnem = par%pointvars(i)
@@ -466,33 +466,33 @@ contains
                   call writelog('lse', '', 'mnem: ' // mnem // ' not supported, rank:', t%rank)
                   stop 1
                end select
-               NF90(nf90_def_var(ncid, 'point_' // trim(mnem), NCREAL, dimids, pointsvarids(i)))
-               NF90(nf90_put_att(ncid, pointsvarids(i), 'coordinates', trim(coordinates)))
+NF90(nf90_def_var(ncid, 'point_' // trim(mnem), NCREAL, dimids, pointsvarids(i)))
+NF90(nf90_put_att(ncid, pointsvarids(i), 'coordinates', trim(coordinates)))
                deallocate(dimids)
              case default
                write(0,*) 'mnem', mnem, ' not supported, type:', t%type
             end select
-            NF90(nf90_put_att(ncid, pointsvarids(i), 'units', trim(t%units)))
+NF90(nf90_put_att(ncid, pointsvarids(i), 'units', trim(t%units)))
             if (.not.(trim(t%standardname) .eq. '')) then
-               NF90(nf90_put_att(ncid, pointsvarids(i), 'standard_name', trim(t%standardname)))
+NF90(nf90_put_att(ncid, pointsvarids(i), 'standard_name', trim(t%standardname)))
             endif
-            NF90(nf90_put_att(ncid, pointsvarids(i), 'long_name', trim(t%description)))
+NF90(nf90_put_att(ncid, pointsvarids(i), 'long_name', trim(t%description)))
          end do
       endif ! outputp
 
       if (par%ndrifter .gt. 0) then
          allocate(dimids(2))
 
-         NF90(nf90_def_var(ncid, 'driftertime', NCREAL, (/ drifterstimedimid /), drifterstimevarid))
-         NF90(nf90_put_att(ncid, drifterstimevarid, 'units', trim(par%tunits)))
-         NF90(nf90_put_att(ncid, drifterstimevarid, 'axis', 'T'))
-         NF90(nf90_put_att(ncid, drifterstimevarid, 'standard_name', 'time'))
+NF90(nf90_def_var(ncid, 'driftertime', NCREAL, (/ drifterstimedimid /), drifterstimevarid))
+NF90(nf90_put_att(ncid, drifterstimevarid, 'units', trim(par%tunits)))
+NF90(nf90_put_att(ncid, drifterstimevarid, 'axis', 'T'))
+NF90(nf90_put_att(ncid, drifterstimevarid, 'standard_name', 'time'))
 
          ! create netcdf variables for drifters:
          !  each variable is a 2-d array, containing the x-y values
          !  the netcdf name of e.g. the 3rd array is drifter_003
 
-         NF90(nf90_def_dim(ncid, 'drifterstime2', 2, driftersdimid2))
+NF90(nf90_def_dim(ncid, 'drifterstime2', 2, driftersdimid2))
          do i=1,par%ndrifter
             ! we need the following dimensions per drifter:
             !    driftersdimid2    : 2 
@@ -500,19 +500,19 @@ contains
             dimids(1) = driftersdimid2
             dimids(2) = drifterstimedimid
             write(mnem,'("drifter_",I0.3)') i
-            NF90(nf90_def_var(ncid, trim(mnem), NCREAL, dimids, driftersvarids(i)))
-            NF90(nf90_put_att(ncid, driftersvarids(i), 'coordinates', 'pointx pointy'))
-            NF90(nf90_put_att(ncid, driftersvarids(i), 'units', 'm'))
+NF90(nf90_def_var(ncid, trim(mnem), NCREAL, dimids, driftersvarids(i)))
+NF90(nf90_put_att(ncid, driftersvarids(i), 'coordinates', 'pointx pointy'))
+NF90(nf90_put_att(ncid, driftersvarids(i), 'units', 'm'))
          enddo
          deallocate(dimids)
 
       endif  ! par%ndrifter
 
       if (outputm) then
-         NF90(nf90_def_var(ncid, 'meantime', NCREAL, (/ meantimedimid /), meantimevarid))
-         NF90(nf90_put_att(ncid, meantimevarid, 'units', trim(par%tunits)))
-         NF90(nf90_put_att(ncid, meantimevarid, 'axis', 'T'))
-         NF90(nf90_put_att(ncid, meantimevarid, 'standard_name', 'time'))
+NF90(nf90_def_var(ncid, 'meantime', NCREAL, (/ meantimedimid /), meantimevarid))
+NF90(nf90_put_att(ncid, meantimevarid, 'units', trim(par%tunits)))
+NF90(nf90_put_att(ncid, meantimevarid, 'axis', 'T'))
+NF90(nf90_put_att(ncid, meantimevarid, 'standard_name', 'time'))
          ! default global output variables
          do i=1,par%nmeanvar
             ! Not sure if this is required here, but it is used in varoutput
@@ -559,22 +559,22 @@ contains
                do j = 1,nmeanvartypes
                   cellmethod = meanvartypes(j)
                   call writelog('ls', '', 'Creating netcdf variable: ',  trim(t%name) // '_' // cellmethod)
-                  NF90(nf90_def_var(ncid, trim(t%name) // '_' // trim(cellmethod), NCREAL, dimids, meanvarids(i,j)))
-                  NF90(nf90_put_att(ncid, meanvarids(i,j), 'coordinates', trim(coordinates)))
+NF90(nf90_def_var(ncid, trim(t%name) // '_' // trim(cellmethod), NCREAL, dimids, meanvarids(i,j)))
+NF90(nf90_put_att(ncid, meanvarids(i,j), 'coordinates', trim(coordinates)))
                   if (cellmethod .eq. 'var') then
-                     NF90(nf90_put_att(ncid, meanvarids(i,j), 'units', '(' // trim(t%units) // ')^2'))
+NF90(nf90_put_att(ncid, meanvarids(i,j), 'units', '(' // trim(t%units) // ')^2'))
                   else
-                     NF90(nf90_put_att(ncid, meanvarids(i,j), 'units', trim(t%units)))
+NF90(nf90_put_att(ncid, meanvarids(i,j), 'units', trim(t%units)))
                   endif
                   if (.not.(trim(t%standardname) .eq. '')) then
-                     NF90(nf90_put_att(ncid, meanvarids(i,j), 'standard_name', trim(t%standardname)))
+NF90(nf90_put_att(ncid, meanvarids(i,j), 'standard_name', trim(t%standardname)))
                   endif
-                  NF90(nf90_put_att(ncid, meanvarids(i,j), 'long_name', trim(t%description)))
+NF90(nf90_put_att(ncid, meanvarids(i,j), 'long_name', trim(t%description)))
                   ! For H and urms we don't compute the mean but the rms of the rms.....
                   if (cellmethod .eq. 'mean' .and. ((t%name .eq. 'H') .or. (t%name .eq. 'urms')))  then
                      cellmethod = 'rms'
                   end if
-                  NF90(nf90_put_att(ncid, meanvarids(i,j), 'cell_methods', 'meantime: ' // trim(cellmethod)))
+NF90(nf90_put_att(ncid, meanvarids(i,j), 'cell_methods', 'meantime: ' // trim(cellmethod)))
                end do
 
                deallocate(dimids)
@@ -586,30 +586,30 @@ contains
 
       ! done defining variables
       call writelog('ls', '', 'Writing file definition.')
-      NF90(nf90_enddef(ncid))
+NF90(nf90_enddef(ncid))
 
       ! Fill meta variables
       ! Grid
       j = chartoindex('xz')
       call indextos(s,j,t)
 
-      NF90(nf90_put_var(ncid, xvarid, CONVREAL(t%r2)))
+NF90(nf90_put_var(ncid, xvarid, CONVREAL(t%r2)))
 
       j = chartoindex('yz')
       call indextos(s,j,t)
-      NF90(nf90_put_var(ncid, yvarid, CONVREAL(t%r2)))
+NF90(nf90_put_var(ncid, yvarid, CONVREAL(t%r2)))
 
       if (outputp) then
          call writelog('ls', '', 'Writing point vars.')
-         NF90(nf90_put_var(ncid, xpointsvarid, CONVREAL(par%xpointsw)))
-         NF90(nf90_put_var(ncid, ypointsvarid, CONVREAL(par%ypointsw)))
-         NF90(nf90_put_var(ncid, pointtypesvarid, par%pointtypes))
-         NF90(nf90_put_var(ncid, xpointindexvarid, xpoints))
-         NF90(nf90_put_var(ncid, ypointindexvarid, ypoints))
-         NF90(nf90_put_var(ncid, pointtypesvarid, par%pointtypes))
+NF90(nf90_put_var(ncid, xpointsvarid, CONVREAL(par%xpointsw)))
+NF90(nf90_put_var(ncid, ypointsvarid, CONVREAL(par%ypointsw)))
+NF90(nf90_put_var(ncid, pointtypesvarid, par%pointtypes))
+NF90(nf90_put_var(ncid, xpointindexvarid, xpoints))
+NF90(nf90_put_var(ncid, ypointindexvarid, ypoints))
+NF90(nf90_put_var(ncid, pointtypesvarid, par%pointtypes))
       end if
 
-      NF90(nf90_close(ncid))
+NF90(nf90_close(ncid))
       ! wwvv sl is not used so it should be removed.
       ! wwvv for now, to avoid warning:
       if (sl%nx .ne. -1) return
@@ -1023,7 +1023,7 @@ contains
 
 #ifdef USENETCDF
       if(donetcdf) then
-         NF90(nf90_open(ncid=ncid, path=par%ncfilename, mode=nf90_write))
+NF90(nf90_open(ncid=ncid, path=par%ncfilename, mode=nf90_write))
       endif
 #endif
 
@@ -1036,7 +1036,7 @@ contains
          ! Store the time (in morphological time)
 #ifdef USENETCDF
          if(donetcdf) then
-            NF90(nf90_put_var(ncid, globaltimevarid, CONVREAL(par%t*max(par%morfac,1.d0)), (/tpar%itg/)))
+NF90(nf90_put_var(ncid, globaltimevarid, CONVREAL(par%t*max(par%morfac,1.d0)), (/tpar%itg/)))
          endif
 #endif
          ! write global output variables
@@ -1054,7 +1054,7 @@ contains
                   call gridrotate(t,i0)
 #ifdef USENETCDF
                   if(donetcdf) then
-                     NF90(nf90_put_var(ncid, globalvarids(i), i0, start=(/1,tpar%itg/) ))
+NF90(nf90_put_var(ncid, globalvarids(i), i0, start=(/1,tpar%itg/) ))
                   endif
 #endif
                   if(dofortran) then
@@ -1068,7 +1068,7 @@ contains
                   call gridrotate(t, i2)
 #ifdef USENETCDF
                   if(donetcdf) then
-                     NF90(nf90_put_var(ncid, globalvarids(i), i2, start=(/1,1,tpar%itg/) ))
+NF90(nf90_put_var(ncid, globalvarids(i), i2, start=(/1,1,tpar%itg/) ))
                   endif
 #endif
                   if(dofortran) then
@@ -1083,7 +1083,7 @@ contains
                   call gridrotate(t, i3)
 #ifdef USENETCDF
                   if(donetcdf) then
-                     NF90(nf90_put_var(ncid, globalvarids(i), i3, start=(/1,1,1,tpar%itg/) ))
+NF90(nf90_put_var(ncid, globalvarids(i), i3, start=(/1,1,1,tpar%itg/) ))
                   endif
 #endif
                   if(dofortran) then
@@ -1103,7 +1103,7 @@ contains
                   r0conv = CONVREAL(t%r0)
 #ifdef USENETCDF
                   if(donetcdf) then
-                     NF90(nf90_put_var(ncid, globalvarids(i), r0conv, start=(/1,tpar%itg/) ))
+NF90(nf90_put_var(ncid, globalvarids(i), r0conv, start=(/1,tpar%itg/) ))
                   endif
 #endif
                   if(dofortran) then
@@ -1119,7 +1119,7 @@ contains
                   r1conv = CONVREAL(t%r1)
 #ifdef USENETCDF
                   if(donetcdf) then
-                     NF90(nf90_put_var(ncid, globalvarids(i), r1conv, start=(/1,tpar%itg/) ))
+NF90(nf90_put_var(ncid, globalvarids(i), r1conv, start=(/1,tpar%itg/) ))
                   endif
 #endif
                   if(dofortran) then
@@ -1137,7 +1137,7 @@ contains
                   r2conv = CONVREAL(r2)
 #ifdef USENETCDF
                   if(donetcdf) then
-                     NF90(nf90_put_var(ncid, globalvarids(i), r2conv, start=(/1,1,tpar%itg/) ))
+NF90(nf90_put_var(ncid, globalvarids(i), r2conv, start=(/1,1,tpar%itg/) ))
                   endif
 #endif
                   if(dofortran) then
@@ -1155,7 +1155,7 @@ contains
                   r3conv = CONVREAL(r3)
 #ifdef USENETCDF
                   if(donetcdf) then
-                     NF90(nf90_put_var(ncid, globalvarids(i), r3conv, start=(/1,1,1, tpar%itg/) ))
+NF90(nf90_put_var(ncid, globalvarids(i), r3conv, start=(/1,1,1, tpar%itg/) ))
                   endif
 #endif
                   if(dofortran) then
@@ -1173,7 +1173,7 @@ contains
                   r4conv = CONVREAL(r4)
 #ifdef USENETCDF
                   if(donetcdf) then
-                     NF90(nf90_put_var(ncid, globalvarids(i), r4conv, start=(/1,1,1,1, tpar%itg/) ))
+NF90(nf90_put_var(ncid, globalvarids(i), r4conv, start=(/1,1,1,1, tpar%itg/) ))
                   endif
 #endif
                   if(dofortran) then
@@ -1199,7 +1199,7 @@ contains
 
 #ifdef USENETCDF
          if(donetcdf) then
-            NF90(nf90_put_var(ncid, pointtimevarid, CONVREAL(par%t*max(par%morfac,1.d0)), (/tpar%itp/)))
+NF90(nf90_put_var(ncid, pointtimevarid, CONVREAL(par%t*max(par%morfac,1.d0)), (/tpar%itp/)))
          endif
 #endif
 
@@ -1235,7 +1235,7 @@ contains
 
 #ifdef USENETCDF
                      if (donetcdf) then
-                        NF90(nf90_put_var(ncid, pointsvarids(i), CONVREAL(pointoutputs(i,ii)%r2(1,1)), start=(/ii,tpar%itp/) ))
+NF90(nf90_put_var(ncid, pointsvarids(i), CONVREAL(pointoutputs(i,ii)%r2(1,1)), start=(/ii,tpar%itp/) ))
                      endif
 #endif
                      if(dofortran_compat) then
@@ -1247,7 +1247,7 @@ contains
                    case(3)
 #ifdef USENETCDF
                      if (donetcdf) then
-                        NF90(nf90_put_var(ncid, pointsvarids(i), CONVREAL(r3(xpoints(ii), ypoints(ii),:)), start=(/ii,1,tpar%itp/)))
+NF90(nf90_put_var(ncid, pointsvarids(i), CONVREAL(r3(xpoints(ii), ypoints(ii),:)), start=(/ii,1,tpar%itp/)))
                      endif
 #endif
                      if(dofortran_compat) then
@@ -1305,7 +1305,7 @@ contains
 #ifdef USENETCDF
       if(dooutput_mean .and. donetcdf) then
          ! Store the time (in morphological time)
-         NF90(nf90_put_var(ncid, meantimevarid, CONVREAL(par%t*max(par%morfac,1.d0)), (/tpar%itm-1/)))
+NF90(nf90_put_var(ncid, meantimevarid, CONVREAL(par%t*max(par%morfac,1.d0)), (/tpar%itm-1/)))
          ! write global output variables
          do i=1,par%nmeanvar
             t = meansparsglobal(i)%t
@@ -1331,40 +1331,40 @@ contains
                            &start=(/1,1,tpar%itm-1/) )
                            if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
                         else
-                           NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%mean2d), start=(/1,1,tpar%itm-1/)))
+NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%mean2d), start=(/1,1,tpar%itm-1/)))
                         end if
                       case('var')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%variance2d), start=(/1,1,tpar%itm-1/)))
+NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%variance2d), start=(/1,1,tpar%itm-1/)))
                       case('min')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%min2d), start=(/1,1,tpar%itm-1/)))
+NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%min2d), start=(/1,1,tpar%itm-1/)))
                       case('max')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%max2d), start=(/1,1,tpar%itm-1/)))
+NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%max2d), start=(/1,1,tpar%itm-1/)))
                       case default
                         write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
                      end select
                    case(3)
                      select case(meanvartypes(j))
                       case('mean')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%mean3d), start=(/1,1,1,tpar%itm-1/) ))
+NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%mean3d), start=(/1,1,1,tpar%itm-1/) ))
                       case('var')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%variance3d), start=(/1,1,1,tpar%itm-1/)))
+NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%variance3d), start=(/1,1,1,tpar%itm-1/)))
                       case('min')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%min3d), start=(/1,1,1,tpar%itm-1/) ))
+NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%min3d), start=(/1,1,1,tpar%itm-1/) ))
                       case('max')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%max3d), start=(/1,1,1,tpar%itm-1/) ))
+NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%max3d), start=(/1,1,1,tpar%itm-1/) ))
                       case default
                         write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
                      end select
                    case(4)
                      select case(meanvartypes(j))
                       case('mean')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%mean4d), start=(/1,1,1,1,tpar%itm-1/)))
+NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%mean4d), start=(/1,1,1,1,tpar%itm-1/)))
                       case('var')
-                        NF90(nf90_put_var(ncid,meanvarids(i,j),CONVREAL(meansparsglobal(i)%variance4d),start=(/1,1,1,1,tpar%itm-1/)))
+NF90(nf90_put_var(ncid,meanvarids(i,j),CONVREAL(meansparsglobal(i)%variance4d),start=(/1,1,1,1,tpar%itm-1/)))
                       case('min')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%min4d), start=(/1,1,1,1,tpar%itm-1/)))
+NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%min4d), start=(/1,1,1,1,tpar%itm-1/)))
                       case('max')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%max4d), start=(/1,1,1,1,tpar%itm-1/)))
+NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%max4d), start=(/1,1,1,1,tpar%itm-1/)))
                       case default
                         write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
                      end select
@@ -1446,7 +1446,7 @@ contains
 #ifdef USENETCDF
          if(donetcdf) then
             ! output time:
-            NF90(nf90_put_var(ncid, drifterstimevarid, CONVREAL(par%t), start=(/itd/)))
+NF90(nf90_put_var(ncid, drifterstimevarid, CONVREAL(par%t), start=(/itd/)))
          endif
 #endif
          do i=1,par%ndrifter
@@ -1481,14 +1481,14 @@ contains
 #ifdef USENETCDF
             if (donetcdf) then
                ! output x,y:
-               NF90(nf90_put_var(ncid,driftersvarids(i),CONVREAL(drift(1:2)),start=(/1,itd/)))
+NF90(nf90_put_var(ncid,driftersvarids(i),CONVREAL(drift(1:2)),start=(/1,itd/)))
             endif
 #endif
          enddo
       endif
 #ifdef USENETCDF
       if(donetcdf) then
-         NF90(nf90_close(ncid=ncid))
+NF90(nf90_close(ncid=ncid))
       endif
 #endif
 
@@ -1532,10 +1532,10 @@ contains
       dimensionnames = ''
       ! Fortran array dimensions are in reverse order
       do i=size(dimids),2,-1
-         NF90(nf90_inquire_dimension(ncid, dimids(i), name=dimensionname))
+NF90(nf90_inquire_dimension(ncid, dimids(i), name=dimensionname))
          dimensionnames = trim(dimensionnames) // trim(dimensionname) // ','
       end do
-      NF90(nf90_inquire_dimension(ncid, dimids(1), name=dimensionname))
+NF90(nf90_inquire_dimension(ncid, dimids(1), name=dimensionname))
       dimensionnames = trim(dimensionnames) // trim(dimensionname)
    end function dimensionnames
 
