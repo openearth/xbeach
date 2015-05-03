@@ -1261,7 +1261,7 @@ NF90(nf90_put_var(ncid, pointsvarids(i), CONVREAL(r3(xpoints(ii), ypoints(ii),:)
                         status      = nf90_put_var(ncid, pointsvarids(i), &
                         &                          CONVREAL(r4(xpoints(ii), ypoints(ii),:,:)), &
                         &start=(/ii,1,1,tpar%itp/) )
-                        if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
+                        if (status /= nf90_noerr) call h_e(status,__FILE__,__LINE__)
                      endif
 #endif
                      if(dofortran_compat) then
@@ -1321,7 +1321,7 @@ NF90(nf90_put_var(ncid, meantimevarid, CONVREAL(par%t*max(par%morfac,1.d0)), (/t
                            status      = nf90_put_var(ncid, meanvarids(i,j), &
                            &                          CONVREAL(sqrt(meansparsglobal(i)%variancesquareterm2d)), &
                            &start=(/1,1,tpar%itm-1/) )
-                           if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
+                           if (status /= nf90_noerr) call h_e(status,__FILE__,__LINE__)
                         elseif (t%name .eq. 'thetamean') then
                            status = nf90_put_var(ncid, meanvarids(i,j), &
                            &CONVREAL( &
@@ -1329,7 +1329,7 @@ NF90(nf90_put_var(ncid, meantimevarid, CONVREAL(par%t*max(par%morfac,1.d0)), (/t
                            &+ atan2(nint(meansparsglobal(i)%mean2d)/1d7, &
                            &mod(meansparsglobal(i)%mean2d,1.d0)*1d1), 2.d0*par%px) / par%px * 180), &
                            &start=(/1,1,tpar%itm-1/) )
-                           if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
+                           if (status /= nf90_noerr) call h_e(status,__FILE__,__LINE__)
                         else
 NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%mean2d), start=(/1,1,tpar%itm-1/)))
                         end if
