@@ -42,7 +42,7 @@
 module ncoutput_module
 
 #ifdef HAVE_CONFIG_H
-#include 'config.h'
+#include "config.h"
 #endif
    use xmpi_module
 #ifdef USENETCDF
