@@ -218,9 +218,9 @@
       real*8  3  depo_im     s%nx+1 s%ny+1 par%ngd d  [m/s] [] implicit bed deposition rate per fraction
       real*8  3  depo_ex     s%nx+1 s%ny+1 par%ngd d  [m/s] [] explicit bed deposition rate per fraction
       integer 2  nd       s%nx+1 s%ny+1 d  [-] [] number of bed layers (can be different for each computational cell)
-      real*8  4  pbbed    s%nx+1 s%ny+1 par%nd par%ngd d [-] [] Concentration of every sediment type (ngd), per bed sediment layer (nd), per grid cell (nx,ny)
+      real*8  4  pbbed    s%nx+1 s%ny+1 par%nd par%ngd d [-] [] Concentration of every sediment type, per bed sediment layer, per grid cell
       real*8  3  dzbed    s%nx+1 s%ny+1 par%nd d [-] [] Vertical dimension of each bed sediment layer (nd), per grid cell (nx,ny)
-      real*8  2  z0bed    s%nx+1 s%ny+1 d  [-] [] Reference level for the bed, located at the bottom of the nd bed sediment layers at the start of the simulation
+      real*8  2  z0bed    s%nx+1 s%ny+1 d  [-] [] Reference level for the bed, located at the initial bottom of the bed sediment layers
       real*8  2  ureps     s%nx+1 s%ny+1 d [m/s] [sea_water_x_velocity] representative flow velocity for sediment advection and diffusion, x-component
       real*8  2  vreps     s%nx+1 s%ny+1 d [m/s] [sea_water_y_velocity] representative flow velocity for sediment advection and diffusion, y-component
       real*8  2  urepb     s%nx+1 s%ny+1 d [m/s] [sea_water_x_velocity] representative flow velocity for sediment advection and diffusion, x-component
@@ -233,7 +233,7 @@
       real*8  2  wb        s%nx+1 s%ny+1 d  [m/s] []    vertical velocity at the bottom
       real*8  2  ws        s%nx+1 s%ny+1 d  [m/s] []    vertical velocity at the free surface
       real*8  2  wscrit    s%nx+1 s%ny+1 d  [m/s] []    critial vertical velocity at the free surface for breaking
-      real*8  2  bedfriccoef s%nx+1 s%ny+1 d  [-] []  dimensional, or dimensionless input bed friction coefficient, depends on value of input parameter: bedfriction
+      real*8  2  bedfriccoef s%nx+1 s%ny+1 d  [-] []  dimensional/dimensionless input bed friction coefficient; depends on value of parameter bedfriction
       real*8  2  taubx     s%nx+1 s%ny+1 d  [N/m^2] []  bed shear stress, x-component
       real*8  2  tauby     s%nx+1 s%ny+1 d  [N/m^2] []  bed shear stress, y-component
       real*8  2  Df        s%nx+1 s%ny+1 d  [W/m^2] []  dissipation rate due to bed friction
