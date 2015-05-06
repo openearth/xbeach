@@ -260,7 +260,7 @@ NF90(nf90_def_dim(ncid, 'nship', par%nship, shipdimid))
 
       ! time dimensions are fixed, only defined if there are points
       if (outputg) then
-NF90(nf90_def_dim(ncid, 'globaltime', NF90_unlimited, globaltimedimid))
+NF90(nf90_def_dim(ncid, 'globaltime', size(tpar%tpg), globaltimedimid))
       end if
       if (outputp) then
          ! points
