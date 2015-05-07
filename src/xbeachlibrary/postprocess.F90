@@ -461,5 +461,63 @@ contains
          runup = max(maxval(minloc(s%wetz(:,:)))-1,1)
       end where
    end function runup
-
+   
+   function get_sister_mnem(mnem) result(sistermnem)
+      use mnemmodule
+      character(maxnamelen)     :: sistermnem
+      character(maxnamelen)     :: mnem
+      
+      select case (mnem)
+          case(mnem_Fx)
+             sistermnem = mnem_Fy
+          case(mnem_Fy)
+             sistermnem = mnem_Fx
+          case(mnem_u)
+            sistermnem = mnem_v
+          case(mnem_gwu)
+            sistermnem = mnem_gwv
+          case(mnem_v)
+            sistermnem = mnem_u
+          case(mnem_gwv)
+            sistermnem = mnem_gwu
+          case(mnem_ue)
+           sistermnem = mnem_ve
+          case(mnem_ve)
+            sistermnem = mnem_ue
+          case(mnem_ui)
+            sistermnem = mnem_vi
+          case(mnem_vi)
+            sistermnem = mnem_ui
+          case(mnem_umean)
+            sistermnem = mnem_vmean
+          case(mnem_vmean)
+            sistermnem = mnem_umean
+          case(mnem_uwf)
+            sistermnem = mnem_vwf
+          case(mnem_vwf)
+            sistermnem = mnem_uwf
+          case(mnem_Sutot)
+              sistermnem = mnem_Svtot
+          case(mnem_Svtot)
+              sistermnem = mnem_Sutot
+          case(mnem_cctot)
+              sistermnem = mnem_ccg
+          case(mnem_cgx)
+            sistermnem = mnem_cgy
+          case(mnem_cgy)
+            sistermnem = mnem_cgx
+          case(mnem_cx)
+            sistermnem = mnem_cy
+          case(mnem_cy)
+            sistermnem = mnem_cx
+          case(mnem_Susg)
+            sistermnem = mnem_Svsg
+          case(mnem_Svsg)
+             sistermnem = mnem_Susg
+          case(mnem_Subg)
+               sistermnem = mnem_Svbg
+          case(mnem_Svbg)
+              sistermnem = mnem_Subg
+      end select
+   end function get_sister_mnem
 end module postprocessmod

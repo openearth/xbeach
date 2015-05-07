@@ -195,7 +195,6 @@ contains
       include 'version.def'
       include 'version.dat'
 
-
       if (.not. xomaster) return
 
       dofortran = par%outputformat .eq. OUTPUTFORMAT_FORTRAN .or. &
@@ -212,7 +211,7 @@ contains
       allocate(globalvarids(par%nglobalvar))
       globalvarids = -1 ! initialize to -1, so an error is raised when we miss something...
       outputg = .true.
-
+      
       npointstotal = par%npoints+par%nrugauge
       outputp = (npointstotal .gt. 0) .and. (size(tpar%tpp) .gt. 0)
       allocate(pointsvarids(par%npointvar))
@@ -647,7 +646,7 @@ NF90(nf90_close(ncid))
 #ifdef USEMPI
       integer                                :: index
 #endif
-      character(maxnamelen)                  :: mnem
+      character(maxnamelen)                  :: mnem,sistermnemalloc
       real*8, dimension(:,:), allocatable    :: points
 
       ! some local variables to pass the data through the postprocessing function.
@@ -741,16 +740,24 @@ NF90(nf90_close(ncid))
             mnem = par%globalvars(i)
             index = chartoindex(mnem)
             call space_collect_index(s,sl,par,index)
-            !  we have to make sure that the extra information needed
-            !  is also collected
-            !
-            ! get extra needed s%vars
-            !
+            if (par%rotate==1) then
+                sistermnemalloc = get_sister_mnem(mnem)
+                call space_collect_mnem(s,sl,par,sistermnemalloc)
+                select case(mnem)
+                case(mnem_Sutot,mnem_Svtot)
+                  call space_collect_mnem(s,sl,par,mnem_Subg)
+                  call space_collect_mnem(s,sl,par,mnem_Svbg)
+                  call space_collect_mnem(s,sl,par,mnem_Susg)
+                  call space_collect_mnem(s,sl,par,mnem_Svbg)
+               end select
+            endif
          end do
+         if (par%rotate==1) then
+            call space_collect_mnem(s,sl,par,mnem_alfaz)
+         endif
       endif
-
-#endif
-      ! USEMPI
+#endif ! USEMPI
+      
 
 
 #ifdef USEMPI
