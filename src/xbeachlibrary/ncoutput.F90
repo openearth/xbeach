@@ -756,7 +756,8 @@ NF90(nf90_close(ncid))
             call space_collect_mnem(s,sl,par,mnem_alfaz)
          endif
       endif
-#endif ! USEMPI
+#endif 
+! USEMPI
       
 
 
