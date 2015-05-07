@@ -13,15 +13,16 @@
 !
 ! P+R: tijdelijk uit voor testbed
 !#define NCSINGLE
-#ifdef NCSINGLE
-#define NCREAL NF90_REAL
-#define CONVREAL sngl
-#define CONVREALTYPE real*4
-#else
-#define NCREAL NF90_DOUBLE
+!#ifdef NCSINGLE
+!#define NCREAL NF90_REAL
+!#define CONVREAL sngl
+!#define CONVREALTYPE real*4
+!#else
+!#define NCREAL NF90_DOUBLE
+! Robert: see if this works
 #define CONVREAL
 #define CONVREALTYPE real*8
-#endif
+!#endif
 
 ! NF90: macro to call nf90 function: if return value .ne. nf90_noerr,
 !   an error message is produced, including file and lineno of the error,
@@ -124,6 +125,9 @@ module ncoutput_module
 
    integer                     :: noutnumbers = 0  ! the number of outnumbers
    integer, dimension(numvars) :: outnumbers  ! numbers, corrsponding to mnemonics, which are to be output
+   
+   ! Output type
+   integer :: NCREAL  ! can be NF90_double or NF90_float
 
 contains
 
@@ -159,6 +163,7 @@ contains
       use xmpi_module
       use indextos_module
       use params
+      use paramsconst
       use spaceparams
       use timestep_module
       use mnemmodule
@@ -205,6 +210,14 @@ contains
       outputp = .false.
 
       ! initialize values
+      
+      ! set output precision for NetCDF
+      if(par%outputprecision == OUTPUTPRECISION_SINGLE) then
+         NCREAL = NF90_REAL
+      else
+         NCREAL = NF90_DOUBLE
+      endif
+      
       ! global
 
       ! store netcdf variable ids for each variable

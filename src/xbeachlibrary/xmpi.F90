@@ -226,7 +226,7 @@ contains
       call MPI_Comm_size(xmpi_ocomm,xmpi_osize,ierr)
       if (xmpi_osize < 2) then
          print *,'Number of MPI processes must be 2 or greater, but is:',xmpi_osize
-         call halt_program
+         call halt_program(.false.)
       endif
       xmpi_omaster = 0
       xomaster     = (xmpi_orank == xmpi_omaster)
@@ -1553,14 +1553,28 @@ contains
 
 
 #endif
-   subroutine halt_program
+   subroutine halt_program(normal)
+      logical,intent(in),optional :: normal
+      logical                     :: lnormal
+      integer                     :: ierr
+      
+      if(present(normal)) then
+         lnormal = normal
+      else
+         lnormal = .true.
+      endif
+      
       write(0,*) 'halt_program called by process', xmpi_orank
-      call backtrace
+      if (lnormal) then
+         call backtrace
 #ifdef USEMPI
-      call xmpi_abort
+         call xmpi_abort
 #else
-      stop 1
+         stop 1
 #endif
+      else
+         call MPI_Abort(xmpi_ocomm,1,ierr)
+      endif
    end subroutine halt_program
 
 end module xmpi_module

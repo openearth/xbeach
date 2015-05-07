@@ -105,5 +105,8 @@ module paramsconst
 
    integer, parameter :: BDSLPEFFDIR_NONE            =  0
    integer, parameter :: BDSLPEFFDIR_TALMON          =  1
+   
+   integer, parameter :: OUTPUTPRECISION_SINGLE      =  0
+   integer, parameter :: OUTPUTPRECISION_DOUBLE      =  1
 
 end module paramsconst

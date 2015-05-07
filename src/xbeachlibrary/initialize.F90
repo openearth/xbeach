@@ -828,7 +828,7 @@ contains
       s%zi   = 0.0d0
       s%wi   = 0.0d0
       s%nuh  = 0.0d0
-      s%cf   = par%cf
+      !s%cf   = par%cf
       s%wm   =0.d0
       s%zs0fac = 0.0d0
 
