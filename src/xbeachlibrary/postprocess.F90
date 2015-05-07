@@ -518,6 +518,8 @@ contains
                sistermnem = mnem_Svbg
           case(mnem_Svbg)
               sistermnem = mnem_Subg
+          case default
+              sistermnem = 'none'
       end select
    end function get_sister_mnem
 end module postprocessmod

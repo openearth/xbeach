@@ -742,13 +742,15 @@ NF90(nf90_close(ncid))
             call space_collect_index(s,sl,par,index)
             if (par%rotate==1) then
                 sistermnemalloc = get_sister_mnem(mnem)
-                call space_collect_mnem(s,sl,par,sistermnemalloc)
+                if (not(sistermnemalloc == 'none')) then
+                   call space_collect_mnem(s,sl,par,sistermnemalloc)
+                endif
                 select case(mnem)
-                case(mnem_Sutot,mnem_Svtot)
-                  call space_collect_mnem(s,sl,par,mnem_Subg)
-                  call space_collect_mnem(s,sl,par,mnem_Svbg)
-                  call space_collect_mnem(s,sl,par,mnem_Susg)
-                  call space_collect_mnem(s,sl,par,mnem_Svbg)
+                   case(mnem_Sutot,mnem_Svtot)
+                      call space_collect_mnem(s,sl,par,mnem_Subg)
+                      call space_collect_mnem(s,sl,par,mnem_Svbg)
+                      call space_collect_mnem(s,sl,par,mnem_Susg)
+                      call space_collect_mnem(s,sl,par,mnem_Svbg)
                end select
             endif
          end do
