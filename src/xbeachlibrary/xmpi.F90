@@ -1567,14 +1567,17 @@ contains
       write(0,*) 'halt_program called by process', xmpi_orank
       if (lnormal) then
          call backtrace
+      endif
+      
 #ifdef USEMPI
+      if (lnormal) then
          call xmpi_abort
-#else
-         stop 1
-#endif
       else
          call MPI_Abort(xmpi_ocomm,1,ierr)
       endif
+#else
+      stop 1
+#endif
    end subroutine halt_program
 
 end module xmpi_module
