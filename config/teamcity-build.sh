@@ -11,7 +11,7 @@ module load openmpi/1.8.3_gcc_4.9.2
 
 mkdir -p /opt/teamcity/work/XBeach_unix/install
 
-FCFLAGS="-mtune=corei7-avx -funroll-loops --param max-unroll-times=4 -O3 -ffast-math" ./configure  --with-netcdf --with-mpi --prefix="/opt/teamcity/work/XBeach_unix/install"
+FCFLAGS="-mtune=corei7-avx -funroll-loops --param max-unroll-times=4 -ffree-line-length-none -O3 -ffast-math" ./configure  --with-netcdf --with-mpi --prefix="/opt/teamcity/work/XBeach_unix/install"
 
 make
 make install
