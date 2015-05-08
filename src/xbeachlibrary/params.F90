@@ -1528,25 +1528,27 @@ contains
       !
       !
       ! Only allow Baldock in stationary mode and Roelvink in non-stationary
-      if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE) then
-         if (par%break .ne. BREAK_BALDOCK) then
-            if(par%break == BREAK_ROELVINK_DALY) then
-               call writelog('lwse','','Warning: Roelvink-Daly formulations not implemented in stationary wave mode, use Baldock')
-               call writelog('lwse','','         formulation.')
-               call halt_program
-            else
-               call writelog('lwse','','Warning: Roelvink formulations not allowed in stationary, use Baldock')
+      if (par%swave==1) then
+         if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE) then
+            if (par%break .ne. BREAK_BALDOCK) then
+               if(par%break == BREAK_ROELVINK_DALY) then
+                  call writelog('lwse','','Error: Roelvink-Daly formulations not implemented in stationary wave mode, use Baldock')
+                  call writelog('lwse','','         formulation.')
+                  call halt_program
+               else
+                  call writelog('lwse','','Error: Roelvink formulations not allowed in stationary, use Baldock')
+                  call writelog('lwse','','         formulation.')
+                  call halt_program
+               endif
+            endif
+         else
+            if (par%break == BREAK_BALDOCK) then
+               call writelog('lwse','','Error: Baldock formulation not allowed in non-stationary, use a Roelvink')
                call writelog('lwse','','         formulation.')
                call halt_program
             endif
          endif
-      else
-         if (par%break == BREAK_BALDOCK) then
-            call writelog('lwse','','Warning: Baldock formulation not allowed in non-stationary, use a Roelvink')
-            call writelog('lwse','','         formulation.')
-            call halt_program
-         endif
-      endif
+      endif 
       !
       !
       ! Convert cf from C
