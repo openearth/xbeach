@@ -648,7 +648,7 @@ contains
 #ifdef USEMPI
       integer                                :: index
 #endif
-      character(maxnamelen)                  :: mnem
+      character(maxnamelen)                  :: mnem,sistermnemalloc
       real*8, dimension(:,:), allocatable    :: points
 
       ! some local variables to pass the data through the postprocessing function.
