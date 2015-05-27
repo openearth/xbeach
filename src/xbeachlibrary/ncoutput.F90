@@ -738,12 +738,29 @@ contains
             mnem = par%globalvars(i)
             index = chartoindex(mnem)
             call space_collect_index(s,sl,par,index)
-            !  we have to make sure that the extra information needed
-            !  is also collected
-            !
-            ! get extra needed s%vars
-            !
+            if (par%rotate==1) then
+               sistermnemalloc = get_sister_mnem(mnem)
+	       
+	       select case (sistermnemalloc)
+	       case ('none')
+	          ! nothing
+	       case default
+	          call space_collect_mnem(s,sl,par,sistermnemalloc)
+	       end select
+	       
+	       select case(mnem)
+	       case(mnem_Sutot,mnem_Svtot)
+	          call space_collect_mnem(s,sl,par,mnem_Subg)
+	          call space_collect_mnem(s,sl,par,mnem_Svbg)
+	          call space_collect_mnem(s,sl,par,mnem_Susg)
+	          call space_collect_mnem(s,sl,par,mnem_Svbg)
+	       end select
+	       
+            endif
          end do
+         if (par%rotate==1) then
+	    call space_collect_mnem(s,sl,par,mnem_alfaz)
+         endif
       endif
       
 #endif
