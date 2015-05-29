@@ -13,15 +13,15 @@
 !
 ! P+R: tijdelijk uit voor testbed
 !#define NCSINGLE
-#ifdef NCSINGLE
-#define NCREAL NF90_REAL
-#define CONVREAL sngl
-#define CONVREALTYPE real*4
-#else
-#define NCREAL NF90_DOUBLE
+!#ifdef NCSINGLE
+!#define NCREAL NF90_REAL
+!#define CONVREAL sngl
+!#define CONVREALTYPE real*4
+!#else
+!#define NCREAL NF90_DOUBLE
 #define CONVREAL
 #define CONVREALTYPE real*8
-#endif
+!#endif
 
 ! NF90: macro to call nf90 function: if return value .ne. nf90_noerr,
 !   an error message is produced, including file and lineno of the error,
@@ -124,7 +124,9 @@ module ncoutput_module
 
    integer                     :: noutnumbers = 0  ! the number of outnumbers
    integer, dimension(numvars) :: outnumbers  ! numbers, corrsponding to mnemonics, which are to be output
-
+    
+   ! Output type
+   integer                     :: NCREAL ! can be NF90_double or NF90_float
 contains
 
 #ifdef USENETCDF
@@ -159,6 +161,7 @@ contains
       use xmpi_module
       use indextos_module
       use params
+      use paramsconst
       use spaceparams
       use timestep_module
       use mnemmodule
@@ -206,6 +209,14 @@ contains
       outputp = .false.
 
       ! initialize values
+            
+      ! set output precision for NetCDF
+      if(par%outputprecision == OUTPUTPRECISION_SINGLE) then
+         NCREAL = NF90_REAL
+      else
+         NCREAL = NF90_DOUBLE
+      endif
+      
       ! global
 
       ! store netcdf variable ids for each variable
@@ -247,14 +258,14 @@ contains
       ! dimensions of length 2.... what is this.... TODO: find out what this is
       NF90(nf90_def_dim(ncid, 'inout', 2, inoutdimid))
 
-      write(*,*) 'Writing ndrifter', par%ndrifter
+      ! write(*,*) 'Writing ndrifter', par%ndrifter
       if (par%ndrifter .gt. 0) then
          ! create dimensions for drifters and drifterstime:
          NF90(nf90_def_dim(ncid, 'ndrifter',     par%ndrifter,   driftersdimid))
          NF90(nf90_def_dim(ncid, 'drifterstime', size(tpar%tpp), drifterstimedimid))
       end if
 
-      write(*,*) 'Writing nship', par%nship
+      ! write(*,*) 'Writing nship', par%nship
       if (par%nship .gt. 0) then
          NF90(nf90_def_dim(ncid, 'nship', par%nship, shipdimid))
       end if
@@ -681,7 +692,7 @@ contains
 #endif
 
       logical :: dofortran, donetcdf, dofortran_compat
-      logical :: dooutput_global, dooutput_mean, dooutput_point
+      logical :: dooutput_global, dooutput_mean, dooutput_point, dooutput_drifter
 
       type pointoutput
          integer                                  :: rank   ! rank of the data
@@ -724,8 +735,11 @@ contains
       dooutput_mean   = tpar%outputm .and. par%nmeanvar   .gt. 0 .and. tpar%itm .gt. 1
 
       ! time for point output?
-      dooutput_point  = tpar%outputp .and. par%npointvar .gt. 0
-
+      dooutput_point  = tpar%outputp .and. par%npointvar .gt. 0  &
+                        .and. par%npoints+par%nrugauge .gt. 0
+      
+      ! time for drifter output?
+      dooutput_drifter  = tpar%outputp .and. par%ndrifter .gt. 0
 
 #ifdef USEMPI
       ! clear collected items
@@ -1455,18 +1469,18 @@ contains
       endif  ! dooutput_mean .and. dofortran_compat
 
 
-      if (abs(mod(par%t,par%tintp))<1.d-6) then
+      if (dooutput_drifter) then
          itd = itd+1
 #ifdef USENETCDF
-            if (donetcdf .and. par%ndrifter>0) then
+            if (donetcdf) then
                ! output time:
                NF90(nf90_put_var(ncid, drifterstimevarid, CONVREAL(par%t), start=(/itd/)))
             endif
 #endif
          do i=1,par%ndrifter
             if (  par%t>=s%tdriftb(i) .and. par%t<=s%tdrifte(i) .and. &
-            &     s%idrift(i)>1       .and. s%idrift(i)<=s%nx   .and. &
-            &     s%jdrift(i)>1       .and. s%jdrift(i)<=s%ny             ) then
+                &     s%idrift(i)>1       .and. s%idrift(i)<=s%nx   .and. &
+                &     s%jdrift(i)>1       .and. s%jdrift(i)<=s%ny             ) then
 
                iz = int(s%idrift(i))
                jz = int(s%jdrift(i))
@@ -1579,7 +1593,7 @@ contains
          dimensionid = inoutdimid
        case('2')
          dimensionid = inoutdimid
-       case('max(par%nd,2)')
+       case('par%nd')
          dimensionid = bedlayersdimid
        case('par%ndrifter')
          dimensionid = driftersdimid
