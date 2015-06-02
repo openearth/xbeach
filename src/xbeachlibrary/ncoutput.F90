@@ -249,8 +249,7 @@ contains
       NF90(nf90_def_dim(ncid, 'wave_angle', s%ntheta, thetadimid))
 
       ! computational layers in bed ...
-      ! TODO: Clean this up, why max(par%nd,2)???
-      NF90(nf90_def_dim(ncid, 'bed_layers', max(par%nd,2), bedlayersdimid))
+      NF90(nf90_def_dim(ncid, 'bed_layers', par%nd, bedlayersdimid))
 
       ! sediment classes
       NF90(nf90_def_dim(ncid, 'sediment_classes', par%ngd, sedimentclassesdimid))
@@ -767,7 +766,7 @@ contains
 	          call space_collect_mnem(s,sl,par,mnem_Subg)
 	          call space_collect_mnem(s,sl,par,mnem_Svbg)
 	          call space_collect_mnem(s,sl,par,mnem_Susg)
-	          call space_collect_mnem(s,sl,par,mnem_Svbg)
+	          call space_collect_mnem(s,sl,par,mnem_Svsg)
 	       end select
 	       
             endif
