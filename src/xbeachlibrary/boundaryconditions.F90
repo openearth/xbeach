@@ -1066,7 +1066,7 @@ contains
                   +            dsqrt(par%g*s%hum(1,j))   * dvdy   (1,j) &
                   +  par%g                             * dhdx   (1,j) &
                   +  s%Fx(1,j) * inv_ht(j) / par%rho                    &
-                  -  par%g  / par%C**2.d0 * sqrt(s%uu(1,j)**2 + s%vu(1,j)**2) * s%uu(1,j) / s%hum(1,j)
+                  - s%cfu(1,j) * sqrt(s%uu(1,j)**2 + s%vu(1,j)**2) * s%uu(1,j) / s%hum(1,j)
                end do
 
                ! Jaap: Compute angle of incominge wave
@@ -1206,8 +1206,8 @@ contains
                   bn(j)=-(s%uu(s%nx,j)+dsqrt(par%g*s%hum(s%nx,j)))*dbetadx(2,j) &
                   -s%vu(s%nx,j)*dbetady(2,j)& !Ap s%vu
                   -dsqrt(par%g*s%hum(s%nx,j))*dvdy(2,j)&
-                  +s%Fx(s%nx,j)*inv_ht(j)/par%rho-par%g/par%C**2.d0&
-                  *sqrt(s%uu(s%nx,j)**2+s%vu(s%nx,j)**2)*s%uu(s%nx,j)/s%hum(s%nx,j)&
+                  +s%Fx(s%nx,j)*inv_ht(j)/par%rho &
+                  -s%cfu(s%nx,j)*sqrt(s%uu(s%nx,j)**2+s%vu(s%nx,j)**2)*s%uu(s%nx,j)/s%hum(s%nx,j)&
                   +par%g*dhdx(2,j)
                endif    ! Robert: dry back boundary points
             enddo
