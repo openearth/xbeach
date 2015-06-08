@@ -21,7 +21,7 @@ contains
             if (arg=='-V') then
                 call getversion(version)
                 write(*,*)'**********************************************************'
-                write(*,*)'You are using XBeach version 1.22.',trim(version), ' Kingsday release - BETA'
+                write(*,*)'You are using XBeach version 1.22.',trim(version)
                 write(*,*)'**********************************************************'
                 readinput = 1
             endif
