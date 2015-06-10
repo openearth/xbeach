@@ -340,6 +340,7 @@ contains
          xmpi_m=1
          xmpi_n=xmpi_size
        case (MPIBOUNDARY_AUTO)
+         ! Pieter: TODO: prevent too few grid cells in one domain (mpi implementation needs at least 2 at each boundary). Specify error and give a message if this is the case.
          do mm = 1,xmpi_size
             nn = xmpi_size/mm
             if (mm * nn .eq. xmpi_size) then
@@ -361,7 +362,9 @@ contains
        case default
          error = 1
          return
-      end select
+       end select
+       
+       ! Pieter: TODO: Check whether the grid distribution did not lead to domains with to few grid cells (mpi implementation needs at least 2 at each boundary). Specify error and give a message if this is the case.
 
       ! The layout of the processors is as follows:
       ! example 12 processors, xmpi_m=3, xmpi_n=4:
