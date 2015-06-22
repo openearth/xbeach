@@ -951,6 +951,13 @@ contains
       call parmapply('bedfriction',1,par%bedfriction,par%bedfriction_str)
       ! Catch old exceptions
       if (.not. isSetParameter('params.txt','bedfriction')) then
+         ! Catch really wierd old combinations
+         if (isSetParameter('params.txt','bedfricfile')) then
+            call writelog('lswe','','The use of keyword BEDFRICFILE without keyword BEDFRICTION is not allowed')
+            call writelog('lswe','','Terminating simulation')
+            call halt_program
+         endif
+         ! Else, continue as normal
          if (isSetParameter('params.txt','cf') .and. .not. isSetParameter('params.txt','C')) then
             par%bedfriction = BEDFRICTION_CF
             par%bedfriccoef = readkey_dbl ('params.txt','cf',      3.d-3, 1.d-3, 0.1d0)
