@@ -77,7 +77,7 @@ contains
          allocate (sinthm(s%nx+1,s%ny+1))
          allocate (costhm(s%nx+1,s%ny+1))
 
-         if (par%secorder == 1) then
+         if (par%secorder == 1  .or. par%nonh == 1) then
             allocate(vv_old(s%nx+1,s%ny+1)); vv_old = s%vv
             allocate(uu_old(s%nx+1,s%ny+1)); uu_old = s%uu
             allocate(zs_old(s%nx+1,s%ny+1)); zs_old = s%zs
@@ -682,7 +682,7 @@ contains
 
       if (par%nonh==1) then
          !Do explicit predictor step with pressure
-         call nonh_explicit(s,par)
+         call nonh_cor(s,par,0,uu_old,vv_old)
 
 #ifdef USEMPI
          call xmpi_shift_ee(s%uu)
@@ -698,6 +698,12 @@ contains
          call xmpi_shift_ee(s%vv)
 #endif
       end if
+
+      if (par%nonh==1) then
+         ! do non-hydrostatic pressure compensation to solve short waves
+         call nonh_cor(s,par,1,uu_old,vv_old)
+         ! note: MPI shift in subroutine nonh_cor
+      end if    
 
       ! Pieter and Jaap: update hu en hv for continuity
       do j=1,s%ny+1
@@ -745,10 +751,12 @@ contains
       end do
       s%hv = max(s%hv,0.d0)
 
-      if (par%nonh==1) then
-         ! do non-hydrostatic pressure compensation to solve short waves
-         call nonh_cor(s,par)
-         ! note: MPI shift in subroutine nonh_cor
+      if (par%secorder == 1) then
+        !
+        ! Correct the waterdepths in U/V points using second-order limited expressions
+        !
+        call flow_secondorder_huhv(s,par)
+        !
       end if
 
       ! Flux in u-point
@@ -795,8 +803,10 @@ contains
       !
 
       if (par%secorder == 1) then
-         !Second order correction
-         call flow_secondorder_con(s,par,zs_old)
+       !
+       ! P.B. Smit: The second order McCormack correction to the cont. eq. introduced
+       ! minor damping. For this reason I removed it (Nov. 2014).
+       !  call flow_secondorder_con(s,par,zs_old)
       endif
 
       !
@@ -824,7 +834,7 @@ contains
       call xmpi_shift_ee(s%zs)
 #endif
 
-      if (par%secorder == 1) then
+      if (par%secorder == 1 .or. par%nonh == 1) then
          vv_old = s%vv
          uu_old = s%uu
          zs_old = s%zs

@@ -263,6 +263,8 @@ module params
       real*8        :: secbrsteep                 = -123    ! [-] (advanced) Secondary maximum wave steepness criterium
       real*8        :: reformsteep                = -123    ! [-] (advanced) Wave steepness criterium to reform after breaking
       real*8        :: breakvisclen               = -123    ! [-] (advanced) Ratio between local depth and length scale in extra breaking viscosity
+      integer*4     :: nonhq3d                    = -123    ! [-] (advanced,silent) Turn on or off the the reduced two-layer nonhydrostatic model, default = 0
+      real*8        :: nhlay                      = -123    ! [-] (advanced) Layer distribution in the nonhydrostatic model, default = 0.33
 
       ! [Section] Bed composition parameters
       real*8        :: rhos                       = -123    !  [kgm^-3] Solid sediment density (no pores)
@@ -1115,9 +1117,16 @@ contains
             par%solver_urelax= readkey_dbl('params.txt','solver_urelax' ,0.92d0,0.5d0,0.99d0)
          endif
          par%kdmin        = readkey_dbl('params.txt','kdmin' ,0.0d0,0.0d0,0.05d0)
-         par%dispc        = readkey_dbl('params.txt','dispc' ,1.0d0,0.1d0,2.0d0)
          par%Topt         = readkey_dbl('params.txt','Topt',  10.d0, 1.d0, 20.d0)
-         par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,2,0,3)
+         par%nonhq3d      = readkey_int('params.txt','nonhq3d' ,0,0,1,silent=.true.)
+         if (par%nonhq3d==1) then
+            par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,1,1,1)
+            par%nhlay        = readkey_dbl('params.txt','nhlay' ,0.33d0,0.d0,1.d0)
+         else
+            par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,2,0,3)
+            par%dispc        = readkey_dbl('params.txt','dispc' ,-1.0d0,0.1d0,2.0d0)
+         endif
+      
          if (par%nhbreaker==1) then
             par%breakviscfac = readkey_dbl('params.txt','breakviscfac',1.5d0, 1.d0, 3.d0)
             par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.6d0, 0.3d0, 0.8d0)
@@ -1443,14 +1452,10 @@ contains
       'y',      MPIBOUNDARY_Y,      &
       'man',    MPIBOUNDARY_MAN)
       call parmapply('mpiboundary',1,par%mpiboundary,par%mpiboundary_str)
-      if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE .or. par%single_dir==1) then
-         par%mpiboundary=MPIBOUNDARY_X
-         par%mpiboundary_str='x'
-         call writelog('l','','mpiboundary set to x for stationary wave model')
+      if (par%mpiboundary ==  MPIBOUNDARY_MAN) then
+         par%mmpi= readkey_int('params.txt','mmpi',2,1,100)
+         par%nmpi= readkey_int('params.txt','nmpi',4,1,100)
       endif
-
-      par%mmpi= readkey_int('params.txt','mmpi',2,1,100)
-      par%nmpi= readkey_int('params.txt','nmpi',4,1,100)
 
 #endif
 
@@ -1720,6 +1725,34 @@ contains
          call writelog('lws','','         Settting ''tintm'' = tstop-tstart = ',par%tstop-par%tstart,'s')
          par%tintm=par%tstop-par%tstart
       endif
+      !
+      !
+      ! MPI domains
+#ifdef USEMPI
+      if (par%swave==1) then
+         if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE .or. par%single_dir==1) then
+            ! We need to set to mpiboundary = x to solve the stationary wave model.
+            ! However, this requires ny>3*xmpi_osize
+            if (par%mpiboundary .ne.  MPIBOUNDARY_MAN) then
+               if(par%ny<=2*xmpi_size) then
+                  call writelog('ewsl','','This simulation cannot be run in current MPI mode:')
+                  call writelog('ewsl','','The stationary wave solver requires MPI subdivision by "x" (split ny).')
+                  call writelog('ewsl','','The number of subdomains selected to run the model is ',xmpi_size,'.')
+                  call writelog('ewsl','','The total number of grid cells in y (ny) is ',par%ny,'.')
+                  call writelog('ewsl','(a,f0.2,a)','The number of cells per domain is ',dble(par%ny)/xmpi_size, &
+                                                    ', which is less than the minimum value of 3')
+                  call writelog('ewsl','','If you really (!) know what you''re doing, use "mpiboundary = man" and deal')
+                  call writelog('ewsl','','with any unsatisfactory results')
+                  call halt_program
+               else
+                  par%mpiboundary=MPIBOUNDARY_X
+                  par%mpiboundary_str='x'
+                  call writelog('wsl','','Changing mpiboundary to "x" for stationary wave model')
+               endif 
+            endif
+         endif
+      endif
+#endif      
       !
       !
       ! fix tint

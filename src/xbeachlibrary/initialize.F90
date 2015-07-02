@@ -725,6 +725,7 @@ contains
       allocate(s%pres(1:s%nx+1,1:s%ny+1))
       allocate(s%ph(1:s%nx+1,1:s%ny+1))
       allocate(s%wi(2,1:s%ny+1))
+      allocate(s%dui(2,1:s%ny+1))
       allocate(s%zi(2,1:s%ny+1))
       allocate(s%bedfriccoef(1:s%nx+1,1:s%ny+1))
       allocate(s%cf(1:s%nx+1,1:s%ny+1))
@@ -740,6 +741,10 @@ contains
       allocate(s%xyzs02(2))
       allocate(s%xyzs03(2))
       allocate(s%xyzs04(2))
+
+      allocate(s%dU(1:s%nx+1,1:s%ny+1))
+      allocate(s%dV(1:s%nx+1,1:s%ny+1))
+    
 
       allocate(szs0(1:2))
       allocate(xzs0(1:2))
@@ -789,6 +794,8 @@ contains
       s%hvm = 0.0d0
       s%vu = 0.0d0
       s%uv = 0.0d0
+      s%dU = 0.0d0
+      s%dV = 0.0d0
       s%maxzs = 0.0d0
       s%minzs = 0.0d0
       s%taubx = 0.0d0

@@ -230,6 +230,8 @@
       real*8  2  rolthick s%nx+1 s%ny+1 d  [m] [] long wave roller thickness
       real*8  2  zswci     s%nx+1 s%ny+1 d  [m] []   waterlevel (time-averaged) for wci
       real*8  2  pres      s%nx+1 s%ny+1 d  [m^2/s^2] [] normalized dynamic pressure
+      real*8  2  dU        s%nx+1 s%ny+1 d  [m^2/s^2] [] The u-velocity difference between two vertical layars (reduced 2-Layer non-hydrostatic model)
+      real*8  2  dV        s%nx+1 s%ny+1 d  [m^2/s^2] [] The v-velocity difference between two vertical layars (reduced 2-Layer non-hydrostatic model)
       real*8  2  wb        s%nx+1 s%ny+1 d  [m/s] []    vertical velocity at the bottom
       real*8  2  ws        s%nx+1 s%ny+1 d  [m/s] []    vertical velocity at the free surface
       real*8  2  wscrit    s%nx+1 s%ny+1 d  [m/s] []    critial vertical velocity at the free surface for breaking
@@ -242,6 +244,7 @@
       real*8  2  Svtot     s%nx+1 s%ny+1 d  [m2/s] []  Sediment transport integrated over bed load and suspended and for all sediment grains, y-component
       real*8  2  cctot     s%nx+1 s%ny+1 d  [m3/m3] []  Sediment concentration integrated over bed load and suspended and for all sediment grains
       real*8  2  wi        2      s%ny+1 2  [m/s] []  Vertical velocity at boundary due to (short) waves
+      real*8  2  dUi       2      s%ny+1 2  [m/s] []  Velocity difference at boundary due to (short) waves
       real*8  2  zi        2      s%ny+1 2  [m] []    Surface elevation at boundary due to (short) waves
       real*8  2  nuh       s%nx+1 s%ny+1 d  [m2/s] [] horizontal viscosity coefficient 
       real*8  2  cf        s%nx+1 s%ny+1 d  [-] [] Dimensionless friction coefficient flow

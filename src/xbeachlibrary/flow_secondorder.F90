@@ -38,6 +38,7 @@ module flow_secondorder_module
    public flow_secondorder_advW
    public flow_secondorder_con
    public minmod
+  public  flow_secondorder_huhv
    !
    !******************************************************************************
    !                             SUBROUTINES/FUNCTIONS
@@ -89,6 +90,7 @@ contains
       ! DATE               AUTHOR               CHANGES
       !
       ! November 2010       Pieter Bart Smit     New Subroutine
+      ! November 2014       Pieter Bart Smit     Updated for curvilinear and mpi
 
       !-------------------------------------------------------------------------------
       !                             DECLARATIONS
@@ -136,7 +138,7 @@ contains
       integer(kind=iKind)        :: j    !Current point
       integer(kind=iKind)        :: js   !j+1
       integer(kind=iKind)        :: jss  !j+2
-      integer(kind=iKind)        :: jmin,jmax  ! index for superfast1D
+      integer(kind=iKind)        :: jmin1d,jmax1d,jmin,jmax,imin,imax  ! index for superfast1D
 
       real(kind=rKind)           :: mindepth ! Near the dry/wet interface the higher order interpolations
       ! can cause unwanted effects. To avoid this any extrapolation/interpolation
@@ -146,170 +148,254 @@ contains
       real(kind=rKind)           :: delta1   ! "Central" difference
       real(kind=rKind)           :: delta2   ! "Upwind"  difference
 
-      real(kind=rKind)           :: qe       !discharge east
-      real(kind=rKind)           :: qw       !discharge west
-      real(kind=rKind)           :: qn       !discharge north
-      real(kind=rKind)           :: qs       !discharge south
+      real(kind=rKind)           :: qx,qy    !discharge south
+      real(kind=rKind)           :: fac      !A factor
 
       !-------------------------------------------------------------------------------
       !                             IMPLEMENTATION
       !-------------------------------------------------------------------------------
 
-      if (s%ny>0) then
+    !Initialize/allocate arrays on first entry
+    if (.not. initialized) then
+       call flow_secondorder_init(s)
+    endif
+    
+    !
+    imin = 2
+    if (xmpi_istop) then
+        !
+        imin = 3
+        !
+    endif
+    
+    imax = s%nx
+    if (xmpi_isbot) then 
+        !
+        imax = s%nx-1
+        !
+    endif
+    
          jmin = 2
-         jmax = s%ny
-      else
-         jmin = 1
-         jmax = 1
+    if (xmpi_isleft) then
+        !
+        jmin = 3
+        !
       endif
 
-      !== SECOND ORDER EXPLICIT CORRECTION TO U ==
+    jmax = s%ny
+    if (xmpi_isright) then 
+        !
+        jmax = s%ny-1
+        !
+    endif       
 
-      !Initialize/allocate arrays on first entry
-      if (.not. initialized) then
-         call flow_secondorder_init(s)
+    !
+    if (s%ny>0) then
+       ! 
+       jmin1d = 2
+       jmax1d = s%ny
+       !
+    else
+       ! 
+       jmin1d = 1
+       jmax1d = 1
+       !
       endif
 
-      !-- calculate du in z-points --
-      do j=jmin,jmax
+    !
+    !-- calculate qx * du in z-points --
+    !
+    do j=jmin1d,jmax1d
+        !
          do i=2,s%nx
+          !  
             wrk1(i,j) = 0.0_rKind
-            ie   = min(i+1,s%nx)
-            iee  = min(i+2,s%nx)
+          ie   = min(i+1,imax+1)
+          iee  = min(i+2,imax+1)
             iw   = max(i-1,1)
             iww  = max(i-2,1)
             mindepth = minval(s%zs(iww:iee,j))-maxval(s%zb(iww:iee,j))
+          
+          qx = .5 * ( s%qx(i,j) + s%qx(iw,j) ) * cos( s%alfau( i ,j ) - s%alfau( iw,j) )
+          !
             if (mindepth > par%eps) then
-               if   ((s%qx(i,j)+s%qx(iw,j) > 0.d0) .and. (i>2))    then
-                  delta1    = (s%uu(i,j) -uu_old(iw ,j)) / s%dsz(i,1)
-                  delta2    = (s%uu(iw,j)-uu_old(iww,j)) / s%dsz(iw,1)
-                  wrk1(i,j) = 0.5d0*s%dsu(iw,1)*minmod(delta1,delta2)
-               elseif (s%qx(i,j)+s%qx(iw,j) < 0.d0 .and. (i<s%nx-2)) then
-                  delta1    = (uu_old(i,j) -s%uu(iw ,j)) / s%dsz(i,1)
-                  delta2    = (uu_old(ie,j)-s%uu(i,j))   / s%dsz(ie,1)
-                  wrk1(i,j)   = -0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
+             !
+             if   ( qx > 0.d0 .and. i>imin )    then
+                !
+                delta1    = (s%uu(i,j) -uu_old(iw ,j)) / s%dsz(i,j)
+                delta2    = (s%uu(iw,j)-uu_old(iww,j)) / s%dsz(iw,j)
+                wrk1(i,j) = 0.5d0*s%dsu(iw,j) * minmod(delta1,delta2) * qx
+                !
+             elseif ( qx < 0.d0 .and. i < imax + 1  ) then
+                !
+                delta1    = (uu_old(i,j) -s%uu(iw ,j)) / s%dsz(i,j)
+                delta2    = (uu_old(ie,j)-s%uu(i,j))   / s%dsz(ie,j)
+                wrk1(i,j) = -0.5d0*s%dsu(i,j) * minmod(delta1,delta2) *qx
+                !
                endif
+             !
             endif
+          !
          enddo
+        !
       enddo
 
-      do j=2,s%ny-1
+    !
+    !-- calculate qy * du in c-points --
+    !
+    if ( s%ny > 0 ) then
+        !
+        do j=2,s%ny
+           !
          do i=2,s%nx-1
+              !
             wrk2(i,j) = 0.0_rkind
-            js   = min(j+1,s%ny)
-            jss  = min(j+2,s%ny)
+              js   = min(j+1,jmax+1)
+              jss  = min(j+2,jmax+1)
             jn   = max(j-1,1)
             mindepth = minval(s%zs(i:i+1,jn:jss))-maxval(s%zb(i:i+1,jn:jss))
+              !
             if ((mindepth > par%eps)) then
-               if     ((s%qy(i+1,j) + s%qy(i,j)   > 0.d0) .and. j>2) then
-                  delta1    = (s%uu(i,js) -uu_old(i ,j )) / s%dnv(1,j)
-                  delta2    = (s%uu(i,j)  -uu_old(i ,jn)) / s%dnv(1,jn)
-                  wrk2(i,j) = 0.5d0*s%dnv(1,j)*minmod(delta1,delta2)
-               elseif ( s%qy(i+1,j) + s%qy(i,j)   < 0.d0   .and. j<s%ny-2) then
-                  delta1    = (uu_old(i,js) -s%uu(i ,j)) / s%dnv(1,j)
-                  delta2    = (uu_old(i,jss)-s%uu(i,js)) / s%dnv(1,js)
-                  wrk2(i,j)   = -0.5d0*s%dnv(1,j)*minmod(delta1,delta2)
+                 !
+                 qy = ( s%qy(i+1,j) + s%qy(i,j) ) * .5d0 * cos( s%alfau( i , j ) - s%alfau( i , j + 1 ) )
+                 !
+                 if ( qy  > 0.d0 .and. j > jmin - 1 ) then
+                    !
+                    delta1    = (s%uu(i,js) -uu_old(i ,j )) / s%dnv(i,j)
+                    delta2    = (s%uu(i,j)  -uu_old(i ,jn)) / s%dnv(i,jn)
+                    wrk2(i,j) = 0.5d0*s%dnv(i,j)*minmod(delta1,delta2) * qy
+                    !
+                 elseif ( qy < 0.d0 .and. j < jmax ) then
+                    !
+                    delta1    = (uu_old(i,js) -s%uu(i ,j)) / s%dnv(i,j)
+                    delta2    = (uu_old(i,jss)-s%uu(i,js)) / s%dnv(i,js)
+                    wrk2(i,j)   = -0.5d0*s%dnv(i,j)*minmod(delta1,delta2) * qy
+                    !
                endif
             endif
+              !
          enddo
+           !
       enddo
+        !
       wrk2(:,1   ) = 0.0_rKind
-      if (s%ny>0) wrk2(:,s%ny) = 0.0_rKind
-
-
+        !
+    endif
 
       !CORRECTION TO U
       if (s%ny>0) then
+       ! 
          do j=2,s%ny
+          ! 
             do i=2,s%nx-1
-               qe = .5*(s%qx(i+1,j  ) + s%qx(i  ,j  ))
-               qw = .5*(s%qx(i  ,j  ) + s%qx(i-1,j  ))
-               qn = .5*(s%qy(i  ,j-1) + s%qy(i+1,j-1))
-               qs = .5*(s%qy(i  ,j  ) + s%qy(i+1,j  ))
-               s%uu(i,j) = s%uu(i,j)-par%dt/s%hum(i,j)*(  (qe*wrk1(i+1,j)-qw*wrk1(i  ,j  ))/s%dsu(i,1) &
-               +  (qs*wrk2(i  ,j)-qn*wrk2(i  ,j-1))/s%dnz(1,j) )
+             !             
+             fac = par%dt / s%hum(i,j) * s%dsdnui(i,j)
+             s%uu(i,j) = s%uu(i,j) - fac * ( s%dnz(i+1,j) *  wrk1(i+1,j) - s%dnz(i,  j) *  wrk1(i  ,j  ) &
+                                         +   s%dsc(i,j  ) *  wrk2(i  ,j) - s%dsc(i,j-1) *  wrk2(i  ,j-1) )
+             !
             enddo
+          !
          enddo
+       !
       else
+       ! 
          do i=2,s%nx-1
-            qe = .5*(s%qx(i+1,1  ) + s%qx(i  ,1  ))
-            qw = .5*(s%qx(i  ,1  ) + s%qx(i-1,1  ))
-            s%uu(i,1) = s%uu(i,1)-par%dt/s%hum(i,1)*(  (qe*wrk1(i+1,1)-qw*wrk1(i  ,1  ))/s%dsu(i,1) )
+          !
+          s%uu(i,1) = s%uu(i,1)-par%dt/s%hum(i,1)*(  ( wrk1(i+1,1) - wrk1(i  ,1  ) ) / s%dsu(i,1) )
+          !
          enddo
+       !
       endif
 
       !== SECOND ORDER EXPLICIT CORRECTION TO V ==
       if (s%ny>2) then
+       ! 
          do j=2,s%ny
+          !
             do i=2,s%nx
+             !
                wrk1(i,j) = 0.
-               js   = min(j+1,s%ny)
-               jss  = min(j+2,s%ny)
+             js   = min(j+1,jmax+1)
+             jss  = min(j+2,jmax+1)
                jn   = max(j-1,1)
                jnn  = max(j-2,1)
                mindepth = minval(s%zs(i,jnn:jss))-maxval(s%zb(i,jnn:jss))
+             !
+             qy = 0.5d0 * ( s%qy(i,j)+s%qy(i,jn) ) * cos( s%alfav(i,j) - s%alfav(i,jn) ) * s%dsz(i,j)
+             !
                if (mindepth > par%eps) then
-                  if   ((s%qy(i,j)+s%qy(i,jn) > par%Umin) .and. (j>2)) then
-                     delta1    = (s%vv(i,j ) - vv_old(i ,jn )) / s%dnz(1,j)
-                     delta2    = (s%vv(i,jn) - vv_old(i ,jnn)) / s%dnz(1,jn)
-                     wrk1(i,j)   = 0.5d0*s%dnv(1,jn)*minmod(delta1,delta2)
-                  elseif (s%qy(i,j)+s%qy(i,jn) < -par%Umin .and. j<s%ny-2) then
-                     delta1    = (vv_old(i,j ) - s%vv(i,jn)) / s%dnz(1,j)
-                     delta2    = (vv_old(i,js) - s%vv(i,j )) / s%dnz(1,js)
-                     wrk1(i,j)   = -0.5d0*s%dnv(1,j)*minmod(delta1,delta2)
+                !
+                if   (( qy > 0.0) .and. (j>jmin)) then
+                   !
+                   delta1    = (s%vv(i,j ) - vv_old(i ,jn )) / s%dnz(i,j)
+                   delta2    = (s%vv(i,jn) - vv_old(i ,jnn)) / s%dnz(i,jn)
+                   wrk1(i,j)   = 0.5d0*s%dnv(i,jn)*minmod(delta1,delta2)*qy
+                   !
+                elseif ( qy < -0.0d0 .and. j<jmax+1) then
+                   !
+                   delta1    = (vv_old(i,j ) - s%vv(i,jn)) / s%dnz(i,j)
+                   delta2    = (vv_old(i,js) - s%vv(i,j )) / s%dnz(i,js)
+                   wrk1(i,j)   = -0.5d0*s%dnv(i,j)*minmod(delta1,delta2)*qy
+                   !
                   endif
+                !
                endif
             enddo
          enddo
 
-
          do j=2,s%ny-1
-            do i=2,s%nx-1
+          !
+          do i=2,s%nx
+             !
                wrk2(i,j) = 0.0d0
                ie   = min(i+1,s%nx)
                iee  = min(i+2,s%nx)
                iw   = max(i-1,1)
                mindepth = minval(s%zs(iw:iee,j:j+1))-maxval(s%zb(iw:iee,j:j+1))
+             !
                if (mindepth > par%eps) then
-                  if     (s%qx(i,j+1) + s%qx(i,j) > par%Umin .and. i>2) then
+                !
+                qx = .5d0 * ( s%qx(i,j+1) + s%qx(i,j) ) * cos( s%alfav( i , j ) - s%alfav( i + 1 , j ) ) * s%dsc(i,j)
+                !
+                if     ( qx > par%Umin .and. i > imin - 1) then
                      delta1    = (s%vv(ie,j) - vv_old(i ,j )) / s%dsu(i,1)
                      delta2    = (s%vv(i ,j) - vv_old(iw,j))  / s%dsu(iw,1)
-                     wrk2(i,j) = 0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
-                  elseif (s%qx(i,j+1) + s%qx(i,j) < -par%Umin .and. i<s%nx-2) then
+                   wrk2(i,j) = 0.5d0*s%dsu(i,1)*minmod(delta1,delta2)*qx
+                elseif ( qx < -par%Umin .and. i < imax ) then
                      delta1    = (vv_old(ie,j) -s%vv(i ,j)) / s%dsu(ie,1)
                      delta2    = (vv_old(iee,j)-s%vv(ie,j)) / s%dsu(ie,1)
-                     wrk2(i,j) = -0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
+                   wrk2(i,j) = -0.5d0*s%dsu(i,1)*minmod(delta1,delta2)*qx
                   endif
                endif
             enddo
          enddo
          wrk2(1,:)    = 0.0_rKind
-         wrk2(s%nx,:) = 0.0_rKind
 
          !CORRECTION TO V
          do j=2,s%ny-1
+          !
             do i=2,s%nx
-               qe = .5_rKind*(s%qx(i  ,j+1) + s%qx(i  ,j  ))
-               qw = .5_rKind*(s%qx(i-1,j  ) + s%qx(i-1,j+1))
-               qn = .5_rKind*(s%qy(i  ,j  ) + s%qy(i  ,j-1))
-               qs = .5_rKind*(s%qy(i  ,j+1) + s%qy(i  ,j  ))
-               s%vv(i,j) = s%vv(i,j)-par%dt/s%hvm(i,j)*(  (qe*wrk2(i,j  )- qw*wrk2(i-1,j))/ s%dsz(i,1)  &
-               +  (qs*wrk1(i,j+1)- qn*wrk1(i  ,j))/ s%dnv(1,j)  )
+             !
+             fac = par%dt / s%hvm(i,j) * s%dsdnvi(i,j)
+             s%vv(i,j) = s%vv(i,j) - fac*( wrk2(i,j) - wrk2(i-1,j) + wrk1(i,j+1) - wrk1(i  ,j) )
+             !     
             enddo
+          !
          enddo
       endif
-
+    !
    end subroutine flow_secondorder_advUV
 
    !
    !==============================================================================
-   subroutine flow_secondorder_advW(s,par,w,w_old)
+  subroutine flow_secondorder_advW(s,par,w,w_old,mskZ)
       !==============================================================================
       !
 
       ! DATE               AUTHOR               CHANGES
       !
       ! November 2010       Pieter Bart Smit     New Subroutine
+    ! November 2014       Pieter Bart Smit     Modified for nonhq3d
 
       !-------------------------------------------------------------------------------
       !                             DECLARATIONS
@@ -327,7 +413,7 @@ contains
       ! -- MODULES --
       use spaceparams
       use params
-      use xmpi_module, only: halt_program
+    use xmpi_module
 
 
       !--------------------------     ARGUMENTS          ----------------------------
@@ -336,8 +422,9 @@ contains
       type(spacepars)  ,intent(inout)  :: s
       type(parameters) ,intent(in)     :: par
 
-      real(kind=rKind),dimension(s%nx+1,s%ny+1),intent(inout) :: w
-      real(kind=rKind),dimension(s%nx+1,s%ny+1),intent(in)    :: w_old
+    real(kind=rKind),dimension(s%nx+1,s%ny+1),intent(inout) :: w      !The velocity at the star level
+    real(kind=rKind),dimension(s%nx+1,s%ny+1),intent(in)    :: w_old  !The vertical velocity at the n-level  
+    integer(kind=iKind),dimension(s%nx+1,s%ny+1),intent(in) :: mskZ   !A mask that determines whether or not the w-equation is active
 
       !
       !--------------------------     LOCAL VARIABLES    ----------------------------
@@ -346,96 +433,253 @@ contains
       integer(kind=iKind)        :: i    !Current point
       integer(kind=iKind)        :: ie   !i+1
       integer(kind=iKind)        :: iee  !i+2
-      integer(kind=iKind)        :: jn   !j-1
+    integer(kind=iKind)        :: jn   !j+1
+    integer(kind=iKind)        :: jnn   !j+2
       integer(kind=iKind)        :: j    !Current point
-      integer(kind=iKind)        :: js   !j+1
-      integer(kind=iKind)        :: jss  !j+2
-      integer(kind=iKind)        :: jmin,jmax  !index for superfast1D
+    integer(kind=iKind)        :: js   !j-1
+    integer(kind=iKind)        :: jmin,jmax,imin,imax
 
+    real(kind=rKind)           :: rfac
       real(kind=rKind)           :: mindepth
       real(kind=rKind)           :: delta1
-      real(kind=rKind)           :: delta2
+    real(kind=rKind)           :: delta2,qx,qy
 
       !-------------------------------------------------------------------------------
       !                             IMPLEMENTATION
       !-------------------------------------------------------------------------------
 
-      if (s%ny>0) then
+    
+    !
+    imin = 1
+    if (xmpi_istop) then
+        !
+        imin = 2
+        !
+    endif
+    
+    imax = s%nx
+    if (xmpi_isbot) then 
+        !
+        imax = s%nx-1
+        !
+    endif
+    
+    jmin = 1
+    if (xmpi_isleft) then
+        !
          jmin = 2
+        !
+    endif
+    
          jmax = s%ny
-      else
-         jmin = 1
-         jmax = 1
+    if (xmpi_isright) then 
+        !
+        jmax = s%ny-1
+        !
       endif
+    !
 
       !Initialize/allocate arrays on first entry
       if (.not. initialized) then
+        !
          call flow_secondorder_init(s)
+        !
       endif
 
-      !== SECOND ORDER EXPLICIT CORRECTION TO W ==
-      do j=jmin,jmax
-         do i=2,s%nx-1
+    if (s%ny > 0) then
+        !
+        ! 2D Codepath
+        !
+
+        !
+        ! Calculate the updated fluxes of w-mom. in the s-dir
+        !
+        wrk1 = 0.0d0
+        do j=2,s%ny
+           !
+           do i=1,s%nx
+              !
+              if ( mskZ(i,j) == 0 ) cycle
+                                         
             wrk1(i,j) = 0.0_rKind
-            ie   = min(i+1,s%nx)
-            iee  = min(i+2,s%nx)
+              !
+              ie   = min(i+1,imax+1)
+              iee  = min(i+2,imax+1)
             iw   = max(i-1,1)
+              
+              rfac = real( mskZ( ie , j ) * mskZ( iee , j ) * mskZ( iw , j ), kind=rKind )
+              
             mindepth = minval(s%zs(iw:iee,j))-maxval(s%zb(iw:iee,j))
+              qx = s%qx(i,j) * s%dnu( i,j ) * rfac
+              !                                 
             if (mindepth > par%eps) then
-               if   (s%qx(i,j) > 0.0_rKind  .and. i>2) then
-                  delta1    = (w(ie,j ) - w_old(i  ,j )) / s%dsu(i,1)
-                  delta2    = (w(i,j )  - w_old(iw ,j )) / s%dsu(iw,1)
-                  wrk1(i,j)   = 0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
-               elseif (s%qx(i,j) < 0.0_rKind .and. i<s%nx-1) then
-                  delta1    = (w_old(ie ,j)  - w(i ,j )) / s%dsu(i,1)
-                  delta2    = (w_old(iee,j ) - w(ie,j )) / s%dsu(ie,1)
-                  wrk1(i,j)   = -0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
+                 !
+                 if   ( qx > 0.0_rKind .and. i>imin ) then
+                    !
+                    delta1    = (w(ie,j ) - w_old(i  ,j )) / s%dsu(i,j)
+                    delta2    = (w(i,j )  - w_old(iw ,j )) / s%dsu(iw,j)
+                    wrk1(i,j)   = 0.5d0*s%dsu(i,j)*minmod(delta1,delta2) * qx
+                    !
+                 elseif (qx < 0.0_rKind .and. i<imax) then
+                    !
+                    delta1    = (w_old(ie ,j)  - w(i ,j )) / s%dsu(i,j)
+                    delta2    = (w_old(iee,j ) - w(ie,j )) / s%dsu(ie,j)
+                    wrk1(i,j) = -0.5d0*s%dsu(i,j)*minmod(delta1,delta2)*qx
+                    !
                endif
+                 !
             endif
+              !
          enddo
+           !
       enddo
-      if (s%ny>0) wrk1(: ,1) = 0.0_rKind
-      if (s%ny>0) wrk1(:,s%ny+1) = 0.0_rKind
-      wrk1(1,:)  = 0.0_rKind
-      wrk1(s%nx,:) = 0.0_rKind
 
-      do j=2,s%ny-1
-         do i=2,s%nx-1
+        !
+        ! Calculate the updated fluxes of w-mom. in the n-dir
+        !
+        wrk2 = 0.
+        do j=1,s%ny
+           !
+           do i=2,s%nx
+              !
+              if ( mskZ(i,j) == 0 ) cycle
+                                         
             wrk2(i,j) = 0.0_rKind
-            js   = min(j+1,s%ny)
-            jss  = min(j+2,s%ny)
-            jn   = max(j-1,1)
-            mindepth = minval(s%zs(i,jn:jss))-maxval(s%zb(i,jn:jss))
+              !
+              jn   = min(j+1,jmax+1)
+              jnn  = min(j+2,jmax+1)
+              js   = max(j-1,1)
+              
+              rfac = real( mskZ( i , jn ) * mskZ( i , jnn ) * mskZ( i , js ), kind=rKind )
+              
+              mindepth = minval(s%zs(i,js:jnn))-maxval(s%zb(i,js:jnn))              
+              qy = s%qy(i,j) * s%dsv( i,j ) * rfac
+              !                                 
             if (mindepth > par%eps) then
-               if   (s%qy(i,j) > 0.0_rKind .and. j>2) then
-                  delta1    = (w(i,js ) - w_old(i  ,j )) / s%dnv(1,j)
-                  delta2    = (w(i,j  ) - w_old(i  ,jn)) / s%dnv(1,jn)
-                  wrk2(i,j) = 0.5d0*s%dnv(1,j)*minmod(delta1,delta2)
-               elseif (s%qy(i,j) < 0.0_rKind .and. j<s%ny-1) then
-                  delta1    = (w_old(i,js)   - w(i ,j )) / s%dnv(1,j)
-                  delta2    = (w_old(i,jss ) - w(i ,js)) / s%dnv(1,js)
-                  wrk2(i,j) = -0.5d0*s%dnv(1,j)*minmod(delta1,delta2)
+                 !
+                 if   ( qy > 0.0_rKind .and. j>jmin ) then
+                    !
+                    delta1    = (w(i,jn ) - w_old(i  ,j )) / s%dnv(i,j)
+                    delta2    = (w(i,j )  - w_old(i ,js )) / s%dnv(i,js)
+                    wrk2(i,j)   = 0.5d0*s%dnv(i,j)*minmod(delta1,delta2) * qy
+                    !
+                 elseif (qy < 0.0_rKind .and. j<jmax) then
+                    !
+                    delta1    = (w_old(i ,jn)  - w(i ,j )) / s%dnv(i,j)
+                    delta2    = (w_old(i,jnn ) - w(i,jn )) / s%dnv(i,jn)
+                    wrk2(i,j) = -0.5d0*s%dnv(i,j)*minmod(delta1,delta2)*qy
+                    !
                endif
+                 !
             endif
+              !
          enddo
+           !
       enddo
-      wrk2(:,1)      = 0.0_rKind
-      if (s%ny>0) wrk2(:,s%ny)   = 0.0_rKind
+        !        
 
-      !CORRECTION TO W
-      if (s%ny>0) then
+        !
+        if (xmpi_istop) then
+            !
+            wrk1(1,:) = 0.0d0
+            !
+        endif
+        if (xmpi_isbot) then 
+            !
+            wrk1(s%nx,:) = 0.0d0
+            !
+        endif
+        if (xmpi_isleft) then
+            !
+            wrk2(:,1) = 0.0d0
+            !
+        endif
+        if (xmpi_isright) then 
+            !
+            wrk2(:,s%ny) =0.        
+            !
+        endif
+        !
+        
+        !
+        ! Update w-mom
+        !
          do j=2,s%ny
+          !
             do i=2,s%nx
-               w(i,j) = w(i,j)-par%dt/s%hh(i,j)*(  (s%qx(i,j)*wrk1(i,j)- s%qx(i-1,j)*wrk1(i-1,j))/ s%dsz(i,1)  &
-               +  (s%qy(i,j)*wrk2(i,j)- s%qy(i,j-1)*wrk2(i,j-1))/ s%dnz(1,j)  )
+              !
+              if ( mskZ(i,j) == 0 ) cycle
+              !
+              w(i,j) = w(i,j) - par%dt * s%dsdnzi(i,j) *( wrk1(i,j) + wrk2(i,j) - wrk1(i-1,j) - wrk2(i,j-1) ) /s%hh(i,j)
+              !   
             enddo
+           !
          enddo
+        !
       else
+        !
+        ! 1D Codepath
+        !
+        j=1
          do i=2,s%nx
-            w(i,1) = w(i,1)-par%dt/s%hh(i,1)*(  (s%qx(i,1)*wrk1(i,1)- s%qx(i-1,1)*wrk1(i-1,1))/ s%dsz(i,1) )
-         enddo
+           !
+           if ( mskZ(i,j) == 0 ) cycle
+                                      
+           wrk1(i,j) = 0.0_rKind
+           !
+           ie   = min(i+1,s%nx)
+           iee  = min(i+2,s%nx)
+           iw   = max(i-1,1)
+           
+           rfac = real( mskZ( ie , j ) * mskZ( iee , j ) * mskZ( iw , j ), kind=rKind )
+           
+           mindepth = minval(s%zs(iw:iee,j))-maxval(s%zb(iw:iee,j))              
+           qx = s%qx(i,j) * rfac
+           !                                 
+           if (mindepth > par%eps) then
+              !
+              if   ( qx > 0.0_rKind .and. i>2 ) then
+                 !
+                 delta1    = (w(ie,j ) - w_old(i  ,j )) / s%dsu(i,j)
+                 delta2    = (w(i,j )  - w_old(iw ,j )) / s%dsu(iw,j)
+                 wrk1(i,j)   = 0.5d0*s%dsu(i,j)*minmod(delta1,delta2) * qx
+                 !
+              elseif (qx < 0.0_rKind .and. i<s%nx-1) then
+                 !
+                 delta1    = (w_old(ie ,j)  - w(i ,j )) / s%dsu(i,j)
+                 delta2    = (w_old(iee,j ) - w(ie,j )) / s%dsu(ie,j)
+                 wrk1(i,j)   = -0.5d0*s%dsu(i,j)*minmod(delta1,delta2)*qx
+                 !
+              endif
+              !
       endif
+           !
+        enddo
 
+        !
+        if (xmpi_istop) then
+            !
+            wrk1(1,:) = 0.0d0
+            !
+        endif
+        if (xmpi_isbot) then 
+            !
+            wrk1(s%nx,:) = 0.0d0
+            !
+        endif     
+        !
+        ! Update w-mom to ** level
+        !
+        do i=2,s%nx
+          !
+          if ( mskZ(i,1) == 0 ) cycle
+          !
+          w(i,1) = w(i,1)-par%dt/s%hh(i,1)* ( wrk1(i,1)- wrk1(i-1,1) )/ s%dsz(i,1)
+          !
+        enddo        
+        !
+    endif
+    !
    end subroutine flow_secondorder_advW
 
    !
@@ -580,7 +824,184 @@ contains
 
    end subroutine flow_secondorder_con
 
+  !
+  !==============================================================================    
+  subroutine flow_secondorder_huhv(s,par)
+    !==============================================================================    
+    !
+    ! DATE               AUTHOR               CHANGES        
+    !
+    ! November 2014       Pieter Bart Smit     New Subroutine
 
+    !-------------------------------------------------------------------------------
+    !                             DECLARATIONS
+    !-------------------------------------------------------------------------------
+
+    !
+    !--------------------------        PURPOSE         ----------------------------
+    !
+    !   Calculates second order correction to the waterlevels
+    !
+
+    !--------------------------     DEPENDENCIES       ----------------------------
+    !
+    use spaceparams
+    use params 
+    use xmpi_module    
+
+    !--------------------------     ARGUMENTS          ----------------------------
+    !
+    type(spacepars)  ,intent(inout)  :: s
+    type(parameters) ,intent(in)     :: par
+
+!    real(kind=rKind),dimension(s%nx+1,s%ny+1),intent(in) :: zs_old
+    !
+
+    !--------------------------     LOCAL VARIABLES    ----------------------------
+    ! 
+
+    integer(kind=iKind)        :: iw   !i-1 :One ...
+    integer(kind=iKind)        :: i    !Current point
+    integer(kind=iKind)        :: ie   !i+1
+    integer(kind=iKind)        :: iee  !i+2
+    integer(kind=iKind)        :: j    !Current point
+    integer(kind=iKind)        :: jmin,jmax,imin,imax
+    real(kind=rKind)           :: mindepth    
+    real(kind=rKind)           :: delta1
+    real(kind=rKind)           :: delta2    
+    !-------------------------------------------------------------------------------
+    !                             IMPLEMENTATION
+    !-------------------------------------------------------------------------------
+
+    !
+    imin = 1
+    if (xmpi_istop) then
+        !
+        imin = 2
+        !
+    endif
+    
+    imax = s%nx
+    if (xmpi_isbot) then 
+        !
+        imax = s%nx-1
+        !
+    endif
+    
+    jmin = 1
+    if (xmpi_isleft) then
+        !
+        jmin = 2
+        !
+    endif
+    
+    jmax = s%ny
+    if (xmpi_isright) then 
+        !
+        jmax = s%ny-1
+        !
+    endif  
+
+    if (s%ny > 0) then
+        !
+        ! 2DH Code
+        !
+        do j= 2 , s%ny
+           ! 
+           do i = 1 , s%nx
+              ! 
+              ie  = min(i+1,imax+1)
+              iee = min(i+2,imax+1)
+              iw  = max(i-1,1)
+              !
+              mindepth = minval(s%zs(iw:iee,j))-maxval(s%zb(iw:iee,j))
+              !
+              if (mindepth>par%eps) then
+                 ! 
+                 if     (s%uu(i,j) >  par%umin .and. i > imin     ) then
+                    ! 
+                    delta1    =  (s%zs(ie,j)- s%zs(i,j ))/ s%dsu(i,1)
+                    delta2    =  (s%zs(i,j) - s%zs(iw,j))/ s%dsu(i-1,1)
+                    s%hu(i,j)  = s%hu(i,j) +  0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
+                    !
+                 elseif (s%uu(i,j) < -par%umin .and. i < imax ) then
+                    ! 
+                    delta1    =  (s%zs(iee,j) - s%zs(ie,j)) / s%dsu(i+1,1)
+                    delta2    =  (s%zs(ie ,j) - s%zs(i ,j)) / s%dsu(i,1)
+                    s%hu(i,j)  = s%hu(i,j) - 0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
+                    !
+                 endif
+                 !
+              endif
+              !
+           enddo
+           !
+        enddo
+
+        do j= 1,s%ny
+            !
+           ie  = min(j+1,jmax+1)
+           iee = min(j+2,jmax+1)
+           iw  = max(j-1,1)   
+           !
+           do i=2,s%nx
+              !
+              mindepth = minval(s%zs(i,iw:iee))-maxval(s%zb(i,iw:iee))
+              !
+              if (mindepth>par%eps) then
+                 ! 
+                 if     (s%vv(i,j) >  par%umin .and. j>jmin     ) then
+                    ! 
+                    delta1    =  (s%zs(i,ie)- s%zs(i,j ))/ s%dnv(i,j)
+                    delta2    =  (s%zs(i,j) - s%zs(i,iw))/ s%dnv(i,j-1)
+                    s%hv(i,j)  = s%hv(i,j) +  0.5d0*s%dnv(i,j)*minmod(delta1,delta2)
+                    !
+                 elseif (s%vv(i,j) < -par%umin .and. j<jmax) then
+                    ! 
+                    delta1    =  (s%zs(i,iee) - s%zs(i,ie)) / s%dnv(i,j+1)
+                    delta2    =  (s%zs(i ,ie) - s%zs(i ,j)) / s%dnv(i,j)
+                    s%hv(i,j)  = s%hv(i,j) - 0.5d0*s%dnv(i,j)*minmod(delta1,delta2)
+                    !
+                 endif
+                 !
+              endif
+              !
+           enddo
+        enddo
+    else
+        !
+        ! 1DH Code
+        !
+        j= 1
+        do i=1,s%nx-1
+           ! 
+           ie  = min(i+1,imax+1)
+           iee = min(i+2,imax+1)
+           iw  = max(i-1,1)
+           mindepth = minval(s%zs(iw:iee,j))-maxval(s%zb(iw:iee,j))
+           !
+           if (mindepth>par%eps) then
+              !
+              if     (s%uu(i,j) >  par%umin .and. i>imin    ) then
+                 ! 
+                 delta1    =  (s%zs(ie,j)- s%zs(i,j ))/ s%dsu(i,1)
+                 delta2    =  (s%zs(i,j) - s%zs(iw,j))/ s%dsu(i-1,1)
+                 s%hu(i,j)  = s%hu(i,j) +  0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
+                 !
+              elseif (s%uu(i,j) < -par%umin .and. i<imax) then
+                 ! 
+                 delta1    =  (s%zs(iee,j) - s%zs(ie,j)) / s%dsu(i+1,1)
+                 delta2    =  (s%zs(ie ,j) - s%zs(i ,j)) / s%dsu(i,1)
+                 s%hu(i,j)  = s%hu(i,j) - 0.5d0*s%dsu(i,1)*minmod(delta1,delta2)
+              endif
+              !
+           endif
+           !
+        enddo       
+        !
+    endif
+
+  end subroutine flow_secondorder_huhv
    !
    !==============================================================================
    real(kind=rKind) pure function minmod(delta1,delta2)
@@ -625,8 +1046,6 @@ contains
       !
       !--------------------------     LOCAL VARIABLES    ----------------------------
       !
-
-
       if (delta1*delta2 <= 0.0_rKind) then
          minmod = 0.0_rKind
          return
