@@ -1500,7 +1500,7 @@ end subroutine nonh_1lay_pred
   !
   do i=2,s%nx
     !  
-    if ( s%wetz(i,j) ) then
+    if ( s%wetz(i,j)==1 ) then
       !
         dzsdx = .5*( zsu(i,j) - zsu(i-1,j  ) )  / s%dsz(i,j)        
 
@@ -1522,7 +1522,7 @@ end subroutine nonh_1lay_pred
   !
   do i=2,s%nx
     !  
-    if ( s%wetz(i,j) ) then
+    if ( s%wetz(i,j)==1 ) then
         !
         dzbdx = .5*( zbu(i,j)  - zbu(i-1,j  ) ) / s%dsz(i,j)
         !
@@ -2292,7 +2292,7 @@ end subroutine nonh_2lay_pred_2dv
       !
       do i=2,s%nx
         !  
-        if ( s%wetz(i,j) ) then
+        if ( s%wetz(i,j)==1 ) then
             !        
             dzsdx = .5*( zsu(i,j) - zsu(i-1,j  ) )  / s%dsz(i,j)
             dzsdy = .5*( zsv(i,j) - zsv(i  ,j-1) )  / s%dnz(i,j)           
@@ -2319,7 +2319,7 @@ end subroutine nonh_2lay_pred_2dv
       !
       do i=2,s%nx
         !
-        if ( s%wetz(i,j) ) then
+        if ( s%wetz(i,j)==1 ) then
             !
             dzbdx = .5*( zbu(i,j)  - zbu(i-1,j  ) )
             dzbdy = .5*( zbv(i,j)  - zbv(i  ,j-1) )
@@ -2388,7 +2388,7 @@ end subroutine nonh_2lay_pred_2dv
       do i=2,s%nx
         !  
         !  
-        if ( s%wetz(i,j) ) then
+        if ( s%wetz(i,j)==1 ) then
             !
             Wm0(i,j) =  Wm(i,j) + .5d0 * ( s%wb(i,j) - s%ws(i,j) )           
             !
@@ -2699,7 +2699,7 @@ subroutine nonh_2lay_pred_3d(s,par,uu0,vv0)
      !
      do i=2,s%nx
        !  
-       if ( nonhZ(i,j) ) then
+       if ( nonhZ(i,j)==1 ) then
           !
           do k = 0,1
             !
@@ -3100,7 +3100,7 @@ subroutine nonh_2lay_pred_3d(s,par,uu0,vv0)
      !ARRAYS DU and DV need to be communicated
       call xmpi_shift_ee(s%dU)
       call xmpi_shift_ee(s%dV)
-#endif USEMPI         
+#endif         
    !          
 end subroutine nonh_2lay_pred_3d
 
@@ -3236,7 +3236,7 @@ subroutine nonh_break( s , par )
              dzdt = - ( s%uu(i,j) * s%hu(i,j) - s%uu(i-1,j) * s%hu(i-1,j) ) / s%dsz(i,j)
              !
              ineighbour = 0
-             if ( s%breaking(i-1,j) .or. s%breaking(i+1,j) == 1 ) then
+             if ( s%breaking(i-1,j)==1 .or. s%breaking(i+1,j) == 1 ) then
                 !
                 ineighbour = 1
                 !
