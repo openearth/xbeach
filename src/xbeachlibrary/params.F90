@@ -1539,23 +1539,28 @@ contains
       par%wearth = par%px*par%wearth/1800.d0
       !
       !
-      ! Only allow Baldock in stationary mode and Roelvink in non-stationary
+      ! Only allow Baldock or Janssen in stationary mode and Roelvink in non-stationary
       if (par%swave==1) then
          if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE) then
-            if (par%break .ne. BREAK_BALDOCK) then
+            if (par%break .ne. BREAK_BALDOCK .and. par%break .ne. BREAK_JANSSEN) then
                if(par%break == BREAK_ROELVINK_DALY) then
-                  call writelog('lwse','','Error: Roelvink-Daly formulations not implemented in stationary wave mode, use Baldock')
-                  call writelog('lwse','','         formulation.')
+                  call writelog('lwse','','Error: Roelvink-Daly formulations not implemented in stationary wave mode,')
+                  call writelog('lwse','','         use Baldock or Janssen formulation.')
                   call halt_program
                else
-                  call writelog('lwse','','Error: Roelvink formulations not allowed in stationary, use Baldock')
-                  call writelog('lwse','','         formulation.')
+                  call writelog('lwse','','Error: Roelvink formulations not allowed in stationary,')
+                  call writelog('lwse','','         use Baldock or Janssen formulation.')
                   call halt_program
                endif
             endif
          else
             if (par%break == BREAK_BALDOCK) then
                call writelog('lwse','','Error: Baldock formulation not allowed in non-stationary, use a Roelvink')
+               call writelog('lwse','','         formulation.')
+               call halt_program
+            endif
+            if (par%break == BREAK_JANSSEN) then
+               call writelog('lwse','','Error: Janssen formulation not allowed in non-stationary, use a Roelvink')
                call writelog('lwse','','         formulation.')
                call halt_program
             endif
