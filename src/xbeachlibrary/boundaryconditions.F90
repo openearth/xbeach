@@ -1502,7 +1502,7 @@ contains
                   ! make sure discharge is an inflow at border and water levels are defined
                   if (isborder) then
                      if (n1l.gt.1) then
-                        qnow = -1*abs(qnow)
+                        qnow = -1*qnow
                         s%hv(m1l:m2l,n1l) = s%hh(m1l:m2l,n1l)
                      elseif (n1l.lt.s%ny) then
                         s%hv(m1l:m2l,n1l) = s%hh(m1l:m2l,n1l+1)
@@ -1537,7 +1537,7 @@ contains
                   ! make sure discharge is an inflow at border and water levels are defined
                   if (isborder) then
                      if (m1l.gt.1) then
-                        qnow = -1*abs(qnow)
+                        qnow = -1*qnow
                         s%hu(m1l,n1l:n2l) = s%hh(m1l,n1l:n2l)
                      elseif (m1l.lt.s%nx) then
                         s%hu(m1l,n1l:n2l) = s%hh(m1l+1,n1l:n2l)
