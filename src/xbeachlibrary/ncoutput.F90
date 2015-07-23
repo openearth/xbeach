@@ -92,8 +92,8 @@ module ncoutput_module
    ! default output (fixed length)
 
    ! points
-   integer :: pointsdimid
-   integer :: xpointsvarid, ypointsvarid, pointtypesvarid, xpointindexvarid, ypointindexvarid
+   integer :: pointsdimid, pointnamelengthdimid
+   integer :: xpointsvarid, ypointsvarid, pointtypesvarid, xpointindexvarid, ypointindexvarid, stationidvarid
    integer, dimension(:), allocatable :: pointsvarids
    integer, dimension(:),allocatable  :: xpoints     ! model x-coordinate of output points
    integer, dimension(:),allocatable  :: ypoints     ! model y-coordinate of output points
@@ -277,6 +277,7 @@ contains
          ! points
          NF90(nf90_def_dim(ncid, 'points', npointstotal, pointsdimid))
          NF90(nf90_def_dim(ncid, 'pointtime', size(tpar%tpp), pointtimedimid))
+         NF90(nf90_def_dim(ncid, 'pointnamelength', 64, pointnamelengthdimid))
       end if
       if (outputm) then
          NF90(nf90_def_dim(ncid, 'meantime', size(tpar%tpm)-1, meantimedimid))
@@ -430,6 +431,10 @@ contains
          NF90(nf90_put_att(ncid, ypointsvarid, 'standard_name', 'projection_y_coordinate'))
          NF90(nf90_put_att(ncid, ypointsvarid, 'axis', 'Y'))
 
+         NF90(nf90_def_var(ncid, 'station_id', NF90_CHAR, (/ pointnamelengthdimid, pointsdimid /), stationidvarid))
+         NF90(nf90_put_att(ncid, stationidvarid, 'long_name', 'station identification code'))
+         NF90(nf90_put_att(ncid, stationidvarid, 'standard_name', 'station_id'))
+                  
          NF90(nf90_def_var(ncid, 'xpointindex', NF90_INT, (/ pointsdimid /), xpointindexvarid))
          ! wwvv above was NF90_DOUBLE
          NF90(nf90_put_att(ncid, xpointindexvarid, 'long_name', 'nearest x grid cell'))
@@ -618,6 +623,7 @@ contains
          NF90(nf90_put_var(ncid, xpointindexvarid, xpoints))
          NF90(nf90_put_var(ncid, ypointindexvarid, ypoints))
          NF90(nf90_put_var(ncid, pointtypesvarid, par%pointtypes))
+         NF90(nf90_put_var(ncid, stationidvarid, par%stationid(1:npointstotal)))
       end if
 
       NF90(nf90_close(ncid))
@@ -1695,11 +1701,7 @@ contains
       enddo
 
       do i=1,par%npoints+par%nrugauge
-         if (par%pointtypes(i)==0) then
-            write(fname,'("point",i0.3,".dat")') i
-         else
-            write(fname,'("rugau",i0.3,".dat")') i-par%npoints
-         endif
+         fname = trim(par%stationid(i)) // '.dat'
          if (par%pointtypes(i)==0) then
             reclenp=wordsize*(par%npointvar+1)
          else

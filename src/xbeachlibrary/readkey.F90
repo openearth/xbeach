@@ -520,14 +520,7 @@ contains
          ikey=0
          do i=1,nlines
             read(lun,'(a)')line
-            do itab=1,slen
-               if (ichar(line(itab:itab))<32 .or. ichar(line(itab:itab))>126) then  ! this is anything not in standard
-                  ! alphanumeric
-                  lineWithoutSpecials(itab:itab) = ' '
-               else
-                  lineWithoutSpecials(itab:itab) = line(itab:itab)
-               endif
-            enddo
+            lineWithoutSpecials = strippedline(line)
             line = lineWithoutSpecials
             ic=scan(line,'=')
             if (ic>0) then
@@ -1030,4 +1023,20 @@ contains
       count_lines = lines
 
    end function count_lines
+   
+   character(slen) function strippedline(line)
+   
+   character(slen),intent(in) :: line
+   integer  :: itab
+   
+   do itab=1,slen
+      if (ichar(line(itab:itab))<32 .or. ichar(line(itab:itab))>126) then  ! this is anything not in standard
+         ! alphanumeric
+         strippedline(itab:itab) = ' '
+      else
+         strippedline(itab:itab) = line(itab:itab)
+      endif
+   enddo
+   
+   end function
 end module readkey_module

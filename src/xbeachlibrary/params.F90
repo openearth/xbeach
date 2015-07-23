@@ -356,6 +356,7 @@ module params
       integer, dimension(:), pointer                     :: pointtypes => NULL()  !  [-] (advanced) Point types (0 = point, 1 = rugauge)
       real*8 ,dimension(:), pointer                      :: xpointsw => NULL()  ! (advanced) world x-coordinate of output points
       real*8 ,dimension(:), pointer                      :: ypointsw => NULL()  ! (advanced) world y-coordinate of output points
+      character(64), dimension(99)                       :: stationid = 'abc'  ! [-] (advanced,silent) Station id names of output points 
 
       integer*4     :: nrugdepth                  = -123    !  [-] (advanced) Number of depths to compute runup in runup gauge
       real*8,dimension(99) :: rugdepth            = -123    !  [m] (advanced) Minimum depth for determination of last wet point in runup gauge
@@ -2051,7 +2052,7 @@ contains
 
       real*8,dimension(:),allocatable          :: xpointsw,ypointsw
       integer, dimension(:), allocatable       :: pointtypes
-      integer                                  :: i
+      integer                                  :: i,j
       logical                                  :: xzfound, yzfound, zsfound
 
       ! These "targets" must be allocated by all processes
@@ -2071,16 +2072,9 @@ contains
                call readOutputStrings(par,'point')
             else
                ! This branch of the else will change to a halt_program statement in later versions (written on 13 January 2011)
-               call writelog('ls','','')
-               call writelog('lws','','************************** WARNING  ***************************')
-               call writelog('lws','','In future versions the keyword ''npointvar'' must be specified if ''npoints''>0')
-               call writelog('lws','','Current order of output in all point output files is:')
-               do i=1,par%npointvar
-                  call writelog('lws','',trim(par%pointvars(i)))
-               enddo
-               call writelog('lws','','Order of point output variables stored in ''pointvars.idx''')
-               call writelog('lws','','***************************************************************')
-               call writelog('ls','','')
+               call writelog('lswe','','Point output must be specified using keyword ''npointvar''')
+               call writelog('lswe','','Stopping simulation')
+               call halt_program
             endif  ! isSetParameter
          endif ! par%npoints>0
 
@@ -2108,6 +2102,20 @@ contains
                par%npointvar = par%npointvar + 1
             end if
          end if
+
+         ! Now check all point and runup gauge names
+         if(par%nrugauge+par%npoints>0) then
+            do i=1,par%nrugauge+par%npoints-1
+               do j=i+1,par%nrugauge+par%npoints
+                  if(par%stationid(i)==par%stationid(j)) then
+                     call writelog('lswe','','Duplicate names used for point station ID:')
+                     call writelog('lswe','',par%stationid(i))
+                     call writelog('lswe','','Stopping simulation')
+                     call halt_program
+                  endif
+               enddo
+            enddo
+         endif
 
          ! Set pointers correct
          allocate(par%pointtypes(size(pointtypes)))
@@ -2240,8 +2248,8 @@ contains
       character(slen)                          :: line,keyword,keyread,varline
       character(maxnamelen)                    :: varstr
       character(slen)                           :: fullline,errmes1,errmes2,okaymes
-      integer                                  :: i,imax,id,ic,imark,imarkold,imin,nvar,ivar,index,j
-      logical                                  :: varfound
+      integer                                  :: i,imax,id,ic,imark,imarkold,imin,nvar,ivar,index,j,ier,ier2
+      logical                                  :: varfound,readerror
 
       imin = 0
       imax = 0
@@ -2280,59 +2288,58 @@ contains
          ! Read positions
          do i=1,imax
             read(10,'(a)')fullline
+            ! remove tab characters
+            fullline = strippedline(fullline)
             ! Check params.txt has old (unsupported) method of defining points
             ic=scan(fullline,'#')
             if (ic .ne. 0) then ! This branch of the if/else will change to a halt_program statement in later versions
                ! (written on 13 January 2011)
-               if (.not. isSetParameter('params.txt','npointvar',bcast=.false.)) then
-                  read(fullline,*)xpoints(i+imin),ypoints(i+imin),nvar,varline
-                  if (readtype=='point') then   ! no use at all for rugauge output, which is fixed at x,y,zs
-                     imarkold = 0
-                     do ivar=1,nvar
-                        imark=scan(varline(imarkold+1:80),'#')
-                        imark=imark+imarkold
-                        varstr=varline(imarkold+1:imark-1)
-                        index = chartoindex(varstr)
-                        if (index/=-1) then
-                           ! see if we already found this variable....
-                           varfound = .false.
-                           do j=1,numvars
-                              if (par%pointvars(j) == varstr) then
-                                 varfound = .true.
-                              end if
-                           end do
-                           ! we have a new variable, store it
-                           if (varfound .eqv. .false.) then
-                              par%npointvar=par%npointvar+1
-                              par%pointvars(par%npointvar)=varstr
-                           end if
-                        else
-                           call writelog('sle','',' Unknown point output variable: ''',trim(varstr),'''')
+               call writelog('lswe','','Error in definition of point output.')
+               call writelog('lswe','','Use of #var1#var2#etc. is no longer valid')
+               call writelog('lswe','','Stopping simulation')
                            call halt_program
-                        endif
-                        imarkold=imark
-                     enddo
-                  endif ! type point
-               else   ! isset npointvar
-                  read(fullline,*)xpoints(i+imin),ypoints(i+imin),nvar,varline
-                  call writelog('lws','','Point output variables specified by ''npointvar'' will be selected over')
-                  call writelog('lws','','variables specified on the point location line in params.txt')
-               endif  ! isset npointvar
-               call writelog('ls','','')
-               call writelog('lws','','************************** WARNING  ***************************')
-               call writelog('lws','','Unsupported method of defining output',trim(errmes1),'variables')
-               call writelog('lws','',trim(fullline))
-               call writelog('lws','','Please remove "nvar var1#Var2#..." from definition of',trim(errmes1))
-               call writelog('lws','',trim(errmes2))
-               call writelog('lws','','This warning will become and error in future versions of XBeach')
-               call writelog('lws','','Refer to manual for complete documentation')
-               call writelog('lws','','***************************************************************')
-               call writelog('ls','','')
             else ! not old method of setting point output
-               read(fullline,*)xpoints(i+imin),ypoints(i+imin)
+               read(fullline,*,iostat=ier)xpoints(i+imin),ypoints(i+imin),par%stationid(i+imin)
+               ! error checking
+               if(ier==0) then
+                  ! all fine
+                  readerror=.false.
+               elseif(ier==-1) then
+                  ! line is too short, probably missing name of station
+                  ! try reading just the coordinates
+                  read(fullline,*,iostat=ier2)xpoints(i+imin),ypoints(i+imin)
+                  if (ier2==0) then
+                     ! coordinates okay, just name missing
+                     select case (readtype)
+                     case('point')
+                        write(par%stationid(i+imin),'("point",i0.3)') i
+                     case('rugauge')
+                        write(par%stationid(i+imin),'("rugau",i0.3)') i
+                     end select
+                     readerror=.false.
+                  else
+                     readerror=.true.
+                  endif
+               else
+                  readerror=.true.
+               endif
+               if(readerror) then
+                  ! Error reading point/rugauge input. Stop
+                  select case (readtype)
+                  case('point')
+                     call writelog('lswe','','Error reading output point location/name in the following line in params.txt:')
+                  case('rugauge')
+                     call writelog('lswe','','Error reading runup gauge location/name in the following line in params.txt:')
+                  end select
+                  call writelog('lswe','',trim(fullline))
+                  call writelog('lswe','','Stopping simulation')
+                  call halt_program
+               else
+                  call writelog('ls','(a,a,a,f0.2,a,f0.2)',&
+                             trim(okaymes),trim(par%stationid(i+imin)),' xpoint: ',&
+                             xpoints(i+imin),'   ypoint: ',ypoints(i+imin))
+               endif
             endif ! old method of point output
-            call writelog('ls','(a,i0,a,f0.2,a,f0.2)',&
-            trim(okaymes),i,' xpoint: ',xpoints(i+imin),'   ypoint: ',ypoints(i+imin))
          enddo
          close(10)
       endif

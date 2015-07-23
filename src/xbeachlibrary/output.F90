@@ -55,7 +55,8 @@ contains
 #ifdef USENETCDF
          call ncoutput_init(sglobal,slocal,par,tpar)
 #else
-         call writelog('lse', '', 'This xbeach executable has no netcdf support. Rebuild with netcdf or outputformat=fortran')
+         call writelog('lse', '', 'This xbeach executable has no netcdf support. ', & 
+                                  'Rebuild with netcdf or run with outputformat=fortran')
          call halt_program
 #endif
        case(OUTPUTFORMAT_DEBUG)
