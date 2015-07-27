@@ -97,20 +97,20 @@ module timestep_module
       real*8,dimension(:),allocatable     :: tpp ! point oputput times
       real*8,dimension(:),allocatable     :: tpm ! time average output times
       real*8,dimension(:),allocatable     :: tpc ! crosssection output times
-      real*8,dimension(:),allocatable     :: tpw ! wave output times
+      real*8,dimension(:),allocatable     :: tpw ! wave computation times
       real*8 :: tnext     = -123                 ! next time point for output
 
       integer                             :: itg ! global output index (1 based)
       integer                             :: itp ! point output index (1 based)
       integer                             :: itm ! time average output index (1 based)
       integer                             :: itc ! cross section output index (1 based)
-      integer                             :: itw ! wave output index (1 based)
+      integer                             :: itw ! wave computation index (1 based)
 
       logical                             :: outputg ! output global variables?
       logical                             :: outputp ! output point variables?
       logical                             :: outputm ! output time average variables?
       logical                             :: outputc ! output cross section variables?
-      logical                             :: outputw ! output wave variables
+      logical                             :: outputw ! stop for wave computation
       logical                             :: output  ! output any variable
    end type timepars
 
@@ -158,7 +158,7 @@ contains
 
       !!!!! OUTPUT TIME POINTS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! If working in instat 0 or instat 40 we want time to coincide at wavint timesteps
-      if (par%instat==INSTAT_STAT .or. par%instat==INSTAT_STAT_TABLE) then
+      if (par%instat==INSTAT_STAT .or. par%instat==INSTAT_STAT_TABLE .or. par%single_dir==1) then
          if(xmaster) then
             ii=ceiling(par%tstop/par%wavint)
             allocate(tpar%tpw(ii))
