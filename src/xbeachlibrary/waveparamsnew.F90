@@ -2066,8 +2066,8 @@ contains
       ! Set basic parameters for comparison if using nonh spectrum
       if (nonhspec) then
          lntheta = 1
-         lthetamin = -0.5d0*px
-         ldtheta = px
+         lthetamin = -px
+         ldtheta = 2*px
       else
          lntheta = s%ntheta
          lthetamin = s%thetamin

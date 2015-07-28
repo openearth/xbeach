@@ -204,8 +204,15 @@ contains
                par%m = int(2*spreadpar)
                if (par%morfacopt==1) bcendtime=bcendtime/max(par%morfac,1.d0)
                s%theta0=(1.5d0*par%px)-par%dir0*atan(1.d0)/45.d0
-               if (s%theta0>par%px) s%theta0=s%theta0-2*par%px
-               if (s%theta0<-par%px) s%theta0=s%theta0+2*par%px
+               do while(s%theta0<-par%px)
+                  s%theta0=s%theta0+2.d0*par%px
+               enddo
+               do while(s%theta0>par%px)
+                  s%theta0=s%theta0-2.d0*par%px
+               enddo
+               !s%theta0=mod(s%theta0,2*par%px)
+               !if (s%theta0>par%px) s%theta0=s%theta0-2*par%px
+               !if (s%theta0<-par%px) s%theta0=s%theta0+2*par%px
             endif
             s%newstatbc=1
 #ifdef USEMPI
@@ -307,8 +314,15 @@ contains
                endif
                s%theta0=(1.5d0*par%px)-par%dir0*atan(1.d0)/45.d0
                ! Jaap; make shore theta0 is also set between -px and px for new wave conditions
-               if (s%theta0>par%px) s%theta0=s%theta0-2*par%px
-               if (s%theta0<-par%px) s%theta0=s%theta0+2*par%px
+               do while(s%theta0<-par%px)
+                  s%theta0=s%theta0+2.d0*par%px
+               enddo
+               do while(s%theta0>par%px)
+                  s%theta0=s%theta0-2.d0*par%px
+               enddo
+               !s%theta0=mod(s%theta0,2*par%px)
+               !if (s%theta0>par%px) s%theta0=s%theta0-2*par%px
+               !if (s%theta0<-par%px) s%theta0=s%theta0+2*par%px
             endif
             s%newstatbc=1
 #ifdef USEMPI

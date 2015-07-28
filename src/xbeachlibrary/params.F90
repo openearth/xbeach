@@ -421,7 +421,7 @@ module params
       integer*4     :: nmpi                       = -123    ! [-] (advanced) Number of domains in alongshore direction when manually specifying mpi domains
 
       ! [Section] Constants, not read in params.txt
-      real*8               :: px                  = -123    !  [-] Pi
+      real*8               :: px                  =  4.d0*atan(1.d0)   !  [-] Pi
       complex(kind(0.0d0)) :: compi               = -123    !  [-] Imaginary unit
       real*8               :: rhog8               = -123    !  [Nm^-3] 1/8*rho*g
 
@@ -471,7 +471,7 @@ contains
       par%lwave       = readkey_int ('params.txt','lwave',         1,        0,     1)
       par%flow        = readkey_int ('params.txt','flow',          1,        0,     1)
       par%sedtrans    = readkey_int ('params.txt','sedtrans',      1,        0,     1)
-      par%morphology  = readkey_int ('params.txt','morphology',    1,        0,     1)
+      par%morphology  = readkey_int ('params.txt','morphology',    par%sedtrans,  0,1)
       par%avalanching = readkey_int ('params.txt','avalanching',   par%morphology,0,1)
       par%nonh        = readkey_int ('params.txt','nonh',          0,        0,     1)
       par%gwflow      = readkey_int ('params.txt','gwflow',        0,        0,     1)
@@ -580,12 +580,17 @@ contains
          par%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   0.d0,   360.d0)
          par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
       endif
-      par%thetamin = readkey_dbl ('params.txt','thetamin', -90.d0,    -180.d0,  180.d0,required=(par%swave==1))
-      par%thetamax = readkey_dbl ('params.txt','thetamax',  90.d0,    -180.d0,  180.d0,required=(par%swave==1))
-      par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   20.d0,required=(par%swave==1))
-      par%thetanaut= readkey_int ('params.txt','thetanaut',    0,        0,     1)
-      if (par%single_dir==1) then
-         par%dtheta_s   = readkey_dbl ('params.txt','dtheta_s',    10.d0,      0.1d0,   20.d0,required=(par%swave==1))
+      ! Wave directional grid
+      if(par%swave==1) then
+         par%thetamin = readkey_dbl ('params.txt','thetamin', -90.d0,    -180.d0,  180.d0,required=.true.)
+         par%thetamax = readkey_dbl ('params.txt','thetamax',  90.d0,    -180.d0,  180.d0,required=.true.)
+         par%thetanaut= readkey_int ('params.txt','thetanaut',    0,        0,     1)
+         if (par%single_dir==1) then
+            call writelog('ls','','dtheta will automatically be computed from thetamin and thetamax for single_dir = 1')
+            par%dtheta_s   = readkey_dbl ('params.txt','dtheta_s',    10.d0,      0.1d0,   20.d0,required=.true.)
+         else
+            par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   20.d0,required=.true.)
+         endif
       endif
       !
       !
@@ -1276,7 +1281,7 @@ contains
       par%timings  = readkey_int ('params.txt','timings',      1,       0,      1)
       testc = readkey_name('params.txt','tunits')
       if (len(trim(testc)) .gt. 0) par%tunits = trim(testc)
-      par%tstart  = readkey_dbl ('params.txt','tstart',   1.d0,      0.d0,1000000.d0)
+      par%tstart  = readkey_dbl ('params.txt','tstart',   0.d0,      0.d0,par%tstop)
       par%tint    = readkey_dbl ('params.txt','tint',     1.d0,     .01d0, 100000.d0)  ! Robert
       par%tsglobal = readkey_name('params.txt','tsglobal')
       if (par%tsglobal==' ') then
@@ -1397,10 +1402,14 @@ contains
          par%maxiter    = readkey_int ('params.txt','maxiter',    500,         2,      1000)
       endif
       ! only default to Snell's Law if in 1D and only one directional bin
-      if (par%ny==0 .and. nint(abs(par%thetamax-par%thetamin)/par%dtheta)<2) then
-         par%snells      = readkey_int ('params.txt','snells',    1,        0,     1)
+      if (par%single_dir == 0) then 
+         if (par%ny==0 .and. nint(abs(par%thetamax-par%thetamin)/par%dtheta)<2) then
+            par%snells      = readkey_int ('params.txt','snells',    1,        0,     1)
+         else
+            par%snells      = readkey_int ('params.txt','snells',    0,        0,     1)
+         endif
       else
-         par%snells      = readkey_int ('params.txt','snells',    0,        0,     1)
+         par%snells      = readkey_int ('params.txt','snells',    0,        0,     1,silent=.true.)
       endif
       !
       !
@@ -1488,7 +1497,6 @@ contains
       !
       !
       ! Constants
-      par%px    = 4.d0*atan(1.d0)
       par%compi = (0.0d0,1.0d0)
       par%rhog8 = 1.0d0/8.0d0*par%rho*par%g
       !
@@ -1707,6 +1715,14 @@ contains
       if (par%instat/=INSTAT_STAT .and. par%instat/=INSTAT_STAT_TABLE .and. par%wci==1) then
          call writelog('lws','','Warning: Wave-current interaction with non-stationary waves is still')
          call writelog('lws','','         experimental, continue with computation nevertheless')
+      endif
+      !
+      !
+      ! Check for setting Snells law and single_dir
+      if (par%single_dir == 1 .and. par%snells==1) then
+         call writelog('lse', '', 'The options ''single_dir = 1'' and ''snells = 1'' are not compatable')
+         call writelog('lse', '', 'Terminating simulation')
+         call halt_program
       endif
       !
       !

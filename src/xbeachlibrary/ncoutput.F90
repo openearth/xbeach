@@ -778,7 +778,7 @@ contains
             endif
          end do
          if (par%rotate==1) then
-	    call space_collect_mnem(s,sl,par,mnem_alfaz)
+	         call space_collect_mnem(s,sl,par,mnem_alfaz)
          endif
       endif
       

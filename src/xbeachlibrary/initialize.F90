@@ -248,99 +248,132 @@ contains
          call gridprops (s)
 
          s%zb0 = s%zb
-         !
-         ! Specify theta-grid
-         !
-         !
-         ! from Nautical wave directions in degrees to Cartesian wave directions in radian !!!
-         !
-         !      s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0 ! Updated in waveparams.f90 for instat 4,5,6,7
-         s%theta0=(1.5d0*par%px)-par%dir0*atan(1.d0)/45.d0 ! Updated in waveparams.f90 for instat 4,5,6,7
-         if (s%theta0<-par%px) s%theta0=s%theta0+2.d0*par%px
-         if (s%theta0> par%px) s%theta0=s%theta0-2.d0*par%px
+         if(par%swave==1) then
+            !
+            ! Specify theta-grid
+            !
+            !
+            ! from Nautical wave directions in degrees to Cartesian wave directions in radian !!!
+            !
+            !      s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0 ! Updated in waveparams.f90 for instat 4,5,6,7
+            s%theta0=(1.5d0*par%px)-par%dir0*atan(1.d0)/45.d0 ! Updated in waveparams.f90 for instat 4,5,6,7
+            do while(s%theta0<-par%px)
+               s%theta0=s%theta0+2.d0*par%px
+            enddo
+            do while(s%theta0>par%px)
+               s%theta0=s%theta0-2.d0*par%px
+            enddo
 
-         !degrad=par%px/180.d0
+            !degrad=par%px/180.d0
+            !
+            if (par%thetanaut==1) then
+               s%thetamin=(270-par%thetamax)*degrad
+               s%thetamax=(270-par%thetamin)*degrad
+            else
+               ! rotate theta grid to world coordinates for backwards compatibility
+               s%thetamin=par%thetamin+s%alfa/degrad
+               s%thetamax=par%thetamax+s%alfa/degrad
 
-         if (par%thetanaut==1) then
-            s%thetamin=(270-par%thetamax)*degrad
-            s%thetamax=(270-par%thetamin)*degrad
+               s%thetamin=s%thetamin*degrad
+               s%thetamax=s%thetamax*degrad
+            endif
+         
+            ! try and fix whatever strange angles given in params.txt 
+            s%thetamin = mod(s%thetamin,2.d0*par%px)
+            s%thetamax = mod(s%thetamax,2.d0*par%px)
+            ! thetamin should always be smaller than thetamax
+            if(s%thetamin>s%thetamax) then
+               if (s%thetamax>=0.d0) then
+                  do while(s%thetamin>s%thetamax)
+                     s%thetamin = s%thetamin-2.d0*par%px
+                  enddo
+               else
+                  do while(s%thetamin>s%thetamax)
+                     s%thetamax = s%thetamax+2.d0*par%px
+                  enddo
+               endif
+            elseif(s%thetamax>s%thetamin+2.d0*par%px)
+               do while(s%thetamax>s%thetamin+2.d0*par%px) ! note, most should already be captured by mod statements above,
+                                                           ! but can still occur under strange conditions
+                  s%thetamin = s%thetamin+2.d0*par%px
+               enddo
+            endif
+
+            !if (s%thetamax>par%px) then
+            !   s%thetamax=s%thetamax-2*par%px
+            !   s%thetamin=s%thetamin-2*par%px
+            !endif
+            !if (s%thetamin<-par%px) then
+            !   s%thetamax=s%thetamax+2*par%px
+            !   s%thetamin=s%thetamin+2*par%px
+            !endif
+
+         
+            if(par%single_dir==0) then
+               s%dtheta=par%dtheta*degrad
+               s%ntheta=nint((s%thetamax-s%thetamin)/s%dtheta)
+            else
+               s%dtheta=s%thetamax-s%thetamin
+               s%ntheta=1
+            endif
          else
-            ! rotate theta grid to world coordinates for backwards compatibility
-            s%thetamin=par%thetamin+s%alfa/degrad
-            s%thetamax=par%thetamax+s%alfa/degrad
-
-            s%thetamin=s%thetamin*degrad
-            s%thetamax=s%thetamax*degrad
-         endif
-
-         if (s%thetamax>par%px) then
-            s%thetamax=s%thetamax-2*par%px
-            s%thetamin=s%thetamin-2*par%px
-         endif
-         if (s%thetamin<-par%px) then
-            s%thetamax=s%thetamax+2*par%px
-            s%thetamin=s%thetamin+2*par%px
-         endif
-
-         if (par%swave==1) then
-            s%dtheta=par%dtheta*degrad
-            s%ntheta=nint((s%thetamax-s%thetamin)/s%dtheta)
-         else
-            s%dtheta=par%dtheta*degrad
+            s%dtheta=2*par%px
             s%ntheta = 1
          endif
 
+         ! Always allocate room incase of output request and memory sharing
          allocate(s%theta(1:s%ntheta))
          allocate(s%thet(1:s%nx+1,1:s%ny+1,1:s%ntheta))
          allocate(s%costh(1:s%nx+1,1:s%ny+1,1:s%ntheta))
          allocate(s%sinth(1:s%nx+1,1:s%ny+1,1:s%ntheta))
-
-         do itheta=1,s%ntheta
-            s%theta(itheta)=s%thetamin+s%dtheta/2+s%dtheta*(itheta-1)
-         end do
-
-         do itheta=1,s%ntheta
-            do j=1,s%ny+1
-               do i=1,s%nx+1
-                  s%thet(i,j,itheta) = s%theta(itheta)
-                  s%costh(i,j,itheta)=cos(s%theta(itheta)-s%alfaz(i,j))
-                  s%sinth(i,j,itheta)=sin(s%theta(itheta)-s%alfaz(i,j))
-               enddo
-            enddo
-         enddo
-
+         
          if (par%single_dir==1) then
             s%dtheta_s=par%dtheta_s*degrad
             s%ntheta_s=nint((s%thetamax-s%thetamin)/s%dtheta_s)
+         else
+            s%dtheta_s=2*par%px
+            s%ntheta_s=1
+         endif
 
-            allocate(s%theta_s(1:s%ntheta_s))
-            allocate(s%thet_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
-            allocate(s%costh_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
-            allocate(s%sinth_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
-
-            do itheta=1,s%ntheta_s
-               s%theta_s(itheta)=s%thetamin+s%dtheta_s/2+s%dtheta_s*(itheta-1)
+         ! Always allocate room incase of output request and memory sharing
+         allocate(s%theta_s(1:s%ntheta_s))
+         allocate(s%thet_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+         allocate(s%costh_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+         allocate(s%sinth_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+         
+         if (par%swave==1) then
+            do itheta=1,s%ntheta
+               s%theta(itheta)=mod(s%thetamin+s%dtheta/2+s%dtheta*(itheta-1),2*par%px)
             end do
 
-            do itheta=1,s%ntheta_s
+            do itheta=1,s%ntheta
                do j=1,s%ny+1
                   do i=1,s%nx+1
-                     s%thet_s(i,j,itheta) = s%theta_s(itheta)
-                     s%costh_s(i,j,itheta)=cos(s%theta_s(itheta)-s%alfaz(i,j))
-                     s%sinth_s(i,j,itheta)=sin(s%theta_s(itheta)-s%alfaz(i,j))
+                     s%thet(i,j,itheta) = s%theta(itheta)
+                     s%costh(i,j,itheta)=cos(mod(s%theta(itheta)-s%alfaz(i,j),2*par%px))
+                     s%sinth(i,j,itheta)=sin(mod(s%theta(itheta)-s%alfaz(i,j),2*par%px))
                   enddo
                enddo
             enddo
-         else
-            s%ntheta_s = 0
-            allocate(s%theta_s(s%ntheta_s))
-            allocate(s%thet_s (s%nx+1,s%ny+1,s%ntheta_s))
-            allocate(s%costh_s(s%nx+1,s%ny+1,s%ntheta_s))
-            allocate(s%sinth_s(s%nx+1,s%ny+1,s%ntheta_s))
+
+            if (par%single_dir==1) then
+               do itheta=1,s%ntheta_s
+                  s%theta_s(itheta)=mod(s%thetamin+s%dtheta_s/2+s%dtheta_s*(itheta-1),2*par%px)
+               end do
+
+               do itheta=1,s%ntheta_s
+                  do j=1,s%ny+1
+                     do i=1,s%nx+1
+                        s%thet_s(i,j,itheta) = s%theta_s(itheta)
+                        s%costh_s(i,j,itheta)=cos(mod(s%theta_s(itheta)-s%alfaz(i,j),2*par%px))
+                        s%sinth_s(i,j,itheta)=sin(mod(s%theta_s(itheta)-s%alfaz(i,j),2*par%px))
+                     enddo
+                  enddo
+               enddo
+            endif
          endif
-
       endif
-
+      
       !if (xmaster) then
       if(.true.) then
          ! Initialize dzbdx, dzbdy
