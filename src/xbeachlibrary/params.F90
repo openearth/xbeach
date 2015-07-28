@@ -782,9 +782,9 @@ contains
          else
             par%sprdthr         = readkey_dbl ('params.txt','sprdthr',      0.08d0,     0.d0,       1.d0    )
          endif
-         par%oldwbc          = readkey_int ('params.txt','oldwbc',       0,          0,          1       ,silent=.true.,strict=.true.)
-         par%correctHm0      = readkey_int ('params.txt','correctHm0',   1,          0,          1       ,silent=.true.,strict=.true.)
-         par%oldnyq          = readkey_int ('params.txt','oldnyq',       0,          0,          1       ,silent=.true.,strict=.true.)
+         par%oldwbc          = readkey_int ('params.txt','oldwbc',       0,          0,          1  ,silent=.true.,strict=.true.)
+         par%correctHm0      = readkey_int ('params.txt','correctHm0',   1,          0,          1  ,silent=.true.,strict=.true.)
+         par%oldnyq          = readkey_int ('params.txt','oldnyq',       0,          0,          1  ,silent=.true.,strict=.true.)
          par%Tm01switch      = readkey_int ('params.txt','Tm01switch',   0,          0,          1       ,strict=.true.)
 
          if (filetype==0) then
@@ -1269,7 +1269,8 @@ contains
             endif
          endif
          if (par%swrunup==1 .and. par%struct==0) then
-            call writelog('lws','(a)','Warning: swrunup can only be used in combination with struct=1. swrunup will be turned off.')
+            call writelog('lws','(a)', &
+            'Warning: swrunup can only be used in combination with struct=1. swrunup will be turned off.')
             par%swrunup = 0;
          endif
       endif

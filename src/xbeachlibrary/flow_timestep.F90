@@ -535,10 +535,10 @@ contains
                   vin         = s%vv(i-1,j)*cos(dalfa) - s%uv(i-1,j)*sin(dalfa)
                   if ((s%uu(i,j)-s%uu(i-1,j))>par%eps_sd) then
                      ! Conservation of energy head
-                     s%udvdx(i,j)     = s%udvdx(i,j) + 0.5d0*(s%uu(i-1,j)+s%uu(i-1,j+1))*(s%vv(i,j)-vin)*s%dnc(i-1,j)*s%dsdnvi(i,j)
+                     s%udvdx(i,j) = s%udvdx(i,j) + 0.5d0*(s%uu(i-1,j)+s%uu(i-1,j+1))*(s%vv(i,j)-vin)*s%dnc(i-1,j)*s%dsdnvi(i,j)
                   else
                      ! Conservation of momentum
-                     s%udvdx(i,j)     = s%udvdx(i,j) +        qin/s%hvm(i,j)          *(s%vv(i,j)-vin)*s%dnc(i-1,j)*s%dsdnvi(i,j)
+                     s%udvdx(i,j) = s%udvdx(i,j) +        qin/s%hvm(i,j)          *(s%vv(i,j)-vin)*s%dnc(i-1,j)*s%dsdnvi(i,j)
                   endif
                endif
                qin            = -.5d0*(s%qx(i,j)+s%qx(i,j+1))
