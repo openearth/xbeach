@@ -51,7 +51,7 @@ module readkey_module
    end interface read_v
 
 contains
-   real*8 function readkey_dbl(fname,key,defval,mnval,mxval,bcast,required,silent)
+   real*8 function readkey_dbl(fname,key,defval,mnval,mxval,bcast,required,silent,strict)
       ! if USEMPI then the master process will read the parameter,
       ! this value is subsequently broadcasted to the other processes
 
@@ -61,11 +61,11 @@ contains
       character(len=*)  :: fname,key
       character(slen)     :: printkey
       real*8            :: defval,mnval,mxval
-      logical, intent(in), optional :: bcast,required,silent
+      logical, intent(in), optional :: bcast,required,silent,strict
 
       character(slen)   :: value,tempout
       real*8         :: value_dbl
-      logical        :: lbcast,lrequired,lsilent
+      logical        :: lbcast,lrequired,lsilent,lstrict
       character(slen)  :: fmt
       integer          :: ier
 
@@ -88,6 +88,12 @@ contains
       else
          lsilent = .false.
       endif
+      
+      if (present(strict)) then
+         lstrict = strict
+      else
+         lstrict = .false.
+      endif
 
       !printkey=key
       printkey = ' '
@@ -103,7 +109,12 @@ contains
                tempout = trim(fname)//' (value of '''//trim(printkey)//''' cannot be interpreted)'
                call report_file_read_error(tempout)
             endif
-            if (value_dbl>mxval) then
+            if(lstrict .and. (value_dbl>mxval .or. value_dbl<mnval)) then
+               call writelog('sle','(a,a,a,f0.4)','Value of ',trim(printkey),' is ',value_dbl)
+               call writelog('sle','(a,a,f0.4,a,f0.4)',trim(printkey),' must be set between ',mnval,' and ',mxval)
+               call writelog('sle','','Terminating simulation')
+               call halt_program
+            elseif (value_dbl>mxval) then
                call writelog('lw','(a24,a,f0.4,a,f0.4)',(printkey),' = ',value_dbl,' Warning: value > recommended value of ',mxval)
                call writelog('s','(a24,a,a,f0.4)','Warning: ',trim(printkey),' > recommended value of ',mxval)
             elseif (value_dbl<mnval) then
@@ -135,7 +146,7 @@ contains
       readkey_dbl=value_dbl
    end function readkey_dbl
 
-   function readkey_int(fname,key,defval,mnval,mxval,bcast,required,silent) result (value_int)
+   function readkey_int(fname,key,defval,mnval,mxval,bcast,required,silent,strict) result (value_int)
       use xmpi_module
       use logging_module
       implicit none
@@ -144,8 +155,8 @@ contains
       character(slen)  :: value
       integer*4      :: value_int
       integer*4      :: defval,mnval,mxval,ier
-      logical, intent(in), optional :: bcast, required,silent
-      logical        :: lbcast,lrequired,lsilent
+      logical, intent(in), optional :: bcast, required,silent,strict
+      logical        :: lbcast,lrequired,lsilent,lstrict
       character(slen)  :: fmt,tempout
 
       fmt = '(a,a,a,i0,a,i0)'
@@ -167,6 +178,12 @@ contains
       else
          lsilent = .false.
       endif
+      
+      if (present(strict)) then
+         lstrict = strict
+      else
+         lstrict = .false.
+      endif
 
       printkey = ' '
       printkey(2:24)=trim(key)
@@ -180,7 +197,12 @@ contains
                tempout = trim(fname)//' (value of '''//trim(printkey)//''' cannot be interpreted)'
                call report_file_read_error(tempout)
             endif
-            if (value_int>mxval) then
+            if(lstrict .and. (value_int>mxval .or. value_int<mnval)) then
+               call writelog('sle','(a,a,a,i0)','Value of ',trim(printkey),' is ',value_int)
+               call writelog('sle','(a,a,i0,a,i0)',trim(printkey),' must be set between ',mnval,' and ',mxval)
+               call writelog('sle','','Terminating simulation')
+               call halt_program
+            elseif (value_int>mxval) then
                call writelog('lw',fmt,'Warning: variable ',(printkey),' ',value_int,' > recommended value of ',mxval)
                call writelog('s','(a24,a,a,i0)','Warning: ',trim(printkey),' > recommended value of ',mxval)
             elseif (value_int<mnval) then
