@@ -531,7 +531,7 @@ contains
                      limtype = 2
                      dtold = par%dt
                   endif
-                   
+
                   mdx = min(s%dsu(i,j2),s%dsz(i,j2))**2
 
                   if (par%dy > 0.d0) then

@@ -655,7 +655,7 @@ contains
 
       integer k
 
-      p = -123 
+      p = -123
 
       do k = 1,xmpi_size
          if (i .ge. sl%icgs(k) .and. i .le. sl%icge(k) .and. &

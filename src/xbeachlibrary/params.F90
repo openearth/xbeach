@@ -356,7 +356,7 @@ module params
       integer, dimension(:), pointer                     :: pointtypes => NULL()  !  [-] (advanced) Point types (0 = point, 1 = rugauge)
       real*8 ,dimension(:), pointer                      :: xpointsw => NULL()  ! (advanced) world x-coordinate of output points
       real*8 ,dimension(:), pointer                      :: ypointsw => NULL()  ! (advanced) world y-coordinate of output points
-      character(64), dimension(99)                       :: stationid = 'abc'  ! [-] (advanced,silent) Station id names of output points 
+      character(64), dimension(99)                       :: stationid = 'abc'  ! [-] (advanced,silent) Station id names of output points
 
       integer*4     :: nrugdepth                  = -123    !  [-] (advanced) Number of depths to compute runup in runup gauge
       real*8,dimension(99) :: rugdepth            = -123    !  [m] (advanced) Minimum depth for determination of last wet point in runup gauge
@@ -1132,7 +1132,7 @@ contains
             par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,2,0,3)
             par%dispc        = readkey_dbl('params.txt','dispc' ,-1.0d0,0.1d0,2.0d0)
          endif
-      
+
          if (par%nhbreaker==1) then
             par%breakviscfac = readkey_dbl('params.txt','breakviscfac',1.5d0, 1.d0, 3.d0)
             par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.6d0, 0.3d0, 0.8d0)
@@ -1324,25 +1324,25 @@ contains
       call setallowednames('fortran',             OUTPUTFORMAT_FORTRAN,  &
       'netcdf ',             OUTPUTFORMAT_NETCDF,   &
       'debug  ',             OUTPUTFORMAT_DEBUG)
-#ifdef USENETCDF 
+#ifdef USENETCDF
       ! Default to NetCDF output in case of NetCDF-enabled executable
       call parmapply('outputformat',2,par%outputformat,par%outputformat_str, &
       required = .false.) ! wwvv-todo
-#else     
+#else
       call parmapply('outputformat',1,par%outputformat,par%outputformat_str, &
       required = .false.) ! wwvv-todo
 #endif
       if(par%outputformat==OUTPUTFORMAT_NETCDF .or. &
-         par%outputformat==OUTPUTFORMAT_DEBUG) then
+      par%outputformat==OUTPUTFORMAT_DEBUG) then
          ! type of output precision
          call setallowednames('single',  OUTPUTPRECISION_SINGLE,  &
-                              'double',  OUTPUTPRECISION_DOUBLE)
+         'double',  OUTPUTPRECISION_DOUBLE)
          call parmapply('outputprecision',2,par%outputprecision,par%outputprecision_str,required = .false.)
          ! get the nc output file name from the parameter file
          par%ncfilename = readkey_name('params.txt','ncfilename')
          if (len(trim(par%ncfilename)) .eq. 0) par%ncfilename = 'xboutput.nc'
          call writelog('ls','','netcdf output to:' // par%ncfilename)
-      endif         
+      endif
       !
       !
       ! Output projection
@@ -1402,7 +1402,7 @@ contains
          par%maxiter    = readkey_int ('params.txt','maxiter',    500,         2,      1000)
       endif
       ! only default to Snell's Law if in 1D and only one directional bin
-      if (par%single_dir == 0) then 
+      if (par%single_dir == 0) then
          if (par%ny==0 .and. nint(abs(par%thetamax-par%thetamin)/par%dtheta)<2) then
             par%snells      = readkey_int ('params.txt','snells',    1,        0,     1)
          else
@@ -1574,7 +1574,7 @@ contains
                call halt_program
             endif
          endif
-      endif 
+      endif
       !
       !
       ! Convert cf from C
@@ -1762,7 +1762,7 @@ contains
                   call writelog('ewsl','','The number of subdomains selected to run the model is ',xmpi_size,'.')
                   call writelog('ewsl','','The total number of grid cells in y (ny) is ',par%ny,'.')
                   call writelog('ewsl','(a,f0.2,a)','The number of cells per domain is ',dble(par%ny)/xmpi_size, &
-                                                    ', which is less than the minimum value of 3')
+                  ', which is less than the minimum value of 3')
                   call writelog('ewsl','','If you really (!) know what you''re doing, use "mpiboundary = man" and deal')
                   call writelog('ewsl','','with any unsatisfactory results')
                   call halt_program
@@ -1770,11 +1770,11 @@ contains
                   par%mpiboundary=MPIBOUNDARY_X
                   par%mpiboundary_str='x'
                   call writelog('wsl','','Changing mpiboundary to "x" for stationary wave model')
-               endif 
+               endif
             endif
          endif
       endif
-#endif      
+#endif
       !
       !
       ! fix tint
@@ -2313,7 +2313,7 @@ contains
                call writelog('lswe','','Error in definition of point output.')
                call writelog('lswe','','Use of #var1#var2#etc. is no longer valid')
                call writelog('lswe','','Stopping simulation')
-                           call halt_program
+               call halt_program
             else ! not old method of setting point output
                read(fullline,*,iostat=ier)xpoints(i+imin),ypoints(i+imin),par%stationid(i+imin)
                ! error checking
@@ -2327,9 +2327,9 @@ contains
                   if (ier2==0) then
                      ! coordinates okay, just name missing
                      select case (readtype)
-                     case('point')
+                      case('point')
                         write(par%stationid(i+imin),'("point",i0.3)') i
-                     case('rugauge')
+                      case('rugauge')
                         write(par%stationid(i+imin),'("rugau",i0.3)') i
                      end select
                      readerror=.false.
@@ -2342,9 +2342,9 @@ contains
                if(readerror) then
                   ! Error reading point/rugauge input. Stop
                   select case (readtype)
-                  case('point')
+                   case('point')
                      call writelog('lswe','','Error reading output point location/name in the following line in params.txt:')
-                  case('rugauge')
+                   case('rugauge')
                      call writelog('lswe','','Error reading runup gauge location/name in the following line in params.txt:')
                   end select
                   call writelog('lswe','',trim(fullline))
@@ -2352,8 +2352,8 @@ contains
                   call halt_program
                else
                   call writelog('ls','(a,a,a,f0.2,a,f0.2)',&
-                             trim(okaymes),trim(par%stationid(i+imin)),' xpoint: ',&
-                             xpoints(i+imin),'   ypoint: ',ypoints(i+imin))
+                  trim(okaymes),trim(par%stationid(i+imin)),' xpoint: ',&
+                  xpoints(i+imin),'   ypoint: ',ypoints(i+imin))
                endif
             endif ! old method of point output
          enddo

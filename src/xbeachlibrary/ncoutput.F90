@@ -124,7 +124,7 @@ module ncoutput_module
 
    integer                     :: noutnumbers = 0  ! the number of outnumbers
    integer, dimension(numvars) :: outnumbers  ! numbers, corrsponding to mnemonics, which are to be output
-    
+
    ! Output type
    integer                     :: NCREAL ! can be NF90_double or NF90_float
 contains
@@ -209,14 +209,14 @@ contains
       outputp = .false.
 
       ! initialize values
-            
+
       ! set output precision for NetCDF
       if(par%outputprecision == OUTPUTPRECISION_SINGLE) then
          NCREAL = NF90_REAL
       else
          NCREAL = NF90_DOUBLE
       endif
-      
+
       ! global
 
       ! store netcdf variable ids for each variable
@@ -434,7 +434,7 @@ contains
          NF90(nf90_def_var(ncid, 'station_id', NF90_CHAR, (/ pointnamelengthdimid, pointsdimid /), stationidvarid))
          NF90(nf90_put_att(ncid, stationidvarid, 'long_name', 'station identification code'))
          NF90(nf90_put_att(ncid, stationidvarid, 'standard_name', 'station_id'))
-                  
+
          NF90(nf90_def_var(ncid, 'xpointindex', NF90_INT, (/ pointsdimid /), xpointindexvarid))
          ! wwvv above was NF90_DOUBLE
          NF90(nf90_put_att(ncid, xpointindexvarid, 'long_name', 'nearest x grid cell'))
@@ -511,7 +511,7 @@ contains
          NF90(nf90_def_dim(ncid, 'drifterstime2', 2, driftersdimid2))
          do i=1,par%ndrifter
             ! we need the following dimensions per drifter:
-            !    driftersdimid2    : 2 
+            !    driftersdimid2    : 2
             !    drifterstimedimid : number of output time steps
             dimids(1) = driftersdimid2
             dimids(2) = drifterstimedimid
@@ -714,7 +714,7 @@ contains
       integer                                     :: xpii, ypii
       integer                                     :: rugx, rugy
 
-      type (pointoutput), dimension(:,:), allocatable :: pointoutputs 
+      type (pointoutput), dimension(:,:), allocatable :: pointoutputs
 
       real*8, dimension(:,:), allocatable :: runups,runups1   ! runups(:,i) will contain the 1+par%nrugdepth*3 runup values
       !                                                       ! for runup number i(i=1 .. par%nrugauge)
@@ -741,8 +741,8 @@ contains
 
       ! time for point output?
       dooutput_point  = tpar%outputp .and. par%npointvar .gt. 0  &
-                        .and. par%npoints+par%nrugauge .gt. 0
-      
+      .and. par%npoints+par%nrugauge .gt. 0
+
       ! time for drifter output?
       dooutput_drifter  = tpar%outputp .and. par%ndrifter .gt. 0
 
@@ -759,29 +759,29 @@ contains
             call space_collect_index(s,sl,par,index)
             if (par%rotate==1) then
                sistermnemalloc = get_sister_mnem(mnem)
-	       
-	       select case (sistermnemalloc)
-	       case ('none')
-	          ! nothing
-	       case default
-	          call space_collect_mnem(s,sl,par,sistermnemalloc)
-	       end select
-	       
-	       select case(mnem)
-	       case(mnem_Sutot,mnem_Svtot)
-	          call space_collect_mnem(s,sl,par,mnem_Subg)
-	          call space_collect_mnem(s,sl,par,mnem_Svbg)
-	          call space_collect_mnem(s,sl,par,mnem_Susg)
-	          call space_collect_mnem(s,sl,par,mnem_Svsg)
-	       end select
-	       
+
+               select case (sistermnemalloc)
+                case ('none')
+                  ! nothing
+                case default
+                  call space_collect_mnem(s,sl,par,sistermnemalloc)
+               end select
+
+               select case(mnem)
+                case(mnem_Sutot,mnem_Svtot)
+                  call space_collect_mnem(s,sl,par,mnem_Subg)
+                  call space_collect_mnem(s,sl,par,mnem_Svbg)
+                  call space_collect_mnem(s,sl,par,mnem_Susg)
+                  call space_collect_mnem(s,sl,par,mnem_Svsg)
+               end select
+
             endif
          end do
          if (par%rotate==1) then
-	         call space_collect_mnem(s,sl,par,mnem_alfaz)
+            call space_collect_mnem(s,sl,par,mnem_alfaz)
          endif
       endif
-      
+
 #endif
       ! USEMPI
 
@@ -797,8 +797,8 @@ contains
          ! wwvv in stead of sends and receives, probably more simple is the use of mpi_alltoallw
          !
       endif  !dooutput_point
-#endif   
-        ! USEMPI
+#endif
+      ! USEMPI
 
       ! If we're gonna write some mean output
       if(dooutput_mean) then
@@ -835,10 +835,10 @@ contains
       !      step 4: send the value of this point to xomaster (xmpi_send) after
       !              if( .not. xomaster) return
       !
-      !      the points are assembled in pointoutputs, which is an 2-d array 
+      !      the points are assembled in pointoutputs, which is an 2-d array
       !        of type(pointoutput), which is described above.
-      !        
-      !        pointoutputs(i,j) contains the values for pointvariable i 
+      !
+      !        pointoutputs(i,j) contains the values for pointvariable i
       !                                              and coordinates   j
 
       if (dooutput_point) then
@@ -849,7 +849,7 @@ contains
          allocate(runups (size(tempvectorr),par%nrugauge))
          allocate(runups1(size(tempvectorr),par%nrugauge))
          ! WD: new code
-         ! first: compute run gauge 
+         ! first: compute run gauge
          if(xcompute) then
             allocate(xpoints1(par%nrugauge))
             xpoints1 = s%nx+1
@@ -1477,15 +1477,15 @@ contains
       if (dooutput_drifter) then
          itd = itd+1
 #ifdef USENETCDF
-            if (donetcdf) then
-               ! output time:
-               NF90(nf90_put_var(ncid, drifterstimevarid, CONVREAL(par%t), start=(/itd/)))
-            endif
+         if (donetcdf) then
+            ! output time:
+            NF90(nf90_put_var(ncid, drifterstimevarid, CONVREAL(par%t), start=(/itd/)))
+         endif
 #endif
          do i=1,par%ndrifter
             if (  par%t>=s%tdriftb(i) .and. par%t<=s%tdrifte(i) .and. &
-                &     s%idrift(i)>1       .and. s%idrift(i)<=s%nx   .and. &
-                &     s%jdrift(i)>1       .and. s%jdrift(i)<=s%ny             ) then
+            &     s%idrift(i)>1       .and. s%idrift(i)<=s%nx   .and. &
+            &     s%jdrift(i)>1       .and. s%jdrift(i)<=s%ny             ) then
 
                iz = int(s%idrift(i))
                jz = int(s%jdrift(i))
@@ -1635,9 +1635,9 @@ contains
       if(xomaster) then
          if (par%nrugauge>0) then
             rugrowindex = ypoints(par%npoints+1:)
-               !do i=1,par%nrugauge
-               !   rugrowindex(i)=ypoints(par%npoints+i)
-               !enddo
+            !do i=1,par%nrugauge
+            !   rugrowindex(i)=ypoints(par%npoints+i)
+            !enddo
          endif
       endif
 #ifdef USEMPI
