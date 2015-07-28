@@ -292,7 +292,7 @@ contains
                      s%thetamax = s%thetamax+2.d0*par%px
                   enddo
                endif
-            elseif(s%thetamax>s%thetamin+2.d0*par%px)
+            elseif(s%thetamax>s%thetamin+2.d0*par%px) then
                do while(s%thetamax>s%thetamin+2.d0*par%px) ! note, most should already be captured by mod statements above,
                   ! but can still occur under strange conditions
                   s%thetamin = s%thetamin+2.d0*par%px
