@@ -109,7 +109,7 @@ contains
          open(fid,file=trim(fname))
          read(fid,*,iostat=iost)((dat(i,j),i=1,d1),j=1,d2)
          if (iost .ne. 0) then
-            call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.', &
+            call writelog('sle','','Error processing file ''',trim(fname),'''. File may be too short or contains invalid values.',&
             ' Terminating simulation')
             call halt_program
          endif

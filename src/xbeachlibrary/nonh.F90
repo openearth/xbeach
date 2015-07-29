@@ -1797,7 +1797,7 @@ contains
 
             fac = par%dt / s%hh(i,j) / s%dsz(i,j)
 
-            Wm(i,j) = Wm_old(i,j) +  fac * Wm_old(i,j) * ( s%qx(i,j) - s%qx(i-1,j) ) - fac * ( qx(1) * faceval(1) - qx(0) * faceval(0) )
+            Wm(i,j) = Wm_old(i,j) + fac * Wm_old(i,j)*( s%qx(i,j) - s%qx(i-1,j) ) - fac*( qx(1) * faceval(1) - qx(0) * faceval(0) )
             !
          else
             !
@@ -1835,7 +1835,7 @@ contains
 
                fac = par%dt / s%hum(i,j) / s%dsu(i,j)
 
-               s%dU(i,j) = dU0(i,j) + .5 * fac *dU0(i,j) * ( s%qx(i+1,j) - s%qx(i-1,j) ) - fac * ( qx(1)*faceval(1) - qx(0)*faceval(0) )
+               s%dU(i,j) = dU0(i,j) + .5 *fac*dU0(i,j) *( s%qx(i+1,j) - s%qx(i-1,j) ) - fac*( qx(1)*faceval(1) - qx(0)*faceval(0) )
                !
             else
                !
@@ -2324,7 +2324,7 @@ contains
                dzbdx = .5*( zbu(i,j)  - zbu(i-1,j  ) )
                dzbdy = .5*( zbv(i,j)  - zbv(i  ,j-1) )
 
-               s%wb(i,j) = +  dzbdx * (  s%uu(i,j) + s%uu(i-1,j  ) + ( s%dU(i,j) + s%dU(i-1,j  ) ) * (1- wcoef(i,j)) ) / s%dsz(i,j) &
+               s%wb(i,j) = + dzbdx * ( s%uu(i,j) + s%uu(i-1,j  ) + ( s%dU(i,j) + s%dU(i-1,j  ) ) * (1- wcoef(i,j)) ) / s%dsz(i,j) &
                +  dzbdy * (  s%vv(i,j) + s%vv(i  ,j-1) + ( s%dV(i,j) + s%dV(i  ,j-1) ) * (1- wcoef(i,j)) ) / s%dnz(i,j)
                !
             else

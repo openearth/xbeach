@@ -1364,14 +1364,14 @@ contains
                            &                     start=(/1,1,tpar%itm-1/) )
                            if (status /= nf90_noerr) call handle_err(status,__FILE__,__LINE__)
                         else
-                           NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%mean2d), start=(/1,1,tpar%itm-1/)))
+                           NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%mean2d),start=(/1,1,tpar%itm-1/)))
                         end if
                       case('var')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%variance2d), start=(/1,1,tpar%itm-1/)))
+                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%variance2d),start=(/1,1,tpar%itm-1/)))
                       case('min')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%min2d), start=(/1,1,tpar%itm-1/)))
+                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%min2d),start=(/1,1,tpar%itm-1/)))
                       case('max')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%max2d), start=(/1,1,tpar%itm-1/)))
+                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%max2d),start=(/1,1,tpar%itm-1/)))
                       case default
                         write(0,*) 'Can''t handle cell method: ', trim(meanvartypes(j)), ' of mnemonic', trim(t%name)
                      end select
@@ -1380,7 +1380,7 @@ contains
                       case('mean')
                         NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%mean3d), start=(/1,1,1,tpar%itm-1/) ))
                       case('var')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%variance3d), start=(/1,1,1,tpar%itm-1/)))
+                        NF90(nf90_put_var(ncid,meanvarids(i,j),CONVREAL(meansparsglobal(i)%variance3d),start=(/1,1,1,tpar%itm-1/)))
                       case('min')
                         NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%min3d), start=(/1,1,1,tpar%itm-1/) ))
                       case('max')
@@ -1391,9 +1391,10 @@ contains
                    case(4)
                      select case(meanvartypes(j))
                       case('mean')
-                        NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%mean4d), start=(/1,1,1,1,tpar%itm-1/)))
+                        NF90(nf90_put_var(ncid, meanvarids(i,j),CONVREAL(meansparsglobal(i)%mean4d), start=(/1,1,1,1,tpar%itm-1/)))
                       case('var')
-                        NF90(nf90_put_var(ncid,meanvarids(i,j),CONVREAL(meansparsglobal(i)%variance4d),start=(/1,1,1,1,tpar%itm-1/)))
+                        NF90(nf90_put_var(ncid,meanvarids(i,j),CONVREAL(meansparsglobal(i)%variance4d),&
+                                          start=(/1,1,1,1,tpar%itm-1/)))
                       case('min')
                         NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%min4d), start=(/1,1,1,1,tpar%itm-1/)))
                       case('max')
