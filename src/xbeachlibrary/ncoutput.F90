@@ -1393,8 +1393,7 @@ contains
                       case('mean')
                         NF90(nf90_put_var(ncid, meanvarids(i,j),CONVREAL(meansparsglobal(i)%mean4d), start=(/1,1,1,1,tpar%itm-1/)))
                       case('var')
-                        NF90(nf90_put_var(ncid,meanvarids(i,j),CONVREAL(meansparsglobal(i)%variance4d),&
-                                          start=(/1,1,1,1,tpar%itm-1/)))
+                        NF90(nf90_put_var(ncid,meanvarids(i,j),CONVREAL(meansparsglobal(i)%variance4d),start=(/1,1,1,1,tpar%itm-1/)))
                       case('min')
                         NF90(nf90_put_var(ncid, meanvarids(i,j), CONVREAL(meansparsglobal(i)%min4d), start=(/1,1,1,1,tpar%itm-1/)))
                       case('max')
