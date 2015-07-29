@@ -107,7 +107,7 @@ contains
       !  GENERATE AND READ-IN WAVE BOUNDARY CONDITIONS
       !
       ! added for bound long wave comp Ad 28 march 2006
-      s%dtheta = par%dtheta*par%px/180
+      ! s%dtheta = par%dtheta*par%px/180
       startbcf=.false.
 
       if(.not. bccreated ) then
