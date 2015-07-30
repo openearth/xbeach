@@ -178,8 +178,8 @@ contains
          cgym = s%cg*dsin(s%thetamean) + s%vmwci*min((s%zswci-s%zb)/par%hwci,1.d0)
          cgxm = s%cg*dcos(s%thetamean) + s%umwci*min((s%zswci-s%zb)/par%hwci,1.d0)
 
-         call slope2D(kmx,s%nx,s%ny,s%dsu,s%dnv,dkmxdx,dkmxdy)
-         call slope2D(kmy,s%nx,s%ny,s%dsu,s%dnv,dkmydx,dkmydy)
+         call slope2D(kmx,s%nx,s%ny,s%dsu,s%dnv,dkmxdx,dkmxdy,s%wetu,s%wetv)
+         call slope2D(kmy,s%nx,s%ny,s%dsu,s%dnv,dkmydx,dkmydy,s%wetu,s%wetv)
          call advecwx(s%wm,xwadvec,kmx,s%nx,s%ny,s%dsu)   ! cjaap: s%xz or s%xu?
          kmx = kmx -par%dt*xwadvec  -par%dt*cgym*(dkmydx-dkmxdy)
          if (s%ny>0) then
@@ -234,9 +234,9 @@ contains
       endif ! end wave current interaction
 
       ! Slopes of water depth
-      call slope2D(max(s%hh,par%delta*s%H),s%nx,s%ny,s%dsu,s%dnv,dhdx,dhdy)
-      call slope2D(wcifacu,s%nx,s%ny,s%dsu,s%dnv,dudx,dudy)
-      call slope2D(wcifacv,s%nx,s%ny,s%dsu,s%dnv,dvdx,dvdy)
+      call slope2D(max(s%hh,par%delta*s%H),s%nx,s%ny,s%dsu,s%dnv,dhdx,dhdy,s%wetu,s%wetv)
+      call slope2D(wcifacu,s%nx,s%ny,s%dsu,s%dnv,dudx,dudy,s%wetu,s%wetv)
+      call slope2D(wcifacv,s%nx,s%ny,s%dsu,s%dnv,dvdx,dvdy,s%wetu,s%wetv)
       !
       ! Calculate once sinh(2kh)
       where(2*s%hh*s%k<=3000.d0)

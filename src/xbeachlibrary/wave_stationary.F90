@@ -124,12 +124,12 @@ contains
 
 
       ! Slopes of water depth
-      call slope2D(max(s%hh,par%delta*s%H),s%nx,s%ny,s%dsu,s%dnv,dhdx,dhdy)
+      call slope2D(max(s%hh,par%delta*s%H),s%nx,s%ny,s%dsu,s%dnv,dhdx,dhdy,s%wetu,s%wetv)
       ! Dano limit slopes used in refraction to avoid unrealistic refraction speeds
       dhdx=sign(1.d0,dhdx)*min(abs(dhdx),0.1d0)
       dhdy=sign(1.d0,dhdy)*min(abs(dhdy),0.1d0)
-      call slope2D(s%u*par%wci,s%nx,s%ny,s%dsu,s%dnv,dudx,dudy)
-      call slope2D(s%v*par%wci,s%nx,s%ny,s%dsu,s%dnv,dvdx,dvdy)
+      call slope2D(s%u*par%wci,s%nx,s%ny,s%dsu,s%dnv,dudx,dudy,s%wetu,s%wetv)
+      call slope2D(s%v*par%wci,s%nx,s%ny,s%dsu,s%dnv,dvdx,dvdy,s%wetu,s%wetv)
 
       ! wwvv these slope routines are in wave_timestep, and are
       !   MPI-aware

@@ -6,7 +6,7 @@ module wave_functions_module
 
 contains
 
-   subroutine slope2D(h,nx,ny,dsu,dnv,dhdx,dhdy)
+   subroutine slope2D(h,nx,ny,dsu,dnv,dhdx,dhdy,wetu,wetv)
       use xmpi_module
       implicit none
 
@@ -14,33 +14,50 @@ contains
       real*8, dimension(nx+1,ny+1)      :: h,dhdx,dhdy
       real*8, dimension(nx+1,ny+1)           :: dsu
       real*8, dimension(nx+1,ny+1)           :: dnv
+      integer, dimension(nx+1,ny+1)          :: wetu,wetv
 
 
       ! wwvv dhdx(2:nx,:) is computed, dhdx(1,:) and dhdx(nx+1,:)
       ! get boundary values, so in the parallel case, we need
       ! to do something about that: get the boundaries from
       ! upper and lower neighbours
-
-      do j=1,ny+1
-         if(nx+1>=2)then
-            do i=2,nx
-               dhdx(i,j)=(h(i+1,j)-h(i-1,j))/(dsu(i,j)+dsu(i-1,j))
-            end do
+      
+      ! u-gradients
+      if(nx+1>=2) then
+         forall(i=2:nx,j=1:ny+1,wetu(i,j)==1)
+            dhdx(i,j)=(h(i+1,j)-h(i-1,j))/(dsu(i,j)+dsu(i-1,j))
+         endforall
+         forall(j=1:ny+1,wetu(1,j)==1)
             dhdx(1,j)=(h(2,j)-h(1,j))/dsu(1,j)
+         endforall
+         forall(j=1:ny+1,wetu(nx+1,j)==1)
             dhdx(nx+1,j)=(h(nx+1,j)-h(nx,j))/dsu(nx,j)
-         end if
-      end do
-
-      do i=1,nx+1
-         if(ny+1>=2)then
-            do j=2,ny
-               dhdy(i,j)=(h(i,j+1)-h(i,j-1))/(dnv(i,j)+dnv(i,j-1))
-            end do
+         endforall
+         where(wetu==0)
+            dhdx=0.d0
+         endwhere
+      else
+         dhdx=0.d0
+      endif
+      
+      ! v-gradients
+      if(ny+1>=2) then
+         forall(i=1:nx+1,j=2:ny,wetv(i,j)==1)
+            dhdy(i,j)=(h(i,j+1)-h(i,j-1))/(dnv(i,j)+dnv(i,j-1))
+         endforall
+         forall(i=1:nx+1,wetv(i,1)==1)
             dhdy(i,1)=(h(i,2)-h(i,1))/dnv(i,1)
+         endforall
+         forall(i=1:nx+1,wetv(i,ny+1)==1)
             dhdy(i,ny+1)=(h(i,ny+1)-h(i,ny))/dnv(i,ny)
-         end if
-      end do
-
+         endforall
+         where(wetv==0)
+            dhdy=0.d0
+         endwhere
+      else
+         dhdy=0.d0
+      endif
+      
    end subroutine slope2D
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
