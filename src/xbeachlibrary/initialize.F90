@@ -337,10 +337,10 @@ contains
          else
             s%dtheta_s=2*par%px
             s%ntheta_s=0
-            allocate(s%theta_s(0))
-            allocate(s%thet_s(0,0,0))
-            allocate(s%costh_s(0,0,0))
-            allocate(s%sinth_s(0,0,0))
+            allocate(s%theta_s(1:s%ntheta))
+            allocate(s%thet_s(1:s%nx+1,1:s%ny+1,1:s%ntheta))
+            allocate(s%costh_s(1:s%nx+1,1:s%ny+1,1:s%ntheta))
+            allocate(s%sinth_s(1:s%nx+1,1:s%ny+1,1:s%ntheta))
          endif
 
          ! Always allocate room incase of output request and memory sharing
