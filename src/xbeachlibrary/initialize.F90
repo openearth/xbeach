@@ -330,16 +330,21 @@ contains
          if (par%single_dir==1) then
             s%dtheta_s=par%dtheta_s*degrad
             s%ntheta_s=nint((s%thetamax-s%thetamin)/s%dtheta_s)
+            allocate(s%theta_s(1:s%ntheta_s))
+            allocate(s%thet_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+            allocate(s%costh_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+            allocate(s%sinth_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
          else
             s%dtheta_s=2*par%px
-            s%ntheta_s=1
+            s%ntheta_s=0
+            allocate(s%theta_s(0))
+            allocate(s%thet_s(0,0,0))
+            allocate(s%costh_s(0,0,0))
+            allocate(s%sinth_s(0,0,0))
          endif
 
          ! Always allocate room incase of output request and memory sharing
-         allocate(s%theta_s(1:s%ntheta_s))
-         allocate(s%thet_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
-         allocate(s%costh_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
-         allocate(s%sinth_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+         
 
          if (par%swave==1) then
             do itheta=1,s%ntheta
@@ -479,11 +484,16 @@ contains
       allocate(s%sigt(1:s%nx+1,1:s%ny+1,1:s%ntheta))
       allocate(s%ee(1:s%nx+1,1:s%ny+1,1:s%ntheta))
       allocate(s%rr(1:s%nx+1,1:s%ny+1,1:s%ntheta))
-      if (par%single_dir==1) then
+      if (par%single_dir==1) then ! Robert: always allocate these variables
          allocate(s%cgx_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
          allocate(s%cgy_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
          allocate(s%ctheta_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
          allocate(s%ee_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+      else
+         allocate(s%cgx_s(0,0,0))
+         allocate(s%cgy_s(0,0,0))
+         allocate(s%ctheta_s(0,0,0))
+         allocate(s%ee_s(0,0,0))
       endif
       allocate(s%sigm(1:s%nx+1,1:s%ny+1))
       allocate(s%c(1:s%nx+1,1:s%ny+1))
@@ -502,7 +512,6 @@ contains
       allocate(s%Dp(1:s%nx+1,1:s%ny+1))
       allocate(s%Qb(1:s%nx+1,1:s%ny+1))
       allocate(s%ust(1:s%nx+1,1:s%ny+1))
-      allocate(s%tm(1:s%nx+1,1:s%ny+1))
       allocate(s%uwf(1:s%nx+1,1:s%ny+1))
       allocate(s%vwf(1:s%nx+1,1:s%ny+1))
       allocate(s%ustr(1:s%nx+1,1:s%ny+1))
@@ -550,7 +559,6 @@ contains
       s%D         = 0.d0
       s%Qb        = 0.d0
       s%ust       = 0.d0
-      s%tm        = 0.d0
       s%uwf       = 0.d0
       s%vwf       = 0.d0
       s%ustr      = 0.d0
