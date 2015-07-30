@@ -70,7 +70,7 @@ contains
       real*8,dimension(:,:)   ,allocatable,save   :: gq1,gq2,gq
       real*8,dimension(:,:)   ,allocatable,save   :: gee1, gee2
       character(len=1)                            :: bl
-      character(slen),save                        :: ebcfname,qbcfname,nhbcfname
+      character(slen),save                        :: ebcfname,qbcfname,nhbcfname,esbcfname
       real*8                                      :: E0
       real*8,dimension(:),allocatable,save        :: dist,factor
       logical                                     :: startbcf
@@ -484,6 +484,9 @@ contains
                if(xmaster) then
                   open(53,file='ebcflist.bcf',form='formatted',position='rewind')
                   open(54,file='qbcflist.bcf',form='formatted',position='rewind')
+                  if(par%single_dir==1 .and. par%instat==INSTAT_REUSE) then
+                     open(55,file='esbcflist.bcf',form='formatted',position='rewind')
+                  endif
                endif
                if (xmaster) then
 
@@ -496,7 +499,23 @@ contains
                      if (ier .ne. 0) then
                         call report_file_read_error('qbcflist.bcf')
                      endif
+                     if(par%single_dir==1 .and. par%instat==INSTAT_REUSE) then
+                        read(55,*,iostat=ier)bcendtime,rt,dtbcfile,par%Trep,s%theta0,esbcfname
+                        if (ier .ne. 0) then
+                           call report_file_read_error('esbcflist.bcf')
+                        endif
+                     endif
                   enddo  ! wwvv strange
+                  if(par%single_dir==1 .and. par%instat==INSTAT_REUSE) then
+                     inquire(iolength=wordsize) 1.d0
+                     reclen=wordsize*(sg%ny+1)*(sg%ntheta_s)
+                     open(73,file=esbcfname,status='old',form='unformatted',access='direct',recl=reclen)
+                     read(73,rec=1,iostat=ier)sg%ee_s(1,:,:)
+                     if (ier .ne. 0) then
+                        call report_file_read_error(esbcfname)
+                     endif
+                     close(73)
+                  endif
                endif
 #ifdef USEMPI
                call xmpi_bcast(bcendtime)
@@ -505,10 +524,20 @@ contains
                call xmpi_bcast(par%Trep)
                call xmpi_bcast(s%theta0)
                call xmpi_bcast(ebcfname)
+               if (par%single_dir==1) then
+                  call space_distribute("y",sl,sg%ee_s(1,:,:),s%ee_s(1,:,:))
+               endif
+#else
+               if (par%single_dir==1) then
+                  s%ee_s=sg%ee_s
+               endif
 #endif
                if (xmaster) then
                   close(53)
                   close(54)
+                  if(par%single_dir==1 .and. par%instat==INSTAT_REUSE) then
+                     close(55)
+                  endif
                endif
                ! Robert and Jaap : Initialize for new wave conditions
                ! par%Trep = par%Trep
@@ -565,18 +594,12 @@ contains
                call space_distribute("y",sl,gee2,ee2)
                call space_distribute("y",sl,gq1,q1)
                call space_distribute("y",sl,gq2,q2)
-               if (par%single_dir==1) then
-                  call space_distribute("y",sl,sg%ee_s(1,:,:),s%ee_s(1,:,:))
-               endif
 
 #else
                ee1=gee1
                ee2=gee2
                q1=gq1
                q2=gq2
-               if (par%single_dir==1) then
-                  s%ee_s=sg%ee_s
-               endif
 
 #endif
                old=floor((par%t/dtbcfile)+1)
@@ -1537,8 +1560,8 @@ contains
 
                if (indomain) then
                   CONST = qnow/max(A,par%eps)
-                  s%vv(m1l:m2l,n1l) = CONST*s%hv(m1l:m2l,n1l)**0.5
-                  s%qy(m1l:m2l,n1l) = CONST*s%hv(m1l:m2l,n1l)**1.5
+                  s%vv(m1l:m2l,n1l) = CONST*sqrt(s%hv(m1l:m2l,n1l))
+                  s%qy(m1l:m2l,n1l) = CONST*sqrt(s%hv(m1l:m2l,n1l))*s%hv(m1l:m2l,n1l)
                endif
 
             elseif (m1.eq.m2) then
@@ -1572,8 +1595,8 @@ contains
 
                if (indomain) then
                   CONST = qnow/max(A,par%eps)
-                  s%uu(m1l,n1l:n2l) = CONST*s%hu(m1l,n1l:n2l)**0.5
-                  s%qx(m1l,n1l:n2l) = CONST*s%hu(m1l,n1l:n2l)**1.5
+                  s%uu(m1l,n1l:n2l) = CONST*sqrt(s%hu(m1l,n1l:n2l))
+                  s%qx(m1l,n1l:n2l) = CONST*sqrt(s%hu(m1l,n1l:n2l))*s%hu(m1l,n1l:n2l)
                endif
             endif
          endif
