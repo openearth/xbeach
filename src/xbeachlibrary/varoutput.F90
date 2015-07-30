@@ -987,11 +987,9 @@ contains
        case(mnem_vwf)
          write(unit,rec=jtg)CONVREAL(s%uwf*sin(s%alfaz)+x*cos(s%alfaz))
        case(mnem_Sutot)
-         write(unit,rec=jtg)CONVREAL((sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*cos(s%alfaz) - (sum(s%Svbg,DIM=3)+&
-          sum(s%Svsg,DIM=3))*sin(s%alfaz))
+         write(unit,rec=jtg)CONVREAL((sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*cos(s%alfaz) - (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*sin(s%alfaz))
        case(mnem_Svtot)
-         write(unit,rec=jtg)CONVREAL((sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*sin(s%alfaz) + (sum(s%Svbg,DIM=3)+&
-          sum(s%Svsg,DIM=3))*cos(s%alfaz))
+         write(unit,rec=jtg)CONVREAL((sum(s%Subg,DIM=3)+sum(s%Susg,DIM=3))*sin(s%alfaz) + (sum(s%Svbg,DIM=3)+sum(s%Svsg,DIM=3))*cos(s%alfaz))
        case(mnem_cctot)
          write(unit,rec=jtg)CONVREAL(sum(s%ccg,DIM=3))
        case default

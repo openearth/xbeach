@@ -140,8 +140,8 @@ contains
 #endif
       call writelog_mpi(par%mpiboundary,error)
 #endif
-
-
+      
+      
 
       ! initialize timestep
       call timestep_init(par, tpar)

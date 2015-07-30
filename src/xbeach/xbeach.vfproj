@@ -15,7 +15,7 @@
 				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) win32 &amp;&amp; build\zip.bat  $(SolutionDir) $(ConfigurationName) win32"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|Win32" OutputDirectory="bin\win32\$(ConfigurationName)" IntermediateDirectory="bin\win32\$(ConfigurationName)">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Optimization="optimizeFull" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\xbeachlibrary\bin\static\win32\$(ConfigurationName)" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" FloatingPointExceptionHandling="fpe1" ModulePath="bin\win32\$(ConfigurationName)\" ObjectFile="bin\win32\$(ConfigurationName)\" PdbFile="bin\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" Interfaces="true"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\xbeachlibrary\bin\static\win32\$(ConfigurationName)" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" FloatingPointExceptionHandling="fpe1" ModulePath="bin\win32\$(ConfigurationName)\" ObjectFile="bin\win32\$(ConfigurationName)\" PdbFile="bin\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" Interfaces="true"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -55,7 +55,7 @@
 				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) win32 &amp;&amp; build\zip.bat  $(SolutionDir) $(ConfigurationName) win32"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="netcdf_Release|Win32" OutputDirectory="bin\win32\$(ConfigurationName)" IntermediateDirectory="bin\win32\$(ConfigurationName)">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Optimization="optimizeFull" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\xbeachlibrary\bin\static\win32\$(ConfigurationName)" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" FloatingPointExceptionHandling="fpe1" ModulePath="bin\win32\$(ConfigurationName)\" ObjectFile="bin\win32\$(ConfigurationName)\" PdbFile="bin\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" Interfaces="true"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\xbeachlibrary\bin\static\win32\$(ConfigurationName)" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" FloatingPointExceptionHandling="fpe1" ModulePath="bin\win32\$(ConfigurationName)\" ObjectFile="bin\win32\$(ConfigurationName)\" PdbFile="bin\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" Interfaces="true"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" IgnoreDefaultLibraryNames="LIBCMTD.lib" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -75,7 +75,7 @@
 				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) win32 &amp;&amp; build\zip.bat  $(SolutionDir) $(ConfigurationName) win32"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_netcdf_Release|Win32" OutputDirectory="bin\win32\$(ConfigurationName)" IntermediateDirectory="bin\win32\$(ConfigurationName)">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Optimization="optimizeFull" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\xbeachlibrary\bin\static\win32\$(ConfigurationName)\mpich\include; ..\xbeachlibrary\bin\static\win32\$(ConfigurationName)" Diagnostics="diagnosticsShowAll" FloatingPointExceptionHandling="fpe1" ModulePath="bin\win32\$(ConfigurationName)\" ObjectFile="bin\win32\$(ConfigurationName)\" PdbFile="bin\win32\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\xbeachlibrary\bin\static\win32\$(ConfigurationName)\mpich\include; ..\xbeachlibrary\bin\static\win32\$(ConfigurationName)" Diagnostics="diagnosticsShowAll" FloatingPointExceptionHandling="fpe1" ModulePath="bin\win32\$(ConfigurationName)\" ObjectFile="bin\win32\$(ConfigurationName)\" PdbFile="bin\win32\$(ConfigurationName)\vc100.pdb"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" IgnoreDefaultLibraryNames="LIBCMT.lib" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -95,7 +95,7 @@
 				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) x64 &amp;&amp; build\zip.bat  $(SolutionDir) $(ConfigurationName) x64"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|x64" OutputDirectory="bin\x64\$(ConfigurationName)" IntermediateDirectory="bin\x64\$(ConfigurationName)">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Optimization="optimizeFull" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\xbeachlibrary\bin\static\x64\$(ConfigurationName)" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" FloatingPointExceptionHandling="fpe1" ModulePath="bin\x64\$(ConfigurationName)\" ObjectFile="bin\x64\$(ConfigurationName)\" PdbFile="bin\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" Interfaces="true"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\xbeachlibrary\bin\static\x64\$(ConfigurationName)" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" FloatingPointExceptionHandling="fpe1" ModulePath="bin\x64\$(ConfigurationName)\" ObjectFile="bin\x64\$(ConfigurationName)\" PdbFile="bin\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" Interfaces="true"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
@@ -115,7 +115,7 @@
 				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) x64 &amp;&amp; build\zip.bat  $(SolutionDir) $(ConfigurationName) x64"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="netcdf_Release|x64" OutputDirectory="bin\x64\$(ConfigurationName)" IntermediateDirectory="bin\x64\$(ConfigurationName)">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Optimization="optimizeFull" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\xbeachlibrary\bin\static\x64\$(ConfigurationName)" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" FloatingPointExceptionHandling="fpe1" ModulePath="bin\x64\$(ConfigurationName)\" ObjectFile="bin\win32\$(ConfigurationName)\" PdbFile="bin\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" Interfaces="true"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" OmitFramePointers="false" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\xbeachlibrary\bin\static\x64\$(ConfigurationName)" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" FloatingPointExceptionHandling="fpe1" ModulePath="bin\x64\$(ConfigurationName)\" ObjectFile="bin\win32\$(ConfigurationName)\" PdbFile="bin\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" Interfaces="true"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" IgnoreDefaultLibraryNames="LIBCMTD.lib" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -155,7 +155,7 @@
 				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) x64 &amp;&amp; build\zip.bat  $(SolutionDir) $(ConfigurationName) x64"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="MPI_netcdf_Release|x64" OutputDirectory="bin\x64\$(ConfigurationName)" IntermediateDirectory="bin\x64\$(ConfigurationName)">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Optimization="optimizeFull" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\xbeachlibrary\bin\static\x64\$(ConfigurationName)\mpich\include; ..\xbeachlibrary\bin\static\x64\$(ConfigurationName)" Diagnostics="diagnosticsShowAll" FloatingPointExceptionHandling="fpe1" ModulePath="bin\x64\$(ConfigurationName)\" ObjectFile="bin\x64\$(ConfigurationName)\" PdbFile="bin\x64\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" Preprocess="preprocessYes" AdditionalIncludeDirectories="..\xbeachlibrary\bin\static\x64\$(ConfigurationName)\mpich\include; ..\xbeachlibrary\bin\static\x64\$(ConfigurationName)" Diagnostics="diagnosticsShowAll" FloatingPointExceptionHandling="fpe1" ModulePath="bin\x64\$(ConfigurationName)\" ObjectFile="bin\x64\$(ConfigurationName)\" PdbFile="bin\x64\$(ConfigurationName)\vc100.pdb"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" IgnoreDefaultLibraryNames="LIBCMT.lib" SubSystem="subSystemConsole"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>

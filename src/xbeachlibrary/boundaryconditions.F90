@@ -70,12 +70,12 @@ contains
       real*8,dimension(:,:)   ,allocatable,save   :: gq1,gq2,gq
       real*8,dimension(:,:)   ,allocatable,save   :: gee1, gee2
       character(len=1)                            :: bl
-      character(slen),save                        :: ebcfname,qbcfname,nhbcfname,esbcfname
+      character(slen),save                        :: ebcfname,qbcfname,nhbcfname
       real*8                                      :: E0
       real*8,dimension(:),allocatable,save        :: dist,factor
       logical                                     :: startbcf
-      logical                                     :: isSet_U,isSet_Z,isSet_W,isSet_dU,isSet_Q
-      real*8,dimension(:)     ,allocatable,save   :: uig,zig,wig,duig
+    logical                                     :: isSet_U,isSet_Z,isSet_W,isSet_dU,isSet_Q
+    real*8,dimension(:)     ,allocatable,save   :: uig,zig,wig,duig
 
       ! Initialize to false only once....
       logical, save                               :: bccreated = .false.
@@ -107,7 +107,7 @@ contains
       !  GENERATE AND READ-IN WAVE BOUNDARY CONDITIONS
       !
       ! added for bound long wave comp Ad 28 march 2006
-      ! s%dtheta = par%dtheta*par%px/180
+      s%dtheta = par%dtheta*par%px/180
       startbcf=.false.
 
       if(.not. bccreated ) then
@@ -244,16 +244,16 @@ contains
                   allocate(uig(sg%ny+1))
                   allocate(zig(sg%ny+1))
                   allocate(wig(sg%ny+1))
-                  allocate(duig(sg%ny+1))
+                 allocate(duig(sg%ny+1))
                else  ! only need valid address for MPI-distribution
                   allocate(uig(1))
                   allocate(zig(1))
                   allocate(wig(1))
-                  allocate(duig(1))
+                 allocate(duig(1))
                endif
             endif
             if (xmaster) then
-               call velocity_Boundary('boun_U.bcf',uig,zig,wig,duig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W,isSet_dU,isSet_Q)
+              call velocity_Boundary('boun_U.bcf',uig,zig,wig,duig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W,isSet_dU,isSet_Q)
             endif
          endif
          !
@@ -484,9 +484,6 @@ contains
                if(xmaster) then
                   open(53,file='ebcflist.bcf',form='formatted',position='rewind')
                   open(54,file='qbcflist.bcf',form='formatted',position='rewind')
-                  if(par%single_dir==1 .and. par%instat==INSTAT_REUSE) then
-                     open(55,file='esbcflist.bcf',form='formatted',position='rewind')
-                  endif
                endif
                if (xmaster) then
 
@@ -499,23 +496,7 @@ contains
                      if (ier .ne. 0) then
                         call report_file_read_error('qbcflist.bcf')
                      endif
-                     if(par%single_dir==1 .and. par%instat==INSTAT_REUSE) then
-                        read(55,*,iostat=ier)bcendtime,rt,dtbcfile,par%Trep,s%theta0,esbcfname
-                        if (ier .ne. 0) then
-                           call report_file_read_error('esbcflist.bcf')
-                        endif
-                     endif
                   enddo  ! wwvv strange
-                  if(par%single_dir==1 .and. par%instat==INSTAT_REUSE) then
-                     inquire(iolength=wordsize) 1.d0
-                     reclen=wordsize*(sg%ny+1)*(sg%ntheta_s)
-                     open(73,file=esbcfname,status='old',form='unformatted',access='direct',recl=reclen)
-                     read(73,rec=1,iostat=ier)sg%ee_s(1,:,:)
-                     if (ier .ne. 0) then
-                        call report_file_read_error(esbcfname)
-                     endif
-                     close(73)
-                  endif
                endif
 #ifdef USEMPI
                call xmpi_bcast(bcendtime)
@@ -524,20 +505,10 @@ contains
                call xmpi_bcast(par%Trep)
                call xmpi_bcast(s%theta0)
                call xmpi_bcast(ebcfname)
-               if (par%single_dir==1) then
-                  call space_distribute("y",sl,sg%ee_s(1,:,:),s%ee_s(1,:,:))
-               endif
-#else
-               if (par%single_dir==1) then
-                  s%ee_s=sg%ee_s
-               endif
 #endif
                if (xmaster) then
                   close(53)
                   close(54)
-                  if(par%single_dir==1 .and. par%instat==INSTAT_REUSE) then
-                     close(55)
-                  endif
                endif
                ! Robert and Jaap : Initialize for new wave conditions
                ! par%Trep = par%Trep
@@ -594,12 +565,18 @@ contains
                call space_distribute("y",sl,gee2,ee2)
                call space_distribute("y",sl,gq1,q1)
                call space_distribute("y",sl,gq2,q2)
+               if (par%single_dir==1) then
+                  call space_distribute("y",sl,sg%ee_s(1,:,:),s%ee_s(1,:,:))
+               endif
 
 #else
                ee1=gee1
                ee2=gee2
                q1=gq1
                q2=gq2
+               if (par%single_dir==1) then
+                  s%ee_s=sg%ee_s
+               endif
 
 #endif
                old=floor((par%t/dtbcfile)+1)
@@ -708,13 +685,13 @@ contains
                   if (trim(nhbcfname)=='nh_reuse.bcf') then
                      ! Reuse time series will start at t=0, so we need to add the offset time to
                      ! the time vector in the boundary condition file using the optional bcst variable
-                     call velocity_Boundary(nhbcfname,uig,zig,wig,duig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W,isSet_dU,isSet_Q, &
+                call velocity_Boundary(nhbcfname,uig,zig,wig,duig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W,isSet_dU,isSet_Q, &
                      force_init=.true.,bcst=bcstarttime)
                   else
                      ! If individual spectra are read, then the time vector in the boundary condition
                      ! file will already be corrected for the start of the spectrum condition. No need
                      ! to add the optional bcst variable
-                     call velocity_Boundary(nhbcfname,uig,zig,wig,duig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W,isSet_dU,isSet_Q, &
+                   call velocity_Boundary(nhbcfname,uig,zig,wig,duig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W,isSet_dU,isSet_Q, &
                      force_init=.true.)
                   endif
                endif
@@ -722,7 +699,7 @@ contains
                call space_distribute("y",sl,uig,s%ui(1,:))
                call space_distribute("y",sl,zig,s%zi(1,:))
                call space_distribute("y",sl,wig,s%wi(1,:))
-               call space_distribute("y",sl,duig,s%dui(1,:))
+             call space_distribute("y",sl,duig,s%dui(1,:))
                call xmpi_bcast(isSet_U)
                call xmpi_bcast(isSet_Z)
                call xmpi_bcast(isSet_W)
@@ -738,23 +715,23 @@ contains
                if (.not. isSet_Z) s%zi(1,:) = s%zs(2,:)
                if (.not. isSet_W) s%wi(1,:) = s%ws(2,:)
                if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0) then
-                  ! Only if the reduced 2-layer model is initiated (P.B. Smit)
-                  if (.not. isSet_dU) s%dui(1,:) = 0.
-                  !
-               endif
+                 ! Only if the reduced 2-layer model is initiated (P.B. Smit)             
+                 if (.not. isSet_dU) s%dui(1,:) = 0.
+                 !
+               endif    
                call nonh_init_wcoef(s,par)
             else
                if (xmaster) then
                   if (trim(nhbcfname)=='nh_reuse.bcf') then
                      ! Reuse time series will start at t=0, so we need to add the offset time to
                      ! the time vector in the boundary condition file using the optional bcst variable
-                     call velocity_Boundary(nhbcfname,uig,zig,wig,duig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W,isSet_dU,isSet_Q, &
+                call velocity_Boundary(nhbcfname,uig,zig,wig,duig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W,isSet_dU,isSet_Q, &
                      bcst=bcstarttime)
                   else
                      ! If individual spectra are read, then the time vector in the boundary condition
                      ! file will already be corrected for the start of the spectrum condition. No need
                      ! to add the optional bcst variable
-                     call velocity_Boundary(nhbcfname,uig,zig,wig,duig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W,isSet_dU,isSet_Q)
+                   call velocity_Boundary(nhbcfname,uig,zig,wig,duig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W,isSet_dU,isSet_Q)
                   endif
                endif
 #ifdef USEMPI
@@ -775,12 +752,12 @@ contains
                if (.not. isSet_U) s%ui(1,:) = 0.d0
                if (.not. isSet_Z) s%zi(1,:) = s%zs(2,:)
                if (.not. isSet_W) s%wi(1,:) = s%ws(2,:)
-
+             
                if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0) then
-                  ! Only if the reduced 2-layer model is initiated (P.B. Smit)
-                  if (.not. isSet_dU) s%dUi(1,:) = 0.
-                  !
-               endif
+                 ! Only if the reduced 2-layer model is initiated (P.B. Smit)
+                 if (.not. isSet_dU) s%dUi(1,:) = 0.
+                 !
+              endif
             endif
             s%ui(1,:) = s%ui(1,:)*min(par%t/par%taper,1.0d0)
             s%zi(1,:) = s%zi(1,:)*min(par%t/par%taper,1.0d0)
@@ -790,8 +767,8 @@ contains
       elseif (par%instat==INSTAT_TS_NONH) then
          !       call velocity_Boundary('boun_U.bcf',ui(1,:),zi(1,:),wi(1,:),nx,ny,sg%ny,sl,par%t,zs(2,:),ws(2,:))
          if (xmaster) then
-            call velocity_Boundary('boun_U.bcf',uig,zig,wig,duig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W,isSet_dU,isSet_Q)
-            !
+           call velocity_Boundary('boun_U.bcf',uig,zig,wig,duig,sg%ny,par%t,isSet_U,isSet_Z,isSet_W,isSet_dU,isSet_Q)
+           !
          endif
 #ifdef USEMPI
          call space_distribute("y",sl,uig,s%ui(1,:))
@@ -807,14 +784,14 @@ contains
          if ( isSet_Q ) then
             !
             if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0) then
-               ! Calculate the difference velocity from the difference discharges (here both duig and uig are still discharges)
-               duig = ( (1.0d0 - 2.0d0*par%nhlay) * uig + duig ) / (  2.0d0 * par%nhlay * s%hu(1,:) *( 1.0d0 - par%nhlay )  )
-               !
-            endif
+                ! Calculate the difference velocity from the difference discharges (here both duig and uig are still discharges)
+                duig = ( (1.0d0 - 2.0d0*par%nhlay) * uig + duig ) / (  2.0d0 * par%nhlay * s%hu(1,:) *( 1.0d0 - par%nhlay )  )
+                !
+            endif               
             uig = uig/s%hu(1,:)
             !
          endif
-
+        
          s%ui(1,:) = uig
          s%zi(1,:) = zig
          s%wi(1,:) = wig
@@ -824,11 +801,11 @@ contains
          if (.not. isSet_Z) s%zi(1,:) = s%zs(2,:)
          if (.not. isSet_W) s%wi(1,:) = s%ws(2,:)
          if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0) then
-            ! Only if the reduced 2-layer model is initiated (P.B. Smit)
-            if (.not. isSet_dU) s%dui(1,:) = 0.
-            !
-         endif
-         !
+           ! Only if the reduced 2-layer model is initiated (P.B. Smit)        
+           if (.not. isSet_dU) s%dui(1,:) = 0.
+           !
+         endif  
+        !    
       endif
       ! Jaap: set incoming short wave energy to zero
       s%ee(1,:,:) = par%swave*s%ee(1,:,:)
@@ -1214,24 +1191,24 @@ contains
                   s%zs(1,:) = s%zi(1,:)+s%zs0(1,:)
                   s%ws(1,:) = s%wi(1,:)
                   if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0) then
-                     ! Only if the reduced 2-layer model is initiated (P.B. Smit)
-                     s%dU(1,:) = s%dui(1,:)
-                     !
+                    ! Only if the reduced 2-layer model is initiated (P.B. Smit)
+                    s%dU(1,:) = s%dui(1,:)
+                    !
                   endif
-                  !
+                !
                else
                   !Radiating boundary for short waves:
                   s%uu(1,:) = s%ui(1,:)-sqrt(par%g/s%hh(1,:))*(s%zs(2,:)-s%zi(1,:)-s%zs0(2,:)) + s%umean(1,:)
-                  !
-                  !                uu(1,:)=  2*ui(1,:)-sqrt(par%g/hh(1,:))*(zs(2,:)        -zs0(2,:))
+                !
+!                uu(1,:)=  2*ui(1,:)-sqrt(par%g/hh(1,:))*(zs(2,:)        -zs0(2,:))
                   if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0) then
-                     !
-
+                    !
+                    
                      s%dU(1,:) = s%dui(1,:)
-                     ! write(*,*) s%dU(1,%)
-                     !
+                   ! write(*,*) s%dU(1,%)
+                    !
                   endif
-
+                  
                   s%zs(1,:) = s%zs(2,:)
                   s%ws(1,:) = s%ws(2,:)
                endif
@@ -1440,7 +1417,7 @@ contains
                   + s%tauby(i,jbc)/(par%rho*s%hvm(i,jbc)) &
                   - par%lwave*s%Fy(i,jbc)/(par%rho*max(s%hvm(i,jbc),par%hmin)) &
                   + fc*s%uv(i,jbc) &
-                  - par%rhoa*par%Cd*s%windnv(i,jbc)*sqrt(s%windsu(i,jbc)**2+s%windnv(i,jbc)**2)/(par%rho*s%hvm(i,jbc)))  ! Kees: wind correction
+	              - par%rhoa*par%Cd*s%windnv(i,jbc)*sqrt(s%windsu(i,jbc)**2+s%windnv(i,jbc)**2)/(par%rho*s%hvm(i,jbc)))  ! Kees: wind correction
                else
                   vbc(i) = 0.d0
                endif
@@ -1560,8 +1537,8 @@ contains
 
                if (indomain) then
                   CONST = qnow/max(A,par%eps)
-                  s%vv(m1l:m2l,n1l) = CONST*sqrt(s%hv(m1l:m2l,n1l))
-                  s%qy(m1l:m2l,n1l) = CONST*sqrt(s%hv(m1l:m2l,n1l))*s%hv(m1l:m2l,n1l)
+                  s%vv(m1l:m2l,n1l) = CONST*s%hv(m1l:m2l,n1l)**0.5
+                  s%qy(m1l:m2l,n1l) = CONST*s%hv(m1l:m2l,n1l)**1.5
                endif
 
             elseif (m1.eq.m2) then
@@ -1595,8 +1572,8 @@ contains
 
                if (indomain) then
                   CONST = qnow/max(A,par%eps)
-                  s%uu(m1l,n1l:n2l) = CONST*sqrt(s%hu(m1l,n1l:n2l))
-                  s%qx(m1l,n1l:n2l) = CONST*sqrt(s%hu(m1l,n1l:n2l))*s%hu(m1l,n1l:n2l)
+                  s%uu(m1l,n1l:n2l) = CONST*s%hu(m1l,n1l:n2l)**0.5
+                  s%qx(m1l,n1l:n2l) = CONST*s%hu(m1l,n1l:n2l)**1.5
                endif
             endif
          endif
@@ -1729,7 +1706,7 @@ contains
       real(kind=rKind),allocatable,dimension(:),save :: w1 !
 
       real(kind=rKind),allocatable,dimension(:),save :: du0 !
-      real(kind=rKind),allocatable,dimension(:),save :: du1 !
+      real(kind=rKind),allocatable,dimension(:),save :: du1 !    
 
       real(kind=rKind),save                          :: t0 = 0.
       real(kind=rKind),save                          :: t1 = 0.
@@ -1821,9 +1798,9 @@ contains
             endif
 
             do i=1,nvar
-               if (header(i) == 'z' .or. header(i) == 'Z' .or. &
-               header(i) == 'zs' .or. header(i) == 'ZS' .or. &
-               header(i) == 'Zs') then
+               if (header(i) == 'z' .or. header(i) == 'Z' .or. & 
+                   header(i) == 'zs' .or. header(i) == 'ZS' .or. &
+                   header(i) == 'Zs') then
                   iZ = i;
                elseif (header(i) == 't' .or. header(i) == 'T') then
                   iT = i;
@@ -1832,7 +1809,7 @@ contains
                elseif (header(i) == 'w' .or. header(i) == 'W') then
                   iW = i;
                elseif (header(i) == 'dU' .or. header(i) == 'DU') then
-                  idU = i;
+                  idU = i;  
                elseif (header(i) == 'q' .or. header(i) == 'Q') then
                   iQ = i;
                   iU = i;
@@ -1866,11 +1843,11 @@ contains
             endif
 
             if (idU > 0) then
-               allocate(du0(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
-               allocate(du1(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
-               du0 = 0.0d0
-               du1 = 0.0d0
-            endif
+              allocate(du0(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+              allocate(du1(nyg+1),stat=iAllocErr); if (iAllocErr /= 0) call Halt_program
+              du0 = 0.0d0
+              du1 = 0.0d0
+            endif          
 
             allocate(tmp(nyg+1,nvar-1))
             !Read two first timelevels
@@ -1918,22 +1895,22 @@ contains
                wg = 0
                isSet_W = .false.
             endif
-
+          
             if (idu > 0) then
-               dug = dU0 + (dU1-dU0)*(t-t0)/(t1-t0)
-               isSet_dU = .true.
+              dug = dU0 + (dU1-dU0)*(t-t0)/(t1-t0)
+              isSet_dU = .true.
             else
-               dug = 0
-               isSet_dU = .false.
+              dug = 0
+              isSet_dU = .false.
             endif
-
+          
             if (iQ > 0) then
-               !
-               isSet_Q = .true.
-               !
+              !
+              isSet_Q = .true.
+              !
             endif
-
-
+              
+              
             return
          endif   ! initialize
          !
@@ -1995,14 +1972,14 @@ contains
                   else
                      dug = 0
                      isSet_dU = .false.
-                  endif
+                  endif                
                   !
                   if (iQ > 0) then
-                     !
-                     isSet_Q = .true.
-                     !
+                    !
+                    isSet_Q = .true.
+                    !
                   endif
-                  !
+                !
                endif
             else
                !If end of file the last value which was available is used until the end of the computation
