@@ -50,7 +50,7 @@ module spectral_wave_bc_module
       integer, dimension(:),pointer          :: Findex     ! Index of wave train component locations on frequency/Fourier axis
       integer, dimension(:),pointer          :: WDindex    ! Index of wave train component locations on wave directional bin axis
       double complex,dimension(:,:),pointer  :: CompFn     ! Fourier components of the wave trains
-      character(slen)                        :: Efilename,qfilename,nhfilename
+      character(slen)                        :: Efilename,qfilename,nhfilename,Esfilename
       real*8,dimension(:,:),pointer          :: zsits      ! time series of total surface elevation for nonhspectrum==1
       real*8,dimension(:,:),pointer          :: uits       ! time series of depth-averaged horizontal velocity nonhspectrum==1
       real*8,dimension(:,:),pointer          :: wits       ! time series of depth-averaged vertical velocity for nonhspectrum==1  ??
@@ -98,7 +98,7 @@ contains
       type(spectrum)              :: combspec
       type(waveparamsnew)         :: wp             ! Most will be deallocated, but some variables useful to keep?
       integer                     :: iloc
-      integer                     :: fidelist,fidqlist,fidnhlist ! file identifiers for ebcflist and qbcflist
+      integer                     :: fidelist,fidqlist,fidnhlist,fideslist ! file identifiers for ebcflist and qbcflist
       integer                     :: iostat
       real*8                      :: spectrumendtimeold,fmax
       real*8,save                 :: rtbc_local,dtbc_local
@@ -169,7 +169,7 @@ contains
             call writelog('sl','(a,f0.2,a)','Overall Trep from all spectra calculated: ',par%Trep,' s')
 
             if (par%single_dir==1) then
-               call set_stationary_spectrum (s,par,combspec)
+               call set_stationary_spectrum (s,par,wp,combspec)
             endif
 
             ! calculate the average offshore water depth, which is used in various
@@ -276,6 +276,10 @@ contains
                open(fidelist,file='ebcflist.bcf',form='formatted',position='append',status='replace')
                fidqlist = create_new_fid()
                open(fidqlist,file='qbcflist.bcf',form='formatted',position='append',status='replace')
+               if(par%single_dir==1) then
+                  fideslist = create_new_fid()
+                  open(fideslist,file='esbcflist.bcf',form='formatted',position='append',status='replace')
+               endif
             else
                fidnhlist = create_new_fid()
                open(fidnhlist,file='nhbcflist.bcf',form='formatted',status='replace',iostat=iostat)
@@ -286,6 +290,10 @@ contains
                open(fidelist,file='ebcflist.bcf',form='formatted',position='append')
                fidqlist = create_new_fid()
                open(fidqlist,file='qbcflist.bcf',form='formatted',position='append')
+               if(par%single_dir==1) then
+                  fideslist = create_new_fid()
+                  open(fideslist,file='esbcflist.bcf',form='formatted',position='append')
+               endif
             else
                fidnhlist = create_new_fid()
                open(fidnhlist,file='nhbcflist.bcf',form='formatted',position='append',iostat=iostat)
@@ -300,6 +308,11 @@ contains
             ! Close administation files
             close(fidelist)
             close(fidqlist)
+            if(par%single_dir==1) then
+               write(fideslist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
+               & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%Esfilename)
+               close(fideslist)
+            endif
          else
             write(fidnhlist,'(f12.3,a,f12.3,a,f12.3,a)',iostat=iostat) &
             & spectrumendtimeold,'   ',spectrumendtime,' ',par%Trep,' '//trim(wp%nhfilename)
@@ -1371,6 +1384,7 @@ contains
 
       if (reuseall) then
          wp%Efilename = 'E_reuse.bcf'
+         wp%Esfilename = 'Es_reuse.bcf'
          wp%qfilename = 'q_reuse.bcf'
          wp%nhfilename = 'nh_reuse.bcf'
       else
@@ -1380,6 +1394,7 @@ contains
          i4=floor(real(bccount-i1*10000-i2*1000-i3*100)/10)
          i5=bccount-i1*10000-i2*1000-i3*100-i4*10
          wp%Efilename='E_series'//char(48+i1)//char(48+i2)//char(48+i3)//char(48+i4)//char(48+i5)//'.bcf'
+         wp%Esfilename='Es_series'//char(48+i1)//char(48+i2)//char(48+i3)//char(48+i4)//char(48+i5)//'.bcf'
          wp%qfilename='q_series'//char(48+i1)//char(48+i2)//char(48+i3)//char(48+i4)//char(48+i5)//'.bcf'
          wp%nhfilename='nh_series'//char(48+i1)//char(48+i2)//char(48+i3)//char(48+i4)//char(48+i5)//'.bcf'
       endif
@@ -2809,16 +2824,20 @@ contains
    end subroutine generate_nhtimeseries_file
 
 
-   subroutine set_stationary_spectrum (s,par,combspec)
+   subroutine set_stationary_spectrum (s,par,wp,combspec)
       use params
       use spaceparams
       use interp
+      use filefunctions
+      use logging_module
       type(parameters)                  :: par
       type(spacepars)                   :: s
       type(spectrum)                    :: combspec
+      type(waveparamsnew),intent(in)    :: wp
       real*8                            :: xcycle
       real*8, dimension(:), allocatable :: angcart,Sdcart
       integer                           :: j
+      integer                           :: reclen,fid
 
       allocate(angcart(combspec%nang))
       allocate(Sdcart(combspec%nang))
@@ -2833,7 +2852,14 @@ contains
       end do
 
       s%ee_s(1,:,:)=s%ee_s(1,:,:)*par%rho*par%g
-
+      
+      call writelog('ls','','Writing statioanry wave energy directional spread to ',trim(wp%Esfilename),' ...')
+      inquire(iolength=reclen) 1.d0
+      reclen=reclen*(s%ny+1)*(s%ntheta_s)
+      fid = create_new_fid()
+      open(fid,file=trim(wp%Esfilename),form='unformatted',access='direct',recl=reclen,status='REPLACE')
+      write(fid,rec=1)s%ee_s(1,:,:)
+      close(fid)
       deallocate(angcart)
       deallocate(Sdcart)
 

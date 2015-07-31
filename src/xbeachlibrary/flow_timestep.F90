@@ -535,10 +535,10 @@ contains
                   vin         = s%vv(i-1,j)*cos(dalfa) - s%uv(i-1,j)*sin(dalfa)
                   if ((s%uu(i,j)-s%uu(i-1,j))>par%eps_sd) then
                      ! Conservation of energy head
-                     s%udvdx(i,j)     = s%udvdx(i,j) + 0.5d0*(s%uu(i-1,j)+s%uu(i-1,j+1))*(s%vv(i,j)-vin)*s%dnc(i-1,j)*s%dsdnvi(i,j)
+                     s%udvdx(i,j) = s%udvdx(i,j) + 0.5d0*(s%uu(i-1,j)+s%uu(i-1,j+1))*(s%vv(i,j)-vin)*s%dnc(i-1,j)*s%dsdnvi(i,j)
                   else
                      ! Conservation of momentum
-                     s%udvdx(i,j)     = s%udvdx(i,j) +        qin/s%hvm(i,j)          *(s%vv(i,j)-vin)*s%dnc(i-1,j)*s%dsdnvi(i,j)
+                     s%udvdx(i,j) = s%udvdx(i,j) +        qin/s%hvm(i,j)          *(s%vv(i,j)-vin)*s%dnc(i-1,j)*s%dsdnvi(i,j)
                   endif
                endif
                qin            = -.5d0*(s%qx(i,j)+s%qx(i,j+1))
@@ -703,7 +703,7 @@ contains
          ! do non-hydrostatic pressure compensation to solve short waves
          call nonh_cor(s,par,1,uu_old,vv_old)
          ! note: MPI shift in subroutine nonh_cor
-      end if    
+      end if
 
       ! Pieter and Jaap: update hu en hv for continuity
       do j=1,s%ny+1
@@ -752,11 +752,11 @@ contains
       s%hv = max(s%hv,0.d0)
 
       if (par%secorder == 1) then
-        !
-        ! Correct the waterdepths in U/V points using second-order limited expressions
-        !
-        call flow_secondorder_huhv(s,par)
-        !
+         !
+         ! Correct the waterdepths in U/V points using second-order limited expressions
+         !
+         call flow_secondorder_huhv(s,par)
+         !
       end if
 
       ! Flux in u-point
@@ -803,10 +803,10 @@ contains
       !
 
       if (par%secorder == 1) then
-       !
-       ! P.B. Smit: The second order McCormack correction to the cont. eq. introduced
-       ! minor damping. For this reason I removed it (Nov. 2014).
-       !  call flow_secondorder_con(s,par,zs_old)
+         !
+         ! P.B. Smit: The second order McCormack correction to the cont. eq. introduced
+         ! minor damping. For this reason I removed it (Nov. 2014).
+         !  call flow_secondorder_con(s,par,zs_old)
       endif
 
       !

@@ -268,13 +268,13 @@ contains
 
       r = xmpi_orank_to_rank(xmpi_orank)
       if (r .ne. xmpi_rank) then
-         print *,'Wrong conversion from xmpi_orank',xmpi_orank,'to xmpi_rank',r 
+         print *,'Wrong conversion from xmpi_orank',xmpi_orank,'to xmpi_rank',r
          call halt_program
       endif
 
       r = xmpi_rank_to_orank(xmpi_rank)
       if (r .ne. xmpi_orank) then
-         print *,'Wrong conversion from xmpi_rank',xmpi_rank,'to xmpi_orank',r 
+         print *,'Wrong conversion from xmpi_rank',xmpi_rank,'to xmpi_orank',r
          call halt_program
       endif
 
@@ -362,9 +362,9 @@ contains
        case default
          error = 1
          return
-       end select
-       
-       ! Pieter: TODO: Check whether the grid distribution did not lead to domains with to few grid cells (mpi implementation needs at least 2 at each boundary). Specify error and give a message if this is the case.
+      end select
+
+      ! Pieter: TODO: Check whether the grid distribution did not lead to domains with to few grid cells (mpi implementation needs at least 2 at each boundary). Specify error and give a message if this is the case.
 
       ! The layout of the processors is as follows:
       ! example 12 processors, xmpi_m=3, xmpi_n=4:
@@ -1560,18 +1560,18 @@ contains
       logical,intent(in),optional :: normal
       logical                     :: lnormal
       integer                     :: ierr
-      
+
       if(present(normal)) then
          lnormal = normal
       else
          lnormal = .true.
       endif
-      
+
       write(0,*) 'halt_program called by process', xmpi_orank
       if (lnormal) then
          call backtrace
       endif
-      
+
 #ifdef USEMPI
       if (lnormal) then
          call xmpi_abort

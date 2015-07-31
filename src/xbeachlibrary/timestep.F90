@@ -458,6 +458,7 @@ contains
       else
          par%dt=huge(0.0d0)      ! Seed dt
          dtold = par%dt
+         limtype = 0
          if (s%ny>2) then
             do j=2,s%ny
                do i=2,s%nx
@@ -531,7 +532,7 @@ contains
                      limtype = 2
                      dtold = par%dt
                   endif
-                   
+
                   mdx = min(s%dsu(i,j2),s%dsz(i,j2))**2
 
                   if (par%dy > 0.d0) then
@@ -655,18 +656,18 @@ contains
       maxfac = 50.d0
       if (par%nonh==1) maxfac = 500.d0
 
-      if ((dtref/par%dt>maxfac .and. par%dt<par%tint) .or. par%dt/dtref>maxfac) then
+      if ((dtref/par%dt>maxfac .and. par%t<tpar%tnext) .or. par%dt/dtref>maxfac) then
          call writelog('lswe','','Quit XBeach since computational time implodes/explodes')
          call writelog('lswe','','Please check output at the end of the simulation')
          select case (limtype)
           case (1)
-            call writelog('lswe','a,i0,a,i0,a','U-velocities are too high in cell (',ilim,',',jlim,')(M,N)')
+            call writelog('lswe','(a,i0,a,i0,a)','U-velocities are too high in cell (',ilim,',',jlim,')(M,N)')
           case (2)
-            call writelog('lswe','a,i0,a,i0,a','V-velocities are too high in cell (',ilim,',',jlim,')(M,N)')
+            call writelog('lswe','(a,i0,a,i0,a)','V-velocities are too high in cell (',ilim,',',jlim,')(M,N)')
           case (3)
-            call writelog('lswe','a,i0,a,i0,a','Viscosity condition is too high in cell (',ilim,',',jlim,')(M,N)')
+            call writelog('lswe','(a,i0,a,i0,a)','Viscosity condition is too high in cell (',ilim,',',jlim,')(M,N)')
           case (4)
-            call writelog('lswe','a,i0,a,i0,a','Groundwater condition is too high in cell (',ilim,',',jlim,')(M,N)')
+            call writelog('lswe','(a,i0,a,i0,a)','Groundwater condition is too high in cell (',ilim,',',jlim,')(M,N)')
          end select
          call writelog('lswe','','dtref: ',dtref)
          call writelog('lswe','','par%dt: ',par%dt)

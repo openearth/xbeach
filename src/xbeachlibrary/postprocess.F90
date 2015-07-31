@@ -145,8 +145,8 @@ contains
       integer is,  ie,  js,  je
       integer isx, iex, jsx, jex
 
-         Sutot = 0;
-         Svtot = 0;
+      Sutot = 0;
+      Svtot = 0;
 
       is  = 1
       ie  = size(x,1)
@@ -167,7 +167,7 @@ contains
             iex = 1
             jsx = 1
             jex = 1
-      endif
+         endif
       endif
 
       if (par%rotate .eq. 1) then
@@ -217,18 +217,18 @@ contains
             x(isx:iex,jsx:jex) = s%uwf(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))+ &
             &                    t%r2 (is:ie,js:je)*cos(s%alfaz(is:ie,js:je))
           case(mnem_Sutot)
-               ! Jaap interpolate transports to water level points before rotating to real world
-               Sutot = sum(s%Subg,dim=3)+sum(s%Susg,dim=3)
-               Svtot = sum(s%Svbg,dim=3)+sum(s%Svsg,dim=3)
-               Sutot(2:s%nx,:)=0.5d0*(Sutot(1:s%nx-1,:)+Sutot(2:s%nx,:))
-               Svtot(:,2:s%ny)=0.5d0*(Svtot(:,1:s%ny-1)+Svtot(:,2:s%ny))
+            ! Jaap interpolate transports to water level points before rotating to real world
+            Sutot = sum(s%Subg,dim=3)+sum(s%Susg,dim=3)
+            Svtot = sum(s%Svbg,dim=3)+sum(s%Svsg,dim=3)
+            Sutot(2:s%nx,:)=0.5d0*(Sutot(1:s%nx-1,:)+Sutot(2:s%nx,:))
+            Svtot(:,2:s%ny)=0.5d0*(Svtot(:,1:s%ny-1)+Svtot(:,2:s%ny))
             x(isx:iex,jsx:jex) = Sutot(is:ie,js:je)*cos(s%alfaz(is:ie,js:je)) - &
             &                    Svtot(is:ie,js:je)*sin(s%alfaz(is:ie,js:je))
           case(mnem_Svtot)
-               Sutot = sum(s%Subg,dim=3)+sum(s%Susg,dim=3)
-               Svtot = sum(s%Svbg,dim=3)+sum(s%Svsg,dim=3)
-               Sutot(2:s%nx,:)=0.5d0*(Sutot(1:s%nx-1,:)+Sutot(2:s%nx,:))
-               Svtot(:,2:s%ny)=0.5d0*(Svtot(:,1:s%ny-1)+Svtot(:,2:s%ny))
+            Sutot = sum(s%Subg,dim=3)+sum(s%Susg,dim=3)
+            Svtot = sum(s%Svbg,dim=3)+sum(s%Svsg,dim=3)
+            Sutot(2:s%nx,:)=0.5d0*(Sutot(1:s%nx-1,:)+Sutot(2:s%nx,:))
+            Svtot(:,2:s%ny)=0.5d0*(Svtot(:,1:s%ny-1)+Svtot(:,2:s%ny))
             x(isx:iex,jsx:jex) = Sutot(is:ie,js:je)*sin(s%alfaz(is:ie,js:je)) + &
             &                    Svtot(is:ie,js:je)*cos(s%alfaz(is:ie,js:je))
           case(mnem_cctot)
@@ -324,31 +324,31 @@ contains
             x(isx:iex,jsx:jex,:) = 270-((s%thet(is:ie,js:je,:)+alfazr3(is:ie,js:je,:))*(180/pi))
           case(mnem_Susg)
             ! Jaap: interpolate transports to water level points before rotating to world coordinates
-               Susg = t%r3
-               Svsg = s%Svsg
-               Susg(2:s%nx,:,:)=0.5d0*(t%r3(1:s%nx-1,:,:)+t%r3(2:s%nx,:,:))
-               Svsg(:,2:s%ny,:)=0.5d0*(s%Svsg(:,1:s%ny-1,:)+s%Svsg(:,2:s%ny,:))
+            Susg = t%r3
+            Svsg = s%Svsg
+            Susg(2:s%nx,:,:)=0.5d0*(t%r3(1:s%nx-1,:,:)+t%r3(2:s%nx,:,:))
+            Svsg(:,2:s%ny,:)=0.5d0*(s%Svsg(:,1:s%ny-1,:)+s%Svsg(:,2:s%ny,:))
             x(isx:iex,jsx:jex,:) = Susg(is:ie,js:je,:)*cos(alfazr3(is:ie,js:je,:))- &
             &                      Svsg(is:ie,js:je,:)*sin(alfazr3(is:ie,js:je,:))
           case(mnem_Svsg)
-               Susg = s%Susg
-               Svsg = t%r3
-               Susg(2:s%nx,:,:)=0.5d0*(s%Susg(1:s%nx-1,:,:)+s%Susg(2:s%nx,:,:))
-               Svsg(:,2:s%ny,:)=0.5d0*(t%r3(:,1:s%ny-1,:)+t%r3(:,2:s%ny,:))
+            Susg = s%Susg
+            Svsg = t%r3
+            Susg(2:s%nx,:,:)=0.5d0*(s%Susg(1:s%nx-1,:,:)+s%Susg(2:s%nx,:,:))
+            Svsg(:,2:s%ny,:)=0.5d0*(t%r3(:,1:s%ny-1,:)+t%r3(:,2:s%ny,:))
             x(isx:iex,jsx:jex,:) = Susg(is:ie,js:je,:)*sin(alfazr3(is:ie,js:je,:))+ &
             &                      Svsg(is:ie,js:je,:)*cos(alfazr3(is:ie,js:je,:))
           case(mnem_Subg)
-               Subg = t%r3
-               Svbg = s%Svbg
-               Subg(2:s%nx,:,:)=0.5d0*(t%r3(1:s%nx-1,:,:)+t%r3(2:s%nx,:,:))
-               Svbg(:,2:s%ny,:)=0.5d0*(s%Svbg(:,1:s%ny-1,:)+s%Svbg(:,2:s%ny,:))
+            Subg = t%r3
+            Svbg = s%Svbg
+            Subg(2:s%nx,:,:)=0.5d0*(t%r3(1:s%nx-1,:,:)+t%r3(2:s%nx,:,:))
+            Svbg(:,2:s%ny,:)=0.5d0*(s%Svbg(:,1:s%ny-1,:)+s%Svbg(:,2:s%ny,:))
             x(isx:iex,jsx:jex,:) = Subg(is:ie,js:je,:)*cos(alfazr3(is:ie,js:je,:))- &
             &                      Svbg(is:ie,js:je,:)*sin(alfazr3(is:ie,js:je,:))
           case(mnem_Svbg)
-               Subg = s%Subg
-               Svbg = t%r3
-               Subg(2:s%nx,:,:)=0.5d0*(s%Subg(1:s%nx-1,:,:)+s%Subg(2:s%nx,:,:))
-               Svbg(:,2:s%ny,:)=0.5d0*(t%r3(:,1:s%ny-1,:)+t%r3(:,2:s%ny,:))
+            Subg = s%Subg
+            Svbg = t%r3
+            Subg(2:s%nx,:,:)=0.5d0*(s%Subg(1:s%nx-1,:,:)+s%Subg(2:s%nx,:,:))
+            Svbg(:,2:s%ny,:)=0.5d0*(t%r3(:,1:s%ny-1,:)+t%r3(:,2:s%ny,:))
             x(isx:iex,jsx:jex,:) = Subg(is:ie,js:je,:)*sin(alfazr3(is:ie,js:je,:))+ &
             &                      Svbg(is:ie,js:je,:)*cos(alfazr3(is:ie,js:je,:))
           case default
@@ -461,65 +461,65 @@ contains
          runup = max(maxval(minloc(s%wetz(:,:)))-1,1)
       end where
    end function runup
-   
+
    function get_sister_mnem(mnem) result(sistermnem)
       use mnemmodule
       character(maxnamelen)     :: sistermnem
       character(maxnamelen)     :: mnem
-      
+
       select case (mnem)
-          case(mnem_Fx)
-             sistermnem = mnem_Fy
-          case(mnem_Fy)
-             sistermnem = mnem_Fx
-          case(mnem_u)
-            sistermnem = mnem_v
-          case(mnem_gwu)
-            sistermnem = mnem_gwv
-          case(mnem_v)
-            sistermnem = mnem_u
-          case(mnem_gwv)
-            sistermnem = mnem_gwu
-          case(mnem_ue)
-           sistermnem = mnem_ve
-          case(mnem_ve)
-            sistermnem = mnem_ue
-          case(mnem_ui)
-            sistermnem = mnem_vi
-          case(mnem_vi)
-            sistermnem = mnem_ui
-          case(mnem_umean)
-            sistermnem = mnem_vmean
-          case(mnem_vmean)
-            sistermnem = mnem_umean
-          case(mnem_uwf)
-            sistermnem = mnem_vwf
-          case(mnem_vwf)
-            sistermnem = mnem_uwf
-          case(mnem_Sutot)
-              sistermnem = mnem_Svtot
-          case(mnem_Svtot)
-              sistermnem = mnem_Sutot
-          case(mnem_cctot)
-              sistermnem = mnem_ccg
-          case(mnem_cgx)
-            sistermnem = mnem_cgy
-          case(mnem_cgy)
-            sistermnem = mnem_cgx
-          case(mnem_cx)
-            sistermnem = mnem_cy
-          case(mnem_cy)
-            sistermnem = mnem_cx
-          case(mnem_Susg)
-            sistermnem = mnem_Svsg
-          case(mnem_Svsg)
-             sistermnem = mnem_Susg
-          case(mnem_Subg)
-               sistermnem = mnem_Svbg
-          case(mnem_Svbg)
-              sistermnem = mnem_Subg
-          case default
-              sistermnem = 'none'
+       case(mnem_Fx)
+         sistermnem = mnem_Fy
+       case(mnem_Fy)
+         sistermnem = mnem_Fx
+       case(mnem_u)
+         sistermnem = mnem_v
+       case(mnem_gwu)
+         sistermnem = mnem_gwv
+       case(mnem_v)
+         sistermnem = mnem_u
+       case(mnem_gwv)
+         sistermnem = mnem_gwu
+       case(mnem_ue)
+         sistermnem = mnem_ve
+       case(mnem_ve)
+         sistermnem = mnem_ue
+       case(mnem_ui)
+         sistermnem = mnem_vi
+       case(mnem_vi)
+         sistermnem = mnem_ui
+       case(mnem_umean)
+         sistermnem = mnem_vmean
+       case(mnem_vmean)
+         sistermnem = mnem_umean
+       case(mnem_uwf)
+         sistermnem = mnem_vwf
+       case(mnem_vwf)
+         sistermnem = mnem_uwf
+       case(mnem_Sutot)
+         sistermnem = mnem_Svtot
+       case(mnem_Svtot)
+         sistermnem = mnem_Sutot
+       case(mnem_cctot)
+         sistermnem = mnem_ccg
+       case(mnem_cgx)
+         sistermnem = mnem_cgy
+       case(mnem_cgy)
+         sistermnem = mnem_cgx
+       case(mnem_cx)
+         sistermnem = mnem_cy
+       case(mnem_cy)
+         sistermnem = mnem_cx
+       case(mnem_Susg)
+         sistermnem = mnem_Svsg
+       case(mnem_Svsg)
+         sistermnem = mnem_Susg
+       case(mnem_Subg)
+         sistermnem = mnem_Svbg
+       case(mnem_Svbg)
+         sistermnem = mnem_Subg
+       case default
+         sistermnem = 'none'
       end select
    end function get_sister_mnem
 end module postprocessmod
