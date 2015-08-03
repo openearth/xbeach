@@ -1,7 +1,7 @@
 module initialize
    use typesandkinds
    implicit none
-   save 
+   save
    integer imin_ee,imax_ee,jmin_ee,jmax_ee
    integer imin_uu,imax_uu,jmin_uu,jmax_uu
    integer imin_vv,imax_vv,jmin_vv,jmax_vv
@@ -248,97 +248,135 @@ contains
          call gridprops (s)
 
          s%zb0 = s%zb
-         !
-         ! Specify theta-grid
-         !
-         !
-         ! from Nautical wave directions in degrees to Cartesian wave directions in radian !!!
-         !
-         !      s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0 ! Updated in waveparams.f90 for instat 4,5,6,7
-         s%theta0=(1.5d0*par%px)-par%dir0*atan(1.d0)/45.d0 ! Updated in waveparams.f90 for instat 4,5,6,7
-         if (s%theta0<-par%px) s%theta0=s%theta0+2.d0*par%px
-         if (s%theta0> par%px) s%theta0=s%theta0-2.d0*par%px
+         if(par%swave==1) then
+            !
+            ! Specify theta-grid
+            !
+            !
+            ! from Nautical wave directions in degrees to Cartesian wave directions in radian !!!
+            !
+            !      s%theta0=(1.5d0*par%px-s%alfa)-par%dir0*atan(1.d0)/45.d0 ! Updated in waveparams.f90 for instat 4,5,6,7
+            s%theta0=(1.5d0*par%px)-par%dir0*atan(1.d0)/45.d0 ! Updated in waveparams.f90 for instat 4,5,6,7
+            do while(s%theta0<-par%px)
+               s%theta0=s%theta0+2.d0*par%px
+            enddo
+            do while(s%theta0>par%px)
+               s%theta0=s%theta0-2.d0*par%px
+            enddo
 
-         !degrad=par%px/180.d0
+            !degrad=par%px/180.d0
+            !
+            if (par%thetanaut==1) then
+               s%thetamin=(270-par%thetamax)*degrad
+               s%thetamax=(270-par%thetamin)*degrad
+            else
+               ! rotate theta grid to world coordinates for backwards compatibility
+               s%thetamin=par%thetamin+s%alfa/degrad
+               s%thetamax=par%thetamax+s%alfa/degrad
 
-         if (par%thetanaut==1) then
-            s%thetamin=(270-par%thetamax)*degrad
-            s%thetamax=(270-par%thetamin)*degrad
+               s%thetamin=s%thetamin*degrad
+               s%thetamax=s%thetamax*degrad
+            endif
+
+            ! try and fix whatever strange angles given in params.txt
+            s%thetamin = mod(s%thetamin,2.d0*par%px)
+            s%thetamax = mod(s%thetamax,2.d0*par%px)
+            ! thetamin should always be smaller than thetamax
+            if(s%thetamin>s%thetamax) then
+               if (s%thetamax>=0.d0) then
+                  do while(s%thetamin>s%thetamax)
+                     s%thetamin = s%thetamin-2.d0*par%px
+                  enddo
+               else
+                  do while(s%thetamin>s%thetamax)
+                     s%thetamax = s%thetamax+2.d0*par%px
+                  enddo
+               endif
+            elseif(s%thetamax>s%thetamin+2.d0*par%px) then
+               do while(s%thetamax>s%thetamin+2.d0*par%px) ! note, most should already be captured by mod statements above,
+                  ! but can still occur under strange conditions
+                  s%thetamin = s%thetamin+2.d0*par%px
+               enddo
+            endif
+
+            !if (s%thetamax>par%px) then
+            !   s%thetamax=s%thetamax-2*par%px
+            !   s%thetamin=s%thetamin-2*par%px
+            !endif
+            !if (s%thetamin<-par%px) then
+            !   s%thetamax=s%thetamax+2*par%px
+            !   s%thetamin=s%thetamin+2*par%px
+            !endif
+
+
+            if(par%single_dir==0) then
+               s%dtheta=par%dtheta*degrad
+               s%ntheta=nint((s%thetamax-s%thetamin)/s%dtheta)
+            else
+               s%dtheta=s%thetamax-s%thetamin
+               s%ntheta=1
+            endif
          else
-            ! rotate theta grid to world coordinates for backwards compatibility
-            s%thetamin=par%thetamin+s%alfa/degrad
-            s%thetamax=par%thetamax+s%alfa/degrad
-
-            s%thetamin=s%thetamin*degrad
-            s%thetamax=s%thetamax*degrad
-         endif
-
-         if (s%thetamax>par%px) then
-            s%thetamax=s%thetamax-2*par%px
-            s%thetamin=s%thetamin-2*par%px
-         endif
-         if (s%thetamin<-par%px) then
-            s%thetamax=s%thetamax+2*par%px
-            s%thetamin=s%thetamin+2*par%px
-         endif
-
-         if (par%swave==1) then
-            s%dtheta=par%dtheta*degrad
-            s%ntheta=nint((s%thetamax-s%thetamin)/s%dtheta)
-         else
-            s%dtheta=par%dtheta*degrad
+            s%dtheta=2*par%px
             s%ntheta = 1
          endif
 
+         ! Always allocate room incase of output request and memory sharing
          allocate(s%theta(1:s%ntheta))
          allocate(s%thet(1:s%nx+1,1:s%ny+1,1:s%ntheta))
          allocate(s%costh(1:s%nx+1,1:s%ny+1,1:s%ntheta))
          allocate(s%sinth(1:s%nx+1,1:s%ny+1,1:s%ntheta))
 
-         do itheta=1,s%ntheta
-            s%theta(itheta)=s%thetamin+s%dtheta/2+s%dtheta*(itheta-1)
-         end do
-
-         do itheta=1,s%ntheta
-            do j=1,s%ny+1
-               do i=1,s%nx+1
-                  s%thet(i,j,itheta) = s%theta(itheta)
-                  s%costh(i,j,itheta)=cos(s%theta(itheta)-s%alfaz(i,j))
-                  s%sinth(i,j,itheta)=sin(s%theta(itheta)-s%alfaz(i,j))
-               enddo
-            enddo
-         enddo
-
          if (par%single_dir==1) then
             s%dtheta_s=par%dtheta_s*degrad
             s%ntheta_s=nint((s%thetamax-s%thetamin)/s%dtheta_s)
-
             allocate(s%theta_s(1:s%ntheta_s))
             allocate(s%thet_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
             allocate(s%costh_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
             allocate(s%sinth_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+         else
+            s%dtheta_s=2*par%px
+            s%ntheta_s=0
+            allocate(s%theta_s(1:s%ntheta))
+            allocate(s%thet_s(1:s%nx+1,1:s%ny+1,1:s%ntheta))
+            allocate(s%costh_s(1:s%nx+1,1:s%ny+1,1:s%ntheta))
+            allocate(s%sinth_s(1:s%nx+1,1:s%ny+1,1:s%ntheta))
+         endif
 
-            do itheta=1,s%ntheta_s
-               s%theta_s(itheta)=s%thetamin+s%dtheta_s/2+s%dtheta_s*(itheta-1)
+         ! Always allocate room incase of output request and memory sharing
+         
+
+         if (par%swave==1) then
+            do itheta=1,s%ntheta
+               s%theta(itheta)=mod(s%thetamin+s%dtheta/2+s%dtheta*(itheta-1),2*par%px)
             end do
 
-            do itheta=1,s%ntheta_s
+            do itheta=1,s%ntheta
                do j=1,s%ny+1
                   do i=1,s%nx+1
-                     s%thet_s(i,j,itheta) = s%theta_s(itheta)
-                     s%costh_s(i,j,itheta)=cos(s%theta_s(itheta)-s%alfaz(i,j))
-                     s%sinth_s(i,j,itheta)=sin(s%theta_s(itheta)-s%alfaz(i,j))
+                     s%thet(i,j,itheta) = s%theta(itheta)
+                     s%costh(i,j,itheta)=cos(mod(s%theta(itheta)-s%alfaz(i,j),2*par%px))
+                     s%sinth(i,j,itheta)=sin(mod(s%theta(itheta)-s%alfaz(i,j),2*par%px))
                   enddo
                enddo
             enddo
-         else
-            s%ntheta_s = 0
-            allocate(s%theta_s(s%ntheta_s))
-            allocate(s%thet_s (s%nx+1,s%ny+1,s%ntheta_s))
-            allocate(s%costh_s(s%nx+1,s%ny+1,s%ntheta_s))
-            allocate(s%sinth_s(s%nx+1,s%ny+1,s%ntheta_s))
-         endif
 
+            if (par%single_dir==1) then
+               do itheta=1,s%ntheta_s
+                  s%theta_s(itheta)=mod(s%thetamin+s%dtheta_s/2+s%dtheta_s*(itheta-1),2*par%px)
+               end do
+
+               do itheta=1,s%ntheta_s
+                  do j=1,s%ny+1
+                     do i=1,s%nx+1
+                        s%thet_s(i,j,itheta) = s%theta_s(itheta)
+                        s%costh_s(i,j,itheta)=cos(mod(s%theta_s(itheta)-s%alfaz(i,j),2*par%px))
+                        s%sinth_s(i,j,itheta)=sin(mod(s%theta_s(itheta)-s%alfaz(i,j),2*par%px))
+                     enddo
+                  enddo
+               enddo
+            endif
+         endif
       endif
 
       !if (xmaster) then
@@ -446,11 +484,16 @@ contains
       allocate(s%sigt(1:s%nx+1,1:s%ny+1,1:s%ntheta))
       allocate(s%ee(1:s%nx+1,1:s%ny+1,1:s%ntheta))
       allocate(s%rr(1:s%nx+1,1:s%ny+1,1:s%ntheta))
-      if (par%single_dir==1) then
+      if (par%single_dir==1) then ! Robert: always allocate these variables
          allocate(s%cgx_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
          allocate(s%cgy_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
          allocate(s%ctheta_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
          allocate(s%ee_s(1:s%nx+1,1:s%ny+1,1:s%ntheta_s))
+      else
+         allocate(s%cgx_s(0,0,0))
+         allocate(s%cgy_s(0,0,0))
+         allocate(s%ctheta_s(0,0,0))
+         allocate(s%ee_s(0,0,0))
       endif
       allocate(s%sigm(1:s%nx+1,1:s%ny+1))
       allocate(s%c(1:s%nx+1,1:s%ny+1))
@@ -469,7 +512,6 @@ contains
       allocate(s%Dp(1:s%nx+1,1:s%ny+1))
       allocate(s%Qb(1:s%nx+1,1:s%ny+1))
       allocate(s%ust(1:s%nx+1,1:s%ny+1))
-      allocate(s%tm(1:s%nx+1,1:s%ny+1))
       allocate(s%uwf(1:s%nx+1,1:s%ny+1))
       allocate(s%vwf(1:s%nx+1,1:s%ny+1))
       allocate(s%ustr(1:s%nx+1,1:s%ny+1))
@@ -480,6 +522,7 @@ contains
       allocate(s%vmwci       (1:s%nx+1,1:s%ny+1))
       allocate(s%zswci       (1:s%nx+1,1:s%ny+1))
       allocate(s%BR(1:s%nx+1,1:s%ny+1))
+      allocate(s%tm(1:s%nx+1,1:s%ny+1))
       !
       ! Initial condition
       !
@@ -517,7 +560,6 @@ contains
       s%D         = 0.d0
       s%Qb        = 0.d0
       s%ust       = 0.d0
-      s%tm        = 0.d0
       s%uwf       = 0.d0
       s%vwf       = 0.d0
       s%ustr      = 0.d0
@@ -529,6 +571,7 @@ contains
       s%Fvegu     = 0.d0
       s%Fvegv     = 0.d0
       s%BR        = par%Beta
+      s%tm        = 0.d0
 
 
       ! introduce intrinsic frequencies for wave action
@@ -744,7 +787,7 @@ contains
 
       allocate(s%dU(1:s%nx+1,1:s%ny+1))
       allocate(s%dV(1:s%nx+1,1:s%ny+1))
-    
+
 
       allocate(szs0(1:2))
       allocate(xzs0(1:2))
@@ -1168,10 +1211,10 @@ contains
             vmagvold=0.5d0*(vmagvold+sqrt(s%uv**2+s%vv**2))   ! mean needed for convergence
             ! solve v-balance of pressure gradient, wind forcing and bed friction
             where (s%wetv==1)
-                s%vv = s%hv/s%cf/max(vmagvold,0.000001d0) &
-                    *(-par%g*s%dzsdy+par%rhoa*par%Cd*s%windnv*sqrt(s%windsu**2+s%windnv**2)/(par%rho*s%hvm))  ! Kees: wind correction 
+               s%vv = s%hv/s%cf/max(vmagvold,0.000001d0) &
+               *(-par%g*s%dzsdy+par%rhoa*par%Cd*s%windnv*sqrt(s%windsu**2+s%windnv**2)/(par%rho*s%hvm))  ! Kees: wind correction
             elsewhere
-                s%vv = 0.d0
+               s%vv = 0.d0
             endwhere
             ! update vmagev
             ! u velocity in v points
@@ -1191,10 +1234,10 @@ contains
             ! Balance in cross shore
             vmaguold= 0.5d0*(vmaguold+sqrt(s%uu**2+s%vu**2)) ! mean needed for convergence
             ! Solve balance of forces
-              where (s%wetu==1)
-                 s%uu = s%hu/s%cf/max(vmaguold,0.000001d0) &
-                      *(-par%g*s%dzsdx+par%rhoa*par%Cd*s%windsu*sqrt(s%windsu**2+s%windnv**2)/(par%rho*s%hum)) ! Kees: wind correction 
-              elsewhere
+            where (s%wetu==1)
+               s%uu = s%hu/s%cf/max(vmaguold,0.000001d0) &
+               *(-par%g*s%dzsdx+par%rhoa*par%Cd*s%windsu*sqrt(s%windsu**2+s%windnv**2)/(par%rho*s%hum)) ! Kees: wind correction
+            elsewhere
                s%uu = 0.d0
             endwhere
             ! update vmageu
@@ -1573,95 +1616,95 @@ contains
       s%pdisch    = 0
       s%qdisch    = 0.d0
 
-         if (par%ndischarge>0) then
+      if (par%ndischarge>0) then
 
-            ! read discharge locations
-            open(10,file=par%disch_loc_file)
-            do i=1,par%ndischarge
-               read(10,*,IOSTAT=io) xdb(i),ydb(i),xde(i),yde(i)
+         ! read discharge locations
+         open(10,file=par%disch_loc_file)
+         do i=1,par%ndischarge
+            read(10,*,IOSTAT=io) xdb(i),ydb(i),xde(i),yde(i)
+            if (io .ne. 0) then
+               call report_file_read_error(par%disch_loc_file)
+            endif
+            ! distinguish between horizontal and vertical discharge
+            if (xdb(i).eq.xde(i) .and. ydb(i).eq.yde(i)) then
+               s%pntdisch(i) = 1
+            else
+               s%pntdisch(i) = 0
+            endif
+
+         enddo
+         close(10)
+
+         if (par%ntdischarge>0) then
+
+            ! read time series
+            open(10,file=par%disch_timeseries_file)
+            do i=1,par%ntdischarge
+               read(10,*,IOSTAT=io) s%tdisch(i),(s%qdisch(i,j),j=1,par%ndischarge)
                if (io .ne. 0) then
-                  call report_file_read_error(par%disch_loc_file)
+                  call report_file_read_error(par%disch_timeseries_file)
                endif
-               ! distinguish between horizontal and vertical discharge
-               if (xdb(i).eq.xde(i) .and. ydb(i).eq.yde(i)) then
-                  s%pntdisch(i) = 1
-               else
-                  s%pntdisch(i) = 0
-               endif
-
             enddo
             close(10)
-
-            if (par%ntdischarge>0) then
-
-               ! read time series
-               open(10,file=par%disch_timeseries_file)
-               do i=1,par%ntdischarge
-                  read(10,*,IOSTAT=io) s%tdisch(i),(s%qdisch(i,j),j=1,par%ndischarge)
-                  if (io .ne. 0) then
-                     call report_file_read_error(par%disch_timeseries_file)
-                  endif
-               enddo
-               close(10)
-            endif
          endif
+      endif
 
-         ! initialise each discharge location
-         do i=1,par%ndischarge
+      ! initialise each discharge location
+      do i=1,par%ndischarge
 
-            !          dxd = abs(xde(i)-xdb(i))
-            !          dyd = abs(yde(i)-ydb(i))
-            mnb = minloc(sqrt((s%xz-xdb(i))**2+(s%yz-ydb(i))**2))
-            mne = minloc(sqrt((s%xz-xde(i))**2+(s%yz-yde(i))**2))
+         !          dxd = abs(xde(i)-xdb(i))
+         !          dyd = abs(yde(i)-ydb(i))
+         mnb = minloc(sqrt((s%xz-xdb(i))**2+(s%yz-ydb(i))**2))
+         mne = minloc(sqrt((s%xz-xde(i))**2+(s%yz-yde(i))**2))
 
-            ! convert discharge location to cell indices depending on type of discharge:
-            !     point discharge, in v-direction or in u-direction
-            if (s%pntdisch(i).eq.1) then
+         ! convert discharge location to cell indices depending on type of discharge:
+         !     point discharge, in v-direction or in u-direction
+         if (s%pntdisch(i).eq.1) then
 
-               ! point discharge (no orientation, no added momentum, just mass)
+            ! point discharge (no orientation, no added momentum, just mass)
 
-               !            mnb = minloc(sqrt((s%xz-xdb(i))**2+(s%yz-ydb(i))**2))
-               !            mne = minloc(sqrt((s%xz-xde(i))**2+(s%yz-yde(i))**2))
+            !            mnb = minloc(sqrt((s%xz-xdb(i))**2+(s%yz-ydb(i))**2))
+            !            mne = minloc(sqrt((s%xz-xde(i))**2+(s%yz-yde(i))**2))
 
-               s%pdisch(i,:) = (/mnb(1),mnb(2),0,0/)
-               !          elseif (dxd.gt.dyd) then
-            elseif (mnb(1).ne.mne(1)) then
+            s%pdisch(i,:) = (/mnb(1),mnb(2),0,0/)
+            !          elseif (dxd.gt.dyd) then
+         elseif (mnb(1).ne.mne(1)) then
 
-               ! discharge through v-points
+            ! discharge through v-points
 
-               !             mnb = minloc(sqrt((s%xv-xdb(i))**2+(s%yv-ydb(i))**2))
-               !             mne = minloc(sqrt((s%xv-xde(i))**2+(s%yv-yde(i))**2))
+            !             mnb = minloc(sqrt((s%xv-xdb(i))**2+(s%yv-ydb(i))**2))
+            !             mne = minloc(sqrt((s%xv-xde(i))**2+(s%yv-yde(i))**2))
 
-               m1 = minval((/mnb(1),mne(1)/))
-               m2 = maxval((/mnb(1),mne(1)/))
-               n1 = nint(0.5*(mnb(2)+mne(2)))
+            m1 = minval((/mnb(1),mne(1)/))
+            m2 = maxval((/mnb(1),mne(1)/))
+            n1 = nint(0.5*(mnb(2)+mne(2)))
 
-               if (n1.lt.1)    n1 = 1
-               if (n1.gt.s%ny) n1 = s%ny
+            if (n1.lt.1)    n1 = 1
+            if (n1.gt.s%ny) n1 = s%ny
 
-               s%pdisch(i,:) = (/m1,n1,m2,n1/)
-            else
+            s%pdisch(i,:) = (/m1,n1,m2,n1/)
+         else
 
-               ! discharge through u-points
+            ! discharge through u-points
 
-               !             mnb = minloc(sqrt((s%xu-xdb(i))**2+(s%yu-ydb(i))**2))
-               !             mne = minloc(sqrt((s%xu-xde(i))**2+(s%yu-yde(i))**2))
+            !             mnb = minloc(sqrt((s%xu-xdb(i))**2+(s%yu-ydb(i))**2))
+            !             mne = minloc(sqrt((s%xu-xde(i))**2+(s%yu-yde(i))**2))
 
-               m1 = nint(0.5*(mnb(1)+mne(1)))
-               n1 = minval((/mnb(2),mne(2)/))
-               n2 = maxval((/mnb(2),mne(2)/))
+            m1 = nint(0.5*(mnb(1)+mne(1)))
+            n1 = minval((/mnb(2),mne(2)/))
+            n2 = maxval((/mnb(2),mne(2)/))
 
-               if (m1.lt.1)    m1 = 1
-               if (m1.gt.s%nx) m1 = s%nx
+            if (m1.lt.1)    m1 = 1
+            if (m1.gt.s%nx) m1 = s%nx
 
-               s%pdisch(i,:) = (/m1,n1,m1,n2/)
-            endif
-         enddo
-
-         ! incorporate morfac
-         if (par%morfacopt == 1) then
-            s%tdisch = s%tdisch/max(par%morfac,1.d0)
+            s%pdisch(i,:) = (/m1,n1,m1,n2/)
          endif
+      enddo
+
+      ! incorporate morfac
+      if (par%morfacopt == 1) then
+         s%tdisch = s%tdisch/max(par%morfac,1.d0)
+      endif
    end subroutine discharge_init
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
