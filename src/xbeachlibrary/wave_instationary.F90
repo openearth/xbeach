@@ -180,14 +180,14 @@ contains
 
          call slope2D(kmx,s%nx,s%ny,s%dsu,s%dnv,dkmxdx,dkmxdy,s%wetu,s%wetv)
          call slope2D(kmy,s%nx,s%ny,s%dsu,s%dnv,dkmydx,dkmydy,s%wetu,s%wetv)
-         call advecwx(s%wm,xwadvec,kmx,s%nx,s%ny,s%dsu)   ! cjaap: s%xz or s%xu?
+         call advecwx(s%wm,xwadvec,kmx,s%nx,s%ny,s%dsu,s%wetz)   ! cjaap: s%xz or s%xu?
          kmx = kmx -par%dt*xwadvec  -par%dt*cgym*(dkmydx-dkmxdy)
          if (s%ny>0) then
             if (xmpi_isright) kmx(:,s%ny+1) = kmx(:,s%ny)  ! lateral bc
             if (xmpi_isleft)  kmx(:,1) = kmx(:,2)  ! lateral bc
          endif
 
-         call advecwy(s%wm,ywadvec,kmy,s%nx,s%ny,s%dnv)   ! cjaap: s%yz or s%yv?
+         call advecwy(s%wm,ywadvec,kmy,s%nx,s%ny,s%dnv,s%wetz)   ! cjaap: s%yz or s%yv?
          kmy = kmy-par%dt*ywadvec  + par%dt*cgxm*(dkmydx-dkmxdy)
          if (s%ny>0) then
             if (xmpi_isright) kmy(:,s%ny+1) = kmy(:,s%ny)   ! lateral bc
@@ -276,12 +276,12 @@ contains
       !
       ! Upwind Euler timestep propagation
       !
-      call advecxho(s%ee,s%cgx,xadvec,s%nx,s%ny,s%ntheta,s%dnu,s%dsu,s%dsdnzi,par%scheme)
+      call advecxho(s%ee,s%cgx,xadvec,s%nx,s%ny,s%ntheta,s%dnu,s%dsu,s%dsdnzi,par%scheme,s%wetu,s%wetz)
       if (s%ny>0) then
-         call advecyho(s%ee,s%cgy,yadvec,s%nx,s%ny,s%ntheta,s%dsv,s%dnv,s%dsdnzi,par%scheme)
+         call advecyho(s%ee,s%cgy,yadvec,s%nx,s%ny,s%ntheta,s%dsv,s%dnv,s%dsdnzi,par%scheme,s%wetv,s%wetz)
       endif
       !call advectheta(ee*ctheta,thetaadvec,nx,ny,ntheta,dtheta)
-      call advecthetaho(s%ee,s%ctheta,thetaadvec,s%nx,s%ny,s%ntheta,s%dtheta,par%scheme)!
+      call advecthetaho(s%ee,s%ctheta,thetaadvec,s%nx,s%ny,s%ntheta,s%dtheta,par%scheme,s%wetz)!
       s%ee=s%ee-par%dt*(xadvec+yadvec+thetaadvec)
       !
       ! transform back to wave energy
@@ -311,9 +311,9 @@ contains
        case(BREAK_ROELVINK_DALY)
          cgxm = s%c*dcos(s%thetamean)
          cgym = s%c*dsin(s%thetamean)
-         call advecqx(cgxm,s%Qb,xwadvec,s%nx,s%ny,s%dsu)
+         call advecqx(cgxm,s%Qb,xwadvec,s%nx,s%ny,s%dsu,s%wetz)
          if (s%ny>0) then
-            call advecqy(cgym,s%Qb,ywadvec,s%nx,s%ny,s%dnv)
+            call advecqy(cgym,s%Qb,ywadvec,s%nx,s%ny,s%dnv,s%wetz)
             s%Qb  = s%Qb-par%dt*(xwadvec+ywadvec)
          else
             s%Qb  = s%Qb-par%dt*xwadvec
@@ -353,12 +353,12 @@ contains
       !
       ! calculate roller energy balance
       !
-      call advecxho(s%rr,s%cx,xradvec,s%nx,s%ny,s%ntheta,s%dnu,s%dsu,s%dsdnzi,par%scheme)
+      call advecxho(s%rr,s%cx,xradvec,s%nx,s%ny,s%ntheta,s%dnu,s%dsu,s%dsdnzi,par%scheme,s%wetu,s%wetz)
       if (s%ny>0) then
-         call advecyho(s%rr,s%cy,yradvec,s%nx,s%ny,s%ntheta,s%dsv,s%dnv,s%dsdnzi,par%scheme)
+         call advecyho(s%rr,s%cy,yradvec,s%nx,s%ny,s%ntheta,s%dsv,s%dnv,s%dsdnzi,par%scheme,s%wetv,s%wetz)
       endif
       !call advectheta(rr*ctheta,thetaradvec,nx,ny,ntheta,dtheta)
-      call advecthetaho(s%rr,s%ctheta,thetaradvec,s%nx,s%ny,s%ntheta,s%dtheta,par%scheme)
+      call advecthetaho(s%rr,s%ctheta,thetaradvec,s%nx,s%ny,s%ntheta,s%dtheta,par%scheme,s%wetz)
       s%rr=s%rr-par%dt*(xradvec+yradvec+thetaradvec)
       s%rr=max(s%rr,0.0d0)
       !

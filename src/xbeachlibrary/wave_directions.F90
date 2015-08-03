@@ -281,14 +281,16 @@ contains
             !
             if  (i>2.and. par%scheme==SCHEME_UPWIND_2) then
                call advecxho(s%ee_s(i-2:i+1,:,:),s%cgx_s(i-2:i+1,:,:),xadvec(i-2:i+1,:,:),    &
-               3,s%ny,s%ntheta_s,s%dnu(i-2:i+1,:),s%dsu(i-2:i+1,:),s%dsdnzi(i-2:i+1,:),SCHEME_UPWIND_2)
+               3,s%ny,s%ntheta_s,s%dnu(i-2:i+1,:),s%dsu(i-2:i+1,:),s%dsdnzi(i-2:i+1,:),SCHEME_UPWIND_2, &
+               s%wetu(i-2:i+1,:),s%wetz(i-2:i+1,:))
             else
                call advecxho(s%ee_s(i-1:i+1,:,:),s%cgx_s(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),    &
-               2,s%ny,s%ntheta_s,s%dnu(i-1:i+1,:),s%dsu(i-1:i+1,:),s%dsdnzi(i-1:i+1,:),SCHEME_UPWIND_1)
+               2,s%ny,s%ntheta_s,s%dnu(i-1:i+1,:),s%dsu(i-1:i+1,:),s%dsdnzi(i-1:i+1,:),SCHEME_UPWIND_1,&
+               s%wetu(i-1:i+1,:),s%wetz(i-1:i+1,:))
             endif
             call advecyho(s%ee_s(i,:,:),s%cgy_s(i,:,:),yadvec(i,:,:),                                  &
-            0,s%ny,s%ntheta_s,s%dsv(i,:),s%dnv(i,:),s%dsdnzi(i,:),SCHEME_UPWIND_1)
-            call advecthetaho(s%ee_s(i,:,:),s%ctheta_s(i,:,:),thetaadvec(i,:,:),0,s%ny,s%ntheta_s,s%dtheta,par%scheme)
+            0,s%ny,s%ntheta_s,s%dsv(i,:),s%dnv(i,:),s%dsdnzi(i,:),SCHEME_UPWIND_1,s%wetv(i,:),s%wetz(i,:))
+            call advecthetaho(s%ee_s(i,:,:),s%ctheta_s(i,:,:),thetaadvec(i,:,:),0,s%ny,s%ntheta_s,s%dtheta,par%scheme,s%wetz(i,:))
 
             where(wete3d(i,:,:)==1)
                s%ee_s(i,:,:)=s%ee_s(i,:,:)-dtw*(xadvec(i,:,:) + yadvec(i,:,:) + thetaadvec(i,:,:))
