@@ -358,7 +358,7 @@ contains
                      delta = (par%rhos-par%rho)/par%rho
                      shields = sqrt(s%taubx(i,j)**2 + s%tauby(i,j)**2)/(delta*par%rho*par%g*s%D50(jg))
                      ! shields = (urepb(i,j)**2.d0+vrepb(i,j)**2.d0)*s%cf(i,j)/(par%g*D50(jg)*delta)
-                     ftheta = 1.d0/(9.d0*(s%D50(jg)/s%hh(i,j))**0.3d0*shields**0.5d0) ! Talmon
+                     ftheta = 1.d0/(9.d0*(s%D50(jg)/s%hh(i,j))**0.3d0*sqrt(shields)) ! Talmon
                      psi_x = datan(  (dsin(delta_x)-ftheta*s%dzbdy(i,j))  /  (dcos(delta_x)-ftheta*s%dzbdx(i,j))  )
                      psi_x = par%bdslpeffdirfac*(psi_x - delta_x)+delta_x
                      Sbtot = dsqrt(  Sub(i,j)**2.d0  +  Svb(i,j)**2.d0  )  ! Magnitude of sediment transport without direction modifcation
