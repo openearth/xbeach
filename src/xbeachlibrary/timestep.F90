@@ -462,7 +462,7 @@ contains
          if (s%ny>2) then
             do j=2,s%ny
                do i=2,s%nx
-                  if(s%wetz(i,j)==1) then
+                  if(s%wetu(i,j)==1) then
                      ! u-points
                      mdx=s%dsu(i+1,j)
                      mdy=min(s%dnv(i,j),s%dnv(i,j-1))
@@ -476,7 +476,8 @@ contains
                         limtype = 1
                         dtold = par%dt
                      endif
-
+                  endif
+                  if(s%wetv(i,j)==1) then
                      ! v-points
                      mdx=min(s%dsu(i,j),s%dsu(i-1,j))
                      mdy=s%dnv(i,j)
@@ -491,7 +492,8 @@ contains
                         limtype = 2
                         dtold = par%dt
                      endif
-
+                  endif
+                  if(s%wetz(i,j)==1) then
                      mdx = min(s%dsu(i,j),s%dsz(i,j))**2
                      mdy = min(s%dnv(i,j),s%dnz(i,j))**2
 
@@ -513,7 +515,7 @@ contains
          else
             j2=max(s%ny,1)  ! Robert: hmmm, in sf1D this should be 1, in "old" 1d this should be 2
             do i=2,s%nx
-               if(s%wetz(i,j2)==1) then
+               if(s%wetu(i,j2)==1) then
                   ! u-points
                   mdx=s%dsu(i,j2)
                   par%dt=min(par%dt,mdx/max(tny,max(sqrt(par%g*s%hu(i,j2))+abs(s%uu(i,j2)),abs(s%ueu(i,j2))))) !Jaap: include sediment advection velocities
@@ -523,6 +525,8 @@ contains
                      limtype = 1
                      dtold = par%dt
                   endif
+               endif
+               if(s%wetz(i,j2)==1) then
                   ! v-points
                   mdx=min(s%dsu(i,j2),s%dsu(i-1,j2))
                   par%dt=min(par%dt,mdx/max(tny,(sqrt(par%g*s%hv(i,j2))+abs(s%uv(i,j2)))))
