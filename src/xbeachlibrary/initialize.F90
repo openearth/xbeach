@@ -522,7 +522,7 @@ contains
       allocate(s%vmwci       (1:s%nx+1,1:s%ny+1))
       allocate(s%zswci       (1:s%nx+1,1:s%ny+1))
       allocate(s%BR(1:s%nx+1,1:s%ny+1))
-      allocate(s%tm(1:s%nx+1,1:s%ny+1))
+      !allocate(s%tm(1:s%nx+1,1:s%ny+1))
       !
       ! Initial condition
       !
@@ -571,7 +571,7 @@ contains
       s%Fvegu     = 0.d0
       s%Fvegv     = 0.d0
       s%BR        = par%Beta
-      s%tm        = 0.d0
+      !s%tm        = 0.d0
 
 
       ! introduce intrinsic frequencies for wave action
