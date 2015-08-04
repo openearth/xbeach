@@ -424,6 +424,7 @@ module params
       real*8               :: px                  =  4.d0*atan(1.d0)   !  [-] Pi
       complex(kind(0.0d0)) :: compi               = -123    !  [-] Imaginary unit
       real*8               :: rhog8               = -123    !  [Nm^-3] 1/8*rho*g
+      real*8               :: irhog8              = -123    !  [N^-1m^3] (1/8*rho*g)^-1
 
       ! [Section] Variables, not read in params.txt
       real*8               :: dt                  = -123    !  [s] Computational time step, in hydrodynamic time
@@ -1500,6 +1501,7 @@ contains
       ! Constants
       par%compi = (0.0d0,1.0d0)
       par%rhog8 = 1.0d0/8.0d0*par%rho*par%g
+      par%irhog8 = 1.d0/par%rhog8
       !
       !
       if (par%posdwn<0.1d0) then

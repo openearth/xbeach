@@ -187,7 +187,7 @@ contains
       !dtw=.9*minval(xz(2:nx+1)-xz(1:nx))/maxval(cgx_s)
 
       s%E(1,:)=sum(s%ee_s(1,:,:),2)*s%dtheta_s
-      s%H(1,:)=sqrt(s%E(1,:)/par%rhog8)
+      s%H(1,:)=sqrt(s%E(1,:)*par%irhog8)
 
       imax=s%nx
       !Dano  This is ok, since we will set mpiboundary to y in stationary mode
@@ -322,7 +322,7 @@ contains
                s%E(i,j)=sum(s%ee_s(i,j,:))*s%dtheta
             endforall
             where(wete2d(i,:)==1)
-               s%H(i,:)=sqrt(s%E(i,:)/par%rhog8)
+               s%H(i,:)=sqrt(s%E(i,:)*par%irhog8)
             endwhere
             do itheta=1,s%ntheta_s
                where(wete2d(i,:)==1)
@@ -430,7 +430,7 @@ contains
             !
             where(wete2d(i,:)==1)
                s%E(i,:)=sum(s%ee_s(i,:,:),2)*s%dtheta
-               s%H(i,:)=sqrt(s%E(i,:)/par%rhog8)
+               s%H(i,:)=sqrt(s%E(i,:)*par%irhog8)
             elsewhere
                s%E(i,:)=0.d0
                s%H(i,:)=0.d0

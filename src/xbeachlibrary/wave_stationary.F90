@@ -183,7 +183,7 @@ contains
 
       s%E(1,:)=sum(s%ee(1,:,:),2)*s%dtheta
       s%R(1,:)=max(sum(s%rr(1,:,:),2)*s%dtheta,0.0d0)
-      s%H(1,:)=sqrt(s%E(1,:)/par%rhog8)
+      s%H(1,:)=sqrt(s%E(1,:)*par%irhog8)
 
       imax=s%nx
       !Dano  This is ok, since we will set mpiboundary to y in stationary mode
@@ -305,7 +305,7 @@ contains
             ! Energy integrated over wave directions,Hrms
             !
             s%E(i,:)=sum(s%ee(i,:,:),2)*s%dtheta
-            s%H(i,:)=sqrt(s%E(i,:)/par%rhog8)
+            s%H(i,:)=sqrt(s%E(i,:)*par%irhog8)
             do itheta=1,s%ntheta
                s%ee(i,:,itheta)=s%ee(i,:,itheta)/max(1.0d0,(s%H(i,:)/(par%gammax*s%hh(i,:)))**2)
             enddo
@@ -449,7 +449,7 @@ contains
             s%E(i,:)=sum(s%ee(i,:,:),2)*s%dtheta
             s%R(i,:)=sum(s%rr(i,:,:),2)*s%dtheta
             s%DR(i,:)=sum(drr(i,:,:),2)*s%dtheta
-            s%H(i,:)=sqrt(s%E(i,:)/par%rhog8)
+            s%H(i,:)=sqrt(s%E(i,:)*par%irhog8)
             Herr=maxval(abs(Hprev(jmin_ee:jmax_ee)-s%H(i,jmin_ee:jmax_ee)))
 #ifdef USEMPI
             call xmpi_allreduce(Herr,MPI_MAX)
