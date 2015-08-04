@@ -1751,11 +1751,13 @@ contains
             detadxmax(i,j) = dudtmax*sinh(s%k(i,j)*s%hh(i,j))/max(s%c(i,j),sqrt(s%H(i,j)*par%g))/s%sigm(i,j)
 
             ! detadxmean for roller energy balance dissipation...
-            if (par%rfb==1) then
+            if (par%rfb==1 .and. s%wetz(i,j)==1) then
                duddtmean = f0*RF(5,ih0,it0)+f1*RF(5,ih1,it0)+ f2*RF(5,ih0,it1)+f3*RF(5,ih1,it1)
                dudtmean = s%urms(i,j)/max(par%eps,siguref)*sqrt(par%g/s%hh(i,j))*t0fac*duddtmean
                detadxmean = dudtmean*sinh(s%k(i,j)*s%hh(i,j))/max(s%c(i,j),sqrt(s%H(i,j)*par%g))/s%sigm(i,j)
                s%BR(i,j) = par%BRfac*sin(atan(detadxmean))
+            else
+               s%BR(i,j) = 0.d0
             endif
 
          enddo
