@@ -8,7 +8,6 @@ libxbeach_la_SOURCES= \
 	typesandkinds.F90 \
 	logging.F90 \
 	paramsconst.F90 \
-	wetcells.F90 \
 	filefunctions.F90 \
 	readkey.F90 \
 	mnemonic.F90 \
@@ -19,6 +18,7 @@ libxbeach_la_SOURCES= \
 	spaceparamsdef.F90 \
 	indextos.F90 \
 	spaceparams.F90 \
+	wetcells.F90 \
 	vegetation.F90 \
 	wave_functions.F90 \
 	waveparams.F90 \
