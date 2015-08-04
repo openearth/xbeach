@@ -8,6 +8,7 @@ libxbeach_la_SOURCES= \
 	typesandkinds.F90 \
 	logging.F90 \
 	paramsconst.F90 \
+	wetcells.F90 \
 	filefunctions.F90 \
 	readkey.F90 \
 	mnemonic.F90 \
