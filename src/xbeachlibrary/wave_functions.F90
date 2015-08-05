@@ -6,7 +6,7 @@ module wave_functions_module
 
 contains
 
-   subroutine slope2D(h,nx,ny,dsu,dnv,dhdx,dhdy,wetu,wetv)
+   subroutine slope2D(h,nx,ny,dsu,dnv,dhdx,dhdy,wete)
       use xmpi_module
       implicit none
 
@@ -14,7 +14,7 @@ contains
       real*8, dimension(nx+1,ny+1)      :: h,dhdx,dhdy
       real*8, dimension(nx+1,ny+1)           :: dsu
       real*8, dimension(nx+1,ny+1)           :: dnv
-      integer, dimension(nx+1,ny+1),intent(in)  :: wetu,wetv
+      integer, dimension(nx+1,ny+1),intent(in)  :: wete
 
 
       ! wwvv dhdx(2:nx,:) is computed, dhdx(1,:) and dhdx(nx+1,:)
@@ -24,16 +24,16 @@ contains
       
       ! u-gradients
       if(nx+1>=2) then
-         forall(i=2:nx,j=1:ny+1,wetu(i,j)==1)
+         forall(i=2:nx,j=1:ny+1,wete(i,j)==1)
             dhdx(i,j)=(h(i+1,j)-h(i-1,j))/(dsu(i,j)+dsu(i-1,j))
          endforall
-         forall(j=1:ny+1,wetu(1,j)==1)
+         forall(j=1:ny+1,wete(1,j)==1)
             dhdx(1,j)=(h(2,j)-h(1,j))/dsu(1,j)
          endforall
-         forall(j=1:ny+1,wetu(nx+1,j)==1)
+         forall(j=1:ny+1,wete(nx+1,j)==1)
             dhdx(nx+1,j)=(h(nx+1,j)-h(nx,j))/dsu(nx,j)
          endforall
-         where(wetu==0)
+         where(wete==0)
             dhdx=0.d0
          endwhere
       else
@@ -42,16 +42,16 @@ contains
       
       ! v-gradients
       if(ny+1>=2) then
-         forall(i=1:nx+1,j=2:ny,wetv(i,j)==1)
+         forall(i=1:nx+1,j=2:ny,wete(i,j)==1)
             dhdy(i,j)=(h(i,j+1)-h(i,j-1))/(dnv(i,j)+dnv(i,j-1))
          endforall
-         forall(i=1:nx+1,wetv(i,1)==1)
+         forall(i=1:nx+1,wete(i,1)==1)
             dhdy(i,1)=(h(i,2)-h(i,1))/dnv(i,1)
          endforall
-         forall(i=1:nx+1,wetv(i,ny+1)==1)
+         forall(i=1:nx+1,wete(i,ny+1)==1)
             dhdy(i,ny+1)=(h(i,ny+1)-h(i,ny))/dnv(i,ny)
          endforall
-         where(wetv==0)
+         where(wete==0)
             dhdy=0.d0
          endwhere
       else
@@ -62,7 +62,7 @@ contains
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,scheme,wetu,wetz)
+   subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,scheme,wete)
       use spaceparams
       use xmpi_module
 
@@ -70,7 +70,7 @@ contains
 
       integer                                         :: i,j,nx,ny,ntheta
       integer, intent(in)                             :: scheme
-      integer, dimension(nx+1,ny+1),intent(in)        :: wetu,wetz
+      integer, dimension(nx+1,ny+1),intent(in)        :: wete
       integer                                         :: itheta
       real*8 , dimension(nx+1,ny+1)                   :: dnu,dsu,dsdnzi,fluxx
       real*8 , dimension(nx+1,ny+1,ntheta)            :: xadvec,ee,cgx
@@ -89,7 +89,7 @@ contains
          do itheta=1,ntheta
             do j=1,ny+1
                do i=1,nx  ! Whole domain
-                  if(wetu(i,j)==1) then
+                  if(wete(i,j)==1) then
                      cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
                      if (cgxu>0) then
                         fluxx(i,j)=ee(i,j,itheta)*cgxu*dnu(i,j)
@@ -102,7 +102,7 @@ contains
             !do j=1,ny+1  !
             do j=jmin_ee,jmax_ee
                do i=2,nx
-                  if(wetz(i,j)==1) then
+                  if(wete(i,j)==1) then
                      xadvec(i,j,itheta)=(fluxx(i,j)-fluxx(i-1,j))*dsdnzi(i,j)
                   endif
                enddo
@@ -112,7 +112,7 @@ contains
          do itheta=1,ntheta
             do j=1,ny+1
                do i=2,nx-1
-                  if(wetu(i,j)==1) then
+                  if(wete(i,j)==1) then
                      cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
                      if (cgxu>0) then
                         !                    eupw=((dsu(i,j)+.5*dsu(i-1,j))*ee(i,j,itheta)-.5*dsu(i-1,j)*ee(i-1,j,itheta))/dsu(i-1,j)
@@ -129,7 +129,7 @@ contains
                enddo
                if (xmpi_istop) then
                   i=1   ! only compute for i==1
-                  if(wetu(i,j)==1) then
+                  if(wete(i,j)==1) then
                      cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
                      if (cgxu>0) then
                         fluxx(i,j)=ee(i,j,itheta)*cgxu*dnu(i,j)
@@ -143,7 +143,7 @@ contains
                endif
                if (xmpi_isbot) then
                   i=nx  ! only compute for i==nx0
-                  if(wetu(i,j)==1) then
+                  if(wete(i,j)==1) then
                      cgxu=.5*(cgx(i+1,j,itheta)+cgx(i,j,itheta))
                      if (cgxu>0) then
                         !                    eupw=((dsu(i,j)+.5*dsu(i-1,j))*ee(i,j,itheta)-.5*dsu(i-1,j)*ee(i-1,j,itheta))/dsu(i-1,j)
@@ -158,7 +158,7 @@ contains
             enddo
             do j=jmin_ee,jmax_ee
                do i=2,nx
-                  if(wetz(i,j)==1) then
+                  if(wete(i,j)==1) then
                      xadvec(i,j,itheta)=(fluxx(i,j)-fluxx(i-1,j))*dsdnzi(i,j)
                   endif
                enddo
@@ -170,7 +170,7 @@ contains
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   subroutine advecthetaho(ee,ctheta,thetaadvec,nx,ny,ntheta,dtheta,scheme,wetz)
+   subroutine advecthetaho(ee,ctheta,thetaadvec,nx,ny,ntheta,dtheta,scheme,wete)
       use spaceparams
       use xmpi_module
 
@@ -178,7 +178,7 @@ contains
 
       integer                                         :: i,j,nx,ny,ntheta
       integer, intent(in)                             :: scheme
-      integer, dimension(nx+1,ny+1),intent(in)        :: wetz
+      integer, dimension(nx+1,ny+1),intent(in)        :: wete
       integer                                         :: itheta
       real*8 , dimension(ntheta)                      :: fluxtheta
       real*8 , dimension(nx+1,ny+1,ntheta)            :: thetaadvec,ee,ctheta
@@ -198,7 +198,7 @@ contains
           case(SCHEME_UPWIND_1)
             do j=1,ny+1
                do i=1,nx+1
-                  if(wetz(i,j)==1) then
+                  if(wete(i,j)==1) then
                      do itheta=1,ntheta-1
                         ctheta_between=.5*(ctheta(i,j,itheta+1)+ctheta(i,j,itheta))
                         if (ctheta_between>0) then
@@ -218,7 +218,7 @@ contains
           case(SCHEME_UPWIND_2)
             do j=1,ny+1
                do i=1,nx+1
-                  if(wetz(i,j)==1) then
+                  if(wete(i,j)==1) then
                      do itheta=2,ntheta-2
                         ctheta_between=.5*(ctheta(i,j,itheta+1)+ctheta(i,j,itheta))
                         if (ctheta_between>0) then
@@ -265,13 +265,13 @@ contains
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,scheme,wetv,wetz)
+   subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,scheme,wete)
 
       implicit none
 
       integer                                         :: i,j,nx,ny,ntheta
       integer, intent(in)                             :: scheme
-      integer, dimension(nx+1,ny+1),intent(in)        :: wetv,wetz
+      integer, dimension(nx+1,ny+1),intent(in)        :: wete
       integer                                         :: itheta
       real*8 ,  dimension(nx+1,ny+1)                  :: dsv,dnv,dsdnzi,fluxy
       real*8 ,  dimension(nx+1,ny+1,ntheta)           :: yadvec,ee,cgy
@@ -289,7 +289,7 @@ contains
          do itheta=1,ntheta
             do j=1,ny
                do i=1,nx+1  ! Whole domain
-                  if(wetv(i,j)==1) then
+                  if(wete(i,j)==1) then
                      cgyv=.5*(cgy(i,j+1,itheta)+cgy(i,j,itheta))
                      if (cgyv>0) then
                         fluxy(i,j)=ee(i,j,itheta)*cgyv*dsv(i,j)
@@ -301,7 +301,7 @@ contains
             enddo
             do j=2,ny
                do i=1,nx+1
-                  if(wetz(i,j)==1) then
+                  if(wete(i,j)==1) then
                      yadvec(i,j,itheta)=(fluxy(i,j)-fluxy(i,j-1))*dsdnzi(i,j)
                   endif
                enddo
@@ -311,7 +311,7 @@ contains
          do itheta=1,ntheta
             do j=2,ny-1
                do i=1,nx+1
-                  if(wetv(i,j)==1) then
+                  if(wete(i,j)==1) then
                      cgyv=.5*(cgy(i,j+1,itheta)+cgy(i,j,itheta))
                      if (cgyv>0) then
                         !                    eupw=((dnv(i,j)+.5*dnv(i,j-1))*ee(i,j,itheta)-.5*dnv(i,j-1)*ee(i,j-1,itheta))/dnv(i,j-1)
@@ -329,7 +329,7 @@ contains
             enddo
             j=1   ! only compute for j==1
             do i=1,nx+1
-               if(wetv(i,j)==1) then
+               if(wete(i,j)==1) then
                   cgyv=.5*(cgy(i,j+1,itheta)+cgy(i,j,itheta))
                   if (cgyv>0) then
                      fluxy(i,j)=ee(i,j,itheta)*cgyv*dsv(i,j)
@@ -343,7 +343,7 @@ contains
             enddo
             j=ny ! only compute for j==ny
             do i=1,nx+1
-               if(wetv(i,j)==1) then
+               if(wete(i,j)==1) then
                   cgyv=.5*(cgy(i,j+1,itheta)+cgy(i,j,itheta))
                   if (cgyv>0) then
                      !                eupw=((dnv(i,j)+.5*dnv(i,j-1))*ee(i,j,itheta)-.5*dnv(i,j-1)*ee(i,j-1,itheta))/dnv(i,j-1)
@@ -357,7 +357,7 @@ contains
             enddo
             do j=2,ny
                do i=2,nx+1
-                  if(wetz(i,j)==1) then
+                  if(wete(i,j)==1) then
                      yadvec(i,j,itheta)=(fluxy(i,j)-fluxy(i,j-1))*dsdnzi(i,j)
                   endif
                enddo
@@ -370,7 +370,7 @@ contains
    
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   subroutine advecwx(arrin2d,xwadvec,kmx,nx,ny,dsu,wetz)
+   subroutine advecwx(arrin2d,xwadvec,kmx,nx,ny,dsu,wete)
       use xmpi_module
 
       implicit none
@@ -379,13 +379,13 @@ contains
       integer                                         :: j
       real*8 , dimension(nx+1,ny+1)                   :: dsu
       real*8 , dimension(nx+1,ny+1)                   :: xwadvec,arrin2d,kmx
-      integer, dimension(nx+1,ny+1),intent(in)        :: wetz
+      integer, dimension(nx+1,ny+1),intent(in)        :: wete
 
       xwadvec = 0.d0
 
       do j=2,ny
          do i=2,nx
-            if(wetz(i,j)==1) then
+            if(wete(i,j)==1) then
                if (kmx(i,j)>0) then
                   xwadvec(i,j)=(arrin2d(i,j)-arrin2d(i-1,j))/dsu(i-1,j)
                elseif (kmx(i,j)<0) then
@@ -405,7 +405,7 @@ contains
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 
-   subroutine advecwy(arrin2d,ywadvec,kmy,nx,ny,dnv,wetz)
+   subroutine advecwy(arrin2d,ywadvec,kmy,nx,ny,dnv,wete)
       use xmpi_module
       use xmpi_module
       implicit none
@@ -414,13 +414,13 @@ contains
       integer                                         :: j
       real*8 , dimension(nx+1,ny+1)                   :: dnv
       real*8 , dimension(nx+1,ny+1)                   :: ywadvec,arrin2d,kmy
-      integer, dimension(nx+1,ny+1),intent(in)        :: wetz
+      integer, dimension(nx+1,ny+1),intent(in)        :: wete
 
       ywadvec = 0.d0
 
       do j=2,ny
          do i=2,nx
-            if(wetz(i,j)==1) then
+            if(wete(i,j)==1) then
                if (kmy(i,j)>0) then
                   ywadvec(i,j)=(arrin2d(i,j)-arrin2d(i,j-1))/dnv(i,j-1)
                elseif (kmy(i,j)<0) then
@@ -433,10 +433,10 @@ contains
       end do
 
       if(ny>0) then
-         where(wetz(:,1)==1)
+         where(wete(:,1)==1)
             ywadvec(:,1)= ywadvec(:,2)          !Ap
          endwhere
-         where(wetz(:,ny+1)==1)
+         where(wete(:,ny+1)==1)
             ywadvec(:,ny+1) = ywadvec(:,ny)     !Ap
          endwhere
       endif
@@ -446,7 +446,7 @@ contains
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   subroutine advecqx(c,arrin2d,xwadvec,nx,ny,dsu,wetz)
+   subroutine advecqx(c,arrin2d,xwadvec,nx,ny,dsu,wete)
       use xmpi_module
 
       implicit none
@@ -455,13 +455,13 @@ contains
       integer                                         :: j
       real*8 , dimension(nx+1,ny+1)                   :: dsu
       real*8 , dimension(nx+1,ny+1)                   :: xwadvec,arrin2d,c
-      integer, dimension(nx+1,ny+1),intent(in)        :: wetz
+      integer, dimension(nx+1,ny+1),intent(in)        :: wete
 
       xwadvec = 0.d0
 
       do j=2,ny
          do i=2,nx
-            if(wetz(i,j)==1) then
+            if(wete(i,j)==1) then
                if (c(i,j)>0) then
                   xwadvec(i,j)=c(i,j)*(arrin2d(i,j)-arrin2d(i-1,j))/dsu(i-1,j)
                elseif (c(i,j)<0) then
@@ -474,10 +474,10 @@ contains
       end do
 
       if(ny>0) then
-         where(wetz(:,1)==1)
+         where(wete(:,1)==1)
             xwadvec(:,1)= xwadvec(:,2)          !Ap
          endwhere
-         where(wetz(:,ny+1)==1)
+         where(wete(:,ny+1)==1)
             xwadvec(:,ny+1) = xwadvec(:,ny)     !Ap
          endwhere
       endif
@@ -488,7 +488,7 @@ contains
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 
-   subroutine advecqy(c,arrin2d,ywadvec,nx,ny,dnv,wetz)
+   subroutine advecqy(c,arrin2d,ywadvec,nx,ny,dnv,wete)
       use xmpi_module
       use xmpi_module
       implicit none
@@ -497,13 +497,13 @@ contains
       integer                                         :: j
       real*8 , dimension(nx+1,ny+1)                   :: dnv
       real*8 , dimension(nx+1,ny+1)                   :: ywadvec,arrin2d,c
-      integer, dimension(nx+1,ny+1),intent(in)        :: wetz
+      integer, dimension(nx+1,ny+1),intent(in)        :: wete
 
       ywadvec = 0.d0
 
       do j=2,ny
          do i=2,nx
-            if(wetz(i,j)==1) then
+            if(wete(i,j)==1) then
                if (c(i,j)>0) then
                   ywadvec(i,j)=c(i,j)*(arrin2d(i,j)-arrin2d(i,j-1))/dnv(i,j-1)
                elseif (c(i,j)<0) then
@@ -569,7 +569,7 @@ contains
          allocate(Ltemp(s%nx+1,s%ny+1))
       endif
       
-      where(s%wetz==1)
+      where(s%wete==1)
          h = max(s%hh + par%delta*s%H,par%eps)
          L0 = 2*par%px*par%g/(s%sigm**2)
       elsewhere
@@ -585,7 +585,7 @@ contains
 
       do j = j1,j2
          do i = 1,s%nx+1
-            if(s%wetz(i,j)==1) then
+            if(s%wete(i,j)==1) then
                Ltemp(i,j) = iteratedispersion(L0(i,j),Ltemp(i,j),par%px,h(i,j))
                if (Ltemp(i,j)<0.d0) then   ! this is an error from iteratedispersion
                   Ltemp(i,j) = -Ltemp(i,j)
@@ -601,7 +601,7 @@ contains
          s%L1 = 0.d0           ! modified wave length, initially set to L1
          do j = j1,j2
             do i = 2,s%nx+1
-               if(s%wetz(i,j)==1) then
+               if(s%wete(i,j)==1) then
                   index = i       ! start index
                   backdis = 0.d0  ! relative distance backward
                   do while (backdis<1.d0)
@@ -619,25 +619,25 @@ contains
                endif
             enddo
          enddo
-         where(s%wetz(1,:)==1)
+         where(s%wete(1,:)==1)
             s%L1(1,:) = Ltemp(1,:)
          endwhere
       else
-         where(s%wetz==1)
+         where(s%wete==1)
             s%L1 = Ltemp
          endwhere
       endif
 
       ! boundary copies for non superfast 1D
       if (s%ny>0) then
-         where(s%wetz(:,1)==1)
+         where(s%wete(:,1)==1)
             s%L1(:,1)=s%L1(:,2)
          endwhere
-         where(s%wetz(:,s%ny+1)==1)
+         where(s%wete(:,s%ny+1)==1)
             s%L1(:,s%ny+1)=s%L1(:,s%ny)
          endwhere
       endif
-      where(s%wetz==1)
+      where(s%wete==1)
          s%k  = 2*par%px/s%L1
          s%c  = s%sigm/s%k
          ! Ad:
@@ -719,7 +719,7 @@ contains
          s%usd(1,jy)   = s%ustr(1,jy)
 
          do jx = 2,s%nx+1
-            if(s%wetz(jx,jy)==1) then
+            if(s%wete(jx,jy)==1) then
                nbr     = 0
                Lbr     = sqrt(par%g*s%hh(jx,jy))*par%Trep
                i       = jx-1
@@ -745,22 +745,22 @@ contains
 
       ! lateral boundaries
       if (xmpi_istop             ) then
-         where(s%wetz(1,:)==1)
+         where(s%wete(1,:)==1)
             s%usd(1,:)    = s%usd(2,:)
          endwhere
       endif
       if (xmpi_isbot             ) then
-         where(s%wetz(s%nx+1,:)==1)
+         where(s%wete(s%nx+1,:)==1)
             s%usd(s%nx+1,:) = s%usd(s%nx,:)
          endwhere
       endif
       if (xmpi_isleft  .and. s%ny>0) then
-         where(s%wetz(:,1)==1)
+         where(s%wete(:,1)==1)
             s%usd(:,1)    = s%usd(:,2)
          endwhere
       endif
       if (xmpi_isright .and. s%ny>0) then
-         where(s%wetz(:,s%ny+1)==1)
+         where(s%wete(:,s%ny+1)==1)
             s%usd(:,s%ny+1) = s%usd(:,s%ny)
          endwhere
       endif

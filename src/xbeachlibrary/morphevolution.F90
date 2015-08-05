@@ -1757,7 +1757,7 @@ contains
                detadxmean = dudtmean*sinh(s%k(i,j)*s%hh(i,j))/max(s%c(i,j),sqrt(s%H(i,j)*par%g))/s%sigm(i,j)
                s%BR(i,j) = par%BRfac*sin(atan(detadxmean))
             else
-               s%BR(i,j) = 0.d0
+               s%BR(i,j) = par%Beta
             endif
 
          enddo

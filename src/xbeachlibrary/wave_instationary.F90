@@ -178,16 +178,16 @@ contains
          cgym = s%cg*dsin(s%thetamean) + s%vmwci*min((s%zswci-s%zb)/par%hwci,1.d0)
          cgxm = s%cg*dcos(s%thetamean) + s%umwci*min((s%zswci-s%zb)/par%hwci,1.d0)
 
-         call slope2D(kmx,s%nx,s%ny,s%dsu,s%dnv,dkmxdx,dkmxdy,s%wetu,s%wetv)
-         call slope2D(kmy,s%nx,s%ny,s%dsu,s%dnv,dkmydx,dkmydy,s%wetu,s%wetv)
-         call advecwx(s%wm,xwadvec,kmx,s%nx,s%ny,s%dsu,s%wetz)   ! cjaap: s%xz or s%xu?
+         call slope2D(kmx,s%nx,s%ny,s%dsu,s%dnv,dkmxdx,dkmxdy,s%wete)
+         call slope2D(kmy,s%nx,s%ny,s%dsu,s%dnv,dkmydx,dkmydy,s%wete)
+         call advecwx(s%wm,xwadvec,kmx,s%nx,s%ny,s%dsu,s%wete)   ! cjaap: s%xz or s%xu?
          kmx = kmx -par%dt*xwadvec  -par%dt*cgym*(dkmydx-dkmxdy)
          if (s%ny>0) then
             if (xmpi_isright) kmx(:,s%ny+1) = kmx(:,s%ny)  ! lateral bc
             if (xmpi_isleft)  kmx(:,1) = kmx(:,2)  ! lateral bc
          endif
 
-         call advecwy(s%wm,ywadvec,kmy,s%nx,s%ny,s%dnv,s%wetz)   ! cjaap: s%yz or s%yv?
+         call advecwy(s%wm,ywadvec,kmy,s%nx,s%ny,s%dnv,s%wete)   ! cjaap: s%yz or s%yv?
          kmy = kmy-par%dt*ywadvec  + par%dt*cgxm*(dkmydx-dkmxdy)
          if (s%ny>0) then
             if (xmpi_isright) kmy(:,s%ny+1) = kmy(:,s%ny)   ! lateral bc
@@ -234,9 +234,9 @@ contains
       endif ! end wave current interaction
 
       ! Slopes of water depth
-      call slope2D(max(s%hh,par%delta*s%H),s%nx,s%ny,s%dsu,s%dnv,dhdx,dhdy,s%wetu,s%wetv)
-      call slope2D(wcifacu,s%nx,s%ny,s%dsu,s%dnv,dudx,dudy,s%wetu,s%wetv)
-      call slope2D(wcifacv,s%nx,s%ny,s%dsu,s%dnv,dvdx,dvdy,s%wetu,s%wetv)
+      call slope2D(max(s%hh,par%delta*s%H),s%nx,s%ny,s%dsu,s%dnv,dhdx,dhdy,s%wete)
+      call slope2D(wcifacu,s%nx,s%ny,s%dsu,s%dnv,dudx,dudy,s%wete)
+      call slope2D(wcifacv,s%nx,s%ny,s%dsu,s%dnv,dvdx,dvdy,s%wete)
       !
       ! Calculate once sinh(2kh)
       where(2*s%hh*s%k<=3000.d0)
@@ -276,12 +276,12 @@ contains
       !
       ! Upwind Euler timestep propagation
       !
-      call advecxho(s%ee,s%cgx,xadvec,s%nx,s%ny,s%ntheta,s%dnu,s%dsu,s%dsdnzi,par%scheme,s%wetu,s%wetz)
+      call advecxho(s%ee,s%cgx,xadvec,s%nx,s%ny,s%ntheta,s%dnu,s%dsu,s%dsdnzi,par%scheme,s%wete)
       if (s%ny>0) then
-         call advecyho(s%ee,s%cgy,yadvec,s%nx,s%ny,s%ntheta,s%dsv,s%dnv,s%dsdnzi,par%scheme,s%wetv,s%wetz)
+         call advecyho(s%ee,s%cgy,yadvec,s%nx,s%ny,s%ntheta,s%dsv,s%dnv,s%dsdnzi,par%scheme,s%wete)
       endif
       !call advectheta(ee*ctheta,thetaadvec,nx,ny,ntheta,dtheta)
-      call advecthetaho(s%ee,s%ctheta,thetaadvec,s%nx,s%ny,s%ntheta,s%dtheta,par%scheme,s%wetz)!
+      call advecthetaho(s%ee,s%ctheta,thetaadvec,s%nx,s%ny,s%ntheta,s%dtheta,par%scheme,s%wete)!
       s%ee=s%ee-par%dt*(xadvec+yadvec+thetaadvec)
       !
       ! transform back to wave energy
@@ -311,9 +311,9 @@ contains
        case(BREAK_ROELVINK_DALY)
          cgxm = s%c*dcos(s%thetamean)
          cgym = s%c*dsin(s%thetamean)
-         call advecqx(cgxm,s%Qb,xwadvec,s%nx,s%ny,s%dsu,s%wetz)
+         call advecqx(cgxm,s%Qb,xwadvec,s%nx,s%ny,s%dsu,s%wete)
          if (s%ny>0) then
-            call advecqy(cgym,s%Qb,ywadvec,s%nx,s%ny,s%dnv,s%wetz)
+            call advecqy(cgym,s%Qb,ywadvec,s%nx,s%ny,s%dnv,s%wete)
             s%Qb  = s%Qb-par%dt*(xwadvec+ywadvec)
          else
             s%Qb  = s%Qb-par%dt*xwadvec
@@ -353,12 +353,12 @@ contains
       !
       ! calculate roller energy balance
       !
-      call advecxho(s%rr,s%cx,xradvec,s%nx,s%ny,s%ntheta,s%dnu,s%dsu,s%dsdnzi,par%scheme,s%wetu,s%wetz)
+      call advecxho(s%rr,s%cx,xradvec,s%nx,s%ny,s%ntheta,s%dnu,s%dsu,s%dsdnzi,par%scheme,s%wete)
       if (s%ny>0) then
-         call advecyho(s%rr,s%cy,yradvec,s%nx,s%ny,s%ntheta,s%dsv,s%dnv,s%dsdnzi,par%scheme,s%wetv,s%wetz)
+         call advecyho(s%rr,s%cy,yradvec,s%nx,s%ny,s%ntheta,s%dsv,s%dnv,s%dsdnzi,par%scheme,s%wete)
       endif
       !call advectheta(rr*ctheta,thetaradvec,nx,ny,ntheta,dtheta)
-      call advecthetaho(s%rr,s%ctheta,thetaradvec,s%nx,s%ny,s%ntheta,s%dtheta,par%scheme,s%wetz)
+      call advecthetaho(s%rr,s%ctheta,thetaradvec,s%nx,s%ny,s%ntheta,s%dtheta,par%scheme,s%wete)
       s%rr=s%rr-par%dt*(xradvec+yradvec+thetaradvec)
       s%rr=max(s%rr,0.0d0)
       !

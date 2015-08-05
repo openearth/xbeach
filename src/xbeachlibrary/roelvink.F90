@@ -61,7 +61,7 @@ contains
       real*8, dimension(s%ny+1)                       :: km,kmr,hr,H,arg
 
       ! Dissipation according to Roelvink (1993)
-      where(s%wetz(i,:)==1)
+      where(s%wete(i,:)==1)
          H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
          hr  = s%hh(i,:) + par%delta*s%H(i,:)
 
@@ -69,15 +69,15 @@ contains
       endwhere
       if (par%break /= BREAK_ROELVINK_DALY) then
          if (par%wci==1) then
-            where(s%wetz(i,:)==1)
+            where(s%wete(i,:)==1)
                arg = -( H / (par%gamma*tanh(kmr*hr)/kmr))**par%n
             endwhere
          else
-            where(s%wetz(i,:)==1)
+            where(s%wete(i,:)==1)
                arg = -( H / (par%gamma*hr              ))**par%n
             endwhere
          endif
-         where(s%wetz(i,:)==1)
+         where(s%wete(i,:)==1)
             s%Qb(i,:) = min(1.d0 - exp(max(arg,-100.d0)), 1.d0)
          elsewhere
             s%Qb(i,:) = 0.d0
@@ -89,7 +89,7 @@ contains
          enddo
          s%Qb(i,:) = max(s%Qb(i,:), 0.d0)
       endif
-      where(s%wetz(i,:)==1)
+      where(s%wete(i,:)==1)
          s%D(i,:) = s%Qb(i,:) * 2.d0 * par%alpha * s%E(i,:)
       elsewhere
          s%D(i,:) = 0.d0
@@ -97,22 +97,22 @@ contains
 
       if (par%break == BREAK_ROELVINK1) then
          if (par%wci==1) then
-            where(s%wetz(i,:)==1)
+            where(s%wete(i,:)==1)
                s%D(i,:) = s%D(i,:) * s%sigm(i,:)/2.d0/par%px;
             endwhere
          else
-            where(s%wetz(i,:)==1)
+            where(s%wete(i,:)==1)
                s%D(i,:) = s%D(i,:) / par%Trep
             endwhere
          endif
       elseif (par%break == BREAK_ROELVINK2 .or. par%break == BREAK_ROELVINK_DALY) then
          ! Jaap: also wci switch for roelvink2
          if (par%wci==1) then
-            where(s%wetz(i,:)==1)
+            where(s%wete(i,:)==1)
                s%D(i,:) = s%D(i,:) * s%sigm(i,:)/2.d0/par%px * H/s%hh(i,:);
             endwhere
          else
-            where(s%wetz(i,:)==1)
+            where(s%wete(i,:)==1)
                s%D(i,:) = s%D(i,:) / par%Trep * H/s%hh(i,:)
             endwhere
          endif
@@ -135,7 +135,7 @@ contains
       real*8, dimension(s%nx+1,s%ny+1)                :: km
 
       do i = 1,s%nx+1
-         if(any(s%wetz(i,:)==1)) then
+         if(any(s%wete(i,:)==1)) then
             call roelvink_1D(par,s,km(i,:),i)
          else
             s%D(i,:) = 0.d0
@@ -162,7 +162,7 @@ contains
       ! Dissipation according to Baldock et al. (1998)
 
       if (par%wci==1) then
-         where(s%wetz(i,:)==1)
+         where(s%wete(i,:)==1)
             f = s%sigm(i,:) / 2.d0 / par%px
             k = km
          endwhere
@@ -170,18 +170,18 @@ contains
          f = 1.d0 / par%Trep
          k = s%k(i,:)
       endif
-      where(s%wetz(i,:)==1)
+      where(s%wete(i,:)==1)
          kh  = s%k(i,:) * (s%hh(i,:) + par%delta*s%H(i,:))
       endwhere
 
       if (par%wci == 1) then
-         where(s%wetz(i,:)==1)
+         where(s%wete(i,:)==1)
             gamma = 0.76d0*kh + 0.29d0 !Jaap: spatial varying gamma according to Ruessink et al., 1998
          endwhere
       else
          gamma = par%gamma
       endif
-      where(s%wetz(i,:)==1)
+      where(s%wete(i,:)==1)
          H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
          Hb  = tanh(gamma*kh/0.88d0)*(0.88d0/k)
          R   = Hb/max(H,0.00001d0)
@@ -209,7 +209,7 @@ contains
       real*8, dimension(s%nx+1,s%ny+1)                :: km
 
       do i = 1,s%nx+1
-         if(any(s%wetz(i,:)==1)) then
+         if(any(s%wete(i,:)==1)) then
             call baldock_1D(par,s,km(i,:),i)
          else
             s%D(i,:) = 0.d0
@@ -240,7 +240,7 @@ contains
       B   = par%alpha
 
       if (par%wci==1) then
-         where(s%wetz(i,:)==1)
+         where(s%wete(i,:)==1)
             f = s%sigm(i,:) / 2.d0 / par%px
             k = km
          endwhere
@@ -249,7 +249,7 @@ contains
          k = s%k(i,:)
       endif
       
-      where(s%wetz(i,:)==1)
+      where(s%wete(i,:)==1)
          kh  = s%k(i,:) * (s%hh(i,:) + par%delta*s%H(i,:))
 
          H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
@@ -280,7 +280,7 @@ contains
       real*8, dimension(s%nx+1,s%ny+1)                :: km
 
       do i = 1,s%nx+1
-         if(any(s%wetz(i,:)==1)) then
+         if(any(s%wete(i,:)==1)) then
             call janssen_battjes_1D(par,s,km(i,:),i)
          else
             s%D(i,:) = 0.d0

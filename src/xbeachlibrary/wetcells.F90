@@ -38,6 +38,9 @@ contains
 
     integer                                 :: i
     integer                                 :: j
+    integer,dimension(:,:),allocatable,save :: weteb
+    
+    if(.not.allocated(weteb)) allocate(weteb(s%nx+1,s%ny+1))
    
     ! wwvv in the next lines
       !  hu(i,j) is more or less a function of hh(i+1,j)
@@ -104,5 +107,22 @@ contains
             end if
          end do
       end do
+      
+      ! Wetting and drying for wave module
+      where(s%hh+par%delta*s%H>par%eps)
+         s%wete = 1
+      elsewhere
+         s%wete = 0
+      endwhere
+      ! also need to surround wet cells
+      forall(i=1:s%nx+1,j=1:s%ny+1,s%wete(i,j)==0)
+         weteb(i,j) = max(   maxval(  s%wete( max(i-1,1):min(i+1,s%nx+1) ,j                          )   ), &
+                             maxval(  s%wete( i                          ,max(j-1,1):min(j+1,s%ny+1) )   ) &
+                     )
+      endforall
+      where(s%wete==0)
+         s%wete=weteb
+      endwhere
+
   end subroutine compute_wetcells
 end module wetcells_module
