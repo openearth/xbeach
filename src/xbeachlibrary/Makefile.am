@@ -7,12 +7,12 @@ endif
 libxbeach_la_SOURCES= \
 	s.ind \
 	s.inp \
+	sleeper.F90 \
 	xmpi.F90 \
 	general_mpi.F90 \
 	typesandkinds.F90 \
 	iso_c_utils.f90 \
 	logging.F90 \
-	variables.F90 \
 	paramsconst.F90 \
 	filefunctions.F90 \
 	readkey.F90 \
@@ -62,30 +62,36 @@ libxbeach_la_SOURCES= \
 	xbeach_bmi.f90
 
 BUILT_SOURCES= \
+	version.dat  \
 	spacedecl.inc \
-	mnemonic.inc \
+	chartoindex.inc \
+	get_var.inc \
+	get_var_shape.inc \
+	getkey.inc \
+	index_allocate.inc \
+	index_allocated.inc \
+	index_deallocate.inc \
+	index_reallocate.inc \
 	indextos.inc \
-	space_alloc_scalars.inc \
+	mnemonic.inc \
+	set_var.inc \
 	space_alloc_arrays.inc \
+	space_alloc_scalars.inc \
+	space_distribute.inc \
 	space_ind.inc \
 	space_inp.inc \
-	chartoindex.inc \
-	getkey.inc \
 	writelog.inc \
-	writeloginterface.inc \
-	s.ind \
-	s.inp \
-	version.dat
+	writeloginterface.inc
 
 version.dat: 
 	echo "Build_Revision = '`svnversion`'" > version.dat
-	echo "Build_URL = '`svn info | grep ^URL`'" >> version.dat
+	echo "Build_URL = '`svn info | grep -m 1 URL`'" >> version.dat
 	echo "Build_Date = '`date`'" >> version.dat
 
 logging.F90: version.dat writelog.inc writeloginterface.inc
 
 spacedecl.inc:
-	$(top_srcdir)/scripts/generate.py 
+	$(top_srcdir)/scripts/generate.py
 
 # Set flags off by default
 # include link to top_srcdir so it can find config.h, or should this be builddir
@@ -102,7 +108,12 @@ endif
 
 # EXTRA_DIST=s.ind s.inp
 EXTRA_DIST=s.ind s.inp nh_pars.inc version.def
-CLEANFILES=*.mod *.MOD *.inc version.dat 
+CLEANFILES=*.mod *.MOD *.inc version.dat
 
+depclean: clean
+	rm -f $(deps)
 
+dep $(deps):
+	$(MAKEDEPO) -p libxbeach_la- -s .lo $(libxbeach_la_SOURCES) > $(deps)
 
+include $(deps)

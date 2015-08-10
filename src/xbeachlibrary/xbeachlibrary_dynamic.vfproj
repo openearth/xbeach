@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VisualStudioProject ProjectType="typeDynamicLibrary" ProjectCreator="Intel Fortran" Keyword="Dll" Version="11.0" ProjectIdGuid="{C00053C4-E4CD-4A74-8674-E2C54BEAA9A0}">
+	<Platforms>
+		<Platform Name="Win32"/>
+		<Platform Name="x64"/></Platforms>
+	<Configurations>
+		<Configuration Name="Debug|Win32" OutputDirectory="bin\dynamic\win32\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\win32\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="bin\static\win32\$(ConfigurationName)" WarnInterfaces="true" ModulePath="bin\dynamic\win32\$(ConfigurationName)\" ObjectFile="bin\dynamic\win32\$(ConfigurationName)\" PdbFile="bin\dynamic\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) win32"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Release|Win32" OutputDirectory="bin\dynamic\win32\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\win32\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="bin\static\win32\$(ConfigurationName)" ModulePath="bin\dynamic\win32\$(ConfigurationName)\" ObjectFile="bin\dynamic\win32\$(ConfigurationName)\" PdbFile="bin\dynamic\win32\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFLinkerTool" SuppressStartupBanner="true" AdditionalLibraryDirectories="bin\static\win32\$(ConfigurationName)" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) win32"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_Debug|Win32" OutputDirectory="bin\dynamic\win32\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\win32\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="..\..\lib\win32\mpich\include; bin\static\win32\$(ConfigurationName)" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\dynamic\win32\$(ConfigurationName)\" ObjectFile="bin\dynamic\win32\$(ConfigurationName)\" PdbFile="bin\dynamic\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) win32"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_Release|Win32" OutputDirectory="bin\dynamic\win32\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\win32\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="..\..\lib\win32\mpich\include; bin\static\win32\$(ConfigurationName)" PreprocessorDefinitions="USEMPI;HAVE_IFPORT;HAVE_MPI_WTIME" Diagnostics="diagnosticsDisableAll" ModulePath="bin\dynamic\win32\$(ConfigurationName)\" ObjectFile="bin\dynamic\win32\$(ConfigurationName)\" PdbFile="bin\dynamic\win32\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFLinkerTool" SuppressStartupBanner="true" AdditionalLibraryDirectories="bin\static\win32\$(ConfigurationName)" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) win32"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="netcdf_Debug|Win32" OutputDirectory="bin\dynamic\win32\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\win32\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="bin\static\win32\$(ConfigurationName)" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\dynamic\win32\$(ConfigurationName)\" ObjectFile="bin\dynamic\win32\$(ConfigurationName)\" PdbFile="bin\dynamic\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" IgnoreDefaultLibraryNames="LIBCMT.lib" GenerateDebugInformation="true" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) win32"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="netcdf_Release|Win32" OutputDirectory="bin\dynamic\win32\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\win32\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="bin\static\win32\$(ConfigurationName)" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" ModulePath="bin\dynamic\win32\$(ConfigurationName)\" ObjectFile="bin\dynamic\win32\$(ConfigurationName)\" PdbFile="bin\dynamic\win32\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFLinkerTool" SuppressStartupBanner="true" AdditionalLibraryDirectories="bin\static\win32\$(ConfigurationName)" IgnoreDefaultLibraryNames="LIBCMTD.lib" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) win32"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_netcdf_Debug|Win32" OutputDirectory="bin\dynamic\win32\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\win32\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="..\..\lib\win32\mpich\include; bin\static\win32\$(ConfigurationName)" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\dynamic\win32\$(ConfigurationName)\" ObjectFile="bin\dynamic\win32\$(ConfigurationName)\" PdbFile="bin\dynamic\win32\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" IgnoreDefaultLibraryNames="LIBCMT.lib" GenerateDebugInformation="true" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) win32"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_netcdf_Release|Win32" OutputDirectory="bin\dynamic\win32\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\win32\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="..\..\lib\win32\mpich\include; bin\static\win32\$(ConfigurationName)" Diagnostics="diagnosticsDisableAll" ModulePath="bin\dynamic\win32\$(ConfigurationName)\" ObjectFile="bin\dynamic\win32\$(ConfigurationName)\" PdbFile="bin\dynamic\win32\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFLinkerTool" SuppressStartupBanner="true" AdditionalLibraryDirectories="bin\static\win32\$(ConfigurationName)" IgnoreDefaultLibraryNames="LIBCMT.lib" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) win32"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Debug|x64" OutputDirectory="bin\dynamic\x64\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\x64\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="bin\static\x64\$(ConfigurationName)" WarnInterfaces="true" ModulePath="bin\dynamic\x64\$(ConfigurationName)\" ObjectFile="bin\dynamic\x64\$(ConfigurationName)\" PdbFile="bin\dynamic\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) x64"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Release|x64" OutputDirectory="bin\dynamic\x64\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\x64\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="bin\static\x64\$(ConfigurationName)" ModulePath="bin\dynamic\x64\$(ConfigurationName)\" ObjectFile="bin\dynamic\x64\$(ConfigurationName)\" PdbFile="bin\dynamic\x64\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFLinkerTool" SuppressStartupBanner="true" AdditionalLibraryDirectories="bin\static\x64\$(ConfigurationName)" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) x64"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="netcdf_Debug|x64" OutputDirectory="bin\dynamic\x64\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\x64\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="bin\static\x64\$(ConfigurationName)" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\dynamic\x64\$(ConfigurationName)\" ObjectFile="bin\dynamic\x64\$(ConfigurationName)\" PdbFile="bin\dynamic\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" IgnoreDefaultLibraryNames="LIBCMT.lib" GenerateDebugInformation="true" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) x64"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="netcdf_Release|x64" OutputDirectory="bin\dynamic\x64\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\x64\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="bin\static\x64\$(ConfigurationName)" PreprocessorDefinitions="USENETCDF;HAVE_IFPORT;DLL_NETCDF" Diagnostics="diagnosticsShowAll" ModulePath="bin\dynamic\x64\$(ConfigurationName)\" ObjectFile="bin\dynamic\x64\$(ConfigurationName)\" PdbFile="bin\dynamic\x64\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFLinkerTool" SuppressStartupBanner="true" AdditionalLibraryDirectories="bin\static\x64\$(ConfigurationName)" IgnoreDefaultLibraryNames="LIBCMTD.lib" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) x64"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_Debug|x64" OutputDirectory="bin\dynamic\x64\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\x64\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="..\..\lib\x64\mpich\include; bin\static\x64\$(ConfigurationName)" PreprocessorDefinitions="USEMPI;HAVE_MPI_WTIME;HAVE_IFPORT" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\dynamic\win32\$(ConfigurationName)\" ObjectFile="bin\dynamic\x64\$(ConfigurationName)\" PdbFile="bin\dynamic\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) x64"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_Release|x64" OutputDirectory="bin\dynamic\x64\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\x64\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="..\..\lib\x64\mpich\include; bin\static\x64\$(ConfigurationName)" PreprocessorDefinitions="USEMPI;HAVE_IFPORT;HAVE_MPI_WTIME" Diagnostics="diagnosticsDisableAll" ModulePath="bin\dynamic\x64\$(ConfigurationName)\" ObjectFile="bin\dynamic\x64\$(ConfigurationName)\" PdbFile="bin\dynamic\x64\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFLinkerTool" SuppressStartupBanner="true" AdditionalLibraryDirectories="bin\static\x64\$(ConfigurationName)" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) x64"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_netcdf_Debug|x64" OutputDirectory="bin\dynamic\x64\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\x64\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" AdditionalIncludeDirectories="..\..\lib\x64\mpich\include; bin\static\x64\$(ConfigurationName)" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" ModulePath="bin\dynamic\x64\$(ConfigurationName)\" ObjectFile="bin\dynamic\x64\$(ConfigurationName)\" PdbFile="bin\dynamic\x64\$(ConfigurationName)\vc100.pdb" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" Interfaces="true"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" IgnoreDefaultLibraryNames="LIBCMT.lib" GenerateDebugInformation="true" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) x64"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="MPI_netcdf_Release|x64" OutputDirectory="bin\dynamic\x64\$(ConfigurationName)" IntermediateDirectory="bin\dynamic\x64\$(ConfigurationName)" ConfigurationType="typeDynamicLibrary">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" AdditionalIncludeDirectories="..\..\lib\x64\mpich\include; bin\static\x64\$(ConfigurationName)" Diagnostics="diagnosticsDisableAll" ModulePath="bin\dynamic\x64\$(ConfigurationName)\" ObjectFile="bin\dynamic\x64\$(ConfigurationName)\" PdbFile="bin\dynamic\x64\$(ConfigurationName)\vc100.pdb"/>
+				<Tool Name="VFLinkerTool" SuppressStartupBanner="true" AdditionalLibraryDirectories="bin\static\x64\$(ConfigurationName)" IgnoreDefaultLibraryNames="LIBCMT.lib" SubSystem="subSystemWindows" LinkDLL="true"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool" CommandLine="build\distribute.bat  $(SolutionDir) $(ConfigurationName) $(TargetDir) x64"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration></Configurations>
+	<Files>
+		<Filter Name="Header Files" Filter="fi;fd"/>
+		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
+		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
+		<File RelativePath=".\introspection.F90"/>
+		<File RelativePath=".\libxbeach_dynamic.F90"/></Filter></Files>
+	<Globals/></VisualStudioProject>
