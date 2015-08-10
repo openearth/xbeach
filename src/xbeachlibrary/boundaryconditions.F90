@@ -300,29 +300,33 @@ contains
          if (par%instat==INSTAT_STAT_TABLE) then
             if (xmaster) then
                call writelog('ls','','Reading new wave conditions')
-               read(7,*,iostat=ier) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcdur, dum2
-               if (ier .ne. 0) then
-                  call report_file_read_error(par%bcfile)
-               endif
-               par%Hrms = Hm0/sqrt(2.d0)
-               par%taper = 1.d0 ! Jaap set taper time to 1 second for new conditions (likewise in waveparams)
-               par%m = int(2*spreadpar)
-               if (par%morfacopt==1) then
-                  bcendtime=bcendtime+bcdur/max(par%morfac,1.d0)
-               else
-                  bcendtime=bcendtime+bcdur
-               endif
-               s%theta0=(1.5d0*par%px)-par%dir0*atan(1.d0)/45.d0
-               ! Jaap; make shore theta0 is also set between -px and px for new wave conditions
-               do while(s%theta0<-par%px)
-                  s%theta0=s%theta0+2.d0*par%px
+               ! read new wave conditions until bcendtime exceeds
+               ! current time step. necessary in case of external
+               ! time management
+               do while (par%t .ge. bcendtime)
+                  read(7,*,iostat=ier) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcdur, dum2
+                  if (ier .ne. 0) then
+                     call report_file_read_error(par%bcfile)
+                  endif
+                  par%Hrms = Hm0/sqrt(2.d0)
+                  par%taper = 1.d0 ! Jaap set taper time to 1 second
+                                   ! for new conditions (likewise in waveparams)
+                  par%m = int(2*spreadpar)
+                  if (par%morfacopt==1) then
+                     bcendtime=bcendtime+bcdur/max(par%morfac,1.d0)
+                  else
+                     bcendtime=bcendtime+bcdur
+                  endif
+                  s%theta0=(1.5d0*par%px)-par%dir0*atan(1.d0)/45.d0
+                  ! Jaap; make shore theta0 is also set between -px and px
+                  ! for new wave conditions
+                  do while(s%theta0<-par%px)
+                     s%theta0=s%theta0+2.d0*par%px
+                  enddo
+                  do while(s%theta0>par%px)
+                     s%theta0=s%theta0-2.d0*par%px
+                  enddo
                enddo
-               do while(s%theta0>par%px)
-                  s%theta0=s%theta0-2.d0*par%px
-               enddo
-               !s%theta0=mod(s%theta0,2*par%px)
-               !if (s%theta0>par%px) s%theta0=s%theta0-2*par%px
-               !if (s%theta0<-par%px) s%theta0=s%theta0+2*par%px
             endif
             s%newstatbc=1
 #ifdef USEMPI
@@ -376,7 +380,8 @@ contains
             close(72)
             startbcf=.true.
             if (par%t <= (par%tstop-par%dt)) then
-               curline = curline + 1
+               curline = curline + 1 ! this is not compatible with external
+                                     ! time management
             end if
          end if
 #ifdef USEMPI

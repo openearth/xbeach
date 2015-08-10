@@ -3,7 +3,7 @@ module spaceparamsdef
    implicit none
    save
    type spacepars
-      include 'spacedecl.gen'
+      include 'spacedecl.inc'
 #ifdef USEMPI
       !
       ! administration of the lay-out of the distributed matrices

@@ -76,7 +76,6 @@ contains
       use params
       use spaceparams
       use readkey_module
-      use indextos_module
       use timestep_module
       use logging_module
       use postprocessmod
@@ -325,7 +324,6 @@ contains
       use params
       use spaceparams
       use timestep_module
-      use indextos_module
       use logging_module
 #ifdef USEMPI
       use xmpi_module
@@ -745,7 +743,6 @@ contains
 
       use params
       use spaceparams
-      use indextos_module
       use logging_module
 
       IMPLICIT NONE

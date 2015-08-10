@@ -87,7 +87,6 @@ AC_CONFIG_FILES([Makefile
                  doc/Makefile
                  doc/man/Makefile
                  src/Makefile
-                 src/makeincludes/Makefile
                  src/xbeachlibrary/Makefile
                  src/xbeach/Makefile])
 AC_OUTPUT

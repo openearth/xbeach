@@ -28,5 +28,5 @@ program xbeach
    enddo
 
    ! Cleanup
-   rc = finalize()
+   rc = final()
 end program

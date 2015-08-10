@@ -77,7 +77,6 @@ contains
 
       use means_module
       use postprocessmod
-      use indextos_module
 
       implicit none
 

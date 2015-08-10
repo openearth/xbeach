@@ -60,25 +60,25 @@ contains
 
    end function stringlength
 
-   function char_array_to_string(char_array, length)
-      integer(c_int) :: length
-      character(c_char) :: char_array(length)
-      character(len=length) :: char_array_to_string
-      integer :: i
-      do i = 1, length
-         char_array_to_string(i:i) = char_array(i)
-      enddo
-   end function char_array_to_string
-   function string_to_char_array(string, length)
-      character(len=length) :: string
-      character(kind=c_char,len=1) :: string_to_char_array(length+1)
-      integer(c_int) :: length
-      integer :: i
-      do i = 1, length
-         string_to_char_array(i) = string(i:i)
-      enddo
-      string_to_char_array(length+1) = C_NULL_CHAR
-   end function string_to_char_array
+!   function char_array_to_string(char_array, length)
+!      integer(c_int) :: length
+!      character(c_char) :: char_array(length)
+!      character(len=length) :: char_array_to_string
+!      integer :: i
+!      do i = 1, length
+!         char_array_to_string(i:i) = char_array(i)
+!      enddo
+!   end function char_array_to_string
+!   function string_to_char_array(string, length)
+!      character(len=length) :: string
+!      character(kind=c_char,len=1) :: string_to_char_array(length+1)
+!      integer(c_int) :: length
+!      integer :: i
+!      do i = 1, length
+!         string_to_char_array(i) = string(i:i)
+!      enddo
+!      string_to_char_array(length+1) = C_NULL_CHAR
+!   end function string_to_char_array
 
 
    !   FUNCTION C_F_STRING(CPTR) RESULT(FPTR)

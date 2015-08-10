@@ -1028,8 +1028,8 @@ contains
       use filefunctions
       character(len=*), intent(in) :: f
       integer lines,fid,ierr
-      fid = create_new_fid()
       if(xmaster) then
+         fid = create_new_fid()
          open(fid,file=f)
          lines = 0
          ierr = 0

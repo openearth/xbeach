@@ -159,7 +159,6 @@ contains
 #ifdef USENETCDF
    subroutine ncoutput_init(s, sl, par, tpar)
       use xmpi_module
-      use indextos_module
       use params
       use paramsconst
       use spaceparams
@@ -608,7 +607,6 @@ contains
       ! Grid
       j = chartoindex('xz')
       call indextos(s,j,t)
-
       NF90(nf90_put_var(ncid, xvarid, CONVREAL(t%r2)))
 
       j = chartoindex('yz')
@@ -629,6 +627,7 @@ contains
       NF90(nf90_close(ncid))
       ! wwvv sl is not used so it should be removed.
       ! wwvv for now, to avoid warning:
+
       if (sl%nx .ne. -1) return
    end subroutine ncoutput_init
 #endif
@@ -639,7 +638,6 @@ contains
 
    subroutine ncoutput(s,sl,par, tpar)
       use logging_module
-      use indextos_module
 #ifdef USEMPI
       use xmpi_module
 #endif
@@ -1651,7 +1649,6 @@ contains
       use params
       use spaceparams
       use readkey_module
-      use indextos_module
       use timestep_module
       use logging_module
       use postprocessmod

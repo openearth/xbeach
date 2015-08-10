@@ -7,7 +7,7 @@ module libxbeach_module
    use params
    use spaceparams
    use xmpi_module
-   use initialize
+   use initialize_module
    use boundaryconditions
    use drifter_module
    use flow_timestep_module
@@ -31,16 +31,16 @@ module libxbeach_module
 
    type(parameters)                     :: par
    type(timepars)                       :: tpar
-   type(spacepars), pointer                            :: s
+   type(spacepars), pointer             :: s
    type(spacepars), target              :: sglobal
-   type(ship), dimension(:), pointer                   :: sh
+   type(ship), dimension(:), pointer    :: sh
 
-   integer                                             :: n,it,error
-   real*8                                              :: tbegin
+   integer                              :: n,it,error
+   real*8                               :: tbegin
 
 #ifdef USEMPI
    type(spacepars), target              :: slocal
-   real*8                                              :: t0,t01
+   real*8                               :: t0,t01
    logical                              :: toall = .true.
    logical                              :: end_program
    integer                              :: nxbak, nybak
@@ -93,6 +93,8 @@ contains
       params_inio = .false.
       call all_input(par)
 
+      ! allocate space scalars
+      call space_alloc_scalars(sglobal)
       s => sglobal
 
       ! read grid and bathymetry
@@ -140,8 +142,6 @@ contains
 #endif
       call writelog_mpi(par%mpiboundary,error)
 #endif
-
-
 
       ! initialize timestep
       call timestep_init(par, tpar)
@@ -196,6 +196,7 @@ contains
 
       ! initialize output
       call means_init             (sglobal,s,par     )
+
       call output_init            (sglobal,s,par,tpar)
 
 
@@ -208,7 +209,7 @@ contains
 
    integer(c_int) function outputext()
       ! store first timestep
-      call output(sglobal,s,par,tpar)
+      call output(sglobal,s,par,tpar,.false.)
       outputext = 0
    end function outputext
    !-----------------------------------------------------------------------------!
@@ -217,7 +218,9 @@ contains
 
    !_____________________________________________________________________________
 
-   integer(c_int) function executestep()
+  integer(c_int) function executestep(dt)
+
+    real*8, optional :: dt
 
 #ifdef USEMPI
       if (execute_counter .eq. 1) then
@@ -227,17 +230,19 @@ contains
       endif
 #endif
       execute_counter = execute_counter + 1
-      ! This is now called in output, but timestep depends on it...
-      ! call outputtimes_update(par, tpar)
+
+      call outputtimes_update(par, tpar)
       executestep = -1
-      !do while (par%t<par%tstop)
+
       ! determine timestep
       if(xcompute) then
+
          ! determine this time step's wet points
          call compute_wetcells(s,par)
          !
          ! determine time step
-         call timestep(s,par,tpar,it,ierr=error)
+         call timestep(s,par,tpar,it,dt=dt,ierr=error)
+         
          if (error==1) then
             call output_error(s,sglobal,par,tpar)
          endif
@@ -270,7 +275,7 @@ contains
    !_____________________________________________________________________________
 
 
-   integer(c_int) function finalize()
+   integer(c_int) function final()
 
 
       !-----------------------------------------------------------------------------!
@@ -287,8 +292,8 @@ contains
 #else
       call writelog_finalize(tbegin,n,par%t,par%nx,par%ny)
 #endif
-      finalize = 0
-   end function finalize
+      final = 0
+   end function final
 
    subroutine getversion(version)
       character(kind=c_char,len=*),intent(inout) :: version

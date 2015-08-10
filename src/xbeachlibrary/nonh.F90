@@ -1834,8 +1834,9 @@ contains
                enddo
 
                fac = par%dt / s%hum(i,j) / s%dsu(i,j)
-
-               s%dU(i,j) = dU0(i,j) + .5 *fac*dU0(i,j) *( s%qx(i+1,j) - s%qx(i-1,j) ) - fac*( qx(1)*faceval(1) - qx(0)*faceval(0) )
+                       
+               s%dU(i,j) = dU0(i,j) + .5 * fac *dU0(i,j) * ( s%qx(i+1,j) - s%qx(i-1,j) ) &
+                    - fac * ( qx(1)*faceval(1) - qx(0)*faceval(0) )                  
                !
             else
                !
@@ -2731,7 +2732,8 @@ contains
                fac = par%dt / s%hh(i,j) * s%dsdnzi(i,j)
 
                Wm(i,j) = Wm_old(i,j) +  fac * Wm_old(i,j) * ( qx(1) + qy(1) - qx(0) - qy(0) ) &
-               -  fac * ( qx(1) * faceval_x(1) +  qy(1) * faceval_y(1) - qx(0) * faceval_x(0) - qy(0) * faceval_y(0) )
+                    -  fac * ( qx(1) * faceval_x(1) +  qy(1) * faceval_y(1) &
+                    - qx(0) * faceval_x(0) - qy(0) * faceval_y(0) )
                !
             else
                !

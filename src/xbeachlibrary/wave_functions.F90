@@ -577,7 +577,7 @@ contains
          L0=par%eps
       endwhere
 
-      if (.not. allocated(s%L1)) then
+      if (.not. associated(s%L1)) then
          allocate(s%L1(s%nx+1,s%ny+1))
          s%L1=L0
       endif

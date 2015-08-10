@@ -36,7 +36,7 @@ contains
       integer, intent(out)         :: index
       character, intent(out)       :: type
       integer                      :: i
-      include 'getkey.gen'
+      include 'getkey.inc'
       index = -1
       type = ''
       do i=1,nintegerkeys
@@ -78,7 +78,7 @@ contains
       real*8, target, save :: realvalue
       integer :: index
       character :: type
-      include 'getkey.gen'
+      include 'getkey.inc'
       ! This sets index and type
       call getkey_indextype(par, key, index, type)
       getkey = -1
@@ -104,7 +104,7 @@ contains
       implicit none
       type(parameters), intent(in) :: par
       integer, intent(out) :: n
-      include 'getkey.gen'
+      include 'getkey.inc'
       n = ncharacterkeys+nintegerkeys+nrealkeys
    end subroutine getnkeys
 
@@ -115,7 +115,7 @@ contains
       type(parameters), intent(in) :: par
       character(slen), dimension(:), allocatable, intent(out) :: keys
 
-      include 'getkey.gen'
+      include 'getkey.inc'
       allocate(keys(ncharacterkeys+nintegerkeys+nrealkeys))
       keys(1:ncharacterkeys) = characterkeys(1:ncharacterkeys)
       keys(ncharacterkeys+1:ncharacterkeys+nintegerkeys) = integerkeys(1:nintegerkeys)

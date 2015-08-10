@@ -1,4 +1,4 @@
-module initialize
+module initialize_module
    use typesandkinds
    implicit none
    save
@@ -1780,4 +1780,4 @@ contains
       endif
    end subroutine drifter_init
 
-end module initialize
+end module initialize_module

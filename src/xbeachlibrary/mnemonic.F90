@@ -3,7 +3,7 @@ module mnemmodule
    implicit none
    save
 
-   include 'mnemonic.gen'
+   include 'mnemonic.inc'
 
    type arraytype
 
@@ -40,7 +40,7 @@ contains
 
       chartoindex = -1
 
-      include 'chartoindex.gen'
+      include 'chartoindex.inc'
       if (chartoindex == -1) then
          call writelog('sl','','Could not find index for: ', line)
       end if

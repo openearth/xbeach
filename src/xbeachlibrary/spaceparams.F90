@@ -38,25 +38,117 @@ module spaceparams
 
 contains
 
-   ! Generated subroutine to allocate all arrays in s
-   subroutine space_alloc_arrays(s,par)
-      use mnemmodule
-      use params
-      implicit none
-      type(spacepars),intent(inout)  :: s
-      type(parameters),intent(in)    :: par
+  subroutine indextos(s,index,t)
+    !
+    ! given s and index, this subroutine returns in t
+    ! a pointer to the requested array
+    !
+    use mnemmodule
+    use logging_module
+    use spaceparamsdef
+    implicit none
+    type (spacepars), intent(in),target :: s
+    integer, intent(in)                 :: index
+    type(arraytype), intent(out)        :: t
+      
+    if (index .lt. 1 .or. index .gt. numvars) then
+       call writelog('els','(a,i3,a)','invalid index ',index,' in indextos. Program will stop')
+       call halt_program
+    endif
+    
+    select case(index)
+       include 'indextos.inc'
+    end select
+    
+  end subroutine indextos
+  
+  subroutine index_allocate(s,par,index,choice)
+    ! allocates, deallocates reallocates in type s, based on index
+    ! choice:
+    !   'a': allocate
+    !   'd': deallocate
+    !   'r': reallocate
+    use params
+    use logging_module
+    use spaceparamsdef
+    implicit none
+    type (spacepars), intent(inout) :: s
+    type(parameters), intent(in)    :: par
+    integer, intent(in)             :: index
+    character(*)                    :: choice
+    
+    ! the .inc files contain code for allocatable entities
+    ! scalars will be skipped silently
+    select case(choice(1:1))
+    case('a','A')
+       select case(index)
+       case default
+          continue
+          include 'index_allocate.inc'
+       end select
+    case ('d','D')
+       select case(index)
+       case default
+          continue
+          include 'index_deallocate.inc'
+       end select
+    case ('r','R')
+       select case(index)
+       case default
+          continue
+          include 'index_reallocate.inc'
+       end select
+    end select
+  end subroutine index_allocate
+  
+  logical function index_allocated(s,index)
+    use logging_module
+    use spaceparamsdef
+    implicit none
+    type (spacepars), intent(in) :: s
+    integer, intent(in)          :: index
+    
+    logical                      :: r
+    
+    r = .true. ! for scalars: function will return always .true.
+    select case(index)
+    case default
+       continue
+       include 'index_allocated.inc'
+    end select
+    
+    index_allocated = r
+    
+  end function index_allocated
 
-      include 'space_alloc_arrays.gen'
+  ! Generated subroutine to allocate the scalars in s
+  subroutine space_alloc_scalars(s)
+    use mnemmodule
+    implicit none
+    type(spacepars),intent(inout)  :: s
 
-   end subroutine space_alloc_arrays
+    include 'space_alloc_scalars.inc'
 
+  end subroutine space_alloc_scalars
+
+  ! Generated subroutine to allocate all arrays in s
+  subroutine space_alloc_arrays(s,par)
+    use mnemmodule
+    use params
+    implicit none
+    type(spacepars),intent(inout)  :: s
+    type(parameters),intent(in)    :: par
+    
+    include 'space_alloc_arrays.inc'
+    
+  end subroutine space_alloc_arrays
+  
 #ifdef USEMPI
 
    ! copies scalars from sg to sl on xmaster, and distributes
    ! them
    subroutine space_copy_scalars(sg,sl)
       use mnemmodule
-      use indextos_module
       implicit none
       type(spacepars),intent(inout)  :: sg,sl
 
@@ -82,7 +174,6 @@ contains
    subroutine space_distribute_scalars(sl)
       use mnemmodule
       use xmpi_module
-      use indextos_module
       type (spacepars) :: sl
 
       type (arraytype) :: tl
@@ -270,7 +361,6 @@ contains
       use general_mpi_module
       use params
       use mnemmodule
-      use indextos_module
 
       implicit none
       type(spacepars), intent(inout)  :: sg
@@ -936,7 +1026,6 @@ contains
       use mnemmodule
       use logging_module
       use params
-      use indextos_module
       type(spacepars)                 :: sg
       type(spacepars), intent(in)     :: sl
       type(parameters)                :: par

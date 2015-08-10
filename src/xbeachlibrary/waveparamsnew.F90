@@ -124,6 +124,15 @@ contains
          if (reuseall) then
             ! Wave boundary conditions have already been computed
             ! Filename, rtbc, dtbc, etc. still kept in memory.
+
+            ! The end time for the boundary conditions calculated in the last call
+            ! is equal to the old end time, plus the duration of the boundary conditions
+            ! created at the last call
+            spectrumendtimeold = spectrumendtime ! Robert: need this in case new run with
+            ! instat='reuse' does not have exact same
+            ! time steps as original simulation
+            spectrumendtime = spectrumendtime + rtbc_local
+
          else
             call writelog('l','','--------------------------------')
             call writelog('ls','','Calculating spectral wave boundary conditions ')
@@ -139,8 +148,21 @@ contains
             fmax = 1.d0   ! assume 1Hz as maximum frequency. Increase in loop below if needed.
             do iloc = 1,nspectra
                call writelog('sl','(a,i0)','Reading spectrum at location ',iloc)
-               ! Read input file
-               call read_spectrum_input(par,wp,bcfiles(iloc),specin(iloc))
+               ! read input files until endtime exceeds current time.
+               ! necessary in case of external time management
+               do while (par%t .ge. spectrumendtime)
+                  call read_spectrum_input(par,wp,bcfiles(iloc),specin(iloc))
+
+                  ! Save key variables to memory, in case of 'reuseall'
+                  rtbc_local = wp%rtbc
+                  dtbc_local = wp%dtbc
+                  maindir_local = combspec%dir0
+
+                  ! update end time
+                  spectrumendtimeold = spectrumendtime
+                  spectrumendtime = spectrumendtime + rtbc_local
+
+               end do
                fmax = max(fmax,maxval(specin(iloc)%f))
             enddo
             do iloc = 1,nspectra
@@ -231,12 +253,6 @@ contains
             endif
             !
             !
-            ! Save key variables to memory, in case of 'reuseall'
-            rtbc_local = wp%rtbc
-            dtbc_local = wp%dtbc
-            maindir_local = combspec%dir0
-            !
-            !
             ! Deallocate a lot of memory
             deallocate(specin,specinterp)
             deallocate(wp%tin,wp%taperf,wp%taperw)
@@ -260,64 +276,55 @@ contains
             call writelog('ls','','Spectral wave boundary conditions complete ')
             call writelog('l','','--------------------------------')
          endif ! reuseall
-         !
-         ! The end time for the boundary conditions calculated in the last call
-         ! is equal to the old end time, plus the duration of the boundary conditions
-         ! created at the last call
-         spectrumendtimeold = spectrumendtime ! Robert: need this in case new run with
-         ! instat='reuse' does not have exact same
-         ! time steps as original simulation
-         spectrumendtime = spectrumendtime + rtbc_local
 
          ! Collect new file identifiers for administration list files
-         if (bccount==1) then
-            if (par%nonhspectrum==0) then
-               fidelist = create_new_fid()
-               open(fidelist,file='ebcflist.bcf',form='formatted',position='append',status='replace')
-               fidqlist = create_new_fid()
-               open(fidqlist,file='qbcflist.bcf',form='formatted',position='append',status='replace')
+         if (par%nonhspectrum==0) then
+            fidelist = create_new_fid()
+            if (bccount==1) then
+               open(fidelist,file='ebcflist.bcf',form='formatted',status='replace')
                if(par%single_dir==1) then
                   fideslist = create_new_fid()
                   open(fideslist,file='esbcflist.bcf',form='formatted',position='append',status='replace')
                endif
             else
-               fidnhlist = create_new_fid()
-               open(fidnhlist,file='nhbcflist.bcf',form='formatted',status='replace',iostat=iostat)
-            endif
-         else
-            if (par%nonhspectrum==0) then
-               fidelist = create_new_fid()
                open(fidelist,file='ebcflist.bcf',form='formatted',position='append')
-               fidqlist = create_new_fid()
-               open(fidqlist,file='qbcflist.bcf',form='formatted',position='append')
-               if(par%single_dir==1) then
-                  fideslist = create_new_fid()
-                  open(fideslist,file='esbcflist.bcf',form='formatted',position='append')
-               endif
-            else
-               fidnhlist = create_new_fid()
-               open(fidnhlist,file='nhbcflist.bcf',form='formatted',position='append',iostat=iostat)
-            endif
-         endif
-         ! Write new line
-         if (par%nonhspectrum==0) then
+            end if
             write(fidelist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
-            & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%Efilename)
-            write(fidqlist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
-            & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%qfilename)
-            ! Close administation files
+                 & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%Efilename)
             close(fidelist)
+
+            fidqlist = create_new_fid()
+            if (bccount==1) then
+               open(fidqlist,file='qbcflist.bcf',form='formatted',status='replace')
+            else
+               open(fidqlist,file='qbcflist.bcf',form='formatted',position='append')
+            end if
+            write(fidqlist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
+                 & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%qfilename)
             close(fidqlist)
+
             if(par%single_dir==1) then
+               fideslist = create_new_fid()
+               if (bccount==1) then
+                  open(fideslist,file='esbcflist.bcf',form='formatted',status='replace')
+               else
+                  open(fideslist,file='esbcflist.bcf',form='formatted',position='append')
+               end if
                write(fideslist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
-               & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%Esfilename)
+                    & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%Esfilename)
                close(fideslist)
             endif
          else
+            fidnhlist = create_new_fid()
+            if (bccount==1) then
+               open(fidnhlist,file='nhbcflist.bcf',form='formatted',status='replace',iostat=iostat)
+            else
+               open(fidnhlist,file='nhbcflist.bcf',form='formatted',position='append',iostat=iostat)
+            end if
             write(fidnhlist,'(f12.3,a,f12.3,a,f12.3,a)',iostat=iostat) &
-            & spectrumendtimeold,'   ',spectrumendtime,' ',par%Trep,' '//trim(wp%nhfilename)
+                 & spectrumendtimeold,'   ',spectrumendtime,' ',par%Trep,' '//trim(wp%nhfilename)
             close(fidnhlist)
-         endif
+         end if
 
          ! Set output of the correct line
          curline = bccount
@@ -2457,7 +2464,6 @@ contains
       use params
       use spaceparams
       use logging_module
-      use filefunctions, only: create_new_fid
 
       implicit none
 

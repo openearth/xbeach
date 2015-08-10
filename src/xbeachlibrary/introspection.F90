@@ -1,7 +1,6 @@
 module introspection_module
    use iso_c_binding
    use libxbeach_module
-   use indextos_module
 
    implicit none
    save
@@ -119,7 +118,7 @@ contains
       integer(c_int) :: length
       character(1), dimension(len(name)) :: cname
       length  = len(name)
-      cname = string_to_char_array(name,length)
+      cname = string_to_char_array(name)
 
       getparametertype_fortran = getparametertype_c(cname, typecode, length)
    end function getparametertype_fortran
@@ -133,7 +132,7 @@ contains
 
       ! wwvv added:
       getparametertype_c = 0
-      key = char_array_to_string(name, length)
+      key = char_array_to_string(name)
       call getkey_indextype(par, key, index, typecode)
    end function getparametertype_c
 
@@ -144,7 +143,7 @@ contains
       integer :: length
 
       getparametername_fortran = getparametername_c(index, cname, length)
-      name = char_array_to_string(cname, length)
+      name = char_array_to_string(cname)
    end function getparametername_fortran
 
 
@@ -161,7 +160,7 @@ contains
       ! We need to conver them to C format (char1's)
       key = keys(index)
       length = len(trim(key))
-      name = string_to_char_array(key, length)
+      name = string_to_char_array(key)
       getparametername_c = 0
    end function getparametername_c
 
@@ -199,7 +198,7 @@ contains
       character(length) :: myname
       ! Return -1 for invalid parameters
       getdoubleparameter_c = -1
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       getdoubleparameter_c =  getkey(par, myname, myparam)
       if (getdoubleparameter_c .eq. -1) return
       value = myparam%r0
@@ -236,7 +235,7 @@ contains
 
       ! Transform name to a fortran character...
       character(length) :: myname
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       select case (myname)
        case ('t')
          par%t = value
@@ -283,7 +282,7 @@ contains
       ! Transform name to a fortran character...
       character(length) :: myname
       type(parameter) :: myparam
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       ! Lookup the parameter by name
       getintparameter_c = getkey(par, myname, myparam)
       if (getintparameter_c .eq. -1) return
@@ -307,12 +306,12 @@ contains
       ! Transform name to a fortran character...
       character(namelength) :: fname
       type(parameter) :: myparam
-      fname = char_array_to_string(name, namelength)
+      fname = char_array_to_string(name)
       ! Lookup the parameter by name
       getcharparameter_c = getkey(par, fname, myparam)
       if (getcharparameter_c .eq. -1) return
       valuelength = len(trim(myparam%c0))
-      value = string_to_char_array(trim(myparam%c0), valuelength)
+      value = string_to_char_array(trim(myparam%c0))
       getcharparameter_c = 0
    end function getcharparameter_c
 
@@ -331,7 +330,7 @@ contains
       integer :: length
 
       getarrayname_fortran = getarrayname_c(index, cname, length)
-      name = char_array_to_string(cname, length)
+      name = char_array_to_string(cname)
    end function getarrayname_fortran
 
 
@@ -350,7 +349,7 @@ contains
       ! We need to conver them to C format (char1's)
       key = array%name
       length = len(trim(key))
-      name = string_to_char_array(key, length)
+      name = string_to_char_array(key)
       getarrayname_c = 0
    end function getarrayname_c
 
@@ -363,7 +362,7 @@ contains
       integer(c_int) :: length
       character(1), dimension(len(name)) :: cname
       length  = len(name)
-      cname = string_to_char_array(name,length)
+      cname = string_to_char_array(name)
       getarraytype_fortran = getarraytype_c(cname, typecode, length)
    end function getarraytype_fortran
 
@@ -375,7 +374,7 @@ contains
       character(len=length) :: key
       integer :: index
       type(arraytype) :: array
-      key = char_array_to_string(name, length)
+      key = char_array_to_string(name)
       getarraytype_c = -1
       index =  chartoindex(key)
       if (index .eq. -1) return
@@ -392,7 +391,7 @@ contains
       integer(c_int) :: length
       character(1), dimension(len(name)) :: cname
       length  = len(name)
-      cname = string_to_char_array(name,length)
+      cname = string_to_char_array(name)
       getarrayrank_fortran = getarrayrank_c(cname, rank, length)
    end function getarrayrank_fortran
 
@@ -404,7 +403,7 @@ contains
       character(len=length) :: key
       integer :: index
       type(arraytype) :: array
-      key = char_array_to_string(name, length)
+      key = char_array_to_string(name)
       getarrayrank_c = -1
       index =  chartoindex(key)
       if (index .eq. -1) return
@@ -423,7 +422,7 @@ contains
       integer(c_int) :: length
       character(1), dimension(len(name)) :: cname
       length  = len(name)
-      cname = string_to_char_array(name,length)
+      cname = string_to_char_array(name)
       getarraydimsize_fortran = getarraydimsize_c(cname, dim, size, length)
    end function getarraydimsize_fortran
 
@@ -436,7 +435,7 @@ contains
       character(len=length) :: key
       integer :: index
       type(arraytype) :: array
-      key = char_array_to_string(name, length)
+      key = char_array_to_string(name)
       getarraydimsize_c = -1
       index =  chartoindex(key)
       if (index .eq. -1) return
@@ -473,7 +472,7 @@ contains
       integer :: index
       type(arraytype) :: array
       getarray = -1
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -517,7 +516,7 @@ contains
       real(c_double), target  :: r0
 
       get0ddoublearray_c = -1
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -562,7 +561,7 @@ contains
       real(c_double), target, allocatable, save, dimension(:)  :: r1
 
       get1ddoublearray_c = -1
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -610,7 +609,7 @@ contains
       real(c_double), target, allocatable, save, dimension(:,:)  :: r2
 
       get2ddoublearray_c = -1
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -657,7 +656,7 @@ contains
       real(c_double), target, allocatable, save, dimension(:,:,:)  :: r3
 
       get3ddoublearray_c = -1
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -705,7 +704,7 @@ contains
       real(c_double), target, allocatable, save, dimension(:,:,:,:)  :: r4
 
       get4ddoublearray_c = -1
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -752,7 +751,7 @@ contains
       integer(c_int), target  :: i0
 
       get0dintarray_c = -1
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -795,7 +794,7 @@ contains
       integer(c_int), target, allocatable, save, dimension(:)  :: i1
 
       get1dintarray_c = -1
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -843,7 +842,7 @@ contains
       integer(c_int), target, allocatable, save, dimension(:,:)  :: i2
 
       get2dintarray_c = -1
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -891,7 +890,7 @@ contains
 
       set0dintarray_c = -1
 
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -938,7 +937,7 @@ contains
 
       set1dintarray_c = -1
 
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -985,7 +984,7 @@ contains
 
       set2dintarray_c = -1
 
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -1032,7 +1031,7 @@ contains
 
       set0ddoublearray_c = -1
 
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -1079,7 +1078,7 @@ contains
 
       set1ddoublearray_c = -1
 
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -1127,7 +1126,7 @@ contains
 
       set2ddoublearray_c = -1
 
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -1175,7 +1174,7 @@ contains
 
       set3ddoublearray_c = -1
 
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)
@@ -1223,7 +1222,7 @@ contains
 
       set4ddoublearray_c = -1
 
-      myname = char_array_to_string(name, length)
+      myname = char_array_to_string(name)
       index =  chartoindex(myname)
       if (index .eq. -1) return
       call indextos(s,index,array)

@@ -406,7 +406,7 @@ contains
    end subroutine outputtimes_update
 
 
-   subroutine timestep(s,par, tpar, it, ierr)
+   subroutine timestep(s,par, tpar, it, dt, ierr)
       use params
       use spaceparams
       use xmpi_module
@@ -420,6 +420,7 @@ contains
       type(timepars), intent(inout)    :: tpar
       integer, intent(inout)           :: it
       integer, intent(out), optional   :: ierr
+      real*8, intent(in), optional :: dt
       integer                     :: i,ilim
       integer                     :: j,j1,j2,jlim
       integer                     :: n,limtype
@@ -452,9 +453,10 @@ contains
          minval(s%dnv(1:s%nx+1,1:s%ny+1)))   &
          /sqrt(maxval(s%hh)*par%g)
          dtref = 0.d0
-         n = ceiling((tpar%tnext-par%t)/par%dt)
-         par%dt = (tpar%tnext-par%t)/n
-
+         if (tpar%tnext > par%dt) then
+            n = ceiling((tpar%tnext-par%t)/par%dt)
+            par%dt = (tpar%tnext-par%t)/n
+         end if
       else
          par%dt=huge(0.0d0)      ! Seed dt
          dtold = par%dt
@@ -623,8 +625,10 @@ contains
          !To avoid large timestep differences due to output, which can cause instabities
          !in the hanssen (leapfrog) scheme, we smooth the timestep.
 
-         n = ceiling((tpar%tnext-par%t)/par%dt)
-         par%dt = (tpar%tnext-par%t)/n
+         if (tpar%tnext > par%t) then
+            n = ceiling((tpar%tnext-par%t)/par%dt)
+            par%dt = (tpar%tnext-par%t)/n
+         end if
       end if ! first, or other time step
 
       if (dtref .eq. 0.0d0) then
@@ -642,9 +646,14 @@ contains
       call xmpi_allreduce(par%dt,MPI_MIN)
 #endif
 
+      ! maximize dt with given dt
+      if (present(dt)) then
+         par%dt = min(dt, par%dt)
+      end if
+
       par%t=par%t+par%dt
 
-      if(par%t>=tpar%tnext) then
+      if(par%t >= tpar%tnext) then
          par%dt  = par%dt-(par%t-tpar%tnext)
          par%t   = tpar%tnext
          it      = it+1
@@ -660,7 +669,9 @@ contains
       maxfac = 50.d0
       if (par%nonh==1) maxfac = 500.d0
 
-      if ((dtref/par%dt>maxfac .and. par%t<tpar%tnext) .or. par%dt/dtref>maxfac) then
+      if (((dtref/par%dt>maxfac .and. par%t<tpar%tnext) .or. par%dt/dtref>maxfac) &
+           .and. par%defuse==1) then
+         
          call writelog('lswe','','Quit XBeach since computational time implodes/explodes')
          call writelog('lswe','','Please check output at the end of the simulation')
          select case (limtype)

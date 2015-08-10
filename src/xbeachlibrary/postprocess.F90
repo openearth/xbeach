@@ -72,7 +72,7 @@ contains
                if(scrprint) then  ! wwvv-todo
                   write(txt,"('Distance output point',i3.3,'(',f0.2,',',f0.2,') to gridpoint(',i0,',',i0'): ',f0.2,' m')") &
                   i,par%xpointsw(i),par%ypointsw(i),xpoints(i),ypoints(i),mindistr(i)
-                  call writelog('ls','(a)',txt,xomaster)
+                  call writelog('ls','(a)',txt) !,xomaster)
                endif
             endif
          end do

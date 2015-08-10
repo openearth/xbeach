@@ -1,0 +1,16 @@
+*** binary dependencies ***
+Your executable(s) also depend on these dlls which are not included,
+you may or may not need to distribute them.
+
+Make sure you have the license if you distribute any of them, and
+make sure you don't distribute files belonging to the operating system.
+
+   OLEAUT32.dll - C:\WINDOWS\system32\OLEAUT32.dll
+   USER32.dll - C:\WINDOWS\system32\USER32.dll
+   SHELL32.dll - C:\WINDOWS\system32\SHELL32.dll
+   ole32.dll - C:\WINDOWS\system32\ole32.dll
+   ADVAPI32.dll - C:\WINDOWS\system32\ADVAPI32.dll
+   WS2_32.dll - C:\WINDOWS\system32\WS2_32.dll
+   GDI32.dll - C:\WINDOWS\system32\GDI32.dll
+   VERSION.dll - C:\WINDOWS\system32\VERSION.dll
+   KERNEL32.dll - C:\WINDOWS\system32\KERNEL32.dll

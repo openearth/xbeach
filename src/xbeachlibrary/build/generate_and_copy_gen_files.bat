@@ -18,33 +18,6 @@ echo on
 
 set currentDir=%cd%
 
-cd "%SolutionDir%src\makeincludes\bin\%Platform%"
-
-if not EXIST "%SolutionDir%src\makeincludes\bin\%Platform%\params.F90" goto creategen
-if not EXIST "%SolutionDir%src\makeincludes\bin\%Platform%\spaceparams.tmpl" goto creategen
-
-fc "%SolutionDir%src\xbeachlibrary\params.F90" "%SolutionDir%src\makeincludes\bin\%Platform%\params.F90" > nul
-if errorlevel 1 goto creategen
-fc "%SolutionDir%src\xbeachlibrary\spaceparams.tmpl" "%SolutionDir%src\makeincludes\bin\%Platform%\spaceparams.tmpl" > nul
-if errorlevel 1 goto creategen
-
-goto end
-
-:creategen
-rem copy input files
-xcopy "%SolutionDir%src\xbeachlibrary\params.F90" "%SolutionDir%src\makeincludes\bin\%Platform%" /D /Y
-xcopy "%SolutionDir%src\xbeachlibrary\spaceparams.tmpl" "%SolutionDir%src\makeincludes\bin\%Platform%" /D /Y
-
-rem del intermediate output
-del "%SolutionDir%src\makeincludes\bin\%Platform%\parameters.inc"
-
-rem create gen files
-"%SolutionDir%src\makeincludes\bin\%Platform%\%type%\makeincludes"
-
-rem copy gen files to right location
-xcopy "%SolutionDir%src\makeincludes\bin\%Platform%\*.gen" "%SolutionDir%src\xbeachlibrary\includes\genfiles\" /D /Y
-
-cd "%SolutionDir%src\xbeachlibrary\"
-
-:end
+cd "%SolutionDir%scripts
+dist\generate.exe
 cd "%currentDir%"
