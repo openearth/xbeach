@@ -8,6 +8,7 @@ module load netcdf/v4.3.2_v4.4.0_gcc_4.9.2
 module load openmpi/1.8.3_gcc_4.9.2
 module load anaconda/lnx64_conda
 
+make clean
 make distclean
 
 ./autogen.sh
