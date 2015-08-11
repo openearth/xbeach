@@ -46,8 +46,11 @@ def element0(var):
     select case(var_name)
 %for var in variables:
     case("${var['name']}")
+%if var['rank'] > 0:
        call c_f_pointer(xptr, x_${var['rank']}d_${var['type']}_ptr, shape(s%${var["name"]}))
-!       write(*,*) "setting ${var['name']} to", x_${var['rank']}d_${var['type']}_ptr
+%else:
+       call c_f_pointer(xptr, x_${var['rank']}d_${var['type']}_ptr) ! skip shape in case of rank 0
+%endif
        s%${var["name"]}${dimstr(":"*var['rank'])} = x_${var['rank']}d_${var['type']}_ptr
 %endfor
     case default
