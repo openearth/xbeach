@@ -110,10 +110,10 @@ endif
 EXTRA_DIST=s.ind s.inp nh_pars.inc version.def
 CLEANFILES=*.mod *.MOD *.inc version.dat
 
-depclean: clean
-	rm -f $(deps)
+#depclean: clean
+#	rm -f $(deps)
 
-dep $(deps):
-	$(MAKEDEPO) -p libxbeach_la- -s .lo $(libxbeach_la_SOURCES) > $(deps)
+#dep $(deps):
+#	$(MAKEDEPO) -p libxbeach_la- -s .lo $(libxbeach_la_SOURCES) > $(deps)
 
-include $(deps)
+#include $(deps)
