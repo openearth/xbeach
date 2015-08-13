@@ -350,9 +350,9 @@ module params
       character(maxnamelen)             :: pointvars(numvars)       = 'abc'                !  [-] (advanced) Mnems of point output variables (by variables)
       integer                           :: npoints                  = -123                 !  [-] Number of output point locations
       integer                           :: nrugauge                 = -123                 !  [-] Number of output runup gauge locations
-      integer, allocatable              :: pointtypes(:)                                   !  [-] (advanced) Point types (0 = point, 1 = rugauge)
-      double precision, allocatable     :: xpointsw(:)                                     !  (advanced) world x-coordinate of output points
-      double precision, allocatable     :: ypointsw(:)                                     !  (advanced) world y-coordinate of output points
+      integer, pointer              :: pointtypes(:) => NULL()                                   !  [-] (advanced) Point types (0 = point, 1 = rugauge)
+      double precision, pointer     :: xpointsw(:) => NULL()                                     !  (advanced) world x-coordinate of output points
+      double precision, pointer     :: ypointsw(:) => NULL()                                     !  (advanced) world y-coordinate of output points
            
       integer                           :: nrugdepth                = -123                 !  [-] (advanced) Number of depths to compute runup in runup gauge
       double precision                  :: rugdepth(99)             = -123                 !  [m] (advanced) Minimum depth for determination of last wet point in runup gauge
@@ -1893,7 +1893,7 @@ contains
 
       ! so now everyone has the pointtypes, let's put it back in par
       ! first dereference the old one, otherwise we get a nasty error on ifort....
-      if (.not. xmaster) deallocate(par%pointtypes)
+      if (.not. xmaster) par%pointtypes => NULL()
 
       ! now we can allocate the memory again
       if (.not. xmaster) allocate(par%pointtypes(npoints))
@@ -1915,7 +1915,7 @@ contains
       call xmpi_bcast(xpointsw,toall)
       ! so now everyone has the xpointsw, let's put it back in par
       ! first dereference the old one, otherwise we get a nasty error on ifort....
-      if (.not. xmaster) deallocate(par%xpointsw)
+      if (.not. xmaster) par%xpointsw => NULL()
       ! now we can allocate the memory again
       if (.not. xmaster) allocate(par%xpointsw(npoints))
       ! and store the values from the local array
@@ -1934,7 +1934,7 @@ contains
       call xmpi_bcast(ypointsw,toall)
       ! so now everyone has the ypointsw, let's put it back in par
       ! first dereference the old one, otherwise we get a nasty error on ifort....
-      if (.not. xmaster) deallocate(par%ypointsw)
+      if (.not. xmaster) par%ypointsw => NULL()
       ! now we can allocate the memory again
       if (.not. xmaster) allocate(par%ypointsw(npoints))
       ! and store the values from the local array

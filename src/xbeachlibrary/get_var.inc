@@ -508,10 +508,6 @@ subroutine get_var(c_var_name, x) bind(C, name="get_var")
       ! if you want to reference a pointer variable
       ! you have to point to the first element
       x = c_loc(s%ust(lbound(s%ust, 1),lbound(s%ust, 2)))
-   case ('tm')
-      ! if you want to reference a pointer variable
-      ! you have to point to the first element
-      x = c_loc(s%tm(lbound(s%tm, 1),lbound(s%tm, 2)))
    case ('ueu')
       ! if you want to reference a pointer variable
       ! you have to point to the first element
@@ -596,10 +592,6 @@ subroutine get_var(c_var_name, x) bind(C, name="get_var")
       ! if you want to reference a pointer variable
       ! you have to point to the first element
       x = c_loc(s%ccg(lbound(s%ccg, 1),lbound(s%ccg, 2),lbound(s%ccg, 3)))
-   case ('ccbg')
-      ! if you want to reference a pointer variable
-      ! you have to point to the first element
-      x = c_loc(s%ccbg(lbound(s%ccbg, 1),lbound(s%ccbg, 2),lbound(s%ccbg, 3)))
    case ('uwf')
       ! if you want to reference a pointer variable
       ! you have to point to the first element

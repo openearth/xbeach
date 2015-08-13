@@ -125,7 +125,6 @@
     double precision, dimension(:,:),  pointer :: D
     double precision, dimension(:,:),  pointer :: Qb
     double precision, dimension(:,:),  pointer :: ust
-    double precision, dimension(:,:),  pointer :: tm
     double precision, dimension(:,:),  pointer :: ueu
     double precision, dimension(:,:),  pointer :: vev
     double precision, dimension(:,:),  pointer :: vmagu
@@ -147,7 +146,6 @@
     double precision, dimension(:,:),  pointer :: hvm
     double precision, dimension(:,:),  pointer :: vmag
     double precision, dimension(:,:,:),  pointer :: ccg
-    double precision, dimension(:,:,:),  pointer :: ccbg
     double precision, dimension(:,:),  pointer :: uwf
     double precision, dimension(:,:),  pointer :: vwf
     double precision, dimension(:,:),  pointer :: ustr

@@ -124,7 +124,6 @@
     D => s%D
     Qb => s%Qb
     ust => s%ust
-    tm => s%tm
     ueu => s%ueu
     vev => s%vev
     vmagu => s%vmagu
@@ -146,7 +145,6 @@
     hvm => s%hvm
     vmag => s%vmag
     ccg => s%ccg
-    ccbg => s%ccbg
     uwf => s%uwf
     vwf => s%vwf
     ustr => s%ustr

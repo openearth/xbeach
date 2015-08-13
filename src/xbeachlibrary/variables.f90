@@ -37,10 +37,10 @@ module variables
   double precision,              target :: zs02             !< [m] Initial water level second sea boundary {"shape": [], "standard_name": "sea_surface_height_above_sea_level", "broadcast": "b"}
   double precision,              target :: zs03             !< [m] Initial water level first land boundary {"shape": [], "standard_name": "sea_surface_height_above_sea_level", "broadcast": "b"}
   double precision,              target :: zs04             !< [m] Initial water level second land boundary {"shape": [], "standard_name": "sea_surface_height_above_sea_level", "broadcast": "b"}
-  double precision, allocatable, target :: xyzs01(:)        !< [-] global xy coordinates of corner (x=1,y=1) {"shape": [2], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: xyzs02(:)        !< [-] global xy coordinates of corner (x=1,y=N) {"shape": [2], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: xyzs03(:)        !< [-] global xy coordinates of corner (x=N,y=N) {"shape": [2], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: xyzs04(:)        !< [-] global xy coordinates of corner (x=N,y=1) {"shape": [2], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: xyzs01(:)        !< [-] global xy coordinates of corner (x=1,y=1) {"shape": [2], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: xyzs02(:)        !< [-] global xy coordinates of corner (x=1,y=N) {"shape": [2], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: xyzs03(:)        !< [-] global xy coordinates of corner (x=N,y=N) {"shape": [2], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: xyzs04(:)        !< [-] global xy coordinates of corner (x=N,y=1) {"shape": [2], "standard_name": "", "broadcast": "b"}
   integer,                       target :: tidelen          !< [-] length of tide time series {"shape": [], "standard_name": "", "broadcast": "b"}
   integer,                       target :: windlen          !< [-] length of tide time series {"shape": [], "standard_name": "", "broadcast": "b"}
   double precision, allocatable, target :: zb(:,:)          !< [m] bed level {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "altitude", "broadcast": "d"}
@@ -121,7 +121,6 @@ module variables
   double precision, allocatable, target :: D(:,:)           !< [W/m2] dissipation {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: Qb(:,:)          !< [-] fraction breaking waves {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: ust(:,:)         !< [m/s] Stokes drift {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
-  double precision, allocatable, target :: tm(:,:)          !< [rad] mean wave direction {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: ueu(:,:)         !< [m/s] Eulerian velocity in u-points, x-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "sea_water_x_velocity", "broadcast": "d"}
   double precision, allocatable, target :: vev(:,:)         !< [m/s] Eulerian velocity in u-points, y-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "sea_water_y_velocity", "broadcast": "d"}
   double precision, allocatable, target :: vmagu(:,:)       !< [m/s] GLM velocity magnitude u-points {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
@@ -143,22 +142,21 @@ module variables
   double precision, allocatable, target :: hvm(:,:)         !< [m] water depth in v-points {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: vmag(:,:)        !< [m/s] velocity magnitude in cell centre {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: ccg(:,:,:)       !< [m3/m3] depth-averaged suspended concentration for each sediment fraction {"shape": ["s%nx+1", "s%ny+1", "par%ngd"], "standard_name": "", "broadcast": "d"}
-  double precision, allocatable, target :: ccbg(:,:,:)      !< [m3/m3] depth-averaged bed concentration for each sediment fraction {"shape": ["s%nx+1", "s%ny+1", "par%ngd"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: uwf(:,:)         !< [m/s] Stokes drift, x-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: vwf(:,:)         !< [m/s] Stokes drift, y-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: ustr(:,:)        !< [m/s] return flow due to roller {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: usd(:,:)         !< [m/s] return flow due to roller after breaker delay {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
-  double precision, allocatable, target :: bi(:)            !< [m] incoming bound long wave {"shape": ["s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision,              target :: bi(:)            !< [m] incoming bound long wave {"shape": ["s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: DR(:,:)          !< [W/m2] roller energy dissipation {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: umean(:,:)       !< [m/s] longterm mean velocity at bnds in u-points, x-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "sea_water_x_velocity", "broadcast": "d"}
   double precision, allocatable, target :: vmean(:,:)       !< [m/s] longterm mean velocity at bnds in u-points, y-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "sea_water_y_velocity", "broadcast": "d"}
   double precision, allocatable, target :: ur(:,:)          !< [m/s] reflected velocity at bnds in u-points {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   integer,                       target :: vardx            !< [-] 0 = uniform grid size, 1 = variable grid size {"shape": [], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: D15(:)           !< [m] D15 grain diameters for all sediment classses {"shape": ["par%ngd"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: D50(:)           !< [m] D50 grain diameters for all sediment classses {"shape": ["par%ngd"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: D90(:)           !< [m] D90 grain diameters for all sediment classses {"shape": ["par%ngd"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: sedcal(:)        !< [-] equilibrium sediment concentartion factor for each sediment class {"shape": ["par%ngd"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: ucrcal(:)        !< [-] calibration factor for u critical for each sediment class {"shape": ["par%ngd"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: D15(:)           !< [m] D15 grain diameters for all sediment classses {"shape": ["par%ngd"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: D50(:)           !< [m] D50 grain diameters for all sediment classses {"shape": ["par%ngd"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: D90(:)           !< [m] D90 grain diameters for all sediment classses {"shape": ["par%ngd"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: sedcal(:)        !< [-] equilibrium sediment concentartion factor for each sediment class {"shape": ["par%ngd"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: ucrcal(:)        !< [-] calibration factor for u critical for each sediment class {"shape": ["par%ngd"], "standard_name": "", "broadcast": "b"}
   double precision, allocatable, target :: Tsg(:,:,:)       !< [s] sediment response time for each sediment class {"shape": ["s%nx+1", "s%ny+1", "par%ngd"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: Susg(:,:,:)      !< [m2/s] suspended sediment transport for each sediment class (excluding pores), x-component {"shape": ["s%nx+1", "s%ny+1", "par%ngd"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: Svsg(:,:,:)      !< [m2/s] suspended sediment transport for each sediment class (excluding pores), y-component {"shape": ["s%nx+1", "s%ny+1", "par%ngd"], "standard_name": "", "broadcast": "d"}
@@ -195,7 +193,7 @@ module variables
   double precision, allocatable, target :: depo_im(:,:,:)   !< [m/s] implicit bed deposition rate per fraction {"shape": ["s%nx+1", "s%ny+1", "par%ngd"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: depo_ex(:,:,:)   !< [m/s] explicit bed deposition rate per fraction {"shape": ["s%nx+1", "s%ny+1", "par%ngd"], "standard_name": "", "broadcast": "d"}
   integer,          allocatable, target :: nd(:,:)          !< [-] number of bed layers (can be different for each computational cell) {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
-  double precision, allocatable, target :: pbbed(:,:,:,:)   !< [-] NO DESCRIPTION {"shape": ["s%nx+1", "s%ny+1", "max(par%nd,2)", "par%ngd"], "standard_name": "", "broadcast": "d"}
+  double precision,              target :: pbbed(:,:,:,:)   !< [-] NO DESCRIPTION {"shape": ["s%nx+1", "s%ny+1", "max(par%nd,2)", "par%ngd"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: dzbed(:,:,:)     !< [-] NO DESCRIPTION {"shape": ["s%nx+1", "s%ny+1", "max(par%nd,2)"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: z0bed(:,:)       !< [-] NO DESCRIPTION {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: ureps(:,:)       !< [m/s] representative flow velocity for sediment advection and diffusion, x-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "sea_water_x_velocity", "broadcast": "d"}
@@ -231,23 +229,23 @@ module variables
   double precision, allocatable, target :: D90top(:,:)      !< [-] Friction coefficient flow {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: structdepth(:,:) !< [m] Depth of structure in relation to instantaneous bed level {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: zs0fac(:,:,:)    !< [-] relative weight of offshore boundary and bay boundary for each grid point is stored in zs0fac {"shape": ["s%nx+1", "s%ny+1", 2], "standard_name": "", "broadcast": "d"}
-  double precision, allocatable, target :: tdisch(:)        !< [-] Discharge time series {"shape": ["par%ntdischarge"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: tdisch(:)        !< [-] Discharge time series {"shape": ["par%ntdischarge"], "standard_name": "", "broadcast": "b"}
   double precision, allocatable, target :: pdisch(:,:)      !< [-] Discharge locations {"shape": ["par%ndischarge", 4], "standard_name": "", "broadcast": "b"}
   integer,          allocatable, target :: pntdisch(:)      !< [-] Point discharge locations (no momentum) {"shape": ["par%ndischarge"], "standard_name": "", "broadcast": "b"}
   double precision, allocatable, target :: qdisch(:,:)      !< [m2/s] Discharges {"shape": ["par%ntdischarge", "par%ndischarge"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: idrift(:)        !< [-] Drifter x-coordinate in grid space {"shape": ["par%ndrifter"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: jdrift(:)        !< [-] Drifter y-coordinate in grid space {"shape": ["par%ndrifter"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: tdriftb(:)       !< [s] Drifter release time {"shape": ["par%ndrifter"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: tdrifte(:)       !< [s] Drifter retrieval time {"shape": ["par%ndrifter"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: runup(:)         !< [m] Short wave runup height {"shape": ["s%ny+1"], "standard_name": "", "broadcast": "d"}
-  double precision, allocatable, target :: Hrunup(:)        !< [m] Short wave height used in runup formulation {"shape": ["s%ny+1"], "standard_name": "", "broadcast": "d"}
-  double precision, allocatable, target :: xHrunup(:)       !< [m] Location at which short wave height for runup is taken {"shape": ["s%ny+1"], "standard_name": "", "broadcast": "d"}
-  double precision, allocatable, target :: istruct(:)       !< [-] location of revetments toe {"shape": ["s%ny+1"], "standard_name": "", "broadcast": "d"}
-  double precision, allocatable, target :: iwl(:)           !< [-] location of water line (including long wave runup) {"shape": ["s%ny+1"], "standard_name": "", "broadcast": "d"}
-  double precision, allocatable, target :: strucslope(:)    !< [-] slope of structure {"shape": ["s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision,              target :: idrift(:)        !< [-] Drifter x-coordinate in grid space {"shape": ["par%ndrifter"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: jdrift(:)        !< [-] Drifter y-coordinate in grid space {"shape": ["par%ndrifter"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: tdriftb(:)       !< [s] Drifter release time {"shape": ["par%ndrifter"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: tdrifte(:)       !< [s] Drifter retrieval time {"shape": ["par%ndrifter"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: runup(:)         !< [m] Short wave runup height {"shape": ["s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision,              target :: Hrunup(:)        !< [m] Short wave height used in runup formulation {"shape": ["s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision,              target :: xHrunup(:)       !< [m] Location at which short wave height for runup is taken {"shape": ["s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision,              target :: istruct(:)       !< [-] location of revetments toe {"shape": ["s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision,              target :: iwl(:)           !< [-] location of water line (including long wave runup) {"shape": ["s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision,              target :: strucslope(:)    !< [-] slope of structure {"shape": ["s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: Dc(:,:)          !< [m2/s] diffusion coefficient {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: ph(:,:)          !< [m] pressure head due to ship {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
-  integer,          allocatable, target :: newstatbc        !< [-] (1) Use new stationary boundary conditions for instat is stat or stat_table {"shape": [], "standard_name": "", "broadcast": "b"}
+  integer,                       target :: newstatbc        !< [-] (1) Use new stationary boundary conditions for instat is stat or stat_table {"shape": [], "standard_name": "", "broadcast": "b"}
   double precision, allocatable, target :: dobs(:,:)        !< [W/m2] beachwizard observed dissipation {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: sig2prior(:,:)   !< [m2] beachwizard prior std squared {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: zbobs(:,:)       !< [m] beachwizard observed depth {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
@@ -256,18 +254,18 @@ module variables
   double precision, allocatable, target :: dcmdo(:,:)       !< [W/m2] beachwizard computed minus observed dissipation {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: dassim(:,:)      !< [m] beachwizard depth change {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: cobs(:,:)        !< [m/s] beachwizard observed wave celerity {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
-  double precision, allocatable, target :: shipxCG(:)       !< [m] x-coordinate of ship center of gravity {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: shipyCG(:)       !< [m] y-coordinate of ship center of gravity {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: shipzCG(:)       !< [m] z-coordinate of ship center of gravity {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: shipFx(:)        !< [m] force on ship in x-direction {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: shipFy(:)        !< [m] force on ship in y-direction {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: shipFz(:)        !< [m] force on ship in z-direction {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: shipMx(:)        !< [m] moment on ship around x-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: shipMy(:)        !< [m] moment on ship around y-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: shipMz(:)        !< [m] moment on ship around z-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: shipphi(:)       !< [m] turning angle arround x-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: shipchi(:)       !< [m] turning angle arround y-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: shippsi(:)       !< [m] turning angle arround z-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipxCG(:)       !< [m] x-coordinate of ship center of gravity {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipyCG(:)       !< [m] y-coordinate of ship center of gravity {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipzCG(:)       !< [m] z-coordinate of ship center of gravity {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipFx(:)        !< [m] force on ship in x-direction {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipFy(:)        !< [m] force on ship in y-direction {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipFz(:)        !< [m] force on ship in z-direction {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipMx(:)        !< [m] moment on ship around x-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipMy(:)        !< [m] moment on ship around y-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipMz(:)        !< [m] moment on ship around z-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipphi(:)       !< [m] turning angle arround x-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipchi(:)       !< [m] turning angle arround y-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shippsi(:)       !< [m] turning angle arround z-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
   double precision, allocatable, target :: Dveg(:,:)        !< [W/m2] dissipation due to short wave attenuation by vegetation {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: Fvegu(:,:)       !< [N/m2] x-forcing due to long wave attenuation by vegetation {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: Fvegv(:,:)       !< [N/m2] y-forcing due to long wave attenuation by vegetation {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
@@ -278,6 +276,6 @@ module variables
   double precision, allocatable, target :: viscu(:,:)       !< [m2/s2] viscosity {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: viscv(:,:)       !< [m2/s2] viscosity {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: setbathy(:,:,:)  !< [m] prescribed bed levels {"shape": ["s%nx+1", "s%ny+1", "par%nsetbathy"], "standard_name": "", "broadcast": "d"}
-  double precision, allocatable, target :: tsetbathy(:)     !< [s] points in time of prescibed bed levels {"shape": ["par%nsetbathy"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: tsetbathy(:)     !< [s] points in time of prescibed bed levels {"shape": ["par%nsetbathy"], "standard_name": "", "broadcast": "b"}
   integer,          allocatable, target :: breaking(:,:)    !< [-] indicator whether cell has breaking nonh waves {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
 end module variables

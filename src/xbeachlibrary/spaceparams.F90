@@ -382,7 +382,7 @@ contains
 
       ! allocate scalars
 
-      !call space_alloc_scalars(sl)
+      call space_alloc_scalars(sl)
 
       ! copy scalars to sl, only on master
       ! distributing will take place later
