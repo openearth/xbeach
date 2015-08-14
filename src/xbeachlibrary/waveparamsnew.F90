@@ -2236,7 +2236,7 @@ contains
       complex(fftkind),dimension(:),allocatable    :: Gn, tempcmplx,tempcmplxhalf
       integer,dimension(:),allocatable             :: tempindex,tempinclude
       real*8                                       :: stdzeta,stdeta,etot,perc
-
+      real*8, dimension(:), allocatable            :: E_t
 
       ! Allocate variables for water level exitation and amplitude with and without
       ! directional spreading dependent envelope
@@ -2427,13 +2427,15 @@ contains
       open(fid,file=trim(wp%Efilename),form='unformatted',access='direct',recl=reclen,status='REPLACE')
 
       ! Write to external file
+      if (.not. allocated(E_t)) allocate(E_t(wp%tslen))
       if (wp%dtchanged) then
          ! Interpolate from internal time axis to output time axis
          allocate(E_interp(s%ny+1,wp%tslenbc,s%ntheta))
          do itheta=1,s%ntheta
-            do it=1,wp%tslenbc
-               do iy=1,s%ny+1
-                  call linear_interp(wp%tin,E_tdir(iy,:,itheta),wp%tslen,(it-1)*wp%dtbc,E_interp(iy,it,itheta),status)
+            do iy=1,s%ny+1
+               E_t=E_tdir(iy,:,itheta)
+               do it=1,wp%tslenbc
+                 call linear_interp(wp%tin,E_t,wp%tslen,(it-1)*wp%dtbc,E_interp(iy,it,itheta),status)
                enddo
             enddo
          enddo
