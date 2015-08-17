@@ -1499,7 +1499,6 @@ contains
       ! Constants
       par%compi = (0.0d0,1.0d0)
       par%rhog8 = 1.0d0/8.0d0*par%rho*par%g
-      par%irhog8 = 1.d0/par%rhog8
       !
       !
       if (par%posdwn<0.1d0) then

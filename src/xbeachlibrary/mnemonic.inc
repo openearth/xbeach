@@ -3,7 +3,7 @@
 !  Compiling and running is taken care of by the Makefile
 
 
-        integer, parameter :: numvars    =  279
+        integer, parameter :: numvars    =  280
         integer, parameter :: maxnamelen =   11
         integer, parameter :: maxrank =    4
         character(len=slen),parameter ::  mnem_x           = 'x          '
@@ -285,6 +285,7 @@
         character(len=slen),parameter ::  mnem_setbathy    = 'setbathy   '
         character(len=slen),parameter ::  mnem_tsetbathy   = 'tsetbathy  '
         character(len=slen),parameter ::  mnem_breaking    = 'breaking   '
+        character(len=slen),parameter ::  mnem_tm          = 'tm         '
         character(len=slen),dimension(numvars),parameter :: mnemonics= (/ &
          mnem_x          , & ! 1
          mnem_y          , & ! 2
@@ -564,6 +565,7 @@
          mnem_viscv      , & ! 276
          mnem_setbathy   , & ! 277
          mnem_tsetbathy  , & ! 278
-         mnem_breaking    & ! 279
+         mnem_breaking   , & ! 279
+         mnem_tm          & ! 280
         /)
 !directions for vi vim: filetype=fortran : syntax=fortran

@@ -795,6 +795,9 @@ case(  278)
 case(  279)
    if (associated(s%breaking)) deallocate(s%breaking)
    allocate(s%breaking(s%nx+1,s%ny+1))
+case(  280)
+   if (associated(s%tm)) deallocate(s%tm)
+   allocate(s%tm(s%nx+1,s%ny+1))
 
 !directions for vi vim: filetype=fortran : syntax=fortran
 

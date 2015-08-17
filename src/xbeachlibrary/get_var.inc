@@ -1136,6 +1136,10 @@ subroutine get_var(c_var_name, x) bind(C, name="get_var")
       ! if you want to reference a pointer variable
       ! you have to point to the first element
       x = c_loc(s%breaking(lbound(s%breaking, 1),lbound(s%breaking, 2)))
+   case ('tm')
+      ! if you want to reference a pointer variable
+      ! you have to point to the first element
+      x = c_loc(s%tm(lbound(s%tm, 1),lbound(s%tm, 2)))
   end select
 
 end subroutine get_var

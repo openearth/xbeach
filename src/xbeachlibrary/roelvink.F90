@@ -61,60 +61,43 @@ contains
       real*8, dimension(s%ny+1)                       :: km,kmr,hr,H,arg
 
       ! Dissipation according to Roelvink (1993)
-      where(s%wete(i,:)==1)
-         H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
-         hr  = s%hh(i,:) + par%delta*s%H(i,:)
 
-         kmr = min(max(km, 0.01d0), 100.d0)
-      endwhere
+      H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
+      hr  = s%hh(i,:) + par%delta*s%H(i,:)
+
+      kmr = min(max(km, 0.01d0), 100.d0)
+
       if (par%break /= BREAK_ROELVINK_DALY) then
          if (par%wci==1) then
-            where(s%wete(i,:)==1)
-               arg = -( H / (par%gamma*tanh(kmr*hr)/kmr))**par%n
-            endwhere
+            arg = -( H / (par%gamma*tanh(kmr*hr)/kmr))**par%n
          else
-            where(s%wete(i,:)==1)
-               arg = -( H / (par%gamma*hr              ))**par%n
-            endwhere
+            arg = -( H / (par%gamma*hr              ))**par%n
          endif
-         where(s%wete(i,:)==1)
-            s%Qb(i,:) = min(1.d0 - exp(max(arg,-100.d0)), 1.d0)
-         elsewhere
-            s%Qb(i,:) = 0.d0
-         endwhere
+
+         s%Qb(i,:) = min(1.d0 - exp(max(arg,-100.d0)), 1.d0)
       else
          do j=1,s%ny+1
             if (H(j) > par%gamma *hr(j)) s%Qb(i,j) = 1.d0
             if (H(j) < par%gamma2*hr(j)) s%Qb(i,j) = 0.d0
          enddo
+
          s%Qb(i,:) = max(s%Qb(i,:), 0.d0)
       endif
-      where(s%wete(i,:)==1)
-         s%D(i,:) = s%Qb(i,:) * 2.d0 * par%alpha * s%E(i,:)
-      elsewhere
-         s%D(i,:) = 0.d0
-      endwhere
+
+      s%D(i,:) = s%Qb(i,:) * 2.d0 * par%alpha * s%E(i,:)
 
       if (par%break == BREAK_ROELVINK1) then
          if (par%wci==1) then
-            where(s%wete(i,:)==1)
-               s%D(i,:) = s%D(i,:) * s%sigm(i,:)/2.d0/par%px;
-            endwhere
+            s%D(i,:) = s%D(i,:) * s%sigm(i,:)/2.d0/par%px;
          else
-            where(s%wete(i,:)==1)
-               s%D(i,:) = s%D(i,:) / par%Trep
-            endwhere
+            s%D(i,:) = s%D(i,:) / par%Trep
          endif
       elseif (par%break == BREAK_ROELVINK2 .or. par%break == BREAK_ROELVINK_DALY) then
          ! Jaap: also wci switch for roelvink2
          if (par%wci==1) then
-            where(s%wete(i,:)==1)
-               s%D(i,:) = s%D(i,:) * s%sigm(i,:)/2.d0/par%px * H/s%hh(i,:);
-            endwhere
+            s%D(i,:) = s%D(i,:) * s%sigm(i,:)/2.d0/par%px * H/s%hh(i,:);
          else
-            where(s%wete(i,:)==1)
-               s%D(i,:) = s%D(i,:) / par%Trep * H/s%hh(i,:)
-            endwhere
+            s%D(i,:) = s%D(i,:) / par%Trep * H/s%hh(i,:)
          endif
       end if
 
@@ -135,12 +118,7 @@ contains
       real*8, dimension(s%nx+1,s%ny+1)                :: km
 
       do i = 1,s%nx+1
-         if(any(s%wete(i,:)==1)) then
-            call roelvink_1D(par,s,km(i,:),i)
-         else
-            s%D(i,:) = 0.d0
-            s%Qb(i,:) = 0.d0
-         endif
+         call roelvink_1D(par,s,km(i,:),i)
       enddo
 
    end subroutine roelvink_2D
@@ -162,35 +140,27 @@ contains
       ! Dissipation according to Baldock et al. (1998)
 
       if (par%wci==1) then
-         where(s%wete(i,:)==1)
-            f = s%sigm(i,:) / 2.d0 / par%px
-            k = km
-         endwhere
+         f = s%sigm(i,:) / 2.d0 / par%px
+         k = km
       else
          f = 1.d0 / par%Trep
          k = s%k(i,:)
       endif
-      where(s%wete(i,:)==1)
-         kh  = s%k(i,:) * (s%hh(i,:) + par%delta*s%H(i,:))
-      endwhere
+
+      kh  = s%k(i,:) * (s%hh(i,:) + par%delta*s%H(i,:))
 
       if (par%wci == 1) then
-         where(s%wete(i,:)==1)
-            gamma = 0.76d0*kh + 0.29d0 !Jaap: spatial varying gamma according to Ruessink et al., 1998
-         endwhere
+         gamma = 0.76d0*kh + 0.29d0 !Jaap: spatial varying gamma according to Ruessink et al., 1998
       else
          gamma = par%gamma
       endif
-      where(s%wete(i,:)==1)
-         H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
-         Hb  = tanh(gamma*kh/0.88d0)*(0.88d0/k)
-         R   = Hb/max(H,0.00001d0)
-         s%Qb(i,:)   = exp(-R**2)
-         s%D (i,:)   = 0.25d0 * par%alpha * f * par%rho * par%g * (Hb**2+H**2) * s%Qb(i,:)
-      elsewhere
-         s%Qb(i,:) = 0.d0
-         s%D(i,:) = 0.d0
-      endwhere         
+
+      H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
+      Hb  = tanh(gamma*kh/0.88d0)*(0.88d0/k)
+      R   = Hb/max(H,0.00001d0)
+
+      s%Qb(i,:)   = exp(-R**2)
+      s%D (i,:)   = 0.25d0 * par%alpha * f * par%rho * par%g * (Hb**2+H**2) * s%Qb(i,:)
 
    end subroutine baldock_1D
 
@@ -209,12 +179,7 @@ contains
       real*8, dimension(s%nx+1,s%ny+1)                :: km
 
       do i = 1,s%nx+1
-         if(any(s%wete(i,:)==1)) then
-            call baldock_1D(par,s,km(i,:),i)
-         else
-            s%D(i,:) = 0.d0
-            s%Qb(i,:) = 0.d0
-         endif
+         call baldock_1D(par,s,km(i,:),i)
       enddo
 
    end subroutine baldock_2D
@@ -240,28 +205,21 @@ contains
       B   = par%alpha
 
       if (par%wci==1) then
-         where(s%wete(i,:)==1)
-            f = s%sigm(i,:) / 2.d0 / par%px
-            k = km
-         endwhere
+         f = s%sigm(i,:) / 2.d0 / par%px
+         k = km
       else
          f = 1.d0 / par%Trep
          k = s%k(i,:)
       endif
-      
-      where(s%wete(i,:)==1)
-         kh  = s%k(i,:) * (s%hh(i,:) + par%delta*s%H(i,:))
 
-         H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
-         Hb  = tanh(par%gamma*kh/0.88d0)*(0.88d0/k)
-         R   = Hb/max(H,0.00001d0)
+      kh  = s%k(i,:) * (s%hh(i,:) + par%delta*s%H(i,:))
 
-         s%Qb(i,:)   = 1 + 4/(3*sqrt(par%px)) * (R**3 + 3/2*R) * exp(-R**2) - xerf(R)
-         s%D (i,:)   = 3*sqrt(par%px)/16      * B * f * par%rho * par%g * H**3/s%hh(i,:) * s%Qb(i,:)
-      elsewhere
-         s%Qb(i,:) = 0.d0
-         s%D(i,:) = 0.d0
-      endwhere
+      H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
+      Hb  = tanh(par%gamma*kh/0.88d0)*(0.88d0/k)
+      R   = Hb/max(H,0.00001d0)
+
+      s%Qb(i,:)   = 1 + 4/(3*sqrt(par%px)) * (R**3 + 3/2*R) * exp(-R**2) - xerf(R)
+      s%D (i,:)   = 3*sqrt(par%px)/16      * B * f * par%rho * par%g * H**3/s%hh(i,:) * s%Qb(i,:)
 
    end subroutine janssen_battjes_1D
 
@@ -280,12 +238,7 @@ contains
       real*8, dimension(s%nx+1,s%ny+1)                :: km
 
       do i = 1,s%nx+1
-         if(any(s%wete(i,:)==1)) then
-            call janssen_battjes_1D(par,s,km(i,:),i)
-         else
-            s%D(i,:) = 0.d0
-            s%Qb(i,:) = 0.d0
-         endif
+         call janssen_battjes_1D(par,s,km(i,:),i)
       enddo
 
    end subroutine janssen_battjes_2D

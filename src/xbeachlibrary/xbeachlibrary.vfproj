@@ -234,7 +234,6 @@
 		<File RelativePath="wave_timestep.F90"/>
 		<File RelativePath="waveparams.F90"/>
 		<File RelativePath="waveparamsnew.F90"/>
-		<File RelativePath=".\wetcells.f90"/>
 		<File RelativePath=".\xbeach_bmi.f90"/>
 		<File RelativePath=".\xmpi.F90"/></Filter></Files>
 	<Globals/></VisualStudioProject>

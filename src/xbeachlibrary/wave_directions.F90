@@ -24,6 +24,7 @@ contains
       integer                     :: itheta,iter
       real*8,dimension(:),allocatable,save        :: dist,factor,e01
       integer, dimension(:,:,:),allocatable,save  :: wete3d
+      integer, dimension(:,:)  ,allocatable,save  :: wete2d
       real*8 , dimension(:,:)  ,allocatable,save  :: dhdx,dhdy,dudx,dudy,dvdx,dvdy
       real*8 , dimension(:,:)  ,allocatable,save  :: km,uorb
       real*8 , dimension(:,:)  ,allocatable,save  :: kmx,kmy,sinh2kh ! ,wm
@@ -35,11 +36,12 @@ contains
       real*8 , dimension(:,:),allocatable,save    :: wcifacu,wcifacv
       logical                                     :: stopiterate
 
-      if (.not. allocated(wete3d)) then
+      if (.not. allocated(wete2d)) then
          allocate(e01(1:s%ntheta_s))
          allocate(dist(1:s%ntheta_s))
          allocate(factor(1:s%ntheta_s))
          allocate(wete3d     (s%nx+1,s%ny+1,s%ntheta_s))
+         allocate(wete2d     (s%nx+1,s%ny+1))
          allocate(xadvec    (s%nx+1,s%ny+1,s%ntheta_s))
          allocate(yadvec    (s%nx+1,s%ny+1,s%ntheta_s))
          allocate(thetaadvec(s%nx+1,s%ny+1,s%ntheta_s))
@@ -105,8 +107,13 @@ contains
       arg         = 0.0d0
       fac         = 0.0d0
       
+      where(s%hh+par%delta*s%H>par%eps)
+         wete2d = 1
+      elsewhere
+         wete2d = 0
+      endwhere
       do i=1,s%ntheta_s
-         where(s%wete==1)
+         where(wete2d==1)
             wete3d(:,:,i)=1
          elsewhere
             wete3d(:,:,i)=0
@@ -121,19 +128,19 @@ contains
       !endwhere
 
       ! Slopes of water depth
-      call slope2D(max(s%hh,par%delta*s%H),s%nx,s%ny,s%dsu,s%dnv,dhdx,dhdy,s%wete)
+      call slope2D(max(s%hh,par%delta*s%H),s%nx,s%ny,s%dsu,s%dnv,dhdx,dhdy,s%wetu,s%wetv)
       ! Dano limit slopes used in refraction to avoid unrealistic refraction speeds
       dhdx=sign(1.d0,dhdx)*min(abs(dhdx),0.1d0)
       dhdy=sign(1.d0,dhdy)*min(abs(dhdy),0.1d0)
-      call slope2D(s%u*par%wci,s%nx,s%ny,s%dsu,s%dnv,dudx,dudy,s%wete)
-      call slope2D(s%v*par%wci,s%nx,s%ny,s%dsu,s%dnv,dvdx,dvdy,s%wete)
+      call slope2D(s%u*par%wci,s%nx,s%ny,s%dsu,s%dnv,dudx,dudy,s%wetu,s%wetv)
+      call slope2D(s%v*par%wci,s%nx,s%ny,s%dsu,s%dnv,dvdx,dvdy,s%wetu,s%wetv)
 
       ! wwvv these slope routines are in wave_timestep, and are
       !   MPI-aware
       !
       ! Calculate once sinh(2kh)
       
-      where(s%wete==1 .and. 2*s%hh*s%k<=3000.d0)
+      where(wete2d==1 .and. 2*s%hh*s%k<=3000.d0)
          sinh2kh=sinh(min(2*s%k*max(s%hh,par%delta*s%H),10.0d0))
       elsewhere
          sinh2kh = 3000.d0
@@ -148,13 +155,13 @@ contains
       !   endif
 
       ! Calculate once velocities used with and without wave current interaction
-      where(s%wete==1)
+      where(wete2d==1)
          wcifacu=s%u*par%wci*min(s%hh/par%hwci,1.d0)
          wcifacv=s%v*par%wci*min(s%hh/par%hwci,1.d0)
       endwhere
       
       DO itheta=1,s%ntheta_s
-         where(s%wete==1)
+         where(wete2d==1)
             s%cgx_s(:,:,itheta)= s%cg*s%costh_s(:,:,itheta)+wcifacu
             s%cgy_s(:,:,itheta)= s%cg*s%sinth_s(:,:,itheta)+wcifacv
             s%ctheta_s(:,:,itheta)=  &
@@ -169,18 +176,18 @@ contains
          s%ctheta_s=sign(1.d0,s%ctheta_s)*min(abs(s%ctheta_s),.5*par%px/par%Trep)
       endwhere
       
-      where(s%wete==1)
+      where(wete2d==1)
          km = s%k
       endwhere
             
-      forall (i=1:s%nx+1,j=1:s%ny+1,s%wete(i,j)==1)
+      forall (i=1:s%nx+1,j=1:s%ny+1,wete2d(i,j)==1)
          s%thetamean(i,j)=(sum(s%ee_s(i,j,:)*s%thet_s(i,j,:))/s%ntheta_s)/(max(sum(s%ee_s(i,j,:)),0.00001d0)/s%ntheta_s)
       endforall
 
       !dtw=.9*minval(xz(2:nx+1)-xz(1:nx))/maxval(cgx_s)
 
       s%E(1,:)=sum(s%ee_s(1,:,:),2)*s%dtheta_s
-      s%H(1,:)=sqrt(s%E(1,:)*par%irhog8)
+      s%H(1,:)=sqrt(s%E(1,:)/par%rhog8)
 
       imax=s%nx
       !Dano  This is ok, since we will set mpiboundary to y in stationary mode
@@ -195,7 +202,7 @@ contains
 #endif
          Herr=1.
          iter=0
-         where(s%wete(i,:)==1)
+         where(wete2d(i,:)==1)
             arg = min(100.0d0,km(i,:)*(s%hh(i,:)+par%delta*s%H(i,:)))
             arg = max(arg,0.0001)
             fac = ( 1.d0 + ((km(i,:)*s%H(i,:)/2.d0)**2))  ! use deep water correction instead of expression above (waves are short near blocking point anyway)
@@ -265,7 +272,7 @@ contains
             !
             i1=max(i-2,1)
             do itheta=1,s%ntheta_s
-               where(s%wete(i1:i+1,:)==1)
+               where(wete2d(i1:i+1,:)==1)
                   s%ee_s(i1:i+1,:,itheta) = s%ee_s(i1:i+1,:,itheta)/s%sigm(i1:i+1,:)
                endwhere
             enddo
@@ -274,16 +281,14 @@ contains
             !
             if  (i>2.and. par%scheme==SCHEME_UPWIND_2) then
                call advecxho(s%ee_s(i-2:i+1,:,:),s%cgx_s(i-2:i+1,:,:),xadvec(i-2:i+1,:,:),    &
-               3,s%ny,s%ntheta_s,s%dnu(i-2:i+1,:),s%dsu(i-2:i+1,:),s%dsdnzi(i-2:i+1,:),SCHEME_UPWIND_2, &
-               s%wete(i-2:i+1,:))
+               3,s%ny,s%ntheta_s,s%dnu(i-2:i+1,:),s%dsu(i-2:i+1,:),s%dsdnzi(i-2:i+1,:),SCHEME_UPWIND_2)
             else
                call advecxho(s%ee_s(i-1:i+1,:,:),s%cgx_s(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),    &
-               2,s%ny,s%ntheta_s,s%dnu(i-1:i+1,:),s%dsu(i-1:i+1,:),s%dsdnzi(i-1:i+1,:),SCHEME_UPWIND_1,&
-               s%wete(i-1:i+1,:))
+               2,s%ny,s%ntheta_s,s%dnu(i-1:i+1,:),s%dsu(i-1:i+1,:),s%dsdnzi(i-1:i+1,:),SCHEME_UPWIND_1)
             endif
             call advecyho(s%ee_s(i,:,:),s%cgy_s(i,:,:),yadvec(i,:,:),                                  &
-            0,s%ny,s%ntheta_s,s%dsv(i,:),s%dnv(i,:),s%dsdnzi(i,:),SCHEME_UPWIND_1,s%wete(i,:))
-            call advecthetaho(s%ee_s(i,:,:),s%ctheta_s(i,:,:),thetaadvec(i,:,:),0,s%ny,s%ntheta_s,s%dtheta,par%scheme,s%wete(i,:))
+            0,s%ny,s%ntheta_s,s%dsv(i,:),s%dnv(i,:),s%dsdnzi(i,:),SCHEME_UPWIND_1)
+            call advecthetaho(s%ee_s(i,:,:),s%ctheta_s(i,:,:),thetaadvec(i,:,:),0,s%ny,s%ntheta_s,s%dtheta,par%scheme)
 
             where(wete3d(i,:,:)==1)
                s%ee_s(i,:,:)=s%ee_s(i,:,:)-dtw*(xadvec(i,:,:) + yadvec(i,:,:) + thetaadvec(i,:,:))
@@ -298,7 +303,7 @@ contains
             ! transform back to wave energy
             !
             do itheta=1,s%ntheta_s
-               where(s%wete(i1:i+1,:)==1)
+               where(wete2d(i1:i+1,:)==1)
                   s%ee_s(i1:i+1,:,itheta) = s%ee_s(i1:i+1,:,itheta)*s%sigm(i1:i+1,:)
                endwhere
             enddo
@@ -311,23 +316,23 @@ contains
             !
             ! Energy integrated over wave directions,Hrms
             !
-            forall(j=1:s%ny+1,s%wete(i,j)==1)
+            forall(j=1:s%ny+1,wete2d(i,j)==1)
                s%E(i,j)=sum(s%ee_s(i,j,:))*s%dtheta
             endforall
-            where(s%wete(i,:)==1)
-               s%H(i,:)=sqrt(s%E(i,:)*par%irhog8)
+            where(wete2d(i,:)==1)
+               s%H(i,:)=sqrt(s%E(i,:)/par%rhog8)
             endwhere
             do itheta=1,s%ntheta_s
-               where(s%wete(i,:)==1)
+               where(wete2d(i,:)==1)
                   s%ee_s(i,:,itheta)=s%ee_s(i,:,itheta)/max(1.0d0,(s%H(i,:)/(par%gammax*s%hh(i,:)))**2)
                endwhere
             enddo
-            where(s%wete(i,:)==1)
+            where(wete2d(i,:)==1)
                s%H(i,:)=min(s%H(i,:),par%gammax*s%hh(i,:))
                s%E(i,:)=par%rhog8*s%H(i,:)**2
             endwhere
             if (par%snells==0) then !Dano not for SNellius
-               where(s%wete(i,:)==1)
+               where(wete2d(i,:)==1)
                   s%thetamean(i,:) = (sum(s%ee_s(i,:,:)*s%thet_s(i,:,:),2)/s%ntheta_s)/ &
                                      (max(sum(s%ee_s(i,:,:),2),0.000010d0)/s%ntheta_s)
                endwhere
@@ -347,7 +352,7 @@ contains
 
             ! Dissipation by bed friction
             if(par%fw>0.d0) then
-               where(s%wete(i,:)==1 .and. s%hh(i,:)>par%fwcutoff)
+               where(wete2d(i,:)==1 .and. s%hh(i,:)>par%fwcutoff)
                   uorb(i,:)=par%px*s%H(i,:)/par%Trep/sinh(min(max(s%k(i,:),0.01d0)*max(s%hh(i,:),par%delta*s%H(i,:)),10.0d0))
                   s%Df(i,:)=0.6666666d0/par%px*par%rho*par%fw*uorb(i,:)**3
                elsewhere
@@ -360,7 +365,7 @@ contains
             ! Distribution of dissipation over directions and frequencies
             !
             do itheta=1,s%ntheta_s
-               where(s%wete(i,:)==1)
+               where(wete2d(i,:)==1)
                   dd(i,:,itheta)=s%ee_s(i,:,itheta)*(s%D(i,:)+s%Df(i,:))/max(s%E(i,:),0.00001d0)
                elsewhere
                   dd(i,:,itheta)=0.d0
@@ -371,7 +376,7 @@ contains
             !
             do j=jmin_ee,jmax_ee
                do itheta=1,s%ntheta_s
-                  if (dtw*dd(i,j,itheta)>s%ee_s(i,j,itheta) .and. s%wete(i,j)==1) then
+                  if (dtw*dd(i,j,itheta)>s%ee_s(i,j,itheta) .and. wete2d(i,j)==1) then
                      dtw=min(dtw,.5*s%ee_s(i,j,itheta)/dd(i,j,itheta))
                   endif
                enddo
@@ -413,7 +418,7 @@ contains
             ! Compute mean wave direction
             !
             if (par%snells==0) then
-               where(s%wete(i,:)==1)
+               where(wete2d(i,:)==1)
                   s%thetamean(i,:)=(sum(s%ee_s(i,:,:)*s%thet_s(i,:,:),2)/size(s%ee_s(i,:,:),2)) &
                   /(max(sum(s%ee_s(i,:,:),2),0.000010d0) /size(s%ee_s(i,:,:),2))
                endwhere
@@ -421,14 +426,14 @@ contains
             !
             ! Energy integrated over wave directions,Hrms
             !
-            where(s%wete(i,:)==1)
+            where(wete2d(i,:)==1)
                s%E(i,:)=sum(s%ee_s(i,:,:),2)*s%dtheta
-               s%H(i,:)=sqrt(s%E(i,:)*par%irhog8)
+               s%H(i,:)=sqrt(s%E(i,:)/par%rhog8)
             elsewhere
                s%E(i,:)=0.d0
                s%H(i,:)=0.d0
             endwhere
-            Herr=maxval(abs(Hprev(jmin_ee:jmax_ee)-s%H(i,jmin_ee:jmax_ee)),mask=s%wete(i,:)==1)
+            Herr=maxval(abs(Hprev(jmin_ee:jmax_ee)-s%H(i,jmin_ee:jmax_ee)),mask=wete2d(i,:)==1)
 
 #ifdef USEMPI
             call xmpi_allreduce(Herr,MPI_MAX)

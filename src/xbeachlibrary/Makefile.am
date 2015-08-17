@@ -23,7 +23,6 @@ libxbeach_la_SOURCES= \
 	getkey.F90 \
 	spaceparamsdef.F90 \
 	spaceparams.F90 \
-	wetcells.F90 \
 	vegetation.F90 \
 	wave_functions.F90 \
 	waveparams.F90 \

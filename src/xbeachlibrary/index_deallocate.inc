@@ -516,6 +516,8 @@
    deallocate(s%tsetbathy)
  case(  279)
    deallocate(s%breaking)
+ case(  280)
+   deallocate(s%tm)
 
 !directions for vi vim: filetype=fortran : syntax=fortran
 

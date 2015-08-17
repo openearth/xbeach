@@ -281,5 +281,6 @@
     setbathy => s%setbathy
     tsetbathy => s%tsetbathy
     breaking => s%breaking
+    tm => s%tm
 
 !directions for vi vim: filetype=fortran : syntax=fortran

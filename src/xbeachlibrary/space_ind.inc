@@ -283,4 +283,5 @@
     double precision, dimension(:,:,:),  pointer :: setbathy
     double precision, dimension(:),  pointer :: tsetbathy
     integer, dimension(:,:),  pointer :: breaking
+    double precision, dimension(:,:),  pointer :: tm
 !directions for vi vim: filetype=fortran : syntax=fortran

@@ -516,6 +516,8 @@
     allocate(s%tsetbathy(par%nsetbathy))
  case(  279)
     allocate(s%breaking(s%nx+1,s%ny+1))
+ case(  280)
+    allocate(s%tm(s%nx+1,s%ny+1))
 
 !directions for vi vim: filetype=fortran : syntax=fortran
 

@@ -563,5 +563,7 @@
              chartoindex = 278
           case(mnem_breaking   )
              chartoindex = 279
+          case(mnem_tm         )
+             chartoindex = 280
         end select
 !directions for vi vim: filetype=fortran : syntax=fortran

@@ -2772,6 +2772,16 @@
    t%standardname= ''
    t%description= 'indicator whether cell has breaking nonh waves'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
+ case(  280)
+   t%r2  => s%tm
+   t%rank =  2
+   t%type = 'r'
+   t%name = 'tm'
+   t%btype = 'd'
+   t%units= 'rad'
+   t%standardname= ''
+   t%description= 'mean wave direction'
+   t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
 
 !directions for vi vim: filetype=fortran : syntax=fortran
 

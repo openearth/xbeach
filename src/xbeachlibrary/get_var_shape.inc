@@ -1319,6 +1319,11 @@ subroutine get_var_shape(c_var_name, shape) bind(C, name="get_var_shape")
        shape(2) = s%nx+1
        ! return in c memory order
        shape(1) = s%ny+1
+    case("tm")
+       ! return in c memory order
+       shape(2) = s%nx+1
+       ! return in c memory order
+       shape(1) = s%ny+1
   end select
 
 end subroutine get_var_shape
