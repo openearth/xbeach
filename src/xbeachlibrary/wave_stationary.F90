@@ -532,7 +532,8 @@ contains
 
       ! wwvv
 
-      s%urms=par%px*s%H/par%Trep/(sqrt(2.d0)*sinh(s%k*max(s%hh,par%delta*s%H)))
+      s%urms = par%px * s%H / par%Trep / (sqrt(2.d0) * &
+           sinh(min(max(s%k,0.01d0)*max(s%hh,par%delta*s%H),10.0d0)))
       !ust=E*k/sigm/par%rho/max(hh,0.001)
 
       ! wave induced mass flux
