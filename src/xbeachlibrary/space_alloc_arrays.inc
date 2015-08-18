@@ -120,7 +120,6 @@
         allocate(s%wetu                (s%nx+1,s%ny+1))
         allocate(s%wetv                (s%nx+1,s%ny+1))
         allocate(s%wetz                (s%nx+1,s%ny+1))
-        allocate(s%wete                (s%nx+1,s%ny+1))
         allocate(s%hu                  (s%nx+1,s%ny+1))
         allocate(s%hv                  (s%nx+1,s%ny+1))
         allocate(s%hum                 (s%nx+1,s%ny+1))
@@ -261,6 +260,5 @@
         allocate(s%setbathy            (s%nx+1,s%ny+1,par%nsetbathy))
         allocate(s%tsetbathy           (par%nsetbathy))
         allocate(s%breaking            (s%nx+1,s%ny+1))
-        allocate(s%tm                  (s%nx+1,s%ny+1))
 
 !directions for vi vim: filetype=fortran : syntax=fortran

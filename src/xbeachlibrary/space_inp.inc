@@ -138,7 +138,6 @@
     wetu => s%wetu
     wetv => s%wetv
     wetz => s%wetz
-    wete => s%wete
     hu => s%hu
     hv => s%hv
     hum => s%hum
@@ -281,6 +280,5 @@
     setbathy => s%setbathy
     tsetbathy => s%tsetbathy
     breaking => s%breaking
-    tm => s%tm
 
 !directions for vi vim: filetype=fortran : syntax=fortran

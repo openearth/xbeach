@@ -579,10 +579,6 @@
        call c_f_pointer(xptr, x_2d_int_ptr, shape(s%wetz))
 !       write(*,*) "setting wetz to", x_2d_int_ptr
        s%wetz(:,:) = x_2d_int_ptr
-    case("wete")
-       call c_f_pointer(xptr, x_2d_int_ptr, shape(s%wete))
-!       write(*,*) "setting wete to", x_2d_int_ptr
-       s%wete(:,:) = x_2d_int_ptr
     case("hu")
        call c_f_pointer(xptr, x_2d_double_ptr, shape(s%hu))
 !       write(*,*) "setting hu to", x_2d_double_ptr
@@ -1151,10 +1147,6 @@
        call c_f_pointer(xptr, x_2d_int_ptr, shape(s%breaking))
 !       write(*,*) "setting breaking to", x_2d_int_ptr
        s%breaking(:,:) = x_2d_int_ptr
-    case("tm")
-       call c_f_pointer(xptr, x_2d_double_ptr, shape(s%tm))
-!       write(*,*) "setting tm to", x_2d_double_ptr
-       s%tm(:,:) = x_2d_double_ptr
     case default
        write(*,*) 'Setting unknown variable', var_name
     end select

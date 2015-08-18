@@ -277,293 +277,289 @@
              chartoindex = 135
           case(mnem_wetz       )
              chartoindex = 136
-          case(mnem_wete       )
-             chartoindex = 137
           case(mnem_hu         )
-             chartoindex = 138
+             chartoindex = 137
           case(mnem_hv         )
-             chartoindex = 139
+             chartoindex = 138
           case(mnem_hum        )
-             chartoindex = 140
+             chartoindex = 139
           case(mnem_hvm        )
-             chartoindex = 141
+             chartoindex = 140
           case(mnem_vmag       )
-             chartoindex = 142
+             chartoindex = 141
           case(mnem_ccg        )
-             chartoindex = 143
+             chartoindex = 142
           case(mnem_uwf        )
-             chartoindex = 144
+             chartoindex = 143
           case(mnem_vwf        )
-             chartoindex = 145
+             chartoindex = 144
           case(mnem_ustr       )
-             chartoindex = 146
+             chartoindex = 145
           case(mnem_usd        )
-             chartoindex = 147
+             chartoindex = 146
           case(mnem_bi         )
-             chartoindex = 148
+             chartoindex = 147
           case(mnem_DR         )
-             chartoindex = 149
+             chartoindex = 148
           case(mnem_umean      )
-             chartoindex = 150
+             chartoindex = 149
           case(mnem_vmean      )
-             chartoindex = 151
+             chartoindex = 150
           case(mnem_ur         )
-             chartoindex = 152
+             chartoindex = 151
           case(mnem_vardx      )
-             chartoindex = 153
+             chartoindex = 152
           case(mnem_D15        )
-             chartoindex = 154
+             chartoindex = 153
           case(mnem_D50        )
-             chartoindex = 155
+             chartoindex = 154
           case(mnem_D90        )
-             chartoindex = 156
+             chartoindex = 155
           case(mnem_sedcal     )
-             chartoindex = 157
+             chartoindex = 156
           case(mnem_ucrcal     )
-             chartoindex = 158
+             chartoindex = 157
           case(mnem_Tsg        )
-             chartoindex = 159
+             chartoindex = 158
           case(mnem_Susg       )
-             chartoindex = 160
+             chartoindex = 159
           case(mnem_Svsg       )
-             chartoindex = 161
+             chartoindex = 160
           case(mnem_Subg       )
-             chartoindex = 162
+             chartoindex = 161
           case(mnem_Svbg       )
-             chartoindex = 163
+             chartoindex = 162
           case(mnem_ceqbg      )
-             chartoindex = 164
+             chartoindex = 163
           case(mnem_ceqsg      )
-             chartoindex = 165
+             chartoindex = 164
           case(mnem_ua         )
-             chartoindex = 166
+             chartoindex = 165
           case(mnem_BR         )
-             chartoindex = 167
+             chartoindex = 166
           case(mnem_kb         )
-             chartoindex = 168
+             chartoindex = 167
           case(mnem_Tbore      )
-             chartoindex = 169
+             chartoindex = 168
           case(mnem_dzav       )
-             chartoindex = 170
+             chartoindex = 169
           case(mnem_maxzs      )
-             chartoindex = 171
+             chartoindex = 170
           case(mnem_minzs      )
-             chartoindex = 172
+             chartoindex = 171
           case(mnem_L1         )
-             chartoindex = 173
+             chartoindex = 172
           case(mnem_Sk         )
-             chartoindex = 174
+             chartoindex = 173
           case(mnem_As         )
-             chartoindex = 175
+             chartoindex = 174
           case(mnem_gwhead     )
-             chartoindex = 176
+             chartoindex = 175
           case(mnem_gwheadb    )
-             chartoindex = 177
+             chartoindex = 176
           case(mnem_gwlevel    )
-             chartoindex = 178
+             chartoindex = 177
           case(mnem_gwheight   )
-             chartoindex = 179
+             chartoindex = 178
           case(mnem_gwbottom   )
-             chartoindex = 180
+             chartoindex = 179
           case(mnem_gwu        )
-             chartoindex = 181
+             chartoindex = 180
           case(mnem_gwv        )
-             chartoindex = 182
+             chartoindex = 181
           case(mnem_gwqx       )
-             chartoindex = 183
+             chartoindex = 182
           case(mnem_gwqy       )
-             chartoindex = 184
+             chartoindex = 183
           case(mnem_gww        )
-             chartoindex = 185
+             chartoindex = 184
           case(mnem_gwcurv     )
-             chartoindex = 186
+             chartoindex = 185
           case(mnem_dinfil     )
-             chartoindex = 187
+             chartoindex = 186
           case(mnem_infil      )
-             chartoindex = 188
+             chartoindex = 187
           case(mnem_gw0back    )
-             chartoindex = 189
+             chartoindex = 188
           case(mnem_kturb      )
-             chartoindex = 190
+             chartoindex = 189
           case(mnem_ero        )
-             chartoindex = 191
+             chartoindex = 190
           case(mnem_depo_im    )
-             chartoindex = 192
+             chartoindex = 191
           case(mnem_depo_ex    )
-             chartoindex = 193
+             chartoindex = 192
           case(mnem_nd         )
-             chartoindex = 194
+             chartoindex = 193
           case(mnem_pbbed      )
-             chartoindex = 195
+             chartoindex = 194
           case(mnem_dzbed      )
-             chartoindex = 196
+             chartoindex = 195
           case(mnem_z0bed      )
-             chartoindex = 197
+             chartoindex = 196
           case(mnem_ureps      )
-             chartoindex = 198
+             chartoindex = 197
           case(mnem_vreps      )
-             chartoindex = 199
+             chartoindex = 198
           case(mnem_urepb      )
-             chartoindex = 200
+             chartoindex = 199
           case(mnem_vrepb      )
-             chartoindex = 201
+             chartoindex = 200
           case(mnem_umwci      )
-             chartoindex = 202
+             chartoindex = 201
           case(mnem_vmwci      )
-             chartoindex = 203
+             chartoindex = 202
           case(mnem_rolthick   )
-             chartoindex = 204
+             chartoindex = 203
           case(mnem_zswci      )
-             chartoindex = 205
+             chartoindex = 204
           case(mnem_pres       )
-             chartoindex = 206
+             chartoindex = 205
           case(mnem_dU         )
-             chartoindex = 207
+             chartoindex = 206
           case(mnem_dV         )
-             chartoindex = 208
+             chartoindex = 207
           case(mnem_wb         )
-             chartoindex = 209
+             chartoindex = 208
           case(mnem_ws         )
-             chartoindex = 210
+             chartoindex = 209
           case(mnem_wscrit     )
-             chartoindex = 211
+             chartoindex = 210
           case(mnem_bedfriccoef)
-             chartoindex = 212
+             chartoindex = 211
           case(mnem_taubx      )
-             chartoindex = 213
+             chartoindex = 212
           case(mnem_tauby      )
-             chartoindex = 214
+             chartoindex = 213
           case(mnem_Df         )
-             chartoindex = 215
+             chartoindex = 214
           case(mnem_Dp         )
-             chartoindex = 216
+             chartoindex = 215
           case(mnem_Sutot      )
-             chartoindex = 217
+             chartoindex = 216
           case(mnem_Svtot      )
-             chartoindex = 218
+             chartoindex = 217
           case(mnem_cctot      )
-             chartoindex = 219
+             chartoindex = 218
           case(mnem_wi         )
-             chartoindex = 220
+             chartoindex = 219
           case(mnem_dUi        )
-             chartoindex = 221
+             chartoindex = 220
           case(mnem_zi         )
-             chartoindex = 222
+             chartoindex = 221
           case(mnem_nuh        )
-             chartoindex = 223
+             chartoindex = 222
           case(mnem_cf         )
-             chartoindex = 224
+             chartoindex = 223
           case(mnem_cfu        )
-             chartoindex = 225
+             chartoindex = 224
           case(mnem_cfv        )
-             chartoindex = 226
+             chartoindex = 225
           case(mnem_D50top     )
-             chartoindex = 227
+             chartoindex = 226
           case(mnem_D90top     )
-             chartoindex = 228
+             chartoindex = 227
           case(mnem_structdepth)
-             chartoindex = 229
+             chartoindex = 228
           case(mnem_zs0fac     )
-             chartoindex = 230
+             chartoindex = 229
           case(mnem_tdisch     )
-             chartoindex = 231
+             chartoindex = 230
           case(mnem_pdisch     )
-             chartoindex = 232
+             chartoindex = 231
           case(mnem_pntdisch   )
-             chartoindex = 233
+             chartoindex = 232
           case(mnem_qdisch     )
-             chartoindex = 234
+             chartoindex = 233
           case(mnem_idrift     )
-             chartoindex = 235
+             chartoindex = 234
           case(mnem_jdrift     )
-             chartoindex = 236
+             chartoindex = 235
           case(mnem_tdriftb    )
-             chartoindex = 237
+             chartoindex = 236
           case(mnem_tdrifte    )
-             chartoindex = 238
+             chartoindex = 237
           case(mnem_runup      )
-             chartoindex = 239
+             chartoindex = 238
           case(mnem_Hrunup     )
-             chartoindex = 240
+             chartoindex = 239
           case(mnem_xHrunup    )
-             chartoindex = 241
+             chartoindex = 240
           case(mnem_istruct    )
-             chartoindex = 242
+             chartoindex = 241
           case(mnem_iwl        )
-             chartoindex = 243
+             chartoindex = 242
           case(mnem_strucslope )
-             chartoindex = 244
+             chartoindex = 243
           case(mnem_Dc         )
-             chartoindex = 245
+             chartoindex = 244
           case(mnem_ph         )
-             chartoindex = 246
+             chartoindex = 245
           case(mnem_newstatbc  )
-             chartoindex = 247
+             chartoindex = 246
           case(mnem_dobs       )
-             chartoindex = 248
+             chartoindex = 247
           case(mnem_sig2prior  )
-             chartoindex = 249
+             chartoindex = 248
           case(mnem_zbobs      )
-             chartoindex = 250
+             chartoindex = 249
           case(mnem_shobs      )
-             chartoindex = 251
+             chartoindex = 250
           case(mnem_bwalpha    )
-             chartoindex = 252
+             chartoindex = 251
           case(mnem_dcmdo      )
-             chartoindex = 253
+             chartoindex = 252
           case(mnem_dassim     )
-             chartoindex = 254
+             chartoindex = 253
           case(mnem_cobs       )
-             chartoindex = 255
+             chartoindex = 254
           case(mnem_shipxCG    )
-             chartoindex = 256
+             chartoindex = 255
           case(mnem_shipyCG    )
-             chartoindex = 257
+             chartoindex = 256
           case(mnem_shipzCG    )
-             chartoindex = 258
+             chartoindex = 257
           case(mnem_shipFx     )
-             chartoindex = 259
+             chartoindex = 258
           case(mnem_shipFy     )
-             chartoindex = 260
+             chartoindex = 259
           case(mnem_shipFz     )
-             chartoindex = 261
+             chartoindex = 260
           case(mnem_shipMx     )
-             chartoindex = 262
+             chartoindex = 261
           case(mnem_shipMy     )
-             chartoindex = 263
+             chartoindex = 262
           case(mnem_shipMz     )
-             chartoindex = 264
+             chartoindex = 263
           case(mnem_shipphi    )
-             chartoindex = 265
+             chartoindex = 264
           case(mnem_shipchi    )
-             chartoindex = 266
+             chartoindex = 265
           case(mnem_shippsi    )
-             chartoindex = 267
+             chartoindex = 266
           case(mnem_Dveg       )
-             chartoindex = 268
+             chartoindex = 267
           case(mnem_Fvegu      )
-             chartoindex = 269
+             chartoindex = 268
           case(mnem_Fvegv      )
-             chartoindex = 270
+             chartoindex = 269
           case(mnem_ududx      )
-             chartoindex = 271
+             chartoindex = 270
           case(mnem_vdvdy      )
-             chartoindex = 272
+             chartoindex = 271
           case(mnem_udvdx      )
-             chartoindex = 273
+             chartoindex = 272
           case(mnem_vdudy      )
-             chartoindex = 274
+             chartoindex = 273
           case(mnem_viscu      )
-             chartoindex = 275
+             chartoindex = 274
           case(mnem_viscv      )
-             chartoindex = 276
+             chartoindex = 275
           case(mnem_setbathy   )
-             chartoindex = 277
+             chartoindex = 276
           case(mnem_tsetbathy  )
-             chartoindex = 278
+             chartoindex = 277
           case(mnem_breaking   )
-             chartoindex = 279
-          case(mnem_tm         )
-             chartoindex = 280
+             chartoindex = 278
         end select
 !directions for vi vim: filetype=fortran : syntax=fortran

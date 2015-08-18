@@ -1345,16 +1345,6 @@
    t%description= 'mask wet/dry eta-points'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
  case(  137)
-   t%i2  => s%wete
-   t%rank =  2
-   t%type = 'i'
-   t%name = 'wete'
-   t%btype = 'd'
-   t%units= '-'
-   t%standardname= ''
-   t%description= 'mask wet/dry wave-points'
-   t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  138)
    t%r2  => s%hu
    t%rank =  2
    t%type = 'r'
@@ -1364,7 +1354,7 @@
    t%standardname= ''
    t%description= 'water depth in u-points'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  139)
+ case(  138)
    t%r2  => s%hv
    t%rank =  2
    t%type = 'r'
@@ -1374,7 +1364,7 @@
    t%standardname= ''
    t%description= 'water depth in v-points'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  140)
+ case(  139)
    t%r2  => s%hum
    t%rank =  2
    t%type = 'r'
@@ -1384,7 +1374,7 @@
    t%standardname= ''
    t%description= 'water depth in u-points'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  141)
+ case(  140)
    t%r2  => s%hvm
    t%rank =  2
    t%type = 'r'
@@ -1394,7 +1384,7 @@
    t%standardname= ''
    t%description= 'water depth in v-points'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  142)
+ case(  141)
    t%r2  => s%vmag
    t%rank =  2
    t%type = 'r'
@@ -1404,7 +1394,7 @@
    t%standardname= ''
    t%description= 'velocity magnitude in cell centre'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  143)
+ case(  142)
    t%r3  => s%ccg
    t%rank =  3
    t%type = 'r'
@@ -1414,7 +1404,7 @@
    t%standardname= ''
    t%description= 'depth-averaged suspended concentration for each sediment fraction'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','par%ngd             ' /)
- case(  144)
+ case(  143)
    t%r2  => s%uwf
    t%rank =  2
    t%type = 'r'
@@ -1424,7 +1414,7 @@
    t%standardname= ''
    t%description= 'Stokes drift, x-component'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  145)
+ case(  144)
    t%r2  => s%vwf
    t%rank =  2
    t%type = 'r'
@@ -1434,7 +1424,7 @@
    t%standardname= ''
    t%description= 'Stokes drift, y-component'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  146)
+ case(  145)
    t%r2  => s%ustr
    t%rank =  2
    t%type = 'r'
@@ -1444,7 +1434,7 @@
    t%standardname= ''
    t%description= 'return flow due to roller'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  147)
+ case(  146)
    t%r2  => s%usd
    t%rank =  2
    t%type = 'r'
@@ -1454,7 +1444,7 @@
    t%standardname= ''
    t%description= 'return flow due to roller after breaker delay'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  148)
+ case(  147)
    t%r1  => s%bi
    t%rank =  1
    t%type = 'r'
@@ -1464,7 +1454,7 @@
    t%standardname= ''
    t%description= 'incoming bound long wave'
    t%dimensions(1:1) = (/ 's%ny+1              ' /)
- case(  149)
+ case(  148)
    t%r2  => s%DR
    t%rank =  2
    t%type = 'r'
@@ -1474,7 +1464,7 @@
    t%standardname= ''
    t%description= 'roller energy dissipation'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  150)
+ case(  149)
    t%r2  => s%umean
    t%rank =  2
    t%type = 'r'
@@ -1484,7 +1474,7 @@
    t%standardname= 'sea_water_x_velocity'
    t%description= 'longterm mean velocity at bnds in u-points, x-component'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  151)
+ case(  150)
    t%r2  => s%vmean
    t%rank =  2
    t%type = 'r'
@@ -1494,7 +1484,7 @@
    t%standardname= 'sea_water_y_velocity'
    t%description= 'longterm mean velocity at bnds in u-points, y-component'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  152)
+ case(  151)
    t%r2  => s%ur
    t%rank =  2
    t%type = 'r'
@@ -1504,7 +1494,7 @@
    t%standardname= ''
    t%description= 'reflected velocity at bnds in u-points'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  153)
+ case(  152)
    t%i0  => s%vardx
    t%rank =  0
    t%type = 'i'
@@ -1513,7 +1503,7 @@
    t%units= '-'
    t%standardname= ''
    t%description= '0 = uniform grid size, 1 = variable grid size'
- case(  154)
+ case(  153)
    t%r1  => s%D15
    t%rank =  1
    t%type = 'r'
@@ -1523,7 +1513,7 @@
    t%standardname= ''
    t%description= 'D15 grain diameters for all sediment classses'
    t%dimensions(1:1) = (/ 'par%ngd             ' /)
- case(  155)
+ case(  154)
    t%r1  => s%D50
    t%rank =  1
    t%type = 'r'
@@ -1533,7 +1523,7 @@
    t%standardname= ''
    t%description= 'D50 grain diameters for all sediment classses'
    t%dimensions(1:1) = (/ 'par%ngd             ' /)
- case(  156)
+ case(  155)
    t%r1  => s%D90
    t%rank =  1
    t%type = 'r'
@@ -1543,7 +1533,7 @@
    t%standardname= ''
    t%description= 'D90 grain diameters for all sediment classses'
    t%dimensions(1:1) = (/ 'par%ngd             ' /)
- case(  157)
+ case(  156)
    t%r1  => s%sedcal
    t%rank =  1
    t%type = 'r'
@@ -1553,7 +1543,7 @@
    t%standardname= ''
    t%description= 'equilibrium sediment concentartion factor for each sediment class'
    t%dimensions(1:1) = (/ 'par%ngd             ' /)
- case(  158)
+ case(  157)
    t%r1  => s%ucrcal
    t%rank =  1
    t%type = 'r'
@@ -1563,7 +1553,7 @@
    t%standardname= ''
    t%description= 'calibration factor for u critical for each sediment class'
    t%dimensions(1:1) = (/ 'par%ngd             ' /)
- case(  159)
+ case(  158)
    t%r3  => s%Tsg
    t%rank =  3
    t%type = 'r'
@@ -1573,7 +1563,7 @@
    t%standardname= ''
    t%description= 'sediment response time for each sediment class'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','par%ngd             ' /)
- case(  160)
+ case(  159)
    t%r3  => s%Susg
    t%rank =  3
    t%type = 'r'
@@ -1583,7 +1573,7 @@
    t%standardname= ''
    t%description= 'suspended sediment transport for each sediment class (excluding pores), x-component'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','par%ngd             ' /)
- case(  161)
+ case(  160)
    t%r3  => s%Svsg
    t%rank =  3
    t%type = 'r'
@@ -1593,7 +1583,7 @@
    t%standardname= ''
    t%description= 'suspended sediment transport for each sediment class (excluding pores), y-component'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','par%ngd             ' /)
- case(  162)
+ case(  161)
    t%r3  => s%Subg
    t%rank =  3
    t%type = 'r'
@@ -1603,7 +1593,7 @@
    t%standardname= ''
    t%description= 'bed sediment transport for each sediment class (excluding pores), x-component'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','par%ngd             ' /)
- case(  163)
+ case(  162)
    t%r3  => s%Svbg
    t%rank =  3
    t%type = 'r'
@@ -1613,7 +1603,7 @@
    t%standardname= ''
    t%description= 'bed sediment transport for each sediment class (excluding pores), y-component'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','par%ngd             ' /)
- case(  164)
+ case(  163)
    t%r3  => s%ceqbg
    t%rank =  3
    t%type = 'r'
@@ -1623,7 +1613,7 @@
    t%standardname= ''
    t%description= 'depth-averaged bed equilibrium concentration for each sediment class'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','par%ngd             ' /)
- case(  165)
+ case(  164)
    t%r3  => s%ceqsg
    t%rank =  3
    t%type = 'r'
@@ -1633,7 +1623,7 @@
    t%standardname= ''
    t%description= 'depth-averaged suspended equilibrium concentration for each sediment class'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','par%ngd             ' /)
- case(  166)
+ case(  165)
    t%r2  => s%ua
    t%rank =  2
    t%type = 'r'
@@ -1643,7 +1633,7 @@
    t%standardname= ''
    t%description= 'time averaged flow velocity due to wave assymetry'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  167)
+ case(  166)
    t%r2  => s%BR
    t%rank =  2
    t%type = 'r'
@@ -1653,7 +1643,7 @@
    t%standardname= ''
    t%description= 'maximum wave surface slope used in roller dissipation formulation'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  168)
+ case(  167)
    t%r2  => s%kb
    t%rank =  2
    t%type = 'r'
@@ -1663,7 +1653,7 @@
    t%standardname= ''
    t%description= 'near bed turbulence intensity due to depth induces breaking'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  169)
+ case(  168)
    t%r2  => s%Tbore
    t%rank =  2
    t%type = 'r'
@@ -1673,7 +1663,7 @@
    t%standardname= ''
    t%description= 'wave period interval associated with breaking induced turbulence'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  170)
+ case(  169)
    t%r2  => s%dzav
    t%rank =  2
    t%type = 'r'
@@ -1683,7 +1673,7 @@
    t%standardname= ''
    t%description= 'total bed level change due to avalanching'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  171)
+ case(  170)
    t%r2  => s%maxzs
    t%rank =  2
    t%type = 'r'
@@ -1693,7 +1683,7 @@
    t%standardname= ''
    t%description= 'maximum elevation in simulation'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  172)
+ case(  171)
    t%r2  => s%minzs
    t%rank =  2
    t%type = 'r'
@@ -1703,7 +1693,7 @@
    t%standardname= ''
    t%description= 'minimum elevation in simulation'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  173)
+ case(  172)
    t%r2  => s%L1
    t%rank =  2
    t%type = 'r'
@@ -1713,7 +1703,7 @@
    t%standardname= ''
    t%description= 'wave length (used in dispersion relation)'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  174)
+ case(  173)
    t%r2  => s%Sk
    t%rank =  2
    t%type = 'r'
@@ -1723,7 +1713,7 @@
    t%standardname= ''
    t%description= 'skewness of short waves'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  175)
+ case(  174)
    t%r2  => s%As
    t%rank =  2
    t%type = 'r'
@@ -1733,7 +1723,7 @@
    t%standardname= ''
    t%description= 'asymmetry of short waves'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  176)
+ case(  175)
    t%r2  => s%gwhead
    t%rank =  2
    t%type = 'r'
@@ -1743,7 +1733,7 @@
    t%standardname= ''
    t%description= 'groundwater head (differs from gwlevel)'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  177)
+ case(  176)
    t%r2  => s%gwheadb
    t%rank =  2
    t%type = 'r'
@@ -1753,7 +1743,7 @@
    t%standardname= ''
    t%description= 'groundwater head at bottom (differs from gwlevel)'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  178)
+ case(  177)
    t%r2  => s%gwlevel
    t%rank =  2
    t%type = 'r'
@@ -1763,7 +1753,7 @@
    t%standardname= ''
    t%description= 'groundwater table (min(zb,gwhead))'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  179)
+ case(  178)
    t%r2  => s%gwheight
    t%rank =  2
    t%type = 'r'
@@ -1773,7 +1763,7 @@
    t%standardname= ''
    t%description= 'vertical size of aquifer through which groundwater can flow'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  180)
+ case(  179)
    t%r2  => s%gwbottom
    t%rank =  2
    t%type = 'r'
@@ -1783,7 +1773,7 @@
    t%standardname= ''
    t%description= 'level of the bottom of the aquifer'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  181)
+ case(  180)
    t%r2  => s%gwu
    t%rank =  2
    t%type = 'r'
@@ -1793,7 +1783,7 @@
    t%standardname= ''
    t%description= 'groundwater flow in x-direction'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  182)
+ case(  181)
    t%r2  => s%gwv
    t%rank =  2
    t%type = 'r'
@@ -1803,7 +1793,7 @@
    t%standardname= ''
    t%description= 'groundwater flow in y-direction'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  183)
+ case(  182)
    t%r2  => s%gwqx
    t%rank =  2
    t%type = 'r'
@@ -1813,7 +1803,7 @@
    t%standardname= ''
    t%description= 'groundwater discharge in x-direction'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  184)
+ case(  183)
    t%r2  => s%gwqy
    t%rank =  2
    t%type = 'r'
@@ -1823,7 +1813,7 @@
    t%standardname= ''
    t%description= 'groundwater discharge in y-direction'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  185)
+ case(  184)
    t%r2  => s%gww
    t%rank =  2
    t%type = 'r'
@@ -1833,7 +1823,7 @@
    t%standardname= ''
    t%description= 'groundwater flow in z-direction (interaction between surface and ground water)'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  186)
+ case(  185)
    t%r2  => s%gwcurv
    t%rank =  2
    t%type = 'r'
@@ -1843,7 +1833,7 @@
    t%standardname= ''
    t%description= 'curvature coefficient of groundwater head function'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  187)
+ case(  186)
    t%r2  => s%dinfil
    t%rank =  2
    t%type = 'r'
@@ -1853,7 +1843,7 @@
    t%standardname= ''
    t%description= 'Infiltration layer depth used in quasi-vertical flow model for groundwater'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  188)
+ case(  187)
    t%r2  => s%infil
    t%rank =  2
    t%type = 'r'
@@ -1863,7 +1853,7 @@
    t%standardname= ''
    t%description= 'Rate of exchange of water between surface and groundwater (positive from sea to groundwater)'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  189)
+ case(  188)
    t%r2  => s%gw0back
    t%rank =  2
    t%type = 'r'
@@ -1873,7 +1863,7 @@
    t%standardname= ''
    t%description= 'boundary condition back boundary for groundwater head'
    t%dimensions(1:2) = (/ '2                   ','s%ny+1              ' /)
- case(  190)
+ case(  189)
    t%r2  => s%kturb
    t%rank =  2
    t%type = 'r'
@@ -1883,7 +1873,7 @@
    t%standardname= ''
    t%description= 'depth averaged turbulence intensity due to long wave breaking'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  191)
+ case(  190)
    t%r3  => s%ero
    t%rank =  3
    t%type = 'r'
@@ -1893,7 +1883,7 @@
    t%standardname= ''
    t%description= 'bed erosion rate per fraction'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','par%ngd             ' /)
- case(  192)
+ case(  191)
    t%r3  => s%depo_im
    t%rank =  3
    t%type = 'r'
@@ -1903,7 +1893,7 @@
    t%standardname= ''
    t%description= 'implicit bed deposition rate per fraction'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','par%ngd             ' /)
- case(  193)
+ case(  192)
    t%r3  => s%depo_ex
    t%rank =  3
    t%type = 'r'
@@ -1913,7 +1903,7 @@
    t%standardname= ''
    t%description= 'explicit bed deposition rate per fraction'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','par%ngd             ' /)
- case(  194)
+ case(  193)
    t%i2  => s%nd
    t%rank =  2
    t%type = 'i'
@@ -1923,7 +1913,7 @@
    t%standardname= ''
    t%description= 'number of bed layers (can be different for each computational cell)'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  195)
+ case(  194)
    t%r4  => s%pbbed
    t%rank =  4
    t%type = 'r'
@@ -1933,7 +1923,7 @@
    t%standardname= ''
    t%description= 'NO DESCRIPTION'
    t%dimensions(1:4) = (/ 's%nx+1              ','s%ny+1              ','max(par%nd,2)       ','par%ngd             ' /)
- case(  196)
+ case(  195)
    t%r3  => s%dzbed
    t%rank =  3
    t%type = 'r'
@@ -1943,7 +1933,7 @@
    t%standardname= ''
    t%description= 'NO DESCRIPTION'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','max(par%nd,2)       ' /)
- case(  197)
+ case(  196)
    t%r2  => s%z0bed
    t%rank =  2
    t%type = 'r'
@@ -1953,7 +1943,7 @@
    t%standardname= ''
    t%description= 'NO DESCRIPTION'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  198)
+ case(  197)
    t%r2  => s%ureps
    t%rank =  2
    t%type = 'r'
@@ -1963,7 +1953,7 @@
    t%standardname= 'sea_water_x_velocity'
    t%description= 'representative flow velocity for sediment advection and diffusion, x-component'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  199)
+ case(  198)
    t%r2  => s%vreps
    t%rank =  2
    t%type = 'r'
@@ -1973,7 +1963,7 @@
    t%standardname= 'sea_water_y_velocity'
    t%description= 'representative flow velocity for sediment advection and diffusion, y-component'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  200)
+ case(  199)
    t%r2  => s%urepb
    t%rank =  2
    t%type = 'r'
@@ -1983,7 +1973,7 @@
    t%standardname= 'sea_water_x_velocity'
    t%description= 'representative flow velocity for sediment advection and diffusion, x-component'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  201)
+ case(  200)
    t%r2  => s%vrepb
    t%rank =  2
    t%type = 'r'
@@ -1993,7 +1983,7 @@
    t%standardname= 'sea_water_y_velocity'
    t%description= 'representative flow velocity for sediment advection and diffusion, y-component'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  202)
+ case(  201)
    t%r2  => s%umwci
    t%rank =  2
    t%type = 'r'
@@ -2003,7 +1993,7 @@
    t%standardname= 'sea_water_x_velocity'
    t%description= 'velocity (time-averaged) for wci, x-component'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  203)
+ case(  202)
    t%r2  => s%vmwci
    t%rank =  2
    t%type = 'r'
@@ -2013,7 +2003,7 @@
    t%standardname= 'sea_water_y_velocity'
    t%description= 'velocity (time-averaged) for wci, y-component'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  204)
+ case(  203)
    t%r2  => s%rolthick
    t%rank =  2
    t%type = 'r'
@@ -2023,7 +2013,7 @@
    t%standardname= ''
    t%description= 'long wave roller thickness'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  205)
+ case(  204)
    t%r2  => s%zswci
    t%rank =  2
    t%type = 'r'
@@ -2033,7 +2023,7 @@
    t%standardname= ''
    t%description= 'waterlevel (time-averaged) for wci'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  206)
+ case(  205)
    t%r2  => s%pres
    t%rank =  2
    t%type = 'r'
@@ -2043,7 +2033,7 @@
    t%standardname= ''
    t%description= 'normalized dynamic pressure'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  207)
+ case(  206)
    t%r2  => s%dU
    t%rank =  2
    t%type = 'r'
@@ -2053,7 +2043,7 @@
    t%standardname= ''
    t%description= 'u-velocity difference between two vertical layers (reduced 2-layer non-hydrostatic model)'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  208)
+ case(  207)
    t%r2  => s%dV
    t%rank =  2
    t%type = 'r'
@@ -2063,7 +2053,7 @@
    t%standardname= ''
    t%description= 'v-velocity difference between two vertical layers (reduced 2-layer non-hydrostatic model)'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  209)
+ case(  208)
    t%r2  => s%wb
    t%rank =  2
    t%type = 'r'
@@ -2073,7 +2063,7 @@
    t%standardname= ''
    t%description= 'vertical velocity at the bottom'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  210)
+ case(  209)
    t%r2  => s%ws
    t%rank =  2
    t%type = 'r'
@@ -2083,7 +2073,7 @@
    t%standardname= ''
    t%description= 'vertical velocity at the free surface'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  211)
+ case(  210)
    t%r2  => s%wscrit
    t%rank =  2
    t%type = 'r'
@@ -2093,7 +2083,7 @@
    t%standardname= ''
    t%description= 'critial vertical velocity at the free surface for breaking'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  212)
+ case(  211)
    t%r2  => s%bedfriccoef
    t%rank =  2
    t%type = 'r'
@@ -2103,7 +2093,7 @@
    t%standardname= ''
    t%description= 'dimensional/dimensionless input bed friction coefficient; depends on value of parameter bedfriction'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  213)
+ case(  212)
    t%r2  => s%taubx
    t%rank =  2
    t%type = 'r'
@@ -2113,7 +2103,7 @@
    t%standardname= ''
    t%description= 'bed shear stress, x-component'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  214)
+ case(  213)
    t%r2  => s%tauby
    t%rank =  2
    t%type = 'r'
@@ -2123,7 +2113,7 @@
    t%standardname= ''
    t%description= 'bed shear stress, y-component'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  215)
+ case(  214)
    t%r2  => s%Df
    t%rank =  2
    t%type = 'r'
@@ -2133,7 +2123,7 @@
    t%standardname= ''
    t%description= 'dissipation rate due to bed friction'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  216)
+ case(  215)
    t%r2  => s%Dp
    t%rank =  2
    t%type = 'r'
@@ -2143,7 +2133,7 @@
    t%standardname= ''
    t%description= 'dissipation rate in the swash due to transformation of kinetic wave energy to potential wave energy'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  217)
+ case(  216)
    t%r2  => s%Sutot
    t%rank =  2
    t%type = 'r'
@@ -2153,7 +2143,7 @@
    t%standardname= ''
    t%description= 'Sediment transport integrated over bed load and suspended and for all sediment grains, x-component'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  218)
+ case(  217)
    t%r2  => s%Svtot
    t%rank =  2
    t%type = 'r'
@@ -2163,7 +2153,7 @@
    t%standardname= ''
    t%description= 'Sediment transport integrated over bed load and suspended and for all sediment grains, y-component'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  219)
+ case(  218)
    t%r2  => s%cctot
    t%rank =  2
    t%type = 'r'
@@ -2173,7 +2163,7 @@
    t%standardname= ''
    t%description= 'Sediment concentration integrated over bed load and suspended and for all sediment grains'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  220)
+ case(  219)
    t%r2  => s%wi
    t%rank =  2
    t%type = 'r'
@@ -2183,7 +2173,7 @@
    t%standardname= ''
    t%description= 'Vertical velocity at boundary due to (short) waves'
    t%dimensions(1:2) = (/ '2                   ','s%ny+1              ' /)
- case(  221)
+ case(  220)
    t%r2  => s%dUi
    t%rank =  2
    t%type = 'r'
@@ -2193,7 +2183,7 @@
    t%standardname= ''
    t%description= 'Velocity difference at boundary due to (short) waves'
    t%dimensions(1:2) = (/ '2                   ','s%ny+1              ' /)
- case(  222)
+ case(  221)
    t%r2  => s%zi
    t%rank =  2
    t%type = 'r'
@@ -2203,7 +2193,7 @@
    t%standardname= ''
    t%description= 'Surface elevation at boundary due to (short) waves'
    t%dimensions(1:2) = (/ '2                   ','s%ny+1              ' /)
- case(  223)
+ case(  222)
    t%r2  => s%nuh
    t%rank =  2
    t%type = 'r'
@@ -2213,7 +2203,7 @@
    t%standardname= ''
    t%description= 'horizontal viscosity coefficient'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  224)
+ case(  223)
    t%r2  => s%cf
    t%rank =  2
    t%type = 'r'
@@ -2223,7 +2213,7 @@
    t%standardname= ''
    t%description= 'Friction coefficient flow'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  225)
+ case(  224)
    t%r2  => s%cfu
    t%rank =  2
    t%type = 'r'
@@ -2233,7 +2223,7 @@
    t%standardname= ''
    t%description= 'Friction coefficient flow in u-points'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  226)
+ case(  225)
    t%r2  => s%cfv
    t%rank =  2
    t%type = 'r'
@@ -2243,7 +2233,7 @@
    t%standardname= ''
    t%description= 'Friction coefficient flow in v-points'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  227)
+ case(  226)
    t%r2  => s%D50top
    t%rank =  2
    t%type = 'r'
@@ -2253,7 +2243,7 @@
    t%standardname= ''
    t%description= 'Friction coefficient flow'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  228)
+ case(  227)
    t%r2  => s%D90top
    t%rank =  2
    t%type = 'r'
@@ -2263,7 +2253,7 @@
    t%standardname= ''
    t%description= 'Friction coefficient flow'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  229)
+ case(  228)
    t%r2  => s%structdepth
    t%rank =  2
    t%type = 'r'
@@ -2273,7 +2263,7 @@
    t%standardname= ''
    t%description= 'Depth of structure in relation to instantaneous bed level'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  230)
+ case(  229)
    t%r3  => s%zs0fac
    t%rank =  3
    t%type = 'r'
@@ -2283,7 +2273,7 @@
    t%standardname= ''
    t%description= 'relative weight of offshore boundary and bay boundary for each grid point is stored in zs0fac'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','2                   ' /)
- case(  231)
+ case(  230)
    t%r1  => s%tdisch
    t%rank =  1
    t%type = 'r'
@@ -2293,7 +2283,7 @@
    t%standardname= ''
    t%description= 'Discharge time series'
    t%dimensions(1:1) = (/ 'par%ntdischarge     ' /)
- case(  232)
+ case(  231)
    t%r2  => s%pdisch
    t%rank =  2
    t%type = 'r'
@@ -2303,7 +2293,7 @@
    t%standardname= ''
    t%description= 'Discharge locations'
    t%dimensions(1:2) = (/ 'par%ndischarge      ','4                   ' /)
- case(  233)
+ case(  232)
    t%i1  => s%pntdisch
    t%rank =  1
    t%type = 'i'
@@ -2313,7 +2303,7 @@
    t%standardname= ''
    t%description= 'Point discharge locations (no momentum)'
    t%dimensions(1:1) = (/ 'par%ndischarge      ' /)
- case(  234)
+ case(  233)
    t%r2  => s%qdisch
    t%rank =  2
    t%type = 'r'
@@ -2323,7 +2313,7 @@
    t%standardname= ''
    t%description= 'Discharges'
    t%dimensions(1:2) = (/ 'par%ntdischarge     ','par%ndischarge      ' /)
- case(  235)
+ case(  234)
    t%r1  => s%idrift
    t%rank =  1
    t%type = 'r'
@@ -2333,7 +2323,7 @@
    t%standardname= ''
    t%description= 'Drifter x-coordinate in grid space'
    t%dimensions(1:1) = (/ 'par%ndrifter        ' /)
- case(  236)
+ case(  235)
    t%r1  => s%jdrift
    t%rank =  1
    t%type = 'r'
@@ -2343,7 +2333,7 @@
    t%standardname= ''
    t%description= 'Drifter y-coordinate in grid space'
    t%dimensions(1:1) = (/ 'par%ndrifter        ' /)
- case(  237)
+ case(  236)
    t%r1  => s%tdriftb
    t%rank =  1
    t%type = 'r'
@@ -2353,7 +2343,7 @@
    t%standardname= ''
    t%description= 'Drifter release time'
    t%dimensions(1:1) = (/ 'par%ndrifter        ' /)
- case(  238)
+ case(  237)
    t%r1  => s%tdrifte
    t%rank =  1
    t%type = 'r'
@@ -2363,7 +2353,7 @@
    t%standardname= ''
    t%description= 'Drifter retrieval time'
    t%dimensions(1:1) = (/ 'par%ndrifter        ' /)
- case(  239)
+ case(  238)
    t%r1  => s%runup
    t%rank =  1
    t%type = 'r'
@@ -2373,7 +2363,7 @@
    t%standardname= ''
    t%description= 'Short wave runup height'
    t%dimensions(1:1) = (/ 's%ny+1              ' /)
- case(  240)
+ case(  239)
    t%r1  => s%Hrunup
    t%rank =  1
    t%type = 'r'
@@ -2383,7 +2373,7 @@
    t%standardname= ''
    t%description= 'Short wave height used in runup formulation'
    t%dimensions(1:1) = (/ 's%ny+1              ' /)
- case(  241)
+ case(  240)
    t%r1  => s%xHrunup
    t%rank =  1
    t%type = 'r'
@@ -2393,7 +2383,7 @@
    t%standardname= ''
    t%description= 'Location at which short wave height for runup is taken'
    t%dimensions(1:1) = (/ 's%ny+1              ' /)
- case(  242)
+ case(  241)
    t%r1  => s%istruct
    t%rank =  1
    t%type = 'r'
@@ -2403,7 +2393,7 @@
    t%standardname= ''
    t%description= 'location of revetments toe'
    t%dimensions(1:1) = (/ 's%ny+1              ' /)
- case(  243)
+ case(  242)
    t%r1  => s%iwl
    t%rank =  1
    t%type = 'r'
@@ -2413,7 +2403,7 @@
    t%standardname= ''
    t%description= 'location of water line (including long wave runup)'
    t%dimensions(1:1) = (/ 's%ny+1              ' /)
- case(  244)
+ case(  243)
    t%r1  => s%strucslope
    t%rank =  1
    t%type = 'r'
@@ -2423,7 +2413,7 @@
    t%standardname= ''
    t%description= 'slope of structure'
    t%dimensions(1:1) = (/ 's%ny+1              ' /)
- case(  245)
+ case(  244)
    t%r2  => s%Dc
    t%rank =  2
    t%type = 'r'
@@ -2433,7 +2423,7 @@
    t%standardname= ''
    t%description= 'diffusion coefficient'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  246)
+ case(  245)
    t%r2  => s%ph
    t%rank =  2
    t%type = 'r'
@@ -2443,7 +2433,7 @@
    t%standardname= ''
    t%description= 'pressure head due to ship'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  247)
+ case(  246)
    t%i0  => s%newstatbc
    t%rank =  0
    t%type = 'i'
@@ -2452,7 +2442,7 @@
    t%units= '-'
    t%standardname= ''
    t%description= '(1) Use new stationary boundary conditions for instat is stat or stat_table'
- case(  248)
+ case(  247)
    t%r2  => s%dobs
    t%rank =  2
    t%type = 'r'
@@ -2462,7 +2452,7 @@
    t%standardname= ''
    t%description= 'beachwizard observed dissipation'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  249)
+ case(  248)
    t%r2  => s%sig2prior
    t%rank =  2
    t%type = 'r'
@@ -2472,7 +2462,7 @@
    t%standardname= ''
    t%description= 'beachwizard prior std squared'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  250)
+ case(  249)
    t%r2  => s%zbobs
    t%rank =  2
    t%type = 'r'
@@ -2482,7 +2472,7 @@
    t%standardname= ''
    t%description= 'beachwizard observed depth'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  251)
+ case(  250)
    t%r2  => s%shobs
    t%rank =  2
    t%type = 'r'
@@ -2492,7 +2482,7 @@
    t%standardname= ''
    t%description= 'beachwizard observed shoreline'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  252)
+ case(  251)
    t%r2  => s%bwalpha
    t%rank =  2
    t%type = 'r'
@@ -2502,7 +2492,7 @@
    t%standardname= ''
    t%description= 'beachwizard weighting factor'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  253)
+ case(  252)
    t%r2  => s%dcmdo
    t%rank =  2
    t%type = 'r'
@@ -2512,7 +2502,7 @@
    t%standardname= ''
    t%description= 'beachwizard computed minus observed dissipation'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  254)
+ case(  253)
    t%r2  => s%dassim
    t%rank =  2
    t%type = 'r'
@@ -2522,7 +2512,7 @@
    t%standardname= ''
    t%description= 'beachwizard depth change'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  255)
+ case(  254)
    t%r2  => s%cobs
    t%rank =  2
    t%type = 'r'
@@ -2532,7 +2522,7 @@
    t%standardname= ''
    t%description= 'beachwizard observed wave celerity'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  256)
+ case(  255)
    t%r1  => s%shipxCG
    t%rank =  1
    t%type = 'r'
@@ -2542,7 +2532,7 @@
    t%standardname= ''
    t%description= 'x-coordinate of ship center of gravity'
    t%dimensions(1:1) = (/ 'par%nship           ' /)
- case(  257)
+ case(  256)
    t%r1  => s%shipyCG
    t%rank =  1
    t%type = 'r'
@@ -2552,7 +2542,7 @@
    t%standardname= ''
    t%description= 'y-coordinate of ship center of gravity'
    t%dimensions(1:1) = (/ 'par%nship           ' /)
- case(  258)
+ case(  257)
    t%r1  => s%shipzCG
    t%rank =  1
    t%type = 'r'
@@ -2562,7 +2552,7 @@
    t%standardname= ''
    t%description= 'z-coordinate of ship center of gravity'
    t%dimensions(1:1) = (/ 'par%nship           ' /)
- case(  259)
+ case(  258)
    t%r1  => s%shipFx
    t%rank =  1
    t%type = 'r'
@@ -2572,7 +2562,7 @@
    t%standardname= ''
    t%description= 'force on ship in x-direction'
    t%dimensions(1:1) = (/ 'par%nship           ' /)
- case(  260)
+ case(  259)
    t%r1  => s%shipFy
    t%rank =  1
    t%type = 'r'
@@ -2582,7 +2572,7 @@
    t%standardname= ''
    t%description= 'force on ship in y-direction'
    t%dimensions(1:1) = (/ 'par%nship           ' /)
- case(  261)
+ case(  260)
    t%r1  => s%shipFz
    t%rank =  1
    t%type = 'r'
@@ -2592,7 +2582,7 @@
    t%standardname= ''
    t%description= 'force on ship in z-direction'
    t%dimensions(1:1) = (/ 'par%nship           ' /)
- case(  262)
+ case(  261)
    t%r1  => s%shipMx
    t%rank =  1
    t%type = 'r'
@@ -2602,7 +2592,7 @@
    t%standardname= ''
    t%description= 'moment on ship around x-axis'
    t%dimensions(1:1) = (/ 'par%nship           ' /)
- case(  263)
+ case(  262)
    t%r1  => s%shipMy
    t%rank =  1
    t%type = 'r'
@@ -2612,7 +2602,7 @@
    t%standardname= ''
    t%description= 'moment on ship around y-axis'
    t%dimensions(1:1) = (/ 'par%nship           ' /)
- case(  264)
+ case(  263)
    t%r1  => s%shipMz
    t%rank =  1
    t%type = 'r'
@@ -2622,7 +2612,7 @@
    t%standardname= ''
    t%description= 'moment on ship around z-axis'
    t%dimensions(1:1) = (/ 'par%nship           ' /)
- case(  265)
+ case(  264)
    t%r1  => s%shipphi
    t%rank =  1
    t%type = 'r'
@@ -2632,7 +2622,7 @@
    t%standardname= ''
    t%description= 'turning angle arround x-axis'
    t%dimensions(1:1) = (/ 'par%nship           ' /)
- case(  266)
+ case(  265)
    t%r1  => s%shipchi
    t%rank =  1
    t%type = 'r'
@@ -2642,7 +2632,7 @@
    t%standardname= ''
    t%description= 'turning angle arround y-axis'
    t%dimensions(1:1) = (/ 'par%nship           ' /)
- case(  267)
+ case(  266)
    t%r1  => s%shippsi
    t%rank =  1
    t%type = 'r'
@@ -2652,7 +2642,7 @@
    t%standardname= ''
    t%description= 'turning angle arround z-axis'
    t%dimensions(1:1) = (/ 'par%nship           ' /)
- case(  268)
+ case(  267)
    t%r2  => s%Dveg
    t%rank =  2
    t%type = 'r'
@@ -2662,7 +2652,7 @@
    t%standardname= ''
    t%description= 'dissipation due to short wave attenuation by vegetation'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  269)
+ case(  268)
    t%r2  => s%Fvegu
    t%rank =  2
    t%type = 'r'
@@ -2672,7 +2662,7 @@
    t%standardname= ''
    t%description= 'x-forcing due to long wave attenuation by vegetation'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  270)
+ case(  269)
    t%r2  => s%Fvegv
    t%rank =  2
    t%type = 'r'
@@ -2682,7 +2672,7 @@
    t%standardname= ''
    t%description= 'y-forcing due to long wave attenuation by vegetation'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  271)
+ case(  270)
    t%r2  => s%ududx
    t%rank =  2
    t%type = 'r'
@@ -2692,7 +2682,7 @@
    t%standardname= ''
    t%description= 'advection'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  272)
+ case(  271)
    t%r2  => s%vdvdy
    t%rank =  2
    t%type = 'r'
@@ -2702,7 +2692,7 @@
    t%standardname= ''
    t%description= 'advection'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  273)
+ case(  272)
    t%r2  => s%udvdx
    t%rank =  2
    t%type = 'r'
@@ -2712,7 +2702,7 @@
    t%standardname= ''
    t%description= 'advection'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  274)
+ case(  273)
    t%r2  => s%vdudy
    t%rank =  2
    t%type = 'r'
@@ -2722,7 +2712,7 @@
    t%standardname= ''
    t%description= 'advection'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  275)
+ case(  274)
    t%r2  => s%viscu
    t%rank =  2
    t%type = 'r'
@@ -2732,7 +2722,7 @@
    t%standardname= ''
    t%description= 'viscosity'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  276)
+ case(  275)
    t%r2  => s%viscv
    t%rank =  2
    t%type = 'r'
@@ -2742,7 +2732,7 @@
    t%standardname= ''
    t%description= 'viscosity'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  277)
+ case(  276)
    t%r3  => s%setbathy
    t%rank =  3
    t%type = 'r'
@@ -2752,7 +2742,7 @@
    t%standardname= ''
    t%description= 'prescribed bed levels'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','par%nsetbathy       ' /)
- case(  278)
+ case(  277)
    t%r1  => s%tsetbathy
    t%rank =  1
    t%type = 'r'
@@ -2762,7 +2752,7 @@
    t%standardname= ''
    t%description= 'points in time of prescibed bed levels'
    t%dimensions(1:1) = (/ 'par%nsetbathy       ' /)
- case(  279)
+ case(  278)
    t%i2  => s%breaking
    t%rank =  2
    t%type = 'i'
@@ -2771,16 +2761,6 @@
    t%units= '-'
    t%standardname= ''
    t%description= 'indicator whether cell has breaking nonh waves'
-   t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  280)
-   t%r2  => s%tm
-   t%rank =  2
-   t%type = 'r'
-   t%name = 'tm'
-   t%btype = 'd'
-   t%units= 'rad'
-   t%standardname= ''
-   t%description= 'mean wave direction'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
 
 !directions for vi vim: filetype=fortran : syntax=fortran

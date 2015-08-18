@@ -139,7 +139,6 @@
     integer, dimension(:,:),  pointer :: wetu
     integer, dimension(:,:),  pointer :: wetv
     integer, dimension(:,:),  pointer :: wetz
-    integer, dimension(:,:),  pointer :: wete
     double precision, dimension(:,:),  pointer :: hu
     double precision, dimension(:,:),  pointer :: hv
     double precision, dimension(:,:),  pointer :: hum
@@ -282,5 +281,4 @@
     double precision, dimension(:,:,:),  pointer :: setbathy
     double precision, dimension(:),  pointer :: tsetbathy
     integer, dimension(:,:),  pointer :: breaking
-    double precision, dimension(:,:),  pointer :: tm
 !directions for vi vim: filetype=fortran : syntax=fortran
