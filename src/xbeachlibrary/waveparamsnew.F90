@@ -153,14 +153,9 @@ contains
                do while (par%t .ge. spectrumendtime)
                   call read_spectrum_input(par,wp,bcfiles(iloc),specin(iloc))
 
-                  ! Save key variables to memory, in case of 'reuseall'
-                  rtbc_local = wp%rtbc
-                  dtbc_local = wp%dtbc
-                  maindir_local = combspec%dir0
-
                   ! update end time
                   spectrumendtimeold = spectrumendtime
-                  spectrumendtime = spectrumendtime + rtbc_local
+                  spectrumendtime = spectrumendtime + wp%rtbc
 
                end do
                fmax = max(fmax,maxval(specin(iloc)%f))
@@ -251,6 +246,12 @@ contains
             if (par%nonhspectrum==1) then
                call generate_nhtimeseries_file(wp,par)
             endif
+            !
+            !
+            ! Save key variables to memory, in case of 'reuseall'
+            rtbc_local = wp%rtbc
+            dtbc_local = wp%dtbc
+            maindir_local = combspec%dir0
             !
             !
             ! Deallocate a lot of memory
