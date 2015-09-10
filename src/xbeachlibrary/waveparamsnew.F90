@@ -283,17 +283,13 @@ contains
             fidelist = create_new_fid()
             if (bccount==1) then
                open(fidelist,file='ebcflist.bcf',form='formatted',status='replace')
-               if(par%single_dir==1) then
-                  fideslist = create_new_fid()
-                  open(fideslist,file='esbcflist.bcf',form='formatted',position='append',status='replace')
-               endif
             else
                open(fidelist,file='ebcflist.bcf',form='formatted',position='append')
             end if
             write(fidelist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
                  & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%Efilename)
             close(fidelist)
-
+            
             fidqlist = create_new_fid()
             if (bccount==1) then
                open(fidqlist,file='qbcflist.bcf',form='formatted',status='replace')
