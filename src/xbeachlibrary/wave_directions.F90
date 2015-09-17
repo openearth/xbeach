@@ -156,8 +156,8 @@ contains
 
       ! Calculate once velocities used with and without wave current interaction
       where(wete2d==1)
-         wcifacu=s%u*par%wci*min(s%hh/par%hwci,1.d0)
-         wcifacv=s%v*par%wci*min(s%hh/par%hwci,1.d0)
+         wcifacu=s%u*par%wci*min(min(s%hh/par%hwci,1.d0),min(1.d0,max(0.d0,(par%hwcimax-s%hh))))!min(s%hh/par%hwci,1.d0) ! Added hwcimax cut-off (Arnold, request by Gundula)
+         wcifacv=s%v*par%wci*min(min(s%hh/par%hwci,1.d0),min(1.d0,max(0.d0,(par%hwcimax-s%hh))))!min(s%hh/par%hwci,1.d0)
       endwhere
       
       DO itheta=1,s%ntheta_s

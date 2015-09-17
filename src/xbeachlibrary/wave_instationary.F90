@@ -124,8 +124,8 @@ contains
       s%hh = max(s%hh,par%eps)
       hrmsold=s%H
       ! Calculate once velocities used with and without wave current interaction
-      wcifacu=s%u*par%wci*min(s%hh/par%hwci,1.d0)
-      wcifacv=s%v*par%wci*min(s%hh/par%hwci,1.d0)
+      wcifacu=s%u*par%wci*min(min(s%hh/par%hwci,1.d0),min(1.d0,max(0.d0,(par%hwcimax-s%hh))))!min(s%hh/par%hwci,1.d0) ! Added hwcimax cut-off (Arnold, requested by Gundula)
+      wcifacv=s%v*par%wci*min(min(s%hh/par%hwci,1.d0),min(1.d0,max(0.d0,(par%hwcimax-s%hh))))!min(s%hh/par%hwci,1.d0)
 
       if (par%single_dir==1) then
          s%costh(:,:,1)=cos(s%thetamean-s%alfaz)
@@ -173,10 +173,9 @@ contains
          !  calculate change in intrinsic frequency
          kmx = km*dcos(s%thetamean)
          kmy = km*dsin(s%thetamean)
-         s%wm = s%sigm+kmx*s%umwci*par%wci*min((s%zswci-s%zb)/par%hwci,1.d0)+kmy*s%vmwci*par%wci*min((s%zswci-s%zb)/par%hwci,1.d0)
-
-         cgym = s%cg*dsin(s%thetamean) + s%vmwci*min((s%zswci-s%zb)/par%hwci,1.d0)
-         cgxm = s%cg*dcos(s%thetamean) + s%umwci*min((s%zswci-s%zb)/par%hwci,1.d0)
+         s%wm = s%sigm+kmx*s%umwci*par%wci*min(min((s%zswci-s%zb)/par%hwci,1.d0),min(1.d0,max(0.d0,(par%hwcimax-(s%zswci-s%zb)))))+kmy*s%vmwci*par%wci*min(min((s%zswci-s%zb)/par%hwci,1.d0),min(1.d0,max(0.d0,(par%hwcimax-(s%zswci-s%zb)))))
+         cgym = s%cg*dsin(s%thetamean) + s%vmwci*min(min((s%zswci-s%zb)/par%hwci,1.d0),min(1.d0,max(0.d0,par%hwcimax-(s%zswci-s%zb))))
+         cgxm = s%cg*dcos(s%thetamean) + s%umwci*min(min((s%zswci-s%zb)/par%hwci,1.d0),min(1.d0,max(0.d0,par%hwcimax-(s%zswci-s%zb))))
 
          call slope2D(kmx,s%nx,s%ny,s%dsu,s%dnv,dkmxdx,dkmxdy,s%wetu,s%wetv)
          call slope2D(kmy,s%nx,s%ny,s%dsu,s%dnv,dkmydx,dkmydy,s%wetu,s%wetv)
