@@ -194,6 +194,7 @@ module params
       ! [Section] Wave-current interaction parameters
       integer                           :: wci                      = -123                 !  [-] Turns on wave-current interaction
       double precision                  :: hwci                     = -123                 !  [m] (advanced) Minimum depth until which wave-current interaction is used
+      double precision                  :: hwcimax                  = -123                 !  [m] (advanced) Maximum depth until which wave-current interaction is used
       double precision                  :: cats                     = -123                 !  [Trep] (advanced) Current averaging time scale for wci, in terms of mean wave periods
 
       ! [Section] Flow parameters
@@ -942,6 +943,7 @@ contains
          call writelog('l','','Wave-current interaction parameters: ')
          par%wci      = readkey_int ('params.txt','wci',        0,        0,     1,strict=.true.)
          par%hwci     = readkey_dbl ('params.txt','hwci',   0.1d0,   0.001d0,      1.d0)
+         par%hwcimax  = readkey_dbl ('params.txt','hwcimax',   100.d0,   0.01d0,      100.d0)
          par%cats     = readkey_dbl ('params.txt','cats',   4.d0,     1.d0,      50.d0)
       endif
       !
