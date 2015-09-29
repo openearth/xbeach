@@ -1,7 +1,7 @@
 #!/bin/bash
 . /etc/profile
 
-chmod 775 /opt/teamcity/work/XBeach_unix/install
+chmod 775 /opt/teamcity/work/XBeach_unix_trunk/install
 
 cd /opt/teamcity/work/XBeach_unix_trunk/install
 
