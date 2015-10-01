@@ -2,6 +2,10 @@
 . /etc/profile
 export MODULEPATH=$MODULEPATH:/opt/modules
 
+cd ..
+export SVNPATH=$(pwd)
+cd trunk/
+
 # start with anaconda since it overwrites gcc !!!
 module load anaconda/lnx64_conda
 
@@ -14,13 +18,13 @@ make distclean
 
 ./autogen.sh
 
-mkdir -p /opt/teamcity/work/XBeach_unix_trunk/install
+mkdir -p $SVNPATH"/install"
 
-FCFLAGS="-mtune=corei7-avx -funroll-loops --param max-unroll-times=4 -ffree-line-length-none -O3 -ffast-math" ./configure  --with-netcdf --with-mpi --prefix="/opt/teamcity/work/XBeach_unix_trunk/install"
+FCFLAGS="-mtune=corei7-avx -funroll-loops --param max-unroll-times=4 -ffree-line-length-none -O3 -ffast-math" ./configure  --with-netcdf --with-mpi --prefix=$SVNPATH"/install"
 
 make
 make install
 
-cd /opt/teamcity/work/XBeach_unix_trunk/trunk/config/
+cd $SVNPATH"/trunk/config/"
 
-/usr/share/Modules/bin/createmodule.py -p "/opt/xbeach/"$XBEACH_PROJECT_ID"_gcc_4.9.2_1.8.3_HEAD" ./teamcity-env.sh > "/opt/teamcity/work/XBeach_unix_trunk/trunk/config/xbeach-"$XBEACH_PROJECT_ID"_gcc_4.9.2_1.8.3_HEAD"
+/usr/share/Modules/bin/createmodule.py -p "/opt/xbeach/"$XBEACH_PROJECT_ID"_gcc_4.9.2_1.8.3_HEAD" ./teamcity-env.sh > $SVNPATH"/trunk/config/xbeach-"$XBEACH_PROJECT_ID"_gcc_4.9.2_1.8.3_HEAD"
