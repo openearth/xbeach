@@ -1387,6 +1387,9 @@ contains
             !
             term1=min(term1,par%smax*par%g/s%cf*s%D50(jg)*delta)
             term1=sqrt(term1)
+            !
+            ceqb = 0.d0*term1                                                                     !initialize ceqb
+            ceqs = 0.d0*term1                                                                     !initialize ceqs
             do j=1,s%ny+1
                do i=1,s%nx
                   ! Lodewijk: sepperate bed load from suspended load since Ucr not anymore the same
