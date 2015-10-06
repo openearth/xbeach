@@ -340,7 +340,6 @@ contains
          xmpi_m=1
          xmpi_n=xmpi_size
        case (MPIBOUNDARY_AUTO)
-         ! Pieter: TODO: prevent too few grid cells in one domain (mpi implementation needs at least 2 at each boundary). Specify error and give a message if this is the case.
          do mm = 1,xmpi_size
             nn = xmpi_size/mm
             if (mm * nn .eq. xmpi_size) then
@@ -363,6 +362,17 @@ contains
          error = 1
          return
       end select
+       
+       ! Check whether each MPI subdomain is large enough (at least 4 cells in x and y), preferably more
+       if(m+1<4*xmpi_m .or. n+1<4*xmpi_n) then
+          if (m+1<4*xmpi_m) error = 3
+          if (n+1<4*xmpi_n) error = 4
+          return
+       elseif (m+1<8*xmpi_m .or. n+1<8*xmpi_n) then
+          if (m+1<8*xmpi_m) error = 5
+          if (n+1<8*xmpi_n) error = 6
+       endif
+       
 
       ! Pieter: TODO: Check whether the grid distribution did not lead to domains with to few grid cells (mpi implementation needs at least 2 at each boundary). Specify error and give a message if this is the case.
 

@@ -249,6 +249,22 @@ contains
          elseif (error==2) then
             call writelog('elws','','Number of domains specified does not match available number of computation cores ')
             call halt_program
+         elseif (error==3) then
+            call writelog('elws','','Number of mpi domains in M-direction is greater than nx/4')
+            call writelog('elws','','XBeach cannot split into separate model domains.')
+            call writelog('elws','','Reduce number of mpi-domains in M-direction.')
+            call halt_program
+         elseif (error==4) then
+            call writelog('elws','','Number of mpi domains in N-direction is greater than ny/4')
+            call writelog('elws','','XBeach cannot split into separate model domains.')
+            call writelog('elws','','Reduce number of mpi-domains in N-direction.')
+            call halt_program
+         elseif (error==5) then
+            call writelog('lws','','Number of mpi domains in M-direction is greater than nx/8')
+            call writelog('lws','','Reduce number of mpi-domains in M-direction for efficiency.')
+         elseif (error==6) then
+            call writelog('lws','','Number of mpi domains in N-direction is greater than ny/8')
+            call writelog('lws','','Reduce number of mpi-domains in M-direction for efficiency.')            
          else
             call writelog('ls','','processor grid: ',xmpi_m,' X ',xmpi_n)
          endif
