@@ -109,7 +109,7 @@ module params
       character(slen)                   :: bcfile                   = 'abc'                !  [file] Name of spectrum file
       integer                           :: random                   = -123                 !  [-] (advanced) Switch to enable random seed for instat = jons, swan or vardens boundary conditions
       double precision                  :: fcutoff                  = -123                 !  [Hz] (advanced) Low-freq cutoff frequency for instat = jons, swan or vardens boundary conditions
-      integer                           :: nspr                     = -123                 !  [-] (advanced) Switch to enable long wave direction forced into centres of short wave bins
+      integer                           :: nspr                     = -123                 !  [-] (advanced,silent) Switch to enable long wave direction forced into centres of short wave bins
       double precision                  :: trepfac                  = -123                 !  [-] (advanced) Compute mean wave period over energy band: par%trepfac*maxval(Sf) for instat jons, swan or vardens; converges to Tm01 for trepfac = 0.0 and
       double precision                  :: sprdthr                  = -123                 !  [-] (advanced) Threshold ratio to maximum value of S above which spectrum densities are read in
       integer                           :: oldwbc                   = -123                 !  [-] (deprecated,silent) (1) Use old version wave boundary conditions for instat jons, swan or vardens
@@ -120,7 +120,7 @@ module params
       double precision                  :: dtbc                     = -123                 !  [s] (advanced) Timestep used to describe time series of wave energy and long wave flux at offshore boundary (not affected by morfac)
       double precision                  :: dthetaS_XB               = -123                 !  [deg] (advanced) The (counter-clockwise) angle in the degrees needed to rotate from the x-axis in SWAN to the x-axis pointing East
       integer                           :: nspectrumloc             = -123                 !  [-] (advanced) Number of input spectrum locations
-      integer                           :: wbcversion               = -123                 !  [-] (advanced) Version of wave boundary conditions
+      integer                           :: wbcversion               = -123                 !  [-] (advanced,silent) Version of wave boundary conditions
       integer                           :: nonhspectrum             = -123                 !  [-] (advanced) Spectrum format for wave action balance of nonhydrostatic waves
 
       ! [Section] Flow boundary condition parameters
@@ -137,7 +137,7 @@ module params
       integer                           :: freewave                 = -123                 !  [-] (advanced) Switch for free wave propagation 0 = use cg (default); 1 = use sqrt(gh) in instat = ts_2
       integer                           :: carspan                  = -123                 !  [-] (deprecated) Switch for Carrier-Greenspan test 0 = use cg (default); 1 = use sqrt(gh) in instat = ts_2 for c&g tests
       double precision                  :: epsi                     = -123                 !  [-] (advanced) Ratio of mean current to time varying current through offshore boundary
-      integer                           :: nc                       = -123                 !  [-] (advanced) Smoothing distance for estimating umean (defined as nr of cells)
+      integer                           :: nc                       = -123                 !  [-] (advanced,silent) Smoothing distance for estimating umean (defined as nr of cells)
       integer                           :: tidetype                 = -123                 !  [name] (advanced) Switch for offfshore boundary, velocity boundary or instant water level boundary
       character(slen)                   :: tidetype_str             =   ' '                !  [-] (advanced) Switch for offfshore boundary, velocity boundary or instant water level boundary (default)
 
@@ -775,7 +775,7 @@ contains
          par%nonhspectrum    = readkey_int ('params.txt','nonhspectrum', par%nonh,          0,       1 ,strict=.true.)
          par%random          = readkey_int ('params.txt','random',       1,          0,          1     ,strict=.true.)
          par%fcutoff         = readkey_dbl ('params.txt','fcutoff',      0.d0,       0.d0,       40.d0   )
-         par%nspr            = readkey_int ('params.txt','nspr',         0,          0,          1     ,strict=.true.)
+         par%nspr            = readkey_int ('params.txt','nspr',         0,          0,          1     ,silent=.true.,strict=.true.)
          par%trepfac         = readkey_dbl ('params.txt','trepfac',      0.01d0,     0.d0,       1.d0    )
          if (par%nonhspectrum==1) then
             par%sprdthr         = readkey_dbl ('params.txt','sprdthr',      0.00d0,     0.d0,       1.d0    )
@@ -799,7 +799,7 @@ contains
          if (par%oldwbc==1) then
             par%wbcversion = 1
          else
-            par%wbcversion = readkey_int ('params.txt','wbcversion', 3, 1, 3,strict=.true.)
+            par%wbcversion = readkey_int ('params.txt','wbcversion', 3, 1, 3,strict=.true.,silent=.true.)
          endif
          if (par%wbcversion>2) then
             par%nspectrumloc    = readkey_int ('params.txt','nspectrumloc',   1,          1,       par%ny+1 )
@@ -846,7 +846,7 @@ contains
       par%carspan     = readkey_int ('params.txt','carspan',  0,              0,       1       ,strict=.true.) ! deprecated
       par%freewave    = readkey_int ('params.txt','freewave', par%carspan,    0,       1       ,strict=.true.)
       par%epsi        = readkey_dbl ('params.txt','epsi',     -1.d0,          -1.d0,   0.2d0   )
-      par%nc          = readkey_int ('params.txt','nc',       par%ny+1,       1,       par%ny+1,strict=.true.)
+      par%nc          = readkey_int ('params.txt','nc',       par%ny+1,       1,       par%ny+1,strict=.true.,silent=.true.)
 
       call setallowednames('instant',   TIDETYPE_INSTANT,  &
       'velocity',  TIDETYPE_VELOCITY)
