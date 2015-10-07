@@ -364,13 +364,19 @@ contains
       end select
        
        ! Check whether each MPI subdomain is large enough (at least 4 cells in x and y), preferably more
-       if(m+1<4*xmpi_m .or. n+1<4*xmpi_n) then
-          if (m+1<4*xmpi_m) error = 3
-          if (n+1<4*xmpi_n) error = 4
+       ! Errors
+       if(m+1<4*xmpi_m) then
+          error = 3
           return
-       elseif (m+1<8*xmpi_m .or. n+1<8*xmpi_n) then
+       endif
+       if (n+1<4*xmpi_n .and. n>2) then 
+          error = 4
+          return
+       endif
+       ! "Warning"
+       if (m+1<8*xmpi_m .or. (n+1<8*xmpi_n .and. n>2)) then
           if (m+1<8*xmpi_m) error = 5
-          if (n+1<8*xmpi_n) error = 6
+          if (n+1<8*xmpi_n .and. n>2) error = 6
        endif
        
 
