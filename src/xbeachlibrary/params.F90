@@ -1754,7 +1754,7 @@ contains
       ! MPI domains
 #ifdef USEMPI
       if (par%swave==1) then
-         if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE .or. par%single_dir==1) then
+         if ((par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE .or. par%single_dir==1) .and. par%ny > 0) then
             ! We need to set to mpiboundary = x to solve the stationary wave model.
             ! However, this requires ny>3*xmpi_osize
             if (par%mpiboundary .ne.  MPIBOUNDARY_MAN) then
