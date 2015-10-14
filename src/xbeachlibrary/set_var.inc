@@ -833,6 +833,12 @@
     case("shippsi")
        call c_f_pointer(xptr, x_1d_double_ptr, shape(s%shippsi))
        s%shippsi(:) = x_1d_double_ptr
+    case("vegtype")
+       call c_f_pointer(xptr, x_2d_int_ptr, shape(s%vegtype))
+       s%vegtype(:,:) = x_2d_int_ptr
+    case("Cdrag")
+       call c_f_pointer(xptr, x_2d_double_ptr, shape(s%Cdrag))
+       s%Cdrag(:,:) = x_2d_double_ptr
     case("Dveg")
        call c_f_pointer(xptr, x_2d_double_ptr, shape(s%Dveg))
        s%Dveg(:,:) = x_2d_double_ptr

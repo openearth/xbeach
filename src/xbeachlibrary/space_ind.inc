@@ -270,6 +270,8 @@
     double precision, dimension(:),  pointer :: shipphi
     double precision, dimension(:),  pointer :: shipchi
     double precision, dimension(:),  pointer :: shippsi
+    integer, dimension(:,:),  pointer :: vegtype
+    double precision, dimension(:,:),  pointer :: Cdrag
     double precision, dimension(:,:),  pointer :: Dveg
     double precision, dimension(:,:),  pointer :: Fvegu
     double precision, dimension(:,:),  pointer :: Fvegv

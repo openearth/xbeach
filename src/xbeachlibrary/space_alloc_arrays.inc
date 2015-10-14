@@ -248,6 +248,8 @@
         allocate(s%shipphi             (par%nship))
         allocate(s%shipchi             (par%nship))
         allocate(s%shippsi             (par%nship))
+        allocate(s%vegtype             (s%nx+1,s%ny+1))
+        allocate(s%Cdrag               (s%nx+1,s%ny+1))
         allocate(s%Dveg                (s%nx+1,s%ny+1))
         allocate(s%Fvegu               (s%nx+1,s%ny+1))
         allocate(s%Fvegv               (s%nx+1,s%ny+1))

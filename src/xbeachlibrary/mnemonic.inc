@@ -3,7 +3,7 @@
 !  Compiling and running is taken care of by the Makefile
 
 
-        integer, parameter :: numvars    =  278
+        integer, parameter :: numvars    =  280
         integer, parameter :: maxnamelen =   11
         integer, parameter :: maxrank =    4
         character(len=slen),parameter ::  mnem_x           = 'x          '
@@ -272,6 +272,8 @@
         character(len=slen),parameter ::  mnem_shipphi     = 'shipphi    '
         character(len=slen),parameter ::  mnem_shipchi     = 'shipchi    '
         character(len=slen),parameter ::  mnem_shippsi     = 'shippsi    '
+        character(len=slen),parameter ::  mnem_vegtype     = 'vegtype    '
+        character(len=slen),parameter ::  mnem_Cdrag       = 'Cdrag      '
         character(len=slen),parameter ::  mnem_Dveg        = 'Dveg       '
         character(len=slen),parameter ::  mnem_Fvegu       = 'Fvegu      '
         character(len=slen),parameter ::  mnem_Fvegv       = 'Fvegv      '
@@ -551,17 +553,19 @@
          mnem_shipphi    , & ! 264
          mnem_shipchi    , & ! 265
          mnem_shippsi    , & ! 266
-         mnem_Dveg       , & ! 267
-         mnem_Fvegu      , & ! 268
-         mnem_Fvegv      , & ! 269
-         mnem_ududx      , & ! 270
-         mnem_vdvdy      , & ! 271
-         mnem_udvdx      , & ! 272
-         mnem_vdudy      , & ! 273
-         mnem_viscu      , & ! 274
-         mnem_viscv      , & ! 275
-         mnem_setbathy   , & ! 276
-         mnem_tsetbathy  , & ! 277
-         mnem_breaking    & ! 278
+         mnem_vegtype    , & ! 267
+         mnem_Cdrag      , & ! 268
+         mnem_Dveg       , & ! 269
+         mnem_Fvegu      , & ! 270
+         mnem_Fvegv      , & ! 271
+         mnem_ududx      , & ! 272
+         mnem_vdvdy      , & ! 273
+         mnem_udvdx      , & ! 274
+         mnem_vdudy      , & ! 275
+         mnem_viscu      , & ! 276
+         mnem_viscv      , & ! 277
+         mnem_setbathy   , & ! 278
+         mnem_tsetbathy  , & ! 279
+         mnem_breaking    & ! 280
         /)
 !directions for vi vim: filetype=fortran : syntax=fortran

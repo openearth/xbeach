@@ -2643,6 +2643,26 @@
    t%description= 'turning angle arround z-axis'
    t%dimensions(1:1) = (/ 'par%nship           ' /)
  case(  267)
+   t%i2  => s%vegtype
+   t%rank =  2
+   t%type = 'i'
+   t%name = 'vegtype'
+   t%btype = 'b'
+   t%units= '-'
+   t%standardname= ''
+   t%description= 'vegetation type index [1,2,....] per location'
+   t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
+ case(  268)
+   t%r2  => s%Cdrag
+   t%rank =  2
+   t%type = 'r'
+   t%name = 'Cdrag'
+   t%btype = 'b'
+   t%units= '-'
+   t%standardname= ''
+   t%description= 'Vegetation drag coefficient'
+   t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
+ case(  269)
    t%r2  => s%Dveg
    t%rank =  2
    t%type = 'r'
@@ -2652,7 +2672,7 @@
    t%standardname= ''
    t%description= 'dissipation due to short wave attenuation by vegetation'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  268)
+ case(  270)
    t%r2  => s%Fvegu
    t%rank =  2
    t%type = 'r'
@@ -2662,7 +2682,7 @@
    t%standardname= ''
    t%description= 'x-forcing due to long wave attenuation by vegetation'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  269)
+ case(  271)
    t%r2  => s%Fvegv
    t%rank =  2
    t%type = 'r'
@@ -2672,7 +2692,7 @@
    t%standardname= ''
    t%description= 'y-forcing due to long wave attenuation by vegetation'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  270)
+ case(  272)
    t%r2  => s%ududx
    t%rank =  2
    t%type = 'r'
@@ -2682,7 +2702,7 @@
    t%standardname= ''
    t%description= 'advection'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  271)
+ case(  273)
    t%r2  => s%vdvdy
    t%rank =  2
    t%type = 'r'
@@ -2692,7 +2712,7 @@
    t%standardname= ''
    t%description= 'advection'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  272)
+ case(  274)
    t%r2  => s%udvdx
    t%rank =  2
    t%type = 'r'
@@ -2702,7 +2722,7 @@
    t%standardname= ''
    t%description= 'advection'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  273)
+ case(  275)
    t%r2  => s%vdudy
    t%rank =  2
    t%type = 'r'
@@ -2712,7 +2732,7 @@
    t%standardname= ''
    t%description= 'advection'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  274)
+ case(  276)
    t%r2  => s%viscu
    t%rank =  2
    t%type = 'r'
@@ -2722,7 +2742,7 @@
    t%standardname= ''
    t%description= 'viscosity'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  275)
+ case(  277)
    t%r2  => s%viscv
    t%rank =  2
    t%type = 'r'
@@ -2732,7 +2752,7 @@
    t%standardname= ''
    t%description= 'viscosity'
    t%dimensions(1:2) = (/ 's%nx+1              ','s%ny+1              ' /)
- case(  276)
+ case(  278)
    t%r3  => s%setbathy
    t%rank =  3
    t%type = 'r'
@@ -2742,7 +2762,7 @@
    t%standardname= ''
    t%description= 'prescribed bed levels'
    t%dimensions(1:3) = (/ 's%nx+1              ','s%ny+1              ','par%nsetbathy       ' /)
- case(  277)
+ case(  279)
    t%r1  => s%tsetbathy
    t%rank =  1
    t%type = 'r'
@@ -2752,7 +2772,7 @@
    t%standardname= ''
    t%description= 'points in time of prescibed bed levels'
    t%dimensions(1:1) = (/ 'par%nsetbathy       ' /)
- case(  278)
+ case(  280)
    t%i2  => s%breaking
    t%rank =  2
    t%type = 'i'

@@ -1254,6 +1254,16 @@ subroutine get_var_shape(c_var_name, shape) bind(C, name="get_var_shape")
     case("shippsi")
        ! return in c memory order
        shape(1) = par%nship
+    case("vegtype")
+       ! return in c memory order
+       shape(2) = s%nx+1
+       ! return in c memory order
+       shape(1) = s%ny+1
+    case("Cdrag")
+       ! return in c memory order
+       shape(2) = s%nx+1
+       ! return in c memory order
+       shape(1) = s%ny+1
     case("Dveg")
        ! return in c memory order
        shape(2) = s%nx+1

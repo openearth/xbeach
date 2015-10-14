@@ -268,6 +268,8 @@
     shipphi => s%shipphi
     shipchi => s%shipchi
     shippsi => s%shippsi
+    vegtype => s%vegtype
+    Cdrag => s%Cdrag
     Dveg => s%Dveg
     Fvegu => s%Fvegu
     Fvegv => s%Fvegv

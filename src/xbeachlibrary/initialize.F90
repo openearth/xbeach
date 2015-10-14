@@ -803,6 +803,10 @@ contains
       allocate(s%viscv(1:s%nx+1,1:s%ny+1))
       ! nonh hydrostatic flow initialisation
       allocate(s%breaking(1:s%nx+1,1:s%ny+1))
+      
+      ! vegetation initialization
+      allocate(s%vegtype(1:s%nx+1,1:s%ny+1))
+      allocate(s%Cdrag(1:s%nx+1,1:s%ny+1))
 
       ! Just to be sure!
       s%zs = 0.0d0
@@ -891,6 +895,10 @@ contains
 
       if (par%nonh==1) then
          s%breaking = 0
+      endif
+      
+      if (par%vegetation==1) then
+         s%vegtype = 0
       endif
 
       !

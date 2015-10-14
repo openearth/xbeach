@@ -537,29 +537,33 @@
              chartoindex = 265
           case(mnem_shippsi    )
              chartoindex = 266
-          case(mnem_Dveg       )
+          case(mnem_vegtype    )
              chartoindex = 267
-          case(mnem_Fvegu      )
+          case(mnem_Cdrag      )
              chartoindex = 268
-          case(mnem_Fvegv      )
+          case(mnem_Dveg       )
              chartoindex = 269
-          case(mnem_ududx      )
+          case(mnem_Fvegu      )
              chartoindex = 270
-          case(mnem_vdvdy      )
+          case(mnem_Fvegv      )
              chartoindex = 271
-          case(mnem_udvdx      )
+          case(mnem_ududx      )
              chartoindex = 272
-          case(mnem_vdudy      )
+          case(mnem_vdvdy      )
              chartoindex = 273
-          case(mnem_viscu      )
+          case(mnem_udvdx      )
              chartoindex = 274
-          case(mnem_viscv      )
+          case(mnem_vdudy      )
              chartoindex = 275
-          case(mnem_setbathy   )
+          case(mnem_viscu      )
              chartoindex = 276
-          case(mnem_tsetbathy  )
+          case(mnem_viscv      )
              chartoindex = 277
-          case(mnem_breaking   )
+          case(mnem_setbathy   )
              chartoindex = 278
+          case(mnem_tsetbathy  )
+             chartoindex = 279
+          case(mnem_breaking   )
+             chartoindex = 280
         end select
 !directions for vi vim: filetype=fortran : syntax=fortran
