@@ -662,10 +662,7 @@ contains
       fac = 1.d0/5000
       dtref = (1.d0-fac)*dtref + fac*par%dt
 
-      maxfac = 50.d0
-      if (par%nonh==1) maxfac = 500.d0
-
-      if (((dtref/par%dt>maxfac .and. par%t<tpar%tnext) .or. par%dt/dtref>maxfac) &
+      if (((dtref/par%dt>par%maxdtfac .and. par%t<tpar%tnext) .or. par%dt/dtref>par%maxdtfac) &
            .and. par%defuse==1) then
          
          call writelog('lswe','','Quit XBeach since computational time implodes/explodes')
