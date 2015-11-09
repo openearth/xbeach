@@ -148,5 +148,3 @@ contains
 
 
 end module xbeach_bmi
-
-
