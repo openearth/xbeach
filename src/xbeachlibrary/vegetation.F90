@@ -45,7 +45,7 @@ module vegetation_module
    implicit none
    save
    private
-   type vegie
+   type veggie
    character(slen)                         :: name
    integer                                 :: npts        ! Number of points used in vertical schematization of vegetation [-]
    real*8  , dimension(:)    , allocatable :: zv          ! Vertical points used in vegetation schematization [m wrt zb_ini (zb0)]
@@ -55,16 +55,16 @@ module vegetation_module
    real*8  , dimension(:,:,:), allocatable :: Dragterm1   ! Dragterm in wave action balance []
    real*8  , dimension(:,:,:), allocatable :: Dragterm2   ! Dragterm in momentum equations []
    integer , dimension(:,:)  , allocatable :: vegtype     ! spatial mapping of vegetation types [-]
-   end type vegie
+   end type veggie
 
-   type(vegie), dimension(:), allocatable    :: veg
+   type(veggie), dimension(:), allocatable    :: veg
 
-   public vegie_init
+   public veggie_init
    public vegatt
 
 contains
 
-subroutine vegie_init(s,par)
+subroutine veggie_init(s,par)
     use params
     use spaceparams
     use readkey_module
@@ -96,10 +96,10 @@ subroutine vegie_init(s,par)
        return
     endif
 
-    !! 1) Check how many vegetation species are specified in vegiefile!!
+    !! 1) Check how many vegetation species are specified in veggiefile!!
     fid=create_new_fid() ! see filefunctions.F90
-    call check_file_exist(par%vegiefile)
-    open(fid,file=par%vegiefile)
+    call check_file_exist(par%veggiefile)
+    open(fid,file=par%veggiefile)
         ier=0
         i=0
         do while (ier==0)
@@ -140,10 +140,10 @@ subroutine vegie_init(s,par)
     enddo
     
     !! 3)  Read spatial distribution of all vegetation species !!! 
-    ! NB: vegtype = 1 corresponds to first vegetation specified in vegiefile etc.
+    ! NB: vegtype = 1 corresponds to first vegetation specified in veggiefile etc.
     fid=create_new_fid() ! see filefunctions.F90
-    call check_file_exist(par%vegiemapfile)
-    open(fid,file=par%vegiemapfile)
+    call check_file_exist(par%veggiemapfile)
+    open(fid,file=par%veggiemapfile)
     do j=1,s%ny+1    ! Is this the right way to do it in a module
        read(fid,*,iostat=ier)(s%vegtype,i=1,s%nx+1)
     enddo
@@ -152,7 +152,7 @@ subroutine vegie_init(s,par)
     ! TODO: interpolate vegetation to u-points(!)
     ! TODO: vertical profile of veg chars (linear interpolation)
     ! TODO: check 2d formulations
-end subroutine vegie_init
+end subroutine veggie_init
 
 subroutine vegatt(s,par)
     use params

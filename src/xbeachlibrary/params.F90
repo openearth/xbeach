@@ -381,12 +381,12 @@ module params
       integer                           :: nship                    = -123                 !  [-] (advanced) Number of ships
 
       ! [Section] Vegetation parameters
-character(slen) :: vegiefile                = 'abc'   !  [-] Name of vegie species list file
-     character(slen) :: vegiemapfile             = 'abc'   !  [-] Name of vegie species map file
-     integer       :: nveg                     = -123    !  [-] Number of vegetation species
-     integer       :: vegnonlin                = -123    !  [-] include non-linear wave effect [1] or not [0]
-     integer       :: vegcanflo                = -123    !  [-] include incanopy flow [1] or not [0]
-     integer       :: veguntow                 = -123    !  [-] include undertow in phase-averaged vegetati
+     character(slen) :: veggiefile               = 'abc'   !  [-] Name of veggie species list file
+     character(slen) :: veggiemapfile            = 'abc'   !  [-] Name of veggie species map file
+     integer         :: nveg                     = -123    !  [-] Number of vegetation species
+     integer         :: vegnonlin                = -123    !  [-] include non-linear wave effect [1] or not [0]
+     integer         :: vegcanflo                = -123    !  [-] include incanopy flow [1] or not [0]
+     integer         :: veguntow                 = -123    !  [-] include undertow in phase-averaged vegetati
 
       ! [Section] Wave numerics parameters
       integer                           :: scheme                   = -123                 !  [name] (advanced) Numerical scheme for wave propagation
@@ -1391,11 +1391,11 @@ contains
       if (par%vegetation==1) then
          call writelog('l','','--------------------------------')
          call writelog('l','','Vegetation parameters: ')
-         par%vegiefile    = readkey_name  ('params.txt', 'vegiefile'                       )
-         par%vegiemapfile = readkey_name  ('params.txt', 'vegiemapfile'                    )
-         par%vegnonlin    = readkey_int   ('params.txt', 'vegnonlin',0,0,1)
-         par%vegcanflo    = readkey_int   ('params.txt', 'vegcanflo',0,0,1)
-         par%veguntow     = readkey_int   ('params.txt', 'veguntow', 1,0,1)
+         par%veggiefile    = readkey_name  ('params.txt', 'veggiefile'                       )
+         par%veggiemapfile = readkey_name  ('params.txt', 'veggiemapfile'                    )
+         par%vegnonlin     = readkey_int   ('params.txt', 'vegnonlin',0,0,1)
+         par%vegcanflo     = readkey_int   ('params.txt', 'vegcanflo',0,0,1)
+         par%veguntow      = readkey_int   ('params.txt', 'veguntow', 1,0,1)
          ! veggiefile routine should set nveg
       endif
       !
