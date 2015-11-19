@@ -265,8 +265,8 @@ module variables
   double precision,              target :: shipphi(:)       !< [m] turning angle arround x-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
   double precision,              target :: shipchi(:)       !< [m] turning angle arround y-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
   double precision,              target :: shippsi(:)       !< [m] turning angle arround z-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  integer,          allocatable, target :: vegtype(:,:)     !< [-] vegetation type index [1,2,....] per location {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "b"}
-  double precision, allocatable, target :: Cdrag(:,:)       !< [-] Vegetation drag coefficient {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "b"}
+  integer,          allocatable, target :: vegtype(:,:)     !< [-] vegetation type index {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: Cdrag(:,:)       !< [-] Vegetation drag coefficient {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: Dveg(:,:)        !< [W/m2] dissipation due to short wave attenuation by vegetation {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: Fvegu(:,:)       !< [N/m2] x-forcing due to long wave attenuation by vegetation {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: Fvegv(:,:)       !< [N/m2] y-forcing due to long wave attenuation by vegetation {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
