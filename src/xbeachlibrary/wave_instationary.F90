@@ -124,8 +124,8 @@ contains
       s%hh = max(s%hh,par%eps)
       hrmsold=s%H
       ! Calculate once velocities used with and without wave current interaction
-      wcifacu=s%u*par%wci*min(min(s%hh/par%hwci,1.d0),min(1.d0,max(0.d0,(par%hwcimax-s%hh))))!min(s%hh/par%hwci,1.d0) ! Added hwcimax cut-off (Arnold, requested by Gundula)
-      wcifacv=s%v*par%wci*min(min(s%hh/par%hwci,1.d0),min(1.d0,max(0.d0,(par%hwcimax-s%hh))))!min(s%hh/par%hwci,1.d0)
+      wcifacu=s%u*par%wci*min(min(s%hh/par%hwci,1.d0),min(1.d0,1.d0-s%hh/par%hwcimax))
+      wcifacv=s%v*par%wci*min(min(s%hh/par%hwci,1.d0),min(1.d0,1.d0-s%hh/par%hwcimax))
 
       if (par%single_dir==1) then
          s%costh(:,:,1)=cos(s%thetamean-s%alfaz)
@@ -173,13 +173,21 @@ contains
          !  calculate change in intrinsic frequency
          kmx = km*dcos(s%thetamean)
          kmy = km*dsin(s%thetamean)
-         s%wm = s%sigm+kmx*s%umwci*par%wci*min(min((s%zswci-s%zb)/par%hwci,1.d0),min(1.d0,max(0.d0,(par%hwcimax-(s%zswci-s%zb)))))+kmy*s%vmwci*par%wci*min(min((s%zswci-s%zb)/par%hwci,1.d0),min(1.d0,max(0.d0,(par%hwcimax-(s%zswci-s%zb)))))
-         cgym = s%cg*dsin(s%thetamean) + s%vmwci*min(min((s%zswci-s%zb)/par%hwci,1.d0),min(1.d0,max(0.d0,par%hwcimax-(s%zswci-s%zb))))
-         cgxm = s%cg*dcos(s%thetamean) + s%umwci*min(min((s%zswci-s%zb)/par%hwci,1.d0),min(1.d0,max(0.d0,par%hwcimax-(s%zswci-s%zb))))
+         s%wm = s%sigm+kmx*s%umwci*par%wci*min(&
+                                               min((s%zswci-s%zb)/par%hwci,1.d0), &
+                                               min(1.d0,(1.d0-(s%zswci-s%zb)/par%hwcimax)) &
+                                               )+ &
+                       kmy*s%vmwci*par%wci*min( &
+                                               min((s%zswci-s%zb)/par%hwci,1.d0), &
+                                               min(1.d0,(1.d0-(s%zswci-s%zb)/par%hwcimax)) &
+                                               )
+         cgym = s%cg*dsin(s%thetamean) + s%vmwci*min(min((s%zswci-s%zb)/par%hwci,1.d0),min(1.d0,(1.d0-(s%zswci-s%zb)/par%hwcimax)))
+         cgxm = s%cg*dcos(s%thetamean) + s%umwci*min(min((s%zswci-s%zb)/par%hwci,1.d0),min(1.d0,(1.d0-(s%zswci-s%zb)/par%hwcimax)))
 
          call slope2D(kmx,s%nx,s%ny,s%dsu,s%dnv,dkmxdx,dkmxdy,s%wete)
          call slope2D(kmy,s%nx,s%ny,s%dsu,s%dnv,dkmydx,dkmydy,s%wete)
          call advecwx(s%wm,xwadvec,kmx,s%nx,s%ny,s%dsu,s%wete)   ! cjaap: s%xz or s%xu?         kmx = kmx -par%dt*xwadvec  -par%dt*cgym*(dkmydx-dkmxdy)
+         kmx = kmx -par%dt*xwadvec  -par%dt*cgym*(dkmydx-dkmxdy)
          if (s%ny>0) then
             if (xmpi_isright) kmx(:,s%ny+1) = kmx(:,s%ny)  ! lateral bc
             if (xmpi_isleft)  kmx(:,1) = kmx(:,2)  ! lateral bc

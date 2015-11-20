@@ -159,8 +159,8 @@ contains
       endif
 
       ! Calculate once velocities used with and without wave current interaction
-      wcifacu=s%u*par%wci*min(min(s%hh/par%hwci,1.d0),min(1.d0,max(0.d0,(par%hwcimax-s%hh))))
-      wcifacv=s%v*par%wci*min(min(s%hh/par%hwci,1.d0),min(1.d0,max(0.d0,(par%hwcimax-s%hh))))
+      wcifacu=s%u*par%wci*min(min(s%hh/par%hwci,1.d0),min(1.d0,(1.d0-s%hh/par%hwcimax)))
+      wcifacv=s%v*par%wci*min(min(s%hh/par%hwci,1.d0),min(1.d0,(1.d0-s%hh/par%hwcimax)))
 
       do itheta=1,s%ntheta
          s%cgx(:,:,itheta)= s%cg*s%costh(:,:,itheta)+wcifacu
