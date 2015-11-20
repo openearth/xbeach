@@ -178,13 +178,13 @@ contains
       ! the not-(o)master processes, just to get valid addresses.
       !
       if (.not. xmaster .and. .not. xomaster) then
-         nxbak = sglobal%nx
-         nybak = sglobal%ny
-         sglobal%nx=0
-         sglobal%ny=0
-         call space_alloc_arrays(sglobal,par)
-         sglobal%nx = nxbak
-         sglobal%ny = nybak
+         !nxbak = sglobal%nx
+         !nybak = sglobal%ny
+         !sglobal%nx=0
+         !sglobal%ny=0
+         call space_alloc_arrays_dummies(sglobal,par)
+         !sglobal%nx = nxbak
+         !sglobal%ny = nybak
       endif
       call space_distribute_space (sglobal,s,par     )
 #endif

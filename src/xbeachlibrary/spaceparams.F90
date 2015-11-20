@@ -143,6 +143,18 @@ contains
     
   end subroutine space_alloc_arrays
   
+  ! Generated subroutine to allocate dummy address for all arrays in s
+  subroutine space_alloc_arrays_dummies(s,par)
+    use mnemmodule
+    use params
+    implicit none
+    type(spacepars),intent(inout)  :: s
+    type(parameters),intent(in)    :: par
+    
+    include 'space_alloc_arrays_dummies.inc'
+    
+  end subroutine space_alloc_arrays_dummies
+  
 #ifdef USEMPI
 
    ! copies scalars from sg to sl on xmaster, and distributes
