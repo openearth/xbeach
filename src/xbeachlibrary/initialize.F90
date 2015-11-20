@@ -595,7 +595,7 @@ contains
          s%sigt(:,:,itheta) = 2*par%px/par%Trep
       end do
       s%sigm = sum(s%sigt,3)/s%ntheta
-      call dispersion(par,s,.false.)
+      call dispersion(par,s)
 
 
    end subroutine wave_init

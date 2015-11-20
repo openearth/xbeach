@@ -210,7 +210,13 @@ contains
    integer(c_int) function outputext()
       ! store first timestep
       call output(sglobal,s,par,tpar,.false.)
-      outputext = 0
+      if(error==0) then
+         outputext = 0
+      elseif(error==1) then
+         call output_error(s,sglobal,par,tpar)
+         outputext = 1
+      endif
+         
    end function outputext
    !-----------------------------------------------------------------------------!
    ! Start simulation                                                            !
@@ -242,31 +248,29 @@ contains
          !
          ! determine time step
          call timestep(s,par,tpar,it,dt=dt,ierr=error)
-         
-         if (error==1) then
-            call output_error(s,sglobal,par,tpar)
+              
+         if (error==0) then
+            
+            ! boundary conditions
+            call wave_bc        (sglobal,s,par)
+            if (par%gwflow==1)       call gw_bc          (s,par)
+            if (par%flow+par%nonh>0) call flow_bc        (s,par)
+
+            ! compute timestep
+            if (par%ships==1)        call shipwave       (s,par,sh)
+            if (par%swave==1)        call wave           (s,par)
+            if (par%vegetation==1)   call vegatt         (s,par)
+            if (par%gwflow==1)       call gwflow         (s,par)
+            if (par%flow+par%nonh>0) call flow           (s,par)
+            if (par%ndrifter>0)      call drifter        (s,par)
+            if (par%sedtrans==1)     call transus        (s,par)
+            ! Beach wizard
+            if (par%bchwiz>0)        call assim          (s,par)
+            ! Bed level update
+            if ((par%morphology==1).and.(.not. par%bchwiz==1).and.(.not. par%setbathy==1)) call bed_update(s,par)
+            if (par%bchwiz>0)        call assim_update   (s, par)
+            if (par%setbathy==1)     call setbathy_update(s, par)
          endif
-
-         ! boundary conditions
-         call wave_bc        (sglobal,s,par)
-         if (par%gwflow==1)       call gw_bc          (s,par)
-         if (par%flow+par%nonh>0) call flow_bc        (s,par)
-
-         ! compute timestep
-         if (par%ships==1)        call shipwave       (s,par,sh)
-         if (par%swave==1)        call wave           (s,par)
-         if (par%vegetation==1)   call vegatt         (s,par)
-         if (par%gwflow==1)       call gwflow         (s,par)
-         if (par%flow+par%nonh>0) call flow           (s,par)
-         if (par%ndrifter>0)      call drifter        (s,par)
-         if (par%sedtrans==1)     call transus        (s,par)
-         ! Beach wizard
-         if (par%bchwiz>0)        call assim          (s,par)
-         ! Bed level update
-         if ((par%morphology==1).and.(.not. par%bchwiz == 1).and.(.not. par%setbathy==1)) call bed_update(s,par)
-         if (par%bchwiz>0)        call assim_update   (s, par)
-         if (par%setbathy==1)     call setbathy_update(s, par)
-
       endif
 
       n = n + 1

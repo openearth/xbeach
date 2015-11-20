@@ -519,7 +519,7 @@ contains
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   subroutine dispersion(par,s,bcast)
+   subroutine dispersion(par,s)
       use params
       use spaceparams
       use logging_module
@@ -530,21 +530,24 @@ contains
 
       type(spacepars)                     :: s
       type(parameters)                    :: par
-      logical,optional,intent(in)         :: bcast
+      !logical,optional,intent(in)         :: bcast
 
-      real*8, dimension(:,:),allocatable,save  :: h,L0,kh
-      real*8, dimension(:,:),allocatable,save  :: Ltemp
+      !real*8, dimension(:,:),allocatable,save  :: h,L0,kh
+      !real*8, dimension(:,:),allocatable,save  :: Ltemp
+      ! Robert: for some reason, MPI version does not like the "allocatable" version
+      !         of this subroutine.
+      real*8, dimension(1:s%nx+1,1:s%ny+1)  :: h,L0,kh,Ltemp
       integer                             :: i,j,j1,j2
       real*8                              :: backdis,disfac
       integer                             :: index
-      logical                             :: lbcast
-
-      if (present(bcast)) then
-         lbcast = bcast
-      else
-         !lbcast = .true.
-         lbcast = .false.
-      endif
+      !logical                             :: lbcast
+      ! Robert: why was this functionality removed? lbcast is not used anymore...
+      !if (present(bcast)) then
+      !   lbcast = bcast
+      !else
+      !   !lbcast = .true.
+      !   lbcast = .false.
+      !endif
 
       if (s%ny==0) then
          j1=1
@@ -562,12 +565,13 @@ contains
       ! for variables t and n.
 
       ! cjaap: replaced par%hmin by par%eps
-      if (.not.allocated(h)) then
-      allocate(h (s%nx+1,s%ny+1))
-      allocate(L0(s%nx+1,s%ny+1))
-      allocate(kh(s%nx+1,s%ny+1))
-         allocate(Ltemp(s%nx+1,s%ny+1))
-      endif
+      ! Robert: this does not work: perhaps due to inactivity of "lbcast"?
+      !if (.not.allocated(h)) then
+      !   allocate(h (s%nx+1,s%ny+1))
+      !   allocate(L0(s%nx+1,s%ny+1))
+      !   allocate(kh(s%nx+1,s%ny+1))
+      !   allocate(Ltemp(s%nx+1,s%ny+1))
+      !endif
 
       where(s%wete==1)
          h = max(s%hh + par%delta*s%H,par%eps)
