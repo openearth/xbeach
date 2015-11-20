@@ -168,7 +168,7 @@ contains
       ! to reserve memory on MPI subprocesses.
       ! Note: if par%ships==0 then don't allocate
       ! and read stuff for sh structures
-      call vegie_init         (s,par)
+      call veggie_init         (s,par)
 
 #ifdef USEMPI
       call distribute_par(par)
