@@ -135,6 +135,7 @@ module variables
   integer,          allocatable, target :: wetu(:,:)        !< [-] mask wet/dry u-points {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   integer,          allocatable, target :: wetv(:,:)        !< [-] mask wet/dry v-points {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   integer,          allocatable, target :: wetz(:,:)        !< [-] mask wet/dry eta-points {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  integer,          allocatable, target :: wete(:,:)        !< [-] mask wet/dry wave-points {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: hu(:,:)          !< [m] water depth in u-points {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: hv(:,:)          !< [m] water depth in v-points {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: hum(:,:)         !< [m] water depth in u-points {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}

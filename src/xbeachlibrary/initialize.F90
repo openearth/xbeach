@@ -750,6 +750,7 @@ contains
       allocate(s%wetu(1:s%nx+1,1:s%ny+1))
       allocate(s%wetv(1:s%nx+1,1:s%ny+1))
       allocate(s%wetz(1:s%nx+1,1:s%ny+1))
+      allocate(s%wete(1:s%nx+1,1:s%ny+1))
       allocate(s%hh(1:s%nx+1,1:s%ny+1))
       allocate(s%hu(1:s%nx+1,1:s%ny+1))
       allocate(s%hv(1:s%nx+1,1:s%ny+1))
@@ -834,6 +835,7 @@ contains
       s%wetu = 0
       s%wetv = 0
       s%wetz = 0
+      s%wete = 0
       s%hh = 0.0d0
       s%hu = 0.0d0
       s%hv = 0.0d0
@@ -1177,10 +1179,12 @@ contains
          s%wetz=1
          s%wetu=1
          s%wetv=1
+         s%wete=1
       elsewhere
          s%wetz=0
          s%wetu=0
          s%wetv=0
+         s%wete=0
       endwhere
       !
       ! Start with initial velocities based on balance between water level gradient

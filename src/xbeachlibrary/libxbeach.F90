@@ -25,7 +25,7 @@ module libxbeach_module
    use ship_module
    use nonh_module
    use vegetation_module
-
+   use wetcells_module
    implicit none
    save
 
@@ -237,6 +237,9 @@ contains
       ! determine timestep
       if(xcompute) then
 
+         ! determine this time step's wet points
+         call compute_wetcells(s,par)
+         !
          ! determine time step
          call timestep(s,par,tpar,it,dt=dt,ierr=error)
          

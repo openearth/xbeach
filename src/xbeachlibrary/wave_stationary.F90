@@ -124,12 +124,12 @@ contains
 
 
       ! Slopes of water depth
-      call slope2D(max(s%hh,par%delta*s%H),s%nx,s%ny,s%dsu,s%dnv,dhdx,dhdy,s%wetu,s%wetv)
+      call slope2D(max(s%hh,par%delta*s%H),s%nx,s%ny,s%dsu,s%dnv,dhdx,dhdy,s%wete)
       ! Dano limit slopes used in refraction to avoid unrealistic refraction speeds
       dhdx=sign(1.d0,dhdx)*min(abs(dhdx),0.1d0)
       dhdy=sign(1.d0,dhdy)*min(abs(dhdy),0.1d0)
-      call slope2D(s%u*par%wci,s%nx,s%ny,s%dsu,s%dnv,dudx,dudy,s%wetu,s%wetv)
-      call slope2D(s%v*par%wci,s%nx,s%ny,s%dsu,s%dnv,dvdx,dvdy,s%wetu,s%wetv)
+      call slope2D(s%u*par%wci,s%nx,s%ny,s%dsu,s%dnv,dudx,dudy,s%wete)
+      call slope2D(s%v*par%wci,s%nx,s%ny,s%dsu,s%dnv,dvdx,dvdy,s%wete)
 
       ! wwvv these slope routines are in wave_timestep, and are
       !   MPI-aware
@@ -273,17 +273,20 @@ contains
             !
             if  (i>2.and. par%scheme==SCHEME_UPWIND_2) then
                call advecxho(s%ee(i-2:i+1,:,:),s%cgx(i-2:i+1,:,:),xadvec(i-2:i+1,:,:),    &
-               3,s%ny,s%ntheta,s%dnu(i-2:i+1,:),s%dsu(i-2:i+1,:),s%dsdnzi(i-2:i+1,:),SCHEME_UPWIND_2)
+               3,s%ny,s%ntheta,s%dnu(i-2:i+1,:),s%dsu(i-2:i+1,:),s%dsdnzi(i-2:i+1,:),SCHEME_UPWIND_2, &
+               s%wete(i-2:i+1,:))
             else
                call advecxho(s%ee(i-1:i+1,:,:),s%cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),    &
-               2,s%ny,s%ntheta,s%dnu(i-1:i+1,:),s%dsu(i-1:i+1,:),s%dsdnzi(i-1:i+1,:),SCHEME_UPWIND_1)
+               2,s%ny,s%ntheta,s%dnu(i-1:i+1,:),s%dsu(i-1:i+1,:),s%dsdnzi(i-1:i+1,:),SCHEME_UPWIND_1, &
+               s%wete(i-1:i+1,:))
             endif
             call advecyho(s%ee(i,:,:),s%cgy(i,:,:),yadvec(i,:,:),                                  &
-            0,s%ny,s%ntheta,s%dsv(i,:),s%dnv(i,:),s%dsdnzi(i,:),SCHEME_UPWIND_1)
+            0,s%ny,s%ntheta,s%dsv(i,:),s%dnv(i,:),s%dsdnzi(i,:),SCHEME_UPWIND_1, &
+            s%wete(i,:))
             !call advecx(ee(i-1:i+1,:,:)*cgx(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),2,ny,ntheta,dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:))
             !call advecy(ee(i,:,:)*cgy(i,:,:),yadvec(i,:,:),0,ny,ntheta,dsv(i,:),dsdnzi(i,:))
             !call advectheta(ee(i,:,:)*ctheta(i,:,:),thetaadvec(i,:,:),0,ny,ntheta,dtheta)
-            call advecthetaho(s%ee(i,:,:),s%ctheta(i,:,:),thetaadvec(i,:,:),0,s%ny,s%ntheta,s%dtheta,par%scheme)
+            call advecthetaho(s%ee(i,:,:),s%ctheta(i,:,:),thetaadvec(i,:,:),0,s%ny,s%ntheta,s%dtheta,par%scheme,s%wete(i,:))
 
             s%ee(i,:,:)=s%ee(i,:,:)-dtw*(xadvec(i,:,:) + yadvec(i,:,:) &
             + thetaadvec(i,:,:))
@@ -358,13 +361,15 @@ contains
             ! calculate roller energy balance
             !
             call advecxho(s%rr(i-1:i+1,:,:),s%cx(i-1:i+1,:,:),xradvec(i-1:i+1,:,:),   &
-            2,s%ny,s%ntheta,s%dnu(i-1:i+1,:),s%dsu(i-1:i+1,:),s%dsdnzi(i-1:i+1,:),SCHEME_UPWIND_1)
+            2,s%ny,s%ntheta,s%dnu(i-1:i+1,:),s%dsu(i-1:i+1,:),s%dsdnzi(i-1:i+1,:),SCHEME_UPWIND_1, &
+            s%wete(i-1:i+1,:))
             call advecyho(s%rr(i,:,:),s%cy(i,:,:),yradvec(i,:,:),                                 &
-            0,s%ny,s%ntheta,s%dsv(i,:),s%dnv(i,:),s%dsdnzi(i,:),SCHEME_UPWIND_1)
+            0,s%ny,s%ntheta,s%dsv(i,:),s%dnv(i,:),s%dsdnzi(i,:),SCHEME_UPWIND_1, &
+            s%wete(i,:))
             !call advecx(rr(i-1:i+1,:,:)*cx(i-1:i+1,:,:),xradvec(i-1:i+1,:,:),2,ny,ntheta,dnu(i-1:i+1,:),dsdnzi(i-1:i+1,:)) !Robert & Jaap
             !call advecy(rr(i,:,:)*cy(i,:,:),yradvec(i,:,:),0,ny,ntheta,dsv(i,:),dsdnzi(i,:))                   !Robert & Jaap
             !call advectheta(rr(i,:,:)*ctheta(i,:,:),thetaradvec(i,:,:),0,ny,ntheta,dtheta)   !Robert & Jaap
-            call advecthetaho(s%rr(i,:,:),s%ctheta(i,:,:),thetaradvec(i,:,:),0,s%ny,s%ntheta,s%dtheta,par%scheme)
+            call advecthetaho(s%rr(i,:,:),s%ctheta(i,:,:),thetaradvec(i,:,:),0,s%ny,s%ntheta,s%dtheta,par%scheme,s%wete(i,:))
 
             s%rr(i,:,:)=s%rr(i,:,:)-dtw*(xradvec(i,:,:) &
             +yradvec(i,:,:) &
