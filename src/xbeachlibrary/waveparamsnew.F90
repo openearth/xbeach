@@ -66,7 +66,8 @@ module spectral_wave_bc_module
    integer                                         :: nspectra        ! number of input spectrs, set in init spectrum
    type(filenames),dimension(:),allocatable,public :: bcfiles         ! input wave spectrum files
    logical,public                                  :: reuseall        ! switch to reuse all of the wave boundary conditions
-   integer                                         :: bccount         ! number of times boundary conditions have been generated, set in init spectrum
+   integer,save                                    :: bccount         ! number of times boundary conditions have been generated, set in init spectrum
+   integer,save                                    :: fidelist,fidqlist,fidnhlist,fideslist ! file identifiers for ebcflist and qbcflist
    real*8                                          :: spectrumendtime ! end time of boundary condition written to administration file
    real*8,dimension(:,:),allocatable               :: lastwaveelevation ! wave height at the end of the last spectrum
    integer                                         :: ind_end_taper   ! index of where the taper function equals rtbc
@@ -98,7 +99,6 @@ contains
       type(spectrum)              :: combspec
       type(waveparamsnew)         :: wp             ! Most will be deallocated, but some variables useful to keep?
       integer                     :: iloc
-      integer                     :: fidelist,fidqlist,fidnhlist,fideslist ! file identifiers for ebcflist and qbcflist
       integer                     :: iostat
       real*8                      :: spectrumendtimeold,fmax
       real*8,save                 :: rtbc_local,dtbc_local
@@ -279,50 +279,8 @@ contains
          endif ! reuseall
 
          ! Collect new file identifiers for administration list files
-         if (par%nonhspectrum==0) then
-            fidelist = create_new_fid()
-            if (bccount==1) then
-               open(fidelist,file='ebcflist.bcf',form='formatted',status='replace')
-            else
-               open(fidelist,file='ebcflist.bcf',form='formatted',position='append')
-            end if
-            write(fidelist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
-                 & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%Efilename)
-            close(fidelist)
-            
-            fidqlist = create_new_fid()
-            if (bccount==1) then
-               open(fidqlist,file='qbcflist.bcf',form='formatted',status='replace')
-            else
-               open(fidqlist,file='qbcflist.bcf',form='formatted',position='append')
-            end if
-            write(fidqlist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
-                 & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%qfilename)
-            close(fidqlist)
-
-            if(par%single_dir==1) then
-               fideslist = create_new_fid()
-               if (bccount==1) then
-                  open(fideslist,file='esbcflist.bcf',form='formatted',status='replace')
-               else
-                  open(fideslist,file='esbcflist.bcf',form='formatted',position='append')
-               end if
-               write(fideslist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
-                    & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%Esfilename)
-               close(fideslist)
-            endif
-         else
-            fidnhlist = create_new_fid()
-            if (bccount==1) then
-               open(fidnhlist,file='nhbcflist.bcf',form='formatted',status='replace',iostat=iostat)
-            else
-               open(fidnhlist,file='nhbcflist.bcf',form='formatted',position='append',iostat=iostat)
-            end if
-            write(fidnhlist,'(f12.3,a,f12.3,a,f12.3,a)',iostat=iostat) &
-                 & spectrumendtimeold,'   ',spectrumendtime,' ',par%Trep,' '//trim(wp%nhfilename)
-            close(fidnhlist)
-         end if
-
+         call generate_admin_files(par,wp,rtbc_local,dtbc_local,maindir_local,spectrumendtimeold,spectrumendtime)
+         
          ! Set output of the correct line
          curline = bccount
       endif
@@ -2869,5 +2827,63 @@ contains
       deallocate(Sdcart)
 
    end subroutine set_stationary_spectrum
+   
+   subroutine generate_admin_files(par,wp,rtbc_local,dtbc_local,maindir_local,spectrumendtimeold,spectrumendtime)
+      
+      use filefunctions, only: create_new_fid
+      use params
+      implicit none
+      
+      type(parameters),intent(in)       :: par
+      type(waveparamsnew),intent(in)    :: wp
+      real*8,intent(in)                 :: rtbc_local,dtbc_local,maindir_local,spectrumendtimeold,spectrumendtime
+      integer                           :: iostat
+         
+      if (par%nonhspectrum==0) then
+         if (bccount==1) then
+            fidelist = create_new_fid()
+            open(fidelist,file='ebcflist.bcf',form='formatted',status='replace')
+         else
+            open(fidelist,file='ebcflist.bcf',form='formatted',position='append')
+         end if
+         write(fidelist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
+               & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%Efilename)
+         close(fidelist)
+            
+         if (bccount==1) then
+            fidqlist = create_new_fid()
+            open(fidqlist,file='qbcflist.bcf',form='formatted',status='replace')
+         else
+            open(fidqlist,file='qbcflist.bcf',form='formatted',position='append')
+         end if
+         write(fidqlist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
+               & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%qfilename)
+         close(fidqlist)
+
+         if(par%single_dir==1) then
+            if (bccount==1) then
+               fideslist = create_new_fid()
+               open(fideslist,file='esbcflist.bcf',form='formatted',status='replace')
+            else
+               open(fideslist,file='esbcflist.bcf',form='formatted',position='append')
+            end if
+            write(fideslist,'(f12.3,a,f12.3,a,f9.3,a,f9.5,a,f11.5,a)') &
+                  & spectrumendtime,' ',rtbc_local,' ',dtbc_local,' ',par%Trep,' ',maindir_local,' '//trim(wp%Esfilename)
+            close(fideslist)
+         endif
+      else
+         if (bccount==1) then
+            fidnhlist = create_new_fid()
+            open(fidnhlist,file='nhbcflist.bcf',form='formatted',status='replace',iostat=iostat)
+         else
+            open(fidnhlist,file='nhbcflist.bcf',form='formatted',position='append',iostat=iostat)
+         end if
+         write(fidnhlist,'(f12.3,a,f12.3,a,f12.3,a)',iostat=iostat) &
+               & spectrumendtimeold,'   ',spectrumendtime,' ',par%Trep,' '//trim(wp%nhfilename)
+         close(fidnhlist)
+      end if
+   end subroutine generate_admin_files
+
+
 
 end module spectral_wave_bc_module
