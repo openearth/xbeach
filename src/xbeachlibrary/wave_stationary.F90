@@ -210,8 +210,7 @@ contains
                ! Dano NEED TO CHECK THIS FOR CURVI
                kmx = km(i-1:i+1,:)*cos(s%thetamean(i-1:i+1,:)-s%alfaz(i-1:i+1,:))
                kmy = km(i-1:i+1,:)*sin(s%thetamean(i-1:i+1,:)-s%alfaz(i-1:i+1,:))
-               s%wm(i-1:i+1,:) = s%sigm(i-1:i+1,:)+kmx*wcifacu(i-1:i+1,:)&
-               +kmy*wcifacv(i-1:i+1,:)
+               s%wm(i-1:i+1,:) = s%sigm(i-1:i+1,:)+kmx*wcifacu(i-1:i+1,:)+kmy*wcifacv(i-1:i+1,:)
 
                where(km(i,:)>0.01d0)
                   s%c(i,:)  = s%sigm(i,:)/km(i,:)

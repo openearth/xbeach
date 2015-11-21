@@ -58,7 +58,9 @@ contains
          !#endif
 
       elseif (par%single_dir==1) then
-         if ((abs(mod(par%t,par%wavint))<0.000001d0) .or. s%newstatbc==1) then
+         call update_means_wave_directions(s,par)
+        
+         if ((abs(mod(par%t,par%wavint))<0.000001d0) .or. s%newstatbc==1 .or. par%t==par%dt) then
             call wave_directions(s,par)
             s%newstatbc   = 0
          endif
