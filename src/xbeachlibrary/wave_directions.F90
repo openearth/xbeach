@@ -25,7 +25,7 @@ contains
          vmwdir = s%v
       endif
       
-      factime = 1.d0/(par%wavint*100)*par%dt
+      factime = 1.d0/(par%wavint*2)*par%dt
       
       hhmwdir = max(factime*s%hh + (1-factime)*hhmwdir,par%hmin)
       umwdir = factime*s%u + (1-factime)*umwdir
@@ -457,6 +457,9 @@ contains
                where(s%wete(i,:)==1)
                   s%thetamean(i,:)=(sum(s%ee_s(i,:,:)*s%thet_s(i,:,:),2)/size(s%ee_s(i,:,:),2)) &
                   /(max(sum(s%ee_s(i,:,:),2),0.000010d0) /size(s%ee_s(i,:,:),2))
+               elsewhere 
+                  ! forward-copy wave directions on dry cells in case they flood before the next wave update
+                  s%thetamean(i,:) = s%thetamean(i-1,:)
                endwhere
             endif
             !
@@ -495,6 +498,6 @@ contains
       s%cg(s%nx+1,:)   = s%cg(s%nx,:)
       s%c(s%nx+1,:)    = s%c(s%nx,:)
       s%thet_s(s%nx+1,:,:) = s%thet_s(s%nx,:,:)
-      s%k=km
+      !s%k=km
    end subroutine wave_directions
 end module wave_directions_module
