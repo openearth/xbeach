@@ -34,6 +34,7 @@ module libxbeach_module
    type(spacepars), pointer             :: s
    type(spacepars), target              :: sglobal
    type(ship), dimension(:), pointer    :: sh
+   type(veggie), dimension(:), pointer  :: veg
 
    integer                              :: n,it,error
    real*8                               :: tbegin
@@ -168,7 +169,7 @@ contains
       ! to reserve memory on MPI subprocesses.
       ! Note: if par%ships==0 then don't allocate
       ! and read stuff for sh structures
-      call veggie_init         (s,par)
+      call veggie_init         (s,par,veg)
 
 #ifdef USEMPI
       call distribute_par(par)
@@ -259,7 +260,7 @@ contains
             ! compute timestep
             if (par%ships==1)        call shipwave       (s,par,sh)
             if (par%swave==1)        call wave           (s,par)
-            if (par%vegetation==1)   call vegatt         (s,par)
+            if (par%vegetation==1)   call vegatt         (s,par,veg)
             if (par%gwflow==1)       call gwflow         (s,par)
             if (par%flow+par%nonh>0) call flow           (s,par)
             if (par%ndrifter>0)      call drifter        (s,par)

@@ -26,7 +26,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! ! VEGETATION MODULE XBEACH: ATTENUATION OF SHORT WAVES, IG WAVES, FLOW, AND WAVE SETUP ! ! !
+! VEGETATION MODULE XBEACH: ATTENUATION OF SHORT WAVES, IG WAVES, FLOW, AND WAVE SETUP
 ! 
 ! Version 1.0: 
 ! Attenuation of short waves and IG waves 
@@ -41,31 +41,29 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 module vegetation_module
-   use typesandkinds
-   implicit none
-   save
-   private
-   type veggie
-   character(slen)                         :: name
-   integer                                 :: npts        ! Number of points used in vertical schematization of vegetation [-]
-   real*8  , dimension(:)    , allocatable :: zv          ! Vertical points used in vegetation schematization [m wrt zb_ini (zb0)]
-   real*8  , dimension(:)    , allocatable :: Cd          ! Vertically integrated drag coefficient [-]
-   real*8  , dimension(:)    , allocatable :: bv          ! Width of vegetation stands
-   integer , dimension(:)    , allocatable :: N           ! Number of vegetation stands per unit horizontal area [m-2]
-   real*8  , dimension(:,:,:), allocatable :: Dragterm1   ! Dragterm in wave action balance []
-   real*8  , dimension(:,:,:), allocatable :: Dragterm2   ! Dragterm in momentum equations []
-   integer , dimension(:,:)  , allocatable :: vegtype     ! spatial mapping of vegetation types [-]
-   end type veggie
+    use typesandkinds
+    implicit none
+    save
 
-   type(veggie), dimension(:), allocatable    :: veg
+    type veggie
+        character(slen)                         :: name        ! Name of vegetation specification file
+        integer ,                   allocatable :: npts        ! Number of points used in vertical schematization of vegetation [-]
+        real*8  , dimension(:)    , allocatable :: zv          ! Vertical points used in vegetation schematization [m wrt zb_ini (zb0)]
+        real*8  , dimension(:)    , allocatable :: Cd          ! Vertically integrated (bulk) drag coefficient [-]
+        real*8  , dimension(:)    , allocatable :: bv          ! Width of individual vegetation stems
+        integer , dimension(:)    , allocatable :: N           ! Number of vegetation stems per unit horizontal area [m-2]
+        real*8  , dimension(:,:,:), allocatable :: Dragterm1   ! Dragterm in wave action balance []
+        real*8  , dimension(:,:,:), allocatable :: Dragterm2   ! Dragterm in momentum equations []
+    end type veggie
 
-   public veggie_init
-   public vegatt
-
+    public veggie_init
+    public vegatt
+   
 contains
 
-subroutine veggie_init(s,par)
+subroutine veggie_init(s,par,veg)
     use params
+    use xmpi_module    
     use spaceparams
     use readkey_module
     use filefunctions
@@ -76,27 +74,24 @@ subroutine veggie_init(s,par)
 
     type(parameters)                            :: par
     type(spacepars), target                     :: s
-
+    type(veggie), dimension(:), pointer         :: veg
+    
     character(1)                                :: ch
     integer                                     :: i,j,fid,ier
-    !integer, dimension(s%nx+1,s%ny+1)           :: vegtype
-
-    !include 's.ind'
-    !include 's.inp'
+    
+    if (par%vegetation == 0 .or. .not. xmaster) then
+       return
+    endif
     
     ! INITIALIZATION OF VEGETATION
     ! Read files with vegetation properties:
     ! file 1: list of species
     ! file 2: vegetation properties per specie (could be multiple files)
     ! file 3: distribution of species over space
-
-    if(.not. xmaster) return ! wwvv todo: different from trunk
-
-    if (par%vegetation == 0) then
-       return
-    endif
-
-    !! 1) Check how many vegetation species are specified in veggiefile!!
+    call writelog('l','','--------------------------------')
+    call writelog('l','','Initializing vegetation input settings ')
+    
+    ! 1) Check how many vegetation species are specified in veggiefile
     fid=create_new_fid() ! see filefunctions.F90
     call check_file_exist(par%veggiefile)
     open(fid,file=par%veggiefile)
@@ -110,28 +105,34 @@ subroutine veggie_init(s,par)
         rewind(fid)
 
         allocate(veg(par%nveg))
+        
         do i=1,par%nveg
             read(fid,'(a)')veg(i)%name      ! set vegetation name
         enddo
     close(fid)
-    
-    !! 2)  Allocate and read vegetation properties for every species!!! 
+   
+    ! 2)  Allocate and read vegetation properties for every species    
     do i=1,par%nveg  ! for each species
-       call check_file_exist(veg(i)%name)
-       veg(i)%npts = readkey_int(veg(i)%name,'npts',  2,        2,      10  )! Number of vertical points in vegetation schematization
-       allocate (veg(i)%zv(veg(i)%npts))! Vertical coordinates (w.r.t. initial bathymetry)
-       allocate (veg(i)%Cd(veg(i)%npts))
-       allocate (veg(i)%bv(veg(i)%npts))
-       allocate (veg(i)%N(veg(i)%npts))
-       allocate (veg(i)%Dragterm1(veg(i)%npts,s%nx+1,s%ny+1))
-       allocate (veg(i)%Dragterm2(veg(i)%npts,s%nx+1,s%ny+1))
-       veg(i)%zv   = readkey_dblvec(veg(i)%name,'zv',veg(i)%npts,size(veg(i)%zv),0.1d0,0.05d0,20.d0)       ! Think about default values...
-       veg(i)%Cd   = readkey_dblvec(veg(i)%name,'Cd',veg(i)%npts,size(veg(i)%Cd),0.1d0,0.05d0,20.d0)       ! Think about default values...
-       veg(i)%bv   = readkey_dblvec(veg(i)%name,'bv',veg(i)%npts,size(veg(i)%bv),0.1d0,0.05d0,20.d0)       ! Think about default values...
-       veg(i)%N    = nint(readkey_dblvec(veg(i)%name,'N',veg(i)%npts,size(veg(i)%bv),0.1d0,0.05d0,20.d0))  ! Jaap: quick&dirt transform real into integer
+        allocate (veg(i)%npts)
+        !veg(i)%npts    = 2
+        veg(i)%npts    = readkey_int(veg(i)%name,'npts',  2,        2,      10)! Number of vertical points in vegetation schematization
        
-       ! If Cd is specified by user (constant), compute constant Dragterms 1 and 2 in initialization
-       do j=1,veg(i)%npts ! for every vertical veg point
+        allocate (veg(i)%zv(veg(i)%npts))! Vertical coordinates (w.r.t. initial bathymetry)
+        allocate (veg(i)%Cd(veg(i)%npts))
+        allocate (veg(i)%bv(veg(i)%npts))
+        allocate (veg(i)%N(veg(i)%npts))
+        allocate (veg(i)%Dragterm1(veg(i)%npts,s%nx+1,s%ny+1))
+        allocate (veg(i)%Dragterm2(veg(i)%npts,s%nx+1,s%ny+1))
+               
+        call check_file_exist(veg(i)%name)
+       
+        veg(i)%zv   =      readkey_dblvec(veg(i)%name,'zv',veg(i)%npts,size(veg(i)%zv),0.1d0,0.05d0,20.d0, bcast=.false.)      
+        veg(i)%bv   =      readkey_dblvec(veg(i)%name,'bv',veg(i)%npts,size(veg(i)%bv),0.1d0,0.05d0,20.d0, bcast=.false.)       
+        veg(i)%N    = nint(readkey_dblvec(veg(i)%name,'N', veg(i)%npts,size(veg(i)%N) ,0.1d0,0.05d0,20.d0, bcast=.false.))        
+        veg(i)%Cd   =      readkey_dblvec(veg(i)%name,'Cd',veg(i)%npts,size(veg(i)%Cd),0.1d0,0.05d0,20.d0, bcast=.false.)      
+       
+        ! If Cd is specified by user (constant), compute constant Dragterms 1 and 2 in initialization
+        do j=1,veg(i)%npts ! for every vertical veg point
             if (veg(i)%Cd(j) > tiny(0.d0)) then
                 veg(i)%Dragterm1(j,:,:) = 0.5d0/sqrt(par%px)*par%rho*veg(i)%Cd(j)*veg(i)%bv(j)*veg(i)%N(j) ! Drag coefficient based on first part equation 6.5 Suzuki, 2011
                 veg(i)%Dragterm2(j,:,:) = 0.5d0*veg(i)%Cd(j)*veg(i)%bv(j)*veg(i)%N(j)
@@ -139,37 +140,41 @@ subroutine veggie_init(s,par)
         enddo
     enddo
     
-    !! 3)  Read spatial distribution of all vegetation species !!! 
+    ! 3)  Read spatial distribution of all vegetation species 
     ! NB: vegtype = 1 corresponds to first vegetation specified in veggiefile etc.
     fid=create_new_fid() ! see filefunctions.F90
     call check_file_exist(par%veggiemapfile)
     open(fid,file=par%veggiemapfile)
-    do j=1,s%ny+1    ! Is this the right way to do it in a module
-       read(fid,*,iostat=ier)(s%vegtype,i=1,s%nx+1)
-    enddo
+        do j=1,s%ny+1
+            read(fid,*,iostat=ier)(s%vegtype,i=1,s%nx+1)
+        enddo
     close(fid)
 
+    call writelog('l','','--------------------------------')
+    call writelog('l','','Finished reading vegetation input... ')
     ! TODO: interpolate vegetation to u-points(!)
     ! TODO: vertical profile of veg chars (linear interpolation)
-    ! TODO: check 2d formulations
+    ! TODO: fix mpi trouble
+    
 end subroutine veggie_init
 
-subroutine vegatt(s,par)
+subroutine vegatt(s,par,veg)
     use params
     use spaceparams
     use readkey_module
+    use xmpi_module
     use filefunctions
     use interp
+    use logging_module
 
     type(parameters)                            :: par
     type(spacepars)                             :: s
+    type(veggie), dimension(:), pointer         :: veg
 
+    ! local variables
     integer                                     :: i,j,ind,m
     real*8                                      :: Cdterm
-    
-    !include 's.ind'
-    !include 's.inp'
- 
+
     ! First compute drag coefficient (if not user-defined)
     s%Cdrag = 0d0 ! set drag coefficient to zero every timestep
     do ind=1,par%nveg  ! for each species
@@ -181,7 +186,7 @@ subroutine vegatt(s,par)
                         if (s%vegtype(i,j)>0) then ! only if vegetation is present
                             
                             ! Now fill every location with drag coef (dep on veg type)
-                            call bulkdragcoeff(s,par,veg(ind)%zv(veg(ind)%npts)+s%zb0(i,j)-s%zb(i,j),ind,m,i,j,Cdterm)
+                            call bulkdragcoeff(s,par,veg(ind)%zv(veg(ind)%npts)+s%zb0(i,j)-s%zb(i,j),ind,m,i,j,Cdterm,veg)
                             s%Cdrag(i,j) = Cdterm
                 
                             ! Compute new drag terms 1 and 2 with new Cd-values
@@ -193,20 +198,21 @@ subroutine vegatt(s,par)
                         endif
                     enddo
                 enddo
-                
             endif
         enddo
     enddo
-    
+
     ! Attenuation by vegetation is computed in wave action balance (swvegatt) and the momentum balance (momeqveg); 
     !
     ! 1) Short wave dissipation by vegetation
-    call swvegatt(s,par)
+    call swvegatt(s,par,veg)
+
     ! 2) Mom.Eq.: Long wave dissipation, mean flow dissipation, nonlinear short wave effects, effect of emerged vegetation
-    call momeqveg(s,par)
+    call momeqveg(s,par,veg)
+
 end subroutine vegatt
 
-subroutine swvegatt(s,par)
+subroutine swvegatt(s,par,veg)
     use params
     use spaceparams
     use readkey_module
@@ -215,7 +221,9 @@ subroutine swvegatt(s,par)
 
     type(parameters)                            :: par
     type(spacepars), target                     :: s
-
+    type(veggie), dimension(:), pointer         :: veg
+    
+    ! local variables
     integer                                     :: i,j,m,ind  ! indices of actual x,y point
     real*8                                      :: aht,hterm,htermold,Dvgt
     real*8, dimension(s%nx+1,s%ny+1)            :: Dvg,kmr
@@ -260,7 +268,7 @@ subroutine swvegatt(s,par)
 
 end subroutine swvegatt
 
-subroutine momeqveg(s,par)
+subroutine momeqveg(s,par,veg)
     use params
     use spaceparams
     use readkey_module
@@ -269,11 +277,15 @@ subroutine momeqveg(s,par)
 
     type(parameters)                            :: par
     type(spacepars)                             :: s
-
+    type(veggie), dimension(:), pointer         :: veg
+    
+    ! local variables
     integer                                     :: i,j,m,ind  ! indices of actual x,y point
-    real*8                                      :: aht,ahtold,Fvgtu,Fvgtv,FvgStu,FvgStv,watr,wacr,uabsu,vabsv,Fvgnlu,Fvgnlv,FvgCau,ucan,uabsunl !uabsunl,vabsvnl,hterm,htermold,
+    real*8                                      :: aht,ahtold,Fvgtu,Fvgtv,FvgStu,FvgStv,watr,wacr,uabsu,vabsv,totT
+    real*8                                      :: Fvgnlt,Fvgnlu,Fvgnlv,FvgCan,FvgCav,FvgCau,ucan,uabsunl !uabsunl,vabsvnl,hterm,htermold,
     real*8, dimension(s%nx+1,s%ny+1)            :: Fvgu,Fvgv,kmr
-    real*8, dimension(50)                       :: unl,etaw,hvegeff,Fvgnlu0
+    real*8, dimension(50)                       :: unl,etaw,hvegeff,Fvgnlu0 
+    real*8, dimension(:,:)  , allocatable,save  :: sinthm, costhm
 
     !include 's.ind'
     !include 's.inp'
@@ -285,17 +297,32 @@ subroutine momeqveg(s,par)
     ! 4) return flow / undertow (ue)
     ! 5) wave-induced in-canopy flow (?)
     
+    ! only allocate in 1st timestep
+    if (.not. allocated(sinthm)) then
+        allocate (sinthm(s%nx+1,s%ny+1))
+        allocate (costhm(s%nx+1,s%ny+1))
+    endif
     kmr = min(max(s%k, 0.01d0), 100.d0)
 
     Fvgu = 0.d0
     Fvgv = 0.d0
+    Fvgnlt = 0.d0
     Fvgnlu = 0.d0
     Fvgnlv = 0.d0
     FvgStu = 0.d0
     FvgStv = 0.d0
     ucan   = 0.d0
+    FvgCan = 0.d0
+    FvgCav = 0.d0
     FvgCau = 0.d0
     uabsunl = 0.d0
+    
+    if(par%dt == par%t) then
+        totT = par%Trep
+    endif
+    
+    costhm = cos(s%thetamean-s%alfaz)
+    sinthm = sin(s%thetamean-s%alfaz)
 
    do j=1,s%ny+1
        do i=1,s%nx+1
@@ -308,7 +335,13 @@ subroutine momeqveg(s,par)
             vabsv = 0.d0
             Fvgnlu0 = 0.d0
             if (par%vegnonlin == 1) then
-                call swvegnonlin(s,par,i,j,unl,etaw)                
+                if(totT >= par%Trep) then ! only compute new nonlinear velocity profile every Trep s
+                    call swvegnonlin(s,par,i,j,unl,etaw)
+                    totT = 0.0d0
+                else
+                    totT = totT + par%dt
+                endif
+                
             endif
                   
             watr = 0d0
@@ -352,12 +385,19 @@ subroutine momeqveg(s,par)
                     ! nonlinear waves (including emerged vegetation effect)
                     !etaw    = 0.d0
                     hvegeff = max(etaw + s%hh(i,j)-ahtold,0.d0) ! effective vegetation height over a wave cycle
-                    Fvgnlu  = trapz((0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*min(hvegeff,aht)*unl*abs(unl)),par%Trep/50)/s%hh(i,j)
-                    Fvgnlv  = 0.d0 !max((min(aht,watr)-ahtold),0d0)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*uabsunl
+                    Fvgnlt  = trapz((0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*min(hvegeff,aht)*unl*abs(unl)),par%Trep/50)/s%hh(i,j)
+                    
+                    ! decompose in u and v-direction
+                    Fvgnlu  = Fvgnlt*costhm(i,j)
+                    Fvgnlv  = Fvgnlt*sinthm(i,j)
                     
                     ! wave induced incanopy flow (Luhar et al., 2010)
                     ucan   = sqrt(4.d0*kmr(i,j)*par%Trep*s%urms(i,j)**3/(6.d0*par%px**2))
-                    FvgCau = max((min(aht,watr)-ahtold),0d0)/s%hh(i,j)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*ucan**2
+                    FvgCan = max((min(aht,watr)-ahtold),0d0)/s%hh(i,j)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*ucan**2
+                    
+                    ! decompose in u and v-direction
+                    FvgCau = FvgCan*costhm(i,j)
+                    FvgCav = FvgCan*sinthm(i,j)
                 endif
 
                 ! save aht to ahtold to correct possibly in next vegetation section
@@ -365,12 +405,15 @@ subroutine momeqveg(s,par)
                 
                 ! add Forcing current layer
                 Fvgu(i,j) = Fvgu(i,j) + Fvgtu 
+                Fvgv(i,j) = Fvgv(i,j) + Fvgtv
 
                 if (par%vegnonlin == 1) then ! add nonlin wave effect
                     Fvgu(i,j) = Fvgu(i,j) + Fvgnlu
+                    Fvgv(i,j) = Fvgv(i,j) + Fvgnlv
                 endif
                 if (par%vegcanflo == 1) then ! add in canopy flow (Luhar et al., 2010)
                     Fvgu(i,j) = Fvgu(i,j) + FvgCau
+                    Fvgv(i,j) = Fvgv(i,j) + FvgCav
                 endif
             enddo
           endif
@@ -517,21 +560,24 @@ function trapz(y,dx) result (value)
     
 end function trapz
 
-subroutine bulkdragcoeff(s,par,ahh,ind,m,i,j,Cdterm)
+subroutine bulkdragcoeff(s,par,ahh,ind,m,i,j,Cdterm,veg)
 !    Michele Bendoni: subroutine to calculate bulk drag coefficient for short wave
 !    energy dissipation based on the Keulegan-Carpenter number
 !    Ozeren et al. (2013) or Mendez and Losada (2004)
 
     use params
     use spaceparams
-
+    
     implicit none
 
+    type(veggie), dimension(:), pointer         :: veg
+    
     type(parameters)     :: par
     type(spacepars)      :: s
     real*8,  intent(out) :: Cdterm
     real*8,  intent(in)  :: ahh    ! [m] plant (total) height
     integer, intent(in)  :: ind,m,i,j
+    
     ! Local variables
     real*8               :: alfav  ! [-] ratio between plant height and water depth
     real*8               :: um     ! [m/s] typical velocity acting on the plant
