@@ -916,11 +916,12 @@ contains
          call setoldnames('1','2','3','4','5')
          if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE) then
             call parmapply('break',2,par%break,par%break_str) ! default: baldock
+            par%gamma    = readkey_dbl ('params.txt','gamma',   0.78d0,     0.4d0,     0.9d0)   
          else
             call parmapply('break',3,par%break,par%break_str) ! default: roelvink2
+            par%gamma    = readkey_dbl ('params.txt','gamma',   0.55d0,     0.4d0,     0.9d0)   
          endif
-
-         par%gamma    = readkey_dbl ('params.txt','gamma',   0.55d0,     0.4d0,     0.9d0)   !changed 28/11
+         
          if (par%break == BREAK_ROELVINK_DALY) then
             par%gamma2   = readkey_dbl ('params.txt','gamma2',   0.3d0,     0.0d0,     0.5d0)
          endif
