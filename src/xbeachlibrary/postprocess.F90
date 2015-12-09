@@ -237,7 +237,14 @@ contains
             x(isx:iex,jsx:jex) = t%r2(is:ie,js:je)
          end select
       else
-         x(isx:iex,jsx:jex) = t%r2(is:ie,js:je)
+         select case(t%name)
+          case(mnem_Sutot)
+            Sutot = sum(s%Subg,dim=3)+sum(s%Susg,dim=3)
+          case(mnem_Svtot)
+            Sutot = sum(s%Subg,dim=3)+sum(s%Susg,dim=3)
+          case default   
+            x(isx:iex,jsx:jex) = t%r2(is:ie,js:je)
+         end select
       endif
 
    end subroutine gridrotate_r2
