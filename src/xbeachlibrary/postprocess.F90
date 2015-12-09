@@ -240,8 +240,10 @@ contains
          select case(t%name)
           case(mnem_Sutot)
             Sutot = sum(s%Subg,dim=3)+sum(s%Susg,dim=3)
+            Sutot(2:s%nx,:)=0.5d0*(Sutot(1:s%nx-1,:)+Sutot(2:s%nx,:))
           case(mnem_Svtot)
             Sutot = sum(s%Subg,dim=3)+sum(s%Susg,dim=3)
+            Svtot(:,2:s%ny)=0.5d0*(Svtot(:,1:s%ny-1)+Svtot(:,2:s%ny))
           case default   
             x(isx:iex,jsx:jex) = t%r2(is:ie,js:je)
          end select
