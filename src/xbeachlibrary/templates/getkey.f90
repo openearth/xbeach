@@ -3,9 +3,19 @@
 !  Compiling and running is taken care of by the Makefile
 
 <%
-realparams = [par for par in parameters if par["type"] == "double" if par["name"] not in {"D15", "D50", "D90", "sedcal", "ucrcal", "xpointsw", "ypointsw", "rugdepth"}]
-integerparams = [par for par in parameters if par["type"] == "int" if par["name"] not in {"pointtypes"}]
-characterparams = [par for par in parameters if par["type"] == "char" if par["name"] not in {"globalvars", "meanvars", "pointvars", "stationid"}]
+realparams = []
+integerparams = []
+characterparams = []
+for par in parameters:
+  if par["type"] == "double":
+    if par["name"] not in ("D15", "D50", "D90", "sedcal", "ucrcal", "xpointsw", "ypointsw", "rugdepth"):
+      realparams.append(par)
+  if par["type"] == "int":
+    if par["name"] not in ("pointtypes"):
+      integerparams.append(par)
+  if par["type"] == "char":
+    if par["name"] not in ("globalvars", "meanvars", "pointvars", "stationid"):
+      characterparams.append(par)
 %>
 
  integer, parameter :: ncharacterkeys=${len(characterparams)}

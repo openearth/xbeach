@@ -3,8 +3,6 @@
   !  Compiling and running is taken care of by the Makefile
 
 <%
-import collections
-
 # this list is copied to writeloginterface.f90
 formats = ["a", "afafafaf", "afaiaaa", "aaafaf", "aafaf", "afaaa", "aafa", "aaaf",
 "afafa", "afaf", "afa", "aaf", "iiiii", "aiaiafa",
@@ -30,9 +28,11 @@ format2type = {
 def format2vars(format):
     """convert a format code to a list of variables"""
     variables = []
-    counter = collections.Counter()
+    counter = {}
     for letter in format:
-        counter.update(letter)
+        counter[letter] = 0
+    for letter in format:
+        counter[letter] += 1
         n = counter[letter]
         # prepend with name to avoid interface colission
         name = format + "_" + format2name[letter] + str(n)
@@ -49,7 +49,7 @@ def vars2write(variables):
     for var in variables:
         if var["letter"] == "a":
             # trim the strings
-            writes.append("trim({})".format(var["name"]))
+            writes.append("trim({0})".format(var["name"]))
         else:
             writes.append(var["name"])
     # concatenate them all separated by ", "

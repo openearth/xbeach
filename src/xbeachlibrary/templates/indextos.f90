@@ -11,7 +11,7 @@ def rank(var):
 def dimarray(var):
     """combinine the shape text into dimension"""
     parts = ["'%-20s'" % (dim,) for dim in var["shape"]]
-    txt = "(/ {} /)".format(",".join(parts))
+    txt = "(/ {0} /)".format(",".join(parts))
     return txt
 
 typecodes = {
