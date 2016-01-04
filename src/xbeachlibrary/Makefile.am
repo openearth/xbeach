@@ -1,9 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4 -I config
 
 lib_LTLIBRARIES=libxbeach.la
-if USENETCDF
-extra_xbeach_sources=ncoutput.F90
-endif
 libxbeach_la_SOURCES= \
 	s.ind \
 	s.inp \
@@ -51,7 +48,7 @@ libxbeach_la_SOURCES= \
 	postprocess.F90 \
 	varianceupdate.F90 \
 	varoutput.F90 \
-	${extra_xbeach_sources} \
+	ncoutput.F90 \
 	output.F90 \
 	ship.F90 \
 	mnemoniciso.F90 \
