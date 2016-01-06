@@ -38,6 +38,7 @@ contains
 
     integer                                 :: i
     integer                                 :: j
+    integer                                 :: upwinddist
     integer,dimension(:,:),allocatable,save :: weteb
     
     if(.not.allocated(weteb)) allocate(weteb(s%nx+1,s%ny+1))
@@ -94,7 +95,6 @@ contains
             end if
          end do
       end do
-
       ! Jaap Wetting and drying criterion eta points
       do j=1,s%ny+1
          do i=1,s%nx+1
@@ -109,20 +109,33 @@ contains
       end do
       
       ! Wetting and drying for wave module
-      where(s%hh+par%delta*s%H>par%eps)
+      where(s%hh+par%delta*s%H>par%eps .or. s%wetz==1)
          s%wete = 1
       elsewhere
          s%wete = 0
       endwhere
       ! also need to surround wet cells
+      weteb = 0
+      ! upwind distance in wave propagation routine
+      if (par%scheme==SCHEME_UPWIND_1) then
+         upwinddist = 1
+      else
+         upwinddist = 2
+      endif
       forall(i=1:s%nx+1,j=1:s%ny+1,s%wete(i,j)==0)
-         weteb(i,j) = max(   maxval(  s%wete( max(i-1,1):min(i+1,s%nx+1) ,j                          )   ), &
-                             maxval(  s%wete( i                          ,max(j-1,1):min(j+1,s%ny+1) )   ) &
-                     )
+         weteb(i,j) = max(   maxval(  s%wetz( max(i-upwinddist,1):min(i+upwinddist,s%nx+1) ,j )   ), &
+                             maxval(  s%wetz( i, max(j-upwinddist,1):min(j+upwinddist,s%ny+1) )   ), &
+                             maxval(  s%wetu( max(i-1,1):min(i,s%nx+1) ,j                     )   ), &
+                             maxval(  s%wetv( i, max(j-1,1):min(j,s%ny+1)                     )   ) &
+                          )
+         !weteb(i,j) = maxval(s%wete(max(i-2,1):min(i+2,s%nx+1),max(j-2,1):min(j+2,s%ny+1))
+         !weteb(i,j) = max(   maxval(  s%wete( max(i-2,1):min(i+2,s%nx+1) ,j                          )   ), &
+         !                    maxval(  s%wete( i                          ,max(j-2,1):min(j+2,s%ny+1) )   ) &
+         !            )
       endforall
       where(s%wete==0)
          s%wete=weteb
       endwhere
-
+      
   end subroutine compute_wetcells
 end module wetcells_module
