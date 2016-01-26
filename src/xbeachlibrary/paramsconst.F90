@@ -48,6 +48,7 @@ module paramsconst
    integer, parameter :: LR_WALL                     =  1
    integer, parameter :: LR_NO_ADVEC                 =  2
    integer, parameter :: LR_NEUMANN_V                =  3
+   integer, parameter :: LR_ABS_1D                   =  4
 
    integer, parameter :: BACK_WALL                   =  0
    integer, parameter :: BACK_ABS_1D                 =  1

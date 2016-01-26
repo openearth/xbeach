@@ -51,6 +51,9 @@ module params
       integer                             :: single_dir             = -123                 !  [-] (advanced) Turn on stationary model for refraction, surfbeat based on mean direction
       integer                             :: bchwiz                 = -123                 !  [-] (advanced,silent) Turn on beachwizard
       integer                             :: setbathy               = -123                 !  [-] Turn on timeseries of prescribed bathy input
+      integer                             :: viscosity              = -123                 !  [-] Include viscosity in flow solver
+      integer                             :: advection              = -123                 !  [-] Include advection in flow solver
+      integer                             :: wind                   = -123                 !  [-] Include wind in flow solver
 
       ! [Section] Grid parameters
       character(slen)                     :: depfile                = 'abc'                !  [file] Name of the input bathymetry file
@@ -77,6 +80,7 @@ module params
       ! [Section] Model time
       double precision                    :: tstop                  = -123                 !  [s] Stop time of simulation, in morphological time
       double precision                    :: CFL                    = -123                 !  [-] Maximum Courant-Friedrichs-Lewy number
+      double precision                    :: dtset                  = -123                 !  [-] Fixed timestep, overrides use of CFL
       integer                             :: defuse                 = -123                 !  [-] (advanced,silent) Turn on timestep explosion prevention mechanism
       double precision                    :: maxdtfac               = -123                 !  [-] (advanced,silent) Maximum increase/decrease in time stp in explosion prevention mechanism
       character(slen)                     :: tunits                 = 's'                  !  [-] (advanced) Time units in udunits format (seconds since 1970-01-01 00:00:00.00 +1:00)
@@ -486,6 +490,9 @@ contains
       par%bchwiz      = readkey_int ('params.txt','bchwiz',        0,        0,     1,silent=.true.,strict=.true.)
       par%vegetation  = readkey_int ('params.txt','vegetation',    0,        0,     1,strict=.true.)
       par%setbathy    = readkey_int ('params.txt','setbathy',      0,        0,     1,strict=.true.)
+      par%viscosity   = readkey_int ('params.txt','viscosity',     1,        0,     1,strict=.true.)
+      par%advection   = readkey_int ('params.txt','advection',     1,        0,     1,strict=.true.)
+      par%wind        = readkey_int ('params.txt','wind',          1,        0,     1,strict=.true.)
       !
       !
       ! Grid parameters
@@ -601,6 +608,7 @@ contains
       call writelog('l','','--------------------------------')
       call writelog('l','','Model time parameters: ')
       par%CFL     = readkey_dbl ('params.txt','CFL',     0.7d0,     0.1d0,      0.9d0)
+      par%dtset   = readkey_dbl ('params.txt','dtset',   0.0d0,     0.001d0,   100.d0)
       par%tstop   = readkey_dbl ('params.txt','tstop', 2000.d0,      1.d0, 1000000.d0,required=.true.)
       par%defuse  = readkey_int ('params.txt','defuse',        1,        0,     1,strict=.true.,silent=.true.)
       if (par%nonh==0) then
@@ -835,7 +843,8 @@ contains
       call setallowednames('neumann',   LR_NEUMANN,    &
       'wall'   ,   LR_WALL,       &
       'no_advec',  LR_NO_ADVEC,   &
-      'neumann_v', LR_NEUMANN_V)
+      'neumann_v', LR_NEUMANN_V,  &
+      'abs_1d',    LR_ABS_1D)
       call setoldnames('0','1')
       call parmapply('left',1,par%left,par%left_str)
 

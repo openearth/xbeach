@@ -1453,6 +1453,19 @@ contains
             ! now fill i=1 and i=nx+1
             vbc(1) = vbc(2) * s%wetv(1,jbc)
             vbc(s%nx+1) = vbc(s%nx) * s%wetv(s%nx+1,jbc)
+          case (LR_ABS_1D)
+            ! Dano: weakly reflective boundary
+            do i=2,s%nx
+               if (s%wetv(i,jbc)==1) then
+                  vbc(i) = sqrt(par%g/s%hh(i,jn))*(s%zs(i,jn)-max(s%zb(i,jn),s%zs0(i,jn)))*(jbc-jn)
+                  s%zs(i,jbc)=s%zs(i,jn)
+               else
+                  vbc(i) = 0.d0
+               endif
+            enddo
+            ! now fill i=1 and i=nx+1
+            vbc(1) = vbc(2) * s%wetv(1,jbc)
+            vbc(s%nx+1) = vbc(s%nx) * s%wetv(s%nx+1,jbc)
          end select
       endif
    end function flow_lat_bc
