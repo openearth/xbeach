@@ -1,0 +1,81 @@
+.. partable:: Overview of available keywords related to non-hydrostatic correction parameters
+
+   Topt
+     :advanced:
+     :description:   Absolute period to optimize coefficient
+     :units:         s
+     :default:       10.0
+     :range:         1.0 - 20.0
+   breakviscfac
+     :advanced:
+     :description:   Factor to increase viscosity during breaking
+     :units:         -
+     :default:       1.5
+     :range:         1.0 - 3.0
+   breakvisclen
+     :advanced:
+     :description:   Ratio between local depth and length scale in extra breaking viscosity
+     :units:         -
+     :default:       1.0
+     :range:         0.75 - 3.0
+   dispc
+     :advanced:
+     :description:   Coefficient in front of the vertical pressure gradient
+     :units:         \?
+     :default:       1.0
+     :range:         0.1 - 2.0
+   kdmin
+     :advanced:
+     :description:   Minimum value of kd (pi/dx > min(kd))
+     :units:         -
+     :default:       0.0
+     :range:         0.0 - 0.05
+   maxbrsteep
+     :advanced:
+     :description:   Maximum wave steepness criterium
+     :units:         -
+     :default:       0.6
+     :range:         0.3 - 0.8
+   nhbreaker
+     :advanced:
+     :description:   Non-hydrostatic breaker model
+     :units:         -
+     :default:       2
+     :range:         0 - 3
+   reformsteep
+     :advanced:
+     :description:   Wave steepness criterium to reform after breaking
+     :units:         -
+     :default:       0.25d0*par\%maxbrsteep
+     :range:         0.0 - 0.95d0*par\%maxbrsteep
+   secbrsteep
+     :advanced:
+     :description:   Secondary maximum wave steepness criterium
+     :units:         -
+     :default:       0.5d0*par\%maxbrsteep
+     :range:         0.0 - 0.95d0*par\%maxbrsteep
+   solver
+     :advanced:
+     :description:   Solver used to solve the linear system
+     :units:         
+     :default:       tridiag
+     :range:         sip, tridiag
+   solver_acc
+     :advanced:
+     :description:   Accuracy with respect to the right-hand side usedin the following termination criterion: ||b-ax || < acc*||b|| 
+     :units:         -
+     :default:       0.005
+     :range:         1e-05 - 0.1
+   solver_maxit
+     :advanced:
+     :description:   Maximum number of iterations in the linear sip solver
+     :units:         -
+     :default:       30
+     :range:         1 - 1000
+   solver_urelax
+     :advanced:
+     :description:   Underrelaxation parameter
+     :units:         -
+     :default:       0.92
+     :range:         0.5 - 0.99
+

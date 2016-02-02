@@ -1,0 +1,89 @@
+.. partable:: Overview of available keywords related to wave-spectrum boundary condition parameters
+
+   Tm01switch
+     :advanced:
+     :description:   Switch to enable tm01 rather than tm-10
+     :units:         -
+     :default:       0
+     :range:         0 - 1
+   bcfile
+     :description:   Name of spectrum file
+     :units:         <file>
+   correctHm0
+     :advanced:
+     :description:   Switch to enable hm0 correction
+     :units:         -
+     :default:       1
+     :range:         0 - 1
+   dtbc
+     :advanced:
+     :description:   Timestep used to describe time series of wave energy and long wave flux at offshore boundary (not affected by morfac)
+     :units:         s
+     :default:       1.0
+     :range:         0.1 - 2.0
+   dthetaS_XB
+     :advanced:
+     :description:   The (counter-clockwise) angle in the degrees needed to rotate from the x-axis in swan to the x-axis pointing east
+     :units:         deg
+     :default:       0.0
+     :range:         -360.0 - 360.0
+   fcutoff
+     :advanced:
+     :description:   Low-freq cutoff frequency for instat = jons, swan or vardens boundary conditions
+     :units:         Hz
+     :default:       0.0
+     :range:         0.0 - 40.0
+   nonhspectrum
+     :advanced:
+     :description:   Spectrum format for wave action balance of nonhydrostatic waves
+     :units:         -
+     :default:       0
+     :range:         0 - 1
+   nspectrumloc
+     :advanced:
+     :description:   Number of input spectrum locations
+     :units:         -
+     :default:       1
+     :range:         1 - par\%ny+1
+   nspr
+     :advanced:
+     :description:   Switch to enable long wave direction forced into centres of short wave bins
+     :units:         -
+     :default:       0
+     :range:         0 - 1
+   oldnyq
+     :advanced:
+     :description:   Switch to enable old nyquist switch
+     :units:         -
+     :default:       0
+     :range:         0 - 1
+   random
+     :advanced:
+     :description:   Switch to enable random seed for instat = jons, swan or vardens boundary conditions
+     :units:         -
+     :default:       1
+     :range:         0 - 1
+   rt
+     :description:   Duration of wave spectrum at offshore boundary, in morphological time
+     :units:         s
+     :default:       min(3600.d0,par\%tstop)
+     :range:         1200.0 - 7200.0
+   sprdthr
+     :advanced:
+     :description:   Threshold ratio to maximum value of s above which spectrum densities are read in
+     :units:         -
+     :default:       0.08
+     :range:         0.0 - 1.0
+   trepfac
+     :advanced:
+     :description:   Compute mean wave period over energy band: par\%trepfac*maxval(sf) for instat jons, swan or vardens; converges to tm01 for trepfac = 0.0 and
+     :units:         -
+     :default:       0.01
+     :range:         0.0 - 1.0
+   wbcversion
+     :advanced:
+     :description:   Version of wave boundary conditions
+     :units:         -
+     :default:       3
+     :range:         1 - 3
+

@@ -1,0 +1,16 @@
+.. partable:: Overview of available keywords related to tide boundary conditions
+
+   paulrevere
+     :description:   Specifies tide on sea and land or two sea points if tideloc = 2
+     :units:         
+     :default:       land
+     :range:         land, sea
+   tideloc
+     :description:   Number of corner points on which a tide time series is specified
+     :units:         -
+     :default:       0
+     :range:         0 - 4
+   zs0file
+     :description:   Name of tide boundary condition series
+     :units:         <file>
+

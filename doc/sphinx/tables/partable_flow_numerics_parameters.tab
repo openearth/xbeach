@@ -1,0 +1,35 @@
+.. partable:: Overview of available keywords related to flow numerics parameters
+
+   eps
+     :description:   Threshold water depth above which cells are considered wet
+     :units:         m
+     :default:       0.005
+     :range:         0.001 - 0.1
+   eps_sd
+     :description:   Threshold velocity difference to determine conservation of energy head versus momentum
+     :units:         m/s
+     :default:       0.5
+     :range:         0.0 - 1.0
+   hmin
+     :description:   Threshold water depth above which stokes drift is included
+     :units:         m
+     :default:       0.2
+     :range:         0.001 - 1.0
+   oldhu
+     :advanced:
+     :description:   Switch to enable old hu calculation
+     :units:         -
+     :default:       0
+     :range:         0 - 1
+   secorder
+     :advanced:
+     :description:   Use second order corrections to advection/non-linear terms based on maccormack scheme
+     :units:         -
+     :default:       0
+     :range:         0 - 1
+   umin
+     :description:   Threshold velocity for upwind velocity detection and for vmag2 in equilibrium sediment concentration
+     :units:         m/s
+     :default:       0.0
+     :range:         0.0 - 0.2
+

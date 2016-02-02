@@ -1,0 +1,49 @@
+.. partable:: Overview of available keywords related to wave boundary condition parameters
+
+   Hrms
+     :description:   Hrms wave height for instat = stat, bichrom, ts_1 or ts_2
+     :units:         m
+     :default:       1.0
+     :range:         0.0 - 10.0
+   Tlong
+     :description:   Wave group period for case instat = bichrom
+     :units:         s
+     :default:       80.0
+     :range:         20.0 - 300.0
+   Trep
+     :description:   Representative wave period for instat = stat, bichrom, ts_1 or ts_2
+     :units:         s
+     :default:       10.0
+     :range:         1.0 - 20.0
+   dir0
+     :description:   Mean wave direction for instat = stat, bichrom, ts_1 or ts_2 (nautical convention)
+     :units:         deg
+     :default:       270.0
+     :range:         180.0 - 360.0
+   instat
+     :description:   Wave boundary condition type
+     :units:         
+     :default:       bichrom
+     :range:         stat, bichrom, ts_1, ts_2, jons, swan, vardens, reuse, ts_nonh, off, stat_table, jons_table
+   lateralwave
+     :description:   Switch for lateral boundary at left
+     :units:         
+     :default:       neumann
+     :range:         neumann, wavecrest, cyclic
+   m
+     :description:   Power in cos^m directional distribution for instat = stat, bichrom, ts_1 or ts_2
+     :units:         -
+     :default:       10
+     :range:         2 - 128
+   nmax
+     :advanced:
+     :description:   Maximum ratio of cg/c for computing long wave boundary conditions
+     :units:         -
+     :default:       0.8
+     :range:         0.5 - 1.0
+   taper
+     :description:   Spin-up time of wave boundary conditions, in morphological time
+     :units:         s
+     :default:       100.0
+     :range:         0.0 - 1000.0
+

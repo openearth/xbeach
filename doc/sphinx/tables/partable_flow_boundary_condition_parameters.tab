@@ -1,0 +1,59 @@
+.. partable:: Overview of available keywords related to flow boundary condition parameters
+
+   ARC
+     :advanced:
+     :description:   Switch for active reflection compensation at seaward boundary
+     :units:         -
+     :default:       1
+     :range:         0 - 1
+   back
+     :description:   Switch for boundary at bay side
+     :units:         
+     :default:       abs_2d
+     :range:         wall, abs_1d, abs_2d, wlevel
+   epsi
+     :advanced:
+     :description:   Ratio of mean current to time varying current through offshore boundary
+     :units:         -
+     :default:       -1.0
+     :range:         -1.0 - 0.2
+   freewave
+     :advanced:
+     :description:   Switch for free wave propagation 0 = use cg (default); 1 = use sqrt(gh) in instat = ts_2
+     :units:         -
+     :default:       0
+     :range:         0 - 1
+   front
+     :description:   Switch for seaward flow boundary
+     :units:         
+     :default:       abs_2d
+     :range:         abs_1d, abs_2d, wall, wlevel, nonh_1d, waveflume
+   left
+     :description:   Switch for lateral boundary at ny+1
+     :units:         
+     :default:       neumann
+     :range:         neumann, wall, no_advec, neumann_v
+   nc
+     :advanced:
+     :description:   Smoothing distance for estimating umean (defined as nr of cells)
+     :units:         -
+     :default:       par\%ny+1
+     :range:         1 - par\%ny+1
+   order
+     :advanced:
+     :description:   Switch for order of wave steering, 1 = first order wave steering (short wave energy only), 2 = second oder wave steering (bound long wave corresponding to short wave forcing is added)
+     :units:         -
+     :default:       2.0
+     :range:         1.0 - 2.0
+   right
+     :description:   Switch for lateral boundary at 0
+     :units:         
+     :default:       neumann
+     :range:         neumann, wall, no_advec, neumann_v
+   tidetype
+     :advanced:
+     :description:   Switch for offfshore boundary, velocity boundary or instant water level boundary
+     :units:         
+     :default:       velocity
+     :range:         instant, velocity
+

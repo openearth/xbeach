@@ -1,0 +1,69 @@
+.. partable:: Overview of available keywords related to bed composition parameters
+
+   D15
+     :description:   D15 grain size per grain type
+     :units:         m
+     :default:       0.00015
+     :range:         1e-05 - 0.0008
+   D50
+     :description:   D50 grain size per grain type
+     :units:         m
+     :default:       0.0002
+     :range:         5e-05 - 0.0008
+   D90
+     :description:   D90 grain size per grain type
+     :units:         m
+     :default:       0.0003
+     :range:         0.0001 - 0.0015
+   dzg1
+     :advanced:
+     :description:   Thickness of top sediment class layers
+     :units:         m
+     :default:       par\%dzg1
+     :range:         0.01 - 1.0
+   dzg2
+     :advanced:
+     :description:   Nominal thickness of variable sediment class layer
+     :units:         m
+     :default:       par\%dzg1
+     :range:         0.01 - 1.0
+   dzg3
+     :advanced:
+     :description:   Thickness of bottom sediment class layers
+     :units:         m
+     :default:       par\%dzg1
+     :range:         0.01 - 1.0
+   nd
+     :advanced:
+     :description:   Number of computational layers in the bed
+     :units:         -
+     :default:       3
+     :range:         3 - 1000
+   ngd
+     :description:   Number of sediment classes
+     :units:         -
+     :default:       1
+     :range:         1 - 20
+   por
+     :description:   Porosity
+     :units:         -
+     :default:       0.4
+     :range:         0.3 - 0.5
+   rhos
+     :description:   Solid sediment density (no pores)
+     :units:         kgm^-3
+     :default:       2650.0
+     :range:         2400.0 - 2800.0
+   sedcal
+     :advanced:
+     :description:   Sediment transport calibration coefficient per grain type
+     :units:         -
+     :default:       1.0
+     :range:         0.0 - 2.0
+   ucrcal
+     :advanced:
+     :description:   Critical velocity calibration coefficient per grain type
+     :units:         -
+     :default:       1.0
+     :range:         0.0 - 2.0
+

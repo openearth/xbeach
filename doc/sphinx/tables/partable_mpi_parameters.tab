@@ -1,0 +1,21 @@
+.. partable:: Overview of available keywords related to mpi parameters
+
+   mmpi
+     :advanced:
+     :description:   Number of domains in cross-shore direction when manually specifying mpi domains
+     :units:         -
+     :default:       2
+     :range:         1 - 100
+   mpiboundary
+     :advanced:
+     :description:   Fix mpi boundaries along y-lines, x-lines, use manual defined domains or find shortest boundary automatically
+     :units:         
+     :default:       auto
+     :range:         auto, x, y, man
+   nmpi
+     :advanced:
+     :description:   Number of domains in alongshore direction when manually specifying mpi domains
+     :units:         -
+     :default:       4
+     :range:         1 - 100
+

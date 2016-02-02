@@ -1,0 +1,15 @@
+.. partable:: Overview of available keywords related to variables, not read in params.txt
+
+   dt
+     :description:   Computational time step, in hydrodynamic time
+     :units:         s
+     :default:       -123
+   t
+     :description:   Computational time, in hydrodynamic time
+     :units:         s
+     :default:       -123
+   tnext
+     :description:   Next time point for output or wave stationary calculation, in hydrodynamic time
+     :units:         s
+     :default:       -123
+

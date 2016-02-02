@@ -1,0 +1,26 @@
+.. partable:: Overview of available keywords related to wave numerics parameters
+
+   maxerror
+     :advanced:
+     :description:   Maximum wave height error in wave stationary iteration
+     :units:         m
+     :default:       5e-05
+     :range:         1e-05 - 0.001
+   maxiter
+     :advanced:
+     :description:   Maximum number of iterations in wave stationary
+     :units:         -
+     :default:       500
+     :range:         2 - 1000
+   scheme
+     :advanced:
+     :description:   Numerical scheme for wave propagation
+     :units:         
+     :default:       upwind_2
+     :range:         upwind_1, lax_wendroff, upwind_2
+   wavint
+     :description:   Interval between wave module calls (only in stationary wave mode)
+     :units:         s
+     :default:       60.0
+     :range:         1.0 - 3600.0
+

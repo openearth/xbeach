@@ -1,0 +1,83 @@
+.. partable:: Overview of available keywords related to groundwater parameters
+
+   aquiferbot
+     :advanced:
+     :description:   Level of uniform aquifer bottom
+     :units:         m
+     :default:       -10.0
+     :range:         -100.0 - 100.0
+   aquiferbotfile
+     :advanced:
+     :description:   Name of the aquifer bottom file
+     :units:         <file>
+   dwetlayer
+     :advanced:
+     :description:   Thickness of the top soil layer interacting more freely with the surface water
+     :units:         m
+     :default:       0.1
+     :range:         0.01 - 1.0
+   gw0
+     :advanced:
+     :description:   Level initial groundwater level
+     :units:         m
+     :default:       0.0
+     :range:         -5.0 - 5.0
+   gw0file
+     :advanced:
+     :description:   Name of initial groundwater level file
+     :units:         <file>
+   gwReturb
+     :advanced:
+     :description:   Reynolds number for start of turbulent flow in case of gwscheme = turbulent
+     :units:         -
+     :default:       100.0
+     :range:         1.0 - 600.0
+   gwfastsolve
+     :advanced:
+     :description:   Reduce full 2d non-hydrostatic solution to quasi-explicit in longshore direction
+     :units:         -
+     :default:       0
+     :range:         0 - 1
+   gwheadmodel
+     :advanced:
+     :description:   Model to use for vertical groundwater head
+     :units:         
+     :default:       parabolic
+     :range:         parabolic, exponential
+   gwhorinfil
+     :advanced:
+     :description:   Switch to include horizontal infiltration from surface water to groundwater
+     :units:         -
+     :default:       0
+     :range:         0 - 1
+   gwnonh
+     :advanced:
+     :description:   Switch to turn on or off non-hydrostatic pressure for groundwater
+     :units:         -
+     :default:       0
+     :range:         0 - 1
+   gwscheme
+     :advanced:
+     :description:   Scheme for momentum equation
+     :units:         
+     :default:       laminar
+     :range:         laminar, turbulent
+   kx
+     :advanced:
+     :description:   Darcy-flow permeability coefficient in x-direction
+     :units:         ms^-1
+     :default:       0.0001
+     :range:         1e-05 - 0.1
+   ky
+     :advanced:
+     :description:   Darcy-flow permeability coefficient in y-direction
+     :units:         ms^-1
+     :default:       0.0001
+     :range:         1e-05 - 0.1
+   kz
+     :advanced:
+     :description:   Darcy-flow permeability coefficient in z-direction
+     :units:         ms^-1
+     :default:       0.0001
+     :range:         1e-05 - 0.1
+

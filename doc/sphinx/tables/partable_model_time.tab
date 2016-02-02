@@ -1,0 +1,19 @@
+.. partable:: Overview of available keywords related to model time
+
+   CFL
+     :description:   Maximum courant-friedrichs-lewy number
+     :units:         -
+     :default:       0.7
+     :range:         0.1 - 0.9
+   tstop
+     :required:
+     :description:   Stop time of simulation, in morphological time
+     :units:         s
+     :default:       2000.0
+     :range:         1.0 - 1000000.0
+   tunits
+     :advanced:
+     :description:   Time units in udunits format (seconds since 1970-01-01 00:00:00.00 +1:00)
+     :units:         -
+     :default:       's'
+

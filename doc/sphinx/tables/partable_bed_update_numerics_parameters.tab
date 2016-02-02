@@ -1,0 +1,38 @@
+.. partable:: Overview of available keywords related to bed update numerics parameters
+
+   frac_dz
+     :advanced:
+     :description:   Relative thickness to split time step for bed updating
+     :units:         -
+     :default:       0.7
+     :range:         0.5 - 0.98
+   merge
+     :advanced:
+     :description:   Merge threshold for variable sediment layer (ratio to nominal thickness)
+     :units:         -
+     :default:       0.01
+     :range:         0.005 - 0.1
+   nd_var
+     :advanced:
+     :description:   Index of layer with variable thickness
+     :units:         -
+     :default:       2
+     :range:         2 - par\%nd
+   nsetbathy
+     :advanced:
+     :description:   Number of prescribed bed updates
+     :units:         -
+     :default:       1
+     :range:         1 - 1000
+   setbathyfile
+     :advanced:
+     :required:
+     :description:   Name of prescribed bed update file
+     :units:         <file>
+   split
+     :advanced:
+     :description:   Split threshold for variable sediment layer (ratio to nominal thickness)
+     :units:         -
+     :default:       1.01
+     :range:         1.005 - 1.1
+

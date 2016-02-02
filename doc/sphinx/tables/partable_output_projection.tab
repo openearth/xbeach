@@ -1,0 +1,13 @@
+.. partable:: Overview of available keywords related to output projection
+
+   projection
+     :advanced:
+     :description:   Projection string
+     :units:         -
+     :default:       ' '
+   rotate
+     :description:   Rotate output as postprocessing with given angle
+     :units:         -
+     :default:       1
+     :range:         0 - 1
+
