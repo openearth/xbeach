@@ -1,0 +1,163 @@
+\input texinfo @c -*-texinfo-*-
+@c This file uses the @command command introduced in Texinfo 4.0.
+@c %**start of header
+@setfilename xbeach.info
+@settitle Xbeach
+@finalout
+@setchapternewpage odd
+@c %**end of header
+
+@set VERSION 0.1.0
+
+@ifinfo
+This file documents the @command{xbeach} command which a two-dimensional model for wave propagation, long waves and mean flow, sediment transport and morphological changes of the nearshore area, beaches, dunes and backbarrier during storms.
+
+Copyright (C) 2008 Dano Roelvink
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+@ignore
+Permission is granted to process this file through TeX and print the
+results, provided the printed document carries copying permission
+notice identical to this one except for the removal of this paragraph
+(this paragraph not being relevant to the printed manual).
+
+@end ignore
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation approved
+by the Foundation.
+@end ifinfo
+
+@titlepage
+@title xbeach
+@subtitle a two-dimensional beach model. 
+@subtitle for xbeach Version @value{VERSION}
+@author by Dano Roelvink
+
+@page
+@vskip 0pt plus 1filll
+Copyright @copyright{} 2008 Dano Roelvink
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation approved
+by the Foundation.
+@end titlepage
+
+@c All the nodes can be updated using the EMACS command
+@c texinfo-every-node-update, which is normally bound to C-c C-u C-e.
+@node Top, Introduction, (dir), (dir)
+
+@ifinfo
+This file documents the @command{xbeach} command to a two-dimensional model for wave propagation, long waves and mean flow, sediment transport and morphological changes of the nearshore area, beaches, dunes and backbarrier during storms..
+@end ifinfo
+
+@c All the menus can be updated with the EMACS command
+@c texinfo-all-menus-update, which is normally bound to C-c C-u C-a.
+@menu
+* Introduction::                How to read this manual. 
+* Copying::                     How you can copy and share @command{xbeach}.
+* Overview::                    Preliminary information.
+* Sample::                      Sample output from @command{xbeach}.
+* Invoking xbeach::             How to run @command{xbeach}.
+* Problems::                    Reporting bugs.
+* Concept Index::               Index of concepts.
+@end menu
+
+@node Introduction, Copying, Top, Top
+@chapter Introduction
+
+Xbeach is a two-dimensional model for wave propagation, long waves and
+mean flow, sediment transport and morphological changes of the
+nearshore area, beaches, dunes and backbarrier during storms.
+It has been developed with funding and support by the US
+Army Corps of Engineers, by a consortium of UNESCO-IHE, Delft
+Hydraulics, Delft University of Technology and the University of Miami.
+
+@node Copying, Overview, Introduction, Top
+@include copying.texinfo
+
+@node Overview, Sample, Copying, Top
+@chapter Overview
+@cindex greetings
+@cindex overview
+
+The GNU @command{xbeach} program reads input from a file
+@file{params.txt}. It produces some output and stores results
+after doing calculations.
+
+@node Sample, Invoking xbeach, Overview, Top
+@chapter Sample Output
+@cindex sample
+
+Here are some realistic examples of running @command{xbeach}.
+
+This is the output of the command @samp{xbeach}:
+
+@example
+Welcome to Xbeach
+General Input Module
+
+Building Grid and Bathymetry and....
+Distributing wave energy across the directional space ....
+@end example
+
+
+@node Invoking xbeach, Problems, Sample, Top
+@chapter Invoking @command{xbeach}
+@cindex invoking
+@cindex version
+@cindex options
+@cindex usage
+@cindex help
+@cindex getting help
+
+The format for running the @command{xbeach} program is:
+
+@example
+xbeach 
+@end example
+
+
+@node Problems, Concept Index, Invoking xbeach, Top
+@chapter Reporting Bugs
+@cindex bugs
+@cindex problems
+
+If you find a bug in @command{xbeach}, please send electronic mail to
+@email{dano.roelvink@@deltares.nl}.  Include the version number, which you can find by
+running @w{@samp{xbeach --version}}.  Also include in your message the
+output that the program produced and the output you expected.@refill
+
+If you have other questions, comments or suggestions about
+@command{xbeach}, contact the author via electronic mail to
+@email{dano.roelvink@@deltares.nl}.  The author will try to help you out, although he
+may not have time to fix your problems.
+
+
+@node Concept Index,  , Problems, Top
+@unnumbered Concept Index
+
+@cindex tail recursion
+@printindex cp
+
+@shortcontents
+@contents
+@bye
