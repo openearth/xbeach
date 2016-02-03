@@ -184,7 +184,9 @@ module params
       double precision                  :: n                        = -123                 !  [-] (advanced) Power in Roelvink dissipation model
       double precision                  :: gammax                   = -123                 !  [-] (advanced) Maximum ratio wave height to water depth
       double precision                  :: delta                    = -123                 !  [-] (advanced) Fraction of wave height to add to water depth
-      double precision                  :: fw                       = -123                 !  [-] (advanced) Bed friction factor
+      double precision                  :: wavfriccoef              = -123                 !  [-] Wave friction coefficient
+      character(slen)                   :: wavfricfile              = 'abc'                !  [file] Wave friction file
+      !double precision                  :: fw                       = -123                 !  [-] (advanced) Bed friction factor
       double precision                  :: fwcutoff                 = -123                 !  [-] Depth greater than which the bed friction factor is not applied
       integer                           :: breakerdelay             = -123                 !  [-] (advanced) Switch to enable breaker delay model
       integer                           :: shoaldelay               = -123                 !  [-] (advanced,silent) Switch to enable shoaling delay
@@ -934,11 +936,23 @@ contains
          if (par%break == BREAK_ROELVINK_DALY) then
             par%gamma2   = readkey_dbl ('params.txt','gamma2',   0.3d0,     0.0d0,     0.5d0)
          endif
-         par%alpha    = readkey_dbl ('params.txt','alpha',   1.0d0,     0.5d0,     2.0d0)
-         par%n        = readkey_dbl ('params.txt','n',       10.0d0,     5.0d0,    20.0d0)   !changed 28/11
-         par%gammax   = readkey_dbl ('params.txt','gammax',   2.d0,      .4d0,      5.d0)    !changed 28/11
-         par%delta    = readkey_dbl ('params.txt','delta',   0.0d0,     0.0d0,     1.0d0)
-         par%fw       = readkey_dbl ('params.txt','fw',       0.d0,   0d0,      1.0d0)
+         par%alpha        = readkey_dbl ('params.txt','alpha',   1.0d0,     0.5d0,     2.0d0)
+         par%n            = readkey_dbl ('params.txt','n',       10.0d0,     5.0d0,    20.0d0)   !changed 28/11
+         par%gammax       = readkey_dbl ('params.txt','gammax',   2.d0,      .4d0,      5.d0)    !changed 28/11
+         par%delta        = readkey_dbl ('params.txt','delta',   0.0d0,     0.0d0,     1.0d0)
+         par%wavfriccoef  = readkey_dbl ('params.txt','fw',       0.d0,   0d0,      1.0d0)
+         ! try to read a wave friction file
+         par%wavfricfile  = readkey_name('params.txt','fwfile')
+         if (par%wavfricfile .ne. ' ') then
+            call check_file_exist(par%wavfricfile)
+            if (par%gridform==GRIDFORM_XBEACH) then
+               call check_file_length(par%wavfricfile,par%nx+1,par%ny+1)
+            endif
+            call writelog('lws','(a,a,a)','Warning: wave friction coefficient values from file ''',&
+            trim(par%wavfricfile), &
+            ''' will be used in computation')
+         end if
+         !par%fw       = readkey_dbl ('params.txt','fw',       0.d0,   0d0,      1.0d0)
          par%fwcutoff = readkey_dbl ('params.txt','fwcutoff',  1000.d0,   0d0,      1000.d0)
          par%breakerdelay = readkey_int ('params.txt','breakerdelay',    1,   0,      1,strict=.true.)
          par%shoaldelay = readkey_int ('params.txt','shoaldelay',    0,   0,      1,silent=.true.,strict=.true.)

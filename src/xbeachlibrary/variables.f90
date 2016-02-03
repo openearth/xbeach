@@ -280,4 +280,5 @@ module variables
   double precision, allocatable, target :: setbathy(:,:,:)  !< [m] prescribed bed levels {"shape": ["s%nx+1", "s%ny+1", "par%nsetbathy"], "standard_name": "", "broadcast": "d"}
   double precision,              target :: tsetbathy(:)     !< [s] points in time of prescibed bed levels {"shape": ["par%nsetbathy"], "standard_name": "", "broadcast": "b"}
   integer,          allocatable, target :: breaking(:,:)    !< [-] indicator whether cell has breaking nonh waves {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: fw(:,:)          !< [-] wave friction coefficient {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
 end module variables

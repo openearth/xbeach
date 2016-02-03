@@ -1848,7 +1848,7 @@ contains
                ! If not present Hrunup will converge to H at the water line (where H = 0 per definition)
                do j1=indx,i-1
                   ! TODO: Strange condition. In case of no toe, or no steep slope,
-                  !   there will still be extra turbulance at L1 meter from the water line...
+                  !   there will still be extra turbulence at L1 meter from the water line...
                   ! cross shore location structure toe
                   if (s%dzbdx(j1,j)<0.15d0 .or. s%structdepth(j1,j)>0.1d0) then
                      indx = j1
@@ -1860,7 +1860,7 @@ contains
                s%istruct(j) = indx*1.d0      ! cross-shore index revetment toe
                s%iwl(j) = (i-1)*1.d0         ! cross-shore location waterline (inlcuding lw-s%runup)
 
-               ! now itteratively compute runup
+               ! now iteratively compute runup
                hav1d = s%hh(:,j)
                runup_old = huge(0.d0)
                s%runup(j) = 0;

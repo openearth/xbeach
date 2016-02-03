@@ -282,9 +282,9 @@ contains
             s%thetamin = mod(s%thetamin,2.d0*par%px)
             s%thetamax = mod(s%thetamax,2.d0*par%px)
             ! thetamin should always be smaller than thetamax
-            if(s%thetamin>s%thetamax) then
+            if(s%thetamin>=s%thetamax) then
                if (s%thetamax>=0.d0) then
-                  do while(s%thetamin>s%thetamax)
+                  do while(s%thetamin>=s%thetamax)
                      s%thetamin = s%thetamin-2.d0*par%px
                   enddo
                else
@@ -454,6 +454,7 @@ contains
       use params
       use spaceparams
       use readkey_module
+      use logging_module
       use xmpi_module
       use wave_functions_module
       use paramsconst
@@ -463,8 +464,8 @@ contains
       type(spacepars),target              :: s
       type(parameters)                    :: par
 
-      integer                             :: itheta
-
+      integer                             :: itheta, i, j, ier
+      logical                             :: exists
 
       if(.not. xmaster) return
 
@@ -506,6 +507,7 @@ contains
       allocate(s%urms(1:s%nx+1,1:s%ny+1))
       allocate(s%D(1:s%nx+1,1:s%ny+1))
       allocate(s%Df(1:s%nx+1,1:s%ny+1))
+      allocate(s%fw(1:s%nx+1,1:s%ny+1))
       allocate(s%Dveg(1:s%nx+1,1:s%ny+1))
       allocate(s%Fvegu(1:s%nx+1,1:s%ny+1))
       allocate(s%Fvegv(1:s%nx+1,1:s%ny+1))
@@ -596,6 +598,20 @@ contains
       end do
       s%sigm = sum(s%sigt,3)/s%ntheta
       call dispersion(par,s)
+      
+      inquire(file=par%wavfricfile,exist=exists)
+      if ((exists)) then
+         open(723,file=par%wavfricfile)
+         do j=1,s%ny+1
+            read(723,*,iostat=ier)(s%fw(i,j),i=1,s%nx+1)
+            if (ier .ne. 0) then
+               call report_file_read_error(par%wavfricfile)
+            endif
+         enddo
+         close(723)
+      else
+         s%fw=par%wavfriccoef
+      endif
 
 
    end subroutine wave_init
@@ -1118,7 +1134,8 @@ contains
          close(723)
       else
          s%bedfriccoef=par%bedfriccoef
-      endif
+      endif     
+      
       !
       ! set zs, hh, wetu, wetv, wetz
       !

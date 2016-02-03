@@ -387,16 +387,12 @@ contains
 
 
             ! Dissipation by bed friction
-            if(par%fw>0.d0) then
-               where(s%wete(i,:)==1 .and. hhmwdir(i,:)>par%fwcutoff)
-                  uorb(i,:)=par%px*s%H(i,:)/par%Trep/sinh(min(max(s%k(i,:),0.01d0)*max(hhmwdir(i,:),par%delta*s%H(i,:)),10.0d0))
-                  s%Df(i,:)=0.6666666d0/par%px*par%rho*par%fw*uorb(i,:)**3
-               elsewhere
-                  s%Df(i,:) = 0.d0
-               end where
-            else
+            where(s%fw(i,:)>0.d0 .and. s%wete(i,:)==1 .and. hhmwdir(i,:)>par%fwcutoff)
+               uorb(i,:)=par%px*s%H(i,:)/par%Trep/sinh(min(max(s%k(i,:),0.01d0)*max(hhmwdir(i,:),par%delta*s%H(i,:)),10.0d0))
+               s%Df(i,:)=0.6666666d0/par%px*par%rho*s%fw(i,:)*uorb(i,:)**3
+            elsewhere
                s%Df(i,:) = 0.d0
-            endif
+            end where
             !
             ! Distribution of dissipation over directions and frequencies
             !
