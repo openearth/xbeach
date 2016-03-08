@@ -1266,8 +1266,8 @@ contains
             call xmpi_allreduce(vdnvsum  ,MPI_SUM)
             call xmpi_allreduce(dnvsum   ,MPI_SUM)
 #endif
-            s%umean(s%nx,:)=factime*udnusum/dnusum+(1.0d0-factime)*s%umean(1,:)
-            s%vmean(s%nx,:)=factime*vdnvsum/dnvsum+(1.0d0-factime)*s%vmean(1,:)
+            s%umean(s%nx,:)=factime*udnusum/dnusum+(1.0d0-factime)*s%umean(s%nx,:)
+            s%vmean(s%nx,:)=factime*vdnvsum/dnvsum+(1.0d0-factime)*s%vmean(s%nx,:)
 
          else
             s%umean(s%nx,:) = 0.d0
