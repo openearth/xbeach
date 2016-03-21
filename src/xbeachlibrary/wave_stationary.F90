@@ -344,7 +344,7 @@ contains
             ! Distribution of dissipation over directions and frequencies
             !
             do itheta=1,s%ntheta
-               dd(i,:,itheta)=s%ee(i,:,itheta)*(s%D(i,:)+s%Df(i,:))/max(s%E(i,:),0.00001d0)
+               dd(i,:,itheta)=s%ee(i,:,itheta)*(s%D(i,:)+s%Df(i,:)+s%Dveg(i,:))/max(s%E(i,:),0.00001d0)
             end do
             do j=1,s%ny+1
                ! cjaap: replaced par%hmin by par%eps

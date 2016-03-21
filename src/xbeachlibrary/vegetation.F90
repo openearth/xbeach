@@ -144,11 +144,27 @@ subroutine veggie_init(s,par,veg)
     ! NB: vegtype = 1 corresponds to first vegetation specified in veggiefile etc.
     fid=create_new_fid() ! see filefunctions.F90
     call check_file_exist(par%veggiemapfile)
-    open(fid,file=par%veggiemapfile)
-        do j=1,s%ny+1
-            read(fid,*,iostat=ier)(s%vegtype,i=1,s%nx+1)
-        enddo
-    close(fid)
+    
+    select case(par%gridform)
+    case(GRIDFORM_XBEACH)
+        open(fid,file=par%veggiemapfile)
+            do j=1,s%ny+1
+                read(fid,*,iostat=ier)(s%vegtype(i,j),i=1,s%nx+1)
+                if (ier .ne. 0) then
+                    call report_file_read_error(par%veggiemapfile)
+                endif
+            enddo
+        close(fid)
+    case (GRIDFORM_DELFT3D)
+        open(33,file=par%veggiemapfile,status='old')
+            do j=1,s%ny+1
+                read(33,*,iostat=ier)(s%vegtype(i,j),i=1,s%nx+1)
+                if (ier .ne. 0) then
+                    call report_file_read_error(par%veggiemapfile)
+                endif
+            enddo
+        close(33)
+    end select
 
     call writelog('l','','--------------------------------')
     call writelog('l','','Finished reading vegetation input... ')
