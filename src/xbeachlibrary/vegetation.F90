@@ -48,7 +48,9 @@ module vegetation_module
     type veggie
         character(slen)                         :: name        ! Name of vegetation specification file
         integer ,                   allocatable :: npts        ! Number of points used in vertical schematization of vegetation [-]
+        integer ,                   allocatable :: nsec        ! (OLD) Number of points used in vertical schematization of vegetation [-]
         real*8  , dimension(:)    , allocatable :: zv          ! Vertical points used in vegetation schematization [m wrt zb_ini (zb0)]
+        real*8  , dimension(:)    , allocatable :: ah          ! (OLD) Vertical points used in vegetation schematization [m wrt zb_ini (zb0)]
         real*8  , dimension(:)    , allocatable :: Cd          ! Vertically integrated (bulk) drag coefficient [-]
         real*8  , dimension(:)    , allocatable :: bv          ! Width of individual vegetation stems
         integer , dimension(:)    , allocatable :: N           ! Number of vegetation stems per unit horizontal area [m-2]
@@ -77,7 +79,7 @@ subroutine veggie_init(s,par,veg)
     type(veggie), dimension(:), pointer         :: veg
     
     character(1)                                :: ch
-    integer                                     :: i,j,fid,ier
+    integer                                     :: i,j,fid,ier,pts
     
     if (par%vegetation == 0 .or. .not. xmaster) then
        return
@@ -114,9 +116,12 @@ subroutine veggie_init(s,par,veg)
     ! 2)  Allocate and read vegetation properties for every species    
     do i=1,par%nveg  ! for each species
         allocate (veg(i)%npts)
-        !veg(i)%npts    = 2
-        veg(i)%npts    = readkey_int(veg(i)%name,'npts',  2,        2,      10)! Number of vertical points in vegetation schematization
+        allocate (veg(i)%nsec)
+
+        veg(i)%npts    = readkey_int(veg(i)%name,'npts',  2,        2,      10, silent=.true.)! Number of vertical points in vegetation schematization
+        veg(i)%nsec    = readkey_int(veg(i)%name,'nsec',  1,        1,      10, silent=.true.)! Number of vertical points in vegetation schematization
        
+        allocate (veg(i)%ah(veg(i)%nsec))
         allocate (veg(i)%zv(veg(i)%npts))! Vertical coordinates (w.r.t. initial bathymetry)
         allocate (veg(i)%Cd(veg(i)%npts))
         allocate (veg(i)%bv(veg(i)%npts))
@@ -125,11 +130,30 @@ subroutine veggie_init(s,par,veg)
         allocate (veg(i)%Dragterm2(veg(i)%npts,s%nx+1,s%ny+1))
                
         call check_file_exist(veg(i)%name)
-       
-        veg(i)%zv   =      readkey_dblvec(veg(i)%name,'zv',veg(i)%npts,size(veg(i)%zv),0.1d0,0.05d0,20.d0, bcast=.false.)      
-        veg(i)%bv   =      readkey_dblvec(veg(i)%name,'bv',veg(i)%npts,size(veg(i)%bv),0.1d0,0.05d0,20.d0, bcast=.false.)       
-        veg(i)%N    = nint(readkey_dblvec(veg(i)%name,'N', veg(i)%npts,size(veg(i)%N) ,0.1d0,0.05d0,20.d0, bcast=.false.))        
-        veg(i)%Cd   =      readkey_dblvec(veg(i)%name,'Cd',veg(i)%npts,size(veg(i)%Cd),0.1d0,0.05d0,20.d0, bcast=.false.)      
+        
+        veg(i)%ah   =      readkey_dblvec(veg(i)%name,'ah',veg(i)%nsec,size(veg(i)%ah),99.9d0, 0.d0, 2.d0, bcast=.false.,silent=.true.)
+        if (veg(i)%ah(1) < 99.d0) then ! if old way to specify vegetation (vertical sections)
+            !call writelog('lws','(a)','Warning: the way vegetation is specified has been updated recently. Instead of prescribing the vegetation properties per vertical section, vegetation is now prescribed per vertical coordinate. Please use the keyword npts to indicate the number of vertical points, and then specify the vertical position (zv), vegetation density (N), stem width (bv) an drag coefficient (Cd) for each vertical coordinate. This means, for instance, that you will need to specify the properties at least two vertical coordinates (bottom and top of the vegetation), e.g. zv = 0 0.3, N = 1000 1000 etc. Using the old way to prescribe vegetation properties (using vertical sections), may lead to inaccuracies.')
+            
+            veg(i)%npts  = veg(i)%nsec + 1
+            veg(i)%zv(1) = 0.d0
+            do j = 1,veg(i)%nsec
+                veg(i)%zv(j+1) = veg(i)%zv(j)+veg(i)%ah(j)
+            enddo
+            !call writelog('lws','(a)','')
+            !call writelog('lws','(a,f0.4,a)','Warning: use new way to specify vegetation with vertical coordinates (zv = ',veg(i)%zv,')')
+            !call writelog('lws','(a)','')
+            !call writelog('sl','(a)','Old way to specify veggie input, see http://oss.deltares.nl/web/xbeach/forum/-/message_boards/view_message/874796')
+            !call writelog('sl','(a,f0.3)','derived zv = ',veg(i)%zv)
+            pts         = veg(i)%nsec
+        else ! new way to specify vegetation: vertical coordinates
+            veg(i)%zv   =      readkey_dblvec(veg(i)%name,'zv',veg(i)%npts,size(veg(i)%zv),0.d0, 0.d0, 2.d0, bcast=.false., required=.true.)
+            pts         = veg(i)%npts
+        endif         
+        
+        veg(i)%bv   =      readkey_dblvec(veg(i)%name,'bv',pts,size(veg(i)%bv),0.0d0, 0.001d0,     0.1d0, bcast=.false., required=.true.)       
+        veg(i)%N    = nint(readkey_dblvec(veg(i)%name,'N', pts,size(veg(i)%N) ,0.0d0,   0.0d0,   2000.d0, bcast=.false., required=.true.))        
+        veg(i)%Cd   =      readkey_dblvec(veg(i)%name,'Cd',pts,size(veg(i)%Cd),0.0d0,   0.0d0,     2.5d0, bcast=.false.)      
        
         ! If Cd is specified by user (constant), compute constant Dragterms 1 and 2 in initialization
         do j=1,veg(i)%npts ! for every vertical veg point

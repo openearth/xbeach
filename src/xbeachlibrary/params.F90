@@ -1417,9 +1417,9 @@ contains
          call writelog('l','','Vegetation parameters: ')
          par%veggiefile    = readkey_name  ('params.txt', 'veggiefile'                       )
          par%veggiemapfile = readkey_name  ('params.txt', 'veggiemapfile'                    )
-         par%vegnonlin     = readkey_int   ('params.txt', 'vegnonlin',0,0,1)
-         par%vegcanflo     = readkey_int   ('params.txt', 'vegcanflo',0,0,1)
-         par%veguntow      = readkey_int   ('params.txt', 'veguntow', 1,0,1)
+         par%vegnonlin     = readkey_int   ('params.txt', 'vegnonlin',0,0,1,silent=.true.)
+         par%vegcanflo     = readkey_int   ('params.txt', 'vegcanflo',0,0,1,silent=.true.)
+         par%veguntow      = readkey_int   ('params.txt', 'veguntow', 1,0,1,silent=.true.)
          ! veggiefile routine should set nveg
       endif
       !
