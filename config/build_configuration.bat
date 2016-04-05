@@ -46,6 +46,9 @@ del build.log
 %devenv_path%\devenv.exe %solutionpath% /Build "%3|%4" /Project xbeachlibrary_dynamic /Out build_library.log
 type build_library.log
 del build_library.log
+%devenv_path%\devenv.exe %solutionpath% /Build "%3|%4" /Project xbeachlibrary_bmi /Out build_bmi.log
+type build_bmi.log
+del build_bmi.log
 echo off
 
 IF %ERRORLEVEL% == 0 GOTO END
