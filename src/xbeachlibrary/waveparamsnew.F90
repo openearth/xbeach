@@ -2816,7 +2816,7 @@ contains
 
       s%ee_s(1,:,:)=s%ee_s(1,:,:)*par%rho*par%g
       
-      call writelog('ls','','Writing statioanry wave energy directional spread to ',trim(wp%Esfilename),' ...')
+      call writelog('ls','','Writing stationary wave energy directional spread to ',trim(wp%Esfilename),' ...')
       inquire(iolength=reclen) 1.d0
       reclen=reclen*(s%ny+1)*(s%ntheta_s)
       fid = create_new_fid()

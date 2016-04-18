@@ -168,7 +168,7 @@ contains
          s%cx(:,:,itheta) =  s%c*s%costh(:,:,itheta)+wcifacu
          s%cy(:,:,itheta) =  s%c*s%sinth(:,:,itheta)+wcifacv
          s%ctheta(:,:,itheta)=  &
-         s%sigm/sinh2kh*(dhdx*s%sinth(:,:,itheta)-dhdy*s%costh(:,:,itheta)) + &
+         s%sigm/max(sinh2kh,1d-10)*(dhdx*s%sinth(:,:,itheta)-dhdy*s%costh(:,:,itheta)) + &
          par%wci*(&
          s%costh(:,:,itheta)*(s%sinth(:,:,itheta)*dudx - s%costh(:,:,itheta)*dudy) + &
          s%sinth(:,:,itheta)*(s%sinth(:,:,itheta)*dvdx - s%costh(:,:,itheta)*dvdy))
@@ -189,8 +189,8 @@ contains
       !Dano  This is ok, since we will set mpiboundary to y in stationary mode
 
       do i=2,imax
-         dtw=.5*minval(s%dsu(i:i+1,jmin_ee:jmax_ee))/maxval(s%cgx(i-1:i+1,jmin_ee:jmax_ee,:))
-         dtw=min(dtw,.5*minval(s%dnv(i,jmin_ee:jmax_ee))/maxval(abs(s%cgy(i,jmin_ee:jmax_ee,:))))
+         dtw=.5*minval(s%dsu(i:i+1,jmin_ee:jmax_ee))/max(maxval(s%cgx(i-1:i+1,jmin_ee:jmax_ee,:)),1d-10)
+         dtw=min(dtw,.5*minval(s%dnv(i,jmin_ee:jmax_ee))/max(maxval(abs(s%cgy(i,jmin_ee:jmax_ee,:))),1d-10))
          dtw=min(dtw,.5*s%dtheta/max(1.0d-6,maxval(abs(s%ctheta(i,jmin_ee:jmax_ee,:)))))
          !Dano: need to make sure all processes use the same dtw, min of all processes
 #ifdef USEMPI
@@ -483,7 +483,7 @@ contains
       !
       ! Radiation stresses and forcing terms
       !
-      s%n=s%cg/s%c
+      s%n=s%cg/max(s%c,1d-10)
       s%Sxx=(s%n*sum((1.d0+s%costh**2.d0)*s%ee,3)-.5d0*sum(s%ee,3))*s%dtheta
       s%Syy=(s%n*sum((1.d0+s%sinth**2.d0)*s%ee,3)-.5d0*sum(s%ee,3))*s%dtheta
       s%Sxy=s%n*sum(s%sinth*s%costh*s%ee,3)*s%dtheta

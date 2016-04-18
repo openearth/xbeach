@@ -1245,7 +1245,7 @@ contains
             do i=1,s%nx+1
                ! compute mixing length
                ! ML = 2*R(i,j)*par%Trep/(par%rho*c(i,j)*max(H(i,j),par%eps))
-               ML = dsqrt(2*s%R(i,j)*par%Trep/(par%rho*s%c(i,j)))
+               ML = dsqrt(2*s%R(i,j)*par%Trep/(par%rho*max(s%c(i,j),1d-10)))
                ! ML = 0.9d0*H(i,j)
                ML = min(ML,hloc(i,j));
                ! exponential decay turbulence over depth
@@ -1412,7 +1412,7 @@ contains
             ! Jaap: Van Rijn use Peak orbital flow velocity --> 0.64 corresponds to 0.4 coefficient regular waves Van Rijn (2007)
             term1=vmg**2+0.64d0*par%sws*urms2
             ! reduce sediment suspensions for (inundation) overwash conditions with critical flow velocitties
-            term1=min(term1,par%smax*par%g/s%cf*s%D50(jg)*delta)
+            term1=min(term1,par%smax*par%g/max(s%cf,1d-10)*s%D50(jg)*delta)
             term1=sqrt(term1)
             !
             ceqb = 0.d0*term1                                                                     !initialize ceqb
@@ -1751,7 +1751,7 @@ contains
             ! translate dimensionless duddtmax to real world dudtmax
             !         /scale with variance and go from [-] to [m/s^2]     /tableb./dimensionless dudtmax
             dudtmax = s%urms(i,j)/max(par%eps,siguref)*sqrt(par%g/s%hh(i,j))*t0fac*duddtmax
-            detadxmax(i,j) = dudtmax*sinh(s%k(i,j)*s%hh(i,j))/max(s%c(i,j),sqrt(s%H(i,j)*par%g))/s%sigm(i,j)
+            detadxmax(i,j) = dudtmax*sinh(s%k(i,j)*s%hh(i,j))/max(max(s%c(i,j),sqrt(s%H(i,j)*par%g)),1d-10)/s%sigm(i,j)
 
             ! detadxmean for roller energy balance dissipation...
             if (par%rfb==1) then
@@ -1764,7 +1764,7 @@ contains
          enddo
       enddo
 
-      s%Tbore = max(par%Trep/25.d0,min(par%Trep/4.d0,s%H/(max(s%c,sqrt(s%H*par%g))*max(detadxmax,par%eps))))
+      s%Tbore = max(par%Trep/25.d0,min(par%Trep/4.d0,s%H/(max(max(s%c,sqrt(s%H*par%g)),1d-10)*max(detadxmax,par%eps))))
       s%Tbore = par%Tbfac*s%Tbore
 
       ! multiply Sk and As with wetz to get zeros at h = 0 for output

@@ -156,7 +156,7 @@ contains
       endif
 
       H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
-      Hb  = tanh(gamma*kh/0.88d0)*(0.88d0/k)
+      Hb  = tanh(gamma*kh/0.88d0)*(0.88d0/max(k,1d-10))
       R   = Hb/max(H,0.00001d0)
 
       s%Qb(i,:)   = exp(-R**2)

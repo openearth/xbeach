@@ -977,6 +977,35 @@ contains
 
    end subroutine space_collect_matrix_real8
 
+   subroutine space_collect_vector_real8(loc,s,a,b)
+      use general_mpi_module
+      use xmpi_module
+      implicit none
+      type(spacepars), intent(in)          :: s
+      real*8, dimension(:,:), intent(out)  :: a
+      real*8, dimension(:,:), intent(in)   :: b
+      character*1, intent(in)              :: loc
+      select case (loc)
+         case ('t')
+            call matrix_coll(a,b,s%is,s%lm,s%js,s%ln, &
+            s%isleft,s%isright,s%istop,s%isbot, &
+            xmpi_omaster,xmpi_ocomm)
+         case ('b')
+            call matrix_coll(a,b,s%is,s%lm,s%js,s%ln, &
+            s%isleft,s%isright,s%istop,s%isbot, &
+            xmpi_omaster,xmpi_ocomm)
+         case ('l')
+            call matrix_coll(a,b,s%is,s%lm,s%js,s%ln, &
+            s%isleft,s%isright,s%istop,s%isbot, &
+            xmpi_omaster,xmpi_ocomm)
+         case ('r')
+            call matrix_coll(a,b,s%is,s%lm,s%js,s%ln, &
+            s%isleft,s%isright,s%istop,s%isbot, &
+            xmpi_omaster,xmpi_ocomm)
+   end select
+
+   end subroutine space_collect_vector_real8
+
    subroutine space_collect_matrix_integer(s,a,b)
       use general_mpi_module
       use xmpi_module

@@ -124,7 +124,7 @@ contains
       call discharge_boundary_v(s,par)
 
       !
-      ! zs=zs*wetz
+      ! s%zs=s%zs*s%wetz
       ! Water level slopes
       do j=1,s%ny+1
          do i=2,s%nx
