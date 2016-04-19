@@ -1948,6 +1948,8 @@ contains
             if (iQ > 0) then
                !
                isSet_Q = .true.
+            else
+               isSet_Q = .false.
                !
             endif
 
@@ -2019,6 +2021,8 @@ contains
                      !
                      isSet_Q = .true.
                      !
+                  else
+                     isSet_Q = .false.
                   endif
                   !
                endif
