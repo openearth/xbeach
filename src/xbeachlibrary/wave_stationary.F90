@@ -26,7 +26,7 @@ contains
       real*8 , dimension(:,:)  ,allocatable,save  :: dhdx,dhdy,dudx,dudy,dvdx,dvdy,ustw
       real*8 , dimension(:,:)  ,allocatable,save  :: km
       real*8 , dimension(:,:)  ,allocatable,save  :: kmx,kmy,sinh2kh ! ,wm
-      real*8 , dimension(:,:,:),allocatable,save  :: xadvec,yadvec,thetaadvec,dd,drr
+      real*8 , dimension(:,:,:),allocatable,save  :: xadvec,yadvec,thetaadvec,dd,drr,dder
       real*8 , dimension(:,:,:),allocatable,save  :: xradvec,yradvec,thetaradvec
       real*8 , dimension(:,:,:),allocatable,save  :: cgxu,cgyv,cxu,cyv
       real*8 , dimension(:),allocatable,save      :: Hprev
@@ -48,6 +48,7 @@ contains
          allocate(thetaradvec(s%nx+1,s%ny+1,s%ntheta))
          allocate(dd        (s%nx+1,s%ny+1,s%ntheta))
          allocate(drr       (s%nx+1,s%ny+1,s%ntheta))
+         allocate(dder      (s%nx+1,s%ny+1,s%ntheta))
 
          allocate(cgxu        (s%nx+1,s%ny+1,s%ntheta))
          allocate(cgyv        (s%nx+1,s%ny+1,s%ntheta))
@@ -93,6 +94,7 @@ contains
       thetaradvec = 0.0d0
       dd          = 0.0d0
       drr         = 0.0d0
+      dder        = 0.0d0
       dhdx        = 0.0d0
       dhdy        = 0.0d0
       dudx        = 0.0d0
@@ -344,7 +346,9 @@ contains
             ! Distribution of dissipation over directions and frequencies
             !
             do itheta=1,s%ntheta
-               dd(i,:,itheta)=s%ee(i,:,itheta)*(s%D(i,:)+s%Df(i,:)+s%Dveg(i,:))/max(s%E(i,:),0.00001d0)
+               dder(i,:,itheta)=s%ee(i,:,itheta)*s%D(i,:)/max(s%E(i,:),0.00001d0)
+               ! Then all short wave energy dissipation, including bed friction and vegetation
+               dd(i,:,itheta)=dder(i,:,itheta) + s%ee(i,:,itheta)*(s%Df(i,:)+s%Dveg(i,:))/max(s%E(i,:),0.00001d0)
             end do
             do j=1,s%ny+1
                ! cjaap: replaced par%hmin by par%eps
@@ -396,7 +400,7 @@ contains
                   if(wete(i,j,itheta)==1) then
                      s%ee(i,j,itheta)=s%ee(i,j,itheta)-dtw*dd(i,j,itheta)
                      if (par%roller==1) then  !Christophe
-                        s%rr(i,j,itheta)=s%rr(i,j,itheta)+dtw*dd(i,j,itheta)&
+                        s%rr(i,j,itheta)=s%rr(i,j,itheta)+dtw*dder(i,j,itheta)&
                         -dtw*2.*par%g*par%beta*s%rr(i,j,itheta)&
                         /sqrt(s%cx(i,j,itheta)**2+s%cy(i,j,itheta)**2)
                         drr(i,j,itheta) = 2*par%g*par%beta*max(s%rr(i,j,itheta),0.0d0)/           &
