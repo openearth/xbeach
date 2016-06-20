@@ -101,6 +101,7 @@ contains
       integer                     :: iloc
       integer                     :: iostat
       real*8                      :: spectrumendtimeold,fmax
+      real*8,dimension(:),allocatable :: spectrumendtimearray
       real*8,save                 :: rtbc_local,dtbc_local
       real*8,save                 :: maindir_local
 
@@ -142,21 +143,26 @@ contains
             if (.not. allocated(specin)) then
                allocate(specin(nspectra))
                allocate(specinterp(nspectra))
+               allocate(spectrumendtimearray(nspectra))
             endif
 
             ! Read through input spectra files
             fmax = 1.d0   ! assume 1Hz as maximum frequency. Increase in loop below if needed.
+            spectrumendtimearray = spectrumendtime
             do iloc = 1,nspectra
                call writelog('sl','(a,i0)','Reading spectrum at location ',iloc)
                ! read input files until endtime exceeds current time.
                ! necessary in case of external time management
-               do while (par%t .ge. spectrumendtime)
+               
+               do while (par%t .ge. spectrumendtimearray(iloc))
                   call read_spectrum_input(par,wp,bcfiles(iloc),specin(iloc))
 
                   ! update end time
-                  spectrumendtimeold = spectrumendtime
-                  spectrumendtime = spectrumendtime + wp%rtbc
-
+                  if (iloc==1) then
+                     spectrumendtimeold = spectrumendtime
+                     spectrumendtime = spectrumendtime + wp%rtbc
+                  endif
+                  spectrumendtimearray(iloc) = spectrumendtimearray(iloc)+wp%rtbc
                end do
                fmax = max(fmax,maxval(specin(iloc)%f))
             enddo
@@ -255,7 +261,7 @@ contains
             !
             !
             ! Deallocate a lot of memory
-            deallocate(specin,specinterp)
+            deallocate(specin,specinterp,spectrumendtimearray)
             deallocate(wp%tin,wp%taperf,wp%taperw)
             deallocate(wp%fgen,wp%thetagen,wp%phigen,wp%kgen,wp%wgen)
             deallocate(wp%vargen)
