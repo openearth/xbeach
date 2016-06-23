@@ -1,5 +1,0 @@
-Modules and functions
-=====================
-
-.. doxygenindex::
-
