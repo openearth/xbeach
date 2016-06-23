@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="interfacelogging__module_1_1ilogger" kind="interface" language="Fortran" prot="public">
+    <compoundname>logging_module::ilogger</compoundname>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="interfacelogging__module_1_1ilogger_1aa45ddb07b2806d14e08a7a323f359849" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine logging_module::ilogger::ilogger</definition>
+        <argsstring>(level, msg)</argsstring>
+        <name>ilogger</name>
+        <param>
+          <type>level</type>
+          <defname>level</defname>
+        </param>
+        <param>
+          <type>msg</type>
+          <defname>msg</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>level</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>severity</para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">msg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>c message null terminated </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/logging.F90" line="18" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/logging.F90" bodystart="19" bodyend="22"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/logging.F90" line="18" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/logging.F90" bodystart="18" bodyend="23"/>
+    <listofallmembers>
+      <member refid="interfacelogging__module_1_1ilogger_1aa45ddb07b2806d14e08a7a323f359849" prot="public" virt="non-virtual"><scope>logging_module::ilogger</scope><name>ilogger</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

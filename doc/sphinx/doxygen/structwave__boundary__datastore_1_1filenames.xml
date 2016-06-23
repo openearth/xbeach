@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="structwave__boundary__datastore_1_1filenames" kind="type" language="Fortran" prot="public">
+    <compoundname>wave_boundary_datastore::filenames</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structwave__boundary__datastore_1_1filenames_1a737bceb29fe16056366574eb90454749" prot="public" static="no" mutable="no">
+        <type>character(1024)</type>
+        <definition>character(1024) wave_boundary_datastore::filenames::fname</definition>
+        <argsstring></argsstring>
+        <name>fname</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="36" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="36" bodyend="36"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__datastore_1_1filenames_1a7d33c487293ac456d6d6efbc8abe58b6" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer wave_boundary_datastore::filenames::listline</definition>
+        <argsstring></argsstring>
+        <name>listline</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="37" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="37" bodyend="37"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__datastore_1_1filenames_1a5a560fef1c965829ad7b287aff21518b" prot="public" static="no" mutable="no">
+        <type>logical</type>
+        <definition>logical wave_boundary_datastore::filenames::repeat</definition>
+        <argsstring></argsstring>
+        <name>repeat</name>
+        <initializer>= .false.</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="38" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="38" bodyend="38"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="35" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="35" bodyend="39"/>
+    <listofallmembers>
+      <member refid="structwave__boundary__datastore_1_1filenames_1a737bceb29fe16056366574eb90454749" prot="public" virt="non-virtual"><scope>wave_boundary_datastore::filenames</scope><name>fname</name></member>
+      <member refid="structwave__boundary__datastore_1_1filenames_1a7d33c487293ac456d6d6efbc8abe58b6" prot="public" virt="non-virtual"><scope>wave_boundary_datastore::filenames</scope><name>listline</name></member>
+      <member refid="structwave__boundary__datastore_1_1filenames_1a5a560fef1c965829ad7b287aff21518b" prot="public" virt="non-virtual"><scope>wave_boundary_datastore::filenames</scope><name>repeat</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

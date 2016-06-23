@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="structmnemiso__module_1_1carraytype" kind="type" language="Fortran" prot="public">
+    <compoundname>mnemiso_module::carraytype</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmnemiso__module_1_1carraytype_1a4d6f88e4a102ba6058a4bccabe6ba2da" prot="public" static="no" mutable="no">
+        <type>integer(c_int)</type>
+        <definition>integer(c_int) mnemiso_module::carraytype::rank</definition>
+        <argsstring></argsstring>
+        <name>rank</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" line="24" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" bodystart="24" bodyend="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemiso__module_1_1carraytype_1a0f1be7b9ac05d84797d1366bb11e93e2" prot="public" static="no" mutable="no">
+        <type>character(kind=c_char)</type>
+        <definition>character(kind=c_char) mnemiso_module::carraytype::type</definition>
+        <argsstring></argsstring>
+        <name>type</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" line="25" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" bodystart="25" bodyend="25"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemiso__module_1_1carraytype_1acb71ff66682c1d6fe742eb2844bb5327" prot="public" static="no" mutable="no">
+        <type>character(kind=c_char)</type>
+        <definition>character(kind=c_char) mnemiso_module::carraytype::btype</definition>
+        <argsstring></argsstring>
+        <name>btype</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" line="26" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" bodystart="26" bodyend="26"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemiso__module_1_1carraytype_1a70748f9189279a9fe553985491488c9a" prot="public" static="no" mutable="no">
+        <type><ref refid="structmnemiso__module_1_1carraytype_1a0f1be7b9ac05d84797d1366bb11e93e2" kindref="member">type</ref>(c_ptr)</type>
+        <definition>type(c_ptr) mnemiso_module::carraytype::array</definition>
+        <argsstring></argsstring>
+        <name>array</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" line="27" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" bodystart="27" bodyend="27"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" line="22" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" bodystart="22" bodyend="29"/>
+    <listofallmembers>
+      <member refid="structmnemiso__module_1_1carraytype_1a70748f9189279a9fe553985491488c9a" prot="public" virt="non-virtual"><scope>mnemiso_module::carraytype</scope><name>array</name></member>
+      <member refid="structmnemiso__module_1_1carraytype_1acb71ff66682c1d6fe742eb2844bb5327" prot="public" virt="non-virtual"><scope>mnemiso_module::carraytype</scope><name>btype</name></member>
+      <member refid="structmnemiso__module_1_1carraytype_1a4d6f88e4a102ba6058a4bccabe6ba2da" prot="public" virt="non-virtual"><scope>mnemiso_module::carraytype</scope><name>rank</name></member>
+      <member refid="structmnemiso__module_1_1carraytype_1a0f1be7b9ac05d84797d1366bb11e93e2" prot="public" virt="non-virtual"><scope>mnemiso_module::carraytype</scope><name>type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,1139 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacencoutput__module" kind="namespace" language="Fortran">
+    <compoundname>ncoutput_module</compoundname>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacencoutput__module_1a80611990960aea60e984ad6e53af97b9" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::ncid</definition>
+        <argsstring></argsstring>
+        <name>ncid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="68" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="68" bodyend="68"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a29dc8c99afcc41eebe03faa0c5c9f5db" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::parvarid</definition>
+        <argsstring></argsstring>
+        <name>parvarid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="71" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="71" bodyend="71"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a1108176e5d95dcf38d1eecf13f8bc227" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::xdimid</definition>
+        <argsstring></argsstring>
+        <name>xdimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="74" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="74" bodyend="74"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a8eaf17d75d45d70ce73fdfacc4344743" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::ydimid</definition>
+        <argsstring></argsstring>
+        <name>ydimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="74" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="74" bodyend="-1"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a582e4d609fe9fbed27a700e43ec4026f" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::xvarid</definition>
+        <argsstring></argsstring>
+        <name>xvarid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="75" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="75" bodyend="75"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a978bfb576a462feebde13499dd4e342b" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::yvarid</definition>
+        <argsstring></argsstring>
+        <name>yvarid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="75" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a91f5afa9480d1ad12b5ff2d526f93a90" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::thetadimid</definition>
+        <argsstring></argsstring>
+        <name>thetadimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="78" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="78" bodyend="78"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a642835a3e9a35947a24498ed32e2c60f" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::sedimentclassesdimid</definition>
+        <argsstring></argsstring>
+        <name>sedimentclassesdimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="80" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="80" bodyend="80"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a77e76d7c1f1948f7174b27d3b176878b" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::bedlayersdimid</definition>
+        <argsstring></argsstring>
+        <name>bedlayersdimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="80" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="80" bodyend="-1"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a003e218997e17c65408740076982ca51" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::driftersdimid</definition>
+        <argsstring></argsstring>
+        <name>driftersdimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="83" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="83" bodyend="83"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a1174dddbf3e9e8a54457ba6616065616" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::driftersdimid2</definition>
+        <argsstring></argsstring>
+        <name>driftersdimid2</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="83" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="83" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a789f00ae77bf5126a374f5d99a948a73" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::drifterstimedimid</definition>
+        <argsstring></argsstring>
+        <name>drifterstimedimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="83" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="83" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a703c5d3bc054e933f7dd06136fae9981" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::drifterstimevarid</definition>
+        <argsstring></argsstring>
+        <name>drifterstimevarid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="83" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="83" bodyend="-1"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a83ed5fd33567414ff41fb8f85f4a092e" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:), allocatable</type>
+        <definition>integer, dimension(:), allocatable ncoutput_module::driftersvarids</definition>
+        <argsstring></argsstring>
+        <name>driftersvarids</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="84" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="84" bodyend="84"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a0c7d3eeb02afe2df0e6f6c571726f843" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(3)</type>
+        <definition>real*8, dimension(3) ncoutput_module::drift</definition>
+        <argsstring></argsstring>
+        <name>drift</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="85" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="85" bodyend="85"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a298f88ec4b33eb2bd41b36b8dd9458bb" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::shipdimid</definition>
+        <argsstring></argsstring>
+        <name>shipdimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="88" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="88" bodyend="88"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a0e2ba48ee25756d1d9d2bf9cb5620ebf" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:), allocatable</type>
+        <definition>integer, dimension(:), allocatable ncoutput_module::globalvarids</definition>
+        <argsstring></argsstring>
+        <name>globalvarids</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="91" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="91" bodyend="91"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a7c11f54b7fa2657c717b2593d8077099" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::pointsdimid</definition>
+        <argsstring></argsstring>
+        <name>pointsdimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="95" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="95" bodyend="95"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a4961f03f9b60751489ff623f1ad0a774" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::pointnamelengthdimid</definition>
+        <argsstring></argsstring>
+        <name>pointnamelengthdimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="95" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="95" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a1422c719dacc7e6fa5a513c58ec321a4" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::xpointsvarid</definition>
+        <argsstring></argsstring>
+        <name>xpointsvarid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="96" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="96" bodyend="96"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a6829295ff8d95deaf26b294bfc781625" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::ypointsvarid</definition>
+        <argsstring></argsstring>
+        <name>ypointsvarid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="96" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="96" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a1193d1748478e0b4f554b3e6ee0f2351" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::pointtypesvarid</definition>
+        <argsstring></argsstring>
+        <name>pointtypesvarid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="96" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="96" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a033748b1474f23146ea99cdcbe89c5c8" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::xpointindexvarid</definition>
+        <argsstring></argsstring>
+        <name>xpointindexvarid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="96" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="96" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1ae0a8dd1aeecf122d8ad46d5364ddb502" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::ypointindexvarid</definition>
+        <argsstring></argsstring>
+        <name>ypointindexvarid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="96" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="96" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1abc8190c698044c2adf79745d4253a4b0" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::stationidvarid</definition>
+        <argsstring></argsstring>
+        <name>stationidvarid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="96" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="96" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1ad67cee8022afd6f3cb7cae68da2280e7" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:), allocatable</type>
+        <definition>integer, dimension(:), allocatable ncoutput_module::pointsvarids</definition>
+        <argsstring></argsstring>
+        <name>pointsvarids</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="97" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="97" bodyend="97"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1ac53b2c0ba488be42a832dae486a6c63c" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:), allocatable</type>
+        <definition>integer, dimension(:), allocatable ncoutput_module::xpoints</definition>
+        <argsstring></argsstring>
+        <name>xpoints</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="98" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="98" bodyend="98"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+        <referencedby refid="namespacencoutput__module_1ae89adac0b3a4fc12f4d31b8f9144c872" compoundref="ncoutput_8_f90" startline="1614" endline="1645">points_output_init</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a9afe24767a97f5a3bc75de6f006fd93c" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:), allocatable</type>
+        <definition>integer, dimension(:), allocatable ncoutput_module::ypoints</definition>
+        <argsstring></argsstring>
+        <name>ypoints</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="99" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="99" bodyend="99"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+        <referencedby refid="namespacencoutput__module_1ae89adac0b3a4fc12f4d31b8f9144c872" compoundref="ncoutput_8_f90" startline="1614" endline="1645">points_output_init</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1afd748dcbb0bcf20548b792a4b0202f31" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:,:), allocatable</type>
+        <definition>integer, dimension(:,:), allocatable ncoutput_module::meanvarids</definition>
+        <argsstring></argsstring>
+        <name>meanvarids</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="103" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="103" bodyend="103"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a43d3978a936061ffc65f4713d5e63481" prot="public" static="no" mutable="no">
+        <type>character(slen), dimension(:), allocatable</type>
+        <definition>character(slen), dimension(:), allocatable ncoutput_module::meanvartypes</definition>
+        <argsstring></argsstring>
+        <name>meanvartypes</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="104" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="104" bodyend="104"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1ab82344594236360c37bef9e4207cda9d" prot="public" static="no" mutable="no">
+        <type>integer *4</type>
+        <definition>integer*4 ncoutput_module::nmeanvartypes</definition>
+        <argsstring></argsstring>
+        <name>nmeanvartypes</name>
+        <initializer>= 4</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="105" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="105" bodyend="105"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a29b697fd2c4e97efe6878e9a9b75a0ae" prot="public" static="no" mutable="no">
+        <type>integer *4, dimension(:), allocatable</type>
+        <definition>integer*4, dimension(:), allocatable ncoutput_module::rugrowindex</definition>
+        <argsstring></argsstring>
+        <name>rugrowindex</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="106" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="106" bodyend="106"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+        <referencedby refid="namespacencoutput__module_1ae89adac0b3a4fc12f4d31b8f9144c872" compoundref="ncoutput_8_f90" startline="1614" endline="1645">points_output_init</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a41135414d2e2d156da1eca7e0798cba5" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::globaltimedimid</definition>
+        <argsstring></argsstring>
+        <name>globaltimedimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="110" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="110" bodyend="110"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a2f874c3506824571b61a4149a14d44f2" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::pointtimedimid</definition>
+        <argsstring></argsstring>
+        <name>pointtimedimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="110" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="110" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1aad1572704b15306b7666f12ef489520d" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::meantimedimid</definition>
+        <argsstring></argsstring>
+        <name>meantimedimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="110" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="110" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1aee817a042bb28963c3c74e5bc053325f" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::globaltimevarid</definition>
+        <argsstring></argsstring>
+        <name>globaltimevarid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="111" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="111" bodyend="111"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a7c47c30fdf9bdc4d6fc87fed970edf41" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::pointtimevarid</definition>
+        <argsstring></argsstring>
+        <name>pointtimevarid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="111" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="111" bodyend="-1"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a3b30dfd0fa6cec409e5f18ab7a0cecba" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::meantimevarid</definition>
+        <argsstring></argsstring>
+        <name>meantimevarid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="111" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="111" bodyend="-1"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a3452eeec5f7c5d5bb56736a50f82599a" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::tidetimedimid</definition>
+        <argsstring></argsstring>
+        <name>tidetimedimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="115" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="115" bodyend="115"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1adbedd44afe0f9dc20c712ed4c2c35575" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::windtimedimid</definition>
+        <argsstring></argsstring>
+        <name>windtimedimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="115" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="115" bodyend="-1"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a7594d67de1bca6cbc7ee701b1a22d869" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::inoutdimid</definition>
+        <argsstring></argsstring>
+        <name>inoutdimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="116" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="116" bodyend="116"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1ab37c02514c343489b87071047bc2f8c1" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::tidecornersdimid</definition>
+        <argsstring></argsstring>
+        <name>tidecornersdimid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="116" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="116" bodyend="-1"/>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a6ea3a4b136a8293c5f034af430b2e96a" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::npointstotal</definition>
+        <argsstring></argsstring>
+        <name>npointstotal</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="119" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="119" bodyend="119"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a8f66cb33d6843391f22a145ce38f9cd3" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::itg</definition>
+        <argsstring></argsstring>
+        <name>itg</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="120" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="120" bodyend="120"/>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a1ce89caa2eb6b99c29141d83feb60949" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::itp</definition>
+        <argsstring></argsstring>
+        <name>itp</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="120" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="120" bodyend="-1"/>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1af874845be47292951d14bb5afa4f6ce9" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::itc</definition>
+        <argsstring></argsstring>
+        <name>itc</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="120" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="120" bodyend="-1"/>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1ad83d17f8ee8fc915417fb7a7e841ecae" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::itm</definition>
+        <argsstring></argsstring>
+        <name>itm</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="120" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="120" bodyend="-1"/>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1af356f8489055eeb959dd224a2f034247" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::itd</definition>
+        <argsstring></argsstring>
+        <name>itd</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="120" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="120" bodyend="-1"/>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a7c85b0d3c494e1376049e5a9fb57857e" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::stpm</definition>
+        <argsstring></argsstring>
+        <name>stpm</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="122" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="122" bodyend="122"/>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1afb60864bd97c4a52de1b6c4918c8b09b" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::wordsize</definition>
+        <argsstring></argsstring>
+        <name>wordsize</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="123" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="123" bodyend="123"/>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a829b18051a63ca6c42ad1f65f586dc31" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::noutnumbers</definition>
+        <argsstring></argsstring>
+        <name>noutnumbers</name>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="125" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="125" bodyend="125"/>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1a0934d72546a196825065b4ab34b88ba9" prot="public" static="no" mutable="no">
+        <type>integer, dimension(numvars)</type>
+        <definition>integer, dimension(numvars) ncoutput_module::outnumbers</definition>
+        <argsstring></argsstring>
+        <name>outnumbers</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="126" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="126" bodyend="126"/>
+        <referencedby refid="namespacencoutput__module_1a4924e110226e99514b4a46e368753086" compoundref="ncoutput_8_f90" startline="1757" endline="1770">checkfile</referencedby>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacencoutput__module_1ad7599e3c0eb34cfe3e3c7a4740d7c4b3" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ncoutput_module::ncreal</definition>
+        <argsstring></argsstring>
+        <name>ncreal</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="129" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="129" bodyend="129"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public ncoutput_module::ncoutput</definition>
+        <argsstring>(s, sl, par, tpar)</argsstring>
+        <name>ncoutput</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>sl</type>
+          <defname>sl</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>tpar</type>
+          <defname>tpar</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="639" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="640" bodyend="1551"/>
+        <references refid="namespacencoutput__module_1a77e76d7c1f1948f7174b27d3b176878b" compoundref="ncoutput_8_f90" startline="80">bedlayersdimid</references>
+        <references refid="namespacemnemmodule_1a644597af8c9700795b17c6878478af6a" compoundref="mnemonic_8_f90" startline="36" endline="46">mnemmodule::chartoindex</references>
+        <references refid="namespacencoutput__module_1a4924e110226e99514b4a46e368753086" compoundref="ncoutput_8_f90" startline="1757" endline="1770">checkfile</references>
+        <references refid="namespacencoutput__module_1a0c7d3eeb02afe2df0e6f6c571726f843" compoundref="ncoutput_8_f90" startline="85" endline="85">drift</references>
+        <references refid="namespacencoutput__module_1a003e218997e17c65408740076982ca51" compoundref="ncoutput_8_f90" startline="83" endline="83">driftersdimid</references>
+        <references refid="namespacencoutput__module_1a703c5d3bc054e933f7dd06136fae9981" compoundref="ncoutput_8_f90" startline="83">drifterstimevarid</references>
+        <references refid="namespacencoutput__module_1a83ed5fd33567414ff41fb8f85f4a092e" compoundref="ncoutput_8_f90" startline="84" endline="84">driftersvarids</references>
+        <references refid="namespacepostprocessmod_1a26a5cbec584d1866c58605f5d182a126" compoundref="postprocess_8_f90" startline="475" endline="532">postprocessmod::get_sister_mnem</references>
+        <references refid="namespacencoutput__module_1aee817a042bb28963c3c74e5bc053325f" compoundref="ncoutput_8_f90" startline="111" endline="111">globaltimevarid</references>
+        <references refid="namespacencoutput__module_1a0e2ba48ee25756d1d9d2bf9cb5620ebf" compoundref="ncoutput_8_f90" startline="91" endline="91">globalvarids</references>
+        <references refid="namespacencoutput__module_1a4d09d417ac31ae2309869d22e23a8ccf" compoundref="ncoutput_8_f90" startline="1842" endline="1844">indextodrifterunit</references>
+        <references refid="namespacencoutput__module_1a5153504e8be59d64ceb8f770268ee06c" compoundref="ncoutput_8_f90" startline="1830" endline="1832">indextomaxunit</references>
+        <references refid="namespacencoutput__module_1af482a24ff1a2f53822ad3c8f6433f6c1" compoundref="ncoutput_8_f90" startline="1818" endline="1820">indextomeanunit</references>
+        <references refid="namespacencoutput__module_1a9bba67851170bd66bb188a474b0e5737" compoundref="ncoutput_8_f90" startline="1824" endline="1826">indextominunit</references>
+        <references refid="namespacencoutput__module_1a241644e560eb76bff5fadd9366bf51f4" compoundref="ncoutput_8_f90" startline="1806" endline="1808">indextopointsunit</references>
+        <references refid="namespacespaceparams_1a3cfea096bf8de1fb71854e00c05208d1" compoundref="spaceparams_8_f90" startline="42" endline="62">spaceparams::indextos</references>
+        <references refid="namespacencoutput__module_1a3eca7a38d9f54eb18dfce1827fd1cbdd" compoundref="ncoutput_8_f90" startline="1836" endline="1838">indextovarunit</references>
+        <references refid="namespacencoutput__module_1a7594d67de1bca6cbc7ee701b1a22d869" compoundref="ncoutput_8_f90" startline="116" endline="116">inoutdimid</references>
+        <references refid="namespacencoutput__module_1af874845be47292951d14bb5afa4f6ce9" compoundref="ncoutput_8_f90" startline="120">itc</references>
+        <references refid="namespacencoutput__module_1af356f8489055eeb959dd224a2f034247" compoundref="ncoutput_8_f90" startline="120">itd</references>
+        <references refid="namespacencoutput__module_1a8f66cb33d6843391f22a145ce38f9cd3" compoundref="ncoutput_8_f90" startline="120" endline="120">itg</references>
+        <references refid="namespacencoutput__module_1ad83d17f8ee8fc915417fb7a7e841ecae" compoundref="ncoutput_8_f90" startline="120">itm</references>
+        <references refid="namespacencoutput__module_1a1ce89caa2eb6b99c29141d83feb60949" compoundref="ncoutput_8_f90" startline="120">itp</references>
+        <references refid="namespacemeans__module_1a09239a579e4bd5a639ed2bbaacd9f937" compoundref="varianceupdate_8_f90" startline="47" endline="47">means_module::meansparsglobal</references>
+        <references refid="namespacemeans__module_1a616ca531fc175eedbfd82ec35b0fde2e" compoundref="varianceupdate_8_f90" startline="48" endline="48">means_module::meansparslocal</references>
+        <references refid="namespacencoutput__module_1a3b30dfd0fa6cec409e5f18ab7a0cecba" compoundref="ncoutput_8_f90" startline="111">meantimevarid</references>
+        <references refid="namespacencoutput__module_1afd748dcbb0bcf20548b792a4b0202f31" compoundref="ncoutput_8_f90" startline="103" endline="103">meanvarids</references>
+        <references refid="namespacencoutput__module_1a43d3978a936061ffc65f4713d5e63481" compoundref="ncoutput_8_f90" startline="104" endline="104">meanvartypes</references>
+        <references refid="namespacencoutput__module_1a80611990960aea60e984ad6e53af97b9" compoundref="ncoutput_8_f90" startline="68" endline="68">ncid</references>
+        <references refid="namespacencoutput__module_1ab82344594236360c37bef9e4207cda9d" compoundref="ncoutput_8_f90" startline="105" endline="105">nmeanvartypes</references>
+        <references refid="namespacencoutput__module_1ad67cee8022afd6f3cb7cae68da2280e7" compoundref="ncoutput_8_f90" startline="97" endline="97">pointsvarids</references>
+        <references refid="namespacencoutput__module_1a7c47c30fdf9bdc4d6fc87fed970edf41" compoundref="ncoutput_8_f90" startline="111">pointtimevarid</references>
+        <references refid="namespacencoutput__module_1a29b697fd2c4e97efe6878e9a9b75a0ae" compoundref="ncoutput_8_f90" startline="106" endline="106">rugrowindex</references>
+        <references refid="namespacencoutput__module_1a642835a3e9a35947a24498ed32e2c60f" compoundref="ncoutput_8_f90" startline="80" endline="80">sedimentclassesdimid</references>
+        <references refid="namespacencoutput__module_1a298f88ec4b33eb2bd41b36b8dd9458bb" compoundref="ncoutput_8_f90" startline="88" endline="88">shipdimid</references>
+        <references refid="namespacencoutput__module_1a7c85b0d3c494e1376049e5a9fb57857e" compoundref="ncoutput_8_f90" startline="122" endline="122">stpm</references>
+        <references refid="namespacencoutput__module_1a91f5afa9480d1ad12b5ff2d526f93a90" compoundref="ncoutput_8_f90" startline="78" endline="78">thetadimid</references>
+        <references refid="namespacencoutput__module_1ab37c02514c343489b87071047bc2f8c1" compoundref="ncoutput_8_f90" startline="116">tidecornersdimid</references>
+        <references refid="namespacencoutput__module_1a3452eeec5f7c5d5bb56736a50f82599a" compoundref="ncoutput_8_f90" startline="115" endline="115">tidetimedimid</references>
+        <references refid="namespacencoutput__module_1adbedd44afe0f9dc20c712ed4c2c35575" compoundref="ncoutput_8_f90" startline="115">windtimedimid</references>
+        <references refid="namespacencoutput__module_1afb60864bd97c4a52de1b6c4918c8b09b" compoundref="ncoutput_8_f90" startline="123" endline="123">wordsize</references>
+        <references refid="namespacexmpi__module_1a24b4553e8e3ce80ce55611ad7978ab53" compoundref="xmpi_8_f90" startline="93" endline="93">xmpi_module::xcompute</references>
+        <references refid="namespacencoutput__module_1a1108176e5d95dcf38d1eecf13f8bc227" compoundref="ncoutput_8_f90" startline="74" endline="74">xdimid</references>
+        <references refid="namespacexmpi__module_1a49447cc5b155a1ab5c81885e6dc7943d" compoundref="xmpi_8_f90" startline="91" endline="91">xmpi_module::xmaster</references>
+        <references refid="namespacexmpi__module_1a86a870804b48c6deb6e5f0e7ce525ff2" compoundref="xmpi_8_f90" startline="89" endline="89">xmpi_module::xmpi_orank</references>
+        <references refid="namespacexmpi__module_1ac778e42cacd126f42e143ef2f41e50f7" compoundref="xmpi_8_f90" startline="88" endline="88">xmpi_module::xmpi_rank</references>
+        <references refid="namespacexmpi__module_1aa6bc7fa3bf59526545d88454ac9966c8" compoundref="xmpi_8_f90" startline="92" endline="92">xmpi_module::xomaster</references>
+        <references refid="namespacencoutput__module_1ac53b2c0ba488be42a832dae486a6c63c" compoundref="ncoutput_8_f90" startline="98" endline="98">xpoints</references>
+        <references refid="namespacencoutput__module_1a8eaf17d75d45d70ce73fdfacc4344743" compoundref="ncoutput_8_f90" startline="74">ydimid</references>
+        <references refid="namespacencoutput__module_1a9afe24767a97f5a3bc75de6f006fd93c" compoundref="ncoutput_8_f90" startline="99" endline="99">ypoints</references>
+        <referencedby refid="namespaceoutput__module_1abb959bcca3e2c10caf9c7f621b76f019" compoundref="output_8_f90" startline="77" endline="184">output_module::output</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacencoutput__module_1ae89adac0b3a4fc12f4d31b8f9144c872" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public ncoutput_module::points_output_init</definition>
+        <argsstring>(s, par)</argsstring>
+        <name>points_output_init</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="1613" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="1614" bodyend="1645"/>
+        <references refid="namespacencoutput__module_1a29b697fd2c4e97efe6878e9a9b75a0ae" compoundref="ncoutput_8_f90" startline="106" endline="106">rugrowindex</references>
+        <references refid="namespacepostprocessmod_1aec0949e4449ce097148e42f3cfeea675" compoundref="postprocess_8_f90" startline="27" endline="83">postprocessmod::snappointstogrid</references>
+        <references refid="namespacexmpi__module_1aa6bc7fa3bf59526545d88454ac9966c8" compoundref="xmpi_8_f90" startline="92" endline="92">xmpi_module::xomaster</references>
+        <references refid="namespacencoutput__module_1ac53b2c0ba488be42a832dae486a6c63c" compoundref="ncoutput_8_f90" startline="98" endline="98">xpoints</references>
+        <references refid="namespacencoutput__module_1a9afe24767a97f5a3bc75de6f006fd93c" compoundref="ncoutput_8_f90" startline="99" endline="99">ypoints</references>
+        <referencedby refid="namespaceoutput__module_1ada1f11b0c85e41e240c011cb3b6b3cff" compoundref="output_8_f90" startline="20" endline="72">output_module::output_init</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public ncoutput_module::fortoutput_init</definition>
+        <argsstring>(s, par, tpar)</argsstring>
+        <name>fortoutput_init</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>tpar</type>
+          <defname>tpar</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="1648" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="1649" bodyend="1753"/>
+        <references refid="namespacemnemmodule_1a644597af8c9700795b17c6878478af6a" compoundref="mnemonic_8_f90" startline="36" endline="46">mnemmodule::chartoindex</references>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">filefunctions::create_new_fid</references>
+        <references refid="namespacencoutput__module_1a4d09d417ac31ae2309869d22e23a8ccf" compoundref="ncoutput_8_f90" startline="1842" endline="1844">indextodrifterunit</references>
+        <references refid="namespacencoutput__module_1a5153504e8be59d64ceb8f770268ee06c" compoundref="ncoutput_8_f90" startline="1830" endline="1832">indextomaxunit</references>
+        <references refid="namespacencoutput__module_1af482a24ff1a2f53822ad3c8f6433f6c1" compoundref="ncoutput_8_f90" startline="1818" endline="1820">indextomeanunit</references>
+        <references refid="namespacencoutput__module_1a9bba67851170bd66bb188a474b0e5737" compoundref="ncoutput_8_f90" startline="1824" endline="1826">indextominunit</references>
+        <references refid="namespacencoutput__module_1a241644e560eb76bff5fadd9366bf51f4" compoundref="ncoutput_8_f90" startline="1806" endline="1808">indextopointsunit</references>
+        <references refid="namespacespaceparams_1a3cfea096bf8de1fb71854e00c05208d1" compoundref="spaceparams_8_f90" startline="42" endline="62">spaceparams::indextos</references>
+        <references refid="namespacencoutput__module_1a3eca7a38d9f54eb18dfce1827fd1cbdd" compoundref="ncoutput_8_f90" startline="1836" endline="1838">indextovarunit</references>
+        <references refid="namespacencoutput__module_1af874845be47292951d14bb5afa4f6ce9" compoundref="ncoutput_8_f90" startline="120">itc</references>
+        <references refid="namespacencoutput__module_1af356f8489055eeb959dd224a2f034247" compoundref="ncoutput_8_f90" startline="120">itd</references>
+        <references refid="namespacencoutput__module_1a8f66cb33d6843391f22a145ce38f9cd3" compoundref="ncoutput_8_f90" startline="120" endline="120">itg</references>
+        <references refid="namespacencoutput__module_1ad83d17f8ee8fc915417fb7a7e841ecae" compoundref="ncoutput_8_f90" startline="120">itm</references>
+        <references refid="namespacencoutput__module_1a1ce89caa2eb6b99c29141d83feb60949" compoundref="ncoutput_8_f90" startline="120">itp</references>
+        <references refid="namespacencoutput__module_1a39df577d17ffc04cfd29e07d04873a87" compoundref="ncoutput_8_f90" startline="1849" endline="1860">makeaveragenames</references>
+        <references refid="namespacencoutput__module_1a829b18051a63ca6c42ad1f65f586dc31" compoundref="ncoutput_8_f90" startline="125" endline="125">noutnumbers</references>
+        <references refid="namespacencoutput__module_1a0934d72546a196825065b4ab34b88ba9" compoundref="ncoutput_8_f90" startline="126" endline="126">outnumbers</references>
+        <references refid="namespacencoutput__module_1a7c85b0d3c494e1376049e5a9fb57857e" compoundref="ncoutput_8_f90" startline="122" endline="122">stpm</references>
+        <references refid="namespacencoutput__module_1afb60864bd97c4a52de1b6c4918c8b09b" compoundref="ncoutput_8_f90" startline="123" endline="123">wordsize</references>
+        <references refid="namespacexmpi__module_1aa6bc7fa3bf59526545d88454ac9966c8" compoundref="xmpi_8_f90" startline="92" endline="92">xmpi_module::xomaster</references>
+        <referencedby refid="namespaceoutput__module_1ada1f11b0c85e41e240c011cb3b6b3cff" compoundref="output_8_f90" startline="20" endline="72">output_module::output_init</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacencoutput__module_1a4924e110226e99514b4a46e368753086" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine ncoutput_module::checkfile</definition>
+        <argsstring>(index, unit, reclen, jtg)</argsstring>
+        <name>checkfile</name>
+        <param>
+          <type>index</type>
+          <defname>index</defname>
+        </param>
+        <param>
+          <type>unit</type>
+          <defname>unit</defname>
+        </param>
+        <param>
+          <type>reclen</type>
+          <defname>reclen</defname>
+        </param>
+        <param>
+          <type>jtg</type>
+          <defname>jtg</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="1756" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="1757" bodyend="1770"/>
+        <references refid="namespacencoutput__module_1a4233db2b90cc77b804e0a8e7f6eb566a" compoundref="ncoutput_8_f90" startline="1812" endline="1814">indextoglobalunit</references>
+        <references refid="namespacencoutput__module_1a0934d72546a196825065b4ab34b88ba9" compoundref="ncoutput_8_f90" startline="126" endline="126">outnumbers</references>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacencoutput__module_1af3a11acfd0b3c1ed0bf4a46630b23405" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer function</type>
+        <definition>integer function ncoutput_module::outunit</definition>
+        <argsstring>(ind, s)</argsstring>
+        <name>outunit</name>
+        <param>
+          <type>ind</type>
+          <defname>ind</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="1773" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="1774" bodyend="1802"/>
+        <references refid="namespacexmpi__module_1a5406ad4cd4b3c61bf18b86fe6dcd9936" compoundref="xmpi_8_f90" startline="1576" endline="1599">xmpi_module::halt_program</references>
+        <referencedby refid="namespacencoutput__module_1a4d09d417ac31ae2309869d22e23a8ccf" compoundref="ncoutput_8_f90" startline="1842" endline="1844">indextodrifterunit</referencedby>
+        <referencedby refid="namespacencoutput__module_1a4233db2b90cc77b804e0a8e7f6eb566a" compoundref="ncoutput_8_f90" startline="1812" endline="1814">indextoglobalunit</referencedby>
+        <referencedby refid="namespacencoutput__module_1a5153504e8be59d64ceb8f770268ee06c" compoundref="ncoutput_8_f90" startline="1830" endline="1832">indextomaxunit</referencedby>
+        <referencedby refid="namespacencoutput__module_1af482a24ff1a2f53822ad3c8f6433f6c1" compoundref="ncoutput_8_f90" startline="1818" endline="1820">indextomeanunit</referencedby>
+        <referencedby refid="namespacencoutput__module_1a9bba67851170bd66bb188a474b0e5737" compoundref="ncoutput_8_f90" startline="1824" endline="1826">indextominunit</referencedby>
+        <referencedby refid="namespacencoutput__module_1a241644e560eb76bff5fadd9366bf51f4" compoundref="ncoutput_8_f90" startline="1806" endline="1808">indextopointsunit</referencedby>
+        <referencedby refid="namespacencoutput__module_1a3eca7a38d9f54eb18dfce1827fd1cbdd" compoundref="ncoutput_8_f90" startline="1836" endline="1838">indextovarunit</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacencoutput__module_1a241644e560eb76bff5fadd9366bf51f4" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer function</type>
+        <definition>integer function ncoutput_module::indextopointsunit</definition>
+        <argsstring>(index)</argsstring>
+        <name>indextopointsunit</name>
+        <param>
+          <type>index</type>
+          <defname>index</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="1805" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="1806" bodyend="1808"/>
+        <references refid="namespacencoutput__module_1af3a11acfd0b3c1ed0bf4a46630b23405" compoundref="ncoutput_8_f90" startline="1774" endline="1802">outunit</references>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacencoutput__module_1a4233db2b90cc77b804e0a8e7f6eb566a" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer function</type>
+        <definition>integer function ncoutput_module::indextoglobalunit</definition>
+        <argsstring>(index)</argsstring>
+        <name>indextoglobalunit</name>
+        <param>
+          <type>index</type>
+          <defname>index</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="1811" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="1812" bodyend="1814"/>
+        <references refid="namespacencoutput__module_1af3a11acfd0b3c1ed0bf4a46630b23405" compoundref="ncoutput_8_f90" startline="1774" endline="1802">outunit</references>
+        <referencedby refid="namespacencoutput__module_1a4924e110226e99514b4a46e368753086" compoundref="ncoutput_8_f90" startline="1757" endline="1770">checkfile</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacencoutput__module_1af482a24ff1a2f53822ad3c8f6433f6c1" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer function</type>
+        <definition>integer function ncoutput_module::indextomeanunit</definition>
+        <argsstring>(index)</argsstring>
+        <name>indextomeanunit</name>
+        <param>
+          <type>index</type>
+          <defname>index</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="1817" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="1818" bodyend="1820"/>
+        <references refid="namespacencoutput__module_1af3a11acfd0b3c1ed0bf4a46630b23405" compoundref="ncoutput_8_f90" startline="1774" endline="1802">outunit</references>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacencoutput__module_1a9bba67851170bd66bb188a474b0e5737" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer function</type>
+        <definition>integer function ncoutput_module::indextominunit</definition>
+        <argsstring>(index)</argsstring>
+        <name>indextominunit</name>
+        <param>
+          <type>index</type>
+          <defname>index</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="1823" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="1824" bodyend="1826"/>
+        <references refid="namespacencoutput__module_1af3a11acfd0b3c1ed0bf4a46630b23405" compoundref="ncoutput_8_f90" startline="1774" endline="1802">outunit</references>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacencoutput__module_1a5153504e8be59d64ceb8f770268ee06c" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer function</type>
+        <definition>integer function ncoutput_module::indextomaxunit</definition>
+        <argsstring>(index)</argsstring>
+        <name>indextomaxunit</name>
+        <param>
+          <type>index</type>
+          <defname>index</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="1829" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="1830" bodyend="1832"/>
+        <references refid="namespacencoutput__module_1af3a11acfd0b3c1ed0bf4a46630b23405" compoundref="ncoutput_8_f90" startline="1774" endline="1802">outunit</references>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacencoutput__module_1a3eca7a38d9f54eb18dfce1827fd1cbdd" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer function</type>
+        <definition>integer function ncoutput_module::indextovarunit</definition>
+        <argsstring>(index)</argsstring>
+        <name>indextovarunit</name>
+        <param>
+          <type>index</type>
+          <defname>index</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="1835" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="1836" bodyend="1838"/>
+        <references refid="namespacencoutput__module_1af3a11acfd0b3c1ed0bf4a46630b23405" compoundref="ncoutput_8_f90" startline="1774" endline="1802">outunit</references>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacencoutput__module_1a4d09d417ac31ae2309869d22e23a8ccf" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer function</type>
+        <definition>integer function ncoutput_module::indextodrifterunit</definition>
+        <argsstring>(index)</argsstring>
+        <name>indextodrifterunit</name>
+        <param>
+          <type>index</type>
+          <defname>index</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="1841" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="1842" bodyend="1844"/>
+        <references refid="namespacencoutput__module_1af3a11acfd0b3c1ed0bf4a46630b23405" compoundref="ncoutput_8_f90" startline="1774" endline="1802">outunit</references>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacencoutput__module_1a39df577d17ffc04cfd29e07d04873a87" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine ncoutput_module::makeaveragenames</definition>
+        <argsstring>(counter, fnamemean, fnamevar, fnamemin, fnamemax)</argsstring>
+        <name>makeaveragenames</name>
+        <param>
+          <type>counter</type>
+          <defname>counter</defname>
+        </param>
+        <param>
+          <type>fnamemean</type>
+          <defname>fnamemean</defname>
+        </param>
+        <param>
+          <type>fnamevar</type>
+          <defname>fnamevar</defname>
+        </param>
+        <param>
+          <type>fnamemin</type>
+          <defname>fnamemin</defname>
+        </param>
+        <param>
+          <type>fnamemax</type>
+          <defname>fnamemax</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="1847" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" bodystart="1849" bodyend="1860"/>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">fortoutput_init</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ncoutput.F90" line="42" column="1"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,127 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="structwave__boundary__datastore_1_1waveboundarytimeseriestype" kind="type" language="Fortran" prot="public">
+    <compoundname>wave_boundary_datastore::waveboundarytimeseriestype</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1a2279b310059962cc4af08d74b144b763" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:), allocatable</type>
+        <definition>real*8, dimension(:,:,:), allocatable wave_boundary_datastore::waveboundarytimeseriestype::eebct</definition>
+        <argsstring></argsstring>
+        <name>eebct</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="65" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="65" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1abb4f31e05be705db3894a7fd670f6794" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable</type>
+        <definition>real*8, dimension(:,:), allocatable wave_boundary_datastore::waveboundarytimeseriestype::qxbct</definition>
+        <argsstring></argsstring>
+        <name>qxbct</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="66" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="66" bodyend="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1a65e7d2ec923060c5776150aa3cf4a0ca" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable</type>
+        <definition>real*8, dimension(:,:), allocatable wave_boundary_datastore::waveboundarytimeseriestype::qybct</definition>
+        <argsstring></argsstring>
+        <name>qybct</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="66" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="66" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1aa352c2903176ca8174ce07d3ab9ae349" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable</type>
+        <definition>real*8, dimension(:,:), allocatable wave_boundary_datastore::waveboundarytimeseriestype::zsbct</definition>
+        <argsstring></argsstring>
+        <name>zsbct</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="67" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="67" bodyend="67"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1a226fbc06fc3aedf4f5eafe5ea4449dbe" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable</type>
+        <definition>real*8, dimension(:,:), allocatable wave_boundary_datastore::waveboundarytimeseriestype::ubct</definition>
+        <argsstring></argsstring>
+        <name>ubct</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="67" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="67" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1a02ffc8053693b567ca90be69123d59ac" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable</type>
+        <definition>real*8, dimension(:,:), allocatable wave_boundary_datastore::waveboundarytimeseriestype::vbct</definition>
+        <argsstring></argsstring>
+        <name>vbct</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="67" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="67" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1aacfed24366da2b927f4836e7dc71487a" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable</type>
+        <definition>real*8, dimension(:,:), allocatable wave_boundary_datastore::waveboundarytimeseriestype::wbct</definition>
+        <argsstring></argsstring>
+        <name>wbct</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="67" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="67" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1aca9a548f483e0d9b72fb3b675a857338" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), allocatable</type>
+        <definition>real*8, dimension(:), allocatable wave_boundary_datastore::waveboundarytimeseriestype::tbc</definition>
+        <argsstring></argsstring>
+        <name>tbc</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="68" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="68" bodyend="68"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="64" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="64" bodyend="69"/>
+    <listofallmembers>
+      <member refid="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1a2279b310059962cc4af08d74b144b763" prot="public" virt="non-virtual"><scope>wave_boundary_datastore::waveboundarytimeseriestype</scope><name>eebct</name></member>
+      <member refid="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1abb4f31e05be705db3894a7fd670f6794" prot="public" virt="non-virtual"><scope>wave_boundary_datastore::waveboundarytimeseriestype</scope><name>qxbct</name></member>
+      <member refid="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1a65e7d2ec923060c5776150aa3cf4a0ca" prot="public" virt="non-virtual"><scope>wave_boundary_datastore::waveboundarytimeseriestype</scope><name>qybct</name></member>
+      <member refid="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1aca9a548f483e0d9b72fb3b675a857338" prot="public" virt="non-virtual"><scope>wave_boundary_datastore::waveboundarytimeseriestype</scope><name>tbc</name></member>
+      <member refid="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1a226fbc06fc3aedf4f5eafe5ea4449dbe" prot="public" virt="non-virtual"><scope>wave_boundary_datastore::waveboundarytimeseriestype</scope><name>ubct</name></member>
+      <member refid="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1a02ffc8053693b567ca90be69123d59ac" prot="public" virt="non-virtual"><scope>wave_boundary_datastore::waveboundarytimeseriestype</scope><name>vbct</name></member>
+      <member refid="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1aacfed24366da2b927f4836e7dc71487a" prot="public" virt="non-virtual"><scope>wave_boundary_datastore::waveboundarytimeseriestype</scope><name>wbct</name></member>
+      <member refid="structwave__boundary__datastore_1_1waveboundarytimeseriestype_1aa352c2903176ca8174ce07d3ab9ae349" prot="public" virt="non-virtual"><scope>wave_boundary_datastore::waveboundarytimeseriestype</scope><name>zsbct</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

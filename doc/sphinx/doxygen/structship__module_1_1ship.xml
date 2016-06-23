@@ -1,0 +1,547 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="structship__module_1_1ship" kind="type" language="Fortran" prot="public">
+    <compoundname>ship_module::ship</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structship__module_1_1ship_1ae4a0f3257ed41f1c91948f1a7ecd7b13" prot="public" static="no" mutable="no">
+        <type>character(slen)</type>
+        <definition>character(slen) ship_module::ship::name</definition>
+        <argsstring></argsstring>
+        <name>name</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="32" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="32" bodyend="32"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1ac8bf31d3f6ae5995fef67e73a92a2a99" prot="public" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 ship_module::ship::dx</definition>
+        <argsstring></argsstring>
+        <name>dx</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="33" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="33" bodyend="33"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a959207902f1b9507e154af33da0316a0" prot="public" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 ship_module::ship::dy</definition>
+        <argsstring></argsstring>
+        <name>dy</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="34" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="34" bodyend="34"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a301863fe1b2d85828520ffe966c22e3b" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ship_module::ship::nx</definition>
+        <argsstring></argsstring>
+        <name>nx</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="35" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="35" bodyend="35"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a7de8cd361a24648c2a385f81234812e3" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ship_module::ship::ny</definition>
+        <argsstring></argsstring>
+        <name>ny</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="36" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="36" bodyend="36"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1af7b68183f05f227a46c5832ae3e4461c" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ship_module::ship::compute_force</definition>
+        <argsstring></argsstring>
+        <name>compute_force</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="37" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="37" bodyend="37"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1af0afa846c141a96818ee677cac46163c" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ship_module::ship::compute_motion</definition>
+        <argsstring></argsstring>
+        <name>compute_motion</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="38" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="38" bodyend="38"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1abaf203c1e61229886cd83cb865a06853" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ship_module::ship::flying</definition>
+        <argsstring></argsstring>
+        <name>flying</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="39" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="39" bodyend="39"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1acfacdc8d9376311f2ba507e50d2ca58f" prot="public" static="no" mutable="no">
+        <type>character(slen)</type>
+        <definition>character(slen) ship_module::ship::shipgeom</definition>
+        <argsstring></argsstring>
+        <name>shipgeom</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="40" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="40" bodyend="40"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1afebc234649c91e286d036ec368b84e3d" prot="public" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 ship_module::ship::xcg</definition>
+        <argsstring></argsstring>
+        <name>xcg</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="41" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="41" bodyend="41"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1ab0a54acf8866725a1174e465c60e03ec" prot="public" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 ship_module::ship::ycg</definition>
+        <argsstring></argsstring>
+        <name>ycg</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="42" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="42" bodyend="42"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1ab00f7b846d3b6386c4fa0d19bf430bec" prot="public" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 ship_module::ship::zcg</definition>
+        <argsstring></argsstring>
+        <name>zcg</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="43" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="43" bodyend="43"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a978d02d15a5b2c77c22305f56ce5c7ed" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer ship_module::ship::x</definition>
+        <argsstring></argsstring>
+        <name>x</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="44" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="44" bodyend="44"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1af93e802d60c3e42ec4019d55d232f65e" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer ship_module::ship::y</definition>
+        <argsstring></argsstring>
+        <name>y</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="45" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="45" bodyend="45"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a16e26862706c8e859b8c00a02401217e" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer ship_module::ship::depth</definition>
+        <argsstring></argsstring>
+        <name>depth</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="46" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="46" bodyend="46"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1aa2cf9296cc759119042dab272f1ae75f" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer ship_module::ship::zhull</definition>
+        <argsstring></argsstring>
+        <name>zhull</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="47" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="47" bodyend="47"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a18b26e23ab212f2bf22bd87ee02be34a" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer ship_module::ship::zs</definition>
+        <argsstring></argsstring>
+        <name>zs</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="48" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="48" bodyend="48"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a73c6dcc12dea4de9bea84ef362ae1bed" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer ship_module::ship::ph</definition>
+        <argsstring></argsstring>
+        <name>ph</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="49" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="49" bodyend="49"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a3b712e39876e8facf0a0b40b02a15398" prot="public" static="no" mutable="no">
+        <type>character(slen)</type>
+        <definition>character(slen) ship_module::ship::shiptrack</definition>
+        <argsstring></argsstring>
+        <name>shiptrack</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="50" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="50" bodyend="50"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a625e91e6995d2a5f6d5022031b360ba7" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer ship_module::ship::track_nt</definition>
+        <argsstring></argsstring>
+        <name>track_nt</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="51" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="51" bodyend="51"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a1e2d10387a71639bb392589512a267e7" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer ship_module::ship::track_t</definition>
+        <argsstring></argsstring>
+        <name>track_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="52" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="52" bodyend="52"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1adca7a61af173a73dfd1b65a67cc87257" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer ship_module::ship::track_x</definition>
+        <argsstring></argsstring>
+        <name>track_x</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="53" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="53" bodyend="53"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1ad1be2932aa59f906d50e0080cbfc41d7" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer ship_module::ship::track_y</definition>
+        <argsstring></argsstring>
+        <name>track_y</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="54" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="54" bodyend="54"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1adb08eb264b693183cfc5dca19a4c6bce" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer ship_module::ship::track_z</definition>
+        <argsstring></argsstring>
+        <name>track_z</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="55" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="55" bodyend="55"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a1f064b5cc82b9fcd381c249d5b32e021" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer ship_module::ship::track_dir</definition>
+        <argsstring></argsstring>
+        <name>track_dir</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="56" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="56" bodyend="56"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a509b114433180f9ebbd130fb98bed432" prot="public" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 ship_module::ship::mass</definition>
+        <argsstring></argsstring>
+        <name>mass</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="57" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="57" bodyend="57"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1aef3be49ff830bd0a035ae94aed8305c2" prot="public" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 ship_module::ship::jx</definition>
+        <argsstring></argsstring>
+        <name>jx</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="58" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="58" bodyend="58"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1abb7b82c5902f4f4b72805310af4cc2ff" prot="public" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 ship_module::ship::jy</definition>
+        <argsstring></argsstring>
+        <name>jy</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="59" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="59" bodyend="59"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a3d9c29e3185f068bf0699d3e42e15d30" prot="public" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 ship_module::ship::jz</definition>
+        <argsstring></argsstring>
+        <name>jz</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="60" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="60" bodyend="60"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1ae62dce60ee4f7b98d671b46e6e41485d" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer ship_module::ship::xs</definition>
+        <argsstring></argsstring>
+        <name>xs</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="61" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="61" bodyend="61"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a3f1eeef7b32cf93bc921aa749d797189" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer ship_module::ship::ys</definition>
+        <argsstring></argsstring>
+        <name>ys</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="62" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="62" bodyend="62"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a09ee0cf3f7ffe38f565148d2873d57be" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:), pointer</type>
+        <definition>integer, dimension(:), pointer ship_module::ship::nrx</definition>
+        <argsstring></argsstring>
+        <name>nrx</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="63" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="63" bodyend="63"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a0a16e7e13923e495645fce6615840226" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:), pointer</type>
+        <definition>integer, dimension(:), pointer ship_module::ship::nry</definition>
+        <argsstring></argsstring>
+        <name>nry</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="64" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="64" bodyend="64"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a76f4c3547ee9b475c05d78a911e05b42" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:), pointer</type>
+        <definition>integer, dimension(:), pointer ship_module::ship::nrin</definition>
+        <argsstring></argsstring>
+        <name>nrin</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="65" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="65" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a6593660d24862f186934c75342b866eb" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:), pointer</type>
+        <definition>integer, dimension(:), pointer ship_module::ship::iflag</definition>
+        <argsstring></argsstring>
+        <name>iflag</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="66" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="66" bodyend="66"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1a6a0d956f639eefbf217650fdcc7a1875" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:,:), pointer</type>
+        <definition>integer, dimension(:,:), pointer ship_module::ship::iref</definition>
+        <argsstring></argsstring>
+        <name>iref</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="67" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="67" bodyend="67"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1aea19c1412f8c30a7ce73dceda9a903b0" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer ship_module::ship::w</definition>
+        <argsstring></argsstring>
+        <name>w</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="68" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="68" bodyend="68"/>
+      </memberdef>
+      <memberdef kind="variable" id="structship__module_1_1ship_1ad99681dfe0c454856b0b8fdb43306dee" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:), pointer</type>
+        <definition>integer, dimension(:), pointer ship_module::ship::covered</definition>
+        <argsstring></argsstring>
+        <name>covered</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="69" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="69" bodyend="69"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="31" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="31" bodyend="70"/>
+    <listofallmembers>
+      <member refid="structship__module_1_1ship_1af7b68183f05f227a46c5832ae3e4461c" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>compute_force</name></member>
+      <member refid="structship__module_1_1ship_1af0afa846c141a96818ee677cac46163c" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>compute_motion</name></member>
+      <member refid="structship__module_1_1ship_1ad99681dfe0c454856b0b8fdb43306dee" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>covered</name></member>
+      <member refid="structship__module_1_1ship_1a16e26862706c8e859b8c00a02401217e" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>depth</name></member>
+      <member refid="structship__module_1_1ship_1ac8bf31d3f6ae5995fef67e73a92a2a99" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>dx</name></member>
+      <member refid="structship__module_1_1ship_1a959207902f1b9507e154af33da0316a0" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>dy</name></member>
+      <member refid="structship__module_1_1ship_1abaf203c1e61229886cd83cb865a06853" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>flying</name></member>
+      <member refid="structship__module_1_1ship_1a6593660d24862f186934c75342b866eb" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>iflag</name></member>
+      <member refid="structship__module_1_1ship_1a6a0d956f639eefbf217650fdcc7a1875" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>iref</name></member>
+      <member refid="structship__module_1_1ship_1aef3be49ff830bd0a035ae94aed8305c2" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>jx</name></member>
+      <member refid="structship__module_1_1ship_1abb7b82c5902f4f4b72805310af4cc2ff" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>jy</name></member>
+      <member refid="structship__module_1_1ship_1a3d9c29e3185f068bf0699d3e42e15d30" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>jz</name></member>
+      <member refid="structship__module_1_1ship_1a509b114433180f9ebbd130fb98bed432" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>mass</name></member>
+      <member refid="structship__module_1_1ship_1ae4a0f3257ed41f1c91948f1a7ecd7b13" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>name</name></member>
+      <member refid="structship__module_1_1ship_1a76f4c3547ee9b475c05d78a911e05b42" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>nrin</name></member>
+      <member refid="structship__module_1_1ship_1a09ee0cf3f7ffe38f565148d2873d57be" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>nrx</name></member>
+      <member refid="structship__module_1_1ship_1a0a16e7e13923e495645fce6615840226" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>nry</name></member>
+      <member refid="structship__module_1_1ship_1a301863fe1b2d85828520ffe966c22e3b" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>nx</name></member>
+      <member refid="structship__module_1_1ship_1a7de8cd361a24648c2a385f81234812e3" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>ny</name></member>
+      <member refid="structship__module_1_1ship_1a73c6dcc12dea4de9bea84ef362ae1bed" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>ph</name></member>
+      <member refid="structship__module_1_1ship_1acfacdc8d9376311f2ba507e50d2ca58f" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>shipgeom</name></member>
+      <member refid="structship__module_1_1ship_1a3b712e39876e8facf0a0b40b02a15398" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>shiptrack</name></member>
+      <member refid="structship__module_1_1ship_1a1f064b5cc82b9fcd381c249d5b32e021" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>track_dir</name></member>
+      <member refid="structship__module_1_1ship_1a625e91e6995d2a5f6d5022031b360ba7" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>track_nt</name></member>
+      <member refid="structship__module_1_1ship_1a1e2d10387a71639bb392589512a267e7" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>track_t</name></member>
+      <member refid="structship__module_1_1ship_1adca7a61af173a73dfd1b65a67cc87257" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>track_x</name></member>
+      <member refid="structship__module_1_1ship_1ad1be2932aa59f906d50e0080cbfc41d7" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>track_y</name></member>
+      <member refid="structship__module_1_1ship_1adb08eb264b693183cfc5dca19a4c6bce" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>track_z</name></member>
+      <member refid="structship__module_1_1ship_1aea19c1412f8c30a7ce73dceda9a903b0" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>w</name></member>
+      <member refid="structship__module_1_1ship_1a978d02d15a5b2c77c22305f56ce5c7ed" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>x</name></member>
+      <member refid="structship__module_1_1ship_1afebc234649c91e286d036ec368b84e3d" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>xcg</name></member>
+      <member refid="structship__module_1_1ship_1ae62dce60ee4f7b98d671b46e6e41485d" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>xs</name></member>
+      <member refid="structship__module_1_1ship_1af93e802d60c3e42ec4019d55d232f65e" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>y</name></member>
+      <member refid="structship__module_1_1ship_1ab0a54acf8866725a1174e465c60e03ec" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>ycg</name></member>
+      <member refid="structship__module_1_1ship_1a3f1eeef7b32cf93bc921aa749d797189" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>ys</name></member>
+      <member refid="structship__module_1_1ship_1ab00f7b846d3b6386c4fa0d19bf430bec" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>zcg</name></member>
+      <member refid="structship__module_1_1ship_1aa2cf9296cc759119042dab272f1ae75f" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>zhull</name></member>
+      <member refid="structship__module_1_1ship_1a18b26e23ab212f2bf22bd87ee02be34a" prot="public" virt="non-virtual"><scope>ship_module::ship</scope><name>zs</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

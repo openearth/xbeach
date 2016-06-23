@@ -1,0 +1,554 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacemath__tools" kind="namespace" language="Fortran">
+    <compoundname>math_tools</compoundname>
+    <innerclass refid="interfacemath__tools_1_1fft" prot="private">math_tools::fft</innerclass>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacemath__tools_1a9f08a8acacfdbde94e847b1980b16d20" prot="public" static="no" mutable="no">
+        <type>integer, parameter, public</type>
+        <definition>integer, parameter, public math_tools::fftkind</definition>
+        <argsstring></argsstring>
+        <name>fftkind</name>
+        <initializer>= kind(0.0d0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="153" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="153" bodyend="153"/>
+        <referencedby refid="math__tools_8_f90_1ae1a59b58d9ec02f1a56c7f59c6ea97c7" compoundref="math__tools_8_f90" startline="480" endline="762">transform</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacemath__tools_1a8e960d2ac4aa67d3dc33d16182148b0d" prot="public" static="no" mutable="no">
+        <type>integer, parameter, public</type>
+        <definition>integer, parameter, public math_tools::realkind</definition>
+        <argsstring></argsstring>
+        <name>realkind</name>
+        <initializer>= kind(0.0d0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="154" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="154" bodyend="154"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacemath__tools_1a2ace8d672d21c17b8d7e558ec9f224ee" prot="public" static="no" mutable="no">
+        <type>real(<ref refid="namespacemath__tools_1a9f08a8acacfdbde94e847b1980b16d20" kindref="member">fftkind</ref>), parameter</type>
+        <definition>real(fftkind), parameter math_tools::sin60</definition>
+        <argsstring></argsstring>
+        <name>sin60</name>
+        <initializer>= 0.86602540378443865_fftkind</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="155" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="155" bodyend="155"/>
+        <referencedby refid="namespacemath__tools_1ad5b58ffd93f6df1fffb9dcbe7a379aa6" compoundref="math__tools_8_f90" startline="349" endline="312">fftradix</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacemath__tools_1a03ff2a3c79f7cf225fd1a8080c38d624" prot="public" static="no" mutable="no">
+        <type>real(<ref refid="namespacemath__tools_1a9f08a8acacfdbde94e847b1980b16d20" kindref="member">fftkind</ref>), parameter</type>
+        <definition>real(fftkind), parameter math_tools::cos72</definition>
+        <argsstring></argsstring>
+        <name>cos72</name>
+        <initializer>= 0.30901699437494742_fftkind</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="156" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="156" bodyend="156"/>
+        <referencedby refid="namespacemath__tools_1ad5b58ffd93f6df1fffb9dcbe7a379aa6" compoundref="math__tools_8_f90" startline="349" endline="312">fftradix</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacemath__tools_1a78f97880514a65d8e0e3d4c475cb043c" prot="public" static="no" mutable="no">
+        <type>real(<ref refid="namespacemath__tools_1a9f08a8acacfdbde94e847b1980b16d20" kindref="member">fftkind</ref>), parameter</type>
+        <definition>real(fftkind), parameter math_tools::sin72</definition>
+        <argsstring></argsstring>
+        <name>sin72</name>
+        <initializer>= 0.95105651629515357_fftkind</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="157" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="157" bodyend="157"/>
+        <referencedby refid="namespacemath__tools_1ad5b58ffd93f6df1fffb9dcbe7a379aa6" compoundref="math__tools_8_f90" startline="349" endline="312">fftradix</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacemath__tools_1a6febec83ae7458b72a772b2eb73bef03" prot="public" static="no" mutable="no">
+        <type>real(<ref refid="namespacemath__tools_1a9f08a8acacfdbde94e847b1980b16d20" kindref="member">fftkind</ref>), parameter</type>
+        <definition>real(fftkind), parameter math_tools::pi</definition>
+        <argsstring></argsstring>
+        <name>pi</name>
+        <initializer>= 3.14159265358979323_fftkind</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="158" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="158" bodyend="158"/>
+        <referencedby refid="namespacemath__tools_1ad5b58ffd93f6df1fffb9dcbe7a379aa6" compoundref="math__tools_8_f90" startline="349" endline="312">fftradix</referencedby>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacemath__tools_1a37a11d74e69419ef80881a29d2b1dac9" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>complex(<ref refid="namespacemath__tools_1a9f08a8acacfdbde94e847b1980b16d20" kindref="member">fftkind</ref>) function, dimension(size(array, 1))</type>
+        <definition>complex(fftkind) function, dimension(size(array, 1)) math_tools::fft1d</definition>
+        <argsstring>(array, dim, inv, stat)</argsstring>
+        <name>fft1d</name>
+        <param>
+          <type>array</type>
+          <defname>array</defname>
+        </param>
+        <param>
+          <type>dim</type>
+          <defname>dim</defname>
+        </param>
+        <param>
+          <type>inv</type>
+          <defname>inv</defname>
+        </param>
+        <param>
+          <type>stat</type>
+          <defname>stat</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="172" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="173" bodyend="186"/>
+        <references refid="namespacemath__tools_1a94f22ad23592c8fb20b1477c54431058" compoundref="math__tools_8_f90" startline="301" endline="344">fftn</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacemath__tools_1af5369d4fdd627805983ac3afe776148d" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>complex(<ref refid="namespacemath__tools_1a9f08a8acacfdbde94e847b1980b16d20" kindref="member">fftkind</ref>) function, dimension(size(array, 1), size(array, 2))</type>
+        <definition>complex(fftkind) function, dimension(size(array, 1), size(array, 2)) math_tools::fft2d</definition>
+        <argsstring>(array, dim, inv, stat)</argsstring>
+        <name>fft2d</name>
+        <param>
+          <type>array</type>
+          <defname>array</defname>
+        </param>
+        <param>
+          <type>dim</type>
+          <defname>dim</defname>
+        </param>
+        <param>
+          <type>inv</type>
+          <defname>inv</defname>
+        </param>
+        <param>
+          <type>stat</type>
+          <defname>stat</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="190" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="191" bodyend="203"/>
+        <references refid="namespacemath__tools_1a94f22ad23592c8fb20b1477c54431058" compoundref="math__tools_8_f90" startline="301" endline="344">fftn</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacemath__tools_1accf21751f95e58413704100cbe2d958e" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>complex(<ref refid="namespacemath__tools_1a9f08a8acacfdbde94e847b1980b16d20" kindref="member">fftkind</ref>) function, dimension(size(array, 1), size(array, 2), size(array, 3))</type>
+        <definition>complex(fftkind) function, dimension(size(array, 1), size(array, 2), size(array, 3)) math_tools::fft3d</definition>
+        <argsstring>(array, dim, inv, stat)</argsstring>
+        <name>fft3d</name>
+        <param>
+          <type>array</type>
+          <defname>array</defname>
+        </param>
+        <param>
+          <type>dim</type>
+          <defname>dim</defname>
+        </param>
+        <param>
+          <type>inv</type>
+          <defname>inv</defname>
+        </param>
+        <param>
+          <type>stat</type>
+          <defname>stat</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="207" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="208" bodyend="221"/>
+        <references refid="namespacemath__tools_1a94f22ad23592c8fb20b1477c54431058" compoundref="math__tools_8_f90" startline="301" endline="344">fftn</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacemath__tools_1aeb47c82d28b27d57cf47390ea1a91909" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>complex(<ref refid="namespacemath__tools_1a9f08a8acacfdbde94e847b1980b16d20" kindref="member">fftkind</ref>) function, dimension(size(array, 1), size(array, 2), size(array, 3), size(array, 4))</type>
+        <definition>complex(fftkind) function, dimension(       size(array, 1), size(array, 2), size(array, 3), size(array, 4)) math_tools::fft4d</definition>
+        <argsstring>(array, dim, inv, stat)</argsstring>
+        <name>fft4d</name>
+        <param>
+          <type>array</type>
+          <defname>array</defname>
+        </param>
+        <param>
+          <type>dim</type>
+          <defname>dim</defname>
+        </param>
+        <param>
+          <type>inv</type>
+          <defname>inv</defname>
+        </param>
+        <param>
+          <type>stat</type>
+          <defname>stat</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="225" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="226" bodyend="239"/>
+        <references refid="namespacemath__tools_1a94f22ad23592c8fb20b1477c54431058" compoundref="math__tools_8_f90" startline="301" endline="344">fftn</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacemath__tools_1a67d61af2d308efc869e6d83eb5905a92" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>complex(<ref refid="namespacemath__tools_1a9f08a8acacfdbde94e847b1980b16d20" kindref="member">fftkind</ref>) function, dimension(size(array, 1), size(array, 2), size(array, 3), size(array, 4),size(array, 5))</type>
+        <definition>complex(fftkind) function, dimension(       size(array, 1), size(array, 2), size(array, 3), size(array, 4),       size(array, 5)) math_tools::fft5d</definition>
+        <argsstring>(array, dim, inv, stat)</argsstring>
+        <name>fft5d</name>
+        <param>
+          <type>array</type>
+          <defname>array</defname>
+        </param>
+        <param>
+          <type>dim</type>
+          <defname>dim</defname>
+        </param>
+        <param>
+          <type>inv</type>
+          <defname>inv</defname>
+        </param>
+        <param>
+          <type>stat</type>
+          <defname>stat</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="243" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="244" bodyend="258"/>
+        <references refid="namespacemath__tools_1a94f22ad23592c8fb20b1477c54431058" compoundref="math__tools_8_f90" startline="301" endline="344">fftn</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacemath__tools_1aab0a9901564a350a7c177953c891913a" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>complex(<ref refid="namespacemath__tools_1a9f08a8acacfdbde94e847b1980b16d20" kindref="member">fftkind</ref>) function, dimension(size(array, 1), size(array, 2), size(array, 3), size(array, 4),size(array, 5), size(array, 6))</type>
+        <definition>complex(fftkind) function, dimension(       size(array, 1), size(array, 2), size(array, 3), size(array, 4),       size(array, 5), size(array, 6)) math_tools::fft6d</definition>
+        <argsstring>(array, dim, inv, stat)</argsstring>
+        <name>fft6d</name>
+        <param>
+          <type>array</type>
+          <defname>array</defname>
+        </param>
+        <param>
+          <type>dim</type>
+          <defname>dim</defname>
+        </param>
+        <param>
+          <type>inv</type>
+          <defname>inv</defname>
+        </param>
+        <param>
+          <type>stat</type>
+          <defname>stat</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="262" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="263" bodyend="277"/>
+        <references refid="namespacemath__tools_1a94f22ad23592c8fb20b1477c54431058" compoundref="math__tools_8_f90" startline="301" endline="344">fftn</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacemath__tools_1a4230cec3f8f1449da90d3cae6c192246" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>complex(<ref refid="namespacemath__tools_1a9f08a8acacfdbde94e847b1980b16d20" kindref="member">fftkind</ref>) function, dimension(size(array, 1), size(array, 2), size(array, 3), size(array, 4),size(array, 5), size(array, 6), size(array, 7))</type>
+        <definition>complex(fftkind) function, dimension(       size(array, 1), size(array, 2), size(array, 3), size(array, 4),       size(array, 5), size(array, 6), size(array, 7)) math_tools::fft7d</definition>
+        <argsstring>(array, dim, inv, stat)</argsstring>
+        <name>fft7d</name>
+        <param>
+          <type>array</type>
+          <defname>array</defname>
+        </param>
+        <param>
+          <type>dim</type>
+          <defname>dim</defname>
+        </param>
+        <param>
+          <type>inv</type>
+          <defname>inv</defname>
+        </param>
+        <param>
+          <type>stat</type>
+          <defname>stat</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="281" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="282" bodyend="296"/>
+        <references refid="namespacemath__tools_1a94f22ad23592c8fb20b1477c54431058" compoundref="math__tools_8_f90" startline="301" endline="344">fftn</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacemath__tools_1a94f22ad23592c8fb20b1477c54431058" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public math_tools::fftn</definition>
+        <argsstring>(array, shape, dim, inv, stat)</argsstring>
+        <name>fftn</name>
+        <param>
+          <type>array</type>
+          <defname>array</defname>
+        </param>
+        <param>
+          <type>shape</type>
+          <defname>shape</defname>
+        </param>
+        <param>
+          <type>dim</type>
+          <defname>dim</defname>
+        </param>
+        <param>
+          <type>inv</type>
+          <defname>inv</defname>
+        </param>
+        <param>
+          <type>stat</type>
+          <defname>stat</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="300" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="301" bodyend="344"/>
+        <references refid="namespacemath__tools_1ad5b58ffd93f6df1fffb9dcbe7a379aa6" compoundref="math__tools_8_f90" startline="349" endline="312">fftradix</references>
+        <referencedby refid="namespacemath__tools_1a37a11d74e69419ef80881a29d2b1dac9" compoundref="math__tools_8_f90" startline="173" endline="186">fft1d</referencedby>
+        <referencedby refid="namespacemath__tools_1af5369d4fdd627805983ac3afe776148d" compoundref="math__tools_8_f90" startline="191" endline="203">fft2d</referencedby>
+        <referencedby refid="namespacemath__tools_1accf21751f95e58413704100cbe2d958e" compoundref="math__tools_8_f90" startline="208" endline="221">fft3d</referencedby>
+        <referencedby refid="namespacemath__tools_1aeb47c82d28b27d57cf47390ea1a91909" compoundref="math__tools_8_f90" startline="226" endline="239">fft4d</referencedby>
+        <referencedby refid="namespacemath__tools_1a67d61af2d308efc869e6d83eb5905a92" compoundref="math__tools_8_f90" startline="244" endline="258">fft5d</referencedby>
+        <referencedby refid="namespacemath__tools_1aab0a9901564a350a7c177953c891913a" compoundref="math__tools_8_f90" startline="263" endline="277">fft6d</referencedby>
+        <referencedby refid="namespacemath__tools_1a4230cec3f8f1449da90d3cae6c192246" compoundref="math__tools_8_f90" startline="282" endline="296">fft7d</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacemath__tools_1ad5b58ffd93f6df1fffb9dcbe7a379aa6" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine math_tools::fftradix</definition>
+        <argsstring>(array, ntotal, npass, nspan, inv, stat)</argsstring>
+        <name>fftradix</name>
+        <param>
+          <type>array</type>
+          <defname>array</defname>
+        </param>
+        <param>
+          <type>ntotal</type>
+          <defname>ntotal</defname>
+        </param>
+        <param>
+          <type>npass</type>
+          <defname>npass</defname>
+        </param>
+        <param>
+          <type>nspan</type>
+          <defname>nspan</defname>
+        </param>
+        <param>
+          <type>inv</type>
+          <defname>inv</defname>
+        </param>
+        <param>
+          <type>stat</type>
+          <defname>stat</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="348" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="349" bodyend="312"/>
+        <references refid="namespacemath__tools_1a03ff2a3c79f7cf225fd1a8080c38d624" compoundref="math__tools_8_f90" startline="156" endline="156">cos72</references>
+        <references refid="math__tools_8_f90_1a083f91277519ec5c9ae002a0dddddf29" compoundref="math__tools_8_f90" startline="426" endline="475">factorize</references>
+        <references refid="math__tools_8_f90_1a86b950ddf7f75d45ad444a2aab6eefe5" compoundref="math__tools_8_f90" startline="767" endline="967">permute</references>
+        <references refid="namespacemath__tools_1a6febec83ae7458b72a772b2eb73bef03" compoundref="math__tools_8_f90" startline="158" endline="158">pi</references>
+        <references refid="namespacemath__tools_1a2ace8d672d21c17b8d7e558ec9f224ee" compoundref="math__tools_8_f90" startline="155" endline="155">sin60</references>
+        <references refid="namespacemath__tools_1a78f97880514a65d8e0e3d4c475cb043c" compoundref="math__tools_8_f90" startline="157" endline="157">sin72</references>
+        <references refid="math__tools_8_f90_1ae1a59b58d9ec02f1a56c7f59c6ea97c7" compoundref="math__tools_8_f90" startline="480" endline="762">transform</references>
+        <referencedby refid="namespacemath__tools_1a94f22ad23592c8fb20b1477c54431058" compoundref="math__tools_8_f90" startline="301" endline="344">fftn</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacemath__tools_1abc8cd176b4f95343f46d94bd6bebaf5f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public math_tools::hilbert</definition>
+        <argsstring>(xi, m)</argsstring>
+        <name>hilbert</name>
+        <param>
+          <type>xi</type>
+          <defname>xi</defname>
+        </param>
+        <param>
+          <type>m</type>
+          <defname>m</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="976" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="977" bodyend="1022"/>
+        <referencedby refid="namespacewaveparams_1ae70cd53ba3f401c18d31897acb066a0e" compoundref="waveparams_8_f90" startline="909" endline="1544">waveparams::build_etdir</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1abf4ffa23c6ce2aa451960820a63f7225" compoundref="wave__boundary__update_8f90" startline="2143" endline="2369">wave_boundary_update_module::generate_ebcf</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1ab8d84de3b688de769d6435e6210e353d" compoundref="waveparamsnew_8_f90" startline="2170" endline="2413">spectral_wave_bc_module::generate_ebcf</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacemath__tools_1a96828338fa9a363dfc5173dfc8edebd1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public math_tools::flipv</definition>
+        <argsstring>(x, M)</argsstring>
+        <name>flipv</name>
+        <param>
+          <type>x</type>
+          <defname>x</defname>
+        </param>
+        <param>
+          <type>M</type>
+          <defname>M</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="1028" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="1029" bodyend="1060"/>
+        <referencedby refid="namespacewave__boundary__update__module_1ab5b5100ab2b89fd4f982d7552b22857a" compoundref="wave__boundary__update_8f90" startline="817" endline="1079">wave_boundary_update_module::read_swan_file</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a76187f02c768dbd0c7a8a1564f85c616" compoundref="waveparamsnew_8_f90" startline="865" endline="1073">spectral_wave_bc_module::read_swan_file</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a95383a7019c786602a30432eb5d485c2" compoundref="waveparamsnew_8_f90" startline="1081" endline="1184">spectral_wave_bc_module::read_vardens_file</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1a3de9d3cb05e0a95231de57375718a601" compoundref="wave__boundary__update_8f90" startline="1087" endline="1245">wave_boundary_update_module::read_vardens_file</referencedby>
+        <referencedby refid="namespacewaveparams_1a4807c6ec60c15dcff4e549d68d3dbaf4" compoundref="waveparams_8_f90" startline="429" endline="772">waveparams::swanreader</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacemath__tools_1a886b8427f30299b372917272a337331d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public math_tools::flipiv</definition>
+        <argsstring>(x, M)</argsstring>
+        <name>flipiv</name>
+        <param>
+          <type>x</type>
+          <defname>x</defname>
+        </param>
+        <param>
+          <type>M</type>
+          <defname>M</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="1063" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="1064" bodyend="1096"/>
+        <referencedby refid="namespacewaveparams_1a26815dfe6ac206f8fb1c25900315e347" compoundref="waveparams_8_f90" startline="1551" endline="1828">waveparams::build_boundw</referencedby>
+        <referencedby refid="namespacewaveparams_1ae70cd53ba3f401c18d31897acb066a0e" compoundref="waveparams_8_f90" startline="909" endline="1544">waveparams::build_etdir</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1abf4ffa23c6ce2aa451960820a63f7225" compoundref="wave__boundary__update_8f90" startline="2143" endline="2369">wave_boundary_update_module::generate_ebcf</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1ab8d84de3b688de769d6435e6210e353d" compoundref="waveparamsnew_8_f90" startline="2170" endline="2413">spectral_wave_bc_module::generate_ebcf</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1a178b2db870cbd999305ed8e4b1db0fb3" compoundref="wave__boundary__update_8f90" startline="2461" endline="2728">wave_boundary_update_module::generate_qbcf</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a1c25cb7416bfebe3e38eec38eec53541" compoundref="waveparamsnew_8_f90" startline="2488" endline="2751">spectral_wave_bc_module::generate_qbcf</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a327aebc07fc960deb0ec810bc5d8c3ca" compoundref="waveparamsnew_8_f90" startline="1961" endline="2016">spectral_wave_bc_module::generate_wave_train_fourier</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1a236e07915aa89d0ab73758ccd9421c86" compoundref="wave__boundary__update_8f90" startline="1970" endline="2029">wave_boundary_update_module::generate_wave_train_fourier</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacemath__tools_1a62c62feebd4db49040c4838594eabb4d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public math_tools::flipa</definition>
+        <argsstring>(x, M1, M2, flip)</argsstring>
+        <name>flipa</name>
+        <param>
+          <type>x</type>
+          <defname>x</defname>
+        </param>
+        <param>
+          <type>M1</type>
+          <defname>M1</defname>
+        </param>
+        <param>
+          <type>M2</type>
+          <defname>M2</defname>
+        </param>
+        <param>
+          <type>flip</type>
+          <defname>flip</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="1099" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="1100" bodyend="1138"/>
+        <references refid="namespacexmpi__module_1a5406ad4cd4b3c61bf18b86fe6dcd9936" compoundref="xmpi_8_f90" startline="1576" endline="1599">xmpi_module::halt_program</references>
+        <referencedby refid="namespacewave__boundary__update__module_1ab5b5100ab2b89fd4f982d7552b22857a" compoundref="wave__boundary__update_8f90" startline="817" endline="1079">wave_boundary_update_module::read_swan_file</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a76187f02c768dbd0c7a8a1564f85c616" compoundref="waveparamsnew_8_f90" startline="865" endline="1073">spectral_wave_bc_module::read_swan_file</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a95383a7019c786602a30432eb5d485c2" compoundref="waveparamsnew_8_f90" startline="1081" endline="1184">spectral_wave_bc_module::read_vardens_file</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1a3de9d3cb05e0a95231de57375718a601" compoundref="wave__boundary__update_8f90" startline="1087" endline="1245">wave_boundary_update_module::read_vardens_file</referencedby>
+        <referencedby refid="namespacewaveparams_1a4807c6ec60c15dcff4e549d68d3dbaf4" compoundref="waveparams_8_f90" startline="429" endline="772">waveparams::swanreader</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacemath__tools_1ab7b67cdda73b328bbc502dfdc2702fa4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>real *8 function, dimension(size(x)), public</type>
+        <definition>real*8 function, dimension(size(x)), public math_tools::xerf</definition>
+        <argsstring>(x)</argsstring>
+        <name>xerf</name>
+        <param>
+          <type>x</type>
+          <defname>x</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="1141" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="1142" bodyend="1264"/>
+        <referencedby refid="namespaceroelvink__module_1a8a3b624df23962a4a7dbbfcf053337dd" compoundref="roelvink_8_f90" startline="188" endline="223">roelvink_module::janssen_battjes_1d</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacemath__tools_1a1b0f90130baacf1d04a9a058da8073ce" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>real *8 function, public</type>
+        <definition>real*8 function, public math_tools::random</definition>
+        <argsstring>(j)</argsstring>
+        <name>random</name>
+        <param>
+          <type>j</type>
+          <defname>j</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="1268" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" bodystart="1269" bodyend="1304"/>
+        <referencedby refid="namespacewaveparams_1ae70cd53ba3f401c18d31897acb066a0e" compoundref="waveparams_8_f90" startline="909" endline="1544">waveparams::build_etdir</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1ab5143a84a7be1a4f54a904611c0a4f87" compoundref="waveparamsnew_8_f90" startline="1465" endline="1599">spectral_wave_bc_module::generate_wavetrain_components</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1ae4957a7ad9dc3602eb0f2995bc525e26" compoundref="wave__boundary__update_8f90" startline="1495" endline="1645">wave_boundary_update_module::generate_wavetrain_components</referencedby>
+        <referencedby refid="namespacewaveparams_1a326b025c8687a3f2ecd832ad36b2c566" compoundref="waveparams_8_f90" startline="2021" endline="2026">waveparams::init_seed</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/math_tools.F90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

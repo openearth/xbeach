@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="getkey_8f90" kind="file" language="Fortran">
+    <compoundname>getkey.f90</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">!<sp/><sp/>DO<sp/>NOT<sp/>EDIT<sp/>THIS<sp/>FILE</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/>But<sp/>edit<sp/>variable.f90<sp/>and<sp/>scripts/generate.py</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/>Compiling<sp/>and<sp/>running<sp/>is<sp/>taken<sp/>care<sp/>of<sp/>by<sp/>the<sp/>Makefile</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal">&lt;%</highlight></codeline>
+<codeline lineno="6"><highlight class="normal">realparams<sp/>=<sp/>[]</highlight></codeline>
+<codeline lineno="7"><highlight class="normal">integerparams<sp/>=<sp/>[]</highlight></codeline>
+<codeline lineno="8"><highlight class="normal">characterparams<sp/>=<sp/>[]</highlight></codeline>
+<codeline lineno="9"><highlight class="normal">for<sp/>par<sp/>in<sp/>parameters:</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>par[</highlight><highlight class="stringliteral">&quot;type&quot;</highlight><highlight class="normal">]<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;double&quot;</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>par[</highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal">]<sp/>not<sp/>in(</highlight><highlight class="stringliteral">&quot;D15&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;D50&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;D90&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;sedcal&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;ucrcal&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;xpointsw&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;ypointsw&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;rugdepth&quot;</highlight><highlight class="normal">):</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>realparams.append(par)</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>par[</highlight><highlight class="stringliteral">&quot;type&quot;</highlight><highlight class="normal">]<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;int&quot;</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>par[</highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal">]<sp/>not<sp/>in(</highlight><highlight class="stringliteral">&quot;pointtypes&quot;</highlight><highlight class="normal">):</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>integerparams.append(par)</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>par[</highlight><highlight class="stringliteral">&quot;type&quot;</highlight><highlight class="normal">]<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;char&quot;</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>par[</highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal">]<sp/>not<sp/>in(</highlight><highlight class="stringliteral">&quot;globalvars&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;meanvars&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;pointvars&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;stationid&quot;</highlight><highlight class="normal">):</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>characterparams.append(par)</highlight></codeline>
+<codeline lineno="19"><highlight class="normal">%&gt;</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">parameter</highlight><highlight class="normal"><sp/>::<sp/>ncharacterkeys=${len(characterparams)}</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">parameter</highlight><highlight class="normal"><sp/>::<sp/>nrealkeys=${len(realparams)}</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">parameter</highlight><highlight class="normal"><sp/>::<sp/>nintegerkeys=${len(integerparams)}</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/></highlight><highlight class="keywordtype">character(slen)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">dimension(ncharacterkeys)</highlight><highlight class="normal"><sp/>::<sp/>characterkeys</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/></highlight><highlight class="keywordtype">character(slen)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">dimension(nrealkeys)</highlight><highlight class="normal"><sp/>::<sp/>realkeys</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/></highlight><highlight class="keywordtype">character(slen)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">dimension(nintegerkeys)</highlight><highlight class="normal"><sp/>::<sp/>integerkeys</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/></highlight><highlight class="keywordtype">character(slen)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">dimension(ncharacterkeys)</highlight><highlight class="normal"><sp/>::<sp/>charactervalues</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double<sp/>precision</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">dimension(nrealkeys)</highlight><highlight class="normal"><sp/>::<sp/>realvalues</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">dimension(nintegerkeys)</highlight><highlight class="normal"><sp/>::<sp/>integervalues</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal">%for<sp/>i,<sp/>par<sp/>in<sp/>enumerate(characterparams):</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/>characterkeys(${i+1})<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;${par[&quot;</highlight><highlight class="normal">name</highlight><highlight class="stringliteral">&quot;]}&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal">%endfor</highlight></codeline>
+<codeline lineno="37"><highlight class="normal">%for<sp/>i,<sp/>par<sp/>in<sp/>enumerate(characterparams):</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/>charactervalues(${i+1})<sp/>=<sp/>par%${par[</highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal">]}</highlight></codeline>
+<codeline lineno="39"><highlight class="normal">%endfor</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal">%for<sp/>i,<sp/>par<sp/>in<sp/>enumerate(realparams):</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/>realkeys(${i+1})<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;${par[&quot;</highlight><highlight class="normal">name</highlight><highlight class="stringliteral">&quot;]}&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal">%endfor</highlight></codeline>
+<codeline lineno="44"><highlight class="normal">%for<sp/>i,<sp/>par<sp/>in<sp/>enumerate(realparams):</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/>realvalues(${i+1})<sp/>=<sp/>par%${par[</highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal">]}</highlight></codeline>
+<codeline lineno="46"><highlight class="normal">%endfor</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal">%for<sp/>i,<sp/>par<sp/>in<sp/>enumerate(integerparams):</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/>integerkeys(${i+1})<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;${par[&quot;</highlight><highlight class="normal">name</highlight><highlight class="stringliteral">&quot;]}&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal">%endfor</highlight></codeline>
+<codeline lineno="51"><highlight class="normal">%for<sp/>i,<sp/>par<sp/>in<sp/>enumerate(integerparams):</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/>integervalues(${i+1})<sp/>=<sp/>par%${par[</highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal">]}</highlight></codeline>
+<codeline lineno="53"><highlight class="normal">%endfor</highlight></codeline>
+    </programlisting>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/templates/getkey.f90"/>
+  </compounddef>
+</doxygen>

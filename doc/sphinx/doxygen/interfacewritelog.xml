@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="interfacewritelog" kind="interface" language="Fortran" prot="public">
+    <compoundname>writelog</compoundname>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="interfacewritelog_1a2157e984647984a60b6e962c4985e87f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>writelog::writelog_</definition>
+        <argsstring></argsstring>
+        <name>writelog_</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="" line="1" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="interfacewritelog_1a54f235eb25f2a3b69968e6aabeb5ce00" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>writelog::format</definition>
+        <argsstring></argsstring>
+        <name>format</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="" line="1" column="1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/templates/writeloginterface.f90" line="25" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/templates/writeloginterface.f90" bodystart="25" bodyend="28"/>
+    <listofallmembers>
+      <member refid="interfacewritelog_1a54f235eb25f2a3b69968e6aabeb5ce00" prot="public" virt="non-virtual"><scope>writelog</scope><name>format</name></member>
+      <member refid="interfacewritelog_1a2157e984647984a60b6e962c4985e87f" prot="public" virt="non-virtual"><scope>writelog</scope><name>writelog_</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

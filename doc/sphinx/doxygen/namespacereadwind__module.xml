@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacereadwind__module" kind="namespace" language="Fortran">
+    <compoundname>readwind_module</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacereadwind__module_1aac3e91d3ac4a01c446b10eb58338aae7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine readwind_module::readwind</definition>
+        <argsstring>(s, par)</argsstring>
+        <name>readwind</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/readwind.F90" line="5" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/readwind.F90" bodystart="6" bodyend="107"/>
+        <references refid="namespacexmpi__module_1a5406ad4cd4b3c61bf18b86fe6dcd9936" compoundref="xmpi_8_f90" startline="1576" endline="1599">xmpi_module::halt_program</references>
+        <references refid="namespacelogging__module_1ae7b8d1c55379954818a0b7b4576be077" compoundref="logging_8_f90" startline="178" endline="186">logging_module::report_file_read_error</references>
+        <references refid="namespacexmpi__module_1a49447cc5b155a1ab5c81885e6dc7943d" compoundref="xmpi_8_f90" startline="91" endline="91">xmpi_module::xmaster</references>
+        <referencedby refid="namespacelibxbeach__module_1a6be3278b63e39d796c22bef0227fd2c4" compoundref="libxbeach_8_f90" startline="60" endline="208">libxbeach_module::init</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/readwind.F90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,168 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="demo_8_f90" kind="file" language="Fortran">
+    <compoundname>demo.F90</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="demo_8_f90_1a5b31693ae1e23c438c97976df5dabba0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>program</type>
+        <definition>program demo</definition>
+        <argsstring></argsstring>
+        <name>demo</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/demo.F90" line="4" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/demo.F90" bodystart="4" bodyend="-1"/>
+        <references refid="demo_8_f90_1a13a2d5eaf64c3ad3b537e9b4e17c627c" compoundref="demo_8_f90" startline="55" endline="107">setvar</references>
+        <references refid="namespacespaceparams_1a587ab11ac9b178cc5f6a0de4273fd14b" compoundref="spaceparams_8_f90" startline="126" endline="131">spaceparams::space_alloc_scalars</references>
+      </memberdef>
+      <memberdef kind="function" id="demo_8_f90_1a13a2d5eaf64c3ad3b537e9b4e17c627c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine setvar</definition>
+        <argsstring>(s, name, value)</argsstring>
+        <name>setvar</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>name</type>
+          <defname>name</defname>
+        </param>
+        <param>
+          <type>value</type>
+          <defname>value</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/demo.F90" line="54" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/demo.F90" bodystart="55" bodyend="107"/>
+        <references refid="namespacemnemmodule_1a644597af8c9700795b17c6878478af6a" compoundref="mnemonic_8_f90" startline="36" endline="46">mnemmodule::chartoindex</references>
+        <references refid="namespacespaceparams_1a3cfea096bf8de1fb71854e00c05208d1" compoundref="spaceparams_8_f90" startline="42" endline="62">spaceparams::indextos</references>
+        <references refid="namespacemnemmodule_1a59ccd52679b2f8c14fa8b0edb60d2308" compoundref="mnemonic_8_f90" startline="50" endline="72">mnemmodule::printvar</references>
+        <referencedby refid="demo_8_f90_1a5b31693ae1e23c438c97976df5dabba0" compoundref="demo_8_f90" startline="4">demo</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="comment">!<sp/>demonstration<sp/>how<sp/>to<sp/>use<sp/>the<sp/>mnemonics<sp/>stuff</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="comment">!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4" refid="demo_8_f90_1a5b31693ae1e23c438c97976df5dabba0" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">program</highlight><highlight class="normal"><sp/><ref refid="demo_8_f90_1a5b31693ae1e23c438c97976df5dabba0" kindref="member">demo</ref></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">use<sp/></highlight><highlight class="normal"><ref refid="namespacespaceparams" kindref="compound">spaceparams</ref></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">use<sp/></highlight><highlight class="normal"><ref refid="namespacetypesandkinds" kindref="compound">typesandkinds</ref></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">use<sp/></highlight><highlight class="normal"><ref refid="namespacemnemmodule" kindref="compound">mnemmodule</ref></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">implicit<sp/>none</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/>type(<ref refid="structspaceparamsdef_1_1spacepars" kindref="compound">spacepars</ref>)<sp/>::<sp/>s</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">parameter</highlight><highlight class="normal"><sp/>::<sp/>nnames<sp/>=<sp/>4</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">character(slen)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">dimension(nnames)</highlight><highlight class="normal">,</highlight><highlight class="keywordtype">parameter</highlight><highlight class="normal"><sp/>::<sp/>names=(/</highlight><highlight class="stringliteral">&apos;xz&apos;</highlight><highlight class="normal">,</highlight><highlight class="stringliteral">&apos;x&apos;</highlight><highlight class="normal">,</highlight><highlight class="stringliteral">&apos;cx&apos;</highlight><highlight class="normal">,</highlight><highlight class="stringliteral">&apos;nx&apos;</highlight><highlight class="normal">/)</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal"><sp/>::<sp/>i</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>alternatively,<sp/>to<sp/>let<sp/>the<sp/>compiler<sp/>catch<sp/>typing<sp/>errors:</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!character(slen),<sp/>dimension(nnames),<sp/>parameter<sp/>::<sp/>names=(/mnem_xz,mnem_x,mnem_cx,mnem_nx/)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>allocate<sp/>scalars:</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keyword">call<sp/></highlight><highlight class="normal"><ref refid="namespacespaceparams_1a587ab11ac9b178cc5f6a0de4273fd14b" kindref="member">space_alloc_scalars</ref>(s)</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>allocate<sp/>some<sp/>arrays<sp/>in<sp/>s</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keyword">allocate</highlight><highlight class="normal">(s%xz(100))</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keyword">allocate</highlight><highlight class="normal">(s%x(120,10))</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keyword">allocate</highlight><highlight class="normal">(s%cx(10,10,10))</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>note,<sp/>there<sp/>is<sp/>a<sp/>subroutine<sp/>space_alloc_arrays<sp/>in</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>spaceparams.F90<sp/>to<sp/>allocate<sp/>all<sp/>arrays<sp/>in<sp/>s.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>That<sp/>subroutine<sp/>needs<sp/>filled-in<sp/>variables<sp/>i<sp/>s<sp/>and<sp/>par</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>Give<sp/>the<sp/>variables<sp/>a<sp/>value,<sp/>using<sp/>their<sp/>names<sp/>in<sp/>array<sp/>names</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordflow">do</highlight><highlight class="normal"><sp/>i=1,nnames</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">call<sp/></highlight><highlight class="normal"><ref refid="demo_8_f90_1a13a2d5eaf64c3ad3b537e9b4e17c627c" kindref="member">setvar</ref>(s,names(i),dble(i))</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="keywordflow"><sp/><sp/><sp/>enddo</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>and<sp/>show<sp/>that<sp/>the<sp/>values<sp/>are<sp/>there:</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keyword">write</highlight><highlight class="normal">(*,*)</highlight><highlight class="stringliteral">&apos;nx:&apos;</highlight><highlight class="normal">,s%nx</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keyword">write</highlight><highlight class="normal">(*,*)</highlight><highlight class="stringliteral">&apos;nxz:&apos;</highlight><highlight class="normal">,s%xz(1)</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keyword">write</highlight><highlight class="normal">(*,*)</highlight><highlight class="stringliteral">&apos;x:&apos;</highlight><highlight class="normal">,s%x(1,1)</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keyword">write</highlight><highlight class="normal">(*,*)</highlight><highlight class="stringliteral">&apos;cx:&apos;</highlight><highlight class="normal">,s%cx(1,1,1)</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="keyword">end<sp/>program<sp/></highlight><highlight class="normal"><ref refid="demo_8_f90_1a5b31693ae1e23c438c97976df5dabba0" kindref="member">demo</ref></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight><highlight class="comment">!<sp/>example<sp/>code<sp/>to<sp/>demonstrate<sp/>indextos<sp/>and<sp/>chartoindex</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="comment">!<sp/>The<sp/>first<sp/>element<sp/>of<sp/>the<sp/>named<sp/>variable<sp/>will<sp/>be<sp/>set<sp/>to</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight><highlight class="comment">!<sp/>zero</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="keyword">subroutine<sp/></highlight><highlight class="normal"><ref refid="demo_8_f90_1a13a2d5eaf64c3ad3b537e9b4e17c627c" kindref="member">setvar</ref>(s,name,value)</highlight></codeline>
+<codeline lineno="55" refid="demo_8_f90_1a13a2d5eaf64c3ad3b537e9b4e17c627c" refkind="member"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">use<sp/></highlight><highlight class="normal"><ref refid="namespacespaceparams" kindref="compound">spaceparams</ref></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">use<sp/></highlight><highlight class="normal"><ref refid="namespacemnemmodule" kindref="compound">mnemmodule</ref></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">implicit<sp/>none</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">type</highlight><highlight class="normal">(<ref refid="structspaceparamsdef_1_1spacepars" kindref="compound">spacepars</ref>)<sp/>::<sp/>s</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">character(len=*)</highlight><highlight class="normal"><sp/>::<sp/>name</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">real*8</highlight><highlight class="normal"><sp/>::<sp/>value</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal"><sp/>::<sp/>index</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/>type(<ref refid="structmnemmodule_1_1arraytype" kindref="compound">arraytype</ref>)<sp/>::<sp/>t</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/>index<sp/>=<sp/><ref refid="namespacemnemmodule_1a644597af8c9700795b17c6878478af6a" kindref="member">chartoindex</ref>(name)<sp/><sp/><sp/></highlight><highlight class="comment">!determine<sp/>index<sp/>from<sp/>name</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keyword">call<sp/></highlight><highlight class="normal"><ref refid="namespacespaceparams_1a3cfea096bf8de1fb71854e00c05208d1" kindref="member">indextos</ref>(s,index,t)<sp/><sp/><sp/><sp/></highlight><highlight class="comment">!get<sp/>info<sp/>and<sp/>pointer</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keyword">write</highlight><highlight class="normal">(*,*)</highlight><highlight class="stringliteral">&apos;setting<sp/>&apos;</highlight><highlight class="normal">//trim(name)//</highlight><highlight class="stringliteral">&apos;<sp/>to<sp/>&apos;</highlight><highlight class="normal">,</highlight><highlight class="keywordtype">value</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keyword">write</highlight><highlight class="normal">(*,*)</highlight><highlight class="stringliteral">&apos;some<sp/>properties<sp/>of<sp/>&apos;</highlight><highlight class="normal">//trim(name)//</highlight><highlight class="stringliteral">&apos;:&apos;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keyword">call<sp/></highlight><highlight class="normal"><ref refid="namespacemnemmodule_1a59ccd52679b2f8c14fa8b0edb60d2308" kindref="member">printvar</ref>(t)</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>print<sp/>some</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>depending<sp/>on<sp/>s%type<sp/>and<sp/>s%rank,<sp/>we<sp/>have<sp/>now<sp/>a<sp/>pointer</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>to<sp/>the<sp/>desired<sp/>variable</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>Fortran90<sp/>pointer<sp/>type<sp/>checking<sp/>is<sp/>quite<sp/>strict:<sp/>no<sp/>void<sp/>pointer</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>available.<sp/>So<sp/>we<sp/>have<sp/>to<sp/>catch<sp/>every<sp/>type<sp/>and<sp/>rank<sp/>of<sp/>array.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>See<sp/>also<sp/>mnemonic.F90</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordflow">select<sp/>case</highlight><highlight class="normal"><sp/>(t%type)</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/>(</highlight><highlight class="stringliteral">&apos;r&apos;</highlight><highlight class="normal">)<sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>type<sp/>is<sp/>integer</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">select<sp/>case</highlight><highlight class="normal"><sp/>(t%rank)</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal">(0)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>scalar</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>t%r0<sp/>=<sp/></highlight><highlight class="keywordtype">value</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal">(1)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>(:)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>t%r1<sp/>=<sp/></highlight><highlight class="keywordtype">value</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal">(2)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>(:,:)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>t%r2<sp/>=<sp/></highlight><highlight class="keywordtype">value</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal">(3)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>(:,:,:)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>t%r3<sp/>=<sp/></highlight><highlight class="keywordtype">value</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal">(4)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>(:,:,:,:)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>t%r4<sp/>=<sp/></highlight><highlight class="keywordtype">value</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"></highlight><highlight class="keywordflow"><sp/><sp/><sp/><sp/><sp/><sp/>end<sp/>select</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/>(</highlight><highlight class="stringliteral">&apos;i&apos;</highlight><highlight class="normal">)<sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>type<sp/>is<sp/>real*8</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">select<sp/>case</highlight><highlight class="normal"><sp/>(t%rank)</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal">(0)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>scalar</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>t%i0<sp/>=<sp/></highlight><highlight class="keywordtype">value</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal">(1)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>(:)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>t%i1<sp/>=<sp/></highlight><highlight class="keywordtype">value</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal">(2)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>(:,:)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>t%i2<sp/>=<sp/></highlight><highlight class="keywordtype">value</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal">(3)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>(:,:,:)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>t%i3<sp/>=<sp/></highlight><highlight class="keywordtype">value</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal">(4)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>(:,:,:,:)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>t%i4<sp/>=<sp/></highlight><highlight class="keywordtype">value</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="106"><highlight class="normal"></highlight><highlight class="keywordflow"><sp/><sp/><sp/><sp/><sp/><sp/>end<sp/>select</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="107"><highlight class="normal"></highlight><highlight class="keywordflow"><sp/><sp/><sp/>end<sp/>select</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight><highlight class="keyword">end<sp/>subroutine<sp/></highlight><highlight class="normal"><ref refid="demo_8_f90_1a13a2d5eaf64c3ad3b537e9b4e17c627c" kindref="member">setvar</ref></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/demo.F90"/>
+  </compounddef>
+</doxygen>

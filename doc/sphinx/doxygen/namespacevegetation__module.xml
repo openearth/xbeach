@@ -1,0 +1,238 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacevegetation__module" kind="namespace" language="Fortran">
+    <compoundname>vegetation_module</compoundname>
+    <innerclass refid="structvegetation__module_1_1veggie" prot="public">vegetation_module::veggie</innerclass>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacevegetation__module_1a532c14421e4edcad03d471a7db7f89a1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public vegetation_module::veggie_init</definition>
+        <argsstring>(s, par, veg)</argsstring>
+        <name>veggie_init</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>veg</type>
+          <defname>veg</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" line="64" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" bodystart="65" bodyend="158"/>
+        <references refid="namespacefilefunctions_1a3bcc035d217f7cb80933e7ae99b3e0cf" compoundref="filefunctions_8_f90" startline="29" endline="62">filefunctions::check_file_exist</references>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">filefunctions::create_new_fid</references>
+        <references refid="namespacereadkey__module_1aa3365f087437c983f8ad1a0b0542948e" compoundref="readkey_8_f90" startline="382" endline="459">readkey_module::readkey_dblvec</references>
+        <references refid="namespacereadkey__module_1a8ac4eaa5728da46203d191b5ac95ce1d" compoundref="readkey_8_f90" startline="150" endline="232">readkey_module::readkey_int</references>
+        <references refid="namespacexmpi__module_1a49447cc5b155a1ab5c81885e6dc7943d" compoundref="xmpi_8_f90" startline="91" endline="91">xmpi_module::xmaster</references>
+        <referencedby refid="namespacelibxbeach__module_1a6be3278b63e39d796c22bef0227fd2c4" compoundref="libxbeach_8_f90" startline="60" endline="208">libxbeach_module::init</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacevegetation__module_1adcf56ff78754258fedcd656c7d485221" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public vegetation_module::vegatt</definition>
+        <argsstring>(s, par, veg)</argsstring>
+        <name>vegatt</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>veg</type>
+          <defname>veg</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" line="161" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" bodystart="162" bodyend="212"/>
+        <references refid="namespacevegetation__module_1ad29537b8f2f6e0d4ff57008232802a55" compoundref="vegetation_8_f90" startline="564" endline="636">bulkdragcoeff</references>
+        <references refid="namespacevegetation__module_1a930349cbbe442ec674df950865733a08" compoundref="vegetation_8_f90" startline="272" endline="425">momeqveg</references>
+        <references refid="namespacevegetation__module_1a92ea3fcddcfda207ba0a646b8310f9dc" compoundref="vegetation_8_f90" startline="216" endline="268">swvegatt</references>
+        <referencedby refid="namespacelibxbeach__module_1ab7b2cd54072abb0329a424307f8b9bfb" compoundref="libxbeach_8_f90" startline="229" endline="278">libxbeach_module::executestep</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacevegetation__module_1a92ea3fcddcfda207ba0a646b8310f9dc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine vegetation_module::swvegatt</definition>
+        <argsstring>(s, par, veg)</argsstring>
+        <name>swvegatt</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>veg</type>
+          <defname>veg</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" line="215" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" bodystart="216" bodyend="268"/>
+        <referencedby refid="namespacevegetation__module_1adcf56ff78754258fedcd656c7d485221" compoundref="vegetation_8_f90" startline="162" endline="212">vegatt</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacevegetation__module_1a930349cbbe442ec674df950865733a08" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine vegetation_module::momeqveg</definition>
+        <argsstring>(s, par, veg)</argsstring>
+        <name>momeqveg</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>veg</type>
+          <defname>veg</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" line="271" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" bodystart="272" bodyend="425"/>
+        <references refid="namespacevegetation__module_1a9e0453c0c8f3af8750d08f7a31724130" compoundref="vegetation_8_f90" startline="429" endline="545">swvegnonlin</references>
+        <references refid="namespacevegetation__module_1acd989cdf951ee25536c21b993e43f2bb" compoundref="vegetation_8_f90" startline="549" endline="560">trapz</references>
+        <referencedby refid="namespacevegetation__module_1adcf56ff78754258fedcd656c7d485221" compoundref="vegetation_8_f90" startline="162" endline="212">vegatt</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacevegetation__module_1a9e0453c0c8f3af8750d08f7a31724130" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine vegetation_module::swvegnonlin</definition>
+        <argsstring>(s, par, i, j, unl, etaw)</argsstring>
+        <name>swvegnonlin</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>i</type>
+          <defname>i</defname>
+        </param>
+        <param>
+          <type>j</type>
+          <defname>j</defname>
+        </param>
+        <param>
+          <type>unl</type>
+          <defname>unl</defname>
+        </param>
+        <param>
+          <type>etaw</type>
+          <defname>etaw</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" line="428" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" bodystart="429" bodyend="545"/>
+        <referencedby refid="namespacevegetation__module_1a930349cbbe442ec674df950865733a08" compoundref="vegetation_8_f90" startline="272" endline="425">momeqveg</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacevegetation__module_1acd989cdf951ee25536c21b993e43f2bb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>real *8 function</type>
+        <definition>real*8 function vegetation_module::trapz</definition>
+        <argsstring>(y, dx)</argsstring>
+        <name>trapz</name>
+        <param>
+          <type>y</type>
+          <defname>y</defname>
+        </param>
+        <param>
+          <type>dx</type>
+          <defname>dx</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" line="548" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" bodystart="549" bodyend="560"/>
+        <referencedby refid="namespacevegetation__module_1a930349cbbe442ec674df950865733a08" compoundref="vegetation_8_f90" startline="272" endline="425">momeqveg</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacevegetation__module_1ad29537b8f2f6e0d4ff57008232802a55" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine vegetation_module::bulkdragcoeff</definition>
+        <argsstring>(s, par, ahh, ind, m, i, j, Cdterm, veg)</argsstring>
+        <name>bulkdragcoeff</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>ahh</type>
+          <defname>ahh</defname>
+        </param>
+        <param>
+          <type>ind</type>
+          <defname>ind</defname>
+        </param>
+        <param>
+          <type>m</type>
+          <defname>m</defname>
+        </param>
+        <param>
+          <type>i</type>
+          <defname>i</defname>
+        </param>
+        <param>
+          <type>j</type>
+          <defname>j</defname>
+        </param>
+        <param>
+          <type>Cdterm</type>
+          <defname>Cdterm</defname>
+        </param>
+        <param>
+          <type>veg</type>
+          <defname>veg</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" line="563" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" bodystart="564" bodyend="636"/>
+        <referencedby refid="namespacevegetation__module_1adcf56ff78754258fedcd656c7d485221" compoundref="vegetation_8_f90" startline="162" endline="212">vegatt</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/vegetation.F90" line="43" column="1"/>
+  </compounddef>
+</doxygen>

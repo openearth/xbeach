@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="structspectral__wave__bc__module_1_1shortspectrum" kind="type" language="Fortran" prot="public">
+    <compoundname>spectral_wave_bc_module::shortspectrum</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structspectral__wave__bc__module_1_1shortspectrum_1a14caf38c3f41568b729a96ecf844713b" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer spectral_wave_bc_module::shortspectrum::sf</definition>
+        <argsstring></argsstring>
+        <name>sf</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="20" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="20" bodyend="20"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="19" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="19" bodyend="23"/>
+    <listofallmembers>
+      <member refid="structspectral__wave__bc__module_1_1shortspectrum_1a14caf38c3f41568b729a96ecf844713b" prot="public" virt="non-virtual"><scope>spectral_wave_bc_module::shortspectrum</scope><name>sf</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

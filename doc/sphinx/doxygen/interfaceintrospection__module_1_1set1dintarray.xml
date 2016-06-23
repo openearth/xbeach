@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="interfaceintrospection__module_1_1set1dintarray" kind="interface" language="Fortran" prot="public">
+    <compoundname>introspection_module::set1dintarray</compoundname>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="interfaceintrospection__module_1_1set1dintarray_1a741b791f546d501a8099e303c77bb642" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer(c_int) function</type>
+        <definition>integer(c_int) function introspection_module::set1dintarray::set1dintarray_fortran</definition>
+        <argsstring>(name, x)</argsstring>
+        <name>set1dintarray_fortran</name>
+        <param>
+          <type>name</type>
+          <defname>name</defname>
+        </param>
+        <param>
+          <type>x</type>
+          <defname>x</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" line="905" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" bodystart="906" bodyend="920"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" line="80" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" bodystart="80" bodyend="81"/>
+    <listofallmembers>
+      <member refid="interfaceintrospection__module_1_1set1dintarray_1a741b791f546d501a8099e303c77bb642" prot="public" virt="non-virtual"><scope>introspection_module::set1dintarray</scope><name>set1dintarray_fortran</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

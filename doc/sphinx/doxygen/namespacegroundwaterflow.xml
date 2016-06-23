@@ -1,0 +1,644 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacegroundwaterflow" kind="namespace" language="Fortran">
+    <compoundname>groundwaterflow</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacegroundwaterflow_1aa86b03f34b72f5ea17b34443c9e31995" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public groundwaterflow::gw_init</definition>
+        <argsstring>(s, par)</argsstring>
+        <name>gw_init</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="41" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="42" bodyend="125"/>
+        <references refid="namespacexmpi__module_1a49447cc5b155a1ab5c81885e6dc7943d" compoundref="xmpi_8_f90" startline="91" endline="91">xmpi_module::xmaster</references>
+        <references refid="namespacexmpi__module_1a281654b5481d47b466e10e7f857fcf24" compoundref="xmpi_8_f90" startline="97" endline="97">xmpi_module::xmpi_isbot</references>
+        <references refid="namespacexmpi__module_1a4b31181bc5bc2f1ad392c89d10b8156f" compoundref="xmpi_8_f90" startline="94" endline="94">xmpi_module::xmpi_isleft</references>
+        <references refid="namespacexmpi__module_1a4cab1e00b04041deb9aa9ef1b14d5d0d" compoundref="xmpi_8_f90" startline="95" endline="95">xmpi_module::xmpi_isright</references>
+        <references refid="namespacexmpi__module_1ac3d9414ca1095147ffb44c77aed98f09" compoundref="xmpi_8_f90" startline="96" endline="96">xmpi_module::xmpi_istop</references>
+        <referencedby refid="namespacelibxbeach__module_1a6be3278b63e39d796c22bef0227fd2c4" compoundref="libxbeach_8_f90" startline="60" endline="208">libxbeach_module::init</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegroundwaterflow_1a49f584a2ef6fc0109b338ba98af8a169" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public groundwaterflow::gw_bc</definition>
+        <argsstring>(s, par)</argsstring>
+        <name>gw_bc</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="128" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="129" bodyend="176"/>
+        <references refid="namespacexmpi__module_1a281654b5481d47b466e10e7f857fcf24" compoundref="xmpi_8_f90" startline="97" endline="97">xmpi_module::xmpi_isbot</references>
+        <references refid="namespacexmpi__module_1a4b31181bc5bc2f1ad392c89d10b8156f" compoundref="xmpi_8_f90" startline="94" endline="94">xmpi_module::xmpi_isleft</references>
+        <references refid="namespacexmpi__module_1a4cab1e00b04041deb9aa9ef1b14d5d0d" compoundref="xmpi_8_f90" startline="95" endline="95">xmpi_module::xmpi_isright</references>
+        <references refid="namespacexmpi__module_1ac3d9414ca1095147ffb44c77aed98f09" compoundref="xmpi_8_f90" startline="96" endline="96">xmpi_module::xmpi_istop</references>
+        <referencedby refid="namespacelibxbeach__module_1ab7b2cd54072abb0329a424307f8b9bfb" compoundref="libxbeach_8_f90" startline="229" endline="278">libxbeach_module::executestep</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegroundwaterflow_1a5864f855c1d186f1038fb9a01a8537a8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public groundwaterflow::gwflow</definition>
+        <argsstring>(s, par)</argsstring>
+        <name>gwflow</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="179" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="180" bodyend="568"/>
+        <references refid="namespacegroundwaterflow_1a4e038e5e41068ef49451cad5918fe28a" compoundref="groundwater_8_f90" startline="1424" endline="1514">gw_calculate_hydrostatic_w</references>
+        <references refid="namespacegroundwaterflow_1ab0a342442d672654054cd24be78dd4c4" compoundref="groundwater_8_f90" startline="630" endline="707">gw_calculate_interfaceheight</references>
+        <references refid="namespacegroundwaterflow_1ac4f9280ae9836d12c167f5e0ead2fd86" compoundref="groundwater_8_f90" startline="711" endline="724">gw_calculate_smoothwetlayer</references>
+        <references refid="namespacegroundwaterflow_1a99f7cea5760c852b80de26bf529755fe" compoundref="groundwater_8_f90" startline="1260" endline="1315">gw_calculate_velocities</references>
+        <references refid="namespacegroundwaterflow_1a24e4e968e8aef34854661177ac0e7873" compoundref="groundwater_8_f90" startline="1096" endline="1256">gw_horizontal_infil_exfil</references>
+        <references refid="namespacegroundwaterflow_1a7d1c2afbb08b5c6a9ce72a5e5c153159" compoundref="groundwater_8_f90" startline="773" endline="1092">gw_solver</references>
+        <references refid="namespacegroundwaterflow_1aa22ee4b254b38704c132d5e99b92c52a" compoundref="groundwater_8_f90" startline="572" endline="626">gw_unconnected_infil</references>
+        <references refid="namespacegroundwaterflow_1a6e43856dc652f61dc7872d684df314d7" compoundref="groundwater_8_f90" startline="1785" endline="1799">gwcalculateheadbottom</references>
+        <references refid="namespacegroundwaterflow_1aba254be5ae381797a5f62c7c449fa639" compoundref="groundwater_8_f90" startline="728" endline="744">gwcalculateheadtop</references>
+        <references refid="namespacexmpi__module_1a281654b5481d47b466e10e7f857fcf24" compoundref="xmpi_8_f90" startline="97" endline="97">xmpi_module::xmpi_isbot</references>
+        <references refid="namespacexmpi__module_1a4b31181bc5bc2f1ad392c89d10b8156f" compoundref="xmpi_8_f90" startline="94" endline="94">xmpi_module::xmpi_isleft</references>
+        <references refid="namespacexmpi__module_1a4cab1e00b04041deb9aa9ef1b14d5d0d" compoundref="xmpi_8_f90" startline="95" endline="95">xmpi_module::xmpi_isright</references>
+        <references refid="namespacexmpi__module_1ac3d9414ca1095147ffb44c77aed98f09" compoundref="xmpi_8_f90" startline="96" endline="96">xmpi_module::xmpi_istop</references>
+        <referencedby refid="namespacelibxbeach__module_1ab7b2cd54072abb0329a424307f8b9bfb" compoundref="libxbeach_8_f90" startline="229" endline="278">libxbeach_module::executestep</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegroundwaterflow_1aa22ee4b254b38704c132d5e99b92c52a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine groundwaterflow::gw_unconnected_infil</definition>
+        <argsstring>(s, par, Kzinf, connected, fracdt, infil)</argsstring>
+        <name>gw_unconnected_infil</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>Kzinf</type>
+          <defname>Kzinf</defname>
+        </param>
+        <param>
+          <type>connected</type>
+          <defname>connected</defname>
+        </param>
+        <param>
+          <type>fracdt</type>
+          <defname>fracdt</defname>
+        </param>
+        <param>
+          <type>infil</type>
+          <defname>infil</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="571" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="572" bodyend="626"/>
+        <references refid="namespacegroundwaterflow_1ad26afd770c412ea947579bb63aadf062" compoundref="groundwater_8_f90" startline="1519" endline="1698">gw_calc_local_infil</references>
+        <referencedby refid="namespacegroundwaterflow_1a5864f855c1d186f1038fb9a01a8537a8" compoundref="groundwater_8_f90" startline="180" endline="568">gwflow</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegroundwaterflow_1ab0a342442d672654054cd24be78dd4c4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine groundwaterflow::gw_calculate_interfaceheight</definition>
+        <argsstring>(s, gwhu, gwhv, initial)</argsstring>
+        <name>gw_calculate_interfaceheight</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>gwhu</type>
+          <defname>gwhu</defname>
+        </param>
+        <param>
+          <type>gwhv</type>
+          <defname>gwhv</defname>
+        </param>
+        <param>
+          <type>initial</type>
+          <defname>initial</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="629" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="630" bodyend="707"/>
+        <references refid="namespacexmpi__module_1a281654b5481d47b466e10e7f857fcf24" compoundref="xmpi_8_f90" startline="97" endline="97">xmpi_module::xmpi_isbot</references>
+        <references refid="namespacexmpi__module_1a4cab1e00b04041deb9aa9ef1b14d5d0d" compoundref="xmpi_8_f90" startline="95" endline="95">xmpi_module::xmpi_isright</references>
+        <referencedby refid="namespacegroundwaterflow_1a5864f855c1d186f1038fb9a01a8537a8" compoundref="groundwater_8_f90" startline="180" endline="568">gwflow</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegroundwaterflow_1ac4f9280ae9836d12c167f5e0ead2fd86" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>pure real *8 function, dimension(s%nx+1, s%ny+1)</type>
+        <definition>pure real*8 function, dimension(s%nx+1,s%ny+1) groundwaterflow::gw_calculate_smoothwetlayer</definition>
+        <argsstring>(s, dwetlayer, px)</argsstring>
+        <name>gw_calculate_smoothwetlayer</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>dwetlayer</type>
+          <defname>dwetlayer</defname>
+        </param>
+        <param>
+          <type>px</type>
+          <defname>px</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="710" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="711" bodyend="724"/>
+        <referencedby refid="namespacegroundwaterflow_1a5864f855c1d186f1038fb9a01a8537a8" compoundref="groundwater_8_f90" startline="180" endline="568">gwflow</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegroundwaterflow_1aba254be5ae381797a5f62c7c449fa639" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>pure real *8 function, dimension(nx+1, ny+1)</type>
+        <definition>pure real*8 function, dimension(nx+1,ny+1) groundwaterflow::gwcalculateheadtop</definition>
+        <argsstring>(nx, ny, zs, gwlevel, wetz, r, nonh, g, pres)</argsstring>
+        <name>gwcalculateheadtop</name>
+        <param>
+          <type>nx</type>
+          <defname>nx</defname>
+        </param>
+        <param>
+          <type>ny</type>
+          <defname>ny</defname>
+        </param>
+        <param>
+          <type>zs</type>
+          <defname>zs</defname>
+        </param>
+        <param>
+          <type>gwlevel</type>
+          <defname>gwlevel</defname>
+        </param>
+        <param>
+          <type>wetz</type>
+          <defname>wetz</defname>
+        </param>
+        <param>
+          <type>r</type>
+          <defname>r</defname>
+        </param>
+        <param>
+          <type>nonh</type>
+          <defname>nonh</defname>
+        </param>
+        <param>
+          <type>g</type>
+          <defname>g</defname>
+        </param>
+        <param>
+          <type>pres</type>
+          <defname>pres</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="727" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="728" bodyend="744"/>
+        <referencedby refid="namespacegroundwaterflow_1a5864f855c1d186f1038fb9a01a8537a8" compoundref="groundwater_8_f90" startline="180" endline="568">gwflow</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegroundwaterflow_1acdfd8d66883514927232d5ca9147fad7" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>pure subroutine</type>
+        <definition>pure subroutine groundwaterflow::gwcalculateheadgradient</definition>
+        <argsstring>(nx, ny, gwhead, dsu, dnv, dheaddx, dheaddy)</argsstring>
+        <name>gwcalculateheadgradient</name>
+        <param>
+          <type>nx</type>
+          <defname>nx</defname>
+        </param>
+        <param>
+          <type>ny</type>
+          <defname>ny</defname>
+        </param>
+        <param>
+          <type>gwhead</type>
+          <defname>gwhead</defname>
+        </param>
+        <param>
+          <type>dsu</type>
+          <defname>dsu</defname>
+        </param>
+        <param>
+          <type>dnv</type>
+          <defname>dnv</defname>
+        </param>
+        <param>
+          <type>dheaddx</type>
+          <defname>dheaddx</defname>
+        </param>
+        <param>
+          <type>dheaddy</type>
+          <defname>dheaddy</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="747" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="748" bodyend="769"/>
+        <referencedby refid="namespacegroundwaterflow_1a99f7cea5760c852b80de26bf529755fe" compoundref="groundwater_8_f90" startline="1260" endline="1315">gw_calculate_velocities</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegroundwaterflow_1a7d1c2afbb08b5c6a9ce72a5e5c153159" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine groundwaterflow::gw_solver</definition>
+        <argsstring>(par, s, hbc, Kx, Ky, Kz, hu, hv, fracdt)</argsstring>
+        <name>gw_solver</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>hbc</type>
+          <defname>hbc</defname>
+        </param>
+        <param>
+          <type>Kx</type>
+          <defname>Kx</defname>
+        </param>
+        <param>
+          <type>Ky</type>
+          <defname>Ky</defname>
+        </param>
+        <param>
+          <type>Kz</type>
+          <defname>Kz</defname>
+        </param>
+        <param>
+          <type>hu</type>
+          <defname>hu</defname>
+        </param>
+        <param>
+          <type>hv</type>
+          <defname>hv</defname>
+        </param>
+        <param>
+          <type>fracdt</type>
+          <defname>fracdt</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="772" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="773" bodyend="1092"/>
+        <references refid="namespacesolver__module_1a8fa5884c7225dee87ba9a4deef787bc7" compoundref="solver_8_f90" startline="310" endline="511">solver_module::solver_sip</references>
+        <references refid="namespacesolver__module_1a3004986d08bf0ebd029577698b25d5a8" compoundref="solver_8_f90" startline="223" endline="304">solver_module::solver_tridiag</references>
+        <referencedby refid="namespacegroundwaterflow_1a5864f855c1d186f1038fb9a01a8537a8" compoundref="groundwater_8_f90" startline="180" endline="568">gwflow</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegroundwaterflow_1a24e4e968e8aef34854661177ac0e7873" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine groundwaterflow::gw_horizontal_infil_exfil</definition>
+        <argsstring>(s, par, infilhorgw, infilhorsw, Kx, dynpres)</argsstring>
+        <name>gw_horizontal_infil_exfil</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>infilhorgw</type>
+          <defname>infilhorgw</defname>
+        </param>
+        <param>
+          <type>infilhorsw</type>
+          <defname>infilhorsw</defname>
+        </param>
+        <param>
+          <type>Kx</type>
+          <defname>Kx</defname>
+        </param>
+        <param>
+          <type>dynpres</type>
+          <defname>dynpres</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="1095" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="1096" bodyend="1256"/>
+        <references refid="namespacegroundwaterflow_1a58df734de6aaefafb8515c281c1be164" compoundref="groundwater_8_f90" startline="1319" endline="1420">gw_calculate_velocities_local</references>
+        <referencedby refid="namespacegroundwaterflow_1a5864f855c1d186f1038fb9a01a8537a8" compoundref="groundwater_8_f90" startline="180" endline="568">gwflow</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegroundwaterflow_1a99f7cea5760c852b80de26bf529755fe" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine groundwaterflow::gw_calculate_velocities</definition>
+        <argsstring>(s, par, fracdt, gwu, gwv, gww, Kx, Ky, Kz, Kxupd, Kyupd, Kzupd)</argsstring>
+        <name>gw_calculate_velocities</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>fracdt</type>
+          <defname>fracdt</defname>
+        </param>
+        <param>
+          <type>gwu</type>
+          <defname>gwu</defname>
+        </param>
+        <param>
+          <type>gwv</type>
+          <defname>gwv</defname>
+        </param>
+        <param>
+          <type>gww</type>
+          <defname>gww</defname>
+        </param>
+        <param>
+          <type>Kx</type>
+          <defname>Kx</defname>
+        </param>
+        <param>
+          <type>Ky</type>
+          <defname>Ky</defname>
+        </param>
+        <param>
+          <type>Kz</type>
+          <defname>Kz</defname>
+        </param>
+        <param>
+          <type>Kxupd</type>
+          <defname>Kxupd</defname>
+        </param>
+        <param>
+          <type>Kyupd</type>
+          <defname>Kyupd</defname>
+        </param>
+        <param>
+          <type>Kzupd</type>
+          <defname>Kzupd</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="1259" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="1260" bodyend="1315"/>
+        <references refid="namespacegroundwaterflow_1a58df734de6aaefafb8515c281c1be164" compoundref="groundwater_8_f90" startline="1319" endline="1420">gw_calculate_velocities_local</references>
+        <references refid="namespacegroundwaterflow_1acdfd8d66883514927232d5ca9147fad7" compoundref="groundwater_8_f90" startline="748" endline="769">gwcalculateheadgradient</references>
+        <references refid="namespacexmpi__module_1a4b31181bc5bc2f1ad392c89d10b8156f" compoundref="xmpi_8_f90" startline="94" endline="94">xmpi_module::xmpi_isleft</references>
+        <references refid="namespacexmpi__module_1ac3d9414ca1095147ffb44c77aed98f09" compoundref="xmpi_8_f90" startline="96" endline="96">xmpi_module::xmpi_istop</references>
+        <referencedby refid="namespacegroundwaterflow_1a5864f855c1d186f1038fb9a01a8537a8" compoundref="groundwater_8_f90" startline="180" endline="568">gwflow</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegroundwaterflow_1a58df734de6aaefafb8515c281c1be164" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>pure subroutine</type>
+        <definition>pure subroutine groundwaterflow::gw_calculate_velocities_local</definition>
+        <argsstring>(vel, Kupd, headgrad, Kin, fracdt, gwscheme, isvert, isnonh, headmodel, gwc, gwh, vcr)</argsstring>
+        <name>gw_calculate_velocities_local</name>
+        <param>
+          <type>vel</type>
+          <defname>vel</defname>
+        </param>
+        <param>
+          <type>Kupd</type>
+          <defname>Kupd</defname>
+        </param>
+        <param>
+          <type>headgrad</type>
+          <defname>headgrad</defname>
+        </param>
+        <param>
+          <type>Kin</type>
+          <defname>Kin</defname>
+        </param>
+        <param>
+          <type>fracdt</type>
+          <defname>fracdt</defname>
+        </param>
+        <param>
+          <type>gwscheme</type>
+          <defname>gwscheme</defname>
+        </param>
+        <param>
+          <type>isvert</type>
+          <defname>isvert</defname>
+        </param>
+        <param>
+          <type>isnonh</type>
+          <defname>isnonh</defname>
+        </param>
+        <param>
+          <type>headmodel</type>
+          <defname>headmodel</defname>
+        </param>
+        <param>
+          <type>gwc</type>
+          <defname>gwc</defname>
+        </param>
+        <param>
+          <type>gwh</type>
+          <defname>gwh</defname>
+        </param>
+        <param>
+          <type>vcr</type>
+          <defname>vcr</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="1318" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="1319" bodyend="1420"/>
+        <references refid="namespaceparamsconst_1a4b601cd7a01d40a885718a1f0dedba49" compoundref="paramsconst_8_f90" startline="73" endline="73">paramsconst::gwheadmodel_exponential</references>
+        <references refid="namespaceparamsconst_1a3416aca783093579fda41019212cc092" compoundref="paramsconst_8_f90" startline="72" endline="72">paramsconst::gwheadmodel_parabolic</references>
+        <references refid="namespaceparamsconst_1a614373175adac515dd016a681ef4743d" compoundref="paramsconst_8_f90" startline="69" endline="69">paramsconst::gwscheme_laminar</references>
+        <references refid="namespaceparamsconst_1a4c75c853ba266667cf32e3bfd8e8b95c" compoundref="paramsconst_8_f90" startline="70" endline="70">paramsconst::gwscheme_turbulent</references>
+        <referencedby refid="namespacegroundwaterflow_1a99f7cea5760c852b80de26bf529755fe" compoundref="groundwater_8_f90" startline="1260" endline="1315">gw_calculate_velocities</referencedby>
+        <referencedby refid="namespacegroundwaterflow_1a24e4e968e8aef34854661177ac0e7873" compoundref="groundwater_8_f90" startline="1096" endline="1256">gw_horizontal_infil_exfil</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegroundwaterflow_1a4e038e5e41068ef49451cad5918fe28a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>real *8 function, dimension(:,:), pointer</type>
+        <definition>real*8 function, dimension(:,:), pointer groundwaterflow::gw_calculate_hydrostatic_w</definition>
+        <argsstring>(s, par, ratio)</argsstring>
+        <name>gw_calculate_hydrostatic_w</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>ratio</type>
+          <defname>ratio</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="1423" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="1424" bodyend="1514"/>
+        <references refid="namespacegroundwaterflow_1ad26afd770c412ea947579bb63aadf062" compoundref="groundwater_8_f90" startline="1519" endline="1698">gw_calc_local_infil</references>
+        <references refid="namespacexmpi__module_1a281654b5481d47b466e10e7f857fcf24" compoundref="xmpi_8_f90" startline="97" endline="97">xmpi_module::xmpi_isbot</references>
+        <references refid="namespacexmpi__module_1a4b31181bc5bc2f1ad392c89d10b8156f" compoundref="xmpi_8_f90" startline="94" endline="94">xmpi_module::xmpi_isleft</references>
+        <references refid="namespacexmpi__module_1a4cab1e00b04041deb9aa9ef1b14d5d0d" compoundref="xmpi_8_f90" startline="95" endline="95">xmpi_module::xmpi_isright</references>
+        <references refid="namespacexmpi__module_1ac3d9414ca1095147ffb44c77aed98f09" compoundref="xmpi_8_f90" startline="96" endline="96">xmpi_module::xmpi_istop</references>
+        <referencedby refid="namespacegroundwaterflow_1a5864f855c1d186f1038fb9a01a8537a8" compoundref="groundwater_8_f90" startline="180" endline="568">gwflow</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegroundwaterflow_1ad26afd770c412ea947579bb63aadf062" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>pure subroutine</type>
+        <definition>pure subroutine groundwaterflow::gw_calc_local_infil</definition>
+        <argsstring>(par, zb, hh, gwlevel, kzlocal, dinfil, D50top, turb, fracdt, infil, kzupd)</argsstring>
+        <name>gw_calc_local_infil</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>zb</type>
+          <defname>zb</defname>
+        </param>
+        <param>
+          <type>hh</type>
+          <defname>hh</defname>
+        </param>
+        <param>
+          <type>gwlevel</type>
+          <defname>gwlevel</defname>
+        </param>
+        <param>
+          <type>kzlocal</type>
+          <defname>kzlocal</defname>
+        </param>
+        <param>
+          <type>dinfil</type>
+          <defname>dinfil</defname>
+        </param>
+        <param>
+          <type>D50top</type>
+          <defname>D50top</defname>
+        </param>
+        <param>
+          <type>turb</type>
+          <defname>turb</defname>
+        </param>
+        <param>
+          <type>fracdt</type>
+          <defname>fracdt</defname>
+        </param>
+        <param>
+          <type>infil</type>
+          <defname>infil</defname>
+        </param>
+        <param>
+          <type>kzupd</type>
+          <defname>kzupd</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="1518" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="1519" bodyend="1698"/>
+        <referencedby refid="namespacegroundwaterflow_1a4e038e5e41068ef49451cad5918fe28a" compoundref="groundwater_8_f90" startline="1424" endline="1514">gw_calculate_hydrostatic_w</referencedby>
+        <referencedby refid="namespacegroundwaterflow_1aa22ee4b254b38704c132d5e99b92c52a" compoundref="groundwater_8_f90" startline="572" endline="626">gw_unconnected_infil</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacegroundwaterflow_1a6e43856dc652f61dc7872d684df314d7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>pure real *8 function, dimension(nx+1, ny+1)</type>
+        <definition>pure real*8 function, dimension(nx+1,ny+1) groundwaterflow::gwcalculateheadbottom</definition>
+        <argsstring>(gwcurv, gwheadtop, gwheight, nx, ny, model)</argsstring>
+        <name>gwcalculateheadbottom</name>
+        <param>
+          <type>gwcurv</type>
+          <defname>gwcurv</defname>
+        </param>
+        <param>
+          <type>gwheadtop</type>
+          <defname>gwheadtop</defname>
+        </param>
+        <param>
+          <type>gwheight</type>
+          <defname>gwheight</defname>
+        </param>
+        <param>
+          <type>nx</type>
+          <defname>nx</defname>
+        </param>
+        <param>
+          <type>ny</type>
+          <defname>ny</defname>
+        </param>
+        <param>
+          <type>model</type>
+          <defname>model</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="1784" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" bodystart="1785" bodyend="1799"/>
+        <references refid="namespaceparamsconst_1a4b601cd7a01d40a885718a1f0dedba49" compoundref="paramsconst_8_f90" startline="73" endline="73">paramsconst::gwheadmodel_exponential</references>
+        <references refid="namespaceparamsconst_1a3416aca783093579fda41019212cc092" compoundref="paramsconst_8_f90" startline="72" endline="72">paramsconst::gwheadmodel_parabolic</references>
+        <referencedby refid="namespacegroundwaterflow_1a5864f855c1d186f1038fb9a01a8537a8" compoundref="groundwater_8_f90" startline="180" endline="568">gwflow</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/groundwater.F90" line="27" column="1"/>
+  </compounddef>
+</doxygen>

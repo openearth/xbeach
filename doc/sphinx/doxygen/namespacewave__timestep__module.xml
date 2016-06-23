@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacewave__timestep__module" kind="namespace" language="Fortran">
+    <compoundname>wave_timestep_module</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacewave__timestep__module_1a7d1a02350f40daeeeed4d514c4cc6675" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine wave_timestep_module::wave</definition>
+        <argsstring>(s, par)</argsstring>
+        <name>wave</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_timestep.F90" line="32" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_timestep.F90" bodystart="33" bodyend="74"/>
+        <references refid="namespaceparamsconst_1adc604f45787f18fa4a2a0023d886ed27" compoundref="paramsconst_8_f90" startline="24" endline="24">paramsconst::instat_stat</references>
+        <references refid="namespaceparamsconst_1aaf5ce50705d52e0ec08edd1a601233b5" compoundref="paramsconst_8_f90" startline="34" endline="34">paramsconst::instat_stat_table</references>
+        <references refid="namespacewave__directions__module_1a79385922c6ccc0b682a513c93123e737" compoundref="wave__directions_8_f90" startline="11" endline="33">wave_directions_module::update_means_wave_directions</references>
+        <references refid="namespacewave__directions__module_1a954b768d2521e8cef1cb603b5957ab3c" compoundref="wave__directions_8_f90" startline="37" endline="501">wave_directions_module::wave_directions</references>
+        <references refid="namespacewave__instationary__module_1abe5d400befd96d77a40accfe593997f6" compoundref="wave__instationary_8_f90" startline="8" endline="582">wave_instationary_module::wave_instationary</references>
+        <references refid="namespacewave__stationary__module_1ad45487af818f625737a19620be4e208d" compoundref="wave__stationary_8_f90" startline="6" endline="556">wave_stationary_module::wave_stationary</references>
+        <referencedby refid="namespacelibxbeach__module_1ab7b2cd54072abb0329a424307f8b9bfb" compoundref="libxbeach_8_f90" startline="229" endline="278">libxbeach_module::executestep</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_timestep.F90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

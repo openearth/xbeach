@@ -1,0 +1,188 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespaceroelvink__module" kind="namespace" language="Fortran">
+    <compoundname>roelvink_module</compoundname>
+    <innerclass refid="interfaceroelvink__module_1_1baldock" prot="public">roelvink_module::baldock</innerclass>
+    <innerclass refid="interfaceroelvink__module_1_1janssen__battjes" prot="public">roelvink_module::janssen_battjes</innerclass>
+    <innerclass refid="interfaceroelvink__module_1_1roelvink" prot="public">roelvink_module::roelvink</innerclass>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceroelvink__module_1a0e40e8bcd0757eee3245416d3c480831" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine roelvink_module::roelvink_1d</definition>
+        <argsstring>(par, s, km, i)</argsstring>
+        <name>roelvink_1d</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>km</type>
+          <defname>km</defname>
+        </param>
+        <param>
+          <type>i</type>
+          <defname>i</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" line="48" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" bodystart="49" bodyend="103"/>
+        <references refid="namespaceparamsconst_1ad7777eec51510ec0f2ba08c0861bcddc" compoundref="paramsconst_8_f90" startline="8" endline="8">paramsconst::break_roelvink1</references>
+        <references refid="namespaceparamsconst_1ae6a85ee446ca997f2d9d6b6f44438960" compoundref="paramsconst_8_f90" startline="10" endline="10">paramsconst::break_roelvink2</references>
+        <references refid="namespaceparamsconst_1a195e27323306c7b8231f41cf4c859176" compoundref="paramsconst_8_f90" startline="11" endline="11">paramsconst::break_roelvink_daly</references>
+        <referencedby refid="namespaceroelvink__module_1a25451547f874a918943fabcf81068b9c" compoundref="roelvink_8_f90" startline="107" endline="123">roelvink_2d</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceroelvink__module_1a25451547f874a918943fabcf81068b9c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine roelvink_module::roelvink_2d</definition>
+        <argsstring>(par, s, km)</argsstring>
+        <name>roelvink_2d</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>km</type>
+          <defname>km</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" line="106" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" bodystart="107" bodyend="123"/>
+        <references refid="namespaceroelvink__module_1a0e40e8bcd0757eee3245416d3c480831" compoundref="roelvink_8_f90" startline="49" endline="103">roelvink_1d</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceroelvink__module_1a70697265f216f9ab52c1fb5038821a45" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine roelvink_module::baldock_1d</definition>
+        <argsstring>(par, s, km, i)</argsstring>
+        <name>baldock_1d</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>km</type>
+          <defname>km</defname>
+        </param>
+        <param>
+          <type>i</type>
+          <defname>i</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" line="126" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" bodystart="127" bodyend="164"/>
+        <referencedby refid="namespaceroelvink__module_1a5c993ba088f3d0bc6dc0c22fa402c5e9" compoundref="roelvink_8_f90" startline="168" endline="184">baldock_2d</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceroelvink__module_1a5c993ba088f3d0bc6dc0c22fa402c5e9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine roelvink_module::baldock_2d</definition>
+        <argsstring>(par, s, km)</argsstring>
+        <name>baldock_2d</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>km</type>
+          <defname>km</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" line="167" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" bodystart="168" bodyend="184"/>
+        <references refid="namespaceroelvink__module_1a70697265f216f9ab52c1fb5038821a45" compoundref="roelvink_8_f90" startline="127" endline="164">baldock_1d</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceroelvink__module_1a8a3b624df23962a4a7dbbfcf053337dd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine roelvink_module::janssen_battjes_1d</definition>
+        <argsstring>(par, s, km, i)</argsstring>
+        <name>janssen_battjes_1d</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>km</type>
+          <defname>km</defname>
+        </param>
+        <param>
+          <type>i</type>
+          <defname>i</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" line="187" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" bodystart="188" bodyend="223"/>
+        <references refid="namespacemath__tools_1ab7b67cdda73b328bbc502dfdc2702fa4" compoundref="math__tools_8_f90" startline="1142" endline="1264">math_tools::xerf</references>
+        <referencedby refid="namespaceroelvink__module_1ab78d7f6b15d6d4b084e50899fd68882a" compoundref="roelvink_8_f90" startline="227" endline="243">janssen_battjes_2d</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceroelvink__module_1ab78d7f6b15d6d4b084e50899fd68882a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine roelvink_module::janssen_battjes_2d</definition>
+        <argsstring>(par, s, km)</argsstring>
+        <name>janssen_battjes_2d</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>km</type>
+          <defname>km</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" line="226" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" bodystart="227" bodyend="243"/>
+        <references refid="namespaceroelvink__module_1a8a3b624df23962a4a7dbbfcf053337dd" compoundref="roelvink_8_f90" startline="188" endline="223">janssen_battjes_1d</references>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

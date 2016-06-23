@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacetypesandkinds" kind="namespace" language="Fortran">
+    <compoundname>typesandkinds</compoundname>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacetypesandkinds_1ae89a1fce301d87dbca97395e973c636c" prot="public" static="no" mutable="no">
+        <type>integer, parameter</type>
+        <definition>integer, parameter typesandkinds::slen</definition>
+        <argsstring></argsstring>
+        <name>slen</name>
+        <initializer>= 1024</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/typesandkinds.F90" line="4" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/typesandkinds.F90" bodystart="4" bodyend="4"/>
+        <referencedby refid="namespacereadkey__module_1a6626be4d1e2a2f7520d92ae2b5128092" compoundref="readkey_8_f90" startline="502" endline="584">readkey_module::readkey</referencedby>
+        <referencedby refid="namespacereadkey__module_1aa3365f087437c983f8ad1a0b0542948e" compoundref="readkey_8_f90" startline="382" endline="459">readkey_module::readkey_dblvec</referencedby>
+        <referencedby refid="namespacereadkey__module_1a69bd2c4b1cafe33a36ea39b3caa4cc1b" compoundref="readkey_8_f90" startline="324" endline="378">readkey_module::readkey_name</referencedby>
+        <referencedby refid="namespacereadkey__module_1a04faea48ead04bc320797f9dcc029fa7" compoundref="readkey_8_f90" startline="236" endline="319">readkey_module::readkey_str</referencedby>
+        <referencedby refid="namespacereadkey__module_1a0ef82db23ac3bbc80a4b7fac20f1824e" compoundref="readkey_8_f90" startline="1050" endline="1062">readkey_module::strippedline</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacetypesandkinds_1aaa5bbe32078fe7848f6996ee89a097c7" prot="public" static="no" mutable="no">
+        <type>integer, parameter</type>
+        <definition>integer, parameter typesandkinds::dimnamelen</definition>
+        <argsstring></argsstring>
+        <name>dimnamelen</name>
+        <initializer>= 20</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/typesandkinds.F90" line="5" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/typesandkinds.F90" bodystart="5" bodyend="5"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/typesandkinds.F90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

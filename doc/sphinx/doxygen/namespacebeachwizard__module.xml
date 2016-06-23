@@ -1,0 +1,158 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacebeachwizard__module" kind="namespace" language="Fortran">
+    <compoundname>beachwizard_module</compoundname>
+    <innerclass refid="structbeachwizard__module_1_1beachwiz" prot="public">beachwizard_module::beachwiz</innerclass>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacebeachwizard__module_1abb99e1ba9628fda423ced32364c5c0aa" prot="public" static="no" mutable="no">
+        <type>type(<ref refid="structbeachwizard__module_1_1beachwiz" kindref="compound">beachwiz</ref>)</type>
+        <definition>type(beachwiz) beachwizard_module::bw</definition>
+        <argsstring></argsstring>
+        <name>bw</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/beachwizard.F90" line="74" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/beachwizard.F90" bodystart="74" bodyend="74"/>
+        <referencedby refid="namespacebeachwizard__module_1a74ed2ae25c0bcbc6f57952bf7a21677e" compoundref="beachwizard_8_f90" startline="104" endline="378">assim</referencedby>
+        <referencedby refid="namespacebeachwizard__module_1a9fdcef966a1a7abcdb811913855c9c2d" compoundref="beachwizard_8_f90" startline="588" endline="601">assim_update</referencedby>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacebeachwizard__module_1a299ec66547cf753c26b4f95750f721fd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine beachwizard_module::bwinit</definition>
+        <argsstring>(s)</argsstring>
+        <name>bwinit</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/beachwizard.F90" line="78" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/beachwizard.F90" bodystart="79" bodyend="100"/>
+        <references refid="namespacexmpi__module_1a49447cc5b155a1ab5c81885e6dc7943d" compoundref="xmpi_8_f90" startline="91" endline="91">xmpi_module::xmaster</references>
+        <referencedby refid="namespacelibxbeach__module_1a6be3278b63e39d796c22bef0227fd2c4" compoundref="libxbeach_8_f90" startline="60" endline="208">libxbeach_module::init</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacebeachwizard__module_1a74ed2ae25c0bcbc6f57952bf7a21677e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine beachwizard_module::assim</definition>
+        <argsstring>(s, par)</argsstring>
+        <name>assim</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/beachwizard.F90" line="103" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/beachwizard.F90" bodystart="104" bodyend="378"/>
+        <references refid="namespacebeachwizard__module_1a456aa7550e804f80335d1aad351d3378" compoundref="beachwizard_8_f90" startline="382" endline="584">assim_rd</references>
+        <references refid="namespacebeachwizard__module_1abb99e1ba9628fda423ced32364c5c0aa" compoundref="beachwizard_8_f90" startline="74" endline="74">bw</references>
+        <references refid="namespacebeachwizard__module_1a11d88fc6bd0c05c0f4f751dc0f655edc" compoundref="beachwizard_8_f90" startline="604" endline="801">comp_depchg</references>
+        <referencedby refid="namespacelibxbeach__module_1ab7b2cd54072abb0329a424307f8b9bfb" compoundref="libxbeach_8_f90" startline="229" endline="278">libxbeach_module::executestep</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacebeachwizard__module_1a456aa7550e804f80335d1aad351d3378" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine beachwizard_module::assim_rd</definition>
+        <argsstring>(bw, s, par, infofile, srcnr)</argsstring>
+        <name>assim_rd</name>
+        <param>
+          <type><ref refid="namespacebeachwizard__module_1abb99e1ba9628fda423ced32364c5c0aa" kindref="member">bw</ref></type>
+          <defname>bw</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>infofile</type>
+          <defname>infofile</defname>
+        </param>
+        <param>
+          <type>srcnr</type>
+          <defname>srcnr</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/beachwizard.F90" line="381" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/beachwizard.F90" bodystart="382" bodyend="584"/>
+        <referencedby refid="namespacebeachwizard__module_1a74ed2ae25c0bcbc6f57952bf7a21677e" compoundref="beachwizard_8_f90" startline="104" endline="378">assim</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacebeachwizard__module_1a9fdcef966a1a7abcdb811913855c9c2d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine beachwizard_module::assim_update</definition>
+        <argsstring>(s, par)</argsstring>
+        <name>assim_update</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/beachwizard.F90" line="587" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/beachwizard.F90" bodystart="588" bodyend="601"/>
+        <references refid="namespacebeachwizard__module_1abb99e1ba9628fda423ced32364c5c0aa" compoundref="beachwizard_8_f90" startline="74" endline="74">bw</references>
+        <referencedby refid="namespacelibxbeach__module_1ab7b2cd54072abb0329a424307f8b9bfb" compoundref="libxbeach_8_f90" startline="229" endline="278">libxbeach_module::executestep</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacebeachwizard__module_1a11d88fc6bd0c05c0f4f751dc0f655edc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine beachwizard_module::comp_depchg</definition>
+        <argsstring>(bw, s, par)</argsstring>
+        <name>comp_depchg</name>
+        <param>
+          <type><ref refid="namespacebeachwizard__module_1abb99e1ba9628fda423ced32364c5c0aa" kindref="member">bw</ref></type>
+          <defname>bw</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/beachwizard.F90" line="603" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/beachwizard.F90" bodystart="604" bodyend="801"/>
+        <referencedby refid="namespacebeachwizard__module_1a74ed2ae25c0bcbc6f57952bf7a21677e" compoundref="beachwizard_8_f90" startline="104" endline="378">assim</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/beachwizard.F90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

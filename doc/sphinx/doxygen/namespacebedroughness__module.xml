@@ -1,0 +1,441 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacebedroughness__module" kind="namespace" language="Fortran">
+    <compoundname>bedroughness_module</compoundname>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacebedroughness__module_1a18cd9b94ed61b3f25629fd68716ffb83" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::kru</definition>
+        <argsstring></argsstring>
+        <name>kru</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="32" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="32" bodyend="32"/>
+        <referencedby refid="namespacebedroughness__module_1a5f036f88b5ad135e31575bfd6fb28c99" compoundref="bedroughness_8_f90" startline="49" endline="143">bedroughness_init</referencedby>
+        <referencedby refid="namespacebedroughness__module_1a547629d418e1e6ab0a01f6834f4f12f9" compoundref="bedroughness_8_f90" startline="148" endline="238">bedroughness_update</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a585184b598936013d659d54de395fd37" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::krv</definition>
+        <argsstring></argsstring>
+        <name>krv</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="32" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="32" bodyend="-1"/>
+        <referencedby refid="namespacebedroughness__module_1a5f036f88b5ad135e31575bfd6fb28c99" compoundref="bedroughness_8_f90" startline="49" endline="143">bedroughness_init</referencedby>
+        <referencedby refid="namespacebedroughness__module_1a547629d418e1e6ab0a01f6834f4f12f9" compoundref="bedroughness_8_f90" startline="148" endline="238">bedroughness_update</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a6c0025e375ed838ee9a540901c2e6d27" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::kru50</definition>
+        <argsstring></argsstring>
+        <name>kru50</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="32" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="32" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a2e456f3792c6b554dda6d9f907e79a3f" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::krv50</definition>
+        <argsstring></argsstring>
+        <name>krv50</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="32" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="32" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a549e52ff29d41e8ff13d8034355b716c" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::kru90</definition>
+        <argsstring></argsstring>
+        <name>kru90</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="32" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="32" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a39765dd27c57225d12bc712fba5ccca3" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::krv90</definition>
+        <argsstring></argsstring>
+        <name>krv90</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="32" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="32" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a579dd8fc7408cd7c472673868a5cff79" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::urms_upd</definition>
+        <argsstring></argsstring>
+        <name>urms_upd</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="33" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="33" bodyend="33"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a3d89a4677e10fafa1711b749346924a3" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::u2_upd</definition>
+        <argsstring></argsstring>
+        <name>u2_upd</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="33" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a6a330ead26ed0a1cf0455aeb26f56149" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::facbl</definition>
+        <argsstring></argsstring>
+        <name>facbl</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="34" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="34" bodyend="34"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a7b62467c73178ac808e72a47c135b4c4" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::blphi</definition>
+        <argsstring></argsstring>
+        <name>blphi</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="34" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="34" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1afe13d82f4f789db9bfb503cbfea3ced7" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::infilb</definition>
+        <argsstring></argsstring>
+        <name>infilb</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="34" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="34" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a144a57609c301a9f8428a14099bd0ea0" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::ubed</definition>
+        <argsstring></argsstring>
+        <name>ubed</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="34" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="34" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1ad97c42920de9f2acee224dd4644786f2" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::ventilation</definition>
+        <argsstring></argsstring>
+        <name>ventilation</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="34" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="34" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1aece0a36d30d111a86e6bdb2660e16891" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::ueuf</definition>
+        <argsstring></argsstring>
+        <name>ueuf</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="35" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="35" bodyend="35"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a5e153ae428e13588b4a4ab6af4b8d1a9" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::uevf</definition>
+        <argsstring></argsstring>
+        <name>uevf</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="35" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a204216bbd1693201b3a2f26249c80f07" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::vevf</definition>
+        <argsstring></argsstring>
+        <name>vevf</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="35" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a381af39b61236b83dd29b6fe2c629ea2" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::veuf</definition>
+        <argsstring></argsstring>
+        <name>veuf</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="35" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1aff1780f85e9cfa29f74d8c060f6b8383" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::ueuold</definition>
+        <argsstring></argsstring>
+        <name>ueuold</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="36" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="36" bodyend="36"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a179256996a0f54888ab6e0af2e53fa02" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::uevold</definition>
+        <argsstring></argsstring>
+        <name>uevold</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="36" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="36" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1ac0f19afd07a003117872ffe21b8ef4ca" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::vevold</definition>
+        <argsstring></argsstring>
+        <name>vevold</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="36" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="36" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a41185fdbaac518a4baaa30c867f10914" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::veuold</definition>
+        <argsstring></argsstring>
+        <name>veuold</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="36" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="36" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1ae38c207120c741d58d0ee6163e318348" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::dudtsmooth</definition>
+        <argsstring></argsstring>
+        <name>dudtsmooth</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="37" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="37" bodyend="37"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a41118f9b698e3b5e74a06291d1116413" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::dvdtsmooth</definition>
+        <argsstring></argsstring>
+        <name>dvdtsmooth</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="37" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="37" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a71803b420b62884592a10bb2fac83fac" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::shieldsu</definition>
+        <argsstring></argsstring>
+        <name>shieldsu</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="38" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="38" bodyend="38"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1ad02b5e663c8e4e590c33595ae89e89ff" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable, private</type>
+        <definition>real*8, dimension(:,:), allocatable, private bedroughness_module::shieldsv</definition>
+        <argsstring></argsstring>
+        <name>shieldsv</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="38" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="38" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1adff44708a0d334248ad296920ccb9830" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(2), private</type>
+        <definition>real*8, dimension(2), private bedroughness_module::dtold</definition>
+        <argsstring></argsstring>
+        <name>dtold</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="39" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="39" bodyend="39"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a9b178bd5ccb15beed6adf99ff9a5b9d3" prot="public" static="no" mutable="no">
+        <type>real *8, private</type>
+        <definition>real*8, private bedroughness_module::delta</definition>
+        <argsstring></argsstring>
+        <name>delta</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="40" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="40" bodyend="40"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespacebedroughness__module_1a491c899cd40517f7a350e7895daeeb23" prot="public" static="no" mutable="no">
+        <type>real *8, private</type>
+        <definition>real*8, private bedroughness_module::rhogdelta</definition>
+        <argsstring></argsstring>
+        <name>rhogdelta</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="40" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="40" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacebedroughness__module_1a5f036f88b5ad135e31575bfd6fb28c99" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public bedroughness_module::bedroughness_init</definition>
+        <argsstring>(s, par)</argsstring>
+        <name>bedroughness_init</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="48" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="49" bodyend="143"/>
+        <references refid="namespaceparamsconst_1ac586d97a1892a25b8ce63bf35a80a95b" compoundref="paramsconst_8_f90" startline="64" endline="64">paramsconst::bedfriction_cf</references>
+        <references refid="namespaceparamsconst_1a8ae656f97b3990c9ba112e5d9284dad0" compoundref="paramsconst_8_f90" startline="63" endline="63">paramsconst::bedfriction_chezy</references>
+        <references refid="namespaceparamsconst_1ac6baca2c49e6d3f3742fa3cb6e6a8722" compoundref="paramsconst_8_f90" startline="66" endline="66">paramsconst::bedfriction_manning</references>
+        <references refid="namespaceparamsconst_1a20e2e33d90189767ebb31202fece5df1" compoundref="paramsconst_8_f90" startline="65" endline="65">paramsconst::bedfriction_white_colebrook</references>
+        <references refid="namespaceparamsconst_1ab9f63fb6e91a639c564198a60c1334a8" compoundref="paramsconst_8_f90" startline="67" endline="67">paramsconst::bedfriction_white_colebrook_grainsize</references>
+        <references refid="namespacebedroughness__module_1a18cd9b94ed61b3f25629fd68716ffb83" compoundref="bedroughness_8_f90" startline="32" endline="32">kru</references>
+        <references refid="namespacebedroughness__module_1a585184b598936013d659d54de395fd37" compoundref="bedroughness_8_f90" startline="32">krv</references>
+        <referencedby refid="namespaceflow__timestep__module_1a2f280e063ceff2b60e3688f288c697b9" compoundref="flow__timestep_8_f90" startline="6" endline="946">flow_timestep_module::flow</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacebedroughness__module_1a547629d418e1e6ab0a01f6834f4f12f9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public bedroughness_module::bedroughness_update</definition>
+        <argsstring>(s, par)</argsstring>
+        <name>bedroughness_update</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="147" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" bodystart="148" bodyend="238"/>
+        <references refid="namespaceparamsconst_1ac586d97a1892a25b8ce63bf35a80a95b" compoundref="paramsconst_8_f90" startline="64" endline="64">paramsconst::bedfriction_cf</references>
+        <references refid="namespaceparamsconst_1a8ae656f97b3990c9ba112e5d9284dad0" compoundref="paramsconst_8_f90" startline="63" endline="63">paramsconst::bedfriction_chezy</references>
+        <references refid="namespaceparamsconst_1ac6baca2c49e6d3f3742fa3cb6e6a8722" compoundref="paramsconst_8_f90" startline="66" endline="66">paramsconst::bedfriction_manning</references>
+        <references refid="namespaceparamsconst_1a20e2e33d90189767ebb31202fece5df1" compoundref="paramsconst_8_f90" startline="65" endline="65">paramsconst::bedfriction_white_colebrook</references>
+        <references refid="namespaceparamsconst_1ab9f63fb6e91a639c564198a60c1334a8" compoundref="paramsconst_8_f90" startline="67" endline="67">paramsconst::bedfriction_white_colebrook_grainsize</references>
+        <references refid="namespacebedroughness__module_1a18cd9b94ed61b3f25629fd68716ffb83" compoundref="bedroughness_8_f90" startline="32" endline="32">kru</references>
+        <references refid="namespacebedroughness__module_1a585184b598936013d659d54de395fd37" compoundref="bedroughness_8_f90" startline="32">krv</references>
+        <referencedby refid="namespaceflow__timestep__module_1a2f280e063ceff2b60e3688f288c697b9" compoundref="flow__timestep_8_f90" startline="6" endline="946">flow_timestep_module::flow</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/bedroughness.F90" line="27" column="1"/>
+  </compounddef>
+</doxygen>

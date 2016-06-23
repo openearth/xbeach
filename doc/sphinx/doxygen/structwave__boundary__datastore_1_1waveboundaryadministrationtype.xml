@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="structwave__boundary__datastore_1_1waveboundaryadministrationtype" kind="type" language="Fortran" prot="public">
+    <compoundname>wave_boundary_datastore::waveboundaryadministrationtype</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structwave__boundary__datastore_1_1waveboundaryadministrationtype_1a0667f58879cf8716e7adb23970b21cc1" prot="public" static="no" mutable="no">
+        <type>logical</type>
+        <definition>logical wave_boundary_datastore::waveboundaryadministrationtype::initialized</definition>
+        <argsstring></argsstring>
+        <name>initialized</name>
+        <initializer>= .false.</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="44" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="44" bodyend="44"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__datastore_1_1waveboundaryadministrationtype_1a4812d4d9d99e2c370ee221b25ac62aa2" prot="public" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 wave_boundary_datastore::waveboundaryadministrationtype::startcomputenewseries</definition>
+        <argsstring></argsstring>
+        <name>startcomputenewseries</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="45" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="45" bodyend="45"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__datastore_1_1waveboundaryadministrationtype_1ae14e5fd8706f40f9971348a0ccc72a14" prot="public" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 wave_boundary_datastore::waveboundaryadministrationtype::startcurrentseries</definition>
+        <argsstring></argsstring>
+        <name>startcurrentseries</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="46" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="46" bodyend="46"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" line="43" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_datastore.f90" bodystart="43" bodyend="47"/>
+    <listofallmembers>
+      <member refid="structwave__boundary__datastore_1_1waveboundaryadministrationtype_1a0667f58879cf8716e7adb23970b21cc1" prot="public" virt="non-virtual"><scope>wave_boundary_datastore::waveboundaryadministrationtype</scope><name>initialized</name></member>
+      <member refid="structwave__boundary__datastore_1_1waveboundaryadministrationtype_1a4812d4d9d99e2c370ee221b25ac62aa2" prot="public" virt="non-virtual"><scope>wave_boundary_datastore::waveboundaryadministrationtype</scope><name>startcomputenewseries</name></member>
+      <member refid="structwave__boundary__datastore_1_1waveboundaryadministrationtype_1ae14e5fd8706f40f9971348a0ccc72a14" prot="public" virt="non-virtual"><scope>wave_boundary_datastore::waveboundaryadministrationtype</scope><name>startcurrentseries</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

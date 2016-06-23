@@ -1,0 +1,741 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespaceinterp" kind="namespace" language="Fortran">
+    <compoundname>interp</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceinterp_1a9948cdaf83dc1dc94923c375df5f696d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>pure subroutine</type>
+        <definition>pure subroutine interp::linear_interp_2d</definition>
+        <argsstring>(X, nx, Y, ny, Z, xx, yy, zz, method, exception)</argsstring>
+        <name>linear_interp_2d</name>
+        <param>
+          <type>X</type>
+          <defname>X</defname>
+        </param>
+        <param>
+          <type>nx</type>
+          <defname>nx</defname>
+        </param>
+        <param>
+          <type>Y</type>
+          <defname>Y</defname>
+        </param>
+        <param>
+          <type>ny</type>
+          <defname>ny</defname>
+        </param>
+        <param>
+          <type>Z</type>
+          <defname>Z</defname>
+        </param>
+        <param>
+          <type>xx</type>
+          <defname>xx</defname>
+        </param>
+        <param>
+          <type>yy</type>
+          <defname>yy</defname>
+        </param>
+        <param>
+          <type>zz</type>
+          <defname>zz</defname>
+        </param>
+        <param>
+          <type>method</type>
+          <defname>method</defname>
+        </param>
+        <param>
+          <type>exception</type>
+          <defname>exception</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="5" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="6" bodyend="82"/>
+        <referencedby refid="namespacewave__boundary__update__module_1ae2d9744d91d10c8ab02ec7e4255c8425" compoundref="wave__boundary__update_8f90" startline="1253" endline="1355">wave_boundary_update_module::interpolate_spectrum</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1a0a169735d9debaa040755b8d02360fe0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>pure subroutine</type>
+        <definition>pure subroutine interp::linear_interp</definition>
+        <argsstring>(x, y, n, xx, yy, indint)</argsstring>
+        <name>linear_interp</name>
+        <param>
+          <type>x</type>
+          <defname>x</defname>
+        </param>
+        <param>
+          <type>y</type>
+          <defname>y</defname>
+        </param>
+        <param>
+          <type>n</type>
+          <defname>n</defname>
+        </param>
+        <param>
+          <type>xx</type>
+          <defname>xx</defname>
+        </param>
+        <param>
+          <type>yy</type>
+          <defname>yy</defname>
+        </param>
+        <param>
+          <type>indint</type>
+          <defname>indint</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="102" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="103" bodyend="154"/>
+        <references refid="namespaceinterp_1af6d89a8817868a6fc5e89167a9ef2e76" compoundref="interp_8_f90" startline="178" endline="219">binary_search</references>
+        <referencedby refid="namespacewaveparams_1ae70cd53ba3f401c18d31897acb066a0e" compoundref="waveparams_8_f90" startline="909" endline="1544">waveparams::build_etdir</referencedby>
+        <referencedby refid="namespacewave__boundary__main__module_1a09e90be406b9d87c5d4759e7c43cbe14" compoundref="wave__boundary__main_8f90" startline="61" endline="277">wave_boundary_main_module::create_incident_waves_surfbeat</referencedby>
+        <referencedby refid="namespaceboundaryconditions_1acdacfef32b8487bdd8cb26b236a79958" compoundref="boundaryconditions_8_f90" startline="1462" endline="1608">boundaryconditions::discharge_boundary_h</referencedby>
+        <referencedby refid="namespaceboundaryconditions_1a291d260aa7954d96aad7bc8eaa9507c5" compoundref="boundaryconditions_8_f90" startline="1612" endline="1653">boundaryconditions::discharge_boundary_v</referencedby>
+        <referencedby refid="namespaceboundaryconditions_1a704340dfa991d6982855bdb697426f0a" compoundref="boundaryconditions_8_f90" startline="856" endline="1359">boundaryconditions::flow_bc</referencedby>
+        <referencedby refid="namespaceinitialize__module_1a6a601184074b6cef864ab0181112531a" compoundref="initialize_8_f90" startline="703" endline="1344">initialize_module::flow_init</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1abf4ffa23c6ce2aa451960820a63f7225" compoundref="wave__boundary__update_8f90" startline="2143" endline="2369">wave_boundary_update_module::generate_ebcf</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1ab8d84de3b688de769d6435e6210e353d" compoundref="waveparamsnew_8_f90" startline="2170" endline="2413">spectral_wave_bc_module::generate_ebcf</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1a178b2db870cbd999305ed8e4b1db0fb3" compoundref="wave__boundary__update_8f90" startline="2461" endline="2728">wave_boundary_update_module::generate_qbcf</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a1c25cb7416bfebe3e38eec38eec53541" compoundref="waveparamsnew_8_f90" startline="2488" endline="2751">spectral_wave_bc_module::generate_qbcf</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1acbbad3ec2efcc1bf313f560177e4c76d" compoundref="waveparamsnew_8_f90" startline="1855" endline="1954">spectral_wave_bc_module::generate_wave_train_properties_per_offshore_point</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1a858c0cdca5cc0cb6d3b1a6c1a673860b" compoundref="wave__boundary__update_8f90" startline="1865" endline="1963">wave_boundary_update_module::generate_wave_train_properties_per_offshore_point</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a40d1df3450bf706f7e6e654bd5abda1c" compoundref="waveparamsnew_8_f90" startline="1796" endline="1848">spectral_wave_bc_module::generate_wave_train_variance</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1abfca894c2cf81454e1b7e6407b8dfde2" compoundref="wave__boundary__update_8f90" startline="1812" endline="1858">wave_boundary_update_module::generate_wave_train_variance</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1ab5143a84a7be1a4f54a904611c0a4f87" compoundref="waveparamsnew_8_f90" startline="1465" endline="1599">spectral_wave_bc_module::generate_wavetrain_components</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1ae4957a7ad9dc3602eb0f2995bc525e26" compoundref="wave__boundary__update_8f90" startline="1495" endline="1645">wave_boundary_update_module::generate_wavetrain_components</referencedby>
+        <referencedby refid="namespacemorphevolution_1a2e16d2872c10eaf0d69e72ac7ff9e910" compoundref="morphevolution_8_f90" startline="1814" endline="1894">morphevolution::hybrid</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1abb64f26275b03f1517d6362adb6bf0d4" compoundref="waveparamsnew_8_f90" startline="1192" endline="1312">spectral_wave_bc_module::interpolate_spectrum</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1ae2d9744d91d10c8ab02ec7e4255c8425" compoundref="wave__boundary__update_8f90" startline="1253" endline="1355">wave_boundary_update_module::interpolate_spectrum</referencedby>
+        <referencedby refid="namespaceinitialize__module_1a81027fb6c4fb820754f6e905d10c7215" compoundref="initialize_8_f90" startline="406" endline="450">initialize_module::setbathy_init</referencedby>
+        <referencedby refid="namespacemorphevolution_1ab6ac110d117cb31dabb7e458f91c3a4b" compoundref="morphevolution_8_f90" startline="1777" endline="1807">morphevolution::setbathy_update</referencedby>
+        <referencedby refid="namespaceship__module_1af4f012e4306eee30ffc744dff3e1f9b0" compoundref="ship_8_f90" startline="243" endline="389">ship_module::shipwave</referencedby>
+        <referencedby refid="namespaceinterp_1a759b024041168025538aeb9a53547b27" compoundref="interp_8_f90" startline="1142" endline="1177">trapezoidal_cyclic</referencedby>
+        <referencedby refid="namespaceboundaryconditions_1a0b2ae2a9197e69388bed41e99b46429d" compoundref="boundaryconditions_8_f90" startline="7" endline="846">boundaryconditions::wave_bc</referencedby>
+        <referencedby refid="namespacewave__instationary__module_1abe5d400befd96d77a40accfe593997f6" compoundref="wave__instationary_8_f90" startline="8" endline="582">wave_instationary_module::wave_instationary</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1af6d89a8817868a6fc5e89167a9ef2e76" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>pure subroutine</type>
+        <definition>pure subroutine interp::binary_search</definition>
+        <argsstring>(xx, n, x, j)</argsstring>
+        <name>binary_search</name>
+        <param>
+          <type>xx</type>
+          <defname>xx</defname>
+        </param>
+        <param>
+          <type>n</type>
+          <defname>n</defname>
+        </param>
+        <param>
+          <type>x</type>
+          <defname>x</defname>
+        </param>
+        <param>
+          <type>j</type>
+          <defname>j</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="177" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="178" bodyend="219"/>
+        <referencedby refid="namespaceinterp_1a0a169735d9debaa040755b8d02360fe0" compoundref="interp_8_f90" startline="103" endline="154">linear_interp</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1a12bb8a82f8b5c2dab08f5f6b37245ccf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine interp::mkmap</definition>
+        <argsstring>(code, x1, y1, m1, n1, x2, y2, n2, xs, ys, nrx, nry, iflag, nrin, w, iref, iprint, covered, xymiss)</argsstring>
+        <name>mkmap</name>
+        <param>
+          <type>code</type>
+          <defname>code</defname>
+        </param>
+        <param>
+          <type>x1</type>
+          <defname>x1</defname>
+        </param>
+        <param>
+          <type>y1</type>
+          <defname>y1</defname>
+        </param>
+        <param>
+          <type>m1</type>
+          <defname>m1</defname>
+        </param>
+        <param>
+          <type>n1</type>
+          <defname>n1</defname>
+        </param>
+        <param>
+          <type>x2</type>
+          <defname>x2</defname>
+        </param>
+        <param>
+          <type>y2</type>
+          <defname>y2</defname>
+        </param>
+        <param>
+          <type>n2</type>
+          <defname>n2</defname>
+        </param>
+        <param>
+          <type>xs</type>
+          <defname>xs</defname>
+        </param>
+        <param>
+          <type>ys</type>
+          <defname>ys</defname>
+        </param>
+        <param>
+          <type>nrx</type>
+          <defname>nrx</defname>
+        </param>
+        <param>
+          <type>nry</type>
+          <defname>nry</defname>
+        </param>
+        <param>
+          <type>iflag</type>
+          <defname>iflag</defname>
+        </param>
+        <param>
+          <type>nrin</type>
+          <defname>nrin</defname>
+        </param>
+        <param>
+          <type>w</type>
+          <defname>w</defname>
+        </param>
+        <param>
+          <type>iref</type>
+          <defname>iref</defname>
+        </param>
+        <param>
+          <type>iprint</type>
+          <defname>iprint</defname>
+        </param>
+        <param>
+          <type>covered</type>
+          <defname>covered</defname>
+        </param>
+        <param>
+          <type>xymiss</type>
+          <defname>xymiss</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="222" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="226" bodyend="482"/>
+        <references refid="namespaceinterp_1add0fef8969803d561c6086843bf495a8" compoundref="interp_8_f90" startline="943" endline="1071">bilin5</references>
+        <references refid="namespaceinterp_1ae6ccdded5467c4cffab93634091e389f" compoundref="interp_8_f90" startline="780" endline="845">hunt</references>
+        <references refid="namespaceinterp_1a95130301773f9d22606fc8b01545a4cf" compoundref="interp_8_f90" startline="679" endline="776">ipon</references>
+        <references refid="namespaceinterp_1adfc476d52ea5b6a48b724ae31c2ee256" compoundref="interp_8_f90" startline="1075" endline="1099">sort</references>
+        <referencedby refid="namespaceship__module_1af4f012e4306eee30ffc744dff3e1f9b0" compoundref="ship_8_f90" startline="243" endline="389">ship_module::shipwave</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1a67d6e4c9df2c49ff0f17b54a93386d08" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine interp::mkmap_step</definition>
+        <argsstring>(x1, y1, m1, n1, alfaz, dsu, dnv, x2, y2, n2, w, iref)</argsstring>
+        <name>mkmap_step</name>
+        <param>
+          <type>x1</type>
+          <defname>x1</defname>
+        </param>
+        <param>
+          <type>y1</type>
+          <defname>y1</defname>
+        </param>
+        <param>
+          <type>m1</type>
+          <defname>m1</defname>
+        </param>
+        <param>
+          <type>n1</type>
+          <defname>n1</defname>
+        </param>
+        <param>
+          <type>alfaz</type>
+          <defname>alfaz</defname>
+        </param>
+        <param>
+          <type>dsu</type>
+          <defname>dsu</defname>
+        </param>
+        <param>
+          <type>dnv</type>
+          <defname>dnv</defname>
+        </param>
+        <param>
+          <type>x2</type>
+          <defname>x2</defname>
+        </param>
+        <param>
+          <type>y2</type>
+          <defname>y2</defname>
+        </param>
+        <param>
+          <type>n2</type>
+          <defname>n2</defname>
+        </param>
+        <param>
+          <type>w</type>
+          <defname>w</defname>
+        </param>
+        <param>
+          <type>iref</type>
+          <defname>iref</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="485" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="488" bodyend="564"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1a6789512907ee79d2e3d48276ddb77fbd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine interp::grmap</definition>
+        <argsstring>(f1, n1, f2, n2, iref, w, np, iprint)</argsstring>
+        <name>grmap</name>
+        <param>
+          <type>f1</type>
+          <defname>f1</defname>
+        </param>
+        <param>
+          <type>n1</type>
+          <defname>n1</defname>
+        </param>
+        <param>
+          <type>f2</type>
+          <defname>f2</defname>
+        </param>
+        <param>
+          <type>n2</type>
+          <defname>n2</defname>
+        </param>
+        <param>
+          <type>iref</type>
+          <defname>iref</defname>
+        </param>
+        <param>
+          <type>w</type>
+          <defname>w</defname>
+        </param>
+        <param>
+          <type>np</type>
+          <defname>np</defname>
+        </param>
+        <param>
+          <type>iprint</type>
+          <defname>iprint</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="567" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="569" bodyend="628"/>
+        <referencedby refid="namespaceship__module_1af4f012e4306eee30ffc744dff3e1f9b0" compoundref="ship_8_f90" startline="243" endline="389">ship_module::shipwave</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1a6ae36099f982372c6cb39a1d5c42f4ad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine interp::grmap2</definition>
+        <argsstring>(f1, cellsz1i, n1, f2, cellsz2, n2, iref, w, np)</argsstring>
+        <name>grmap2</name>
+        <param>
+          <type>f1</type>
+          <defname>f1</defname>
+        </param>
+        <param>
+          <type>cellsz1i</type>
+          <defname>cellsz1i</defname>
+        </param>
+        <param>
+          <type>n1</type>
+          <defname>n1</defname>
+        </param>
+        <param>
+          <type>f2</type>
+          <defname>f2</defname>
+        </param>
+        <param>
+          <type>cellsz2</type>
+          <defname>cellsz2</defname>
+        </param>
+        <param>
+          <type>n2</type>
+          <defname>n2</defname>
+        </param>
+        <param>
+          <type>iref</type>
+          <defname>iref</defname>
+        </param>
+        <param>
+          <type>w</type>
+          <defname>w</defname>
+        </param>
+        <param>
+          <type>np</type>
+          <defname>np</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="631" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="633" bodyend="675"/>
+        <referencedby refid="namespaceship__module_1af4f012e4306eee30ffc744dff3e1f9b0" compoundref="ship_8_f90" startline="243" endline="389">ship_module::shipwave</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1a95130301773f9d22606fc8b01545a4cf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine interp::ipon</definition>
+        <argsstring>(xq, yq, n, xp, yp, inout)</argsstring>
+        <name>ipon</name>
+        <param>
+          <type>xq</type>
+          <defname>xq</defname>
+        </param>
+        <param>
+          <type>yq</type>
+          <defname>yq</defname>
+        </param>
+        <param>
+          <type>n</type>
+          <defname>n</defname>
+        </param>
+        <param>
+          <type>xp</type>
+          <defname>xp</defname>
+        </param>
+        <param>
+          <type>yp</type>
+          <defname>yp</defname>
+        </param>
+        <param>
+          <type>inout</type>
+          <defname>inout</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="678" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="679" bodyend="776"/>
+        <referencedby refid="namespaceinterp_1a12bb8a82f8b5c2dab08f5f6b37245ccf" compoundref="interp_8_f90" startline="226" endline="482">mkmap</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1ae6ccdded5467c4cffab93634091e389f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine interp::hunt</definition>
+        <argsstring>(xx, n, x, jlo)</argsstring>
+        <name>hunt</name>
+        <param>
+          <type>xx</type>
+          <defname>xx</defname>
+        </param>
+        <param>
+          <type>n</type>
+          <defname>n</defname>
+        </param>
+        <param>
+          <type>x</type>
+          <defname>x</defname>
+        </param>
+        <param>
+          <type>jlo</type>
+          <defname>jlo</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="779" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="780" bodyend="845"/>
+        <referencedby refid="namespaceinterp_1a12bb8a82f8b5c2dab08f5f6b37245ccf" compoundref="interp_8_f90" startline="226" endline="482">mkmap</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1afc2ec3f949a362525d5fee82eef05b15" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine interp::indexx</definition>
+        <argsstring>(n, arrin, indx)</argsstring>
+        <name>indexx</name>
+        <param>
+          <type>n</type>
+          <defname>n</defname>
+        </param>
+        <param>
+          <type>arrin</type>
+          <defname>arrin</defname>
+        </param>
+        <param>
+          <type>indx</type>
+          <defname>indx</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="848" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="849" bodyend="939"/>
+        <referencedby refid="namespaceinterp_1adfc476d52ea5b6a48b724ae31c2ee256" compoundref="interp_8_f90" startline="1075" endline="1099">sort</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1add0fef8969803d561c6086843bf495a8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine interp::bilin5</definition>
+        <argsstring>(xa, ya, x0, y0, w, ier)</argsstring>
+        <name>bilin5</name>
+        <param>
+          <type>xa</type>
+          <defname>xa</defname>
+        </param>
+        <param>
+          <type>ya</type>
+          <defname>ya</defname>
+        </param>
+        <param>
+          <type>x0</type>
+          <defname>x0</defname>
+        </param>
+        <param>
+          <type>y0</type>
+          <defname>y0</defname>
+        </param>
+        <param>
+          <type>w</type>
+          <defname>w</defname>
+        </param>
+        <param>
+          <type>ier</type>
+          <defname>ier</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="942" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="943" bodyend="1071"/>
+        <referencedby refid="namespaceinterp_1a12bb8a82f8b5c2dab08f5f6b37245ccf" compoundref="interp_8_f90" startline="226" endline="482">mkmap</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1adfc476d52ea5b6a48b724ae31c2ee256" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine interp::sort</definition>
+        <argsstring>(n, ra, wksp, iwksp)</argsstring>
+        <name>sort</name>
+        <param>
+          <type>n</type>
+          <defname>n</defname>
+        </param>
+        <param>
+          <type>ra</type>
+          <defname>ra</defname>
+        </param>
+        <param>
+          <type>wksp</type>
+          <defname>wksp</defname>
+        </param>
+        <param>
+          <type>iwksp</type>
+          <defname>iwksp</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="1074" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="1075" bodyend="1099"/>
+        <references refid="namespaceinterp_1afc2ec3f949a362525d5fee82eef05b15" compoundref="interp_8_f90" startline="849" endline="939">indexx</references>
+        <referencedby refid="namespaceinterp_1a12bb8a82f8b5c2dab08f5f6b37245ccf" compoundref="interp_8_f90" startline="226" endline="482">mkmap</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1ad9913135da114356b9e23a8ee60fa865" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine interp::trapezoidal</definition>
+        <argsstring>(x, y, n, x1_in, x2_in, integ)</argsstring>
+        <name>trapezoidal</name>
+        <param>
+          <type>x</type>
+          <defname>x</defname>
+        </param>
+        <param>
+          <type>y</type>
+          <defname>y</defname>
+        </param>
+        <param>
+          <type>n</type>
+          <defname>n</defname>
+        </param>
+        <param>
+          <type>x1_in</type>
+          <defname>x1_in</defname>
+        </param>
+        <param>
+          <type>x2_in</type>
+          <defname>x2_in</defname>
+        </param>
+        <param>
+          <type>integ</type>
+          <defname>integ</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="1102" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="1103" bodyend="1138"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1a759b024041168025538aeb9a53547b27" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine interp::trapezoidal_cyclic</definition>
+        <argsstring>(x, y, n, xcycle, x1, x2, integ)</argsstring>
+        <name>trapezoidal_cyclic</name>
+        <param>
+          <type>x</type>
+          <defname>x</defname>
+        </param>
+        <param>
+          <type>y</type>
+          <defname>y</defname>
+        </param>
+        <param>
+          <type>n</type>
+          <defname>n</defname>
+        </param>
+        <param>
+          <type>xcycle</type>
+          <defname>xcycle</defname>
+        </param>
+        <param>
+          <type>x1</type>
+          <defname>x1</defname>
+        </param>
+        <param>
+          <type>x2</type>
+          <defname>x2</defname>
+        </param>
+        <param>
+          <type>integ</type>
+          <defname>integ</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="1141" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="1142" bodyend="1177"/>
+        <references refid="namespaceinterp_1af77e932c7e6f70e1aa5b9308ed6fdcbb" compoundref="interp_8_f90" startline="1204" endline="1278">interp_in_cyclic_function</references>
+        <references refid="namespaceinterp_1a0a169735d9debaa040755b8d02360fe0" compoundref="interp_8_f90" startline="103" endline="154">linear_interp</references>
+        <referencedby refid="namespaceinterp_1af7be0c6618eefe2e3445d34cf2cb08a1" compoundref="interp_8_f90" startline="1181" endline="1200">interp_using_trapez_rule</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1af7be0c6618eefe2e3445d34cf2cb08a1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine interp::interp_using_trapez_rule</definition>
+        <argsstring>(x, y, n, xcycle, xtarg, ytarg, ntarg)</argsstring>
+        <name>interp_using_trapez_rule</name>
+        <param>
+          <type>x</type>
+          <defname>x</defname>
+        </param>
+        <param>
+          <type>y</type>
+          <defname>y</defname>
+        </param>
+        <param>
+          <type>n</type>
+          <defname>n</defname>
+        </param>
+        <param>
+          <type>xcycle</type>
+          <defname>xcycle</defname>
+        </param>
+        <param>
+          <type>xtarg</type>
+          <defname>xtarg</defname>
+        </param>
+        <param>
+          <type>ytarg</type>
+          <defname>ytarg</defname>
+        </param>
+        <param>
+          <type>ntarg</type>
+          <defname>ntarg</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="1180" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="1181" bodyend="1200"/>
+        <references refid="namespaceinterp_1a759b024041168025538aeb9a53547b27" compoundref="interp_8_f90" startline="1142" endline="1177">trapezoidal_cyclic</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1a62f730cf1dadb9408456599710f0d5ed" compoundref="waveparamsnew_8_f90" startline="2791" endline="2828">spectral_wave_bc_module::set_stationary_spectrum</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceinterp_1af77e932c7e6f70e1aa5b9308ed6fdcbb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine interp::interp_in_cyclic_function</definition>
+        <argsstring>(x, y, n, xcycle, xp, np, yp)</argsstring>
+        <name>interp_in_cyclic_function</name>
+        <param>
+          <type>x</type>
+          <defname>x</defname>
+        </param>
+        <param>
+          <type>y</type>
+          <defname>y</defname>
+        </param>
+        <param>
+          <type>n</type>
+          <defname>n</defname>
+        </param>
+        <param>
+          <type>xcycle</type>
+          <defname>xcycle</defname>
+        </param>
+        <param>
+          <type>xp</type>
+          <defname>xp</defname>
+        </param>
+        <param>
+          <type>np</type>
+          <defname>np</defname>
+        </param>
+        <param>
+          <type>yp</type>
+          <defname>yp</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="1203" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" bodystart="1204" bodyend="1278"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1abb64f26275b03f1517d6362adb6bf0d4" compoundref="waveparamsnew_8_f90" startline="1192" endline="1312">spectral_wave_bc_module::interpolate_spectrum</referencedby>
+        <referencedby refid="namespaceinterp_1a759b024041168025538aeb9a53547b27" compoundref="interp_8_f90" startline="1142" endline="1177">trapezoidal_cyclic</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/interp.F90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,136 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespaceoutput__module" kind="namespace" language="Fortran">
+    <compoundname>output_module</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceoutput__module_1ada1f11b0c85e41e240c011cb3b6b3cff" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine output_module::output_init</definition>
+        <argsstring>(sglobal, slocal, par, tpar)</argsstring>
+        <name>output_init</name>
+        <param>
+          <type>sglobal</type>
+          <defname>sglobal</defname>
+        </param>
+        <param>
+          <type>slocal</type>
+          <defname>slocal</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>tpar</type>
+          <defname>tpar</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/output.F90" line="19" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/output.F90" bodystart="20" bodyend="72"/>
+        <references refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">ncoutput_module::fortoutput_init</references>
+        <references refid="namespaceparamsconst_1aac047222e07426ad579d5794ac50b731" compoundref="paramsconst_8_f90" startline="86" endline="86">paramsconst::outputformat_debug</references>
+        <references refid="namespaceparamsconst_1a67fb9285cefb98ae0014263990868ee5" compoundref="paramsconst_8_f90" startline="84" endline="84">paramsconst::outputformat_fortran</references>
+        <references refid="namespaceparamsconst_1a8040129b6b54251f55536479a37d7ba1" compoundref="paramsconst_8_f90" startline="85" endline="85">paramsconst::outputformat_netcdf</references>
+        <references refid="namespacencoutput__module_1ae89adac0b3a4fc12f4d31b8f9144c872" compoundref="ncoutput_8_f90" startline="1614" endline="1645">ncoutput_module::points_output_init</references>
+        <referencedby refid="namespacelibxbeach__module_1a6be3278b63e39d796c22bef0227fd2c4" compoundref="libxbeach_8_f90" startline="60" endline="208">libxbeach_module::init</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceoutput__module_1abb959bcca3e2c10caf9c7f621b76f019" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine output_module::output</definition>
+        <argsstring>(sglobal, s, par, tpar, update)</argsstring>
+        <name>output</name>
+        <param>
+          <type>sglobal</type>
+          <defname>sglobal</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>tpar</type>
+          <defname>tpar</defname>
+        </param>
+        <param>
+          <type>update</type>
+          <defname>update</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/output.F90" line="76" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/output.F90" bodystart="77" bodyend="184"/>
+        <references refid="namespaceoutput__module_1a4c2a86758c15fb7631bf392ac563836e" compoundref="output_8_f90" startline="207" endline="267">log_progress</references>
+        <references refid="namespacemeans__module_1a95979883d76039a508a84a0ad8e5be95" compoundref="varianceupdate_8_f90" startline="270" endline="392">means_module::makeaverage</references>
+        <references refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput_module::ncoutput</references>
+        <references refid="namespacetimestep__module_1af0cec962a7c2da8d4246c89714b79c20" compoundref="timestep_8_f90" startline="340" endline="405">timestep_module::outputtimes_update</references>
+        <referencedby refid="namespacelibxbeach__module_1a6be3278b63e39d796c22bef0227fd2c4" compoundref="libxbeach_8_f90" startline="60" endline="208">libxbeach_module::init</referencedby>
+        <referencedby refid="namespacelibxbeach__module_1a3299116febfefd7042872b6c78482595" compoundref="libxbeach_8_f90" startline="212" endline="220">libxbeach_module::outputext</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceoutput__module_1aff2c6c1c19277b8499e36e53bd7aeabb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine output_module::output_error</definition>
+        <argsstring>(s, sglobal, par, tpar)</argsstring>
+        <name>output_error</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>sglobal</type>
+          <defname>sglobal</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>tpar</type>
+          <defname>tpar</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/output.F90" line="188" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/output.F90" bodystart="189" bodyend="203"/>
+        <references refid="namespacexmpi__module_1a5406ad4cd4b3c61bf18b86fe6dcd9936" compoundref="xmpi_8_f90" startline="1576" endline="1599">xmpi_module::halt_program</references>
+        <referencedby refid="namespacelibxbeach__module_1a3299116febfefd7042872b6c78482595" compoundref="libxbeach_8_f90" startline="212" endline="220">libxbeach_module::outputext</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceoutput__module_1a4c2a86758c15fb7631bf392ac563836e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine output_module::log_progress</definition>
+        <argsstring>(par)</argsstring>
+        <name>log_progress</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/output.F90" line="206" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/output.F90" bodystart="207" bodyend="267"/>
+        <referencedby refid="namespaceoutput__module_1abb959bcca3e2c10caf9c7f621b76f019" compoundref="output_8_f90" startline="77" endline="184">output</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/output.F90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

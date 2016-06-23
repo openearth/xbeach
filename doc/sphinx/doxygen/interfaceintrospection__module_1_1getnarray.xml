@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="interfaceintrospection__module_1_1getnarray" kind="interface" language="Fortran" prot="public">
+    <compoundname>introspection_module::getnarray</compoundname>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="interfaceintrospection__module_1_1getnarray_1a417bfcacb767e5a7e6fdc14f341b7ddd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer(c_int) function</type>
+        <definition>integer(c_int) function introspection_module::getnarray::getnarray_fortran</definition>
+        <argsstring>(n)</argsstring>
+        <name>getnarray_fortran</name>
+        <param>
+          <type>n</type>
+          <defname>n</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" line="318" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" bodystart="319" bodyend="322"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" line="32" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" bodystart="32" bodyend="33"/>
+    <listofallmembers>
+      <member refid="interfaceintrospection__module_1_1getnarray_1a417bfcacb767e5a7e6fdc14f341b7ddd" prot="public" virt="non-virtual"><scope>introspection_module::getnarray</scope><name>getnarray_fortran</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

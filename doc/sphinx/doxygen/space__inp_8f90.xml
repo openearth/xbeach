@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="space__inp_8f90" kind="file" language="Fortran">
+    <compoundname>space_inp.f90</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">!<sp/><sp/>DO<sp/>NOT<sp/>EDIT<sp/>THIS<sp/>FILE</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/>But<sp/>edit<sp/>spaceparams.tmpl<sp/>and/or<sp/>makeincludes.F90</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/>compile<sp/>makeincludes.F90<sp/>and<sp/>run<sp/>the<sp/>compilate</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/>Compiling<sp/>and<sp/>running<sp/>is<sp/>taken<sp/>care<sp/>of<sp/>by<sp/>the<sp/>Makefile</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal">%for<sp/>variable<sp/>in<sp/><ref refid="namespacevariables" kindref="compound">variables</ref>:</highlight></codeline>
+<codeline lineno="6"><highlight class="normal"><sp/><sp/><sp/><sp/>${variable[</highlight><highlight class="stringliteral">&apos;name&apos;</highlight><highlight class="normal">]}<sp/>=&gt;<sp/>s%${variable[</highlight><highlight class="stringliteral">&apos;name&apos;</highlight><highlight class="normal">]}</highlight></codeline>
+<codeline lineno="7"><highlight class="normal">%endfor</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="comment">!directions<sp/>for<sp/>vi<sp/>vim:<sp/>filetype=fortran<sp/>:<sp/>syntax=fortran</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/templates/space_inp.f90"/>
+  </compounddef>
+</doxygen>

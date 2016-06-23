@@ -1,0 +1,491 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="structwave__boundary__update__module_1_1waveparamsnew" kind="type" language="Fortran" prot="private">
+    <compoundname>wave_boundary_update_module::waveparamsnew</compoundname>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a9181df924150df364ca4a13a10d63d18" prot="private" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 wave_boundary_update_module::waveparamsnew::h0</definition>
+        <argsstring></argsstring>
+        <name>h0</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="23" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="23" bodyend="23"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a4f69d7d6f5c7d35233c2e79adcdb827e" prot="private" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer wave_boundary_update_module::waveparamsnew::k</definition>
+        <argsstring></argsstring>
+        <name>k</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="24" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="24" bodyend="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1adf6a1a61061208e7fad6ad3fba49be5b" prot="private" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 wave_boundary_update_module::waveparamsnew::rtbc</definition>
+        <argsstring></argsstring>
+        <name>rtbc</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="25" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="25" bodyend="25"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a18699bd17a5011bc5cb1f2259e2e26d6" prot="private" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 wave_boundary_update_module::waveparamsnew::dtbc</definition>
+        <argsstring></argsstring>
+        <name>dtbc</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="25" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a7902953dd96e48d8bed41627c885cfaf" prot="private" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 wave_boundary_update_module::waveparamsnew::rtin</definition>
+        <argsstring></argsstring>
+        <name>rtin</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="26" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="26" bodyend="26"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a9d57cb97c14df4dd72498218e58b3c4e" prot="private" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 wave_boundary_update_module::waveparamsnew::dtin</definition>
+        <argsstring></argsstring>
+        <name>dtin</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="26" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="26" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1af392e7310f68363b508c2c1e62c8cdbb" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer wave_boundary_update_module::waveparamsnew::tin</definition>
+        <argsstring></argsstring>
+        <name>tin</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="28" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="28" bodyend="28"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a52ca5368b9ac41aea99e0fcd88713ae1" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer wave_boundary_update_module::waveparamsnew::taperf</definition>
+        <argsstring></argsstring>
+        <name>taperf</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="29" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="29" bodyend="29"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1aea85473b170a0615288cb0e07c40994e" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer wave_boundary_update_module::waveparamsnew::taperw</definition>
+        <argsstring></argsstring>
+        <name>taperw</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="29" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="29" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1ae5ca7d10618df4b4f163eed89fad6ad1" prot="private" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer wave_boundary_update_module::waveparamsnew::tslen</definition>
+        <argsstring></argsstring>
+        <name>tslen</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="30" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="30" bodyend="30"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a6649b691e592a2adbe01c96d824e1095" prot="private" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer wave_boundary_update_module::waveparamsnew::tslenbc</definition>
+        <argsstring></argsstring>
+        <name>tslenbc</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="31" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="31" bodyend="31"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a5576e128d4c40fcced0f9555b16df759" prot="private" static="no" mutable="no">
+        <type>logical</type>
+        <definition>logical wave_boundary_update_module::waveparamsnew::dtchanged</definition>
+        <argsstring></argsstring>
+        <name>dtchanged</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="32" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="32" bodyend="32"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a2d271381b368c47e4bf45864202b3cc9" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer wave_boundary_update_module::waveparamsnew::fgen</definition>
+        <argsstring></argsstring>
+        <name>fgen</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="33" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="33" bodyend="33"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a47754cb93d60caa7dcf59a96d567c74e" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer wave_boundary_update_module::waveparamsnew::thetagen</definition>
+        <argsstring></argsstring>
+        <name>thetagen</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="33" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a2a9d54f4dcd5cb706a74ce41a003a2aa" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer wave_boundary_update_module::waveparamsnew::phigen</definition>
+        <argsstring></argsstring>
+        <name>phigen</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="33" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a77a636344b8d25003a1b3ff871bd293f" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer wave_boundary_update_module::waveparamsnew::kgen</definition>
+        <argsstring></argsstring>
+        <name>kgen</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="33" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a6929ee43316a82157e7a5ec9d5868242" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer wave_boundary_update_module::waveparamsnew::wgen</definition>
+        <argsstring></argsstring>
+        <name>wgen</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="33" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1aa0c5c9e33488d4d6c67c818ad790b769" prot="private" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 wave_boundary_update_module::waveparamsnew::dfgen</definition>
+        <argsstring></argsstring>
+        <name>dfgen</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="35" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="35" bodyend="35"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1aef9fd561130b271a847890d86a30ed5b" prot="private" static="no" mutable="no">
+        <type>type(<ref refid="structwave__boundary__update__module_1_1shortspectrum" kindref="compound">shortspectrum</ref>), dimension(:), pointer</type>
+        <definition>type(shortspectrum), dimension(:), pointer wave_boundary_update_module::waveparamsnew::vargen</definition>
+        <argsstring></argsstring>
+        <name>vargen</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="36" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="36" bodyend="36"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a8df21d39b262951800324fded377555c" prot="private" static="no" mutable="no">
+        <type>type(<ref refid="structwave__boundary__update__module_1_1shortspectrum" kindref="compound">shortspectrum</ref>), dimension(:), pointer</type>
+        <definition>type(shortspectrum), dimension(:), pointer wave_boundary_update_module::waveparamsnew::vargenq</definition>
+        <argsstring></argsstring>
+        <name>vargenq</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="38" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="38" bodyend="38"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1abf25cc28ce5504d9526401236df17b64" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer wave_boundary_update_module::waveparamsnew::a</definition>
+        <argsstring></argsstring>
+        <name>a</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="40" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="40" bodyend="40"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a24fd0993c8836f39864d3bb690d83cf9" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer wave_boundary_update_module::waveparamsnew::sfinterp</definition>
+        <argsstring></argsstring>
+        <name>sfinterp</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="41" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="41" bodyend="41"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a8aa5fe8aaa294efe619aa1cac1fc0859" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer wave_boundary_update_module::waveparamsnew::sfinterpq</definition>
+        <argsstring></argsstring>
+        <name>sfinterpq</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="43" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="43" bodyend="43"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1abcd0a8c6fea2925fae2f4f917edca2bb" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer wave_boundary_update_module::waveparamsnew::hm0interp</definition>
+        <argsstring></argsstring>
+        <name>hm0interp</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="45" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="45" bodyend="45"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a154bd6b98c1caf3e6297d9473bad2b4e" prot="private" static="no" mutable="no">
+        <type>integer, dimension(:), pointer</type>
+        <definition>integer, dimension(:), pointer wave_boundary_update_module::waveparamsnew::findex</definition>
+        <argsstring></argsstring>
+        <name>findex</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="47" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="47" bodyend="47"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a460197bbed064832b85aae408855096d" prot="private" static="no" mutable="no">
+        <type>integer, dimension(:), pointer</type>
+        <definition>integer, dimension(:), pointer wave_boundary_update_module::waveparamsnew::wdindex</definition>
+        <argsstring></argsstring>
+        <name>wdindex</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="48" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="48" bodyend="48"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a60064ebdb6d030e18651d99773a56847" prot="private" static="no" mutable="no">
+        <type>double complex, dimension(:,:), pointer</type>
+        <definition>double complex, dimension(:,:), pointer wave_boundary_update_module::waveparamsnew::compfn</definition>
+        <argsstring></argsstring>
+        <name>compfn</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="49" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="49" bodyend="49"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a0c76edc485a865bb468ea71663065f39" prot="private" static="no" mutable="no">
+        <type>character(1024)</type>
+        <definition>character(1024) wave_boundary_update_module::waveparamsnew::efilename</definition>
+        <argsstring></argsstring>
+        <name>efilename</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="50" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="50" bodyend="50"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a7c959ec692a63957a4e5ed17052f695c" prot="private" static="no" mutable="no">
+        <type>character(1024)</type>
+        <definition>character(1024) wave_boundary_update_module::waveparamsnew::qfilename</definition>
+        <argsstring></argsstring>
+        <name>qfilename</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="50" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a71dbe75d0728e28ae17a2c48ad6beef8" prot="private" static="no" mutable="no">
+        <type>character(1024)</type>
+        <definition>character(1024) wave_boundary_update_module::waveparamsnew::nhfilename</definition>
+        <argsstring></argsstring>
+        <name>nhfilename</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="50" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1aa0c0183c5d2a01e0f03b03546d448161" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer wave_boundary_update_module::waveparamsnew::zsits</definition>
+        <argsstring></argsstring>
+        <name>zsits</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="51" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="51" bodyend="51"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1adc7e5480ea964cd8734b3e76bc6e9eeb" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer wave_boundary_update_module::waveparamsnew::uits</definition>
+        <argsstring></argsstring>
+        <name>uits</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="52" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="52" bodyend="52"/>
+      </memberdef>
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1waveparamsnew_1a0c5ab25143b0cf589b00f4dc3a89669b" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer wave_boundary_update_module::waveparamsnew::wits</definition>
+        <argsstring></argsstring>
+        <name>wits</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="53" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="53" bodyend="53"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="114">
+        <label>wave_boundary_update_module::shortspectrum</label>
+        <link refid="structwave__boundary__update__module_1_1shortspectrum"/>
+      </node>
+      <node id="113">
+        <label>wave_boundary_update_module::waveparamsnew</label>
+        <link refid="structwave__boundary__update__module_1_1waveparamsnew"/>
+        <childnode refid="114" relation="usage">
+          <edgelabel>vargenq</edgelabel>
+          <edgelabel>vargen</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="22" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="22" bodyend="54"/>
+    <listofallmembers>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1abf25cc28ce5504d9526401236df17b64" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>a</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a60064ebdb6d030e18651d99773a56847" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>compfn</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1aa0c5c9e33488d4d6c67c818ad790b769" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>dfgen</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a18699bd17a5011bc5cb1f2259e2e26d6" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>dtbc</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a5576e128d4c40fcced0f9555b16df759" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>dtchanged</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a9d57cb97c14df4dd72498218e58b3c4e" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>dtin</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a0c76edc485a865bb468ea71663065f39" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>efilename</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a2d271381b368c47e4bf45864202b3cc9" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>fgen</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a154bd6b98c1caf3e6297d9473bad2b4e" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>findex</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a9181df924150df364ca4a13a10d63d18" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>h0</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1abcd0a8c6fea2925fae2f4f917edca2bb" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>hm0interp</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a4f69d7d6f5c7d35233c2e79adcdb827e" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>k</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a77a636344b8d25003a1b3ff871bd293f" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>kgen</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a71dbe75d0728e28ae17a2c48ad6beef8" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>nhfilename</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a2a9d54f4dcd5cb706a74ce41a003a2aa" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>phigen</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a7c959ec692a63957a4e5ed17052f695c" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>qfilename</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1adf6a1a61061208e7fad6ad3fba49be5b" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>rtbc</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a7902953dd96e48d8bed41627c885cfaf" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>rtin</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a24fd0993c8836f39864d3bb690d83cf9" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>sfinterp</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a8aa5fe8aaa294efe619aa1cac1fc0859" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>sfinterpq</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a52ca5368b9ac41aea99e0fcd88713ae1" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>taperf</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1aea85473b170a0615288cb0e07c40994e" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>taperw</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a47754cb93d60caa7dcf59a96d567c74e" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>thetagen</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1af392e7310f68363b508c2c1e62c8cdbb" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>tin</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1ae5ca7d10618df4b4f163eed89fad6ad1" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>tslen</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a6649b691e592a2adbe01c96d824e1095" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>tslenbc</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1adc7e5480ea964cd8734b3e76bc6e9eeb" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>uits</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1aef9fd561130b271a847890d86a30ed5b" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>vargen</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a8df21d39b262951800324fded377555c" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>vargenq</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a460197bbed064832b85aae408855096d" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>wdindex</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a6929ee43316a82157e7a5ec9d5868242" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>wgen</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1a0c5ab25143b0cf589b00f4dc3a89669b" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>wits</name></member>
+      <member refid="structwave__boundary__update__module_1_1waveparamsnew_1aa0c0183c5d2a01e0f03b03546d448161" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::waveparamsnew</scope><name>zsits</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

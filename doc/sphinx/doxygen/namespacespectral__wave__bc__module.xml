@@ -1,0 +1,1075 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacespectral__wave__bc__module" kind="namespace" language="Fortran">
+    <compoundname>spectral_wave_bc_module</compoundname>
+    <innerclass refid="structspectral__wave__bc__module_1_1filenames" prot="public">spectral_wave_bc_module::filenames</innerclass>
+    <innerclass refid="structspectral__wave__bc__module_1_1shortspectrum" prot="public">spectral_wave_bc_module::shortspectrum</innerclass>
+    <innerclass refid="structspectral__wave__bc__module_1_1spectrum" prot="public">spectral_wave_bc_module::spectrum</innerclass>
+    <innerclass refid="structspectral__wave__bc__module_1_1waveparamsnew" prot="public">spectral_wave_bc_module::waveparamsnew</innerclass>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1afa4d71ea8e968509fffbdf9911996b03" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:), allocatable</type>
+        <definition>integer, dimension(:), allocatable spectral_wave_bc_module::n_index_loc</definition>
+        <argsstring></argsstring>
+        <name>n_index_loc</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="65" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="65" bodyend="65"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1acbbad3ec2efcc1bf313f560177e4c76d" compoundref="waveparamsnew_8_f90" startline="1855" endline="1954">generate_wave_train_properties_per_offshore_point</referencedby>
+        <referencedby refid="namespaceinitialize__module_1a6fb23d47f64bc6b3582af05e5da7e1af" compoundref="initialize_8_f90" startline="605" endline="696">initialize_module::spectral_wave_init</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1ab4dde7b27d472220f7257366a7eae807" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer spectral_wave_bc_module::nspectra</definition>
+        <argsstring></argsstring>
+        <name>nspectra</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="66" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="66" bodyend="66"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1afadb552436508ab87f04b29f50e2b49b" compoundref="waveparamsnew_8_f90" startline="1370" endline="1437">generate_combined_spectrum</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1acbbad3ec2efcc1bf313f560177e4c76d" compoundref="waveparamsnew_8_f90" startline="1855" endline="1954">generate_wave_train_properties_per_offshore_point</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a40d1df3450bf706f7e6e654bd5abda1c" compoundref="waveparamsnew_8_f90" startline="1796" endline="1848">generate_wave_train_variance</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a7f746bc0375ac11c0e44ff12043332e7" compoundref="waveparamsnew_8_f90" startline="1319" endline="1333">set_reuseall</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+        <referencedby refid="namespaceinitialize__module_1a6fb23d47f64bc6b3582af05e5da7e1af" compoundref="initialize_8_f90" startline="605" endline="696">initialize_module::spectral_wave_init</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1a621db5e24669eb828b47320c3a4a6d72" prot="public" static="no" mutable="no">
+        <type>type(<ref refid="structspectral__wave__bc__module_1_1filenames" kindref="compound">filenames</ref>), dimension(:), allocatable, public</type>
+        <definition>type(filenames), dimension(:), allocatable, public spectral_wave_bc_module::bcfiles</definition>
+        <argsstring></argsstring>
+        <name>bcfiles</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="67" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="67" bodyend="67"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1a7f746bc0375ac11c0e44ff12043332e7" compoundref="waveparamsnew_8_f90" startline="1319" endline="1333">set_reuseall</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+        <referencedby refid="namespaceinitialize__module_1a6fb23d47f64bc6b3582af05e5da7e1af" compoundref="initialize_8_f90" startline="605" endline="696">initialize_module::spectral_wave_init</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1af2227b3f6b1227e46df797cbdfa65c47" prot="public" static="no" mutable="no">
+        <type>logical, public</type>
+        <definition>logical, public spectral_wave_bc_module::reuseall</definition>
+        <argsstring></argsstring>
+        <name>reuseall</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="68" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="68" bodyend="68"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1a971880b658f4e6302a27f6f6d47a01af" compoundref="waveparamsnew_8_f90" startline="1340" endline="1363">set_bcfilenames</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a7f746bc0375ac11c0e44ff12043332e7" compoundref="waveparamsnew_8_f90" startline="1319" endline="1333">set_reuseall</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+        <referencedby refid="namespaceinitialize__module_1a6fb23d47f64bc6b3582af05e5da7e1af" compoundref="initialize_8_f90" startline="605" endline="696">initialize_module::spectral_wave_init</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1a4d4c6843684fb0cf85385a3cc12cd8ab" prot="public" static="no" mutable="no">
+        <type>integer, save</type>
+        <definition>integer, save spectral_wave_bc_module::bccount</definition>
+        <argsstring></argsstring>
+        <name>bccount</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="69" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="69" bodyend="69"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1a7113c9cdc92f3daba67f11a3fd63ad79" compoundref="waveparamsnew_8_f90" startline="2832" endline="2884">generate_admin_files</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a971880b658f4e6302a27f6f6d47a01af" compoundref="waveparamsnew_8_f90" startline="1340" endline="1363">set_bcfilenames</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+        <referencedby refid="namespaceinitialize__module_1a6fb23d47f64bc6b3582af05e5da7e1af" compoundref="initialize_8_f90" startline="605" endline="696">initialize_module::spectral_wave_init</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1a615da2b24c5edd713d1d15a45a141566" prot="public" static="no" mutable="no">
+        <type>integer, save</type>
+        <definition>integer, save spectral_wave_bc_module::fidelist</definition>
+        <argsstring></argsstring>
+        <name>fidelist</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="70" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="70" bodyend="70"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1a7113c9cdc92f3daba67f11a3fd63ad79" compoundref="waveparamsnew_8_f90" startline="2832" endline="2884">generate_admin_files</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1a587fbdea7d425ee62116eff38194d10a" prot="public" static="no" mutable="no">
+        <type>integer, save</type>
+        <definition>integer, save spectral_wave_bc_module::fidqlist</definition>
+        <argsstring></argsstring>
+        <name>fidqlist</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="70" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="70" bodyend="-1"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1a7113c9cdc92f3daba67f11a3fd63ad79" compoundref="waveparamsnew_8_f90" startline="2832" endline="2884">generate_admin_files</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1a013955eeefb16e59a98f0c370135e6ca" prot="public" static="no" mutable="no">
+        <type>integer, save</type>
+        <definition>integer, save spectral_wave_bc_module::fidnhlist</definition>
+        <argsstring></argsstring>
+        <name>fidnhlist</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="70" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="70" bodyend="-1"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1a7113c9cdc92f3daba67f11a3fd63ad79" compoundref="waveparamsnew_8_f90" startline="2832" endline="2884">generate_admin_files</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1a3a22c7c6e55f2b8f51fd374ee0739599" prot="public" static="no" mutable="no">
+        <type>integer, save</type>
+        <definition>integer, save spectral_wave_bc_module::fideslist</definition>
+        <argsstring></argsstring>
+        <name>fideslist</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="70" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="70" bodyend="-1"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1a7113c9cdc92f3daba67f11a3fd63ad79" compoundref="waveparamsnew_8_f90" startline="2832" endline="2884">generate_admin_files</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1a60d2ef1cb084ccd5be7b680ba9dbaa04" prot="public" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 spectral_wave_bc_module::spectrumendtime</definition>
+        <argsstring></argsstring>
+        <name>spectrumendtime</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="71" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="71" bodyend="71"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+        <referencedby refid="namespaceinitialize__module_1a6fb23d47f64bc6b3582af05e5da7e1af" compoundref="initialize_8_f90" startline="605" endline="696">initialize_module::spectral_wave_init</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1ad30c05f41d0a6e9a64100b9ae9e4d5b3" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), allocatable</type>
+        <definition>real*8, dimension(:,:), allocatable spectral_wave_bc_module::lastwaveelevation</definition>
+        <argsstring></argsstring>
+        <name>lastwaveelevation</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="72" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="72" bodyend="72"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1ab8d84de3b688de769d6435e6210e353d" compoundref="waveparamsnew_8_f90" startline="2170" endline="2413">generate_ebcf</referencedby>
+        <referencedby refid="namespaceinitialize__module_1a6fb23d47f64bc6b3582af05e5da7e1af" compoundref="initialize_8_f90" startline="605" endline="696">initialize_module::spectral_wave_init</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1a68b6219bef2cb0691999de72884dfbf7" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer spectral_wave_bc_module::ind_end_taper</definition>
+        <argsstring></argsstring>
+        <name>ind_end_taper</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="73" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="73" bodyend="73"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1ab8d84de3b688de769d6435e6210e353d" compoundref="waveparamsnew_8_f90" startline="2170" endline="2413">generate_ebcf</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a5067328dd11022a2e1e09e6081fedc6c" compoundref="waveparamsnew_8_f90" startline="1711" endline="1788">generate_wave_time_axis</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1a0134b65e354b173e07a9b29763f84406" prot="public" static="no" mutable="no">
+        <type>integer, parameter, private</type>
+        <definition>integer, parameter, private spectral_wave_bc_module::nfint</definition>
+        <argsstring></argsstring>
+        <name>nfint</name>
+        <initializer>= 801</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="76" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="76" bodyend="76"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1afadb552436508ab87f04b29f50e2b49b" compoundref="waveparamsnew_8_f90" startline="1370" endline="1437">generate_combined_spectrum</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a40d1df3450bf706f7e6e654bd5abda1c" compoundref="waveparamsnew_8_f90" startline="1796" endline="1848">generate_wave_train_variance</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1abb64f26275b03f1517d6362adb6bf0d4" compoundref="waveparamsnew_8_f90" startline="1192" endline="1312">interpolate_spectrum</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1aa62da6081cf5e62b49becc952a47fdfd" prot="public" static="no" mutable="no">
+        <type>integer, parameter, private</type>
+        <definition>integer, parameter, private spectral_wave_bc_module::naint</definition>
+        <argsstring></argsstring>
+        <name>naint</name>
+        <initializer>= 401</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="77" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="77" bodyend="77"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1afadb552436508ab87f04b29f50e2b49b" compoundref="waveparamsnew_8_f90" startline="1370" endline="1437">generate_combined_spectrum</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1ab5143a84a7be1a4f54a904611c0a4f87" compoundref="waveparamsnew_8_f90" startline="1465" endline="1599">generate_wavetrain_components</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1abb64f26275b03f1517d6362adb6bf0d4" compoundref="waveparamsnew_8_f90" startline="1192" endline="1312">interpolate_spectrum</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1abb1b81ec27cba83321d0a2c75384368d" compoundref="waveparamsnew_8_f90" startline="382" endline="809">read_jonswap_file</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1a7efee85ec09a26971ea9951aa3b5e470" prot="public" static="no" mutable="no">
+        <type>integer, parameter, private</type>
+        <definition>integer, parameter, private spectral_wave_bc_module::kmin</definition>
+        <argsstring></argsstring>
+        <name>kmin</name>
+        <initializer>= 200</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="78" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="78" bodyend="78"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1ab5143a84a7be1a4f54a904611c0a4f87" compoundref="waveparamsnew_8_f90" startline="1465" endline="1599">generate_wavetrain_components</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1a2cd7a7d0b9bdde7b11139e585216b22c" prot="public" static="no" mutable="no">
+        <type>real *8, parameter, private</type>
+        <definition>real*8, parameter, private spectral_wave_bc_module::wdmax</definition>
+        <argsstring></argsstring>
+        <name>wdmax</name>
+        <initializer>= 5.d0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="79" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="79" bodyend="79"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1ab5143a84a7be1a4f54a904611c0a4f87" compoundref="waveparamsnew_8_f90" startline="1465" endline="1599">generate_wavetrain_components</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespacespectral__wave__bc__module_1a82b4fff6816a5533b4e6c8a2082d9ede" prot="public" static="no" mutable="no">
+        <type>real *8, parameter, private</type>
+        <definition>real*8, parameter, private spectral_wave_bc_module::par_pi</definition>
+        <argsstring></argsstring>
+        <name>par_pi</name>
+        <initializer>=  4.d0*atan(1.d0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="83" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="83" bodyend="83"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::spectral_wave_bc</definition>
+        <argsstring>(s, par, curline)</argsstring>
+        <name>spectral_wave_bc</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>curline</type>
+          <defname>curline</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="87" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="88" bodyend="287"/>
+        <references refid="namespacespectral__wave__bc__module_1a4d4c6843684fb0cf85385a3cc12cd8ab" compoundref="waveparamsnew_8_f90" startline="69" endline="69">bccount</references>
+        <references refid="namespacespectral__wave__bc__module_1a621db5e24669eb828b47320c3a4a6d72" compoundref="waveparamsnew_8_f90" startline="67" endline="67">bcfiles</references>
+        <references refid="namespacespectral__wave__bc__module_1ae3cc877a3086d0ed88c6c817be7d8339" compoundref="waveparamsnew_8_f90" startline="1445" endline="1457">calculate_average_water_depth</references>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">filefunctions::create_new_fid</references>
+        <references refid="namespacespectral__wave__bc__module_1a02a40e71f444afbba6bd633ec0f81728" compoundref="waveparamsnew_8_f90" startline="2023" endline="2163">distribute_wave_train_directions</references>
+        <references refid="namespacespectral__wave__bc__module_1a7113c9cdc92f3daba67f11a3fd63ad79" compoundref="waveparamsnew_8_f90" startline="2832" endline="2884">generate_admin_files</references>
+        <references refid="namespacespectral__wave__bc__module_1afadb552436508ab87f04b29f50e2b49b" compoundref="waveparamsnew_8_f90" startline="1370" endline="1437">generate_combined_spectrum</references>
+        <references refid="namespacespectral__wave__bc__module_1ab8d84de3b688de769d6435e6210e353d" compoundref="waveparamsnew_8_f90" startline="2170" endline="2413">generate_ebcf</references>
+        <references refid="namespacespectral__wave__bc__module_1a989db0746817bd0c863f46aa4692311f" compoundref="waveparamsnew_8_f90" startline="2759" endline="2786">generate_nhtimeseries_file</references>
+        <references refid="namespacespectral__wave__bc__module_1a1c25cb7416bfebe3e38eec38eec53541" compoundref="waveparamsnew_8_f90" startline="2488" endline="2751">generate_qbcf</references>
+        <references refid="namespacespectral__wave__bc__module_1ae7ad58ae9f60a217ed42fe1f0ad45acd" compoundref="waveparamsnew_8_f90" startline="2421" endline="2480">generate_swts</references>
+        <references refid="namespacespectral__wave__bc__module_1a5067328dd11022a2e1e09e6081fedc6c" compoundref="waveparamsnew_8_f90" startline="1711" endline="1788">generate_wave_time_axis</references>
+        <references refid="namespacespectral__wave__bc__module_1a327aebc07fc960deb0ec810bc5d8c3ca" compoundref="waveparamsnew_8_f90" startline="1961" endline="2016">generate_wave_train_fourier</references>
+        <references refid="namespacespectral__wave__bc__module_1acbbad3ec2efcc1bf313f560177e4c76d" compoundref="waveparamsnew_8_f90" startline="1855" endline="1954">generate_wave_train_properties_per_offshore_point</references>
+        <references refid="namespacespectral__wave__bc__module_1a40d1df3450bf706f7e6e654bd5abda1c" compoundref="waveparamsnew_8_f90" startline="1796" endline="1848">generate_wave_train_variance</references>
+        <references refid="namespacespectral__wave__bc__module_1ab5143a84a7be1a4f54a904611c0a4f87" compoundref="waveparamsnew_8_f90" startline="1465" endline="1599">generate_wavetrain_components</references>
+        <references refid="namespacespectral__wave__bc__module_1abb64f26275b03f1517d6362adb6bf0d4" compoundref="waveparamsnew_8_f90" startline="1192" endline="1312">interpolate_spectrum</references>
+        <references refid="namespacespectral__wave__bc__module_1ab4dde7b27d472220f7257366a7eae807" compoundref="waveparamsnew_8_f90" startline="66" endline="66">nspectra</references>
+        <references refid="namespacespectral__wave__bc__module_1a348847af881a92a9121d0bee9d613db2" compoundref="waveparamsnew_8_f90" startline="294" endline="375">read_spectrum_input</references>
+        <references refid="namespacespectral__wave__bc__module_1af2227b3f6b1227e46df797cbdfa65c47" compoundref="waveparamsnew_8_f90" startline="68" endline="68">reuseall</references>
+        <references refid="namespacespectral__wave__bc__module_1a971880b658f4e6302a27f6f6d47a01af" compoundref="waveparamsnew_8_f90" startline="1340" endline="1363">set_bcfilenames</references>
+        <references refid="namespacespectral__wave__bc__module_1a7f746bc0375ac11c0e44ff12043332e7" compoundref="waveparamsnew_8_f90" startline="1319" endline="1333">set_reuseall</references>
+        <references refid="namespacespectral__wave__bc__module_1a62f730cf1dadb9408456599710f0d5ed" compoundref="waveparamsnew_8_f90" startline="2791" endline="2828">set_stationary_spectrum</references>
+        <references refid="namespacespectral__wave__bc__module_1a60d2ef1cb084ccd5be7b680ba9dbaa04" compoundref="waveparamsnew_8_f90" startline="71" endline="71">spectrumendtime</references>
+        <references refid="namespacexmpi__module_1a49447cc5b155a1ab5c81885e6dc7943d" compoundref="xmpi_8_f90" startline="91" endline="91">xmpi_module::xmaster</references>
+        <referencedby refid="namespaceboundaryconditions_1a0b2ae2a9197e69388bed41e99b46429d" compoundref="boundaryconditions_8_f90" startline="7" endline="846">boundaryconditions::wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a348847af881a92a9121d0bee9d613db2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::read_spectrum_input</definition>
+        <argsstring>(par, wp, fn, specin)</argsstring>
+        <name>read_spectrum_input</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <param>
+          <type>fn</type>
+          <defname>fn</defname>
+        </param>
+        <param>
+          <type>specin</type>
+          <defname>specin</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="293" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="294" bodyend="375"/>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">filefunctions::create_new_fid</references>
+        <references refid="namespaceparamsconst_1aa454711761ea36662270d544d8863390" compoundref="paramsconst_8_f90" startline="28" endline="28">paramsconst::instat_jons</references>
+        <references refid="namespaceparamsconst_1a981e337f1c029bbff1783bfaf93fd883" compoundref="paramsconst_8_f90" startline="35" endline="35">paramsconst::instat_jons_table</references>
+        <references refid="namespaceparamsconst_1ad67de2193bbb61648cf57414d54a0851" compoundref="paramsconst_8_f90" startline="29" endline="29">paramsconst::instat_swan</references>
+        <references refid="namespaceparamsconst_1a4cc2c3f8bf6f7028995477a73d1df08d" compoundref="paramsconst_8_f90" startline="30" endline="30">paramsconst::instat_vardens</references>
+        <references refid="namespacespectral__wave__bc__module_1abb1b81ec27cba83321d0a2c75384368d" compoundref="waveparamsnew_8_f90" startline="382" endline="809">read_jonswap_file</references>
+        <references refid="namespacespectral__wave__bc__module_1a76187f02c768dbd0c7a8a1564f85c616" compoundref="waveparamsnew_8_f90" startline="865" endline="1073">read_swan_file</references>
+        <references refid="namespacespectral__wave__bc__module_1a95383a7019c786602a30432eb5d485c2" compoundref="waveparamsnew_8_f90" startline="1081" endline="1184">read_vardens_file</references>
+        <references refid="namespacelogging__module_1ae7b8d1c55379954818a0b7b4576be077" compoundref="logging_8_f90" startline="178" endline="186">logging_module::report_file_read_error</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1abb1b81ec27cba83321d0a2c75384368d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::read_jonswap_file</definition>
+        <argsstring>(par, wp, readfile, listline, specin)</argsstring>
+        <name>read_jonswap_file</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <param>
+          <type>readfile</type>
+          <defname>readfile</defname>
+        </param>
+        <param>
+          <type>listline</type>
+          <defname>listline</defname>
+        </param>
+        <param>
+          <type>specin</type>
+          <defname>specin</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="381" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="382" bodyend="809"/>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">filefunctions::create_new_fid</references>
+        <references refid="namespaceparamsconst_1a981e337f1c029bbff1783bfaf93fd883" compoundref="paramsconst_8_f90" startline="35" endline="35">paramsconst::instat_jons_table</references>
+        <references refid="namespacereadkey__module_1a892b1d8a88bfa24c0fdf5b4a231120e2" compoundref="readkey_8_f90" startline="463" endline="492">readkey_module::issetparameter</references>
+        <references refid="namespacespectral__wave__bc__module_1a827513365ed32484652ce61bca69c424" compoundref="waveparamsnew_8_f90" startline="818" endline="857">jonswapgk</references>
+        <references refid="namespacespectral__wave__bc__module_1aa62da6081cf5e62b49becc952a47fdfd" compoundref="waveparamsnew_8_f90" startline="77" endline="77">naint</references>
+        <references refid="namespacereadkey__module_1a6626be4d1e2a2f7520d92ae2b5128092" compoundref="readkey_8_f90" startline="502" endline="584">readkey_module::readkey</references>
+        <references refid="namespacereadkey__module_1a19cf207a8498165d4da7c56fe7819b31" compoundref="readkey_8_f90" startline="55" endline="146">readkey_module::readkey_dbl</references>
+        <references refid="namespacereadkey__module_1aa3365f087437c983f8ad1a0b0542948e" compoundref="readkey_8_f90" startline="382" endline="459">readkey_module::readkey_dblvec</references>
+        <references refid="namespacereadkey__module_1a8ac4eaa5728da46203d191b5ac95ce1d" compoundref="readkey_8_f90" startline="150" endline="232">readkey_module::readkey_int</references>
+        <references refid="namespacelogging__module_1ae7b8d1c55379954818a0b7b4576be077" compoundref="logging_8_f90" startline="178" endline="186">logging_module::report_file_read_error</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1a348847af881a92a9121d0bee9d613db2" compoundref="waveparamsnew_8_f90" startline="294" endline="375">read_spectrum_input</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a827513365ed32484652ce61bca69c424" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::jonswapgk</definition>
+        <argsstring>(x, gam, y)</argsstring>
+        <name>jonswapgk</name>
+        <param>
+          <type>x</type>
+          <defname>x</defname>
+        </param>
+        <param>
+          <type>gam</type>
+          <defname>gam</defname>
+        </param>
+        <param>
+          <type>y</type>
+          <defname>y</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="817" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="818" bodyend="857"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1abb1b81ec27cba83321d0a2c75384368d" compoundref="waveparamsnew_8_f90" startline="382" endline="809">read_jonswap_file</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a76187f02c768dbd0c7a8a1564f85c616" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::read_swan_file</definition>
+        <argsstring>(par, readfile, specin)</argsstring>
+        <name>read_swan_file</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>readfile</type>
+          <defname>readfile</defname>
+        </param>
+        <param>
+          <type>specin</type>
+          <defname>specin</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="864" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="865" bodyend="1073"/>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">filefunctions::create_new_fid</references>
+        <references refid="namespacemath__tools_1a62c62feebd4db49040c4838594eabb4d" compoundref="math__tools_8_f90" startline="1100" endline="1138">math_tools::flipa</references>
+        <references refid="namespacemath__tools_1a96828338fa9a363dfc5173dfc8edebd1" compoundref="math__tools_8_f90" startline="1029" endline="1060">math_tools::flipv</references>
+        <references refid="namespacexmpi__module_1a5406ad4cd4b3c61bf18b86fe6dcd9936" compoundref="xmpi_8_f90" startline="1576" endline="1599">xmpi_module::halt_program</references>
+        <references refid="namespacelogging__module_1ae7b8d1c55379954818a0b7b4576be077" compoundref="logging_8_f90" startline="178" endline="186">logging_module::report_file_read_error</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1a348847af881a92a9121d0bee9d613db2" compoundref="waveparamsnew_8_f90" startline="294" endline="375">read_spectrum_input</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a95383a7019c786602a30432eb5d485c2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::read_vardens_file</definition>
+        <argsstring>(par, readfile, specin)</argsstring>
+        <name>read_vardens_file</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>readfile</type>
+          <defname>readfile</defname>
+        </param>
+        <param>
+          <type>specin</type>
+          <defname>specin</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="1080" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="1081" bodyend="1184"/>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">filefunctions::create_new_fid</references>
+        <references refid="namespacemath__tools_1a62c62feebd4db49040c4838594eabb4d" compoundref="math__tools_8_f90" startline="1100" endline="1138">math_tools::flipa</references>
+        <references refid="namespacemath__tools_1a96828338fa9a363dfc5173dfc8edebd1" compoundref="math__tools_8_f90" startline="1029" endline="1060">math_tools::flipv</references>
+        <references refid="namespacexmpi__module_1a5406ad4cd4b3c61bf18b86fe6dcd9936" compoundref="xmpi_8_f90" startline="1576" endline="1599">xmpi_module::halt_program</references>
+        <references refid="namespacelogging__module_1ae7b8d1c55379954818a0b7b4576be077" compoundref="logging_8_f90" startline="178" endline="186">logging_module::report_file_read_error</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1a348847af881a92a9121d0bee9d613db2" compoundref="waveparamsnew_8_f90" startline="294" endline="375">read_spectrum_input</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1abb64f26275b03f1517d6362adb6bf0d4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::interpolate_spectrum</definition>
+        <argsstring>(specin, specinterp, par, fmax)</argsstring>
+        <name>interpolate_spectrum</name>
+        <param>
+          <type>specin</type>
+          <defname>specin</defname>
+        </param>
+        <param>
+          <type>specinterp</type>
+          <defname>specinterp</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>fmax</type>
+          <defname>fmax</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="1191" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="1192" bodyend="1312"/>
+        <references refid="namespaceinterp_1af77e932c7e6f70e1aa5b9308ed6fdcbb" compoundref="interp_8_f90" startline="1204" endline="1278">interp::interp_in_cyclic_function</references>
+        <references refid="namespaceinterp_1a0a169735d9debaa040755b8d02360fe0" compoundref="interp_8_f90" startline="103" endline="154">interp::linear_interp</references>
+        <references refid="namespacespectral__wave__bc__module_1aa62da6081cf5e62b49becc952a47fdfd" compoundref="waveparamsnew_8_f90" startline="77" endline="77">naint</references>
+        <references refid="namespacespectral__wave__bc__module_1a0134b65e354b173e07a9b29763f84406" compoundref="waveparamsnew_8_f90" startline="76" endline="76">nfint</references>
+        <references refid="namespacespectral__wave__bc__module_1a69120ba564438ab6a0ccdfab78b9f7ef" compoundref="waveparamsnew_8_f90" startline="1606" endline="1629">tpdcalc</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a7f746bc0375ac11c0e44ff12043332e7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::set_reuseall</definition>
+        <argsstring></argsstring>
+        <name>set_reuseall</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="1318" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="1319" bodyend="1333"/>
+        <references refid="namespacespectral__wave__bc__module_1a621db5e24669eb828b47320c3a4a6d72" compoundref="waveparamsnew_8_f90" startline="67" endline="67">bcfiles</references>
+        <references refid="namespacespectral__wave__bc__module_1ab4dde7b27d472220f7257366a7eae807" compoundref="waveparamsnew_8_f90" startline="66" endline="66">nspectra</references>
+        <references refid="namespacespectral__wave__bc__module_1af2227b3f6b1227e46df797cbdfa65c47" compoundref="waveparamsnew_8_f90" startline="68" endline="68">reuseall</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a971880b658f4e6302a27f6f6d47a01af" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::set_bcfilenames</definition>
+        <argsstring>(wp)</argsstring>
+        <name>set_bcfilenames</name>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="1339" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="1340" bodyend="1363"/>
+        <references refid="namespacespectral__wave__bc__module_1a4d4c6843684fb0cf85385a3cc12cd8ab" compoundref="waveparamsnew_8_f90" startline="69" endline="69">bccount</references>
+        <references refid="namespacespectral__wave__bc__module_1af2227b3f6b1227e46df797cbdfa65c47" compoundref="waveparamsnew_8_f90" startline="68" endline="68">reuseall</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1afadb552436508ab87f04b29f50e2b49b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::generate_combined_spectrum</definition>
+        <argsstring>(specinterp, combspec, px)</argsstring>
+        <name>generate_combined_spectrum</name>
+        <param>
+          <type>specinterp</type>
+          <defname>specinterp</defname>
+        </param>
+        <param>
+          <type>combspec</type>
+          <defname>combspec</defname>
+        </param>
+        <param>
+          <type>px</type>
+          <defname>px</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="1369" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="1370" bodyend="1437"/>
+        <references refid="namespacespectral__wave__bc__module_1aa62da6081cf5e62b49becc952a47fdfd" compoundref="waveparamsnew_8_f90" startline="77" endline="77">naint</references>
+        <references refid="namespacespectral__wave__bc__module_1a0134b65e354b173e07a9b29763f84406" compoundref="waveparamsnew_8_f90" startline="76" endline="76">nfint</references>
+        <references refid="namespacespectral__wave__bc__module_1ab4dde7b27d472220f7257366a7eae807" compoundref="waveparamsnew_8_f90" startline="66" endline="66">nspectra</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1ae3cc877a3086d0ed88c6c817be7d8339" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>pure real *8 function</type>
+        <definition>pure real*8 function spectral_wave_bc_module::calculate_average_water_depth</definition>
+        <argsstring>(s)</argsstring>
+        <name>calculate_average_water_depth</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="1444" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="1445" bodyend="1457"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1ab5143a84a7be1a4f54a904611c0a4f87" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::generate_wavetrain_components</definition>
+        <argsstring>(combspec, wp, par)</argsstring>
+        <name>generate_wavetrain_components</name>
+        <param>
+          <type>combspec</type>
+          <defname>combspec</defname>
+        </param>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="1464" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="1465" bodyend="1599"/>
+        <references refid="namespacespectral__wave__bc__module_1aee67dc38367beac567388415dbafa235" compoundref="waveparamsnew_8_f90" startline="1637" endline="1675">frange</references>
+        <references refid="namespacespectral__wave__bc__module_1ae81bda9f0f3ca634b04326bd1dd3c8ad" compoundref="waveparamsnew_8_f90" startline="1682" endline="1703">init_seed</references>
+        <references refid="namespacewave__functions__module_1a15eb614d222e8d8d6d04d00aaacc059a" compoundref="wave__functions_8_f90" startline="658" endline="693">wave_functions_module::iteratedispersion</references>
+        <references refid="namespacespectral__wave__bc__module_1a7efee85ec09a26971ea9951aa3b5e470" compoundref="waveparamsnew_8_f90" startline="78" endline="78">kmin</references>
+        <references refid="namespaceinterp_1a0a169735d9debaa040755b8d02360fe0" compoundref="interp_8_f90" startline="103" endline="154">interp::linear_interp</references>
+        <references refid="namespacespectral__wave__bc__module_1aa62da6081cf5e62b49becc952a47fdfd" compoundref="waveparamsnew_8_f90" startline="77" endline="77">naint</references>
+        <references refid="namespacemath__tools_1a1b0f90130baacf1d04a9a058da8073ce" compoundref="math__tools_8_f90" startline="1269" endline="1304">math_tools::random</references>
+        <references refid="namespacespectral__wave__bc__module_1a2cd7a7d0b9bdde7b11139e585216b22c" compoundref="waveparamsnew_8_f90" startline="79" endline="79">wdmax</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a69120ba564438ab6a0ccdfab78b9f7ef" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::tpdcalc</definition>
+        <argsstring>(Sf, f, Trep, trepfac, switch)</argsstring>
+        <name>tpdcalc</name>
+        <param>
+          <type>Sf</type>
+          <defname>Sf</defname>
+        </param>
+        <param>
+          <type>f</type>
+          <defname>f</defname>
+        </param>
+        <param>
+          <type>Trep</type>
+          <defname>Trep</defname>
+        </param>
+        <param>
+          <type>trepfac</type>
+          <defname>trepfac</defname>
+        </param>
+        <param>
+          <type>switch</type>
+          <defname>switch</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="1605" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="1606" bodyend="1629"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1abb64f26275b03f1517d6362adb6bf0d4" compoundref="waveparamsnew_8_f90" startline="1192" endline="1312">interpolate_spectrum</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1aee67dc38367beac567388415dbafa235" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::frange</definition>
+        <argsstring>(par, f, Sf, fmax, firstp, lastp, findlineout)</argsstring>
+        <name>frange</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>f</type>
+          <defname>f</defname>
+        </param>
+        <param>
+          <type>Sf</type>
+          <defname>Sf</defname>
+        </param>
+        <param>
+          <type>fmax</type>
+          <defname>fmax</defname>
+        </param>
+        <param>
+          <type>firstp</type>
+          <defname>firstp</defname>
+        </param>
+        <param>
+          <type>lastp</type>
+          <defname>lastp</defname>
+        </param>
+        <param>
+          <type>findlineout</type>
+          <defname>findlineout</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="1636" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="1637" bodyend="1675"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1ab5143a84a7be1a4f54a904611c0a4f87" compoundref="waveparamsnew_8_f90" startline="1465" endline="1599">generate_wavetrain_components</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1ae81bda9f0f3ca634b04326bd1dd3c8ad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::init_seed</definition>
+        <argsstring>(outseed)</argsstring>
+        <name>init_seed</name>
+        <param>
+          <type>outseed</type>
+          <defname>outseed</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="1681" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="1682" bodyend="1703"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1ab5143a84a7be1a4f54a904611c0a4f87" compoundref="waveparamsnew_8_f90" startline="1465" endline="1599">generate_wavetrain_components</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a5067328dd11022a2e1e09e6081fedc6c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::generate_wave_time_axis</definition>
+        <argsstring>(par, wp)</argsstring>
+        <name>generate_wave_time_axis</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="1710" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="1711" bodyend="1788"/>
+        <references refid="namespacespectral__wave__bc__module_1a68b6219bef2cb0691999de72884dfbf7" compoundref="waveparamsnew_8_f90" startline="73" endline="73">ind_end_taper</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a40d1df3450bf706f7e6e654bd5abda1c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::generate_wave_train_variance</definition>
+        <argsstring>(wp, specinterp)</argsstring>
+        <name>generate_wave_train_variance</name>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <param>
+          <type>specinterp</type>
+          <defname>specinterp</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="1795" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="1796" bodyend="1848"/>
+        <references refid="namespaceinterp_1a0a169735d9debaa040755b8d02360fe0" compoundref="interp_8_f90" startline="103" endline="154">interp::linear_interp</references>
+        <references refid="namespacespectral__wave__bc__module_1a0134b65e354b173e07a9b29763f84406" compoundref="waveparamsnew_8_f90" startline="76" endline="76">nfint</references>
+        <references refid="namespacespectral__wave__bc__module_1ab4dde7b27d472220f7257366a7eae807" compoundref="waveparamsnew_8_f90" startline="66" endline="66">nspectra</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1acbbad3ec2efcc1bf313f560177e4c76d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::generate_wave_train_properties_per_offshore_point</definition>
+        <argsstring>(wp, s)</argsstring>
+        <name>generate_wave_train_properties_per_offshore_point</name>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="1854" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="1855" bodyend="1954"/>
+        <references refid="namespaceinterp_1a0a169735d9debaa040755b8d02360fe0" compoundref="interp_8_f90" startline="103" endline="154">interp::linear_interp</references>
+        <references refid="namespacespectral__wave__bc__module_1afa4d71ea8e968509fffbdf9911996b03" compoundref="waveparamsnew_8_f90" startline="65" endline="65">n_index_loc</references>
+        <references refid="namespacespectral__wave__bc__module_1ab4dde7b27d472220f7257366a7eae807" compoundref="waveparamsnew_8_f90" startline="66" endline="66">nspectra</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a327aebc07fc960deb0ec810bc5d8c3ca" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::generate_wave_train_fourier</definition>
+        <argsstring>(wp, s, par)</argsstring>
+        <name>generate_wave_train_fourier</name>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="1960" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="1961" bodyend="2016"/>
+        <references refid="namespacemath__tools_1a886b8427f30299b372917272a337331d" compoundref="math__tools_8_f90" startline="1064" endline="1096">math_tools::flipiv</references>
+        <references refid="namespacelogging__module_1a3d872b241885f27df103f38b9cae3ee4" compoundref="logging_8_f90" startline="142" endline="174">logging_module::progress_indicator</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a02a40e71f444afbba6bd633ec0f81728" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::distribute_wave_train_directions</definition>
+        <argsstring>(wp, s, px, nspr, nonhspec)</argsstring>
+        <name>distribute_wave_train_directions</name>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>px</type>
+          <defname>px</defname>
+        </param>
+        <param>
+          <type>nspr</type>
+          <defname>nspr</defname>
+        </param>
+        <param>
+          <type>nonhspec</type>
+          <defname>nonhspec</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="2022" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="2023" bodyend="2163"/>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1ab8d84de3b688de769d6435e6210e353d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::generate_ebcf</definition>
+        <argsstring>(wp, s, par)</argsstring>
+        <name>generate_ebcf</name>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="2169" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="2170" bodyend="2413"/>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">filefunctions::create_new_fid</references>
+        <references refid="namespacemath__tools_1a886b8427f30299b372917272a337331d" compoundref="math__tools_8_f90" startline="1064" endline="1096">math_tools::flipiv</references>
+        <references refid="namespacemath__tools_1abc8cd176b4f95343f46d94bd6bebaf5f" compoundref="math__tools_8_f90" startline="977" endline="1022">math_tools::hilbert</references>
+        <references refid="namespacespectral__wave__bc__module_1a68b6219bef2cb0691999de72884dfbf7" compoundref="waveparamsnew_8_f90" startline="73" endline="73">ind_end_taper</references>
+        <references refid="namespacespectral__wave__bc__module_1ad30c05f41d0a6e9a64100b9ae9e4d5b3" compoundref="waveparamsnew_8_f90" startline="72" endline="72">lastwaveelevation</references>
+        <references refid="namespaceinterp_1a0a169735d9debaa040755b8d02360fe0" compoundref="interp_8_f90" startline="103" endline="154">interp::linear_interp</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1ae7ad58ae9f60a217ed42fe1f0ad45acd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::generate_swts</definition>
+        <argsstring>(wp, s)</argsstring>
+        <name>generate_swts</name>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="2420" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="2421" bodyend="2480"/>
+        <references refid="namespacelogging__module_1a3d872b241885f27df103f38b9cae3ee4" compoundref="logging_8_f90" startline="142" endline="174">logging_module::progress_indicator</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a1c25cb7416bfebe3e38eec38eec53541" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::generate_qbcf</definition>
+        <argsstring>(wp, s, par)</argsstring>
+        <name>generate_qbcf</name>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="2487" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="2488" bodyend="2751"/>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">filefunctions::create_new_fid</references>
+        <references refid="namespacemath__tools_1a886b8427f30299b372917272a337331d" compoundref="math__tools_8_f90" startline="1064" endline="1096">math_tools::flipiv</references>
+        <references refid="namespaceinterp_1a0a169735d9debaa040755b8d02360fe0" compoundref="interp_8_f90" startline="103" endline="154">interp::linear_interp</references>
+        <references refid="namespacelogging__module_1a3d872b241885f27df103f38b9cae3ee4" compoundref="logging_8_f90" startline="142" endline="174">logging_module::progress_indicator</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a989db0746817bd0c863f46aa4692311f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::generate_nhtimeseries_file</definition>
+        <argsstring>(wp, par)</argsstring>
+        <name>generate_nhtimeseries_file</name>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="2758" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="2759" bodyend="2786"/>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">filefunctions::create_new_fid</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a62f730cf1dadb9408456599710f0d5ed" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::set_stationary_spectrum</definition>
+        <argsstring>(s, par, wp, combspec)</argsstring>
+        <name>set_stationary_spectrum</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <param>
+          <type>combspec</type>
+          <defname>combspec</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="2790" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="2791" bodyend="2828"/>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">filefunctions::create_new_fid</references>
+        <references refid="namespaceinterp_1af7be0c6618eefe2e3445d34cf2cb08a1" compoundref="interp_8_f90" startline="1181" endline="1200">interp::interp_using_trapez_rule</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespectral__wave__bc__module_1a7113c9cdc92f3daba67f11a3fd63ad79" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spectral_wave_bc_module::generate_admin_files</definition>
+        <argsstring>(par, wp, rtbc_local, dtbc_local, maindir_local, spectrumendtimeold, spectrumendtime)</argsstring>
+        <name>generate_admin_files</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>wp</type>
+          <defname>wp</defname>
+        </param>
+        <param>
+          <type>rtbc_local</type>
+          <defname>rtbc_local</defname>
+        </param>
+        <param>
+          <type>dtbc_local</type>
+          <defname>dtbc_local</defname>
+        </param>
+        <param>
+          <type>maindir_local</type>
+          <defname>maindir_local</defname>
+        </param>
+        <param>
+          <type>spectrumendtimeold</type>
+          <defname>spectrumendtimeold</defname>
+        </param>
+        <param>
+          <type><ref refid="namespacespectral__wave__bc__module_1a60d2ef1cb084ccd5be7b680ba9dbaa04" kindref="member">spectrumendtime</ref></type>
+          <defname>spectrumendtime</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="2831" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="2832" bodyend="2884"/>
+        <references refid="namespacespectral__wave__bc__module_1a4d4c6843684fb0cf85385a3cc12cd8ab" compoundref="waveparamsnew_8_f90" startline="69" endline="69">bccount</references>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">filefunctions::create_new_fid</references>
+        <references refid="namespacespectral__wave__bc__module_1a615da2b24c5edd713d1d15a45a141566" compoundref="waveparamsnew_8_f90" startline="70" endline="70">fidelist</references>
+        <references refid="namespacespectral__wave__bc__module_1a3a22c7c6e55f2b8f51fd374ee0739599" compoundref="waveparamsnew_8_f90" startline="70">fideslist</references>
+        <references refid="namespacespectral__wave__bc__module_1a013955eeefb16e59a98f0c370135e6ca" compoundref="waveparamsnew_8_f90" startline="70">fidnhlist</references>
+        <references refid="namespacespectral__wave__bc__module_1a587fbdea7d425ee62116eff38194d10a" compoundref="waveparamsnew_8_f90" startline="70">fidqlist</references>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="2" column="1"/>
+  </compounddef>
+</doxygen>

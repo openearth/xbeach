@@ -1,0 +1,133 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespaceiso__c__utils" kind="namespace" language="Fortran">
+    <compoundname>iso_c_utils</compoundname>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="namespaceiso__c__utils_1a4d7f400601b96d2c060d3c68559749fc" prot="public" static="no" mutable="no">
+        <type>integer(c_int), parameter</type>
+        <definition>integer(c_int), parameter iso_c_utils::maxstringlen</definition>
+        <argsstring></argsstring>
+        <name>maxstringlen</name>
+        <initializer>= 1024</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/iso_c_utils.f90" line="7" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/iso_c_utils.f90" bodystart="7" bodyend="7"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceiso__c__utils_1a985fb6a0834a351e33e8182c610cf13e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer(c_int) pure function</type>
+        <definition>integer(c_int) pure function iso_c_utils::strlen</definition>
+        <argsstring>(char_array)</argsstring>
+        <name>strlen</name>
+        <param>
+          <type>char_array</type>
+          <defname>char_array</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/iso_c_utils.f90" line="11" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/iso_c_utils.f90" bodystart="12" bodyend="20"/>
+        <referencedby refid="namespaceiso__c__utils_1a4fbfa7498aa25b4689b6cdd592b92e47" compoundref="iso__c__utils_8f90" startline="53" endline="58">char_array_to_string</referencedby>
+        <referencedby refid="namespaceiso__c__utils_1a4f0771ee8b31038e2142d064e222f305" compoundref="iso__c__utils_8f90" startline="42" endline="49">strcpy</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceiso__c__utils_1aa2fcbfb0d63980f65e53d97f34aca8ae" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer(c_int) pure function</type>
+        <definition>integer(c_int) pure function iso_c_utils::strcmp</definition>
+        <argsstring>(char_array1, char_array2)</argsstring>
+        <name>strcmp</name>
+        <param>
+          <type>char_array1</type>
+          <defname>char_array1</defname>
+        </param>
+        <param>
+          <type>char_array2</type>
+          <defname>char_array2</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/iso_c_utils.f90" line="24" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/iso_c_utils.f90" bodystart="25" bodyend="36"/>
+        <references refid="namespaceiso__c__utils_1a4fbfa7498aa25b4689b6cdd592b92e47" compoundref="iso__c__utils_8f90" startline="53" endline="58">char_array_to_string</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceiso__c__utils_1a4f0771ee8b31038e2142d064e222f305" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine iso_c_utils::strcpy</definition>
+        <argsstring>(str1, str2)</argsstring>
+        <name>strcpy</name>
+        <param>
+          <type>str1</type>
+          <defname>str1</defname>
+        </param>
+        <param>
+          <type>str2</type>
+          <defname>str2</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/iso_c_utils.f90" line="41" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/iso_c_utils.f90" bodystart="42" bodyend="49"/>
+        <references refid="namespaceiso__c__utils_1a985fb6a0834a351e33e8182c610cf13e" compoundref="iso__c__utils_8f90" startline="12" endline="20">strlen</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceiso__c__utils_1a4fbfa7498aa25b4689b6cdd592b92e47" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>pure character(len=<ref refid="namespaceiso__c__utils_1a985fb6a0834a351e33e8182c610cf13e" kindref="member">strlen</ref>(char_array)) function</type>
+        <definition>pure character(len=strlen(char_array)) function iso_c_utils::char_array_to_string</definition>
+        <argsstring>(char_array)</argsstring>
+        <name>char_array_to_string</name>
+        <param>
+          <type>char_array</type>
+          <defname>char_array</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/iso_c_utils.f90" line="52" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/iso_c_utils.f90" bodystart="53" bodyend="58"/>
+        <references refid="namespaceiso__c__utils_1a985fb6a0834a351e33e8182c610cf13e" compoundref="iso__c__utils_8f90" startline="12" endline="20">strlen</references>
+        <referencedby refid="namespacexbeach__bmi_1a22721fe43bcddf4e6c4acdcb389bb198" compoundref="xbeach__bmi_8f90" startline="104" endline="120">xbeach_bmi::get_var_rank</referencedby>
+        <referencedby refid="namespacexbeach__bmi_1a89eed08be7c6ad6451651703c55faac4" compoundref="xbeach__bmi_8f90" startline="68" endline="100">xbeach_bmi::get_var_type</referencedby>
+        <referencedby refid="namespacexbeach__bmi_1aab11de777a7108baa7a8c0df96e0d7f6" compoundref="xbeach__bmi_8f90" startline="32" endline="44">xbeach_bmi::initialize</referencedby>
+        <referencedby refid="namespaceiso__c__utils_1aa2fcbfb0d63980f65e53d97f34aca8ae" compoundref="iso__c__utils_8f90" startline="25" endline="36">strcmp</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceiso__c__utils_1a112b6849dbae4185064719195a0c5972" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>pure character(kind=c_char, len=1) function, dimension(<ref refid="namespaceiso__c__utils_1a4d7f400601b96d2c060d3c68559749fc" kindref="member">maxstringlen</ref>)</type>
+        <definition>pure character(kind=c_char,len=1) function, dimension(maxstringlen) iso_c_utils::string_to_char_array</definition>
+        <argsstring>(string)</argsstring>
+        <name>string_to_char_array</name>
+        <param>
+          <type>string</type>
+          <defname>string</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/iso_c_utils.f90" line="61" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/iso_c_utils.f90" bodystart="62" bodyend="69"/>
+        <referencedby refid="namespacexbeach__bmi_1a89eed08be7c6ad6451651703c55faac4" compoundref="xbeach__bmi_8f90" startline="68" endline="100">xbeach_bmi::get_var_type</referencedby>
+        <referencedby refid="namespacelogging__module_1a36ae3410d1c5d0189872acd375c38c55" compoundref="logging_8_f90" startline="54" endline="63">logging_module::logmsg</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/iso_c_utils.f90" line="2" column="1"/>
+  </compounddef>
+</doxygen>

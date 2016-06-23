@@ -1,0 +1,253 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespaceflow__secondorder__module" kind="namespace" language="Fortran">
+    <compoundname>flow_secondorder_module</compoundname>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="namespaceflow__secondorder__module_1a3e12e8f733a76e8a75800a509c54a8c9" prot="public" static="no" mutable="no">
+        <type>real(kind=rkind), dimension(:,:), allocatable</type>
+        <definition>real(kind=rkind), dimension(:,:), allocatable flow_secondorder_module::wrk1</definition>
+        <argsstring></argsstring>
+        <name>wrk1</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" line="26" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" bodystart="26" bodyend="26"/>
+        <referencedby refid="namespaceflow__secondorder__module_1a0bd36c265219c53953a8dad851d0f98f" compoundref="flow__secondorder_8_f90" startline="87" endline="386">flow_secondorder_advuv</referencedby>
+        <referencedby refid="namespaceflow__secondorder__module_1a651b08e8066f4ae6805d680b02bbcf10" compoundref="flow__secondorder_8_f90" startline="392" endline="682">flow_secondorder_advw</referencedby>
+        <referencedby refid="namespaceflow__secondorder__module_1a431fb88961db9b380b5d74bad473eddc" compoundref="flow__secondorder_8_f90" startline="688" endline="824">flow_secondorder_con</referencedby>
+        <referencedby refid="namespaceflow__secondorder__module_1afadb4061c1d1df382ab5011b81d531b1" compoundref="flow__secondorder_8_f90" startline="50" endline="81">flow_secondorder_init</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceflow__secondorder__module_1abf41169d642605e03c91c43868d0a75f" prot="public" static="no" mutable="no">
+        <type>real(kind=rkind), dimension(:,:), allocatable</type>
+        <definition>real(kind=rkind), dimension(:,:), allocatable flow_secondorder_module::wrk2</definition>
+        <argsstring></argsstring>
+        <name>wrk2</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" line="30" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" bodystart="30" bodyend="30"/>
+        <referencedby refid="namespaceflow__secondorder__module_1a0bd36c265219c53953a8dad851d0f98f" compoundref="flow__secondorder_8_f90" startline="87" endline="386">flow_secondorder_advuv</referencedby>
+        <referencedby refid="namespaceflow__secondorder__module_1a651b08e8066f4ae6805d680b02bbcf10" compoundref="flow__secondorder_8_f90" startline="392" endline="682">flow_secondorder_advw</referencedby>
+        <referencedby refid="namespaceflow__secondorder__module_1a431fb88961db9b380b5d74bad473eddc" compoundref="flow__secondorder_8_f90" startline="688" endline="824">flow_secondorder_con</referencedby>
+        <referencedby refid="namespaceflow__secondorder__module_1afadb4061c1d1df382ab5011b81d531b1" compoundref="flow__secondorder_8_f90" startline="50" endline="81">flow_secondorder_init</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceflow__secondorder__module_1a5ebd7268cbb8f4576bb3bd058587c0f2" prot="public" static="no" mutable="no">
+        <type>logical</type>
+        <definition>logical flow_secondorder_module::initialized</definition>
+        <argsstring></argsstring>
+        <name>initialized</name>
+        <initializer>= .false.</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" line="35" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" bodystart="35" bodyend="35"/>
+        <referencedby refid="namespaceflow__secondorder__module_1a0bd36c265219c53953a8dad851d0f98f" compoundref="flow__secondorder_8_f90" startline="87" endline="386">flow_secondorder_advuv</referencedby>
+        <referencedby refid="namespaceflow__secondorder__module_1a651b08e8066f4ae6805d680b02bbcf10" compoundref="flow__secondorder_8_f90" startline="392" endline="682">flow_secondorder_advw</referencedby>
+        <referencedby refid="namespaceflow__secondorder__module_1a431fb88961db9b380b5d74bad473eddc" compoundref="flow__secondorder_8_f90" startline="688" endline="824">flow_secondorder_con</referencedby>
+        <referencedby refid="namespaceflow__secondorder__module_1afadb4061c1d1df382ab5011b81d531b1" compoundref="flow__secondorder_8_f90" startline="50" endline="81">flow_secondorder_init</referencedby>
+        <referencedby refid="namespacenonh__module_1a0143dd99f35570dc62a491ce91b84cb6" compoundref="nonh_8_f90" startline="922" endline="1308">nonh_module::nonh_1lay_pred</referencedby>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceflow__secondorder__module_1afadb4061c1d1df382ab5011b81d531b1" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine flow_secondorder_module::flow_secondorder_init</definition>
+        <argsstring>(s)</argsstring>
+        <name>flow_secondorder_init</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" line="49" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" bodystart="50" bodyend="81"/>
+        <references refid="namespaceflow__secondorder__module_1a5ebd7268cbb8f4576bb3bd058587c0f2" compoundref="flow__secondorder_8_f90" startline="35" endline="35">initialized</references>
+        <references refid="namespaceflow__secondorder__module_1a3e12e8f733a76e8a75800a509c54a8c9" compoundref="flow__secondorder_8_f90" startline="26" endline="26">wrk1</references>
+        <references refid="namespaceflow__secondorder__module_1abf41169d642605e03c91c43868d0a75f" compoundref="flow__secondorder_8_f90" startline="30" endline="30">wrk2</references>
+        <referencedby refid="namespaceflow__secondorder__module_1a0bd36c265219c53953a8dad851d0f98f" compoundref="flow__secondorder_8_f90" startline="87" endline="386">flow_secondorder_advuv</referencedby>
+        <referencedby refid="namespaceflow__secondorder__module_1a651b08e8066f4ae6805d680b02bbcf10" compoundref="flow__secondorder_8_f90" startline="392" endline="682">flow_secondorder_advw</referencedby>
+        <referencedby refid="namespaceflow__secondorder__module_1a431fb88961db9b380b5d74bad473eddc" compoundref="flow__secondorder_8_f90" startline="688" endline="824">flow_secondorder_con</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceflow__secondorder__module_1a0bd36c265219c53953a8dad851d0f98f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public flow_secondorder_module::flow_secondorder_advuv</definition>
+        <argsstring>(s, par, uu_old, vv_old)</argsstring>
+        <name>flow_secondorder_advuv</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>uu_old</type>
+          <defname>uu_old</defname>
+        </param>
+        <param>
+          <type>vv_old</type>
+          <defname>vv_old</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" line="86" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" bodystart="87" bodyend="386"/>
+        <references refid="namespaceflow__secondorder__module_1afadb4061c1d1df382ab5011b81d531b1" compoundref="flow__secondorder_8_f90" startline="50" endline="81">flow_secondorder_init</references>
+        <references refid="namespaceflow__secondorder__module_1a5ebd7268cbb8f4576bb3bd058587c0f2" compoundref="flow__secondorder_8_f90" startline="35" endline="35">initialized</references>
+        <references refid="namespaceflow__secondorder__module_1a841f47d85c8b7e62763d0a622d84e913" compoundref="flow__secondorder_8_f90" startline="1008" endline="1060">minmod</references>
+        <references refid="namespaceflow__secondorder__module_1a3e12e8f733a76e8a75800a509c54a8c9" compoundref="flow__secondorder_8_f90" startline="26" endline="26">wrk1</references>
+        <references refid="namespaceflow__secondorder__module_1abf41169d642605e03c91c43868d0a75f" compoundref="flow__secondorder_8_f90" startline="30" endline="30">wrk2</references>
+        <referencedby refid="namespaceflow__timestep__module_1a2f280e063ceff2b60e3688f288c697b9" compoundref="flow__timestep_8_f90" startline="6" endline="946">flow_timestep_module::flow</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceflow__secondorder__module_1a651b08e8066f4ae6805d680b02bbcf10" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public flow_secondorder_module::flow_secondorder_advw</definition>
+        <argsstring>(s, par, w, w_old, mskZ)</argsstring>
+        <name>flow_secondorder_advw</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>w</type>
+          <defname>w</defname>
+        </param>
+        <param>
+          <type>w_old</type>
+          <defname>w_old</defname>
+        </param>
+        <param>
+          <type>mskZ</type>
+          <defname>mskZ</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" line="391" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" bodystart="392" bodyend="682"/>
+        <references refid="namespaceflow__secondorder__module_1afadb4061c1d1df382ab5011b81d531b1" compoundref="flow__secondorder_8_f90" startline="50" endline="81">flow_secondorder_init</references>
+        <references refid="namespaceflow__secondorder__module_1a5ebd7268cbb8f4576bb3bd058587c0f2" compoundref="flow__secondorder_8_f90" startline="35" endline="35">initialized</references>
+        <references refid="namespaceflow__secondorder__module_1a841f47d85c8b7e62763d0a622d84e913" compoundref="flow__secondorder_8_f90" startline="1008" endline="1060">minmod</references>
+        <references refid="namespaceflow__secondorder__module_1a3e12e8f733a76e8a75800a509c54a8c9" compoundref="flow__secondorder_8_f90" startline="26" endline="26">wrk1</references>
+        <references refid="namespaceflow__secondorder__module_1abf41169d642605e03c91c43868d0a75f" compoundref="flow__secondorder_8_f90" startline="30" endline="30">wrk2</references>
+        <references refid="namespacexmpi__module_1a281654b5481d47b466e10e7f857fcf24" compoundref="xmpi_8_f90" startline="97" endline="97">xmpi_module::xmpi_isbot</references>
+        <references refid="namespacexmpi__module_1a4b31181bc5bc2f1ad392c89d10b8156f" compoundref="xmpi_8_f90" startline="94" endline="94">xmpi_module::xmpi_isleft</references>
+        <references refid="namespacexmpi__module_1a4cab1e00b04041deb9aa9ef1b14d5d0d" compoundref="xmpi_8_f90" startline="95" endline="95">xmpi_module::xmpi_isright</references>
+        <references refid="namespacexmpi__module_1ac3d9414ca1095147ffb44c77aed98f09" compoundref="xmpi_8_f90" startline="96" endline="96">xmpi_module::xmpi_istop</references>
+        <referencedby refid="namespacenonh__module_1a0143dd99f35570dc62a491ce91b84cb6" compoundref="nonh_8_f90" startline="922" endline="1308">nonh_module::nonh_1lay_pred</referencedby>
+        <referencedby refid="namespacenonh__module_1af74efcfe5160c9a23711e8025d8be419" compoundref="nonh_8_f90" startline="1622" endline="1998">nonh_module::nonh_2lay_pred_2dv</referencedby>
+        <referencedby refid="namespacenonh__module_1a01b69472a234fe7819e2099cc7bbac3b" compoundref="nonh_8_f90" startline="2439" endline="3106">nonh_module::nonh_2lay_pred_3d</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceflow__secondorder__module_1a431fb88961db9b380b5d74bad473eddc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public flow_secondorder_module::flow_secondorder_con</definition>
+        <argsstring>(s, par, zs_old)</argsstring>
+        <name>flow_secondorder_con</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>zs_old</type>
+          <defname>zs_old</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" line="687" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" bodystart="688" bodyend="824"/>
+        <references refid="namespaceflow__secondorder__module_1afadb4061c1d1df382ab5011b81d531b1" compoundref="flow__secondorder_8_f90" startline="50" endline="81">flow_secondorder_init</references>
+        <references refid="namespaceflow__secondorder__module_1a5ebd7268cbb8f4576bb3bd058587c0f2" compoundref="flow__secondorder_8_f90" startline="35" endline="35">initialized</references>
+        <references refid="namespaceflow__secondorder__module_1a841f47d85c8b7e62763d0a622d84e913" compoundref="flow__secondorder_8_f90" startline="1008" endline="1060">minmod</references>
+        <references refid="namespaceflow__secondorder__module_1a3e12e8f733a76e8a75800a509c54a8c9" compoundref="flow__secondorder_8_f90" startline="26" endline="26">wrk1</references>
+        <references refid="namespaceflow__secondorder__module_1abf41169d642605e03c91c43868d0a75f" compoundref="flow__secondorder_8_f90" startline="30" endline="30">wrk2</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceflow__secondorder__module_1a99084094ee961f31cbbec6c95013657d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine, public</type>
+        <definition>subroutine, public flow_secondorder_module::flow_secondorder_huhv</definition>
+        <argsstring>(s, par)</argsstring>
+        <name>flow_secondorder_huhv</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" line="829" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" bodystart="830" bodyend="1003"/>
+        <references refid="namespaceflow__secondorder__module_1a841f47d85c8b7e62763d0a622d84e913" compoundref="flow__secondorder_8_f90" startline="1008" endline="1060">minmod</references>
+        <references refid="namespacexmpi__module_1a281654b5481d47b466e10e7f857fcf24" compoundref="xmpi_8_f90" startline="97" endline="97">xmpi_module::xmpi_isbot</references>
+        <references refid="namespacexmpi__module_1a4b31181bc5bc2f1ad392c89d10b8156f" compoundref="xmpi_8_f90" startline="94" endline="94">xmpi_module::xmpi_isleft</references>
+        <references refid="namespacexmpi__module_1a4cab1e00b04041deb9aa9ef1b14d5d0d" compoundref="xmpi_8_f90" startline="95" endline="95">xmpi_module::xmpi_isright</references>
+        <references refid="namespacexmpi__module_1ac3d9414ca1095147ffb44c77aed98f09" compoundref="xmpi_8_f90" startline="96" endline="96">xmpi_module::xmpi_istop</references>
+        <referencedby refid="namespaceflow__timestep__module_1a2f280e063ceff2b60e3688f288c697b9" compoundref="flow__timestep_8_f90" startline="6" endline="946">flow_timestep_module::flow</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceflow__secondorder__module_1a841f47d85c8b7e62763d0a622d84e913" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>real(kind=rkind) pure function, public</type>
+        <definition>real(kind=rkind) pure function, public flow_secondorder_module::minmod</definition>
+        <argsstring>(delta1, delta2)</argsstring>
+        <name>minmod</name>
+        <param>
+          <type>delta1</type>
+          <defname>delta1</defname>
+        </param>
+        <param>
+          <type>delta2</type>
+          <defname>delta2</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" line="1007" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" bodystart="1008" bodyend="1060"/>
+        <referencedby refid="namespaceflow__secondorder__module_1a0bd36c265219c53953a8dad851d0f98f" compoundref="flow__secondorder_8_f90" startline="87" endline="386">flow_secondorder_advuv</referencedby>
+        <referencedby refid="namespaceflow__secondorder__module_1a651b08e8066f4ae6805d680b02bbcf10" compoundref="flow__secondorder_8_f90" startline="392" endline="682">flow_secondorder_advw</referencedby>
+        <referencedby refid="namespaceflow__secondorder__module_1a431fb88961db9b380b5d74bad473eddc" compoundref="flow__secondorder_8_f90" startline="688" endline="824">flow_secondorder_con</referencedby>
+        <referencedby refid="namespaceflow__secondorder__module_1a99084094ee961f31cbbec6c95013657d" compoundref="flow__secondorder_8_f90" startline="830" endline="1003">flow_secondorder_huhv</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/flow_secondorder.F90" line="13" column="1"/>
+  </compounddef>
+</doxygen>

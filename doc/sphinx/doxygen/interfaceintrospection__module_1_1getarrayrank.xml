@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="interfaceintrospection__module_1_1getarrayrank" kind="interface" language="Fortran" prot="public">
+    <compoundname>introspection_module::getarrayrank</compoundname>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="interfaceintrospection__module_1_1getarrayrank_1aa593dbcfdd440617471c61874eadbf7c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer(c_int) function</type>
+        <definition>integer(c_int) function introspection_module::getarrayrank::getarrayrank_fortran</definition>
+        <argsstring>(name, rank)</argsstring>
+        <name>getarrayrank_fortran</name>
+        <param>
+          <type>name</type>
+          <defname>name</defname>
+        </param>
+        <param>
+          <type>rank</type>
+          <defname>rank</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" line="385" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" bodystart="386" bodyend="395"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" line="40" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" bodystart="40" bodyend="41"/>
+    <listofallmembers>
+      <member refid="interfaceintrospection__module_1_1getarrayrank_1aa593dbcfdd440617471c61874eadbf7c" prot="public" virt="non-virtual"><scope>introspection_module::getarrayrank</scope><name>getarrayrank_fortran</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

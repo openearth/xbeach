@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="ranges_8f90" kind="file" language="Fortran">
+    <compoundname>ranges.f90</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal"><sp/>imin_ee,imax_ee,jmin_ee,jmax_ee</highlight></codeline>
+<codeline lineno="2"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal"><sp/>imin_uu,imax_uu,jmin_uu,jmax_uu</highlight></codeline>
+<codeline lineno="3"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal"><sp/>imin_vv,imax_vv,jmin_vv,jmax_vv</highlight></codeline>
+<codeline lineno="4"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal"><sp/>imin_zs,imax_zs,jmin_zs,jmax_zs</highlight></codeline>
+    </programlisting>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/templates/ranges.f90"/>
+  </compounddef>
+</doxygen>

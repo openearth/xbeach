@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacewave__instationary__module" kind="namespace" language="Fortran">
+    <compoundname>wave_instationary_module</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacewave__instationary__module_1abe5d400befd96d77a40accfe593997f6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine wave_instationary_module::wave_instationary</definition>
+        <argsstring>(s, par)</argsstring>
+        <name>wave_instationary</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_instationary.F90" line="7" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_instationary.F90" bodystart="8" bodyend="582"/>
+        <references refid="namespacewave__functions__module_1a1f2a6dbdbc74c45b0d4460187666353e" compoundref="wave__functions_8_f90" startline="450" endline="485">wave_functions_module::advecqx</references>
+        <references refid="namespacewave__functions__module_1a611338110cc6d40c440b3cf38daa2a03" compoundref="wave__functions_8_f90" startline="492" endline="517">wave_functions_module::advecqy</references>
+        <references refid="namespacewave__functions__module_1a1746a600c4a9f4f8465d4418b3c33cc4" compoundref="wave__functions_8_f90" startline="174" endline="263">wave_functions_module::advecthetaho</references>
+        <references refid="namespacewave__functions__module_1ae5d7d38c38fbfeaefaa8ad41ae7b1c2d" compoundref="wave__functions_8_f90" startline="374" endline="402">wave_functions_module::advecwx</references>
+        <references refid="namespacewave__functions__module_1a786fc8fa405e50abe3eee6b5ede8503e" compoundref="wave__functions_8_f90" startline="409" endline="444">wave_functions_module::advecwy</references>
+        <references refid="namespacewave__functions__module_1a8be0237af599293cd9da29548e5ff52c" compoundref="wave__functions_8_f90" startline="66" endline="168">wave_functions_module::advecxho</references>
+        <references refid="namespacewave__functions__module_1ade993feec365bac9524d5b66bc2e8f6f" compoundref="wave__functions_8_f90" startline="269" endline="367">wave_functions_module::advecyho</references>
+        <references refid="namespaceparamsconst_1ac674b908a6044ee89d27be2252e24917" compoundref="paramsconst_8_f90" startline="9" endline="9">paramsconst::break_baldock</references>
+        <references refid="namespaceparamsconst_1a0462a25b3cd9c4eedf7f62572c949e3a" compoundref="paramsconst_8_f90" startline="12" endline="12">paramsconst::break_janssen</references>
+        <references refid="namespaceparamsconst_1ad7777eec51510ec0f2ba08c0861bcddc" compoundref="paramsconst_8_f90" startline="8" endline="8">paramsconst::break_roelvink1</references>
+        <references refid="namespaceparamsconst_1ae6a85ee446ca997f2d9d6b6f44438960" compoundref="paramsconst_8_f90" startline="10" endline="10">paramsconst::break_roelvink2</references>
+        <references refid="namespaceparamsconst_1a195e27323306c7b8231f41cf4c859176" compoundref="paramsconst_8_f90" startline="11" endline="11">paramsconst::break_roelvink_daly</references>
+        <references refid="namespacewave__functions__module_1a95789442d65822a9ea6d1c21a796adb3" compoundref="wave__functions_8_f90" startline="697" endline="773">wave_functions_module::breakerdelay</references>
+        <references refid="namespacewave__functions__module_1ae18b43555a2df89d2a0f9569b97acd0f" compoundref="wave__functions_8_f90" startline="523" endline="654">wave_functions_module::dispersion</references>
+        <references refid="namespaceparamsconst_1a221e4b131f4fa987a72d001029ee1ccb" compoundref="paramsconst_8_f90" startline="14" endline="14">paramsconst::lateralwave_neumann</references>
+        <references refid="namespaceparamsconst_1a6d56ddba2d18229f2b041b777d8bb92b" compoundref="paramsconst_8_f90" startline="15" endline="15">paramsconst::lateralwave_wavecrest</references>
+        <references refid="namespaceinterp_1a0a169735d9debaa040755b8d02360fe0" compoundref="interp_8_f90" startline="103" endline="154">interp::linear_interp</references>
+        <references refid="namespacewave__functions__module_1a189e80d179fdca5ae67e446d19ca3e39" compoundref="wave__functions_8_f90" startline="10" endline="60">wave_functions_module::slope2d</references>
+        <references refid="namespacexmpi__module_1a281654b5481d47b466e10e7f857fcf24" compoundref="xmpi_8_f90" startline="97" endline="97">xmpi_module::xmpi_isbot</references>
+        <references refid="namespacexmpi__module_1a4b31181bc5bc2f1ad392c89d10b8156f" compoundref="xmpi_8_f90" startline="94" endline="94">xmpi_module::xmpi_isleft</references>
+        <references refid="namespacexmpi__module_1a4cab1e00b04041deb9aa9ef1b14d5d0d" compoundref="xmpi_8_f90" startline="95" endline="95">xmpi_module::xmpi_isright</references>
+        <references refid="namespacexmpi__module_1ac3d9414ca1095147ffb44c77aed98f09" compoundref="xmpi_8_f90" startline="96" endline="96">xmpi_module::xmpi_istop</references>
+        <referencedby refid="namespacewave__timestep__module_1a7d1a02350f40daeeeed4d514c4cc6675" compoundref="wave__timestep_8_f90" startline="33" endline="74">wave_timestep_module::wave</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_instationary.F90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

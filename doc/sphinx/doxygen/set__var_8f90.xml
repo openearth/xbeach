@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="set__var_8f90" kind="file" language="Fortran">
+    <compoundname>set_var.f90</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="set__var_8f90_1a054e3453c0965951afbae1f5b1ffc7dc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine set_var</definition>
+        <argsstring>(c_var_name, xptr)</argsstring>
+        <name>set_var</name>
+        <param>
+          <type>c_var_name</type>
+          <defname>c_var_name</defname>
+        </param>
+        <param>
+          <type>xptr</type>
+          <defname>xptr</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/templates/set_var.f90" line="12" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/templates/set_var.f90" bodystart="13" bodyend="59"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal">&lt;%</highlight></codeline>
+<codeline lineno="2"><highlight class="normal">def<sp/>element0(var):</highlight></codeline>
+<codeline lineno="3"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="stringliteral">&quot;find<sp/>the<sp/>first<sp/>element<sp/>array&quot;</highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"><sp/><sp/><sp/><sp/>parts<sp/>=<sp/>[</highlight><highlight class="stringliteral">&quot;lbound(s%%%s,<sp/>%d)&quot;</highlight><highlight class="normal"><sp/>%<sp/>(var[</highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal">],<sp/>i+1)<sp/>for<sp/>i<sp/>in<sp/>range(var[</highlight><highlight class="stringliteral">&quot;rank&quot;</highlight><highlight class="normal">])]</highlight></codeline>
+<codeline lineno="5"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>var[</highlight><highlight class="stringliteral">&quot;rank&quot;</highlight><highlight class="normal">]<sp/>&gt;<sp/>0:</highlight></codeline>
+<codeline lineno="6"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>txt<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;(&quot;</highlight><highlight class="normal"><sp/>+<sp/></highlight><highlight class="stringliteral">&quot;,&quot;</highlight><highlight class="normal">.join(parts)<sp/>+<sp/></highlight><highlight class="stringliteral">&quot;)&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"><sp/><sp/><sp/><sp/>else:</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>txt<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>txt</highlight></codeline>
+<codeline lineno="10"><highlight class="normal">%&gt;</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="keyword"><sp/><sp/>subroutine<sp/></highlight><highlight class="normal"><ref refid="set__var_8f90_1a054e3453c0965951afbae1f5b1ffc7dc" kindref="member">set_var</ref>(c_var_name,<sp/>xptr)<sp/>bind(C,<sp/>name=&quot;set_var&quot;)</highlight></codeline>
+<codeline lineno="13" refid="set__var_8f90_1a054e3453c0965951afbae1f5b1ffc7dc" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!DEC$<sp/>ATTRIBUTES<sp/>DLLEXPORT<sp/>::<sp/>set_var</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>Return<sp/>a<sp/>pointer<sp/>to<sp/>the<sp/>variable</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">use<sp/></highlight><highlight class="normal">iso_c_binding</highlight><highlight class="keywordtype">,<sp/>only</highlight><highlight class="normal">:<sp/>c_double,<sp/>c_char,<sp/>c_loc,<sp/>c_f_pointer</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">character(kind=c_char)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">intent(in)</highlight><highlight class="normal"><sp/>::<sp/>c_var_name(*)</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">type</highlight><highlight class="normal">(c_ptr),<sp/></highlight><highlight class="keywordtype">value</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">intent(in)</highlight><highlight class="normal"><sp/>::<sp/>xptr</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">real(c_double)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">pointer</highlight><highlight class="normal"><sp/>::<sp/>x_0d_double_ptr</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">real(c_double)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">pointer</highlight><highlight class="normal"><sp/>::<sp/>x_1d_double_ptr(:)</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">real(c_double)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">pointer</highlight><highlight class="normal"><sp/>::<sp/>x_2d_double_ptr(:,:)</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">real(c_double)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">pointer</highlight><highlight class="normal"><sp/>::<sp/>x_3d_double_ptr(:,:,:)</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">real(c_double)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">pointer</highlight><highlight class="normal"><sp/>::<sp/>x_4d_double_ptr(:,:,:,:)</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer(c_int)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">pointer</highlight><highlight class="normal"><sp/>::<sp/>x_0d_int_ptr</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer(c_int)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">pointer</highlight><highlight class="normal"><sp/>::<sp/>x_1d_int_ptr(:)</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer(c_int)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">pointer</highlight><highlight class="normal"><sp/>::<sp/>x_2d_int_ptr(:,:)</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer(c_int)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">pointer</highlight><highlight class="normal"><sp/>::<sp/>x_3d_int_ptr(:,:,:)</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">real(c_float)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">pointer</highlight><highlight class="normal"><sp/><sp/>::<sp/>x_1d_float_ptr(:)</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">real(c_float)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">pointer</highlight><highlight class="normal"><sp/><sp/>::<sp/>x_2d_float_ptr(:,:)</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">real(c_float)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">pointer</highlight><highlight class="normal"><sp/><sp/>::<sp/>x_3d_float_ptr(:,:,:)</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>The<sp/>fortran<sp/>name<sp/>of<sp/>the<sp/>attribute<sp/>name</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">character(len=strlen(c_var_name))</highlight><highlight class="normal"><sp/>::<sp/>var_name</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>Store<sp/>the<sp/>name</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>The<sp/>real<sp/>array</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal"><sp/>::<sp/>index</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">type</highlight><highlight class="normal">(arraytype)<sp/>::<sp/>array</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>var_name<sp/>=<sp/>char_array_to_string(c_var_name)</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/>index<sp/>=<sp/><sp/>chartoindex(var_name)</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(index<sp/>.eq.<sp/>-1)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">call<sp/></highlight><highlight class="normal">indextos(s,index,array)</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">select<sp/>case</highlight><highlight class="normal">(var_name)</highlight></codeline>
+<codeline lineno="47"><highlight class="normal">%for<sp/>var<sp/>in<sp/><ref refid="namespacevariables" kindref="compound">variables</ref>:</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal">(</highlight><highlight class="stringliteral">&quot;${var[&apos;name&apos;]}&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="49"><highlight class="normal">%if<sp/>var[</highlight><highlight class="stringliteral">&apos;rank&apos;</highlight><highlight class="normal">]<sp/>&gt;<sp/>0:</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">call<sp/></highlight><highlight class="normal">c_f_pointer(xptr,<sp/>x_${var[</highlight><highlight class="stringliteral">&apos;rank&apos;</highlight><highlight class="normal">]}d_${var[</highlight><highlight class="stringliteral">&apos;type&apos;</highlight><highlight class="normal">]}_ptr,<sp/>shape(s%${var[</highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal">]}))</highlight></codeline>
+<codeline lineno="51"><highlight class="normal">%else:</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">call<sp/></highlight><highlight class="normal">c_f_pointer(xptr,<sp/>x_${var[</highlight><highlight class="stringliteral">&apos;rank&apos;</highlight><highlight class="normal">]}d_${var[</highlight><highlight class="stringliteral">&apos;type&apos;</highlight><highlight class="normal">]}_ptr)<sp/></highlight><highlight class="comment">!<sp/>skip<sp/>shape<sp/>in<sp/>case<sp/>of<sp/>rank<sp/>0</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal">%endif</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>s%${var[</highlight><highlight class="stringliteral">&quot;name&quot;</highlight><highlight class="normal">]}${dimstr(</highlight><highlight class="stringliteral">&quot;:&quot;</highlight><highlight class="normal">*var[</highlight><highlight class="stringliteral">&apos;rank&apos;</highlight><highlight class="normal">])}<sp/>=<sp/>x_${var[</highlight><highlight class="stringliteral">&apos;rank&apos;</highlight><highlight class="normal">]}d_${var[</highlight><highlight class="stringliteral">&apos;type&apos;</highlight><highlight class="normal">]}_ptr</highlight></codeline>
+<codeline lineno="55"><highlight class="normal">%endfor</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight><highlight class="keywordflow"><sp/><sp/><sp/><sp/>case<sp/>default</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">write</highlight><highlight class="normal">(*,*)<sp/></highlight><highlight class="stringliteral">&apos;Setting<sp/>unknown<sp/>variable&apos;</highlight><highlight class="normal">,<sp/>var_name</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight><highlight class="keywordflow"><sp/><sp/><sp/><sp/>end<sp/>select</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight><highlight class="keyword"><sp/><sp/>end<sp/>subroutine<sp/></highlight><highlight class="normal"><ref refid="set__var_8f90_1a054e3453c0965951afbae1f5b1ffc7dc" kindref="member">set_var</ref></highlight></codeline>
+    </programlisting>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/templates/set_var.f90"/>
+  </compounddef>
+</doxygen>

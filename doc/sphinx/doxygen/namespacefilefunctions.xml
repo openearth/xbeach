@@ -1,0 +1,262 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacefilefunctions" kind="namespace" language="Fortran">
+    <compoundname>filefunctions</compoundname>
+    <innerclass refid="interfacefilefunctions_1_1check__file__length" prot="public">filefunctions::check_file_length</innerclass>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer function</type>
+        <definition>integer function filefunctions::create_new_fid</definition>
+        <argsstring>()</argsstring>
+        <name>create_new_fid</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" line="13" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" bodystart="14" bodyend="25"/>
+        <references refid="namespacefilefunctions_1ad05997da7c8d302cc1ad2043e847871c" compoundref="filefunctions_8_f90" startline="343" endline="357">create_new_fid_generic</references>
+        <references refid="namespacexmpi__module_1a5406ad4cd4b3c61bf18b86fe6dcd9936" compoundref="xmpi_8_f90" startline="1576" endline="1599">xmpi_module::halt_program</references>
+        <referencedby refid="namespacefilefunctions_1a8931896f5042e459e4f11677eaf40a29" compoundref="filefunctions_8_f90" startline="68" endline="91">check_file_length_1d</referencedby>
+        <referencedby refid="namespacefilefunctions_1a90ad2a80a5b6f855ec3b3987539e5d8d" compoundref="filefunctions_8_f90" startline="95" endline="118">check_file_length_2d</referencedby>
+        <referencedby refid="namespacefilefunctions_1a3ea00f7d7ae89a78a938c7c6fc340e83" compoundref="filefunctions_8_f90" startline="122" endline="145">check_file_length_3d</referencedby>
+        <referencedby refid="namespacefilefunctions_1a18598ead82e5e7c8e4970ec5d0a2f925" compoundref="filefunctions_8_f90" startline="149" endline="289">checkbcfilelength</referencedby>
+        <referencedby refid="namespacereadkey__module_1a3b57e6ff113dd33dc7d181697f571a4d" compoundref="readkey_8_f90" startline="1022" endline="1046">readkey_module::count_lines</referencedby>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">ncoutput_module::fortoutput_init</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a7113c9cdc92f3daba67f11a3fd63ad79" compoundref="waveparamsnew_8_f90" startline="2832" endline="2884">spectral_wave_bc_module::generate_admin_files</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1ab8d84de3b688de769d6435e6210e353d" compoundref="waveparamsnew_8_f90" startline="2170" endline="2413">spectral_wave_bc_module::generate_ebcf</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a989db0746817bd0c863f46aa4692311f" compoundref="waveparamsnew_8_f90" startline="2759" endline="2786">spectral_wave_bc_module::generate_nhtimeseries_file</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a1c25cb7416bfebe3e38eec38eec53541" compoundref="waveparamsnew_8_f90" startline="2488" endline="2751">spectral_wave_bc_module::generate_qbcf</referencedby>
+        <referencedby refid="namespacewave__boundary__main__module_1a8e7ddf8c51142c9c720d620aa90363b6" compoundref="wave__boundary__main_8f90" startline="281" endline="378">wave_boundary_main_module::initialise_wave_spectrum_parameters</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1a682ee87f23d9e0e4e5619f60c436a3f2" compoundref="wave__boundary__update_8f90" startline="336" endline="761">wave_boundary_update_module::read_jonswap_file</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1abb1b81ec27cba83321d0a2c75384368d" compoundref="waveparamsnew_8_f90" startline="382" endline="809">spectral_wave_bc_module::read_jonswap_file</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1a1f7e35abd0d9c4c0b187696002c1a4c6" compoundref="wave__boundary__update_8f90" startline="248" endline="329">wave_boundary_update_module::read_spectrum_input</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a348847af881a92a9121d0bee9d613db2" compoundref="waveparamsnew_8_f90" startline="294" endline="375">spectral_wave_bc_module::read_spectrum_input</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1ab5b5100ab2b89fd4f982d7552b22857a" compoundref="wave__boundary__update_8f90" startline="817" endline="1079">wave_boundary_update_module::read_swan_file</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a76187f02c768dbd0c7a8a1564f85c616" compoundref="waveparamsnew_8_f90" startline="865" endline="1073">spectral_wave_bc_module::read_swan_file</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a95383a7019c786602a30432eb5d485c2" compoundref="waveparamsnew_8_f90" startline="1081" endline="1184">spectral_wave_bc_module::read_vardens_file</referencedby>
+        <referencedby refid="namespacewave__boundary__update__module_1a3de9d3cb05e0a95231de57375718a601" compoundref="wave__boundary__update_8f90" startline="1087" endline="1245">wave_boundary_update_module::read_vardens_file</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1a62f730cf1dadb9408456599710f0d5ed" compoundref="waveparamsnew_8_f90" startline="2791" endline="2828">spectral_wave_bc_module::set_stationary_spectrum</referencedby>
+        <referencedby refid="namespaceinitialize__module_1a81027fb6c4fb820754f6e905d10c7215" compoundref="initialize_8_f90" startline="406" endline="450">initialize_module::setbathy_init</referencedby>
+        <referencedby refid="namespaceship__module_1a1b4f4c0a57f442c953318aef59ad8779" compoundref="ship_8_f90" startline="75" endline="239">ship_module::ship_init</referencedby>
+        <referencedby refid="namespacespectral__wave__bc__module_1ad059f1e15eaff59d660ff14292a6e0e8" compoundref="waveparamsnew_8_f90" startline="88" endline="287">spectral_wave_bc_module::spectral_wave_bc</referencedby>
+        <referencedby refid="namespaceinitialize__module_1a6fb23d47f64bc6b3582af05e5da7e1af" compoundref="initialize_8_f90" startline="605" endline="696">initialize_module::spectral_wave_init</referencedby>
+        <referencedby refid="namespacevegetation__module_1a532c14421e4edcad03d471a7db7f89a1" compoundref="vegetation_8_f90" startline="65" endline="158">vegetation_module::veggie_init</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacefilefunctions_1a3bcc035d217f7cb80933e7ae99b3e0cf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine filefunctions::check_file_exist</definition>
+        <argsstring>(filename, exist, forceclose)</argsstring>
+        <name>check_file_exist</name>
+        <param>
+          <type>filename</type>
+          <defname>filename</defname>
+        </param>
+        <param>
+          <type>exist</type>
+          <defname>exist</defname>
+        </param>
+        <param>
+          <type>forceclose</type>
+          <defname>forceclose</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" line="28" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" bodystart="29" bodyend="62"/>
+        <references refid="namespacefilefunctions_1acd5701edda81d8a0c457054ccbf056d8" compoundref="filefunctions_8_f90" startline="325" endline="338">check_file_exist_generic</references>
+        <referencedby refid="namespaceparams_1af586ee38b10643bfd7ac942db04741ee" compoundref="params_8_f90" startline="441" endline="1843">params::all_input</referencedby>
+        <referencedby refid="namespacefilefunctions_1a18598ead82e5e7c8e4970ec5d0a2f925" compoundref="filefunctions_8_f90" startline="149" endline="289">checkbcfilelength</referencedby>
+        <referencedby refid="namespacevegetation__module_1a532c14421e4edcad03d471a7db7f89a1" compoundref="vegetation_8_f90" startline="65" endline="158">vegetation_module::veggie_init</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacefilefunctions_1a8931896f5042e459e4f11677eaf40a29" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine filefunctions::check_file_length_1d</definition>
+        <argsstring>(fname, d1)</argsstring>
+        <name>check_file_length_1d</name>
+        <param>
+          <type>fname</type>
+          <defname>fname</defname>
+        </param>
+        <param>
+          <type>d1</type>
+          <defname>d1</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" line="67" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" bodystart="68" bodyend="91"/>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">create_new_fid</references>
+        <references refid="namespacexmpi__module_1a5406ad4cd4b3c61bf18b86fe6dcd9936" compoundref="xmpi_8_f90" startline="1576" endline="1599">xmpi_module::halt_program</references>
+        <references refid="namespacexmpi__module_1a49447cc5b155a1ab5c81885e6dc7943d" compoundref="xmpi_8_f90" startline="91" endline="91">xmpi_module::xmaster</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacefilefunctions_1a90ad2a80a5b6f855ec3b3987539e5d8d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine filefunctions::check_file_length_2d</definition>
+        <argsstring>(fname, d1, d2)</argsstring>
+        <name>check_file_length_2d</name>
+        <param>
+          <type>fname</type>
+          <defname>fname</defname>
+        </param>
+        <param>
+          <type>d1</type>
+          <defname>d1</defname>
+        </param>
+        <param>
+          <type>d2</type>
+          <defname>d2</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" line="94" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" bodystart="95" bodyend="118"/>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">create_new_fid</references>
+        <references refid="namespacexmpi__module_1a5406ad4cd4b3c61bf18b86fe6dcd9936" compoundref="xmpi_8_f90" startline="1576" endline="1599">xmpi_module::halt_program</references>
+        <references refid="namespacexmpi__module_1a49447cc5b155a1ab5c81885e6dc7943d" compoundref="xmpi_8_f90" startline="91" endline="91">xmpi_module::xmaster</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacefilefunctions_1a3ea00f7d7ae89a78a938c7c6fc340e83" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine filefunctions::check_file_length_3d</definition>
+        <argsstring>(fname, d1, d2, d3)</argsstring>
+        <name>check_file_length_3d</name>
+        <param>
+          <type>fname</type>
+          <defname>fname</defname>
+        </param>
+        <param>
+          <type>d1</type>
+          <defname>d1</defname>
+        </param>
+        <param>
+          <type>d2</type>
+          <defname>d2</defname>
+        </param>
+        <param>
+          <type>d3</type>
+          <defname>d3</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" line="121" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" bodystart="122" bodyend="145"/>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">create_new_fid</references>
+        <references refid="namespacexmpi__module_1a5406ad4cd4b3c61bf18b86fe6dcd9936" compoundref="xmpi_8_f90" startline="1576" endline="1599">xmpi_module::halt_program</references>
+        <references refid="namespacexmpi__module_1a49447cc5b155a1ab5c81885e6dc7943d" compoundref="xmpi_8_f90" startline="91" endline="91">xmpi_module::xmaster</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacefilefunctions_1a18598ead82e5e7c8e4970ec5d0a2f925" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine filefunctions::checkbcfilelength</definition>
+        <argsstring>(tstop, instat, filename, filetype, nonh)</argsstring>
+        <name>checkbcfilelength</name>
+        <param>
+          <type>tstop</type>
+          <defname>tstop</defname>
+        </param>
+        <param>
+          <type>instat</type>
+          <defname>instat</defname>
+        </param>
+        <param>
+          <type>filename</type>
+          <defname>filename</defname>
+        </param>
+        <param>
+          <type>filetype</type>
+          <defname>filetype</defname>
+        </param>
+        <param>
+          <type>nonh</type>
+          <defname>nonh</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" line="148" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" bodystart="149" bodyend="289"/>
+        <references refid="namespacefilefunctions_1a3bcc035d217f7cb80933e7ae99b3e0cf" compoundref="filefunctions_8_f90" startline="29" endline="62">check_file_exist</references>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">create_new_fid</references>
+        <references refid="namespacexmpi__module_1a5406ad4cd4b3c61bf18b86fe6dcd9936" compoundref="xmpi_8_f90" startline="1576" endline="1599">xmpi_module::halt_program</references>
+        <references refid="namespacelogging__module_1ae7b8d1c55379954818a0b7b4576be077" compoundref="logging_8_f90" startline="178" endline="186">logging_module::report_file_read_error</references>
+        <references refid="namespacexmpi__module_1a49447cc5b155a1ab5c81885e6dc7943d" compoundref="xmpi_8_f90" startline="91" endline="91">xmpi_module::xmaster</references>
+        <referencedby refid="namespaceparams_1af586ee38b10643bfd7ac942db04741ee" compoundref="params_8_f90" startline="441" endline="1843">params::all_input</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacefilefunctions_1a4f8cd5e4434a2f44147e3287c40adcaf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer function</type>
+        <definition>integer function filefunctions::get_file_length</definition>
+        <argsstring>(filename)</argsstring>
+        <name>get_file_length</name>
+        <param>
+          <type>filename</type>
+          <defname>filename</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" line="292" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" bodystart="293" bodyend="321"/>
+        <references refid="namespacefilefunctions_1acd5701edda81d8a0c457054ccbf056d8" compoundref="filefunctions_8_f90" startline="325" endline="338">check_file_exist_generic</references>
+        <referencedby refid="namespaceparams_1af586ee38b10643bfd7ac942db04741ee" compoundref="params_8_f90" startline="441" endline="1843">params::all_input</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacefilefunctions_1acd5701edda81d8a0c457054ccbf056d8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine filefunctions::check_file_exist_generic</definition>
+        <argsstring>(filename, error)</argsstring>
+        <name>check_file_exist_generic</name>
+        <param>
+          <type>filename</type>
+          <defname>filename</defname>
+        </param>
+        <param>
+          <type>error</type>
+          <defname>error</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" line="324" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" bodystart="325" bodyend="338"/>
+        <referencedby refid="namespacefilefunctions_1a3bcc035d217f7cb80933e7ae99b3e0cf" compoundref="filefunctions_8_f90" startline="29" endline="62">check_file_exist</referencedby>
+        <referencedby refid="namespacefilefunctions_1a4f8cd5e4434a2f44147e3287c40adcaf" compoundref="filefunctions_8_f90" startline="293" endline="321">get_file_length</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacefilefunctions_1ad05997da7c8d302cc1ad2043e847871c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer function</type>
+        <definition>integer function filefunctions::create_new_fid_generic</definition>
+        <argsstring>()</argsstring>
+        <name>create_new_fid_generic</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" line="342" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" bodystart="343" bodyend="357"/>
+        <referencedby refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">create_new_fid</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/filefunctions.F90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,105 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacemnemmodule" kind="namespace" language="Fortran">
+    <compoundname>mnemmodule</compoundname>
+    <innerclass refid="structmnemmodule_1_1arraytype" prot="public">mnemmodule::arraytype</innerclass>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacemnemmodule_1a644597af8c9700795b17c6878478af6a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer function</type>
+        <definition>integer function mnemmodule::chartoindex</definition>
+        <argsstring>(line)</argsstring>
+        <name>chartoindex</name>
+        <param>
+          <type>line</type>
+          <defname>line</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="35" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="36" bodyend="46"/>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">ncoutput_module::fortoutput_init</referencedby>
+        <referencedby refid="namespaceintrospection__module_1aa85fc8971cc1605287b8c929ee5c039f" compoundref="introspection_8_f90" startline="504" endline="525">introspection_module::get0ddoublearray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a8e0488c42dcf5965c79809b22c158924" compoundref="introspection_8_f90" startline="485" endline="499">introspection_module::get0ddoublearray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a3861636771551a10542d1c3d6defd435" compoundref="introspection_8_f90" startline="739" endline="760">introspection_module::get0dintarray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a80429c3fc80a69087eae3aedd744718a" compoundref="introspection_8_f90" startline="721" endline="735">introspection_module::get0dintarray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a216ccb5e4946a35b2c2d89c5a5f29b19" compoundref="introspection_8_f90" startline="549" endline="574">introspection_module::get1ddoublearray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a6f5e8522113c48ac47d2ba83611bc28e" compoundref="introspection_8_f90" startline="530" endline="544">introspection_module::get1ddoublearray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a59ed65a63648624ab2485a31ed9223b2" compoundref="introspection_8_f90" startline="782" endline="806">introspection_module::get1dintarray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a1a3744d7d30c0512f4a6ce26873fd0d4" compoundref="introspection_8_f90" startline="764" endline="778">introspection_module::get1dintarray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1aa2da552b7a41bae3e3ce646ddee72417" compoundref="introspection_8_f90" startline="597" endline="621">introspection_module::get2ddoublearray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a910d226625fda529c3fe64b6aba72635" compoundref="introspection_8_f90" startline="578" endline="592">introspection_module::get2ddoublearray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a02d99c6da5b26064c2e2dd5af0ab6b15" compoundref="introspection_8_f90" startline="830" endline="854">introspection_module::get2dintarray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1ac639a3b3c2d501b204a8e58bae35b3f4" compoundref="introspection_8_f90" startline="812" endline="826">introspection_module::get2dintarray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a9873f25448f97a8f23c3363f72f4bc6b" compoundref="introspection_8_f90" startline="644" endline="668">introspection_module::get3ddoublearray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a72962d02ad1fcf0245883f0ed9a49061" compoundref="introspection_8_f90" startline="625" endline="639">introspection_module::get3ddoublearray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a3b5377d2ae6f75dc74098d91947ceb01" compoundref="introspection_8_f90" startline="692" endline="716">introspection_module::get4ddoublearray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1ad4ee43b3abbfc6a4c8193e29d8b7a9de" compoundref="introspection_8_f90" startline="673" endline="687">introspection_module::get4ddoublearray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a8e1c70b1469b1707c40edff474d33d43" compoundref="introspection_8_f90" startline="462" endline="480">introspection_module::getarray</referencedby>
+        <referencedby refid="namespaceintrospection__module_1aae52c204b90659e39d9e8ecd47d8b10f" compoundref="introspection_8_f90" startline="430" endline="458">introspection_module::getarraydimsize_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a0ad4b0be5f26e4b62907e315a1b61435" compoundref="introspection_8_f90" startline="399" endline="411">introspection_module::getarrayrank_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a2837b70b15df0ed8bab0f7e513ef75ef" compoundref="introspection_8_f90" startline="370" endline="382">introspection_module::getarraytype_c</referencedby>
+        <referencedby refid="namespacemeans__module_1a95979883d76039a508a84a0ad8e5be95" compoundref="varianceupdate_8_f90" startline="270" endline="392">means_module::makeaverage</referencedby>
+        <referencedby refid="namespacemeans__module_1a32b001956163af2bb2c67c585cac76cc" compoundref="varianceupdate_8_f90" startline="53" endline="265">means_module::means_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput_module::ncoutput</referencedby>
+        <referencedby refid="namespaceparams_1a64003cbaacb5342d3bfef985a0fe7dd0" compoundref="params_8_f90" startline="2177" endline="2267">params::readoutputstrings</referencedby>
+        <referencedby refid="namespaceintrospection__module_1afd7a38a56a555e381fb924c90ec0a857" compoundref="introspection_8_f90" startline="1018" endline="1043">introspection_module::set0ddoublearray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a16f16608fab027f85fab8b45cb9ca0c0" compoundref="introspection_8_f90" startline="1000" endline="1014">introspection_module::set0ddoublearray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1aaae0976e7a5785d966136461ac8c7a03" compoundref="introspection_8_f90" startline="877" endline="902">introspection_module::set0dintarray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1aca68755262aef79302d953f02c542439" compoundref="introspection_8_f90" startline="859" endline="873">introspection_module::set0dintarray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1acfb65be0e02ef7711e201ce83f747c40" compoundref="introspection_8_f90" startline="1065" endline="1090">introspection_module::set1ddoublearray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a338ffd5589cc706447f2892971407aa6" compoundref="introspection_8_f90" startline="1047" endline="1061">introspection_module::set1ddoublearray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a7a18f2e84dbb42a92019b638c60ce8f5" compoundref="introspection_8_f90" startline="924" endline="949">introspection_module::set1dintarray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1ac9d9fbdac5ffb0330a7c50937d2f4adc" compoundref="introspection_8_f90" startline="906" endline="920">introspection_module::set1dintarray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a3ffe094cced1592aa7c034d437c864a6" compoundref="introspection_8_f90" startline="1113" endline="1138">introspection_module::set2ddoublearray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a729ee9a2423b568e0d33564cd4fdaa7f" compoundref="introspection_8_f90" startline="1095" endline="1109">introspection_module::set2ddoublearray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a4aca5144a659a5a8d56b54f557c8214a" compoundref="introspection_8_f90" startline="971" endline="996">introspection_module::set2dintarray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a487242004b2554f9331ba0b85e1a7a29" compoundref="introspection_8_f90" startline="953" endline="967">introspection_module::set2dintarray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a5bca84cac787f4d2bd0bf89045503aaf" compoundref="introspection_8_f90" startline="1161" endline="1186">introspection_module::set3ddoublearray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a5400a5d337decdf5d6fbe6bebc432431" compoundref="introspection_8_f90" startline="1143" endline="1157">introspection_module::set3ddoublearray_fortran</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a6a00f98b857d341b74696bc0c2a6adfb" compoundref="introspection_8_f90" startline="1209" endline="1234">introspection_module::set4ddoublearray_c</referencedby>
+        <referencedby refid="namespaceintrospection__module_1a201f992f926200ea3a4a73deaea92179" compoundref="introspection_8_f90" startline="1191" endline="1205">introspection_module::set4ddoublearray_fortran</referencedby>
+        <referencedby refid="demo_8_f90_1a13a2d5eaf64c3ad3b537e9b4e17c627c" compoundref="demo_8_f90" startline="55" endline="107">setvar</referencedby>
+        <referencedby refid="namespacespaceparams_1ae27b88ede742d56c3a67dfc9c2d9545d" compoundref="spaceparams_8_f90" startline="148" endline="155">spaceparams::space_alloc_arrays_dummies</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacemnemmodule_1a59ccd52679b2f8c14fa8b0edb60d2308" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine mnemmodule::printvar</definition>
+        <argsstring>(t, lid, eid, wid)</argsstring>
+        <name>printvar</name>
+        <param>
+          <type>t</type>
+          <defname>t</defname>
+        </param>
+        <param>
+          <type>lid</type>
+          <defname>lid</defname>
+        </param>
+        <param>
+          <type>eid</type>
+          <defname>eid</defname>
+        </param>
+        <param>
+          <type>wid</type>
+          <defname>wid</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="49" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="50" bodyend="72"/>
+        <referencedby refid="demo_8_f90_1a13a2d5eaf64c3ad3b537e9b4e17c627c" compoundref="demo_8_f90" startline="55" endline="107">setvar</referencedby>
+        <referencedby refid="namespacespaceparams_1ae27b88ede742d56c3a67dfc9c2d9545d" compoundref="spaceparams_8_f90" startline="148" endline="155">spaceparams::space_alloc_arrays_dummies</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

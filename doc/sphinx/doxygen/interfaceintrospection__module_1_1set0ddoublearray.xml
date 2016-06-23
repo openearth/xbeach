@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="interfaceintrospection__module_1_1set0ddoublearray" kind="interface" language="Fortran" prot="public">
+    <compoundname>introspection_module::set0ddoublearray</compoundname>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="interfaceintrospection__module_1_1set0ddoublearray_1a76f58c4eb38d5cd15ade9a6c2217293b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer(c_int) function</type>
+        <definition>integer(c_int) function introspection_module::set0ddoublearray::set0ddoublearray_fortran</definition>
+        <argsstring>(name, x)</argsstring>
+        <name>set0ddoublearray_fortran</name>
+        <param>
+          <type>name</type>
+          <defname>name</defname>
+        </param>
+        <param>
+          <type>x</type>
+          <defname>x</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" line="999" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" bodystart="1000" bodyend="1014"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" line="84" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/introspection.F90" bodystart="84" bodyend="85"/>
+    <listofallmembers>
+      <member refid="interfaceintrospection__module_1_1set0ddoublearray_1a76f58c4eb38d5cd15ade9a6c2217293b" prot="public" virt="non-virtual"><scope>introspection_module::set0ddoublearray</scope><name>set0ddoublearray_fortran</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

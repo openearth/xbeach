@@ -1,0 +1,254 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="structtimestep__module_1_1timepars" kind="type" language="Fortran" prot="public">
+    <compoundname>timestep_module::timepars</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1a08e1a94af19c714808fdf9e33c88ce9e" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), allocatable</type>
+        <definition>real*8, dimension(:), allocatable timestep_module::timepars::tpg</definition>
+        <argsstring></argsstring>
+        <name>tpg</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="96" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="96" bodyend="96"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1aad5bc356670e218fcf1731c3835e26ce" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), allocatable</type>
+        <definition>real*8, dimension(:), allocatable timestep_module::timepars::tpp</definition>
+        <argsstring></argsstring>
+        <name>tpp</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="97" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="97" bodyend="97"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1abed822a808a45175d28e5321e0637712" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), allocatable</type>
+        <definition>real*8, dimension(:), allocatable timestep_module::timepars::tpm</definition>
+        <argsstring></argsstring>
+        <name>tpm</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="98" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="98" bodyend="98"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1ac41dc4b952d623f151521612a50229f6" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), allocatable</type>
+        <definition>real*8, dimension(:), allocatable timestep_module::timepars::tpc</definition>
+        <argsstring></argsstring>
+        <name>tpc</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="99" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="99" bodyend="99"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1a2fc9be952646ff0701eae26c3340c067" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), allocatable</type>
+        <definition>real*8, dimension(:), allocatable timestep_module::timepars::tpw</definition>
+        <argsstring></argsstring>
+        <name>tpw</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="100" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="100" bodyend="100"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1a9487da01579ef54668c0cf4b6e4a55da" prot="public" static="no" mutable="no">
+        <type>real *8</type>
+        <definition>real*8 timestep_module::timepars::tnext</definition>
+        <argsstring></argsstring>
+        <name>tnext</name>
+        <initializer>= -123</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="101" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="101" bodyend="101"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1ad210ce223310346178fc587d32d2bb52" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer timestep_module::timepars::itg</definition>
+        <argsstring></argsstring>
+        <name>itg</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="103" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="103" bodyend="103"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1ae2ff8e50381e57bd4a8f7fe478c24d16" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer timestep_module::timepars::itp</definition>
+        <argsstring></argsstring>
+        <name>itp</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="104" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="104" bodyend="104"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1a3686e08392bdaabaf0601b746de1f40c" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer timestep_module::timepars::itm</definition>
+        <argsstring></argsstring>
+        <name>itm</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="105" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="105" bodyend="105"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1a79da709f957e905e51f8d4208c3666b2" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer timestep_module::timepars::itc</definition>
+        <argsstring></argsstring>
+        <name>itc</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="106" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="106" bodyend="106"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1aa6269a5aadcb3acc136a57e80c33fc37" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer timestep_module::timepars::itw</definition>
+        <argsstring></argsstring>
+        <name>itw</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="107" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="107" bodyend="107"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1a9d3fa3fb737eb8c9ad152d651f487170" prot="public" static="no" mutable="no">
+        <type>logical</type>
+        <definition>logical timestep_module::timepars::outputg</definition>
+        <argsstring></argsstring>
+        <name>outputg</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="109" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="109" bodyend="109"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1acb84b710531e0c15378baf9a95ff9898" prot="public" static="no" mutable="no">
+        <type>logical</type>
+        <definition>logical timestep_module::timepars::outputp</definition>
+        <argsstring></argsstring>
+        <name>outputp</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="110" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="110" bodyend="110"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1a613460d496bc046e2a3183e5853a1a5f" prot="public" static="no" mutable="no">
+        <type>logical</type>
+        <definition>logical timestep_module::timepars::outputm</definition>
+        <argsstring></argsstring>
+        <name>outputm</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="111" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="111" bodyend="111"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1ad59b93052db4ef6b40512448e3936c08" prot="public" static="no" mutable="no">
+        <type>logical</type>
+        <definition>logical timestep_module::timepars::outputc</definition>
+        <argsstring></argsstring>
+        <name>outputc</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="112" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="112" bodyend="112"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1ac94fe84942ed6afb34143100262bcb71" prot="public" static="no" mutable="no">
+        <type>logical</type>
+        <definition>logical timestep_module::timepars::outputw</definition>
+        <argsstring></argsstring>
+        <name>outputw</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="113" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="113" bodyend="113"/>
+      </memberdef>
+      <memberdef kind="variable" id="structtimestep__module_1_1timepars_1a31f9dde6593d03367b5082502f968d4f" prot="public" static="no" mutable="no">
+        <type>logical</type>
+        <definition>logical timestep_module::timepars::output</definition>
+        <argsstring></argsstring>
+        <name>output</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="114" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="114" bodyend="114"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" line="95" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/timestep.F90" bodystart="95" bodyend="115"/>
+    <listofallmembers>
+      <member refid="structtimestep__module_1_1timepars_1a79da709f957e905e51f8d4208c3666b2" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>itc</name></member>
+      <member refid="structtimestep__module_1_1timepars_1ad210ce223310346178fc587d32d2bb52" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>itg</name></member>
+      <member refid="structtimestep__module_1_1timepars_1a3686e08392bdaabaf0601b746de1f40c" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>itm</name></member>
+      <member refid="structtimestep__module_1_1timepars_1ae2ff8e50381e57bd4a8f7fe478c24d16" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>itp</name></member>
+      <member refid="structtimestep__module_1_1timepars_1aa6269a5aadcb3acc136a57e80c33fc37" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>itw</name></member>
+      <member refid="structtimestep__module_1_1timepars_1a31f9dde6593d03367b5082502f968d4f" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>output</name></member>
+      <member refid="structtimestep__module_1_1timepars_1ad59b93052db4ef6b40512448e3936c08" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>outputc</name></member>
+      <member refid="structtimestep__module_1_1timepars_1a9d3fa3fb737eb8c9ad152d651f487170" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>outputg</name></member>
+      <member refid="structtimestep__module_1_1timepars_1a613460d496bc046e2a3183e5853a1a5f" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>outputm</name></member>
+      <member refid="structtimestep__module_1_1timepars_1acb84b710531e0c15378baf9a95ff9898" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>outputp</name></member>
+      <member refid="structtimestep__module_1_1timepars_1ac94fe84942ed6afb34143100262bcb71" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>outputw</name></member>
+      <member refid="structtimestep__module_1_1timepars_1a9487da01579ef54668c0cf4b6e4a55da" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>tnext</name></member>
+      <member refid="structtimestep__module_1_1timepars_1ac41dc4b952d623f151521612a50229f6" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>tpc</name></member>
+      <member refid="structtimestep__module_1_1timepars_1a08e1a94af19c714808fdf9e33c88ce9e" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>tpg</name></member>
+      <member refid="structtimestep__module_1_1timepars_1abed822a808a45175d28e5321e0637712" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>tpm</name></member>
+      <member refid="structtimestep__module_1_1timepars_1aad5bc356670e218fcf1731c3835e26ce" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>tpp</name></member>
+      <member refid="structtimestep__module_1_1timepars_1a2fc9be952646ff0701eae26c3340c067" prot="public" virt="non-virtual"><scope>timestep_module::timepars</scope><name>tpw</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

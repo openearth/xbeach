@@ -1,0 +1,215 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacespaceparams" kind="namespace" language="Fortran">
+    <compoundname>spaceparams</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacespaceparams_1a3cfea096bf8de1fb71854e00c05208d1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spaceparams::indextos</definition>
+        <argsstring>(s, index, t)</argsstring>
+        <name>indextos</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>index</type>
+          <defname>index</defname>
+        </param>
+        <param>
+          <type>t</type>
+          <defname>t</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" line="41" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" bodystart="42" bodyend="62"/>
+        <references refid="namespacexmpi__module_1a5406ad4cd4b3c61bf18b86fe6dcd9936" compoundref="xmpi_8_f90" startline="1576" endline="1599">xmpi_module::halt_program</references>
+        <referencedby refid="namespacencoutput__module_1add76f51974798ee86bdba2feca0e7666" compoundref="ncoutput_8_f90" startline="1649" endline="1753">ncoutput_module::fortoutput_init</referencedby>
+        <referencedby refid="namespacemeans__module_1a95979883d76039a508a84a0ad8e5be95" compoundref="varianceupdate_8_f90" startline="270" endline="392">means_module::makeaverage</referencedby>
+        <referencedby refid="namespacemeans__module_1ab93596239950e6b2c41862afcda9b422" compoundref="varianceupdate_8_f90" startline="434" endline="483">means_module::makecrossvector</referencedby>
+        <referencedby refid="namespacemeans__module_1a32b001956163af2bb2c67c585cac76cc" compoundref="varianceupdate_8_f90" startline="53" endline="265">means_module::means_init</referencedby>
+        <referencedby refid="namespacencoutput__module_1a7e43e48b9f07855523f1ffa6b1dac007" compoundref="ncoutput_8_f90" startline="640" endline="1551">ncoutput_module::ncoutput</referencedby>
+        <referencedby refid="demo_8_f90_1a13a2d5eaf64c3ad3b537e9b4e17c627c" compoundref="demo_8_f90" startline="55" endline="107">setvar</referencedby>
+        <referencedby refid="namespacespaceparams_1ae27b88ede742d56c3a67dfc9c2d9545d" compoundref="spaceparams_8_f90" startline="148" endline="155">space_alloc_arrays_dummies</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespaceparams_1a435cda2ac9e609b11370d8f71e0ce6a8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spaceparams::index_allocate</definition>
+        <argsstring>(s, par, index, choice)</argsstring>
+        <name>index_allocate</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>index</type>
+          <defname>index</defname>
+        </param>
+        <param>
+          <type>choice</type>
+          <defname>choice</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" line="65" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" bodystart="66" bodyend="101"/>
+        <referencedby refid="namespacemeans__module_1a32b001956163af2bb2c67c585cac76cc" compoundref="varianceupdate_8_f90" startline="53" endline="265">means_module::means_init</referencedby>
+        <referencedby refid="namespacespaceparams_1ae27b88ede742d56c3a67dfc9c2d9545d" compoundref="spaceparams_8_f90" startline="148" endline="155">space_alloc_arrays_dummies</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespaceparams_1a7b68fb18df7e1de4f5449a510e821603" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>logical function</type>
+        <definition>logical function spaceparams::index_allocated</definition>
+        <argsstring>(s, index)</argsstring>
+        <name>index_allocated</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>index</type>
+          <defname>index</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" line="104" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" bodystart="105" bodyend="121"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacespaceparams_1a587ab11ac9b178cc5f6a0de4273fd14b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spaceparams::space_alloc_scalars</definition>
+        <argsstring>(s)</argsstring>
+        <name>space_alloc_scalars</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" line="125" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" bodystart="126" bodyend="131"/>
+        <referencedby refid="demo_8_f90_1a5b31693ae1e23c438c97976df5dabba0" compoundref="demo_8_f90" startline="4">demo</referencedby>
+        <referencedby refid="namespacelibxbeach__module_1a6be3278b63e39d796c22bef0227fd2c4" compoundref="libxbeach_8_f90" startline="60" endline="208">libxbeach_module::init</referencedby>
+        <referencedby refid="namespacespaceparams_1ae27b88ede742d56c3a67dfc9c2d9545d" compoundref="spaceparams_8_f90" startline="148" endline="155">space_alloc_arrays_dummies</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespaceparams_1a74871eba3f7d85eb1b0ac57df83e1176" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spaceparams::space_alloc_arrays</definition>
+        <argsstring>(s, par)</argsstring>
+        <name>space_alloc_arrays</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" line="135" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" bodystart="136" bodyend="143"/>
+        <referencedby refid="namespacespaceparams_1ae27b88ede742d56c3a67dfc9c2d9545d" compoundref="spaceparams_8_f90" startline="148" endline="155">space_alloc_arrays_dummies</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespaceparams_1ae27b88ede742d56c3a67dfc9c2d9545d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spaceparams::space_alloc_arrays_dummies</definition>
+        <argsstring>(s, par)</argsstring>
+        <name>space_alloc_arrays_dummies</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" line="147" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" bodystart="148" bodyend="155"/>
+        <references refid="namespacemnemmodule_1a644597af8c9700795b17c6878478af6a" compoundref="mnemonic_8_f90" startline="36" endline="46">mnemmodule::chartoindex</references>
+        <references refid="namespacelogging__module_1a75318054963d9881174ebcfc0a8aff17" compoundref="logging_8_f90" startline="106" endline="113">logging_module::get_logfileid</references>
+        <references refid="namespacexmpi__module_1a5406ad4cd4b3c61bf18b86fe6dcd9936" compoundref="xmpi_8_f90" startline="1576" endline="1599">xmpi_module::halt_program</references>
+        <references refid="namespacespaceparams_1a435cda2ac9e609b11370d8f71e0ce6a8" compoundref="spaceparams_8_f90" startline="66" endline="101">index_allocate</references>
+        <references refid="namespacespaceparams_1a3cfea096bf8de1fb71854e00c05208d1" compoundref="spaceparams_8_f90" startline="42" endline="62">indextos</references>
+        <references refid="namespacemnemmodule_1a59ccd52679b2f8c14fa8b0edb60d2308" compoundref="mnemonic_8_f90" startline="50" endline="72">mnemmodule::printvar</references>
+        <references refid="namespacespaceparams_1a74871eba3f7d85eb1b0ac57df83e1176" compoundref="spaceparams_8_f90" startline="136" endline="143">space_alloc_arrays</references>
+        <references refid="namespacespaceparams_1a587ab11ac9b178cc5f6a0de4273fd14b" compoundref="spaceparams_8_f90" startline="126" endline="131">space_alloc_scalars</references>
+        <references refid="namespacexmpi__module_1a24b4553e8e3ce80ce55611ad7978ab53" compoundref="xmpi_8_f90" startline="93" endline="93">xmpi_module::xcompute</references>
+        <references refid="namespacexmpi__module_1a49447cc5b155a1ab5c81885e6dc7943d" compoundref="xmpi_8_f90" startline="91" endline="91">xmpi_module::xmaster</references>
+        <references refid="namespacexmpi__module_1ac778e42cacd126f42e143ef2f41e50f7" compoundref="xmpi_8_f90" startline="88" endline="88">xmpi_module::xmpi_rank</references>
+        <references refid="namespacexmpi__module_1aece675e7398d1c8d8da4fc20474d805c" compoundref="xmpi_8_f90" startline="90" endline="90">xmpi_module::xmpi_size</references>
+        <references refid="namespacexmpi__module_1aa6bc7fa3bf59526545d88454ac9966c8" compoundref="xmpi_8_f90" startline="92" endline="92">xmpi_module::xomaster</references>
+        <referencedby refid="namespacelibxbeach__module_1a6be3278b63e39d796c22bef0227fd2c4" compoundref="libxbeach_8_f90" startline="60" endline="208">libxbeach_module::init</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespaceparams_1a56945a59b2561b00de2b00346d8f3d94" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spaceparams::gridprops</definition>
+        <argsstring>(s)</argsstring>
+        <name>gridprops</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" line="1132" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" bodystart="1133" bodyend="1416"/>
+        <referencedby refid="namespaceinitialize__module_1a136e355c2d0d9b15d752b23d76b3b2de" compoundref="initialize_8_f90" startline="12" endline="402">initialize_module::grid_bathy</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacespaceparams_1afb3f1ea3c9a0737af4d14e673acde762" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine spaceparams::ranges_init</definition>
+        <argsstring>(s)</argsstring>
+        <name>ranges_init</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" line="1419" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" bodystart="1420" bodyend="1488"/>
+        <references refid="namespacexmpi__module_1a281654b5481d47b466e10e7f857fcf24" compoundref="xmpi_8_f90" startline="97" endline="97">xmpi_module::xmpi_isbot</references>
+        <references refid="namespacexmpi__module_1a4b31181bc5bc2f1ad392c89d10b8156f" compoundref="xmpi_8_f90" startline="94" endline="94">xmpi_module::xmpi_isleft</references>
+        <references refid="namespacexmpi__module_1a4cab1e00b04041deb9aa9ef1b14d5d0d" compoundref="xmpi_8_f90" startline="95" endline="95">xmpi_module::xmpi_isright</references>
+        <references refid="namespacexmpi__module_1ac3d9414ca1095147ffb44c77aed98f09" compoundref="xmpi_8_f90" startline="96" endline="96">xmpi_module::xmpi_istop</references>
+        <referencedby refid="namespacelibxbeach__module_1a6be3278b63e39d796c22bef0227fd2c4" compoundref="libxbeach_8_f90" startline="60" endline="208">libxbeach_module::init</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/spaceparams.F90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

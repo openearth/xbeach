@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacemnemiso__module" kind="namespace" language="Fortran">
+    <compoundname>mnemiso_module</compoundname>
+    <innerclass refid="structmnemiso__module_1_1b__arraytype" prot="public">mnemiso_module::b_arraytype</innerclass>
+    <innerclass refid="structmnemiso__module_1_1carraytype" prot="public">mnemiso_module::carraytype</innerclass>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacemnemiso__module_1a3146e50b3a3846ce4359ebdbd259de62" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>type(<ref refid="structmnemiso__module_1_1carraytype" kindref="compound">carraytype</ref>) function</type>
+        <definition>type(carraytype) function mnemiso_module::arrayf2c</definition>
+        <argsstring>(farray)</argsstring>
+        <name>arrayf2c</name>
+        <param>
+          <type>farray</type>
+          <defname>farray</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" line="32" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" bodystart="33" bodyend="44"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacemnemiso__module_1a8cc909718a9660131765bb63cbb6b3ab" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer(c_int) function</type>
+        <definition>integer(c_int) function mnemiso_module::stringlength</definition>
+        <argsstring>(char_array)</argsstring>
+        <name>stringlength</name>
+        <param>
+          <type>char_array</type>
+          <defname>char_array</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" line="50" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" bodystart="51" bodyend="60"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemoniciso.F90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,181 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespacexbeach__bmi" kind="namespace" language="Fortran">
+    <compoundname>xbeach_bmi</compoundname>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="namespacexbeach__bmi_1aa095bb9b9672c5fbdfb736993fc806e2" prot="public" static="no" mutable="no">
+        <type>integer(c_int), <ref refid="structgetkey__module_1_1parameter" kindref="compound">parameter</ref></type>
+        <definition>integer(c_int), parameter xbeach_bmi::maxdims</definition>
+        <argsstring></argsstring>
+        <name>maxdims</name>
+        <initializer>= 6</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" line="16" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" bodystart="16" bodyend="16"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespacexbeach__bmi_1a71deffbd14cd48fc80cf390807571cad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer(c_int) function</type>
+        <definition>integer(c_int) function xbeach_bmi::finalize</definition>
+        <argsstring>()</argsstring>
+        <name>finalize</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" line="23" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" bodystart="24" bodyend="27"/>
+        <references refid="namespacelibxbeach__module_1a2177479f30ed985fe1b67de2c09c603f" compoundref="libxbeach_8_f90" startline="284" endline="300">libxbeach_module::final</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacexbeach__bmi_1aab11de777a7108baa7a8c0df96e0d7f6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer(c_int) function</type>
+        <definition>integer(c_int) function xbeach_bmi::initialize</definition>
+        <argsstring>(c_configfile)</argsstring>
+        <name>initialize</name>
+        <param>
+          <type>c_configfile</type>
+          <defname>c_configfile</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" line="31" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" bodystart="32" bodyend="44"/>
+        <references refid="namespaceiso__c__utils_1a4fbfa7498aa25b4689b6cdd592b92e47" compoundref="iso__c__utils_8f90" startline="53" endline="58">iso_c_utils::char_array_to_string</references>
+        <references refid="namespacelibxbeach__module_1a6be3278b63e39d796c22bef0227fd2c4" compoundref="libxbeach_8_f90" startline="60" endline="208">libxbeach_module::init</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacexbeach__bmi_1a583c70350dfb1bd6662314e590956449" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>integer(c_int) function</type>
+        <definition>integer(c_int) function xbeach_bmi::update</definition>
+        <argsstring>(dt)</argsstring>
+        <name>update</name>
+        <param>
+          <type>dt</type>
+          <defname>dt</defname>
+        </param>
+        <briefdescription>
+<para>Performs a single timestep with the current model. </para>        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" line="49" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" bodystart="50" bodyend="62"/>
+        <references refid="namespacelibxbeach__module_1ab7b2cd54072abb0329a424307f8b9bfb" compoundref="libxbeach_8_f90" startline="229" endline="278">libxbeach_module::executestep</references>
+        <references refid="namespacelibxbeach__module_1ac360bb577f5a0f3dbdc0d0fa49b2885f" compoundref="libxbeach_8_f90" startline="32" endline="32">libxbeach_module::par</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacexbeach__bmi_1a89eed08be7c6ad6451651703c55faac4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine xbeach_bmi::get_var_type</definition>
+        <argsstring>(c_var_name, c_type_name)</argsstring>
+        <name>get_var_type</name>
+        <param>
+          <type>c_var_name</type>
+          <defname>c_var_name</defname>
+        </param>
+        <param>
+          <type>c_type_name</type>
+          <defname>c_type_name</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" line="67" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" bodystart="68" bodyend="100"/>
+        <references refid="namespaceiso__c__utils_1a4fbfa7498aa25b4689b6cdd592b92e47" compoundref="iso__c__utils_8f90" startline="53" endline="58">iso_c_utils::char_array_to_string</references>
+        <references refid="namespacelibxbeach__module_1a8b26bebb952c0c867bd51be0b60358b8" compoundref="libxbeach_8_f90" startline="34" endline="34">libxbeach_module::s</references>
+        <references refid="namespaceiso__c__utils_1a112b6849dbae4185064719195a0c5972" compoundref="iso__c__utils_8f90" startline="62" endline="69">iso_c_utils::string_to_char_array</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacexbeach__bmi_1a22721fe43bcddf4e6c4acdcb389bb198" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine xbeach_bmi::get_var_rank</definition>
+        <argsstring>(c_var_name, rank)</argsstring>
+        <name>get_var_rank</name>
+        <param>
+          <type>c_var_name</type>
+          <defname>c_var_name</defname>
+        </param>
+        <param>
+          <type>rank</type>
+          <defname>rank</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" line="103" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" bodystart="104" bodyend="120"/>
+        <references refid="namespaceiso__c__utils_1a4fbfa7498aa25b4689b6cdd592b92e47" compoundref="iso__c__utils_8f90" startline="53" endline="58">iso_c_utils::char_array_to_string</references>
+        <references refid="namespacelibxbeach__module_1a8b26bebb952c0c867bd51be0b60358b8" compoundref="libxbeach_8_f90" startline="34" endline="34">libxbeach_module::s</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacexbeach__bmi_1a7e07912697de534dac755ec88c5d8a98" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine xbeach_bmi::get_current_time</definition>
+        <argsstring>(time)</argsstring>
+        <name>get_current_time</name>
+        <param>
+          <type>time</type>
+          <defname>time</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" line="126" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" bodystart="127" bodyend="131"/>
+        <references refid="namespacelibxbeach__module_1ac360bb577f5a0f3dbdc0d0fa49b2885f" compoundref="libxbeach_8_f90" startline="32" endline="32">libxbeach_module::par</references>
+      </memberdef>
+      <memberdef kind="function" id="namespacexbeach__bmi_1a4a1225317eb6e6f3f691508b7cb3b229" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine xbeach_bmi::get_start_time</definition>
+        <argsstring>(time)</argsstring>
+        <name>get_start_time</name>
+        <param>
+          <type>time</type>
+          <defname>time</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" line="134" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" bodystart="135" bodyend="139"/>
+      </memberdef>
+      <memberdef kind="function" id="namespacexbeach__bmi_1aaa61115c9b7f95f95562d6a89829bc0f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine xbeach_bmi::get_end_time</definition>
+        <argsstring>(time)</argsstring>
+        <name>get_end_time</name>
+        <param>
+          <type>time</type>
+          <defname>time</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" line="142" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" bodystart="143" bodyend="146"/>
+        <references refid="namespacelibxbeach__module_1ac360bb577f5a0f3dbdc0d0fa49b2885f" compoundref="libxbeach_8_f90" startline="32" endline="32">libxbeach_module::par</references>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/xbeach_bmi.f90" line="1" column="1"/>
+  </compounddef>
+</doxygen>

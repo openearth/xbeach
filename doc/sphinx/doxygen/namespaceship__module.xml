@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespaceship__module" kind="namespace" language="Fortran">
+    <compoundname>ship_module</compoundname>
+    <innerclass refid="structship__module_1_1ship" prot="public">ship_module::ship</innerclass>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceship__module_1a1b4f4c0a57f442c953318aef59ad8779" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine ship_module::ship_init</definition>
+        <argsstring>(s, par, sh)</argsstring>
+        <name>ship_init</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>sh</type>
+          <defname>sh</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="74" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="75" bodyend="239"/>
+        <references refid="namespacereadkey__module_1a3b57e6ff113dd33dc7d181697f571a4d" compoundref="readkey_8_f90" startline="1022" endline="1046">readkey_module::count_lines</references>
+        <references refid="namespacefilefunctions_1ac1d555ba2ee4df77c53632cb4a9216ca" compoundref="filefunctions_8_f90" startline="14" endline="25">filefunctions::create_new_fid</references>
+        <references refid="namespacereadkey__module_1a19cf207a8498165d4da7c56fe7819b31" compoundref="readkey_8_f90" startline="55" endline="146">readkey_module::readkey_dbl</references>
+        <references refid="namespacereadkey__module_1a8ac4eaa5728da46203d191b5ac95ce1d" compoundref="readkey_8_f90" startline="150" endline="232">readkey_module::readkey_int</references>
+        <references refid="namespacereadkey__module_1a69bd2c4b1cafe33a36ea39b3caa4cc1b" compoundref="readkey_8_f90" startline="324" endline="378">readkey_module::readkey_name</references>
+        <references refid="namespacexmpi__module_1a49447cc5b155a1ab5c81885e6dc7943d" compoundref="xmpi_8_f90" startline="91" endline="91">xmpi_module::xmaster</references>
+        <referencedby refid="namespacelibxbeach__module_1a6be3278b63e39d796c22bef0227fd2c4" compoundref="libxbeach_8_f90" startline="60" endline="208">libxbeach_module::init</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceship__module_1af4f012e4306eee30ffc744dff3e1f9b0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine ship_module::shipwave</definition>
+        <argsstring>(s, par, sh)</argsstring>
+        <name>shipwave</name>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>sh</type>
+          <defname>sh</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="242" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="243" bodyend="389"/>
+        <references refid="namespaceinterp_1a6789512907ee79d2e3d48276ddb77fbd" compoundref="interp_8_f90" startline="569" endline="628">interp::grmap</references>
+        <references refid="namespaceinterp_1a6ae36099f982372c6cb39a1d5c42f4ad" compoundref="interp_8_f90" startline="633" endline="675">interp::grmap2</references>
+        <references refid="namespaceinterp_1a0a169735d9debaa040755b8d02360fe0" compoundref="interp_8_f90" startline="103" endline="154">interp::linear_interp</references>
+        <references refid="namespaceinterp_1a12bb8a82f8b5c2dab08f5f6b37245ccf" compoundref="interp_8_f90" startline="226" endline="482">interp::mkmap</references>
+        <references refid="namespaceship__module_1a8c3fd88dad47088d26a053c8c49961c6" compoundref="ship_8_f90" startline="393" endline="434">ship_force</references>
+        <referencedby refid="namespacelibxbeach__module_1ab7b2cd54072abb0329a424307f8b9bfb" compoundref="libxbeach_8_f90" startline="229" endline="278">libxbeach_module::executestep</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceship__module_1a8c3fd88dad47088d26a053c8c49961c6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine ship_module::ship_force</definition>
+        <argsstring>(i, sh, s, par)</argsstring>
+        <name>ship_force</name>
+        <param>
+          <type>i</type>
+          <defname>i</defname>
+        </param>
+        <param>
+          <type>sh</type>
+          <defname>sh</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="392" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" bodystart="393" bodyend="434"/>
+        <referencedby refid="namespaceship__module_1af4f012e4306eee30ffc744dff3e1f9b0" compoundref="ship_8_f90" startline="243" endline="389">shipwave</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/ship.F90" line="27" column="1"/>
+  </compounddef>
+</doxygen>

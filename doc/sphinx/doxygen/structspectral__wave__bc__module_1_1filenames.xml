@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="structspectral__wave__bc__module_1_1filenames" kind="type" language="Fortran" prot="public">
+    <compoundname>spectral_wave_bc_module::filenames</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structspectral__wave__bc__module_1_1filenames_1a9d05af02568f46277137c7888e1d7536" prot="public" static="no" mutable="no">
+        <type>character(slen)</type>
+        <definition>character(slen) spectral_wave_bc_module::filenames::fname</definition>
+        <argsstring></argsstring>
+        <name>fname</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="59" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="59" bodyend="59"/>
+      </memberdef>
+      <memberdef kind="variable" id="structspectral__wave__bc__module_1_1filenames_1ac6bcfb50c4153d48dc0758b35dcc1649" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer spectral_wave_bc_module::filenames::listline</definition>
+        <argsstring></argsstring>
+        <name>listline</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="60" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="60" bodyend="60"/>
+      </memberdef>
+      <memberdef kind="variable" id="structspectral__wave__bc__module_1_1filenames_1ad57555049c8fdc096ff6d92d284ee00f" prot="public" static="no" mutable="no">
+        <type>logical</type>
+        <definition>logical spectral_wave_bc_module::filenames::reuse</definition>
+        <argsstring></argsstring>
+        <name>reuse</name>
+        <initializer>= .false.</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="61" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="61" bodyend="61"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" line="58" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/waveparamsnew.F90" bodystart="58" bodyend="62"/>
+    <listofallmembers>
+      <member refid="structspectral__wave__bc__module_1_1filenames_1a9d05af02568f46277137c7888e1d7536" prot="public" virt="non-virtual"><scope>spectral_wave_bc_module::filenames</scope><name>fname</name></member>
+      <member refid="structspectral__wave__bc__module_1_1filenames_1ac6bcfb50c4153d48dc0758b35dcc1649" prot="public" virt="non-virtual"><scope>spectral_wave_bc_module::filenames</scope><name>listline</name></member>
+      <member refid="structspectral__wave__bc__module_1_1filenames_1ad57555049c8fdc096ff6d92d284ee00f" prot="public" virt="non-virtual"><scope>spectral_wave_bc_module::filenames</scope><name>reuse</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

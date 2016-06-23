@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="typesandkinds_8_f90" kind="file" language="Fortran">
+    <compoundname>typesandkinds.F90</compoundname>
+    <innernamespace refid="namespacetypesandkinds">typesandkinds</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1" refid="namespacetypesandkinds" refkind="compound"><highlight class="keyword">module</highlight><highlight class="normal"><sp/><ref refid="namespacetypesandkinds" kindref="compound">typesandkinds</ref></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">implicit<sp/>none</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">save</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4" refid="namespacetypesandkinds_1ae89a1fce301d87dbca97395e973c636c" refkind="member"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">parameter</highlight><highlight class="normal"><sp/>::<sp/><ref refid="namespacetypesandkinds_1ae89a1fce301d87dbca97395e973c636c" kindref="member">slen</ref><sp/>=<sp/>1024</highlight></codeline>
+<codeline lineno="5" refid="namespacetypesandkinds_1aaa5bbe32078fe7848f6996ee89a097c7" refkind="member"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">parameter</highlight><highlight class="normal"><sp/>::<sp/><ref refid="namespacetypesandkinds_1aaa5bbe32078fe7848f6996ee89a097c7" kindref="member">dimnamelen</ref><sp/>=<sp/>20</highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="keyword">end<sp/>module<sp/></highlight><highlight class="normal"><ref refid="namespacetypesandkinds" kindref="compound">typesandkinds</ref></highlight></codeline>
+    </programlisting>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/typesandkinds.F90"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="structwave__boundary__update__module_1_1shortspectrum" kind="type" language="Fortran" prot="private">
+    <compoundname>wave_boundary_update_module::shortspectrum</compoundname>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structwave__boundary__update__module_1_1shortspectrum_1a1a11c3878b0410bb090e498c976606b4" prot="private" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer wave_boundary_update_module::shortspectrum::sf</definition>
+        <argsstring></argsstring>
+        <name>sf</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="20" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="20" bodyend="20"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" line="19" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/wave_boundary_update.f90" bodystart="19" bodyend="21"/>
+    <listofallmembers>
+      <member refid="structwave__boundary__update__module_1_1shortspectrum_1a1a11c3878b0410bb090e498c976606b4" prot="private" virt="non-virtual"><scope>wave_boundary_update_module::shortspectrum</scope><name>sf</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

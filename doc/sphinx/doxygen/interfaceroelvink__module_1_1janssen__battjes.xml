@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="interfaceroelvink__module_1_1janssen__battjes" kind="interface" language="Fortran" prot="public">
+    <compoundname>roelvink_module::janssen_battjes</compoundname>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="interfaceroelvink__module_1_1janssen__battjes_1a86756cec5853ac8d8b9ac5e068cfff5f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine roelvink_module::janssen_battjes::janssen_battjes_1d</definition>
+        <argsstring>(par, s, km, i)</argsstring>
+        <name>janssen_battjes_1d</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>km</type>
+          <defname>km</defname>
+        </param>
+        <param>
+          <type>i</type>
+          <defname>i</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" line="187" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" bodystart="188" bodyend="223"/>
+      </memberdef>
+      <memberdef kind="function" id="interfaceroelvink__module_1_1janssen__battjes_1a5e26212b80118fc83f68da9711b2e889" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>subroutine</type>
+        <definition>subroutine roelvink_module::janssen_battjes::janssen_battjes_2d</definition>
+        <argsstring>(par, s, km)</argsstring>
+        <name>janssen_battjes_2d</name>
+        <param>
+          <type>par</type>
+          <defname>par</defname>
+        </param>
+        <param>
+          <type>s</type>
+          <defname>s</defname>
+        </param>
+        <param>
+          <type>km</type>
+          <defname>km</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" line="226" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" bodystart="227" bodyend="243"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" line="41" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/roelvink.F90" bodystart="41" bodyend="43"/>
+    <listofallmembers>
+      <member refid="interfaceroelvink__module_1_1janssen__battjes_1a86756cec5853ac8d8b9ac5e068cfff5f" prot="public" virt="non-virtual"><scope>roelvink_module::janssen_battjes</scope><name>janssen_battjes_1d</name></member>
+      <member refid="interfaceroelvink__module_1_1janssen__battjes_1a5e26212b80118fc83f68da9711b2e889" prot="public" virt="non-virtual"><scope>roelvink_module::janssen_battjes</scope><name>janssen_battjes_2d</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

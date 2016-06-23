@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="sleeper_8_f90" kind="file" language="Fortran">
+    <compoundname>sleeper.F90</compoundname>
+    <innernamespace refid="namespacesleeper">sleeper</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">!<sp/>provides<sp/>subroutine<sp/>myusleep(n)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>sleeps<sp/>for<sp/>n<sp/>microseconds</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3" refid="namespacesleeper" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">module</highlight><highlight class="normal"><sp/><ref refid="namespacesleeper" kindref="compound">sleeper</ref></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>__GFORTRAN__</highlight></codeline>
+<codeline lineno="5"><highlight class="preprocessor"></highlight><highlight class="normal"><sp/><sp/><sp/>use,<sp/></highlight><highlight class="keywordtype">intrinsic</highlight><highlight class="normal"><sp/>::<sp/>iso_c_binding</highlight></codeline>
+<codeline lineno="6"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">implicit<sp/>none</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">save</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keyword">interface</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="keyword"><sp/><sp/><sp/><sp/><sp/><sp/>subroutine<sp/></highlight><highlight class="normal">usleep(i)<sp/>bind(C,name=&apos;usleep&apos;)</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>import</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer(c_int)</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">value</highlight><highlight class="normal"><sp/>::<sp/>i</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="keyword"><sp/><sp/><sp/><sp/><sp/><sp/>end<sp/>subroutine<sp/></highlight><highlight class="normal">usleep</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="keyword"><sp/><sp/><sp/>end<sp/>interface</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight></codeline>
+<codeline lineno="15"><highlight class="preprocessor"></highlight><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">implicit<sp/>none</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">save</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="18"><highlight class="preprocessor"></highlight><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">private</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">public</highlight><highlight class="normal">::<sp/><ref refid="namespacesleeper_1aa7ff3893148523a59b59b2b88902ae2f" kindref="member">myusleep</ref></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="keyword">contains</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>__GFORTRAN__</highlight></codeline>
+<codeline lineno="23"><highlight class="preprocessor"></highlight><highlight class="keyword"><sp/><sp/><sp/>subroutine<sp/></highlight><highlight class="normal"><ref refid="namespacesleeper_1aa7ff3893148523a59b59b2b88902ae2f" kindref="member">myusleep</ref>(i)</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">intent(in)</highlight><highlight class="normal"><sp/>::<sp/>i</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">call<sp/></highlight><highlight class="normal">usleep(i)</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keyword"><sp/><sp/><sp/>end<sp/>subroutine<sp/></highlight><highlight class="normal"><ref refid="namespacesleeper_1aa7ff3893148523a59b59b2b88902ae2f" kindref="member">myusleep</ref></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>__INTEL_COMPILER</highlight></codeline>
+<codeline lineno="28"><highlight class="preprocessor"></highlight><highlight class="keyword"><sp/><sp/><sp/>subroutine<sp/></highlight><highlight class="normal"><ref refid="namespacesleeper_1aa7ff3893148523a59b59b2b88902ae2f" kindref="member">myusleep</ref>(i)</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">intent(in)</highlight><highlight class="normal"><sp/>::<sp/>i</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal"><sp/>j</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>j<sp/>=<sp/>i/1000</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>j<sp/>=<sp/>max(1,j)</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">call<sp/></highlight><highlight class="normal">sleepqq(j)</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="keyword"><sp/><sp/><sp/>end<sp/>subroutine<sp/></highlight><highlight class="normal"><ref refid="namespacesleeper_1aa7ff3893148523a59b59b2b88902ae2f" kindref="member">myusleep</ref></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>__PGI</highlight></codeline>
+<codeline lineno="36"><highlight class="preprocessor"></highlight><highlight class="keyword"><sp/><sp/><sp/>subroutine<sp/></highlight><highlight class="normal"><ref refid="namespacesleeper_1aa7ff3893148523a59b59b2b88902ae2f" kindref="member">myusleep</ref>(i)</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">intent(in)</highlight><highlight class="normal"><sp/>::<sp/>i</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal"><sp/>j</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>j<sp/>=<sp/>i/1000</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>j<sp/>=<sp/>max(1,j)</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">call<sp/></highlight><highlight class="normal">sleepqq(j)</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="keyword"><sp/><sp/><sp/>end<sp/>subroutine<sp/></highlight><highlight class="normal"><ref refid="namespacesleeper_1aa7ff3893148523a59b59b2b88902ae2f" kindref="member">myusleep</ref></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight></codeline>
+<codeline lineno="44"><highlight class="preprocessor"></highlight><highlight class="keyword"><sp/><sp/><sp/>subroutine<sp/></highlight><highlight class="normal"><ref refid="namespacesleeper_1aa7ff3893148523a59b59b2b88902ae2f" kindref="member">myusleep</ref>(i)</highlight></codeline>
+<codeline lineno="45" refid="namespacesleeper_1aa7ff3893148523a59b59b2b88902ae2f" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>this<sp/>is<sp/>the<sp/>final<sp/>resort:<sp/>do<sp/>not<sp/>sleep<sp/>at<sp/>all</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">intent(in)</highlight><highlight class="normal"><sp/>::<sp/>i</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal"><sp/>j</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>j<sp/>=<sp/>i/1000000</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>j<sp/>=<sp/>max(0,j)</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">!<sp/>j<sp/>=<sp/>max(1,j)<sp/>!<sp/>will<sp/>sleep<sp/>for<sp/>one<sp/>second</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">call<sp/></highlight><highlight class="normal">sleep(j)</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="keyword"><sp/><sp/><sp/>end<sp/>subroutine<sp/></highlight><highlight class="normal"><ref refid="namespacesleeper_1aa7ff3893148523a59b59b2b88902ae2f" kindref="member">myusleep</ref></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="54"><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="keyword">end<sp/>module<sp/></highlight><highlight class="normal"><ref refid="namespacesleeper" kindref="compound">sleeper</ref></highlight></codeline>
+    </programlisting>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/sleeper.F90"/>
+  </compounddef>
+</doxygen>

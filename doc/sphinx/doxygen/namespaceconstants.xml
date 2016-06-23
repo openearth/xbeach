@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="namespaceconstants" kind="namespace" language="Fortran">
+    <compoundname>constants</compoundname>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="namespaceconstants_1af15aa770a4c1973924668e91cd970b5e" prot="public" static="no" mutable="no">
+        <type>integer, parameter</type>
+        <definition>integer, parameter constants::sp</definition>
+        <argsstring></argsstring>
+        <name>sp</name>
+        <initializer>= kind(1.0)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/constants.F90" line="26" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/constants.F90" bodystart="26" bodyend="26"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceconstants_1a1a28a6edcc3cd14a0b8ca99f0a5d4e2c" prot="public" static="no" mutable="no">
+        <type>integer, parameter</type>
+        <definition>integer, parameter constants::dp</definition>
+        <argsstring></argsstring>
+        <name>dp</name>
+        <initializer>= kind(1.0d00)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/constants.F90" line="27" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/constants.F90" bodystart="27" bodyend="27"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/constants.F90" line="22" column="1"/>
+  </compounddef>
+</doxygen>

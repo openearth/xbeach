@@ -1,0 +1,340 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="structmeans__module_1_1meanspars" kind="type" language="Fortran" prot="public">
+    <compoundname>means_module::meanspars</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a7beacb54d3dec6d152955958387387cb" prot="public" static="no" mutable="no">
+        <type>character(maxnamelen)</type>
+        <definition>character(maxnamelen) means_module::meanspars::name</definition>
+        <argsstring></argsstring>
+        <name>name</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="14" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="14" bodyend="14"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a1d383c2fecb0cf464e78511ae9455229" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer means_module::meanspars::rank</definition>
+        <argsstring></argsstring>
+        <name>rank</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="16" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="16" bodyend="16"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1ac8479f97a71f04f2f16d5d3a113f01b3" prot="public" static="no" mutable="no">
+        <type>type(<ref refid="structmnemmodule_1_1arraytype" kindref="compound">arraytype</ref>)</type>
+        <definition>type(arraytype) means_module::meanspars::t</definition>
+        <argsstring></argsstring>
+        <name>t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="19" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="19" bodyend="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a2dee6ce3a2ff0e058b500d08d419b3fe" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer means_module::meanspars::mean2d</definition>
+        <argsstring></argsstring>
+        <name>mean2d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="22" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="22" bodyend="22"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a5f75b0bc3d12887fb576574b2eda9787" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:), pointer</type>
+        <definition>real*8, dimension(:,:,:), pointer means_module::meanspars::mean3d</definition>
+        <argsstring></argsstring>
+        <name>mean3d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="23" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="23" bodyend="23"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a3ddbcc043dd043fb2373e0f30a0e5551" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:,:), pointer</type>
+        <definition>real*8, dimension(:,:,:,:), pointer means_module::meanspars::mean4d</definition>
+        <argsstring></argsstring>
+        <name>mean4d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="24" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="24" bodyend="24"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a23a6ee7809d9126f003d61546e7f85d4" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer means_module::meanspars::variance2d</definition>
+        <argsstring></argsstring>
+        <name>variance2d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="26" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="26" bodyend="26"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a4e163eed1842a5dbeb79a95465c74f08" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:), pointer</type>
+        <definition>real*8, dimension(:,:,:), pointer means_module::meanspars::variance3d</definition>
+        <argsstring></argsstring>
+        <name>variance3d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="27" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="27" bodyend="27"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a99fff903ed6d6b99582e010b9a904d18" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:,:), pointer</type>
+        <definition>real*8, dimension(:,:,:,:), pointer means_module::meanspars::variance4d</definition>
+        <argsstring></argsstring>
+        <name>variance4d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="28" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="28" bodyend="28"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1aa5992b3866f437cfcd23da46188ea1d7" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer means_module::meanspars::variancecrossterm2d</definition>
+        <argsstring></argsstring>
+        <name>variancecrossterm2d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="30" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="30" bodyend="30"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1abd57bac89b1edfa3268b9c74defb73c2" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:), pointer</type>
+        <definition>real*8, dimension(:,:,:), pointer means_module::meanspars::variancecrossterm3d</definition>
+        <argsstring></argsstring>
+        <name>variancecrossterm3d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="31" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="31" bodyend="31"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1acb9b794b720fa6c58c1b3ec290f7d3d3" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:,:), pointer</type>
+        <definition>real*8, dimension(:,:,:,:), pointer means_module::meanspars::variancecrossterm4d</definition>
+        <argsstring></argsstring>
+        <name>variancecrossterm4d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="32" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="32" bodyend="32"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a200f5ccfd976261d5b9f304989ff8c0e" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer means_module::meanspars::variancesquareterm2d</definition>
+        <argsstring></argsstring>
+        <name>variancesquareterm2d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="34" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="34" bodyend="34"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1ad0aa648aecccf4d37f4f37867a425fab" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:), pointer</type>
+        <definition>real*8, dimension(:,:,:), pointer means_module::meanspars::variancesquareterm3d</definition>
+        <argsstring></argsstring>
+        <name>variancesquareterm3d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="35" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="35" bodyend="35"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a86717d0920e174f7aea28da69b514f9c" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:,:), pointer</type>
+        <definition>real*8, dimension(:,:,:,:), pointer means_module::meanspars::variancesquareterm4d</definition>
+        <argsstring></argsstring>
+        <name>variancesquareterm4d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="36" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="36" bodyend="36"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a99fd9e9302d5b9514334dc153b01f604" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer means_module::meanspars::min2d</definition>
+        <argsstring></argsstring>
+        <name>min2d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="38" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="38" bodyend="38"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a58e66805f225d29e10c687f66e58025b" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:), pointer</type>
+        <definition>real*8, dimension(:,:,:), pointer means_module::meanspars::min3d</definition>
+        <argsstring></argsstring>
+        <name>min3d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="39" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="39" bodyend="39"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a0796e2dbc83eaf3d3797701ac0689249" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:,:), pointer</type>
+        <definition>real*8, dimension(:,:,:,:), pointer means_module::meanspars::min4d</definition>
+        <argsstring></argsstring>
+        <name>min4d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="40" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="40" bodyend="40"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a013dc60e738882e13c2232339780eeda" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer means_module::meanspars::max2d</definition>
+        <argsstring></argsstring>
+        <name>max2d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="42" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="42" bodyend="42"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a22ba6c006a84c1a59c337821c777eeb3" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:), pointer</type>
+        <definition>real*8, dimension(:,:,:), pointer means_module::meanspars::max3d</definition>
+        <argsstring></argsstring>
+        <name>max3d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="43" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="43" bodyend="43"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmeans__module_1_1meanspars_1a0a8f5ed14cb936065afbd57aff64984c" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:,:), pointer</type>
+        <definition>real*8, dimension(:,:,:,:), pointer means_module::meanspars::max4d</definition>
+        <argsstring></argsstring>
+        <name>max4d</name>
+        <initializer>=&gt; NULL()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="44" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="44" bodyend="44"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="60">
+        <label>mnemmodule::arraytype</label>
+        <link refid="structmnemmodule_1_1arraytype"/>
+      </node>
+      <node id="59">
+        <label>means_module::meanspars</label>
+        <link refid="structmeans__module_1_1meanspars"/>
+        <childnode refid="60" relation="usage">
+          <edgelabel>t</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" line="12" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/varianceupdate.F90" bodystart="12" bodyend="45"/>
+    <listofallmembers>
+      <member refid="structmeans__module_1_1meanspars_1a013dc60e738882e13c2232339780eeda" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>max2d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a22ba6c006a84c1a59c337821c777eeb3" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>max3d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a0a8f5ed14cb936065afbd57aff64984c" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>max4d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a2dee6ce3a2ff0e058b500d08d419b3fe" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>mean2d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a5f75b0bc3d12887fb576574b2eda9787" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>mean3d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a3ddbcc043dd043fb2373e0f30a0e5551" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>mean4d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a99fd9e9302d5b9514334dc153b01f604" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>min2d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a58e66805f225d29e10c687f66e58025b" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>min3d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a0796e2dbc83eaf3d3797701ac0689249" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>min4d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a7beacb54d3dec6d152955958387387cb" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>name</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a1d383c2fecb0cf464e78511ae9455229" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>rank</name></member>
+      <member refid="structmeans__module_1_1meanspars_1ac8479f97a71f04f2f16d5d3a113f01b3" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>t</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a23a6ee7809d9126f003d61546e7f85d4" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>variance2d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a4e163eed1842a5dbeb79a95465c74f08" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>variance3d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a99fff903ed6d6b99582e010b9a904d18" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>variance4d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1aa5992b3866f437cfcd23da46188ea1d7" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>variancecrossterm2d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1abd57bac89b1edfa3268b9c74defb73c2" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>variancecrossterm3d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1acb9b794b720fa6c58c1b3ec290f7d3d3" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>variancecrossterm4d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a200f5ccfd976261d5b9f304989ff8c0e" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>variancesquareterm2d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1ad0aa648aecccf4d37f4f37867a425fab" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>variancesquareterm3d</name></member>
+      <member refid="structmeans__module_1_1meanspars_1a86717d0920e174f7aea28da69b514f9c" prot="public" virt="non-virtual"><scope>means_module::meanspars</scope><name>variancesquareterm4d</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

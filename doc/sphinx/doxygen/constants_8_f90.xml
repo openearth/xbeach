@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="constants_8_f90" kind="file" language="Fortran">
+    <compoundname>constants.F90</compoundname>
+    <innernamespace refid="namespaceconstants">constants</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">!****h*<sp/>General/Constants</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="comment">!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/>SYNOPSIS</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/><sp/><sp/><sp/>Module<sp/>defining<sp/>common<sp/>constants</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="comment">!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/>COPYRIGHT</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/><sp/><sp/><sp/>(C)<sp/>2004<sp/>by<sp/>WL|Delft<sp/>Hydraulics</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="comment">!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/>AUTHOR</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/><sp/><sp/><sp/>Arjen<sp/>Markus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="comment">!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/>DESCRIPTION</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/>This<sp/>module<sp/>contains<sp/>integer<sp/>and<sp/>real<sp/>parameters:</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/>-<sp/>kind<sp/>parameters<sp/>for<sp/>single<sp/>(sp)<sp/>and<sp/>double<sp/>(dp)<sp/>precision</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="comment">!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="comment">!<sp/>SOURCE</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="comment">!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="comment">!<sp/>wwvv<sp/>never<sp/>used</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/><sp/><sp/><sp/><sp/>this<sp/>would<sp/>be<sp/>a<sp/>nice<sp/>place<sp/>to<sp/>hold<sp/>things<sp/>as<sp/>pi,<sp/>twopi</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="comment">!<sp/><sp/><sp/><sp/><sp/><sp/>and<sp/>so<sp/>on</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22" refid="namespaceconstants" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">module</highlight><highlight class="normal"><sp/><ref refid="namespaceconstants" kindref="compound">constants</ref></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">implicit<sp/>none</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">save</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26" refid="namespaceconstants_1af15aa770a4c1973924668e91cd970b5e" refkind="member"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">parameter</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>::<sp/><ref refid="namespaceconstants_1af15aa770a4c1973924668e91cd970b5e" kindref="member">sp</ref><sp/>=<sp/>kind(1.0)</highlight></codeline>
+<codeline lineno="27" refid="namespaceconstants_1a1a28a6edcc3cd14a0b8ca99f0a5d4e2c" refkind="member"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordtype">integer</highlight><highlight class="normal">,<sp/></highlight><highlight class="keywordtype">parameter</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>::<sp/><ref refid="namespaceconstants_1a1a28a6edcc3cd14a0b8ca99f0a5d4e2c" kindref="member">dp</ref><sp/>=<sp/>kind(1.0d00)</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="keyword">end<sp/>module<sp/></highlight><highlight class="normal"><ref refid="namespaceconstants" kindref="compound">constants</ref></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="comment">!****</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/constants.F90"/>
+  </compounddef>
+</doxygen>

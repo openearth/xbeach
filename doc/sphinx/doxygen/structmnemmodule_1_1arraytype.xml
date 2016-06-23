@@ -1,0 +1,267 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.9.1">
+  <compounddef id="structmnemmodule_1_1arraytype" kind="type" language="Fortran" prot="public">
+    <compoundname>mnemmodule::arraytype</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1ad69585487318c15772643faaee80a269" prot="public" static="no" mutable="no">
+        <type>character</type>
+        <definition>character mnemmodule::arraytype::type</definition>
+        <argsstring></argsstring>
+        <name>type</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="10" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="10" bodyend="10"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1ad9957e9b6f3f03fe211a1114e2b42252" prot="public" static="no" mutable="no">
+        <type>character</type>
+        <definition>character mnemmodule::arraytype::btype</definition>
+        <argsstring></argsstring>
+        <name>btype</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="11" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="11" bodyend="11"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1a142cc0450f3d2d09f675bf69d7ce01e4" prot="public" static="no" mutable="no">
+        <type>integer</type>
+        <definition>integer mnemmodule::arraytype::rank</definition>
+        <argsstring></argsstring>
+        <name>rank</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="12" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="12" bodyend="12"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1ae5bf5215cf765b22a312ecc9b187cc3c" prot="public" static="no" mutable="no">
+        <type>character(maxnamelen)</type>
+        <definition>character(maxnamelen) mnemmodule::arraytype::name</definition>
+        <argsstring></argsstring>
+        <name>name</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="13" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="13" bodyend="13"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1a2a6bc212b5e272f62d3ee26c87f52bc9" prot="public" static="no" mutable="no">
+        <type>character(slen)</type>
+        <definition>character(slen) mnemmodule::arraytype::units</definition>
+        <argsstring></argsstring>
+        <name>units</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="14" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="14" bodyend="14"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1a45f20623e9612b6ca34d9962a277525c" prot="public" static="no" mutable="no">
+        <type>character(slen)</type>
+        <definition>character(slen) mnemmodule::arraytype::standardname</definition>
+        <argsstring></argsstring>
+        <name>standardname</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="15" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="15" bodyend="15"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1a30dff06154bddf6eb8afb8fa4faf1107" prot="public" static="no" mutable="no">
+        <type>character(slen)</type>
+        <definition>character(slen) mnemmodule::arraytype::description</definition>
+        <argsstring></argsstring>
+        <name>description</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="16" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="16" bodyend="16"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1aab93da0bc5082b6e0a90b34f3f795a64" prot="public" static="no" mutable="no">
+        <type>character(slen), dimension(maxrank)</type>
+        <definition>character(slen), dimension(maxrank) mnemmodule::arraytype::dimensions</definition>
+        <argsstring></argsstring>
+        <name>dimensions</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="17" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="17" bodyend="17"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1a9442263b68b182b6e51c010eebd6fd31" prot="public" static="no" mutable="no">
+        <type>real *8, pointer</type>
+        <definition>real*8, pointer mnemmodule::arraytype::r0</definition>
+        <argsstring></argsstring>
+        <name>r0</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="19" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="19" bodyend="19"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1aebc1d8fed7cad56872bfa3683024dd39" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:), pointer</type>
+        <definition>real*8, dimension(:), pointer mnemmodule::arraytype::r1</definition>
+        <argsstring></argsstring>
+        <name>r1</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="20" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="20" bodyend="20"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1add752b0c3caae1dc806d747308115e83" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:), pointer</type>
+        <definition>real*8, dimension(:,:), pointer mnemmodule::arraytype::r2</definition>
+        <argsstring></argsstring>
+        <name>r2</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="21" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="21" bodyend="21"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1aabf966f7e696820035d7f0a3f67336c4" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:), pointer</type>
+        <definition>real*8, dimension(:,:,:), pointer mnemmodule::arraytype::r3</definition>
+        <argsstring></argsstring>
+        <name>r3</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="22" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="22" bodyend="22"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1a36f8d88d7ad8468ea55607689ff2ceae" prot="public" static="no" mutable="no">
+        <type>real *8, dimension(:,:,:,:), pointer</type>
+        <definition>real*8, dimension(:,:,:,:), pointer mnemmodule::arraytype::r4</definition>
+        <argsstring></argsstring>
+        <name>r4</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="23" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="23" bodyend="23"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1a485b8a9f440584c8f692c6aaaa99764a" prot="public" static="no" mutable="no">
+        <type>integer, pointer</type>
+        <definition>integer, pointer mnemmodule::arraytype::i0</definition>
+        <argsstring></argsstring>
+        <name>i0</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="25" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="25" bodyend="25"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1a98d85d9925d2d2dc954184ce7993403c" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:), pointer</type>
+        <definition>integer, dimension(:), pointer mnemmodule::arraytype::i1</definition>
+        <argsstring></argsstring>
+        <name>i1</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="26" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="26" bodyend="26"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1a37ebf9f27fc011a73c6fd4f41eb2d8bf" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:,:), pointer</type>
+        <definition>integer, dimension(:,:), pointer mnemmodule::arraytype::i2</definition>
+        <argsstring></argsstring>
+        <name>i2</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="27" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="27" bodyend="27"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1a0f20064058eb252d56331347f765895a" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:,:,:), pointer</type>
+        <definition>integer, dimension(:,:,:), pointer mnemmodule::arraytype::i3</definition>
+        <argsstring></argsstring>
+        <name>i3</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="28" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="28" bodyend="28"/>
+      </memberdef>
+      <memberdef kind="variable" id="structmnemmodule_1_1arraytype_1a0c9344c11c194a79a82ced2eaa016845" prot="public" static="no" mutable="no">
+        <type>integer, dimension(:,:,:,:), pointer</type>
+        <definition>integer, dimension(:,:,:,:), pointer mnemmodule::arraytype::i4</definition>
+        <argsstring></argsstring>
+        <name>i4</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="29" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="29" bodyend="29"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" line="8" column="1" bodyfile="/Users/hoonhout/Checkouts/XBeach/trunk/src/xbeachlibrary/mnemonic.F90" bodystart="8" bodyend="31"/>
+    <listofallmembers>
+      <member refid="structmnemmodule_1_1arraytype_1ad9957e9b6f3f03fe211a1114e2b42252" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>btype</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1a30dff06154bddf6eb8afb8fa4faf1107" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>description</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1aab93da0bc5082b6e0a90b34f3f795a64" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>dimensions</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1a485b8a9f440584c8f692c6aaaa99764a" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>i0</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1a98d85d9925d2d2dc954184ce7993403c" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>i1</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1a37ebf9f27fc011a73c6fd4f41eb2d8bf" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>i2</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1a0f20064058eb252d56331347f765895a" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>i3</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1a0c9344c11c194a79a82ced2eaa016845" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>i4</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1ae5bf5215cf765b22a312ecc9b187cc3c" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>name</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1a9442263b68b182b6e51c010eebd6fd31" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>r0</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1aebc1d8fed7cad56872bfa3683024dd39" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>r1</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1add752b0c3caae1dc806d747308115e83" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>r2</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1aabf966f7e696820035d7f0a3f67336c4" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>r3</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1a36f8d88d7ad8468ea55607689ff2ceae" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>r4</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1a142cc0450f3d2d09f675bf69d7ce01e4" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>rank</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1a45f20623e9612b6ca34d9962a277525c" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>standardname</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1ad69585487318c15772643faaee80a269" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>type</name></member>
+      <member refid="structmnemmodule_1_1arraytype_1a2a6bc212b5e272f62d3ee26c87f52bc9" prot="public" virt="non-virtual"><scope>mnemmodule::arraytype</scope><name>units</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
