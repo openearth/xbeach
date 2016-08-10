@@ -350,7 +350,7 @@ contains
                s%uu(i,j)=s%uu(i,j)-par%dt*(s%ududx(i,j)+s%vdudy(i,j)-s%viscu(i,j) & !Ap,Robert,Jaap
                + par%g*s%dzsdx(i,j) &
                + s%taubx(i,j)/(par%rho*s%hu(i,j)) &  ! Dano: changed s%hum to s%hu NOT s%cf volume approach
-               + s%Fvegu(i,j) &
+               + s%Fvegu(i,j)/(par%rho*s%hu(i,j)) &
                - par%lwave*s%Fx(i,j)/(par%rho*max(s%hum(i,j),par%hmin)) &
                - fc*s%vu(i,j) &
                - par%rhoa*par%Cd*s%windsu(i,j)*sqrt(s%windsu(i,j)**2+s%windnv(i,j)**2)/(par%rho*s%hum(i,j)))    ! Kees: wind correction
@@ -586,7 +586,7 @@ contains
                s%vv(i,j)=s%vv(i,j)-par%dt*(s%udvdx(i,j)+s%vdvdy(i,j)-s%viscv(i,j)& !Ap,Robert,Jaap
                + par%g*s%dzsdy(i,j)&
                + s%tauby(i,j)/(par%rho*s%hv(i,j)) &  ! Dano: s%hv instead of s%hvm, NOT s%cf volume approach
-               + s%Fvegv(i,j) &
+               + s%Fvegv(i,j)/(par%rho*s%hv(i,j)) &
                - par%lwave*s%Fy(i,j)/(par%rho*max(s%hvm(i,j),par%hmin)) &
                + fc*s%uv(i,j) &
                - par%rhoa*par%Cd*s%windnv(i,j)*sqrt(s%windsu(i,j)**2+s%windnv(i,j)**2)/(par%rho*s%hvm(i,j)))    ! Kees: wind correction

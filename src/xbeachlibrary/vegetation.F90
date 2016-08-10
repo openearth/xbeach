@@ -146,15 +146,22 @@ subroutine veggie_init(s,par,veg)
             !call writelog('sl','(a)','Old way to specify veggie input, see http://oss.deltares.nl/web/xbeach/forum/-/message_boards/view_message/874796')
             !call writelog('sl','(a,f0.3)','derived zv = ',veg(i)%zv)
             pts         = veg(i)%nsec
+            
+            veg(i)%bv        =      readkey_dblvec(veg(i)%name,'bv',pts,size(veg(i)%bv),0.0d0, 0.001d0,     0.1d0, bcast=.false., required=.true.)
+            veg(i)%bv(pts+1) = veg(i)%bv(pts)
+            veg(i)%N         = nint(readkey_dblvec(veg(i)%name,'N', pts,size(veg(i)%N) ,0.0d0,   0.0d0,   2000.d0, bcast=.false., required=.true.))  
+            veg(i)%N(pts+1)  = veg(i)%N(pts)
+            veg(i)%Cd        =      readkey_dblvec(veg(i)%name,'Cd',pts,size(veg(i)%Cd),0.0d0,   0.0d0,     2.5d0, bcast=.false.) 
+            veg(i)%Cd(pts+1) = veg(i)%Cd(pts)
         else ! new way to specify vegetation: vertical coordinates
             veg(i)%zv   =      readkey_dblvec(veg(i)%name,'zv',veg(i)%npts,size(veg(i)%zv),0.d0, 0.d0, 2.d0, bcast=.false., required=.true.)
             pts         = veg(i)%npts
+            
+            veg(i)%bv   =      readkey_dblvec(veg(i)%name,'bv',pts,size(veg(i)%bv),0.0d0, 0.001d0,     0.1d0, bcast=.false., required=.true.)       
+            veg(i)%N    = nint(readkey_dblvec(veg(i)%name,'N', pts,size(veg(i)%N) ,0.0d0,   0.0d0,   2000.d0, bcast=.false., required=.true.))        
+            veg(i)%Cd   =      readkey_dblvec(veg(i)%name,'Cd',pts,size(veg(i)%Cd),0.0d0,   0.0d0,     2.5d0, bcast=.false.) 
         endif         
-        
-        veg(i)%bv   =      readkey_dblvec(veg(i)%name,'bv',pts,size(veg(i)%bv),0.0d0, 0.001d0,     0.1d0, bcast=.false., required=.true.)       
-        veg(i)%N    = nint(readkey_dblvec(veg(i)%name,'N', pts,size(veg(i)%N) ,0.0d0,   0.0d0,   2000.d0, bcast=.false., required=.true.))        
-        veg(i)%Cd   =      readkey_dblvec(veg(i)%name,'Cd',pts,size(veg(i)%Cd),0.0d0,   0.0d0,     2.5d0, bcast=.false.)      
-       
+                    
         ! If Cd is specified by user (constant), compute constant Dragterms 1 and 2 in initialization
         do j=1,veg(i)%npts ! for every vertical veg point
             if (veg(i)%Cd(j) > tiny(0.d0)) then
@@ -414,12 +421,12 @@ subroutine momeqveg(s,par,veg)
                 else ! vegetation section is located (partly) in between wave trough and crest level                  
                     if (par%veguntow == 1) then
                         ! mean and long wave flow (ue, ve)
-                        Fvgtu = max((min(aht,watr)-ahtold),0d0)/s%hh(i,j)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*(s%ueu(i,j)*s%vmageu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
-                        Fvgtv = max((min(aht,watr)-ahtold),0d0)/s%hh(i,j)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*(s%vev(i,j)*s%vmageu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
+                        Fvgtu = max((min(aht,watr)-ahtold),0d0)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*(s%ueu(i,j)*s%vmageu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
+                        Fvgtv = max((min(aht,watr)-ahtold),0d0)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*(s%vev(i,j)*s%vmageu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
                     else
                         ! Only long wave velocity (assume undertow is diverted over vegetation)
-                        Fvgtu = max((min(aht,watr)-ahtold),0d0)/s%hh(i,j)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*(s%uu(i,j)*s%vmagu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
-                        Fvgtv = max((min(aht,watr)-ahtold),0d0)/s%hh(i,j)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*(s%vv(i,j)*s%vmagu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
+                        Fvgtu = max((min(aht,watr)-ahtold),0d0)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*(s%uu(i,j)*s%vmagu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
+                        Fvgtv = max((min(aht,watr)-ahtold),0d0)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*(s%vv(i,j)*s%vmagu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
                     endif
                                                         
                     ! nonlinear waves (including emerged vegetation effect)
@@ -460,8 +467,8 @@ subroutine momeqveg(s,par,veg)
        enddo
     enddo
 
-    s%Fvegu = Fvgu
-    s%Fvegv = Fvgv
+    s%Fvegu = Fvgu*par%rho! make sure units of drag force are consistent (N/m2)
+    s%Fvegv = Fvgv*par%rho! make sure units of drag force are consistent (N/m2)
 
 end subroutine momeqveg
 
