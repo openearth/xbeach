@@ -61,6 +61,10 @@ module introspection_module
       module procedure get3ddoublearray_fortran
    end interface get3ddoublearray
 
+   interface get4ddoublearray
+      module procedure get4ddoublearray_fortran
+   end interface get4ddoublearray
+
    interface get0dintarray
       module procedure get0dintarray_fortran
    end interface get0dintarray
@@ -139,11 +143,12 @@ contains
    integer(c_int) function getparametername_fortran(index, name)
       integer(c_int), intent(in) :: index
       character(kind=c_char, len=*), intent(out) :: name
-      character(kind=c_char, len=1), pointer :: cname(:)
+      character(kind=c_char, len=1) :: cname(slen)
       integer :: length
 
       getparametername_fortran = getparametername_c(index, cname, length)
       name = char_array_to_string(cname)
+
    end function getparametername_fortran
 
 
@@ -157,9 +162,9 @@ contains
       getparametername_c = -1
       ! These are the keys in fortran format.
       call getkeys(par, keys)
-      ! We need to conver them to C format (char1's)
+      ! We need to convert them to C format (char1's)
       key = keys(index)
-      length = len(trim(key))
+      length = len_trim(key)
       name = string_to_char_array(key)
       getparametername_c = 0
    end function getparametername_c
@@ -173,11 +178,13 @@ contains
       character(kind=c_char,len=*),intent(in) :: name
 
       ! Transform name to a fortran character...
-      character(1), dimension(len(name)) :: cname
+      !  and add a 0 at the end...
+      character(1), dimension(len(name)+1) :: cname
       integer :: i
-      do i = 1,len(name)
+      do i = 1,len_trim(name)
          cname(i) = name(i:i)
       enddo
+      cname(len_trim(name)+1) = C_NULL_CHAR
       getdoubleparameter_fortran = getdoubleparameter_c(cname,value,len(name))
    end function getdoubleparameter_fortran
 
@@ -215,11 +222,12 @@ contains
       character(kind=c_char,len=*),intent(in) :: name
 
       ! Transform name to a fortran character...
-      character(1), dimension(len(name)) :: myname
+      character(1), dimension(len(name)+1) :: myname
       integer :: i
-      do i = 1,len(name)
+      do i = 1,len_trim(name)
          myname(i) = name(i:i)
       enddo
+      myname(len_trim(name)+1) = C_NULL_CHAR
       setdoubleparameter_fortran = setdoubleparameter_c(myname,value,len(name))
    end function setdoubleparameter_fortran
 
@@ -259,11 +267,12 @@ contains
       character(kind=c_char,len=*),intent(in) :: name
 
       ! Transform name to a fortran character...
-      character(1), dimension(len(name)) :: myname
+      character(1), dimension(len(name)+1) :: myname
       integer :: i
       do i = 1,len(name)
          myname(i) = name(i:i)
       enddo
+      myname(len(name)+1) = C_NULL_CHAR
       getintparameter_fortran = getintparameter_c(myname,value,len(name))
    end function getintparameter_fortran
 
@@ -310,7 +319,7 @@ contains
       ! Lookup the parameter by name
       getcharparameter_c = getkey(par, fname, myparam)
       if (getcharparameter_c .eq. -1) return
-      valuelength = len(trim(myparam%c0))
+      valuelength = len_trim(myparam%c0)
       value = string_to_char_array(trim(myparam%c0))
       getcharparameter_c = 0
    end function getcharparameter_c
@@ -326,7 +335,7 @@ contains
    integer(c_int) function getarrayname_fortran(index, name)
       integer(c_int), intent(in) :: index
       character(kind=c_char, len=*), intent(out) :: name
-      character(kind=c_char, len=1), pointer :: cname(:)
+      character(kind=c_char, len=1)  :: cname(MAXSTRINGLEN)
       integer :: length
 
       getarrayname_fortran = getarrayname_c(index, cname, length)
@@ -348,7 +357,7 @@ contains
       call indextos(s,index,array)
       ! We need to conver them to C format (char1's)
       key = array%name
-      length = len(trim(key))
+      length = len_trim(key)
       name = string_to_char_array(key)
       getarrayname_c = 0
    end function getarrayname_c
@@ -360,7 +369,7 @@ contains
 
       ! and we need the string length ....
       integer(c_int) :: length
-      character(1), dimension(len(name)) :: cname
+      character(1), dimension(len(name)+1) :: cname
       length  = len(name)
       cname = string_to_char_array(name)
       getarraytype_fortran = getarraytype_c(cname, typecode, length)
@@ -378,6 +387,7 @@ contains
       getarraytype_c = -1
       index =  chartoindex(key)
       if (index .eq. -1) return
+      getarraytype_c = 0
       call indextos(s,index,array)
       typecode = array%type
    end function getarraytype_c
@@ -409,6 +419,7 @@ contains
       if (index .eq. -1) return
       call indextos(s,index,array)
       rank = array%rank
+      getarrayrank_c = 0
    end function getarrayrank_c
 
 

@@ -44,6 +44,7 @@ libxbeach_la_SOURCES= \
 	initialize.F90 \
 	timestep.F90 \
 	bedroughness.F90 \
+	vsm_u_XB.f90 \
 	flow_timestep.F90 \
 	postprocess.F90 \
 	varianceupdate.F90 \
@@ -92,7 +93,10 @@ spacedecl.inc:
 
 # Set flags off by default
 # include link to top_srcdir so it can find config.h, or should this be builddir
-libxbeach_la_FCFLAGS=-I$(top_builddir) -ffree-line-length-none -fPIC
+# wwvv changed following
+#libxbeach_la_FCFLAGS=-I$(top_builddir) -ffree-line-length-none -fPIC
+# into
+libxbeach_la_FCFLAGS=-I$(top_builddir) -fPIC
 # if mpi, then add some flags
 if USEMPI
 libxbeach_la_FCFLAGS+=-DUSEMPI -DHAVE_MPI_WTIME
