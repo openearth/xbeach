@@ -725,7 +725,7 @@ contains
          do jx = 2,s%nx+1
             if(s%wete(jx,jy)==1) then
             nbr     = 0
-            Lbr     = sqrt(par%g*s%hh(jx,jy))*par%Trep
+            Lbr     = sqrt(par%g*s%hh(jx,jy))*par%Trep*par%breakerdelay
             i       = jx-1
             do while (abs(s%xz(i,jy)-s%xz(jx,jy))<=Lbr .and. i>1)
                nbr = nbr+1

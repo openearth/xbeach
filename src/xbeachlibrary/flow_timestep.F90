@@ -59,8 +59,9 @@ contains
       real*8                                  :: dzsdnavg                 !alongshore water level slope
       real*8,save                             :: fc
       real*8,dimension(:,:),allocatable,save  :: sinthm,costhm
-
-      integer                                 :: imax,jmax,jmin
+      real*8                                  :: fcvisc=0.1d0,facdel=5.d0,facdf=1.d0,ks
+      real*8                                  :: tauw,tauwx,tauwy
+      integer                                 :: imax,jmax,jmin,swglm=0
 
 
       if (.not. allocated(vsu) ) then
@@ -838,8 +839,8 @@ contains
       vsu = vsu*s%wetu
       ! U-stokes velocities at U point
       if (s%ny>0) then
-         usu(1:s%nx,2:s%ny)=0.5d0*(s%ust(1:s%nx,2:s%ny)*costhm(1:s%nx,2:s%ny)+ &
-         s%ust(2:s%nx+1,2:s%ny)*costhm(2:s%nx+1,2:s%ny))
+         usu(1:s%nx,2:s%ny)=0.5d0*(s%ust(1:s%nx  ,2:s%ny)*costhm(1:s%nx  ,2:s%ny)+ &
+                                   s%ust(2:s%nx+1,2:s%ny)*costhm(2:s%nx+1,2:s%ny))
          if(xmpi_isleft) then
             usu(:,1)=usu(:,2)
          endif
@@ -943,9 +944,37 @@ contains
 
       s%maxzs=max(s%zs,s%maxzs)
       s%minzs=min(s%zs,s%minzs)
+      
+      if (par%nz>1) then
+         do j=1,s%ny+1
+            do i=1,s%nx+1
+               if (s%wetz(i,j) .eq. 1) then
+                  ks=12.d0*s%hh(i,j)/10.d0**(sqrt(par%g/s%cfu(i,j))/18.d0)
+                  tauw=par%rhoa*par%Cd*sqrt(s%windsu(i,j)**2+s%windnv(i,j)**2)
+                  tauwx=s%windsu(i,j)*tauw
+                  tauwy=s%windnv(i,j)*tauw
+                  
+                  call vsm_u_XB (  s%ue(i,j)    ,s%ve(i,j)    ,s%hh(i,j) ,ks  ,                &
+                                   par%rho      ,tauwx ,tauwy ,s%thetamean(i,j)-s%alfaz(i,j),  &
+                                   s%urms(i,j)  ,s%sigm(i,j)  ,s%k(i,j)       ,s%Dr(i,j)  ,    &
+                                   s%E(i,j)     ,s%R(i,j)     ,fcvisc,facdel  ,par%ws     ,    &
+                                   s%fw(i,j)    ,facdf ,swglm ,par%nz       ,s%sigz       ,    &
+                                   s%uz(i,j,:)  ,s%vz(i,j,:)  ,s%ustz(i,j,:)  ,s%nutz(i,j,:),  &
+                                   s%ue_sed(i,j),s%ve_sed(i,j)  )
+               else
+                  s%uz(i,j,:)=0.d0
+                  s%vz(i,j,:)=0.d0
+                  s%ustz(i,j,:)=0.d0
+                  s%nutz(i,j,:)=0.d0
+                  s%ue_sed(i,j)=0.d0
+                  s%ve_sed(i,j)=0.d0
+               endif
+            enddo
+         enddo
+      
+      endif
 
    end subroutine flow
-
 
    subroutine visc_smagorinsky(s,par)
       use params
@@ -1046,5 +1075,5 @@ contains
       if (xmpi_isbot)       s%nuh(s%nx+1,:)   = s%nuh(s%nx,:)
 
    end subroutine visc_smagorinsky
-
+   
 end module flow_timestep_module

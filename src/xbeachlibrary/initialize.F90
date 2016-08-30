@@ -762,6 +762,8 @@ contains
       allocate(s%v(1:s%nx+1,1:s%ny+1))
       allocate(s%ue(1:s%nx+1,1:s%ny+1))
       allocate(s%ve(1:s%nx+1,1:s%ny+1))
+      allocate(s%ue_sed(1:s%nx+1,1:s%ny+1))
+      allocate(s%ve_sed(1:s%nx+1,1:s%ny+1))
       allocate(s%hold(1:s%nx+1,1:s%ny+1))
       allocate(s%wetu(1:s%nx+1,1:s%ny+1))
       allocate(s%wetv(1:s%nx+1,1:s%ny+1))
@@ -805,6 +807,11 @@ contains
       allocate(s%dU(1:s%nx+1,1:s%ny+1))
       allocate(s%dV(1:s%nx+1,1:s%ny+1))
 
+      allocate(s%sigz(1:par%nz))
+      allocate(s%uz(1:s%nx+1,1:s%ny+1,1:par%nz))
+      allocate(s%vz(1:s%nx+1,1:s%ny+1,1:par%nz))
+      allocate(s%ustz(1:s%nx+1,1:s%ny+1,1:par%nz))
+      allocate(s%nutz(1:s%nx+1,1:s%ny+1,1:par%nz))
 
       allocate(szs0(1:2))
       allocate(xzs0(1:2))
@@ -847,6 +854,8 @@ contains
       s%v = 0.0d0
       s%ue = 0.0d0
       s%ve = 0.0d0
+      s%ue_sed = 0.0d0
+      s%ve_sed = 0.0d0
       s%hold = 0.0d0
       s%wetu = 0
       s%wetv = 0

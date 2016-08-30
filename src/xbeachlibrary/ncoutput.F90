@@ -86,6 +86,9 @@ module ncoutput_module
 
    ! Ships
    integer :: shipdimid
+   
+   ! Q3D
+   integer :: Q3Ddimid
 
    ! global
    integer, dimension(:), allocatable :: globalvarids
@@ -266,6 +269,11 @@ contains
       ! write(*,*) 'Writing nship', par%nship
       if (par%nship .gt. 0) then
          NF90(nf90_def_dim(ncid, 'nship', par%nship, shipdimid))
+      end if
+
+            ! write(*,*) 'Writing nz', par%nz
+      if (par%nz .gt. 1) then
+         NF90(nf90_def_dim(ncid, 'nz', par%nz, Q3Ddimid))
       end if
 
       ! time dimensions are fixed, only defined if there are points
@@ -1602,6 +1610,8 @@ contains
          dimensionid = driftersdimid
        case('par%nship')
          dimensionid = shipdimid
+       case('par%nz')
+         dimensionid = Q3Ddimid
        case default
          call writelog('els','','Unknown dimension expression:'  // expression)
          stop 1

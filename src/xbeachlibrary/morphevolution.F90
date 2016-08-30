@@ -50,7 +50,7 @@ contains
       real*8                                   :: exp_ero
 
       real*8,dimension(:),allocatable,save     :: chain,cumchain
-      real*8,dimension(:,:),allocatable,save   :: vmag2,uau,uav,um,vm
+      real*8,dimension(:,:),allocatable,save   :: vmag2,uau,uav,um,vm,ueu_sed,uev_sed,veu_sed,vev_sed
       real*8,dimension(:,:),allocatable,save   :: ccvt,dcdz,dsigt,aref
       real*8,dimension(:,:),allocatable,save   :: cc,ccb,cu,cv,Sus,Svs
       real*8,dimension(:,:),allocatable,save   :: cub,cvb,Sub,Svb,pbbedu,pbbedv
@@ -69,6 +69,10 @@ contains
          allocate(vmag2 (s%nx+1,s%ny+1))
          allocate(uau (s%nx+1,s%ny+1))
          allocate(uav (s%nx+1,s%ny+1))
+         allocate(ueu_sed (s%nx+1,s%ny+1))
+         allocate(uev_sed (s%nx+1,s%ny+1))
+         allocate(veu_sed (s%nx+1,s%ny+1))
+         allocate(vev_sed (s%nx+1,s%ny+1))
          allocate(cu  (s%nx+1,s%ny+1))
          allocate(cv  (s%nx+1,s%ny+1))
          allocate(cc  (s%nx+1,s%ny+1))
@@ -194,12 +198,17 @@ contains
          ! Get ua in u points and split out in u and v direction
          uau(1:s%nx,:) = 0.5*(s%ua(1:s%nx,:)*costhm(1:s%nx,:)+s%ua(2:s%nx+1,:)*costhm(1:s%nx,:))
          uav(1:s%nx,:) = 0.5*(s%ua(1:s%nx,:)*sinthm(1:s%nx,:)+s%ua(2:s%nx+1,:)*sinthm(1:s%nx,:))
+         ueu_sed(1:s%nx,:) = 0.5*(s%ue_sed(1:s%nx,:)+s%ue_sed(2:s%nx+1,:))
+         veu_sed(1:s%nx,:) = 0.5*(s%ve_sed(1:s%nx,:)+s%ve_sed(2:s%nx+1,:))
          ! Compute vmagu including ua
-         s%vmagu = sqrt((s%uu+uau)**2+(s%vu+uav)**2)
+!         s%vmagu = sqrt((s%uu+uau)**2+(s%vu+uav)**2)
+         s%vmagu = sqrt((ueu_sed+uau)**2+(veu_sed+uav)**2)
          ! sediment advection velocity for suspended load and bed load respectively
          ! REMARK: when vreps does not equal vv; no mass conservation
-         s%ureps = s%ueu+uau
-         s%urepb = s%ueu+uau  ! RJ maybe reduce this velocity?
+!         s%ureps = s%ueu+uau
+!         s%urepb = s%ueu+uau  ! RJ maybe reduce this velocity?
+         s%ureps = ueu_sed+uau
+         s%urepb = ueu_sed+uau  
          !
          do j=1,s%ny+1
             do i=1,s%nx
@@ -256,16 +265,25 @@ contains
             uav(:,1:s%ny) = 0.5*(s%ua(:,1:s%ny)*sinthm(:,1:s%ny)+s%ua(:,2:s%ny+1)*sinthm(:,1:s%ny))
             uau(:,s%ny+1) = uau(:,s%ny) ! Jaap
             uav(:,s%ny+1) = uav(:,s%ny) ! Jaap
-         else
+            uev_sed(:,1:s%ny) = 0.5*(s%ue_sed(:,1:s%ny)+s%ue_sed(:,2:s%ny+1))
+            vev_sed(:,1:s%ny) = 0.5*(s%ve_sed(:,1:s%ny)+s%ve_sed(:,2:s%ny+1))
+            uev_sed(:,s%ny+1) = s%ue_sed(:,s%ny) 
+            vev_sed(:,s%ny+1) = s%ve_sed(:,s%ny) 
+        else
             uau=s%ua*costhm
             uav=s%ua*sinthm
+            uev_sed=s%ue_sed
+            vev_sed=s%ve_sed
          endif
          ! Jaap: compute vmagv including ua
-         s%vmagv = sqrt((s%uv+uau)**2+(s%vv+uav)**2)
+!         s%vmagv = sqrt((s%uv+uau)**2+(s%vv+uav)**2)
+         s%vmagv = sqrt((uev_sed+uau)**2+(vev_sed+uav)**2)
          ! sediment advection velocity for suspended load and bed load respectively
          ! REMARK: when vreps does not equal vv; no mass conservation
-         s%vreps = s%vev+uav
-         s%vrepb = s%vev+uav   ! RJ maybe reduce this velocity? Should be s%vv instead of s%vev?
+!         s%vreps = s%vev+uav
+!         s%vrepb = s%vev+uav   ! RJ maybe reduce this velocity? Should be s%vv instead of s%vev?
+         s%vreps = vev_sed+uav
+         s%vrepb = vev_sed+uav   ! RJ maybe reduce this velocity? Should be s%vv instead of s%vev?
          !
          if (s%ny>0) then
             do j=1,s%ny
@@ -1221,6 +1239,7 @@ contains
             endif
          enddo
       endif
+      
 
       ! Lodewijk: calculate fall velocity reduction coefficient based on concentration of previous time step
       ! Rowe (1987) made an estimation of the exponent alpha by fitting a logarithmic function on a dataset of Richardson and Zaki (1954).
@@ -1234,6 +1253,13 @@ contains
       !
       ! hloc   = max(hh,0.01d0) ! Jaap
       hloc = max(s%hh,0.01)
+      ! Compute mean fall velocity 
+      par%ws=0.d0
+      do jg=1,par%ngd
+          par%ws=par%ws+w(1,1,jg)
+      enddo
+      par%ws=par%ws/par%ngd
+          
       !
       ! compute near bed turbulence
       !

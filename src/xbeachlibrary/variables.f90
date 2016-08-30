@@ -131,6 +131,8 @@ module variables
   double precision, allocatable, target :: v(:,:)           !< [m/s] GLM velocity in cell centre, y-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "sea_water_y_velocity", "broadcast": "d"}
   double precision, allocatable, target :: ue(:,:)          !< [m/s] Eulerian velocity in cell centre, x-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "sea_water_x_velocity", "broadcast": "d"}
   double precision, allocatable, target :: ve(:,:)          !< [m/s] Eulerian velocity in cell centre, y-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "sea_water_y_velocity", "broadcast": "d"}
+  double precision, allocatable, target :: ue_sed(:,:)      !< [m/s] Advection velocity sediment in cell centre, x-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "sea_water_x_velocity", "broadcast": "d"}
+  double precision, allocatable, target :: ve_sed(:,:)      !< [m/s] Advection velocity sediment in cell centre, y-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "sea_water_x_velocity", "broadcast": "d"}
   double precision, allocatable, target :: hold(:,:)        !< [m] water depth previous time step {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   integer,          allocatable, target :: wetu(:,:)        !< [-] mask wet/dry u-points {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   integer,          allocatable, target :: wetv(:,:)        !< [-] mask wet/dry v-points {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
@@ -281,4 +283,9 @@ module variables
   double precision,              target :: tsetbathy(:)     !< [s] points in time of prescibed bed levels {"shape": ["par%nsetbathy"], "standard_name": "", "broadcast": "b"}
   integer,          allocatable, target :: breaking(:,:)    !< [-] indicator whether cell has breaking nonh waves {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: fw(:,:)          !< [-] wave friction coefficient {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: sigz(:)          !< [-] vertical distribution of sigma layers Q3D {"shape": ["par%nz"], "standard_name": "", "broadcast": "b"}
+  double precision, allocatable, target :: uz(:,:,:)        !< [-] velocity (Q3D) ksi-comp {"shape": ["s%nx+1","s%ny+1","par%nz"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: vz(:,:,:)        !< [-] velocity (Q3D) eta-comp {"shape": ["s%nx+1","s%ny+1","par%nz"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: ustz(:,:,:)      !< [-] stokes velocity (Q3D) {"shape": ["s%nx+1","s%ny+1","par%nz"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: nutz(:,:,:)      !< [-] turbulence viscosity {"shape": ["s%nx+1","s%ny+1","par%nz"], "standard_name": "", "broadcast": "d"}
 end module variables

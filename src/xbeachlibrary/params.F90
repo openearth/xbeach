@@ -60,6 +60,7 @@ module params
       double precision                    :: posdwn                 = -123                 !  [-] Bathymetry is specified positive down (1) or positive up (-1)
       integer                             :: nx                     = -123                 !  [-] Number of computational cell corners in x-direction
       integer                             :: ny                     = -123                 !  [-] Number of computational cell corners in y-direction
+      integer                             :: nz                     = -123                 !  [-] Number of computational cells in z-direction
       double precision                    :: alfa                   = -123                 !  [deg] Angle of x-axis from East
       integer                             :: vardx                  = -123                 !  [-] Switch for variable grid spacing
       double precision                    :: dx                     = -123                 !  [m] Regular grid spacing in x-direction
@@ -188,7 +189,7 @@ module params
       character(slen)                   :: wavfricfile              = 'abc'                !  [file] Wave friction file
       !double precision                  :: fw                       = -123                 !  [-] (advanced) Bed friction factor
       double precision                  :: fwcutoff                 = -123                 !  [-] Depth greater than which the bed friction factor is not applied
-      integer                           :: breakerdelay             = -123                 !  [-] (advanced) Switch to enable breaker delay model
+      double precision                  :: breakerdelay             = -123                 !  [-] (advanced) Switch to enable breaker delay model
       integer                           :: shoaldelay               = -123                 !  [-] (advanced,silent) Switch to enable shoaling delay
       double precision                  :: facsd                    = -123                 !  [-] (advanced,silent) fraction of the local wave length to use for shoaling delay depth
       double precision                  :: facrun                   = -123                 !  [-] (advanced,silent) calibration coefficient for short wave runup
@@ -282,6 +283,7 @@ module params
       double precision                  :: D15(99)                  = -123                 !  [m] D15 grain size per grain type
       double precision                  :: D50(99)                  = -123                 !  [m] D50 grain size per grain type
       double precision                  :: D90(99)                  = -123                 !  [m] D90 grain size per grain type
+      double precision                  :: ws                       = 0.02d0               !  [m/s] average fall velocity (is computed in morphevolution)
       double precision                  :: sedcal(99)               = -123                 !  [-] (advanced) Sediment transport calibration coefficient per grain type
       double precision                  :: ucrcal(99)               = -123                 !  [-] (advanced) Critical velocity calibration coefficient per grain type
 
@@ -592,6 +594,8 @@ contains
          par%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   0.d0,   360.d0)
          par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
       endif
+      ! Q3d grid
+         par%nz = readkey_int ('params.txt','nz',    1,        1,     100)
       ! Wave directional grid
       if(par%swave==1) then
          par%thetamin = readkey_dbl ('params.txt','thetamin', -90.d0,    -180.d0,  180.d0,required=.true.)
@@ -954,7 +958,7 @@ contains
          end if
          !par%fw       = readkey_dbl ('params.txt','fw',       0.d0,   0d0,      1.0d0)
          par%fwcutoff = readkey_dbl ('params.txt','fwcutoff',  1000.d0,   0d0,      1000.d0)
-         par%breakerdelay = readkey_int ('params.txt','breakerdelay',    1,   0,      1,strict=.true.)
+         par%breakerdelay = readkey_dbl ('params.txt','breakerdelay',    1.d0,   0.d0,      3.d0,strict=.true.)
          par%shoaldelay = readkey_int ('params.txt','shoaldelay',    0,   0,      1,silent=.true.,strict=.true.)
          if (par%shoaldelay==1) then
             par%facsd      = readkey_dbl ('params.txt','facsd',       1.d0,   0d0,      2.0d0)
