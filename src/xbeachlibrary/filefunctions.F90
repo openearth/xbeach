@@ -340,7 +340,7 @@ contains
 
 
    integer function create_new_fid_generic()
-      integer    :: tryunit = 900
+      integer    :: tryunit = 9999
       logical    :: fileopen
 
       fileopen = .true.
