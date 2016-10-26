@@ -971,7 +971,9 @@ contains
                endif
             enddo
          enddo
-      
+      else
+         s%ue_sed=s%ue
+         s%ve_sed=s%ve
       endif
 
    end subroutine flow
