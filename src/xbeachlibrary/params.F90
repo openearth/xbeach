@@ -402,6 +402,7 @@ module params
       double precision                  :: wavint                   = -123                 !  [s] Interval between wave module calls (only in stationary wave mode)
       double precision                  :: maxerror                 = -123                 !  [m] (advanced) Maximum wave height error in wave stationary iteration
       integer                           :: maxiter                  = -123                 !  [-] (advanced) Maximum number of iterations in wave stationary
+      real*8                            :: swkhmin                  = -123                 !  [-] (advanced,silent) Minimum kh value to include in wave action balance, lower included in NLSWE (default -1.d0)
 
       ! [Section] Flow numerics parameters
       double precision                  :: eps                      = -123                 !  [m] Threshold water depth above which cells are considered wet
@@ -1453,6 +1454,10 @@ contains
       else
          par%snells      = readkey_int ('params.txt','snells',    0,        0,     1,silent=.true.,strict=.true.)
       endif
+      if(par%nonhspectrum == 0) then
+         par%swkhmin = readkey_dbl ('params.txt','swkhmin',    -0.01d0, -0.01d0, 0.35d0,silent=.true.)
+      endif
+         
       !
       !
       ! Flow numerics parameters

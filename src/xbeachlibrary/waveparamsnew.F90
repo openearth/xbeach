@@ -32,28 +32,32 @@ module spectral_wave_bc_module
       integer                                :: tslen      ! internal time axis length (is always even, not odd)
       integer                                :: tslenbc    ! time axis length for boundary condition file
       logical                                :: dtchanged  ! quick check to see if dtin == dtbc (useful for interpolation purpose)
-      real*8,dimension(:),pointer            :: fgen,thetagen,phigen,kgen,wgen ! frequency, angle, phase, wave number, radian frequency
+      real*8,dimension(:),pointer            :: fgen,thetagen,phigen,kgen,wgen ! frequency, angle, phase, 
+                                                                               ! wave number, radian frequency
       ! of wavetrain components for boundary signal
       real*8                                 :: dfgen      ! frequency grid size in the generated components
-      type(shortspectrum),dimension(:),pointer :: vargen   ! This is where the variance for each wave train at each spectrum location
+      type(shortspectrum),dimension(:),pointer :: vargen   ! This is the variance for each wave train at each spectrum location
       ! is stored
-      type(shortspectrum),dimension(:),pointer :: vargenq  ! This is where the variance for each wave train at each spectrum location
+      type(shortspectrum),dimension(:),pointer :: vargenq  ! This is the variance for each wave train at each spectrum location
       ! is stored, which is not scaled and is used for the generation of bound waves
-      !   real*8,dimension(:),pointer            :: danggen    ! Representative integration angle for Srep to Sf, per offshore grid point
+   !real*8,dimension(:),pointer            :: danggen   ! Representative integration angle for Srep to Sf, per offshore grid point
       real*8,dimension(:,:),pointer          :: A          ! Amplitude, per wave train component, per offshore grid point A(ny+1,K)
       real*8,dimension(:,:),pointer          :: Sfinterp   ! S integrated over all directions at frequency locations of fgen,
       ! per offshore grid point Sfinterp(ny+1,K)
       real*8,dimension(:,:),pointer          :: Sfinterpq  ! S integrated over all directions at frequency locations of fgen,
       ! per offshore grid point Sfinterpq(ny+1,K), uncorrected for generation of bound waves
-      real*8,dimension(:),pointer            :: Hm0interp  ! Hm0 per offshore point, based on intergration of Sfinterp and used to scale
+      real*8,dimension(:),pointer            :: Hm0interp  ! Hm0 per offshore point, based on intergration of Sfinterp. 
+                                                           ! Used to scale spectrum
       ! final time series
       integer, dimension(:),pointer          :: Findex     ! Index of wave train component locations on frequency/Fourier axis
       integer, dimension(:),pointer          :: WDindex    ! Index of wave train component locations on wave directional bin axis
+      integer, dimension(:),pointer          :: PRindex    ! Index of wave train components to be phase-resolved (rather than 
+                                                           ! using energy balance)
       double complex,dimension(:,:),pointer  :: CompFn     ! Fourier components of the wave trains
       character(slen)                        :: Efilename,qfilename,nhfilename,Esfilename
       real*8,dimension(:,:),pointer          :: zsits      ! time series of total surface elevation for nonhspectrum==1
       real*8,dimension(:,:),pointer          :: uits       ! time series of depth-averaged horizontal velocity nonhspectrum==1
-      real*8,dimension(:,:),pointer          :: wits       ! time series of depth-averaged vertical velocity for nonhspectrum==1  ??
+      real*8,dimension(:,:),pointer          :: wits       ! time series of depth-averaged vertical velocity for nonhspectrum==1 ??
    endtype waveparamsnew
    type filenames                                      ! Place to store multiple file names
       character(slen)                        :: fname  ! file name of boundary condition file
@@ -187,7 +191,7 @@ contains
 
             ! calculate the mean combined spectra (used for combined Trep, determination of wave components, etc.)
             ! now still uses simple averaging, but could be improved to use weighting for distance etc.
-            call generate_combined_spectrum(specinterp,combspec,par%px)
+            call generate_combined_spectrum(specinterp,combspec,par%px,par%trepfac,par%Tm01switch)
             par%Trep = combspec%trep
             call writelog('sl','(a,f0.2,a)','Overall Trep from all spectra calculated: ',par%Trep,' s')
 
@@ -220,7 +224,7 @@ contains
 
             ! Determine the amplitude of each wave train component, at every point along the
             ! offshore boundary
-            call generate_wave_train_properties_per_offshore_point(wp,s)
+            call generate_wave_train_properties_per_offshore_point(wp,s,par%nonhspectrum,par%swkhmin)
 
             ! Generate Fourier components for all wave train component, at every point along
             ! the offshore boundary
@@ -232,14 +236,30 @@ contains
                ! the randomly drawn wave directions to match the centres of the wave bins if the
                ! user-defined nspr is set on.
                call distribute_wave_train_directions(wp,s,par%px,par%nspr,.false.)
-
-               ! Calculate the wave energy envelope per offshore grid point and write to output file
-               call generate_ebcf(wp,s,par)
+               
+               ! if we want to send some low-frequency swell waves into the model in the NLSWE then
+               ! separate here into a mix of wave action balance and NLSWE components
+               if (par%swkhmin>0.d0) then
+                  ! recalculate Trep
+                  call tpDcalc(sum(wp%Sfinterp,DIM=1)/(s%ny+1)*(1-wp%PRindex),wp%fgen,par%Trep,par%trepfac,par%Tm01switch)
+                  call writelog('sl','','Trep recomputed to account only for components in wave action balance.')
+                  call writelog('sl','(a,f0.2,a)','New Trep in wave action balance: ',par%Trep,' s')
+                  ! 
+                  ! Calculate the wave energy envelope per offshore grid point and write to output file
+                  call generate_ebcf(wp,s,par)  ! note, this subroutine will account for only non-phase-resolved components
+                  ! Generate time series of surface elevation and horizontal velocity, only for phase-resolved components
+                  call generate_swts(wp,s)
+               else
+                  ! Only do wave action balance stuff
+                  !
+                  ! Calculate the wave energy envelope per offshore grid point and write to output file
+                  call generate_ebcf(wp,s,par)
+               endif ! swkhmin>0.d0
             else
                ! If user set nspr on, then force all short wave components to head along computational
                ! x-axis.
                call distribute_wave_train_directions(wp,s,par%px,par%nspr,.true.)
-               ! Generate time series of surface elevation, horizontal velocity and vertical velocity
+               ! Generate time series of surface elevation and horizontal velocity
                call generate_swts(wp,s)
             endif
 
@@ -272,8 +292,13 @@ contains
             deallocate(wp%A)
             deallocate(wp%Findex)
             deallocate(wp%CompFn)
+            deallocate(wp%PRindex)
             if (par%nonhspectrum==0) then
                deallocate(wp%WDindex)
+               if (par%swkhmin>0.d0) then
+                  deallocate(wp%zsits)
+                  deallocate(wp%uits)
+               endif
             else
                deallocate(wp%zsits)
                deallocate(wp%uits)
@@ -1372,12 +1397,13 @@ contains
    ! --------------------------------------------------------------
    ! ----------- Merge all separate spectra into one --------------
    ! -------------- average spectrum for other use ----------------
-   subroutine generate_combined_spectrum(specinterp,combspec,px)
+   subroutine generate_combined_spectrum(specinterp,combspec,px,trepfac,Tm01switch)
 
       implicit none
       type(spectrum),dimension(nspectra),intent(in)   :: specinterp
       type(spectrum),intent(inout)                    :: combspec
-      real*8, intent(in)                              :: px
+      real*8, intent(in)                              :: px,trepfac
+      integer,intent(in)                              :: Tm01switch
       integer                                         :: iloc
       !    real*8,dimension(naint)                         :: Sd
       real*8,dimension(3)                             :: peakSd,peakang
@@ -1399,9 +1425,10 @@ contains
       combspec%Sf=0.d0
 
       do iloc = 1,nspectra
-         combspec%trep = combspec%trep+specinterp(iloc)%trep/nspectra
+         !combspec%trep = combspec%trep+specinterp(iloc)%trep/nspectra
          combspec%S    = combspec%S   +specinterp(iloc)%S   /nspectra
          combspec%Sf   = combspec%Sf  +specinterp(iloc)%Sf  /nspectra
+         call tpDcalc(combspec%Sf,combspec%f,combspec%trep,trepfac,Tm01switch)
       enddo
       !
       ! Calculate peak wave angle
@@ -1857,7 +1884,7 @@ contains
    ! --------------------------------------------------------------
    ! ------ Calculate amplitudes at each spectrum location --------
    ! ------------ for every wave train component ------------------
-   subroutine generate_wave_train_properties_per_offshore_point(wp,s)
+   subroutine generate_wave_train_properties_per_offshore_point(wp,s,nonhspectrum,swkhmin)
 
       use spaceparams
       use interp
@@ -1866,6 +1893,8 @@ contains
       ! input/output
       type(waveparamsnew),intent(inout)            :: wp
       type(spacepars),intent(in)                   :: s
+      integer,intent(in)                           :: nonhspectrum
+      real*8,intent(in)                            :: swkhmin
       ! internal
       integer                                      :: i,ii,dummy
       integer,dimension(2)                         :: interpindex
@@ -1956,6 +1985,26 @@ contains
 
          wp%Hm0interp(i) = 4*sqrt(sum(wp%Sfinterp(i,:))*wp%dfgen)
 
+         ! determine if these components will be pahse-resolved, or resolved in the wave energy balance
+         allocate(wp%PRindex(wp%K))
+         if (nonhspectrum==1) then
+            ! all components phase-resolved
+            wp%PRindex = 1
+         else
+            if(swkhmin>0.d0) then 
+               ! some components resolved, some not
+               where(wp%kgen*wp%h0 >= swkhmin)
+                  wp%PRindex = 0
+               elsewhere
+                  wp%PRindex = 1
+               endwhere
+            else
+               ! no components phase-resolved
+               wp%PRindex = 0
+            endif
+         endif
+         
+         
       enddo ! i=1,s%ny+1
 
    end subroutine generate_wave_train_properties_per_offshore_point
@@ -2223,7 +2272,7 @@ contains
          ! Select wave components that are in the current computational
          ! directional bin
          tempinclude=0
-         where (wp%WDindex==itheta)
+         where (wp%WDindex==itheta .and. wp%PRindex==0) ! only include components in this bin that are not to be phase-resolved
             tempinclude=1
          end where
 
@@ -2447,14 +2496,16 @@ contains
       do it=1,wp%tslen
          call progress_indicator(.false.,dble(it)/wp%tslen*100,5.d0,2.d0)
          do ik=1,wp%K
-            do j=1,s%ny+1
-               wp%zsits(j,it)=wp%zsits(j,it)+wp%A(j,ik)*dsin( &
-               +wp%wgen(ik)*wp%tin(it)&
-               -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
-               +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
-               +wp%phigen(ik) &
-               )
-            enddo
+            if (wp%PRindex(ik)==1) then 
+               do j=1,s%ny+1
+                  wp%zsits(j,it)=wp%zsits(j,it)+wp%A(j,ik)*dsin( &
+                  +wp%wgen(ik)*wp%tin(it)&
+                  -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
+                  +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
+                  +wp%phigen(ik) &
+                  )
+               enddo
+            endif
          enddo
       enddo
       ! depth-averaged velocity
@@ -2463,18 +2514,19 @@ contains
       do it=1,wp%tslen
          call progress_indicator(.false.,dble(it)/wp%tslen*100,5.d0,2.d0)
          do ik=1,wp%K
-            do j=1,s%ny+1
-               wp%uits(j,it) = wp%uits(j,it) + &
-               1.d0/wp%h0*wp%wgen(ik)*wp%A(j,ik)/sinh(wp%kgen(ik)*wp%h0) * &
-               dsin( &
-               +wp%wgen(ik)*wp%tin(it)&
-               -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
-               +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
-               +wp%phigen(ik) &
-               ) * &
-               1.d0/wp%kgen(ik)*sinh(wp%kgen(ik)*wp%h0)
-
-            enddo
+            if (wp%PRindex(ik)==1) then 
+               do j=1,s%ny+1
+                  wp%uits(j,it) = wp%uits(j,it) + &
+                                  1.d0/wp%h0*wp%wgen(ik)*wp%A(j,ik) * &
+                                  dsin( &
+                                        +wp%wgen(ik)*wp%tin(it)&
+                                        -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
+                                        +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
+                                        +wp%phigen(ik) &
+                                       ) * &
+                                  1.d0/wp%kgen(ik)
+               enddo
+            endif
          enddo
       enddo
       !
@@ -2711,7 +2763,20 @@ contains
       ! free memory
       deallocate(Comptemp,Comptemp2,Ftemp)
       !
+      !
+      !
+      ! Now write data to file
       if (par%nonhspectrum==0) then
+         ! If doing combined wave action balance and swell wave flux with swkhmin>0 then we need to add short wave velocity
+         ! to time series of q here:
+         if (par%swkhmin>0.d0) then
+            do j=1,s%ny+1
+               q(j,:,1) = q(j,:,1) + wp%uits(j,:)*wp%h0 ! u flux
+               q(j,:,4) = q(j,:,4) + wp%zsits(j,:)      ! eta
+            enddo
+         endif
+         !
+         !
          ! Open file for storage of bound long wave flux
          call writelog('ls','','Writing long wave mass flux to ',trim(wp%qfilename),' ...')
          inquire(iolength=reclen) 1.d0
