@@ -149,6 +149,10 @@ contains
                allocate(specinterp(nspectra))
                allocate(spectrumendtimearray(nspectra))
             endif
+            
+            ! calculate the average offshore water depth, which is used in various
+            ! computation in this module
+            wp%h0 = calculate_average_water_depth(s)
 
             ! Read through input spectra files
             fmax = 1.d0   ! assume 1Hz as maximum frequency. Increase in loop below if needed.
@@ -198,10 +202,6 @@ contains
             if (par%single_dir==1) then
                call set_stationary_spectrum (s,par,wp,combspec)
             endif
-
-            ! calculate the average offshore water depth, which is used in various
-            ! computation in this module
-            wp%h0 = calculate_average_water_depth(s)
 
             ! Wave trains that are used by XBeach. The number of wave trains, their frequencies and directions
             ! are based on the combined spectra of all the locations to ensure all wave conditions are
@@ -415,6 +415,7 @@ contains
       use params
       use logging_module
       use filefunctions
+      use wave_functions_module, only: iteratedispersion
 
       IMPLICIT NONE
 
@@ -432,8 +433,10 @@ contains
       integer                                 :: forcepartition = -123
       real*8,dimension(:),allocatable         :: x, y, Dd, tempdir
       real*8,dimension(:),allocatable         :: Hm0,fp,gam,mainang,scoeff
+      integer,dimension(:),allocatable        :: tma
       real*8                                  :: dfj, fnyq
       real*8                                  :: Tp
+      real*8                                  :: L,L0,sigmatma,k,n
       character(len=80)                       :: dummystring
       type(spectrum),dimension(:),allocatable :: multinomalspec
 
@@ -459,6 +462,7 @@ contains
          allocate(gam(nmodal))
          allocate(mainang(nmodal))
          allocate(scoeff(nmodal))
+         allocate(tma(nmodal))
          !
          ! Read the spectral parameters for all spectrum components
          !
@@ -486,6 +490,10 @@ contains
          ! Wave spreading in directional domain
          !
          scoeff = readkey_dblvec(readfile, 's',nmodal,nmodal, 10.0d0, 1.0d0, 1000.0d0, bcast=.false.)
+         !
+         ! TMA
+         !
+         tma = readkey_intvec(readfile, 'tma',nmodal,nmodal, 0, 0, 1, bcast=.false.)
          !
          ! Main wave direction
          ! allow both mainang and dir0 specification to bring in line with params.txt
@@ -528,6 +536,7 @@ contains
          allocate(gam(nmodal))
          allocate(mainang(nmodal))
          allocate(scoeff(nmodal))
+         allocate(tma(nmodal))
          ! Use spectrum table
          fid = create_new_fid()
          call writelog('sl','','waveparams: Reading from table ',trim(readfile),' ...')
@@ -554,6 +563,7 @@ contains
          fp(1)=1.d0/Tp
          fnyq=3.d0*fp(1)
          dfj=fp(1)/50
+         tma(1) = 0
          close(fid)
       endif
       !
@@ -597,6 +607,22 @@ contains
          call jonswapgk(x,gam(ip),y)
          ! Determine scaled and non-directional JONSWAP spectrum using the JONSWAP
          ! characteristics
+         if (tma(ip)==1) then
+            do ii=1,specin%nf
+                L0 = par%g*(1/specin%f(ii))**2/2/par%px    ! deep water wave length
+                L = iteratedispersion(L0,L0,par%px,wp%h0)
+                if (L<0.d0) then
+                   call writelog('lsw','','No dispersion convergence found for wave train ',i, &
+                    ' in boundary condition generation')
+                    L = -L
+                endif
+                k = 2*par%px/L
+        !        h = wp%h0
+                n = 0.5d0*(1+k*wp%h0*((1-tanh(k*wp%h0)**2)/(tanh(k*wp%h0))))
+                sigmatma = ((1/(2.d0*n))*tanh(k*wp%h0)**2)
+                y(ii) = y(ii) * sigmatma
+            enddo
+         endif
          y=(Hm0(ip)/(4.d0*sqrt(sum(y)*dfj)))**2*y
          ! Convert main angle from degrees to radians and from nautical convention to
          ! internal grid
@@ -828,7 +854,7 @@ contains
       enddo
 
       deallocate (Dd)
-      deallocate(Hm0,fp,gam,mainang,scoeff)
+      deallocate(Hm0,fp,gam,mainang,scoeff,tma)
       deallocate (x,y)
       deallocate(tempdir)
       ! TODO dereference pointers first....

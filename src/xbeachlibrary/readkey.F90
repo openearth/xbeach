@@ -458,6 +458,87 @@ contains
       endif
 #endif
    end function readkey_dblvec
+   
+   function readkey_intvec(fname,key,vlength,tlength,defval,mnval,mxval,bcast,required,silent) result (value_vec)
+      use xmpi_module
+      use logging_module
+      implicit none
+      character*(*)  :: fname,key
+      integer, intent(in) :: vlength,tlength
+      integer,dimension(tlength)  :: value_vec
+      integer           :: defval,mnval,mxval
+      logical, intent(in), optional :: bcast,required,silent
+      logical        :: lbcast,lrequired,lsilent
+
+      integer          :: i, ioerr
+      character(slen)   :: value
+      character(slen)  :: printkey
+
+      printkey(2:slen)=key
+      printkey(1:1)=' '
+
+      if (present(bcast)) then
+         lbcast = bcast
+      else
+         lbcast = .true.
+      endif
+
+      if (present(required)) then
+         lrequired = required
+      else
+         lrequired = .false.
+      endif
+
+      if (present(silent)) then
+         lsilent = silent
+      else
+         lsilent = .false.
+      endif
+
+      if (xmaster) then
+         call readkey(fname,key,value)
+         if (value/=' ') then
+            read(value,*,IOSTAT=ioerr)value_vec(1:vlength)
+            if (ioerr < 0) then
+               call writelog('lse','','Error reading value for parameter ',printkey)
+               call writelog('lse','','Check whether parameter is given sufficient number of input values')
+               call halt_program
+            endif
+            do i=1,vlength
+               if (value_vec(i)>mxval) then
+                  call writelog('lw','(a24,a,i0,a,i0)',(printkey),' = ',value_vec(i), &
+                  ' Warning: value > recommended value of ',mxval)
+                  call writelog('s','(a24,a,a,i0)','Warning: ',trim(printkey),' > recommended value of ',mxval)
+               elseif (value_vec(i)<mnval) then
+                  call writelog('lw','(a24,a,i0,a,i0)',(printkey),' = ',value_vec(i), &
+                  ' Warning: value < recommended value of ',mnval)
+                  call writelog('s','(a24,a,a,i0)','Warning: ',trim(printkey),' < recommended value of ',mnval)
+               else
+                  call writelog('l','(a24,a,i0)',(printkey),' = ',value_vec(i))
+               endif
+            enddo
+         else
+            if (lrequired) then
+               call writelog('lse','','Error: missing required value for parameter ',printkey)
+               call halt_program
+            else
+               value_vec(1:vlength)=defval
+               do i=1,vlength
+                  if (.not. lsilent) call writelog('l','(a,a,i0,a)',(printkey),' = ', &
+                  value_vec(i),' (no record found, default value used)')
+               enddo
+            endif
+         endif
+      endif
+
+#ifdef USEMPI
+      if (lbcast) then
+         do i=1,vlength
+            call xmpi_bcast(value_vec(i),readkey_inio)
+         enddo
+      endif
+#endif
+   end function readkey_intvec
 
    function isSetParameter(fname,key,bcast) result (isSet)
       ! Function return logical true if the keyword is specified in file,
