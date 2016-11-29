@@ -32,7 +32,11 @@ Modifying the documentation
 
 The XBeach documentation is automatically generated from plain text
 files. The plain text files adhere to the ReStructured Text (RST)
-format. The plain text files are stored in a Github repository at:
+format. A quick reference guide to RST can be found at:
+
+http://xbeach.readthedocs.io/en/latest/cheatsheet.html
+
+The plain text files are stored in a Github repository at:
 
 https://github.com/openearth/xbeach-docs/
 
@@ -40,7 +44,8 @@ The plain text files can be edited online or by making a local working
 copy. Each page in the online documentation has a link in the
 upper-right corner "Edit on Github". This links to the plain text
 source file that can be edited by subsequently clicking the pencil
-icon.
+icon. The entire documentation file structure can be browsed on the
+Github website as well.
 
 A local working copy can be made and committed after modification
 using:
@@ -64,6 +69,19 @@ using:
 
   >>> svn commit .
 
+If you want to add new pages to the documentation, you need to have a
+working copy. You can add pages using:
+
+* Git
+
+  >>> git add somepage.rst
+  >>> git commit somepage.rst
+  >>> git push somepage.rst
+
+* SVN
+
+  >>> svn add somepage.rst
+  >>> svn commit somepage.rst
 
 PDF/DOC formats
 ---------------
