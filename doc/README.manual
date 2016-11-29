@@ -1,0 +1,72 @@
+XBeach documentation
+====================
+
+The XBeach documentation is hosted online at:
+
+http://xbeach.readthedocs.io/
+
+The XBeach documentation comprises the following parts:
+
+* XBeach manual
+
+  The physical and numerical description of the processes simulated by
+  XBeach, and a description of supported input parameters and file
+  formats.
+
+* Quick references
+
+  Listings of supported input parameters and output variables.
+
+* Examples and tutorials
+
+  Example model schematizations and tutorials.
+
+* Tools
+
+  Additional tools that can be useful when working with XBeach, like
+  the Matlab toolbox for XBeach, RFGrid and QuickPlot.
+
+
+Modifying the documentation
+---------------------------
+
+The XBeach documentation is automatically generated from plain text
+files. The plain text files adhere to the ReStructured Text (RST)
+format. The plain text files are stored in a Github repository at:
+
+https://github.com/openearth/xbeach-docs/
+
+The plain text files can be edited online or by making a local working
+copy. Each page in the online documentation has a link in the
+upper-right corner "Edit on Github". This links to the plain text
+source file that can be edited by subsequently clicking the pencil
+icon.
+
+A local working copy can be made and committed after modification
+using:
+
+* Git
+
+  >>> git clone https://github.com/openearth/xbeach-docs.git
+  >>> cd xbeach-docs
+
+  [edit files]
+
+  >>> git commit -a .
+  >>> git push .
+
+* SVN
+
+  >>> svn checkout https://github.com/openearth/xbeach-docs.git
+  >>> cd xbeach-docs
+
+  [edit files]
+
+  >>> svn commit .
+
+
+PDF/DOC formats
+---------------
+
+The XBeach DOC/PDF manual is now deprecated and is not adapted to new
+XBeach versions.
