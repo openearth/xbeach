@@ -61,7 +61,7 @@ if not(len(sys.argv)==6):
 	raise Exception('Wrong number of input arguments')
 	
 revision = int(sys.argv[1])
-scptarget = "oss.deltares.nl:/drbd/www/content/xbeach/testbed/"
+scptarget = "http://content.oss.deltares.nl/xbeach/testbed/"
 bindir = sys.argv[2]
 workdir = sys.argv[3]
 user = sys.argv[4]
