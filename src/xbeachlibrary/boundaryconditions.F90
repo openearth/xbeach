@@ -678,8 +678,8 @@ contains
             q = (dtbcfile-(tnew-par%t))/dtbcfile*q2 + &          !Jaap
             (tnew-par%t)/dtbcfile*q1
             ! be aware: ui and vi are defined w.r.t. the grid, not w.r.t. the coordinate system!
-            s%ui(1,:) = (q(:,1)*dcos(s%alfaz(1,:)) + q(:,2)*dsin(s%alfaz(1,:)))/ht(1,:)*min(par%t/par%taper,1.0d0)
-            s%vi(1,:) = (-q(:,1)*dsin(s%alfaz(1,:)) + q(:,2)*dcos(s%alfaz(1,:)))/ht(1,:)*min(par%t/par%taper,1.0d0)
+            s%ui(1,:) = (q(:,1)*dcos(s%alfau(1,:)) + q(:,2)*dsin(s%alfau(1,:)))/ht(1,:)*min(par%t/par%taper,1.0d0)
+            s%vi(1,:) = (-q(:,1)*dsin(s%alfau(1,:)) + q(:,2)*dcos(s%alfau(1,:)))/ht(1,:)*min(par%t/par%taper,1.0d0)
             s%ee(1,:,:)=s%ee(1,:,:)*min(par%t/par%taper,1.0d0)
          elseif(par%nonhspectrum==1) then
             if (startbcf) then
@@ -858,6 +858,7 @@ contains
       use interp
       use xmpi_module
       use paramsconst
+      use compute_tide_module
 
       implicit none
 
@@ -865,10 +866,11 @@ contains
       type(parameters)                            :: par
 
       integer                                     :: i,j,jj,j1,indt
-      real*8                                      :: alphanew,vert,dzs0dy,windxnow,windynow,factime
+      real*8                                      :: alphanew,vert,windxnow,windynow,factime
       real*8                                      :: udnusum,dnusum,vdnvsum,dnvsum
-      real*8 , dimension(2)                       :: xzs0,yzs0,szs0
-      real*8 , dimension(:,:)  ,allocatable,save  :: zs0old,zsmean,dzs0
+      !real*8 , dimension(2)                       :: xzs0,yzs0,szs0
+      real*8 , dimension(:,:)  ,allocatable,save  :: zs0old,dzs0
+      real*8 , dimension(:,:)  ,allocatable,save  :: zsmean
       real*8 , dimension(:,:)  ,allocatable,save  :: ht,beta,betanp1
       real*8 , dimension(:)    ,allocatable,save  :: bn,alpha2,thetai
       real*8 , dimension(:,:)  ,allocatable,save  :: dhdx,dhdy,dvdx,dvdy
@@ -888,18 +890,21 @@ contains
          allocate(dbetady (2,s%ny+1))
          allocate(beta    (2,s%ny+1))
          allocate(zsmean  (2,s%ny+1))
-         allocate(dzs0    (2,s%ny+1))
          allocate(bn      (s%ny+1))
          allocate(alpha2  (s%ny+1))
          allocate(thetai  (s%ny+1))
          allocate(betanp1 (1,s%ny+1))
-         allocate(zs0old(s%nx+1,s%ny+1))   ! wwvv not used
-         ! initialize zsmean and dzs0
+         if (par%tidetype==TIDETYPE_INSTANT) then 
+            allocate(zs0old(s%nx+1,s%ny+1))
+            allocate(dzs0  (s%nx+1,s%ny+1))
+            zs0old = s%zs0
+            dzs0 = 0.d0
+         endif
+         ! initialize zsmean
          zsmean(1,:) = s%zs(1,:)
          zsmean(2,:) = s%zs(s%nx,:)
          s%umean = s%uu
          s%vmean = s%vv
-         dzs0 = 0.d0
          thetai = 0.d0
       endif
 
@@ -930,149 +935,161 @@ contains
       !
       !
       ! UPDATE TIDE AND SURGE
-      !
-      ! Need to interpolate input tidal signal to xbeach par%t to
-      ! compute proper tide contribution
-
-      if (par%tideloc>0) then
-
-         ! read in first water surface time series
-         call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,1), s%tidelen, par%t, s%zs01, indt)
-
-         if(par%tideloc.eq.1) then
-            s%zs02=s%zs01
-         end if
-
-         ! tideloc = 2, paulrevere = land
-         if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_LAND) then
-            ! read in second water surface time series
-            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs03, indt)
-            s%zs02=s%zs01 ! second offshore corner is equal to first offshore corner
-            s%zs04=s%zs03 ! second bay corner is equal to first bay corner
-         endif
-
-         ! tideloc = 2, paulrevere = sea
-         if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_SEA) then
-            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs02, indt)
-            ! no timeseries at bay side, (and two different timeseries at offshore corners)
-            s%zs03=0.d0
-            s%zs04=0.d0
-         endif
-
-         ! tideloc = 4: for each corner individual timeseries
-         if(par%tideloc.eq.4) then
-            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs02, indt)
-            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,3), s%tidelen, par%t, s%zs03, indt)
-            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,4), s%tidelen, par%t, s%zs04, indt)
-         endif
-         !
-         ! from here on set global variable zs0
-         !
-         if(par%tideloc.eq.1) s%zs0 = s%zs01
-
-         if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_SEA) then
-            yzs0(1)=s%ndist(1,1)
-            yzs0(2)=s%ndist(1,s%ny+1)
-
-            ! for MPI look at water level gradient over each subdomain
-
-            ! lonsghore water level difference over whole model domain at offshore boundary
-            dzs0dy = (s%zs02-s%zs01)/(s%xyzs02(2)-s%xyzs01(2));
-
-            ! estimate water level at corners sub-domain
-            szs0(1)=s%zs01+dzs0dy*(yzs0(1)-s%xyzs01(2))
-            szs0(2)=s%zs01+dzs0dy*(yzs0(2)-s%xyzs01(2))
-
-            do j = 1,s%ny+1
-               call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(1,j), s%zs0(1,j), indt)
-            enddo
-
-            s%zs0(2,:)=s%zs0(1,:)
-            ! Dano: fix of Neumann boundaries with tide
-            s%zs0(3:s%nx+1,1)=s%zs0(1,1)
-            s%zs0(3:s%nx+1,s%ny+1)=s%zs0(1,s%ny+1)
-            !do j = 1,ny+1
-            !   do i = 1,nx+1
-            !      zs0(i,j) = zs0(1,j)
-            !   enddo
-            !enddo
-         elseif (par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_LAND) then
-            if (xmpi_istop) then
-               s%zs0(1:2,:)=s%zs01
-            endif
-            if (xmpi_isbot) then
-               s%zs0(s%nx:s%nx+1,:)=s%zs04
-            endif
-         endif
-
-         if(par%tideloc.eq.4) then
-            if (xmpi_istop) then
-               yzs0(1)=s%xyzs01(2)
-               yzs0(2)=s%xyzs02(2)
-               szs0(1)=s%zs01
-               szs0(2)=s%zs02
-               do j = 1,s%ny+1
-                  call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(1,j), s%zs0(1,j), indt)
-               enddo
-               s%zs0(2,:)=s%zs0(1,:)
-            endif
-            if (xmpi_isbot) then
-               yzs0(1)=s%xyzs04(2)
-               yzs0(2)=s%xyzs03(2)
-               szs0(1)=s%zs04
-               szs0(2)=s%zs03
-               do j = 1,s%ny+1
-                  call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(s%nx+1,j), s%zs0(s%nx+1,j), indt)
-               enddo
-               s%zs0(s%nx,:)=s%zs0(s%nx+1,:)
-            endif
-            if (xmpi_isleft) then
-               xzs0(1)=s%xyzs01(1)
-               xzs0(2)=s%xyzs04(1)
-               szs0(1)=s%zs01
-               szs0(2)=s%zs04
-               do i = 1,s%nx+1
-                  call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(i,1), s%zs0(i,1), indt)
-               enddo
-            endif
-            if (xmpi_isright) then
-               xzs0(1)=s%xyzs02(1)
-               xzs0(2)=s%xyzs03(1)
-               szs0(1)=s%zs02
-               szs0(2)=s%zs03
-               do i = 1,s%nx+1
-                  call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(i,s%ny+1), s%zs0(i,s%ny+1), indt)
-               enddo
-            endif
-         endif
-
-      else ! ie if tideloc=0
-         s%zs0 = s%zs01
-      endif
-
       if (par%tidetype==TIDETYPE_INSTANT) then
-         !
-         ! RJ: 22-09-2010 Correct water level for surge and tide:
-         !
-         zsmean(1,:) = factime*s%zs(1,:)+(1-factime)*zsmean(1,:)
-         zsmean(2,:) = factime*s%zs(s%nx,:)+(1-factime)*zsmean(2,:)
-         ! compute difference between offshore/bay mean water level and imposed on tide
-         dzs0(1,:) = s%zs0(1,:)-zsmean(1,:)
-         dzs0(2,:) = s%zs0(s%nx,:)-zsmean(2,:)
-#ifdef USEMPI
-         call xmpi_getrow(dzs0,s%ny+1,'1',1,dzs0(1,:))
-         call xmpi_getrow(dzs0,s%ny+1,'m',xmpi_m,dzs0(2,:))
-#endif
-
-         do j = 1,s%ny+1
-            do i = 1,s%nx+1
-               s%zs(i,j) = s%zs(i,j) + (s%zs0fac(i,j,1)*dzs0(1,j) + s%zs0fac(i,j,2)*dzs0(2,j))*s%wetz(i,j)
-            enddo
-         enddo
-
-         ! RJ: 22-09-2010 end update tide and surge
-
-      endif ! tidetype = instant water level boundary
+         zs0old = s%zs0  ! store zs0 of old time step
+         call tide_boundary_timestep(s,par) ! also updates zs0 across domain
+         where (s%wetz==1)
+            dzs0 = s%zs0-zs0old
+            s%zs = s%zs+dzs0
+         elsewhere
+            dzs0 = 0.d0
+         endwhere
+      else
+         call tide_boundary_timestep(s,par) ! only updates zs0 on boundaries
+      endif
+!      !
+!      ! Need to interpolate input tidal signal to xbeach par%t to
+!      ! compute proper tide contribution
+!
+!      if (par%tideloc>0) then
+!
+!         ! read in first water surface time series
+!         call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,1), s%tidelen, par%t, s%zs01, indt)
+!
+!         if(par%tideloc.eq.1) then
+!            s%zs02=s%zs01
+!         end if
+!
+!         ! tideloc = 2, paulrevere = land
+!         if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_LAND) then
+!            ! read in second water surface time series
+!            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs03, indt)
+!            s%zs02=s%zs01 ! second offshore corner is equal to first offshore corner
+!            s%zs04=s%zs03 ! second bay corner is equal to first bay corner
+!         endif
+!
+!         ! tideloc = 2, paulrevere = sea
+!         if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_SEA) then
+!            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs02, indt)
+!            ! no timeseries at bay side, (and two different timeseries at offshore corners)
+!            s%zs03=0.d0
+!            s%zs04=0.d0
+!         endif
+!
+!         ! tideloc = 4: for each corner individual timeseries
+!         if(par%tideloc.eq.4) then
+!            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs02, indt)
+!            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,3), s%tidelen, par%t, s%zs03, indt)
+!            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,4), s%tidelen, par%t, s%zs04, indt)
+!         endif
+!         !
+!         ! from here on set global variable zs0
+!         !
+!         if(par%tideloc.eq.1) s%zs0 = s%zs01
+!
+!         if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_SEA) then
+!            yzs0(1)=s%ndist(1,1)
+!            yzs0(2)=s%ndist(1,s%ny+1)
+!
+!            ! for MPI look at water level gradient over each subdomain
+!
+!            ! lonsghore water level difference over whole model domain at offshore boundary
+!            dzs0dy = (s%zs02-s%zs01)/(s%xyzs02(2)-s%xyzs01(2));
+!
+!            ! estimate water level at corners sub-domain
+!            szs0(1)=s%zs01+dzs0dy*(yzs0(1)-s%xyzs01(2))
+!            szs0(2)=s%zs01+dzs0dy*(yzs0(2)-s%xyzs01(2))
+!
+!            do j = 1,s%ny+1
+!               call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(1,j), s%zs0(1,j), indt)
+!            enddo
+!
+!            s%zs0(2,:)=s%zs0(1,:)
+!            ! Dano: fix of Neumann boundaries with tide
+!            s%zs0(3:s%nx+1,1)=s%zs0(1,1)
+!            s%zs0(3:s%nx+1,s%ny+1)=s%zs0(1,s%ny+1)
+!            !do j = 1,ny+1
+!            !   do i = 1,nx+1
+!            !      zs0(i,j) = zs0(1,j)
+!            !   enddo
+!            !enddo
+!         elseif (par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_LAND) then
+!            if (xmpi_istop) then
+!               s%zs0(1:2,:)=s%zs01
+!            endif
+!            if (xmpi_isbot) then
+!               s%zs0(s%nx:s%nx+1,:)=s%zs04
+!            endif
+!         endif
+!
+!         if(par%tideloc.eq.4) then
+!            if (xmpi_istop) then
+!               yzs0(1)=s%xyzs01(2)
+!               yzs0(2)=s%xyzs02(2)
+!               szs0(1)=s%zs01
+!               szs0(2)=s%zs02
+!               do j = 1,s%ny+1
+!                  call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(1,j), s%zs0(1,j), indt)
+!               enddo
+!               s%zs0(2,:)=s%zs0(1,:)
+!            endif
+!            if (xmpi_isbot) then
+!               yzs0(1)=s%xyzs04(2)
+!               yzs0(2)=s%xyzs03(2)
+!               szs0(1)=s%zs04
+!               szs0(2)=s%zs03
+!               do j = 1,s%ny+1
+!                  call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(s%nx+1,j), s%zs0(s%nx+1,j), indt)
+!               enddo
+!               s%zs0(s%nx,:)=s%zs0(s%nx+1,:)
+!            endif
+!            if (xmpi_isleft) then
+!               xzs0(1)=s%xyzs01(1)
+!               xzs0(2)=s%xyzs04(1)
+!               szs0(1)=s%zs01
+!               szs0(2)=s%zs04
+!               do i = 1,s%nx+1
+!                  call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(i,1), s%zs0(i,1), indt)
+!               enddo
+!            endif
+!            if (xmpi_isright) then
+!               xzs0(1)=s%xyzs02(1)
+!               xzs0(2)=s%xyzs03(1)
+!               szs0(1)=s%zs02
+!               szs0(2)=s%zs03
+!               do i = 1,s%nx+1
+!                  call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(i,s%ny+1), s%zs0(i,s%ny+1), indt)
+!               enddo
+!            endif
+!         endif
+!
+!      else ! ie if tideloc=0
+!         s%zs0 = s%zs01
+!      endif
+!
+!      if (par%tidetype==TIDETYPE_INSTANT) then
+!         !
+!         ! RJ: 22-09-2010 Correct water level for surge and tide:
+!         !
+!         zsmean(1,:) = factime*s%zs(1,:)+(1-factime)*zsmean(1,:)
+!         zsmean(2,:) = factime*s%zs(s%nx,:)+(1-factime)*zsmean(2,:)
+!         ! compute difference between offshore/bay mean water level and imposed on tide
+!         dzs0(1,:) = s%zs0(1,:)-zsmean(1,:)
+!         dzs0(2,:) = s%zs0(s%nx,:)-zsmean(2,:)
+!#ifdef USEMPI
+!         call xmpi_getrow(dzs0,s%ny+1,'1',1,dzs0(1,:))
+!         call xmpi_getrow(dzs0,s%ny+1,'m',xmpi_m,dzs0(2,:))
+!#endif
+!
+!         do j = 1,s%ny+1
+!            do i = 1,s%nx+1
+!               s%zs(i,j) = s%zs(i,j) + (s%zs0fac(i,j,1)*dzs0(1,j) + s%zs0fac(i,j,2)*dzs0(2,j))*s%wetz(i,j)
+!            enddo
+!         enddo
+!
+!         ! RJ: 22-09-2010 end update tide and surge
+!
+!      endif ! tidetype = instant water level boundary
 
       !Dano: compute umean, vmean only at this location, same for all options; MPI compliant
       if (par%tidetype==TIDETYPE_VELOCITY) then
@@ -1188,7 +1205,7 @@ contains
                   end do
 1000              continue
                   if (par%ARC==0) then
-                     s%uu(1,j) = (par%order-1)*s%ui(1,j)
+                     s%uu(1,j) = (par%order-1)*s%ui(1,j) + s%umean(1,j)
                      s%zs(1,j) = s%zs(2,j)
                   else
                      !
@@ -1348,6 +1365,34 @@ contains
          endif  !par%back
 
       endif !xmpi_isbot
+      
+      
+      !
+      ! Lateral tide boundary conditions
+      !
+      if (s%ny>0) then
+         ! RJ: Neumann water levels in case of right = 1 or right = 0
+         do i=1,s%nx+1
+            !! Jaap multiply with wetz(i,ny+1)*wetz(i,1) here to prevent prsssure grdaient over land
+            !dzsdnavg=s%wetz(i,s%ny+1)*s%wetz(i,1)*(s%zs0(i,s%ny+1)-s%zs0(i,1))/(s%ndist(i,s%ny+1)-s%ndist(i,1))
+            !! Lateral boundary at y=0
+            !if (xmpi_isleft) then
+            !   s%zs(i,1)=max(s%zs(i,2) - dzsdnavg*s%dnv(i,1),s%zb(i,1))
+            !endif
+            !! Lateral boundary at y=ny+1
+            !if (xmpi_isright) then
+            !   s%zs(i,s%ny+1)=max(s%zs(i,s%ny) + dzsdnavg*s%dnv(i,s%ny),s%zb(i,s%ny+1))
+            !endif
+            if (xmpi_isleft) then
+               s%zs(i,1)=max(s%zs(i,2) - s%dzs0dn(i,1)*s%dnv(i,1),s%zb(i,1))
+            endif
+            if (xmpi_isright) then
+               s%zs(i,s%ny+1)=max(s%zs(i,s%ny) + s%dzs0dn(i,s%ny+1)*s%dnv(i,s%ny),s%zb(i,s%ny+1))
+            endif
+         enddo
+      endif !s%ny>0
+
+      
 
       !!! Wind boundary conditions
       if (s%windlen>1) then  ! only if non-stationary wind, otherwise waste of computational time

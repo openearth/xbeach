@@ -170,8 +170,8 @@
 		<File RelativePath="..\..\lib\win32\netcdff90\netcdf.f90">
 			<FileConfiguration Name="Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Release|x64" ExcludedFromBuild="true"/>
-			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|Win32" ExcludedFromBuild="true"/>
@@ -179,8 +179,8 @@
 		<File RelativePath="..\..\lib\win32\netcdff90\typeSizes.f90">
 			<FileConfiguration Name="Debug|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Release|x64" ExcludedFromBuild="true"/>
-			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="Release|Win32" ExcludedFromBuild="true"/>
 			<FileConfiguration Name="MPI_Debug|Win32" ExcludedFromBuild="true"/>
@@ -189,6 +189,7 @@
 		<File RelativePath=".\beachwizard.F90"/>
 		<File RelativePath=".\bedroughness.f90"/>
 		<File RelativePath="boundaryconditions.F90"/>
+		<File RelativePath=".\compute_tide_zs0.F90"/>
 		<File RelativePath=".\debugging.F90"/>
 		<File RelativePath="drifters.F90"/>
 		<File RelativePath="filefunctions.F90"/>

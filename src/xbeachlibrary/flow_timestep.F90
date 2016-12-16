@@ -741,26 +741,6 @@ contains
          !  call flow_secondorder_con(s,par,zs_old)
       endif
 
-      !
-      ! Lateral boundary conditions
-      !
-      if (s%ny>0) then
-         ! RJ: Neumann water levels in case of right = 1 or right = 0
-         do i=1,s%nx+1
-            ! Jaap multiply with wetz(i,ny+1)*wetz(i,1) here to prevent prsssure grdaient over land
-            dzsdnavg=s%wetz(i,s%ny+1)*s%wetz(i,1)*(s%zs0(i,s%ny+1)-s%zs0(i,1))/(s%ndist(i,s%ny+1)-s%ndist(i,1))
-            ! Lateral boundary at y=0
-            if (xmpi_isleft) then
-               s%zs(i,1)=max(s%zs(i,2) - dzsdnavg*s%dnv(i,1),s%zb(i,1))
-            endif
-            ! Lateral boundary at y=ny+1
-            if (xmpi_isright) then
-               s%zs(i,s%ny+1)=max(s%zs(i,s%ny) + dzsdnavg*s%dnv(i,s%ny),s%zb(i,s%ny+1))
-            endif
-         enddo
-      endif !s%ny>0
-
-
       ! wwvv zs, uu, vv have to be communicated now, because they are used later on
 #ifdef USEMPI
       call xmpi_shift_ee(s%zs)
