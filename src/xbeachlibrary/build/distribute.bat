@@ -20,3 +20,4 @@ if not exist "%SolutionDir%\dist\%Platform%\%ConfigurationName%\" mkdir "%Soluti
 
 rem copy additional dll files from static to bin folder
 copy "%SolutionDir%\src\xbeachlibrary\bin\dynamic\%Platform%\%ConfigurationName%\xbeachlibrary_dynamic.dll" "%SolutionDir%\dist\%Platform%\%ConfigurationName%\XBeach.Library.dll"
+copy "%SolutionDir%\src\xbeachlibrary\bin\bmi\%Platform%\%ConfigurationName%\xbeachlibrary_bmi.dll" "%SolutionDir%\dist\%Platform%\%ConfigurationName%\XBeach.BMI.dll"
