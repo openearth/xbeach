@@ -13,9 +13,9 @@ set TargetDir=%TargetDir:"=%
 set Platform=%Platform:"=%
 
 rem determine paths
-set DstDir="%SolutionDir%\dist\%Platform%\%ConfigurationName%"
-set SrcDir1="%SolutionDir%\src\xbeachlibrary\bin\dynamic\%Platform%\%ConfigurationName%"
-set SrcDir2="%SolutionDir%\src\xbeachlibrary\bin\bmi\%Platform%\%ConfigurationName%"
+set DstDir=%SolutionDir%\dist\%Platform%\%ConfigurationName%
+set SrcDir1=%SolutionDir%\src\xbeachlibrary\bin\dynamic\%Platform%\%ConfigurationName%
+set SrcDir2=%SolutionDir%\src\xbeachlibrary\bin\bmi\%Platform%\%ConfigurationName%
 
 echo on
 
