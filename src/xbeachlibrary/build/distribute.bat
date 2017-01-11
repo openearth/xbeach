@@ -12,12 +12,18 @@ set ConfigurationName=%ConfigurationName:"=%
 set TargetDir=%TargetDir:"=%
 set Platform=%Platform:"=%
 
+rem determine paths
+set DstDir="%SolutionDir%\dist\%Platform%\%ConfigurationName%"
+set SrcDir1="%SolutionDir%\src\xbeachlibrary\bin\dynamic\%Platform%\%ConfigurationName%"
+set SrcDir2="%SolutionDir%\src\xbeachlibrary\bin\bmi\%Platform%\%ConfigurationName%"
+
 echo on
 
 rem clear output dir
-if exist "%SolutionDir%\dist\%Platform%\%ConfigurationName%\XBeach.Library.dll" del "%SolutionDir%\dist\%Platform%\%ConfigurationName%\XBeach.Library.dll" /q /f
-if not exist "%SolutionDir%\dist\%Platform%\%ConfigurationName%\" mkdir "%SolutionDir%\dist\%Platform%\%ConfigurationName%\"
+if exist "%DstDir%\XBeach.Library.dll" del "%DstDir%\XBeach.Library.dll" /q /f
+if exist "%DstDir%\XBeach.BMI.dll" del "%DstDir%\XBeach.BMI.dll" /q /f
+if not exist "%DstDir%" mkdir "%DstDir%"
 
-rem copy additional dll files from static to bin folder
-copy "%SolutionDir%\src\xbeachlibrary\bin\dynamic\%Platform%\%ConfigurationName%\xbeachlibrary_dynamic.dll" "%SolutionDir%\dist\%Platform%\%ConfigurationName%\XBeach.Library.dll"
-copy "%SolutionDir%\src\xbeachlibrary\bin\bmi\%Platform%\%ConfigurationName%\xbeachlibrary_bmi.dll" "%SolutionDir%\dist\%Platform%\%ConfigurationName%\XBeach.BMI.dll"
+rem copy dll files
+if exist "%SrcDir1%\xbeachlibrary_dynamic.dll" copy "%SrcDir1%\xbeachlibrary_dynamic.dll" "%DstDir%\XBeach.Library.dll"
+if exist "%SrcDir2%\xbeachlibrary_bmi.dll" copy "%SrcDir2%\xbeachlibrary_bmi.dll" "%DstDir%\XBeach.BMI.dll"
