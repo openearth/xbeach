@@ -27,7 +27,8 @@ IF EXIST build.log del build.log
 echo clean build
 echo ##teamcity[progressMessage 'Cleaning %3 - %4']
 echo on
-%devenv_path%\devenv.exe %solutionpath% /Clean "%3|%4" /Project xbeach /Out clean.log
+rem %devenv_path%\devenv.exe %solutionpath% /Clean "%3|%4" /Project xbeach /Out clean.log
+%devenv_path%\devenv.exe %solutionpath% /Clean "%3|%4" /Out clean.log
 type clean.log
 del clean.log
 echo off
@@ -40,15 +41,16 @@ EXIT /B 1
 echo build and zip xbeach executables
 echo ##teamcity[progressMessage 'Building %3 - %4']
 echo on
-%devenv_path%\devenv.exe %solutionpath% /Build "%3|%4" /Project xbeach /Out build.log
+rem %devenv_path%\devenv.exe %solutionpath% /Build "%3|%4" /Project xbeach /Out build.log
+%devenv_path%\devenv.exe %solutionpath% /Build "%3|%4" /Out build.log
 type build.log
 del build.log
-%devenv_path%\devenv.exe %solutionpath% /Build "%3|%4" /Project xbeachlibrary_dynamic /Out build_library.log
-type build_library.log
-del build_library.log
-%devenv_path%\devenv.exe %solutionpath% /Build "%3|%4" /Project xbeachlibrary_bmi /Out build_bmi.log
-type build_bmi.log
-del build_bmi.log
+rem %devenv_path%\devenv.exe %solutionpath% /Build "%3|%4" /Project xbeachlibrary_dynamic /Out build_library.log
+rem type build_library.log
+rem del build_library.log
+rem %devenv_path%\devenv.exe %solutionpath% /Build "%3|%4" /Project xbeachlibrary_bmi /Out build_bmi.log
+rem type build_bmi.log
+rem del build_bmi.log
 echo off
 
 IF %ERRORLEVEL% == 0 GOTO END
