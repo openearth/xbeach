@@ -122,7 +122,7 @@ def zip_directory_contents(cpath, zname):
             for fname in files:
                 if fname.endswith('.zip'):
                     continue
-                fp.write(os.path.join(root, fname))
+                fp.write(os.path.join(root, fname), fname)
 
     return zpath
                                                 
