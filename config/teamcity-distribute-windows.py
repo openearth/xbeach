@@ -26,7 +26,7 @@ def distribute(scptarget,revision,bindir,workdir,user,password):
 		# Copy file to bin dir (with correct name)
 		newname = "xbeach_" + str(revision) + "_" + platform + "_" + releases[configuration][1] + ".zip"
 		
-		scpcopyfile(workdir.replace('\\','/')+'/', file, scptarget + "bin/" + newname,user,password)
+		scpcopyfile(workdir, file, scptarget + "bin/" + newname,user,password)
 		
 		# fill template list string
 		label = "XBeach rev. %d %s (%s)" % (revision,platform,releases[configuration][0])
@@ -36,26 +36,26 @@ def distribute(scptarget,revision,bindir,workdir,user,password):
 	
 	print "##teamcity[message text='Creating index html of download page']"
 	# string replace in tmp file
-	workhtml = workdir.replace('\\','/') + "/index_bin.html"
+	workhtml = workdir + "\\index_bin.html"
 	with open(workhtml, "wt") as fout:
-		with open(workdir.replace('\\','/') + "/index_bin.html.tmpl", "rt") as fin:
+		with open(workdir + "\\index_bin.html.tmpl", "rt") as fin:
 			for line in fin:
 			    fout.write(line.replace('${list}', ln))
 	
 	# Copy all zips and html to oss site
-	scpcopyfile(workdir.replace('\\','/'), workhtml, scptarget + "index_bin.html",user,password)
+	scpcopyfile(workdir, workhtml, scptarget + "index_bin.html",user,password)
 
 def scpcopyfile(workdir, source,destination,user,password):
 	import subprocess
 	import os
 	
 	FNULL = open(os.devnull,'w')
-	pscp = workdir + "/pscp.exe"
+	pscp = workdir + "\\pscp.exe"
 	
-	args = pscp + " -l " + user + " -pw " + password + " -r -v " + source + " " + destination
+	args = "echo y | " + pscp + " -l " + user + " -pw " + password + " -r -v " + source + " " + destination
 	
 	print "##teamcity[message text='Copying %s']"%(source)
-	subprocess.call(args, stdout=FNULL, stderr=FNULL, shell=False)
+	subprocess.call(args, stdout=FNULL, stderr=FNULL, shell=True)
 
 if not(len(sys.argv)==6):
 	raise Exception('Wrong number of input arguments')
