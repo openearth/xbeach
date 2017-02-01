@@ -282,9 +282,11 @@ contains
       !
       ! Upwind Euler timestep propagation
       !
-      call advecxho(s%ee,s%cgx,xadvec,s%nx,s%ny,s%ntheta,s%dnu,s%dsu,s%dsdnzi,par%scheme,s%wete)
+      call advecxho(s%ee,s%cgx,xadvec,s%nx,s%ny,s%ntheta,s%dnu,s%dsu,s%dsdnzi,par%scheme,s%wete,&
+                    par%dt,s%dnz,s%dsz)
       if (s%ny>0) then
-         call advecyho(s%ee,s%cgy,yadvec,s%nx,s%ny,s%ntheta,s%dsv,s%dnv,s%dsdnzi,par%scheme,s%wete)
+         call advecyho(s%ee,s%cgy,yadvec,s%nx,s%ny,s%ntheta,s%dsv,s%dnv,s%dsdnzi,par%scheme,s%wete, &
+             par%dt,s%dnz,s%dsz)
       endif
       !call advectheta(ee*ctheta,thetaadvec,nx,ny,ntheta,dtheta)
       call advecthetaho(s%ee,s%ctheta,thetaadvec,s%nx,s%ny,s%ntheta,s%dtheta,par%scheme,s%wete)!
@@ -359,9 +361,9 @@ contains
       !
       ! calculate roller energy balance
       !
-      call advecxho(s%rr,s%cx,xradvec,s%nx,s%ny,s%ntheta,s%dnu,s%dsu,s%dsdnzi,par%scheme,s%wete)
+      call advecxho(s%rr,s%cx,xradvec,s%nx,s%ny,s%ntheta,s%dnu,s%dsu,s%dsdnzi,par%scheme,s%wete,par%dt,s%dnz,s%dsz)
       if (s%ny>0) then
-         call advecyho(s%rr,s%cy,yradvec,s%nx,s%ny,s%ntheta,s%dsv,s%dnv,s%dsdnzi,par%scheme,s%wete)
+         call advecyho(s%rr,s%cy,yradvec,s%nx,s%ny,s%ntheta,s%dsv,s%dnv,s%dsdnzi,par%scheme,s%wete,par%dt,s%dnz,s%dsz)
       endif
       !call advectheta(rr*ctheta,thetaradvec,nx,ny,ntheta,dtheta)
       call advecthetaho(s%rr,s%ctheta,thetaradvec,s%nx,s%ny,s%ntheta,s%dtheta,par%scheme,s%wete)

@@ -259,15 +259,15 @@ module variables
   double precision,              target :: shipxCG(:)       !< [m] x-coordinate of ship center of gravity {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
   double precision,              target :: shipyCG(:)       !< [m] y-coordinate of ship center of gravity {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
   double precision,              target :: shipzCG(:)       !< [m] z-coordinate of ship center of gravity {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision,              target :: shipFx(:)        !< [m] force on ship in x-direction {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision,              target :: shipFy(:)        !< [m] force on ship in y-direction {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision,              target :: shipFz(:)        !< [m] force on ship in z-direction {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision,              target :: shipMx(:)        !< [m] moment on ship around x-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision,              target :: shipMy(:)        !< [m] moment on ship around y-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision,              target :: shipMz(:)        !< [m] moment on ship around z-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision,              target :: shipphi(:)       !< [m] turning angle arround x-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision,              target :: shipchi(:)       !< [m] turning angle arround y-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
-  double precision,              target :: shippsi(:)       !< [m] turning angle arround z-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipFx(:)        !< [N] force on ship in x-direction {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipFy(:)        !< [N] force on ship in y-direction {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipFz(:)        !< [N] force on ship in z-direction {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipMx(:)        !< [Nm] moment on ship around x-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipMy(:)        !< [Nm] moment on ship around y-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipMz(:)        !< [Nm] moment on ship around z-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipphi(:)       !< [deg] turning angle arround x-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shipchi(:)       !< [deg] turning angle arround y-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
+  double precision,              target :: shippsi(:)       !< [deg] turning angle arround z-axis {"shape": ["par%nship"], "standard_name": "", "broadcast": "b"}
   integer,          allocatable, target :: vegtype(:,:)     !< [-] vegetation type index {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: Cdrag(:,:)       !< [-] Vegetation drag coefficient {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: Dveg(:,:)        !< [W/m2] dissipation due to short wave attenuation by vegetation {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}

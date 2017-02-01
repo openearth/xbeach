@@ -62,7 +62,7 @@ contains
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,scheme,wete)
+   subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,scheme,wete,dt,dnz,dsz)
       use spaceparams
       use xmpi_module
 
@@ -71,8 +71,9 @@ contains
       integer                                         :: i,j,nx,ny,ntheta
       integer, intent(in)                             :: scheme
       integer, dimension(nx+1,ny+1),intent(in)        :: wete
+      real*8,  intent(in)                             :: dt
       integer                                         :: itheta
-      real*8 , dimension(nx+1,ny+1)                   :: dnu,dsu,dsdnzi,fluxx
+      real*8 , dimension(nx+1,ny+1)                   :: dnu,dsu,dsz,dnz,dsdnzi,fluxx
       real*8 , dimension(nx+1,ny+1,ntheta)            :: xadvec,ee,cgx
       real*8                                          :: cgxu,eupw
 
@@ -108,7 +109,7 @@ contains
                enddo
             enddo
          enddo
-       case(SCHEME_UPWIND_2)
+       case(SCHEME_UPWIND_2,SCHEME_WARMBEAM)
          do itheta=1,ntheta
             do j=1,ny+1
                do i=2,nx-1
@@ -163,8 +164,22 @@ contains
                   endif
                enddo
             enddo
-         enddo
+         enddo       
       end select
+      if (scheme_now==SCHEME_WARMBEAM) then
+         do itheta=1,ntheta
+            do j=jmin_ee,jmax_ee
+               do i=2,nx
+                  if(wete(i,j)==1) then
+                  xadvec(i,j,itheta)=   xadvec(i,j,itheta)             &
+                                       -((ee(i+1,j,itheta)-ee(i  ,j,itheta))/dsu(i  ,j)   &
+                                        -(ee(i  ,j,itheta)-ee(i-1,j,itheta))/dsu(i-1,j))/ &
+                                          dsz(i,j)*dt/2*cgx(i,j,itheta)**2
+                  endif
+               enddo
+            enddo
+         enddo
+      endif
 
    end subroutine advecxho
 
@@ -215,7 +230,7 @@ contains
                   endif
                enddo
             enddo
-          case(SCHEME_UPWIND_2)
+          case(SCHEME_UPWIND_2,SCHEME_WARMBEAM)
             do j=1,ny+1
                do i=1,nx+1
                   if(wete(i,j)==1) then
@@ -265,15 +280,16 @@ contains
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,scheme,wete)
+   subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,scheme,wete,dt,dnz,dsz)
 
       implicit none
 
       integer                                         :: i,j,nx,ny,ntheta
       integer, intent(in)                             :: scheme
       integer, dimension(nx+1,ny+1),intent(in)        :: wete
+      real*8,  intent(in)                             :: dt
       integer                                         :: itheta
-      real*8 ,  dimension(nx+1,ny+1)                  :: dsv,dnv,dsdnzi,fluxy
+      real*8 ,  dimension(nx+1,ny+1)                  :: dsv,dnv,dnz,dsz,dsdnzi,fluxy
       real*8 ,  dimension(nx+1,ny+1,ntheta)           :: yadvec,ee,cgy
       real*8                                          :: cgyv,eupw
 
@@ -307,7 +323,7 @@ contains
                enddo
             enddo
          enddo
-       case(SCHEME_UPWIND_2)
+       case(SCHEME_UPWIND_2,SCHEME_WARMBEAM)
          do itheta=1,ntheta
             do j=2,ny-1
                do i=1,nx+1
@@ -364,7 +380,20 @@ contains
             enddo
          enddo
       end select
-
+      if (scheme_now==SCHEME_WARMBEAM) then
+         do itheta=1,ntheta
+            do j=2,ny
+               do i=2,nx+1
+                  if(wete(i,j)==1) then
+                  yadvec(i,j,itheta) = yadvec(i,j,itheta)                                 &
+                                       -((ee(i,j+1,itheta)-ee(i,j  ,itheta))/dnv(i,j  )   &
+                                        -(ee(i,j  ,itheta)-ee(i,j-1,itheta))/dnv(i,j-1))/ &
+                                          dnz(i,j)*dt/2*cgy(i,j,itheta)**2
+                  endif
+               enddo
+            enddo
+         enddo
+      endif
    end subroutine advecyho
 
 

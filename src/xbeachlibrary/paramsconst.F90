@@ -89,6 +89,7 @@ module paramsconst
    integer, parameter :: SCHEME_UPWIND_1             =  0
    integer, parameter :: SCHEME_LAX_WENDROFF         =  1
    integer, parameter :: SCHEME_UPWIND_2             =  2
+   integer, parameter :: SCHEME_WARMBEAM             =  3
 
    integer, parameter :: TURBADV_NONE                =  0
    integer, parameter :: TURBADV_LAGRANGIAN          =  1

@@ -327,6 +327,7 @@ module params
       integer                           :: bdslpeffini              = -123                 !  [name] Modify the critical shields parameter based on the bed slope
       integer                           :: bdslpeffdir              = -123                 !  [name] Modify the direction of the sediment transport based on the bed slope
       double precision                  :: bdslpeffdirfac           = -123                 !  [-] Calibration factor in the modification of the direction
+      double precision                  :: bermslope                = -123                 !  [-] Swash zone slope for (semi-) reflective beaches
 
       ! [Section] Morphology parameters
       double precision                  :: morfac                   = -123                 !  [-] Morphological acceleration factor
@@ -1261,6 +1262,8 @@ contains
          if (par%bdslpeffdir>0) then
             par%bdslpeffdirfac      = readkey_dbl ('params.txt','bdslpeffdirfac',   1.d0,    0.d0,  2.d0)
          endif
+         par%bermslope   = readkey_dbl ('params.txt','bermslope ',0.0d0,     0.00d0,   1.0d0,silent=.true.)
+
       endif
       !
       !
@@ -1435,8 +1438,9 @@ contains
 
       call setallowednames('upwind_1',      SCHEME_UPWIND_1,      &
       'lax_wendroff',  SCHEME_LAX_WENDROFF,  &
-      'upwind_2',      SCHEME_UPWIND_2)
-      call setoldnames('1','2','3')
+      'upwind_2',      SCHEME_UPWIND_2,      &
+      'warmbeam',      SCHEME_WARMBEAM)
+      call setoldnames('1','2','3','4')
       call parmapply('scheme',3,par%scheme,par%scheme_str)
 
       if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE .or. par%single_dir==1) then
