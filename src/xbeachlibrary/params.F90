@@ -327,7 +327,7 @@ module params
       integer                           :: bdslpeffini              = -123                 !  [name] Modify the critical shields parameter based on the bed slope
       integer                           :: bdslpeffdir              = -123                 !  [name] Modify the direction of the sediment transport based on the bed slope
       double precision                  :: bdslpeffdirfac           = -123                 !  [-] Calibration factor in the modification of the direction
-      double precision                  :: bermslope                = -123                 !  [-] Swash zone slope for (semi-) reflective beaches
+      !double precision                  :: bermslope                = -123                 !  [-] Swash zone slope for (semi-) reflective beaches
 
       ! [Section] Morphology parameters
       double precision                  :: morfac                   = -123                 !  [-] Morphological acceleration factor
