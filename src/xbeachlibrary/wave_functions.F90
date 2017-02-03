@@ -62,7 +62,7 @@ contains
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,scheme,wete,dt,dnz,dsz)
+   subroutine advecxho(ee,cgx,xadvec,nx,ny,ntheta,dnu,dsu,dsdnzi,scheme,wete,dt,dsz)
       use spaceparams
       use xmpi_module
 
@@ -73,7 +73,7 @@ contains
       integer, dimension(nx+1,ny+1),intent(in)        :: wete
       real*8,  intent(in)                             :: dt
       integer                                         :: itheta
-      real*8 , dimension(nx+1,ny+1)                   :: dnu,dsu,dsz,dnz,dsdnzi,fluxx
+      real*8 , dimension(nx+1,ny+1)                   :: dnu,dsu,dsz,dsdnzi,fluxx
       real*8 , dimension(nx+1,ny+1,ntheta)            :: xadvec,ee,cgx
       real*8                                          :: cgxu,eupw
 
@@ -280,7 +280,7 @@ contains
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,scheme,wete,dt,dnz,dsz)
+   subroutine advecyho(ee,cgy,yadvec,nx,ny,ntheta,dsv,dnv,dsdnzi,scheme,wete,dt,dnz)
 
       implicit none
 
@@ -289,7 +289,7 @@ contains
       integer, dimension(nx+1,ny+1),intent(in)        :: wete
       real*8,  intent(in)                             :: dt
       integer                                         :: itheta
-      real*8 ,  dimension(nx+1,ny+1)                  :: dsv,dnv,dnz,dsz,dsdnzi,fluxy
+      real*8 ,  dimension(nx+1,ny+1)                  :: dsv,dnv,dnz,dsdnzi,fluxy
       real*8 ,  dimension(nx+1,ny+1,ntheta)           :: yadvec,ee,cgy
       real*8                                          :: cgyv,eupw
 
