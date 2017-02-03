@@ -1262,7 +1262,7 @@ contains
          if (par%bdslpeffdir>0) then
             par%bdslpeffdirfac      = readkey_dbl ('params.txt','bdslpeffdirfac',   1.d0,    0.d0,  2.d0)
          endif
-         par%bermslope   = readkey_dbl ('params.txt','bermslope ',0.0d0,     0.00d0,   1.0d0,silent=.true.)
+         !par%bermslope   = readkey_dbl ('params.txt','bermslope ',0.0d0,     0.00d0,   1.0d0,silent=.true.)
 
       endif
       !
