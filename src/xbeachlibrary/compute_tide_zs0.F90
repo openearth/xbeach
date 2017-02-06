@@ -366,8 +366,13 @@ subroutine boundaryinterp_tide_complex(s,globalonly_local,boundaryID)
             tide2 = s%zs03
             disttide1 = sdistcorners(2)
             disttide2 = sdistcorners(3)
-            tidegradient1 = (s%zs02-s%zs01)/(ndistcorners(2)-ndistcorners(1))
-            tidegradient2 = (s%zs03-s%zs04)/(ndistcorners(3)-ndistcorners(4))
+            if(s%ny==0) then
+                tidegradient1 = (s%zs02-s%zs01)/s%dnz(1,1)
+                tidegradient2 = (s%zs03-s%zs04)/s%dnz(s%nx+1,1)
+            else
+                tidegradient1 = (s%zs02-s%zs01)/(ndistcorners(2)-ndistcorners(1))
+                tidegradient2 = (s%zs03-s%zs04)/(ndistcorners(3)-ndistcorners(4))
+            endif
          case (4) ! right (flow = left mpi)
             imin = 1
             imax = s%nx+1
@@ -378,8 +383,13 @@ subroutine boundaryinterp_tide_complex(s,globalonly_local,boundaryID)
             tide2 = s%zs04
             disttide1 = sdistcorners(1)
             disttide2 = sdistcorners(4)
-            tidegradient1 = (s%zs02-s%zs01)/(ndistcorners(2)-ndistcorners(1))
-            tidegradient2 = (s%zs03-s%zs04)/(ndistcorners(3)-ndistcorners(4))
+            if(s%ny==0) then
+                tidegradient1 = (s%zs02-s%zs01)/s%dnz(1,1)
+                tidegradient2 = (s%zs03-s%zs04)/s%dnz(s%nx+1,1)
+            else
+                tidegradient1 = (s%zs02-s%zs01)/(ndistcorners(2)-ndistcorners(1))
+                tidegradient2 = (s%zs03-s%zs04)/(ndistcorners(3)-ndistcorners(4))
+            endif
       end select
       !        
       ! We decide if there is MPI subdomain discretization along the boundary. This is not the case if run
