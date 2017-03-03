@@ -298,7 +298,7 @@ module params
       double precision                  :: BRfac                    = -123                 !  [-] (advanced) Calibration factor surface slope
       double precision                  :: facsl                    = -123                 !  [-] (advanced) Factor bedslope effect
       double precision                  :: z0                       = -123                 !  [m] (advanced) Zero flow velocity level in Soulsby and van Rijn (1997) sediment concentration
-      double precision                  :: smax                     = -123                 !  [-] (advanced) Maximum Shields parameter for equillibrium sediment concentration acc. Diane Foster
+      double precision                  :: smax                     = -123                 !  [-] (advanced) Maximum Shields parameter for equilibrium sediment concentration acc. Diane Foster
       double precision                  :: tsfac                    = -123                 !  [-] (advanced) Coefficient determining Ts = tsfac * h/ws in sediment source term
       double precision                  :: facua                    = -123                 !  [-] (advanced) Calibration factor time averaged flows due to wave skewness and asymmetry
       double precision                  :: facSk                    = -123                 !  [-] (advanced) Calibration factor time averaged flows due to wave skewness
@@ -1659,6 +1659,16 @@ contains
       if ((par%form==FORM_SOULSBY_VANRIJN) .and. (maxval(par%D50(1:par%ngd))>= 0.05d0)) then
          call writelog('lews','','Error: Soulsby - Van Rijn cannot be used for sediment D50 > 0.05m')
          call halt_program
+      endif
+      !
+      !
+      ! Check on pormax value
+      if (par%dilatancy==1) then
+         if (par%pormax.le.par%por) then
+            call writelog('lws','','Warning: Maximum porosity for dilatancy effect smaller than actual porosity.')
+            call writelog('lws','','         Setting pormax equal to por, effectively switching off dilatancy.')
+            par%pormax = par%por
+         end if
       endif
       !
       !
