@@ -327,7 +327,7 @@ module params
       integer                           :: bdslpeffini              = -123                 !  [name] Modify the critical shields parameter based on the bed slope
       integer                           :: bdslpeffdir              = -123                 !  [name] Modify the direction of the sediment transport based on the bed slope
       double precision                  :: bdslpeffdirfac           = -123                 !  [-] Calibration factor in the modification of the direction
-      !double precision                  :: bermslope                = -123                 !  [-] Swash zone slope for (semi-) reflective beaches
+      double precision                  :: bermslope                = -123                 !  [-] Swash zone slope for (semi-) reflective beaches
 
       ! [Section] Morphology parameters
       double precision                  :: morfac                   = -123                 !  [-] Morphological acceleration factor
@@ -336,6 +336,8 @@ module params
       double precision                  :: morstop                  = -123                 !  [s] Stop time morphology, in morphological time
       double precision                  :: wetslp                   = -123                 !  [-] Critical avalanching slope under water (dz/dx and dz/dy)
       double precision                  :: dryslp                   = -123                 !  [-] Critical avalanching slope above water (dz/dx and dz/dy)
+      double precision                  :: lsgrad                   = -123                 !  [1/m] Factor to include longshore transport gradient in 1D simulations
+                                                                                           !        dSy/dy=lsgrad*Sy; dimension 1/length scale of longshore gradients
       double precision                  :: hswitch                  = -123                 !  [m] (advanced) Water depth at which is switched from wetslp to dryslp
       double precision                  :: dzmax                    = -123                 !  [m/s/m] (advanced) Maximum bed level change due to avalanching
       integer                           :: struct                   = -123                 !  [-] Switch for enabling hard structures
@@ -1262,7 +1264,7 @@ contains
          if (par%bdslpeffdir>0) then
             par%bdslpeffdirfac      = readkey_dbl ('params.txt','bdslpeffdirfac',   1.d0,    0.d0,  2.d0)
          endif
-         !par%bermslope   = readkey_dbl ('params.txt','bermslope ',0.0d0,     0.00d0,   1.0d0,silent=.true.)
+         par%bermslope   = readkey_dbl ('params.txt','bermslope ',0.0d0,     0.00d0,   1.0d0,silent=.true.)
 
       endif
       !
@@ -1300,6 +1302,7 @@ contains
          par%morstop  = readkey_dbl ('params.txt','morstop', par%tstop,      0.d0, 10000000.d0)
          par%wetslp   = readkey_dbl ('params.txt','wetslp', 0.3d0,       0.1d0,     1.d0)
          par%dryslp   = readkey_dbl ('params.txt','dryslp', 1.0d0,       0.1d0,     2.d0)
+         par%lsgrad   = readkey_dbl ('params.txt','lsgrad', 0.0d0,       0.0d0,     .1d0)
          par%hswitch  = readkey_dbl ('params.txt','hswitch',0.1d0,      0.01d0,    1.0d0)
          par%dzmax    = readkey_dbl ('params.txt','dzmax  ',0.05d0,    0.00d0,   1.0d0)
          par%struct   = readkey_int ('params.txt','struct ',0    ,      0,             1,strict=.true.)

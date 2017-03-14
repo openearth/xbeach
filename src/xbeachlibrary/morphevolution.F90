@@ -249,11 +249,27 @@ contains
          ! Originally bed slope effect of XBeach : par%bdslpeffmag = 1
          ! Original one, but only on bed load : par%bdslpeffmag = 2
          if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL) then
-            Sus = Sus-par%sus*(par%facsl*cu*s%vmagu*s%hu*s%dzbdx)*s%wetu
+            if (par%bermslope>0) then
+               where (s%H/s%hu>1.0d0.or.(s%hu<1.d0.and. par%instat==INSTAT_STAT_TABLE))
+                  Sus = Sus-par%sus*(10.d0*par%facsl*cu*s%vmagu*s%hu*(s%dzbdx-par%bermslope))*s%wetu
+               elsewhere
+                  Sus = Sus-par%sus*(par%facsl*cu*s%vmagu*s%hu*s%dzbdx)*s%wetu
+               end where
+            else
+               Sus = Sus-par%sus*(par%facsl*cu*s%vmagu*s%hu*s%dzbdx)*s%wetu
+            endif
          endif
 
          if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL .or. par%bdslpeffmag == BDSLPEFFMAG_ROELV_BED) then
-            Sub = Sub-par%bed*(par%facsl*cub*s%vmagu*s%hu*s%dzbdx)*s%wetu
+            if (par%bermslope>0) then
+               where (s%H/s%hu>1.0d0 .or. (s%hu<1.d0.and. par%instat==INSTAT_STAT_TABLE))
+                  Sub = Sub-par%bed*(10.0d0*par%facsl*cub*s%vmagu*s%hu*(s%dzbdx-par%bermslope))*s%wetu
+               elsewhere
+                  Sub = Sub-par%bed*(par%facsl*cub*s%vmagu*s%hu*s%dzbdx)*s%wetu
+               end where
+            else
+               Sub = Sub-par%bed*(par%facsl*cub*s%vmagu*s%hu*s%dzbdx)*s%wetu 
+            endif
          endif
          !
          !
@@ -687,12 +703,13 @@ contains
                if (par%sourcesink==0) then
                   dzg=par%morfac*par%dt/(1.d0-par%por)*( & ! Dano, dz from sus transport gradients
                   ( s%Susg(i,j,:)*s%dnu(i,j)-s%Susg(i-1,j,:)*s%dnu(i-1,j) +&
-                  s%Subg(i,j,:)*s%dnu(i,j)-s%Subg(i-1,j,:)*s%dnu(i-1,j) )*s%dsdnzi(i,j)    )
+                    s%Subg(i,j,:)*s%dnu(i,j)-s%Subg(i-1,j,:)*s%dnu(i-1,j) )*s%dsdnzi(i,j) +&
+                   (s%Svsg(i,j,:)+s%Svbg(i,j,:))*par%lsgrad)
                elseif (par%sourcesink==1) then
                   dzg=par%morfac*par%dt/(1.d0-par%por)*( &
                   s%ero(i,j,:)-s%depo_ex(i,j,:)       +&
-                  ( s%Subg(i,j,:)*s%dnu(i,j)-s%Subg(i-1,j,:)*s%dnu(i-1,j) )*s%dsdnzi(i,j)    )
-
+                  ( s%Subg(i,j,:)*s%dnu(i,j)-s%Subg(i-1,j,:)*s%dnu(i-1,j) )*s%dsdnzi(i,j) +&
+                   (s%Svsg(i,j,:)+s%Svbg(i,j,:))*par%lsgrad)
                endif
 
                if (par%ngd==1) then ! Simple bed update in case one fraction
@@ -1283,12 +1300,21 @@ contains
                if (par%turb == TURB_BORE_AVERAGED) then
                   s%kb(i,j) = s%kb(i,j)*par%Trep/s%Tbore(i,j)
                endif
+
             enddo
             ! Jaap: rundown jet creating additional turbulence
             if (par%swrunup==1)then
                s%kb(nint(s%istruct(j)),j) = s%kb(nint(s%istruct(j)),j) + par%jetfac* &
                (s%E(nint(s%istruct(j)),j)*s%strucslope(j)*sqrt(par%g/s%hh(nint(s%istruct(j)),j)))**twothird
             endif
+         enddo
+      elseif (par%nonh==1) then
+         do j=1,s%ny+1
+            do i=1,s%nx+1
+               !ML=max(s%rolthick(i,j),0.07d0*max(s%hh(i,j),par%hmin))
+               !s%kb(i,j) = s%kturb(i,j)*ML/max(s%hh(i,j),par%hmin) ! Simpler expression 
+                s%kb(i,j) = s%kturb(i,j)  ! even simpler expression :-)
+            enddo
          enddo
       endif !par%swave == 1
 
@@ -1509,6 +1535,7 @@ contains
 
       integer                                  :: i
       integer                                  :: j
+      real*8                                   :: ML, disturb
       real*8, save                             :: twothird
       real*8,dimension(:,:),allocatable,save   :: ksource, kturbu,kturbv,Sturbu,Sturbv,dzsdt_cr
 
@@ -1527,16 +1554,22 @@ contains
       ! use lagrangian velocities
       kturbu       = 0.0d0  !Jaap
       kturbv       = 0.0d0  !Jaap
-      dzsdt_cr=par%beta*s%c
+!     dzsdt_cr=par%beta*s%c
+      dzsdt_cr=par%beta*sqrt(par%g*s%hh)
       ! Update roller thickness
-      s%rolthick=s%rolthick+par%dt*(abs(s%dzsdt)-dzsdt_cr)
+      !s%rolthick=s%rolthick+par%dt*(abs(s%dzsdt)-dzsdt_cr) Dano: not abs!
+      s%rolthick=s%rolthick+par%dt*(s%dzsdt-dzsdt_cr)
       s%rolthick=max(s%rolthick,0.d0)
+      s%rolthick=min(s%rolthick,s%hh)
+      where (s%wetz==0)
+          s%rolthick=0.d0
+      endwhere
 
       ! Jaap compute sources and sinks
       ! long wave source
       ksource = 0
       if (par%lwt == 1) then
-         ksource = par%g*s%rolthick*par%beta*s%c      !only important in shallow water, where s%c=sqrt(gh)
+         ksource = par%g*s%rolthick*par%beta*sqrt(par%g*s%hh)      !only important in shallow water, where s%c=sqrt(gh)
       endif
       if (par%turbadv == TURBADV_NONE) then
          s%kturb = (s%DR/par%rho)**twothird           ! See Battjes, 1975 / 1985
@@ -1591,11 +1624,16 @@ contains
          if (s%ny>0) then
             do j=2,s%ny+1
                do i=2,s%nx+1
-
-                  s%kturb(i,j) = s%hold(i,j)*s%kturb(i,j)-par%dt*(       &
+                  if (par%betad>0) then
+                     disturb=par%betad*s%kturb(i,j)**1.5d0
+                  else
+                     ML=max(s%rolthick(i,j),0.07d0*max(s%hh(i,j),par%hmin))
+                     disturb=0.08d0*max(s%hh(i,j),par%hmin)/ML*s%kturb(i,j)**1.5d0
+                  endif
+                  s%kturb(i,j) = (s%hold(i,j)*s%kturb(i,j)-par%dt*(       &
                   (Sturbu(i,j)*s%dnu(i,j)-Sturbu(i-1,j)*s%dnu(i-1,j)+&
                   Sturbv(i,j)*s%dsv(i,j)-Sturbv(i,j-1)*s%dsv(i,j-1))*s%dsdnzi(i,j)-&
-                  (ksource(i,j)-par%betad*s%kturb(i,j)**1.5d0))
+                  (ksource(i,j)-disturb)))/max(s%hh(i,j),par%hmin)
                   s%kturb(i,j)=max(s%kturb(i,j),0.0d0)
 
                enddo
@@ -1604,9 +1642,9 @@ contains
             j=1
             do i=2,s%nx+1
 
-               s%kturb(i,j) = s%hold(i,j)*s%kturb(i,j)-par%dt*(       &
+               s%kturb(i,j) = (s%hold(i,j)*s%kturb(i,j)-par%dt*(       &
                (Sturbu(i,j)*s%dnu(i,j)-Sturbu(i-1,j)*s%dnu(i-1,j))*s%dsdnzi(i,j)-&
-               (ksource(i,j)-par%betad*s%kturb(i,j)**1.5d0))
+               (ksource(i,j)-par%betad*s%kturb(i,j)**1.5d0)))/max(s%hh(i,j),par%hmin)
                s%kturb(i,j)=max(s%kturb(i,j),0.0d0)
 
             enddo
