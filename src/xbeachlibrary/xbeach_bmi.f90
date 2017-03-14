@@ -139,6 +139,13 @@ contains
     time = 0
   end subroutine get_start_time
 
+  subroutine get_time_step(timestep) bind(C, name="get_time_step")
+    !DEC$ ATTRIBUTES DLLEXPORT :: get_time_step
+
+    real(c_double) :: timestep
+    timestep = par%dt
+  end subroutine get_time_step
+
   subroutine get_end_time(time) bind(C, name="get_end_time")
     !DEC$ ATTRIBUTES DLLEXPORT :: get_end_time
 
