@@ -52,9 +52,7 @@ contains
     !< Custom timestep size, use -1 to use model default.
     real(c_double), value, intent(in) :: dt
 
-    if (dt < -1) then
-       par%t = par%t - dt / par%morfac
-    elseif (dt >= 0) then
+    if (dt >= 0) then
        ierr = executestep(dt / par%morfac)
     else
        ierr = executestep()
