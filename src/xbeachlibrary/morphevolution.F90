@@ -198,8 +198,16 @@ contains
          ! Get ua in u points and split out in u and v direction
          uau(1:s%nx,:) = 0.5*(s%ua(1:s%nx,:)*costhm(1:s%nx,:)+s%ua(2:s%nx+1,:)*costhm(1:s%nx,:))
          uav(1:s%nx,:) = 0.5*(s%ua(1:s%nx,:)*sinthm(1:s%nx,:)+s%ua(2:s%nx+1,:)*sinthm(1:s%nx,:))
-         ueu_sed(1:s%nx,:) = 0.5*(s%ue_sed(1:s%nx,:)+s%ue_sed(2:s%nx+1,:))
+         if (par%nz>1) then
+            ueu_sed(1:s%nx,:) = 0.5*(s%ue_sed(1:s%nx,:)+s%ue_sed(2:s%nx+1,:))
+         else
+            ueu_sed=s%ueu
+         endif
          veu_sed(1:s%nx,:) = 0.5*(s%ve_sed(1:s%nx,:)+s%ve_sed(2:s%nx+1,:))
+         if (xmpi_isbot) then
+            veu_sed(s%nx+1,:) = veu_sed(s%nx,:)
+         endif
+
          ! Compute vmagu including ua
 !         s%vmagu = sqrt((s%uu+uau)**2+(s%vu+uav)**2)
          s%vmagu = sqrt((ueu_sed+uau)**2+(veu_sed+uav)**2)
@@ -281,10 +289,15 @@ contains
             uav(:,1:s%ny) = 0.5*(s%ua(:,1:s%ny)*sinthm(:,1:s%ny)+s%ua(:,2:s%ny+1)*sinthm(:,1:s%ny))
             uau(:,s%ny+1) = uau(:,s%ny) ! Jaap
             uav(:,s%ny+1) = uav(:,s%ny) ! Jaap
+            if (par%nz>1) then
+               vev_sed(:,1:s%ny) = 0.5*(s%ve_sed(:,1:s%ny)+s%ve_sed(:,2:s%ny+1))
+            else
+               vev_sed=s%vev
+            endif
             uev_sed(:,1:s%ny) = 0.5*(s%ue_sed(:,1:s%ny)+s%ue_sed(:,2:s%ny+1))
-            vev_sed(:,1:s%ny) = 0.5*(s%ve_sed(:,1:s%ny)+s%ve_sed(:,2:s%ny+1))
-            uev_sed(:,s%ny+1) = s%ue_sed(:,s%ny) 
-            vev_sed(:,s%ny+1) = s%ve_sed(:,s%ny) 
+            if (xmpi_isright) then
+               uev_sed(:,1:s%ny+1) = uev_sed(:,1:s%ny)
+            endif
         else
             uau=s%ua*costhm
             uav=s%ua*sinthm
