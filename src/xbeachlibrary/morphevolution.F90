@@ -983,6 +983,11 @@ contains
                      end if
                   end do
                end do
+               ! Dano: in parallel version bed update must take place AFTER EACH ITERATION 
+#ifdef USEMPI
+               call xmpi_shift_ee(s%zb)
+#endif
+
                if (.not.aval) exit
             end do
          else
@@ -1002,6 +1007,8 @@ contains
          !
          ! bed boundary conditions
          !
+         ! Dano: the following Neumann boundaries introduce a mass error equal to
+         ! the bed level change due to the b.c. times the cell area.
          if(xmpi_isleft .and. s%ny>0) then
             s%zb(:,1) = s%zb(:,2)
             s%dzbdt(:,1) = s%dzbdt(:,2)
