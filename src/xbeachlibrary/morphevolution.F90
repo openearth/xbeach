@@ -757,9 +757,13 @@ contains
 
 
          if (par%avalanching==1) then
+             
+            aval=.false.  !Dano fix for MPI
             do ii=1,nint(par%morfac)
-
-               aval=.false.
+               if (ii==1 .or. aval) then ! Dano only do avalanching if first time 
+                                         ! or avalanching in previous step but
+                                         ! always do xmpi_shift_ee to avoid lock
+               !aval=.false.
                s%dzbdx=0.d0
                s%dzbdy=0.d0
                do j=1,s%ny+1
@@ -788,7 +792,8 @@ contains
                   enddo
                endif
                !
-               do i=2,s%nx !-1 Jaap -1 gives issues for bed updating at mpi boundaries
+               !do i=2,s%nx !-1 Jaap -1 gives issues for bed updating at mpi boundaries
+               do i=1,s%nx !-1 Dano 2 gives issues for bed updating at mpi boundaries
                   do j=1,s%ny+1
                      !if (max( max(hh(i,j),par%delta*H(i,j)), max(hh(i+1,j),par%delta*H(i+1,j)) )>par%hswitch+par%eps) then
                      if(max(hav(i,j),hav(i+1,j))>par%hswitch+par%eps) then ! Jaap instead of s%hh
@@ -983,12 +988,14 @@ contains
                      end if
                   end do
                end do
+               !write(*,*)'ii ',ii,' aval ',aval,' rank ',xmpi_rank
+               endif !Dano                
                ! Dano: in parallel version bed update must take place AFTER EACH ITERATION 
 #ifdef USEMPI
                call xmpi_shift_ee(s%zb)
 #endif
 
-               if (.not.aval) exit
+               !if (.not.aval) exit ! Dano no need to exit
             end do
          else
             s%dzbdx=0.d0
