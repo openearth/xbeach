@@ -552,7 +552,7 @@ contains
       real*8 , dimension(par%ngd)                 :: edg,edg1,edg2,dzg
       real*8 , dimension(:),pointer               :: dz
       real*8 , dimension(:,:),pointer             :: pb
-      logical                                     :: aval
+      integer                                     :: n_aval
 
       !include 's.ind'
       !include 's.inp'
@@ -758,12 +758,9 @@ contains
 
          if (par%avalanching==1) then
              
-            aval=.false.  !Dano fix for MPI
             do ii=1,nint(par%morfac)
-               if (ii==1 .or. aval) then ! Dano only do avalanching if first time 
-                                         ! or avalanching in previous step but
-                                         ! always do xmpi_shift_ee to avoid lock
                !aval=.false.
+               n_aval=0  !Dano fix for MPI
                s%dzbdx=0.d0
                s%dzbdy=0.d0
                do j=1,s%ny+1
@@ -792,8 +789,7 @@ contains
                   enddo
                endif
                !
-               !do i=2,s%nx !-1 Jaap -1 gives issues for bed updating at mpi boundaries
-               do i=1,s%nx !-1 Dano 2 gives issues for bed updating at mpi boundaries
+               do i=2,s%nx !-1 Jaap -1 gives issues for bed updating at mpi boundaries
                   do j=1,s%ny+1
                      !if (max( max(hh(i,j),par%delta*H(i,j)), max(hh(i+1,j),par%delta*H(i+1,j)) )>par%hswitch+par%eps) then
                      if(max(hav(i,j),hav(i+1,j))>par%hswitch+par%eps) then ! Jaap instead of s%hh
@@ -807,8 +803,8 @@ contains
                         dzmax=par%dryslp;
                      end if
 
-                     if(abs(s%dzbdx(i,j))>dzmax .and. s%structdepth(i+nint(max(0.d0,sign(1.d0,s%dzbdx(i,j)))),j)>par%eps) then
-                        aval=.true.
+                     if(abs(s%dzbdx(i,j))>dzmax+1.d-10 .and. s%structdepth(i+nint(max(0.d0,sign(1.d0,s%dzbdx(i,j)))),j)>par%eps) then
+                        n_aval=n_aval+1
                         dzb=sign(1.0d0,s%dzbdx(i,j))*(abs(s%dzbdx(i,j))-dzmax)*s%dsu(i,j)
 
                         if (dzb >= 0.d0) then
@@ -907,7 +903,7 @@ contains
                         dzmax=par%dryslp
                      end if
                      if(abs(s%dzbdy(i,j))>dzmax .and. s%structdepth(i,j+nint(max(0.d0,sign(1.d0,s%dzbdy(i,j)))))>par%eps) then ! Jaap
-                        aval=.true.
+                        n_aval=n_aval+1
                         dzb=sign(1.0d0,s%dzbdy(i,j))*(abs(s%dzbdy(i,j))-dzmax)*s%dnv(i,j)
                         !
                         if (dzb >= 0.d0) then
@@ -988,14 +984,19 @@ contains
                      end if
                   end do
                end do
-               !write(*,*)'ii ',ii,' aval ',aval,' rank ',xmpi_rank
-               endif !Dano                
+               ! write(*,*)'t ',par%t,'ii ',ii,' n_aval ',n_aval,' rank ',xmpi_rank
                ! Dano: in parallel version bed update must take place AFTER EACH ITERATION 
 #ifdef USEMPI
-               call xmpi_shift_ee(s%zb)
+               call xmpi_allreduce(n_aval  ,MPI_SUM)
 #endif
+               if (n_aval>0) then
+#ifdef USEMPI
+                  call xmpi_shift_ee(s%zb)
+#endif
+               else
+                  exit
+               endif
 
-               !if (.not.aval) exit ! Dano no need to exit
             end do
          else
             s%dzbdx=0.d0
