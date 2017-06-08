@@ -602,14 +602,14 @@ contains
          par%nz = readkey_int ('params.txt','nz',    1,        1,     100)
       ! Wave directional grid
       if(par%swave==1) then
-         par%thetamin = readkey_dbl ('params.txt','thetamin', -90.d0,    -180.d0,  180.d0,required=.true.)
-         par%thetamax = readkey_dbl ('params.txt','thetamax',  90.d0,    -180.d0,  180.d0,required=.true.)
+         par%thetamin = readkey_dbl ('params.txt','thetamin', -90.d0,    -360.d0,  360.d0,required=.true.)
+         par%thetamax = readkey_dbl ('params.txt','thetamax',  90.d0,    -360.d0,  360.d0,required=.true.)
          par%thetanaut= readkey_int ('params.txt','thetanaut',    0,        0,     1,strict=.true.)
          if (par%single_dir==1) then
             call writelog('ls','','dtheta will automatically be computed from thetamin and thetamax for single_dir = 1')
             par%dtheta_s   = readkey_dbl ('params.txt','dtheta_s',    10.d0,      0.1d0,   20.d0,required=.true.)
          else
-            par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   20.d0,required=.true.)
+            par%dtheta   = readkey_dbl ('params.txt','dtheta',    10.d0,      0.1d0,   180.d0,required=.true.)
          endif
       endif
       !
@@ -732,20 +732,20 @@ contains
          par%Hrms  = readkey_dbl ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
          par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
          par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
-         par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
+         par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    -360.d0,   360.d0)
          par%m     = readkey_int ('params.txt','m',        10,         2,      128)
       elseif (par%instat == INSTAT_BICHROM) then
          par%Hrms  = readkey_dbl ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
          par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
          par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
          par%Tlong = readkey_dbl ('params.txt','Tlong',    80.d0,     20.d0,   300.d0)
-         par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
+         par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    -360.d0,   360.d0)
          par%m     = readkey_int ('params.txt','m',        10,         2,      128)
       elseif (par%instat == INSTAT_TS_1 .or. par%instat == INSTAT_TS_2) then
          par%Hrms  = readkey_dbl ('params.txt','Hrms',      1.d0,      0.d0,    10.d0)
          par%Tm01  = readkey_dbl ('params.txt','Tm01',     10.d0,      1.d0,    20.d0)
          par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
-         par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    180.d0,   360.d0)
+         par%dir0  = readkey_dbl ('params.txt','dir0',    270.d0,    -360.d0,   360.d0)
          par%m     = readkey_int ('params.txt','m',        10,         2,      128)
          call check_file_exist('bc/gen.ezs')
       elseif (par%instat == INSTAT_TS_NONH) then
@@ -867,8 +867,7 @@ contains
       ! others
       par%ARC         = readkey_int ('params.txt','ARC',      1,              0,       1       ,strict=.true.)
       par%order       = readkey_dbl ('params.txt','order',    2.d0,           1.d0,    2.d0    ,strict=.true.)
-      par%carspan     = readkey_int ('params.txt','carspan',  0,              0,       1       ,strict=.true.) ! deprecated
-      par%freewave    = readkey_int ('params.txt','freewave', par%carspan,    0,       1       ,strict=.true.)
+      par%freewave    = readkey_int ('params.txt','freewave', 0,              0,       1       ,strict=.true.)
       par%epsi        = readkey_dbl ('params.txt','epsi',     -1.d0,          -1.d0,   0.2d0   )
       par%nc          = readkey_int ('params.txt','nc',       par%ny+1,       1,       par%ny+1,strict=.true.,silent=.true.)
 
@@ -932,17 +931,18 @@ contains
          if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE) then
             call parmapply('break',2,par%break,par%break_str) ! default: baldock
             par%gamma    = readkey_dbl ('params.txt','gamma',   0.78d0,     0.4d0,     0.9d0)   
+            par%gammax   = readkey_dbl ('params.txt','gammax',   0.6d0,      .4d0,      5.d0)   
          else
             call parmapply('break',3,par%break,par%break_str) ! default: roelvink2
             par%gamma    = readkey_dbl ('params.txt','gamma',   0.55d0,     0.4d0,     0.9d0)   
+            par%gammax   = readkey_dbl ('params.txt','gammax',   2.d0,      .4d0,      5.d0)   
          endif
          
          if (par%break == BREAK_ROELVINK_DALY) then
             par%gamma2   = readkey_dbl ('params.txt','gamma2',   0.3d0,     0.0d0,     0.5d0)
          endif
          par%alpha        = readkey_dbl ('params.txt','alpha',   1.0d0,     0.5d0,     2.0d0)
-         par%n            = readkey_dbl ('params.txt','n',       10.0d0,     5.0d0,    20.0d0)   !changed 28/11
-         par%gammax       = readkey_dbl ('params.txt','gammax',   2.d0,      .4d0,      5.d0)    !changed 28/11
+         par%n            = readkey_dbl ('params.txt','n',       10.0d0,     5.0d0,    20.0d0) 
          par%delta        = readkey_dbl ('params.txt','delta',   0.0d0,     0.0d0,     1.0d0)
          par%wavfriccoef  = readkey_dbl ('params.txt','fw',       0.d0,   0d0,      1.0d0)
          ! try to read a wave friction file
@@ -956,7 +956,6 @@ contains
             trim(par%wavfricfile), &
             ''' will be used in computation')
          end if
-         !par%fw       = readkey_dbl ('params.txt','fw',       0.d0,   0d0,      1.0d0)
          par%fwcutoff = readkey_dbl ('params.txt','fwcutoff',  1000.d0,   0d0,      1000.d0)
          par%breakerdelay = readkey_dbl ('params.txt','breakerdelay',    1.d0,   0.d0,      3.d0,strict=.true.)
          par%shoaldelay = readkey_int ('params.txt','shoaldelay',    0,   0,      1,silent=.true.,strict=.true.)
@@ -1173,11 +1172,11 @@ contains
 
          if (par%nhbreaker==1) then
             par%breakviscfac = readkey_dbl('params.txt','breakviscfac',1.5d0, 1.d0, 3.d0)
-            par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.6d0, 0.3d0, 0.8d0)
+            par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.4d0, 0.3d0, 0.8d0)
             par%reformsteep  = readkey_dbl('params.txt','reformsteep',0.25d0*par%maxbrsteep,0.d0,0.95d0*par%maxbrsteep)
          elseif (par%nhbreaker==2) then
             par%breakvisclen = readkey_dbl('params.txt','breakvisclen',1.0d0, 0.75d0, 3.d0)
-            par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.6d0, 0.3d0, 0.8d0)
+            par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.4d0, 0.3d0, 0.8d0)
             par%secbrsteep   = readkey_dbl('params.txt','secbrsteep',0.5d0*par%maxbrsteep,0.d0,0.95d0*par%maxbrsteep)
          elseif (par%nhbreaker==3) then
             !par%avis    = readkey_dbl ('params.txt','avis',       0.3d0,     0.0d0,   1.0d0)
@@ -1298,7 +1297,7 @@ contains
          par%morstop  = readkey_dbl ('params.txt','morstop', par%tstop,      0.d0, 10000000.d0)
          par%wetslp   = readkey_dbl ('params.txt','wetslp', 0.3d0,       0.1d0,     1.d0)
          par%dryslp   = readkey_dbl ('params.txt','dryslp', 1.0d0,       0.1d0,     2.d0)
-         par%lsgrad   = readkey_dbl ('params.txt','lsgrad', 0.0d0,       0.0d0,     .1d0)
+         par%lsgrad   = readkey_dbl ('params.txt','lsgrad', 0.0d0,       -0.1d0,     .1d0,silent=.true.)
          par%hswitch  = readkey_dbl ('params.txt','hswitch',0.1d0,      0.01d0,    1.0d0)
          par%dzmax    = readkey_dbl ('params.txt','dzmax  ',0.05d0,    0.00d0,   1.0d0)
          par%struct   = readkey_int ('params.txt','struct ',0    ,      0,             1,strict=.true.)
