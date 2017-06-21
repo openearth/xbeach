@@ -25,6 +25,10 @@ FCFLAGS="-mtune=corei7-avx -funroll-loops --param max-unroll-times=4 -ffree-line
 make
 make install
 
+cd $SVNPATH"/install"
+
+tar -cf $SVNPATH"/artifacts.tar" bin lib
+
 cd $SVNPATH"/trunk/config/"
 
 /usr/share/Modules/bin/createmodule.py -p "/opt/xbeach/"$XBEACH_PROJECT_ID"_gcc_4.9.2_1.8.3_HEAD" ./teamcity-env.sh > $SVNPATH"/trunk/config/xbeach-"$XBEACH_PROJECT_ID"_gcc_4.9.2_1.8.3_HEAD"
