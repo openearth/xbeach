@@ -368,14 +368,14 @@ module params
       double precision, pointer     :: ypointsw(:) => NULL()                                     !  (advanced) world y-coordinate of output points
            
       integer                           :: nrugdepth                = -123                 !  [-] (advanced) Number of depths to compute runup in runup gauge
-      double precision                  :: rugdepth(99)             = -123                 !  [m] (advanced) Minimum depth for determination of last wet point in runup gauge
+      double precision                  :: rugdepth(9999)             = -123               !  [m] (advanced) Minimum depth for determination of last wet point in runup gauge
       integer                           :: ncross                   = -123                 !  [-] (advanced,silent) Number of output cross sections
       integer                           :: outputformat             = OUTPUTFORMAT_DEBUG   !  [name] (advanced) Output file format
       character(slen)                   :: outputformat_str         = 'debug'              !
       character(slen)                   :: ncfilename               = 'xboutput.nc'        !  [file] (advanced) xbeach netcdf output file name
       integer                           :: outputprecision          = -123                 !  [name] switch between single and double precision output in NetCDF
       character(slen)                   :: outputprecision_str      =  ' '                 !
-      character(64)                     :: stationid(99)            = 'abc'                !  [-] (advanced,silent) Station id names of output points
+      character(64)                     :: stationid(9999)            = 'abc'              !  [-] (advanced,silent) Station id names of output points
 
       ! Projection units (not to be used, only pass to output, this limit is too short for WKT....)
       ! This could be the proj4 string +init=epsg:28992
