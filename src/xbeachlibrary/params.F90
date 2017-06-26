@@ -341,7 +341,7 @@ module params
       double precision                  :: hswitch                  = -123                 !  [m] (advanced) Water depth at which is switched from wetslp to dryslp
       double precision                  :: dzmax                    = -123                 !  [m/s/m] (advanced) Maximum bed level change due to avalanching
       integer                           :: struct                   = -123                 !  [-] Switch for enabling hard structures
-      character(slen)                   :: ne_layer                 = 'abc'                !  [file] Name of file containing depth of hard structure
+      character(slen)                   :: ne_layer                 = 'abc'                !  [file] Name of file containing thickness of the erodible layer
 
       ! [Section] Output variables
       integer                           :: timings                  = -123                 !  [-] (advanced) Switch enable progress output to screen
