@@ -181,8 +181,8 @@ contains
      character(*)    :: filename
 
      call writelog('lswe','','Error reading file ''',trim(filename),'''')
-     call writelog('lswe','','Check file for incorrect decimal format, ', &
-                             'doubles instead of integers, line breaks and tab characters')
+     call writelog('lswe','','Check file for incorrect decimal format,', &
+                             ' doubles instead of integers, line breaks and tab characters')
      call halt_program
 
   end subroutine report_file_read_error
