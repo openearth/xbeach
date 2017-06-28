@@ -53,7 +53,11 @@ contains
     real(c_double), value, intent(in) :: dt
 
     if (dt >= 0) then
-       ierr = executestep(dt / par%morfac)
+       if (par%morfacopt==1) then
+          ierr = executestep(dt / max(par%morfac, 1.d0))
+       else
+          ierr = executestep(dt)
+       endif
     else
        ierr = executestep()
     end if
@@ -121,6 +125,23 @@ contains
   include 'get_var_shape.inc'
   include 'get_var.inc'
   include 'set_var.inc'
+  subroutine set_current_time(xptr) bind(C, name="set_current_time")
+    !DEC$ ATTRIBUTES DLLEXPORT :: set_current_time
+
+    use iso_c_binding, only: c_ptr, c_double, c_f_pointer
+
+    type(c_ptr), value, intent(in) :: xptr
+    real(c_double), pointer :: x_0d_double_ptr
+
+    call c_f_pointer(xptr, x_0d_double_ptr)
+    if (par%morfacopt == 1) then
+       par%t = x_0d_double_ptr / max(par%morfac, 1.d0)
+    else
+       par%t = x_0d_double_ptr
+    endif
+
+  end subroutine set_current_time
+
   subroutine get_current_time(time) bind(C, name="get_current_time")
     !DEC$ ATTRIBUTES DLLEXPORT :: get_current_time
 

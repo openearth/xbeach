@@ -103,7 +103,7 @@ for f in args :
         # do not use dependencies of files that are not visible
         word2 = re.sub(findquote,'',word2)
         #if os.path.exists(word2):
-	if 1:
+	if True:
           inc[oname] = inc[oname] + " " + word2
     srcfile.close()
   except IOError:
