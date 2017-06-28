@@ -118,9 +118,7 @@ module params
       integer                           :: nspr                     = -123                 !  [-] (advanced,silent) Switch to enable long wave direction forced into centres of short wave bins
       double precision                  :: trepfac                  = -123                 !  [-] (advanced) Compute mean wave period over energy band: par%trepfac*maxval(Sf) for instat jons, swan or vardens; converges to Tm01 for trepfac = 0.0 and
       double precision                  :: sprdthr                  = -123                 !  [-] (advanced) Threshold ratio to maximum value of S above which spectrum densities are read in
-      integer                           :: oldwbc                   = -123                 !  [-] (deprecated,silent) (1) Use old version wave boundary conditions for instat jons, swan or vardens
       integer                           :: correctHm0               = -123                 !  [-] (advanced,silent) Switch to enable Hm0 correction
-      integer                           :: oldnyq                   = -123                 !  [-] (advanced,silent) Switch to enable old nyquist switch
       integer                           :: Tm01switch               = -123                 !  [-] (advanced) Switch to enable Tm01 rather than Tm-10
       double precision                  :: rt                       = -123                 !  [s] Duration of wave spectrum at offshore boundary, in morphological time
       double precision                  :: dtbc                     = -123                 !  [s] (advanced) Timestep used to describe time series of wave energy and long wave flux at offshore boundary (not affected by morfac)
@@ -141,7 +139,6 @@ module params
       integer                           :: ARC                      = -123                 !  [-] (advanced) Switch for active reflection compensation at seaward boundary
       double precision                  :: order                    = -123                 !  [-] (advanced) Switch for order of wave steering, 1 = first order wave steering (short wave energy only), 2 = second oder wave steering (bound long wave corresponding to short wave forcing is added)
       integer                           :: freewave                 = -123                 !  [-] (advanced) Switch for free wave propagation 0 = use cg (default); 1 = use sqrt(gh) in instat = ts_2
-      integer                           :: carspan                  = -123                 !  [-] (deprecated) Switch for Carrier-Greenspan test 0 = use cg (default); 1 = use sqrt(gh) in instat = ts_2 for c&g tests
       double precision                  :: epsi                     = -123                 !  [-] (advanced) Ratio of mean current to time varying current through offshore boundary
       integer                           :: nc                       = -123                 !  [-] (advanced,silent) Smoothing distance for estimating umean (defined as nr of cells)
       integer                           :: tidetype                 = -123                 !  [name] (advanced) Switch for offfshore boundary, velocity boundary or instant water level boundary
@@ -757,9 +754,6 @@ contains
       call setallowednames('neumann',LATERALWAVE_NEUMANN,'wavecrest',LATERALWAVE_WAVECREST,'cyclic',LATERALWAVE_CYCLIC)
       call setoldnames('0','1')
       call parmapply('lateralwave',1,par%lateralwave,par%lateralwave_str)
-
-
-
       ! TODO: fix
       !if (isSetParameter('params.txt','lateralwave')) then
       !   call setallowednames('neumann',LEFTWAVE_NEUMANN,'wavecrest',LEFTWAVE_WAVECREST)
@@ -791,10 +785,9 @@ contains
       par%instat == INSTAT_SWAN          .or.    &
       par%instat == INSTAT_VARDENS       .or.    &
       par%instat == INSTAT_JONS_TABLE                ) then
-
+      !
          call writelog('l','','--------------------------------')
          call writelog('l','','Wave-spectrum boundary condition parameters: ')
-
          par%nonhspectrum    = readkey_int ('params.txt','nonhspectrum', par%nonh,          0,       1 ,strict=.true.)
          par%random          = readkey_int ('params.txt','random',       1,          0,          1     ,strict=.true.)
          par%fcutoff         = readkey_dbl ('params.txt','fcutoff',      0.d0,       0.d0,       40.d0   )
@@ -805,32 +798,26 @@ contains
          else
             par%sprdthr         = readkey_dbl ('params.txt','sprdthr',      0.08d0,     0.d0,       1.d0    )
          endif
-         par%oldwbc          = readkey_int ('params.txt','oldwbc',       0,          0,          1  ,silent=.true.,strict=.true.)
          par%correctHm0      = readkey_int ('params.txt','correctHm0',   1,          0,          1  ,silent=.true.,strict=.true.)
-         par%oldnyq          = readkey_int ('params.txt','oldnyq',       0,          0,          1  ,silent=.true.,strict=.true.)
          par%Tm01switch      = readkey_int ('params.txt','Tm01switch',   0,          0,          1       ,strict=.true.)
-
+         !
          if (filetype==0) then
             par%rt          = readkey_dbl('params.txt','rt',   min(3600.d0,par%tstop),    1200.d0,    7200.d0 )
             par%dtbc        = readkey_dbl('params.txt','dtbc',          1.0d0,      0.1d0,      2.0d0   )
          endif
-
+         !
          if (par%instat==INSTAT_SWAN) then
             par%dthetaS_XB  = readkey_dbl ('params.txt','dthetaS_XB',   0.0d0,      -360.d0,    360.0d0,strict=.true. )
          endif
-         !                               wbcversion defaults to 3
-         if (par%oldwbc==1) then
-            par%wbcversion = 1
-         else
-            par%wbcversion = readkey_int ('params.txt','wbcversion', 3, 1, 3,strict=.true.,silent=.true.)
-         endif
+         ! 
+         par%wbcversion = readkey_int ('params.txt','wbcversion', 3, 1, 3,strict=.true.,silent=.true.)  ! wbcversion defaults to 3
+         !
          if (par%wbcversion>2) then
             par%nspectrumloc    = readkey_int ('params.txt','nspectrumloc',   1,          1,       par%ny+1 )
          else
             par%nspectrumloc = 1
          endif
       endif
-      !
       !
       ! Flow boundary condition parameters
       ! front
@@ -844,7 +831,7 @@ contains
       'waveflume', FRONT_WAVEFLUME)
       call setoldnames('0','1','2','3','4','5')
       call parmapply('front',2,par%front,par%front_str)
-
+      !
       ! left and right
       call setallowednames('neumann',   LR_NEUMANN,    &
       'wall'   ,   LR_WALL,       &

@@ -515,12 +515,8 @@ contains
          !
          ! Nyquist parameters used only in this subroutine
          ! are not read individually for each spectrum partition
-         if (par%oldnyq==1) then
-            fnyq    = readkey_dbl (readfile, 'fnyq',       0.3d0,    0.2d0,      1.0d0,      bcast=.false. )
-         else
-            fnyq    = readkey_dbl (readfile, 'fnyq',max(0.3d0,3.d0*maxval(fp)), 0.2d0, 1.0d0, bcast=.false. )
-         endif
-         dfj        = readkey_dbl (readfile, 'dfj',      fnyq/200,   fnyq/1000,  fnyq/20,    bcast=.false. )
+         fnyq    = readkey_dbl (readfile, 'fnyq',max(0.3d0,3.d0*maxval(fp)), 0.2d0, 1.0d0, bcast=.false. )
+         dfj     = readkey_dbl (readfile, 'dfj',      fnyq/200,   fnyq/1000,  fnyq/20,    bcast=.false. )
          !
          ! Finally check if XBeach should accept even the most stupid partioning (sets error level to warning
          ! level when computing partition overlap
@@ -2363,80 +2359,52 @@ contains
       deallocate(tempcmplxhalf)
       !
       ! Calculate energy envelope amplitude
-
-      ! Note Robert: oldwbc should be deprecated for wbcversion>2
-      if (par%oldwbc==1) then
-         do itheta=1,s%ntheta
-            ! Print message to screen
-            call writelog('ls','(A,I0,A,I0)','Calculating wave energy for theta bin ',itheta,' of ',s%ntheta)
+      do iy=1,s%ny+1
+        ! Integrate instantaneous water level excitation of wave components over directions
+        eta(iy,:) = sum(zeta(iy,:,:),2)
+        tempcmplx=eta(iy,:)
+        !
+        ! Hilbert transformation to determine envelope of all total
+        ! non-directional wave components
+        call hilbert(tempcmplx,size(tempcmplx))
+        !
+        ! Determine amplitude of water level envelope by calculating
+        ! the absolute value of the complex wave envelope descriptions
+        Amp(iy,:)=abs(tempcmplx)
+        !
+        ! Calculate standard deviation of non-directional
+        ! instantaneous water level excitation of all
+        ! wave components to be used as weighing factor
+        stdeta = sqrt(sum(eta(iy,:)**2)/(size(eta(iy,:))-1))
+        do itheta=1,s%ntheta
             if (nwc(itheta)>0) then
-               do iy=1,s%ny+1
-                  tempcmplx=zeta(iy,:,itheta)
-                  ! Hilbert tranformation to determine envelope for each directional
-                  ! bin seperately
-                  call hilbert(tempcmplx,size(tempcmplx))
-                  ! Determine amplitude of water level envelope by calculating
-                  ! the absolute value of the complex wave envelope descriptions
-                  Ampzeta(iy,:,itheta)=abs(tempcmplx)
-                  ! Print status message to screen
-                  call writelog('ls','(A,I0,A,I0,A)','Y-point ',iy,' of ',s%ny+1,' done.')
-               end do   ! 1:ny+1
+                ! Calculate standard deviations of directional
+                ! instantaneous water level excitation of all
+                ! wave components to be used as weighing factor
+                stdzeta = sqrt(sum(zeta(iy,:,itheta)**2)/(size(zeta(iy,:,itheta))-1))
+                !
+                ! Calculate amplitude of directional wave envelope
+                Ampzeta(iy,:,itheta)= Amp(iy,:)*stdzeta/stdeta
             else  !  nwc==0
-               ! Current computational directional bin does not contain any wave
-               ! components, so print message to screen
-               Ampzeta(iy,:,itheta)=0.d0
+                ! Current computational directional bin does not contain any wave
+                ! components, so print message to screen
+                Ampzeta(iy,:,itheta)=0.d0
             endif  ! nwc>0
-         end do   ! 1:ntheta
-      else
-         do iy=1,s%ny+1
-            ! Integrate instantaneous water level excitation of wave
-            ! components over directions
-            eta(iy,:) = sum(zeta(iy,:,:),2)
-            tempcmplx=eta(iy,:)
-
-            ! Hilbert transformation to determine envelope of all total
-            ! non-directional wave components
-            call hilbert(tempcmplx,size(tempcmplx))
-
-            ! Determine amplitude of water level envelope by calculating
-            ! the absolute value of the complex wave envelope descriptions
-            Amp(iy,:)=abs(tempcmplx)
-
-            ! Calculate standard deviation of non-directional
-            ! instantaneous water level excitation of all
-            ! wave components to be used as weighing factor
-            stdeta = sqrt(sum(eta(iy,:)**2)/(size(eta(iy,:))-1))
-            do itheta=1,s%ntheta
-               if (nwc(itheta)>0) then
-                  ! Calculate standard deviations of directional
-                  ! instantaneous water level excitation of all
-                  ! wave components to be used as weighing factor
-                  stdzeta = sqrt(sum(zeta(iy,:,itheta)**2)/(size(zeta(iy,:,itheta))-1))
-
-                  ! Calculate amplitude of directional wave envelope
-                  Ampzeta(iy,:,itheta)= Amp(iy,:)*stdzeta/stdeta
-               else  !  nwc==0
-                  ! Current computational directional bin does not contain any wave
-                  ! components, so print message to screen
-                  Ampzeta(iy,:,itheta)=0.d0
-               endif  ! nwc>0
-            end do   ! 1:ntheta
-            ! Print status message to screen
-            call writelog('ls','(A,I0,A,I0,A)','Y-point ',iy,' of ',s%ny+1,' done.')
-         end do   ! 1:ny+1
-      endif ! oldwbc
+        end do   ! 1:ntheta
+        ! Print status message to screen
+        call writelog('ls','(A,I0,A,I0,A)','Y-point ',iy,' of ',s%ny+1,' done.')
+      end do   ! 1:ny+1
       !
-
       ! free memory
       deallocate(tempcmplx)
       deallocate(nwc)
-
+      !
       ! Allocate memory for energy time series
       allocate(E_tdir(s%ny+1,wp%tslen,s%ntheta))
       E_tdir=0.0d0
       E_tdir=0.5d0*par%rho*par%g*Ampzeta**2
       E_tdir=E_tdir/s%dtheta
-
+      !
       !    ! Ensure we scale back to the correct Hm0
       !    do iy=1,s%ny+1
       !       stdeta = sum(E_tdir(iy,:,:))*s%dtheta   ! sum energy

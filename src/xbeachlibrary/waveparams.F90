@@ -251,21 +251,15 @@ contains
 
       ! Read JONSWAP characteristics
       if (par%instat/=INSTAT_JONS_TABLE) then
-
          !                                      Input file   Keyword     Default     Minimum     Maximum
          wp%hm0gew           = readkey_dbl (fname,       'Hm0',      0.0d0,      0.00d0,     5.0d0,      bcast=.false. )
          fp                  = readkey_dbl (fname,       'fp',       0.08d0,     0.0625d0,   0.4d0,      bcast=.false. )
-         if (par%oldnyq==1) then
-            fnyq                = readkey_dbl (fname,       'fnyq', 0.3d0,    0.2d0,      1.0d0,      bcast=.false. )
-         else
-            fnyq                = readkey_dbl (fname,       'fnyq',     max(0.3d0,3.d0*fp),    0.2d0,      1.0d0, &
-            bcast=.false. )
-         endif
+         fnyq                = readkey_dbl (fname,       'fnyq',     max(0.3d0,3.d0*fp),    0.2d0,      1.0d0, bcast=.false. )
          dfj                 = readkey_dbl (fname,       'dfj',      fnyq/200,   fnyq/1000,  fnyq/20,    bcast=.false. )
          gam                 = readkey_dbl (fname,       'gammajsp', 3.3d0,      1.0d0,      5.0d0,      bcast=.false. )
          wp%scoeff           = readkey_dbl (fname,       's',        10.0d0,     1.0d0,      1000.0d0,   bcast=.false. )
          wp%mainang          = readkey_dbl (fname,       'mainang',  270.0d0,    0.0d0,      360.0d0,    bcast=.false. )
-
+         !
          if(xmaster) then
             call readkey(fname,'checkparams',dummystring)
          endif
@@ -1431,44 +1425,33 @@ contains
                ! instantaneous water level excitation
                zeta(index2,:,ii)=dble(Comptemp*wp%Nr)*wp%window
                Comptemp(:)=zeta(index2,:,ii)
-
-               ! Hilbert tranformation to determine envelope for each directional ! Bas: should be located after par%oldwbc==1
-               ! bin seperately
-
+               !
+               ! Hilbert tranformation to determine envelope for each directional bin seperately
                call hilbert(Comptemp,size(Comptemp))
 
-               ! Check whether the old or new type of wave boundary conditions
-               ! should be used
-               if (par%oldwbc==1) then
-                  ! Determine amplitude of water level envelope by calculating
-                  ! the absolute value of the complex wave envelope descriptions
-                  Ampzeta(index2,:,ii)=abs(Comptemp)
-               else
-                  ! Integrate instantaneous water level excitation of wave
-                  ! components over directions
-                  eta(index2,:) = sum(zeta(index2,:,:),2)
-                  Comptemp=eta(index2,:)
-
-                  ! Hilbert transformation to determine envelope of all total
-                  ! non-directional wave components
-                  call hilbert(Comptemp,size(Comptemp))
-
-                  ! Determine amplitude of water level envelope by calculating
-                  ! the absolute value of the complex wave envelope descriptions
-                  Amp(index2,:)=abs(Comptemp)
-
-                  ! Calculate standard deviations of directional and
-                  ! non-directional instantaneous water level excitation of all
-                  ! wave components to be used as weighing factor
-                  stdzeta = sqrt(sum(zeta(index2,:,ii)**2)/(size(zeta(index2,:,ii)-1)))
-                  stdeta = sqrt(sum(eta(index2,:)**2)/(size(eta(index2,:)-1)))
-
-                  ! Calculate amplitude of directional wave envelope
-                  Ampzeta(index2,:,ii)= Amp(index2,:)*stdzeta/stdeta
-
-               endif
-
+               ! Integrate instantaneous water level excitation of wave
+               ! components over directions
+               eta(index2,:) = sum(zeta(index2,:,:),2)
+               Comptemp=eta(index2,:)
+               !
+               ! Hilbert transformation to determine envelope of all total non-directional wave components
+               call hilbert(Comptemp,size(Comptemp))
+               !
+               ! Determine amplitude of water level envelope by calculating
+               ! the absolute value of the complex wave envelope descriptions
+               Amp(index2,:)=abs(Comptemp)
+               !
+               ! Calculate standard deviations of directional and
+               ! non-directional instantaneous water level excitation of all
+               ! wave components to be used as weighing factor
+               stdzeta = sqrt(sum(zeta(index2,:,ii)**2)/(size(zeta(index2,:,ii)-1)))
+               stdeta = sqrt(sum(eta(index2,:)**2)/(size(eta(index2,:)-1)))
+               !
+               ! Calculate amplitude of directional wave envelope
+               Ampzeta(index2,:,ii)= Amp(index2,:)*stdzeta/stdeta
+               !
                ! Print status message to screen
+               !
                if(xmaster) then
                   if (F2/=0) then
                      call writelog('ls','(A,I0,A,I0,A,I0)','Y-point ',index2,' of ',wp%Npy,' done. Error code: ',F2)
