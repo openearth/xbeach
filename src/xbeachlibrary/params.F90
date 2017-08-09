@@ -246,6 +246,8 @@ module params
       double precision                  :: vicmol                   = -123                 !  [-] (advanced,silent) molecular viscosity
       integer                           :: kmax                     = -123                 !  [-] (advanced,silent) Number of sigma layers in Quasi-3D model; kmax = 1 is without vertical structure of flow and suspensions
       double precision                  :: sigfac                   = -123                 !  [-] (advanced,silent) dsig scales with log(sigfac)
+      double precision                  :: deltar                   = -123                 !  [-] (advanced,silent) estimated ripple height
+      double precision                  :: rwave                   = -123                  !  [-] (advanced,silent) user-defined wave roughness adjustment factor
 
       ! [Section] Non-hydrostatic correction parameters
       integer                           :: solver                   = -123                 !  [name] (advanced) Solver used to solve the linear system
@@ -1091,18 +1093,6 @@ contains
          par%gwhorinfil = readkey_int ('params.txt','gwhorinfil',      0,           0,        1,strict=.true.)
       endif
       !
-      !
-      ! Q3D sediment transport parameters
-      if (par%q3d==1) then
-         call writelog('l','','--------------------------------')
-         call writelog('l','','Q3D sediment transport parameters: ')
-         par%vonkar  = readkey_dbl ('params.txt','vonkar',   0.4d0,     0.01d0,  1.d0)
-         par%vicmol  = readkey_dbl ('params.txt','vicmol',   0.000001d0,   0.d0,    0.001d0)
-         par%kmax    = readkey_int ('params.txt','kmax ',      1,           1,        1000)
-         par%sigfac  = readkey_dbl ('params.txt','sigfac ',1.3d0,     0.00d0,   10.d0)
-      endif
-      !
-      !
       ! Non-hydrostatic correction parameters
       if (par%nonh==1) then
          call writelog('l','','--------------------------------')
@@ -1146,15 +1136,16 @@ contains
          endif
       endif
       !
-      !
       ! Sediment transport parameters
       if (par%sedtrans==1) then
          call writelog('l','','--------------------------------')
          call writelog('l','','Sediment transport parameters: ')
 
          call setallowednames('soulsby_vanrijn',    FORM_SOULSBY_VANRIJN,  &
-         'vanthiel_vanrijn',   FORM_VANTHIEL_VANRIJN)
-         call setoldnames('1','2')
+         'vanthiel_vanrijn',   FORM_VANTHIEL_VANRIJN, &
+         'vanrijn1993', FORM_VANRIJN1993)
+
+         call setoldnames('1','2','3')
          call parmapply('form',2,par%form, par%form_str)
 
          call setallowednames('ruessink_vanrijn',  WAVEFORM_RUESSINK_VANRIJN,  &
@@ -1224,6 +1215,19 @@ contains
 
       endif
       !
+      ! Q3D sediment transport parameters
+      ! -> also make this part active if van Rijn, 1993 is used as ceq solver
+      if (par%q3d==1 .or. par%form==FORM_VANRIJN1993) then
+         call writelog('l','','--------------------------------')
+         call writelog('l','','Q3D sediment transport parameters: ')
+         par%vonkar  = readkey_dbl ('params.txt','vonkar',   0.4d0,     0.01d0,  1.d0)
+         par%vicmol  = readkey_dbl ('params.txt','vicmol',   0.000001d0,   0.d0,    0.001d0)
+         par%kmax    = readkey_int ('params.txt','kmax ',      100,        1,        1000)
+         par%nz      = par%kmax     ! work-around; discuss with Dano later difference nz / kmax
+         par%sigfac  = readkey_dbl ('params.txt','sigfac ',1.3d0,     0.00d0,   10.d0)
+         par%deltar  = readkey_dbl ('params.txt','deltar ',0.025d0,     0.001d0,   1.0d0)
+         par%rwave  = readkey_dbl ('params.txt','rwave ',2.0d0,     0.1d0,   10.0d0)
+      endif
       !
       ! Bed composition parameters
       call writelog('l','','--------------------------------')
@@ -1246,7 +1250,6 @@ contains
          par%sedcal   = readkey_dblvec('params.txt','sedcal',par%ngd,size(par%sedcal),1.d0,0.d0,2.d0)
          par%ucrcal   = readkey_dblvec('params.txt','ucrcal',par%ngd,size(par%ucrcal),1.d0,0.d0,2.d0)
       endif
-      !
       !
       ! Morphology parameters
       if (par%morphology==1) then

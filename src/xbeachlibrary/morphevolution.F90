@@ -161,7 +161,7 @@ contains
       endif
 
       ! calculate equilibrium concentration/sediment source
-      if ((par%form==FORM_SOULSBY_VANRIJN) .or. (par%form==FORM_VANTHIEL_VANRIJN))then           ! Soulsby van Rijn
+      if ((par%form==FORM_SOULSBY_VANRIJN) .or. (par%form==FORM_VANTHIEL_VANRIJN).or. (par%form==FORM_VANRIJN1993)) then           ! Soulsby van Rijn
          ! Soulsby van Rijn and Van Thiel de Vries & Reniers 2008 formulations
          call sedtransform(s,par)
       end if
@@ -1219,16 +1219,18 @@ contains
       type(spacepars),target                  :: s
       type(parameters)                        :: par
 
-      integer                                 :: i,j,jg
+      integer                                 :: i,j,jg, ii
       real*8                                  :: z0,dcf,dcfin,ML
       real*8                                  :: Te,Sster,cc1,cc2,wster,Ass
       real*8                                  :: kl,alpha,alpha1,alpha2,beta,psi
       real*8 , save                           :: delta,kvis,onethird,twothird,phi
-      real*8 , dimension(:),allocatable    ,save     :: dster,ws0
+      real*8 , dimension(:),allocatable    ,save     :: dster,ws0, shieldscrit, sigz, ceqssteps, hhsteps
       real*8 , dimension(:,:),allocatable  ,save     :: vmg,Cd,Asb,dhdx,dhdy,Ts,hfac
       real*8 , dimension(:,:),allocatable  ,save     :: urms2,Ucr,Ucrc,Ucrw,term1,B2,srfTotal,srfRhee,vero,Ucrb,Ucrs
       real*8 , dimension(:,:),allocatable  ,save     :: uandv,b,fslope,hloc,ceqs,ceqb,fallvelredfac
       real*8 , dimension(:,:,:),allocatable,save     :: w
+      real*8 , dimension(:,:),allocatable  ,save     :: uorb, A, ksw, fw, uw, tauwav, muw, fc, f1c, tauc, muc, taubcw, taucr, used, ue
+      real*8                                :: ca, refA, E, Me, M, Eswm, Eswb, Esw, Esc, uster, deltar, delw, ta, Escm, ceqexplicit, ceqimplicit, hhtmp, hhtmp2, dhhtmp, sigs, ceq_tmp
 
       !include 's.ind'
       !include 's.inp'
@@ -1256,12 +1258,33 @@ contains
          allocate (w     (s%nx+1,s%ny+1,par%ngd)) ! Lodewijk
          allocate (dster (par%ngd))
          allocate (ws0   (par%ngd))
+         allocate (shieldscrit(par%ngd))
          allocate (dhdx  (s%nx+1,s%ny+1))
          allocate (dhdy  (s%nx+1,s%ny+1))
          allocate (uandv (s%nx+1,s%ny+1))
          allocate (b     (s%nx+1,s%ny+1))
          allocate (fslope(s%nx+1,s%ny+1))
          allocate (hfac  (s%nx+1,s%ny+1))
+         
+         allocate (used  (s%nx+1,s%ny+1))
+         allocate (ue  (s%nx+1,s%ny+1))
+         allocate (uorb  (s%nx+1,s%ny+1))
+         allocate (A  (s%nx+1,s%ny+1))
+         allocate (ksw (s%nx+1,s%ny+1))
+         allocate (fw     (s%nx+1,s%ny+1))
+         allocate (uw(s%nx+1,s%ny+1))
+         allocate (tauwav  (s%nx+1,s%ny+1))
+         allocate (muw  (s%nx+1,s%ny+1))
+         allocate (fc     (s%nx+1,s%ny+1))
+         allocate (f1c  (s%nx+1,s%ny+1))
+         allocate (muc  (s%nx+1,s%ny+1)) 
+         allocate (tauc  (s%nx+1,s%ny+1)) 
+         allocate (taubcw(s%nx+1,s%ny+1))
+         allocate (taucr  (s%nx+1,s%ny+1))
+         allocate(sigz(par%kmax))
+         allocate(hhsteps(par%kmax+1))
+         allocate(ceqssteps(par%kmax+1))
+
          vmg = 0.d0
          onethird=1.d0/3.d0
          twothird=2.d0/3.d0
@@ -1279,6 +1302,7 @@ contains
             ! RJ: for modeling gravel
             delta = (par%rhos-par%rho)/par%rho
             dster(jg)=(delta*par%g/1.d-12)**onethird*s%D50(jg)
+            shieldscrit(jg) = 0.3d0/(1+1.2d0*dster(jg))+0.055d0*(1-exp(-0.02d0*dster(jg)))          ! Soulsby, 1997  (eq 76)
             if (par%fallvelred==0) then
                w(:,:,jg) = ws0(jg)
             endif
@@ -1369,7 +1393,8 @@ contains
             else   !Dano see what happens with coarse material
                Ucr=8.5d0*s%D50(jg)**0.6d0*log10(4.d0*hloc/s%D90(jg))
             end if
-         elseif (par%form==FORM_VANTHIEL_VANRIJN) then  ! Van Thiel de Vries & Reniers 2008
+         elseif ((par%form==FORM_VANTHIEL_VANRIJN) .or. (par%form==FORM_VANRIJN1993)) then  
+         ! needed for full Van Thiel de Vries & Reniers 2008 or bed load Van Rijn 1993
             if(s%D50(jg)<=0.0005) then
                Ucrc=0.19d0*s%D50(jg)**0.1d0*log10(4.d0*hloc/s%D90(jg))                           !Shields
                Ucrw=0.24d0*(delta*par%g)**0.66d0*s%D50(jg)**0.33d0*par%Trep**0.33d0          !Komar and Miller (1975)
@@ -1509,6 +1534,174 @@ contains
                end do
             end do
             !
+         elseif (par%form==FORM_VANRIJN1993) then  ! Van Rijn (1993) a la Delft3D
+            ! 
+            ! General parameters
+            ue          = dsqrt(vmg**2)                        ! NOT similar to Van Thiel -> velocity magnitude for stirring sediment
+            used        = vmg + s%ua                           ! velocity used for sediment transport (reduced with asymmetry)
+            !
+            ! Bed load transport (Delft3D-FLOW manual; eq 11.82)
+            !
+            do j=1,s%ny+1
+                do i=1,s%nx+1
+                    if (ue(i,j)>Ucrb(i,j) .and. hloc(i,j)>par%eps) then                        ! Ucrs is weighted current (including waves)
+                        Me              = (used(i,j)-Ucrb(i,j))**2 / ((delta*par%g*s%D50(jg))) ! Effective mobility parameter
+                        M               = (used(i,j)-0)**2 / ((delta*par%g*s%D50(jg)))         ! "normal" mobility parameter
+                        Asb(i,j)        = 0.006d0 * s%D50(jg) * ws0(jg)                        ! bed load coefficent (without ps)
+                        ceqb(i,j)       = Asb(i,j) * (M**0.5)* (Me**0.7)                       ! calculate the main part
+                        ceqb(i,j)       = ceqb(i,j) / used(i,j)                                ! goal is sediment concentration: divide by velocity
+                    else 
+                        ceqb(i,j)       = 0
+                    end if
+                end do
+            end do
+            ! 
+            ! Suspended transport (Van Rijn, 1993: Delft3D-FLOW manual)
+            !
+            deltar      = par%deltar                ! ripple height input (eq. 11.78)
+            ksw         = par%rwave*deltar          ! wave-related roughness -> based on ripple height (eq. 11.78)
+            ksw         = max(min(0.1, ksw), 0.01)  ! numerical limits: not larger or smaller
+            ! orbital velocityand peak orbital excursion 
+            uorb        = par%px*s%H/par%Trep/sinh(min(max(s%k,0.01d0)*max(s%hh,par%delta*s%H),10.0d0))   ! orbital velocity (linear wave theory) 
+            A           = uorb*par%Trep / (2.0*par%px)                              ! peak orbital excursion (below eq. 11.80)      
+            ! numerical limits for A, otherwise infinity problems
+            where (A<0.1d0)
+            A = 0.1d0
+            endwhere
+            !    
+            !  Calculate bed-shear stress due to waves
+            fw          = min(exp( - 6.0 + 5.2*(A/ksw)**( - 0.19)), 0.3)            ! Van Rijn & Kroon (1992); eq 13 below
+            muw         = 0.6/dster(jg)                                             ! efficiency waves
+            tauwav      = 0.25 * par%rho * fw * uorb**2                             ! bed shear stress due to waves (eq. 11.76)
+            !
+            ! Calculate bed-shear stress due to currents
+            f1c         = 0.24*log10(12.0*s%hh/(3.0*3*s%D90(jg)))**( - 2)           ! total-current relation factor (eq. 11.73)                   
+            fc          = 0.24*log10(12.0*s%hh/deltar)**( - 2)                      ! grain-related factor (eq. 11.72)   
+            muc         = f1c/fc                                                    ! efficiency current
+            tauc        = 0.125d0* par%rho * fc * (s%ue**2+s%ve**2)                 ! Van Rijn & Kroon (1992); eq. 13
+            !
+            ! Calculate bed shear stress ratio: combined waves and currents
+            taubcw      = muc*tauc + muw*tauwav                                     ! combined shear stress (eq. 11.70)
+            taucr       = shieldscrit(jg) * par%g * (par%rhos-par%rho) * s%D50(jg)  ! critical bed shear stress (Soulsby, 1997 at Eq. 74; page 104)
+            !
+            ! Loop over every grid cell where critical bed shear stress < combined shear stress due to waves and currents
+            ! clean variables
+            s%ccz(:,:,:)    = 0 
+            s%refA(:,:)     = 0 
+            s%ca(:,:)       = 0 
+            do j=1,s%ny+1
+                do i=1,s%nx+1
+                    if (taubcw(i,j)>taucr(i,j) .and. hloc(i,j)>par%eps) then
+                        !
+                        ! A) Reference level
+                        refA    = 0.5*deltar                    ! reference level is half the ripple height
+                        refA    = max(0.01, refA)               ! minimum reference level
+                        refA    = min(0.2*s%hh(i,j), refA)      ! maximum reference level 20% of the water depth -> same Delft3D
+                        !
+                        ! B) Compute wave boundary laver thickness
+                        delw         = 0.072*A(i,j)*(A(i,j)/ksw(i,j))**(-0.25)
+                        !
+                        ! C) Calculate Van Rijn's dimensionless bed-shear stress for reference concentration at z=a
+                        ta = max(0.0, (muc(i,j)*tauc(i,j) + muw(i,j)*tauwav(i,j))/taucr(i,j) - 1.0)
+                        !
+                        ! D) Calculate Van Rijn's reference concentration 
+                        ca          = 0.015*s%d50(jg)*ta**1.5/(refA*dster(jg)**0.3) ! Van Rijn, 1984; no rho in there)
+                        ca          = min(ca, 0.05)                                 ! maximum ca value 
+                        !
+                        ! E) Depth-averaged mixing due to waves
+                        ! 1) Van Rijn & Kroon (1992); eq. 9 (maximum)
+                        Eswm 	= 0.035 * s%H(i,j)*s%hh(i,j) / par%Trep 	       
+                        ! 2) Van Rijn & Kroon (1992); eq. 8 (at the bed) with 3 deltar = thicknes layer
+                        Eswb 	= 0.004*dster(jg)*uorb(i,j)*(3.0*delw)
+                        !
+                        ! F) Depth-averaged mixing due to currents
+                        uster   = ((s%taubx(i,j)**2 + s%tauby(i,j)**2)**0.5 / par%rho)**0.5     ! calculate bed shear velocity
+                        Escm 	= 0.25 * par%vonkar * uster * s%hh(i,j)                         ! Van Rijn & Kroon (1992); eq. 10 (maximum)
+                        !
+                        ! G) Numerically integrate the concentration profile (no analyical expression with varying mixing exists!)
+                        ! one could assume a constant mixing coefficient: in that case exponential profile with analyical epxression
+                        ! 1) Create the grid on which we approximate the concentration profile
+                        ! Grid goes from reference level to water depth
+                        hhsteps(1) = refA
+                        do ii=1,(par%kmax)
+                            sigs            = 0.01                                              ! starting percentile; 1% now
+                            sigz(ii)        = sigs*(1/sigs)**(float(ii-1)/float(par%kmax-1))    ! could place outside the loop for efficiency
+                            hhsteps(ii+1)   = refA + (s%hh(i,j)-refA) * sigz(ii)
+                        enddo
+                        !
+                        ! 2) Now numerical integrate
+                        ! Start concentration is the reference concentration of Van Rijn, 1984
+                        ceqssteps(1) = ca
+                        do ii = 1, (par%kmax)
+                            !
+                            ! i) Determine water depth
+                            hhtmp   = hhsteps(ii)                                   ! current water depth
+                            hhtmp2  = hhsteps(ii+1)                                 ! water depth in next step
+                            dhhtmp  = hhtmp2-hhtmp                                  ! change in water depth in this step -> related to sigma layer
+                            ! 
+                            ! ii) Determine e,waves
+                            if (hhtmp < (3*delw)) then
+                                Esw = Eswb
+                            elseif (hhtmp > (0.5*s%hh(i,j))) then
+                                Esw = Eswm
+                            else
+                                Esw = Eswb + (Eswm-Eswb)* (hhtmp - (3*delw)) / (0.5*s%hh(i,j) - 3*delw)
+                            endif
+                            !
+                            ! iii) Determine e,currents
+                            if (hhtmp > (0.5*s%hh(i,j))) then
+                                Esc = Escm                                                              ! Van Rijn & Kroon (1992); eq. 10 (maximum)
+                            else  
+                                Esc = par%vonkar * 1* uster * hhtmp * (1- hhtmp/s%hh(i,j))  ! Van Rijn & Kroon (1992); eq. 10 (at certain depth)
+                            endif
+                            !
+                            ! iv) Combined mixing coefficient due to currents and waves
+                            E 	    = (Esw**2 + Esc**2)**0.5                    ! Van Rijn & Kroon (1992); eq. 5
+                            ! 
+                            ! v) Calculcate new concentration
+                            ! a) Explicit first step
+                            ceqexplicit     = ceqssteps(ii) - ws0(jg) * ceqssteps(ii)/E * dhhtmp
+                            if (ceqexplicit< 0) then
+                            ceqexplicit = 0                 ! numerical limit; overcome overshooting of numerical approximation
+                            endif
+                            ! b) Implicit second step
+                            ceqimplicit     = ceqssteps(ii) * (E / (dhhtmp * (ws0(jg)+E/dhhtmp))) ! no limit needed
+                            ! c) Combined method with theta = 0.5 -> second order
+                            ceqssteps(ii+1) = 0.5*ceqexplicit + 0.5*ceqimplicit
+                            if (ceqssteps(ii+1) < 0) then
+                            ceqssteps(ii+1) = 0             ! numerical limit; overcome overshooting of numerical approximation
+                            endif
+                        enddo
+                        !
+                        ! E) Save concentration profile, reference concentraton and reference level
+                        s%refA(i,j)     = refA  ! reference level
+                        s%ca(i,j)       = ca    ! reference concentration
+                        do ii = 1, (par%kmax)
+                        s%ccz(i,j,ii) = ceqssteps(ii)*0.5 + ceqssteps(ii+1)*0.5
+                        enddo
+                        !
+                        ! F) Now determine the depth-averaged concentration (sum divided by total length)
+                        if (s%hh(i,j) < refA) then
+                            ! assume that the depth-averaged concentration is similar to reference concentration
+                            ! not needed anymore; 20% water depth constrain
+                            ceqs(i,j)       = ca
+                            do ii = 1, (par%kmax)
+                            s%ccz(i,j,ii)   = ca
+                            enddo
+                        else
+                            ! average of the 'active part of the water colum' + reduction factor based on reference layer thickness
+                            ceq_tmp     = 0
+                            ceq_tmp     = sigz(1) * (ceqssteps(2)*0.5 + ceqssteps(1)*0.5)
+                            do ii = 2, (par%kmax)
+                                ceq_tmp = ceq_tmp + (sigz(ii)-sigz(ii-1)) * (ceqssteps(ii+1)*0.5 + ceqssteps(ii)*0.5)
+                            enddo
+                            ceqs(i,j)   =ceq_tmp
+                        endif
+                    else
+                        ceqs(i,j)       = 0
+                    endif
+                enddo
+           enddo
          end if
          !
          ceqb = min(ceqb/hloc,par%cmax/2) ! maximum equilibrium bed concentration

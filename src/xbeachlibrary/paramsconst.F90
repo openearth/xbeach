@@ -78,6 +78,7 @@ module paramsconst
 
    integer, parameter :: FORM_SOULSBY_VANRIJN        =  0
    integer, parameter :: FORM_VANTHIEL_VANRIJN       =  1
+   integer, parameter :: FORM_VANRIJN1993            =  2
 
    integer, parameter :: WAVEFORM_RUESSINK_VANRIJN   =  0
    integer, parameter :: WAVEFORM_VANTHIEL           =  1

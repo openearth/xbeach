@@ -1456,6 +1456,9 @@ contains
       allocate(s%iwl(1:s%ny+1))
       allocate(s%strucslope(1:s%ny+1))
       allocate(s%Dc(1:s%nx+1,1:s%ny+1))
+      allocate(s%ccz(1:s%nx+1,1:s%ny+1,1:par%kmax)) ! Q3D: concentration profile
+      allocate(s%ca(1:s%nx+1,1:s%ny+1))             ! Q3D: reference concentration
+      allocate(s%refA(1:s%nx+1,1:s%ny+1))           ! Q3D: reference level
 
       ! Initialize so structures can be implemented more easily
       s%pbbed = 0.d0
@@ -1467,7 +1470,6 @@ contains
       s%D90 = par%D90(1:par%ngd)
       s%sedcal = par%sedcal(1:par%ngd)
       s%ucrcal = par%ucrcal(1:par%ngd)
-
 
       if (par%ngd==1) then
 

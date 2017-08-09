@@ -925,7 +925,8 @@ contains
       s%maxzs=max(s%zs,s%maxzs)
       s%minzs=min(s%zs,s%minzs)
       
-      if (par%nz>1) then
+      ! XBeach uses same input for Van Rijn, 1993 (quasi 3d), but doesn't use this module
+      if (par%nz>1 .and. par%form /= FORM_VANRIJN1993) then      
          do j=1,s%ny+1
             do i=1,s%nx+1
                if (s%wetz(i,j) .eq. 1) then
