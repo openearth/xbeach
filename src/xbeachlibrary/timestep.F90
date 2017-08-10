@@ -406,7 +406,7 @@ contains
    end subroutine outputtimes_update
 
 
-   subroutine timestep(s,par, tpar, it, dt, ierr)
+   subroutine compute_dt(s,par, tpar, it, ilim, jlim, dtref, dt, ierr)
       use params
       use spaceparams
       use xmpi_module
@@ -421,11 +421,13 @@ contains
       integer, intent(inout)           :: it
       integer, intent(out), optional   :: ierr
       real*8, intent(in), optional :: dt
-      integer                     :: i,ilim
-      integer                     :: j,j1,j2,jlim
+      real*8, intent(inout) :: dtref
+      integer, intent(inout) :: ilim, jlim
+      integer                     :: i
+      integer                     :: j,j1,j2
       integer                     :: n,limtype
-      real*8                              :: mdx,mdy,tny,fac
-      real*8,save                         :: dtref,dtold
+      real*8                              :: mdx,mdy,tny
+      real*8,save                         :: dtold
 
       if(.not. xcompute) return
 
@@ -555,7 +557,7 @@ contains
                      dtold = par%dt
                   endif
                   if (par%sedtrans==1) then
-                     par%dt=min(par%dt,0.5d0*mdx/max(s%Dc(i,j2)*s%wetz(i,j2),1e-6))
+                     !par%dt=min(par%dt,0.5d0*mdx/max(s%Dc(i,j2)*s%wetz(i,j2),1e-6))
                   endif
                endif
             enddo
@@ -651,6 +653,33 @@ contains
          par%dt = min(dt, par%dt)
       end if
 
+   end subroutine compute_dt
+
+   subroutine timestep(s,par, tpar, it, dt, ierr)
+      use params
+      use spaceparams
+      use xmpi_module
+      use logging_module
+      use paramsconst
+
+      IMPLICIT NONE
+
+      type(spacepars), intent(inout)   :: s
+      type(parameters), intent(inout)  :: par
+      type(timepars), intent(inout)    :: tpar
+      integer, intent(inout)           :: it
+      integer, intent(out), optional   :: ierr
+      real*8, intent(in), optional :: dt
+      integer                     :: ilim
+      integer                     :: jlim
+      integer                     :: limtype
+      real*8                      :: fac
+      real*8,save                         :: dtref
+
+      if(.not. xcompute) return
+
+      call compute_dt(s,par, tpar, it, ilim, jlim, dtref, dt=dt, ierr=ierr)
+      
       par%t=par%t+par%dt
 
       if(par%t >= tpar%tnext) then

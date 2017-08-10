@@ -2,6 +2,7 @@ module xbeach_bmi
   use iso_c_binding
   use iso_c_utils
   use libxbeach_module
+  use timestep_module
   use params
 
   implicit none
@@ -53,11 +54,7 @@ contains
     real(c_double), value, intent(in) :: dt
 
     if (dt >= 0) then
-       if (par%morfacopt==1) then
-          ierr = executestep(dt / max(par%morfac, 1.d0))
-       else
-          ierr = executestep(dt)
-       endif
+       ierr = executestep(dt)
     else
        ierr = executestep()
     end if
@@ -147,7 +144,11 @@ contains
 
     real(c_double) :: time
 
-    time = par%t * par%morfac
+    if (par%morfacopt == 1) then
+       time = par%t * max(par%morfac, 1.d0)
+    else
+       time = par%t
+    endif
   end subroutine get_current_time
 
   subroutine get_start_time(time) bind(C, name="get_start_time")
@@ -162,6 +163,11 @@ contains
     !DEC$ ATTRIBUTES DLLEXPORT :: get_time_step
 
     real(c_double) :: timestep
+    integer :: ilim = 0
+    integer :: jlim = 0
+    real*8 :: dtref = 0.d0
+    
+    call compute_dt(s,par, tpar, it, ilim, jlim, dtref)
     timestep = par%dt
   end subroutine get_time_step
 
@@ -169,7 +175,11 @@ contains
     !DEC$ ATTRIBUTES DLLEXPORT :: get_end_time
 
     real(c_double) :: time
-    time = par%tstop * par%morfac
+    if (par%morfacopt == 1) then
+       time = par%tstop * max(par%morfac, 1.d0)
+    else
+       time = par%tstop
+    endif
   end subroutine get_end_time
 
 
