@@ -1146,7 +1146,7 @@ contains
          'vanrijn1993', FORM_VANRIJN1993)
 
          call setoldnames('1','2','3')
-         call parmapply('form',3,par%form, par%form_str)
+         call parmapply('form',2,par%form, par%form_str)
 
          call setallowednames('ruessink_vanrijn',  WAVEFORM_RUESSINK_VANRIJN,  &
          'vanthiel',          WAVEFORM_VANTHIEL)
