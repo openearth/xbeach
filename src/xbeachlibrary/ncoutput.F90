@@ -86,7 +86,7 @@ module ncoutput_module
 
    ! Ships
    integer :: shipdimid
-   
+
    ! Q3D
    integer :: Q3Ddimid
 

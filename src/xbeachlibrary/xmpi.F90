@@ -198,15 +198,17 @@ contains
    subroutine xmpi_initialize
       ! initialize mpi environment
       implicit none
-      integer ierr,color,errhandler,r
+      integer ierr,color,errhandler,r,comm_world
       external comm_errhandler
       ierr = 0
       ! Message buffers in openmpi are not initialized so this call can give a vallgrind error
       ! http://www.open-mpi.org/community/lists/users/2009/06/9566.php
       ! http://valgrind.org/docs/manual/manual-core.html#manual-core.suppress
       call MPI_Init(ierr)
+      ! Use comm_world as a variable for compatibility with SGI MPI
+      comm_world = MPI_COMM_WORLD
       call MPI_Comm_create_errhandler(comm_errhandler,errhandler,ierr)
-      call MPI_Comm_set_errhandler(MPI_COMM_WORLD,errhandler,ierr)
+      call MPI_Comm_set_errhandler(comm_world,errhandler,ierr)
 #ifdef USEMPE
       call MPE_Log_get_solo_eventid(event_output_start)
       call MPE_Log_get_solo_eventid(event_output_end)
@@ -362,14 +364,14 @@ contains
          error = 1
          return
       end select
-       
+
        ! Check whether each MPI subdomain is large enough (at least 4 cells in x and y), preferably more
        ! Errors
        if(m+1<4*xmpi_m) then
           error = 3
           return
        endif
-       if (n+1<4*xmpi_n .and. n>2) then 
+       if (n+1<4*xmpi_n .and. n>2) then
           error = 4
           return
        endif
@@ -378,7 +380,7 @@ contains
           if (m+1<8*xmpi_m) error = 5
           if (n+1<8*xmpi_n .and. n>2) error = 6
        endif
-       
+
 
       ! Pieter: TODO: Check whether the grid distribution did not lead to domains with to few grid cells (mpi implementation needs at least 2 at each boundary). Specify error and give a message if this is the case.
 
@@ -1649,4 +1651,3 @@ subroutine backtrace
    print *,x
 end subroutine backtrace
 #endif
-
