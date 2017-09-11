@@ -130,6 +130,11 @@ module ncoutput_module
 
    ! Output type
    integer                     :: NCREAL ! can be NF90_double or NF90_float
+   
+   ! Fill numbers
+   integer,parameter                     :: iFill = -huge(0)
+   real,parameter                        :: sFill = -huge(0.0)
+   real*8,parameter                      :: dFill = -dble(huge(0.0))  ! Robert: easier this way than to catch dFill<sFill later on
 contains
 
 #ifdef USENETCDF
@@ -355,6 +360,7 @@ contains
          NF90(nf90_put_att(ncid, globaltimevarid, 'units', trim(par%tunits)))
          NF90(nf90_put_att(ncid, globaltimevarid, 'axis', 'T'))
          NF90(nf90_put_att(ncid, globaltimevarid, 'standard_name', 'time'))
+         
 
          ! default global output variables
          do i=1,par%nglobalvar
@@ -413,6 +419,16 @@ contains
                NF90(nf90_put_att(ncid, globalvarids(i), 'standard_name', trim(t%standardname)))
             endif
             NF90(nf90_put_att(ncid, globalvarids(i), 'long_name', trim(t%description)))
+            select case(t%type)
+             case('i')
+               NF90(nf90_put_att(ncid, globalvarids(i), '_FillValue', iFill))
+             case('r')
+               if(par%outputprecision == OUTPUTPRECISION_SINGLE) then
+                  NF90(nf90_put_att(ncid, globalvarids(i), '_FillValue', sFill))
+               else
+                  NF90(nf90_put_att(ncid, globalvarids(i), '_FillValue', dFill))
+               endif
+            end select
          end do
       end if
 
@@ -1173,6 +1189,7 @@ contains
                   allocate(r2    (size(t%r2,1),size(t%r2,2)))
                   allocate(r2conv(size(t%r2,1),size(t%r2,2)))
                   call gridrotate(par, s, t, r2)
+                  call postprocessvar_r2(s, t, dFill, r2)
                   r2conv = CONVREAL(r2)
 #ifdef USENETCDF
                   if(donetcdf) then

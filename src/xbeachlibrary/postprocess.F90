@@ -8,6 +8,9 @@
 module postprocessmod
    implicit none
    save
+   !interface postprocessvar
+   !   module procedure postprocessvar_r2
+   !end interface postprocessvar
    interface gridrotate
       ! rotate grids, given s, t and outputs x
       module procedure gridrotate_r0
@@ -23,6 +26,29 @@ module postprocessmod
    end interface gridrotate
 
 contains
+   subroutine postprocessvar_r2(s, t, dFill, x)
+      use spaceparams
+      use mnemmodule
+
+      type(spacepars)                     :: s
+      type(arraytype), intent(in)         :: t
+      real*8, intent(in)                  :: dFill
+      real*8, dimension(:,:), intent(out) :: x
+      
+      select case(t%name)
+      case(mnem_zs,mnem_u,mnem_v,mnem_H,mnem_thetamean,mnem_k,mnem_sigm,mnem_c,mnem_cg,mnem_hh,mnem_E,mnem_R, &
+           mnem_urms,mnem_D,mnem_ue,mnem_ve,mnem_Sk,mnem_As)
+            where (s%wetz==0)
+               x = dFill
+            elsewhere
+               x = t%r2
+            endwhere
+         case default
+            x = t%r2
+      end select
+         
+   end subroutine postprocessvar_r2
+   
    subroutine snappointstogrid(par, s, xpoints, ypoints,scrprintinp,dmin)
       ! Lookup the nearest neighbour grid coordinates of the output points specified in params file
       ! Convert world coordinates of points to nearest (lsm) grid point
