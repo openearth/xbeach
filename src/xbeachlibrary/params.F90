@@ -350,7 +350,6 @@ module params
       double precision                  :: tintm                    = -123                 !  [s] Interval time of mean, var, max, min output
       character(slen)                   :: tsglobal                 = 'abc'                !  [-] (advanced) Name of file containing timings of global output
       character(slen)                   :: tspoints                 = 'abc'                !  [-] (advanced) Name of file containing timings of point output
-      character(slen)                   :: tscross                  = 'abc'                !  [-] (advanced,silent) Name of file containing timings of cross section output
       character(slen)                   :: tsmean                   = 'abc'                !  [-] (advanced) Name of file containing timings of mean, max, min and var output
       integer                           :: nglobalvar               = -123                 !  [-] Number of global output variables (as specified by user)
       character(maxnamelen)             :: globalvars(numvars)      = 'abc'                !  [-] (advanced) Mnems of global output variables, not per se the same size as nglobalvar (invalid variables, defaults)
@@ -366,7 +365,6 @@ module params
            
       integer                           :: nrugdepth                = -123                 !  [-] (advanced) Number of depths to compute runup in runup gauge
       double precision                  :: rugdepth(9999)             = -123               !  [m] (advanced) Minimum depth for determination of last wet point in runup gauge
-      integer                           :: ncross                   = -123                 !  [-] (advanced,silent) Number of output cross sections
       integer                           :: outputformat             = OUTPUTFORMAT_DEBUG   !  [name] (advanced) Output file format
       character(slen)                   :: outputformat_str         = 'debug'              !
       character(slen)                   :: ncfilename               = 'xboutput.nc'        !  [file] (advanced) xbeach netcdf output file name
@@ -499,16 +497,14 @@ contains
       par%advection   = readkey_int ('params.txt','advection',     1,        0,     1,strict=.true.)
       par%wind        = readkey_int ('params.txt','wind',          1,        0,     1,strict=.true.)
       !
-      !
       ! Grid parameters
       call writelog('l','','--------------------------------')
       call writelog('l','','Grid parameters: ')
-
       ! check gridform
       call setallowednames('xbeach',GRIDFORM_XBEACH,'delft3d',GRIDFORM_DELFT3D)
       call setoldnames('0','1')
       call parmapply('gridform',1,par%gridform,par%gridform_str)
-
+      !
       ! gridform switch
       if (par%gridform==GRIDFORM_XBEACH) then
          ! XBeach grid parameters
@@ -526,7 +522,7 @@ contains
             par%depfile = readkey_name('params.txt','depfile')
          endif
          par%vardx = readkey_int('params.txt','vardx',   0,      0,         1,strict=.true.)
-
+         !
          if (par%vardx==0) then
             par%dx    = readkey_dbl('params.txt','dx',    -1.d0,   0.d0,      1d9,required=.true.)
             par%dy    = readkey_dbl('params.txt','dy',    -1.d0,   0.d0,      1d9,required=.true.)
@@ -536,13 +532,13 @@ contains
             par%xfile = readkey_name('params.txt','xfile')
             call check_file_exist(par%xfile)
             call check_file_length(par%xfile,par%nx+1,par%ny+1)
-
+            !
             par%yfile = readkey_name('params.txt','yfile')
             if (par%ny>0) then
                call check_file_exist(par%yfile)
                call check_file_length(par%yfile,par%nx+1,par%ny+1)
             end if
-
+         !   
          endif
       elseif (par%gridform==GRIDFORM_DELFT3D) then
          par%depfile = readkey_name('params.txt','depfile',required=.true.)
@@ -600,7 +596,7 @@ contains
       ! Wave directional grid
       if(par%swave==1) then
          par%thetamin = readkey_dbl ('params.txt','thetamin', -90.d0,    -360.d0,  360.d0,required=.true.)
-         par%thetamax = readkey_dbl ('params.txt','thetamax',  90.d0,    -360.d0,  360.d0,required=.true.)
+         par%thetamax = readkey_dbl ('params.txt','thetamax',  90.d0,     par%thetamin,  360.d0,required=.true.)
          par%thetanaut= readkey_int ('params.txt','thetanaut',    0,        0,     1,strict=.true.)
          if (par%single_dir==1) then
             call writelog('ls','','dtheta will automatically be computed from thetamin and thetamax for single_dir = 1')
@@ -666,7 +662,7 @@ contains
       call setoldnames('0','1','2','3','4','5','6','7','8','9','40','41')
       call parmapply('instat',2,par%instat,par%instat_str, &
       required=(par%swave==1))
-
+      !
       if ( par%instat==INSTAT_JONS .or. &
       par%instat==INSTAT_SWAN .or. &
       par%instat==INSTAT_VARDENS.or. &
@@ -750,7 +746,7 @@ contains
          par%Trep  = readkey_dbl ('params.txt','Trep',     par%Tm01,   1.d0,    20.d0)
          call check_file_exist('boun_U.bcf')
       endif
-
+      !
       call setallowednames('neumann',LATERALWAVE_NEUMANN,'wavecrest',LATERALWAVE_WAVECREST,'cyclic',LATERALWAVE_CYCLIC)
       call setoldnames('0','1')
       call parmapply('lateralwave',1,par%lateralwave,par%lateralwave_str)
@@ -1173,6 +1169,9 @@ contains
          'bore_averaged',     TURB_BORE_AVERAGED)
          call setoldnames('0','1','2')
          call parmapply('turb',3,par%turb,par%turb_str)
+         if (par%waveform == WAVEFORM_RUESSINK_VANRIJN) then
+             call parmapply('turb',2,par%turb,par%turb_str)
+         endif
 
          par%Tbfac    = readkey_dbl ('params.txt','Tbfac  ',1.0d0,     0.00d0,   1.0d0)
          par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.5d0,     0.01d0,   10.d0)
@@ -1260,11 +1259,15 @@ contains
          call writelog('l','','Morphology parameters: ')
          par%morfac   = readkey_dbl ('params.txt','morfac', 1.0d0,        0.d0,  1000.d0)
          par%morfacopt= readkey_int ('params.txt','morfacopt', 1,        0,        1,strict=.true.)
-         par%morstart = readkey_dbl ('params.txt','morstart',120.d0,      0.d0, 10000000.d0)
+         par%morstart = readkey_dbl ('params.txt','morstart',0.0d0,      0.d0, par%tstop)
          par%morstop  = readkey_dbl ('params.txt','morstop', par%tstop,      0.d0, 10000000.d0)
          par%wetslp   = readkey_dbl ('params.txt','wetslp', 0.3d0,       0.1d0,     1.d0)
          par%dryslp   = readkey_dbl ('params.txt','dryslp', 1.0d0,       0.1d0,     2.d0)
-         par%lsgrad   = readkey_dbl ('params.txt','lsgrad', 0.0d0,       -0.1d0,     .1d0,silent=.true.)
+         if (par%ny == 0) then
+            par%lsgrad   = readkey_dbl ('params.txt','lsgrad', 0.0d0,       -0.1d0,     .1d0,silent=.true.)
+         else
+            par%lsgrad = 0.0d0 
+         endif
          par%hswitch  = readkey_dbl ('params.txt','hswitch',0.1d0,      0.01d0,    1.0d0)
          par%dzmax    = readkey_dbl ('params.txt','dzmax  ',0.05d0,    0.00d0,   1.0d0)
          par%struct   = readkey_int ('params.txt','struct ',0    ,      0,             1,strict=.true.)
@@ -1290,18 +1293,14 @@ contains
       testc = readkey_name('params.txt','tunits')
       if (len(trim(testc)) .gt. 0) par%tunits = trim(testc)
       par%tstart  = readkey_dbl ('params.txt','tstart',   0.d0,      0.d0,par%tstop)
-      par%tint    = readkey_dbl ('params.txt','tint',     1.d0,     .01d0, 100000.d0)  ! Robert
+      par%tint    = readkey_dbl ('params.txt','tint',     1.d0,     .01d0, par%tstop-par%tstart)  ! Robert
       par%tsglobal = readkey_name('params.txt','tsglobal')
       if (par%tsglobal==' ') then
-         par%tintg   = readkey_dbl ('params.txt','tintg', par%tint,     .01d0, 100000.d0)  ! Robert
+         par%tintg   = readkey_dbl ('params.txt','tintg', par%tint,     .01d0, par%tstop-par%tstart)  ! Robert
       endif
       par%tspoints = readkey_name('params.txt','tspoints')
       if (par%tspoints==' ') then
-         par%tintp   = readkey_dbl ('params.txt','tintp', par%tint,     .01d0, 100000.d0)  ! Robert
-      endif
-      par%tscross = readkey_name('params.txt','tscross',silent=.true.)
-      if (par%tscross==' ') then
-         par%tintc   = readkey_dbl ('params.txt','tintc', par%tint,     .01d0, 100000.d0,silent=.true.)  ! Robert
+         par%tintp   = readkey_dbl ('params.txt','tintp', par%tint,     .01d0, par%tstop-par%tstart)  ! Robert
       endif
       par%tsmean = readkey_name('params.txt','tsmean')
       if (par%tsmean==' ') then
@@ -1315,19 +1314,14 @@ contains
       ! point output
       par%npoints     = readkey_int ('params.txt','npoints',     0,  0, 50)
       par%nrugauge    = readkey_int ('params.txt','nrugauge',    0,  0, 50)
-      ! update the pointvariables
-      !call readpointvars(par, par%xpointsw, par%ypointsw, par%pointtypes, par%pointvars)
-      ! Robert: to deal with MPI some changes here
       par%npointvar   = readkey_int ('params.txt','npointvar',   0,  0, 50)
       call readpointvars(par)
-      !    par%rugdepth    = readkey_dbl ('params.txt','rugdepth', 0.0d0,0.d0,0.05d0)
       par%nrugdepth   = readkey_int('params.txt','nrugdepth',1,1,10)
       par%rugdepth    = readkey_dblvec('params.txt','rugdepth',par%nrugdepth,size(par%rugdepth),0.0d0,0.0d0,0.1d0)
 
       ! mean output
       par%nmeanvar    = readkey_int ('params.txt','nmeanvar'  ,  0,  0, 15)
       call readmeans(par)
-      par%ncross      = readkey_int ('params.txt','ncross',      0,  0, 50,silent=.true.)
 
       call setallowednames('fortran',             OUTPUTFORMAT_FORTRAN,  &
       'netcdf ',             OUTPUTFORMAT_NETCDF,   &
@@ -1389,7 +1383,9 @@ contains
          call writelog('l','','--------------------------------')
          call writelog('l','','Vegetation parameters: ')
          par%veggiefile    = readkey_name  ('params.txt', 'veggiefile'                       )
+         call check_file_exist(par%veggiefile)
          par%veggiemapfile = readkey_name  ('params.txt', 'veggiemapfile'                    )
+         call check_file_exist(par%veggiemapfile)
          par%vegnonlin     = readkey_int   ('params.txt', 'vegnonlin',0,0,1,silent=.true.)
          par%vegcanflo     = readkey_int   ('params.txt', 'vegcanflo',0,0,1,silent=.true.)
          par%veguntow      = readkey_int   ('params.txt', 'veguntow', 1,0,1,silent=.true.)
@@ -1406,11 +1402,15 @@ contains
       'upwind_2',      SCHEME_UPWIND_2,      &
       'warmbeam',      SCHEME_WARMBEAM)
       call setoldnames('1','2','3','4')
-      call parmapply('scheme',3,par%scheme,par%scheme_str)
+      call parmapply('scheme',4,par%scheme,par%scheme_str)
 
       if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE .or. par%single_dir==1) then
          par%wavint     = readkey_dbl ('params.txt','wavint',    60.d0,      1.d0,  3600.d0)
-         par%maxerror   = readkey_dbl ('params.txt','maxerror', 0.00005d0, 0.00001d0, 0.001d0)
+         if (par%single_dir==1) then
+            par%maxerror   = readkey_dbl ('params.txt','maxerror', 0.005d0, 0.00001d0, 0.001d0)
+         else
+            par%maxerror   = readkey_dbl ('params.txt','maxerror', 0.0005d0, 0.00001d0, 0.001d0)
+         endif
          par%maxiter    = readkey_int ('params.txt','maxiter',    500,         2,      1000)
       endif
       ! only default to Snell's Law if in 1D and only one directional bin
@@ -1424,9 +1424,8 @@ contains
          par%snells      = readkey_int ('params.txt','snells',    0,        0,     1,silent=.true.,strict=.true.)
       endif
       if(par%nonhspectrum == 0) then
-         par%swkhmin = readkey_dbl ('params.txt','swkhmin',    -0.01d0, -0.01d0, 0.35d0,silent=.true.)
+         par%swkhmin = readkey_dbl ('params.txt','swkhmin',    -0.01d0, -0.01d0, 0.35d0,silent=.true.) ! Robert for Daan
       endif
-         
       !
       !
       ! Flow numerics parameters
@@ -1436,7 +1435,7 @@ contains
       par%eps_sd  = readkey_dbl ('params.txt','eps_sd',  0.5d0,     0.000d0,      1.0d0)
       par%umin    = readkey_dbl ('params.txt','umin',    0.0d0,     0.0d0,        0.2d0)
       par%hmin    = readkey_dbl ('params.txt','hmin',    0.2d0,     0.001d0,      1.d0)
-      par%secorder = readkey_int('params.txt','secorder' ,0,0,1,strict=.true.)
+      par%secorder = readkey_int('params.txt','secorder' ,par%nonh,0,1,strict=.true.)
       par%oldhu    = readkey_int('params.txt','oldhu' ,0,0,1,silent=.true.,strict=.true.)
       !
       !
@@ -1482,9 +1481,7 @@ contains
          par%mmpi= readkey_int('params.txt','mmpi',2,1,100)
          par%nmpi= readkey_int('params.txt','nmpi',4,1,100)
       endif
-
 #endif
-
       !
       !
       ! Finish
@@ -1502,6 +1499,7 @@ contains
          par%hmin    = par%hmin/par%depthscale
          par%hswitch = par%hswitch/par%depthscale
          par%dzmax   = par%dzmax/par%depthscale**1.5d0
+         par%maxerror= par%maxerror/par%depthscale
 
          call writelog('lws','(a)','Warning: input parameters eps, hmin, hswitch and dzmax are scaled with')
          call writelog('lws','(a)','         depthscale to:')
@@ -1509,6 +1507,8 @@ contains
          call writelog('lws','(a,f0.4)','hmin = ',   par%hmin)
          call writelog('lws','(a,f0.4)','hswitch = ',par%hswitch)
          call writelog('lws','(a,f0.4)','dzmax = ',  par%dzmax)
+         call writelog('lws','(a,f0.4)','maxerror = ',  par%maxerror)
+
       endif
       !
       !
@@ -1580,14 +1580,12 @@ contains
             endif
          else
             if (par%break == BREAK_BALDOCK) then
-               call writelog('lwse','','Error: Baldock formulation not allowed in non-stationary, use a Roelvink')
-               call writelog('lwse','','         formulation.')
-               call halt_program
+               call writelog('lws','','Warning: Baldock formulation not allowed in non-stationary, use break=roelvink1')
+               call writelog('lws','','         or roelvink2 or roelvink_daly formulation.')
             endif
             if (par%break == BREAK_JANSSEN) then
-               call writelog('lwse','','Error: Janssen formulation not allowed in non-stationary, use a Roelvink')
-               call writelog('lwse','','         formulation.')
-               call halt_program
+               call writelog('lws','','Warning: Janssen formulation not allowed in non-stationary, use break=roelvink1 ')
+               call writelog('lws','','         or roelvink2 or roelvink_daly formulation.')
             endif
          endif
       endif
@@ -1724,12 +1722,11 @@ contains
       endif
 #endif
       !
-      !
       ! Lax-Wendroff not yet supported in curvilinear
       if (par%scheme==SCHEME_LAX_WENDROFF) then
-         par%scheme=SCHEME_UPWIND_2
+         par%scheme=SCHEME_WARMBEAM
          call writelog('lws','','Warning: Lax Wendroff [scheme=lax_wendroff] scheme is not supported, changed')
-         call writelog('lws','','         to 2nd order upwind [scheme=upwind_2]')
+         call writelog('lws','','         to Warming and Beam [scheme=SCHEME_WARMBEAM]')
       endif
       !
       !
@@ -1742,7 +1739,7 @@ contains
       !
       ! Check for setting Snells law and single_dir
       if (par%single_dir == 1 .and. par%snells==1) then
-         call writelog('lse', '', 'The options ''single_dir = 1'' and ''snells = 1'' are not compatable')
+         call writelog('lse', '', 'The options ''single_dir = 1'' and ''snells = 1'' are not compatible')
          call writelog('lse', '', 'Terminating simulation')
          call halt_program
       endif
@@ -1766,7 +1763,7 @@ contains
       ! Mean output time fix
       if(par%tintm>(par%tstop-par%tstart) .and. par%nmeanvar>0) then
          call writelog('lws','','Warning: ''tintm'' is larger than output duration in the simulation.')
-         call writelog('lws','','         Settting ''tintm'' = tstop-tstart = ',par%tstop-par%tstart,'s')
+         call writelog('lws','','         Setting ''tintm'' = tstop-tstart = ',par%tstop-par%tstart,'s')
          par%tintm=par%tstop-par%tstart
       endif
       !
@@ -1800,7 +1797,7 @@ contains
       !
       !
       ! fix tint
-      par%tint    = min(par%tintg,par%tintp,par%tintm,par%tintc)
+      par%tint    = min(par%tintg,par%tintp,par%tintm)
       !
       !
       ! All input time frames converted to XBeach hydrodynamic time
@@ -1809,7 +1806,6 @@ contains
          par%tint    = par%tint   / max(par%morfac,1.d0)
          par%tintg   = par%tintg  / max(par%morfac,1.d0)
          par%tintp   = par%tintp  / max(par%morfac,1.d0)
-         par%tintc   = par%tintc  / max(par%morfac,1.d0)
          par%tintm   = par%tintm  / max(par%morfac,1.d0)
          par%wavint  = par%wavint / max(par%morfac,1.d0)
          par%tstop   = par%tstop  / max(par%morfac,1.d0)
