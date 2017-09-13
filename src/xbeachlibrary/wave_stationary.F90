@@ -191,7 +191,7 @@ contains
       !Dano  This is ok, since we will set mpiboundary to y in stationary mode
       !
       ! write to screen that waves are updated
-      if(xmaster) call writelog('ls','(a)','Computing wave transformation')
+      if(xmaster) call writelog('ls','(a,f0.2,a)','Computing wave transformation at t = ',par%t,' s')
       do i=2,imax
          dtw=.5*minval(s%dsu(i:i+1,jmin_ee:jmax_ee))/max(maxval(s%cgx(i-1:i+1,jmin_ee:jmax_ee,:)),1d-10)
          dtw=min(dtw,.5*minval(s%dnv(i,jmin_ee:jmax_ee))/max(maxval(abs(s%cgy(i,jmin_ee:jmax_ee,:))),1d-10))
