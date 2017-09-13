@@ -253,43 +253,6 @@ contains
          allocate(tpar%tpp(0))
       endif ! (npoints+nrugauge)>0
 
-      ! If we want cross section output then
-      if ((par%ncross)>0) then
-         if (xmaster) then
-            if (par%tscross/=' ') then
-               open(10,file=par%tscross)
-               read(10,*,iostat=ier)iir
-               if (ier .ne. 0) then
-                  call report_file_read_error(par%tscross)
-               endif
-               ii = nint(iir)
-               allocate(tpar%tpc(ii))
-               do i=1,ii
-                  read(10,*,iostat=ier)tpar%tpc(i)
-                  if (ier .ne. 0) then
-                     call report_file_read_error(par%tscross)
-                  endif
-               enddo
-               close(10)
-            else
-               ii=floor((par%tstop-par%tstart)/par%tintc)+1
-               allocate(tpar%tpc(ii))
-               do i=1,ii
-                  tpar%tpc(i)=par%tstart+par%tintc*real(i-1)
-               enddo
-            endif
-         endif    ! xmaster
-#ifdef USEMPI
-         call xmpi_bcast(ii,toall)
-         if (.not.xmaster) then
-            allocate(tpar%tpc(ii))
-         endif
-         call xmpi_bcast(tpar%tpc,toall)
-#endif
-      else
-         allocate(tpar%tpc(0))
-      endif ! (ncross)>0
-
       ! If we want time-average output then
       if (par%nmeanvar>0) then
          if(xmaster) then

@@ -475,25 +475,6 @@ contains
             endif
          endif
 
-         !!! Write cross section variables
-         !!! Only write if it is output time for cross sections
-         if (par%ncross>0) then
-            if (tpar%outputc) then
-               itc=itc+1
-               do i=1,par%ncross
-                  !!! Make array of all s% values at n or m grid line
-                  if (crosstype(i)==0) then
-                     !    makecrossvector(par, s, local s, output array, no of variables, index of variables in output, m or n coordinate, cross section type)
-                     call makecrossvector(s,sl,par,crossvararray0,nvarcross(i),Avarcross(i,1:nvarcross(i)),ycross(i),0)
-                     if (xomaster) write(indextocrossunit(i),rec=itc)CONVREAL(crossvararray0(1:nvarcross(i),:))
-                  else
-                     call makecrossvector(s,sl,par,crossvararray1,nvarcross(i),Avarcross(i,1:nvarcross(i)),xcross(i),1)
-                     if (xomaster) write(indextocrossunit(i),rec=itc)CONVREAL(crossvararray1(1:nvarcross(i),:))
-                  endif
-               enddo
-            endif
-         endif
-
          !!! Collect mean variable to global grid
          if (par%nmeanvar>0) then
             ! Not at the first in tpm as this is the start of averaging. Only output after second in tpm
