@@ -96,20 +96,17 @@ module timestep_module
       real*8,dimension(:),allocatable     :: tpg ! global output times
       real*8,dimension(:),allocatable     :: tpp ! point oputput times
       real*8,dimension(:),allocatable     :: tpm ! time average output times
-      real*8,dimension(:),allocatable     :: tpc ! crosssection output times
       real*8,dimension(:),allocatable     :: tpw ! wave computation times
       real*8 :: tnext     = -123                 ! next time point for output
 
       integer                             :: itg ! global output index (1 based)
       integer                             :: itp ! point output index (1 based)
       integer                             :: itm ! time average output index (1 based)
-      integer                             :: itc ! cross section output index (1 based)
       integer                             :: itw ! wave computation index (1 based)
 
       logical                             :: outputg ! output global variables?
       logical                             :: outputp ! output point variables?
       logical                             :: outputm ! output time average variables?
-      logical                             :: outputc ! output cross section variables?
       logical                             :: outputw ! stop for wave computation
       logical                             :: output  ! output any variable
    end type timepars
@@ -145,13 +142,11 @@ contains
       tpar%itg = 0
       tpar%itp = 0
       tpar%itm = 0
-      tpar%itc = 0
       tpar%itw = 0
       ! initialize output, default no output
       tpar%outputg = .FALSE.
       tpar%outputp = .FALSE.
       tpar%outputm = .FALSE.
-      tpar%outputc = .FALSE.
       tpar%outputw = .FALSE.
       tpar%output  = .FALSE.
 
@@ -306,7 +301,7 @@ contains
       implicit none
       type(parameters),intent(inout)      :: par
       type(timepars), intent(inout)       :: tpar
-      real*8                              :: t1,t2,t3,t4,t5
+      real*8                              :: t1,t2,t3,t4
 
       !if (tpar%outputm .or. tpar%itm .eq. 0) then
       !   par%tintm = tpar%tpm(min(tpar%itm+2,size(tpar%tpm)))-tpar%tpm(tpar%itm+1)
@@ -323,9 +318,6 @@ contains
       if (size(tpar%tpp) .gt. 0) then
          tpar%outputp = abs(tpar%tpp(min(tpar%itp+1,size(tpar%tpp)))-par%t) .le. 0.0000001d0
       endif
-      if (size(tpar%tpc) .gt. 0) then
-         tpar%outputc = abs(tpar%tpc(min(tpar%itc+1,size(tpar%tpc)))-par%t) .le. 0.0000001d0
-      endif
       if (size(tpar%tpm) .gt. 0) then
          tpar%outputm = abs(tpar%tpm(min(tpar%itm+1,size(tpar%tpm)))-par%t) .le. 0.0000001d0
       endif
@@ -338,7 +330,7 @@ contains
       !  tpar%outputm = (size(tpar%tpm) .gt. tpar%itm) .and. (abs(tpar%tpm(tpar%itm+1)-par%t) .le. 0.0000001d0)
       !  tpar%outputc = (size(tpar%tpc) .gt. tpar%itc) .and. (abs(tpar%tpc(tpar%itc+1)-par%t) .le. 0.0000001d0)
       !  tpar%outputw = (size(tpar%tpw) .gt. tpar%itw) .and. (abs(tpar%tpw(tpar%itw+1)-par%t) .le. 0.0000001d0)
-      tpar%output  = (tpar%outputg .or. tpar%outputp .or. tpar%outputm .or. tpar%outputc .or. tpar%outputw)
+      tpar%output  = (tpar%outputg .or. tpar%outputp .or. tpar%outputm .or. tpar%outputw)
 
       ! if we are updating at the current timestep, increase the counter by 1
       !
@@ -346,7 +338,6 @@ contains
       if (tpar%outputg) tpar%itg = tpar%itg + 1
       if (tpar%outputp) tpar%itp = tpar%itp + 1
       if (tpar%outputm) tpar%itm = tpar%itm + 1
-      if (tpar%outputc) tpar%itc = tpar%itc + 1
       if (tpar%outputw) tpar%itw = tpar%itw + 1
 
       ! Next time step:
@@ -357,9 +348,8 @@ contains
       t2=minval(tpar%tpp,MASK=tpar%tpp .gt. par%t+0.0000001d0)
       t3=minval(tpar%tpm,MASK=tpar%tpm .gt. par%t+0.0000001d0)
       t4=minval(tpar%tpw,MASK=tpar%tpw .gt. par%t+0.0000001d0)
-      t5=minval(tpar%tpc,MASK=tpar%tpc .gt. par%t+0.0000001d0)
 
-      tpar%tnext=min(t1,t2,t3,t4,t5,par%tstop)
+      tpar%tnext=min(t1,t2,t3,t4,par%tstop)
 
       if (tpar%tnext .eq. huge(tpar%tpg) .and. par%t .eq. 0) then
          call writelog('ls','', 'no output times found, setting tnext to tstop')
@@ -680,13 +670,11 @@ contains
          tpar%outputg = (size(tpar%tpg) .gt. 0)
          tpar%outputp = (size(tpar%tpp) .gt. 0)
          tpar%outputm = (size(tpar%tpm) .gt. 0)
-         tpar%outputc = (size(tpar%tpc) .gt. 0)
          ! set output time to current time
          if (tpar%outputg) tpar%tpg=min(tpar%tpg,par%t)
          if (tpar%outputp) tpar%tpp=min(tpar%tpp,par%t)
          if (tpar%outputm) tpar%tpm=min(tpar%tpm,par%t)
-         if (tpar%outputc) tpar%tpc=min(tpar%tpc,par%t)
-         tpar%output = (tpar%outputg .or. tpar%outputp .or. tpar%outputm .or. tpar%outputc)
+         tpar%output = (tpar%outputg .or. tpar%outputp .or. tpar%outputm)
          if (present(ierr)) then
             ierr = 1
          endif

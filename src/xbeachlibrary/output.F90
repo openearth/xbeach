@@ -168,13 +168,11 @@ contains
          call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%itg)
          call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%itp)
          call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%itm)
-         call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%itc)
          call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%itw)
 
          call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%outputg)
          call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%outputp)
          call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%outputm)
-         call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%outputc)
          call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%outputw)
          call xmpi_send(xmpi_imaster,xmpi_omaster,tpar%output)
 

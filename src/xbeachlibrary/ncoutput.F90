@@ -703,7 +703,7 @@ contains
       real*8,       dimension(:,:,:,:), allocatable :: r4
       CONVREALTYPE, dimension(:,:,:,:), allocatable :: r4conv
       real*8,                           allocatable :: tempvectorr(:)
-      real*8,dimension(size(tpar%tpg)+size(tpar%tpp)+size(tpar%tpc)+size(tpar%tpm)) :: outputtimes
+      real*8,dimension(size(tpar%tpg)+size(tpar%tpp)+size(tpar%tpm)) :: outputtimes
 
       integer                                       :: jtg,reclen,unit,idumhl,ird,iru,xmax,xmin
       integer                                       :: iz,jz,idum
@@ -802,6 +802,10 @@ contains
          if (par%rotate==1) then
             call space_collect_mnem(s,sl,par,mnem_alfaz)
          endif
+         if(par%remdryoutput==1) then
+            call space_collect_mnem(s,sl,par,mnem_wetz)
+         endif
+         
       endif
 
 #endif
@@ -1189,7 +1193,7 @@ contains
                   allocate(r2    (size(t%r2,1),size(t%r2,2)))
                   allocate(r2conv(size(t%r2,1),size(t%r2,2)))
                   call gridrotate(par, s, t, r2)
-                  call postprocessvar_r2(s, t, dFill, r2)
+                  if(par%remdryoutput==1) call postprocessvar_r2(s%wetz, t, dFill, r2)
                   r2conv = CONVREAL(r2)
 #ifdef USENETCDF
                   if(donetcdf) then
@@ -1553,8 +1557,7 @@ contains
          outputtimes                                = -999.d0
          outputtimes(1:itg)                         = tpar%tpg(1:itg)
          outputtimes(itg+1:itg+itp)                 = tpar%tpp(1:itp)
-         outputtimes(itg+itp+1:itg+itp+itc)         = tpar%tpc(1:itc)
-         outputtimes(itg+itp+itc+1:itg+itp+itc+itm) = tpar%tpm(2:itm+1)          ! mean output always shifted by 1
+         outputtimes(itg+itp+1:itg+itp+itm)         = tpar%tpm(2:itm+1)          ! mean output always shifted by 1
 
          if (par%morfacopt==1) outputtimes=outputtimes*max(par%morfac,1.d0)
 

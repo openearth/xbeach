@@ -26,11 +26,11 @@ module postprocessmod
    end interface gridrotate
 
 contains
-   subroutine postprocessvar_r2(s, t, dFill, x)
+   subroutine postprocessvar_r2(wetz, t, dFill, x)
       use spaceparams
       use mnemmodule
 
-      type(spacepars)                     :: s
+      integer, dimension(:,:), intent(in) :: wetz
       type(arraytype), intent(in)         :: t
       real*8, intent(in)                  :: dFill
       real*8, dimension(:,:), intent(out) :: x
@@ -38,7 +38,7 @@ contains
       select case(t%name)
       case(mnem_zs,mnem_u,mnem_v,mnem_H,mnem_thetamean,mnem_k,mnem_sigm,mnem_c,mnem_cg,mnem_hh,mnem_E,mnem_R, &
            mnem_urms,mnem_D,mnem_ue,mnem_ve,mnem_Sk,mnem_As)
-            where (s%wetz==0)
+            where (wetz==0)
                x = dFill
             elsewhere
                x = t%r2

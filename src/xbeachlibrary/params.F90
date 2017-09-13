@@ -377,6 +377,7 @@ module params
       ! [Section] Output projection
       character(slen)                   :: projection               = ' '                  !  [-] (advanced) projection string
       integer                           :: rotate                   = -123                 !  [-] Rotate output as postprocessing with given angle
+      integer                           :: remdryoutput             = -123                 !  [-] Remove dry output points from output data of zs etc.
 
       ! [Section] Drifters parameters
       integer                           :: ndrifter                 = -123                 !  [-] Number of drifers
@@ -1344,6 +1345,7 @@ contains
          if (len(trim(par%ncfilename)) .eq. 0) par%ncfilename = 'xboutput.nc'
          call writelog('ls','','netcdf output to:' // par%ncfilename)
       endif
+      par%remdryoutput = readkey_int ('params.txt','remdryoutput',     1,  0, 1,strict=.true.)
       !
       !
       ! Output projection
