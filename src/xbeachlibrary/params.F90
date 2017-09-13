@@ -1227,6 +1227,9 @@ contains
          par%sigfac  = readkey_dbl ('params.txt','sigfac ',1.3d0,     0.00d0,   10.d0)
          par%deltar  = readkey_dbl ('params.txt','deltar ',0.025d0,     0.001d0,   1.0d0)
          par%rwave  = readkey_dbl ('params.txt','rwave ',2.0d0,     0.1d0,   10.0d0)
+      else ! workaround, needed for array allocation
+         par%kmax = 1
+         par%nz = 1
       endif
       !
       ! Bed composition parameters
