@@ -592,7 +592,7 @@ contains
          par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
       endif
       ! Q3d grid
-         par%nz = readkey_int ('params.txt','nz',    1,        1,     100)
+      par%nz = readkey_int ('params.txt','nz',    1,        1,     100)
       ! Wave directional grid
       if(par%swave==1) then
          par%thetamin = readkey_dbl ('params.txt','thetamin', -90.d0,    -360.d0,  360.d0,required=.true.)
@@ -1228,7 +1228,6 @@ contains
          par%rwave  = readkey_dbl ('params.txt','rwave ',2.0d0,     0.1d0,   10.0d0)
       else ! workaround, needed for array allocation
          par%kmax = 1
-         par%nz = 1
       endif
       !
       ! Bed composition parameters

@@ -189,7 +189,9 @@ contains
 
       imax=s%nx
       !Dano  This is ok, since we will set mpiboundary to y in stationary mode
-
+      !
+      ! write to screen that waves are updated
+      if(xmaster) call writelog('ls','(a)','Computing wave transformation')
       do i=2,imax
          dtw=.5*minval(s%dsu(i:i+1,jmin_ee:jmax_ee))/max(maxval(s%cgx(i-1:i+1,jmin_ee:jmax_ee,:)),1d-10)
          dtw=min(dtw,.5*minval(s%dnv(i,jmin_ee:jmax_ee))/max(maxval(abs(s%cgy(i,jmin_ee:jmax_ee,:))),1d-10))
@@ -461,7 +463,7 @@ contains
             if (iter<par%maxiter) then
                if (Herr<par%maxerror) then
                   stopiterate=.true.
-                  if(xmaster) call writelog('ls','(a,i4,a,i4)','Wave propagation row ',i,', iteration ',iter)
+                  !if(xmaster) call writelog('ls','(a,i4,a,i4)','Wave propagation row ',i,', iteration ',iter)
                endif
             else
                stopiterate=.true.
