@@ -1234,8 +1234,8 @@ contains
       ! Bed composition parameters
       call writelog('l','','--------------------------------')
       call writelog('l','','Bed composition parameters: ')
-      par%ngd      = readkey_int ('params.txt','ngd',        1,           1,        20)
-      par%nd       = readkey_int ('params.txt','nd ',        3,           3,        1000)
+      par%ngd      = readkey_int ('params.txt','ngd',        1,           1,        20,strict=.true.)
+      par%nd       = readkey_int ('params.txt','nd ',        3,           3,        1000,strict = .true.)
       par%por      = readkey_dbl ('params.txt','por',    0.4d0,       0.3d0,    0.5d0)
       if (par%dilatancy==1) then
          par%D15      = readkey_dblvec('params.txt','D15',par%ngd,size(par%D15),0.00015d0,0.00001d0,0.0008d0) ! Lodewijk

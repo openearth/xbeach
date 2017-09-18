@@ -195,8 +195,8 @@ module variables
   double precision, allocatable, target :: depo_im(:,:,:)   !< [m/s] implicit bed deposition rate per fraction {"shape": ["s%nx+1", "s%ny+1", "par%ngd"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: depo_ex(:,:,:)   !< [m/s] explicit bed deposition rate per fraction {"shape": ["s%nx+1", "s%ny+1", "par%ngd"], "standard_name": "", "broadcast": "d"}
   integer,          allocatable, target :: nd(:,:)          !< [-] number of bed layers (can be different for each computational cell) {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
-  double precision,              target :: pbbed(:,:,:,:)   !< [-] NO DESCRIPTION {"shape": ["s%nx+1", "s%ny+1", "max(par%nd,2)", "par%ngd"], "standard_name": "", "broadcast": "d"}
-  double precision, allocatable, target :: dzbed(:,:,:)     !< [-] NO DESCRIPTION {"shape": ["s%nx+1", "s%ny+1", "max(par%nd,2)"], "standard_name": "", "broadcast": "d"}
+  double precision,              target :: pbbed(:,:,:,:)   !< [-] NO DESCRIPTION {"shape": ["s%nx+1", "s%ny+1", "par%nd", "par%ngd"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: dzbed(:,:,:)     !< [-] NO DESCRIPTION {"shape": ["s%nx+1", "s%ny+1", "par%nd"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: z0bed(:,:)       !< [-] NO DESCRIPTION {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: ureps(:,:)       !< [m/s] representative flow velocity for sediment advection and diffusion, x-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "sea_water_x_velocity", "broadcast": "d"}
   double precision, allocatable, target :: vreps(:,:)       !< [m/s] representative flow velocity for sediment advection and diffusion, y-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "sea_water_y_velocity", "broadcast": "d"}
