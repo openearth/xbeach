@@ -238,7 +238,6 @@ contains
 #endif
       execute_counter = execute_counter + 1
 
-      call outputtimes_update(par, tpar)
       executestep = -1
 
       ! determine timestep
@@ -249,6 +248,7 @@ contains
          !
          ! determine time step
          call timestep(s,par,tpar,it,dt=dt,ierr=error)
+         call outputtimes_update(par, tpar)
               
          if (error==0) then
             
