@@ -288,14 +288,17 @@ contains
       type(arraytype)                                     :: t
 
       integer,dimension(sl%nx+1,sl%ny+1)                  :: tvar2di
-      real*8,dimension(sl%nx+1,sl%ny+1)                  :: tvar2d_sin
-      real*8,dimension(sl%nx+1,sl%ny+1)                  :: tvar2d_cos
+      real*8,dimension(:,:),allocatable,save              :: tvar2d_sin,tvar2d_cos
+   !   real*8,dimension(sl%nx+1,sl%ny+1)              :: 
 
       real*8, dimension(sl%nx+1,sl%ny+1)                  :: oldmean2d,tvar2d
       real*8, dimension(:,:,:),           allocatable     :: oldmean3d,tvar3d
       real*8, dimension(:,:,:,:),         allocatable     :: oldmean4d,tvar4d
-
-
+      
+      real*8, parameter                                   :: numeps = epsilon(0.d0)
+      logical,save                                        :: initialisedtvarsin = .false.
+      
+      
 
       !	avgtime = tpar%tpm(tpar%itm+1)-tpar%tpm(tpar%itm)
       ! updated in varoutput, not needed to calculate here
@@ -310,11 +313,11 @@ contains
             ! Robert: One where, elsewhere, endwhere statement leads to memory leak.
             ! maybe ifort bug ?
             ! wwvv 2014-10-21 changed tiny into epsilon in this subroutine
-            where (oldmean2d<epsilon(0.d0) .and. oldmean2d>=0.d0)
-               oldmean2d=epsilon(0.d0)
+            where (oldmean2d<numeps .and. oldmean2d>=0.d0)
+               oldmean2d=numeps
             endwhere
-            where (oldmean2d>-epsilon(0.d0) .and. oldmean2d<0.d0)
-               oldmean2d=-epsilon(0.d0)
+            where (oldmean2d>-numeps .and. oldmean2d<0.d0)
+               oldmean2d=-numeps
             endwhere
             ! Some variables (vectors) are rotated to N-S and E-W direction
             if (t%type=='i') then
@@ -324,9 +327,23 @@ contains
                call gridrotate(par, sl,t,tvar2d)
             endif
             if (par%meanvars(i)=='thetamean') then
-               tvar2d_sin = nint(meansparsglobal(i)%mean2d) / 1d1 + nint(mult*sin(tvar2d)*1e6)
-               tvar2d_cos = mod(meansparsglobal(i)%mean2d,1.d0) * 1d7 + nint(mult*cos(tvar2d)*1e6)
-               meansparslocal(i)%mean2d = tvar2d_sin*1e1 + tvar2d_cos/1e7
+               if (.not. initialisedtvarsin) then
+                  allocate(tvar2d_sin(sl%nx+1,sl%ny+1))
+                  allocate(tvar2d_cos(sl%nx+1,sl%ny+1))
+                  tvar2d_sin = 0.d0
+                  tvar2d_cos = 0.d0
+                  initialisedtvarsin = .true.
+               endif
+               
+               tvar2d_sin = tvar2d_sin + mult*sin(tvar2d)
+               tvar2d_cos = tvar2d_cos + mult*cos(tvar2d)
+               where (abs(tvar2d_sin)<numeps .and. abs(tvar2d_cos)<numeps)
+                  tvar2d_cos = numeps*sign(tvar2d_cos,1.d0)
+               endwhere
+               meansparslocal(i)%mean2d = atan2(tvar2d_sin,tvar2d_cos)
+               !tvar2d_sin = nint(meansparsglobal(i)%mean2d) / 1d1 + nint(mult*sin(tvar2d)*1e6)
+               !tvar2d_cos = mod(meansparsglobal(i)%mean2d,1.d0) * 1d7 + nint(mult*cos(tvar2d)*1e6)
+               !meansparslocal(i)%mean2d = tvar2d_sin*1e1 + tvar2d_cos/1e7
             else
                meansparslocal(i)%mean2d = meansparslocal(i)%mean2d + mult*tvar2d
             endif
