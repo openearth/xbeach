@@ -24,7 +24,7 @@
 ! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307     !
 ! USA                                                                     !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! VEGETATION MODULE XBEACH: ATTENUATION OF SHORT WAVES, IG WAVES, FLOW, AND WAVE SETUP
 ! 
@@ -36,7 +36,7 @@
 ! Version 2.0: 
 ! Attenuation of short waves, IG waves and nonlinear wave effects 
 ! Arnold van Rooijen, okt 2015, 
-! see Van Rooijen et al. submitted
+! see Van Rooijen, McCall, Van Thiel de Vries, Van Dongeren, Reniers and Roelvink (2016), Modeling the effect of wave-vegetation interaction on wave setup, JGR Oceans 121, pp 4341-4359.
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -47,12 +47,10 @@ module vegetation_module
 
     type veggie
         character(slen)                         :: name        ! Name of vegetation specification file
-        integer ,                   allocatable :: npts        ! Number of points used in vertical schematization of vegetation [-]
-        integer ,                   allocatable :: nsec        ! (OLD) Number of points used in vertical schematization of vegetation [-]
-        real*8  , dimension(:)    , allocatable :: zv          ! Vertical points used in vegetation schematization [m wrt zb_ini (zb0)]
-        real*8  , dimension(:)    , allocatable :: ah          ! (OLD) Vertical points used in vegetation schematization [m wrt zb_ini (zb0)]
-        real*8  , dimension(:)    , allocatable :: Cd          ! Vertically integrated (bulk) drag coefficient [-]
-        real*8  , dimension(:)    , allocatable :: bv          ! Width of individual vegetation stems
+        integer ,                   allocatable :: nsec        ! Number of sections used in vertical schematization of vegetation [-]
+        real*8  , dimension(:)    , allocatable :: ah          ! Height of vertical sections used in vegetation schematization [m wrt zb_ini (zb0)]
+        real*8  , dimension(:)    , allocatable :: Cd          ! Bulk drag coefficient [-]
+        real*8  , dimension(:)    , allocatable :: bv          ! Width/diameter of individual vegetation stems [m]
         integer , dimension(:)    , allocatable :: N           ! Number of vegetation stems per unit horizontal area [m-2]
         real*8  , dimension(:,:,:), allocatable :: Dragterm1   ! Dragterm in wave action balance []
         real*8  , dimension(:,:,:), allocatable :: Dragterm2   ! Dragterm in momentum equations []
@@ -115,55 +113,27 @@ subroutine veggie_init(s,par,veg)
    
     ! 2)  Allocate and read vegetation properties for every species    
     do i=1,par%nveg  ! for each species
-        allocate (veg(i)%npts)
+
+        call check_file_exist(veg(i)%name)
+        
         allocate (veg(i)%nsec)
 
-        veg(i)%npts    = readkey_int(veg(i)%name,'npts',  2,        2,      10, silent=.true.)! Number of vertical points in vegetation schematization
         veg(i)%nsec    = readkey_int(veg(i)%name,'nsec',  1,        1,      10, silent=.true.)! Number of vertical points in vegetation schematization
        
         allocate (veg(i)%ah(veg(i)%nsec))
-        allocate (veg(i)%zv(veg(i)%npts))! Vertical coordinates (w.r.t. initial bathymetry)
-        allocate (veg(i)%Cd(veg(i)%npts))
-        allocate (veg(i)%bv(veg(i)%npts))
-        allocate (veg(i)%N(veg(i)%npts))
-        allocate (veg(i)%Dragterm1(veg(i)%npts,s%nx+1,s%ny+1))
-        allocate (veg(i)%Dragterm2(veg(i)%npts,s%nx+1,s%ny+1))
-               
-        call check_file_exist(veg(i)%name)
+        allocate (veg(i)%Cd(veg(i)%nsec))
+        allocate (veg(i)%bv(veg(i)%nsec))
+        allocate (veg(i)%N(veg(i)%nsec))
+        allocate (veg(i)%Dragterm1(veg(i)%nsec,s%nx+1,s%ny+1))
+        allocate (veg(i)%Dragterm2(veg(i)%nsec,s%nx+1,s%ny+1))
         
-        veg(i)%ah   =      readkey_dblvec(veg(i)%name,'ah',veg(i)%nsec,size(veg(i)%ah),99.9d0, 0.d0, 2.d0, bcast=.false.,silent=.true.)
-        if (veg(i)%ah(1) < 99.d0) then ! if old way to specify vegetation (vertical sections)
-            !call writelog('lws','(a)','Warning: the way vegetation is specified has been updated recently. Instead of prescribing the vegetation properties per vertical section, vegetation is now prescribed per vertical coordinate. Please use the keyword npts to indicate the number of vertical points, and then specify the vertical position (zv), vegetation density (N), stem width (bv) an drag coefficient (Cd) for each vertical coordinate. This means, for instance, that you will need to specify the properties at least two vertical coordinates (bottom and top of the vegetation), e.g. zv = 0 0.3, N = 1000 1000 etc. Using the old way to prescribe vegetation properties (using vertical sections), may lead to inaccuracies.')
-            
-            veg(i)%npts  = veg(i)%nsec + 1
-            veg(i)%zv(1) = 0.d0
-            do j = 1,veg(i)%nsec
-                veg(i)%zv(j+1) = veg(i)%zv(j)+veg(i)%ah(j)
-            enddo
-            !call writelog('lws','(a)','')
-            !call writelog('lws','(a,f0.4,a)','Warning: use new way to specify vegetation with vertical coordinates (zv = ',veg(i)%zv,')')
-            !call writelog('lws','(a)','')
-            !call writelog('sl','(a)','Old way to specify veggie input, see http://oss.deltares.nl/web/xbeach/forum/-/message_boards/view_message/874796')
-            !call writelog('sl','(a,f0.3)','derived zv = ',veg(i)%zv)
-            pts         = veg(i)%nsec
-            
-            veg(i)%bv        =      readkey_dblvec(veg(i)%name,'bv',pts,size(veg(i)%bv),0.0d0, 0.001d0,     0.1d0, bcast=.false., required=.true.)
-            veg(i)%bv(pts+1) = veg(i)%bv(pts)
-            veg(i)%N         = nint(readkey_dblvec(veg(i)%name,'N', pts,size(veg(i)%N) ,0.0d0,   0.0d0,   2000.d0, bcast=.false., required=.true.))  
-            veg(i)%N(pts+1)  = veg(i)%N(pts)
-            veg(i)%Cd        =      readkey_dblvec(veg(i)%name,'Cd',pts,size(veg(i)%Cd),0.0d0,   0.0d0,     2.5d0, bcast=.false.) 
-            veg(i)%Cd(pts+1) = veg(i)%Cd(pts)
-        else ! new way to specify vegetation: vertical coordinates
-            veg(i)%zv   =      readkey_dblvec(veg(i)%name,'zv',veg(i)%npts,size(veg(i)%zv),0.d0, 0.d0, 2.d0, bcast=.false., required=.true.)
-            pts         = veg(i)%npts
-            
-            veg(i)%bv   =      readkey_dblvec(veg(i)%name,'bv',pts,size(veg(i)%bv),0.0d0, 0.001d0,     0.1d0, bcast=.false., required=.true.)       
-            veg(i)%N    = nint(readkey_dblvec(veg(i)%name,'N', pts,size(veg(i)%N) ,0.0d0,   0.0d0,   2000.d0, bcast=.false., required=.true.))        
-            veg(i)%Cd   =      readkey_dblvec(veg(i)%name,'Cd',pts,size(veg(i)%Cd),0.0d0,   0.0d0,     2.5d0, bcast=.false.) 
-        endif         
-                    
+        veg(i)%ah   =      readkey_dblvec(veg(i)%name,'ah',veg(i)%nsec,size(veg(i)%ah), 0.1d0,   0.01d0,     2.d0)
+        veg(i)%bv   =      readkey_dblvec(veg(i)%name,'bv',veg(i)%nsec,size(veg(i)%bv), 0.01d0, 0.001d0,    0.1d0)       
+        veg(i)%N    = nint(readkey_dblvec(veg(i)%name,'N', veg(i)%nsec,size(veg(i)%N) ,100.0d0,   1.0d0,  5000.d0))        
+        veg(i)%Cd   =      readkey_dblvec(veg(i)%name,'Cd',veg(i)%nsec,size(veg(i)%Cd),  0.0d0,  0.05d0,      3d0) 
+               
         ! If Cd is specified by user (constant), compute constant Dragterms 1 and 2 in initialization
-        do j=1,veg(i)%npts ! for every vertical veg point
+        do j=1,veg(i)%nsec ! for every vertical veg point
             if (veg(i)%Cd(j) > tiny(0.d0)) then
                 veg(i)%Dragterm1(j,:,:) = 0.5d0/sqrt(par%px)*par%rho*veg(i)%Cd(j)*veg(i)%bv(j)*veg(i)%N(j) ! Drag coefficient based on first part equation 6.5 Suzuki, 2011
                 veg(i)%Dragterm2(j,:,:) = 0.5d0*veg(i)%Cd(j)*veg(i)%bv(j)*veg(i)%N(j)
@@ -225,7 +195,7 @@ subroutine vegatt(s,par,veg)
     ! First compute drag coefficient (if not user-defined)
     s%Cdrag = 0d0 ! set drag coefficient to zero every timestep
     do ind=1,par%nveg  ! for each species
-        do m=1,veg(ind)%npts ! for each vertical veg point
+        do m=1,veg(ind)%nsec ! for each vertical veg point
             if (veg(ind)%Cd(m)<=tiny(0.d0)) then ! If Cd is not user specified
                 ! Call subroutine of M. Bendoni to compute Cd
                 do j=1,s%ny+1
@@ -233,7 +203,7 @@ subroutine vegatt(s,par,veg)
                         if (s%vegtype(i,j)>0) then ! only if vegetation is present
                             
                             ! Now fill every location with drag coef (dep on veg type)
-                            call bulkdragcoeff(s,par,veg(ind)%zv(veg(ind)%npts)+s%zb0(i,j)-s%zb(i,j),ind,m,i,j,Cdterm,veg)
+                            call bulkdragcoeff(s,par,veg(ind)%ah(veg(ind)%nsec)+s%zb0(i,j)-s%zb(i,j),ind,m,i,j,Cdterm,veg)
                             s%Cdrag(i,j) = Cdterm
                 
                             ! Compute new drag terms 1 and 2 with new Cd-values
@@ -272,7 +242,7 @@ subroutine swvegatt(s,par,veg)
     
     ! local variables
     integer                                     :: i,j,m,ind  ! indices of actual x,y point
-    real*8                                      :: aht,hterm,htermold,Dvgt
+    real*8                                      :: aht,hterm,htermold,Dvgt,ahtold
     real*8, dimension(s%nx+1,s%ny+1)            :: Dvg,kmr
 
     !include 's.ind'
@@ -287,10 +257,10 @@ subroutine swvegatt(s,par,veg)
             ind = s%vegtype(i,j)
             htermold = 0.d0
             if (ind>0) then ! only if vegetation is present at (i,j)
-                do m=1,veg(ind)%npts-1
+                do m=1,veg(ind)%nsec
              
                     ! Determine height of vegetation section (restricted to current bed level)
-                    aht = veg(ind)%zv(m+1)+s%zb0(i,j)-s%zb(i,j)!(max(veg(ind)%zv(m)+s%zb0(i,j),s%zb(i,j)))
+                    aht = veg(ind)%ah(m)+ahtold !+s%zb0(i,j)-s%zb(i,j)!(max(veg(ind)%zv(m)+s%zb0(i,j),s%zb(i,j)))
                
                     ! restrict vegetation height to local water depth
                     aht = min(aht,s%hh(i,j))
@@ -304,6 +274,7 @@ subroutine swvegatt(s,par,veg)
              
                     ! save hterm to htermold to correct possibly in next vegetation section
                     htermold = hterm
+ahtold   = aht
              
                     ! add dissipation current layer
                     Dvg(i,j) = Dvg(i,j) + Dvgt
@@ -393,9 +364,9 @@ subroutine momeqveg(s,par,veg)
                   
             watr = 0d0
             wacr = 0d0
-            do m=1,veg(ind)%npts-1   
+            do m=1,veg(ind)%nsec   
                 ! Determine height of vegetation section (restricted to current bed level)
-                aht = veg(ind)%zv(m+1)+s%zb0(i,j)-s%zb(i,j)
+                aht = veg(ind)%ah(m)+s%zb0(i,j)-s%zb(i,j)
                 
                 ! Determine which part of the vegetation is below the wave trough, and between trough and crest
                 if (par%vegnonlin == 1) then
