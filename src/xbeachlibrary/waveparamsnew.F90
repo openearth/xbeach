@@ -56,7 +56,7 @@ module spectral_wave_bc_module
       double complex,dimension(:,:),pointer  :: CompFn     ! Fourier components of the wave trains
       character(slen)                        :: Efilename,qfilename,nhfilename,Esfilename
       real*8,dimension(:,:),pointer          :: zsits      ! time series of total surface elevation for nonhspectrum==1
-      real*8,dimension(:,:),pointer          :: uits       ! time series of depth-averaged horizontal velocity nonhspectrum==1
+      real*8,dimension(:,:),pointer          :: uits,vits  ! time series of depth-averaged horizontal velocity nonhspectrum==1
       real*8,dimension(:,:),pointer          :: wits       ! time series of depth-averaged vertical velocity for nonhspectrum==1 ??
    endtype waveparamsnew
    type filenames                                      ! Place to store multiple file names
@@ -515,7 +515,11 @@ contains
          !
          ! Nyquist parameters used only in this subroutine
          ! are not read individually for each spectrum partition
+         if (par%oldnyq==1) then
+            fnyq    = readkey_dbl (readfile, 'fnyq',       0.3d0,    0.2d0,      1.0d0,      bcast=.false. )
+         else
          fnyq    = readkey_dbl (readfile, 'fnyq',max(0.3d0,3.d0*maxval(fp)), 0.2d0, 1.0d0, bcast=.false. )
+         endif
          dfj     = readkey_dbl (readfile, 'dfj',      fnyq/200,   fnyq/1000,  fnyq/20,    bcast=.false. )
          !
          ! Finally check if XBeach should accept even the most stupid partioning (sets error level to warning
@@ -2360,7 +2364,8 @@ contains
       !
       ! Calculate energy envelope amplitude
       do iy=1,s%ny+1
-        ! Integrate instantaneous water level excitation of wave components over directions
+            ! Integrate instantaneous water level excitation of wave
+            ! components over directions
         eta(iy,:) = sum(zeta(iy,:,:),2)
         tempcmplx=eta(iy,:)
         !
@@ -2478,12 +2483,15 @@ contains
       type(spacepars),intent(in)                   :: s
       ! internal
       integer                                      :: j,it,ik
+      real*8                                       :: vel
 
       ! allocate memory for time series of data
       allocate(wp%zsits(s%ny+1,wp%tslen))
       allocate(wp%uits(s%ny+1,wp%tslen))
+      allocate(wp%vits(s%ny+1,wp%tslen))
       wp%zsits=0.d0
       wp%uits=0.d0
+      wp%vits=0.d0
       ! total surface elevation
       call writelog('ls','','Calculating short wave elevation time series')
       call progress_indicator(.true.,0.d0,5.d0,2.d0)
@@ -2510,15 +2518,20 @@ contains
          do ik=1,wp%K
             if (wp%PRindex(ik)==1) then 
                do j=1,s%ny+1
-                  wp%uits(j,it) = wp%uits(j,it) + &
-                                  1.d0/wp%h0*wp%wgen(ik)*wp%A(j,ik) * &
+                  ! Depth-average velocity in wave direction:
+                  vel  = 1.d0/wp%h0*wp%wgen(ik)*wp%A(j,ik) * &
                                   dsin( &
-                                        +wp%wgen(ik)*wp%tin(it)&
+                               +wp%wgen(ik)*wp%tin(it) &
                                         -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
                                         +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
                                         +wp%phigen(ik) &
                                        ) * &
                                   1.d0/wp%kgen(ik)
+                  
+                  ! Eastward component:
+                  wp%uits(j,it) = wp%uits(j,it) + cosd(wp%thetagen(ik))*vel
+                  ! Northward component:
+                  wp%vits(j,it) = wp%vits(j,it) + sind(wp%thetagen(ik))*vel
                enddo
             endif
          enddo
@@ -2528,6 +2541,7 @@ contains
       ! Apply tapering to time series
       do j=1,s%ny+1
          wp%uits(j,:)=wp%uits(j,:)*wp%taperf
+         wp%vits(j,:)=wp%vits(j,:)*wp%taperf
          wp%zsits(j,:)=wp%zsits(j,:)*wp%taperf
       enddo
    end subroutine generate_swts
@@ -2806,6 +2820,7 @@ contains
          do j=1,s%ny+1
             ! add to velocity time series
             wp%uits(j,:)=wp%uits(j,:)+q(j,:,1)/wp%h0
+            wp%vits(j,:)=wp%vits(j,:)+q(j,:,2)/wp%h0
             ! add to surface elevation time series
             wp%zsits(j,:)=wp%zsits(j,:)+q(j,:,4)
          enddo
@@ -2841,10 +2856,10 @@ contains
       fid = create_new_fid()
       open(fid,file=trim(wp%nhfilename),status='REPLACE')
       write(fid,'(a)')'vector'
-      write(fid,'(a)')'3'
-      write(fid,'(a)')'t,U,Z'
+      write(fid,'(a)')'4'
+      write(fid,'(a)')'t,U,V,Z'
       do it=1,wp%tslen
-         write(fid,*)wp%tin(it)+par%t-par%dt,wp%uits(:,it),wp%zsits(:,it)
+         write(fid,*)wp%tin(it)+par%t-par%dt,wp%uits(:,it),wp%vits(:,it),wp%zsits(:,it)
          if (wp%tin(it)>wp%rtbc) exit
       enddo
       close(fid)

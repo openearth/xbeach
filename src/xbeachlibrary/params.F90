@@ -119,6 +119,7 @@ module params
       double precision                  :: trepfac                  = -123                 !  [-] (advanced) Compute mean wave period over energy band: par%trepfac*maxval(Sf) for instat jons, swan or vardens; converges to Tm01 for trepfac = 0.0 and
       double precision                  :: sprdthr                  = -123                 !  [-] (advanced) Threshold ratio to maximum value of S above which spectrum densities are read in
       integer                           :: correctHm0               = -123                 !  [-] (advanced,silent) Switch to enable Hm0 correction
+      integer                           :: oldnyq                   = -123                 !  [-] (advanced,silent) Switch to enable old nyquist switch
       integer                           :: Tm01switch               = -123                 !  [-] (advanced) Switch to enable Tm01 rather than Tm-10
       double precision                  :: rt                       = -123                 !  [s] Duration of wave spectrum at offshore boundary, in morphological time
       double precision                  :: dtbc                     = -123                 !  [s] (advanced) Timestep used to describe time series of wave energy and long wave flux at offshore boundary (not affected by morfac)
@@ -796,6 +797,7 @@ contains
             par%sprdthr         = readkey_dbl ('params.txt','sprdthr',      0.08d0,     0.d0,       1.d0    )
          endif
          par%correctHm0      = readkey_int ('params.txt','correctHm0',   1,          0,          1  ,silent=.true.,strict=.true.)
+         par%oldnyq          = readkey_int ('params.txt','oldnyq',       0,          0,          1  ,silent=.true.,strict=.true.)
          par%Tm01switch      = readkey_int ('params.txt','Tm01switch',   0,          0,          1       ,strict=.true.)
          !
          if (filetype==0) then
