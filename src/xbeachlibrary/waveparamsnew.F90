@@ -2535,14 +2535,15 @@ contains
                    
                 if ( par%nonhq3d == 1 ) then
                     ! Compute layer averaged velocity for layer 1 and 2 based on layer level z.
-                    u1 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik) * wp%h0) * wp%kgen(ik)) * (dsinh(wp%kgen(ik) * (z + wp%                                              h0))) * dsin(&
-                                            +wp%wgen(ik)*wp%tin(it)&
+                    u1 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik) * wp%h0) * wp%kgen(ik)) * (dsinh(wp%kgen(ik) * (z + wp%h0))) * & 
+                                            dsin(wp%wgen(ik)*wp%tin(it)&
                                             -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
                                             +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
                                             +wp%phigen(ik))
                     u1 = u1 / (wp%h0+z)
-                    u2 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik) * wp%h0) * wp%kgen(ik)) * (dsinh(wp%kgen(ik) * (0 + wp%                                              h0)) - dsinh(wp%kgen(ik) * (z + wp%h0))) * dsin(&
-                                            +wp%wgen(ik)*wp%tin(it)&
+                    u2 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik) * wp%h0) * wp%kgen(ik)) * (dsinh(wp%kgen(ik) * (0 + wp%h0)) - & 
+                                            dsinh(wp%kgen(ik) * (z + wp%h0))) * & 
+                                            dsin(wp%wgen(ik)*wp%tin(it) &
                                             -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
                                             +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
                                             +wp%phigen(ik))
@@ -2563,8 +2564,7 @@ contains
                 else
                     ! Depth-average velocity in wave direction:
                     U  = 1.d0/wp%h0*wp%wgen(ik)*wp%A(j,ik) * &
-                                  dsin( &
-                               +wp%wgen(ik)*wp%tin(it) &
+                                  dsin(wp%wgen(ik)*wp%tin(it) &
                                         -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
                                         +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
                                         +wp%phigen(ik) &
