@@ -292,4 +292,5 @@ module variables
   double precision, allocatable, target :: ccz(:,:,:)       !< [m3/m3] concentration profile {"shape": ["s%nx+1","s%ny+1","par%nz"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: refA(:,:)        !< [m] reference level {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: ca(:,:)          !< [m3/m3] reference concentration {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: zs1(:,:)         !< [m] water level minus tide {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "sea_surface_height_above_sea_level_without_tide", "broadcast": "d"}
 end module variables

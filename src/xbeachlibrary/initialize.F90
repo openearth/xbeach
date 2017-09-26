@@ -795,6 +795,7 @@ contains
       allocate(s%cfu(1:s%nx+1,1:s%ny+1))
       allocate(s%cfv(1:s%nx+1,1:s%ny+1))
       allocate(s%zs0(1:s%nx+1,1:s%ny+1))
+      allocate(s%zs1(1:s%nx+1,1:s%ny+1))           ! water level minus tide
       allocate(s%dzs0dn(1:s%nx+1,1:s%ny+1))
       allocate(s%zs0fac(1:s%nx+1,1:s%ny+1,2))
       allocate(s%wm(1:s%nx+1,1:s%ny+1))
@@ -1460,6 +1461,7 @@ contains
       allocate(s%ca(1:s%nx+1,1:s%ny+1))             ! Q3D: reference concentration
       allocate(s%refA(1:s%nx+1,1:s%ny+1))           ! Q3D: reference level
 
+      
       ! Initialize so structures can be implemented more easily
       s%pbbed = 0.d0
       !

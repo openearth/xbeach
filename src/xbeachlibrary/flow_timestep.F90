@@ -920,7 +920,8 @@ contains
       !
       s%hold =s%hh    ! wwvv ?  s%hold is never else used
       !
-      s%hh=max(s%zs-s%zb,par%eps)
+      s%hh  = max(s%zs-s%zb,par%eps)    ! water depth
+      s%zs1 = s%zs-s%zs0                ! water level minus tide
 
       s%maxzs=max(s%zs,s%maxzs)
       s%minzs=min(s%zs,s%minzs)
