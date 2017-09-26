@@ -249,6 +249,9 @@ contains
          ! determine time step
          call timestep(s,par,tpar,it,dt=dt,ierr=error)
          call outputtimes_update(par, tpar)
+
+         ! update log
+         call log_progress(par)
               
          if (error==0) then
             

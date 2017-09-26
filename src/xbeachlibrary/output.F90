@@ -103,9 +103,6 @@ contains
       if(xcompute) then
          if (lupdate) call outputtimes_update(par, tpar)
       endif
-      ! update log
-      call log_progress(par)
-
 
       ! update meanvars in current averaging period with current timestep
       if(par%nmeanvar .gt. 0) then
