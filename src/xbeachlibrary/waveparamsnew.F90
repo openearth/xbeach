@@ -57,6 +57,8 @@ module spectral_wave_bc_module
       character(slen)                        :: Efilename,qfilename,nhfilename,Esfilename
       real*8,dimension(:,:),pointer          :: zsits      ! time series of total surface elevation for nonhspectrum==1
       real*8,dimension(:,:),pointer          :: uits,vits  ! time series of depth-averaged horizontal velocity nonhspectrum==1
+      real*8,dimension(:,:),pointer          :: duits,dvits! time series of depth-averaged horizontal velocity nonhspectrum==1
+
       real*8,dimension(:,:),pointer          :: wits       ! time series of depth-averaged vertical velocity for nonhspectrum==1 ??
    endtype waveparamsnew
    type filenames                                      ! Place to store multiple file names
@@ -248,7 +250,7 @@ contains
                   ! Calculate the wave energy envelope per offshore grid point and write to output file
                   call generate_ebcf(wp,s,par)  ! note, this subroutine will account for only non-phase-resolved components
                   ! Generate time series of surface elevation and horizontal velocity, only for phase-resolved components
-                  call generate_swts(wp,s)
+                  call generate_swts(wp,s,par)
                else
                   ! Only do wave action balance stuff
                   !
@@ -260,7 +262,7 @@ contains
                ! x-axis.
                call distribute_wave_train_directions(wp,s,par%px,par%nspr,.true.)
                ! Generate time series of surface elevation and horizontal velocity
-               call generate_swts(wp,s)
+               call generate_swts(wp,s,par)
             endif
 
             ! Calculate the bound long wave from the wave train components and write to output file
@@ -2471,7 +2473,7 @@ contains
    ! --------------------------------------------------------------
    ! ------ Calculate time series of short wave at offshore -------
    ! --------------------------- boundary -------------------------
-   subroutine generate_swts(wp,s)
+   subroutine generate_swts(wp,s,par)
       use params
       use spaceparams
       use logging_module
@@ -2481,17 +2483,29 @@ contains
       ! input/output
       type(waveparamsnew),intent(inout)            :: wp
       type(spacepars),intent(in)                   :: s
+      type(parameters),intent(in)                  :: par
+
       ! internal
       integer                                      :: j,it,ik
-      real*8                                       :: vel
+      real*8                                       :: u1, u2, z, U, dU
 
       ! allocate memory for time series of data
       allocate(wp%zsits(s%ny+1,wp%tslen))
       allocate(wp%uits(s%ny+1,wp%tslen))
       allocate(wp%vits(s%ny+1,wp%tslen))
+      allocate(wp%duits(s%ny+1,wp%tslen))
+      allocate(wp%dvits(s%ny+1,wp%tslen))
       wp%zsits=0.d0
       wp%uits=0.d0
       wp%vits=0.d0
+      wp%duits=0.d0
+      wp%dvits=0.d0
+      u1 = 0.d0
+      u2 = 0.d0
+      U = 0.d0
+      dU = 0.d0
+      ! z-level of layer
+      z = -1 * (wp%h0 - par%nhlay * wp%h0)
       ! total surface elevation
       call writelog('ls','','Calculating short wave elevation time series')
       call progress_indicator(.true.,0.d0,5.d0,2.d0)
@@ -2518,8 +2532,37 @@ contains
          do ik=1,wp%K
             if (wp%PRindex(ik)==1) then 
                do j=1,s%ny+1
-                  ! Depth-average velocity in wave direction:
-                  vel  = 1.d0/wp%h0*wp%wgen(ik)*wp%A(j,ik) * &
+                   
+                if ( par%nonhq3d == 1 ) then
+                    ! Compute layer averaged velocity for layer 1 and 2 based on layer level z.
+                    u1 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik) * wp%h0) * wp%kgen(ik)) * (dsinh(wp%kgen(ik) * (z + wp%                                              h0))) * dsin(&
+                                            +wp%wgen(ik)*wp%tin(it)&
+                                            -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
+                                            +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
+                                            +wp%phigen(ik))
+                    u1 = u1 / (wp%h0+z)
+                    u2 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik) * wp%h0) * wp%kgen(ik)) * (dsinh(wp%kgen(ik) * (0 + wp%                                              h0)) - dsinh(wp%kgen(ik) * (z + wp%h0))) * dsin(&
+                                            +wp%wgen(ik)*wp%tin(it)&
+                                            -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
+                                            +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
+                                            +wp%phigen(ik))
+                    u2 = u2/(z*-1)
+                    ! Store U. U = alpha * U1 + (1-alpha) * U2
+                    U  = par%nhlay * u1 + (1-par%nhlay) * u2
+                    ! Store dU. Du = U1 - U2
+                    dU = (u1 - u2)
+                    
+                    ! Eastward component U:
+                    wp%uits(j,it) = wp%uits(j,it) + dcos(wp%thetagen(ik))*U
+                    ! Northward component V:
+                    wp%vits(j,it) = wp%vits(j,it) + dsin(wp%thetagen(ik))*U
+                    ! Eastward component dU:
+                    wp%duits(j,it) = wp%duits(j,it) + dcos(wp%thetagen(ik))*dU
+                    ! Northward component dV:
+                    wp%dvits(j,it) = wp%dvits(j,it) + dsin(wp%thetagen(ik))*dU
+                else
+                    ! Depth-average velocity in wave direction:
+                    U  = 1.d0/wp%h0*wp%wgen(ik)*wp%A(j,ik) * &
                                   dsin( &
                                +wp%wgen(ik)*wp%tin(it) &
                                         -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
@@ -2528,10 +2571,11 @@ contains
                                        ) * &
                                   1.d0/wp%kgen(ik)
                   
-                  ! Eastward component:
-                  wp%uits(j,it) = wp%uits(j,it) + cosd(wp%thetagen(ik))*vel
-                  ! Northward component:
-                  wp%vits(j,it) = wp%vits(j,it) + sind(wp%thetagen(ik))*vel
+                    ! Eastward component:
+                    wp%uits(j,it) = wp%uits(j,it) + dcos(wp%thetagen(ik))*U
+                    ! Northward component:
+                    wp%vits(j,it) = wp%vits(j,it) + dsin(wp%thetagen(ik))*U
+                endif
                enddo
             endif
          enddo
@@ -2543,6 +2587,8 @@ contains
          wp%uits(j,:)=wp%uits(j,:)*wp%taperf
          wp%vits(j,:)=wp%vits(j,:)*wp%taperf
          wp%zsits(j,:)=wp%zsits(j,:)*wp%taperf
+         wp%duits(j,:)=wp%duits(j,:)*wp%taperf
+         wp%dvits(j,:)=wp%dvits(j,:)*wp%taperf
       enddo
    end subroutine generate_swts
 
@@ -2856,10 +2902,10 @@ contains
       fid = create_new_fid()
       open(fid,file=trim(wp%nhfilename),status='REPLACE')
       write(fid,'(a)')'vector'
-      write(fid,'(a)')'4'
-      write(fid,'(a)')'t,U,V,Z'
+      write(fid,'(a)')'6'
+      write(fid,'(a)')'t,U,V,Z,dU,dV'
       do it=1,wp%tslen
-         write(fid,*)wp%tin(it)+par%t-par%dt,wp%uits(:,it),wp%vits(:,it),wp%zsits(:,it)
+         write(fid,*)wp%tin(it)+par%t-par%dt,wp%uits(:,it),wp%vits(:,it),wp%zsits(:,it),wp%duits(:,it),wp%dvits(:,it)
          if (wp%tin(it)>wp%rtbc) exit
       enddo
       close(fid)
