@@ -277,6 +277,7 @@ subroutine swvegatt(s,par,veg)
         do i=1,s%nx+1
             ind = s%vegtype(i,j)
             htermold = 0.d0
+            ahtold = 0.d0
             if (ind>0) then ! only if vegetation is present at (i,j)
                 do m=1,veg(ind)%nsec
              
@@ -295,7 +296,7 @@ subroutine swvegatt(s,par,veg)
              
                     ! save hterm to htermold to correct possibly in next vegetation section
                     htermold = hterm
-ahtold   = aht
+                    ahtold   = aht
              
                     ! add dissipation current layer
                     Dvg(i,j) = Dvg(i,j) + Dvgt
@@ -374,18 +375,31 @@ subroutine momeqveg(s,par,veg)
             vabsv = 0.d0
             Fvgnlu0 = 0.d0
             if (par%vegnonlin == 1) then
-                if(totT >= par%Trep) then ! only compute new nonlinear velocity profile every Trep s
-                    call swvegnonlin(s,par,i,j,unl,etaw)
-                    totT = 0.0d0
-                else
-                    totT = totT + par%dt ! I think this should be outside the nx/ny loops!
-                endif
+               ! Something goes wrong here... we loop over all grid
+               ! cells (nx/ny) and compute a totT by summing par%dt
+               ! over the number of grid cells in order to determine
+               ! when to recompute the nonlinear interactions. That
+               ! can't be right. I assume that the summing of par%dt
+               ! should be outside the nx/ny loops and be over time
+               ! through a save variable. Then unl and etaw whould be
+               ! save variables as well, otherwise they are undefined
+               ! (huge) from the second timestep onward.
+               !
+               ! Fix for now: compute nonlinear interactions every
+               ! time step
+               !if(totT >= par%Trep) then ! only compute new nonlinear velocity profile every Trep s
+               call swvegnonlin(s,par,i,j,unl,etaw)
+
+               !     totT = 0.0d0
+               ! else
+               !     totT = totT + par%dt
+               ! endif
                 
             endif
             
             watr = 0d0
             wacr = 0d0
-            do m=1,veg(ind)%nsec   
+            do m=1,veg(ind)%nsec
                 ! Determine height of vegetation section (restricted to current bed level)
                 aht = veg(ind)%ah(m)+s%zb0(i,j)-s%zb(i,j)
                 
