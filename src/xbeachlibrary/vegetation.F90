@@ -78,101 +78,122 @@ subroutine veggie_init(s,par,veg)
     
     character(1)                                :: ch
     integer                                     :: i,j,fid,ier,pts
+    logical                                     :: toall = .true.
     
-    if (par%vegetation == 0 .or. .not. xmaster) then
-       return
-    endif
+    if (par%vegetation == 1) then
     
-    ! INITIALIZATION OF VEGETATION
-    ! Read files with vegetation properties:
-    ! file 1: list of species
-    ! file 2: vegetation properties per specie (could be multiple files)
-    ! file 3: distribution of species over space
-    call writelog('l','','--------------------------------')
-    call writelog('l','','Initializing vegetation input settings ')
-    
-    ! 1) Check how many vegetation species are specified in veggiefile
-    fid=create_new_fid() ! see filefunctions.F90
-    call check_file_exist(par%veggiefile)
-    open(fid,file=par%veggiefile)
-        ier=0
-        i=0
-        do while (ier==0)
-            read(fid,'(a)',iostat=ier)ch
-            if (ier==0)i=i+1
-        enddo
-        par%nveg=i
-        rewind(fid)
+       ! INITIALIZATION OF VEGETATION
+       ! Read files with vegetation properties:
+       ! file 1: list of species
+       ! file 2: vegetation properties per specie (could be multiple files)
+       ! file 3: distribution of species over space
+       call writelog('l','','--------------------------------')
+       call writelog('l','','Initializing vegetation input settings ')
 
-        allocate(veg(par%nveg))
-        
-        do i=1,par%nveg
-            read(fid,'(a)')veg(i)%name      ! set vegetation name
-        enddo
-    close(fid)
+       par%nveg = count_lines(par%veggiefile)
+
+       allocate(veg(par%nveg))
+       if (xmaster) then
+          fid=create_new_fid()
+          call check_file_exist(par%veggiefile)
+          open(fid,file=par%veggiefile)
+          do i=1,par%nveg
+             read(fid,'(a)',iostat=ier) veg(i)%name
+          enddo
+          close(fid)
+       endif
+
+#ifdef USEMPI
+       do i=1,par%nveg
+          call xmpi_bcast(veg(i)%name,toall)
+       enddo
+#endif        
    
-    ! 2)  Allocate and read vegetation properties for every species    
-    do i=1,par%nveg  ! for each species
+       ! 2)  Allocate and read vegetation properties for every species    
+       do i=1,par%nveg  ! for each species
 
-        call check_file_exist(veg(i)%name)
+          call check_file_exist(veg(i)%name)
         
-        allocate (veg(i)%nsec)
+          allocate (veg(i)%nsec)
 
-        veg(i)%nsec    = readkey_int(veg(i)%name,'nsec',  1,        1,      10, silent=.true.)! Number of vertical points in vegetation schematization
+          veg(i)%nsec    = readkey_int(veg(i)%name,'nsec',  1,        1,      10, silent=.true.)! Number of vertical points in vegetation schematization
        
-        allocate (veg(i)%ah(veg(i)%nsec))
-        allocate (veg(i)%Cd(veg(i)%nsec))
-        allocate (veg(i)%bv(veg(i)%nsec))
-        allocate (veg(i)%N(veg(i)%nsec))
-        allocate (veg(i)%Dragterm1(veg(i)%nsec,s%nx+1,s%ny+1))
-        allocate (veg(i)%Dragterm2(veg(i)%nsec,s%nx+1,s%ny+1))
+          allocate (veg(i)%ah(veg(i)%nsec))
+          allocate (veg(i)%Cd(veg(i)%nsec))
+          allocate (veg(i)%bv(veg(i)%nsec))
+          allocate (veg(i)%N(veg(i)%nsec))
+          allocate (veg(i)%Dragterm1(veg(i)%nsec,s%nx+1,s%ny+1))
+          allocate (veg(i)%Dragterm2(veg(i)%nsec,s%nx+1,s%ny+1))
         
-        veg(i)%ah   =      readkey_dblvec(veg(i)%name,'ah',veg(i)%nsec,size(veg(i)%ah), 0.1d0,   0.01d0,     2.d0)
-        veg(i)%bv   =      readkey_dblvec(veg(i)%name,'bv',veg(i)%nsec,size(veg(i)%bv), 0.01d0, 0.001d0,    0.1d0)       
-        veg(i)%N    = nint(readkey_dblvec(veg(i)%name,'N', veg(i)%nsec,size(veg(i)%N) ,100.0d0,   1.0d0,  5000.d0))        
-        veg(i)%Cd   =      readkey_dblvec(veg(i)%name,'Cd',veg(i)%nsec,size(veg(i)%Cd),  0.0d0,  0.05d0,      3d0) 
+          veg(i)%ah   =      readkey_dblvec(veg(i)%name,'ah',veg(i)%nsec,size(veg(i)%ah), 0.1d0,   0.01d0,     2.d0)
+          veg(i)%bv   =      readkey_dblvec(veg(i)%name,'bv',veg(i)%nsec,size(veg(i)%bv), 0.01d0, 0.001d0,    0.1d0)       
+          veg(i)%N    = nint(readkey_dblvec(veg(i)%name,'N', veg(i)%nsec,size(veg(i)%N) ,100.0d0,   1.0d0,  5000.d0))        
+          veg(i)%Cd   =      readkey_dblvec(veg(i)%name,'Cd',veg(i)%nsec,size(veg(i)%Cd),  0.0d0,  0.05d0,      3d0) 
                
-        ! If Cd is specified by user (constant), compute constant Dragterms 1 and 2 in initialization
-        do j=1,veg(i)%nsec ! for every vertical veg point
-            if (veg(i)%Cd(j) > tiny(0.d0)) then
+          ! If Cd is specified by user (constant), compute constant Dragterms 1 and 2 in initialization
+          do j=1,veg(i)%nsec ! for every vertical veg point
+             if (veg(i)%Cd(j) > tiny(0.d0)) then
                 veg(i)%Dragterm1(j,:,:) = 0.5d0/sqrt(par%px)*par%rho*veg(i)%Cd(j)*veg(i)%bv(j)*veg(i)%N(j) ! Drag coefficient based on first part equation 6.5 Suzuki, 2011
                 veg(i)%Dragterm2(j,:,:) = 0.5d0*veg(i)%Cd(j)*veg(i)%bv(j)*veg(i)%N(j)
-            endif
-        enddo
-    enddo
+             endif
+          enddo
+       enddo
+       
+       if (xmaster) then
+          allocate(s%vegtype(par%nx+1, par%ny+1))
+          allocate(s%Cdrag(par%nx+1, par%ny+1))
+          allocate(s%Dveg(par%nx+1, par%ny+1))
+          allocate(s%Fvegu(par%nx+1, par%ny+1))
+          allocate(s%Fvegv(par%nx+1, par%ny+1))
+          
+          s%vegtype = 0.d0
+          s%Cdrag = 0.d0
+          s%Dveg = 0.d0
+          s%Fvegu = 0.d0
+          s%Fvegv = 0.d0
     
-    ! 3)  Read spatial distribution of all vegetation species 
-    ! NB: vegtype = 1 corresponds to first vegetation specified in veggiefile etc.
-    fid=create_new_fid() ! see filefunctions.F90
-    call check_file_exist(par%veggiemapfile)
-    
-    select case(par%gridform)
-    case(GRIDFORM_XBEACH)
-        open(fid,file=par%veggiemapfile)
-            do j=1,s%ny+1
+          ! 3)  Read spatial distribution of all vegetation species 
+          ! NB: vegtype = 1 corresponds to first vegetation specified in veggiefile etc.
+          fid=create_new_fid() ! see filefunctions.F90
+          call check_file_exist(par%veggiemapfile)
+          
+          select case(par%gridform)
+          case(GRIDFORM_XBEACH)
+             open(fid,file=par%veggiemapfile)
+             do j=1,s%ny+1
                 read(fid,*,iostat=ier)(s%vegtype(i,j),i=1,s%nx+1)
                 if (ier .ne. 0) then
-                    call report_file_read_error(par%veggiemapfile)
+                   call report_file_read_error(par%veggiemapfile)
                 endif
-            enddo
-        close(fid)
-    case (GRIDFORM_DELFT3D)
-        open(33,file=par%veggiemapfile,status='old')
-            do j=1,s%ny+1
-                read(33,*,iostat=ier)(s%vegtype(i,j),i=1,s%nx+1)
+             enddo
+             close(fid)
+          case (GRIDFORM_DELFT3D)
+             open(fid,file=par%veggiemapfile,status='old')
+             do j=1,s%ny+1
+                read(fid,*,iostat=ier)(s%vegtype(i,j),i=1,s%nx+1)
                 if (ier .ne. 0) then
-                    call report_file_read_error(par%veggiemapfile)
+                   call report_file_read_error(par%veggiemapfile)
                 endif
-            enddo
-        close(33)
-    end select
+             enddo
+             close(fid)
+          end select
+       endif
 
-    call writelog('l','','--------------------------------')
-    call writelog('l','','Finished reading vegetation input... ')
+       call writelog('l','','--------------------------------')
+       call writelog('l','','Finished reading vegetation input... ')
+
+    else ! par%vegetation == 0
+       if (xmaster) then
+          allocate(s%vegtype(par%nx+1, par%ny+1))
+          allocate(s%Cdrag(par%nx+1, par%ny+1))
+          allocate(s%Dveg(par%nx+1, par%ny+1))
+          allocate(s%Fvegu(par%nx+1, par%ny+1))
+          allocate(s%Fvegv(par%nx+1, par%ny+1))
+       endif
+    endif
     ! TODO: interpolate vegetation to u-points(!)
     ! TODO: vertical profile of veg chars (linear interpolation)
-    ! TODO: fix mpi trouble
-    
+  
 end subroutine veggie_init
 
 subroutine vegatt(s,par,veg)
@@ -357,11 +378,11 @@ subroutine momeqveg(s,par,veg)
                     call swvegnonlin(s,par,i,j,unl,etaw)
                     totT = 0.0d0
                 else
-                    totT = totT + par%dt
+                    totT = totT + par%dt ! I think this should be outside the nx/ny loops!
                 endif
                 
             endif
-                  
+            
             watr = 0d0
             wacr = 0d0
             do m=1,veg(ind)%nsec   
@@ -378,7 +399,7 @@ subroutine momeqveg(s,par,veg)
                     watr = s%hh(i,j)
                     wacr = s%hh(i,j)
                 endif
-    
+
                 if (ahtold > wacr) then ! if plant section is entirely above wave crest, then do nothing
                       
                     ! mean and long wave flow (ue)                      
