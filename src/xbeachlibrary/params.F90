@@ -1793,6 +1793,8 @@ contains
                   par%mpiboundary_str='x'
                   call writelog('wsl','','Changing mpiboundary to "x" for stationary wave model')
                endif
+            else
+               call writelog('wsl','','Warning: the stationary wave model only works with "mpiboundary=x"!')
             endif
          endif
       endif
