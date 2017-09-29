@@ -111,5 +111,20 @@ module paramsconst
 
    integer, parameter :: OUTPUTPRECISION_SINGLE      =  0
    integer, parameter :: OUTPUTPRECISION_DOUBLE      =  1
-
+   
+   integer, parameter :: WAVEMODEL_STATIONARY        =  0
+   integer, parameter :: WAVEMODEL_SURFBEAT          =  1
+   integer, parameter :: WAVEMODEL_NONH              =  2
+   
+   integer, parameter :: WBCTYPE_PARAMS              =  0
+   integer, parameter :: WBCTYPE_PARAMETRIC          =  1
+   integer, parameter :: WBCTYPE_SWAN                =  2
+   integer, parameter :: WBCTYPE_VARDENS             =  3
+   integer, parameter :: WBCTYPE_OFF                 =  4
+   integer, parameter :: WBCTYPE_JONS_TABLE          =  5
+   integer, parameter :: WBCTYPE_REUSE               =  6
+   integer, parameter :: WBCTYPE_TS_1                =  7
+   integer, parameter :: WBCTYPE_TS_2                =  8
+   integer, parameter :: WBCTYPE_TS_NONH             =  9
+   
 end module paramsconst

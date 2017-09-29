@@ -60,7 +60,7 @@ contains
       real*8, save                                :: dtbcfile,rt,bcendtime,bcstarttime
       real*8                                      :: em,tshifted,tnew
       real*8, save                                :: Emean,Llong
-      real*8,dimension(:)     ,allocatable,save   :: e01,L0,L,Lest,kbw,wbw,tanhkhwb,kxmwt   
+      real*8,dimension(:)     ,allocatable,save   :: e01,L0,L,Lest,kbw,wbw,tanhkhwb,kxmwt
       real*8,dimension(:)     ,allocatable,save   :: fac1,fac2
       real*8,dimension(:)     ,allocatable,save   :: tE,dataE,databi
       real*8,dimension(:,:)   ,allocatable,save   :: ht
@@ -86,7 +86,6 @@ contains
       s=>sg
 #endif
 
-
       if (.not. allocated(fac1)) then
          allocate(ht      (2,s%ny+1))
          allocate(fac1    (s%nx))
@@ -107,12 +106,9 @@ contains
          wbw = 2*par%px/par%Trep
       endif
       !
-      !  GENERATE AND READ-IN WAVE BOUNDARY CONDITIONS
+      !  BLOCK I: GENERATE AND READ-IN WAVE BOUNDARY CONDITIONS
       !
-      ! added for bound long wave comp Ad 28 march 2006
-      ! s%dtheta = par%dtheta*par%px/180
       startbcf=.false.
-
       if(.not. bccreated ) then
          if (xmaster) then
             call writelog('ls','','Setting up boundary conditions')
@@ -121,7 +117,9 @@ contains
          startbcf=.true.                     ! trigger read from bcf for instat 3,4,5,7
          bcendtime=huge(0.0d0)               ! initial assumption for instat 3,4,5,7
          s%newstatbc=1
-         if (par%instat==INSTAT_TS_1) then
+         ! Part A) read-in / generate different wbctypes (and waveforms)
+         ! 1) TS_1
+         if (par%wbctype==WBCTYPE_TS_1) then
             if(xmaster) then
                open( unit=7, file='bc/gen.ezs')
             endif
@@ -158,7 +156,9 @@ contains
                close(7)
             endif
             Emean=sum(dataE)/nt
-         elseif (par%instat==INSTAT_TS_2) then
+            call dispersion(par,s)
+            ! 2) TS_2
+         elseif (par%wbctype==WBCTYPE_TS_2) then
             if (xmaster) then
                open( unit=7, file='bc/gen.ezs')
 6              continue
@@ -195,10 +195,11 @@ contains
                close(7)
             endif
             Emean=sum(dataE)/nt
-         elseif (par%instat==INSTAT_STAT_TABLE) then
+            call dispersion(par,s)
+            ! 3) jons_table in combination with stationary
+         elseif (par%wbctype==WBCTYPE_JONS_TABLE .and. par%wavemodel==WAVEMODEL_STATIONARY) then
             if (xmaster) then
                open( unit=7, file=par%bcfile)
-               ! open( unit=7, file='jonswap1.txt')
                read(7,*,iostat=ier) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcendtime, dum2
                if (ier .ne. 0) then
                   call report_file_read_error(par%bcfile)
@@ -213,35 +214,35 @@ contains
                do while(s%theta0>par%px)
                   s%theta0=s%theta0-2.d0*par%px
                enddo
-               !s%theta0=mod(s%theta0,2*par%px)
-               !if (s%theta0>par%px) s%theta0=s%theta0-2*par%px
-               !if (s%theta0<-par%px) s%theta0=s%theta0+2*par%px
-            endif
-            s%newstatbc=1
+               s%newstatbc=1
 #ifdef USEMPI
-            call xmpi_bcast(bcendtime)
-            call xmpi_bcast(par%Hrms)
-            call xmpi_bcast(par%Trep)
-            call xmpi_bcast(par%m)
-            call xmpi_bcast(s%theta0)
+               call xmpi_bcast(bcendtime)
+               call xmpi_bcast(par%Hrms)
+               call xmpi_bcast(par%Trep)
+               call xmpi_bcast(par%m)
+               call xmpi_bcast(s%theta0)
 #endif
-            do itheta=1,s%ntheta
-               s%sigt(:,:,itheta) = 2.d0*par%px/par%Trep
-            end do
-            s%sigm = sum(s%sigt,3)/s%ntheta
-            call dispersion(par,s)
-
-         elseif ((par%instat==INSTAT_JONS.or.par%instat==INSTAT_JONS_TABLE).and.xmaster) then
-            ! wp is not saved and we only know about the current line which is called listline in wp....
+               do itheta=1,s%ntheta
+                  s%sigt(:,:,itheta) = 2.d0*par%px/par%Trep
+               end do
+               s%sigm = sum(s%sigt,3)/s%ntheta
+               call dispersion(par,s)
+            endif
+            ! 4)  jons_table in combination with surfbeat or nonh
+         elseif ((par%wbctype==WBCTYPE_PARAMETRIC .or. par%wbctype==WBCTYPE_JONS_TABLE) .and. &
+         (par%wavemodel/=WAVEMODEL_STATIONARY .and. xmaster)) then
             call spectral_wave_bc(sg,par,curline)
-         elseif (par%instat==INSTAT_SWAN.and.xmaster) then
+            ! 5) SWAN
+         elseif (par%wbctype==WBCTYPE_SWAN.and.xmaster) then
             call spectral_wave_bc(sg,par,curline)
-         elseif (par%instat==INSTAT_VARDENS.and.xmaster) then
+            ! 6) vardens
+         elseif (par%wbctype==WBCTYPE_VARDENS.and.xmaster) then
             call spectral_wave_bc(sg,par,curline)
-         elseif (par%instat==INSTAT_REUSE.and.xmaster) then
+            ! 7) reuse
+         elseif (par%wbctype==WBCTYPE_REUSE.and.xmaster) then
             curline = 1
-         elseif (par%instat==INSTAT_TS_NONH) then
-            !          call velocity_Boundary('boun_U.bcf',ui(1,:),zi(1,:),wi(1,:),nx,ny,sg%ny,sl,par%t,zs(2,:),ws(2,:))
+            ! 8) ts_nonh
+         elseif (par%wbctype==WBCTYPE_TS_NONH) then
             if (.not. allocated(uig)) then
                if (xmaster) then
                   allocate(uig(sg%ny+1))
@@ -258,32 +259,25 @@ contains
                endif
             endif
             if (xmaster) then
-               call velocity_Boundary('boun_U.bcf',uig,vig,zig,wig,duig,dvig,sg%ny,par%t, & 
-                                                   isSet_U,isSet_V,isSet_Z,isSet_W,isSet_dU,isSet_dV,isSet_Q)
+               call velocity_Boundary('boun_U.bcf',uig,vig,zig,wig,duig,dvig,sg%ny,par%t, &
+               isSet_U,isSet_V,isSet_Z,isSet_W,isSet_dU,isSet_dV,isSet_Q)
             endif
-         endif
+         endif  ! done with the different wbctypes
          !
-         ! Directional distribution
-         !
-         if(  par%instat==INSTAT_STAT .or. &
-         par%instat==INSTAT_BICHROM .or. &
-         par%instat==INSTAT_TS_1 .or. &
-         par%instat==INSTAT_TS_2 .or. &
-         par%instat==INSTAT_STAT_TABLE &
-         )then
+         ! Part B) Directional distribution for non-spectral wbctypes
+         if (par%wbctype==WBCTYPE_PARAMS .or. par%wbctype==WBCTYPE_TS_1 .or. par%wbctype==WBCTYPE_TS_2 .or. &
+         (par%wbctype==WBCTYPE_JONS_TABLE .and. par%wavemodel==WAVEMODEL_STATIONARY)  ) then
             dist=(cos(s%theta-s%theta0))**par%m
             do i=1,s%ntheta
                if(cos(s%theta(i)-s%theta0)<0.d0) then
                   dist(i)=0.0d0
                end if
             end do
-            if (par%instat==INSTAT_TS_1 .or. par%instat==INSTAT_TS_2) then
+            if (par%wbctype==WBCTYPE_TS_1 .or. par%wbctype==WBCTYPE_TS_2) then
                par%Hrms=sqrt(8*Emean/(par%rho*par%g))
             endif
             E0=par%rhog8*par%Hrms**2
-
-            ! energy density distribution
-
+            ! Energy density distribution
             if (sum(dist)>0.d0) then
                factor = (dist/sum(dist))/s%dtheta
             else
@@ -291,32 +285,31 @@ contains
             endif
             e01    = factor*E0;
             e01    = max(e01,0.0d0);
-
-            !if (abs(theta0)<1.d-9) theta0=1.d-9
-            ! Dano Llong=par%Tlong*cg(1,1)/cos(theta0)
-            Llong=par%Tlong*s%cg(1,1)
-
+            Llong  = par%Tlong*s%cg(1,1)
          endif
          if (xmaster) then
             call writelog('sl','','Boundary conditions complete, starting computation')
          endif
-      end if
-
-      if (par%t .gt. bcendtime) then  ! Recalculate bcf-file
-         if (par%instat==INSTAT_STAT_TABLE) then
+      end if ! if bc was not created
+      !
+      ! BLOCK II: Recalculate bcf-file
+      !
+      if (par%t .ge. bcendtime) then
+         ! Go over the different wbctypes (and wavemodel)
+         ! 1) jons_table in combination with stationary
+         if (par%wbctype==WBCTYPE_JONS_TABLE .and. par%wavemodel==WAVEMODEL_STATIONARY) then
             if (xmaster) then
                call writelog('ls','','Reading new wave conditions')
-               ! read new wave conditions until bcendtime exceeds
-               ! current time step. necessary in case of external
-               ! time management
-               do while (par%t .gt. bcendtime)
+               ! read new wave conditions until bcendtime exceeds current time step
+               ! necessary in case of external time management
+               do while (par%t .ge. bcendtime)
                   read(7,*,iostat=ier) Hm0, par%Trep,par%dir0, dum1, spreadpar, bcdur, dum2
                   if (ier .ne. 0) then
                      call report_file_read_error(par%bcfile)
                   endif
                   par%Hrms = Hm0/sqrt(2.d0)
-                  par%taper = 1.d0 ! Jaap set taper time to 1 second
-                                   ! for new conditions (likewise in waveparams)
+                  ! set taper time to 1 second for new conditions (likewise in waveparams)
+                  par%taper = 1.d0
                   par%m = int(2*spreadpar)
                   if (par%morfacopt==1) then
                      bcendtime=bcendtime+bcdur/max(par%morfac,1.d0)
@@ -324,8 +317,7 @@ contains
                      bcendtime=bcendtime+bcdur
                   endif
                   s%theta0=(1.5d0*par%px)-par%dir0*atan(1.d0)/45.d0
-                  ! Jaap; make shore theta0 is also set between -px and px
-                  ! for new wave conditions
+                  ! Make shore theta0 is also set between -px and px for new wave conditions
                   do while(s%theta0<-par%px)
                      s%theta0=s%theta0+2.d0*par%px
                   enddo
@@ -342,13 +334,12 @@ contains
             call xmpi_bcast(par%m)
             call xmpi_bcast(s%theta0)
 #endif
-
             do itheta=1,s%ntheta
                s%sigt(:,:,itheta) = 2*par%px/par%Trep
             end do
             s%sigm = sum(s%sigt,3)/s%ntheta
             call dispersion(par,s)
-
+            ! Directional distribution
             dist=(cos(s%theta-s%theta0))**par%m
             do i=1,s%ntheta
                if(cos(s%theta(i)-s%theta0)<0.d0) then
@@ -356,9 +347,7 @@ contains
                end if
             end do
             E0=par%rhog8*par%Hrms**2
-
-            ! energy density distribution
-
+            ! Energy density distribution
             if (sum(dist)>0.d0) then
                factor = (dist/sum(dist))/s%dtheta
             else
@@ -366,341 +355,323 @@ contains
             endif
             e01    = factor*E0;
             e01    = max(e01,0.0d0);
-         elseif ((par%instat==INSTAT_JONS .or. par%instat==INSTAT_JONS_TABLE).and.xmaster) then
+            ! 2) JONSWAP (table)
+         elseif ((par%wbctype==WBCTYPE_PARAMETRIC .or. par%wbctype==WBCTYPE_JONS_TABLE) .and. &
+         (par%wavemodel/=WAVEMODEL_STATIONARY .and. xmaster)) then
             close(71)
             close(72)
             call spectral_wave_bc(sg,par,curline)
             startbcf=.true.
-         elseif (par%instat==INSTAT_SWAN.and.xmaster) then
+            ! 3) SWAN
+         elseif (par%wbctype==WBCTYPE_SWAN.and.xmaster) then
             close(71)
             close(72)
             call spectral_wave_bc(sg,par,curline)
             startbcf=.true.
-         elseif (par%instat==INSTAT_VARDENS.and.xmaster) then
+            ! 4) vardens 
+         elseif (par%wbctype==WBCTYPE_VARDENS.and.xmaster) then
             close(71)
             close(72)
             call spectral_wave_bc(sg,par,curline)
             startbcf=.true.
-         elseif (par%instat==INSTAT_REUSE.and.xmaster) then
+            ! 5) reuse 
+         elseif (par%wbctype==WBCTYPE_REUSE.and.xmaster) then
             close(71)
             close(72)
             startbcf=.true.
             if (par%t <= (par%tstop-par%dt)) then
-               curline = curline + 1 ! this is not compatible with external
-                                     ! time management
+               ! this is not compatible with external time management
+               curline = curline + 1
             end if
-         end if
+         end if ! go over the different wbctypes
 #ifdef USEMPI
          call xmpi_bcast(startbcf)
 #endif
-      end if
+      end if ! done recalculating bcf-file
       !
-      ! COMPUTE WAVE BOUNDARY CONDITIONS CURRENT TIMESTEP
-      !
-      ! instat = 0 or 40 => stationary wave conditions
-      ! instat = 1 => wave energy fluctuations associated with Tlong in params.txt; bound long wave from LHS 1962
-      ! instat = 2 => wave energy time series from Gen.ezs; bound long wave from LHS 1962
-      ! instat = 3 => wave energy time series and (bound) long waves from Gen.ezs
-      ! instat = 4 or 41 => directional wave energy time series for Jonswap spectrum from user specified file; bound long wave from van Dongeren, 19??
-      ! instat = 5 => directional wave energy time series from SWAN 2D spectrum file; bound long wave from van Dongeren, 19??
-      ! instat = 6 => directional wave energy time series from spectrum file; bound long wave from van Dongeren, 19??
-      ! instat = 7 => as instat = 4/5/6; reading from previously computed wave boundary condition file.
-      if (par%instat==INSTAT_STAT .or. par%instat==INSTAT_STAT_TABLE) then
-         if(par%nonhspectrum .ne. 1) then  ! Robert: needed because nonhspectrum can be -123 if not initialised
-            do j=1,s%ny+1
-               s%ee(1,j,:)=e01*min(par%t/par%taper,1.0d0)
-               s%bi(1) = 0.0d0
-               s%ui(1,j) = 0.0d0
-            end do
-         else
-            wbw = 2*par%px/par%Trep
+      ! BLOCK III: COMPUTE WAVE BOUNDARY CONDITIONS CURRENT TIMESTEP
+      !  
+      ! Part A) Stationary: go over the different waveforms
+      if (par%wavemodel==WAVEMODEL_STATIONARY) then
+         ! Go over all excepted wbctypes (all the same)
+         if (par%wbctype == WBCTYPE_PARAMS .or. par%wbctype == WBCTYPE_JONS_TABLE) then
+            if(par%nonhspectrum .ne. 1) then  ! Robert: needed because nonhspectrum can be -123 if not initialised
                do j=1,s%ny+1
-                  Lest(j) = L(j)
-                  L(j) = iteratedispersion(L0(j),Lest(j),par%px,s%hh(1,j))
-               enddo
-               kbw = 2*par%px/L
-            arms = par%Hrms/2
-            if(par%order==1) then
-               s%zi(1,:) = arms*dsin(wbw*par%t-kbw*( dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1)) &
-                                                    +dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1)) &
-                                                   ) &
-                                     )
-               s%ui(1,:) = 1.d0/s%hh(1,:)*wbw*arms/sinh(kbw*s%hh(1,:)) * &
-               dsin(wbw*par%t &
-               -kbw*( dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1)) &
-               +dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1)) &
-               ) &
-               ) * &
-                           1.d0/kbw*sinh(kbw*s%hh(1,:)) *dcos(s%theta0-s%alfaz(1,:))
-            elseif(par%order==2) then
-               ! 2nd order Stokes wave: To do more extensive testing
-               tanhkhwb = tanh(kbw*s%hh(1,:))
-               kxmwt = kbw*(dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1))+dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1))) - wbw*par%t
-			      s%zi(1,:) = arms*(dcos(kxmwt) + kbw*arms*(3-tanhkhwb**2)/(4*tanhkhwb**3)*dcos(2*kxmwt))
-               s%ui(1,:) = (wbw/kbw)/s%hh(1,:)*s%zi(1,:) *dcos(s%theta0-s%alfaz(1,:))
-            elseif(par%order==3) then
-               ! 3rd order Stokes wave: only deep water
-               !s%zi(1,:) = arms*(dcos(wbw *par%t) + 0.5d0*kbw*arms*dcos(2*wbw*par%t) + 0.375d0*(kbw*arms)**2*dcos(3*wbw*par%t))
-               !s%ui(1,:) = (wbw/kbw)/s%hh(1,:)*s%zi(1,:)
-            endif
-         endif
-      elseif (par%instat==INSTAT_BICHROM) then
-         do j=1,s%ny+1
-            s%ee(1,j,:)=e01*0.5d0 * &
-            (1.d0+cos(2*par%px*(par%t/par%Tlong-( sin(s%theta0)*(s%yz(1,j)-s%yz(1,1)) & !jaap : -sum(s%alfaz(1,1:j))/j
-            +cos(s%theta0)*(s%xz(1,j)-s%xz(1,1)) )/Llong))) * & !jaap: -sum(s%alfaz(1,1:j))/j
-            min(par%t/par%taper,1.d0)
-            em = (sum(0.5d0*e01))*s%dtheta *min(par%t/par%taper,1.d0)
-            ei =  sum(s%ee(1,j,1:s%ntheta))*s%dtheta
-            s%bi(1) = -(2*s%cg(1,j)/s%c(1,j)-0.5d0)*(em-ei)/(s%cg(1,j)**2-par%g*s%hh(1,j))/par%rho
-            ht=s%zs0(1:2,:)-s%zb(1:2,:)
-            s%ui(1,j) = s%cg(1,j)*s%bi(1)/ht(1,j)*cos(s%theta0-s%alfaz(1,j))
-         end do
-      elseif (par%instat==INSTAT_TS_1) then
-         do j=1,s%ny+1
-            if (abs(s%theta0-sum(s%alfaz(1,1:j))/j)<1e-3) then
-               call linear_interp(tE,dataE,nt,par%t,E1,E_idx)
-            else
-               ! tshifted=max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1),0.d0)
-               ! jaap this does not work for curvi code
-               tshifted = max(par%t-(s%yz(1,j)-s%yz(1,1))*sin(s%theta0)/s%cg(1,1) & !-sum(s%alfaz(1,1:j))/j
-               +(s%xz(1,j)-s%xz(1,1))*cos(s%theta0)/s%cg(1,1),0.d0) !-sum(s%alfaz(1,1:j))/j
-               call linear_interp(tE,dataE,nt,tshifted,E1,E_idx)
-            endif
-            s%ee(1,j,:)=e01*E1/max(Emean,0.000001d0)*min(par%t/par%taper,1.d0)
-            em = Emean *min(par%t/par%taper,1.d0)
-            ei = sum(s%ee(1,j,:))*s%dtheta
-            s%bi(1) = -(2*s%cg(1,j)/s%c(1,j)-0.5d0)*(em-ei)/(s%cg(1,j)**2-par%g*s%hh(1,j))/par%rho
-            ht=s%zs0(1:2,:)-s%zb(1:2,:)
-            s%ui(1,j) = s%cg(1,j)*s%bi(1)/ht(1,j)*cos(s%theta0-s%alfaz(1,j))
-         end do
-      elseif (par%instat==INSTAT_TS_2) then
-         ht=s%zs0(1:2,:)-s%zb(1:2,:)
-         do j=1,s%ny+1
-            if (abs(s%theta0-sum(s%alfaz(1,1:j))/j)<1e-3) then
-               call linear_interp(tE,dataE,nt,par%t,E1,E_idx)
-               call linear_interp(tE,databi,nt,par%t,s%bi(1),E_idx)
-            else
-               ! tshifted=max(par%t-(yz(1,j)-yz(1,1))*sin(theta0)/cg(1,1),0.d0)
-               ! jaap this does not work for curvi code
-               tshifted = max(par%t-(s%yz(1,j)-s%yz(1,1))*sin(s%theta0)/s%cg(1,1) & !-sum(s%alfaz(1,1:j))/j
-               +(s%xz(1,j)-s%xz(1,1))*cos(s%theta0)/s%cg(1,1),0.d0) !-sum(s%alfaz(1,1:j))/j
-               call linear_interp(tE,dataE,nt,tshifted,E1,E_idx)
-               call linear_interp(tE,databi,nt,tshifted,s%bi(1),E_idx)
-            endif
-            s%ee(1,j,:)=e01*E1/max(Emean,0.000001d0)*min(par%t/par%taper,1.d0)
-            if (par%freewave==1) then
-               s%ui(1,j) = sqrt(par%g/ht(1,j))*s%bi(1)
-            else
-               s%ui(1,j) = s%cg(1,j)*s%bi(1)/ht(1,j)*cos(s%theta0-s%alfaz(1,j))*min(par%t/par%taper,1.d0)
-            endif
-
-         end do
-      elseif (  (par%instat==INSTAT_JONS).or. &
-      (par%instat==INSTAT_JONS_TABLE).or. &
-      (par%instat==INSTAT_SWAN) .or. &
-      (par%instat==INSTAT_VARDENS) .or. &
-      (par%instat==INSTAT_REUSE)  &
-      ) then
-         if(par%nonhspectrum==0) then
-            ! open file if first time
-            if (startbcf) then
-               if(xmaster) then
-                  open(53,file='ebcflist.bcf',form='formatted',position='rewind')
-                  open(54,file='qbcflist.bcf',form='formatted',position='rewind')
-                  if(par%single_dir==1 .and. par%instat==INSTAT_REUSE) then
-                     open(55,file='esbcflist.bcf',form='formatted',position='rewind')
-                  endif
-               endif
-               if (xmaster) then
-
-                  do i=1,curline
-                     read(53,*,iostat=ier)bcendtime,rt,dtbcfile,par%Trep,s%theta0,ebcfname
-                     if (ier .ne. 0) then
-                        call report_file_read_error('ebcflist.bcf')
-                     endif
-                     read(54,*,iostat=ier)bcendtime,rt,dtbcfile,par%Trep,s%theta0,qbcfname
-                     if (ier .ne. 0) then
-                        call report_file_read_error('qbcflist.bcf')
-                     endif
-                     if(par%single_dir==1 .and. par%instat==INSTAT_REUSE) then
-                        read(55,*,iostat=ier)bcendtime,rt,dtbcfile,par%Trep,s%theta0,esbcfname
-                        if (ier .ne. 0) then
-                           call report_file_read_error('esbcflist.bcf')
-                        endif
-                     endif
-                  enddo  ! wwvv strange
-                  if(par%single_dir==1 .and. par%instat==INSTAT_REUSE) then
-                     inquire(iolength=wordsize) 1.d0
-                     reclen=wordsize*(sg%ny+1)*(sg%ntheta_s)
-                     open(73,file=esbcfname,status='old',form='unformatted',access='direct',recl=reclen)
-                     read(73,rec=1,iostat=ier)sg%ee_s(1,:,:)
-                     if (ier .ne. 0) then
-                        call report_file_read_error(esbcfname)
-                     endif
-                     close(73)
-                  endif
-               endif
-#ifdef USEMPI
-               call xmpi_bcast(bcendtime)
-               call xmpi_bcast(rt)
-               call xmpi_bcast(dtbcfile)
-               call xmpi_bcast(par%Trep)
-               call xmpi_bcast(s%theta0)
-               call xmpi_bcast(ebcfname)
-               if (par%single_dir==1) then
-                  call space_distribute("y",sl,sg%ee_s(1,:,:),s%ee_s(1,:,:))
-               endif
-#else
-               if (par%single_dir==1) then
-                  s%ee_s=sg%ee_s
-               endif
-#endif
-               if (xmaster) then
-                  close(53)
-                  close(54)
-                  if(par%single_dir==1 .and. par%instat==INSTAT_REUSE) then
-                     close(55)
-                  endif
-               endif
-               ! Robert and Jaap : Initialize for new wave conditions
-               ! par%Trep = par%Trep
-               ! par%omega = 2*par%px/par%Trep
-               do itheta=1,s%ntheta
-                  s%sigt(:,:,itheta) = 2*par%px/par%Trep
+                  s%ee(1,j,:)=e01*min(par%t/par%taper,1.0d0)
+                  s%bi(1) = 0.0d0
+                  s%ui(1,j) = 0.0d0
                end do
-               s%sigm = sum(s%sigt,3)/s%ntheta
-               call dispersion(par,s)
-               ! End initialize
-               if (xmaster) then
-                  inquire(iolength=wordsize) 1.d0
-                  reclen=wordsize*(sg%ny+1)*(sg%ntheta)
-                  open(71,file=ebcfname,status='old',form='unformatted',access='direct',recl=reclen)
-                  reclen=wordsize*((sg%ny+1)*4)
-                  open(72,file=qbcfname,status='old',form='unformatted',access='direct',recl=reclen)
-               endif
-               !
-               ! wwvv note that we need the global value of ny here
-               !
-               ! masterprocess reads and distributes
-               !
-               if (xmaster) then
-                  if (.not. allocated(gq1) ) then
-                     allocate(gq1(sg%ny+1,4),gq2(sg%ny+1,4),gq(sg%ny+1,4))
-                     allocate(gee1(sg%ny+1,s%ntheta),gee2(sg%ny+1,s%ntheta))
-                  endif
+            else
+               if(par%order==1) then
+                  s%zi(1,:) = par%Hrms/2*sin(2*par%px*par%t/par%Trep)
+                  do j=1,s%ny+1
+                     Lest(j) = L(j)
+                     L(j) = iteratedispersion(L0(j),Lest(j),par%px,s%hh(1,j))
+                  enddo
+                  kbw = 2*par%px/L
+                  s%ui(1,:) = 1.d0/s%hh(1,:)*2*par%px/par%Trep*par%Hrms/2/sinh(kbw*s%hh(1,:)) * &
+                  dsin(wbw*par%t &
+                  -kbw*( dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1)) &
+                  +dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1)) &
+                  ) &
+                  ) * &
+                  1.d0/kbw*sinh(kbw*s%hh(1,:))
                else
-                  if (.not. allocated(gq1) ) then ! to get valid addresses for
-                     ! gq1, gq2, gq, gee1, gee2
-                     allocate(gq1(1,4),gq2(1,4),gq(1,4))
-                     allocate(gee1(1,s%ntheta),gee2(1,s%ntheta))
-                  endif
+                  ! Stokes wave: ToDO
                endif
-               if (.not. allocated(q1) ) then
-                  allocate(q1(s%ny+1,4),q2(s%ny+1,4),q(s%ny+1,4))
-                  allocate(ee1(s%ny+1,s%ntheta),ee2(s%ny+1,s%ntheta))
-               end if
-               if (xmaster) then
-                  read(71,rec=1,iostat=ier)gee1       ! Earlier in time
-                  read(71,rec=2,iostat=ier2)gee2       ! Later in time
-                  if (ier+ier2 .ne. 0) then
-                     call report_file_read_error(ebcfname)
-                  endif
-                  read(72,rec=1,iostat=ier)gq1        ! Earlier in time
-                  read(72,rec=2,iostat=ier2)gq2        ! Later in time
-                  if (ier+ier2 .ne. 0) then
-                     call report_file_read_error(qbcfname)
-                  endif
+            endif
+         else
+         endif   ! Go over the different wbctypes for wavemodel = stationary
+         !
+         ! Part B) Surfbeat: go over the different waveforms
+      elseif (par%wavemodel == WAVEMODEL_SURFBEAT) then
+         ! 1) Bichromatic waves
+         if (    (par%wbctype == WBCTYPE_PARAMS) .and. (par%Tlong /= -123)   ) then
+            do j=1,s%ny+1
+               s%ee(1,j,:)=e01*0.5d0 * &
+               (1.d0+cos(2*par%px*(par%t/par%Tlong-( sin(s%theta0)*(s%yz(1,j)-s%yz(1,1)) & !jaap : -sum(s%alfaz(1,1:j))/j
+               +cos(s%theta0)*(s%xz(1,j)-s%xz(1,1)) )/Llong))) * & !jaap: -sum(s%alfaz(1,1:j))/j
+               min(par%t/par%taper,1.d0)
+               em = (sum(0.5d0*e01))*s%dtheta *min(par%t/par%taper,1.d0)
+               ei =  sum(s%ee(1,j,1:s%ntheta))*s%dtheta
+               s%bi(1) = -(2*s%cg(1,j)/s%c(1,j)-0.5d0)*(em-ei)/(s%cg(1,j)**2-par%g*s%hh(1,j))/par%rho
+               ht=s%zs0(1:2,:)-s%zb(1:2,:)
+               s%ui(1,j) = s%cg(1,j)*s%bi(1)/ht(1,j)*cos(s%theta0-s%alfaz(1,j))
+            end do
+            ! 2) TS_1: bound long wave is calculate by the bound long wave theory of LG & Steward (1964)
+         elseif (par%wbctype==WBCTYPE_TS_1) then
+            do j=1,s%ny+1
+               if (abs(s%theta0-sum(s%alfaz(1,1:j))/j)<1e-3) then
+                  call linear_interp(tE,dataE,nt,par%t,E1,E_idx)
+               else
+                  tshifted = max(par%t-(s%yz(1,j)-s%yz(1,1))*sin(s%theta0)/s%cg(1,1) & !-sum(s%alfaz(1,1:j))/j
+                  +(s%xz(1,j)-s%xz(1,1))*cos(s%theta0)/s%cg(1,1),0.d0) !-sum(s%alfaz(1,1:j))/j
+                  call linear_interp(tE,dataE,nt,tshifted,E1,E_idx)
                endif
-#ifdef USEMPI
-
-               call space_distribute("y",sl,gee1,ee1)
-               call space_distribute("y",sl,gee2,ee2)
-               call space_distribute("y",sl,gq1,q1)
-               call space_distribute("y",sl,gq2,q2)
-
-#else
-               ee1=gee1
-               ee2=gee2
-               q1=gq1
-               q2=gq2
-
-#endif
-               old=floor((par%t/dtbcfile)+1)
-               recpos=1
-            end if
-
-            new=floor((par%t/dtbcfile)+1)
-
-            ! Check for next level in boundary condition file
-            if (new/=old) then
-               recpos=recpos+(new-old)
-               ! Check for how many bcfile steps are jumped
-               if (new-old>1) then  ! Many steps further in the bc file
+               s%ee(1,j,:)=e01*E1/max(Emean,0.000001d0)*min(par%t/par%taper,1.d0)
+               em = Emean *min(par%t/par%taper,1.d0)
+               ei = sum(s%ee(1,j,:))*s%dtheta
+               s%bi(1) = -(2*s%cg(1,j)/s%c(1,j)-0.5d0)*(em-ei)/(s%cg(1,j)**2-par%g*s%hh(1,j))/par%rho
+               ht=s%zs0(1:2,:)-s%zb(1:2,:)
+               s%ui(1,j) = s%cg(1,j)*s%bi(1)/ht(1,j)*cos(s%theta0-s%alfaz(1,j))
+            end do
+            ! 3) TS_2: bound long wave is specificed by the user
+         elseif (par%wbctype==WBCTYPE_TS_2) then
+            ht=s%zs0(1:2,:)-s%zb(1:2,:)
+            do j=1,s%ny+1
+               if (abs(s%theta0-sum(s%alfaz(1,1:j))/j)<1e-3) then
+                  call linear_interp(tE,dataE,nt,par%t,E1,E_idx)
+                  call linear_interp(tE,databi,nt,par%t,s%bi(1),E_idx)
+               else
+                  tshifted = max(par%t-(s%yz(1,j)-s%yz(1,1))*sin(s%theta0)/s%cg(1,1) & !-sum(s%alfaz(1,1:j))/j
+                  +(s%xz(1,j)-s%xz(1,1))*cos(s%theta0)/s%cg(1,1),0.d0) !-sum(s%alfaz(1,1:j))/j
+                  call linear_interp(tE,dataE,nt,tshifted,E1,E_idx)
+                  call linear_interp(tE,databi,nt,tshifted,s%bi(1),E_idx)
+               endif
+               s%ee(1,j,:)=e01*E1/max(Emean,0.000001d0)*min(par%t/par%taper,1.d0)
+               if (par%freewave==1) then
+                  s%ui(1,j) = sqrt(par%g/ht(1,j))*s%bi(1)
+               else
+                  s%ui(1,j) = s%cg(1,j)*s%bi(1)/ht(1,j)*cos(s%theta0-s%alfaz(1,j))*min(par%t/par%taper,1.d0)
+               endif
+            end do
+            ! 4) go over the different wbctypes (spectral)
+         else
+            if ((par%wbctype==WBCTYPE_PARAMETRIC).or. & (par%wbctype==WBCTYPE_JONS_TABLE) .or. &
+            (par%wbctype==WBCTYPE_SWAN) .or. (par%wbctype==WBCTYPE_VARDENS) .or. (par%wbctype==WBCTYPE_REUSE)) then
+               ! open file if first time
+               if (startbcf) then
                   if(xmaster) then
-                     read(72,rec=recpos+1,iostat=ier)gq2
-                     if (ier .ne. 0) then
-                        call report_file_read_error(qbcfname)
-                     endif
-                     read(71,rec=recpos+1,iostat=ier)gee2
-                     if (ier .ne. 0) then
-                        call report_file_read_error(ebcfname)
-                     endif
-                     read(72,rec=recpos,iostat=ier)gq1
-                     if (ier .ne. 0) then
-                        call report_file_read_error(qbcfname)
-                     endif
-                     read(71,rec=recpos,iostat=ier)gee1
-                     if (ier .ne. 0) then
-                        call report_file_read_error(ebcfname)
+                     open(53,file='ebcflist.bcf',form='formatted',position='rewind')
+                     open(54,file='qbcflist.bcf',form='formatted',position='rewind')
+                     if(par%single_dir==1 .and. par%wbctype==WBCTYPE_REUSE) then
+                        open(55,file='esbcflist.bcf',form='formatted',position='rewind')
                      endif
                   endif
-
+                  if (xmaster) then
+                     do i=1,curline
+                        read(53,*,iostat=ier)bcendtime,rt,dtbcfile,par%Trep,s%theta0,ebcfname
+                        if (ier .ne. 0) then
+                           call report_file_read_error('ebcflist.bcf')
+                        endif
+                        read(54,*,iostat=ier)bcendtime,rt,dtbcfile,par%Trep,s%theta0,qbcfname
+                        if (ier .ne. 0) then
+                           call report_file_read_error('qbcflist.bcf')
+                        endif
+                        if(par%single_dir==1 .and. par%wbctype==WBCTYPE_REUSE) then
+                           read(55,*,iostat=ier)bcendtime,rt,dtbcfile,par%Trep,s%theta0,esbcfname
+                           if (ier .ne. 0) then
+                              call report_file_read_error('esbcflist.bcf')
+                           endif
+                        endif
+                     enddo  ! wwvv strange
+                     if(par%single_dir==1 .and. par%wbctype==WBCTYPE_REUSE) then
+                        inquire(iolength=wordsize) 1.d0
+                        reclen=wordsize*(sg%ny+1)*(sg%ntheta_s)
+                        open(73,file=esbcfname,status='old',form='unformatted',access='direct',recl=reclen)
+                        read(73,rec=1,iostat=ier)sg%ee_s(1,:,:)
+                        if (ier .ne. 0) then
+                           call report_file_read_error(esbcfname)
+                        endif
+                        close(73)
+                     endif
+                  endif
 #ifdef USEMPI
-                  call space_distribute("y",sl,gee2,ee2)
-                  call space_distribute("y",sl,gq2,q2)
+                  call xmpi_bcast(bcendtime)
+                  call xmpi_bcast(rt)
+                  call xmpi_bcast(dtbcfile)
+                  call xmpi_bcast(par%Trep)
+                  call xmpi_bcast(s%theta0)
+                  call xmpi_bcast(ebcfname)
+                  if (par%single_dir==1) then
+                     call space_distribute("y",sl,sg%ee_s(1,:,:),s%ee_s(1,:,:))
+                  endif
+#else
+                  if (par%single_dir==1) then
+                     s%ee_s=sg%ee_s
+                  endif
+#endif
+                  if (xmaster) then
+                     close(53)
+                     close(54)
+                     if(par%single_dir==1 .and. par%wbctype==WBCTYPE_REUSE) then
+                        close(55)
+                     endif
+                  endif
+                  ! Robert and Jaap : Initialize for new wave conditions
+                  do itheta=1,s%ntheta
+                     s%sigt(:,:,itheta) = 2*par%px/par%Trep
+                  end do
+                  s%sigm = sum(s%sigt,3)/s%ntheta
+                  call dispersion(par,s)
+                  ! End initialize
+                  if (xmaster) then
+                     inquire(iolength=wordsize) 1.d0
+                     reclen=wordsize*(sg%ny+1)*(sg%ntheta)
+                     open(71,file=ebcfname,status='old',form='unformatted',access='direct',recl=reclen)
+                     reclen=wordsize*((sg%ny+1)*4)
+                     open(72,file=qbcfname,status='old',form='unformatted',access='direct',recl=reclen)
+                  endif
+                  ! wwvv note that we need the global value of ny here
+                  ! masterprocess reads and distributes
+                  if (xmaster) then
+                     if (.not. allocated(gq1) ) then
+                        allocate(gq1(sg%ny+1,4),gq2(sg%ny+1,4),gq(sg%ny+1,4))
+                        allocate(gee1(sg%ny+1,s%ntheta),gee2(sg%ny+1,s%ntheta))
+                     endif
+                  else
+                     if (.not. allocated(gq1) ) then ! to get valid addresses for
+                        ! gq1, gq2, gq, gee1, gee2
+                        allocate(gq1(1,4),gq2(1,4),gq(1,4))
+                        allocate(gee1(1,s%ntheta),gee2(1,s%ntheta))
+                     endif
+                  endif
+                  if (.not. allocated(q1) ) then
+                     allocate(q1(s%ny+1,4),q2(s%ny+1,4),q(s%ny+1,4))
+                     allocate(ee1(s%ny+1,s%ntheta),ee2(s%ny+1,s%ntheta))
+                  end if
+                  if (xmaster) then
+                     read(71,rec=1,iostat=ier)gee1       ! Earlier in time
+                     read(71,rec=2,iostat=ier2)gee2       ! Later in time
+                     if (ier+ier2 .ne. 0) then
+                        call report_file_read_error(ebcfname)
+                     endif
+                     read(72,rec=1,iostat=ier)gq1        ! Earlier in time
+                     read(72,rec=2,iostat=ier2)gq2        ! Later in time
+                     if (ier+ier2 .ne. 0) then
+                        call report_file_read_error(qbcfname)
+                     endif
+                  endif
+#ifdef USEMPI
                   call space_distribute("y",sl,gee1,ee1)
+                  call space_distribute("y",sl,gee2,ee2)
                   call space_distribute("y",sl,gq1,q1)
+                  call space_distribute("y",sl,gq2,q2)
 #else
                   ee1=gee1
                   ee2=gee2
-                  q1=gq2
+                  q1=gq1
                   q2=gq2
 #endif
-               else  ! Only one step further in the bc file
-                  ee1=ee2
-                  q1=q2
-                  if(xmaster) then
-                     read(72,rec=recpos+1,iostat=ier)gq2
-                     if (ier .ne. 0) then
-                        call report_file_read_error(qbcfname)
+                  old=floor((par%t/dtbcfile)+1)
+                  recpos=1
+               end if
+               new=floor((par%t/dtbcfile)+1)
+               ! Check for next level in boundary condition file
+               if (new/=old) then
+                  recpos=recpos+(new-old)
+                  ! Check for how many bcfile steps are jumped
+                  if (new-old>1) then  ! Many steps further in the bc file
+                     if(xmaster) then
+                        read(72,rec=recpos+1,iostat=ier)gq2
+                        if (ier .ne. 0) then
+                           call report_file_read_error(qbcfname)
+                        endif
+                        read(71,rec=recpos+1,iostat=ier)gee2
+                        if (ier .ne. 0) then
+                           call report_file_read_error(ebcfname)
+                        endif
+                        read(72,rec=recpos,iostat=ier)gq1
+                        if (ier .ne. 0) then
+                           call report_file_read_error(qbcfname)
+                        endif
+                        read(71,rec=recpos,iostat=ier)gee1
+                        if (ier .ne. 0) then
+                           call report_file_read_error(ebcfname)
+                        endif
                      endif
-                     read(71,rec=recpos+1,iostat=ier)gee2
-                     if (ier .ne. 0) then
-                        call report_file_read_error(ebcfname)
-                     endif
-                  endif
 #ifdef USEMPI
-                  call space_distribute("y",sl,gee2,ee2)
-                  call space_distribute("y",sl,gq2,q2)
+                     call space_distribute("y",sl,gee2,ee2)
+                     call space_distribute("y",sl,gq2,q2)
+                     call space_distribute("y",sl,gee1,ee1)
+                     call space_distribute("y",sl,gq1,q1)
 #else
-                  ee2=gee2
-                  q2=gq2
+                     ee1=gee1
+                     ee2=gee2
+                     q1=gq2
+                     q2=gq2
 #endif
-               endif
-               old=new
-            end if
-            ht=s%zs0(1:2,:)-s%zb(1:2,:)
-            tnew = dble(new)*dtbcfile
-            if (xmpi_istop) s%ee(1,:,:) = (dtbcfile-(tnew-par%t))/dtbcfile*ee2 + & !Jaap
-            (tnew-par%t)/dtbcfile*ee1
-            q = (dtbcfile-(tnew-par%t))/dtbcfile*q2 + &          !Jaap
-            (tnew-par%t)/dtbcfile*q1
-            ! be aware: ui and vi are defined w.r.t. the grid, not w.r.t. the coordinate system!
-            s%ui(1,:) = (q(:,1)*dcos(s%alfau(1,:)) + q(:,2)*dsin(s%alfau(1,:)))/ht(1,:)*min(par%t/par%taper,1.0d0)
-            s%vi(1,:) = (-q(:,1)*dsin(s%alfau(1,:)) + q(:,2)*dcos(s%alfau(1,:)))/ht(1,:)*min(par%t/par%taper,1.0d0)
-            s%ee(1,:,:)=s%ee(1,:,:)*min(par%t/par%taper,1.0d0)
-         elseif(par%nonhspectrum==1) then
+                  else  ! Only one step further in the bc file
+                     ee1=ee2
+                     q1=q2
+                     if(xmaster) then
+                        read(72,rec=recpos+1,iostat=ier)gq2
+                        if (ier .ne. 0) then
+                           call report_file_read_error(qbcfname)
+                        endif
+                        read(71,rec=recpos+1,iostat=ier)gee2
+                        if (ier .ne. 0) then
+                           call report_file_read_error(ebcfname)
+                        endif
+                     endif
+#ifdef USEMPI
+                     call space_distribute("y",sl,gee2,ee2)
+                     call space_distribute("y",sl,gq2,q2)
+#else
+                     ee2=gee2
+                     q2=gq2
+#endif
+                  endif
+                  old=new
+               end if
+               ht=s%zs0(1:2,:)-s%zb(1:2,:)
+               tnew = dble(new)*dtbcfile
+               if (xmpi_istop) s%ee(1,:,:) = (dtbcfile-(tnew-par%t))/dtbcfile*ee2 + & !Jaap
+               (tnew-par%t)/dtbcfile*ee1
+               q = (dtbcfile-(tnew-par%t))/dtbcfile*q2 + &          !Jaap
+               (tnew-par%t)/dtbcfile*q1
+               ! be aware: ui and vi are defined w.r.t. the grid, not w.r.t. the coordinate system!
+               s%ui(1,:) = (q(:,1)*dcos(s%alfau(1,:)) + q(:,2)*dsin(s%alfau(1,:)))/ht(1,:)*min(par%t/par%taper,1.0d0)
+               s%vi(1,:) = (-q(:,1)*dsin(s%alfau(1,:)) + q(:,2)*dcos(s%alfau(1,:)))/ht(1,:)*min(par%t/par%taper,1.0d0)
+               s%ee(1,:,:)=s%ee(1,:,:)*min(par%t/par%taper,1.0d0)
+            else
+            endif
+         endif ! Go over the different wbctypes for surfbeat
+         ! Part C) Nonh: go over the different waveforms
+      elseif (par%wavemodel == WAVEMODEL_NONH) then
+         ! 1) spectral
+         if ((par%wbctype==WBCTYPE_PARAMETRIC).or. & (par%wbctype==WBCTYPE_JONS_TABLE) .or. &
+         (par%wbctype==WBCTYPE_SWAN) .or. (par%wbctype==WBCTYPE_VARDENS) .or. (par%wbctype==WBCTYPE_REUSE)) then
             if (startbcf) then
                if(xmaster) then
                   open(53,file='nhbcflist.bcf',form='formatted',position='rewind')
@@ -712,8 +683,6 @@ contains
                   enddo
                   close(53)
                endif
-               !             call velocity_Boundary(nhbcfname,ui(1,:),zi(1,:),wi(1,:),nx,ny,sg%ny,sl,par%t,zs(2,:),ws(2,:), &
-               !                               force_init=.true.,bcst=bcstarttime)
                if (.not. allocated(uig)) then
                   if (xmaster) then
                      allocate(uig(sg%ny+1))
@@ -737,14 +706,14 @@ contains
                      ! Reuse time series will start at t=0, so we need to add the offset time to
                      ! the time vector in the boundary condition file using the optional bcst variable
                      call velocity_Boundary(nhbcfname,uig,vig,zig,wig,duig,dvig,sg%ny,par%t, &
-                                                      isSet_U,isSet_V,isSet_Z,isSet_W,isSet_dU,isSet_dV,isSet_Q, &
+                     isSet_U,isSet_V,isSet_Z,isSet_W,isSet_dU,isSet_dV,isSet_Q, &
                      force_init=.true.,bcst=bcstarttime)
                   else
                      ! If individual spectra are read, then the time vector in the boundary condition
                      ! file will already be corrected for the start of the spectrum condition. No need
                      ! to add the optional bcst variable
                      call velocity_Boundary(nhbcfname,uig,vig,zig,wig,duig,dvig,sg%ny,par%t, &
-                                                      isSet_U,isSet_V,isSet_Z,isSet_W,isSet_dU,isSet_dV,isSet_Q, &
+                     isSet_U,isSet_V,isSet_Z,isSet_W,isSet_dU,isSet_dV,isSet_Q, &
                      force_init=.true.)
                   endif
                endif
@@ -772,9 +741,7 @@ contains
                if (.not. isSet_Z) s%zi(1,:) = s%zs(2,:)
                if (.not. isSet_W) s%wi(1,:) = s%ws(2,:)
                if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0) then
-                  ! Only if the reduced 2-layer model is initiated (P.B. Smit)
                   if (.not. isSet_dU) s%dui(1,:) = 0.
-                  !
                endif
                call nonh_init_wcoef(s,par)
             else
@@ -783,14 +750,14 @@ contains
                      ! Reuse time series will start at t=0, so we need to add the offset time to
                      ! the time vector in the boundary condition file using the optional bcst variable
                      call velocity_Boundary(nhbcfname,uig,vig,zig,wig,duig,dvig,sg%ny,par%t,&
-                                                      isSet_U,isSet_V,isSet_Z,isSet_W,isSet_dU,isSet_dV,isSet_Q, &
+                     isSet_U,isSet_V,isSet_Z,isSet_W,isSet_dU,isSet_dV,isSet_Q, &
                      bcst=bcstarttime)
                   else
                      ! If individual spectra are read, then the time vector in the boundary condition
                      ! file will already be corrected for the start of the spectrum condition. No need
                      ! to add the optional bcst variable
                      call velocity_Boundary(nhbcfname,uig,vig,zig,wig,duig,dvig,sg%ny,par%t, &
-                                                      isSet_U,isSet_V,isSet_Z,isSet_W,isSet_dU,isSet_dV,isSet_Q)
+                     isSet_U,isSet_V,isSet_Z,isSet_W,isSet_dU,isSet_dV,isSet_Q)
                   endif
                endif
 #ifdef USEMPI
@@ -815,14 +782,12 @@ contains
                if (.not. isSet_V) s%vi(1,:) = 0.d0
                if (.not. isSet_Z) s%zi(1,:) = s%zs(2,:)
                if (.not. isSet_W) s%wi(1,:) = s%ws(2,:)
-
                if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0) then
                   ! Only if the reduced 2-layer model is initiated (P.B. Smit)
                   if (.not. isSet_dU) s%dUi(1,:) = 0.
                   !
                endif
             endif
-            
             ! be aware: ui and vi are defined w.r.t. the grid, not w.r.t. the coordinate system!
             if (.not. allocated(tempu)) then
                ! allocate to local size grid
@@ -831,73 +796,60 @@ contains
             endif
             tempu = s%ui(1,:)
             tempv = s%vi(1,:)
-            ! rotate to grid directions            
+            ! rotate to grid directions
             s%ui(1,:) = tempu*dcos(s%alfau(1,:)) + tempv*dsin(s%alfau(1,:))
             s%vi(1,:) = -tempu*dsin(s%alfau(1,:)) + tempv*dcos(s%alfau(1,:))
-            
             s%ui(1,:) = s%ui(1,:)*min(par%t/par%taper,1.0d0)
             s%zi(1,:) = s%zi(1,:)*min(par%t/par%taper,1.0d0)
             s%wi(1,:) = s%wi(1,:)*min(par%t/par%taper,1.0d0)
             s%dUi(1,:) = s%dUi(1,:)*min(par%t/par%taper,1.0d0)
-         endif ! nonhspectrum
-      elseif (par%instat==INSTAT_TS_NONH) then
-         !       call velocity_Boundary('boun_U.bcf',ui(1,:),zi(1,:),wi(1,:),nx,ny,sg%ny,sl,par%t,zs(2,:),ws(2,:))
-         if (xmaster) then
-            call velocity_Boundary('boun_U.bcf',uig,vig,zig,wig,duig,dvig,sg%ny,par%t,isSet_U,isSet_V,isSet_Z,isSet_W,isSet_dU,isSet_dV,isSet_Q)
-            !
-         endif
-#ifdef USEMPI
-         call space_distribute("y",sl,uig,s%ui(1,:))
-         call space_distribute("y",sl,vig,s%vi(1,:))
-         call space_distribute("y",sl,zig,s%zi(1,:))
-         call space_distribute("y",sl,wig,s%wi(1,:))
-         call space_distribute("y",sl,duig,s%dui(1,:))
-         call xmpi_bcast(isSet_U)
-         call xmpi_bcast(isSet_Z)
-         call xmpi_bcast(isSet_W)
-         call xmpi_bcast(isSet_dU)
-#else
-
-         if ( isSet_Q ) then
-            !
-            if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0) then
-               ! Calculate the difference velocity from the difference discharges (here both duig and uig are still discharges)
-               duig = ( (1.0d0 - 2.0d0*par%nhlay) * uig + duig ) / (  2.0d0 * par%nhlay * s%hu(1,:) *( 1.0d0 - par%nhlay )  )
-               !
+         elseif (par%wbctype==WBCTYPE_TS_NONH) then
+            if (xmaster) then
+               call velocity_Boundary('boun_U.bcf',uig,vig,zig,wig,duig,dvig,sg%ny,&
+               par%t,isSet_U,isSet_V,isSet_Z,isSet_W,isSet_dU,isSet_dV,isSet_Q)
             endif
-            uig = uig/s%hu(1,:)
-            !
-         endif
-
-         s%ui(1,:) = uig
-         s%vi(1,:) = vig
-         s%zi(1,:) = zig
-         s%wi(1,:) = wig
-         s%dui(1,:) = duig
+#ifdef USEMPI
+            call space_distribute("y",sl,uig,s%ui(1,:))
+            call space_distribute("y",sl,vig,s%vi(1,:))
+            call space_distribute("y",sl,zig,s%zi(1,:))
+            call space_distribute("y",sl,wig,s%wi(1,:))
+            call space_distribute("y",sl,duig,s%dui(1,:))
+            call xmpi_bcast(isSet_U)
+            call xmpi_bcast(isSet_Z)
+            call xmpi_bcast(isSet_W)
+            call xmpi_bcast(isSet_dU)
+#else
+            if ( isSet_Q ) then
+               if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0) then
+                  ! Calculate the difference velocity from the difference discharges (here both duig and uig are still discharges)
+                  duig = ( (1.0d0 - 2.0d0*par%nhlay) * uig + duig ) / (  2.0d0 * par%nhlay * s%hu(1,:) *( 1.0d0 - par%nhlay )  )
+               endif
+               uig = uig/s%hu(1,:)
+            endif
+            s%ui(1,:) = uig
+            s%vi(1,:) = vig
+            s%zi(1,:) = zig
+            s%wi(1,:) = wig
+            s%dui(1,:) = duig
 #endif
-         if (.not. isSet_U) s%ui(1,:) = 0.d0
-         if (.not. isSet_V) s%vi(1,:) = 0.d0
-         if (.not. isSet_Z) s%zi(1,:) = s%zs(2,:)
-         if (.not. isSet_W) s%wi(1,:) = s%ws(2,:)
-         if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0) then
-            ! Only if the reduced 2-layer model is initiated (P.B. Smit)
-            if (.not. isSet_dU) s%dui(1,:) = 0.
-            !
-         endif
-         !
-      endif
-      ! Jaap: set incoming short wave energy to zero
+            if (.not. isSet_U) s%ui(1,:) = 0.d0
+            if (.not. isSet_V) s%vi(1,:) = 0.d0
+            if (.not. isSet_Z) s%zi(1,:) = s%zs(2,:)
+            if (.not. isSet_W) s%wi(1,:) = s%ws(2,:)
+            if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0) then
+               if (.not. isSet_dU) s%dui(1,:) = 0.
+            endif
+         else
+         endif ! Go over the different wbctypes for nonh
+      endif ! Go over the different wavemodels
+      !
+      ! Finalize: swave and lwave = 0 has influence on boundary
       s%ee(1,:,:) = par%swave*s%ee(1,:,:)
-      ! Robert: only do this if not using non-hydrostatic spectrum
       if (par%nonhspectrum==0) then
-         ! Jaap set incoming long waves to zero
          s%ui = par%lwave*(par%order-1.d0)*s%ui
       endif
-
-
    end subroutine wave_bc
-
-
+   
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    !
@@ -945,7 +897,7 @@ contains
          allocate(alpha2  (s%ny+1))
          allocate(thetai  (s%ny+1))
          allocate(betanp1 (1,s%ny+1))
-         if (par%tidetype==TIDETYPE_INSTANT) then 
+         if (par%tidetype==TIDETYPE_INSTANT) then
             allocate(zs0old(s%nx+1,s%ny+1))
             allocate(dzs0  (s%nx+1,s%ny+1))
             zs0old = s%zs0
@@ -998,149 +950,149 @@ contains
       else
          call tide_boundary_timestep(s,par) ! only updates zs0 on boundaries
       endif
-!      !
-!      ! Need to interpolate input tidal signal to xbeach par%t to
-!      ! compute proper tide contribution
-!
-!      if (par%tideloc>0) then
-!
-!         ! read in first water surface time series
-!         call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,1), s%tidelen, par%t, s%zs01, indt)
-!
-!         if(par%tideloc.eq.1) then
-!            s%zs02=s%zs01
-!         end if
-!
-!         ! tideloc = 2, paulrevere = land
-!         if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_LAND) then
-!            ! read in second water surface time series
-!            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs03, indt)
-!            s%zs02=s%zs01 ! second offshore corner is equal to first offshore corner
-!            s%zs04=s%zs03 ! second bay corner is equal to first bay corner
-!         endif
-!
-!         ! tideloc = 2, paulrevere = sea
-!         if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_SEA) then
-!            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs02, indt)
-!            ! no timeseries at bay side, (and two different timeseries at offshore corners)
-!            s%zs03=0.d0
-!            s%zs04=0.d0
-!         endif
-!
-!         ! tideloc = 4: for each corner individual timeseries
-!         if(par%tideloc.eq.4) then
-!            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs02, indt)
-!            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,3), s%tidelen, par%t, s%zs03, indt)
-!            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,4), s%tidelen, par%t, s%zs04, indt)
-!         endif
-!         !
-!         ! from here on set global variable zs0
-!         !
-!         if(par%tideloc.eq.1) s%zs0 = s%zs01
-!
-!         if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_SEA) then
-!            yzs0(1)=s%ndist(1,1)
-!            yzs0(2)=s%ndist(1,s%ny+1)
-!
-!            ! for MPI look at water level gradient over each subdomain
-!
-!            ! lonsghore water level difference over whole model domain at offshore boundary
-!            dzs0dy = (s%zs02-s%zs01)/(s%xyzs02(2)-s%xyzs01(2));
-!
-!            ! estimate water level at corners sub-domain
-!            szs0(1)=s%zs01+dzs0dy*(yzs0(1)-s%xyzs01(2))
-!            szs0(2)=s%zs01+dzs0dy*(yzs0(2)-s%xyzs01(2))
-!
-!            do j = 1,s%ny+1
-!               call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(1,j), s%zs0(1,j), indt)
-!            enddo
-!
-!            s%zs0(2,:)=s%zs0(1,:)
-!            ! Dano: fix of Neumann boundaries with tide
-!            s%zs0(3:s%nx+1,1)=s%zs0(1,1)
-!            s%zs0(3:s%nx+1,s%ny+1)=s%zs0(1,s%ny+1)
-!            !do j = 1,ny+1
-!            !   do i = 1,nx+1
-!            !      zs0(i,j) = zs0(1,j)
-!            !   enddo
-!            !enddo
-!         elseif (par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_LAND) then
-!            if (xmpi_istop) then
-!               s%zs0(1:2,:)=s%zs01
-!            endif
-!            if (xmpi_isbot) then
-!               s%zs0(s%nx:s%nx+1,:)=s%zs04
-!            endif
-!         endif
-!
-!         if(par%tideloc.eq.4) then
-!            if (xmpi_istop) then
-!               yzs0(1)=s%xyzs01(2)
-!               yzs0(2)=s%xyzs02(2)
-!               szs0(1)=s%zs01
-!               szs0(2)=s%zs02
-!               do j = 1,s%ny+1
-!                  call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(1,j), s%zs0(1,j), indt)
-!               enddo
-!               s%zs0(2,:)=s%zs0(1,:)
-!            endif
-!            if (xmpi_isbot) then
-!               yzs0(1)=s%xyzs04(2)
-!               yzs0(2)=s%xyzs03(2)
-!               szs0(1)=s%zs04
-!               szs0(2)=s%zs03
-!               do j = 1,s%ny+1
-!                  call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(s%nx+1,j), s%zs0(s%nx+1,j), indt)
-!               enddo
-!               s%zs0(s%nx,:)=s%zs0(s%nx+1,:)
-!            endif
-!            if (xmpi_isleft) then
-!               xzs0(1)=s%xyzs01(1)
-!               xzs0(2)=s%xyzs04(1)
-!               szs0(1)=s%zs01
-!               szs0(2)=s%zs04
-!               do i = 1,s%nx+1
-!                  call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(i,1), s%zs0(i,1), indt)
-!               enddo
-!            endif
-!            if (xmpi_isright) then
-!               xzs0(1)=s%xyzs02(1)
-!               xzs0(2)=s%xyzs03(1)
-!               szs0(1)=s%zs02
-!               szs0(2)=s%zs03
-!               do i = 1,s%nx+1
-!                  call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(i,s%ny+1), s%zs0(i,s%ny+1), indt)
-!               enddo
-!            endif
-!         endif
-!
-!      else ! ie if tideloc=0
-!         s%zs0 = s%zs01
-!      endif
-!
-!      if (par%tidetype==TIDETYPE_INSTANT) then
-!         !
-!         ! RJ: 22-09-2010 Correct water level for surge and tide:
-!         !
-!         zsmean(1,:) = factime*s%zs(1,:)+(1-factime)*zsmean(1,:)
-!         zsmean(2,:) = factime*s%zs(s%nx,:)+(1-factime)*zsmean(2,:)
-!         ! compute difference between offshore/bay mean water level and imposed on tide
-!         dzs0(1,:) = s%zs0(1,:)-zsmean(1,:)
-!         dzs0(2,:) = s%zs0(s%nx,:)-zsmean(2,:)
-!#ifdef USEMPI
-!         call xmpi_getrow(dzs0,s%ny+1,'1',1,dzs0(1,:))
-!         call xmpi_getrow(dzs0,s%ny+1,'m',xmpi_m,dzs0(2,:))
-!#endif
-!
-!         do j = 1,s%ny+1
-!            do i = 1,s%nx+1
-!               s%zs(i,j) = s%zs(i,j) + (s%zs0fac(i,j,1)*dzs0(1,j) + s%zs0fac(i,j,2)*dzs0(2,j))*s%wetz(i,j)
-!            enddo
-!         enddo
-!
-!         ! RJ: 22-09-2010 end update tide and surge
-!
-!      endif ! tidetype = instant water level boundary
+      !      !
+      !      ! Need to interpolate input tidal signal to xbeach par%t to
+      !      ! compute proper tide contribution
+      !
+      !      if (par%tideloc>0) then
+      !
+      !         ! read in first water surface time series
+      !         call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,1), s%tidelen, par%t, s%zs01, indt)
+      !
+      !         if(par%tideloc.eq.1) then
+      !            s%zs02=s%zs01
+      !         end if
+      !
+      !         ! tideloc = 2, paulrevere = land
+      !         if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_LAND) then
+      !            ! read in second water surface time series
+      !            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs03, indt)
+      !            s%zs02=s%zs01 ! second offshore corner is equal to first offshore corner
+      !            s%zs04=s%zs03 ! second bay corner is equal to first bay corner
+      !         endif
+      !
+      !         ! tideloc = 2, paulrevere = sea
+      !         if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_SEA) then
+      !            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs02, indt)
+      !            ! no timeseries at bay side, (and two different timeseries at offshore corners)
+      !            s%zs03=0.d0
+      !            s%zs04=0.d0
+      !         endif
+      !
+      !         ! tideloc = 4: for each corner individual timeseries
+      !         if(par%tideloc.eq.4) then
+      !            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,2), s%tidelen, par%t, s%zs02, indt)
+      !            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,3), s%tidelen, par%t, s%zs03, indt)
+      !            call LINEAR_INTERP(s%tideinpt, s%tideinpz(:,4), s%tidelen, par%t, s%zs04, indt)
+      !         endif
+      !         !
+      !         ! from here on set global variable zs0
+      !         !
+      !         if(par%tideloc.eq.1) s%zs0 = s%zs01
+      !
+      !         if(par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_SEA) then
+      !            yzs0(1)=s%ndist(1,1)
+      !            yzs0(2)=s%ndist(1,s%ny+1)
+      !
+      !            ! for MPI look at water level gradient over each subdomain
+      !
+      !            ! lonsghore water level difference over whole model domain at offshore boundary
+      !            dzs0dy = (s%zs02-s%zs01)/(s%xyzs02(2)-s%xyzs01(2));
+      !
+      !            ! estimate water level at corners sub-domain
+      !            szs0(1)=s%zs01+dzs0dy*(yzs0(1)-s%xyzs01(2))
+      !            szs0(2)=s%zs01+dzs0dy*(yzs0(2)-s%xyzs01(2))
+      !
+      !            do j = 1,s%ny+1
+      !               call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(1,j), s%zs0(1,j), indt)
+      !            enddo
+      !
+      !            s%zs0(2,:)=s%zs0(1,:)
+      !            ! Dano: fix of Neumann boundaries with tide
+      !            s%zs0(3:s%nx+1,1)=s%zs0(1,1)
+      !            s%zs0(3:s%nx+1,s%ny+1)=s%zs0(1,s%ny+1)
+      !            !do j = 1,ny+1
+      !            !   do i = 1,nx+1
+      !            !      zs0(i,j) = zs0(1,j)
+      !            !   enddo
+      !            !enddo
+      !         elseif (par%tideloc.eq.2 .and. par%paulrevere==PAULREVERE_LAND) then
+      !            if (xmpi_istop) then
+      !               s%zs0(1:2,:)=s%zs01
+      !            endif
+      !            if (xmpi_isbot) then
+      !               s%zs0(s%nx:s%nx+1,:)=s%zs04
+      !            endif
+      !         endif
+      !
+      !         if(par%tideloc.eq.4) then
+      !            if (xmpi_istop) then
+      !               yzs0(1)=s%xyzs01(2)
+      !               yzs0(2)=s%xyzs02(2)
+      !               szs0(1)=s%zs01
+      !               szs0(2)=s%zs02
+      !               do j = 1,s%ny+1
+      !                  call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(1,j), s%zs0(1,j), indt)
+      !               enddo
+      !               s%zs0(2,:)=s%zs0(1,:)
+      !            endif
+      !            if (xmpi_isbot) then
+      !               yzs0(1)=s%xyzs04(2)
+      !               yzs0(2)=s%xyzs03(2)
+      !               szs0(1)=s%zs04
+      !               szs0(2)=s%zs03
+      !               do j = 1,s%ny+1
+      !                  call LINEAR_INTERP(yzs0, szs0, 2, s%ndist(s%nx+1,j), s%zs0(s%nx+1,j), indt)
+      !               enddo
+      !               s%zs0(s%nx,:)=s%zs0(s%nx+1,:)
+      !            endif
+      !            if (xmpi_isleft) then
+      !               xzs0(1)=s%xyzs01(1)
+      !               xzs0(2)=s%xyzs04(1)
+      !               szs0(1)=s%zs01
+      !               szs0(2)=s%zs04
+      !               do i = 1,s%nx+1
+      !                  call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(i,1), s%zs0(i,1), indt)
+      !               enddo
+      !            endif
+      !            if (xmpi_isright) then
+      !               xzs0(1)=s%xyzs02(1)
+      !               xzs0(2)=s%xyzs03(1)
+      !               szs0(1)=s%zs02
+      !               szs0(2)=s%zs03
+      !               do i = 1,s%nx+1
+      !                  call LINEAR_INTERP(xzs0, szs0, 2, s%sdist(i,s%ny+1), s%zs0(i,s%ny+1), indt)
+      !               enddo
+      !            endif
+      !         endif
+      !
+      !      else ! ie if tideloc=0
+      !         s%zs0 = s%zs01
+      !      endif
+      !
+      !      if (par%tidetype==TIDETYPE_INSTANT) then
+      !         !
+      !         ! RJ: 22-09-2010 Correct water level for surge and tide:
+      !         !
+      !         zsmean(1,:) = factime*s%zs(1,:)+(1-factime)*zsmean(1,:)
+      !         zsmean(2,:) = factime*s%zs(s%nx,:)+(1-factime)*zsmean(2,:)
+      !         ! compute difference between offshore/bay mean water level and imposed on tide
+      !         dzs0(1,:) = s%zs0(1,:)-zsmean(1,:)
+      !         dzs0(2,:) = s%zs0(s%nx,:)-zsmean(2,:)
+      !#ifdef USEMPI
+      !         call xmpi_getrow(dzs0,s%ny+1,'1',1,dzs0(1,:))
+      !         call xmpi_getrow(dzs0,s%ny+1,'m',xmpi_m,dzs0(2,:))
+      !#endif
+      !
+      !         do j = 1,s%ny+1
+      !            do i = 1,s%nx+1
+      !               s%zs(i,j) = s%zs(i,j) + (s%zs0fac(i,j,1)*dzs0(1,j) + s%zs0fac(i,j,2)*dzs0(2,j))*s%wetz(i,j)
+      !            enddo
+      !         enddo
+      !
+      !         ! RJ: 22-09-2010 end update tide and surge
+      !
+      !      endif ! tidetype = instant water level boundary
 
       !Dano: compute umean, vmean only at this location, same for all options; MPI compliant
       if (par%tidetype==TIDETYPE_VELOCITY) then
@@ -1172,7 +1124,7 @@ contains
       !
       ! UPDATE (LONG) WAVES
       !
-      if (par%instat/=INSTAT_OFF)then
+      if (par%wbctype/=WBCTYPE_OFF)then
          ! wwvv the following is probably only to do in the top processes, but take care for
          ! the mpi_shift calls in horizontal directions
          if(xmpi_istop) then
@@ -1187,7 +1139,7 @@ contains
                endif
                s%vv(1,:)=s%vv(2,:)
                s%zs(1,:)=s%zs(2,:)
-               if (par%nonh==1) s%ws(1,:) = s%ws(2,:)
+               if (par%wavemodel==WAVEMODEL_NONH) s%ws(1,:) = s%ws(2,:)
             elseif (par%front==FRONT_WAVEFLUME) then ! Ad's radiating boundary
                if (par%tidetype==TIDETYPE_VELOCITY) then
                   zsmean(1,:) = factime*s%zs(1,:)+(1-factime)*zsmean(1,:)
@@ -1195,7 +1147,7 @@ contains
                s%uu(1,:)=(1.0d0+sqrt(par%g*s%hh(1,:))/s%cg(1,:))*s%ui(1,:)-(sqrt(par%g/s%hh(1,:))*(s%zs(2,:)-zsmean(1,:)))
                s%vv(1,:)=s%vv(2,:)
                s%zs(1,:)=s%zs(2,:)
-               if (par%nonh==1) s%ws(1,:) = s%ws(2,:)
+               if (par%wavemodel==WAVEMODEL_NONH) s%ws(1,:) = s%ws(2,:)
             elseif (par%front==FRONT_ABS_2D) then ! Van Dongeren (1997), weakly reflective boundary condition
                ht(1:2,:)=max(s%zs0(1:2,:)-s%zb(1:2,:),par%eps)
                beta=s%uu(1:2,:)-2.*dsqrt(par%g*s%hum(1:2,:))
@@ -1274,7 +1226,7 @@ contains
                if (xmpi_istop) s%vv(1,:)=s%vv(2,:)
                if (xmpi_isleft) s%uu(1,1)=s%uu(1,2)
                if (xmpi_isright) s%uu(1,s%ny+1)=s%uu(1,s%ny)
-               if (par%nonh==1.and.xmpi_istop) s%ws(1,:) = s%ws(2,:)
+               if (par%wavemodel==WAVEMODEL_NONH.and.xmpi_istop) s%ws(1,:) = s%ws(2,:)
             else if (par%front==FRONT_WALL) then
                !       uu(1,:)=0.d0
                !      zs(1,:)=max(zs(2,:),zb(1,:))
@@ -1416,8 +1368,8 @@ contains
          endif  !par%back
 
       endif !xmpi_isbot
-      
-      
+
+
       !
       ! Lateral tide boundary conditions
       !
@@ -1443,7 +1395,7 @@ contains
          enddo
       endif !s%ny>0
 
-      
+
 
       !!! Wind boundary conditions
       if (s%windlen>1) then  ! only if non-stationary wind, otherwise waste of computational time
@@ -1765,7 +1717,7 @@ contains
    !
    !==============================================================================
    subroutine velocity_Boundary(bcfile,ug,vg,zg,wg,dug,dvg,nyg,t,isSet_U,isSet_V,isSet_Z,isSet_W,isSet_dU, &
-                            isSet_dV,isSet_Q,force_init,bcst)
+   isSet_dV,isSet_Q,force_init,bcst)
       !==============================================================================
       !
 
@@ -1850,7 +1802,7 @@ contains
 
       real(kind=rKind),allocatable,dimension(:),save :: du0 !
       real(kind=rKind),allocatable,dimension(:),save :: du1 !
-      
+
       real(kind=rKind),allocatable,dimension(:),save :: dv0 !
       real(kind=rKind),allocatable,dimension(:),save :: dv1 !
 
@@ -2083,7 +2035,7 @@ contains
                dug = 0
                isSet_dU = .false.
             endif
-            
+
             if (idv > 0) then
                dvg = dV0 + (dV1-dV0)*(t-t0)/(t1-t0)
                isSet_dV = .true.

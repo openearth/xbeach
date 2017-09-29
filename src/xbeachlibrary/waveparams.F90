@@ -64,7 +64,7 @@ contains
 
          if(xmaster) then
             open(74,file=par%bcfile,form='formatted')
-            if (par%instat/=INSTAT_JONS_TABLE) read(74,*)testc
+            if (par%wbctype/=WBCTYPE_JONS_TABLE) read(74,*)testc
          endif
 
          if(xmaster) then
@@ -76,7 +76,7 @@ contains
          endif
 
          ! Check whether BCF files should be reused
-         if (testc=='FILELIST' .or. par%instat==INSTAT_JONS_TABLE) then
+         if (testc=='FILELIST' .or. par%wbctype==WBCTYPE_JONS_TABLE) then
             reuse=0
          else
             reuse=1
@@ -101,7 +101,7 @@ contains
 
          ! Read rt and dt values
          if(xmaster) then
-            if (par%instat/=INSTAT_JONS_TABLE) then
+            if (par%wbctype/=WBCTYPE_JONS_TABLE) then
                read(74,*)wp%rt,wp%dt,fname
                if (par%morfacopt==1) wp%rt = wp%rt / max(par%morfac,1.d0)
             endif
@@ -114,7 +114,7 @@ contains
 #endif
 
          ! Create filenames for BCF files
-         if (par%instat/=INSTAT_JONS_TABLE) then
+         if (par%wbctype/=WBCTYPE_JONS_TABLE) then
             Ebcfname='E_'//trim(fname)
             qbcfname='q_'//trim(fname)
          else
@@ -157,17 +157,17 @@ contains
             wp%h0t0 = s%hh(1,1)
          endif
 
-         if (par%instat==INSTAT_JONS .or. par%instat==INSTAT_JONS_TABLE) then
+         if (par%wbctype==WBCTYPE_PARAMETRIC .or. par%wbctype==WBCTYPE_JONS_TABLE) then
             ! Use JONSWAP spectrum
             call build_jonswap(par,s,wp,fname)
             call build_etdir(par,s,wp,Ebcfname)
             call build_boundw(par,s,wp,qbcfname)
-         elseif (par%instat==INSTAT_SWAN) then
+         elseif (par%wbctype==WBCTYPE_SWAN) then
             ! Use SWAN data
             call swanreader(par,s,wp,fname)
             call build_etdir(par,s,wp,Ebcfname)
             call build_boundw(par,s,wp,qbcfname)
-         elseif (par%instat==INSTAT_VARDENS) then
+         elseif (par%wbctype==WBCTYPE_VARDENS) then
             ! Use variance density spectrum
             call vardensreader(par,s,wp,fname)
             call build_etdir(par,s,wp,Ebcfname)
@@ -230,7 +230,7 @@ contains
       if(xmaster) then
 
          ! Check whether spectrum characteristics or table should be used
-         if (par%instat /= INSTAT_JONS_TABLE) then
+         if (par%wbctype /= WBCTYPE_JONS_TABLE) then
 
             ! Use spectrum characteristics
             call writelog('sl','','waveparams: Reading from ',trim(fname),' ...')
@@ -250,7 +250,7 @@ contains
       endif
 
       ! Read JONSWAP characteristics
-      if (par%instat/=INSTAT_JONS_TABLE) then
+      if (par%wbctype/=WBCTYPE_JONS_TABLE) then
          !                                      Input file   Keyword     Default     Minimum     Maximum
          wp%hm0gew           = readkey_dbl (fname,       'Hm0',      0.0d0,      0.00d0,     5.0d0,      bcast=.false. )
          fp                  = readkey_dbl (fname,       'fp',       0.08d0,     0.0625d0,   0.4d0,      bcast=.false. )
@@ -451,7 +451,7 @@ contains
 
       switch = 0
       if(xmaster) then
-         call writelog('sl','','Reading from SWAN file ',fname,' ...')
+         call writelog('sl','','Reading from SWAN file: ',fname,' ...')
          open(44,file=fname,form='formatted',status='old')
 
 
@@ -1263,7 +1263,7 @@ contains
          Nbox(i)=s%thetamin+(i-1)*s%dtheta
       enddo
 
-      if (par%instat==INSTAT_JONS .or. par%instat==INSTAT_JONS_TABLE) then
+      if (par%wbctype==WBCTYPE_PARAMETRIC .or. par%wbctype==WBCTYPE_JONS_TABLE) then
          rD = dcos(0.5d0*(Nbox(1:Ns)+Nbox(2:Ns+1))-wp%mainang)**(2*nint(wp%scoeff))
          rD = rD/sum(rD)
       endif
@@ -1490,7 +1490,7 @@ contains
 
       ! Jaap: apply symmetric distribution in case of jons or jons_table
       ! REMARK: in this case printing messages to screen can be erroneous
-      if (par%instat==INSTAT_JONS .or. par%instat==INSTAT_JONS_TABLE) then
+      if (par%wbctype==WBCTYPE_PARAMS .or. par%wbctype==WBCTYPE_JONS_TABLE) then
          call writelog('ls','','Apply symmetric energy distribution w.r.t mean wave direction')
          do ii=1,Ns
             do index2=1,wp%Npy

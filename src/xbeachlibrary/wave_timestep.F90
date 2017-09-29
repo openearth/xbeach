@@ -43,7 +43,7 @@ contains
       type(spacepars)                                 :: s
       type(parameters)                                :: par
 
-      if (par%instat == INSTAT_STAT .or. par%instat == INSTAT_STAT_TABLE) then
+      if (par%wavemodel == WAVEMODEL_STATIONARY) then
 
          !#ifdef USEMPI
          !       call wave_instationary(s,par)

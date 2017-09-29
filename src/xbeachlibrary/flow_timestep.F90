@@ -78,7 +78,7 @@ contains
          allocate (sinthm(s%nx+1,s%ny+1))
          allocate (costhm(s%nx+1,s%ny+1))
 
-         if (par%secorder == 1  .or. par%nonh == 1) then
+         if (par%secorder == 1  .or. par%wavemodel==WAVEMODEL_NONH) then
             allocate(vv_old(s%nx+1,s%ny+1)); vv_old = s%vv
             allocate(uu_old(s%nx+1,s%ny+1)); uu_old = s%uu
             allocate(zs_old(s%nx+1,s%ny+1)); zs_old = s%zs
@@ -252,7 +252,7 @@ contains
                s%nuh(i,j) = max(s%nuh(i,j),par%nuhfac*s%hh(i,j)*(s%DR(i,j)/par%rho)**(1.0d0/3.0d0)) ! Ad: change to max
             end do
          end do
-      elseif (par%swave==0 .and. par%nonh==1) then
+      elseif (par%swave==0 .and. par%wavemodel==WAVEMODEL_NONH) then
          select case (par%nhbreaker)
           case (1)
             where (s%breaking/=0)
@@ -612,7 +612,7 @@ contains
          endif
       endif
 
-      if (par%nonh==1) then
+      if (par%wavemodel==WAVEMODEL_NONH) then
          !Do explicit predictor step with pressure
          call nonh_cor(s,par,0,uu_old,vv_old)
 
@@ -631,7 +631,7 @@ contains
 #endif
       end if
 
-      if (par%nonh==1) then
+      if (par%wavemodel==WAVEMODEL_NONH) then
          ! do non-hydrostatic pressure compensation to solve short waves
          call nonh_cor(s,par,1,uu_old,vv_old)
          ! note: MPI shift in subroutine nonh_cor
@@ -746,7 +746,7 @@ contains
       call xmpi_shift_ee(s%zs)
 #endif
 
-      if (par%secorder == 1 .or. par%nonh == 1) then
+      if (par%secorder == 1 .or. par%wavemodel==WAVEMODEL_NONH) then
          vv_old = s%vv
          uu_old = s%uu
          zs_old = s%zs

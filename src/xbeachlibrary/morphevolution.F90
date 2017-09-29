@@ -258,7 +258,7 @@ contains
          ! Original one, but only on bed load : par%bdslpeffmag = 2
          if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL) then
             if (par%bermslope>0) then
-               where (s%H/s%hu>1.0d0.or.(s%hu<1.d0.and. par%instat==INSTAT_STAT_TABLE))
+               where (s%H/s%hu>1.0d0.or.(s%hu<1.d0.and. par%wavemodel == WAVEMODEL_STATIONARY))
                   Sus = Sus-par%sus*(10.d0*par%facsl*cu*s%vmagu*s%hu*(s%dzbdx-par%bermslope))*s%wetu
                elsewhere
                   Sus = Sus-par%sus*(par%facsl*cu*s%vmagu*s%hu*s%dzbdx)*s%wetu
@@ -270,7 +270,7 @@ contains
 
          if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL .or. par%bdslpeffmag == BDSLPEFFMAG_ROELV_BED) then
             if (par%bermslope>0) then
-               where (s%H/s%hu>1.0d0 .or. (s%hu<1.d0.and. par%instat==INSTAT_STAT_TABLE))
+               where (s%H/s%hu>1.0d0 .or. (s%hu<1.d0.and. par%wavemodel == WAVEMODEL_STATIONARY))
                   Sub = Sub-par%bed*(10.0d0*par%facsl*cub*s%vmagu*s%hu*(s%dzbdx-par%bermslope))*s%wetu
                elsewhere
                   Sub = Sub-par%bed*(par%facsl*cub*s%vmagu*s%hu*s%dzbdx)*s%wetu
@@ -1265,7 +1265,7 @@ contains
          allocate (b     (s%nx+1,s%ny+1))
          allocate (fslope(s%nx+1,s%ny+1))
          allocate (hfac  (s%nx+1,s%ny+1))
-         
+         ! Van Rijn (1993) by Kees
          allocate (used  (s%nx+1,s%ny+1))
          allocate (ue  (s%nx+1,s%ny+1))
          allocate (uorb  (s%nx+1,s%ny+1))
@@ -1360,7 +1360,7 @@ contains
                (s%E(nint(s%istruct(j)),j)*s%strucslope(j)*sqrt(par%g/s%hh(nint(s%istruct(j)),j)))**twothird
             endif
          enddo
-      elseif (par%nonh==1) then
+      elseif (par%wavemodel==WAVEMODEL_NONH) then
          do j=1,s%ny+1
             do i=1,s%nx+1
                !ML=max(s%rolthick(i,j),0.07d0*max(s%hh(i,j),par%hmin))

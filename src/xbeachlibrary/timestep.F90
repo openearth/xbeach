@@ -153,7 +153,7 @@ contains
 
       !!!!! OUTPUT TIME POINTS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! If working in instat 0 or instat 40 we want time to coincide at wavint timesteps
-      if (par%instat==INSTAT_STAT .or. par%instat==INSTAT_STAT_TABLE .or. par%single_dir==1) then
+      if (par%wavemodel==WAVEMODEL_STATIONARY .or. par%single_dir==1) then
          if(xmaster) then
             ii=ceiling(par%tstop/par%wavint)
             allocate(tpar%tpw(ii))
@@ -569,8 +569,8 @@ contains
 #else
             ! if (par%instat(1:4)/='stat') then
             ! wwvv: hoping that this is a correct translation:
-            select case (par%instat)
-             case(INSTAT_STAT,INSTAT_STAT_TABLE)
+            select case (par%wavemodel)
+             case(WAVEMODEL_STATIONARY)
                continue
              case default
                par%dt=min(par%dt,par%CFL*s%dtheta/(maxval(maxval(abs(s%ctheta),3)*real(s%wetz))+tny))

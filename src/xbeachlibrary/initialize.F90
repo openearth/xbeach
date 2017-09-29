@@ -577,28 +577,29 @@ contains
 
 
       ! introduce intrinsic frequencies for wave action
-      if ( par%instat==INSTAT_JONS .or. &
-      par%instat==INSTAT_JONS_TABLE .or. &
-      par%instat==INSTAT_SWAN .or. &
-      par%instat==INSTAT_VARDENS .or. &
-      par%instat==INSTAT_REUSE .or. &
-      par%instat==INSTAT_TS_NONH &
+      if ( par%wbctype==WBCTYPE_PARAMETRIC .or. &
+      par%wbctype==WBCTYPE_JONS_TABLE .or. &
+      par%wbctype==WBCTYPE_SWAN .or. &
+      par%wbctype==WBCTYPE_VARDENS .or. &
+      par%wbctype==WBCTYPE_REUSE .or. &
+      par%wbctype==WBCTYPE_TS_NONH &
       ) par%Trep=10.d0
       !Robert
       ! incorrect values are computed below for instat = 4/5/6/7
       ! in this case right values are computed in wave params.f90
-      if ( par%instat==INSTAT_JONS .or. &
-      par%instat==INSTAT_JONS_TABLE .or. &
-      par%instat==INSTAT_SWAN .or. &
-      par%instat==INSTAT_VARDENS) then
+      if ( par%wbctype==WBCTYPE_PARAMETRIC .or. &
+      par%wbctype==WBCTYPE_JONS_TABLE .or. &
+      par%wbctype==WBCTYPE_SWAN .or. &
+      par%wbctype==WBCTYPE_VARDENS) then
          if(xmaster) call spectral_wave_init (s,par)  ! only used by xmaster
       endif
+
       do itheta=1,s%ntheta
          s%sigt(:,:,itheta) = 2*par%px/par%Trep
       end do
       s%sigm = sum(s%sigt,3)/s%ntheta
       call dispersion(par,s)
-      
+      !
       inquire(file=par%wavfricfile,exist=exists)
       if ((exists)) then
          open(723,file=par%wavfricfile)
@@ -924,7 +925,7 @@ contains
       s%viscu = 0.d0
       s%viscv = 0.d0
 
-      if (par%nonh==1) then
+      if (par%wavemodel==WAVEMODEL_NONH) then
          s%breaking = 0
       endif
       
@@ -1461,7 +1462,6 @@ contains
       allocate(s%ca(1:s%nx+1,1:s%ny+1))             ! Q3D: reference concentration
       allocate(s%refA(1:s%nx+1,1:s%ny+1))           ! Q3D: reference level
 
-      
       ! Initialize so structures can be implemented more easily
       s%pbbed = 0.d0
       !
@@ -1472,6 +1472,7 @@ contains
       s%D90 = par%D90(1:par%ngd)
       s%sedcal = par%sedcal(1:par%ngd)
       s%ucrcal = par%ucrcal(1:par%ngd)
+
 
       if (par%ngd==1) then
 

@@ -193,7 +193,7 @@ contains
       call ranges_init(s)
 
       ! nonh_init does not always need to be called
-      if (par%nonh==1) call nonh_init(s,par)
+      if (par%wavemodel==WAVEMODEL_NONH) call nonh_init(s,par)
 
       ! initialize output
       call means_init             (sglobal,s,par     )
@@ -254,22 +254,22 @@ contains
          call log_progress(par)
               
          if (error==0) then
-            
-            ! boundary conditions
+            !    
+            ! Boundary conditions
             call wave_bc        (sglobal,s,par)
-            if (par%gwflow==1)       call gw_bc          (s,par)
-            if (par%flow+par%nonh>0) call flow_bc        (s,par)
-
-            ! compute timestep
-            if (par%ships==1)        call shipwave       (s,par,sh)
-            if (par%swave==1)        call wave           (s,par)
-            if (par%vegetation==1)   call vegatt         (s,par,veg)
-            if (par%gwflow==1)       call gwflow         (s,par)
-            if (par%flow+par%nonh>0) call flow           (s,par)
-            if (par%ndrifter>0)      call drifter        (s,par)
-            if (par%sedtrans==1)     call transus        (s,par)
-            ! Beach wizard
-            if (par%bchwiz>0)        call assim          (s,par)
+            if (par%gwflow==1)                                      call gw_bc          (s,par)
+            if ((par%flow==1).or.(par%wavemodel==WAVEMODEL_NONH))   call flow_bc        (s,par)
+            !
+            ! Compute timestep
+            if (par%ships==1)                                       call shipwave       (s,par,sh)
+            if (par%swave==1)                                       call wave           (s,par)
+            if (par%vegetation==1)                                  call vegatt         (s,par,veg)
+            if (par%gwflow==1)                                      call gwflow         (s,par)
+            if ((par%flow==1).or.(par%wavemodel==WAVEMODEL_NONH))   call flow           (s,par)
+            if (par%ndrifter>0)                                     call drifter        (s,par)
+            if (par%sedtrans==1)                                    call transus        (s,par)
+            if (par%bchwiz>0)                                       call assim          (s,par)             ! Beach wizard
+            !
             ! Bed level update
             if ((par%morphology==1).and.(.not. par%bchwiz==1).and.(.not. par%setbathy==1)) call bed_update(s,par)
             if (par%bchwiz>0)        call assim_update   (s, par)

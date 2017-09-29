@@ -145,7 +145,7 @@ contains
       endif
    end subroutine check_file_length_3D
 
-   subroutine checkbcfilelength(tstop,instat,filename,filetype,nonh)
+   subroutine checkbcfilelength(tstop,wbctype,filename,filetype,nonh)
       use logging_module
       use xmpi_module
 
@@ -156,7 +156,7 @@ contains
       end type
 
       real*8, intent(in) :: tstop
-      integer, intent(in):: instat
+      integer, intent(in):: wbctype
       character(slen)     :: filename,dummy
       character(slen)     :: testc
       character(len=1)    :: ch
@@ -221,7 +221,7 @@ contains
          do ifid=1,nlocs
             fid = create_new_fid()
             open(fid,file=trim(bcfiles(ifid)%fname))
-            if (instat==INSTAT_JONS .or. instat==INSTAT_SWAN .or. instat==INSTAT_VARDENS) then
+            if (wbctype==WBCTYPE_PARAMETRIC .or. wbctype==WBCTYPE_SWAN .or. wbctype==WBCTYPE_VARDENS) then
                read(fid,*,iostat=ier)testc
                if (ier .ne. 0) then
                   call report_file_read_error(bcfiles(ifid)%fname)
@@ -232,9 +232,9 @@ contains
                else
                   filetype = 0
                endif
-            elseif (instat==INSTAT_STAT_TABLE .or. instat==INSTAT_JONS_TABLE) then
+            elseif (wbctype==WBCTYPE_JONS_TABLE) then
                filetype = 2
-            elseif (instat==INSTAT_REUSE) then
+            elseif (wbctype==WBCTYPE_REUSE) then
                filetype = 3
             endif
 

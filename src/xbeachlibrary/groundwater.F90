@@ -291,7 +291,7 @@ contains
       ! If using dynamic pressure (nonh==1), very short wave lengths mess things
       ! up because they are not resolved properly in the nonh pressure solver.
       ! To surpress this, carry out pressure averaging over time scale ~ 1/4 Trep
-      if (par%nonh==1) then
+      if (par%wavemodel==WAVEMODEL_NONH) then
          factime = min(4*par%dt/par%Trep,1.d0)
          dynpresupd = (1-factime) * dynpresupd + factime * s%pres
       endif
@@ -348,7 +348,11 @@ contains
       ! from surface water, or atmospheric pressure when dry). Takes into
       ! account a transition layer, specified by user to smooth transition
       ! from surface water head to atmospheric head
-      gwheadtop = gwCalculateHeadTop(s%nx,s%ny,zsupd,s%gwlevel,s%wetz,ratio,par%nonh,par%g,dynpresupd)
+      if (par%wavemodel==WAVEMODEL_NONH) then
+        gwheadtop = gwCalculateHeadTop(s%nx,s%ny,zsupd,s%gwlevel,s%wetz,ratio,1,par%g,dynpresupd)
+      else
+        gwheadtop = gwCalculateHeadTop(s%nx,s%ny,zsupd,s%gwlevel,s%wetz,ratio,0,par%g,dynpresupd)
+      endif
       !
       ! Compute groundwater head in cell centres
       ! In case of hydrostatic this is the same as the surface water head,
@@ -1293,7 +1297,7 @@ contains
       do j=1,s%ny+1
          do i=1,s%nx+1
             call gw_calculate_velocities_local(gwu(i,j),Kxupd(i,j),dheaddx(i,j),Kx(i,j),0.d0, &
-            par%gwscheme,.false.,par%nonh==1,par%gwheadmodel, &
+            par%gwscheme,.false.,par%wavemodel==WAVEMODEL_NONH,par%gwheadmodel, &
             s%gwcurv(i,j),s%gwheight(i,j),vcr)
          enddo
       enddo
@@ -1301,7 +1305,7 @@ contains
       do j=1,s%ny+1
          do i=1,s%nx+1
             call gw_calculate_velocities_local(gwv(i,j),Kyupd(i,j),dheaddy(i,j),Ky(i,j),0.d0, &
-            par%gwscheme,.false.,par%nonh==1,par%gwheadmodel, &
+            par%gwscheme,.false.,par%wavemodel==WAVEMODEL_NONH,par%gwheadmodel, &
             s%gwcurv(i,j),s%gwheight(i,j),vcr)
          enddo
       enddo
@@ -1309,7 +1313,7 @@ contains
       do j=1,s%ny+1
          do i=1,s%nx+1
             call gw_calculate_velocities_local(gww(i,j),Kzupd(i,j),0.d0,Kz(i,j),fracdt(i,j), &
-            par%gwscheme,.true.,par%nonh==1,par%gwheadmodel, &
+            par%gwscheme,.true.,par%wavemodel==WAVEMODEL_NONH,par%gwheadmodel, &
             s%gwcurv(i,j),s%gwheight(i,j),vcr)
          enddo
       enddo

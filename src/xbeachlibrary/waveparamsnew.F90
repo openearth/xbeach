@@ -357,7 +357,7 @@ contains
          fn%reuse = .false.
       else
          filelist = .false.
-         if (par%instat /= INSTAT_JONS_TABLE) then
+         if (par%wbctype /= WBCTYPE_JONS_TABLE) then
             fn%reuse = .true.
          else
             fn%reuse = .false.
@@ -392,17 +392,17 @@ contains
       ! based on the value of instat, we need to read either Jonswap, Swan or vardens files
       ! note: jons_table is also handeled by read_jonswap_file subroutine
       !select case (par%instat(1:4))
-      select case(par%instat)
-       case (INSTAT_JONS, INSTAT_JONS_TABLE)
+      select case(par%wbctype)
+       case (WBCTYPE_PARAMETRIC, WBCTYPE_JONS_TABLE)
          ! wp type sent in to receive rtbc and dtbc from jons_table file
          ! fn%listline sent in to find correct row in jons_table file
          ! pfff..
          call read_jonswap_file(par,wp,readfile,fn%listline,specin)
          !case ('swan')
-       case (INSTAT_SWAN)
+       case (WBCTYPE_SWAN)
          call read_swan_file(par,readfile,specin)
          !case ('vard')
-       case (INSTAT_VARDENS)
+       case (WBCTYPE_VARDENS)
          call read_vardens_file(par,readfile,specin)
       endselect
 
@@ -445,9 +445,9 @@ contains
       ! First part: read JONSWAP parameter data
 
       ! Check whether spectrum characteristics or table should be used
-      if (par%instat /= INSTAT_JONS_TABLE) then
+      if (par%wbctype /= WBCTYPE_JONS_TABLE) then
          ! Use spectrum characteristics
-         call writelog('sl','','waveparams: Reading from ',trim(readfile),' ...')
+         call writelog('sl','','waveparams: Reading from: ',trim(readfile),' ...')
          !
          ! First read if the spectrum is multinodal, and how many peaks there should be
          !
@@ -517,11 +517,7 @@ contains
          !
          ! Nyquist parameters used only in this subroutine
          ! are not read individually for each spectrum partition
-         if (par%oldnyq==1) then
-            fnyq    = readkey_dbl (readfile, 'fnyq',       0.3d0,    0.2d0,      1.0d0,      bcast=.false. )
-         else
          fnyq    = readkey_dbl (readfile, 'fnyq',max(0.3d0,3.d0*maxval(fp)), 0.2d0, 1.0d0, bcast=.false. )
-         endif
          dfj     = readkey_dbl (readfile, 'dfj',      fnyq/200,   fnyq/1000,  fnyq/20,    bcast=.false. )
          !
          ! Finally check if XBeach should accept even the most stupid partioning (sets error level to warning
@@ -541,7 +537,7 @@ contains
          allocate(tma(nmodal))
          ! Use spectrum table
          fid = create_new_fid()
-         call writelog('sl','','waveparams: Reading from table ',trim(readfile),' ...')
+         call writelog('sl','','waveparams: Reading from table: ',trim(readfile),' ...')
          open(fid,file=readfile,status='old',form='formatted')
          ! read junk up to the correct line in the file
          do i=1,listline
@@ -945,7 +941,7 @@ contains
       flipped =.false.
       switch  = 0
 
-      call writelog('sl','','Reading from SWAN file ',trim(readfile),' ...')
+      call writelog('sl','','Reading from SWAN file: ',trim(readfile),' ...')
       fid = create_new_fid()
       open(fid,file=readfile,form='formatted',status='old')
 
@@ -1155,7 +1151,7 @@ contains
       integer                                 :: fid,i,ii,nnz,ier
 
       ! Open file to start read
-      call writelog('sl','','Reading from vardens file ',trim(readfile),' ...')
+      call writelog('sl','','Reading from vardens file: ',trim(readfile),' ...')
       fid = create_new_fid()
       open(fid,file=readfile,form='formatted',status='old')
 
@@ -2366,8 +2362,7 @@ contains
       !
       ! Calculate energy envelope amplitude
       do iy=1,s%ny+1
-            ! Integrate instantaneous water level excitation of wave
-            ! components over directions
+        ! Integrate instantaneous water level excitation of wave components over directions
         eta(iy,:) = sum(zeta(iy,:,:),2)
         tempcmplx=eta(iy,:)
         !
