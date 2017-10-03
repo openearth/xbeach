@@ -2271,7 +2271,9 @@ contains
       integer,dimension(:),allocatable             :: tempindex,tempinclude
       real*8                                       :: stdzeta,stdeta,etot,perc
       real*8, dimension(:), allocatable            :: E_t
-
+      
+      if (par%bclwonly==0) then
+      
       ! Allocate variables for water level exitation and amplitude with and without
       ! directional spreading dependent envelope
       allocate(zeta(s%ny+1,wp%tslen,s%ntheta))
@@ -2401,6 +2403,10 @@ contains
       deallocate(tempcmplx)
       deallocate(nwc)
       !
+      else  ! only long wave forcing at the boundary
+         allocate(Ampzeta(s%ny+1,wp%tslen,s%ntheta))
+         Ampzeta=0.d0
+      endif 
       ! Allocate memory for energy time series
       allocate(E_tdir(s%ny+1,wp%tslen,s%ntheta))
       E_tdir=0.0d0
@@ -2418,12 +2424,13 @@ contains
       !    enddo
 
       ! Print directional energy distribution to screen
-      etot = sum(E_tdir)
-      do itheta=1,s%ntheta
-         perc = sum(E_tdir(:,:,itheta))/etot*100
-         call writelog('ls','(a,i0,a,f0.2,a)','Wave bin ',itheta,' contains ',perc,'% of total energy')
-      enddo
-
+      if (par%bclwonly==0) then
+         etot = sum(E_tdir)
+         do itheta=1,s%ntheta
+            perc = sum(E_tdir(:,:,itheta))/etot*100
+            call writelog('ls','(a,i0,a,f0.2,a)','Wave bin ',itheta,' contains ',perc,'% of total energy')
+         enddo
+      endif
 
       ! Open file for storage
       call writelog('ls','','Writing wave energy to ',trim(wp%Efilename),' ...')
@@ -2459,8 +2466,12 @@ contains
       close(fid)
       call writelog('sl','','file done')
 
-      ! Free memory
-      deallocate(zeta,Ampzeta,E_tdir, Amp, eta)
+      if (par%bclwonly==0) then
+         ! Free memory
+         deallocate(zeta,Ampzeta,E_tdir, Amp, eta)
+      else
+         deallocate(Ampzeta,E_tdir)
+      endif
 
    end subroutine generate_ebcf
 
@@ -2495,96 +2506,102 @@ contains
       wp%vits=0.d0
       wp%duits=0.d0
       wp%dvits=0.d0
-      u1 = 0.d0
-      u2 = 0.d0
-      U = 0.d0
-      dU = 0.d0
-      ! z-level of layer
-      z = -1 * (wp%h0 - par%nhlay * wp%h0)
-      ! total surface elevation
-      call writelog('ls','','Calculating short wave elevation time series')
-      call progress_indicator(.true.,0.d0,5.d0,2.d0)
-      do it=1,wp%tslen
-         call progress_indicator(.false.,dble(it)/wp%tslen*100,5.d0,2.d0)
-         do ik=1,wp%K
-            if (wp%PRindex(ik)==1) then 
-               do j=1,s%ny+1
-                  wp%zsits(j,it)=wp%zsits(j,it)+wp%A(j,ik)*dsin( &
-                  +wp%wgen(ik)*wp%tin(it)&
-                  -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
-                  +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
-                  +wp%phigen(ik) &
-                  )
-               enddo
-            endif
+      if (par%bclwonly==0) then
+         
+      
+         u1 = 0.d0
+         u2 = 0.d0
+         U = 0.d0
+         dU = 0.d0
+         ! z-level of layer
+         z = -1 * (wp%h0 - par%nhlay * wp%h0)
+         ! total surface elevation
+         call writelog('ls','','Calculating short wave elevation time series')
+         call progress_indicator(.true.,0.d0,5.d0,2.d0)
+         do it=1,wp%tslen
+            call progress_indicator(.false.,dble(it)/wp%tslen*100,5.d0,2.d0)
+            do ik=1,wp%K
+               if (wp%PRindex(ik)==1) then 
+                  do j=1,s%ny+1
+                     wp%zsits(j,it)=wp%zsits(j,it)+wp%A(j,ik)*dsin( &
+                     +wp%wgen(ik)*wp%tin(it)&
+                     -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
+                     +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
+                     +wp%phigen(ik) &
+                     )
+                  enddo
+               endif
+            enddo
          enddo
-      enddo
-      ! depth-averaged velocity
-      call writelog('ls','','Calculating short wave velocity time series')
-      call progress_indicator(.true.,0.d0,5.d0,2.d0)
-      do it=1,wp%tslen
-         call progress_indicator(.false.,dble(it)/wp%tslen*100,5.d0,2.d0)
-         do ik=1,wp%K
-            if (wp%PRindex(ik)==1) then 
-               do j=1,s%ny+1
+         ! depth-averaged velocity
+         call writelog('ls','','Calculating short wave velocity time series')
+         call progress_indicator(.true.,0.d0,5.d0,2.d0)
+         do it=1,wp%tslen
+            call progress_indicator(.false.,dble(it)/wp%tslen*100,5.d0,2.d0)
+            do ik=1,wp%K
+               if (wp%PRindex(ik)==1) then 
+                  do j=1,s%ny+1
                    
-                if ( par%nonhq3d == 1 ) then
-                    ! Compute layer averaged velocity for layer 1 and 2 based on layer level z.
-                    u1 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik) * wp%h0) * wp%kgen(ik)) * (dsinh(wp%kgen(ik) * (z + wp%h0))) * & 
-                                            dsin(wp%wgen(ik)*wp%tin(it)&
-                                            -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
-                                            +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
-                                            +wp%phigen(ik))
-                    u1 = u1 / (wp%h0+z)
-                    u2 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik) * wp%h0) * wp%kgen(ik)) * (dsinh(wp%kgen(ik) * (0 + wp%h0)) - & 
-                                            dsinh(wp%kgen(ik) * (z + wp%h0))) * & 
-                                            dsin(wp%wgen(ik)*wp%tin(it) &
-                                            -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
-                                            +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
-                                            +wp%phigen(ik))
-                    u2 = u2/(z*-1)
-                    ! Store U. U = alpha * U1 + (1-alpha) * U2
-                    U  = par%nhlay * u1 + (1-par%nhlay) * u2
-                    ! Store dU. Du = U1 - U2
-                    dU = (u1 - u2)
+                   if ( par%nonhq3d == 1 ) then
+                       ! Compute layer averaged velocity for layer 1 and 2 based on layer level z.
+                       u1 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik) * wp%h0) * wp%kgen(ik)) * (dsinh(wp%kgen(ik) * (z + wp%h0))) * & 
+                                               dsin(wp%wgen(ik)*wp%tin(it)&
+                                               -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
+                                               +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
+                                               +wp%phigen(ik))
+                       u1 = u1 / (wp%h0+z)
+                       u2 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik) * wp%h0) * wp%kgen(ik)) * (dsinh(wp%kgen(ik) * (0 + wp%h0)) - & 
+                                               dsinh(wp%kgen(ik) * (z + wp%h0))) * & 
+                                               dsin(wp%wgen(ik)*wp%tin(it) &
+                                               -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
+                                               +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
+                                               +wp%phigen(ik))
+                       u2 = u2/(z*-1)
+                       ! Store U. U = alpha * U1 + (1-alpha) * U2
+                       U  = par%nhlay * u1 + (1-par%nhlay) * u2
+                       ! Store dU. Du = U1 - U2
+                       dU = (u1 - u2)
                     
-                    ! Eastward component U:
-                    wp%uits(j,it) = wp%uits(j,it) + dcos(wp%thetagen(ik))*U
-                    ! Northward component V:
-                    wp%vits(j,it) = wp%vits(j,it) + dsin(wp%thetagen(ik))*U
-                    ! Eastward component dU:
-                    wp%duits(j,it) = wp%duits(j,it) + dcos(wp%thetagen(ik))*dU
-                    ! Northward component dV:
-                    wp%dvits(j,it) = wp%dvits(j,it) + dsin(wp%thetagen(ik))*dU
-                else
-                    ! Depth-average velocity in wave direction:
-                    U  = 1.d0/wp%h0*wp%wgen(ik)*wp%A(j,ik) * &
-                                  dsin(wp%wgen(ik)*wp%tin(it) &
-                                        -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
-                                        +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
-                                        +wp%phigen(ik) &
-                                       ) * &
-                                  1.d0/wp%kgen(ik)
+                       ! Eastward component U:
+                       wp%uits(j,it) = wp%uits(j,it) + dcos(wp%thetagen(ik))*U
+                       ! Northward component V:
+                       wp%vits(j,it) = wp%vits(j,it) + dsin(wp%thetagen(ik))*U
+                       ! Eastward component dU:
+                       wp%duits(j,it) = wp%duits(j,it) + dcos(wp%thetagen(ik))*dU
+                       ! Northward component dV:
+                       wp%dvits(j,it) = wp%dvits(j,it) + dsin(wp%thetagen(ik))*dU
+                   else
+                       ! Depth-average velocity in wave direction:
+                       U  = 1.d0/wp%h0*wp%wgen(ik)*wp%A(j,ik) * &
+                                     dsin(wp%wgen(ik)*wp%tin(it) &
+                                           -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
+                                           +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
+                                           +wp%phigen(ik) &
+                                          ) * &
+                                     1.d0/wp%kgen(ik)
                   
-                    ! Eastward component:
-                    wp%uits(j,it) = wp%uits(j,it) + dcos(wp%thetagen(ik))*U
-                    ! Northward component:
-                    wp%vits(j,it) = wp%vits(j,it) + dsin(wp%thetagen(ik))*U
-                endif
-               enddo
-            endif
+                       ! Eastward component:
+                       wp%uits(j,it) = wp%uits(j,it) + dcos(wp%thetagen(ik))*U
+                       ! Northward component:
+                       wp%vits(j,it) = wp%vits(j,it) + dsin(wp%thetagen(ik))*U
+                   endif
+                  enddo
+               endif
+            enddo
          enddo
-      enddo
-      !
-      !
-      ! Apply tapering to time series
-      do j=1,s%ny+1
-         wp%uits(j,:)=wp%uits(j,:)*wp%taperf
-         wp%vits(j,:)=wp%vits(j,:)*wp%taperf
-         wp%zsits(j,:)=wp%zsits(j,:)*wp%taperf
-         wp%duits(j,:)=wp%duits(j,:)*wp%taperf
-         wp%dvits(j,:)=wp%dvits(j,:)*wp%taperf
-      enddo
+         !
+         !
+         ! Apply tapering to time series
+         do j=1,s%ny+1
+            wp%uits(j,:)=wp%uits(j,:)*wp%taperf
+            wp%vits(j,:)=wp%vits(j,:)*wp%taperf
+            wp%zsits(j,:)=wp%zsits(j,:)*wp%taperf
+            wp%duits(j,:)=wp%duits(j,:)*wp%taperf
+            wp%dvits(j,:)=wp%dvits(j,:)*wp%taperf
+         enddo
+      else
+         ! do nothing in this routine
+      endif
    end subroutine generate_swts
 
 

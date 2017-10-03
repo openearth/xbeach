@@ -117,6 +117,7 @@ module params
       character(slen)                   :: leftwave_str             =  ' '                 !  [-] old name for lateralwave
       integer                           :: rightwave                = -123                 !  [-] (deprecated) old name for lateralwave
       character(slen)                   :: rightwave_str            = ' '                  !  [-] old name for lateralwav
+      integer                           :: bclwonly                 = -123                 !  [-] (advanced,silent) switch to run boundary conditions with long waves only
       
       ! [Section] Wave-spectrum boundaryition parameters
       character(slen)                   :: bcfile                   = 'abc'                !  [file] Name of spectrum file
@@ -960,6 +961,7 @@ contains
       call setallowednames('neumann',LATERALWAVE_NEUMANN,'wavecrest',LATERALWAVE_WAVECREST,'cyclic',LATERALWAVE_CYCLIC)
       call setoldnames('0','1')
       call parmapply('lateralwave',1,par%lateralwave,par%lateralwave_str)
+      par%bclwonly   = readkey_int ('params.txt','bclwonly',  0,0,1,strict=.true.,silent=.true.)
       ! TODO: fix
       !if (isSetParameter('params.txt','lateralwave')) then
       !   call setallowednames('neumann',LEFTWAVE_NEUMANN,'wavecrest',LEFTWAVE_WAVECREST)
