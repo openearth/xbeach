@@ -292,7 +292,7 @@ subroutine swvegatt(s,par,veg)
              
                     ! compute dissipation based on aht and correct for lower elevated dissipation layers (following Suzuki et al. 2012)
                     ! Take drag term = average of two vegetation points (not correct for emergent vegetation and roots below bed level)
-                    Dvgt = 0.5d0*(veg(ind)%Dragterm1(m,i,j)+veg(ind)%Dragterm1(m+1,i,j))*(0.5d0*kmr(i,j)*par%g/s%sigm(i,j))**3*(hterm-htermold)*s%H(i,j)**3
+                    Dvgt = 0.5d0*(veg(ind)%Dragterm1(m,i,j)+veg(ind)%Dragterm1(m,i,j))*(0.5d0*kmr(i,j)*par%g/s%sigm(i,j))**3*(hterm-htermold)*s%H(i,j)**3
              
                     ! save hterm to htermold to correct possibly in next vegetation section
                     htermold = hterm
@@ -321,11 +321,13 @@ subroutine momeqveg(s,par,veg)
     
     ! local variables
     integer                                     :: i,j,m,ind  ! indices of actual x,y point
-    real*8                                      :: aht,ahtold,Fvgtu,Fvgtv,FvgStu,FvgStv,watr,wacr,uabsu,vabsv,totT
+    real*8                                      :: aht,ahtold,Fvgtu,Fvgtv,FvgStu,FvgStv,watr,wacr,uabsu,vabsv
+    real*8, save                                :: totT
     real*8                                      :: Fvgnlt,Fvgnlu,Fvgnlv,FvgCan,FvgCav,FvgCau,ucan,uabsunl !uabsunl,vabsvnl,hterm,htermold,
     real*8, dimension(s%nx+1,s%ny+1)            :: Fvgu,Fvgv,kmr
-    real*8, dimension(50)                       :: unl,etaw,hvegeff,Fvgnlu0 
-    real*8, dimension(:,:)  , allocatable,save  :: sinthm, costhm
+    real*8, dimension(s%nx+1,s%ny+1,50)         :: unl,etaw
+    real*8, dimension(50)                       :: hvegeff,Fvgnlu0 
+    real*8, dimension(:,:), allocatable,save  :: sinthm, costhm
 
     !include 's.ind'
     !include 's.inp'
@@ -357,24 +359,15 @@ subroutine momeqveg(s,par,veg)
     FvgCau = 0.d0
     uabsunl = 0.d0
     
-    if(par%dt == par%t) then
-        totT = par%Trep
-    endif
+    !if(par%dt == par%t) then
+   !     !allocate(totT)
+   !     totT = par%Trep
+    !endif
     
     costhm = cos(s%thetamean-s%alfaz)
     sinthm = sin(s%thetamean-s%alfaz)
 
-   do j=1,s%ny+1
-       do i=1,s%nx+1
-          ind = s%vegtype(i,j)
-          ahtold = 0.d0
-          if (ind>0) then ! Only if vegetation is present 
-                  
-            ! Compute uabsu for calculation of Fveg
-            uabsu = 0.d0
-            vabsv = 0.d0
-            Fvgnlu0 = 0.d0
-            if (par%vegnonlin == 1) then
+    if (par%vegnonlin == 1) then
                ! Something goes wrong here... we loop over all grid
                ! cells (nx/ny) and compute a totT by summing par%dt
                ! over the number of grid cells in order to determine
@@ -387,16 +380,27 @@ subroutine momeqveg(s,par,veg)
                !
                ! Fix for now: compute nonlinear interactions every
                ! time step
-               !if(totT >= par%Trep) then ! only compute new nonlinear velocity profile every Trep s
-               call swvegnonlin(s,par,i,j,unl,etaw)
+       ! if(totT >= par%Trep) then ! only compute new nonlinear velocity profile every Trep s
+            call swvegnonlin(s,par,unl,etaw)
 
-               !     totT = 0.0d0
-               ! else
-               !     totT = totT + par%dt
-               ! endif
+       !     totT = 0.0d0
+       ! else
+       !     totT = totT + par%dt
+       ! endif
                 
-            endif
-            
+    endif
+    
+   do j=1,s%ny+1
+       do i=1,s%nx+1
+          ind = s%vegtype(i,j)
+          ahtold = 0.d0
+          if (ind>0) then ! Only if vegetation is present 
+                  
+            ! Compute uabsu for calculation of Fveg
+            uabsu = 0.d0
+            vabsv = 0.d0
+            Fvgnlu0 = 0.d0
+                        
             watr = 0d0
             wacr = 0d0
             do m=1,veg(ind)%nsec
@@ -405,9 +409,9 @@ subroutine momeqveg(s,par,veg)
                 
                 ! Determine which part of the vegetation is below the wave trough, and between trough and crest
                 if (par%vegnonlin == 1) then
-                    watr = minval(etaw)
+                    watr = minval(etaw(i,j,:))
                     watr = s%hh(i,j) + watr ! wave trough level
-                    wacr = maxval(etaw)
+                    wacr = maxval(etaw(i,j,:))
                     wacr = s%hh(i,j) + wacr ! wave crest level
                 else
                     watr = s%hh(i,j)
@@ -427,18 +431,18 @@ subroutine momeqveg(s,par,veg)
                 else ! vegetation section is located (partly) in between wave trough and crest level                  
                     if (par%veguntow == 1) then
                         ! mean and long wave flow (ue, ve)
-                        Fvgtu = max((min(aht,watr)-ahtold),0d0)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*(s%ueu(i,j)*s%vmageu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
-                        Fvgtv = max((min(aht,watr)-ahtold),0d0)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*(s%vev(i,j)*s%vmageu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
+                        Fvgtu = max((min(aht,watr)-ahtold),0d0)*veg(ind)%Dragterm2(m,i,j)*(s%ueu(i,j)*s%vmageu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
+                        Fvgtv = max((min(aht,watr)-ahtold),0d0)*veg(ind)%Dragterm2(m,i,j)*(s%vev(i,j)*s%vmageu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
                     else
                         ! Only long wave velocity (assume undertow is diverted over vegetation)
-                        Fvgtu = max((min(aht,watr)-ahtold),0d0)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*(s%uu(i,j)*s%vmagu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
-                        Fvgtv = max((min(aht,watr)-ahtold),0d0)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*(s%vv(i,j)*s%vmagu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
+                        Fvgtu = max((min(aht,watr)-ahtold),0d0)*veg(ind)%Dragterm2(m,i,j)*(s%uu(i,j)*s%vmagu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
+                        Fvgtv = max((min(aht,watr)-ahtold),0d0)*veg(ind)%Dragterm2(m,i,j)*(s%vv(i,j)*s%vmagu(i,j))!*(s%hh(i,j)/(s%hh(i,j)-0.5d0*H(i,j)))**2
                     endif
                                                         
                     ! nonlinear waves (including emerged vegetation effect)
                     !etaw    = 0.d0
-                    hvegeff = max(etaw + s%hh(i,j)-ahtold,0.d0) ! effective vegetation height over a wave cycle
-                    Fvgnlt  = trapz((0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*min(hvegeff,aht)*unl*abs(unl)),par%Trep/50)/s%hh(i,j)
+                    hvegeff = max(etaw(i,j,:) + s%hh(i,j)-ahtold,0.d0) ! effective vegetation height over a wave cycle
+                    Fvgnlt  = trapz((veg(ind)%Dragterm2(m,i,j)*min(hvegeff,aht)*unl(i,j,:)*abs(unl(i,j,:))),par%Trep/50)/s%hh(i,j)
                     
                     ! decompose in u and v-direction
                     Fvgnlu  = Fvgnlt*costhm(i,j)
@@ -446,7 +450,7 @@ subroutine momeqveg(s,par,veg)
                     
                     ! wave induced incanopy flow (Luhar et al., 2010)
                     ucan   = sqrt(4.d0*kmr(i,j)*par%Trep*s%urms(i,j)**3/(6.d0*par%px**2))
-                    FvgCan = max((min(aht,watr)-ahtold),0d0)/s%hh(i,j)*0.5d0*(veg(ind)%Dragterm2(m,i,j)+veg(ind)%Dragterm2(m+1,i,j))*ucan**2
+                    FvgCan = max((min(aht,watr)-ahtold),0d0)/s%hh(i,j)*veg(ind)%Dragterm2(m,i,j)*ucan**2
                     
                     ! decompose in u and v-direction
                     FvgCau = FvgCan*costhm(i,j)
@@ -478,7 +482,7 @@ subroutine momeqveg(s,par,veg)
 
 end subroutine momeqveg
 
-subroutine swvegnonlin(s,par,i,j,unl,etaw)
+subroutine swvegnonlin(s,par,unl,etaw)
     use params
     use spaceparams
     
@@ -486,17 +490,18 @@ subroutine swvegnonlin(s,par,i,j,unl,etaw)
     
     type(parameters)                            :: par
     type(spacepars)                             :: s
-
-    integer,intent(in)                          :: i,j
-    integer                                     :: irf,jrf,ih0,it0,ih1,it1 !,m,ind,ih0,it0,ih1,it1,irf,jrf  ! indices of actual x,y point
+    
+    integer                                     :: i,j
+    integer                                     :: irf,ih0,it0,jrf,ih1,it1 !,m,ind,ih0,it0,ih1,it1,irf,jrf  ! indices of actual x,y point
     integer,  save                              :: nh,nt
     real*8                                      :: p,q,f0,f1,f2,f3 !,uabsunl,vabsvnl
-    real*8,  save                               :: dh,dt,kmr,Urs,phi,w1,w2
+    real*8,  save                               :: dh,dt
+    real*8,  dimension(s%nx+1,s%ny+1)           :: kmr,Urs,phi,w1,w2
     real*8, dimension(8),save                   :: urf0
     real*8, dimension(50),save                  :: urf2,urf !,urfueurfu
     real*8, dimension(50,8),save                :: cs,sn,urf1
-    real*8, dimension(:,:),allocatable  ,save   :: h0,t0
-    real*8, dimension(50),intent(out)           :: unl,etaw
+    real*8, dimension(:,:),save,allocatable     :: h0,t0
+    real*8, dimension(s%nx+1,s%ny+1,50),intent(out) :: unl,etaw
    
     ! Subroutine to compute a net drag force due to wave skewness. Based on (matlab based) roller model with veggies by Ad.
     ! 
@@ -517,8 +522,8 @@ subroutine swvegnonlin(s,par,i,j,unl,etaw)
            
     ! Initialize/Prepare for interpolation of RF-value from RFveg-table
     if (.not. allocated(h0)) then
-        allocate (h0         (s%nx+1,s%ny+1))
-        allocate (t0         (s%nx+1,s%ny+1))
+        allocate (h0(s%nx+1,s%ny+1))
+        allocate (t0(s%nx+1,s%ny+1))
 
         dh = 0.03d0
         dt = 1.25d0
@@ -549,11 +554,8 @@ subroutine swvegnonlin(s,par,i,j,unl,etaw)
     
     ! ! Now compute weight factors (w1,w2) for relative contribution of cosine and sine functions (for w1 = 1: only cosines -> 
     ! fully skewed Stokes wave, for w2 = 1: only sines -> fully asymmetric wave) based on Ruessink.
-    kmr   = min(max(s%k(i,j), 0.01d0), 100.d0)
-    Urs   = s%H(i,j)/kmr/kmr/(s%hh(i,j)**3)! Ursell number (check factor 3/8??, Ruessink et al 2012: Urs = 3/8*H*k/(kh)^3)
-    
-    ! What is the effect of vegetation on the Ursell number? Ruessink (emperical) relation only based on cases without vegetation...
-    ! Need some kind of 'apparent depth'? !Ur = H(jh)/k/k/(hap^3)
+    kmr   = min(max(s%k, 0.01d0), 100.d0)
+    Urs   = s%H/kmr/kmr/(s%hh**3)! Ursell number
        
     ! Compute phase and weight factors
     phi  = par%px/2*(1-tanh(0.815/(Urs**0.672)))! according to Ruessink et al 2012 (eq 10): p5 = 0.815 ipv 0.64; ip6 = 0.672 ipv 0.6, Dano&Ad book: 0.64 and 0.6
@@ -563,38 +565,41 @@ subroutine swvegnonlin(s,par,i,j,unl,etaw)
     
     ! Interpolate RieneckerFenton velocity from RFveg table from Ad
     ! in ftab-dimension, only read 4:11 and sum later
-    
-    ! interpolate RF table values....
-    ih0=floor(h0(i,j)/dh)
-    it0=floor(t0(i,j)/dt)
-    ih1=min(ih0+1,nh)
-    it1=min(it0+1,nt)
-    p=(h0(i,j)-ih0*dh)/dh
-    q=(t0(i,j)-it0*dt)/dt
-    f0=(1-p)*(1-q)
-    f1=p*(1-q)
-    f2=q*(1-p)
-    f3=p*q
+    do j=1,s%ny+1
+       do i=1,s%nx+1 
+            ! interpolate RF table values....
+            ih0=floor(h0(i,j)/dh)
+            it0=floor(t0(i,j)/dt)
+            ih1=min(ih0+1,nh)
+            it1=min(it0+1,nt)
+            p=(h0(i,j)-ih0*dh)/dh
+            q=(t0(i,j)-it0*dt)/dt
+            f0=(1-p)*(1-q)
+            f1=p*(1-q)
+            f2=q*(1-p)
+            f3=p*q
            
-    ! Compute velocity amplitude per component
-    do irf=1,8
-        urf0(irf) = f0*RFveg(irf+3,ih0,it0)+f1*RFveg(irf+3,ih1,it0)+ f2*RFveg(irf+3,ih0,it1)+f3*RFveg(irf+3,ih1,it1)
-    enddo
+            ! Compute velocity amplitude per component
+            do irf=1,8
+                urf0(irf) = f0*RFveg(irf+3,ih0,it0)+f1*RFveg(irf+3,ih1,it0)+ f2*RFveg(irf+3,ih0,it1)+f3*RFveg(irf+3,ih1,it1)
+            enddo
 
-    ! fill velocity amplitude matrix urf1([50 time points, 8 components])
-    do irf=1,8
-        urf1(:,irf) = urf0(irf)
-    enddo
+            ! fill velocity amplitude matrix urf1([50 time points, 8 components])
+            do irf=1,8
+                urf1(:,irf) = urf0(irf)
+            enddo
             
-    ! Compute velocity profile matrix per component
-    urf1 = urf1*(w1*cs+w2*sn)
+            ! Compute velocity profile matrix per component
+            urf1 = urf1*(w1(i,j)*cs+w2(i,j)*sn)
     
-    ! Add velocity components
-    urf2 = sum(urf1,2)
+            ! Add velocity components
+            urf2 = sum(urf1,2)
     
-    ! Scale the results to get velocity profile over wave period
-    unl  = urf2*sqrt(par%g*s%hh(i,j))
-    etaw = unl*sqrt(max(s%hh(i,j),0.d0)/par%g)
+            ! Scale the results to get velocity profile over wave period
+            unl(i,j,:)  = urf2*sqrt(par%g*s%hh(i,j))
+            etaw(i,j,:) = unl(i,j,:)*sqrt(max(s%hh(i,j),0.d0)/par%g)
+        enddo 
+    enddo
     
 end subroutine swvegnonlin
 
