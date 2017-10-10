@@ -477,7 +477,7 @@ contains
             end do
             ! 4) go over the different wbctypes (spectral)
          else
-            if ((par%wbctype==WBCTYPE_PARAMETRIC).or. & (par%wbctype==WBCTYPE_JONS_TABLE) .or. &
+            if ((par%wbctype==WBCTYPE_PARAMETRIC) .or. (par%wbctype==WBCTYPE_JONS_TABLE) .or. &
             (par%wbctype==WBCTYPE_SWAN) .or. (par%wbctype==WBCTYPE_VARDENS) .or. (par%wbctype==WBCTYPE_REUSE)) then
                ! open file if first time
                if (startbcf) then
@@ -670,7 +670,7 @@ contains
          ! Part C) Nonh: go over the different waveforms
       elseif (par%wavemodel == WAVEMODEL_NONH) then
          ! 1) spectral
-         if ((par%wbctype==WBCTYPE_PARAMETRIC).or. & (par%wbctype==WBCTYPE_JONS_TABLE) .or. &
+         if ((par%wbctype==WBCTYPE_PARAMETRIC) .or. (par%wbctype==WBCTYPE_JONS_TABLE) .or. &
          (par%wbctype==WBCTYPE_SWAN) .or. (par%wbctype==WBCTYPE_VARDENS) .or. (par%wbctype==WBCTYPE_REUSE)) then
             if (startbcf) then
                if(xmaster) then
