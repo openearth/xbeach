@@ -1877,7 +1877,7 @@ contains
             if (ier .ne. 0) then
                call report_file_read_error(filename_U)
             endif
-            call lowercase(string)
+            string = lowercase(string)
             if   (string == 'scalar') then
                lVaru = .false.
             elseif (string == 'vector') then

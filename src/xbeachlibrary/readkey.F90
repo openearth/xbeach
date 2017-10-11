@@ -271,7 +271,7 @@ contains
       if (xmaster) then
          call readkey(fname,key,value)
          ! Change to lowercase
-         call lowercase(value)
+         value =  lowercase(value)
          if (value == ' ') then
             if (lrequired) then
                call writelog('lse','','Error: missing required value for parameter ',printkey)
@@ -644,7 +644,8 @@ contains
       ! Note: in case more than one keyword matches the key, the first keyword - value combination is returned
       value=' '
       do ikey=1,nkeys
-         if (key.eq.keyword(ikey)) then
+         ! check for keywords ignoring case difference
+         if (lowercase(key) .eq. lowercase(keyword(ikey))) then
             value=values(ikey)
             readindex(ikey)=1
             exit
@@ -654,7 +655,7 @@ contains
       ! Easter egg!
       ! With call for key "checkparams", the subroutine searches readindex for keyword - value combinations that
       ! have not yet been read. It returns a warning to screen and log file for each unsuccesful keyword.
-      if (key .eq. 'checkparams') then
+      if (lowercase(key) .eq. 'checkparams') then
          do ikey=1,nkeys
             if (readindex(ikey)==0) then
                call writelog('slw','','Unknown, unused or multiple statements of parameter ', &
@@ -701,25 +702,27 @@ contains
    !
    !  LOWERCASE
    !
-   SUBROUTINE LOWERCASE(STR)
+   pure function LOWERCASE(STR) result(lowerstr)
 
       IMPLICIT NONE
 
-      CHARACTER(LEN=*), INTENT(IN OUT) :: STR
+      CHARACTER(LEN=*), INTENT(IN) :: STR
+      character(slen)              :: lowerstr
       INTEGER :: I, DEL
 
+      lowerstr = STR
 
       DEL = IACHAR('a') - IACHAR('A')
 
-      DO I = 1, LEN_TRIM(STR)
-         IF (LGE(STR(I:I),'A') .AND. LLE(STR(I:I),'Z')) THEN
-            STR(I:I) = ACHAR(IACHAR(STR(I:I)) + DEL)
+      DO I = 1, LEN_TRIM(lowerstr)
+         IF (LGE(lowerstr(I:I),'A') .AND. LLE(lowerstr(I:I),'Z')) THEN
+            lowerstr(I:I) = ACHAR(IACHAR(lowerstr(I:I)) + DEL)
          END IF
       END DO
 
       RETURN
 
-   END SUBROUTINE LOWERCASE
+   END FUNCTION LOWERCASE
 
    ! End of code taken from CHCASE
 
@@ -753,7 +756,7 @@ contains
    !
 
 
-   subroutine parmapply(vname,idefname,parm,parm_str,bcast,required)
+   subroutine parmapply(vname,idefname,parm,parm_str,bcast,required,silent)
       use typesandkinds
       use xmpi_module
       implicit none
@@ -761,7 +764,7 @@ contains
       integer,      intent(in)            :: idefname
       integer,      intent(out)           :: parm
       character(*), intent(out), optional :: parm_str
-      logical,      intent(in), optional  :: bcast,required
+      logical,      intent(in), optional  :: bcast,required,silent
 
       character(slen)                     :: d
       integer                             :: i
@@ -769,7 +772,7 @@ contains
 
       d = readkey_str('params.txt',vname,allowednames(idefname), &
       numallowednames,numoldnames,allowednames,oldnames, &
-      bcast, required)
+      bcast, required, silent)
 
       if (present(bcast)) then
          lbcast = bcast
