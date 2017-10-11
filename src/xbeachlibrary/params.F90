@@ -219,6 +219,11 @@ module params
       double precision                  :: nuhfac                   = -123                 !  [-] (advanced) Viscosity switch for roller induced turbulent horizontal viscosity
       double precision                  :: nuhv                     = -123                 !  [-] (advanced,silent) Longshore viscosity enhancement factor, following Svendsen (?)
       integer                           :: smag                     = -123                 !  [-] (advanced) Switch for smagorinsky subgrid model for viscocity
+      integer*4                         :: friction_infiltration    = -123                 !  [-] turn on or off the effect of infiltration on bed roughness (Conley and Inman)
+      integer*4                         :: friction_turbulence      = -123                 !  [-] turn on or off the effect of turbulence on bed roughness (Reniers Van Thiel)
+      integer*4                         :: friction_acceleration    = -123                 !  [-] turn on or off the effect of acceleration on bed roughness (Morrison)
+      character(slen)                   :: friction_acceleration_str=  ' '                 !
+      double precision                  :: gamma_turb               = -123                 !  [-] calibration factor for turbulence contribution to bed roughness
 
       ! [Section] Coriolis force parameters
       double precision                  :: wearth                   = -123                 !  [hour^-1] (advanced) Angular velocity of earth calculated as: 1/rotation_time (in hours)
@@ -332,6 +337,9 @@ module params
       integer                           :: bdslpeffdir              = -123                 !  [name] Modify the direction of the sediment transport based on the bed slope
       double precision                  :: bdslpeffdirfac           = -123                 !  [-] Calibration factor in the modification of the direction
       double precision                  :: bermslope                = -123                 !  [-] Swash zone slope for (semi-) reflective beaches
+      double precision                  :: cm                       = -123                 !  [-] (advanced,deprecated) Mass coefficient in Shields inertia term
+      double precision                  :: ci                       = -123                 !  [-] (advanced) Mass coefficient in Shields inertia term
+      double precision                  :: phit                     = -123                 !  [-] (advanced) Phase lag angle in Nielsen transport equation 
 
       ! [Section] Morphology parameters
       double precision                  :: morfac                   = -123                 !  [-] Morphological acceleration factor
@@ -1235,6 +1243,29 @@ contains
       par%nuhfac  = readkey_dbl ('params.txt','nuhfac',    1.0d0,     0.0d0,   1.0d0)
       par%nuhv    = readkey_dbl ('params.txt','nuhv',      1.d0,      1.d0,    20.d0,silent=.true.)
       par%smag    = readkey_int ('params.txt','smag',      1,         0,       1,strict=.true.)
+      
+      if (par%gwflow ==1) then
+         par%friction_infiltration  = readkey_int('params.txt','friction_infiltration',0,0,1, silent=.true.,strict=.true.) ! default on in XBeach-G!
+      else
+         par%friction_infiltration  = 0
+      endif
+      par%friction_turbulence    = readkey_int('params.txt','friction_turbulence'  ,0,0,1, silent=.true.,strict=.true.)
+      if (par%friction_turbulence==1) then 
+         par%gamma_turb             = readkey_dbl ('params.txt','gamma_turb', 1.d0, 0.d0, 2.d0)
+      endif
+      
+      call setallowednames('none', CF_ACC_NONE, &
+                           'mccall', CF_ACC_MCCALL,  &
+                           'nielsen',CF_ACC_NIELSEN)
+      call parmapply('friction_acceleration',1,par%friction_acceleration,par%friction_acceleration_str,silent=.true.)  ! Default should be MCCALL in XBeach-G!
+      
+      if(par%friction_acceleration==CF_ACC_MCCALL) then
+         par%cm          = readkey_dbl ('params.txt','cm',1.5d0,    0.0d0,   3.0d0)
+         par%ci          = readkey_dbl ('params.txt','ci',1.0d0,    0.5d0,   1.5d0) 
+      elseif (par%friction_acceleration==CF_ACC_NIELSEN) then
+         par%phit        = readkey_dbl ('params.txt','phit',25.0d0,    0.00d0,  90.0d0) 
+      endif
+      
       !
       !
       ! Coriolis force parameters

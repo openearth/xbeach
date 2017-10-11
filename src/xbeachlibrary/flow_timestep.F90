@@ -331,6 +331,7 @@ contains
       ! Bed friction term
       where (s%wetu==1)
          s%taubx=s%cfu*par%rho*s%ueu*sqrt((1.16d0*s%urms)**2+s%vmageu**2) !Ruessink et al, 2001
+         s%taubx = s%taubx + s%taubx_add  ! Account for infiltration etc. effects
       elsewhere
          s%taubx = 0.d0
       endwhere
@@ -564,6 +565,7 @@ contains
       !
       where (s%wetv==1)
          s%tauby=s%cfv*par%rho*s%vev*sqrt((1.16d0*s%urms)**2+s%vmagev**2) !Ruessink et al, 2001
+         s%tauby = s%tauby + s%tauby_add
       elsewhere
          s%tauby = 0.d0
       endwhere

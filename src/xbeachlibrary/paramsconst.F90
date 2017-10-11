@@ -111,6 +111,10 @@ module paramsconst
 
    integer, parameter :: OUTPUTPRECISION_SINGLE      =  0
    integer, parameter :: OUTPUTPRECISION_DOUBLE      =  1
+
+   integer, parameter :: CF_ACC_NONE                 =  0
+   integer, parameter :: CF_ACC_MCCALL               =  1
+   integer, parameter :: CF_ACC_NIELSEN              =  2
    
    integer, parameter :: WAVEMODEL_STATIONARY        =  0
    integer, parameter :: WAVEMODEL_SURFBEAT          =  1

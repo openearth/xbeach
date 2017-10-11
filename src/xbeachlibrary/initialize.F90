@@ -838,6 +838,10 @@ contains
       ! vegetation initialization
       allocate(s%vegtype(1:s%nx+1,1:s%ny+1))
       allocate(s%Cdrag(1:s%nx+1,1:s%ny+1))
+      
+      ! added bed roughness due to second order effects
+      allocate(s%taubx_add(1:s%nx+1,1:s%ny+1))
+      allocate(s%tauby_add(1:s%nx+1,1:s%ny+1))
 
       ! Just to be sure!
       s%zs = 0.0d0
@@ -927,6 +931,9 @@ contains
       s%vdudy = 0.d0
       s%viscu = 0.d0
       s%viscv = 0.d0
+      
+      s%taubx_add = 0.0d0
+      s%tauby_add = 0.0d0
 
       if (par%wavemodel==WAVEMODEL_NONH) then
          s%breaking = 0
