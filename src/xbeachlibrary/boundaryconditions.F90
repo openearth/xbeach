@@ -403,22 +403,35 @@ contains
                   s%ui(1,j) = 0.0d0
                end do
             else
+               wbw = 2*par%px/par%Trep
+               do j=1,s%ny+1
+                  Lest(j) = L(j)
+                  L(j) = iteratedispersion(L0(j),Lest(j),par%px,s%hh(1,j))
+               enddo
+               kbw = 2*par%px/L
+               arms = par%Hrms/2
                if(par%order==1) then
-                  s%zi(1,:) = par%Hrms/2*sin(2*par%px*par%t/par%Trep)
-                  do j=1,s%ny+1
-                     Lest(j) = L(j)
-                     L(j) = iteratedispersion(L0(j),Lest(j),par%px,s%hh(1,j))
-                  enddo
-                  kbw = 2*par%px/L
-                  s%ui(1,:) = 1.d0/s%hh(1,:)*2*par%px/par%Trep*par%Hrms/2/sinh(kbw*s%hh(1,:)) * &
-                  dsin(wbw*par%t &
-                  -kbw*( dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1)) &
-                  +dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1)) &
-                  ) &
-                  ) * &
-                  1.d0/kbw*sinh(kbw*s%hh(1,:))
-               else
-                  ! Stokes wave: ToDO
+                  s%zi(1,:) = arms*dsin(wbw*par%t-kbw*( dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1)) &
+                                                       +dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1)) &
+                                                       ) &
+                                        )
+                  s%ui(1,:) = 1.d0/s%hh(1,:)*wbw*arms/sinh(kbw*s%hh(1,:)) * &
+                                             dsin(wbw*par%t &
+                                                  -kbw*( dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1)) &
+                                                        +dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1)) &
+                                                        ) &
+                                                  ) * &
+                              1.d0/kbw*sinh(kbw*s%hh(1,:)) *cosd(s%theta0-s%alfaz(1,:))
+               elseif(par%order==2) then
+                  ! 2nd order Stokes wave: To do more extensive testing
+                  tanhkhwb = tanh(kbw*s%hh(1,:))
+                  kxmwt = kbw*(dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1))+dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1))) - wbw*par%t
+                  s%zi(1,:) = arms*(dcos(kxmwt) + kbw*arms*(3-tanhkhwb**2)/(4*tanhkhwb**3)*dcos(2*kxmwt))
+                  s%ui(1,:) = (wbw/kbw)/s%hh(1,:)*s%zi(1,:) *cosd(s%theta0-s%alfaz(1,:))
+               elseif(par%order==3) then
+                  ! 3rd order Stokes wave: only deep water
+                  !s%zi(1,:) = arms*(dcos(wbw *par%t) + 0.5d0*kbw*arms*dcos(2*wbw*par%t) + 0.375d0*(kbw*arms)**2*dcos(3*wbw*par%t))
+                  !s%ui(1,:) = (wbw/kbw)/s%hh(1,:)*s%zi(1,:)
                endif
             endif
          else
@@ -742,6 +755,7 @@ contains
                if (.not. isSet_Z) s%zi(1,:) = s%zs(2,:)
                if (.not. isSet_W) s%wi(1,:) = s%ws(2,:)
                if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0) then
+                  ! Only if the reduced 2-layer model is initiated (P.B. Smit)
                   if (.not. isSet_dU) s%dui(1,:) = 0.
                endif
                call nonh_init_wcoef(s,par)
@@ -838,6 +852,7 @@ contains
             if (.not. isSet_Z) s%zi(1,:) = s%zs(2,:)
             if (.not. isSet_W) s%wi(1,:) = s%ws(2,:)
             if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0) then
+               ! Only if the reduced 2-layer model is initiated (P.B. Smit)
                if (.not. isSet_dU) s%dui(1,:) = 0.
             endif
          else
