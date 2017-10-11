@@ -214,20 +214,21 @@ contains
                do while(s%theta0>par%px)
                   s%theta0=s%theta0-2.d0*par%px
                enddo
-               s%newstatbc=1
-#ifdef USEMPI
-               call xmpi_bcast(bcendtime)
-               call xmpi_bcast(par%Hrms)
-               call xmpi_bcast(par%Trep)
-               call xmpi_bcast(par%m)
-               call xmpi_bcast(s%theta0)
-#endif
-               do itheta=1,s%ntheta
-                  s%sigt(:,:,itheta) = 2.d0*par%px/par%Trep
-               end do
-               s%sigm = sum(s%sigt,3)/s%ntheta
-               call dispersion(par,s)
             endif
+            s%newstatbc=1
+#ifdef USEMPI
+            call xmpi_bcast(bcendtime)
+            call xmpi_bcast(par%Hrms)
+            call xmpi_bcast(par%Trep)
+            call xmpi_bcast(par%m)
+            call xmpi_bcast(s%theta0)
+#endif
+            do itheta=1,s%ntheta
+               s%sigt(:,:,itheta) = 2.d0*par%px/par%Trep
+            end do
+            s%sigm = sum(s%sigt,3)/s%ntheta
+            call dispersion(par,s)
+            
             ! 4)  jons_table in combination with surfbeat or nonh
          elseif ((par%wbctype==WBCTYPE_PARAMETRIC .or. par%wbctype==WBCTYPE_JONS_TABLE) .and. &
          (par%wavemodel/=WAVEMODEL_STATIONARY .and. xmaster)) then
