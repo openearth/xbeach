@@ -249,8 +249,8 @@ contains
 
       ! dimensions TODO: only output dimensions that are used
       ! grid
-      NF90(nf90_def_dim(ncid, 'globalx', s%nx+1, xdimid))
-      NF90(nf90_def_dim(ncid, 'globaly', s%ny+1, ydimid))
+      NF90(nf90_def_dim(ncid, 'nx', s%nx+1, xdimid))
+      NF90(nf90_def_dim(ncid, 'ny', s%ny+1, ydimid))
 
       ! wave angles
       NF90(nf90_def_dim(ncid, 'wave_angle', s%ntheta, thetadimid))
@@ -308,7 +308,7 @@ contains
       endif
 
       ! define empty parameter variable
-      NF90(nf90_def_var(ncid, 'parameter', NCREAL, varid=parvarid))
+      NF90(nf90_def_var(ncid, '_parameters', NCREAL, varid=parvarid))
       ! define space & time variables
       ! grid
       NF90(nf90_def_var(ncid, 'globalx', NCREAL, (/ xdimid, ydimid /), xvarid))
@@ -412,8 +412,8 @@ contains
              case default
                write(0,*) 'mnem', mnem, ' not supported, type:', t%type
             end select
-            NF90(nf90_put_att(ncid, globalvarids(i), 'coordinates', trim(coordinates)))
             deallocate(dimids)
+            NF90(nf90_put_att(ncid, globalvarids(i), 'coordinates', trim(coordinates)))
             NF90(nf90_put_att(ncid, globalvarids(i), 'units', trim(t%units)))
             if (.not.(trim(t%standardname) .eq. '')) then
                NF90(nf90_put_att(ncid, globalvarids(i), 'standard_name', trim(t%standardname)))
