@@ -421,13 +421,13 @@ contains
                                                         +dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1)) &
                                                         ) &
                                                   ) * &
-                              1.d0/kbw*sinh(kbw*s%hh(1,:)) *cosd(s%theta0-s%alfaz(1,:))
+                              1.d0/kbw*sinh(kbw*s%hh(1,:)) *dcos(s%theta0-s%alfaz(1,:))
                elseif(par%order==2) then
                   ! 2nd order Stokes wave: To do more extensive testing
                   tanhkhwb = tanh(kbw*s%hh(1,:))
                   kxmwt = kbw*(dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1))+dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1))) - wbw*par%t
                   s%zi(1,:) = arms*(dcos(kxmwt) + kbw*arms*(3-tanhkhwb**2)/(4*tanhkhwb**3)*dcos(2*kxmwt))
-                  s%ui(1,:) = (wbw/kbw)/s%hh(1,:)*s%zi(1,:) *cosd(s%theta0-s%alfaz(1,:))
+                  s%ui(1,:) = (wbw/kbw)/s%hh(1,:)*s%zi(1,:) *dcos(s%theta0-s%alfaz(1,:))
                elseif(par%order==3) then
                   ! 3rd order Stokes wave: only deep water
                   !s%zi(1,:) = arms*(dcos(wbw *par%t) + 0.5d0*kbw*arms*dcos(2*wbw*par%t) + 0.375d0*(kbw*arms)**2*dcos(3*wbw*par%t))
