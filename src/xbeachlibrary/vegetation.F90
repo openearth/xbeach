@@ -146,7 +146,7 @@ subroutine veggie_init(s,par,veg)
           allocate(s%Fvegu(par%nx+1, par%ny+1))
           allocate(s%Fvegv(par%nx+1, par%ny+1))
           
-          s%vegtype = 0.d0
+          s%vegtype = 0
           s%Cdrag = 0.d0
           s%Dveg = 0.d0
           s%Fvegu = 0.d0
@@ -189,6 +189,11 @@ subroutine veggie_init(s,par,veg)
           allocate(s%Dveg(par%nx+1, par%ny+1))
           allocate(s%Fvegu(par%nx+1, par%ny+1))
           allocate(s%Fvegv(par%nx+1, par%ny+1))
+          s%vegtype = 0
+          s%Cdrag = 0.d0
+          s%Dveg = 0.d0
+          s%Fvegu = 0.d0
+          s%Fvegv = 0.d0
        endif
     endif
     ! TODO: interpolate vegetation to u-points(!)
@@ -477,8 +482,8 @@ subroutine momeqveg(s,par,veg)
        enddo
     enddo
 
-    s%Fvegu = Fvgu*par%rho! make sure units of drag force are consistent (N/m2)
-    s%Fvegv = Fvgv*par%rho! make sure units of drag force are consistent (N/m2)
+    s%Fvegu = Fvgu*par%rho ! make sure units of drag force are consistent (N/m2)
+    s%Fvegv = Fvgv*par%rho ! make sure units of drag force are consistent (N/m2)
 
 end subroutine momeqveg
 

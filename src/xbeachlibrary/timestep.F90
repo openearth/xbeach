@@ -581,8 +581,11 @@ contains
          !in the hanssen (leapfrog) scheme, we smooth the timestep.
 
          if (tpar%tnext > par%t) then
-            n = ceiling((tpar%tnext-par%t)/par%dt)
-            par%dt = (tpar%tnext-par%t)/n
+            ! sometime dt too small and then integer overflow. Catch with check beforehand
+            if ((tpar%tnext-par%t)/par%dt<dble(0.9*huge(0))) then
+               n = ceiling((tpar%tnext-par%t)/par%dt)
+               par%dt = (tpar%tnext-par%t)/n
+            endif
          end if
       end if ! first, or other time step
 

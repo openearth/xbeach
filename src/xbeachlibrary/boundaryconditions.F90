@@ -396,44 +396,11 @@ contains
       if (par%wavemodel==WAVEMODEL_STATIONARY) then
          ! Go over all excepted wbctypes (all the same)
          if (par%wbctype == WBCTYPE_PARAMS .or. par%wbctype == WBCTYPE_JONS_TABLE) then
-            if(par%nonhspectrum .ne. 1) then  ! Robert: needed because nonhspectrum can be -123 if not initialised
-               do j=1,s%ny+1
-                  s%ee(1,j,:)=e01*min(par%t/par%taper,1.0d0)
-                  s%bi(1) = 0.0d0
-                  s%ui(1,j) = 0.0d0
-               end do
-            else
-               wbw = 2*par%px/par%Trep
-               do j=1,s%ny+1
-                  Lest(j) = L(j)
-                  L(j) = iteratedispersion(L0(j),Lest(j),par%px,s%hh(1,j))
-               enddo
-               kbw = 2*par%px/L
-               arms = par%Hrms/2
-               if(par%order==1) then
-                  s%zi(1,:) = arms*dsin(wbw*par%t-kbw*( dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1)) &
-                                                       +dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1)) &
-                                                       ) &
-                                        )
-                  s%ui(1,:) = 1.d0/s%hh(1,:)*wbw*arms/sinh(kbw*s%hh(1,:)) * &
-                                             dsin(wbw*par%t &
-                                                  -kbw*( dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1)) &
-                                                        +dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1)) &
-                                                        ) &
-                                                  ) * &
-                              1.d0/kbw*sinh(kbw*s%hh(1,:)) *dcos(s%theta0-s%alfaz(1,:))
-               elseif(par%order==2) then
-                  ! 2nd order Stokes wave: To do more extensive testing
-                  tanhkhwb = tanh(kbw*s%hh(1,:))
-                  kxmwt = kbw*(dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1))+dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1))) - wbw*par%t
-                  s%zi(1,:) = arms*(dcos(kxmwt) + kbw*arms*(3-tanhkhwb**2)/(4*tanhkhwb**3)*dcos(2*kxmwt))
-                  s%ui(1,:) = (wbw/kbw)/s%hh(1,:)*s%zi(1,:) *dcos(s%theta0-s%alfaz(1,:))
-               elseif(par%order==3) then
-                  ! 3rd order Stokes wave: only deep water
-                  !s%zi(1,:) = arms*(dcos(wbw *par%t) + 0.5d0*kbw*arms*dcos(2*wbw*par%t) + 0.375d0*(kbw*arms)**2*dcos(3*wbw*par%t))
-                  !s%ui(1,:) = (wbw/kbw)/s%hh(1,:)*s%zi(1,:)
-               endif
-            endif
+            do j=1,s%ny+1
+                s%ee(1,j,:) = e01*min(par%t/par%taper,1.0d0)
+                s%bi(1)     = 0.0d0
+                s%ui(1,j)   = 0.0d0
+            enddo
          else
          endif   ! Go over the different wbctypes for wavemodel = stationary
          !
@@ -683,8 +650,40 @@ contains
          endif ! Go over the different wbctypes for surfbeat
          ! Part C) Nonh: go over the different waveforms
       elseif (par%wavemodel == WAVEMODEL_NONH) then
-         ! 1) spectral
-         if ((par%wbctype==WBCTYPE_PARAMETRIC) .or. (par%wbctype==WBCTYPE_JONS_TABLE) .or. &
+        ! 1) monochromatic waves
+        if (par%wbctype==WBCTYPE_PARAMS) then
+            wbw = 2*par%px/par%Trep
+            do j=1,s%ny+1
+                Lest(j) = L(j)
+                L(j) = iteratedispersion(L0(j),Lest(j),par%px,s%hh(1,j))
+            enddo
+            kbw = 2*par%px/L
+            arms = par%Hrms/2
+            if(par%order==1) then
+                s%zi(1,:) = arms*dsin(wbw*par%t-kbw*( dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1)) &
+                                                    +dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1)) &
+                                                    ) &
+                                    )
+                s%ui(1,:) = 1.d0/s%hh(1,:)*wbw*arms/sinh(kbw*s%hh(1,:)) * &
+                                            dsin(wbw*par%t &
+                                                -kbw*( dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1)) &
+                                                    +dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1)) &
+                                                    ) &
+                                                ) * &
+                            1.d0/kbw*sinh(kbw*s%hh(1,:)) *dcos(s%theta0-s%alfaz(1,:))
+            elseif(par%order==2) then
+                ! 2nd order Stokes wave: To do more extensive testing
+                tanhkhwb = tanh(kbw*s%hh(1,:))
+                kxmwt = kbw*(dsin(s%theta0)*(s%yz(1,:)-s%yz(1,1))+dcos(s%theta0)*(s%xz(1,:)-s%xz(1,1))) - wbw*par%t
+                s%zi(1,:) = arms*(dcos(kxmwt) + kbw*arms*(3-tanhkhwb**2)/(4*tanhkhwb**3)*dcos(2*kxmwt))
+                s%ui(1,:) = (wbw/kbw)/s%hh(1,:)*s%zi(1,:) *dcos(s%theta0-s%alfaz(1,:))
+            elseif(par%order==3) then
+                ! 3rd order Stokes wave: only deep water
+                !s%zi(1,:) = arms*(dcos(wbw *par%t) + 0.5d0*kbw*arms*dcos(2*wbw*par%t) + 0.375d0*(kbw*arms)**2*dcos(3*wbw*par%t))
+                !s%ui(1,:) = (wbw/kbw)/s%hh(1,:)*s%zi(1,:)
+            endif
+        ! 2) spectral
+        elseif ((par%wbctype==WBCTYPE_PARAMETRIC) .or. (par%wbctype==WBCTYPE_JONS_TABLE) .or. &
          (par%wbctype==WBCTYPE_SWAN) .or. (par%wbctype==WBCTYPE_VARDENS) .or. (par%wbctype==WBCTYPE_REUSE)) then
             if (startbcf) then
                if(xmaster) then
@@ -818,6 +817,7 @@ contains
             s%zi(1,:) = s%zi(1,:)*min(par%t/par%taper,1.0d0)
             s%wi(1,:) = s%wi(1,:)*min(par%t/par%taper,1.0d0)
             s%dUi(1,:) = s%dUi(1,:)*min(par%t/par%taper,1.0d0)
+         ! 3) ts_nonh
          elseif (par%wbctype==WBCTYPE_TS_NONH) then
             if (xmaster) then
                call velocity_Boundary('boun_U.bcf',uig,vig,zig,wig,duig,dvig,sg%ny,&
