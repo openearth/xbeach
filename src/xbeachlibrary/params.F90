@@ -1072,6 +1072,12 @@ contains
       call setoldnames('0','1','2','3')
       call parmapply('back',3,par%back,par%back_str)
 
+      ! Error for wlevel
+      if ((par%front == FRONT_WLEVEL) .or. (par%back == BACK_WLEVEL)) then
+         call writelog('lse','','Error: wlevel no longer supported. Change front and/or back boundary condition.')
+         call halt_program
+      endif
+      
       ! others
       par%ARC         = readkey_int ('params.txt','ARC',      1,              0,       1       ,strict=.true.)
       par%order       = readkey_dbl ('params.txt','order',    2.d0,           1.d0,    2.d0    ,strict=.true.)

@@ -1246,8 +1246,6 @@ contains
             else if (par%front==FRONT_WALL) then
                !       uu(1,:)=0.d0
                !      zs(1,:)=max(zs(2,:),zb(1,:))
-            else if (par%front==FRONT_WLEVEL) then
-               s%zs(1,:)=s%zs0(1,:)
             else if (par%front==FRONT_NONH_1D) then
                !Timeseries Boundary for nonh, only use in combination with instat=8
                if (par%ARC==0) then
@@ -1379,10 +1377,7 @@ contains
 
                endif   ! Robert: dry back boundary points
             enddo
-         elseif (par%back==BACK_WLEVEL) then
-            s%zs(s%nx+1,:)=s%zs0(s%nx+1,:)
          endif  !par%back
-
       endif !xmpi_isbot
 
 
