@@ -156,7 +156,7 @@ contains
                close(7)
             endif
             Emean=sum(dataE)/nt
-            call dispersion(par,s)
+            call dispersion(par,s,s%hh)
             ! 2) TS_2
          elseif (par%wbctype==WBCTYPE_TS_2) then
             if (xmaster) then
@@ -195,7 +195,7 @@ contains
                close(7)
             endif
             Emean=sum(dataE)/nt
-            call dispersion(par,s)
+            call dispersion(par,s,s%hh)
             ! 3) jons_table in combination with stationary
          elseif (par%wbctype==WBCTYPE_JONS_TABLE .and. par%wavemodel==WAVEMODEL_STATIONARY) then
             if (xmaster) then
@@ -227,7 +227,7 @@ contains
                s%sigt(:,:,itheta) = 2.d0*par%px/par%Trep
             end do
             s%sigm = sum(s%sigt,3)/s%ntheta
-            call dispersion(par,s)
+            call dispersion(par,s,s%hh)
             
             ! 4)  jons_table in combination with surfbeat or nonh
          elseif ((par%wbctype==WBCTYPE_PARAMETRIC .or. par%wbctype==WBCTYPE_JONS_TABLE) .and. &
@@ -341,7 +341,7 @@ contains
                s%sigt(:,:,itheta) = 2*par%px/par%Trep
             end do
             s%sigm = sum(s%sigt,3)/s%ntheta
-            call dispersion(par,s)
+            call dispersion(par,s,s%hh)
             ! Directional distribution
             dist=(cos(s%theta-s%theta0))**par%m
             do i=1,s%ntheta
@@ -526,7 +526,7 @@ contains
                      s%sigt(:,:,itheta) = 2*par%px/par%Trep
                   end do
                   s%sigm = sum(s%sigt,3)/s%ntheta
-                  call dispersion(par,s)
+                  call dispersion(par,s,s%hh)
                   ! End initialize
                   if (xmaster) then
                      inquire(iolength=wordsize) 1.d0

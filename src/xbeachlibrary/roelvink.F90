@@ -45,7 +45,7 @@ module roelvink_module
 
 contains
 
-   subroutine roelvink_1D(par,s,km,i)
+   subroutine roelvink_1D(par,s,i)
 
       use params
       use spaceparams
@@ -55,17 +55,18 @@ contains
 
       type(spacepars)                                 :: s
       type(parameters)                                :: par
+      integer,intent(in)                              :: i
 
-      integer                                         :: i,j
+      integer                                         :: j
 
-      real*8, dimension(s%ny+1)                       :: km,kmr,hr,H,arg
+      real*8, dimension(s%ny+1)                       ::kmr,hr,H,arg
 
       ! Dissipation according to Roelvink (1993)
 
-      H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
-      hr  = s%hh(i,:) + par%delta*s%H(i,:)
+      H   = s%H(i,:)
+      hr  = s%hhw(i,:)
 
-      kmr = min(max(km, 0.01d0), 100.d0)
+      kmr = min(max(s%k(i,:), 0.01d0), 100.d0)
 
       if (par%break /= BREAK_ROELVINK_DALY) then
          if (par%wci==1) then
@@ -103,7 +104,7 @@ contains
 
    end subroutine roelvink_1D
 
-   subroutine roelvink_2D(par,s,km)
+   subroutine roelvink_2D(par,s)
 
       use params
       use spaceparams
@@ -115,15 +116,13 @@ contains
 
       integer                                         :: i
 
-      real*8, dimension(s%nx+1,s%ny+1)                :: km
-
       do i = 1,s%nx+1
-         call roelvink_1D(par,s,km(i,:),i)
+         call roelvink_1D(par,s,i)
       enddo
 
    end subroutine roelvink_2D
 
-   subroutine baldock_1D(par,s,km,i)
+   subroutine baldock_1D(par,s,i)
 
       use params
       use spaceparams
@@ -133,21 +132,20 @@ contains
       type(spacepars)                 :: s
       type(parameters)                :: par
 
-      integer                                         :: i
+      integer,intent(in)              :: i
 
-      real*8, dimension(s%ny+1)                       :: km,kh,f,k,H,Hb,R,gamma
+      real*8, dimension(s%ny+1)       :: kh,f,k,H,Hb,R,gamma
 
       ! Dissipation according to Baldock et al. (1998)
 
+      k = s%k(i,:)
       if (par%wci==1) then
          f = s%sigm(i,:) / 2.d0 / par%px
-         k = km
       else
          f = 1.d0 / par%Trep
-         k = s%k(i,:)
       endif
 
-      kh  = s%k(i,:) * (s%hh(i,:) + par%delta*s%H(i,:))
+      kh  = s%k(i,:) * s%hhw(i,:)
 
       if (par%wci == 1) then
          gamma = 0.76d0*kh + 0.29d0 !Jaap: spatial varying gamma according to Ruessink et al., 1998
@@ -155,7 +153,7 @@ contains
          gamma = par%gamma
       endif
 
-      H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
+      H   = s%H(i,:)
       Hb  = tanh(gamma*kh/0.88d0)*(0.88d0/max(k,1d-10))
       R   = Hb/max(H,0.00001d0)
 
@@ -164,7 +162,7 @@ contains
 
    end subroutine baldock_1D
 
-   subroutine baldock_2D(par,s,km)
+   subroutine baldock_2D(par,s)
 
       use params
       use spaceparams
@@ -176,15 +174,13 @@ contains
 
       integer                                         :: i
 
-      real*8, dimension(s%nx+1,s%ny+1)                :: km
-
       do i = 1,s%nx+1
-         call baldock_1D(par,s,km(i,:),i)
+         call baldock_1D(par,s,i)
       enddo
 
    end subroutine baldock_2D
 
-   subroutine janssen_battjes_1D(par,s,km,i)
+   subroutine janssen_battjes_1D(par,s,i)
 
       use params
       use spaceparams
@@ -195,26 +191,25 @@ contains
       type(spacepars)                                 :: s
       type(parameters)                                :: par
 
-      integer                                         :: i
+      integer,intent(in)                              :: i
       real*8                                          :: B
 
-      real*8, dimension(s%ny+1)                       :: km,kh,f,k,H,Hb,R
+      real*8, dimension(s%ny+1)                       :: kh,f,k,H,Hb,R
 
       ! Dissipation according to Janssen and Battjes (2007)
 
       B   = par%alpha
 
+      k = s%k(i,:)
       if (par%wci==1) then
          f = s%sigm(i,:) / 2.d0 / par%px
-         k = km
       else
          f = 1.d0 / par%Trep
-         k = s%k(i,:)
       endif
 
-      kh  = s%k(i,:) * (s%hh(i,:) + par%delta*s%H(i,:))
+      kh  = s%k(i,:) * s%hhw(i,:)
 
-      H   = sqrt(8.d0/par%rho/par%g*s%E(i,:))
+      H   = s%H(i,:)
       Hb  = tanh(par%gamma*kh/0.88d0)*(0.88d0/k)
       R   = Hb/max(H,0.00001d0)
 
@@ -223,7 +218,7 @@ contains
 
    end subroutine janssen_battjes_1D
 
-   subroutine janssen_battjes_2D(par,s,km)
+   subroutine janssen_battjes_2D(par,s)
 
       use params
       use spaceparams
@@ -235,10 +230,8 @@ contains
 
       integer                                         :: i
 
-      real*8, dimension(s%nx+1,s%ny+1)                :: km
-
       do i = 1,s%nx+1
-         call janssen_battjes_1D(par,s,km(i,:),i)
+         call janssen_battjes_1D(par,s,i)
       enddo
 
    end subroutine janssen_battjes_2D

@@ -6,6 +6,44 @@ module wave_functions_module
 
 contains
 
+   subroutine update_means_wave_flow(s,par)
+      use params
+      use spaceparams
+      implicit none
+      
+      type(spacepars), target     :: s
+      type(parameters)            :: par
+      real*8                      :: factime
+      
+      
+      ! For the "stationary" part:
+      if (par%wavemodel == WAVEMODEL_SURFBEAT .and. par%single_dir == 1) then
+         ! we need smoothed "stationary" values for the wave directions
+         factime = 1.d0/(par%wavint*2)*par%dt
+         s%hhws = max(factime*s%hhw + (1-factime)*s%hhws,par%hmin)
+         if (par%wci==1) then 
+            s%uws = factime*s%u + (1-factime)*s%uws
+            s%vws = factime*s%v + (1-factime)*s%vws
+         endif
+      endif
+      
+      ! for the instationary part
+      if (par%wavemodel == WAVEMODEL_SURFBEAT .and. par%wci==1) then
+         ! we need smoothed water depth and velocities for wci in wave instationary
+         if (par%single_dir == 1) then
+            ! maintain consistency with stationary wave directions model
+            factime = 1.d0/(par%wavint*2)*par%dt
+         else
+            ! maintain consistency with boundary conditions smoothing
+            factime = 1.d0/par%cats/par%Trep*par%dt
+         endif
+         s%hhwcins = max(factime*s%hhw + (1-factime)*s%hhwcins,par%hmin)
+         s%uwcins = factime*s%u + (1-factime)*s%uwcins
+         s%vwcins = factime*s%v + (1-factime)*s%vwcins
+      endif
+   
+   end subroutine update_means_wave_flow
+
    subroutine slope2D(h,nx,ny,dsu,dnv,dhdx,dhdy,wete)
       use xmpi_module
       implicit none
@@ -39,7 +77,11 @@ contains
       else
          dhdx=0.d0
       endif
-      
+!#ifdef USEMPI 
+!      call xmpi_shift(dhdx,SHIFT_X_U,3,4)
+!      call xmpi_shift(dhdx,SHIFT_X_D,1,2)
+!#endif 
+      !
       ! v-gradients
       if(ny+1>=2) then
          forall(i=1:nx+1,j=2:ny,wete(i,j)==1)
@@ -57,6 +99,10 @@ contains
       else
          dhdy=0.d0
       endif
+!#ifdef USEMPI
+!      call xmpi_shift(dhdy,SHIFT_Y_R,1,2)
+!      call xmpi_shift(dhdy,SHIFT_Y_L,3,4)
+!#endif       
       
    end subroutine slope2D
 
@@ -548,7 +594,7 @@ contains
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   subroutine dispersion(par,s)
+   subroutine dispersion(par,s,h)
       use params
       use spaceparams
       use logging_module
@@ -557,26 +603,17 @@ contains
 
       implicit none
 
-      type(spacepars)                     :: s
-      type(parameters)                    :: par
-      !logical,optional,intent(in)         :: bcast
+      type(spacepars)                      :: s
+      type(parameters)                     :: par
+      real*8, dimension(1:s%nx+1,1:s%ny+1),intent(in) :: h  ! water depth for dispersion can vary for stationary, single_dir and 
+                                                            ! instationary computations, with and without wci
 
-      !real*8, dimension(:,:),allocatable,save  :: h,L0,kh
-      !real*8, dimension(:,:),allocatable,save  :: Ltemp
       ! Robert: for some reason, MPI version does not like the "allocatable" version
       !         of this subroutine.
-      real*8, dimension(1:s%nx+1,1:s%ny+1)  :: h,L0,kh,Ltemp
-      integer                             :: i,j,j1,j2
-      real*8                              :: backdis,disfac
-      integer                             :: index
-      !logical                             :: lbcast
-      ! Robert: why was this functionality removed? lbcast is not used anymore...
-      !if (present(bcast)) then
-      !   lbcast = bcast
-      !else
-      !   !lbcast = .true.
-      !   lbcast = .false.
-      !endif
+      real*8, dimension(1:s%nx+1,1:s%ny+1)  :: L0,kh,Ltemp
+      integer                               :: i,j,j1,j2
+      real*8                                :: backdis,disfac
+      integer                               :: index
 
       if (s%ny==0) then
          j1=1
@@ -586,27 +623,10 @@ contains
          j2=s%ny+1
       endif
       !
-      ! In the original code, phi, aphi, bphi are saved
-      ! variables, and calculated once. I think this is
-      ! better. In the original code, these variables
-      ! had to be broadcasted in the parallel version.
-      ! Also I rearranged some formulas, no need anymore
-      ! for variables t and n.
-
-      ! cjaap: replaced par%hmin by par%eps
-      ! Robert: this does not work: perhaps due to inactivity of "lbcast"?
-      !if (.not.allocated(h)) then
-      !   allocate(h (s%nx+1,s%ny+1))
-      !   allocate(L0(s%nx+1,s%ny+1))
-      !   allocate(kh(s%nx+1,s%ny+1))
-      !   allocate(Ltemp(s%nx+1,s%ny+1))
-      !endif
-
+      !
       where(s%wete==1)
-         h = max(s%hh + par%delta*s%H,par%eps)
-      L0 = 2*par%px*par%g/(s%sigm**2)
+         L0 = par%g*par%Trep**2/(2*par%px)
       elsewhere
-         h=par%eps
          L0=par%eps
       endwhere
 
@@ -619,12 +639,12 @@ contains
       do j = j1,j2
          do i = 1,s%nx+1
             if(s%wete(i,j)==1) then
-            Ltemp(i,j) = iteratedispersion(L0(i,j),Ltemp(i,j),par%px,h(i,j))
-            if (Ltemp(i,j)<0.d0) then   ! this is an error from iteratedispersion
-               Ltemp(i,j) = -Ltemp(i,j)
-               call writelog('lws','','Warning: no convergence in dispersion relation iteration at t = ', &
-               par%t*max(par%morfac*par%morfacopt,1.d0))
-            endif
+               Ltemp(i,j) = iteratedispersion(L0(i,j),Ltemp(i,j),par%px,h(i,j))
+               if (Ltemp(i,j)<0.d0) then   ! this is an error from iteratedispersion
+                  Ltemp(i,j) = -Ltemp(i,j)
+                  call writelog('lws','','Warning: no convergence in dispersion relation iteration at t = ', &
+                                       par%t*max(par%morfac*par%morfacopt,1.d0))
+               endif
             endif
          end do
       end do
@@ -635,49 +655,55 @@ contains
          do j = j1,j2
             do i = 2,s%nx+1
                if(s%wete(i,j)==1) then
-               index = i       ! start index
-               backdis = 0.d0  ! relative distance backward
-               do while (backdis<1.d0)
-                  ! disfac = s%dsc(index,j)/(par%facsd*s%L1(index,j))
-                  ! use average wavelength over distance dsc
-                  disfac = s%dsc(index,j)/(par%facsd*0.5d0*(Ltemp(index,j)+Ltemp(max(index-1,1),j)))
-                  disfac = min(disfac,1.d0-backdis)
+                  index = i       ! start index
+                  backdis = 0.d0  ! relative distance backward
+                  do while (backdis<1.d0)
+                     ! use average wavelength over distance dsc
+                     disfac = s%dsc(index,j)/(par%facsd*0.5d0*(Ltemp(index,j)+Ltemp(max(index-1,1),j)))
+                     disfac = min(disfac,1.d0-backdis)
 
-                  !h(i,j) = h(i,j) + disfac*s%hh(index,j)
-                  s%L1(i,j) = s%L1(i,j)+disfac*0.5d0*(Ltemp(index,j)+Ltemp(max(index-1,1),j))
-                  backdis = backdis+disfac
 
-                  index = max(index-1,1)
-               enddo
+                     s%L1(i,j) = s%L1(i,j)+disfac*0.5d0*(Ltemp(index,j)+Ltemp(max(index-1,1),j))
+                     backdis = backdis+disfac
+
+                     index = max(index-1,1)
+                  enddo
                endif
             enddo
          enddo
          where(s%wete(1,:)==1)
-         s%L1(1,:) = Ltemp(1,:)
+            s%L1(1,:) = Ltemp(1,:)
          endwhere
       else
          where(s%wete==1)
-         s%L1 = Ltemp
+            s%L1 = Ltemp
          endwhere
       endif
 
       ! boundary copies for non superfast 1D
       if (s%ny>0) then
-         where(s%wete(:,1)==1)
-         s%L1(:,1)=s%L1(:,2)
-         endwhere
-         where(s%wete(:,s%ny+1)==1)
-         s%L1(:,s%ny+1)=s%L1(:,s%ny)
-         endwhere
+         if (xmpi_isleft) then 
+            where(s%wete(:,1)==1)
+               s%L1(:,1)=s%L1(:,2)
+            endwhere
+         endif
+         if (xmpi_isright) then
+            where(s%wete(:,s%ny+1)==1)
+               s%L1(:,s%ny+1)=s%L1(:,s%ny)
+            endwhere
+         endif
       endif
       where(s%wete==1)
-      s%k  = 2*par%px/s%L1
-      s%c  = s%sigm/s%k
-      ! Ad:
-      kh   = min(s%k*h,10.0d0)
-      s%n=0.5d0+kh/sinh(2*kh)
-      s%cg=s%c*s%n
-      !s%cg = s%c*(0.5d0+kh/sinh(2*kh))
+         s%k  = 2*par%px/s%L1
+         s%c  = s%sigm/s%k
+         kh   = min(s%k*h,10.0d0)
+         s%n=0.5d0+kh/sinh(2*kh)
+         s%cg=s%c*s%n
+      elsewhere
+         s%k = 25.d0
+         s%c = sqrt(par%g*par%eps)
+         s%n = 1.d0
+         s%cg= sqrt(par%g*par%eps)
       endwhere
 
 
@@ -754,7 +780,7 @@ contains
          do jx = 2,s%nx+1
             if(s%wete(jx,jy)==1) then
             nbr     = 0
-            Lbr     = sqrt(par%g*s%hh(jx,jy))*par%Trep*par%breakerdelay
+            Lbr     = sqrt(par%g*s%hhw(jx,jy))*par%Trep*par%breakerdelay
             i       = jx-1
             do while (abs(s%xz(i,jy)-s%xz(jx,jy))<=Lbr .and. i>1)
                nbr = nbr+1
@@ -801,5 +827,309 @@ contains
       ! wwvv for the parallel version, shift in the columns and rows
 
    end subroutine breakerdelay
+   
+   subroutine wave_dispersion(s,par,useAverageDepthSwitch)
+   
+      use params
+      use spaceparams
+      
+      implicit none
+      
+      type(spacepars), target     :: s
+      type(parameters)            :: par
+      integer,intent(in),optional :: useAverageDepthSwitch
+   
+      real*8,dimension(:,:),allocatable,save  :: km,kmx,kmy 
+      real*8,dimension(:,:),allocatable,save  :: hhlocal,ulocal,vlocal,relangle 
+      real*8,dimension(:,:),allocatable,save  :: arg,fac
+      real*8,dimension(:,:),allocatable,save  :: cgym,cgxm
+      real*8,dimension(:,:),allocatable,save  :: dkmxdx,dkmxdy,dkmydx,dkmydy
+      real*8,dimension(:,:),allocatable,save  :: xwadvec,ywadvec
+      real*8,dimension(:),allocatable,save    :: L0,L1
+      real*8,save                             :: Trepold
+      integer                                 :: itheta,j
+      integer                                 :: luseAverageDepthSwitch
+   
+      if(.not.allocated(km)) then
+         allocate(km(s%nx+1,s%ny+1))
+         allocate(kmx(s%nx+1,s%ny+1))
+         allocate(kmy(s%nx+1,s%ny+1))
+         allocate(arg(s%nx+1,s%ny+1))
+         allocate(fac(s%nx+1,s%ny+1))
+         allocate(cgym(s%nx+1,s%ny+1))
+         allocate(cgxm(s%nx+1,s%ny+1))
+         allocate(dkmxdx(s%nx+1,s%ny+1))
+         allocate(dkmxdy(s%nx+1,s%ny+1))
+         allocate(dkmydx(s%nx+1,s%ny+1))
+         allocate(dkmydy(s%nx+1,s%ny+1))
+         allocate(xwadvec(s%nx+1,s%ny+1))
+         allocate(ywadvec(s%nx+1,s%ny+1))
+         allocate(hhlocal(s%nx+1,s%ny+1))
+         if (par%wci==1) then
+            allocate(ulocal(s%nx+1,s%ny+1))
+            allocate(vlocal(s%nx+1,s%ny+1))
+            allocate(relangle(s%nx+1,s%ny+1))
+            allocate(L0(s%ny+1))
+            allocate(L1(s%ny+1))
+            L0 = 0.d0
+            L1 = -huge(0.d0)
+         endif
+         Trepold = 0.d0
+         call dispersion(par,s,s%hhw) ! at initialisation, water depth is always s%hhw
+         km=s%k
+      endif
+   
+      ! water depth and velocities to use depends on wave mode and presence of wci
+      
+      ! default to use instantaneous water depth and velocities
+      if (present(useAverageDepthSwitch)) then
+         luseAverageDepthSwitch = useAverageDepthSwitch
+      else
+         luseAverageDepthSwitch = 0
+      endif
+      
+      if (luseAverageDepthSwitch==0) then  ! default: use instantaneous depth and velocities
+         hhlocal = s%hhw
+         if (par%wci==1) then
+            ulocal = s%u
+            vlocal = s%v
+         endif
+      elseif (luseAverageDepthSwitch==1) then ! used averaged depths for single_dir computation
+         hhlocal = s%hhws
+         if (par%wci==1) then
+            ulocal = s%uws
+            vlocal = s%vws
+         endif
+      elseif (luseAverageDepthSwitch==2) then ! used averaged depths for instationary computation with wci
+         hhlocal = s%hhwcins
+         ulocal = s%uwcins
+         vlocal = s%vwcins
+      else
+         ! this should never occur
+      endif
+         
+       
+      if(par%wci==1) then
+         ! Dano NEED TO CHECK THIS FOR CURVI
+         !if (xmpi_istop) then
+         !   ! requires boundary condition at the offshore boundary, where we assume zero flow
+         !   L0 = par%g*par%Trep**2/(2*par%px)
+         !   if (any(L1<=0.d0)) then
+         !      L1 = L0
+         !   endif
+         !   do j=1,s%ny+1
+         !      L1(j) = iteratedispersion(L0(j),L1(j),par%px,s%hhw(1,j))
+         !   enddo
+         !   km(1,:)  = 2*par%px/max(L1,0.00001d0)
+         !endif
+         arg     = min(100.0d0,km*hhlocal)
+         fac = ( 1.d0 + ((km*s%H/2.d0)**2))  ! use deep water correction
+         s%sigm(1,:) = sqrt( par%g*km(1,:)*tanh(arg(1,:))) ! *( 1.d0+ ((km(1,:)*s%H(1,:)/2.d0)**2)))
+         !  calculate change in intrinsic frequency
+         relangle = s%thetamean-s%alfaz
+         kmx = km*dcos(relangle)
+         kmy = km*dsin(relangle)
+         s%wm = s%sigm+kmx*ulocal*min(&
+                                  min(hhlocal/par%hwci,1.d0), &
+                                  min(1.d0,(1.d0-hhlocal/par%hwcimax)) &
+                                  )+ &
+                       kmy*vlocal*min( &
+                                  min(hhlocal/par%hwci,1.d0), &
+                                  min(1.d0,(1.d0-hhlocal/par%hwcimax)) &
+                                  )
+         
+         where(km>0.01d0)
+            s%c  = s%sigm/km
+            !          cg = c*(0.5d0+arg/sinh(2.0d0*arg))    ! Linear
+            s%cg = s%c*(0.5d0+arg/sinh(2*arg))*sqrt(fac)  ! &  to include more
+            !		 	          + km*(H/2)**2*sqrt(max(par%g*km*tanh(arg),0.001d0))/sqrt(max(fac,0.001d0)) ! include wave steepness
+            s%n=0.5d0+km*hhlocal/sinh(2*max(km,0.00001d0)*hhlocal)
+         elsewhere
+            s%c  = 0.01d0
+            s%cg = 0.01d0
+            s%n  = 1.d0
+         endwhere
+         
+         cgym = s%cg*dsin(relangle)+vlocal*min(min(hhlocal/par%hwci,1.d0),min(1.d0,(1.d0-hhlocal/par%hwcimax)))
+         cgxm = s%cg*dcos(relangle)+ulocal*min(min(hhlocal/par%hwci,1.d0),min(1.d0,(1.d0-hhlocal/par%hwcimax)))
+
+         call slope2D(kmx,s%nx,s%ny,s%dsu,s%dnv,dkmxdx,dkmxdy,s%wete)
+         call slope2D(kmy,s%nx,s%ny,s%dsu,s%dnv,dkmydx,dkmydy,s%wete)
+         call advecwx(s%wm,xwadvec,kmx,s%nx,s%ny,s%dsu,s%wete)   ! cjaap: s%xz or s%xu?         kmx = kmx -par%dt*xwadvec  -par%dt*cgym*(dkmydx-dkmxdy)
+         kmx = kmx -par%dt*xwadvec  -par%dt*cgym*(dkmydx-dkmxdy)
+         if (s%ny>0) then
+            if (xmpi_isright) kmx(:,s%ny+1) = kmx(:,s%ny)  ! lateral bc
+            if (xmpi_isleft)  kmx(:,1) = kmx(:,2)  ! lateral bc
+         endif
+
+         call advecwy(s%wm,ywadvec,kmy,s%nx,s%ny,s%dnv,s%wete)   ! cjaap: s%yz or s%yv?
+         kmy = kmy-par%dt*ywadvec  + par%dt*cgxm*(dkmydx-dkmxdy)
+         if (s%ny>0) then
+            if (xmpi_isright) kmy(:,s%ny+1) = kmy(:,s%ny)   ! lateral bc
+            if (xmpi_isleft)  kmy(:,1) = kmy(:,2)   ! lateral bc
+         endif
+
+#ifdef USEMPI
+         call xmpi_shift_ee(kmx)
+         call xmpi_shift_ee(kmy)
+#endif
+
+         ! update km
+         km = sqrt(kmx**2+kmy**2)
+         km = min(km,25.d0) ! limit to gravity waves
+         ! non-linear dispersion
+         arg = min(100.0d0,km*hhlocal)
+         arg = max(arg,0.0001)
+         !       fac = ( 1.d0 + ((km*H/2.d0)**2)*( (8.d0+(cosh(min(4.d0*arg,10.0d0)))**1.d0-2.d0*(tanh(arg))**2.d0 ) /(8.d0*(sinh(arg))**4.d0) ) )
+         fac = ( 1.d0 + ((km*s%H/2.d0)**2))  ! use deep water correction instead of expression above (waves are short near blocking point anyway)
+         !       fac = 1.d0    ! Linear
+         s%sigm = sqrt( par%g*km*tanh(arg)*fac)
+         s%sigm = max(s%sigm,0.010d0)
+         !  update intrinsic frequency
+         do itheta=1,s%ntheta
+            s%sigt(:,:,itheta) = s%sigm
+         enddo
+         !
+         !  update k
+         s%k = km
+      else
+         ! check if we need to recompute sigm and sigt
+         if (abs(par%Trep-Trepold)/par%Trep > 0.0001d0) then
+            Trepold = par%Trep
+            do itheta=1,s%ntheta
+               s%sigt(:,:,itheta) = 2*par%px/par%Trep
+            end do
+            s%sigm = 2*par%px/par%Trep
+         endif
+         call dispersion(par,s,hhlocal)
+      endif ! end wave current interaction
+      
+   
+   end subroutine wave_dispersion
+   
+   subroutine compute_wave_direction_velocities(s,par,flavour,dhdx,dhdy,dudx,dudy,dvdx,dvdy,sinh2kh)
+   
+      use params
+      use spaceparams
+      
+      implicit none
+      
+      type(spacepars), target     :: s
+      type(parameters)            :: par
+      integer,intent(in)          :: flavour ! 0 for stationary, 1 for instationary, 2 for directions part of single_dir
+      real*8,dimension(s%nx+1,s%ny+1),intent(in) :: dhdx,dhdy,dudx,dudy,dvdx,dvdy,sinh2kh
+      
+      real*8,dimension(:,:,:),allocatable,save :: cgx,cgy,cx,cy,ctheta
+      real*8,dimension(:,:),allocatable,save   :: uwci,vwci
+      
+      integer                     :: nthetalocal,nthetamax
+      integer                     :: itheta,j,i
+      real*8                      :: cs,sn
+      
+      if(.not. allocated(cgx)) then
+         if (par%single_dir==1) then
+            nthetamax = max(s%ntheta,s%ntheta_s)
+         else
+            nthetamax = s%ntheta
+         endif
+         allocate(cgx(s%nx+1,s%ny+1,nthetamax))
+         allocate(cgy(s%nx+1,s%ny+1,nthetamax))
+         allocate(cx(s%nx+1,s%ny+1,nthetamax))
+         allocate(cy(s%nx+1,s%ny+1,nthetamax))
+         allocate(ctheta(s%nx+1,s%ny+1,nthetamax))
+         if (par%wci==1) then
+            allocate(uwci(s%nx+1,s%ny+1))
+            allocate(vwci(s%nx+1,s%ny+1))
+         endif
+      endif
+      
+      ! set local variables according to flavour
+      select case (flavour)
+      case (0)
+         nthetalocal = s%ntheta
+         if (par%wci==1) then
+            uwci = s%u
+            vwci = s%v
+         endif
+      case (1)
+         nthetalocal = s%ntheta
+         if (par%wci==1) then
+            uwci = s%uwcins
+            vwci = s%vwcins
+         endif
+      case (2)
+         nthetalocal = s%ntheta_s
+         if (par%wci==1) then
+            uwci = s%uws
+            vwci = s%vws
+         endif
+      end select
+      !   
+      ! split wave velocities in wave grid directions theta
+      do itheta=1,nthetalocal
+         do j=1,s%ny+1
+            do i=1,s%nx+1
+               if (s%wete(i,j) == 1) then
+                  ! wave grid directions theta with respect to spatial grid s,n
+                  if (flavour == 2) then
+                     cs=s%costh_s(i,j,itheta)
+                     sn=s%sinth_s(i,j,itheta)
+                  else
+                     cs=s%costh(i,j,itheta)
+                     sn=s%sinth(i,j,itheta)
+                  endif
+
+                  ! split wave velocities over theta bins
+                  ! note: cg is already correct for each flavour, as long as wave_dispersion is called before this subroutine
+                  if (par%wci==1) then
+                     cgx(i,j,itheta)= s%cg(i,j)*cs+uwci(i,j)
+                     cgy(i,j,itheta)= s%cg(i,j)*sn+vwci(i,j)
+                     cx(i,j,itheta) =  s%c(i,j)*cs+uwci(i,j)
+                     cy(i,j,itheta) =  s%c(i,j)*sn+vwci(i,j)
+                  else
+                     cgx(i,j,itheta)= s%cg(i,j)*cs
+                     cgy(i,j,itheta)= s%cg(i,j)*sn
+                     cx(i,j,itheta) =  s%c(i,j)*cs
+                     cy(i,j,itheta) =  s%c(i,j)*sn
+                  endif
+
+                  ! compute refraction velocity
+                  ! note: sigm is already correct for each flavour, as long as wave_dispersion is called before this subroutine
+                  if (par%wci==1) then
+                     ctheta(i,j,itheta)= s%sigm(i,j)/sinh2kh(i,j)*(dhdx(i,j)*sn-dhdy(i,j)*cs) +  &
+                                                               (cs*(sn*dudx(i,j)-cs*dudy(i,j)) + sn*(sn*dvdx(i,j)-cs*dvdy(i,j)))
+                  else
+                     ctheta(i,j,itheta)= s%sigm(i,j)/sinh2kh(i,j)*(dhdx(i,j)*sn-dhdy(i,j)*cs)
+                  endif
+               else
+                  cgx(i,j,itheta) = 0.d0
+                  cgy(i,j,itheta) = 0.d0
+                  cx(i,j,itheta) = 0.d0
+                  cy(i,j,itheta) = 0.d0
+                  ctheta(i,j,itheta) = 0.d0
+               endif
+            enddo
+         enddo
+      enddo
+      
+      ! Dano Limit unrealistic refraction speed to 1/2 pi per wave period
+      ctheta=sign(1.d0,ctheta)*min(abs(ctheta),.5*par%px/par%Trep)
+      
+      ! return to the right parts in s
+      if (flavour == 2) then
+         s%cgx_s(:,:,1:s%ntheta_s) = cgx(:,:,1:s%ntheta_s)
+         s%cgy_s(:,:,1:s%ntheta_s) = cgy(:,:,1:s%ntheta_s)
+         s%ctheta_s(:,:,1:s%ntheta_s) = ctheta(:,:,1:s%ntheta_s)
+         ! no cx and cy needed for roller energy
+      else
+         s%cgx(:,:,1:s%ntheta) = cgx(:,:,1:s%ntheta)
+         s%cgy(:,:,1:s%ntheta) = cgy(:,:,1:s%ntheta)
+         s%ctheta(:,:,1:s%ntheta) = ctheta(:,:,1:s%ntheta)
+         s%cx(:,:,1:s%ntheta) = cx(:,:,1:s%ntheta)
+         s%cy(:,:,1:s%ntheta) = cy(:,:,1:s%ntheta)
+      endif
+
+   end subroutine compute_wave_direction_velocities
+
 
 end module wave_functions_module

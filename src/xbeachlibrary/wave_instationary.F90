@@ -27,22 +27,20 @@ contains
 
 
 
-      integer, dimension(:,:,:),allocatable,save  :: wete
       real*8 , dimension(:,:)  ,allocatable,save  :: dhdx,dhdy,dudx,dudy,dvdx,dvdy,ustw,Erfl
       real*8 , dimension(:,:)  ,allocatable,save  :: km,kmx,kmy,xwadvec,ywadvec,sinh2kh !,wm
       real*8 , dimension(:,:,:),allocatable,save  :: xadvec,yadvec,thetaadvec,dd,drr,dder
       real*8 , dimension(:,:,:),allocatable,save  :: xradvec,yradvec,thetaradvec
       real*8 , dimension(:,:)  ,allocatable,save  :: dkmxdx,dkmxdy,dkmydx,dkmydy,cgxm,cgym,arg,fac
-      real*8 , dimension(:,:)  ,allocatable,save  :: wcifacu,wcifacv,hrmsold,uorb
+      real*8 , dimension(:,:)  ,allocatable,save  :: uorb,hhwlocal
       real*8 , dimension(:)    ,allocatable,save  :: wcrestpos
-      real*8                                      :: factime,cs,sn,coffshore
-      real*8 , save                               :: waverr
+      logical, dimension(:,:)  ,allocatable,save  :: gammax_correct
+      real*8                                      :: coffshore
 
 
 
-      if (.not. allocated(wete)) then
+      if (.not. allocated(drr)) then
          allocate(drr         (s%nx+1,s%ny+1,s%ntheta))
-         allocate(wete        (s%nx+1,s%ny+1,s%ntheta))
          allocate(xadvec      (s%nx+1,s%ny+1,s%ntheta))
          allocate(yadvec      (s%nx+1,s%ny+1,s%ntheta))
          allocate(thetaadvec  (s%nx+1,s%ny+1,s%ntheta))
@@ -75,16 +73,14 @@ contains
          allocate(cgym        (s%nx+1,s%ny+1))
          allocate(arg         (s%nx+1,s%ny+1))
          allocate(fac         (s%nx+1,s%ny+1))
-         allocate(wcifacu     (s%nx+1,s%ny+1))
-         allocate(wcifacv     (s%nx+1,s%ny+1))
-         allocate(hrmsold     (s%nx+1,s%ny+1))
          allocate(uorb        (s%nx+1,s%ny+1))
+         allocate(hhwlocal    (s%nx+1,s%ny+1))
          allocate(wcrestpos   (s%nx+1))
+         allocate(gammax_correct(s%nx+1,s%ny+1))
 
 
          ! wwvv todo: I think these iniailization are superfluous
          drr         = 0.d0
-         wete        = 0
          xadvec      = 0.d0
          yadvec      = 0.d0
          thetaadvec  = 0.d0
@@ -117,15 +113,20 @@ contains
          arg         = 0.d0
          fac         = 0.d0
          uorb        = 0.d0
+         hhwlocal    = s%hh
+         gammax_correct = .false.
          s%Fx          = 0.d0 ! in spacepars
          s%Fy          = 0.d0 ! in spacepars
       endif
-
-      s%hh = max(s%hh,par%eps)
-      hrmsold=s%H
-      ! Calculate once velocities used with and without wave current interaction
-      wcifacu=s%u*par%wci*min(min(s%hh/par%hwci,1.d0),min(1.d0,1.d0-s%hh/par%hwcimax))
-      wcifacv=s%v*par%wci*min(min(s%hh/par%hwci,1.d0),min(1.d0,1.d0-s%hh/par%hwcimax))
+      
+      ! the local water depth to use in this subroutine generally depend on whether we're using wci or not
+      ! both options include par%delta*s%H effect
+      ! dispersion routine in wave_timestep already accounts for these differences
+      if (par%wci==1) then
+         hhwlocal = s%hhwcins
+      else
+         hhwlocal = s%hhw
+      endif
 
       if (par%single_dir==1) then
          s%costh(:,:,1)=cos(s%thetamean-s%alfaz)
@@ -148,174 +149,100 @@ contains
          s%thetamean=asin(max(-1.0d0, min(1.0d0, sin(s%theta0-s%alfaz(1,1))*s%c/coffshore)))+s%alfaz(1,1)
          s%costh(:,:,1)=cos(s%thetamean-s%alfaz)
          s%sinth(:,:,1)=sin(s%thetamean-s%alfaz)
-         !       thetamean = modulo(thetamean,2*par%px)
-         !       costh(:,:,1) = modulo(costh(:,:,1),2*par%px)
-         !       sinth(:,:,1) = modulo(sinth(:,:,1),2*par%px)
       endif
 
-      ! Dispersion relation
-      if (par%wci .ne. 0) then
-         if (par%t==par%dt) then
-            s%sigm = max((sum(s%sigt,3)/s%ntheta),0.01d0)
-            call dispersion(par,s)
-            s%umwci = 0.d0
-            s%vmwci = 0.d0
-            s%zswci = s%zs
-            km=s%k
-         endif
-         km(1,:) = s%k(1,:)   ! boundary condition *assuming zero flow at the boundary)
-         factime = 1.d0/par%cats/par%Trep*par%dt
-         s%umwci   = factime*s%uu + (1-factime)*s%umwci
-         s%vmwci   = factime*s%vv + (1-factime)*s%vmwci
-         s%zswci   = factime*s%zs + (1-factime)*s%zswci
-         arg     = min(100.0d0,km*max(s%hh,par%delta*s%H))
-         s%sigm(1,:) = sqrt( par%g*km(1,:)*tanh(arg(1,:))) ! *( 1.d0+ ((km(1,:)*s%H(1,:)/2.d0)**2)))
-         !  calculate change in intrinsic frequency
-         kmx = km*dcos(s%thetamean)
-         kmy = km*dsin(s%thetamean)
-         s%wm = s%sigm+kmx*s%umwci*par%wci*min(&
-                                               min((s%zswci-s%zb)/par%hwci,1.d0), &
-                                               min(1.d0,(1.d0-(s%zswci-s%zb)/par%hwcimax)) &
-                                               )+ &
-                       kmy*s%vmwci*par%wci*min( &
-                                               min((s%zswci-s%zb)/par%hwci,1.d0), &
-                                               min(1.d0,(1.d0-(s%zswci-s%zb)/par%hwcimax)) &
-                                               )
-         cgym = s%cg*dsin(s%thetamean) + s%vmwci*min(min((s%zswci-s%zb)/par%hwci,1.d0),min(1.d0,(1.d0-(s%zswci-s%zb)/par%hwcimax)))
-         cgxm = s%cg*dcos(s%thetamean) + s%umwci*min(min((s%zswci-s%zb)/par%hwci,1.d0),min(1.d0,(1.d0-(s%zswci-s%zb)/par%hwcimax)))
-
-         call slope2D(kmx,s%nx,s%ny,s%dsu,s%dnv,dkmxdx,dkmxdy,s%wete)
-         call slope2D(kmy,s%nx,s%ny,s%dsu,s%dnv,dkmydx,dkmydy,s%wete)
-         call advecwx(s%wm,xwadvec,kmx,s%nx,s%ny,s%dsu,s%wete)   ! cjaap: s%xz or s%xu?         kmx = kmx -par%dt*xwadvec  -par%dt*cgym*(dkmydx-dkmxdy)
-         kmx = kmx -par%dt*xwadvec  -par%dt*cgym*(dkmydx-dkmxdy)
-         if (s%ny>0) then
-            if (xmpi_isright) kmx(:,s%ny+1) = kmx(:,s%ny)  ! lateral bc
-            if (xmpi_isleft)  kmx(:,1) = kmx(:,2)  ! lateral bc
-         endif
-
-         call advecwy(s%wm,ywadvec,kmy,s%nx,s%ny,s%dnv,s%wete)   ! cjaap: s%yz or s%yv?
-         kmy = kmy-par%dt*ywadvec  + par%dt*cgxm*(dkmydx-dkmxdy)
-         if (s%ny>0) then
-            if (xmpi_isright) kmy(:,s%ny+1) = kmy(:,s%ny)   ! lateral bc
-            if (xmpi_isleft)  kmy(:,1) = kmy(:,2)   ! lateral bc
-         endif
-
-#ifdef USEMPI
-         call xmpi_shift_ee(kmx)
-         call xmpi_shift_ee(kmy)
-#endif
-
-         ! update km
-         km = sqrt(kmx**2+kmy**2)
-         ! non-linear dispersion
-         arg = min(100.0d0,km*((s%zswci-s%zb)+par%delta*s%H))
-         arg = max(arg,0.0001)
-         !       fac = ( 1.d0 + ((km*H/2.d0)**2)*( (8.d0+(cosh(min(4.d0*arg,10.0d0)))**1.d0-2.d0*(tanh(arg))**2.d0 ) /(8.d0*(sinh(arg))**4.d0) ) )
-         fac = ( 1.d0 + ((km*s%H/2.d0)**2))  ! use deep water correction instead of expression above (waves are short near blocking point anyway)
-         !       fac = 1.d0    ! Linear
-         s%sigm = sqrt( par%g*km*tanh(arg)*fac)
-
-         !  update intrinsic frequency
-         do itheta=1,s%ntheta
-            s%sigt(:,:,itheta) = s%sigm
-         enddo
-         where(km>0.01d0)
-            s%c  = s%sigm/km
-            !          cg = c*(0.5d0+arg/sinh(2.0d0*arg))    ! Linear
-            s%cg = s%c*(0.5d0+arg/sinh(2*arg))*sqrt(fac)  ! &  to include more
-            !		 	          + km*(H/2)**2*sqrt(max(par%g*km*tanh(arg),0.001d0))/sqrt(max(fac,0.001d0)) ! include wave steepness
-            s%n=0.5d0+km*s%hh/sinh(2*max(km,0.00001d0)*s%hh)
-         elsewhere
-            s%c  = 0.01d0
-            s%cg = 0.01d0
-            s%n  = 1.d0
-         endwhere
-         !  update k
-         km = min(km,25.d0) ! limit to gravity waves
-         s%k = km
-
-      else  ! no wave current interaction
-         s%sigm = max((sum(s%sigt,3)/s%ntheta),0.01d0)
-         call dispersion(par,s)
-      endif ! end wave current interaction
-
       ! Slopes of water depth
-      call slope2D(max(s%hh,par%delta*s%H),s%nx,s%ny,s%dsu,s%dnv,dhdx,dhdy,s%wete)
-      call slope2D(wcifacu,s%nx,s%ny,s%dsu,s%dnv,dudx,dudy,s%wete)
-      call slope2D(wcifacv,s%nx,s%ny,s%dsu,s%dnv,dvdx,dvdy,s%wete)
+      call slope2D(hhwlocal,s%nx,s%ny,s%dsu,s%dnv,dhdx,dhdy,s%wete)
+      if (par%wci==1) then
+         call slope2D(s%uwcins,s%nx,s%ny,s%dsu,s%dnv,dudx,dudy,s%wete)
+         call slope2D(s%vwcins,s%nx,s%ny,s%dsu,s%dnv,dvdx,dvdy,s%wete)
+      else
+         dudx = 0.d0
+         dudy = 0.d0
+         dvdx = 0.d0
+         dvdy = 0.d0
+      endif
       !
       ! Calculate once sinh(2kh)
-      where(2*s%hh*s%k<=3000.d0)
-         sinh2kh=sinh(min(2*s%k*max(s%hh,par%delta*s%H),10.0d0))
+      where(2*hhwlocal*s%k<=3000.d0)
+         sinh2kh=sinh(min(2*s%k*hhwlocal,10.0d0))
       elsewhere
          sinh2kh = 3000.d0
       endwhere
 
       ! split wave velocities in wave grid directions theta
-      do j=1,s%ny+1
-         do i=1,s%nx+1
-            do itheta=1,s%ntheta
-               ! wave grid directions theta with respect to spatial grid s,n
-               cs=s%costh(i,j,itheta)
-               sn=s%sinth(i,j,itheta)
-
-               ! split wave velocities over theta bins
-               s%cgx(i,j,itheta)= s%cg(i,j)*cs+wcifacu(i,j)
-               s%cgy(i,j,itheta)= s%cg(i,j)*sn+wcifacv(i,j)
-               s%cx(i,j,itheta) =  s%c(i,j)*cs+wcifacu(i,j)
-               s%cy(i,j,itheta) =  s%c(i,j)*sn+wcifacv(i,j)
-
-               ! compute refraction velocity
-               s%ctheta(i,j,itheta)=                                             &
-               s%sigm(i,j)/sinh2kh(i,j)*(dhdx(i,j)*sn-dhdy(i,j)*cs) + par%wci*   &
-               ( cs*(sn*dudx(i,j) - cs*dudy(i,j)) +                            &
-               sn*(sn*dvdx(i,j) - cs*dvdy(i,j)) )
-            enddo
-         enddo
-      enddo
-      ! Dano Limit unrealistic refraction speed to 1/2 pi per wave period
-      s%ctheta=sign(1.d0,s%ctheta)*min(abs(s%ctheta),.5*par%px/par%Trep)
+      call compute_wave_direction_velocities(s,par,1,dhdx,dhdy,dudx,dudy,dvdx,dvdy,sinh2kh)
       !
       ! transform to wave action
       !
-      s%ee = s%ee/s%sigt
+      do itheta = 1,s%ntheta
+         where(s%wete == 1)
+            s%ee(:,:,itheta) = s%ee(:,:,itheta)/s%sigt(:,:,itheta)
+         endwhere
+      enddo
       !
       ! Upwind Euler timestep propagation
       !
-      call advecxho(s%ee,s%cgx,xadvec,s%nx,s%ny,s%ntheta,s%dnu,s%dsu,s%dsdnzi,par%scheme,s%wete,&
-                    par%dt,s%dsz)
+      call advecxho(s%ee,s%cgx,xadvec,s%nx,s%ny,s%ntheta,s%dnu,s%dsu,s%dsdnzi,par%scheme,s%wete,par%dt,s%dsz)
       if (s%ny>0) then
-         call advecyho(s%ee,s%cgy,yadvec,s%nx,s%ny,s%ntheta,s%dsv,s%dnv,s%dsdnzi,par%scheme,s%wete, &
-             par%dt,s%dnz)
+         call advecyho(s%ee,s%cgy,yadvec,s%nx,s%ny,s%ntheta,s%dsv,s%dnv,s%dsdnzi,par%scheme,s%wete,par%dt,s%dnz)
       endif
-      !call advectheta(ee*ctheta,thetaadvec,nx,ny,ntheta,dtheta)
-      call advecthetaho(s%ee,s%ctheta,thetaadvec,s%nx,s%ny,s%ntheta,s%dtheta,par%scheme,s%wete)!
-      s%ee=s%ee-par%dt*(xadvec+yadvec+thetaadvec)
+      call advecthetaho(s%ee,s%ctheta,thetaadvec,s%nx,s%ny,s%ntheta,s%dtheta,par%scheme,s%wete)
+      !
+      do itheta = 1,s%ntheta
+         where(s%wete==1)
+            s%ee(:,:,itheta)=s%ee(:,:,itheta)-par%dt*(xadvec(:,:,itheta)+yadvec(:,:,itheta)+thetaadvec(:,:,itheta))
+         endwhere
+      enddo
       !
       ! transform back to wave energy
       !
-      s%ee = s%ee*s%sigt
-      s%ee=max(s%ee,0.0d0) !Jaap
+      do itheta = 1,s%ntheta
+         where(s%wete == 1)
+            s%ee(:,:,itheta) = max(s%ee(:,:,itheta)*s%sigt(:,:,itheta),0.d0)
+         elsewhere
+            s%ee(:,:,itheta) = 0.d0
+         endwhere
+      enddo
       !
       ! Energy integrated over wave directions,Hrms
       !
-      s%E=sum(s%ee,3)*s%dtheta
+      where(s%wete == 1)
+         s%E=sum(s%ee,3)*s%dtheta
+      elsewhere
+         s%E = 0.d0
+      endwhere
       s%H=sqrt(s%E/par%rhog8)
+      !
+      ! Correct for gammax in these areas
+      where(s%H>par%gammax*s%hh .and. s%wete==1)
+         gammax_correct = .true.
+      elsewhere
+         gammax_correct = .false.
+      endwhere
+      !
       do itheta=1,s%ntheta
-         s%ee(:,:,itheta)=s%ee(:,:,itheta)/max(1.d0,(s%H/(par%gammax*s%hh))**2)
+         ! note: here we do use instantaneous water depth (and excluding par%delta*s%H effect)
+         where(gammax_correct)
+            s%ee(:,:,itheta)=s%ee(:,:,itheta)/(s%H/(par%gammax*s%hh))**2
+         endwhere
       enddo
-      s%H=min(s%H,par%gammax*s%hh)
-      s%E=par%rhog8*s%H**2
-
+      where(gammax_correct)
+         s%H=min(s%H,par%gammax*s%hh)
+      endwhere
+      where(gammax_correct)
+         s%E=par%rhog8*s%H**2 ! thread-safe computation of all H before recomputing E
+      endwhere
+      !
       ! Total dissipation
-
+      !
       select case(par%break)
        case(BREAK_ROELVINK1,BREAK_ROELVINK2)
-         call roelvink(par,s,km)
+         call roelvink(par,s)
        case(BREAK_BALDOCK)
-         call baldock(par,s,km)
+         call baldock(par,s)
        case(BREAK_JANSSEN)
-         call janssen_battjes(par,s,km)
+         call janssen_battjes(par,s)
        case(BREAK_ROELVINK_DALY)
          cgxm = s%c*dcos(s%thetamean)
          cgym = s%c*dsin(s%thetamean)
@@ -326,11 +253,11 @@ contains
          else
             s%Qb  = s%Qb-par%dt*xwadvec
          endif
-         call roelvink(par,s,km)
+         call roelvink(par,s)
       end select
 
       ! Dissipation by bed friction
-      uorb=par%px*s%H/par%Trep/sinh(min(max(s%k,0.01d0)*max(s%hh,par%delta*s%H),10.0d0))
+      uorb=par%px*s%H/par%Trep/sinh(min(max(s%k,0.01d0)*s%hhw,10.0d0))
       s%Df= 2d0/(3d0*par%px)*par%rho*s%fw*uorb**3
       where (s%hh>par%fwcutoff)
          s%Df = 0.d0
@@ -345,17 +272,6 @@ contains
          ! Then all short wave energy dissipation, including bed friction and vegetation
          dd(:,:,itheta)=dder(:,:,itheta) + s%ee(:,:,itheta)*(s%Df+s%Dveg)/max(s%E,0.00001d0)
       enddo
-
-      do j=1,s%ny+1
-         do i=1,s%nx+1
-            ! cjaap: replaced par%hmin by par%eps
-            if(s%hh(i,j)+par%delta*s%H(i,j)>par%eps) then
-               wete(i,j,1:s%ntheta)=1
-            else
-               wete(i,j,1:s%ntheta)=0
-            end if
-         end do
-      end do
       !
       ! Euler step dissipation
       !
@@ -367,34 +283,40 @@ contains
       endif
       !call advectheta(rr*ctheta,thetaradvec,nx,ny,ntheta,dtheta)
       call advecthetaho(s%rr,s%ctheta,thetaradvec,s%nx,s%ny,s%ntheta,s%dtheta,par%scheme,s%wete)
-      s%rr=s%rr-par%dt*(xradvec+yradvec+thetaradvec)
-      s%rr=max(s%rr,0.0d0)
+      do itheta=1,s%ntheta
+         where(s%wete==1)
+            s%rr(:,:,itheta)=s%rr(:,:,itheta)-par%dt*(xradvec(:,:,itheta)+yradvec(:,:,itheta)+thetaradvec(:,:,itheta))
+            s%rr(:,:,itheta)=max(s%rr(:,:,itheta),0.0d0)
+         elsewhere
+            s%rr(:,:,itheta) = 0.d0
+         endwhere
+      enddo
       !
       ! euler step roller energy dissipation (source and sink function)
       !
       do itheta=1,s%ntheta
          do j=1,s%ny+1
             do i=1,s%nx+1
-               if(wete(i,j,itheta)==1) then
+               if(s%wete(i,j)==1) then
                   s%ee(i,j,itheta)=s%ee(i,j,itheta)-par%dt*dd(i,j,itheta)
                   if(par%roller==1) then
                      drr(i,j,itheta) = 2*par%g*s%BR(i,j)*max(s%rr(i,j,itheta),0.0d0)/   &
                      sqrt(s%cx(i,j,itheta)**2 +s%cy(i,j,itheta)**2)
                      s%rr(i,j,itheta)=s%rr(i,j,itheta)+par%dt*(dder(i,j,itheta)         &  ! Robert: changed from dd to dder
                      -drr(i,j,itheta))                                            ! (only from wave s%breaking,
-                  else if (par%roller==0) then                                         !  not vegetation or bed friction)
+                  else                                                           !  not vegetation or bed friction)
                      s%rr(i,j,itheta)= 0.0d0
                      drr(i,j,itheta)= 0.0d0
                   endif
                   s%ee(i,j,itheta)=max(s%ee(i,j,itheta),0.0d0)
                   s%rr(i,j,itheta)=max(s%rr(i,j,itheta),0.0d0)
-               elseif(wete(i,j,itheta)==0) then
+               else
                   s%ee(i,j,itheta)=0.0d0
                   s%rr(i,j,itheta)=0.0d0
-               end if
-            end do
-         end do
-      end do
+               endif
+            enddo
+         enddo
+      enddo
       !
       ! Bay boundary Robert + Jaap
       !
@@ -476,13 +398,14 @@ contains
       s%R  = sum(s%rr,3)*s%dtheta
       s%DR = sum(drr,3)*s%dtheta
       s%H  = sqrt(s%E/par%rhog8)
-      waverr=sum(abs(s%H-hrmsold))/((s%nx+1)*(s%ny+1))
 
       !
       ! Compute mean wave direction
       !
       if (par%snells==0 .and. par%single_dir==0) then
-         s%thetamean=(sum(s%ee*s%thet,3)/s%ntheta)/(max(sum(s%ee,3),0.00001d0)/s%ntheta)
+         where(s%wete == 1)
+            s%thetamean=(sum(s%ee*s%thet,3)/s%ntheta)/(max(sum(s%ee,3),0.00001d0)/s%ntheta)
+         endwhere
       endif
       !
       ! Radiation stresses and forcing terms

@@ -1163,7 +1163,7 @@ contains
          endif
          par%alpha        = readkey_dbl ('params.txt','alpha',   1.0d0,     0.5d0,     2.0d0)
          par%n            = readkey_dbl ('params.txt','n',       10.0d0,     5.0d0,    20.0d0) 
-         par%delta        = readkey_dbl ('params.txt','delta',   0.0d0,     0.0d0,     1.0d0)
+         par%delta        = readkey_dbl ('params.txt','delta',   0.0d0,     0.0d0,     1.0d0,strict=.true.)
          par%wavfriccoef  = readkey_dbl ('params.txt','fw',       0.d0,   0d0,      1.0d0)
          ! try to read a wave friction file
          par%wavfricfile  = readkey_name('params.txt','fwfile')

@@ -293,9 +293,13 @@ module variables
   double precision, allocatable, target :: refA(:,:)        !< [m] reference level {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: ca(:,:)          !< [m3/m3] reference concentration {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: zs1(:,:)         !< [m] water level minus tide {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "sea_surface_height_above_sea_level_without_tide", "broadcast": "d"}
-!  double precision, allocatable, target :: hhw(:,:)         !< [m2/s2] viscosity {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
-!  double precision, allocatable, target :: uw(:,:)          !< [m2/s2] viscosity {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
-!  double precision, allocatable, target :: vw(:,:)          !< [m2/s2] viscosity {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: taubx_add(:,:)   !< [N/m2] additional bed shear stress due to boundary layer effects, x-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: tauby_add(:,:)   !< [N/m2] additional bed shear stress due to boundary layer effects, y-component {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: hhw(:,:)         !< [m] water depth used in all wave computations, includes H*par%delta {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: hhws(:,:)        !< [m] water depth used in wave stationary computation (and single_dir wave directions) {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: uws(:,:)         !< [m/s] u-velocity used in wave stationary computation (and single_dir wave directions) {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: vws(:,:)         !< [m/s] v-velocity used in wave stationary computation (and single_dir wave directions) {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: hhwcins(:,:)     !< [m] water depth used in wave instationary computation in case of wci {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: uwcins(:,:)      !< [m/s] u-velocity used in wave stationary computation in case of wci {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: vwcins(:,:)      !< [m/s] v-velocity used in wave stationary computation in case of wci {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
 end module variables

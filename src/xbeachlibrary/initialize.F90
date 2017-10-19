@@ -521,9 +521,13 @@ contains
       allocate(s%vmwci       (1:s%nx+1,1:s%ny+1))
       allocate(s%zswci       (1:s%nx+1,1:s%ny+1))
       allocate(s%BR(1:s%nx+1,1:s%ny+1))
-      !allocate(s%hhw(1:s%nx+1,1:s%ny+1))
-      !allocate(s%uw(1:s%nx+1,1:s%ny+1))
-      !allocate(s%vw(1:s%nx+1,1:s%ny+1))
+      allocate(s%hhw(1:s%nx+1,1:s%ny+1))
+      allocate(s%hhws(1:s%nx+1,1:s%ny+1))
+      allocate(s%uws(1:s%nx+1,1:s%ny+1))
+      allocate(s%vws(1:s%nx+1,1:s%ny+1))
+      allocate(s%hhwcins(1:s%nx+1,1:s%ny+1))
+      allocate(s%uwcins(1:s%nx+1,1:s%ny+1))
+      allocate(s%vwcins(1:s%nx+1,1:s%ny+1))
       !allocate(s%tm(1:s%nx+1,1:s%ny+1))
       !
       ! Initial condition
@@ -570,6 +574,13 @@ contains
       s%DR        = 0.d0
       s%Df        = 0.d0
       s%BR        = par%Beta
+      s%hhw       = s%hh
+      s%hhws      = s%hh
+      s%uws       = s%u
+      s%vws       = s%v
+      s%hhwcins   = s%hh
+      s%uwcins    = s%u
+      s%vwcins    = s%v
       !s%tm        = 0.d0
 
 
@@ -595,7 +606,7 @@ contains
          s%sigt(:,:,itheta) = 2*par%px/par%Trep
       end do
       s%sigm = sum(s%sigt,3)/s%ntheta
-      call dispersion(par,s)
+      call dispersion(par,s,s%hh)
       !
       inquire(file=par%wavfricfile,exist=exists)
       if ((exists)) then

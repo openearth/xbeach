@@ -359,7 +359,7 @@ contains
    end subroutine outputtimes_update
 
 
-   subroutine compute_dt(s,par, tpar, it, ilim, jlim, dtref, dt, ierr)
+   subroutine compute_dt(s,par, tpar, it, ilim, jlim, dtref, dt, ierr, limtypeout)
       use params
       use spaceparams
       use xmpi_module
@@ -372,7 +372,7 @@ contains
       type(parameters), intent(inout)  :: par
       type(timepars), intent(inout)    :: tpar
       integer, intent(inout)           :: it
-      integer, intent(out), optional   :: ierr
+      integer, intent(out), optional   :: ierr,limtypeout
       real*8, intent(in), optional :: dt
       real*8, intent(inout) :: dtref
       integer, intent(inout) :: ilim, jlim
@@ -608,6 +608,10 @@ contains
       if (present(dt)) then
          par%dt = min(dt, par%dt)
       end if
+      
+      if (present(limtypeout)) then
+         limtypeout = limtype
+      endif
 
    end subroutine compute_dt
 
@@ -634,7 +638,7 @@ contains
 
       if(.not. xcompute) return
 
-      call compute_dt(s,par, tpar, it, ilim, jlim, dtref, dt=dt, ierr=ierr)
+      call compute_dt(s,par, tpar, it, ilim, jlim, dtref, dt=dt, ierr=ierr,limtypeout=limtype)
       
       par%t=par%t+par%dt
 
@@ -657,6 +661,8 @@ contains
          call writelog('lswe','','Quit XBeach since computational time implodes/explodes')
          call writelog('lswe','','Please check output at the end of the simulation')
          select case (limtype)
+          case (0)
+            call writelog('lswe','(a)','Time constrain criterium exceeded in all cells') 
           case (1)
             call writelog('lswe','(a,i0,a,i0,a)','U-velocities are too high in cell (',ilim,',',jlim,')(M,N)')
           case (2)
