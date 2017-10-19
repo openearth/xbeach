@@ -251,12 +251,14 @@ contains
                   allocate(zig(sg%ny+1))
                   allocate(wig(sg%ny+1))
                   allocate(duig(sg%ny+1))
+                  allocate(dvig(sg%ny+1))
                else  ! only need valid address for MPI-distribution
                   allocate(uig(1))
                   allocate(vig(1))
                   allocate(zig(1))
                   allocate(wig(1))
                   allocate(duig(1))
+                  allocate(dvig(1))
                endif
             endif
             if (xmaster) then

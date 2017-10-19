@@ -580,6 +580,13 @@ contains
                 par%wbctype         = WBCTYPE_JONS_TABLE    
                 par%wbctype_str    = 'jons_table'
             endif
+            ! 7) INSTAT = ts_nonh
+            if (par%instat==INSTAT_TS_NONH)   then  
+                par%wavemodel       = WAVEMODEL_NONH
+                par%wavemodel_str   = 'nonh'   
+                par%wbctype         = WBCTYPE_TS_NONH    
+                par%wbctype_str    = 'ts_nonh'
+            endif
             !
             ! Conditions with spectra
             ! 1) INSTAT_JONS
