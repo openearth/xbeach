@@ -38,4 +38,3 @@ The Github repository is synchronsized with the Subversion repository
 at midnight, but not the other way around. The Github repository
 should therefore not be altered directly. In the near future XBeach
 will be migrated to its own Github organization.
-
