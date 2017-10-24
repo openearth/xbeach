@@ -2705,7 +2705,7 @@ contains
          KKx(m,1:K-m)=wp%kgen(m+1:K)*dcos(wp%thetagen(m+1:K))-wp%kgen(1:K-m)*dcos(wp%thetagen(1:K-m))
 
          ! Determine difference wave numbers according to Van Dongeren et al. 2003
-         ! eq. 19
+         ! eq. 19 (+cos due to pi in deltheta)
          k3(m,1:K-m) =sqrt(wp%kgen(1:K-m)**2+wp%kgen(m+1:K)**2+ &
          2*wp%kgen(1:K-m)*wp%kgen(m+1:K)*dcos(deltheta(m,1:K-m)))
 
@@ -2717,8 +2717,8 @@ contains
          !                             by limiting the interaction group velocity
          cg3(m,1:K-m) = min(cg3(m,1:K-m),par%nmax*sqrt(par%g/k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0)))
 
-         ! Determine difference-interaction coefficient according to Herbers 1994
-         ! eq. A5
+         ! Determine difference-interaction coefficient according to Okihiro et al eq. 4a
+         ! Instead of Herbers 1994 this coefficient is derived for the surface elavtion in stead of the bottom pressure.
          term1 = (-wp%wgen(1:K-m))*wp%wgen(m+1:K)
          term2 = (-wp%wgen(1:K-m))+wp%wgen(m+1:K)
          term2new = cg3(m,1:K-m)*k3(m,1:K-m)
@@ -2730,14 +2730,17 @@ contains
          chk1  = cosh(wp%kgen(1:K-m)*wp%h0)
          chk2  = cosh(wp%kgen(m+1:K)*wp%h0)
 
-         D(m,1:K-m) = -par%g*wp%kgen(1:K-m)*wp%kgen(m+1:K)*dcos(deltheta(m,1:K-m))/2.d0/term1+par%g*term2*(chk1*chk2)/ &
-         ((par%g*k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0)-(term2new)**2)*term1*cosh(k3(m,1:K-m)*wp%h0))* &
+         D(m,1:K-m) = -par%g*wp%kgen(1:K-m)*wp%kgen(m+1:K)*dcos(deltheta(m,1:K-m))/2.d0/term1+ &
+         +term2**2/(par%g*2)+par%g*term2/ &
+         ((par%g*k3(m,1:K-m)*tanh(k3(m,1:K-m)*wp%h0)-(term2new)**2)*term1)* &
          (term2*((term1)**2/par%g/par%g - wp%kgen(1:K-m)*wp%kgen(m+1:K)*dcos(deltheta(m,1:K-m))) &
          - 0.50d0*((-wp%wgen(1:K-m))*wp%kgen(m+1:K)**2/(chk2**2)+wp%wgen(m+1:K)*wp%kgen(1:K-m)**2/(chk1**2)))
-
+         
          ! Correct for surface elevation input and output instead of bottom pressure
-         ! so it is consistent with Van Dongeren et al 2003 eq. 18
-         D(m,1:K-m) = D(m,1:K-m)*cosh(k3(m,1:K-m)*wp%h0)/(cosh(wp%kgen(1:K-m)*wp%h0)*cosh(wp%kgen(m+1:K)*wp%h0))
+         ! so it is consistent with Van Dongeren et al 2003 eq. 18. 
+         !No need to correct for bottom pressure anymore.
+         !D(m,1:K-m) = D(m,1:K-m)*cosh(k3(m,1:K-m)*wp%h0)/(cosh(wp%kgen(1:K-m)*wp%h0)*cosh(wp%kgen(m+1:K)*wp%h0))
+
 
          ! Exclude interactions with components smaller than or equal to current
          ! component according to lower limit Herbers 1994 eq. 1
@@ -2815,12 +2818,12 @@ contains
             endif
             !
             ! Inverse Discrete Fourier transformation to transform back to time space
-            ! from frequency space
+            ! from frequency space. (Fortran ifft is scaled by sqrt(N))
             Comptemp2=fft(Gn,inv=.true.)
             !
             ! Determine mass flux as function of time and let the flux gradually
             ! increase and decrease in and out the wave time record using the earlier
-            ! specified window
+            ! specified window. Sqrt(N) is due to scaling of the ifft.
             Comptemp2=Comptemp2/sqrt(dble(wp%tslen))
             q(j,:,iq)=dreal(Comptemp2*wp%tslen)*wp%taperf
          enddo ! iq=1,3
