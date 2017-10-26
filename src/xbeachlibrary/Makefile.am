@@ -83,8 +83,8 @@ BUILT_SOURCES= \
 	writeloginterface.inc
 
 version.dat: 
-	echo "Build_Revision = '`svnversion`'" > version.dat
-	echo "Build_URL = '`svn info | grep -m 1 URL`'" >> version.dat
+	echo "Build_Revision = '`svnversion $(top_srcdir)`'" > version.dat
+	echo "Build_URL = '`svn info $(top_srcdir) | grep -m 1 URL`'" >> version.dat
 	echo "Build_Date = '`date`'" >> version.dat
 
 logging.F90: version.dat writelog.inc writeloginterface.inc

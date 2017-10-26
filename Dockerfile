@@ -53,6 +53,6 @@ ENV PATH=/usr/lib64/openmpi/bin:$PATH \
 EXPOSE 53606-53620
 
 COPY --from=builder /usr/local/ /usr/local/
-COPY Boers_1C /data
+
 WORKDIR /data
 CMD mmi-runner --port $PORT --pause xbeach params.txt
