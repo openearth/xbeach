@@ -34,7 +34,7 @@ module params
       !
       !  type                                name                     initialize           !  [unit] (advanced/deprecated) description
       ! [Section] Physical processes
-      integer                             :: wavemodel              = 123                  !  [-] Stationary (0), surfbeat (1) or non-hydrostatic (2)
+      integer                             :: wavemodel              = -123                  !  [-] Stationary (0), surfbeat (1) or non-hydrostatic (2)
       character(slen)                     :: wavemodel_str          = ' '                  !  
       integer                             :: cyclic                 = -123                 !  [-] Turn on cyclic boundary conditions
       integer                             :: swave                  = -123                 !  [-] Turn on short waves
@@ -665,7 +665,7 @@ contains
           call setallowednames('stationary', WAVEMODEL_STATIONARY, 'surfbeat', WAVEMODEL_SURFBEAT, 'nonh', WAVEMODEL_NONH)
           call setoldnames('0','1','2')
           call parmapply('wavemodel',2, par%wavemodel, par%wavemodel_str)
-      elseif (par%wavemodel /= 123 .or. par%wavemodel /= -123) then 
+      elseif (par%wavemodel /= -123) then 
          ! if already determined with backward compatibility (instat)
          if (par%wavemodel == 0) then
              call writelog('l','','               wavemodel =stationary')
@@ -674,7 +674,7 @@ contains
          else
              call writelog('l','','               wavemodel =nonh')
         endif
-      elseif (par%wavemodel == 123 .or. par%wavemodel == -123) then   
+      elseif (par%wavemodel == -123) then   
          ! no wavemodel determined -> error
          call writelog('lse','(a)','Error: XBeach cannot run without a hydrodynamic type')
          call writelog('lse','(a)','       Set wavemodel to stationary, surfbeat or nonh')
@@ -687,7 +687,7 @@ contains
       par%single_dir  = readkey_int ('params.txt','single_dir',    0,        0,     1,strict=.true.)
       par%lwave       = readkey_int ('params.txt','lwave',         1,        0,     1,strict=.true.)
       par%flow        = readkey_int ('params.txt','flow',          1,        0,     1,strict=.true.)
-      par%sedtrans    = readkey_int ('params.txt','sedtrans',      1,        0,     1,strict=.true.)
+      par%sedtrans    = readkey_int ('params.txt','sedtrans',      1,        0,     0,strict=.true.)
       par%morphology  = readkey_int ('params.txt','morphology',    par%sedtrans,  0,1,strict=.true.)
       par%avalanching = readkey_int ('params.txt','avalanching',   par%morphology,0,1,strict=.true.)
       par%gwflow      = readkey_int ('params.txt','gwflow',        0,        0,     1,strict=.true.)

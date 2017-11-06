@@ -245,6 +245,7 @@ contains
       else
          s%nuh = par%nuh
       endif
+      !
       ! Add viscosity for wave breaking effects
       if (par%swave == 1) then
          do j=j1,max(s%ny,1)
@@ -270,7 +271,13 @@ contains
             ! do nothing to increase viscosity
          end select
       endif
-
+      !
+      ! There is a possibility to turn viscosity off
+      !
+      if (par%viscosity==0) then
+          s%nuh = 0
+      endif
+      !  
       do j=j1,max(s%ny,1)
          do i=2,s%nx
             !write(*,*)i,j,2
@@ -328,7 +335,14 @@ contains
          enddo
       endif !smag ==1 and s%ny>0
       !
+      ! There is a possibility to turn viscosity off
+      !
+      if (par%viscosity==0) then
+          s%viscu = 0
+      endif
+      !
       ! Bed friction term
+      !
       where (s%wetu==1)
          s%taubx=s%cfu*par%rho*s%ueu*sqrt((1.16d0*s%urms)**2+s%vmageu**2) !Ruessink et al, 2001
          s%taubx = s%taubx + s%taubx_add  ! Account for infiltration etc. effects
@@ -524,11 +538,10 @@ contains
       endif
       !
       ! Viscosity
-      !
       if (par%smag == 1) then
          s%viscv = 2.0d0*s%viscv
       endif
-
+      !
       s%nuh = par%nuhv*s%nuh !Robert en Ap: increase s%nuh interaction in d2v/dx2
       do j=1,max(s%ny,1)
          jp1 = min(j+1,s%ny+1)
@@ -559,6 +572,12 @@ contains
                * real(s%wetu(i,jp1)*s%wetu(i,j)*s%wetu(i-1,jp1)*s%wetv(i-1,j),8)
             enddo
          enddo
+      endif
+      !
+      ! There is a possibility to turn viscosity off
+      !
+      if (par%viscosity==0) then
+          s%viscv = 0
       endif
       !
       ! Bed friction term
