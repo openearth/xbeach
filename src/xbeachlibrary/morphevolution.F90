@@ -161,10 +161,21 @@ contains
       endif
 
       ! calculate equilibrium concentration/sediment source
-      if ((par%form==FORM_SOULSBY_VANRIJN) .or. (par%form==FORM_VANTHIEL_VANRIJN).or. (par%form==FORM_VANRIJN1993)) then           ! Soulsby van Rijn
+      select case (par%form)
+      case (FORM_SOULSBY_VANRIJN,FORM_VANTHIEL_VANRIJN)
          ! Soulsby van Rijn and Van Thiel de Vries & Reniers 2008 formulations
          call sedtransform(s,par)
-      end if
+      case (FORM_NIELSEN2006)
+         call Nielsen2006(s,par) 
+         if (par%bulk==0) then
+            return
+         endif
+      case (FORM_MCCALL_VANRIJN)
+         call mccall_vanrijn(s,par) 
+         if (par%bulk==0) then
+            return
+         endif
+      end select
 
       ! compute reduction factor for sediment sources due to presence of hard layers
       do jg = 1,par%ngd
@@ -548,11 +559,12 @@ contains
       integer                                     :: i,j,j1,jg,ii,ie,id,je,jd,jdz,ndz, hinterland
       integer , dimension(:,:,:),allocatable,save :: indSus,indSub,indSvs,indSvb
       real*8                                      :: dzb,dzmax,dzt,dzleft,sdz,dzavt,fac,Savailable,dAfac
-      real*8 , dimension(:,:),allocatable,save    :: Sout,hav
+      real*8 , dimension(:,:),allocatable,save    :: Sout,hav,tempexchange
       real*8 , dimension(par%ngd)                 :: edg,edg1,edg2,dzg
       real*8 , dimension(:),pointer               :: dz
       real*8 , dimension(:,:),pointer             :: pb
       integer                                     :: n_aval
+      real*8,save                                 :: delta
 
       !include 's.ind'
       !include 's.inp'
@@ -564,6 +576,10 @@ contains
          allocate(indSub(s%nx+1,s%ny+1,par%ngd))
          allocate(indSvs(s%nx+1,s%ny+1,par%ngd))
          allocate(indSvb(s%nx+1,s%ny+1,par%ngd))
+         if (par%gwflow==1) then 
+            allocate(tempexchange(s%nx+1,s%ny+1))
+         endif
+         delta = (par%rhos-par%rho)/par%rho
       endif
 
       ! Super fast 1D
@@ -750,6 +766,28 @@ contains
 #ifdef USEMPI
          call xmpi_shift_ee(s%zb)
 #endif
+         ! In case of groundwater, we need to update groundwater levels and surface water
+         if(par%gwflow==1) then
+            where (s%wetz==1 .and. s%dzbnow>0.d0) ! accretion in wet areas
+               s%zs = s%zs + s%dzbnow*(1.d0-par%por)  ! zs = zs + dzbnow - dzbnow*par%por
+               s%gwlevel = s%gwlevel+s%dzbnow
+               s%infil = s%infil + s%dzbnow*par%por/par%dt
+            elsewhere (s%wetz==1 .and. s%dzbnow<0.d0) ! erosion in wet areas
+               ! maximum water leaving groundwater = gwlevel(not updated) - zb(updated)
+               ! note that exfiltration is negative infil
+               tempexchange = min((s%zb-s%gwlevel)*par%por,0.d0)
+               s%zs = s%zs + s%dzbnow - tempexchange
+               s%gwlevel = s%gwlevel + tempexchange/par%por
+               s%infil = s%infil + tempexchange
+            endwhere
+         else ! only need to update water levels
+            where (s%wetz==1)
+               s%zs = s%zs+s%dzbnow
+            endwhere
+         endif
+       
+
+
          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          !
          ! Avalanching
@@ -1213,6 +1251,7 @@ contains
       use spaceparams
       use readkey_module
       use xmpi_module
+      use paramsconst
 
       implicit none
 
@@ -1714,9 +1753,575 @@ contains
       ! end of grain size classes
 
    end subroutine sedtransform
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+subroutine Nielsen2006(s,par)
+  
+   use params
+   use spaceparams
+   use xmpi_module
+   use math_tools
+   use paramsconst
 
-   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   IMPLICIT NONE
+
+   type(spacepars),target                   :: s
+   type(parameters)                         :: par
+    
+   real*8                                   :: Tsmooth,factime,omegap,dstar
+   real*8,save                              :: phirad,delta,khlim,reposerad,reposedzdx
+   
+   integer                                  :: i,jg
+    
+   real*8,dimension(:,:),allocatable,save   :: dudtsmooth
+   real*8,dimension(:,:),allocatable,save   :: fsed
+   real*8,dimension(:,:),allocatable,save   :: Arms,umeanupd,uvarupd
+   real*8,dimension(:,:),allocatable,save   :: umeanupdphi,uvarupdphi
+   real*8,dimension(:,:),allocatable,save   :: shields,qsedu
+   real*8,dimension(:,:),allocatable,save   :: blphi,facbl,facrw,facslp
+   real*8,dimension(:,:),allocatable,save   :: ulocal,ulocalold,philocal
+   real*8,dimension(:,:),allocatable,save   :: dcfinl,dcfl,fe,cffac,ustar
+   real*8,dimension(:)  ,allocatable,save   :: shieldscrit
+    
+   if (.not. allocated(dudtsmooth)) then
+      allocate(dudtsmooth(s%nx+1,s%ny+1))
+      allocate(fsed(s%nx+1,s%ny+1))
+      allocate(shields(s%nx+1,s%ny+1))
+      allocate(qsedu(s%nx+1,s%ny+1))
+      allocate (blphi (s%nx+1,s%ny+1))
+      allocate (facbl (s%nx+1,s%ny+1))
+      allocate (facrw (s%nx+1,s%ny+1))
+      allocate (facslp (s%nx+1,s%ny+1))
+      allocate (ulocal (s%nx+1,s%ny+1))
+      allocate (ulocalold (s%nx+1,s%ny+1))
+      allocate(philocal(s%nx+1,s%ny+1))
+      allocate(umeanupdphi(s%nx+1,s%ny+1))
+      allocate(uvarupdphi(s%nx+1,s%ny+1))
+      allocate(dcfinl(s%nx+1,s%ny+1))
+      allocate(dcfl(s%nx+1,s%ny+1))
+      allocate(cffac(s%nx+1,s%ny+1))
+      cffac = 0.d0
+      allocate(Arms(s%nx+1,s%ny+1))
+      allocate(umeanupd(s%nx+1,s%ny+1))
+      allocate(uvarupd(s%nx+1,s%ny+1))
+      allocate(ustar(s%nx+1,s%ny+1))
+      allocate(shieldscrit(par%ngd))
+      umeanupd = 0.d0
+      uvarupd = 0.d0
+
+      if(par%streaming==1) then
+         allocate(fe(s%nx+1,s%ny+1))
+      endif
+      fe = 0.d0
+      fsed = 0.d0
+      phirad = par%phit/180*par%px
+      delta = (par%rhos-par%rho)/par%rho
+      ulocalold = s%uu
+      ulocal = s%uu
+      philocal = phirad
+      umeanupdphi = 0.d0
+      uvarupdphi = 0.d0
+      ustar = 0.d0
+      !
+      ! find water depth for which kh(based on Trep) ~ 0.1
+      khlim = 0.01d0*par%Trep**2*par%g/4/par%px**2      
+      !
+      ! Angle of repose
+      reposerad = par%reposeangle*par%px/180
+      reposedzdx = tan(reposerad)
+      !
+      !
+      do jg=1,par%ngd
+         if(par%thetcr<0.d0) then
+            dstar = (par%g*(par%rhos/par%rho-1)/1.d-6/1.d-6)**(1.d0/3)*par%D50(jg)
+            shieldscrit(jg) = 0.3d0/(1+1.2d0*dstar)+0.055d0*(1-exp(-0.02d0*dstar))
+         else
+            shieldscrit(jg) = par%thetcr
+         endif
+      enddo
+   endif
+
+   ! radial velocity of representative wave
+   omegap = 2*par%px/par%Trep
+   
+   ! compute local filtered velocity and acceleration term
+   Tsmooth = par%Trep/20
+   factime = min(par%dt/Tsmooth,1.d0)
+   ulocal = (1-factime)*ulocal + factime*s%uu  
+   !ulocal = uu
+   where(s%wetu==1)
+      dudtsmooth = (ulocal-ulocalold)/par%dt
+   elsewhere    
+      dudtsmooth = 0.d0
+   endwhere
+   ulocalold = ulocal
+   ! 
+   ! calculate vertical distribution for turbulence kturb (less turbulence at bottom for larger waterdepth)
+   if(par%lwt==1 .and. par%yturb>0.d0) then
+      dcfinl = exp(min(100.d0,(s%hh)/max(par%facthr*s%rolthick,0.01d0)))
+      dcfl = min(1.d0,1.d0/(dcfinl-1.d0))
+      dcfl = max(0.d0,dcfl)
+   endif
+   
+   Tsmooth = par%Trep*5
+   factime = min(par%dt/Tsmooth,1.d0)
+         
+   umeanupd = (1.d0-factime)*umeanupd + factime * ulocal
+   uvarupd = (1.d0-factime)*uvarupd + factime * (ulocal-umeanupd)**2
+   
+   if (par%sedfricfac==SEDFRICFAC_NIELSEN) then
+      Arms = sqrt(2.d0)/omegap*sqrt(uvarupd)
+   endif
+   
+   do jg = 1,par%ngd
+      ! compute sediment friction factor term
+      select case (par%sedfricfac)
+      case (SEDFRICFAC_NIELSEN)
+         where(s%wetu==1)
+            fsed = exp(5.5d0*(2.5d0*s%D50(jg)/Arms)**0.2d0-6.3d0)
+         elsewhere
+            fsed=0.d0
+         endwhere
+         fsed = min(fsed,0.05)
+         fsed = max(fsed,s%cf)
+      case (SEDFRICFAC_SWART)
+         where (s%wetu==1)
+            fsed = exp(5.213d0*(2.5d0/par%Arms*s%D50(jg))**(0.194)-5.977)
+         elsewhere
+            fsed = 0.d0
+         endwhere
+      case (SEDFRICFAC_FLOWFRIC)
+         fsed = s%cf
+      case(SEDFRICFAC_WILSON)
+         fsed = 0.114d0*(par%Arms/(par%g*delta*par%Trep**2))*0.4d0
+      case(SEDFRICFAC_CONSTANT)
+         fsed = par%fsed
+      end select
+      !   
+      ! compute boundary layer velocity
+      if (par%phaselag==1) then
+         where(s%wetu==1)
+            ! add turbulent term to ustar
+            ustar = sqrt(fsed/2)*(cos(philocal)*ulocal + &
+                                  sin(philocal)/omegap*dudtsmooth)
+         elsewhere
+            ustar = 0.d0
+         endwhere
+      else         
+         where(s%wetu==1)
+            ! add turbulent term to ustar
+            ustar = sqrt(fsed/2)*ulocal 
+         elsewhere
+            ustar = 0.d0
+         endwhere
+      endif
+      !
+      ! Add turbulent stress
+      if(par%lwt==1 .and. par%yturb>0.d0) then
+         where(s%wetu==1)
+            ustar = ustar + sqrt(fsed/2)*(2*sqrt(s%kturb)*dcfl*par%yturb)*sign(1.d0,ustar)
+         endwhere
+      endif
+      !
+      ! compute shields parameter
+      where(s%wetu==1)
+         shields = ustar**2/(delta*par%g*s%D50(jg))
+      elsewhere
+         shields = 0.d0
+      endwhere
+      !
+      ! compute bed slope effect
+      if (par%slopecorr==SLOPECORR_NIELSEN) then
+         where(s%wetu==1)
+            where (s%dzbdx>0.d0)
+               shields = max(shields/cos(min(atan(s%dzbdx),reposerad))-min(s%dzbdx,reposedzdx)*sign(1.d0,ustar),0.d0)
+            elsewhere(s%dzbdx<0.d0)
+               shields = max(shields/cos(max(atan(s%dzbdx),-reposerad))-max(s%dzbdx,-reposedzdx)*sign(1.d0,ustar),0.d0)
+            endwhere
+         endwhere
+      elseif (par%slopecorr==SLOPECORR_FREDSOE_DEIGAARD) then
+         where(s%wetu==1)
+            where (s%dzbdx>0.d0)
+               shields = shields*cos(atan(min(s%dzbdx,reposerad)))* &
+                              max(1.d0-sign(1.d0,ustar)*min(s%dzbdx/reposedzdx,1.d0),0.d0)
+            elsewhere(s%dzbdx<0.d0)
+               shields = shields*cos(atan(max(s%dzbdx,-reposerad)))* &
+                              max(1.d0-sign(1.d0,ustar)*max(s%dzbdx/reposedzdx,-1.d0),0.d0)
+            
+            endwhere
+         endwhere
+      endif
+      
+      ! compute streaming effect
+      if(par%streaming==1) then
+         ! Note assumes wave propagation is in direction of positive s. Modify to negative
+         ! contribution in case wave direction is in negative s direction
+         where(s%wetu==1)
+            where(uvarupd>1d0*abs(umeanupd))
+               fe = exp(5.5d0*(min(170*sqrt(max(shields-0.05d0,0.d0))*s%D50(jg),s%hh)/Arms)**0.2-6.3d0)
+            elsewhere(uvarupd<0.25d0*abs(umeanupd))
+               fe = 0.d0
+            elsewhere
+               fe = ((uvarupd/abs(umeanupd))-0.25d0)/0.75d0 * &
+                    exp(5.5d0*(min(170*sqrt(max(shields-0.05d0,0.d0))*s%D50(jg),s%hh)/Arms)**0.2-6.3d0)   
+            endwhere
+            
+            shields = shields + (2d0/3/par%px*fe*Arms**3*omegap**3/(par%g*s%hh)) / &
+                                (delta*par%g*s%D50(jg)) * &
+                                sign(1.d0,ustar)
+            shields = max(shields,0.d0)
+         endwhere
+      endif
+               
+      
+      ! compute sediment transport
+      where(s%wetu==1 .and. shields>shieldscrit(jg))
+         qsedu = (par%Ctrans*(shields-shieldscrit(jg))*sqrt(shields))* &
+                  sqrt(delta*par%g*s%D50(jg)**3)*sign(1.d0,ustar)
+      elsewhere
+         qsedu = 0.d0
+      endwhere
+      
+      !qsedu = min(qsedu,ustar*100*D50(jg)*(1.d0-par%por))
+      ! minimum porosity ~0.60 for fluidized bed
+      where(qsedu>0.d0)
+         qsedu = min(qsedu,(1.d0-0.60d0)*abs(s%qx))
+      elsewhere(qsedu<0.d0)
+         qsedu = max(qsedu,(1.d0-0.60d0)*-abs(s%qx))
+      endwhere
+     
+      
+      if(par%thetanum<1.d0) then
+         do i=2,s%nx
+            s%Subg(i,:,jg) = (1.d0-par%thetanum)/2*(qsedu(i-1,:)+qsedu(i+1,:)) + &
+                                   par%thetanum   * qsedu(i,:)
+         enddo
+         if (xmpi_istop) then
+            s%Subg(1,:,jg) = qsedu(i,:)
+         endif
+         if (xmpi_isbot) then
+            s%Subg(s%nx+1,:,jg) = qsedu(s%nx+1,:)
+         endif
+      else
+         s%Subg(:,:,jg) = qsedu
+      endif
+      
+   enddo
+  
+end subroutine Nielsen2006
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+subroutine mccall_vanrijn(s,par)
+  
+   use params
+   use spaceparams
+   use xmpi_module
+   use math_tools
+   use paramsconst
+
+   IMPLICIT NONE
+
+   type(spacepars),target                   :: s
+   type(parameters)                         :: par
+    
+   real*8                                   :: omegap
+   real*8,save                              :: phirad,delta,khlim,reposerad,reposedzdx
+      
+   integer                                  :: i,j,jg
+    
+   real*8,dimension(:,:),allocatable,save   :: dudtsmooth
+   real*8,dimension(:,:),allocatable,save   :: fsed
+   real*8,dimension(:,:),allocatable,save   :: Arms,umeanupd,uvarupd
+   real*8,dimension(:,:),allocatable,save   :: umeanupdphi,uvarupdphi
+   real*8,dimension(:,:),allocatable,save   :: shields,qsedu,qsedutemp,dist
+   real*8,dimension(:,:),allocatable,save   :: blphi,facbl,facrw,facslp,facrwf
+   real*8,dimension(:,:),allocatable,save   :: ulocal,ulocalold,philocal
+   real*8,dimension(:,:),allocatable,save   :: dcfinl,dcfl,cffac
+   real*8,dimension(:)  ,allocatable,save   :: shieldscrit,dstar
+   real*8,dimension(:,:),allocatable,save   :: signShields,thetacrlocal
+   real*8,dimension(:,:),allocatable,save   :: phishields,nEF
+   real*8,dimension(:,:),allocatable,save   :: dzbdxf
+   
+   real*8                                   :: Te,kvis,Sster,cc1,cc2,wster
+   real*8 , dimension(:),allocatable,save   :: w
+    
+   if (.not. allocated(dudtsmooth)) then
+      allocate(dudtsmooth(s%nx+1,s%ny+1))
+      allocate(fsed(s%nx+1,s%ny+1))
+      allocate(shields(s%nx+1,s%ny+1))
+      allocate(qsedu(s%nx+1,s%ny+1))
+      allocate(qsedutemp(s%nx+1,s%ny+1))
+      allocate(dist(s%nx+1,s%nx+1))
+      allocate (blphi (s%nx+1,s%ny+1))
+      allocate (facbl (s%nx+1,s%ny+1))
+      allocate (facrw (s%nx+1,s%ny+1))
+      allocate (facrwf(s%nx+1,s%ny+1))
+      allocate (facslp (s%nx+1,s%ny+1))
+      allocate (ulocal (s%nx+1,s%ny+1))
+      allocate (ulocalold (s%nx+1,s%ny+1))
+      allocate(philocal(s%nx+1,s%ny+1))
+      allocate(umeanupdphi(s%nx+1,s%ny+1))
+      allocate(uvarupdphi(s%nx+1,s%ny+1))
+      allocate(dcfinl(s%nx+1,s%ny+1))
+      allocate(dcfl(s%nx+1,s%ny+1))
+      allocate(cffac(s%nx+1,s%ny+1))
+      cffac = 0.d0
+      allocate(Arms(s%nx+1,s%ny+1))
+      allocate(umeanupd(s%nx+1,s%ny+1))
+      allocate(uvarupd(s%nx+1,s%ny+1))
+      umeanupd = 0.d0
+      uvarupd = 0.d0
+      allocate(signShields(s%nx+1,s%ny+1))
+      signShields = 0.d0
+      allocate(thetacrlocal(s%nx+1,s%ny+1))
+      thetacrlocal = par%thetcr
+      allocate(shieldscrit(par%ngd))
+      allocate(dstar(par%ngd))
+      allocate(dzbdxf(s%nx+1,s%ny+1))
+
+      if (par%form==FORM_WILCOCK_CROW) then
+         allocate(phishields(s%nx+1,s%ny+1))
+      elseif (par%form==FORM_ENGELUND_FREDSOE) then
+         allocate(nEF(s%nx+1,s%ny+1))
+      endif
+      
+      if(par%bulk==1) then 
+         Te    = 20.d0
+         kvis  = 4.d0/(20.d0+Te)*1d-5 ! Van rijn, 1993 
+         allocate(w(par%ngd))
+         do jg=1,par%ngd
+            Sster = s%D50(jg)/(4*kvis)*sqrt((par%rhos/par%rho-1)*par%g*s%D50(jg))
+            cc1   = 1.06d0*tanh(0.064d0*Sster*exp(-7.5d0/Sster**2))
+            cc2    = 0.22d0*tanh(2.34d0*Sster**(-1.18d0)*exp(-0.0064d0*Sster**2))
+            wster = cc1+cc2*Sster
+            w(jg) = wster*sqrt((par%rhos/par%rho-1.d0)*par%g*s%D50(jg))
+         enddo
+      endif
+         
+      fsed = 0.d0
+      phirad = par%phit/180*par%px
+      delta = (par%rhos-par%rho)/par%rho
+      ulocalold = s%uu
+      ulocal = s%uu
+      philocal = phirad
+      umeanupdphi = 0.d0
+      uvarupdphi = 0.d0
+      !
+      ! find water depth for which kh(based on Trep) ~ 0.1
+      khlim = 0.01d0*par%Trep**2*par%g/4/par%px**2      
+      !
+      ! Angle of repose
+      reposerad = par%reposeangle*par%px/180
+      reposedzdx = tan(reposerad)
+      do i=1,s%nx+1
+         dist(:,i) = abs(s%xu(i,1)-s%xu(:,1))
+         dist(:,i) = dist(:,i)/0.25d0
+         dist(:,i) = max(dist(:,i),1.d0)
+         dist(:,i) = 1.d0-dist(:,i)
+      enddo
+      
+      do jg=1,par%ngd
+         dstar(jg) = (par%g*(par%rhos/par%rho-1)/1.d-6/1.d-6)**(1.d0/3)*par%D50(jg)
+         if(par%thetcr<0.d0) then
+            shieldscrit(jg) = 0.3d0/(1+1.2d0*dstar(jg))+0.055d0*(1-exp(-0.02d0*dstar(jg)))
+         else
+            shieldscrit(jg) = par%thetcr
+         endif
+      enddo
+   endif
+   
+  
+   !do j=1,s%ny+1
+   !   do i=1,nx
+   !      Lloc = par%Trep*sqrt(par%g*max(0.1d0,hh(i,j)))/8
+   !      irange1 = max(1,   i-nint(Lloc/dsu(i,j)))! staggered grid means lower should be at least zb(i)
+   !      irange2 = min(s%nx+1,i+nint(Lloc/dsu(i,j)))
+   !      irange2 = max(i+1,irange2) ! staggered grid means upper should be at least zb(i+1)
+   !      dzbdxf(i,j) = (zb(irange2,j)-zb(irange1,j))/(sdist(irange2,j)-sdist(irange1,j))
+   !   enddo
+   !enddo
+   !dzbdxf(s%nx+1,:) = dzbdxf(nx,:)
+   dzbdxf = s%dzbdx
+      
+   do jg = 1,par%ngd
+      
+      ! compute shields parameter
+      
+      if (par%gwflow==1 .and. par%inclrelweight==1) then
+         !facrw = 0.5d0*max(infil/Kz,-1.d0)
+         facrw = 0.5d0*s%infil/s%Kzinf
+      else
+         facrw = 0.d0
+      endif
+      
+      where(s%wetu==1)
+         ! try adding (groundwater) head gradient
+         shields = (abs(s%taubx-par%incldzdx*s%dzsdx*par%rho*par%g*s%D50(jg))) /(par%rho*par%g*s%D50(jg)*max(delta+facrw,1e-6))
+         signShields = sign(1.d0,s%taubx-par%incldzdx*s%dzsdx*par%rho*par%g*s%D50(jg))
+      elsewhere
+         shields = 0.d0
+         signShields = 0.d0
+      endwhere
+      !
+      ! compute bed slope effect
+      if (par%slopecorr==SLOPECORR_NIELSEN) then
+         where(s%wetu==1)
+            where (s%dzbdx>0.d0)
+               shields = max(shields/cos(min(atan(dzbdxf),reposerad))-min(dzbdxf,reposedzdx)*signShields,0.d0)
+            elsewhere(s%dzbdx<0.d0)
+               shields = max(shields/cos(max(atan(dzbdxf),-reposerad))-max(dzbdxf,-reposedzdx)*signShields,0.d0)
+            endwhere
+         endwhere
+      elseif (par%slopecorr==SLOPECORR_FREDSOE_DEIGAARD) then
+         where(s%wetu==1)
+            where (s%dzbdx>0.d0)
+               shields = shields*cos(atan(min(dzbdxf,reposerad)))* &
+                              max(1.d0-signShields*min(dzbdxf/reposedzdx,1.d0),0.d0)
+            elsewhere(s%dzbdx<0.d0)
+               shields = shields*cos(atan(max(dzbdxf,-reposerad)))* &
+                              max(1.d0-signShields*max(dzbdxf/reposedzdx,-1.d0),0.d0)
+            endwhere
+         endwhere
+      endif
+      
+      !! compute streaming effect
+      !if(par%streaming==1) then
+      !   ! Note assumes wave propagation is in direction of positive s. Modify to negative
+      !   ! contribution in case wave direction is in negative s direction
+      !   Arms = sqrt(2.d0)/omegap*sqrt(uvarupd)
+      !   where(s%wetu==1)
+      !      where(uvarupd>1d0*abs(umeanupd))
+      !         fe = exp(5.5d0*(min(170*sqrt(max(shields-0.05d0,0.d0))*s%D50(jg),s%hh)/Arms)**0.2-6.3d0)
+      !      elsewhere(uvarupd<0.25d0*abs(umeanupd))
+      !         fe = 0.d0
+      !      elsewhere
+      !         fe = ((uvarupd/abs(umeanupd))-0.25d0)/0.75d0 * &
+      !              exp(5.5d0*(min(170*sqrt(max(shields-0.05d0,0.d0))*s%D50(jg),s%hh)/Arms)**0.2-6.3d0)   
+      !      endwhere
+      !      
+      !      shields = shields + (2d0/3/par%px*fe*Arms**3*omegap**3/(par%g*s%hh)) / &
+      !                          ((delta+facrw)*par%g*s%D50(jg)) * &
+      !                          signShields
+      !      shields = max(shields,0.d0)
+      !   endwhere
+      !endif
+      
+      thetacrlocal = shieldscrit(jg)
+      
+      ! compute sediment transport
+      select case (par%form)
+      case (FORM_MPM)
+         par%Ctrans = 8.d0
+         where(s%wetu==1 .and. shields>thetacrlocal)
+            qsedu = (par%Ctrans*(shields-thetacrlocal)**1.5d0)* &
+                     sqrt(delta*par%g*s%D50(jg)**3)*signShields
+         elsewhere
+            qsedu = 0.d0
+         endwhere
+      case (FORM_WONG_PARKER)
+         par%Ctrans = 3.97d0
+          where(s%wetu==1 .and. shields>thetacrlocal)
+            qsedu = (par%Ctrans*(shields-thetacrlocal)**1.5d0)* &
+                     sqrt(delta*par%g*s%D50(jg)**3)*signShields
+         elsewhere
+            qsedu = 0.d0
+         endwhere
+      case (FORM_FL_VB) ! Fernandez Luque, R., and van Beek, R.(1976). Erosion and Transport of Bed-Load 
+                     ! Sediment. J. Hydraul, Res., 14(2), 127-144
+         par%Ctrans = 5.7d0
+         where(s%wetu==1 .and. shields>thetacrlocal)
+            qsedu = (par%Ctrans*(shields-thetacrlocal)**1.5d0)* &
+                     sqrt(delta*par%g*s%D50(jg)**3)*signShields
+         elsewhere
+            qsedu = 0.d0
+         endwhere
+      case (FORM_WILCOCK_CROW)
+         where(s%wetu==1)
+            phishields = shields/thetacrlocal
+            where(phishields>=1.35d0)
+               qsedu = 14*(1.d0-0.894d0/sqrt(phishields))**4.5d0*shields**1.5*sqrt(delta*par%g)*s%D50(jg)**1.5*signShields
+            elsewhere
+               qsedu = 0.002d0*phishields**7.5d0*shields**1.5*sqrt(delta*par%g)*s%D50(jg)**1.5*signShields
+            endwhere
+         elsewhere
+            qsedu = 0.d0
+         endwhere
+      case (FORM_ENGELUND_FREDSOE)
+         where(s%wetu==1 .and. shields>thetacrlocal)
+            ! note: pi/6 ~ 0.5236, dynamic friction ~ 0.5-0.65 (Fredsoe &  Deigaard)
+            nEF = (1.d0+(0.5236d0*0.5d0/(shields-thetacrlocal))**4)**-0.25d0
+            qsedu = 5*nEF*(sqrt(shields)-0.7d0*sqrt(thetacrlocal))*sqrt(delta*par%g*s%D50(jg)**3)*signShields
+         elsewhere
+            qsedu = 0.d0
+         endwhere
+      case (FORM_FREDSOE_DEIGAARD)  ! Equation 7.59
+         where(s%wetu==1 .and. shields>thetacrlocal)
+            ! note: 30/pi = 9.5493, mu = 0.65 -> 30/pi/mu = 14.6912
+            qsedu = 14.6912d0*(shields-thetacrlocal)*(sqrt(shields)-0.7d0*sqrt(thetacrlocal)) * & 
+                                                     sqrt(delta*par%g*s%D50(jg)**3)*signShields
+         elsewhere
+            qsedu = 0.d0
+         endwhere   
+      case(FORM_MCCALL_VANRIJN)   ! Eq 10. note: devision by rhos to get m2/s transport rate
+         par%Ctrans = 0.5d0
+         where(s%wetu==1 .and. shields>thetacrlocal) 
+            qsedu = par%Ctrans*s%D50(jg)*dstar(jg)**(-0.3d0)*sqrt(abs(s%taubx)/par%rho)* &
+                           ((shields-thetacrlocal)/thetacrlocal)*signShields
+         elsewhere
+            qsedu = 0.d0   
+         endwhere
+      end select 
+      
+            
+      where(qsedu>0.d0)
+         qsedu = qsedu * par%uprushfac
+      elsewhere
+         qsedu = qsedu * par%backwashfac
+      endwhere
+      
+      !qsedu = min(qsedu,ustar*100*D50(jg)*(1.d0-par%por))
+      ! minimum porosity ~0.60 for fluidized bed
+      where(qsedu>0.d0)
+         qsedu = min(qsedu,(1.d0-0.60d0)*abs(s%qx))
+      elsewhere(qsedu<0.d0)
+         qsedu = max(qsedu,(1.d0-0.60d0)*-abs(s%qx))
+      endwhere
+     
+      if (par%bulk==0) then
+         if(par%thetanum<1.d0) then
+            do i=2,s%nx
+               s%Subg(i,:,jg) = (1.d0-par%thetanum)/2*(qsedu(i-1,:)+qsedu(i+1,:)) + &
+                                      par%thetanum   * qsedu(i,:)
+            enddo
+            if(xmpi_istop) s%Subg(1,:,jg) = qsedu(i,:)
+            if(xmpi_isbot) s%Subg(s%nx+1,:,jg) = qsedu(s%nx+1,:)
+         else
+            s%Subg(:,:,jg) = qsedu
+         endif
+         ! To Do: fix this properly for MPI      
+         do j=1,s%ny+1
+            do i=1,s%nx+1
+               if(s%Subg(i,j,jg)>0.d0) then
+                  s%Subg(i,j,jg) = s%Subg(i,j,jg)*s%sedcal(jg)*s%pbbed(i,j,1,jg)
+               else
+                  s%Subg(i,j,jg) = s%Subg(i,j,jg)*s%sedcal(jg)*s%pbbed(min(i+1,s%nx+1),j,1,jg)
+               endif
+            enddo
+         enddo
+      else
+         s%Tsg(:,:,jg) = max(par%tsfac*s%hu/w(jg),par%Tsmin)
+         s%ceqsg(:,:,jg) = qsedu/s%hu/s%uu
+         s%ceqbg(:,:,jg) = 0.d0
+      endif
+   enddo
+  
+end subroutine mccall_vanrijn
+
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
    subroutine waveturb(s,par)
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2083,8 +2688,11 @@ contains
       s%zs = s%zs+zbnew-s%zb
       ! update bed level
       s%zb = zbnew
+      s%hh=max(s%zs-s%zb,par%eps)
       ! update wet and dry cells
-      where (s%zs<s%zb+par%eps)
+      where (s%hh>par%eps)
+         s%wetz=1
+      elsewhere
          s%wetz=0
          s%zs = s%zb+par%eps
          s%hh = par%eps

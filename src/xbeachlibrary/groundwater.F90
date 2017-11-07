@@ -67,6 +67,10 @@ contains
       allocate (s%dinfil(s%nx+1,s%ny+1))
       allocate (s%gw0back(2,s%ny+1))
       allocate (s%gwcurv(s%nx+1,s%ny+1))
+      allocate (s%Kx(s%nx+1,s%ny+1))
+      allocate (s%Ky(s%nx+1,s%ny+1))
+      allocate (s%Kz(s%nx+1,s%ny+1))
+      allocate (s%Kzinf(s%nx+1,s%ny+1))
 
       s%gww=0.d0
       s%infil = 0.d0
@@ -404,9 +408,13 @@ contains
       Kxupd = Kx
       Kzupd = Kz
       Kyupd = Ky
+      s%Kx = Kx
+      s%Ky = Ky
+      s%Kz = Kz
       Kx = par%kx
       Ky = par%ky
       Kz = par%kz
+      s%Kzinf = Kzinf
       !
       !
       ! Calculate horizontal fluxes

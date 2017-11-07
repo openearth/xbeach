@@ -79,6 +79,14 @@ module paramsconst
    integer, parameter :: FORM_SOULSBY_VANRIJN        =  0
    integer, parameter :: FORM_VANTHIEL_VANRIJN       =  1
    integer, parameter :: FORM_VANRIJN1993            =  2
+   integer, parameter :: FORM_NIELSEN2006            =  3
+   integer, parameter :: FORM_MCCALL_VANRIJN         =  4
+   integer, parameter :: FORM_WILCOCK_CROW           =  5
+   integer, parameter :: FORM_ENGELUND_FREDSOE       =  6
+   integer, parameter :: FORM_MPM                    =  7
+   integer, parameter :: FORM_WONG_PARKER            =  8
+   integer, parameter :: FORM_FL_VB                  =  9
+   integer, parameter :: FORM_FREDSOE_DEIGAARD       =  10
 
    integer, parameter :: WAVEFORM_RUESSINK_VANRIJN   =  0
    integer, parameter :: WAVEFORM_VANTHIEL           =  1
@@ -130,5 +138,15 @@ module paramsconst
    integer, parameter :: WBCTYPE_TS_1                =  7
    integer, parameter :: WBCTYPE_TS_2                =  8
    integer, parameter :: WBCTYPE_TS_NONH             =  9
+   
+   integer, parameter :: SEDFRICFAC_CONSTANT         =  0
+   integer, parameter :: SEDFRICFAC_FLOWFRIC         =  1
+   integer, parameter :: SEDFRICFAC_NIELSEN          =  2
+   integer, parameter :: SEDFRICFAC_SWART            =  3
+   integer, parameter :: SEDFRICFAC_WILSON           =  4
+   
+   integer, parameter :: SLOPECORR_NONE              =  0
+   integer, parameter :: SLOPECORR_NIELSEN           =  1
+   integer, parameter :: SLOPECORR_FREDSOE_DEIGAARD  =  2
    
 end module paramsconst

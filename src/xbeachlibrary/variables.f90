@@ -190,6 +190,10 @@ module variables
   double precision, allocatable, target :: dinfil(:,:)      !< [m] Infiltration layer depth used in quasi-vertical flow model for groundwater {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: infil(:,:)       !< [m/s] Rate of exchange of water between surface and groundwater (positive from sea to groundwater) {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: gw0back(:,:)     !< [m] boundary condition back boundary for groundwater head {"shape": [2, "s%ny+1"], "standard_name": "", "broadcast": "2"}
+  double precision, allocatable, target :: Kx(:,:)          !< [m/s] (Turbulent) Hydraulic conductivity in x-direction {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: Ky(:,:)          !< [m/s] (Turbulent) Hydraulic conductivity in y-direction {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: Kz(:,:)          !< [m/s] (Turbulent) Hydraulic conductivity in z-direction {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: Kzinf(:,:)       !< [m/s] (Turbulent) Hydraulic conductivity in z-direction for infiltration {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: kturb(:,:)       !< [m2/s2] depth averaged turbulence intensity due to long wave breaking {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: ero(:,:,:)       !< [m/s] bed erosion rate per fraction {"shape": ["s%nx+1", "s%ny+1", "par%ngd"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: depo_im(:,:,:)   !< [m/s] implicit bed deposition rate per fraction {"shape": ["s%nx+1", "s%ny+1", "par%ngd"], "standard_name": "", "broadcast": "d"}
