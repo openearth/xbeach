@@ -178,9 +178,9 @@ subroutine timeinterp_tide(s,par,timenow)
                case(PAULREVERE_SEA)
                   ! One time series for each sea corner (copied also to bay corners)
                   call LINEAR_INTERP(s%tideinpt,s%tideinpz(:,1),s%tidelen,timenow, s%zs01, indt)
-                  s%zs03 = s%zs01
+                  s%zs04 = s%zs01
                   call LINEAR_INTERP(s%tideinpt,s%tideinpz(:,2),s%tidelen,timenow, s%zs02, indt)
-                  s%zs04 = s%zs02
+                  s%zs03 = s%zs02
             end select
          case (4)
             ! One time series per corner
@@ -209,6 +209,7 @@ subroutine boundaryinterp_tide(s,par,globalonly,correctforwetz)
       logical,intent(in),optional                 :: globalonly,correctforwetz
       logical                                     :: globalonly_local,correctforwetz_local
       integer                                     :: i,j
+      real*8                                      :: tidegradient
       
       if(present(globalonly)) then
          globalonly_local = globalonly
@@ -247,6 +248,18 @@ subroutine boundaryinterp_tide(s,par,globalonly,correctforwetz)
                   if (par%ny>0) then
                      if (xmpi_isright .or. globalonly_local) s%zs0(:,s%ny+1) = s%zs02
                   endif
+                  ! add horizontal tide gradient at boundaries
+                  if(s%ny==0) then
+                     tidegradient = (s%zs02-s%zs01)/s%dnz(1,1)               
+                  else
+                     tidegradient = (s%zs02-s%zs01)/(ndistcorners(2)-ndistcorners(1))
+                  endif
+                  if (xmpi_isleft .or. globalonly_local) s%dzs0dn(:,1) = tidegradient*s%wetz(:,1)
+                  if (par%ny>0) then
+                     if (xmpi_isright .or. globalonly_local) s%dzs0dn(:,s%ny+1) = tidegradient*s%wetz(:,s%ny+1)
+                  endif
+                  !
+                  !
                   call boundaryinterp_tide_complex(s,globalonly_local,1) ! front
                   call boundaryinterp_tide_complex(s,globalonly_local,2) ! back
                   if (xmpi_istop .or. globalonly_local) s%zs0(2,:) = s%zs0(1,:)
