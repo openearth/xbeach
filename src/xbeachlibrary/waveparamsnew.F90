@@ -2921,8 +2921,12 @@ contains
       write(fid,'(a)')'t,U,V,Z,dU,dV'
       do it=1,wp%tslen
          write(fid,*)wp%tin(it)+par%t-par%dt,wp%uits(:,it),wp%vits(:,it),wp%zsits(:,it),wp%duits(:,it),wp%dvits(:,it)
-         if (wp%tin(it)>wp%rtbc) exit
       enddo
+      ! (almost always) add one extra point after the time series to deal with interpolation errors
+      if (wp%tin(wp%tslen)<wp%rtbc+par%dt*par%maxdtfac) then 
+         write(fid,*)wp%tin(wp%tslen)+par%t+par%dt*par%maxdtfac,wp%uits(:,wp%tslen),wp%vits(:,wp%tslen), &
+                     wp%zsits(:,wp%tslen),wp%duits(:,wp%tslen),wp%dvits(:,wp%tslen)
+      endif
       close(fid)
 
    end subroutine generate_nhtimeseries_file
