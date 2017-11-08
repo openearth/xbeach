@@ -2792,14 +2792,19 @@ contains
             !
             ! Conditions without spectra (e.g. stat, ts_1, etc.)
             ! 1) INSTAT = STAT
-            if (par%instat==INSTAT_STAT) then   
-                par%wavemodel       = WAVEMODEL_STATIONARY     
-                par%wavemodel_str   = 'stationary' 
+            if (par%instat==INSTAT_STAT) then
+                if (par%nonh==1) then
+                   par%wavemodel       = WAVEMODEL_NONH     
+                   par%wavemodel_str   = 'nonh' 
+                else
+                   par%wavemodel       = WAVEMODEL_STATIONARY     
+                   par%wavemodel_str   = 'stationary' 
+                endif
                 par%wbctype         = WBCTYPE_PARAMS    
                 par%wbctype_str    = 'params'
             endif
             ! 2) INSTAT = TS_1
-            if (par%instat==INSTAT_TS_1) then  
+            if (par%instat==INSTAT_TS_1) then
                 par%wavemodel       = WAVEMODEL_SURFBEAT     
                 par%wavemodel_str   = 'surfbeat' 
                 par%wbctype         = WBCTYPE_TS_1    

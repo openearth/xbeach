@@ -319,6 +319,14 @@ contains
          else
             s%dtheta=2*par%px
             s%ntheta = 1
+            ! below needed sometimes (like combination wavemodel = nonh and wavebctype = params)
+            s%theta0=(1.5d0*par%px)-par%dir0*atan(1.d0)/45.d0 
+            do while(s%theta0<-par%px)
+               s%theta0=s%theta0+2.d0*par%px
+            enddo
+            do while(s%theta0>par%px)
+               s%theta0=s%theta0-2.d0*par%px
+            enddo
          endif
 
          ! Always allocate room incase of output request and memory sharing
