@@ -1154,7 +1154,7 @@ contains
             do i=2,s%nx
                s%wscrit(i,j) = lbreakcond(i,j)*sqrt(par%g*s%hh(i,j))  ! add current term in here too
                if (s%breaking(i,j)==1) then
-                  if(s%ws(i,j)<=0.d0) then
+                  if(s%ws(i,j)<=s%wscrit(i,j)) then
                      s%breaking(i,j) = 0
                   endif
                else

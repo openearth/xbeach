@@ -340,7 +340,6 @@ module params
       integer                           :: bdslpeffdir              = -123                 !  [name] Modify the direction of the sediment transport based on the bed slope
       double precision                  :: bdslpeffdirfac           = -123                 !  [-] Calibration factor in the modification of the direction
       double precision                  :: bermslope                = -123                 !  [-] Swash zone slope for (semi-) reflective beaches
-      double precision                  :: cm                       = -123                 !  [-] (advanced,deprecated) Mass coefficient in Shields inertia term
       double precision                  :: ci                       = -123                 !  [-] (advanced) Mass coefficient in Shields inertia term
       double precision                  :: phit                     = -123                 !  [-] (advanced) Phase lag angle in Nielsen transport equation 
       integer*4                         :: incldzdx                 = -123                 !  [-] (advanced,silent) Turn on or off dzsdx term in Shields
@@ -509,6 +508,7 @@ contains
       !
       ! Collections of default sets
       par%useXBeachGSettings    = readkey_int ('params.txt','useXBeachGSettings',     0,0,1,strict=.true.,silent=.true.)
+      par%useXBeachGSettings    = 1
       !      
       !
       ! Backward compatibility
@@ -1154,7 +1154,6 @@ contains
       endif
       
       if(par%friction_acceleration==CF_ACC_MCCALL) then
-         par%cm          = readkey_dbl ('params.txt','cm',1.5d0,    0.0d0,   3.0d0)
          par%ci          = readkey_dbl ('params.txt','ci',1.0d0,    0.5d0,   1.5d0) 
       elseif (par%friction_acceleration==CF_ACC_NIELSEN) then
          par%phit        = readkey_dbl ('params.txt','phit',25.0d0,    0.00d0,  90.0d0) 
@@ -1261,7 +1260,11 @@ contains
             par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,1,0,1,strict=.true.)
             par%nhlay        = readkey_dbl('params.txt','nhlay' ,0.33d0,0.d0,1.d0)
          else
-            par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,2,0,2,strict=.true.)
+            if(par%useXBeachGSettings==0) then
+               par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,2,0,2,strict=.true.)
+            else
+               par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,3,0,3,strict=.true.)
+            endif
             par%dispc        = readkey_dbl('params.txt','dispc' ,-1.0d0,0.1d0,2.0d0)
          endif
 
@@ -1275,8 +1278,8 @@ contains
             par%secbrsteep   = readkey_dbl('params.txt','secbrsteep',0.5d0*par%maxbrsteep,0.d0,0.95d0*par%maxbrsteep)
          elseif (par%nhbreaker==3) then
             !par%avis    = readkey_dbl ('params.txt','avis',       0.3d0,     0.0d0,   1.0d0)
-            !par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.6d0, 0.3d0, 0.8d0)
-            !par%secbrsteep   = readkey_dbl('params.txt','secbrsteep',0.5d0*par%maxbrsteep,0.d0,0.95d0*par%maxbrsteep)
+            par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.6d0, 0.3d0, 0.8d0)
+            par%secbrsteep   = readkey_dbl('params.txt','secbrsteep',0.5d0*par%maxbrsteep,0.d0,0.95d0*par%maxbrsteep)
          endif
       endif
       !
@@ -1375,9 +1378,7 @@ contains
                par%streaming  = readkey_int ('params.txt','streaming', 0,   0,   1,silent=.true.,strict=.true.)
             else ! all other transport equations
                par%thetcr   = readkey_dbl ('params.txt','thetcr ',-10.d0, 0.00d0, 1.0d0,silent=.true.) ! negative = self-compute
-               call setallowednames('flowfricfac',       SEDFRICFAC_FLOWFRIC)
-               call setoldnames('1')
-               call parmapply('sedfricfac',1,par%sedfricfac,par%sedfricfac_str)
+               par%sedfricfac = SEDFRICFAC_FLOWFRIC ! not actually used in the equations, all comes from taubx
                par%uprushfac    = readkey_dbl ('params.txt','uprushfac', 1.d0, 0.d0, 3.d0)
                par%backwashfac  = readkey_dbl ('params.txt','backwashfac', 1.d0, 0.d0, 3.d0)
                par%incldzdx     = readkey_int('params.txt','incldzdx',0,0,1,strict=.true.,silent=.true.)
@@ -1405,12 +1406,14 @@ contains
             par%bdslpeffmag = BDSLPEFFMAG_NONE
             par%bdslpeffini = BDSLPEFFINI_NONE
             par%bdslpeffdir = BDSLPEFFDIR_NONE
+            par%smax = -1.d0
          else ! non-gravel transport equations
             par%sus      = readkey_int ('params.txt','sus    ',1,           0,            1,strict=.true.)
             par%bed      = readkey_int ('params.txt','bed    ',1,           0,            1,strict=.true.)
             par%bulk     = readkey_int ('params.txt','bulk   ',0,           0,            1,strict=.true.)
             par%facsl    = readkey_dbl ('params.txt','facsl  ',  1.6d0,       0.d0, 1.6d0)   
             par%z0       = readkey_dbl ('params.txt','z0     ',0.006d0,    0.0001d0,   0.05d0)
+            par%smax     = readkey_dbl ('params.txt','smax',   -1.d0,    -1.d0,   3.d0)       !changed 28/11 and back 10/2
             call setallowednames('none',              BDSLPEFFMAG_NONE,           &
                                  'roelvink_total',    BDSLPEFFMAG_ROELV_TOTAL,  &
                                  'roelvink_bed',      BDSLPEFFMAG_ROELV_BED, &
@@ -1433,9 +1436,12 @@ contains
                par%bdslpeffdirfac      = readkey_dbl ('params.txt','bdslpeffdirfac',   1.d0,    0.d0,  2.d0)
             endif
          endif
-         par%reposeangle         = readkey_dbl ('params.txt','reposeangle',  30.d0,     0.d0,     45.d0)
+         if(par%useXBeachGSettings==0) then
+            par%reposeangle         = readkey_dbl ('params.txt','reposeangle',  30.d0,     0.d0,     45.d0)
+         else
+            par%reposeangle         = readkey_dbl ('params.txt','reposeangle',  35.d0,     20.d0,     60.d0)
+         endif
          par%bermslope   = readkey_dbl ('params.txt','bermslope ',0.0d0,     0.00d0,   1.0d0,silent=.true.)         
-         par%smax     = readkey_dbl ('params.txt','smax',   -1.d0,    -1.d0,   3.d0)       !changed 28/11 and back 10/2
          par%tsfac    = readkey_dbl ('params.txt','tsfac',   0.1d0,    0.01d0,   1.d0)
          par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.5d0,     0.01d0,   10.d0)
          par%facDc    = readkey_dbl ('params.txt','facDc  ',1.0d0,     0.00d0,   1.0d0)
