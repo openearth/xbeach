@@ -693,7 +693,7 @@ contains
       if(par%useXBeachGSettings==0) then
          par%CFL     = readkey_dbl ('params.txt','CFL',     0.7d0,     0.1d0,      0.9d0)
       else
-         par%CFL     = readkey_dbl ('params.txt','CFL',     0.9d0,     0.1d0,      0.9d0)
+         par%CFL     = readkey_dbl ('params.txt','CFL',     0.6d0,     0.1d0,      0.9d0)
       endif
       par%dtset   = readkey_dbl ('params.txt','dtset',   0.0d0,     0.001d0,   100.d0)
       par%tstop   = readkey_dbl ('params.txt','tstop', 2000.d0,      1.d0, 1000000.d0,required=.true.)
@@ -1277,6 +1277,7 @@ contains
             par%secbrsteep   = readkey_dbl('params.txt','secbrsteep',0.5d0*par%maxbrsteep,0.d0,0.95d0*par%maxbrsteep)
          elseif (par%nhbreaker==3) then
             !par%avis    = readkey_dbl ('params.txt','avis',       0.3d0,     0.0d0,   1.0d0)
+            par%breakvisclen = readkey_dbl('params.txt','breakvisclen',1.0d0, 0.75d0, 3.d0)
             par%maxbrsteep   = readkey_dbl('params.txt','maxbrsteep',0.6d0, 0.3d0, 0.8d0)
             par%secbrsteep   = readkey_dbl('params.txt','secbrsteep',0.5d0*par%maxbrsteep,0.d0,0.95d0*par%maxbrsteep)
          endif
