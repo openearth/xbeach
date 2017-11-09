@@ -508,7 +508,6 @@ contains
       !
       ! Collections of default sets
       par%useXBeachGSettings    = readkey_int ('params.txt','useXBeachGSettings',     0,0,1,strict=.true.,silent=.true.)
-      par%useXBeachGSettings    = 1
       !      
       !
       ! Backward compatibility
