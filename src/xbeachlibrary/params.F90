@@ -593,7 +593,7 @@ contains
                call writelog('lws','(a)','Set model to ny=0')
                call halt_program
             endif
-         endif               
+         endif  
          par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
          if (par%setbathy .ne. 1) then
             par%depfile = readkey_name('params.txt','depfile',required=.true.)
@@ -672,6 +672,14 @@ contains
          par%alfa  = readkey_dbl('params.txt','alfa',  0.d0,   0.d0,   360.d0)
          par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
       endif
+        ! Bermslope only in 1D
+        if(par%bermslope>==0) then
+        if(par%ny>0) then
+            call writelog('lws','(a)','bermslope cannot be applied in 2DH models')
+            call writelog('lws','(a)','Set model to ny=0')
+            call halt_program
+        endif
+        endif  
       ! Q3d grid
          par%nz = readkey_int ('params.txt','nz',    1,        1,     100)
       ! Wave directional grid
