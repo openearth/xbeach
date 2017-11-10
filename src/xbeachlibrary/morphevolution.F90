@@ -1991,9 +1991,9 @@ subroutine Nielsen2006(s,par)
       !qsedu = min(qsedu,ustar*100*D50(jg)*(1.d0-par%por))
       ! minimum porosity ~0.60 for fluidized bed
       where(qsedu>0.d0)
-         qsedu = min(qsedu,(1.d0-0.60d0)*abs(s%qx))
+         qsedu = min(qsedu,(1.d0-0.60d0)*(abs(s%qx)))
       elsewhere(qsedu<0.d0)
-         qsedu = max(qsedu,(1.d0-0.60d0)*-abs(s%qx))
+         qsedu = max(qsedu,(1.d0-0.60d0)*(-abs(s%qx)))
       endwhere
      
       
@@ -2289,9 +2289,9 @@ subroutine mccall_vanrijn(s,par)
       !qsedu = min(qsedu,ustar*100*D50(jg)*(1.d0-par%por))
       ! minimum porosity ~0.60 for fluidized bed
       where(qsedu>0.d0)
-         qsedu = min(qsedu,(1.d0-0.60d0)*abs(s%qx))
+         qsedu = min(qsedu,(1.d0-0.60d0)*(abs(s%qx)))
       elsewhere(qsedu<0.d0)
-         qsedu = max(qsedu,(1.d0-0.60d0)*-abs(s%qx))
+         qsedu = max(qsedu,(1.d0-0.60d0)*(-abs(s%qx)))
       endwhere
      
       if (par%bulk==0) then

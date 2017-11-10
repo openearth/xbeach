@@ -47,7 +47,7 @@ module vegetation_module
 
     type veggie
         character(slen)                         :: name        ! Name of vegetation specification file
-        integer ,                   allocatable :: nsec        ! Number of sections used in vertical schematization of vegetation [-]
+        integer                                 :: nsec        ! Number of sections used in vertical schematization of vegetation [-]
         real*8  , dimension(:)    , allocatable :: ah          ! Height of vertical sections used in vegetation schematization [m wrt zb_ini (zb0)]
         real*8  , dimension(:)    , allocatable :: Cd          ! Bulk drag coefficient [-]
         real*8  , dimension(:)    , allocatable :: bv          ! Width/diameter of individual vegetation stems [m]
@@ -114,7 +114,7 @@ subroutine veggie_init(s,par,veg)
 
           call check_file_exist(veg(i)%name)
         
-          allocate (veg(i)%nsec)
+          !allocate (veg(i)%nsec)
 
           veg(i)%nsec    = readkey_int(veg(i)%name,'nsec',  1,        1,      10, silent=.true.)! Number of vertical points in vegetation schematization
        
