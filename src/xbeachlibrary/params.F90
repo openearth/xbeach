@@ -673,7 +673,7 @@ contains
          par%posdwn= readkey_dbl('params.txt','posdwn', 1.d0,     -1.d0,     1.d0)
       endif
         ! Bermslope only in 1D
-        if(par%bermslope>==0) then
+        if(par%bermslope>0) then
         if(par%ny>0) then
             call writelog('lws','(a)','bermslope cannot be applied in 2DH models')
             call writelog('lws','(a)','Set model to ny=0')

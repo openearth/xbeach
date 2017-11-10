@@ -162,7 +162,7 @@ contains
 
       ! calculate equilibrium concentration/sediment source
       select case (par%form)
-      case (FORM_SOULSBY_VANRIJN,FORM_VANTHIEL_VANRIJN)
+      case (FORM_SOULSBY_VANRIJN,FORM_VANTHIEL_VANRIJN,FORM_VANRIJN1993)
          ! Soulsby van Rijn and Van Thiel de Vries & Reniers 2008 formulations
          call sedtransform(s,par)
       case (FORM_NIELSEN2006)
@@ -1697,19 +1697,24 @@ contains
                             ! iv) Combined mixing coefficient due to currents and waves
                             E 	    = (Esw**2 + Esc**2)**0.5                    ! Van Rijn & Kroon (1992); eq. 5
                             ! 
-                            ! v) Calculcate new concentration
-                            ! a) Explicit first step
-                            ceqexplicit     = ceqssteps(ii) - ws0(jg) * ceqssteps(ii)/E * dhhtmp
-                            if (ceqexplicit< 0) then
-                            ceqexplicit = 0                 ! numerical limit; overcome overshooting of numerical approximation
-                            endif
-                            ! b) Implicit second step
-                            ceqimplicit     = ceqssteps(ii) * (E / (dhhtmp * (ws0(jg)+E/dhhtmp))) ! no limit needed
-                            ! c) Combined method with theta = 0.5 -> second order
-                            ceqssteps(ii+1) = 0.5*ceqexplicit + 0.5*ceqimplicit
-                            if (ceqssteps(ii+1) < 0) then
-                            ceqssteps(ii+1) = 0             ! numerical limit; overcome overshooting of numerical approximation
-                            endif
+                            if (E > 0) then
+                                ! v) Calculcate new concentration
+                                ! a) Explicit first step
+                                ceqexplicit     = ceqssteps(ii) - ws0(jg) * ceqssteps(ii)/E * dhhtmp
+                                if (ceqexplicit< 0) then
+                                ceqexplicit = 0                 ! numerical limit; overcome overshooting of numerical approximation
+                                endif
+                                ! b) Implicit second step
+                                ceqimplicit     = ceqssteps(ii) * (E / (dhhtmp * (ws0(jg)+E/dhhtmp))) ! no limit needed
+                                ! c) Combined method with theta = 0.5 -> second order
+                                ceqssteps(ii+1) = 0.5*ceqexplicit + 0.5*ceqimplicit
+                                if (ceqssteps(ii+1) < 0) then
+                                ceqssteps(ii+1) = 0             ! numerical limit; overcome overshooting of numerical approximation
+                                endif
+                            else
+                                ! No mixing; so no equilibrium in the vertical
+                                ceqssteps = 0
+                            endif                    
                         enddo
                         !
                         ! E) Save concentration profile, reference concentraton and reference level
