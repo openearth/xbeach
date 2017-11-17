@@ -2818,7 +2818,7 @@ contains
             endif
             !
             ! Inverse Discrete Fourier transformation to transform back to time space
-            ! from frequency space. (Fortran ifft is scaled by sqrt(N))
+            ! from frequency space. (Fortran ifft is scaled by sqrt(N) )
             Comptemp2=fft(Gn,inv=.true.)
             !
             ! Determine mass flux as function of time and let the flux gradually
