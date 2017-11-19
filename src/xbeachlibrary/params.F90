@@ -920,14 +920,14 @@ contains
       'nonh_1d',   FRONT_NONH_1D, &
       'waveflume', FRONT_WAVEFLUME)
       call setoldnames('0','1','2','3','4','5')
-      if (par%nonhspectrum==0) then
+      if (par%nonhspectrum==1) then
+         call parmapply('front',5,par%front,par%front_str)
+      else
          if (par%ny>2) then
             call parmapply('front',2,par%front,par%front_str)
          else
             call parmapply('front',1,par%front,par%front_str)
          endif
-      else
-         call parmapply('front',5,par%front,par%front_str)
       endif
       !
       ! left and right
