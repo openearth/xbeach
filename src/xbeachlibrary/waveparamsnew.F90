@@ -2513,7 +2513,7 @@ contains
          u2 = 0.d0
          U = 0.d0
          dU = 0.d0
-         ! z-level of layer
+         ! z-level of layer (negative downwards)
          z = -1 * (wp%h0 - par%nhlay * wp%h0)
          ! total surface elevation
          call writelog('ls','','Calculating short wave elevation time series')
