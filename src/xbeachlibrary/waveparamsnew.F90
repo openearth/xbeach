@@ -2550,13 +2550,13 @@ contains
                    
                    if ( par%nonhq3d == 1 ) then
                        ! Compute layer averaged velocity for layer 1 and 2 based on layer level z.
-                       u1 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik) * wp%h0) * wp%kgen(ik)) * (dsinh(wp%kgen(ik) * (z + wp%h0))) * & 
+                       u1 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik)*wp%h0)*wp%kgen(ik))*(dsinh(wp%kgen(ik)*(z + wp%h0))) * & 
                                                dsin(wp%wgen(ik)*wp%tin(it)&
                                                -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
                                                +dcos(wp%thetagen(ik))*(s%xz(1,j)-s%xz(1,1))) &
                                                +wp%phigen(ik))
                        u1 = u1 / (wp%h0+z)
-                       u2 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik) * wp%h0) * wp%kgen(ik)) * (dsinh(wp%kgen(ik) * (0 + wp%h0)) - & 
+                       u2 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik)*wp%h0)*wp%kgen(ik))*(dsinh(wp%kgen(ik)*(0 + wp%h0)) - & 
                                                dsinh(wp%kgen(ik) * (z + wp%h0))) * & 
                                                dsin(wp%wgen(ik)*wp%tin(it) &
                                                -wp%kgen(ik)*( dsin(wp%thetagen(ik))*(s%yz(1,j)-s%yz(1,1)) &
@@ -2916,6 +2916,7 @@ contains
       ! internal
       integer                                      :: fid
       integer                                      :: it
+      character(LEN=256)                           :: rowfmt
 
 
       call writelog('ls','','Writing short wave time series to ',wp%nhfilename)
@@ -2925,12 +2926,18 @@ contains
       write(fid,'(a)')'vector'
       write(fid,'(a)')'6'
       write(fid,'(a)')'t,U,V,Z,dU,dV'
+      ! write format descriptor for file to internal string
+      write(rowfmt,'(A,I4,A)') '(',1+5*(par%ny+1),'(1X,E18.9))'
+      ! Add one extra point at the start of the time series to deal with interpolation errors
+      write(fid,rowfmt)par%t-par%dt*par%maxdtfac,wp%uits(:,1),wp%vits(:,1), &
+                     wp%zsits(:,1),wp%duits(:,1),wp%dvits(:,1)
+      ! write time series to file
       do it=1,wp%tslen
-         write(fid,*)wp%tin(it)+par%t-par%dt,wp%uits(:,it),wp%vits(:,it),wp%zsits(:,it),wp%duits(:,it),wp%dvits(:,it)
+         write(fid,rowfmt)wp%tin(it)+par%t-par%dt,wp%uits(:,it),wp%vits(:,it),wp%zsits(:,it),wp%duits(:,it),wp%dvits(:,it)
       enddo
       ! (almost always) add one extra point after the time series to deal with interpolation errors
       if (wp%tin(wp%tslen)<wp%rtbc+par%dt*par%maxdtfac) then 
-         write(fid,*)wp%tin(wp%tslen)+par%t+par%dt*par%maxdtfac,wp%uits(:,wp%tslen),wp%vits(:,wp%tslen), &
+         write(fid,rowfmt)wp%tin(wp%tslen)+par%t+par%dt*par%maxdtfac,wp%uits(:,wp%tslen),wp%vits(:,wp%tslen), &
                      wp%zsits(:,wp%tslen),wp%duits(:,wp%tslen),wp%dvits(:,wp%tslen)
       endif
       close(fid)
