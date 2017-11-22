@@ -269,7 +269,13 @@ contains
             if ((par%nonhspectrum==0) .or. (par%nonhspectrum==1 .and. par%order>1)) then
                call generate_qbcf(wp,s,par)
             endif
-
+            
+            ! Calculate second order bound components.
+            if (par%nonhspectrum==1 .and. par%highcomp==1 .and. par%order>1) then
+               call generate_secondorder(par,s, wp)
+            endif
+            
+            
             ! Write non-hydrostatic time series of combined short and long waves if necessary
             if (par%nonhspectrum==1) then
                call generate_nhtimeseries_file(wp,par)
@@ -3029,6 +3035,364 @@ contains
       end if
    end subroutine generate_admin_files
 
+   ! Generate time series of bound super harmonics
+   subroutine generate_secondorder(par,s, wp)
 
+      use params
+      use spaceparams
+      use logging_module
+      use math_tools
+      use interp
+      use filefunctions, only: create_new_fid
+
+      implicit none
+
+      ! input/output
+      type(waveparamsnew),intent(inout)            :: wp
+      type(spacepars),intent(in)                   :: s
+      type(parameters),intent(in)                  :: par
+      ! internal
+      integer                                      :: j,m,iq,irec,it,i,count        ! counters
+      integer                                      :: K                             ! copy of K
+      integer                                      :: halflen,reclen,fid,status
+      logical                                      :: firsttime                     ! used for output message only
+      real*8                                       :: deltaf,z                      
+      real*8,dimension(:), allocatable             :: term1,term2,term2new,dif,chk1,chk2
+      real*8,dimension(:,:),allocatable            :: Eforc,D,deltheta,KKx,KKy,dphi3,k3,w3,c,theta3,Abnd,qx1,qx2,qy1,qy2
+      real*8,dimension(:,:,:),allocatable          :: q,qinterp
+      complex(fftkind),dimension(:),allocatable    :: Comptemp,Comptemp2,Gn
+      complex(fftkind),dimension(:,:,:),allocatable:: Ftemp
+      integer,dimension(:), allocatable            :: ii,jj
+
+
+
+
+      ! shortcut variable
+      K = wp%K
+
+      ! Print message to screen
+      call writelog('sl','', 'Calculating primary wave interaction - super harmonics')
+
+      ! Allocate two-dimensional variables for all combinations of interacting wave
+      ! components to be filled triangular
+      allocate(Eforc(2*K,2*K))
+      allocate(D(2*K,2*K))
+      allocate(deltheta(2*K,2*K))
+      allocate(KKx(2*K,2*K))
+      allocate(KKy(2*K,2*K))
+      allocate(dphi3(2*K,2*K))
+      allocate(k3(2*K,2*K))
+      allocate(w3(2*K,2*K))
+      allocate(c(2*K,2*K))
+      allocate(theta3(2*K,2*K))
+      ! Allocate variables for amplitude and Fourier coefficients of bound wave
+      allocate(Gn(wp%tslen))
+      allocate(Abnd(2*K,2*K))
+      if (par%nonhq3d==1) then
+        allocate(Ftemp(2*K,2*K,6)) ! qx1, qx2, qy1, qy2, qtot, zeta
+        ! Storage for output discharge
+        allocate(q(s%ny+1,wp%tslen,6))   ! qx1, qx2, qy1, qy2, qtot, zeta
+        allocate(qx1(2*K,2*K))
+        allocate(qx2(2*K,2*K))
+        allocate(qy1(2*K,2*K))
+        allocate(qy2(2*K,2*K))
+        qx1 = 0
+        qx2 = 0
+        qy1 = 0
+        qy2 = 0
+      else
+        allocate(Ftemp(2*K,2*K,4)) ! qx, qy qtot, zeta
+        ! Storage for output discharge
+        allocate(q(s%ny+1,wp%tslen,4))   ! qx qy qtot, zeta
+      endif
+          
+      !
+      ! Initialize variables as zero
+      Eforc = 0
+      D = 0
+      deltheta = 0
+      KKx = 0
+      KKy = 0
+      dphi3 = 0
+      k3 = 0
+      w3 = 0
+      c = 0
+      theta3 = 0
+      Gn = 0*par%compi
+      Abnd = 0
+      Ftemp = 0*par%compi
+      q = 0
+      i = 0
+      count = 0
+      z = 0
+
+
+
+      ! upper half of frequency space
+      halflen = wp%tslen/2
+
+      ! Run loop over wave-wave interaction components
+      call progress_indicator(.true.,0.d0,5.d0,2.d0)
+      do m=2,2*K
+         call progress_indicator(.false.,dble(m)/(2*K)*100,5.d0,2.d0)
+         ! Create indices
+         if (m .LE. K+1) then 
+            allocate(term1(m-1),term2(m-1),term2new(m-1),dif(m-1),chk1(m-1),chk2(m-1))
+            allocate(Comptemp(m-1),Comptemp2(m-1))
+            allocate(ii(m-1))
+            allocate(jj(m-1))
+            ii = 0
+            jj = 0
+            ! Indices: ii=1:m-1
+            ! Indices: jj = flip(ii)
+            do i=1,m-1
+                ii(i) = i
+                jj(m - i) = i
+            enddo
+         else
+            allocate(term1(K+1-(m-K)),term2(K+1-(m-K)),term2new(K+1-(m-K)),dif(K+1-(m-K)),chk1(K+1-(m-K)),chk2(K+1-(m-K)))
+            allocate(Comptemp(K+1-(m-K)),Comptemp2(K+1-(m-K)))
+            allocate(ii(K+1-(m-K)))
+            allocate(jj(K+1-(m-K)))
+            ii = 0
+            jj = 0
+            ! Indices: ii=m-K:K
+            ! Indices: jj = flip(ii)
+            do i=1,K+1-(m-K)
+                ii(i) = m-K + i -1
+                jj(K+1-(m-K) -i + 1) = m-K + i -1
+            enddo
+         endif
+         ! Determine delta theta:
+         deltheta(m,ii) = abs(wp%thetagen(ii)-wp%thetagen(jj))
+         
+         ! Determine x- and y-components of wave numbers of K3
+         KKy(m,ii)=wp%kgen(ii)*dsin(wp%thetagen(ii))+wp%kgen(jj)*dsin(wp%thetagen(jj))
+         KKx(m,ii)=wp%kgen(ii)*dcos(wp%thetagen(ii))+wp%kgen(jj)*dcos(wp%thetagen(jj))
+
+         ! Determine wave numbers according to Van Dongeren et al. 2003
+         ! eq. 19
+         k3(m,ii) =sqrt(wp%kgen(ii)**2+wp%kgen(jj)**2+ &
+         2*wp%kgen(ii)*wp%kgen(jj)*dcos(deltheta(m,ii)))
+         ! Determine W3
+         w3(m,ii) = wp%wgen(ii) + wp%wgen(jj)
+         ! Determine bound group velocity of waves
+         c(m,ii) = w3(m,ii)/k3(m,ii)
+
+         ! Modification Robert + Jaap: make sure that the bound long wave amplitude does not
+         !                             explode when offshore boundary is too close to shore,
+         !                             by limiting the interaction group velocity
+         !c(m,ii) = min(c(m,ii),par%nmax*sqrt(par%g/k3(m,ii)*tanh(k3(m,ii)*wp%h0)))
+         !term2new = cg3(m,1:K-m)*k3(m,1:K-m)
+         !dif = (abs(term2-term2new))
+         !if (any(dif>0.01*term2) .and. firsttime) then
+         !   firsttime = .false.
+         !   !          call writelog('lws','','Warning: shallow water so long wave variance is reduced using par%nmax')
+         !endif
+         term1 = wp%wgen(ii)*wp%wgen(jj)
+         term2 = (wp%wgen(ii))+wp%wgen(jj)
+         chk1  = cosh(wp%kgen(ii)*wp%h0)
+         chk2  = cosh(wp%kgen(jj)*wp%h0)
+
+         ! Determine difference-interaction coefficient according to okihiro 1992
+         ! eq. 4a
+         D(m,ii) = -par%g*wp%kgen(ii)*wp%kgen(jj)*dcos(deltheta(m,ii))/2.d0/term1+ &
+         term2**2/(2*par%g) + &
+         par%g*term2/ &
+         ((par%g*k3(m,ii)*tanh(k3(m,ii)*wp%h0)-(term2)**2)*term1)* &
+         (term2*((term1)**2/par%g/par%g - wp%kgen(ii)*wp%kgen(jj)*dcos(deltheta(m,ii))) &
+         - 0.50d0*((wp%wgen(ii))*wp%kgen(jj)**2/(chk2**2)+wp%wgen(jj)*wp%kgen(ii)**2/(chk1**2)))
+
+         ! Menno: limit the higher components.
+         !if (w3>=par%fcutoff_high) D(m,:)=0.d0
+        
+         ! Determine phase of bound long wave assuming a local equilibrium with
+         ! forcing of interacting primary waves according to Van Dongeren et al.
+         ! 2003 eq. 21 (the angle is the imaginary part of the natural log of a
+         ! complex number as long as the complex number is not zero)
+         Comptemp=conjg(wp%CompFn(1,wp%Findex(1)+ii))
+         Comptemp2=conjg(wp%CompFn(1,wp%Findex(1)+jj))
+         dphi3(m,ii) = imag(log(Comptemp))+imag(log(Comptemp2))
+         deallocate (Comptemp,Comptemp2)
+         !
+         ! Determine angle of bound long wave according to Van Dongeren et al. 2003 eq. 22
+         theta3 = atan2(KKy,KKx)
+         !
+         ! free memory
+         deallocate(term1,term2,term2new,dif,chk1,chk2)
+         deallocate(ii,jj)
+      enddo ! m=1,K-1
+      !
+      ! Output to screen
+      !if (.not. firsttime) then
+      !   call writelog('lws','','Warning: shallow water so long wave variance is reduced using par%nmax')
+      !endif
+      call writelog('sl','', 'Calculating flux at boundary')
+      !
+      ! Allocate temporary arrays for upcoming loop
+      allocate(Comptemp(halflen-1))
+      allocate(Comptemp2(wp%tslen))
+      !
+      ! Run a loop over the offshore boundary
+      do j=1,s%ny+1
+         ! Determine energy of bound long wave according to Herbers 1994 eq. 1 based
+         ! on difference-interaction coefficient and energy density spectra of
+         ! primary waves
+         ! Robert: E = 2*D**2*S**2*dtheta**2*df can be rewritten as
+         !         E = 2*D**2*Sf**2*df
+         Eforc = 0
+         do m=2,2*K
+            if (m .LE. K+1) then
+                allocate(ii(m-1))
+                allocate(jj(m-1))
+                ii = 0
+                jj = 0
+                do i=1,m-1
+                    ii(i) = i
+                    jj(m -i) = i
+                enddo
+            else
+                allocate(ii(K+1-(m-K)))
+                allocate(jj(K+1-(m-K)))
+                ii = 0
+                jj = 0
+                do i=1,K+1-(m-K)
+                    ii(i) = m-K + i -1
+                    jj(K+1-(m-K) -i + 1) = m-K + i -1      
+                enddo
+            endif
+            ! Use Sfinterp instead of sfinterpq
+            Eforc(m,ii) = D(m,ii)**2*wp%Sfinterp(j,ii)*wp%Sfinterp(j,jj)*wp%dfgen
+            ! Compute ratio for nonh. Compute here otherwise divide by zero!
+            if (par%nonhq3d==1) then
+                ! z-level of layer
+                z = -1 * (wp%h0 - par%nhlay * wp%h0) 
+                ! ratio qx1/q
+                qx1(m,ii) = (dsinh(KKx(m,ii) * (z + wp%h0)))/dsinh(KKx(m,ii)*wp%h0)
+                ! ratio qx2/q
+                qx2(m,ii) = (dsinh(KKx(m,ii) *  wp%h0) - dsinh(KKx(m,ii)))/dsinh(KKx(m,ii)*wp%h0) 
+                ! ratio qy1/q
+                qy1(m,ii) = (dsinh(KKy(m,ii) * (z + wp%h0)))/dsinh(KKy(m,ii)*wp%h0)
+                ! ratio qy2/q
+                qy2(m,ii) = (dsinh(KKy(m,ii) *  wp%h0) - dsinh(KKy(m,ii)))/dsinh(KKy(m,ii)*wp%h0) 
+            endif
+            deallocate(ii,jj)
+        enddo
+         !
+         ! Calculate bound wave amplitude for this offshore grid point
+         Abnd = sqrt(2*Eforc*wp%dfgen)
+         !
+         ! Determine complex description of bound long wave per interaction pair of
+         ! primary waves for first y-coordinate along seaside boundary
+         if (par%nonhq3d==1) then
+            count = 6
+            Ftemp(:,:,1) = Abnd/2*exp(-1*par%compi*dphi3)*c*dcos(theta3)*qx1 ! qx1
+            Ftemp(:,:,2) = Abnd/2*exp(-1*par%compi*dphi3)*c*dcos(theta3)*qx2 ! qx2
+            Ftemp(:,:,3) = Abnd/2*exp(-1*par%compi*dphi3)*c*dsin(theta3)*qy1 ! qy1
+            Ftemp(:,:,4) = Abnd/2*exp(-1*par%compi*dphi3)*c*dsin(theta3)*qy2 ! qy2
+            Ftemp(:,:,5) = Abnd/2*exp(-1*par%compi*dphi3)*c                  ! qtot
+            Ftemp(:,:,6) = Abnd/2*exp(-1*par%compi*dphi3)                    ! eta
+         else
+            count = 4
+            Ftemp(:,:,1) = Abnd/2*exp(-1*par%compi*dphi3)*c*dcos(theta3) ! qx
+            Ftemp(:,:,2) = Abnd/2*exp(-1*par%compi*dphi3)*c*dsin(theta3) ! qy
+            Ftemp(:,:,3) = Abnd/2*exp(-1*par%compi*dphi3)*c              ! qtot
+            Ftemp(:,:,4) = Abnd/2*exp(-1*par%compi*dphi3)                ! eta
+         endif 
+         !
+         ! loop over qx,qy and qtot
+         do iq=1,count
+            ! Unroll wave component to correct place along the offshore boundary
+            Ftemp(:,:,iq) = Ftemp(:,:,iq)* &
+            exp(-1*par%compi*(KKy*(s%yz(1,j)-s%yz(1,1))+KKx*(s%xz(1,j)-s%xz(1,1))))
+            ! Determine Fourier coefficients
+            Gn(2*wp%Findex(1):(2*wp%Findex(1)-1)+2*K) = sum(Ftemp(:,:,iq),DIM=2)
+            Comptemp = conjg(Gn(2:halflen))
+            call flipiv(Comptemp,halflen-1)
+            Gn(halflen+2:wp%tslen) = Comptemp
+            !
+            ! Print status message to screen
+            if (iq==3) then
+               call writelog('ls','(A,I0,A,I0)','Flux ',j,' of ',s%ny+1)
+            endif
+            !
+            ! Inverse Discrete Fourier transformation to transform back to time space
+            ! from frequency space
+            Comptemp2=fft(Gn,inv=.true.)
+            !
+            ! Determine mass flux as function of time and let the flux gradually
+            ! increase and decrease in and out the wave time record using the earlier
+            ! specified window. Fortran FFT is scaled by squar-roor.
+            Comptemp2=Comptemp2/sqrt(dble(wp%tslen))
+            q(j,:,iq)=dreal(Comptemp2*wp%tslen)*wp%taperf
+        enddo ! iq=1,3
+      enddo ! j=1,s%ny+1
+    
+      ! Now write data to file
+      ! Menno: I don't know if this is appropriate. Now, nonhspectrum is always 1.
+      if (par%nonhspectrum==0) then
+         ! If doing combined wave action balance and swell wave flux with swkhmin>0 then we need to add short wave velocity
+         ! to time series of q here:
+         if (par%swkhmin>0.d0) then
+            do j=1,s%ny+1
+               q(j,:,1) = q(j,:,1) + wp%uits(j,:)*wp%h0 ! u flux
+               q(j,:,4) = q(j,:,4) + wp%zsits(j,:)      ! eta
+            enddo
+         endif
+         !
+         !
+         ! Open file for storage of bound long wave flux
+         call writelog('ls','','Writing long wave mass flux to ',trim(wp%qfilename),' ...')
+         inquire(iolength=reclen) 1.d0
+         reclen=reclen*((s%ny+1)*4)
+         fid = create_new_fid()
+         open(fid,file=trim(wp%qfilename),form='unformatted',access='direct',recl=reclen,status='REPLACE')
+         !
+         ! Write to external file
+         if (wp%dtchanged) then
+            ! Interpolate from internal time axis to output time axis
+            allocate(qinterp(s%ny+1,wp%tslenbc,3))
+            do iq=1,3
+               do it=1,wp%tslenbc
+                  do j=1,s%ny+1
+                     call linear_interp(wp%tin,q(j,:,iq),wp%tslen,(it-1)*wp%dtbc,qinterp(j,it,iq),status)
+                  enddo
+               enddo
+            enddo
+            ! write to file
+            do irec=1,wp%tslenbc+1
+               write(fid,rec=irec)qinterp(:,min(irec,wp%tslenbc),:)
+            end do
+            deallocate(qinterp)
+         else
+            ! no need for interpolation
+            do irec=1,wp%tslenbc+1
+               write(fid,rec=irec)q(:,min(irec,wp%tslenbc),:)
+            end do
+         endif
+         close(fid)
+         call writelog('sl','','file done')
+      else
+         do j=1,s%ny+1
+             if (par%nonhq3d==1) then
+                ! add to velocity time series
+                wp%uits(j,:)=wp%uits(j,:)+ (q(j,:,1)/z + q(j,:,2)/(wp%h0+z))/2.d0
+                ! add to velocity time series
+                wp%duits(j,:)=wp%duits(j,:)+ (q(j,:,1)/z - q(j,:,2)/(wp%h0+z))
+                ! add to surface elevation time series
+                wp%zsits(j,:)=wp%zsits(j,:)+q(j,:,6)
+                deallocate(Eforc,D,deltheta,KKx,KKy,dphi3,k3,c,theta3,Gn,Abnd,q,w3,qx1,qx2,qy1,qy2)
+             else
+                ! add to velocity time series
+                wp%uits(j,:)=wp%uits(j,:)+q(j,:,1)/wp%h0
+                ! add to surface elevation time series
+                wp%zsits(j,:)=wp%zsits(j,:)+q(j,:,4)
+                deallocate(Eforc,D,deltheta,KKx,KKy,dphi3,k3,c,theta3,Gn,Abnd,q,w3)
+            endif
+         enddo
+      endif ! par%nonhspectrum==1     
+      
+   
+   end subroutine generate_secondorder
 
 end module spectral_wave_bc_module

@@ -150,6 +150,7 @@ module params
       integer                           :: ARC                      = -123                 !  [-] (advanced) Switch for active reflection compensation at seaward boundary
       double precision                  :: order                    = -123                 !  [-] (advanced) Switch for order of wave steering, 
       ! first order wave steering (short wave energy only), second oder wave steering (bound long wave corresponding to short wave forcing is added)
+      integer                           :: highcomp                 = -123                 !  [-] (advanced) Switch for including the bound super harmonics in the boundary conditions, 
       integer                           :: freewave                 = -123                 !  [-] (advanced) Switch for free wave propagation 0 = use cg (default); 1 = use sqrt(gh) in instat = ts_2
       double precision                  :: epsi                     = -123                 !  [-] (advanced) Ratio of mean current to time varying current through offshore boundary
       integer                           :: nc                       = -123                 !  [-] (advanced,silent) Smoothing distance for estimating umean (defined as nr of cells)
@@ -962,6 +963,7 @@ contains
       ! others
       par%ARC         = readkey_int ('params.txt','ARC',      1,              0,       1       ,strict=.true.)
       par%order       = readkey_dbl ('params.txt','order',    2.d0,           1.d0,    2.d0    ,strict=.true.)
+      par%highcomp    = readkey_int ('params.txt','highcomp',    0,           0,       1       ,silent=.true.)
       par%freewave    = readkey_int ('params.txt','freewave', 0,              0,       1       ,strict=.true.)
       par%epsi        = readkey_dbl ('params.txt','epsi',     -1.d0,          -1.d0,   0.2d0   )
       par%nc          = readkey_int ('params.txt','nc',       par%ny+1,       1,       par%ny+1,strict=.true.,silent=.true.)
