@@ -425,7 +425,7 @@ subroutine boundaryinterp_tide_complex(s,globalonly_local,boundaryID)
       ! find sdist at which maximum bed level occurs
       select case (boundaryID)
          case(1,2)
-            distmaxzbl = s%sdist(imin,maxval(maxloc(s%zb(imin,:))))
+            distmaxzbl = s%ndist(imin,maxval(maxloc(s%zb(imin,:))))
          case(3,4)
             distmaxzbl = s%sdist(maxval(maxloc(s%zb(:,jmin))),jmin)
       end select
@@ -470,13 +470,13 @@ subroutine boundaryinterp_tide_complex(s,globalonly_local,boundaryID)
          if (tide1<=maxzbg .and. tide2<=maxzbg) then
             select case (boundaryID)
                case(1,2) ! top, bottom
-                  where(s%sdist(imin,:)<=distmaxzbg)
+                  where(s%ndist(imin,:)<=distmaxzbg)
                      s%zs0(imin,:) = tide1
                   elsewhere
                      s%zs0(imin,:) = tide2
                   endwhere
                case(3,4) ! left, right
-                  where(s%ndist(:,jmin)<=distmaxzbg)
+                  where(s%sdist(:,jmin)<=distmaxzbg)
                      s%zs0(:,jmin) = tide1
                      s%dzs0dn(:,jmin) = tidegradient1*s%wetz(:,jmin)
                   elsewhere
