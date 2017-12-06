@@ -2001,7 +2001,7 @@ contains
       endif
       ! is using wavemodel = stat without front = abs_1d
       if (par%front/=FRONT_ABS_1D) then  
-        if (par%wavemodel == WAVEMODEL_NONH) then
+        if (par%wavemodel == WAVEMODEL_STATIONARY ) then
             call writelog('lws','','Warning: automatically changing front to abs_1d with wavemodel = stationary')
             par%front = FRONT_ABS_1D
         endif
