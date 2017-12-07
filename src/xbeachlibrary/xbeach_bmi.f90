@@ -59,6 +59,11 @@ contains
        ierr = executestep()
     end if
 
+    ! enable output to be able to use aggregated variable values (min,
+    ! max, mean, var) through BMI. user can still control output
+    ! through params.txt file
+    ierr = outputext()
+
   end function update
 
 

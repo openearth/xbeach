@@ -94,14 +94,14 @@ module params
       ! [Section] Physical constants
       double precision                    :: g                      = -123                 !  [ms^-2] Gravitational acceleration
       double precision                    :: rho                    = -123                 !  [kgm^-3] Density of water
-      double precision                    :: depthscale             = -123                 !  [-] (advanced)  depthscale of (lab)test simulat, affects eps, hmin, hswitch and dzma
+      double precision                    :: depthscale             = -123                 !  [-] (advanced)  depthscale of (lab)test simulated, affects eps, hmin, hswitch and dzmax
       
       ! [Section] Initial conditions
       double precision                  :: zs0                      = -123                 !  [m] Inital water level
       character(slen)                   :: zsinitfile               = 'abc'                !  [file] Name of inital water level file
       integer                           :: hotstartflow             = -123                 !  [-] (advanced) Switch for hotstart flow conditions with pressure gradient balanced by wind and bed stress
       
-      ! [Section] Wave boundary conditioameters
+      ! [Section] Wave boundary condition parameters
       integer                           :: wbctype                  = -123                 !  [name] New wave boundary condition type
       character(slen)                   :: wbctype_str              = ' '                  !  [-] 
       integer                           :: instat                   = -123                 !  [name] Old wave boundary condition type
@@ -122,7 +122,7 @@ module params
       character(slen)                   :: rightwave_str            = ' '                  !  [-] old name for lateralwav
       integer                           :: bclwonly                 = -123                 !  [-] (advanced,silent) switch to run boundary conditions with long waves only
       
-      ! [Section] Wave-spectrum boundaryition parameters
+      ! [Section] Wave-spectrum boundary condition parameters
       character(slen)                   :: bcfile                   = 'abc'                !  [file] Name of spectrum file
       integer                           :: random                   = -123                 !  [-] (advanced) Switch to enable random seed for instat = jons, swan or vardens boundary conditions
       double precision                  :: fcutoff                  = -123                 !  [Hz] (advanced) Low-freq cutoff frequency for instat = jons, swan or vardens boundary conditions
@@ -196,7 +196,6 @@ module params
       double precision                  :: delta                    = -123                 !  [-] (advanced) Fraction of wave height to add to water depth
       double precision                  :: wavfriccoef              = -123                 !  [-] Wave friction coefficient
       character(slen)                   :: wavfricfile              = 'abc'                !  [file] Wave friction file
-      !double precision                  :: fw                       = -123                 !  [-] (advanced) Bed friction factor
       double precision                  :: fwcutoff                 = -123                 !  [-] Depth greater than which the bed friction factor is not applied
       double precision                  :: breakerdelay             = -123                 !  [-] (advanced) Switch to enable breaker delay model
       integer                           :: shoaldelay               = -123                 !  [-] (advanced,silent) Switch to enable shoaling delay
