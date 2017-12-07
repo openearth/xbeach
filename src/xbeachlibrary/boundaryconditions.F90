@@ -76,7 +76,7 @@ contains
       logical                                     :: startbcf
       logical                                     :: isSet_U,isSet_V,isSet_Z,isSet_W,isSet_dU,isSet_dV,isSet_Q
       real*8,dimension(:)     ,allocatable,save   :: uig,vig,zig,wig,duig,dvig
-      real*8,dimension(:)     ,allocatable,save   :: tempu,tempv
+      real*8,dimension(:)     ,allocatable,save   :: tempu,tempv,tempdu,tempdv
 
       ! Initialize to false only once....
       logical, save                               :: bccreated = .false.
@@ -809,12 +809,18 @@ contains
                ! allocate to local size grid
                allocate(tempu(s%ny+1))
                allocate(tempv(s%ny+1))
+               allocate(tempdv(s%ny+1))
+               allocate(tempdu(s%ny+1))
             endif
             tempu = s%ui(1,:)
             tempv = s%vi(1,:)
+            tempdu = s%dUi(1,:)
+            tempdv = s%dUi(1,:)
             ! rotate to grid directions
             s%ui(1,:) = tempu*dcos(s%alfau(1,:)) + tempv*dsin(s%alfau(1,:))
             s%vi(1,:) = -tempu*dsin(s%alfau(1,:)) + tempv*dcos(s%alfau(1,:))
+            s%dui(1,:) = tempdu*dcos(s%alfau(1,:)) + tempdv*dsin(s%alfau(1,:))
+            
             s%ui(1,:) = s%ui(1,:)*min(par%t/par%taper,1.0d0)
             s%zi(1,:) = s%zi(1,:)*min(par%t/par%taper,1.0d0)
             s%wi(1,:) = s%wi(1,:)*min(par%t/par%taper,1.0d0)
