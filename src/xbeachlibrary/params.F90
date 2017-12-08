@@ -217,7 +217,7 @@ module params
       integer                           :: bedfriction              = -123                 !  [name] Bed friction formulation
       character(slen)                   :: bedfriction_str          =  ' '                 !
       double precision                  :: bedfriccoef              = -123                 !  [-] Bed friction coefficient
-      character(slen)                   :: bedfricfile              = 'abc'                !  [file] Bed friction file (only valid with values of C)
+      character(slen)                   :: bedfricfile              = 'abc'                !  [file] Bed friction file (valid for all bed friction coefficients)
       double precision                  :: nuh                      = -123                 !  [m^2s^-1] Horizontal background viscosity
       double precision                  :: nuhfac                   = -123                 !  [-] (advanced) Viscosity switch for roller induced turbulent horizontal viscosity
       double precision                  :: nuhv                     = -123                 !  [-] (advanced,silent) Longshore viscosity enhancement factor, following Svendsen (?)
