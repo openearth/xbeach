@@ -121,6 +121,7 @@ module params
       integer                           :: rightwave                = -123                 !  [-] (deprecated) old name for lateralwave
       character(slen)                   :: rightwave_str            = ' '                  !  [-] old name for lateralwav
       integer                           :: bclwonly                 = -123                 !  [-] (advanced,silent) switch to run boundary conditions with long waves only
+      integer                           :: Sfold                    = -123                 !  [-] (advanced,silent) switch to run secoond order boundary conditions with Sf instead of Sfp
       
       ! [Section] Wave-spectrum boundary condition parameters
       character(slen)                   :: bcfile                   = 'abc'                !  [file] Name of spectrum file
@@ -866,6 +867,7 @@ contains
       call setoldnames('0','1')
       call parmapply('lateralwave',1,par%lateralwave,par%lateralwave_str)
       par%bclwonly   = readkey_int ('params.txt','bclwonly',  0,0,1,strict=.true.,silent=.true.)
+      par%Sfold   = readkey_int ('params.txt','Sfold',  0,0,1,strict=.true.,silent=.true.)
       !
       !
       ! Wave-spectrum boundary condition parameters

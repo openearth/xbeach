@@ -2648,7 +2648,7 @@ contains
       ! owing to longshore varying incident wave spectra
 
       ! shortcut variable
-      K = wp%K
+       K = wp%K
 
       ! Print message to screen
       call writelog('sl','', 'Calculating primary wave interaction')
@@ -2794,7 +2794,13 @@ contains
          !         E = 2*D**2*Sf**2*df
          Eforc = 0
          do m=1,K-1
-            Eforc(m,1:K-m) = 2*D(m,1:K-m)**2*wp%Sfinterpq(j,1:K-m)*wp%Sfinterpq(j,m+1:K)*wp%dfgen
+            ! Menno: Use the forced short wave energy to compute the bound long wave energy 
+            ! instead of the corrected energy (Sfinterpq)
+            if (par%Sfold==1) then 
+                Eforc(m,1:K-m) = 2*D(m,1:K-m)**2*wp%Sfinterpq(j,1:K-m)*wp%Sfinterpq(j,m+1:K)*wp%dfgen
+            else
+                Eforc(m,1:K-m) = 2*D(m,1:K-m)**2*wp%Sfinterp(j,1:K-m)*wp%Sfinterp(j,m+1:K)*wp%dfgen
+            endif
          enddo
          !
          ! Calculate bound wave amplitude for this offshore grid point
@@ -3269,7 +3275,12 @@ contains
                 enddo
             endif
             ! Use Sfinterp instead of sfinterpq
-            Eforc(m,ii) = D(m,ii)**2*wp%Sfinterp(j,ii)*wp%Sfinterp(j,jj)*wp%dfgen
+            if (par%Sfold==1) then 
+                Eforc(m,ii) = D(m,ii)**2*wp%Sfinterpq(j,ii)*wp%Sfinterpq(j,jj)*wp%dfgen
+            else
+                Eforc(m,ii) = D(m,ii)**2*wp%Sfinterp(j,ii)*wp%Sfinterp(j,jj)*wp%dfgen
+            endif
+            
             ! Compute ratio for nonh. Compute here otherwise divide by zero!
             if (par%nonhq3d==1) then
                 ! z-level of layer
