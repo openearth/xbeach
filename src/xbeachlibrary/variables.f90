@@ -306,4 +306,6 @@ module variables
   double precision, allocatable, target :: hhwcins(:,:)     !< [m] water depth used in wave instationary computation in case of wci {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: uwcins(:,:)      !< [m/s] u-velocity used in wave stationary computation in case of wci {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
   double precision, allocatable, target :: vwcins(:,:)      !< [m/s] v-velocity used in wave stationary computation in case of wci {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: ucan(:,:)        !< [m/s] in-canopy velocity in x-direction {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
+  double precision, allocatable, target :: vcan(:,:)        !< [m/s] in-canopy velocity in y-direction {"shape": ["s%nx+1", "s%ny+1"], "standard_name": "", "broadcast": "d"}
 end module variables

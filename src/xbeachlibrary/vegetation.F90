@@ -58,6 +58,7 @@ module vegetation_module
 
     public veggie_init
     public vegatt
+    public porcanflow ! porous in-canopy model
    
 contains
 
@@ -145,12 +146,16 @@ subroutine veggie_init(s,par,veg)
           allocate(s%Dveg(par%nx+1, par%ny+1))
           allocate(s%Fvegu(par%nx+1, par%ny+1))
           allocate(s%Fvegv(par%nx+1, par%ny+1))
+          allocate(s%ucan(par%nx+1, par%ny+1))
+          allocate(s%vcan(par%nx+1, par%ny+1))
           
           s%vegtype = 0
           s%Cdrag = 0.d0
           s%Dveg = 0.d0
           s%Fvegu = 0.d0
           s%Fvegv = 0.d0
+          s%ucan = 0.d0
+          s%ucan = 0.d0
     
           ! 3)  Read spatial distribution of all vegetation species 
           ! NB: vegtype = 1 corresponds to first vegetation specified in veggiefile etc.
@@ -189,15 +194,22 @@ subroutine veggie_init(s,par,veg)
           allocate(s%Dveg(par%nx+1, par%ny+1))
           allocate(s%Fvegu(par%nx+1, par%ny+1))
           allocate(s%Fvegv(par%nx+1, par%ny+1))
+          allocate(s%ucan(par%nx+1, par%ny+1))
+          allocate(s%vcan(par%nx+1, par%ny+1))
           s%vegtype = 0
           s%Cdrag = 0.d0
           s%Dveg = 0.d0
           s%Fvegu = 0.d0
           s%Fvegv = 0.d0
+          s%ucan = 0.d0
+          s%ucan = 0.d0
+
        endif
     endif
     ! TODO: interpolate vegetation to u-points(!)
     ! TODO: vertical profile of veg chars (linear interpolation)
+    
+    
   
 end subroutine veggie_init
 
@@ -218,6 +230,12 @@ subroutine vegatt(s,par,veg)
     integer                                     :: i,j,ind,m
     real*8                                      :: Cdterm
 
+    ! Skip in case of using porous in-canopy model
+    if (par%porcanflow == 1) then
+        call porcanflow(s,par,veg)
+        return
+    endif
+    
     ! First compute drag coefficient (if not user-defined)
     s%Cdrag = 0d0 ! set drag coefficient to zero every timestep
     do ind=1,par%nveg  ! for each species
@@ -698,5 +716,184 @@ subroutine bulkdragcoeff(s,par,ahh,ind,m,i,j,Cdterm,veg)
     !Cdterm = 0.5d0/sqrt(par%px)*par%rho*Cdtemp*veg(ind)%bv(m)*veg(ind)%N(m)
     !
 end subroutine bulkdragcoeff
+
+subroutine porcanflow(s,par,veg)
+    ! porous in-canopy model. Computes the in-canopy flow and vegetation force.
+    use params
+    use spaceparams
+    use readkey_module
+    use xmpi_module
+    use filefunctions
+    use interp
+    use logging_module
+    
+    implicit none
+    
+    type(parameters)                            :: par
+    type(spacepars)                             :: s
+    type(veggie), dimension(:), pointer         :: veg
+
+    ! local variables
+    integer                                     :: i,j,imax,j1,ind,switch_drag
+    real*8                                      :: p,mu,lamp,Kp,beta,hcan,Cf,Cm,rhs,A,Fcanu,Fcanv,U,V,ucan_old,vcan_old
+
+    ! Initialization paramters 
+    mu     = 10.d0**(-6)                           ! kinematic viscosity  
+    Kp     = par%Kp                                ! permeability
+    Cm     = par%Cm                                ! inertia coefficient
+    U     = 0.d0
+    V     = 0.d0
+    ucan_old=0.d0
+    vcan_old=0.d0
+    switch_drag=1
+    
+    ! Superfast 1D
+    if (s%ny==0) then
+        j1 = 1
+    else
+        j1 = 2
+    endif
+    
+    ! In canopy momentum balance
+    do j=j1,max(s%ny,1)
+        imax = s%nx
+        do i=2,imax
+            ! Only compute ucan if vegeation is pressent
+            if(s%vegtype(i,j)>0.d0) then
+                    ! vegetation type
+                    ind = s%vegtype(i,j)
+                    p      = veg(ind)%N(1)/100.d0               ! porosity
+                    lamp   = (1-p)                              ! lambda parameters (Britter and Hanna, 2003)
+                    hcan   = veg(ind)%ah(2)-veg(ind)%ah(1)      ! canopy height
+                    beta   = veg(ind)%Cd(1)                     ! Drag
+                    Cf     = veg(ind)%bv(1)                     ! Friction
+                
+                !Emergent case. hcan> h
+                if (s%hu(i,j) < hcan) then
+                    hcan = s%hu(i,j)
+                endif
+                
+                !Implicit term momentum equation
+                A = (1+Cm*lamp/(1-lamp))/par%dt
+                
+                ! Select free stream velocity for top shear stress.
+!                if (par%nonhq3d == 1 .and. par%nhlay > 0.0d0 .and. par%switch_2dv==1) then
+!                    ! hcan < 0.5 alpha * h
+!                    if (hcan < 0.5d0 * par%nhlay*s%hh(i,j)) then
+!                        !Free stream velocity is velocity layer 1
+!                        U = s%u(i,j) + (1.d0 - par%nhlay) * s%du(i,j)   
+!                        V = s%v(i,j) + (1.d0 - par%nhlay) * s%dv(i,j) 
+!                    ! hcan > 0.5 alpha * h + alpha * h
+!                    elseif (hcan > 0.5d0 * par%nhlay * s%hh(i,j)  + par%nhlay*s%hh(i,j)) then
+!                        !Free stream velocity is velocity layer 2
+!                        U = s%u(i,j) - par%nhlay * s%du(i,j)
+!                        V = s%v(i,j) - par%nhlay * s%dv(i,j)
+!                    ! 0.5 alpha * h > hcan > 0.5 alpha * h + alpha * h
+!                    else
+!                        ! Velocity layer 1
+!                        u11 = s%u(i,j) + (1.d0 - par%nhlay) * s%du(i,j)
+!                        ! Velocity layer 2
+!                        u22 = s%u(i,j) - par%nhlay * s%du(i,j)
+!                        ! Interpolate between layers for smooth transition.
+!                        U = (u22-u11)/(0.5d0*(1.d0 - par%nhlay) *s%hh(i,j) + 0.5d0 * par%nhlay * s%hh(i,j) ) * (hcan - 1.d0/2.d0 * par%nhlay * s%hh(i,j))
+!                        
+!                        ! Velocity layer 1
+!                        v11 = s%v(i,j) + (1.d0 - par%nhlay) * s%dv(i,j)
+!                        ! Velocity layer 2
+!                        v22 = s%v(i,j) - par%nhlay * s%dv(i,j)
+!                        ! Interpolate between layers for smooth transition.
+!                        V = (v22-v11)/(0.5d0*(1.d0 - par%nhlay) *s%hh(i,j) + 0.5d0 * par%nhlay * s%hh(i,j) ) * (hcan - 0.5d0 * par%nhlay * s%hh(i,j))
+!                    endif
+!                else
+!                    ! Depth averaged velocity
+!                    U = s%u(i,j)
+!                    V = s%v(i,j)
+!                endif
+                
+                ! free stream velocty
+                U = s%u(i,j)
+                V = s%v(i,j)
+                
+                ! ucan previous time step
+                ucan_old = s%ucan(i,j)
+                vcan_old = s%vcan(i,j)
+                           
+                ! Compute u-incanopy velocity when cell is wet
+                if (s%wetu(i,j)>0) then
+                    s%ucan(i,j) = (-1 * par%g*s%dzsdx(i,j) +  0.5d0*Cf/hcan*abs(U-s%ucan(i,j)) * (U-s%ucan(i,j)) + A * s%ucan(i,j))/(A + mu * (1-lamp)/Kp + beta * abs(s%ucan(i,j)))
+                    ! prevent high in-canopy for flooding
+                    !if ((s%ucan(i,j)-ucan_old)/par%dt > 0.2) then
+                    !    s%ucan(i,j) = ucan_old
+                    !endif
+                ! Zero velocity if dry    
+                else
+                    s%ucan(i,j) = 0.d0
+                endif
+                
+                ! Compute v-incanopy velocity when cell is wet
+                if (s%wetv(i,j)>0 .and. s%ny>1) then 
+                    s%vcan(i,j) = (-1 * par%g*s%dzsdx(i,j) +  0.5d0*Cf/hcan*abs(V-s%vcan(i,j)) * (V-s%vcan(i,j)) + A * s%vcan(i,j))/(A + mu * (1-lamp)/Kp + beta * abs(s%vcan(i,j)))
+                    ! prevent high in-canopy for flooding
+                    !if (abs(s%vcan(i,j)) > abs(10 * vcan_old)) then
+                    !    s%vcan(i,j) = vcan_old
+                    !endif
+                ! Zero velocity if dry 
+                else
+                    s%vcan(i,j) = 0.d0
+                endif
+                
+                ! old shear stress formulation. u|u| instead of (u-uc)|u-uc|
+                !s%ucan(i,j) = (-1 * par%g*s%dzsdx(i,j) +  abs(U)*U/(2.d0*hcan/Cf) + A * s%ucan(i,j))/(A + mu * (1-lamp)/Kp + beta * abs(s%ucan(i,j)))
+            
+            !Zero velocity if no vegetation
+            else
+                s%ucan(i,j) = 0.0d0
+                s%vcan(i,j) = 0.0d0
+            endif
+            
+            !Upper limit canopy flow???
+            ! not used, because there can be a phase difference between uc and u.
+            !if ( abs(s%ucan(i,j))>abs(U)) then
+            !    s%ucan(i,j) = U
+            !endif             
+            
+            ! Compute canopy drag force
+            if(s%vegtype(i,j)>0.d0 .and. switch_drag==1) then
+                ! Compute vegetation force
+                if (s%wetu(i,j)>0) then                    
+                    Fcanu = abs(s%ucan(i,j))*ucan_old*beta + mu*(1-lamp)/Kp*ucan_old + Cm*lamp/(1-lamp) * (s%ucan(i,j)-ucan_old)/par%dt   
+                else
+                    Fcanu = 0.d0
+                endif
+                
+                
+                if (s%wetv(i,j)>0 .and. s%ny>1) then 
+                    Fcanv = abs(s%vcan(i,j))*vcan_old*beta + mu*(1-lamp)/Kp*vcan_old + Cm*lamp/(1-lamp) * (s%vcan(i,j)-vcan_old)/par%dt
+                else
+                    Fcanv = 0.d0
+                endif
+                    
+                !dfu for XBeach-nh+.
+                !if (hcan > par%nhlay*s%hh(i,j) .and. par%switch_2dv==1) then
+                !   s%dFvegu(i,j) = Fcanu * par%nhlay*s%hh(i,j)* par%rho - Fcanu * (hcan - par%nhlay*s%hh(i,j))* par%rho
+                !else if (hcan < par%nhlay*s%hh(i,j) .and. par%switch_2dv==1) then
+                !    s%dFvegu(i,j) = Fcanu * hcan * par%rho
+                !else
+                !    s%dFvegu(i,j) = 0
+                !endif  
+                
+                ! Force times height and rho (divide by rho in momentum eq).
+                Fcanu = Fcanu * par%rho * hcan 
+                Fcanv = Fcanv * par%rho * hcan   
+            else
+                Fcanu = 0.
+                Fcanv = 0.
+            endif
+            s%Fvegu(i,j) = Fcanu
+            s%Fvegv(i,j) = Fcanv 
+        end do
+    end do
+
+end subroutine porcanflow
 
 end module vegetation_module

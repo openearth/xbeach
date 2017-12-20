@@ -428,6 +428,9 @@ module params
       integer                           :: vegnonlin                = -123                 !  [-] include non-linear wave effect [1] or not [0]
       integer                           :: vegcanflo                = -123                 !  [-] include incanopy flow [1] or not [0]
       integer                           :: veguntow                 = -123                 !  [-] include undertow in phase-averaged vegetati
+      integer                           :: porcanflow               = -123                 !  [-] Compute in-canopy flow
+      double precision                  :: Kp                       = -123                 !  [-] Laminar resistance factor (in-canopy flow)
+      double precision                  :: Cm                       = -123                 !  [-] Inertia coefficient (in-canopy flow)
 
       ! [Section] Wave numerics parameters
       integer                           :: scheme                   = -123                 !  [name] (advanced) Numerical scheme for wave propagation
@@ -1655,6 +1658,11 @@ contains
          par%vegnonlin     = readkey_int   ('params.txt', 'vegnonlin',0,0,1,silent=.true.)
          par%vegcanflo     = readkey_int   ('params.txt', 'vegcanflo',0,0,1,silent=.true.)
          par%veguntow      = readkey_int   ('params.txt', 'veguntow', 1,0,1,silent=.true.)
+         par%porcanflow    = readkey_int   ('params.txt', 'porcanflow', 0,0,1,silent=.true.)
+         if (par%porcanflow ==1) then
+             par%Kp             = readkey_dbl ('params.txt','Kp',    0.0001d0,      0.d0,     1.d0, silent=.true.)
+             par%Cm             = readkey_dbl ('params.txt','Cm',    1.0d0,         0.d0,     2.d0, silent=.true.)
+         endif
          ! veggiefile routine should set nveg
       endif
       !
