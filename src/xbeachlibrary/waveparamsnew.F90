@@ -3399,15 +3399,21 @@ contains
                 wp%duits(j,:)=wp%duits(j,:)+ (q(j,:,1)/z - q(j,:,2)/(wp%h0+z))
                 ! add to surface elevation time series
                 wp%zsits(j,:)=wp%zsits(j,:)+q(j,:,6)
-                deallocate(Eforc,D,deltheta,KKx,KKy,dphi3,k3,c,theta3,Gn,Abnd,q,w3,qx1,qx2,qy1,qy2,Ftemp)
+                if (j==s%ny+1) then
+                    deallocate(Eforc,D,deltheta,KKx,KKy,dphi3,k3,c,theta3,Gn,Abnd,w3,qx1,qx2,qy1,qy2,Ftemp)
+                endif
+             
              else
                 ! add to velocity time series
                 wp%uits(j,:)=wp%uits(j,:)+q(j,:,1)/wp%h0
                 ! add to surface elevation time series
                 wp%zsits(j,:)=wp%zsits(j,:)+q(j,:,4)
-                deallocate(Eforc,D,deltheta,KKx,KKy,dphi3,k3,c,theta3,Gn,Abnd,q,w3,Ftemp)
+                if (j==s%ny+1) then
+                    deallocate(Eforc,D,deltheta,KKx,KKy,dphi3,k3,c,theta3,Gn,Abnd,w3,Ftemp)
+                endif
             endif
          enddo
+        deallocate(q)
       endif ! par%nonhspectrum==1     
       
    
