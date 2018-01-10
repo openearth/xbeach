@@ -1425,7 +1425,7 @@ contains
             par%sus      = readkey_int ('params.txt','sus    ',1,           0,            1,strict=.true.)
             par%bed      = readkey_int ('params.txt','bed    ',1,           0,            1,strict=.true.)
             par%bulk     = readkey_int ('params.txt','bulk   ',0,           0,            1,strict=.true.)
-            par%facsl    = readkey_dbl ('params.txt','facsl  ',  1.6d0,       0.d0, 1.6d0)   
+            par%facsl    = readkey_dbl ('params.txt','facsl  ',  0.15d0,       0.d0, 1.6d0)   
             par%z0       = readkey_dbl ('params.txt','z0     ',0.006d0,    0.0001d0,   0.05d0)
             par%smax     = readkey_dbl ('params.txt','smax',   -1.d0,    -1.d0,   3.d0)       !changed 28/11 and back 10/2
             call setallowednames('none',              BDSLPEFFMAG_NONE,           &
@@ -1720,7 +1720,7 @@ contains
          call writelog('l','','--------------------------------')
          call writelog('l','','Sediment transport numerics parameters: ')
          par%thetanum   = readkey_dbl ('params.txt','thetanum',   1.d0,    0.5d0,   1.d0)
-         par%sourcesink = readkey_int ('params.txt','sourcesink    ',0,     0,         1,strict=.true.)
+         par%sourcesink = readkey_int ('params.txt','sourcesink    ',0,     0,         1,silent=.true.,strict=.true.)
          par%cmax       = readkey_dbl ('params.txt','cmax',      0.1d0,    0.0d0,   1.d0)
       endif
       !
