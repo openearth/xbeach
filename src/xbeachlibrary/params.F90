@@ -512,6 +512,7 @@ contains
       !
       ! Collections of default sets
       par%useXBeachGSettings    = readkey_int ('params.txt','useXBeachGSettings',     0,0,1,strict=.true.,silent=.true.)
+      ! par%useXBeachGSettings = 1
       !      
       !
       ! Backward compatibility
@@ -1615,7 +1616,11 @@ contains
          if (len(trim(par%ncfilename)) .eq. 0) par%ncfilename = 'xboutput.nc'
          call writelog('ls','','netcdf output to:' // par%ncfilename)
       endif
-      par%remdryoutput = readkey_int ('params.txt','remdryoutput',     1,  0, 1,strict=.true.)
+      if(par%outputformat==OUTPUTFORMAT_NETCDF .and. par%useXBeachGSettings==0) then
+         par%remdryoutput = readkey_int ('params.txt','remdryoutput',     1,  0, 1,strict=.true.)
+      else
+         par%remdryoutput = readkey_int ('params.txt','remdryoutput',     0,  0, 1,strict=.true.)
+      endif
       !
       !
       ! Output projection
