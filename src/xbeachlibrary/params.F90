@@ -219,6 +219,7 @@ module params
       character(slen)                   :: bedfriction_str          =  ' '                 !
       double precision                  :: bedfriccoef              = -123                 !  [-] Bed friction coefficient
       character(slen)                   :: bedfricfile              = 'abc'                !  [file] Bed friction file (valid for all bed friction coefficients)
+      double precision                  :: maxcf                    = -123                 !  [-] max dimensionless friction coefficient (only for Manning and White-Colebrook)
       double precision                  :: nuh                      = -123                 !  [m^2s^-1] Horizontal background viscosity
       double precision                  :: nuhfac                   = -123                 !  [-] (advanced) Viscosity switch for roller induced turbulent horizontal viscosity
       double precision                  :: nuhv                     = -123                 !  [-] (advanced,silent) Longshore viscosity enhancement factor, following Svendsen (?)
@@ -1136,7 +1137,7 @@ contains
          par%bedfricfile = ''  ! empty string so doesn't go searching for file called 'abc'
          par%bedfriccoef = -999.d0
       endif
-
+      par%maxcf   = readkey_dbl ('params.txt','maxcf',     0.1d0,     0.0d0,   1.0d0)   ! max cf, only used for Manning and White Colebrook
       par%nuh     = readkey_dbl ('params.txt','nuh',       0.1d0,     0.0d0,   1.0d0)
       par%nuhfac  = readkey_dbl ('params.txt','nuhfac',    1.0d0,     0.0d0,   1.0d0)
       par%nuhv    = readkey_dbl ('params.txt','nuhv',      1.d0,      1.d0,    20.d0,silent=.true.)

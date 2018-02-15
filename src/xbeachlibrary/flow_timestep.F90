@@ -77,7 +77,7 @@ contains
          allocate (    vs(s%nx+1,s%ny+1))
          allocate (sinthm(s%nx+1,s%ny+1))
          allocate (costhm(s%nx+1,s%ny+1))
-
+        !
          if (par%secorder == 1  .or. par%wavemodel==WAVEMODEL_NONH) then
             allocate(vv_old(s%nx+1,s%ny+1)); vv_old = s%vv
             allocate(uu_old(s%nx+1,s%ny+1)); uu_old = s%uu

@@ -73,15 +73,15 @@ contains
        case (BEDFRICTION_MANNING)
          where(s%wetu==1)
             s%cfu = par%g*s%bedfriccoef**2/s%hu**(1.d0/3)
-            s%cfu = min(s%cfu,0.1d0)
+            s%cfu = min(s%cfu,par%maxcf)
          elsewhere
-            s%cfu = 0.1d0
+            s%cfu = par%maxcf
          endwhere
          where(s%wetv==1)
             s%cfv = par%g*s%bedfriccoef**2/s%hv**(1.d0/3)
-            s%cfv= min(s%cfv,0.1d0)
+            s%cfv= min(s%cfv,par%maxcf)
          elsewhere
-            s%cfv = 0.1d0
+            s%cfv = par%maxcf
          endwhere
        case (BEDFRICTION_WHITE_COLEBROOK_GRAINSIZE)
          allocate (kru(s%nx+1,s%ny+1))
@@ -113,15 +113,15 @@ contains
          endif
          where(s%wetu==1)
             s%cfu = par%g/(18*log10(12*max(s%hu,kru)/kru))**2
-            s%cfu = min(s%cfu,0.1d0)
+            s%cfu = min(s%cfu,par%maxcf)
          elsewhere
-            s%cfu = 0.1d0
+            s%cfu = par%maxcf
          endwhere
          where(s%wetv==1)
             s%cfv = par%g/(18*log10(12*max(s%hv,krv)/krv))**2
-            s%cfv = min(s%cfv,0.1d0)
+            s%cfv = min(s%cfv,par%maxcf)
          elsewhere
-            s%cfv = 0.1d0
+            s%cfv = par%maxcf
          endwhere
        case (BEDFRICTION_WHITE_COLEBROOK)
          allocate (kru(s%nx+1,s%ny+1))
@@ -130,15 +130,15 @@ contains
          krv = s%bedfriccoef
          where(s%wetu==1)
             s%cfu = par%g/(18*log10(12*max(s%hu,kru)/kru))**2
-            s%cfu = min(s%cfu,0.1d0)
+            s%cfu = min(s%cfu,par%maxcf)
          elsewhere
-            s%cfu = 0.1d0
+            s%cfu = par%maxcf
          endwhere
          where(s%wetv==1)
             s%cfv = par%g/(18*log10(12*max(s%hv,krv)/krv))**2
-            s%cfv = min(s%cfv,0.1d0)
+            s%cfv = min(s%cfv,par%maxcf)
          elsewhere
-            s%cfv = 0.1d0
+            s%cfv = par%maxcf
          endwhere
       end select
 
@@ -170,15 +170,15 @@ contains
          ! cf = g/C**2 = g/(hu**(1/6)/n)**2 = g*n**2/hu**(1/3)
          where(s%wetu==1)
             s%cfu = par%g*s%bedfriccoef**2/s%hu**(1.d0/3)
-            s%cfu = min(s%cfu,0.1d0)
+            s%cfu = min(s%cfu,par%maxcf)
          elsewhere
-            s%cfu = 0.1d0
+            s%cfu = par%maxcf
          endwhere
          where(s%wetv==1)
             s%cfv = par%g*s%bedfriccoef**2/s%hv**(1.d0/3)
-            s%cfv = min(s%cfv,0.1d0)
+            s%cfv = min(s%cfv,par%maxcf)
          elsewhere
-            s%cfv = 0.1d0
+            s%cfv = par%maxcf
          endwhere
        case (BEDFRICTION_WHITE_COLEBROOK_GRAINSIZE)
          if (par%ngd>1) then
@@ -212,26 +212,26 @@ contains
             s%cfu = par%g/(18*log10(12*max(s%hu,kru)/kru))**2
             s%cfu = min(s%cfu,0.1d0)
          elsewhere
-            s%cfu = 0.1d0
+            s%cfu = par%maxcf
          endwhere
          where(s%wetv==1)
             s%cfv = par%g/(18*log10(12*max(s%hv,krv)/krv))**2
-            s%cfv = min(s%cfv,0.1d0)
+            s%cfv = min(s%cfv,par%maxcf)
          elsewhere
-            s%cfv = 0.1d0
+            s%cfv = par%maxcf
          endwhere
        case (BEDFRICTION_WHITE_COLEBROOK)
          where(s%wetu==1)
             s%cfu = par%g/(18*log10(12*max(s%hu,kru)/kru))**2
-            s%cfu = min(s%cfu,0.1d0)
+            s%cfu = min(s%cfu,par%maxcf)
          elsewhere
-            s%cfu = 0.1d0
+            s%cfu = par%maxcf
          endwhere
          where(s%wetv==1)
             s%cfv = par%g/(18*log10(12*max(s%hv,krv)/krv))**2
-            s%cfv = min(s%cfv,0.1d0)
+            s%cfv = min(s%cfv,par%maxcf)
          elsewhere
-            s%cfv = 0.1d0
+            s%cfv = par%maxcf
          endwhere
       end select
 
