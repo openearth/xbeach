@@ -2297,9 +2297,9 @@ contains
                !
                dzsdx = .5*( zsu(i,j) - zsu(i-1,j  ) )  / s%dsz(i,j)
                dzsdy = .5*( zsv(i,j) - zsv(i  ,j-1) )  / s%dnz(i,j)
-
+               !
                s%ws(i,j) = - (s%dnu(i,j)*s%hu(i,j)*s%uu(i,j) -s%dnu(i-1,j)*s%hu(i-1,j  )*s%uu(i-1,j  )) * s%dsdnzi(i,j) &
-               - (s%dsv(i,j)*s%hv(i,j)*s%vv(i,j) -s%dnv(i,j-1)*s%hv(  i,j-1)*s%vv(i  ,j-1)) * s%dsdnzi(i,j) &
+               - (s%dsv(i,j)*s%hv(i,j)*s%vv(i,j) -s%dsv(i,j-1)*s%hv(  i,j-1)*s%vv(i  ,j-1)) * s%dsdnzi(i,j) &
                +  dzsdx * (  s%uu(i,j) + s%uu(i-1,j  ) - ( s%dU(i,j) + s%dU(i-1,j  ) ) * wcoef(i,j) ) &
                +  dzsdy * (  s%vv(i,j) + s%vv(i  ,j-1) - ( s%dV(i,j) + s%dV(i  ,j-1) ) * wcoef(i,j) )
                !
