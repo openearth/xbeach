@@ -1566,7 +1566,8 @@ contains
       wp%K = ceiling(wp%rtbc*(combspec%f(ind2)-combspec%f(ind1))+1)
       ! also include minimum number of components
       wp%K = max(wp%K,Kmin)
-
+      
+      
       ! Allocate space in waveparams for all wave train components
       allocate(wp%fgen(wp%K))
       allocate(wp%thetagen(wp%K))
@@ -2513,8 +2514,7 @@ contains
       wp%duits=0.d0
       wp%dvits=0.d0
       if (par%bclwonly==0) then
-         
-      
+          
          u1 = 0.d0
          u2 = 0.d0
          U = 0.d0
@@ -2548,7 +2548,7 @@ contains
                if (wp%PRindex(ik)==1) then 
                   do j=1,s%ny+1
                    
-                   if ( par%nonhq3d == 1 ) then
+                   if ( par%nonhq3d == 1 .and. par%nhlay>0 ) then
                        ! Compute layer averaged velocity for layer 1 and 2 based on layer level z.
                        u1 = wp%wgen(ik) * wp%A(j,ik) / (dsinh(wp%kgen(ik)*wp%h0)*wp%kgen(ik))*(dsinh(wp%kgen(ik)*(z + wp%h0))) * & 
                                                dsin(wp%wgen(ik)*wp%tin(it)&
@@ -2636,7 +2636,7 @@ contains
       logical                                      :: firsttime    ! used for output message only
       real*8                                       :: deltaf       ! difference frequency
       real*8,dimension(:), allocatable             :: term1,term2,term2new,dif,chk1,chk2
-      real*8,dimension(:,:),allocatable            :: Eforc,D,deltheta,KKx,KKy,dphi3,k3,cg3,theta3,Abnd
+      real*8,dimension(:,:),allocatable            :: Eforc,D,deltheta,KKx,KKy,dphi3,k3,cg3,theta3,Abnd,D_sign
       real*8,dimension(:,:,:),allocatable          :: q,qinterp
       complex(fftkind),dimension(:),allocatable    :: Comptemp,Comptemp2,Gn
       complex(fftkind),dimension(:,:,:),allocatable:: Ftemp
@@ -2649,7 +2649,7 @@ contains
 
       ! shortcut variable
        K = wp%K
-
+       
       ! Print message to screen
       call writelog('sl','', 'Calculating primary wave interaction')
 
@@ -2691,7 +2691,9 @@ contains
 
       ! upper half of frequency space
       halflen = wp%tslen/2
-
+      
+      
+      
       ! Run loop over wave-wave interaction components
       call progress_indicator(.true.,0.d0,5.d0,2.d0)
       do m=1,K-1
@@ -2766,6 +2768,8 @@ contains
          Comptemp=conjg(wp%CompFn(1,wp%Findex(1)+m:wp%Findex(1)+K-1))
          Comptemp2=conjg(wp%CompFn(1,wp%Findex(1):wp%Findex(1)+K-m-1))
          dphi3(m,1:K-m) = par%px+imag(log(Comptemp))-imag(log(Comptemp2))
+         ! Menno removed pi, because it is incorporated in the sign of the amplitude
+         dphi3(m,1:K-m) = imag(log(Comptemp))-imag(log(Comptemp2))
          deallocate (Comptemp,Comptemp2)
          !
          ! Determine angle of bound long wave according to Van Dongeren et al. 2003 eq. 22
@@ -2804,7 +2808,17 @@ contains
          enddo
          !
          ! Calculate bound wave amplitude for this offshore grid point
-         Abnd = sqrt(2*Eforc*wp%dfgen)
+         !Abnd = sqrt(2*Eforc*wp%dfgen)
+         
+         ! Menno: add the sign of the interaction coefficient in the amptlitude. Large dtheta can result in a positive D. 
+         ! The phase of the bound wave is now only determined by phi1+phi2
+         allocate(D_sign(K-1,K))
+         D_sign = 1
+         ! Menno: put the sign of D in front of D_sign
+         D_sign = sign(D_sign,D)
+         ! Multiply amplitude with the sign of D
+         Abnd = sqrt(2*Eforc*wp%dfgen) * D_sign
+         deallocate(D_sign)
          !
          ! Determine complex description of bound long wave per interaction pair of
          ! primary waves for first y-coordinate along seaside boundary
@@ -3071,7 +3085,7 @@ contains
       logical                                      :: firsttime                     ! used for output message only
       real*8                                       :: deltaf,z                      
       real*8,dimension(:), allocatable             :: term1,term2,term2new,dif,chk1,chk2
-      real*8,dimension(:,:),allocatable            :: Eforc,D,deltheta,KKx,KKy,dphi3,k3,w3,c,theta3,Abnd,qx1,qx2,qy1,qy2
+      real*8,dimension(:,:),allocatable            :: Eforc,D,deltheta,KKx,KKy,dphi3,k3,w3,c,theta3,Abnd,qx1,qx2,qy1,qy2,D_sign
       real*8,dimension(:,:,:),allocatable          :: q,qinterp
       complex(fftkind),dimension(:),allocatable    :: Comptemp,Comptemp2,Gn
       complex(fftkind),dimension(:,:,:),allocatable:: Ftemp
@@ -3101,7 +3115,7 @@ contains
       ! Allocate variables for amplitude and Fourier coefficients of bound wave
       allocate(Gn(wp%tslen))
       allocate(Abnd(2*K,2*K))
-      if (par%nonhq3d==1) then
+      if (par%nonhq3d==1 .and. par%nhlay>0) then
         allocate(Ftemp(2*K,2*K,6)) ! qx1, qx2, qy1, qy2, qtot, zeta
         ! Storage for output discharge
         allocate(q(s%ny+1,wp%tslen,6))   ! qx1, qx2, qy1, qy2, qtot, zeta
@@ -3216,8 +3230,8 @@ contains
          (term2*((term1)**2/par%g/par%g - wp%kgen(ii)*wp%kgen(jj)*dcos(deltheta(m,ii))) &
          - 0.50d0*((wp%wgen(ii))*wp%kgen(jj)**2/(chk2**2)+wp%wgen(jj)*wp%kgen(ii)**2/(chk1**2)))
 
-         ! Menno: limit the higher components.
-         !if (w3>=par%fcutoff_high) D(m,:)=0.d0
+         ! Menno: limit the higher components, which can not correcty be resolved.
+         if (k3(m,1)*wp%h0>5) D(m,:)=0.d0
         
          ! Determine phase of bound long wave assuming a local equilibrium with
          ! forcing of interacting primary waves according to Van Dongeren et al.
@@ -3298,7 +3312,14 @@ contains
         enddo
          !
          ! Calculate bound wave amplitude for this offshore grid point
-         Abnd = sqrt(2*Eforc*wp%dfgen)
+         ! Menno: add the sign of the interaction coefficient in the amptlitude. Large dtheta can result in a positive D. 
+         ! The phase of the bound wave is now only determined by phi1+phi2
+         allocate(D_sign(2*K,2*K))
+         D_sign = 1
+         ! Menno: put the sign of D in front of D_sign
+         D_sign = sign(D_sign,D)
+         Abnd = sqrt(2*Eforc*wp%dfgen) * D_sign
+         deallocate(D_sign)
          !
          ! Determine complex description of bound long wave per interaction pair of
          ! primary waves for first y-coordinate along seaside boundary
@@ -3392,7 +3413,7 @@ contains
          call writelog('sl','','file done')
       else
          do j=1,s%ny+1
-             if (par%nonhq3d==1) then
+             if (par%nonhq3d==1 .and. par%nhlay>0) then
                 ! add to velocity time series
                 wp%uits(j,:)=wp%uits(j,:)+ (q(j,:,1)/z + q(j,:,2)/(wp%h0+z))/2.d0
                 ! add to velocity time series
