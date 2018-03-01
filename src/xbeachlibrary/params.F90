@@ -969,7 +969,7 @@ contains
       ! others
       par%ARC         = readkey_int ('params.txt','ARC',      1,              0,       1       ,strict=.true.)
       par%order       = readkey_dbl ('params.txt','order',    2.d0,           1.d0,    2.d0    ,strict=.true.)
-      par%highcomp    = readkey_int ('params.txt','highcomp',    0,           0,       1       ,silent=.true.)
+      par%highcomp    = readkey_int ('params.txt','highcomp',    0,           0,       1                     )
       par%freewave    = readkey_int ('params.txt','freewave', 0,              0,       1       ,strict=.true.)
       par%epsi        = readkey_dbl ('params.txt','epsi',     -1.d0,          -1.d0,   0.2d0   )
       par%nc          = readkey_int ('params.txt','nc',       par%ny+1,       1,       par%ny+1,strict=.true.,silent=.true.)
@@ -1666,10 +1666,10 @@ contains
          par%vegnonlin     = readkey_int   ('params.txt', 'vegnonlin',0,0,1,silent=.true.)
          par%vegcanflo     = readkey_int   ('params.txt', 'vegcanflo',0,0,1,silent=.true.)
          par%veguntow      = readkey_int   ('params.txt', 'veguntow', 1,0,1,silent=.true.)
-         par%porcanflow    = readkey_int   ('params.txt', 'porcanflow', 0,0,1,silent=.true.)
+         par%porcanflow    = readkey_int   ('params.txt', 'porcanflow', 0,0,1)
          if (par%porcanflow ==1) then
-             par%Kp             = readkey_dbl ('params.txt','Kp',    0.0001d0,      0.d0,     1.d0, silent=.true.)
-             par%Cm             = readkey_dbl ('params.txt','Cm',    1.0d0,         0.d0,     2.d0, silent=.true.)
+             par%Kp             = readkey_dbl ('params.txt','Kp',    0.0001d0,      0.d0,     1.d0)
+             par%Cm             = readkey_dbl ('params.txt','Cm',    1.0d0,         0.d0,     2.d0)
          endif
          ! veggiefile routine should set nveg
       endif

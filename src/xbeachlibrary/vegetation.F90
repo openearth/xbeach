@@ -764,7 +764,7 @@ subroutine porcanflow(s,par,veg)
                     ind = s%vegtype(i,j)
                     p      = veg(ind)%N(1)/100.d0               ! porosity
                     lamp   = (1-p)                              ! lambda parameters (Britter and Hanna, 2003)
-                    hcan   = veg(ind)%ah(2)-veg(ind)%ah(1)      ! canopy height
+                    hcan   = veg(ind)%ah(1)                     ! canopy height
                     beta   = veg(ind)%Cd(1)                     ! Drag
                     Cf     = veg(ind)%bv(1)                     ! Friction
                 
