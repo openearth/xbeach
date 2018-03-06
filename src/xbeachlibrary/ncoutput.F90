@@ -116,7 +116,7 @@ module ncoutput_module
 
    ! TODO: check out why these are sometimes used....
    integer :: tidetimedimid, windtimedimid
-   integer :: inoutdimid, tidecornersdimid
+   integer :: inoutdimid, tidecornersdimid, inoutdimid3
 
    ! local variables
    integer :: npointstotal
@@ -263,6 +263,7 @@ contains
 
       ! dimensions of length 2.... what is this.... TODO: find out what this is
       NF90(nf90_def_dim(ncid, 'inout', 2, inoutdimid))
+      NF90(nf90_def_dim(ncid, 'inout3', 3, inoutdimid3))
 
       ! write(*,*) 'Writing ndrifter', par%ndrifter
       if (par%ndrifter .gt. 0) then
@@ -1624,6 +1625,8 @@ contains
          dimensionid = inoutdimid
        case('2')
          dimensionid = inoutdimid
+       case('3')
+         dimensionid = inoutdimid3
        case('par%nd')
          dimensionid = bedlayersdimid
        case('par%ndrifter')
