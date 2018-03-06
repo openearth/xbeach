@@ -399,7 +399,7 @@ contains
       ! For next time step do some smoothing of Kx,Ky,Kx
       do j=1,s%ny+1
          do i=1,s%nx+1
-            incl = min(i+3,s%nx+1)-max(1,i-3)
+            incl = min(i+3,s%nx+1)-max(1,i-3)+1
             Kx(i,j) = sum(Kxupd(max(1,i-3):min(i+3,s%nx+1),j))/incl
             Kz(i,j) = sum(Kzupd(max(1,i-3):min(i+3,s%nx+1),j))/incl
             Ky(i,j) = sum(Kyupd(max(1,i-3):min(i+3,s%nx+1),j))/incl
