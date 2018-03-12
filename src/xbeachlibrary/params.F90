@@ -1276,9 +1276,9 @@ contains
             par%nhlay        = readkey_dbl('params.txt','nhlay' ,0.33d0,0.d0,1.d0)
          else
             if(par%useXBeachGSettings==0) then
-               par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,2,0,2,strict=.true.)
+               par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,1,0,1,strict=.true.)
             else
-               par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,3,0,3,strict=.true.)
+               par%nhbreaker    = readkey_int('params.txt','nhbreaker' ,1,0,3,strict=.true.)
             endif
             par%dispc        = readkey_dbl('params.txt','dispc' ,-1.0d0,0.1d0,2.0d0)
          endif

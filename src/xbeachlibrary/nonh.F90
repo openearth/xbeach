@@ -971,8 +971,11 @@ contains
       endif
 
       !
-      ! Determine if a velocity point will be included in the nonh pressure matrix, do not include if:
+      ! Determine whether or not to use the nh correction method (dry/wet/breaking etc.)
       !
+      if(par%useXBeachGSettings==0 .or. par%nhbreaker<=1) then
+         call nonh_break( s , par )
+      else
       ! (1)  The point is dry
       ! (2)  The relative wave length kd of the smallest possible wave (L=2dx) is smaller than kdmin
       ! (3)  The interpolated waterlevel zs is below the bottom (steep cliffs with overwash situations)
@@ -981,7 +984,6 @@ contains
       !            dz/dx = maxbrsteep
       !            dz/dx = dz/dt/c = w/c = w/sqrt(gh)
       !            wmax = maxbrsteep*sqrt(gh)
-
       do j=1,s%ny+1
          do i=1,s%nx+1
             iw = max(i,i-1)
@@ -1038,55 +1040,7 @@ contains
          enddo
       endif
 
-      if (par%nhbreaker == 1) then
-         reformfac = par%reformsteep/par%maxbrsteep
-         if (s%ny>0) then
-            do j=2,s%ny
-               do i=2,s%nx
-                  wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,j))
-                  if (s%breaking(i,j) == 0) then
-                     if (s%ws(i,j)>=wmax) then
-                        s%breaking(i,j) = 1
-                     elseif (s%ws(i,j)<=-wmax) then
-                        s%breaking(i,j) = -1
-                     endif
-                  elseif (s%breaking(i,j)==1) then
-                     if (s%ws(i,j)<reformfac*wmax) then
-                        s%breaking(i,j) = 0
-                     endif
-                  elseif (s%breaking(i,j)==-1) then
-                     if (s%ws(i,j)>reformfac*(-wmax)) then
-                        s%breaking(i,j) = 0
-                     endif
-                  endif
-               enddo
-            enddo
-         else
-            do i=2,s%nx
-               wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,1))
-               if (s%breaking(i,1) == 0) then
-                  if (s%ws(i,1)>=wmax) then
-                     s%breaking(i,1) = 1
-                  elseif (s%ws(i,1)<=-wmax) then
-                     s%breaking(i,1) = -1
-                  endif
-               elseif (s%breaking(i,1)==1) then
-                  if (s%ws(i,1)<reformfac*wmax) then
-                     s%breaking(i,1) = 0
-                  endif
-               elseif (s%breaking(i,1)==-1) then
-                  if (s%ws(i,1)>reformfac*(-wmax)) then
-                     s%breaking(i,1) = 0
-                  endif
-               endif
-            enddo
-         endif
-         ! turn off non-hydrostatic pressure correction in areas with breaking and increase viscosity
-         where (s%breaking/=0)
-            nonhZ = 0
-            s%pres = 0
-         endwhere
-      elseif (par%nhbreaker == 2) then
+         if (par%nhbreaker == 2) then
          ! First determine local breaker criterion
          lbreakcond = par%maxbrsteep
          if (s%ny==0) then
@@ -1173,6 +1127,7 @@ contains
                endif
             enddo
          enddo
+      endif
       endif
 
       !Calculate explicit part average vertical momentum (advection)
@@ -1637,7 +1592,7 @@ contains
       ! the following steps are taken:
       !
       ! 1) Calculate whether or not breaking is active (handled in subroutine
-      !    nonh_masks ).
+      !    nonh_break ).
       ! 2) Calculate the coeficients of the nonh. pres. as they occur in the momentum
       !    equations. (these are use to calculate the explicit pressure contributions
       !    here, and the implicit contributions in the correction routine later).
@@ -2454,7 +2409,7 @@ contains
       ! the following steps are taken:
       !
       ! 1) Calculate whether or not breaking is active (handled in subroutine
-      !    nonh_masks ).
+      !    nonh_break ).
       ! 2) Calculate the coeficients of the nonh. pres. as they occur in the momentum
       !    equations. (these are use to calculate the explicit pressure contributions
       !    here, and the implicit contributions in the correction routine later).
@@ -3304,249 +3259,6 @@ contains
       endif
       !
    end subroutine nonh_break
-
-
-
-
-
-
-   subroutine nonh_masks( s , par )
-      !--------------------------        PURPOSE         ----------------------------
-      !
-      ! Include the pressure explicitly in the predictor step
-      !
-      !--------------------------     DEPENDENCIES       ----------------------------
-      use spaceparams
-      use params
-      use flow_secondorder_module
-      !--------------------------     ARGUMENTS          ----------------------------
-
-      type(spacepars) ,intent(inout)                       :: s
-      type(parameters),intent(in)                          :: par
-
-      !--------------------------     LOCAL VARIABLES    ----------------------------
-
-      !Indices
-      integer(kind=iKind)                     :: i,ie,iw               !Index variables
-      integer(kind=iKind)                     :: j,js
-      integer(kind=iKind)                     :: jmin,jmax
-      real(kind=rKind)                        :: wmax,reformfac
-
-
-      if (s%ny>0) then
-         jmin = 2
-         jmax = s%ny
-      else
-         jmin = 1
-         jmax = 1
-      endif
-
-      !
-      ! Determine if a velocity point will be included in the nonh pressure matrix, do not include if:
-      !
-      ! (1)  The point is dry
-      ! (2)  The relative wave length kd of the smallest possible wave (L=2dx) is smaller than kdmin
-      ! (3)  The interpolated waterlevel zs is below the bottom (steep cliffs with overwash situations)
-      ! (4)  Where Miche breaker criterium applies -> bores are hydrostatic
-      !            max steepness = H/L = maxbrsteep
-      !            dz/dx = maxbrsteep
-      !            dz/dx = dz/dt/c = w/c = w/sqrt(gh)
-      !            wmax = maxbrsteep*sqrt(gh)
-
-      do j=1,s%ny+1
-         do i=1,s%nx+1
-            iw = max(i,i-1)
-            ie = min(s%nx,i+1)
-
-            if (  (s%wetU(i,j)==1                                      )  &
-            .and. (0.5_rKind*(s%zs(i,j) + s%zs(ie,j))    > zbu(i,j)    )  &
-            .and. ( s%dsu(i,1)*par%kdmin/par%px  < s%hum(i,j)  )  ) then
-               nonhU(i,j) = 1
-            else
-               nonhU(i,j) = 0
-            endif
-         enddo
-      enddo
-
-      if (s%ny>2) then
-         do j=1,s%ny+1
-            js = min(s%ny,j+1)
-            do i=1,s%nx+1
-               if (  (s%wetV(i,j)==1                                      )  &
-               .and. (0.5_rKind*(s%zs(i,j) + s%zs(i,js))    > zbv(i,j)    )  &
-               .and. ( s%dnv(1,j)*par%kdmin/par%px  < s%hvm(i,j)  )  ) then
-                  nonhV(i,j) = 1
-               else
-                  nonhV(i,j) = 0
-               endif
-            enddo
-         enddo
-      else
-         nonhV = 0
-      endif
-      !
-      ! Determine if a velocity point will be included in the nonh pressure matrix, include if
-      ! any of the surrounding velocity points is included.
-      !
-      if (s%ny>0) then
-         do j=2,s%ny
-            do i=2,s%nx
-               if (max(nonhV(i,j),nonhV(i,j-1),nonhU(i,j),nonhU(i-1,j)) > 0) then
-                  nonhZ(i,j) = 1
-               else
-                  nonhZ(i,j) = 0
-               endif
-            enddo
-         enddo
-      else
-         do i=2,s%nx
-            if (max(nonhU(i,1),nonhU(i-1,1)) > 0) then
-               nonhZ(i,1) = 1
-            else
-               nonhZ(i,1) = 0
-            endif
-         enddo
-      endif
-
-
-      if (par%nhbreaker == 1) then
-         reformfac = par%reformsteep/par%maxbrsteep
-         if (s%ny>0) then
-            do j=2,s%ny
-               do i=2,s%nx
-                  wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,j))
-                  if (s%breaking(i,j) == 0) then
-                     if (s%ws(i,j)>=wmax) then
-                        s%breaking(i,j) = 1
-                     elseif (s%ws(i,j)<=-wmax) then
-                        s%breaking(i,j) = -1
-                     endif
-                  elseif (s%breaking(i,j)==1) then
-                     if (s%ws(i,j)<reformfac*wmax) then
-                        s%breaking(i,j) = 0
-                     endif
-                  elseif (s%breaking(i,j)==-1) then
-                     if (s%ws(i,j)>reformfac*(-wmax)) then
-                        s%breaking(i,j) = 0
-                     endif
-                  endif
-               enddo
-            enddo
-         else
-            do i=2,s%nx
-               wmax = par%maxbrsteep*sqrt(par%g*s%hh(i,1))
-               if (s%breaking(i,1) == 0) then
-                  if (s%ws(i,1)>=wmax) then
-                     s%breaking(i,1) = 1
-                  elseif (s%ws(i,1)<=-wmax) then
-                     s%breaking(i,1) = -1
-                  endif
-               elseif (s%breaking(i,1)==1) then
-                  if (s%ws(i,1)<reformfac*wmax) then
-                     s%breaking(i,1) = 0
-                  endif
-               elseif (s%breaking(i,1)==-1) then
-                  if (s%ws(i,1)>reformfac*(-wmax)) then
-                     s%breaking(i,1) = 0
-                  endif
-               endif
-            enddo
-         endif
-         ! turn off non-hydrostatic pressure correction in areas with breaking and increase viscosity
-         where (s%breaking/=0)
-            nonhZ = 0
-            s%pres = 0
-         endwhere
-      elseif (par%nhbreaker == 2) then
-         ! First determine local breaker criterion
-         lbreakcond = par%maxbrsteep
-         if (s%ny==0) then
-            do i=2,s%nx
-               if (s%breaking(i,1)==1) then
-                  lbreakcond(i-1:i+1,1) = par%secbrsteep
-               endif
-            enddo
-         else
-            do j=jmin,jmax
-               do i=2,s%nx
-                  if (s%breaking(i,j)==1) then
-                     lbreakcond(i-1:i+1,j-1:j+1) = par%secbrsteep
-                  endif
-               enddo
-            enddo
-         endif
-#ifdef USEMPI
-         call xmpi_shift_ee(lbreakcond)
-#endif
-         ! Now find areas where main breaking criterion is exceeded
-         do j=jmin,jmax
-            do i=2,s%nx
-               if (s%breaking(i,j)==1) then
-                  if(s%ws(i,j)<=0.d0) then
-                     s%breaking(i,j) = 0
-                  endif
-               else
-                  wmax = lbreakcond(i,j)*sqrt(par%g*s%hh(i,j))  ! add current term in here too
-                  if (s%ws(i,j)>=wmax) then
-                     s%breaking(i,j) = 1
-                  endif
-               endif
-            enddo
-         enddo
-         ! turn off non-hydrostatic pressure correction in areas with breaking and increase viscosity
-         do j=jmin,jmax
-            do i=2,s%nx
-               if (s%breaking(i,j)==1) then
-                  nonhZ(i,j) = 0
-                  s%pres(i,j) = 0.d0
-               endif
-            enddo
-         enddo
-      elseif (par%nhbreaker == 3) then
-         ! First determine local breaker criterion
-         lbreakcond = par%maxbrsteep
-         if (s%ny==0) then
-            do i=2,s%nx
-               if (s%breaking(i,1)==1) then
-                  lbreakcond(i-1:i+1,1) = par%secbrsteep
-               endif
-            enddo
-         else
-            do j=jmin,jmax
-               do i=2,s%nx
-                  if (s%breaking(i,j)==1) then
-                     lbreakcond(i-1:i+1,j-1:j+1) = par%secbrsteep
-                  endif
-               enddo
-            enddo
-         endif
-         ! Now find areas where main breaking criterion is exceeded
-         do j=jmin,jmax
-            do i=2,s%nx
-               s%wscrit(i,j) = lbreakcond(i,j)*sqrt(par%g*s%hh(i,j))  ! add current term in here too
-               if (s%breaking(i,j)==1) then
-                  if(s%ws(i,j)<=0.d0) then
-                     s%breaking(i,j) = 0
-                  endif
-               else
-                  if (s%ws(i,j)>=s%wscrit(i,j)) then
-                     s%breaking(i,j) = 1
-                  endif
-               endif
-            enddo
-         enddo
-         ! turn off non-hydrostatic pressure correction in areas with breaking and increase viscosity
-         do j=jmin,jmax
-            do i=2,s%nx
-               if (s%breaking(i,j)==1) then
-                  nonhZ(i,j) = 0
-                  s%pres(i,j) = 0.d0
-               endif
-            enddo
-         enddo
-      endif
-      !
-   end subroutine nonh_masks
 
    !
    !==============================================================================
