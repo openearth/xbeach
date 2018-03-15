@@ -799,7 +799,7 @@ contains
 #ifdef USEMPI
          call xmpi_bcast(filetype,toall)
 #endif
-      elseif (par%instat==WBCTYPE_REUSE) then
+      elseif (par%wbctype==WBCTYPE_REUSE .or. par%instat == INSTAT_REUSE) then
          ! See if this is reusing nonhydrostatic, or hydrostatic boundary conditions
          ! Note, check file length is done after recomputation of tstop due to morfacopt
          ! at the end of this subroutine.
@@ -1323,7 +1323,7 @@ contains
             call parmapply('form',5,par%form, par%form_str)
          endif
          
-         if (par%swave==1) then
+         if (par%wavemodel==WAVEMODEL_STATIONARY .or. par%wavemodel==WAVEMODEL_SURFBEAT) then
             call setallowednames('ruessink_vanrijn',  WAVEFORM_RUESSINK_VANRIJN,  &
                                  'vanthiel',          WAVEFORM_VANTHIEL)
             call setoldnames('1','2')

@@ -166,10 +166,10 @@ contains
 
       ! wwvv: added shift_ee
       ! R+D: ToDo, check needed
-#ifdef USEMPI
-      call xmpi_shift_ee(dvdy)
-      call xmpi_shift_ee(dudx)
-#endif
+!#ifdef USEMPI
+!      call xmpi_shift_ee(dvdy)
+!      call xmpi_shift_ee(dudx)
+!#endif
 
       ! Update bed roughness coefficient
       call bedroughness_update(s,par)
