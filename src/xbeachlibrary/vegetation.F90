@@ -79,7 +79,7 @@ subroutine veggie_init(s,par,veg)
     
     !character(1)                                :: ch
     integer                                     :: i,j,fid,ier,is,m,ind !pts,
-    !logical                                     :: toall = .true.
+    logical                                     :: toall = .true.
     
     if (par%vegetation == 1) then
         ! INITIALIZATION OF VEGETATION
