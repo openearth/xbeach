@@ -86,6 +86,9 @@ module ncoutput_module
 
    ! Ships
    integer :: shipdimid
+   
+   ! Vegetation
+   integer :: vegdimid
 
    ! Q3D
    integer :: Q3Ddimid
@@ -116,7 +119,7 @@ module ncoutput_module
 
    ! TODO: check out why these are sometimes used....
    integer :: tidetimedimid, windtimedimid
-   integer :: inoutdimid, tidecornersdimid, inoutdimid3
+   integer :: inoutdimid, tidecornersdimid
 
    ! local variables
    integer :: npointstotal
@@ -263,7 +266,6 @@ contains
 
       ! dimensions of length 2.... what is this.... TODO: find out what this is
       NF90(nf90_def_dim(ncid, 'inout', 2, inoutdimid))
-      NF90(nf90_def_dim(ncid, 'inout3', 3, inoutdimid3))
 
       ! write(*,*) 'Writing ndrifter', par%ndrifter
       if (par%ndrifter .gt. 0) then
@@ -276,7 +278,12 @@ contains
       if (par%nship .gt. 0) then
          NF90(nf90_def_dim(ncid, 'nship', par%nship, shipdimid))
       end if
-
+      
+      ! vegetation sections
+      if (par%vegetation .gt. 0) then
+         NF90(nf90_def_dim(ncid, 'nsecvegmax', s%nsecvegmax, vegdimid))
+      endif
+            
             ! write(*,*) 'Writing nz', par%nz
       if (par%nz .gt. 1) then
          NF90(nf90_def_dim(ncid, 'nz', par%nz, Q3Ddimid))
@@ -1625,8 +1632,6 @@ contains
          dimensionid = inoutdimid
        case('2')
          dimensionid = inoutdimid
-       case('3')
-         dimensionid = inoutdimid3
        case('par%nd')
          dimensionid = bedlayersdimid
        case('par%ndrifter')
@@ -1635,6 +1640,8 @@ contains
          dimensionid = shipdimid
        case('par%nz')
          dimensionid = Q3Ddimid
+       case('s%nsecvegmax')
+         dimensionid = vegdimid
        case default
          call writelog('els','','Unknown dimension expression:'  // expression)
          stop 1

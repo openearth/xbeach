@@ -263,7 +263,7 @@ contains
             ! Compute timestep
             if (par%ships==1)                                       call shipwave       (s,par,sh)
             if (par%swave==1)                                       call wave           (s,par)
-            if (par%vegetation==1)                                  call vegatt         (s,par,veg)
+            if (par%vegetation==1)                                  call vegatt         (s,par)
             if (par%gwflow==1)                                      call gwflow         (s,par)
             if ((par%flow==1).or.(par%wavemodel==WAVEMODEL_NONH))   call flow           (s,par)
             if (par%ndrifter>0)                                     call drifter        (s,par)

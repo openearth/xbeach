@@ -849,11 +849,12 @@ contains
       allocate(s%breaking(1:s%nx+1,1:s%ny+1))
       
       ! vegetation initialization
-      allocate(s%vegtype(1:s%nx+1,1:s%ny+1))
-      allocate(s%Cdveg(1:s%nx+1,1:s%ny+1,1:3))
-      allocate(s%ahveg(1:s%nx+1,1:s%ny+1,1:3))
-      allocate(s%bveg(1:s%nx+1,1:s%ny+1,1:3))
-      allocate(s%Nveg(1:s%nx+1,1:s%ny+1,1:3))
+      !allocate(s%vegtype(1:s%nx+1,1:s%ny+1))
+     ! allocate(s%nsecveg(1:s%nx+1,1:s%ny+1))
+      !allocate(s%Cdveg(1:s%nx+1,1:s%ny+1,1:3))
+      !allocate(s%ahveg(1:s%nx+1,1:s%ny+1,1:3))
+      !allocate(s%bveg(1:s%nx+1,1:s%ny+1,1:3))
+      !allocate(s%Nveg(1:s%nx+1,1:s%ny+1,1:3))
       
       ! added bed roughness due to second order effects
       allocate(s%taubx_add(1:s%nx+1,1:s%ny+1))
@@ -955,13 +956,13 @@ contains
          s%breaking = 0
       endif
       
-      if (par%vegetation==1) then
-         s%vegtype = 0
-         s%Cdveg   = 0.d0
-         s%ahveg   = 0.d0
-         s%bveg    = 0.d0
-         s%Nveg    = 0.d0
-      endif
+      !if (par%vegetation==1) then
+      !   s%vegtype = 0
+      !   s%Cdveg   = 0.d0
+      !   s%ahveg   = 0.d0
+      !   s%bveg    = 0.d0
+      !   s%Nveg    = 0.d0
+      !endif
 
       !
       ! set-up tide and surge waterlevels

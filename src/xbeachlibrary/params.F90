@@ -1663,6 +1663,7 @@ contains
          call check_file_exist(par%veggiefile)
          par%veggiemapfile = readkey_name  ('params.txt', 'veggiemapfile'                    )
          call check_file_exist(par%veggiemapfile)
+         par%Trep          = readkey_dbl   ('params.txt','Trep',     1.d0,   0.01d0,    20.d0)
          par%vegnonlin     = readkey_int   ('params.txt', 'vegnonlin',0,0,1,silent=.true.)
          par%vegcanflo     = readkey_int   ('params.txt', 'vegcanflo',0,0,1,silent=.true.)
          par%veguntow      = readkey_int   ('params.txt', 'veguntow', 1,0,1,silent=.true.)
