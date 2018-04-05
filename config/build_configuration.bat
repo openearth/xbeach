@@ -9,6 +9,8 @@ echo Selecting devenv to compile with (VS2008 or VS2010)
 
 IF %2==VS2010 GOTO VS2010
 
+IF %2==VS2012 GOTO VS2012
+
 set devenv_path="c:\Program Files\Microsoft Visual Studio 9.0\Common7\IDE"
 IF EXIST "C:\Program Files (x86)\" set devenv_path="c:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\IDE"
 GOTO COMPILE
@@ -16,6 +18,12 @@ GOTO COMPILE
 :VS2010
 set devenv_path="c:\Program Files\Microsoft Visual Studio 10.0\Common7\IDE"
 IF EXIST "C:\Program Files (x86)\" set devenv_path="c:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE"
+GOTO COMPILE
+
+:VS2012
+set devenv_path="c:\Program Files\Microsoft Visual Studio 12.0\Common7\IDE"
+IF EXIST "C:\Program Files (x86)\" set devenv_path="c:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\IDE"
+GOTO COMPILE
 
 :COMPILE
 echo devenv		: %devenv_path%
