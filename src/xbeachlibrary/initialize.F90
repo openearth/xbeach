@@ -1341,7 +1341,7 @@ contains
                   tempr=sum(s%pbbed(i,j,m,1:par%ngd))
                 if (abs(1.d0-tempr)>0.000001d0) then
                      ! Maybe fix this warning if in combination with structures
-                     call writelog('lws','(a,i,a,i,a,i,a)',' Warning: Resetting sum of sediment fractions in point (',&
+                     call writelog('lws','(a,i0,a,i0,a,i0,a)',' Warning: Resetting sum of sediment fractions in point (',&
                      i,',',j,') layer ,',m,&
                      ' to equal unity.')
                      if (tempr<=tiny(0.d0)) then    ! In case cell has zero sediment (i.e. only hard structure)
