@@ -1482,8 +1482,8 @@ contains
          endif
          par%bermslopetransport = readkey_int ('params.txt','bermslopetransport', 0, 0, 1,strict=.true.,silent=.true.)
          if (par%bermslopetransport==1) then
-            par%bermslopebed = readkey_int ('params.txt','bermslopebed', 0, 0,  1,strict=.true.)
-            par%bermslopesus = readkey_int ('params.txt','bermslopesus', 0, 0,  1,strict=.true.)        
+            par%bermslopebed = readkey_int ('params.txt','bermslopebed', 1, 0,  1,strict=.true.)
+            par%bermslopesus = readkey_int ('params.txt','bermslopesus', 1, 0,  1,strict=.true.)        
             par%bermslope   = readkey_dbl ('params.txt','bermslope ',0.1d0,     0.00d0,   1.0d0)
             par%bermslopefac = readkey_dbl ('params.txt','bermslopefac ',15.0d0, 0.00d0, 30.0d0)
             if (par%wavemodel==WAVEMODEL_SURFBEAT) then 

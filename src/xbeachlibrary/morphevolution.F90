@@ -369,7 +369,7 @@ contains
             if(par%bermslopebed==1) then  ! only update from false if used
                bermslopeindexbed = bermslopeindex
             endif
-            if(par%bermslopebed==1) then  ! only update from false if used
+            if(par%bermslopesus==1) then  ! only update from false if used
                bermslopeindexsus = bermslopeindex
             endif
          endif
