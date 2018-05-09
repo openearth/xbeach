@@ -341,7 +341,6 @@ module params
       integer                           :: bdslpeffini              = -123                 !  [name] Modify the critical shields parameter based on the bed slope
       integer                           :: bdslpeffdir              = -123                 !  [name] Modify the direction of the sediment transport based on the bed slope
       double precision                  :: bdslpeffdirfac           = -123                 !  [-] Calibration factor in the modification of the direction
-      double precision                  :: bermslope                = -123                 !  [-] Swash zone slope for (semi-) reflective beaches
       double precision                  :: ci                       = -123                 !  [-] (advanced) Mass coefficient in Shields inertia term
       double precision                  :: phit                     = -123                 !  [-] (advanced) Phase lag angle in Nielsen transport equation 
       integer*4                         :: incldzdx                 = -123                 !  [-] (advanced,silent) Turn on or off dzsdx term in Shields
@@ -360,6 +359,14 @@ module params
       real*8                            :: fsed                     = -123                 !  [-] (advanced,silent) constant sediment friction factor
       integer*4                         :: phaselag                 = -123                 !  [-] (advanced,silent) 1 = phase lag, 0 = no phase lag
       real*8                            :: thetcr                   = -123                 !  [-] (advanced,silent) critical shields param
+      integer*4                         :: bermslopetransport       = -123                 !  [-] (advanced,silent) Turn on or off bermslope swash transport model
+      integer*4                         :: bermslopebed             = -123                 !  [-] (advanced,silent) Turn on or off bermslope swash transport model for bed load
+      integer*4                         :: bermslopesus             = -123                 !  [-] (advanced,silent) Turn on or off bermslope swash transport model for suspended load
+      double precision                  :: bermslope                = -123                 !  [-] (advanced,silent) Swash zone slope for (semi-) reflective beaches
+      double precision                  :: bermslopefac             = -123                 !  [-] (advanced,silent) Bed slope transport factor for bermslope model
+      double precision                  :: bermslopegamma           = -123                 !  [-] (advanced,silent) Wave height - water depth ratio to turn on bermslope model in surf-beat
+      double precision                  :: bermslopedepth           = -123                 !  [-] (advanced,silent) Water depth to turn on on bermslope model in stationary and nonh
+
 
       ! [Section] Morphology parameters
       double precision                  :: morfac                   = -123                 !  [-] Morphological acceleration factor
@@ -1457,7 +1464,6 @@ contains
          else
             par%reposeangle         = readkey_dbl ('params.txt','reposeangle',  35.d0,     20.d0,     60.d0)
          endif
-         par%bermslope   = readkey_dbl ('params.txt','bermslope ',0.0d0,     0.00d0,   1.0d0,silent=.true.)         
          par%tsfac    = readkey_dbl ('params.txt','tsfac',   0.1d0,    0.01d0,   1.d0)
          par%Tsmin    = readkey_dbl ('params.txt','Tsmin  ',0.5d0,     0.01d0,   10.d0)
          par%facDc    = readkey_dbl ('params.txt','facDc  ',1.0d0,     0.00d0,   1.0d0)
@@ -1474,6 +1480,23 @@ contains
             par%rheeA               = readkey_dbl ('params.txt','rheeA',         0.75d0,   0.75d0, 2.d0) ! Between 3/4 and 1/(1-n), see paper Van Rhee (2010)
             par%pormax              = readkey_dbl ('params.txt','pormax',        0.5d0,    0.3d0, 0.6d0)
          endif
+         par%bermslopetransport = readkey_int ('params.txt','bermslopetransport', 0, 0, 1,strict=.true.,silent=.true.)
+         if (par%bermslopetransport==1) then
+            par%bermslopebed = readkey_int ('params.txt','bermslopebed', 0, 0,  1,strict=.true.)
+            par%bermslopesus = readkey_int ('params.txt','bermslopesus', 0, 0,  1,strict=.true.)        
+            par%bermslope   = readkey_dbl ('params.txt','bermslope ',0.1d0,     0.00d0,   1.0d0)
+            par%bermslopefac = readkey_dbl ('params.txt','bermslopefac ',15.0d0, 0.00d0, 30.0d0)
+            if (par%wavemodel==WAVEMODEL_SURFBEAT) then 
+               par%bermslopegamma = readkey_dbl ('params.txt','bermslopegamma ',1.0d0, 0.75d0, 1.5d0)
+               par%bermslopedepth = readkey_dbl ('params.txt','bermslopedepth ',0.0d0, 0.0d0, 0.5d0)
+            else
+               par%bermslopedepth = readkey_dbl ('params.txt','bermslopedepth ',1.0d0, 0.5d0, 1.5d0)
+            endif
+         else
+            par%bermslopebed = 0
+            par%bermslopesus = 0
+         endif
+         
       endif
       !
       ! Q3D sediment transport parameters

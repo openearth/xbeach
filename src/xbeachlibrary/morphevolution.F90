@@ -56,6 +56,7 @@ contains
       real*8,dimension(:,:),allocatable,save   :: cub,cvb,Sub,Svb,pbbedu,pbbedv
       real*8,dimension(:,:),allocatable,save   :: suq3d,svq3d,eswmax,eswbed,sigs,deltas
       real*8,dimension(:,:,:),allocatable,save :: dsig,ccv,sdif,cuq3d,cvq3d,fac
+      logical,dimension(:,:),allocatable,save  :: bermslopeindexbed,bermslopeindexsus,bermslopeindex
 
       real*8,dimension(:,:),allocatable,save   :: sinthm,costhm
 
@@ -107,6 +108,10 @@ contains
          allocate(cumchain(par%kmax))
          allocate (sinthm(s%nx+1,s%ny+1))
          allocate (costhm(s%nx+1,s%ny+1))
+         allocate(bermslopeindexbed(s%nx+1,s%ny+1))
+         allocate(bermslopeindexsus(s%nx+1,s%ny+1))
+         allocate(bermslopeindex(s%nx+1,s%ny+1))
+            
          delta_x   = 0.d0 ! Lodewijk
          shields   = 0.d0 ! Lodewijk
          ftheta    = 0.d0 ! Lodewijk
@@ -126,6 +131,9 @@ contains
             chain(isig) = par%sigfac**(isig-1)
             cumchain(isig) = cumchain(isig-1)+chain(isig)
          enddo
+         bermslopeindex = .false. ! turned off unless needed
+         bermslopeindexbed = .false.
+         bermslopeindexsus = .false.
       endif
 
       ! use eulerian velocities
@@ -265,32 +273,6 @@ contains
          ! bed load, Lodewijk: no bed slope effect (yet)
          Sub=par%bed*(cub*s%urepb*s%hu)*s%wetu
          !
-         ! Originally bed slope effect of XBeach : par%bdslpeffmag = 1
-         ! Original one, but only on bed load : par%bdslpeffmag = 2
-         if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL) then
-            if (par%bermslope>0) then
-               where (s%H/s%hu>1.0d0.or.(s%hu<1.d0.and. par%wavemodel == WAVEMODEL_STATIONARY))
-                  Sus = Sus-par%sus*(10.d0*par%facsl*cu*s%vmagu*s%hu*(s%dzbdx-par%bermslope))*s%wetu
-               elsewhere
-                  Sus = Sus-par%sus*(par%facsl*cu*s%vmagu*s%hu*s%dzbdx)*s%wetu
-               end where
-            else
-               Sus = Sus-par%sus*(par%facsl*cu*s%vmagu*s%hu*s%dzbdx)*s%wetu
-            endif
-         endif
-
-         if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL .or. par%bdslpeffmag == BDSLPEFFMAG_ROELV_BED) then
-            if (par%bermslope>0) then
-               where (s%H/s%hu>1.0d0 .or. (s%hu<1.d0.and. par%wavemodel == WAVEMODEL_STATIONARY))
-                  Sub = Sub-par%bed*(10.0d0*par%facsl*cub*s%vmagu*s%hu*(s%dzbdx-par%bermslope))*s%wetu
-               elsewhere
-                  Sub = Sub-par%bed*(par%facsl*cub*s%vmagu*s%hu*s%dzbdx)*s%wetu
-               end where
-            else
-               Sub = Sub-par%bed*(par%facsl*cub*s%vmagu*s%hu*s%dzbdx)*s%wetu 
-            endif
-         endif
-         !
          !
          ! Y-direction
          !
@@ -366,23 +348,64 @@ contains
          ! Bed load
          Svb=par%bed*(cvb*s%vrepb*s%hv)*s%wetv
          !
-         ! Originally bed slope magnitude effect of XBeach : par%bdslpeffmag = 1
-         ! Original one, but only on bed load : par%bdslpeffmag = 2
+         !
+         ! Bed slope effects and bermslope model
+         !
+         ! Where bermslope model should run
+         if (par%bermslopetransport==1) then ! only update from false if bermslope model is used
+            if (par%wavemodel == WAVEMODEL_SURFBEAT) then
+               where (s%H/s%hu>par%bermslopegamma .or. s%hu<par%bermslopedepth)
+                  bermslopeindex = .true.
+               elsewhere
+                  bermslopeindex = .false.
+               endwhere
+            else
+               where (s%hu<par%bermslopedepth)
+                  bermslopeindex = .true.
+               elsewhere
+                  bermslopeindex = .false.
+               endwhere
+            endif
+            if(par%bermslopebed==1) then  ! only update from false if used
+               bermslopeindexbed = bermslopeindex
+            endif
+            if(par%bermslopebed==1) then  ! only update from false if used
+               bermslopeindexsus = bermslopeindex
+            endif
+         endif
+         !
+         !
+         ! Do bermslope transports in bermslope locations [separated from previous to reduce block size]
+         where(bermslopeindexbed)
+            Sub = Sub-par%bed*(par%bermslopefac*cub*s%vmagu*s%hu*(s%dzbdx-par%bermslope))*s%wetu
+         endwhere
+         where(bermslopeindexsus)
+            Sus = Sus-par%sus*(par%bermslopefac* cu*s%vmagu*s%hu*(s%dzbdx-par%bermslope))*s%wetu
+         endwhere
+         !
+         !
+         ! Do regular bed slope effects in other locations
          if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL) then
-            Svs = Svs-par%sus*(par%facsl*cv*s%vmagv*s%hv*s%dzbdy)*s%wetv
-         endif
-         if (par%bdslpeffmag == BDSLPEFFMAG_ROELV_TOTAL .or. par%bdslpeffmag == BDSLPEFFMAG_ROELV_BED  ) then
+            where(.not. bermslopeindexbed)
+               Sub = Sub-par%bed*(par%facsl*cub*s%vmagu*s%hu*s%dzbdx)*s%wetu
+            endwhere
+            where (.not. bermslopeindexsus)
+               Sus = Sus-par%sus*(par%facsl*cu*s%vmagu*s%hu*s%dzbdx)*s%wetu
+            endwhere
             Svb = Svb-par%bed*(par%facsl*cvb*s%vmagv*s%hv*s%dzbdy)*s%wetv
-         endif
-         !
-         !
-         ! Bed slope magnitude effect (as Souslby intended) and change direction transport (see Van Rijn 1993 (section 7.2.6))
-         !
-         !
-         if (par%bdslpeffmag == BDSLPEFFMAG_SOULS_TOTAL .or. par%bdslpeffmag == BDSLPEFFMAG_SOULS_BED) then
+            Svs = Svs-par%sus*(par%facsl*cv*s%vmagv*s%hv*s%dzbdy)*s%wetv
+         elseif (par%bdslpeffmag == BDSLPEFFMAG_ROELV_BED) then
+            where(.not. bermslopeindexbed)
+               Sub = Sub-par%bed*(par%facsl*cub*s%vmagu*s%hu*s%dzbdx)*s%wetu
+            endwhere
+            Svb = Svb-par%bed*(par%facsl*cvb*s%vmagv*s%hv*s%dzbdy)*s%wetv
+         elseif (par%bdslpeffmag == BDSLPEFFMAG_SOULS_TOTAL .or. par%bdslpeffmag == BDSLPEFFMAG_SOULS_BED) then
+            !
+            ! Bed slope magnitude effect (as Souslby intended) and change direction transport (see Van Rijn 1993 (section 7.2.6))
+            !
             do j=1,s%ny+1
                do i=1,s%nx+1
-                  if ((dabs(Sub(i,j)) > 0.000001d0) .or. (dabs(Svb(i,j)) > 0.000001d0)) then
+                  if ((dabs(Sub(i,j)) > 0.000001d0) .or. (dabs(Svb(i,j)) > 0.000001d0) .and. (.not. bermslopeindexbed(i,j)) ) then
                      Sbmtot = dsqrt(  Sub(i,j)**2.d0  +  Svb(i,j)**2.d0   )
                      dzbds = s%dzbdx(i,j)*Sub(i,j)/Sbmtot + s%dzbdy(i,j)*Svb(i,j)/Sbmtot
                      ! dzbdn = s%dzbdx*Svb/Sbtot + s%dzbdy*Sub/Sbtot
@@ -390,7 +413,7 @@ contains
                      Svb(i,j) = Svb(i,j)*(1.d0 - par%facsl*dzbds)
                      !
                   endif
-                  if (((dabs(Sus(i,j)) > 0.000001d0) .or. (dabs(Svs(i,j)) > 0.000001d0)) &
+                  if (((dabs(Sus(i,j)) > 0.000001d0) .or. (dabs(Svs(i,j)) > 0.000001d0)) .and. (.not. bermslopeindexsus(i,j))  &
                   .and. par%bdslpeffmag == BDSLPEFFMAG_SOULS_TOTAL) then
                      Ssmtot = dsqrt(  Sus(i,j)**2.d0  +  Svs(i,j)**2.d0  )
                      dzbds = s%dzbdx(i,j)*Sus(i,j)/Ssmtot + s%dzbdy(i,j)*Svs(i,j)/Ssmtot
