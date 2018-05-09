@@ -116,6 +116,10 @@ subroutine veggie_init(s,par,veg)
             allocate(s%vcan(par%nx+1, par%ny+1))
                       
             s%vegtype = 0
+            s%Cdveg   = 0.d0
+            s%ahveg   = 0.d0
+            s%bveg    = 0.d0
+            s%Nveg    = 0.d0
             s%Dveg    = 0.d0
             s%Fvegu   = 0.d0
             s%Fvegv   = 0.d0
@@ -174,11 +178,7 @@ subroutine veggie_init(s,par,veg)
             allocate(s%ahveg(par%nx+1, par%ny+1, s%nsecvegmax))
             allocate(s%bveg(par%nx+1, par%ny+1,  s%nsecvegmax))
             allocate(s%Nveg(par%nx+1, par%ny+1,  s%nsecvegmax))
-            s%Cdveg   = 0.d0
-            s%ahveg   = 0.d0
-            s%bveg    = 0.d0
-            s%Nveg    = 0.d0
-
+                    
             do j = 1,s%ny+1
                 do i = 1,s%nx+1
                     ind = s%vegtype(i,j)                   
