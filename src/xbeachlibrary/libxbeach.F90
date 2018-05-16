@@ -187,9 +187,9 @@ contains
          !sglobal%nx = nxbak
          !sglobal%ny = nybak
       endif
-      call space_distribute_space (sglobal,s,par     )
+      call space_distribute_space (sglobal,s,par)
 #endif
-
+      
       call ranges_init(s)
 
       ! nonh_init does not always need to be called

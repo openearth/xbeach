@@ -90,8 +90,9 @@ subroutine veggie_init(s,par,veg)
 
         ! 1) Read veggiefile with veggie species
         par%nveg = count_lines(par%veggiefile)
-        allocate(veg(par%nveg))
+
         if (xmaster) then
+            allocate(veg(par%nveg))          
             fid=create_new_fid()
             call check_file_exist(par%veggiefile)
             open(fid,file=par%veggiefile)
@@ -99,22 +100,14 @@ subroutine veggie_init(s,par,veg)
                 read(fid,'(a)',iostat=ier) veg(i)%name
             enddo
             close(fid)
-        endif
 
-#ifdef USEMPI
-        do i=1,par%nveg
-            call xmpi_bcast(veg(i)%name,toall)
-        enddo
-#endif     
-
-        if (xmaster) then
             allocate(s%vegtype(par%nx+1, par%ny+1))
             allocate(s%Dveg(par%nx+1, par%ny+1))
             allocate(s%Fvegu(par%nx+1, par%ny+1))
             allocate(s%Fvegv(par%nx+1, par%ny+1))
             allocate(s%ucan(par%nx+1, par%ny+1))
             allocate(s%vcan(par%nx+1, par%ny+1))
-                      
+            
             s%vegtype = 0
             s%Cdveg   = 0.d0
             s%ahveg   = 0.d0
@@ -156,17 +149,18 @@ subroutine veggie_init(s,par,veg)
             ! 3)  Allocate and read vegetation properties for every species    
             do is=1,par%nveg  ! for each species
                 call check_file_exist(veg(is)%name)
-                veg(is)%nsec    = readkey_int(veg(is)%name,'nsec',  1,        1,      100, silent=.true.)! Number of vertical sections in vegetation schematization (max = 100)
+                veg(is)%nsec    = readkey_int(veg(is)%name,'nsec',  1,        1,      100, silent=.true., bcast=.false.)
+                ! Number of vertical sections in vegetation schematization (max = 100)
        
                 allocate (veg(is)%ah(veg(is)%nsec))
                 allocate (veg(is)%Cd(veg(is)%nsec))
                 allocate (veg(is)%bv(veg(is)%nsec))
                 allocate (veg(is)%N(veg(is)%nsec))
         
-                veg(is)%ah   =      readkey_dblvec(veg(is)%name,'ah',veg(is)%nsec,size(veg(is)%ah), 0.1d0,   0.01d0,     2.d0)
-                veg(is)%bv   =      readkey_dblvec(veg(is)%name,'bv',veg(is)%nsec,size(veg(is)%bv), 0.01d0, 0.001d0,    1.0d0)       
-                veg(is)%N    = nint(readkey_dblvec(veg(is)%name,'N', veg(is)%nsec,size(veg(is)%N) ,100.0d0,   1.0d0,  5000.d0))        
-                veg(is)%Cd   =      readkey_dblvec(veg(is)%name,'Cd',veg(is)%nsec,size(veg(is)%Cd),  0.0d0,  0.0d0,      3d0) 
+                veg(is)%ah   =      readkey_dblvec(veg(is)%name,'ah',veg(is)%nsec,size(veg(is)%ah), 0.1d0,   0.01d0,     2.d0, bcast=.false. )
+                veg(is)%bv   =      readkey_dblvec(veg(is)%name,'bv',veg(is)%nsec,size(veg(is)%bv), 0.01d0, 0.001d0,    1.0d0, bcast=.false. )       
+                veg(is)%N    = nint(readkey_dblvec(veg(is)%name,'N', veg(is)%nsec,size(veg(is)%N) ,100.0d0,   1.0d0,  5000.d0, bcast=.false. ))        
+                veg(is)%Cd   =      readkey_dblvec(veg(is)%name,'Cd',veg(is)%nsec,size(veg(is)%Cd),  0.0d0,  0.0d0,      3d0, bcast=.false. ) 
                 
                 ! Get maximum number of vegetation sections within model domain - needed to set size of Cd, ah, bv and Nv matrix
                 s%nsecvegmax = max(s%nsecvegmax, veg(is)%nsec)                               
@@ -234,7 +228,6 @@ subroutine veggie_init(s,par,veg)
 
        endif
     endif
-  
 end subroutine veggie_init
 
 subroutine vegatt(s,par)
