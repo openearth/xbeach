@@ -60,7 +60,7 @@ module vegetation_module
    
 contains
 
-subroutine veggie_init(s,par,veg)
+subroutine veggie_init(s,par)
     use params
     use xmpi_module    
     use spaceparams
@@ -73,11 +73,10 @@ subroutine veggie_init(s,par,veg)
 
     type(parameters)                            :: par
     type(spacepars), target                     :: s
-    type(veggie), dimension(:), pointer         :: veg
     
     !character(1)                                :: ch
+    type(veggie), dimension(:), allocatable     :: veg
     integer                                     :: i,j,fid,ier,is,m,ind
-    logical                                     :: toall = .true.
     
     if (par%vegetation == 1) then
         ! INITIALIZATION OF VEGETATION
@@ -193,6 +192,7 @@ subroutine veggie_init(s,par,veg)
                     endif
                 enddo
             enddo
+            deallocate(veg)
         endif
        
         call writelog('l','','--------------------------------')
@@ -225,7 +225,6 @@ subroutine veggie_init(s,par,veg)
           s%Fvegv = 0.d0
           s%ucan = 0.d0
           s%vcan = 0.d0
-
        endif
     endif
 end subroutine veggie_init

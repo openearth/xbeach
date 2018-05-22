@@ -34,7 +34,6 @@ module libxbeach_module
    type(spacepars), pointer             :: s
    type(spacepars), target              :: sglobal
    type(ship), dimension(:), pointer    :: sh
-   type(veggie), dimension(:), pointer  :: veg
 
    integer                              :: n,it,error
    real*8                               :: tbegin
@@ -169,7 +168,7 @@ contains
       ! to reserve memory on MPI subprocesses.
       ! Note: if par%ships==0 then don't allocate
       ! and read stuff for sh structures
-      call veggie_init         (s,par,veg)
+      call veggie_init         (s,par)
 
 #ifdef USEMPI
       call distribute_par(par)
