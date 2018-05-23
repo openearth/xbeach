@@ -50,6 +50,7 @@ contains
       integer                     :: i,imax,i1
       integer                     :: j
       integer                     :: itheta,iter
+      integer,save                :: scheme_local
       real*8,dimension(:),allocatable,save        :: dist,factor,e01
       real*8 , dimension(:,:)  ,allocatable,save  :: dhdx,dhdy,dudx,dudy,dvdx,dvdy
       real*8 , dimension(:,:)  ,allocatable,save  :: uorb
@@ -78,7 +79,12 @@ contains
          allocate(uorb(s%nx+1,s%ny+1))
          allocate(sinh2kh(s%nx+1,s%ny+1))
          allocate(Hprev(s%ny+1))
-
+         
+         if(par%scheme==SCHEME_WARMBEAM) then
+            scheme_local = SCHEME_UPWIND_2 ! note, this is already stated as warning in log file during read of params.txt
+         else
+            scheme_local = par%scheme
+         endif
       endif
 
    
@@ -168,19 +174,21 @@ contains
             !
             ! Upwind Euler timestep propagation
             !
-            ! Robert: can we also use WARMBEAM here?
-            if  (i>2.and. (par%scheme==SCHEME_UPWIND_2 .or. par%scheme==SCHEME_WARMBEAM)) then
+            ! Robert: can we also use WARMBEAM here? [Robert: answer is no!]
+            if  (i>2.and. scheme_local==SCHEME_UPWIND_2) then
                call advecxho(s%ee_s(i-2:i+1,:,:),s%cgx_s(i-2:i+1,:,:),xadvec(i-2:i+1,:,:),    &
-               3,s%ny,s%ntheta_s,s%dnu(i-2:i+1,:),s%dsu(i-2:i+1,:),s%dsdnzi(i-2:i+1,:),par%scheme, &
+               3,s%ny,s%ntheta_s,s%dnu(i-2:i+1,:),s%dsu(i-2:i+1,:),s%dsdnzi(i-2:i+1,:),SCHEME_UPWIND_2, &
                s%wete(i-2:i+1,:),par%dt,s%dsz)
             else
                call advecxho(s%ee_s(i-1:i+1,:,:),s%cgx_s(i-1:i+1,:,:),xadvec(i-1:i+1,:,:),    &
                2,s%ny,s%ntheta_s,s%dnu(i-1:i+1,:),s%dsu(i-1:i+1,:),s%dsdnzi(i-1:i+1,:),SCHEME_UPWIND_1,&
                s%wete(i-1:i+1,:),par%dt,s%dsz)
             endif
+            ! Robert: could this also be upwind_2 and/or warm-beam?
             call advecyho(s%ee_s(i,:,:),s%cgy_s(i,:,:),yadvec(i,:,:),                                  &
             0,s%ny,s%ntheta_s,s%dsv(i,:),s%dnv(i,:),s%dsdnzi(i,:),SCHEME_UPWIND_1,s%wete(i,:),par%dt,s%dnz)
-            call advecthetaho(s%ee_s(i,:,:),s%ctheta_s(i,:,:),thetaadvec(i,:,:),0,s%ny,s%ntheta_s,s%dtheta,par%scheme,s%wete(i,:))
+            ! Robert: could this also be warm-beam?
+            call advecthetaho(s%ee_s(i,:,:),s%ctheta_s(i,:,:),thetaadvec(i,:,:),0,s%ny,s%ntheta_s,s%dtheta,scheme_local,s%wete(i,:))
 
             s%ee_s(i,:,:)=s%ee_s(i,:,:)-dtw*(xadvec(i,:,:) + yadvec(i,:,:) + thetaadvec(i,:,:))
 #ifdef USEMPI

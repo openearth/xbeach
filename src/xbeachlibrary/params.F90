@@ -1694,7 +1694,7 @@ contains
       ! Wave numerics parameters
       call writelog('l','','--------------------------------')
       call writelog('l','','Wave numerics parameters: ')
-
+      
       call setallowednames('upwind_1',      SCHEME_UPWIND_1,      &
       'lax_wendroff',  SCHEME_LAX_WENDROFF,  &
       'upwind_2',      SCHEME_UPWIND_2,      &
@@ -1733,7 +1733,11 @@ contains
       par%eps_sd  = readkey_dbl ('params.txt','eps_sd',  0.5d0,     0.000d0,      1.0d0)
       par%umin    = readkey_dbl ('params.txt','umin',    0.0d0,     0.0d0,        0.2d0)
       par%hmin    = readkey_dbl ('params.txt','hmin',    0.2d0,     0.001d0,      1.d0)
-      par%secorder = readkey_int('params.txt','secorder' ,par%nonh,0,1,strict=.true.)
+      if (par%wavemodel==WAVEMODEL_NONH) then
+         par%secorder = readkey_int('params.txt','secorder' ,1,0,1,strict=.true.)
+      else
+         par%secorder = readkey_int('params.txt','secorder' ,0,0,1,strict=.true.)
+      endif
       par%oldhu    = readkey_int('params.txt','oldhu' ,0,0,1,silent=.true.,strict=.true.)
       !
       !
@@ -2127,6 +2131,26 @@ contains
          call halt_program
       endif
 #endif
+      ! 
+      ! Warm-beam scheme does not work for stationary wave model
+      if (par%wavemodel==WAVEMODEL_STATIONARY) then
+         if (par%scheme==SCHEME_LAX_WENDROFF) then
+            par%scheme=SCHEME_UPWIND_2
+            call writelog('lws','','Warning: Lax Wendroff [scheme=lax_wendroff] scheme is not supported.')
+            call writelog('lws','','         Changed to 2nd order upwind [scheme=upwind_2]')
+         elseif (par%scheme==SCHEME_WARMBEAM) then
+            par%scheme=SCHEME_UPWIND_2
+            call writelog('lws','','Warning: Warming and Beam [scheme=warmbeam] scheme is not supported in wave stationary mode.')
+            call writelog('lws','','         Changed to 2nd order upwind [scheme=upwind_2]')
+         endif
+      elseif (par%wavemodel==WAVEMODEL_SURFBEAT .and. par%single_dir==1) then
+         if (par%scheme==SCHEME_WARMBEAM) then
+            call writelog('lws','','Warning: Warming and Beam [scheme=warmbeam] scheme is not supported in stationary solver')  
+            call writelog('lws','','         (wave direction) component of single_dir wave model. Wave directions will be solved')
+            call writelog('lws','','         using 2nd order upwind scheme. Wave group propagation component will be soved using')
+            call writelog('lws','','         Warming and Beam scheme')
+         endif   
+      endif
       !
       ! Lax-Wendroff not yet supported in curvilinear
       if (par%scheme==SCHEME_LAX_WENDROFF) then
@@ -2134,6 +2158,8 @@ contains
          call writelog('lws','','Warning: Lax Wendroff [scheme=lax_wendroff] scheme is not supported, changed')
          call writelog('lws','','         to Warming and Beam [scheme=SCHEME_WARMBEAM]')
       endif
+      ! 
+      
       !
       ! Wave-current interaction with non-stationary waves still experimental
       if (par%wavemodel == WAVEMODEL_STATIONARY .and. par%wci==1) then
