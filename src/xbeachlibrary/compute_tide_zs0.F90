@@ -276,11 +276,26 @@ subroutine boundaryinterp_tide(s,par,globalonly,correctforwetz)
             if (xmpi_istop .or. globalonly_local) s%zs0(2,:) = s%zs0(1,:)
             if (xmpi_isbot .or. globalonly_local) s%zs0(s%nx,:) = s%zs0(s%nx+1,:)
          end select
-         
-         ! now set zs0 to zb level in all cells where the boundary neighbour is dry
          !
+         ! now set zs0 to zb level in all cells where the boundary neighbour is dry
          ! wetz not initialised until after tide initialised, so only apply this step after the first time step
          if (correctforwetz_local) then
+            ! Do whole domain
+            where(s%wetz==0)
+                s%zs0 = s%zb
+            endwhere
+            ! Fix 2D cases
+            if (par%ny>0) then
+              do i = 1,s%nx+1  
+                  if (s%wetz(i,2)==0) then
+                     s%zs0(i,1) = min(s%zb(i,1),s%zb(i,2))
+                  endif
+                  if (s%wetz(i,s%ny)==0) then
+                     s%zs0(i,s%ny+1) = min(s%zb(i,s%ny+1),s%zb(i,s%ny))
+                  endif
+              enddo
+            endif
+            ! Fix front and back
             do j=1,s%ny+1
                ! front
                if(s%wetz(2,j)==0) then 
@@ -291,22 +306,7 @@ subroutine boundaryinterp_tide(s,par,globalonly,correctforwetz)
                   s%zs0(s%nx+1,j) = min(s%zb(s%nx,j),s%zb(s%nx+1,j))
                endif
             enddo
-            do i = 1,s%nx+1
-               if (par%ny>0) then
-                  if (s%wetz(i,2)==0) then
-                     s%zs0(i,1) = min(s%zb(i,1),s%zb(i,2))
-                  endif
-                  if (s%wetz(i,s%ny)==0) then
-                     s%zs0(i,s%ny+1) = min(s%zb(i,s%ny+1),s%zb(i,s%ny))
-                  endif
-               else
-                  where(s%wetz==0)
-                     s%zs0 = s%zb
-                  endwhere
-               endif
-            enddo
          endif ! correctforwetz_local
-      
 end subroutine boundaryinterp_tide
 
 subroutine boundaryinterp_tide_complex(s,globalonly_local,boundaryID)
